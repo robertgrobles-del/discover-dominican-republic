@@ -25,6 +25,12 @@ import Prensa from "./pages/Prensa";
 import Galeria from "./pages/Galeria";
 import Terminos from "./pages/Terminos";
 import Newsletter from "./pages/Newsletter";
+import Playas from "./pages/Playas";
+import Rios from "./pages/Rios";
+import Alojamientos from "./pages/Alojamientos";
+import Estadisticas from "./pages/Estadisticas";
+import Partners from "./pages/Partners";
+import SobreNosotros from "./pages/SobreNosotros";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +46,9 @@ function AnimatedRoutes() {
         <Route path="/actividades" element={<Actividades />} />
         <Route path="/planifica" element={<Planifica />} />
         <Route path="/cultura" element={<Cultura />} />
+        <Route path="/playas" element={<Playas />} />
+        <Route path="/rios" element={<Rios />} />
+        <Route path="/alojamientos" element={<Alojamientos />} />
         <Route path="/alojamiento/:id" element={<AlojamientoDetalle />} />
         <Route path="/restaurante/:id" element={<RestauranteDetalle />} />
         <Route path="/revista" element={<Revista />} />
@@ -56,6 +65,9 @@ function AnimatedRoutes() {
         <Route path="/galeria" element={<Galeria />} />
         <Route path="/terminos" element={<Terminos />} />
         <Route path="/newsletter" element={<Newsletter />} />
+        <Route path="/estadisticas" element={<Estadisticas />} />
+        <Route path="/partners" element={<Partners />} />
+        <Route path="/sobre-nosotros" element={<SobreNosotros />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

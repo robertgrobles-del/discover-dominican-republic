@@ -3,12 +3,13 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navLinks = [
   { name: "Destinos", href: "/destinos" },
   { name: "Actividades", href: "/actividades" },
+  { name: "Playas", href: "/playas" },
   { name: "Cultura", href: "/cultura" },
-  { name: "Sostenible", href: "/sostenible" },
   { name: "Planifica", href: "/planifica" },
   { name: "Ayuda", href: "/ayuda" },
 ];
@@ -50,7 +51,8 @@ export function Header() {
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
               <Search className="h-5 w-5" />
             </Button>
