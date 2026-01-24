@@ -33,6 +33,10 @@ import Partners from "./pages/Partners";
 import SobreNosotros from "./pages/SobreNosotros";
 import DestinoDetalle from "./pages/DestinoDetalle";
 import DestinosRegiones from "./pages/DestinosRegiones";
+import Eventos from "./pages/Eventos";
+import ComoLlegar from "./pages/ComoLlegar";
+import Herramientas from "./pages/Herramientas";
+import Patrimonio from "./pages/Patrimonio";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -72,6 +76,10 @@ function AnimatedRoutes() {
         <Route path="/sobre-nosotros" element={<SobreNosotros />} />
         <Route path="/destino/:id" element={<DestinoDetalle />} />
         <Route path="/destinos-regiones" element={<DestinosRegiones />} />
+        <Route path="/eventos" element={<Eventos />} />
+        <Route path="/como-llegar" element={<ComoLlegar />} />
+        <Route path="/herramientas" element={<Herramientas />} />
+        <Route path="/patrimonio" element={<Patrimonio />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
