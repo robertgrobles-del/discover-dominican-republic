@@ -37,6 +37,8 @@ import Eventos from "./pages/Eventos";
 import ComoLlegar from "./pages/ComoLlegar";
 import Herramientas from "./pages/Herramientas";
 import Patrimonio from "./pages/Patrimonio";
+import InfoSeguridad from "./pages/InfoSeguridad";
+import InfoTransporte from "./pages/InfoTransporte";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -80,6 +82,8 @@ function AnimatedRoutes() {
         <Route path="/como-llegar" element={<ComoLlegar />} />
         <Route path="/herramientas" element={<Herramientas />} />
         <Route path="/patrimonio" element={<Patrimonio />} />
+        <Route path="/info/seguridad" element={<InfoSeguridad />} />
+        <Route path="/info/transporte" element={<InfoTransporte />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
