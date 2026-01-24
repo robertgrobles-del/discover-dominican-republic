@@ -13,6 +13,10 @@ import RestauranteDetalle from "./pages/RestauranteDetalle";
 import Revista from "./pages/Revista";
 import Aeropuerto from "./pages/Aeropuerto";
 import VidaNocturna from "./pages/VidaNocturna";
+import DirectorioAgencias from "./pages/DirectorioAgencias";
+import GuiaGastronomica from "./pages/GuiaGastronomica";
+import ChefPerfil from "./pages/ChefPerfil";
+import RecetaDetalle from "./pages/RecetaDetalle";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +38,10 @@ const App = () => (
           <Route path="/revista" element={<Revista />} />
           <Route path="/aeropuerto" element={<Aeropuerto />} />
           <Route path="/vida-nocturna" element={<VidaNocturna />} />
+          <Route path="/directorio-agencias" element={<DirectorioAgencias />} />
+          <Route path="/guia-gastronomica" element={<GuiaGastronomica />} />
+          <Route path="/chef/:id" element={<ChefPerfil />} />
+          <Route path="/receta/:id" element={<RecetaDetalle />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
