@@ -66,14 +66,22 @@ const stats = [
 export function HeroSlideshow() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [direction, setDirection] = useState(1); // 1 for next, -1 for prev
 
   const nextSlide = useCallback(() => {
+    setDirection(1);
     setCurrentSlide((prev) => (prev + 1) % slides.length);
   }, []);
 
   const prevSlide = useCallback(() => {
+    setDirection(-1);
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
   }, []);
+
+  const goToSlide = useCallback((index: number) => {
+    setDirection(index > currentSlide ? 1 : -1);
+    setCurrentSlide(index);
+  }, [currentSlide]);
 
   useEffect(() => {
     if (!isAutoPlaying) return;
@@ -82,6 +90,25 @@ export function HeroSlideshow() {
   }, [isAutoPlaying, nextSlide]);
 
   const slide = slides[currentSlide];
+
+  // Slide animation variants for cards
+  const cardVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 300 : -300,
+      opacity: 0,
+      scale: 0.9,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+    },
+    exit: (direction: number) => ({
+      x: direction > 0 ? -300 : 300,
+      opacity: 0,
+      scale: 0.9,
+    }),
+  };
 
   return (
     <section className="relative h-screen w-full flex flex-col overflow-hidden">
@@ -172,89 +199,97 @@ export function HeroSlideshow() {
             </motion.div>
           </div>
 
-          {/* Synced Preview Card */}
-          <div className="hidden lg:flex justify-end">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`card-${slide.id}`}
-                initial={{ opacity: 0, x: 50, scale: 0.95 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                exit={{ opacity: 0, x: -50, scale: 0.95 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="relative w-80 bg-card/80 backdrop-blur-md rounded-2xl overflow-hidden border border-border/50 shadow-2xl"
-              >
-                <div className="aspect-[4/3] relative overflow-hidden">
-                  <img
-                    src={slide.card.image}
-                    alt={slide.card.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-                  <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full">
-                    <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-                    <span className="text-xs font-medium">{slide.card.rating}</span>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-display font-bold text-foreground mb-2">{slide.card.title}</h3>
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      <span>{slide.card.location}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      <span>{slide.card.season}</span>
+          {/* Synced Preview Cards with Slide Animation */}
+          <div className="hidden lg:flex flex-col items-end">
+            <div className="relative w-80 h-[280px] overflow-hidden">
+              <AnimatePresence initial={false} custom={direction} mode="popLayout">
+                <motion.div
+                  key={`card-${slide.id}`}
+                  custom={direction}
+                  variants={cardVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{
+                    x: { type: "spring", stiffness: 300, damping: 30 },
+                    opacity: { duration: 0.3 },
+                    scale: { duration: 0.3 }
+                  }}
+                  className="absolute inset-0 bg-card/80 backdrop-blur-md rounded-2xl overflow-hidden border border-border/50 shadow-2xl"
+                >
+                  <div className="aspect-[4/3] relative overflow-hidden">
+                    <img
+                      src={slide.card.image}
+                      alt={slide.card.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full">
+                      <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                      <span className="text-xs font-medium">{slide.card.rating}</span>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </div>
+                  <div className="p-4">
+                    <h3 className="font-display font-bold text-foreground mb-2">{slide.card.title}</h3>
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        <span>{slide.card.location}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        <span>{slide.card.season}</span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
-        {/* Slide Controls - Positioned to the right and lower */}
-        <div className="absolute bottom-40 right-8 lg:right-16 flex items-center gap-4 z-20">
-          <Button
-            size="icon"
-            variant="outline"
-            className="rounded-full w-10 h-10 bg-background/50 backdrop-blur-sm"
-            onClick={() => {
-              setIsAutoPlaying(false);
-              prevSlide();
-            }}
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-          
-          <div className="flex gap-2">
-            {slides.map((_, index) => (
-              <button
-                key={index}
+            {/* Slide Controls - Below the cards */}
+            <div className="flex items-center gap-4 mt-6">
+              <Button
+                size="icon"
+                variant="outline"
+                className="rounded-full w-10 h-10 bg-background/50 backdrop-blur-sm"
                 onClick={() => {
                   setIsAutoPlaying(false);
-                  setCurrentSlide(index);
+                  prevSlide();
                 }}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  index === currentSlide
-                    ? "w-8 bg-primary"
-                    : "w-2 bg-muted-foreground/50 hover:bg-muted-foreground"
-                }`}
-              />
-            ))}
-          </div>
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              
+              <div className="flex gap-2">
+                {slides.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      setIsAutoPlaying(false);
+                      goToSlide(index);
+                    }}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      index === currentSlide
+                        ? "w-8 bg-primary"
+                        : "w-2 bg-muted-foreground/50 hover:bg-muted-foreground"
+                    }`}
+                  />
+                ))}
+              </div>
 
-          <Button
-            size="icon"
-            variant="outline"
-            className="rounded-full w-10 h-10 bg-background/50 backdrop-blur-sm"
-            onClick={() => {
-              setIsAutoPlaying(false);
-              nextSlide();
-            }}
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
+              <Button
+                size="icon"
+                variant="outline"
+                className="rounded-full w-10 h-10 bg-background/50 backdrop-blur-sm"
+                onClick={() => {
+                  setIsAutoPlaying(false);
+                  nextSlide();
+                }}
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
 
