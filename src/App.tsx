@@ -17,6 +17,10 @@ import DirectorioAgencias from "./pages/DirectorioAgencias";
 import GuiaGastronomica from "./pages/GuiaGastronomica";
 import ChefPerfil from "./pages/ChefPerfil";
 import RecetaDetalle from "./pages/RecetaDetalle";
+import Ayuda from "./pages/Ayuda";
+import Sostenible from "./pages/Sostenible";
+import Articulo from "./pages/Articulo";
+import Prensa from "./pages/Prensa";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +46,10 @@ const App = () => (
           <Route path="/guia-gastronomica" element={<GuiaGastronomica />} />
           <Route path="/chef/:id" element={<ChefPerfil />} />
           <Route path="/receta/:id" element={<RecetaDetalle />} />
+          <Route path="/ayuda" element={<Ayuda />} />
+          <Route path="/sostenible" element={<Sostenible />} />
+          <Route path="/articulo/:id" element={<Articulo />} />
+          <Route path="/prensa" element={<Prensa />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
