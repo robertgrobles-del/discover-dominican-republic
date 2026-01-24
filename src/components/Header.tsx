@@ -8,7 +8,9 @@ const navLinks = [
   { name: "Destinos", href: "/destinos" },
   { name: "Actividades", href: "/actividades" },
   { name: "Cultura", href: "/cultura" },
-  { name: "Planifica tu Viaje", href: "/planifica" },
+  { name: "Sostenible", href: "/sostenible" },
+  { name: "Planifica", href: "/planifica" },
+  { name: "Ayuda", href: "/ayuda" },
 ];
 
 export function Header() {
