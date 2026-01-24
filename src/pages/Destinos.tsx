@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronRight, Filter } from "lucide-react";
+import { ChevronRight, Filter, Waves, Utensils, Music, Calendar, Mountain, MapPin } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { PageTransition } from "@/components/PageTransition";
 import { Link } from "react-router-dom";
 import heroBeach from "@/assets/hero-beach.jpg";
@@ -28,6 +29,13 @@ const destinations = [
     tags: ["Relax", "Lujo"],
     region: "Región Este",
     featured: true,
+    activities: [
+      { icon: Waves, label: "Playas" },
+      { icon: Utensils, label: "Gastronomía" },
+      { icon: Music, label: "Vida Nocturna" },
+      { icon: Calendar, label: "Eventos" },
+    ],
+    highlights: ["32 km de playas", "Golf de clase mundial", "Resorts All-Inclusive"],
   },
   {
     id: "santo-domingo",
@@ -37,6 +45,13 @@ const destinations = [
     tags: ["Cultura", "Historia"],
     region: "Santo Domingo",
     featured: false,
+    activities: [
+      { icon: MapPin, label: "Patrimonio" },
+      { icon: Utensils, label: "Gastronomía" },
+      { icon: Music, label: "Vida Nocturna" },
+      { icon: Calendar, label: "Eventos" },
+    ],
+    highlights: ["Zona Colonial UNESCO", "Museos históricos", "Malecón"],
   },
   {
     id: "samana",
@@ -46,6 +61,12 @@ const destinations = [
     tags: ["Naturaleza Única"],
     region: "Región Norte",
     featured: false,
+    activities: [
+      { icon: Waves, label: "Playas" },
+      { icon: Mountain, label: "Aventura" },
+      { icon: Utensils, label: "Gastronomía" },
+    ],
+    highlights: ["Avistamiento de ballenas", "Salto del Limón", "Playa Rincón"],
   },
   {
     id: "la-romana",
@@ -55,6 +76,12 @@ const destinations = [
     tags: ["Exclusividad"],
     region: "Región Este",
     featured: false,
+    activities: [
+      { icon: Waves, label: "Playas" },
+      { icon: Utensils, label: "Gastronomía" },
+      { icon: Music, label: "Vida Nocturna" },
+    ],
+    highlights: ["Casa de Campo", "Altos de Chavón", "Isla Catalina"],
   },
   {
     id: "puerto-plata",
@@ -64,6 +91,12 @@ const destinations = [
     tags: ["Aventura"],
     region: "Región Norte",
     featured: false,
+    activities: [
+      { icon: Waves, label: "Playas" },
+      { icon: Mountain, label: "Aventura" },
+      { icon: Calendar, label: "Eventos" },
+    ],
+    highlights: ["Teleférico", "27 Charcos", "Fortaleza San Felipe"],
   },
   {
     id: "cabarete",
@@ -73,6 +106,12 @@ const destinations = [
     tags: ["Deportes", "Surf"],
     region: "Región Norte",
     featured: false,
+    activities: [
+      { icon: Waves, label: "Deportes Acuáticos" },
+      { icon: Music, label: "Vida Nocturna" },
+      { icon: Utensils, label: "Gastronomía" },
+    ],
+    highlights: ["Kitesurf", "Windsurf", "Ambiente internacional"],
   },
   {
     id: "jarabacoa",
@@ -82,6 +121,12 @@ const destinations = [
     tags: ["Montaña", "Ecoturismo"],
     region: "Región Norte",
     featured: false,
+    activities: [
+      { icon: Mountain, label: "Senderismo" },
+      { icon: Waves, label: "Ríos" },
+      { icon: Utensils, label: "Gastronomía" },
+    ],
+    highlights: ["Pico Duarte", "Rafting", "Clima fresco"],
   },
   {
     id: "bayahibe",
@@ -91,6 +136,11 @@ const destinations = [
     tags: ["Buceo", "Playa"],
     region: "Región Este",
     featured: false,
+    activities: [
+      { icon: Waves, label: "Buceo" },
+      { icon: Utensils, label: "Mariscos" },
+    ],
+    highlights: ["Parque Nacional del Este", "Isla Saona", "Pecios hundidos"],
   },
   {
     id: "las-terrenas",
@@ -100,6 +150,12 @@ const destinations = [
     tags: ["Bohemio", "Gastronomía"],
     region: "Región Norte",
     featured: false,
+    activities: [
+      { icon: Waves, label: "Playas" },
+      { icon: Utensils, label: "Gastronomía" },
+      { icon: Music, label: "Vida Nocturna" },
+    ],
+    highlights: ["Playa Cosón", "Cocina francesa", "Ambiente cosmopolita"],
   },
   {
     id: "bani",
@@ -109,6 +165,11 @@ const destinations = [
     tags: ["Dunas", "Único"],
     region: "Región Sur",
     featured: false,
+    activities: [
+      { icon: Waves, label: "Playas" },
+      { icon: Mountain, label: "Dunas" },
+    ],
+    highlights: ["Dunas de Baní", "Salinas", "Mangos de Baní"],
   },
   {
     id: "pedernales",
@@ -118,6 +179,11 @@ const destinations = [
     tags: ["Virgen", "Naturaleza"],
     region: "Región Sur",
     featured: false,
+    activities: [
+      { icon: Waves, label: "Playas Vírgenes" },
+      { icon: Mountain, label: "Ecoturismo" },
+    ],
+    highlights: ["Bahía de las Águilas", "Parque Jaragua", "Hoyo de Pelempito"],
   },
   {
     id: "constanza",
@@ -127,6 +193,11 @@ const destinations = [
     tags: ["Valle", "Agricultura"],
     region: "Región Norte",
     featured: false,
+    activities: [
+      { icon: Mountain, label: "Senderismo" },
+      { icon: Utensils, label: "Agro-turismo" },
+    ],
+    highlights: ["Valle Nuevo", "Aguas Blancas", "Fresas frescas"],
   },
 ];
 
@@ -218,35 +289,62 @@ export default function Destinos() {
               viewport={{ once: true }}
               className="mb-12"
             >
-              <div className="relative aspect-[21/9] rounded-2xl overflow-hidden group cursor-pointer">
-                <img
-                  src={dest.image}
-                  alt={dest.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-                <div className="absolute top-4 right-4 flex gap-2">
-                  {dest.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="bg-surface/80 backdrop-blur-sm text-foreground text-xs font-medium px-3 py-1 rounded-full"
-                    >
-                      {tag}
-                    </span>
-                  ))}
+              <Link to={`/destino/${dest.id}`} className="block">
+                <div className="relative aspect-[21/9] rounded-2xl overflow-hidden group cursor-pointer">
+                  <img
+                    src={dest.image}
+                    alt={dest.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+                  <div className="absolute top-4 right-4 flex gap-2">
+                    {dest.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="bg-surface/80 backdrop-blur-sm text-foreground text-xs font-medium px-3 py-1 rounded-full"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              </Link>
               <div className="mt-6">
-                <h2 className="font-display text-3xl md:text-4xl font-bold text-gradient mb-3">
-                  {dest.name}
-                </h2>
+                <Link to={`/destino/${dest.id}`}>
+                  <h2 className="font-display text-3xl md:text-4xl font-bold text-gradient mb-3 hover:opacity-80 transition-opacity">
+                    {dest.name}
+                  </h2>
+                </Link>
                 <p className="text-muted-foreground italic max-w-2xl mb-4">
                   "{dest.description}"
                 </p>
-                <Button variant="link" className="text-primary gap-2 p-0">
-                  Explorar destino
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+                
+                {/* Activities Icons */}
+                <div className="flex flex-wrap items-center gap-4 mb-4">
+                  <span className="text-sm text-muted-foreground">Qué hacer:</span>
+                  {dest.activities.map((activity) => (
+                    <div key={activity.label} className="flex items-center gap-1 text-sm">
+                      <activity.icon className="h-4 w-4 text-primary" />
+                      <span className="text-foreground">{activity.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Highlights */}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {dest.highlights.map((highlight) => (
+                    <Badge key={highlight} variant="secondary" className="text-xs">
+                      {highlight}
+                    </Badge>
+                  ))}
+                </div>
+
+                <Link to={`/destino/${dest.id}`}>
+                  <Button variant="link" className="text-primary gap-2 p-0">
+                    Explorar destino
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </Link>
               </div>
             </motion.div>
           ))}
@@ -266,36 +364,50 @@ export default function Destinos() {
                     index === 0 ? "md:row-span-2" : ""
                   }`}
                 >
-                  <div
-                    className={`relative rounded-2xl overflow-hidden ${
-                      index === 0 ? "aspect-[3/4]" : "aspect-video"
-                    }`}
-                  >
-                    <img
-                      src={dest.image}
-                      alt={dest.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-80" />
-                    <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <div className="flex gap-2 mb-3">
-                        {dest.tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="bg-primary/20 text-primary text-xs font-medium px-2 py-1 rounded"
-                          >
-                            {tag}
-                          </span>
-                        ))}
+                  <Link to={`/destino/${dest.id}`}>
+                    <div
+                      className={`relative rounded-2xl overflow-hidden ${
+                        index === 0 ? "aspect-[3/4]" : "aspect-video"
+                      }`}
+                    >
+                      <img
+                        src={dest.image}
+                        alt={dest.name}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-80" />
+                      <div className="absolute bottom-0 left-0 right-0 p-6">
+                        <div className="flex gap-2 mb-3">
+                          {dest.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="bg-primary/20 text-primary text-xs font-medium px-2 py-1 rounded"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                        <h3 className="font-display text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+                          {dest.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mt-2 italic">
+                          "{dest.description}"
+                        </p>
+                        
+                        {/* Activity Icons */}
+                        <div className="flex items-center gap-3 mt-3">
+                          {dest.activities.slice(0, 3).map((activity) => (
+                            <div key={activity.label} className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center" title={activity.label}>
+                              <activity.icon className="h-3 w-3 text-primary" />
+                            </div>
+                          ))}
+                          {dest.activities.length > 3 && (
+                            <span className="text-xs text-muted-foreground">+{dest.activities.length - 3}</span>
+                          )}
+                        </div>
                       </div>
-                      <h3 className="font-display text-xl font-bold text-foreground group-hover:text-primary transition-colors">
-                        {dest.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mt-2 italic">
-                        "{dest.description}"
-                      </p>
                     </div>
-                  </div>
+                  </Link>
                 </motion.div>
               ))}
           </div>
@@ -324,7 +436,9 @@ export default function Destinos() {
             <p className="text-muted-foreground mb-8 max-w-lg mx-auto">
               Déjanos guiarte hacia tu experiencia perfecta con nuestra herramienta de planificación.
             </p>
-            <Button size="lg">Planifica mi viaje</Button>
+            <Link to="/herramientas">
+              <Button size="lg">Planifica mi viaje</Button>
+            </Link>
           </motion.div>
         </div>
       </section>

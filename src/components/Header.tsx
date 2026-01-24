@@ -1,7 +1,11 @@
 import { useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Menu, X, ChevronRight, Globe, Compass, Plane, FileText, MapPin, Waves, Mountain, Utensils, Music, Calendar, Building2, Car } from "lucide-react";
+import { 
+  Search, Menu, X, ChevronRight, Globe, Compass, Plane, FileText, 
+  MapPin, Waves, Mountain, Utensils, Music, Calendar, Building2, Car,
+  Bed, Users, Heart, Info, BookOpen, Camera, Sun
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -10,38 +14,71 @@ import samana from "@/assets/samana.jpg";
 import santoDomingo from "@/assets/santo-domingo.jpg";
 import puertoPlata from "@/assets/puerto-plata.jpg";
 
-type MegaMenuType = "destinos" | "actividades" | "planifica" | null;
+type MegaMenuType = "dondeIr" | "queHacer" | "dondeQuedarse" | "planificar" | "sobreElPais" | null;
 
-const megaMenuDestinos = [
-  { name: "Punta Cana", desc: "Playas infinitas", image: puntaCana, href: "/destinos" },
-  { name: "Samaná", desc: "Naturaleza virgen", image: samana, href: "/destino/samana" },
-  { name: "Santo Domingo", desc: "Historia y Cultura", image: santoDomingo, href: "/destino/santo-domingo" },
-  { name: "Puerto Plata", desc: "Costa del Ámbar", image: puertoPlata, href: "/destinos" },
-];
+// DONDE IR - Destinos
+const megaMenuDondeIr = {
+  destinos: [
+    { name: "Punta Cana", desc: "Playas infinitas", image: puntaCana, href: "/destino/punta-cana" },
+    { name: "Samaná", desc: "Naturaleza virgen", image: samana, href: "/destino/samana" },
+    { name: "Santo Domingo", desc: "Historia y Cultura", image: santoDomingo, href: "/destino/santo-domingo" },
+    { name: "Puerto Plata", desc: "Costa del Ámbar", image: puertoPlata, href: "/destino/puerto-plata" },
+  ],
+  regiones: [
+    { name: "Región Norte", href: "/destinos?region=norte" },
+    { name: "Región Este", href: "/destinos?region=este" },
+    { name: "Región Sur", href: "/destinos?region=sur" },
+    { name: "Santo Domingo", href: "/destinos?region=santo-domingo" },
+  ]
+};
 
+// QUE HACER - Actividades y experiencias
 const megaMenuQueHacer = [
-  { name: "Playas", href: "/playas", icon: Waves },
-  { name: "Ríos y Cascadas", href: "/rios", icon: Mountain },
-  { name: "Gastronomía", href: "/guia-gastronomica", icon: Utensils },
-  { name: "Vida Nocturna", href: "/vida-nocturna", icon: Music },
-  { name: "Eventos y Festivales", href: "/eventos", icon: Calendar },
-  { name: "Patrimonio y Museos", href: "/patrimonio", icon: Building2 },
+  { name: "Playas", href: "/playas", icon: Waves, desc: "Descubre playas paradisíacas" },
+  { name: "Ríos y Cascadas", href: "/rios", icon: Mountain, desc: "Aventura en la naturaleza" },
+  { name: "Aventura y Deportes", href: "/actividades", icon: Compass, desc: "Senderismo, rafting, buceo" },
+  { name: "Gastronomía", href: "/guia-gastronomica", icon: Utensils, desc: "Sabores dominicanos" },
+  { name: "Vida Nocturna", href: "/vida-nocturna", icon: Music, desc: "Bares, clubs y shows" },
+  { name: "Eventos y Festivales", href: "/eventos", icon: Calendar, desc: "Agenda cultural" },
+  { name: "Patrimonio y Museos", href: "/patrimonio", icon: Building2, desc: "Historia y cultura" },
 ];
 
-const megaMenuPlanifica = [
-  { name: "Alojamientos", href: "/alojamientos", icon: Building2 },
-  { name: "Cómo Llegar", href: "/como-llegar", icon: Plane },
-  { name: "Herramientas de Viaje", href: "/herramientas", icon: Car },
-  { name: "Requisitos de Entrada", href: "/planifica", icon: FileText },
-  { name: "Directorio de Agencias", href: "/directorio-agencias", icon: Globe },
+// DONDE QUEDARSE
+const megaMenuDondeQuedarse = [
+  { name: "Hoteles y Resorts", href: "/alojamientos?tipo=hotel", icon: Building2 },
+  { name: "Eco-Lodges", href: "/alojamientos?tipo=ecolodge", icon: Mountain },
+  { name: "Villas Privadas", href: "/alojamientos?tipo=villa", icon: Bed },
+  { name: "Apartamentos", href: "/alojamientos?tipo=apartamento", icon: Building2 },
+  { name: "Todo Incluido", href: "/alojamientos?tipo=all-inclusive", icon: Sun },
+];
+
+// PLANIFICAR VIAJE
+const megaMenuPlanificar = [
+  { name: "Cómo Llegar", href: "/como-llegar", icon: Plane, desc: "Vuelos y conexiones" },
+  { name: "Aeropuertos", href: "/aeropuerto", icon: Plane, desc: "Info de aeropuertos" },
+  { name: "Requisitos de Entrada", href: "/planifica", icon: FileText, desc: "Visas y documentos" },
+  { name: "Transporte Interno", href: "/info/transporte", icon: Car, desc: "Cómo moverse" },
+  { name: "Herramientas de Viaje", href: "/herramientas", icon: Compass, desc: "Checklists y tips" },
+  { name: "Directorio de Agencias", href: "/directorio-agencias", icon: Users, desc: "Tour operadores" },
+];
+
+// SOBRE EL PAIS
+const megaMenuSobreElPais = [
+  { name: "Cultura y Tradiciones", href: "/cultura", icon: Heart, desc: "Música, baile, folclore" },
+  { name: "Historia", href: "/patrimonio", icon: BookOpen, desc: "500 años de historia" },
+  { name: "Gastronomía Típica", href: "/cultura#gastronomia", icon: Utensils, desc: "Platos tradicionales" },
+  { name: "Galería Multimedia", href: "/galeria", icon: Camera, desc: "Fotos y videos" },
+  { name: "Turismo Sostenible", href: "/sostenible", icon: Mountain, desc: "Viaja responsable" },
+  { name: "Información Práctica", href: "/info/seguridad", icon: Info, desc: "Seguridad y salud" },
+  { name: "Sobre Nosotros", href: "/sobre-nosotros", icon: Users, desc: "Quiénes somos" },
 ];
 
 const navLinks = [
-  { name: "Destinos", href: "/destinos", megaMenu: "destinos" as MegaMenuType },
-  { name: "Actividades", href: "/actividades", megaMenu: "actividades" as MegaMenuType },
-  { name: "Planifica", href: "/planifica", megaMenu: "planifica" as MegaMenuType },
-  { name: "Cultura", href: "/cultura", megaMenu: null },
-  { name: "Ayuda", href: "/ayuda", megaMenu: null },
+  { name: "Donde Ir", href: "/destinos", megaMenu: "dondeIr" as MegaMenuType },
+  { name: "Qué Hacer", href: "/actividades", megaMenu: "queHacer" as MegaMenuType },
+  { name: "Donde Quedarse", href: "/alojamientos", megaMenu: "dondeQuedarse" as MegaMenuType },
+  { name: "Planificar", href: "/planifica", megaMenu: "planificar" as MegaMenuType },
+  { name: "Sobre el País", href: "/cultura", megaMenu: "sobreElPais" as MegaMenuType },
 ];
 
 export function Header() {
@@ -134,8 +171,9 @@ export function Header() {
               onMouseLeave={handleMouseLeave}
             >
               <div className="container mx-auto px-4 lg:px-8 py-8">
-                {/* Destinos Mega Menu */}
-                {activeMegaMenu === "destinos" && (
+                
+                {/* DONDE IR Mega Menu */}
+                {activeMegaMenu === "dondeIr" && (
                   <div className="grid lg:grid-cols-4 gap-8">
                     <div className="lg:col-span-2">
                       <div className="flex items-center gap-2 text-primary mb-6">
@@ -143,7 +181,7 @@ export function Header() {
                         <h3 className="font-display font-bold uppercase tracking-wider text-sm">Destinos Populares</h3>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
-                        {megaMenuDestinos.map((item) => (
+                        {megaMenuDondeIr.destinos.map((item) => (
                           <Link
                             key={item.name}
                             to={item.href}
@@ -166,6 +204,24 @@ export function Header() {
                           </Link>
                         ))}
                       </div>
+                      
+                      {/* Regiones */}
+                      <div className="mt-6 pt-6 border-t border-border">
+                        <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-3">Por Región</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {megaMenuDondeIr.regiones.map((region) => (
+                            <Link
+                              key={region.name}
+                              to={region.href}
+                              onClick={() => setActiveMegaMenu(null)}
+                              className="text-sm text-foreground hover:text-primary px-3 py-1 bg-secondary/50 rounded-full hover:bg-secondary transition-colors"
+                            >
+                              {region.name}
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                      
                       <Link 
                         to="/destinos" 
                         onClick={() => setActiveMegaMenu(null)}
@@ -203,16 +259,73 @@ export function Header() {
                   </div>
                 )}
 
-                {/* Actividades Mega Menu */}
-                {activeMegaMenu === "actividades" && (
+                {/* QUE HACER Mega Menu */}
+                {activeMegaMenu === "queHacer" && (
+                  <div className="grid lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2">
+                      <div className="flex items-center gap-2 text-primary mb-6">
+                        <Compass className="h-5 w-5" />
+                        <h3 className="font-display font-bold uppercase tracking-wider text-sm">Experiencias</h3>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-2">
+                        {megaMenuQueHacer.map((item) => (
+                          <Link
+                            key={item.name}
+                            to={item.href}
+                            onClick={() => setActiveMegaMenu(null)}
+                            className="flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors group"
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                              <item.icon className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <span className="font-medium text-foreground group-hover:text-primary transition-colors block">
+                                {item.name}
+                              </span>
+                              <span className="text-xs text-muted-foreground">{item.desc}</span>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <Link 
+                        to="/playas" 
+                        onClick={() => setActiveMegaMenu(null)}
+                        className="group relative rounded-xl overflow-hidden aspect-[4/3] block"
+                      >
+                        <img src={puntaCana} alt="Playas" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                        <div className="absolute bottom-4 left-4">
+                          <span className="text-white font-semibold">Playas Paradisíacas</span>
+                        </div>
+                      </Link>
+                      <Link 
+                        to="/eventos" 
+                        onClick={() => setActiveMegaMenu(null)}
+                        className="group relative rounded-xl overflow-hidden aspect-[4/3] block"
+                      >
+                        <img src={santoDomingo} alt="Eventos" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                        <div className="absolute bottom-4 left-4">
+                          <span className="text-white font-semibold">Eventos y Festivales</span>
+                        </div>
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
+                {/* DONDE QUEDARSE Mega Menu */}
+                {activeMegaMenu === "dondeQuedarse" && (
                   <div className="grid lg:grid-cols-3 gap-8">
                     <div>
                       <div className="flex items-center gap-2 text-primary mb-6">
-                        <Compass className="h-5 w-5" />
-                        <h3 className="font-display font-bold uppercase tracking-wider text-sm">Qué Hacer</h3>
+                        <Bed className="h-5 w-5" />
+                        <h3 className="font-display font-bold uppercase tracking-wider text-sm">Alojamiento</h3>
                       </div>
                       <nav className="space-y-1">
-                        {megaMenuQueHacer.map((item) => (
+                        {megaMenuDondeQuedarse.map((item) => (
                           <Link
                             key={item.name}
                             to={item.href}
@@ -228,37 +341,48 @@ export function Header() {
                           </Link>
                         ))}
                       </nav>
+                      <Link 
+                        to="/alojamientos" 
+                        onClick={() => setActiveMegaMenu(null)}
+                        className="inline-flex items-center gap-1 text-primary text-sm font-medium hover:underline mt-6"
+                      >
+                        Ver todos los alojamientos <ChevronRight className="h-4 w-4" />
+                      </Link>
                     </div>
                     
-                    <div className="lg:col-span-2 grid grid-cols-2 gap-4">
-                      <Link 
-                        to="/playas" 
-                        onClick={() => setActiveMegaMenu(null)}
-                        className="group relative rounded-xl overflow-hidden aspect-[4/3]"
-                      >
-                        <img src={puntaCana} alt="Playas" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                        <div className="absolute bottom-4 left-4">
-                          <span className="text-white font-semibold">Playas Paradisíacas</span>
+                    <div className="lg:col-span-2">
+                      <div className="bg-card rounded-2xl border border-border p-6">
+                        <h4 className="font-display font-bold text-foreground mb-2">¿Buscas algo especial?</h4>
+                        <p className="text-muted-foreground text-sm mb-4">
+                          Desde resorts de lujo frente al mar hasta eco-lodges en la montaña.
+                        </p>
+                        <div className="grid grid-cols-2 gap-4">
+                          <Link 
+                            to="/alojamientos?tipo=all-inclusive" 
+                            onClick={() => setActiveMegaMenu(null)}
+                            className="bg-secondary/50 rounded-xl p-4 hover:bg-secondary transition-colors"
+                          >
+                            <Sun className="h-6 w-6 text-primary mb-2" />
+                            <p className="font-semibold text-foreground text-sm">Todo Incluido</p>
+                            <p className="text-xs text-muted-foreground">Relax sin preocupaciones</p>
+                          </Link>
+                          <Link 
+                            to="/alojamientos?tipo=ecolodge" 
+                            onClick={() => setActiveMegaMenu(null)}
+                            className="bg-secondary/50 rounded-xl p-4 hover:bg-secondary transition-colors"
+                          >
+                            <Mountain className="h-6 w-6 text-primary mb-2" />
+                            <p className="font-semibold text-foreground text-sm">Eco-Lodges</p>
+                            <p className="text-xs text-muted-foreground">Turismo sostenible</p>
+                          </Link>
                         </div>
-                      </Link>
-                      <Link 
-                        to="/eventos" 
-                        onClick={() => setActiveMegaMenu(null)}
-                        className="group relative rounded-xl overflow-hidden aspect-[4/3]"
-                      >
-                        <img src={santoDomingo} alt="Eventos" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                        <div className="absolute bottom-4 left-4">
-                          <span className="text-white font-semibold">Eventos y Festivales</span>
-                        </div>
-                      </Link>
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* Planifica Mega Menu */}
-                {activeMegaMenu === "planifica" && (
+                {/* PLANIFICAR Mega Menu */}
+                {activeMegaMenu === "planificar" && (
                   <div className="grid lg:grid-cols-3 gap-8">
                     <div>
                       <div className="flex items-center gap-2 text-primary mb-6">
@@ -266,7 +390,7 @@ export function Header() {
                         <h3 className="font-display font-bold uppercase tracking-wider text-sm">Planifica tu Viaje</h3>
                       </div>
                       <nav className="space-y-1">
-                        {megaMenuPlanifica.map((item) => (
+                        {megaMenuPlanificar.map((item) => (
                           <Link
                             key={item.name}
                             to={item.href}
@@ -276,9 +400,12 @@ export function Header() {
                             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                               <item.icon className="h-4 w-4 text-primary" />
                             </div>
-                            <span className="text-foreground group-hover:text-primary transition-colors">
-                              {item.name}
-                            </span>
+                            <div>
+                              <span className="text-foreground group-hover:text-primary transition-colors block text-sm">
+                                {item.name}
+                              </span>
+                              <span className="text-xs text-muted-foreground">{item.desc}</span>
+                            </div>
                           </Link>
                         ))}
                       </nav>
@@ -314,6 +441,60 @@ export function Header() {
                     </div>
                   </div>
                 )}
+
+                {/* SOBRE EL PAIS Mega Menu */}
+                {activeMegaMenu === "sobreElPais" && (
+                  <div className="grid lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2">
+                      <div className="flex items-center gap-2 text-primary mb-6">
+                        <Heart className="h-5 w-5" />
+                        <h3 className="font-display font-bold uppercase tracking-wider text-sm">Conoce el País</h3>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-2">
+                        {megaMenuSobreElPais.map((item) => (
+                          <Link
+                            key={item.name}
+                            to={item.href}
+                            onClick={() => setActiveMegaMenu(null)}
+                            className="flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors group"
+                          >
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                              <item.icon className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <span className="font-medium text-foreground group-hover:text-primary transition-colors block">
+                                {item.name}
+                              </span>
+                              <span className="text-xs text-muted-foreground">{item.desc}</span>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Link 
+                        to="/cultura" 
+                        onClick={() => setActiveMegaMenu(null)}
+                        className="block group relative rounded-2xl overflow-hidden aspect-[4/3]"
+                      >
+                        <img src={santoDomingo} alt="Cultura" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-4">
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium mb-2">
+                            DESCUBRE
+                          </span>
+                          <h4 className="font-display text-lg font-bold text-white">
+                            Cultura Dominicana
+                          </h4>
+                          <p className="text-white/80 text-sm">
+                            Música, gastronomía y tradiciones
+                          </p>
+                        </div>
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
@@ -343,6 +524,7 @@ export function Header() {
                   <Link to="/eventos" onClick={() => setIsMenuOpen(false)} className="block py-2 text-muted-foreground hover:text-primary">Eventos</Link>
                   <Link to="/patrimonio" onClick={() => setIsMenuOpen(false)} className="block py-2 text-muted-foreground hover:text-primary">Patrimonio</Link>
                   <Link to="/como-llegar" onClick={() => setIsMenuOpen(false)} className="block py-2 text-muted-foreground hover:text-primary">Cómo Llegar</Link>
+                  <Link to="/alojamientos" onClick={() => setIsMenuOpen(false)} className="block py-2 text-muted-foreground hover:text-primary">Alojamientos</Link>
                 </div>
               </nav>
             </motion.div>
