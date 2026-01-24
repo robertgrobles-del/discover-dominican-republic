@@ -109,7 +109,7 @@ export function Footer() {
           </div>
 
           <p className="text-sm text-muted-foreground text-center">
-            © 2024 Ministerio de Turismo de República Dominicana. Todos los derechos reservados.
+            © 2024 Descubre República Dominicana. Todos los derechos reservados.
           </p>
 
           <div className="flex items-center gap-4">
