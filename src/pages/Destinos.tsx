@@ -4,17 +4,24 @@ import { ChevronRight, Filter } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { PageTransition } from "@/components/PageTransition";
+import { Link } from "react-router-dom";
 import heroBeach from "@/assets/hero-beach.jpg";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import samanaImg from "@/assets/samana.jpg";
 import laRomanaImg from "@/assets/la-romana.jpg";
 import puertoPlataImg from "@/assets/puerto-plata.jpg";
+import beachCategoryImg from "@/assets/beach-category.jpg";
+import adventureImg from "@/assets/adventure.jpg";
+import divingImg from "@/assets/diving.jpg";
+import whaleSamanaImg from "@/assets/whale-samana.jpg";
 
-const filters = ["Todos", "Región Norte", "Región Este", "Santo Domingo"];
+const filters = ["Todos", "Región Norte", "Región Este", "Región Sur", "Santo Domingo"];
 
 const destinations = [
   {
+    id: "punta-cana",
     name: "Punta Cana",
     description: "Donde el Atlántico encuentra al Caribe, un santuario de arena blanca y aguas turquesas que redefinen el descanso eterno.",
     image: puntaCanaImg,
@@ -23,6 +30,7 @@ const destinations = [
     featured: true,
   },
   {
+    id: "santo-domingo",
     name: "Santo Domingo",
     description: "La Ciudad Primada de América. Un laberinto de piedras centenarias que guardan los secretos del Nuevo Mundo.",
     image: santoDomingoImg,
@@ -31,6 +39,7 @@ const destinations = [
     featured: false,
   },
   {
+    id: "samana",
     name: "Samaná",
     description: "Donde las ballenas danzan y la selva esmeralda abraza playas vírgenes. El alma cruda del Caribe.",
     image: samanaImg,
@@ -39,6 +48,7 @@ const destinations = [
     featured: false,
   },
   {
+    id: "la-romana",
     name: "La Romana",
     description: "Elegancia caribeña con toques de sofisticación excepcional. Destino de lujo por excelencia.",
     image: laRomanaImg,
@@ -47,10 +57,74 @@ const destinations = [
     featured: false,
   },
   {
+    id: "puerto-plata",
     name: "Puerto Plata",
     description: "La novia del Atlántico, victoriosa y vibrante, entre la montaña y el mar.",
     image: puertoPlataImg,
     tags: ["Aventura"],
+    region: "Región Norte",
+    featured: false,
+  },
+  {
+    id: "cabarete",
+    name: "Cabarete",
+    description: "Capital mundial del kitesurfing. Playas interminables donde el viento te invita a volar sobre las olas.",
+    image: beachCategoryImg,
+    tags: ["Deportes", "Surf"],
+    region: "Región Norte",
+    featured: false,
+  },
+  {
+    id: "jarabacoa",
+    name: "Jarabacoa",
+    description: "Los Alpes dominicanos. Montañas esmeralda, ríos cristalinos y el aire más puro del Caribe.",
+    image: adventureImg,
+    tags: ["Montaña", "Ecoturismo"],
+    region: "Región Norte",
+    featured: false,
+  },
+  {
+    id: "bayahibe",
+    name: "Bayahíbe",
+    description: "Pueblo de pescadores convertido en paraíso del buceo. Arrecifes vibrantes y aguas de ensueño.",
+    image: divingImg,
+    tags: ["Buceo", "Playa"],
+    region: "Región Este",
+    featured: false,
+  },
+  {
+    id: "las-terrenas",
+    name: "Las Terrenas",
+    description: "El secreto mejor guardado de Samaná. Playas doradas y ambiente bohemio europeo.",
+    image: whaleSamanaImg,
+    tags: ["Bohemio", "Gastronomía"],
+    region: "Región Norte",
+    featured: false,
+  },
+  {
+    id: "bani",
+    name: "Baní",
+    description: "Dunas de arena dorada que abrazan el mar. Un desierto caribeño único en el mundo.",
+    image: heroBeach,
+    tags: ["Dunas", "Único"],
+    region: "Región Sur",
+    featured: false,
+  },
+  {
+    id: "pedernales",
+    name: "Pedernales",
+    description: "La frontera salvaje. Bahía de las Águilas y paisajes vírgenes que desafían la imaginación.",
+    image: beachCategoryImg,
+    tags: ["Virgen", "Naturaleza"],
+    region: "Región Sur",
+    featured: false,
+  },
+  {
+    id: "constanza",
+    name: "Constanza",
+    description: "El valle encantado a 1,200 metros de altura. Fresas, flores y clima primaveral todo el año.",
+    image: adventureImg,
+    tags: ["Valle", "Agricultura"],
     region: "Región Norte",
     featured: false,
   },
@@ -64,6 +138,7 @@ export default function Destinos() {
   );
 
   return (
+    <PageTransition>
     <div className="min-h-screen bg-background">
       <Header />
 
@@ -256,5 +331,6 @@ export default function Destinos() {
 
       <Footer />
     </div>
+    </PageTransition>
   );
 }
