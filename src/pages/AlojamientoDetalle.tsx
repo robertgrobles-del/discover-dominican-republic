@@ -39,7 +39,26 @@ const hotelData = {
   images: [hotelEdenRocImg, hotelRoomSuiteImg, heroBeachImg, puntaCanaImg, laRomanaImg],
   description:
     'Experimente un servicio de clase mundial en el corazón de La Romana. Este exclusivo resort cuenta con playas privadas, una marina de lujo y el campo de golf número uno en el Caribe, "Teeth of the Dog". Las villas privadas ofrecen una escapada tranquila con piscinas personales y mayordomo dedicado, asegurando que cada momento sea inolvidable.',
-  tags: ["Lujo", "Frente al mar", "Golf"],
+  highlights: [
+    "3 campos de golf de 18 hoyos diseñados por Pete Dye",
+    "7 kilómetros de playa privada",
+    "Marina con capacidad para 350 embarcaciones",
+    "Centro ecuestre con 250 caballos",
+    "Kids Club con programa de actividades",
+  ],
+  awards: [
+    { name: "Forbes Travel Guide", rating: "5 Estrellas", year: 2024 },
+    { name: "TripAdvisor Travelers' Choice", rating: "Top 1%", year: 2024 },
+    { name: "World Golf Awards", rating: "Mejor Resort del Caribe", year: 2023 },
+  ],
+  policies: {
+    checkIn: "3:00 PM",
+    checkOut: "12:00 PM",
+    cancellation: "Cancelación gratuita hasta 48 horas antes",
+    children: "Niños de todas las edades son bienvenidos",
+    pets: "Se aceptan mascotas con cargo adicional",
+  },
+  tags: ["Lujo", "Frente al mar", "Golf", "Spa", "Familia"],
   services: [
     { icon: Waves, name: "Piscina Infinita" },
     { icon: Sparkles, name: "Spa de Lujo" },
@@ -60,6 +79,7 @@ const hotelData = {
       price: 450,
       breakfast: true,
       image: hotelRoomSuiteImg,
+      description: "Habitación elegante con balcón privado, perfecta para parejas que buscan tranquilidad.",
     },
     {
       name: "Premier Ocean View Suite",
@@ -70,12 +90,28 @@ const hotelData = {
       price: 620,
       breakfast: false,
       image: heroBeachImg,
+      description: "Suite espaciosa con vistas panorámicas al Caribe y sala de estar independiente.",
+    },
+    {
+      name: "Villa Privada 3 Habitaciones",
+      size: "250 m²",
+      view: "Vista al Campo de Golf",
+      bed: "3 Camas King",
+      amenities: ["Piscina Privada", "Chef Personal", "Butler"],
+      price: 1800,
+      breakfast: true,
+      image: puntaCanaImg,
+      description: "Villa exclusiva con mayordomo dedicado, piscina privada y carrito de golf incluido.",
     },
   ],
   nearby: [
     { name: "Altos de Chavón", distance: "2.5 km", type: "Cultural", image: laRomanaImg },
     { name: "Playa Minitas", distance: "0.5 km", type: "Playa", image: puntaCanaImg },
     { name: "Marina La Romana", distance: "1.2 km", type: "Náutica", image: heroBeachImg },
+  ],
+  reviews_sample: [
+    { author: "María G.", rating: 5, text: "Experiencia inolvidable. El servicio es impecable y las instalaciones de primer nivel.", date: "Hace 2 semanas" },
+    { author: "John D.", rating: 5, text: "Best golf resort in the Caribbean. Teeth of the Dog is a must-play!", date: "Hace 1 mes" },
   ],
 };
 
@@ -235,6 +271,41 @@ export default function AlojamientoDetalle() {
               </div>
             </div>
 
+            {/* Highlights */}
+            <div className="bg-primary/5 rounded-2xl p-6 border border-primary/20">
+              <h2 className="font-display text-xl font-bold text-foreground mb-4">
+                ¿Por qué elegir este resort?
+              </h2>
+              <ul className="grid md:grid-cols-2 gap-3">
+                {hotel.highlights.map((highlight, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    {highlight}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Awards */}
+            <div>
+              <h2 className="font-display text-xl font-bold text-foreground mb-4">
+                Reconocimientos
+              </h2>
+              <div className="flex flex-wrap gap-3">
+                {hotel.awards.map((award, idx) => (
+                  <div key={idx} className="bg-surface rounded-xl p-4 border border-border flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Star className="h-5 w-5 text-primary fill-primary" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground text-sm">{award.name}</p>
+                      <p className="text-xs text-muted-foreground">{award.rating} • {award.year}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Services */}
             <div>
               <div className="flex items-center justify-between mb-6">
@@ -349,6 +420,55 @@ export default function AlojamientoDetalle() {
                     <p className="text-xs text-muted-foreground">
                       A {place.distance} • {place.type}
                     </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Policies */}
+            <div>
+              <h2 className="font-display text-2xl font-bold text-foreground mb-6">
+                Políticas del Hotel
+              </h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-surface rounded-xl p-4 border border-border">
+                  <p className="text-sm text-muted-foreground mb-1">Check-in</p>
+                  <p className="font-semibold text-foreground">{hotel.policies.checkIn}</p>
+                </div>
+                <div className="bg-surface rounded-xl p-4 border border-border">
+                  <p className="text-sm text-muted-foreground mb-1">Check-out</p>
+                  <p className="font-semibold text-foreground">{hotel.policies.checkOut}</p>
+                </div>
+                <div className="bg-surface rounded-xl p-4 border border-border md:col-span-2">
+                  <p className="text-sm text-muted-foreground mb-1">Cancelación</p>
+                  <p className="font-semibold text-foreground">{hotel.policies.cancellation}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Guest Reviews */}
+            <div>
+              <h2 className="font-display text-2xl font-bold text-foreground mb-6">
+                Opiniones de Huéspedes
+              </h2>
+              <div className="space-y-4">
+                {hotel.reviews_sample.map((review, idx) => (
+                  <div key={idx} className="bg-surface rounded-xl p-4 border border-border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="font-semibold text-primary">{review.author.charAt(0)}</span>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-foreground">{review.author}</p>
+                        <div className="flex items-center gap-1">
+                          {[...Array(review.rating)].map((_, i) => (
+                            <Star key={i} className="h-3 w-3 text-primary fill-primary" />
+                          ))}
+                        </div>
+                      </div>
+                      <span className="ml-auto text-xs text-muted-foreground">{review.date}</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{review.text}</p>
                   </div>
                 ))}
               </div>

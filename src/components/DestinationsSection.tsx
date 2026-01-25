@@ -6,6 +6,7 @@ import { FavoriteButton } from "@/components/FavoriteButton";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import samanaImg from "@/assets/samana.jpg";
+import puertoPlataImg from "@/assets/puerto-plata.jpg";
 
 const destinations = [
   {
@@ -25,6 +26,12 @@ const destinations = [
     name: "Samaná",
     description: "Naturaleza virgen, ballenas jorobadas y cascadas impresionantes.",
     image: samanaImg,
+  },
+  {
+    id: "puerto-plata",
+    name: "Puerto Plata",
+    description: "La Costa del Ámbar con teleférico, playas doradas y 27 Charcos.",
+    image: puertoPlataImg,
   },
 ];
 
@@ -67,7 +74,7 @@ export function DestinationsSection() {
         </div>
 
         {/* Destination Cards */}
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {destinations.map((destination, index) => (
             <motion.div
               key={destination.id}
@@ -75,7 +82,7 @@ export function DestinationsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="group relative aspect-[3/4] rounded-2xl overflow-hidden"
+              className="group relative aspect-[3/4] rounded-xl overflow-hidden"
             >
               <Link to={`/destino/${destination.id}`} className="block h-full">
                 {/* Background Image */}

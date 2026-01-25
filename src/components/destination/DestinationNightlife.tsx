@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Music, Clock, ChevronRight, Sparkles } from "lucide-react";
+import { Music, Clock, ChevronRight, Star, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -9,12 +9,26 @@ interface NightlifeVenue {
   tipo: string;
   horario: string;
   ambiente: string;
+  imagen?: string;
 }
 
 interface DestinationNightlifeProps {
   venues: NightlifeVenue[];
   destinoNombre: string;
 }
+
+const defaultImages: Record<string, string> = {
+  "Discoteca": "https://images.unsplash.com/photo-1566737236500-c8ac43014a67?w=400&h=300&fit=crop",
+  "Club en Cueva": "https://images.unsplash.com/photo-1545128485-c400e7702796?w=400&h=300&fit=crop",
+  "Discoteca VIP": "https://images.unsplash.com/photo-1571204829887-3b8d69e4094d?w=400&h=300&fit=crop",
+  "Beach Club": "https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&h=300&fit=crop",
+  "Club VIP": "https://images.unsplash.com/photo-1571204829887-3b8d69e4094d?w=400&h=300&fit=crop",
+  "Rooftop Bar": "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=400&h=300&fit=crop",
+  "Bar Cultural": "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&h=300&fit=crop",
+  "Bar Bohemio": "https://images.unsplash.com/photo-1525268323446-0505b6fe7778?w=400&h=300&fit=crop",
+  "Bar Lounge": "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=400&h=300&fit=crop",
+  "Bar de Playa": "https://images.unsplash.com/photo-1540541338287-41700207dee6?w=400&h=300&fit=crop",
+};
 
 const ambienteColors: Record<string, string> = {
   "Fiesta total con shows": "bg-pink-500/20 text-pink-400",
@@ -56,34 +70,45 @@ export function DestinationNightlife({ venues, destinoNombre }: DestinationNight
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {venues.map((venue) => (
-            <div 
-              key={venue.id} 
-              className="group bg-card rounded-xl border border-border p-5 hover:border-primary/50 transition-colors"
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Sparkles className="h-5 w-5 text-primary" />
+          {venues.map((venue) => {
+            const venueImage = venue.imagen || defaultImages[venue.tipo] || defaultImages["Discoteca"];
+            
+            return (
+              <div 
+                key={venue.id} 
+                className="group bg-card rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-all hover:shadow-lg"
+              >
+                {/* Image */}
+                <div className="relative aspect-[16/10] overflow-hidden">
+                  <img
+                    src={venueImage}
+                    alt={venue.nombre}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
+                  <Badge className="absolute top-3 left-3 bg-card/80 backdrop-blur-sm text-foreground">
+                    {venue.tipo}
+                  </Badge>
                 </div>
-                <Badge variant="secondary" className="text-xs">
-                  {venue.tipo}
-                </Badge>
+                
+                {/* Content */}
+                <div className="p-4">
+                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors mb-2">
+                    {venue.nombre}
+                  </h3>
+                  
+                  <div className="flex items-center gap-1 text-muted-foreground text-sm mb-3">
+                    <Clock className="h-3.5 w-3.5" />
+                    <span>{venue.horario}</span>
+                  </div>
+                  
+                  <Badge className={`text-xs ${ambienteColors[venue.ambiente] || "bg-primary/20 text-primary"}`}>
+                    {venue.ambiente}
+                  </Badge>
+                </div>
               </div>
-              
-              <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors mb-2">
-                {venue.nombre}
-              </h3>
-              
-              <div className="flex items-center gap-1 text-muted-foreground text-sm mb-3">
-                <Clock className="h-3 w-3" />
-                <span>{venue.horario}</span>
-              </div>
-              
-              <Badge className={`text-xs ${ambienteColors[venue.ambiente] || "bg-primary/20 text-primary"}`}>
-                {venue.ambiente}
-              </Badge>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
