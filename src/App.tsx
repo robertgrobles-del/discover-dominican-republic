@@ -54,6 +54,11 @@ import MiViaje from "./pages/MiViaje";
 import Biblioteca from "./pages/Biblioteca";
 import Compras from "./pages/Compras";
 import Accesibilidad from "./pages/Accesibilidad";
+import RDSocial from "./pages/RDSocial";
+import Empleo from "./pages/Empleo";
+import PasaporteDigital from "./pages/PasaporteDigital";
+import CineRD from "./pages/CineRD";
+import AcademiaTuristica from "./pages/AcademiaTuristica";
 
 const queryClient = new QueryClient();
 
@@ -109,6 +114,11 @@ function AnimatedRoutes() {
         <Route path="/biblioteca" element={<Biblioteca />} />
         <Route path="/compras" element={<Compras />} />
         <Route path="/accesibilidad" element={<Accesibilidad />} />
+        <Route path="/rd-social" element={<RDSocial />} />
+        <Route path="/empleo" element={<Empleo />} />
+        <Route path="/pasaporte-digital" element={<PasaporteDigital />} />
+        <Route path="/cine-rd" element={<CineRD />} />
+        <Route path="/academia" element={<AcademiaTuristica />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
