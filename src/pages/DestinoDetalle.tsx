@@ -11,6 +11,8 @@ import { useState } from "react";
 import { DestinationGallery } from "@/components/destination/DestinationGallery";
 import { DestinationActivities } from "@/components/destination/DestinationActivities";
 import { DestinationHotels } from "@/components/destination/DestinationHotels";
+import { DestinationRestaurants } from "@/components/destination/DestinationRestaurants";
+import { DestinationNightlife } from "@/components/destination/DestinationNightlife";
 import { HowToGetThere } from "@/components/destination/HowToGetThere";
 
 import samana from "@/assets/samana.jpg";
@@ -38,6 +40,8 @@ const destinosData: Record<string, {
   galeria: { src: string; alt: string }[];
   actividades: { id: string; nombre: string; imagen: string; categoria: string; rating: number; duracion: string; precio: number }[];
   hoteles: { id: string; nombre: string; imagen: string; rating: number; reviews: number; precio: number; distancia: string; amenities: string[]; categoria: string }[];
+  restaurantes: { id: string; nombre: string; imagen: string; tipo: string; rating: number; precio: string; especialidad: string }[];
+  vidaNocturna: { id: string; nombre: string; tipo: string; horario: string; ambiente: string }[];
   aeropuerto: { nombre: string; codigo: string; distancia: string };
   transporte: { tipo: "avion" | "carro" | "bus" | "barco"; desde: string; duracion: string; descripcion: string; precio?: string }[];
   rutaSugerida: { dia: number; titulo: string; lugar: string; desc: string }[];
@@ -65,6 +69,15 @@ const destinosData: Record<string, {
     hoteles: [
       { id: "ecolodge-samana", nombre: "Samaná Eco-Lodge & Spa", imagen: hotelClareVerde, rating: 4.8, reviews: 328, precio: 350, distancia: "5 min", amenities: ["WiFi", "Spa", "Restaurante", "Playa Privada"], categoria: "Eco-Lodge" },
       { id: "villa-samana", nombre: "Villa Mar Boutique", imagen: heroBeach, rating: 4.6, reviews: 156, precio: 180, distancia: "10 min", amenities: ["WiFi", "Piscina", "Desayuno"], categoria: "Boutique" },
+    ],
+    restaurantes: [
+      { id: "el-cabito", nombre: "El Cabito", imagen: gastronomy, tipo: "Mariscos", rating: 4.7, precio: "$$", especialidad: "Pescado fresco con vista al mar" },
+      { id: "xamana", nombre: "Xamaná Restaurant", imagen: gastronomy, tipo: "Fusión Caribeña", rating: 4.6, precio: "$$$", especialidad: "Cocina gourmet local" },
+      { id: "la-mata", nombre: "La Mata Rosada", imagen: gastronomy, tipo: "Dominicano", rating: 4.5, precio: "$", especialidad: "Comida criolla auténtica" },
+    ],
+    vidaNocturna: [
+      { id: "town-cafe", nombre: "Town Café", tipo: "Bar Lounge", horario: "18:00 - 02:00", ambiente: "Relajado" },
+      { id: "malecon-bar", nombre: "Malecón Beach Bar", tipo: "Bar de Playa", horario: "10:00 - 00:00", ambiente: "Tropical" },
     ],
     aeropuerto: { nombre: "Aeropuerto Internacional El Catey", codigo: "AZS", distancia: "45 min" },
     transporte: [
@@ -102,6 +115,19 @@ const destinosData: Record<string, {
     hoteles: [
       { id: "eden-roc", nombre: "Eden Roc Cap Cana", imagen: hotelEdenRoc, rating: 4.9, reviews: 512, precio: 580, distancia: "En zona hotelera", amenities: ["WiFi", "Spa", "Golf", "Playa Privada"], categoria: "Lujo" },
       { id: "secrets-punta", nombre: "Secrets Royal Beach", imagen: relaxBeach, rating: 4.8, reviews: 389, precio: 420, distancia: "En Bávaro", amenities: ["Todo Incluido", "Spa", "8 Restaurantes"], categoria: "All-Inclusive" },
+      { id: "paradisus", nombre: "Paradisus Palma Real", imagen: puntaCana, rating: 4.7, reviews: 623, precio: 380, distancia: "Bávaro", amenities: ["Todo Incluido", "Spa", "Casino"], categoria: "All-Inclusive" },
+    ],
+    restaurantes: [
+      { id: "la-yola", nombre: "La Yola", imagen: gastronomy, tipo: "Mariscos", rating: 4.9, precio: "$$$$", especialidad: "Restaurante flotante con pescados frescos" },
+      { id: "jellyfish", nombre: "Jellyfish Restaurant", imagen: gastronomy, tipo: "Mediterráneo", rating: 4.8, precio: "$$$", especialidad: "Cenas románticas frente al mar" },
+      { id: "passion", nombre: "Passion by Martín Berasategui", imagen: gastronomy, tipo: "Alta Cocina", rating: 4.9, precio: "$$$$", especialidad: "Cocina de autor con estrella Michelin" },
+      { id: "captain-cook", nombre: "Captain Cook", imagen: gastronomy, tipo: "Seafood", rating: 4.6, precio: "$$", especialidad: "Mariscos en ambiente casual" },
+    ],
+    vidaNocturna: [
+      { id: "coco-bongo", nombre: "Coco Bongo", tipo: "Discoteca", horario: "22:00 - 04:00", ambiente: "Fiesta total con shows" },
+      { id: "imagine", nombre: "Imagine Disco", tipo: "Club en Cueva", horario: "23:00 - 04:00", ambiente: "Club único en cuevas naturales" },
+      { id: "oro-lounge", nombre: "ORO Nightclub", tipo: "Discoteca VIP", horario: "23:00 - 05:00", ambiente: "Premium y exclusivo" },
+      { id: "pearl-beach", nombre: "Pearl Beach Club", tipo: "Beach Club", horario: "11:00 - 02:00", ambiente: "Pool parties y música en vivo" },
     ],
     aeropuerto: { nombre: "Aeropuerto Internacional de Punta Cana", codigo: "PUJ", distancia: "20 min" },
     transporte: [
@@ -139,6 +165,18 @@ const destinosData: Record<string, {
       { id: "billini", nombre: "Billini Hotel", imagen: hotelClareVerde, rating: 4.9, reviews: 287, precio: 220, distancia: "En Zona Colonial", amenities: ["WiFi", "Piscina", "Restaurante", "Bar Rooftop"], categoria: "Boutique" },
       { id: "jw-marriott", nombre: "JW Marriott Santo Domingo", imagen: hotelEdenRoc, rating: 4.8, reviews: 445, precio: 280, distancia: "5 min de la Zona Colonial", amenities: ["WiFi", "Gym", "Spa", "Business Center"], categoria: "Lujo" },
     ],
+    restaurantes: [
+      { id: "pat-e-palo", nombre: "Pat'e Palo", imagen: gastronomy, tipo: "Europeo", rating: 4.9, precio: "$$$", especialidad: "Cocina europea en edificio del siglo XVI" },
+      { id: "meson-bari", nombre: "Mesón de Barí", imagen: gastronomy, tipo: "Dominicano", rating: 4.7, precio: "$$", especialidad: "Comida criolla tradicional" },
+      { id: "la-cassina", nombre: "La Cassina", imagen: gastronomy, tipo: "Italiano", rating: 4.6, precio: "$$", especialidad: "Pastas artesanales" },
+      { id: "adrian-tropical", nombre: "Adrián Tropical", imagen: gastronomy, tipo: "Dominicano", rating: 4.5, precio: "$", especialidad: "Mariscos con vista al Malecón" },
+    ],
+    vidaNocturna: [
+      { id: "jet-set", nombre: "Jet Set", tipo: "Club VIP", horario: "23:00 - 06:00", ambiente: "Exclusivo y elegante" },
+      { id: "mamma-lounge", nombre: "Mamma Lounge", tipo: "Rooftop Bar", horario: "18:00 - 02:00", ambiente: "Cócteles con vista panorámica" },
+      { id: "casa-teatro", nombre: "Casa de Teatro", tipo: "Bar Cultural", horario: "20:00 - 02:00", ambiente: "Jazz y arte alternativo" },
+      { id: "parada-77", nombre: "Parada 77", tipo: "Bar Bohemio", horario: "19:00 - 03:00", ambiente: "Música en vivo" },
+    ],
     aeropuerto: { nombre: "Aeropuerto Internacional Las Américas", codigo: "SDQ", distancia: "30 min" },
     transporte: [
       { tipo: "avion", desde: "Miami", duracion: "2.5 horas", descripcion: "Vuelos directos desde principales ciudades de USA y Europa" },
@@ -174,6 +212,17 @@ const destinosData: Record<string, {
     hoteles: [
       { id: "casa-colonial", nombre: "Casa Colonial Beach & Spa", imagen: hotelEdenRoc, rating: 4.8, reviews: 234, precio: 320, distancia: "Playa Dorada", amenities: ["WiFi", "Spa", "Golf", "Playa Privada"], categoria: "Resort" },
       { id: "blue-bay", nombre: "Blue Bay Villas Doradas", imagen: relaxBeach, rating: 4.5, reviews: 412, precio: 180, distancia: "Playa Dorada", amenities: ["Todo Incluido", "Piscina", "Shows"], categoria: "All-Inclusive" },
+      { id: "iberostar", nombre: "Iberostar Costa Dorada", imagen: puertoPlata, rating: 4.6, reviews: 567, precio: 220, distancia: "Costa Dorada", amenities: ["Todo Incluido", "Spa", "Actividades"], categoria: "All-Inclusive" },
+    ],
+    restaurantes: [
+      { id: "mares", nombre: "Mares Restaurant", imagen: gastronomy, tipo: "Mariscos", rating: 4.7, precio: "$$$", especialidad: "Langosta y pescados frescos" },
+      { id: "chris-ocean", nombre: "Chris & Madi's", imagen: gastronomy, tipo: "Internacional", rating: 4.6, precio: "$$", especialidad: "Cocina casual frente al mar" },
+      { id: "lucia", nombre: "Lucia Restaurant", imagen: gastronomy, tipo: "Italiano", rating: 4.5, precio: "$$", especialidad: "Pizzas artesanales" },
+    ],
+    vidaNocturna: [
+      { id: "lax", nombre: "LAX Ristopub", tipo: "Bar Lounge", horario: "18:00 - 02:00", ambiente: "Casual y animado" },
+      { id: "bambu", nombre: "Bambu Club", tipo: "Discoteca", horario: "22:00 - 04:00", ambiente: "Música latina" },
+      { id: "sosua-bay", nombre: "Sosúa Bay Beach Club", tipo: "Beach Club", horario: "10:00 - 23:00", ambiente: "Pool party diurna" },
     ],
     aeropuerto: { nombre: "Aeropuerto Internacional Gregorio Luperón", codigo: "POP", distancia: "15 min" },
     transporte: [
@@ -294,6 +343,12 @@ export default function DestinoDetalle() {
 
         {/* Hotels */}
         <DestinationHotels hotels={destino.hoteles} destinoId={id || "samana"} />
+
+        {/* Restaurants */}
+        <DestinationRestaurants restaurantes={destino.restaurantes} destinoId={id || "samana"} />
+
+        {/* Nightlife */}
+        <DestinationNightlife venues={destino.vidaNocturna} destinoNombre={destino.nombre} />
 
         {/* How to Get There */}
         <HowToGetThere 
