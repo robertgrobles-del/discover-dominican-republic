@@ -1,0 +1,118 @@
+import { useState, useEffect } from "react";
+import { Cloud, Sun, CloudRain, Droplets, Wind } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
+interface WeatherData {
+  city: string;
+  temp: number;
+  condition: "sunny" | "cloudy" | "rainy" | "partly-cloudy";
+  humidity: number;
+  wind: number;
+}
+
+const mockWeatherData: WeatherData[] = [
+  { city: "Santo Domingo", temp: 28, condition: "sunny", humidity: 65, wind: 12 },
+  { city: "Punta Cana", temp: 30, condition: "sunny", humidity: 70, wind: 15 },
+  { city: "Puerto Plata", temp: 27, condition: "partly-cloudy", humidity: 68, wind: 18 },
+  { city: "Samaná", temp: 26, condition: "partly-cloudy", humidity: 72, wind: 10 },
+];
+
+const getWeatherIcon = (condition: WeatherData["condition"], className: string) => {
+  switch (condition) {
+    case "sunny":
+      return <Sun className={className} />;
+    case "cloudy":
+      return <Cloud className={className} />;
+    case "rainy":
+      return <CloudRain className={className} />;
+    case "partly-cloudy":
+      return <Cloud className={className} />;
+    default:
+      return <Sun className={className} />;
+  }
+};
+
+const getConditionLabel = (condition: WeatherData["condition"]) => {
+  switch (condition) {
+    case "sunny":
+      return "Soleado";
+    case "cloudy":
+      return "Nublado";
+    case "rainy":
+      return "Lluvioso";
+    case "partly-cloudy":
+      return "Parcialmente nublado";
+    default:
+      return "Soleado";
+  }
+};
+
+export function WeatherWidget() {
+  const [selectedCity, setSelectedCity] = useState(0);
+  const weather = mockWeatherData[selectedCity];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSelectedCity((prev) => (prev + 1) % mockWeatherData.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/50 hover:bg-secondary transition-colors text-sm">
+          {getWeatherIcon(weather.condition, "h-4 w-4 text-primary")}
+          <span className="font-semibold text-foreground">{weather.temp}°C</span>
+          <span className="hidden md:inline text-muted-foreground text-xs">{weather.city}</span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-4" align="end">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="font-display font-bold text-foreground">Clima en RD</h4>
+            <span className="text-xs text-muted-foreground">Actualizado ahora</span>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-2">
+            {mockWeatherData.map((city, index) => (
+              <button
+                key={city.city}
+                onClick={() => setSelectedCity(index)}
+                className={`p-3 rounded-lg transition-colors text-left ${
+                  selectedCity === index
+                    ? "bg-primary/10 border border-primary/30"
+                    : "bg-secondary/50 hover:bg-secondary border border-transparent"
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  {getWeatherIcon(city.condition, "h-4 w-4 text-primary")}
+                  <span className="font-semibold text-foreground text-lg">{city.temp}°</span>
+                </div>
+                <p className="text-sm font-medium text-foreground">{city.city}</p>
+                <p className="text-xs text-muted-foreground">{getConditionLabel(city.condition)}</p>
+              </button>
+            ))}
+          </div>
+          
+          <div className="pt-3 border-t border-border">
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Droplets className="h-4 w-4" />
+                <span>Humedad: {weather.humidity}%</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Wind className="h-4 w-4" />
+                <span>Viento: {weather.wind} km/h</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
