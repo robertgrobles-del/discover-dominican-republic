@@ -6,6 +6,7 @@ import { ChevronRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 import adventure from "@/assets/adventure.jpg";
 import diving from "@/assets/diving.jpg";
@@ -74,27 +75,35 @@ export default function Experiencias() {
           <div className="container mx-auto px-4">
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredExperiencias.map((exp) => (
-                <Link
+                <div
                   key={exp.id}
-                  to={`/experiencia/${exp.id}`}
                   className="group relative rounded-2xl overflow-hidden aspect-[4/5]"
                 >
-                  <img
-                    src={exp.imagen}
-                    alt={exp.nombre}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  <Link to={`/experiencia/${exp.id}`} className="block h-full">
+                    <img
+                      src={exp.imagen}
+                      alt={exp.nombre}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-6">
+                      <h3 className="font-display text-xl font-bold text-white mb-1 group-hover:text-primary transition-colors">
+                        {exp.nombre}
+                      </h3>
+                      <p className="text-white/80 text-sm mb-3">{exp.desc}</p>
+                      <span className="inline-flex items-center text-primary text-sm font-medium">
+                        Explorar <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                      </span>
+                    </div>
+                  </Link>
+                  <FavoriteButton
+                    id={exp.id}
+                    type="experiencia"
+                    name={exp.nombre}
+                    image={exp.imagen}
+                    className="absolute top-4 right-4 z-10"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <h3 className="font-display text-xl font-bold text-white mb-1 group-hover:text-primary transition-colors">
-                      {exp.nombre}
-                    </h3>
-                    <p className="text-white/80 text-sm mb-3">{exp.desc}</p>
-                    <span className="inline-flex items-center text-primary text-sm font-medium">
-                      Explorar <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                    </span>
-                  </div>
-                </Link>
+                </div>
               ))}
             </div>
 

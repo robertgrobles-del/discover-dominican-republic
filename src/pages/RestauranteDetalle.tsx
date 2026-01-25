@@ -1,15 +1,19 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Star, MapPin, Clock, Users, ChevronRight, Check, Quote } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Star, MapPin, Clock, Users, ChevronRight, Check, Quote, Instagram, BookOpen, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 // Mock data for the restaurant
 const restaurant = {
+  id: "sabor-premium",
   name: "Sabor Premium",
   category: "Alta Cocina Caribeña",
   priceRange: "$$$$",
@@ -27,10 +31,45 @@ const restaurant = {
     chefNote: "Un homenaje a nuestras costas"
   },
   menu: [
-    { name: "Ceviche de Coco", price: 850, description: "Pesca blanca marinada en leche de tigre de coco, cilantro y chip...", tag: "Sin Gluten" },
-    { name: "Chillo Boca Chica", price: 1450, description: "Pargo rojo frito entero, estilo tradicional pero deshuesado..." },
-    { name: "Mofongo Mar y Tierra", price: 1200, description: "Plátano majado con chicharrón crocante, bañado en salsa de..." },
-    { name: "Suspiro de Chocolate", price: 450, description: "Mousse de chocolate orgánico dominicano 70% con cristales...", tag: "Top Seller" }
+    { id: "ceviche-coco", name: "Ceviche de Coco", price: 850, description: "Pesca blanca marinada en leche de tigre de coco, cilantro y chip...", tag: "Sin Gluten", hasRecipe: true, recipeId: "ceviche-caribeño" },
+    { id: "chillo-boca-chica", name: "Chillo Boca Chica", price: 1450, description: "Pargo rojo frito entero, estilo tradicional pero deshuesado...", hasRecipe: false },
+    { id: "mofongo-mar-tierra", name: "Mofongo Mar y Tierra", price: 1200, description: "Plátano majado con chicharrón crocante, bañado en salsa de...", hasRecipe: true, recipeId: "mofongo-tradicional" },
+    { id: "suspiro-chocolate", name: "Suspiro de Chocolate", price: 450, description: "Mousse de chocolate orgánico dominicano 70% con cristales...", tag: "Top Seller", hasRecipe: true, recipeId: "mousse-chocolate" }
+  ],
+  influencerPicks: [
+    { 
+      id: "ip1",
+      dishName: "Ceviche de Coco", 
+      dishId: "ceviche-coco",
+      influencer: "María Foodie RD",
+      handle: "@mariafoodie_rd",
+      followers: "125K",
+      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop",
+      quote: "¡El mejor ceviche que he probado en todo el Caribe! La leche de tigre de coco es una genialidad.",
+      platform: "instagram"
+    },
+    {
+      id: "ip2", 
+      dishName: "Langosta al Ron",
+      dishId: "langosta-ron",
+      influencer: "Chef Carlos Torres",
+      handle: "@chefcarlosrd",
+      followers: "89K",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
+      quote: "Como chef, reconozco la perfección técnica. Esta langosta flambeada es de otro nivel.",
+      platform: "instagram"
+    },
+    {
+      id: "ip3",
+      dishName: "Mofongo Mar y Tierra",
+      dishId: "mofongo-mar-tierra", 
+      influencer: "Sabores Dominicanos",
+      handle: "@sabores_rd",
+      followers: "210K",
+      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop",
+      quote: "Si vienes a Santo Domingo y no pruebas este mofongo, no conoces RD. Punto.",
+      platform: "instagram"
+    }
   ],
   reviews: [
     { name: "María Rodríguez", date: "Hace 2 días", rating: 5, comment: "La experiencia fue inolvidable. El Mofongo Mar y Tierra es el mejor que he probado en Santo Domingo. El ambiente es súper acogedor y el servicio de primera." },
@@ -55,7 +94,7 @@ export default function RestauranteDetalle() {
       <Header />
       
       {/* Hero Section */}
-      <section className="relative h-[50vh] min-h-[400px]">
+      <section className="relative h-[50vh] min-h-[400px] mt-16">
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1544025162-d76694265947?w=1920&h=800&fit=crop"
@@ -71,9 +110,19 @@ export default function RestauranteDetalle() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <span className="inline-block px-3 py-1 bg-yellow-500 text-yellow-900 text-xs font-bold rounded-full mb-4">
-              {restaurant.badge}
-            </span>
+            <div className="flex items-center gap-3 mb-4">
+              <span className="inline-block px-3 py-1 bg-yellow-500 text-yellow-900 text-xs font-bold rounded-full">
+                {restaurant.badge}
+              </span>
+              <FavoriteButton
+                id={restaurant.id}
+                type="restaurante"
+                name={restaurant.name}
+                image="https://images.unsplash.com/photo-1544025162-d76694265947?w=400&h=300&fit=crop"
+                location={restaurant.location}
+                variant="button"
+              />
+            </div>
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
               {restaurant.name}
             </h1>
@@ -105,8 +154,8 @@ export default function RestauranteDetalle() {
               <TabsTrigger value="menu" className="bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-primary rounded-none py-4">
                 Menú
               </TabsTrigger>
-              <TabsTrigger value="especialidad" className="bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-primary rounded-none py-4">
-                Especialidad
+              <TabsTrigger value="influencers" className="bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-primary rounded-none py-4">
+                Favoritos del Chef
               </TabsTrigger>
               <TabsTrigger value="ambiente" className="bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none border-b-2 border-transparent data-[state=active]:border-primary rounded-none py-4">
                 Ambiente
@@ -172,6 +221,61 @@ export default function RestauranteDetalle() {
               </div>
             </section>
 
+            {/* Influencer Picks - NEW SECTION */}
+            <section>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center gap-2 text-primary">
+                  <Sparkles className="h-5 w-5" />
+                  <h3 className="font-display text-xl font-bold text-foreground">Favoritos del Chef</h3>
+                </div>
+                <Badge className="bg-pink-500/20 text-pink-400">Recomendados por Influencers</Badge>
+              </div>
+              
+              <div className="grid sm:grid-cols-3 gap-4">
+                {restaurant.influencerPicks.map((pick, index) => (
+                  <motion.div
+                    key={pick.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                    className="bg-card rounded-xl border border-border p-4 hover:border-primary/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <img
+                        src={pick.image}
+                        alt={pick.influencer}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground text-sm truncate">{pick.influencer}</p>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Instagram className="h-3 w-3 text-pink-500" />
+                          <span>{pick.handle}</span>
+                          <span>•</span>
+                          <span>{pick.followers}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-primary/10 rounded-lg p-3 mb-3">
+                      <p className="font-semibold text-primary text-sm mb-1">🍽️ {pick.dishName}</p>
+                      <p className="text-xs text-muted-foreground italic line-clamp-2">"{pick.quote}"</p>
+                    </div>
+                    
+                    <a
+                      href={`https://instagram.com/${pick.handle.replace('@', '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline flex items-center gap-1"
+                    >
+                      Ver en Instagram <ChevronRight className="h-3 w-3" />
+                    </a>
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+
             {/* Menu */}
             <section>
               <div className="flex items-center justify-between mb-6">
@@ -187,12 +291,12 @@ export default function RestauranteDetalle() {
               <div className="grid sm:grid-cols-2 gap-4">
                 {restaurant.menu.map((item, index) => (
                   <motion.div
-                    key={item.name}
+                    key={item.id}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                     viewport={{ once: true }}
-                    className="flex gap-4 p-4 bg-card rounded-lg border border-border"
+                    className="flex gap-4 p-4 bg-card rounded-lg border border-border hover:border-primary/30 transition-colors"
                   >
                     <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                       <img
@@ -209,15 +313,26 @@ export default function RestauranteDetalle() {
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{item.description}</p>
-                      {item.tag && (
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
-                          item.tag === "Top Seller" 
-                            ? "bg-primary/20 text-primary" 
-                            : "bg-green-500/20 text-green-400"
-                        }`}>
-                          {item.tag}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {item.tag && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            item.tag === "Top Seller" 
+                              ? "bg-primary/20 text-primary" 
+                              : "bg-green-500/20 text-green-400"
+                          }`}>
+                            {item.tag}
+                          </span>
+                        )}
+                        {item.hasRecipe && (
+                          <Link
+                            to={`/receta/${item.recipeId}`}
+                            className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 flex items-center gap-1 hover:bg-amber-500/30 transition-colors"
+                          >
+                            <BookOpen className="h-3 w-3" />
+                            Ver Receta
+                          </Link>
+                        )}
+                      </div>
                     </div>
                   </motion.div>
                 ))}

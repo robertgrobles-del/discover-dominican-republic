@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import gastronomyImg from "@/assets/gastronomy.jpg";
 import divingImg from "@/assets/diving.jpg";
 import laBanderaImg from "@/assets/la-bandera.jpg";
@@ -111,9 +112,19 @@ function RestaurantCard({ restaurant, index }: { restaurant: typeof restaurants[
             </span>
           )}
         </div>
-        <div className="absolute top-3 right-3 flex items-center gap-1 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
-          <Star className="h-3 w-3 fill-current" />
-          {restaurant.rating}
+        <div className="absolute top-3 right-3 flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
+            <Star className="h-3 w-3 fill-current" />
+            {restaurant.rating}
+          </div>
+          <FavoriteButton
+            id={restaurant.id}
+            type="restaurante"
+            name={restaurant.name}
+            image={restaurant.image}
+            location={restaurant.location}
+            size="sm"
+          />
         </div>
       </div>
 
