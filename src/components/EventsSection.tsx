@@ -1,12 +1,15 @@
 import { motion } from "framer-motion";
 import { Calendar, MapPin, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import carnivalImg from "@/assets/carnival.jpg";
 import jazzImg from "@/assets/jazz-festival.jpg";
 import tasteImg from "@/assets/taste-event.jpg";
 
 const events = [
   {
+    id: "carnaval-dominicano",
     title: "Carnaval Dominicano",
     category: "Festival Nacional",
     location: "La Vega",
@@ -15,6 +18,7 @@ const events = [
     color: "bg-pink-500",
   },
   {
+    id: "festival-jazz",
     title: "Festival de Jazz",
     category: "Música",
     location: "Cabarete",
@@ -23,6 +27,7 @@ const events = [
     color: "bg-amber-500",
   },
   {
+    id: "taste-santo-domingo",
     title: "Taste Santo Domingo",
     category: "Gastronomía",
     location: "Sto. Cap.",
@@ -60,10 +65,12 @@ export function EventsSection() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            <Button variant="outline" className="gap-2">
-              <Calendar className="h-4 w-4" />
-              Ver Calendario Completo
-            </Button>
+            <Link to="/eventos">
+              <Button variant="outline" className="gap-2">
+                <Calendar className="h-4 w-4" />
+                Ver Calendario Completo
+              </Button>
+            </Link>
           </motion.div>
         </div>
 
@@ -71,12 +78,12 @@ export function EventsSection() {
         <div className="grid md:grid-cols-3 gap-6">
           {events.map((event, index) => (
             <motion.div
-              key={event.title}
+              key={event.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="group bg-surface rounded-2xl overflow-hidden cursor-pointer hover:bg-surface-elevated transition-colors"
+              className="group bg-surface rounded-2xl overflow-hidden hover:bg-surface-elevated transition-colors"
             >
               {/* Image with Date Badge */}
               <div className="relative aspect-video overflow-hidden">
@@ -93,8 +100,18 @@ export function EventsSection() {
                     {event.date.month}
                   </span>
                 </div>
-                <div className={`absolute top-4 right-4 ${event.color} rounded px-2 py-1`}>
-                  <span className="text-xs font-medium text-white">{event.category}</span>
+                <div className="absolute top-4 right-4 flex items-center gap-2">
+                  <div className={`${event.color} rounded px-2 py-1`}>
+                    <span className="text-xs font-medium text-white">{event.category}</span>
+                  </div>
+                  <FavoriteButton
+                    id={event.id}
+                    type="evento"
+                    name={event.title}
+                    image={event.image}
+                    location={event.location}
+                    size="sm"
+                  />
                 </div>
               </div>
 
@@ -111,10 +128,10 @@ export function EventsSection() {
                     <MapPin className="h-4 w-4" />
                     <span>{event.location}</span>
                   </div>
-                  <span className="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+                  <Link to={`/eventos`} className="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
                     Detalles
                     <ChevronRight className="h-4 w-4" />
-                  </span>
+                  </Link>
                 </div>
               </div>
             </motion.div>

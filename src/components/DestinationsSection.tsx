@@ -1,22 +1,27 @@
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import samanaImg from "@/assets/samana.jpg";
 
 const destinations = [
   {
+    id: "punta-cana",
     name: "Punta Cana",
     description: "Playas de arena blanca y aguas cristalinas con resorts de clase mundial.",
     image: puntaCanaImg,
   },
   {
+    id: "santo-domingo",
     name: "Santo Domingo",
     description: "La ciudad colonial más antigua de América, rica en historia y cultura.",
     image: santoDomingoImg,
   },
   {
+    id: "samana",
     name: "Samaná",
     description: "Naturaleza virgen, ballenas jorobadas y cascadas impresionantes.",
     image: samanaImg,
@@ -52,10 +57,12 @@ export function DestinationsSection() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            <Button variant="link" className="text-primary gap-2">
-              Ver todos los destinos
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+            <Link to="/destinos">
+              <Button variant="link" className="text-primary gap-2">
+                Ver todos los destinos
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </motion.div>
         </div>
 
@@ -63,36 +70,47 @@ export function DestinationsSection() {
         <div className="grid md:grid-cols-3 gap-6">
           {destinations.map((destination, index) => (
             <motion.div
-              key={destination.name}
+              key={destination.id}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="group relative aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer"
+              className="group relative aspect-[3/4] rounded-2xl overflow-hidden"
             >
-              {/* Background Image */}
-              <img
-                src={destination.image}
-                alt={destination.name}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-              />
-              
-              {/* Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
-              
-              {/* Content */}
-              <div className="absolute inset-x-0 bottom-0 p-6">
-                <h3 className="font-display text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                  {destination.name}
-                </h3>
-                <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                  {destination.description}
-                </p>
-                <div className="flex items-center gap-1 text-primary text-sm font-medium group-hover:gap-2 transition-all">
-                  <span>Explorar destino</span>
-                  <ChevronRight className="h-4 w-4" />
+              <Link to={`/destino/${destination.id}`} className="block h-full">
+                {/* Background Image */}
+                <img
+                  src={destination.image}
+                  alt={destination.name}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+                
+                {/* Favorite Button */}
+                <FavoriteButton
+                  id={destination.id}
+                  type="destino"
+                  name={destination.name}
+                  image={destination.image}
+                  className="absolute top-4 right-4 z-10"
+                />
+                
+                {/* Content */}
+                <div className="absolute inset-x-0 bottom-0 p-6">
+                  <h3 className="font-display text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                    {destination.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                    {destination.description}
+                  </p>
+                  <div className="flex items-center gap-1 text-primary text-sm font-medium group-hover:gap-2 transition-all">
+                    <span>Explorar destino</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </div>
                 </div>
-              </div>
+              </Link>
             </motion.div>
           ))}
         </div>

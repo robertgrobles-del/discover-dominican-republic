@@ -5,7 +5,7 @@ import {
   Search, Menu, X, ChevronRight, Globe, Compass, Plane, FileText, 
   MapPin, Waves, Mountain, Utensils, Music, Calendar, Building2, Car,
   Bed, Users, Heart, Info, BookOpen, Camera, Sun, Sparkles, Ship, 
-  TrendingUp, Briefcase
+  TrendingUp, Briefcase, ShoppingBag, Download, Accessibility, Route
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -81,6 +81,7 @@ const megaMenuPlanificar = [
   { name: "Requisitos de Entrada", href: "/planifica", icon: FileText, desc: "Visas y documentos" },
   { name: "Transporte Interno", href: "/info/transporte", icon: Car, desc: "Cómo moverse" },
   { name: "Herramientas de Viaje", href: "/herramientas", icon: Compass, desc: "Checklists y tips" },
+  { name: "Planificador Interactivo", href: "/mi-viaje", icon: Route, desc: "Itinerario drag & drop" },
   { name: "Directorio de Agencias", href: "/directorio-agencias", icon: Users, desc: "Tour operadores" },
 ];
 
@@ -90,9 +91,11 @@ const megaMenuSobreElPais = [
   { name: "Historia", href: "/patrimonio", icon: BookOpen, desc: "500 años de historia" },
   { name: "Gastronomía Típica", href: "/cultura#gastronomia", icon: Utensils, desc: "Platos tradicionales" },
   { name: "Galería Multimedia", href: "/galeria", icon: Camera, desc: "Fotos y videos" },
+  { name: "Biblioteca Digital", href: "/biblioteca", icon: Download, desc: "Guías y mapas" },
+  { name: "Compras y Artesanías", href: "/compras", icon: ShoppingBag, desc: "Larimar, ámbar, cigarros" },
+  { name: "Turismo Accesible", href: "/accesibilidad", icon: Accessibility, desc: "RD para todos" },
   { name: "Turismo Sostenible", href: "/sostenible", icon: Mountain, desc: "Viaja responsable" },
   { name: "Información Práctica", href: "/info/seguridad", icon: Info, desc: "Seguridad y salud" },
-  { name: "Sobre Nosotros", href: "/sobre-nosotros", icon: Users, desc: "Quiénes somos" },
 ];
 
 const navLinks = [

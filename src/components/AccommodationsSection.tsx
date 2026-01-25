@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Star, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import hotelEdenRocImg from "@/assets/hotel-eden-roc.jpg";
 import hotelClareVerdeImg from "@/assets/hotel-clare-verde.jpg";
 import hotelBilliniImg from "@/assets/hotel-billini.jpg";
@@ -68,10 +69,12 @@ export function AccommodationsSection() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
           >
-            <Button variant="link" className="text-primary gap-2">
-              Ver todos los hoteles
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+            <Link to="/alojamientos">
+              <Button variant="link" className="text-primary gap-2">
+                Ver todos los hoteles
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </motion.div>
         </div>
 
@@ -84,7 +87,7 @@ export function AccommodationsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="group bg-surface rounded-2xl overflow-hidden cursor-pointer hover:bg-surface-elevated transition-all hover:shadow-xl hover:shadow-primary/5"
+              className="group bg-surface rounded-2xl overflow-hidden hover:bg-surface-elevated transition-all hover:shadow-xl hover:shadow-primary/5"
             >
               {/* Image */}
               <div className="relative aspect-[4/3] overflow-hidden">
@@ -103,9 +106,19 @@ export function AccommodationsSection() {
                     </span>
                   ))}
                 </div>
-                <div className="absolute top-4 right-4 flex items-center gap-1 bg-amber-500 text-white text-xs font-bold px-2 py-1 rounded">
-                  <Star className="h-3 w-3 fill-current" />
-                  {hotel.rating}
+                <div className="absolute top-4 right-4 flex items-center gap-2">
+                  <div className="flex items-center gap-1 bg-amber-500 text-white text-xs font-bold px-2 py-1 rounded">
+                    <Star className="h-3 w-3 fill-current" />
+                    {hotel.rating}
+                  </div>
+                  <FavoriteButton
+                    id={hotel.id}
+                    type="hotel"
+                    name={hotel.name}
+                    image={hotel.image}
+                    location={hotel.location}
+                    size="sm"
+                  />
                 </div>
               </div>
 
