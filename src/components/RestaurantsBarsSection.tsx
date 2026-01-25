@@ -77,6 +77,26 @@ const bars = [
     image: gastronomyImg,
     atmosphere: "Vibrante",
   },
+  {
+    id: "coco-bongo-rd",
+    name: "Coco Bongo",
+    rating: 4.9,
+    location: "Bávaro, Punta Cana",
+    type: "Mega Club",
+    specialty: "Shows en Vivo",
+    image: laBanderaImg,
+    atmosphere: "Fiesta Total",
+  },
+  {
+    id: "mamma-lounge",
+    name: "Mamma Lounge",
+    rating: 4.7,
+    location: "Piantini, Santo Domingo",
+    type: "Lounge Bar",
+    specialty: "Martinis Signature",
+    image: divingImg,
+    atmosphere: "Sofisticado",
+  },
 ];
 
 function RestaurantCard({ restaurant, index }: { restaurant: typeof restaurants[0]; index: number }) {
@@ -173,8 +193,8 @@ function BarCard({ bar, index }: { bar: typeof bars[0]; index: number }) {
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ delay: index * 0.1 }}
-      className="group relative aspect-[4/5] rounded-2xl overflow-hidden cursor-pointer"
+      transition={{ delay: index * 0.05 }}
+      className="group relative aspect-[3/4] rounded-xl overflow-hidden cursor-pointer"
     >
       {!imageLoaded && <Skeleton className="absolute inset-0 w-full h-full" />}
       <img
@@ -299,7 +319,7 @@ export function RestaurantsBarsSection() {
             </motion.div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {bars.map((bar, index) => (
               <BarCard key={bar.id} bar={bar} index={index} />
             ))}
