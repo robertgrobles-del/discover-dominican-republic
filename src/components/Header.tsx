@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { WeatherWidget } from "@/components/WeatherWidget";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 import puntaCana from "@/assets/punta-cana.jpg";
 import samana from "@/assets/samana.jpg";
@@ -141,6 +143,10 @@ export function Header() {
 
             {/* Actions */}
             <div className="flex items-center gap-2">
+              <div className="hidden md:block">
+                <WeatherWidget />
+              </div>
+              <LanguageSelector />
               <ThemeToggle />
               <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
                 <Search className="h-5 w-5" />

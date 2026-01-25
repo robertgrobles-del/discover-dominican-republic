@@ -47,6 +47,8 @@ import Bodas from "./pages/Bodas";
 import Cruceros from "./pages/Cruceros";
 import Inversion from "./pages/Inversion";
 import MICE from "./pages/MICE";
+import Experiencias from "./pages/Experiencias";
+import ExperienciaDetalle from "./pages/ExperienciaDetalle";
 
 const queryClient = new QueryClient();
 
@@ -96,6 +98,8 @@ function AnimatedRoutes() {
         <Route path="/cruceros" element={<Cruceros />} />
         <Route path="/inversion" element={<Inversion />} />
         <Route path="/mice" element={<MICE />} />
+        <Route path="/experiencias" element={<Experiencias />} />
+        <Route path="/experiencia/:id" element={<ExperienciaDetalle />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
