@@ -4,12 +4,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, Menu, X, ChevronRight, Globe, Compass, Plane, FileText, 
   MapPin, Waves, Mountain, Utensils, Music, Calendar, Building2, Car,
-  Bed, Users, Heart, Info, BookOpen, Camera, Sun
+  Bed, Users, Heart, Info, BookOpen, Camera, Sun, Sparkles, Ship, 
+  TrendingUp, Briefcase
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { WeatherWidget } from "@/components/WeatherWidget";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { GlobalSearch } from "@/components/GlobalSearch";
 
 import puntaCana from "@/assets/punta-cana.jpg";
 import samana from "@/assets/samana.jpg";
@@ -35,15 +37,33 @@ const megaMenuDondeIr = {
 };
 
 // QUE HACER - Actividades y experiencias
-const megaMenuQueHacer = [
-  { name: "Playas", href: "/playas", icon: Waves, desc: "Descubre playas paradisíacas" },
-  { name: "Ríos y Cascadas", href: "/rios", icon: Mountain, desc: "Aventura en la naturaleza" },
-  { name: "Aventura y Deportes", href: "/actividades", icon: Compass, desc: "Senderismo, rafting, buceo" },
-  { name: "Gastronomía", href: "/guia-gastronomica", icon: Utensils, desc: "Sabores dominicanos" },
-  { name: "Vida Nocturna", href: "/vida-nocturna", icon: Music, desc: "Bares, clubs y shows" },
-  { name: "Eventos y Festivales", href: "/eventos", icon: Calendar, desc: "Agenda cultural" },
-  { name: "Patrimonio y Museos", href: "/patrimonio", icon: Building2, desc: "Historia y cultura" },
-];
+const megaMenuQueHacer = {
+  experiencias: [
+    { name: "Playas", href: "/playas", icon: Waves, desc: "Playas paradisíacas" },
+    { name: "Ríos y Cascadas", href: "/rios", icon: Mountain, desc: "Aventura natural" },
+    { name: "Aventura y Deportes", href: "/actividades", icon: Compass, desc: "Senderismo, rafting" },
+    { name: "Gastronomía", href: "/guia-gastronomica", icon: Utensils, desc: "Sabores dominicanos" },
+    { name: "Vida Nocturna", href: "/vida-nocturna", icon: Music, desc: "Bares y clubs" },
+    { name: "Eventos", href: "/eventos", icon: Calendar, desc: "Agenda cultural" },
+    { name: "Patrimonio", href: "/patrimonio", icon: Building2, desc: "Historia y cultura" },
+  ],
+  categorias: [
+    { name: "Ecoturismo", href: "/experiencia/ecoturismo", icon: Mountain },
+    { name: "Aventura", href: "/experiencia/aventura", icon: Compass },
+    { name: "Golf", href: "/experiencia/golf", icon: Sparkles },
+    { name: "Romance", href: "/experiencia/romance", icon: Heart },
+    { name: "Bienestar", href: "/experiencia/bienestar", icon: Sparkles },
+    { name: "Gastronomía", href: "/experiencia/gastronomia", icon: Utensils },
+    { name: "Luxury", href: "/experiencia/lujo", icon: Sparkles },
+  ],
+  nichos: [
+    { name: "Wellness & Spa", href: "/wellness", icon: Sparkles, desc: "Retiros de bienestar" },
+    { name: "Bodas Destino", href: "/bodas", icon: Heart, desc: "Cásate en el Caribe" },
+    { name: "Cruceros", href: "/cruceros", icon: Ship, desc: "Guía para cruceristas" },
+    { name: "MICE & Eventos", href: "/mice", icon: Briefcase, desc: "Turismo de negocios" },
+    { name: "Inversión Turística", href: "/inversion", icon: TrendingUp, desc: "Oportunidades" },
+  ],
+};
 
 // DONDE QUEDARSE
 const megaMenuDondeQuedarse = [
@@ -86,6 +106,7 @@ const navLinks = [
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeMegaMenu, setActiveMegaMenu] = useState<MegaMenuType>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const location = useLocation();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -148,7 +169,12 @@ export function Header() {
               </div>
               <LanguageSelector />
               <ThemeToggle />
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-muted-foreground hover:text-foreground"
+                onClick={() => setIsSearchOpen(true)}
+              >
                 <Search className="h-5 w-5" />
               </Button>
               
@@ -267,55 +293,109 @@ export function Header() {
 
                 {/* QUE HACER Mega Menu */}
                 {activeMegaMenu === "queHacer" && (
-                  <div className="grid lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-2">
-                      <div className="flex items-center gap-2 text-primary mb-6">
+                  <div className="grid lg:grid-cols-4 gap-8">
+                    {/* Experiencias */}
+                    <div>
+                      <div className="flex items-center gap-2 text-primary mb-4">
                         <Compass className="h-5 w-5" />
                         <h3 className="font-display font-bold uppercase tracking-wider text-sm">Experiencias</h3>
                       </div>
-                      <div className="grid md:grid-cols-2 gap-2">
-                        {megaMenuQueHacer.map((item) => (
+                      <nav className="space-y-1">
+                        {megaMenuQueHacer.experiencias.map((item) => (
                           <Link
                             key={item.name}
                             to={item.href}
                             onClick={() => setActiveMegaMenu(null)}
-                            className="flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors group"
+                            className="flex items-center gap-2 p-2 rounded-lg hover:bg-secondary/50 transition-colors group"
                           >
-                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                              <item.icon className="h-5 w-5 text-primary" />
+                            <item.icon className="h-4 w-4 text-primary" />
+                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">
+                              {item.name}
+                            </span>
+                          </Link>
+                        ))}
+                      </nav>
+                    </div>
+
+                    {/* Categorías */}
+                    <div>
+                      <div className="flex items-center gap-2 text-primary mb-4">
+                        <Sparkles className="h-5 w-5" />
+                        <h3 className="font-display font-bold uppercase tracking-wider text-sm">Por Interés</h3>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {megaMenuQueHacer.categorias.map((item) => (
+                          <Link
+                            key={item.name}
+                            to={item.href}
+                            onClick={() => setActiveMegaMenu(null)}
+                            className="text-sm text-foreground hover:text-primary px-3 py-1.5 bg-secondary/50 rounded-full hover:bg-secondary transition-colors"
+                          >
+                            {item.name}
+                          </Link>
+                        ))}
+                      </div>
+                      <Link 
+                        to="/experiencias" 
+                        onClick={() => setActiveMegaMenu(null)}
+                        className="inline-flex items-center gap-1 text-primary text-sm font-medium hover:underline mt-4"
+                      >
+                        Ver todas las experiencias <ChevronRight className="h-4 w-4" />
+                      </Link>
+                    </div>
+
+                    {/* Nichos Especializados */}
+                    <div>
+                      <div className="flex items-center gap-2 text-primary mb-4">
+                        <Building2 className="h-5 w-5" />
+                        <h3 className="font-display font-bold uppercase tracking-wider text-sm">Especializado</h3>
+                      </div>
+                      <nav className="space-y-1">
+                        {megaMenuQueHacer.nichos.map((item) => (
+                          <Link
+                            key={item.name}
+                            to={item.href}
+                            onClick={() => setActiveMegaMenu(null)}
+                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors group"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                              <item.icon className="h-4 w-4 text-primary" />
                             </div>
                             <div>
-                              <span className="font-medium text-foreground group-hover:text-primary transition-colors block">
+                              <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors block">
                                 {item.name}
                               </span>
                               <span className="text-xs text-muted-foreground">{item.desc}</span>
                             </div>
                           </Link>
                         ))}
-                      </div>
+                      </nav>
                     </div>
                     
-                    <div className="space-y-4">
+                    {/* Imagen Destacada */}
+                    <div className="space-y-3">
                       <Link 
-                        to="/playas" 
+                        to="/wellness" 
                         onClick={() => setActiveMegaMenu(null)}
                         className="group relative rounded-xl overflow-hidden aspect-[4/3] block"
                       >
-                        <img src={puntaCana} alt="Playas" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <img src={samana} alt="Wellness" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                         <div className="absolute bottom-4 left-4">
-                          <span className="text-white font-semibold">Playas Paradisíacas</span>
+                          <span className="text-white font-semibold">Wellness & Spa</span>
+                          <p className="text-white/80 text-xs">Retiros de bienestar</p>
                         </div>
                       </Link>
                       <Link 
-                        to="/eventos" 
+                        to="/bodas" 
                         onClick={() => setActiveMegaMenu(null)}
                         className="group relative rounded-xl overflow-hidden aspect-[4/3] block"
                       >
-                        <img src={santoDomingo} alt="Eventos" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <img src={puntaCana} alt="Bodas" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                         <div className="absolute bottom-4 left-4">
-                          <span className="text-white font-semibold">Eventos y Festivales</span>
+                          <span className="text-white font-semibold">Bodas Destino</span>
+                          <p className="text-white/80 text-xs">Cásate en el paraíso</p>
                         </div>
                       </Link>
                     </div>
@@ -537,6 +617,9 @@ export function Header() {
           )}
         </AnimatePresence>
       </header>
+
+      {/* Global Search Modal */}
+      <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   );
 }
