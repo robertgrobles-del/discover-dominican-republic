@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
+import { ScrollToTop } from "@/components/ScrollToTop";
+import { BackToTop } from "@/components/BackToTop";
 import Index from "./pages/Index";
 import Destinos from "./pages/Destinos";
 import Actividades from "./pages/Actividades";
@@ -40,6 +42,11 @@ import Patrimonio from "./pages/Patrimonio";
 import InfoSeguridad from "./pages/InfoSeguridad";
 import InfoTransporte from "./pages/InfoTransporte";
 import NotFound from "./pages/NotFound";
+import Wellness from "./pages/Wellness";
+import Bodas from "./pages/Bodas";
+import Cruceros from "./pages/Cruceros";
+import Inversion from "./pages/Inversion";
+import MICE from "./pages/MICE";
 
 const queryClient = new QueryClient();
 
@@ -84,6 +91,11 @@ function AnimatedRoutes() {
         <Route path="/patrimonio" element={<Patrimonio />} />
         <Route path="/info/seguridad" element={<InfoSeguridad />} />
         <Route path="/info/transporte" element={<InfoTransporte />} />
+        <Route path="/wellness" element={<Wellness />} />
+        <Route path="/bodas" element={<Bodas />} />
+        <Route path="/cruceros" element={<Cruceros />} />
+        <Route path="/inversion" element={<Inversion />} />
+        <Route path="/mice" element={<MICE />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -97,7 +109,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <AnimatedRoutes />
+        <BackToTop />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
