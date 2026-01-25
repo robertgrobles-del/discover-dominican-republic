@@ -19,6 +19,18 @@ import {
   AirVent,
   Bath,
   Tv,
+  Bike,
+  Music,
+  Umbrella,
+  PartyPopper,
+  Anchor,
+  Users,
+  CreditCard,
+  Baby,
+  PawPrint,
+  UsersRound,
+  Sailboat,
+  CircleDot,
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -56,7 +68,10 @@ const hotelData = {
     checkOut: "12:00 PM",
     cancellation: "Cancelación gratuita hasta 48 horas antes",
     children: "Niños de todas las edades son bienvenidos",
-    pets: "Se aceptan mascotas con cargo adicional",
+    pets: "Se aceptan mascotas con cargo adicional de $50/noche",
+    ageRestriction: "Huéspedes menores de 18 años deben estar acompañados por un adulto",
+    groups: "Grupos de más de 8 personas deben contactar directamente al hotel",
+    paymentMethods: ["Visa", "Mastercard", "American Express", "Discover", "PayPal", "Transferencia bancaria"],
   },
   tags: ["Lujo", "Frente al mar", "Golf", "Spa", "Familia"],
   services: [
@@ -68,6 +83,23 @@ const hotelData = {
     { icon: Coffee, name: "Bar en la playa" },
     { icon: Car, name: "Servicio al Cuarto" },
     { icon: Car, name: "Parking Valet" },
+    { icon: Umbrella, name: "Situado frente a la playa" },
+    { icon: Car, name: "Parking gratis" },
+    { icon: Coffee, name: "Tetera/cafetera en habitaciones" },
+    { icon: Umbrella, name: "Zona privada de playa" },
+  ],
+  activities: [
+    { name: "Alquiler de bicicletas", icon: Bike, included: true, location: "En el hotel" },
+    { name: "Aeróbic", icon: Dumbbell, included: true, location: "En el hotel" },
+    { name: "Música / espectáculos en directo", icon: Music, included: true, location: "En el hotel" },
+    { name: "Playa", icon: Umbrella, included: true, location: "En el hotel" },
+    { name: "Entretenimiento nocturno", icon: PartyPopper, included: true, location: "En el hotel" },
+    { name: "Deportes acuáticos", icon: Waves, included: true, location: "En el hotel" },
+    { name: "Personal de animación", icon: Users, included: true, location: "En el hotel" },
+    { name: "Snorkel", icon: Anchor, included: true, location: "En el hotel" },
+    { name: "Submarinismo", icon: Anchor, included: false, location: "Fuera del alojamiento" },
+    { name: "Windsurf", icon: Sailboat, included: true, location: "En el hotel" },
+    { name: "Campo de golf", icon: CircleDot, included: true, location: "A menos de 3 km" },
   ],
   rooms: [
     {
@@ -426,21 +458,90 @@ export default function AlojamientoDetalle() {
             </div>
 
             {/* Policies */}
+            {/* Activities */}
+            <div>
+              <h2 className="font-display text-2xl font-bold text-foreground mb-6">
+                Actividades en el Hotel
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {hotel.activities.map((activity) => (
+                  <div key={activity.name} className="flex items-start gap-3 p-4 bg-surface rounded-xl border border-border">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${activity.included ? 'bg-primary/10' : 'bg-amber-500/10'}`}>
+                      <activity.icon className={`h-5 w-5 ${activity.included ? 'text-primary' : 'text-amber-500'}`} />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground text-sm">{activity.name}</p>
+                      <p className="text-xs text-muted-foreground">{activity.location}</p>
+                      {!activity.included && (
+                        <span className="text-xs bg-amber-500/10 text-amber-600 px-2 py-0.5 rounded mt-1 inline-block">
+                          De pago
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Policies */}
             <div>
               <h2 className="font-display text-2xl font-bold text-foreground mb-6">
                 Políticas del Hotel
               </h2>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="bg-surface rounded-xl p-4 border border-border">
-                  <p className="text-sm text-muted-foreground mb-1">Check-in</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    <p className="text-sm text-muted-foreground">Check-in</p>
+                  </div>
                   <p className="font-semibold text-foreground">{hotel.policies.checkIn}</p>
                 </div>
                 <div className="bg-surface rounded-xl p-4 border border-border">
-                  <p className="text-sm text-muted-foreground mb-1">Check-out</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    <p className="text-sm text-muted-foreground">Check-out</p>
+                  </div>
                   <p className="font-semibold text-foreground">{hotel.policies.checkOut}</p>
                 </div>
+                <div className="bg-surface rounded-xl p-4 border border-border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Baby className="h-4 w-4 text-primary" />
+                    <p className="text-sm text-muted-foreground">Restricción por edad</p>
+                  </div>
+                  <p className="font-semibold text-foreground text-sm">{hotel.policies.ageRestriction}</p>
+                </div>
+                <div className="bg-surface rounded-xl p-4 border border-border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <PawPrint className="h-4 w-4 text-primary" />
+                    <p className="text-sm text-muted-foreground">Mascotas</p>
+                  </div>
+                  <p className="font-semibold text-foreground text-sm">{hotel.policies.pets}</p>
+                </div>
+                <div className="bg-surface rounded-xl p-4 border border-border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <UsersRound className="h-4 w-4 text-primary" />
+                    <p className="text-sm text-muted-foreground">Grupos</p>
+                  </div>
+                  <p className="font-semibold text-foreground text-sm">{hotel.policies.groups}</p>
+                </div>
+                <div className="bg-surface rounded-xl p-4 border border-border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CreditCard className="h-4 w-4 text-primary" />
+                    <p className="text-sm text-muted-foreground">Medios de pago</p>
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {hotel.policies.paymentMethods.map((method) => (
+                      <span key={method} className="text-xs bg-secondary px-2 py-0.5 rounded text-foreground">
+                        {method}
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 <div className="bg-surface rounded-xl p-4 border border-border md:col-span-2">
-                  <p className="text-sm text-muted-foreground mb-1">Cancelación</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Check className="h-4 w-4 text-primary" />
+                    <p className="text-sm text-muted-foreground">Cancelación</p>
+                  </div>
                   <p className="font-semibold text-foreground">{hotel.policies.cancellation}</p>
                 </div>
               </div>
