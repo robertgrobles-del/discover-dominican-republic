@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { BackToTop } from "@/components/BackToTop";
+import { FavoritesProvider } from "@/hooks/useFavorites";
 import Index from "./pages/Index";
 import Destinos from "./pages/Destinos";
 import Actividades from "./pages/Actividades";
@@ -49,6 +50,10 @@ import Inversion from "./pages/Inversion";
 import MICE from "./pages/MICE";
 import Experiencias from "./pages/Experiencias";
 import ExperienciaDetalle from "./pages/ExperienciaDetalle";
+import MiViaje from "./pages/MiViaje";
+import Biblioteca from "./pages/Biblioteca";
+import Compras from "./pages/Compras";
+import Accesibilidad from "./pages/Accesibilidad";
 
 const queryClient = new QueryClient();
 
@@ -100,6 +105,10 @@ function AnimatedRoutes() {
         <Route path="/mice" element={<MICE />} />
         <Route path="/experiencias" element={<Experiencias />} />
         <Route path="/experiencia/:id" element={<ExperienciaDetalle />} />
+        <Route path="/mi-viaje" element={<MiViaje />} />
+        <Route path="/biblioteca" element={<Biblioteca />} />
+        <Route path="/compras" element={<Compras />} />
+        <Route path="/accesibilidad" element={<Accesibilidad />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -110,13 +119,15 @@ function AnimatedRoutes() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <ScrollToTop />
-        <AnimatedRoutes />
-        <BackToTop />
-      </BrowserRouter>
+      <FavoritesProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <ScrollToTop />
+          <AnimatedRoutes />
+          <BackToTop />
+        </BrowserRouter>
+      </FavoritesProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
