@@ -2,11 +2,12 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { Link, useParams } from "react-router-dom";
-import { MapPin, Cloud, Calendar, Heart, Share2, Play, ChevronRight } from "lucide-react";
+import { MapPin, Cloud, Calendar, Share2, Play, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 import { DestinationGallery } from "@/components/destination/DestinationGallery";
 import { DestinationActivities } from "@/components/destination/DestinationActivities";
