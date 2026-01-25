@@ -280,9 +280,16 @@ export default function DestinoDetalle() {
                   <Button size="lg" className="gap-2">
                     <Play className="h-4 w-4" /> Ver Video Completo
                   </Button>
-                  <Button size="lg" variant="outline" className="gap-2 bg-white/10 border-white/30 text-white hover:bg-white/20">
-                    <Heart className="h-4 w-4" /> Guardar Destino
-                  </Button>
+                  <FavoriteButton
+                    id={id || "samana"}
+                    type="destino"
+                    name={destino.nombre}
+                    image={destino.heroImage}
+                    location="República Dominicana"
+                    variant="button"
+                    size="lg"
+                    className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+                  />
                 </div>
               </div>
 

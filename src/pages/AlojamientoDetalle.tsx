@@ -4,7 +4,6 @@ import { useParams, Link } from "react-router-dom";
 import {
   Star,
   MapPin,
-  Heart,
   Share2,
   ChevronLeft,
   ChevronRight,
@@ -24,6 +23,7 @@ import {
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import hotelEdenRocImg from "@/assets/hotel-eden-roc.jpg";
 import hotelRoomSuiteImg from "@/assets/hotel-room-suite.jpg";
 import heroBeachImg from "@/assets/hero-beach.jpg";
@@ -148,10 +148,15 @@ export default function AlojamientoDetalle() {
             </div>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Heart className="h-4 w-4" />
-              Guardar
-            </Button>
+            <FavoriteButton
+              id={hotel.id}
+              type="hotel"
+              name={hotel.name}
+              image={hotel.images[0]}
+              location={hotel.location}
+              variant="button"
+              size="md"
+            />
             <Button variant="outline" size="sm" className="gap-2">
               <Share2 className="h-4 w-4" />
               Compartir
