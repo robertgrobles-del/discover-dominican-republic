@@ -8,6 +8,7 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import { BackToTop } from "@/components/BackToTop";
 import { ChatbotTuristico } from "@/components/ChatbotTuristico";
 import { FavoritesProvider } from "@/hooks/useFavorites";
+import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Destinos from "./pages/Destinos";
 import Actividades from "./pages/Actividades";
@@ -70,6 +71,8 @@ import MisLogros from "./pages/MisLogros";
 import Opiniones from "./pages/Opiniones";
 import Sugerencias from "./pages/Sugerencias";
 import PrensaComunicacion from "./pages/PrensaComunicacion";
+import Login from "./pages/Login";
+import Registro from "./pages/Registro";
 
 // Backwards-compatible aliases (prevent runtime crashes if an old route/component name lingers)
 const Asistencia = CentroAyuda;
@@ -149,6 +152,13 @@ function AnimatedRoutes() {
         <Route path="/turismo-medico" element={<TurismoMedico />} />
         <Route path="/nomadas-digitales" element={<NomadasDigitales />} />
         <Route path="/turismo-deportivo" element={<TurismoDeportivo />} />
+        <Route path="/club-recompensas" element={<ClubRecompensas />} />
+        <Route path="/comparador" element={<ComparadorDestinos />} />
+        <Route path="/mis-logros" element={<MisLogros />} />
+        <Route path="/opiniones" element={<Opiniones />} />
+        <Route path="/sugerencias" element={<Sugerencias />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/registro" element={<Registro />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -159,16 +169,18 @@ function AnimatedRoutes() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <FavoritesProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <AnimatedRoutes />
-          <BackToTop />
-          <ChatbotTuristico />
-        </BrowserRouter>
-      </FavoritesProvider>
+      <AuthProvider>
+        <FavoritesProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <AnimatedRoutes />
+            <BackToTop />
+            <ChatbotTuristico />
+          </BrowserRouter>
+        </FavoritesProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

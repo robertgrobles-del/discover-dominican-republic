@@ -14,7 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      favorites: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          item_image: string | null
+          item_location: string | null
+          item_name: string
+          item_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          item_image?: string | null
+          item_location?: string | null
+          item_name: string
+          item_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_image?: string | null
+          item_location?: string | null
+          item_name?: string
+          item_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          author_name: string
+          category: string
+          content: string
+          created_at: string
+          helpful_count: number | null
+          id: string
+          images: string[] | null
+          location: string
+          rating: number
+          title: string
+          traveler_type: string
+          updated_at: string
+          user_id: string
+          verified: boolean | null
+        }
+        Insert: {
+          author_name: string
+          category: string
+          content: string
+          created_at?: string
+          helpful_count?: number | null
+          id?: string
+          images?: string[] | null
+          location: string
+          rating: number
+          title: string
+          traveler_type: string
+          updated_at?: string
+          user_id: string
+          verified?: boolean | null
+        }
+        Update: {
+          author_name?: string
+          category?: string
+          content?: string
+          created_at?: string
+          helpful_count?: number | null
+          id?: string
+          images?: string[] | null
+          location?: string
+          rating?: number
+          title?: string
+          traveler_type?: string
+          updated_at?: string
+          user_id?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { SEOHead, generateDestinationSchema } from "@/components/SEOHead";
 
 import { DestinationGallery } from "@/components/destination/DestinationGallery";
 import { DestinationActivities } from "@/components/destination/DestinationActivities";
@@ -247,6 +248,18 @@ export default function DestinoDetalle() {
 
   return (
     <PageTransition>
+      <SEOHead
+        title={`${destino.nombre} - ${destino.subtitulo}`}
+        description={destino.descripcion}
+        keywords={`${destino.nombre}, República Dominicana, turismo, vacaciones, playas, hoteles`}
+        image={destino.heroImage}
+        jsonLd={generateDestinationSchema({
+          name: destino.nombre,
+          description: destino.descripcion,
+          image: destino.heroImage,
+          url: `https://descubrerd.com/destino/${id}`,
+        })}
+      />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
         
