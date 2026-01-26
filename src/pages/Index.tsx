@@ -7,10 +7,17 @@ import { RestaurantsBarsSection } from "@/components/RestaurantsBarsSection";
 import { DestinationsSection } from "@/components/DestinationsSection";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead, generateOrganizationSchema } from "@/components/SEOHead";
 
 const Index = () => {
   return (
     <PageTransition>
+      <SEOHead
+        title="Descubre República Dominicana - Tu Portal de Turismo"
+        description="Explora las mejores playas, destinos, hoteles, restaurantes y experiencias de República Dominicana. Planifica tu viaje perfecto al Caribe."
+        keywords="República Dominicana, turismo, playas, Punta Cana, Samaná, Santo Domingo, hoteles, viajes Caribe"
+        jsonLd={generateOrganizationSchema()}
+      />
       <div className="min-h-screen bg-background">
         <Header />
         <HeroSlideshow />

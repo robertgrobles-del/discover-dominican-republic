@@ -1,4 +1,6 @@
-import { useState, useEffect, createContext, useContext, ReactNode } from "react";
+import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
 
 export type FavoriteType = "destino" | "hotel" | "experiencia" | "restaurante" | "evento";
 
@@ -19,6 +21,7 @@ interface FavoritesContextType {
   getFavoritesByType: (type: FavoriteType) => FavoriteItem[];
   clearAll: () => void;
   totalCount: number;
+  loading: boolean;
 }
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
@@ -26,37 +29,106 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(undefin
 const STORAGE_KEY = "rd-travel-favorites";
 
 export function FavoritesProvider({ children }: { children: ReactNode }) {
-  const [favorites, setFavorites] = useState<FavoriteItem[]>(() => {
-    if (typeof window === "undefined") return [];
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  });
+  const { user } = useAuth();
+  const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
+  const [loading, setLoading] = useState(false);
 
+  // Load favorites from localStorage or database
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
-  }, [favorites]);
-
-  const addFavorite = (item: Omit<FavoriteItem, "addedAt">) => {
-    if (!isFavorite(item.id, item.type)) {
-      setFavorites((prev) => [...prev, { ...item, addedAt: Date.now() }]);
+    if (user) {
+      // Logged in: fetch from database
+      setLoading(true);
+      supabase
+        .from("favorites")
+        .select("*")
+        .eq("user_id", user.id)
+        .then(({ data, error }) => {
+          if (!error && data) {
+            setFavorites(
+              data.map((f) => ({
+                id: f.item_id,
+                type: f.item_type as FavoriteType,
+                name: f.item_name,
+                image: f.item_image || "",
+                location: f.item_location || undefined,
+                addedAt: new Date(f.created_at).getTime(),
+              }))
+            );
+          }
+          setLoading(false);
+        });
+    } else {
+      // Not logged in: use localStorage
+      const stored = localStorage.getItem(STORAGE_KEY);
+      setFavorites(stored ? JSON.parse(stored) : []);
     }
-  };
+  }, [user]);
 
-  const removeFavorite = (id: string, type: FavoriteType) => {
-    setFavorites((prev) => prev.filter((f) => !(f.id === id && f.type === type)));
-  };
+  // Sync localStorage when not logged in
+  useEffect(() => {
+    if (!user) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
+    }
+  }, [favorites, user]);
 
-  const isFavorite = (id: string, type: FavoriteType) => {
-    return favorites.some((f) => f.id === id && f.type === type);
-  };
+  const addFavorite = useCallback(
+    async (item: Omit<FavoriteItem, "addedAt">) => {
+      const exists = favorites.some((f) => f.id === item.id && f.type === item.type);
+      if (exists) return;
 
-  const getFavoritesByType = (type: FavoriteType) => {
-    return favorites.filter((f) => f.type === type);
-  };
+      const newFavorite: FavoriteItem = { ...item, addedAt: Date.now() };
+      setFavorites((prev) => [...prev, newFavorite]);
 
-  const clearAll = () => {
+      if (user) {
+        await supabase.from("favorites").insert({
+          user_id: user.id,
+          item_id: item.id,
+          item_type: item.type,
+          item_name: item.name,
+          item_image: item.image || null,
+          item_location: item.location || null,
+        });
+      }
+    },
+    [favorites, user]
+  );
+
+  const removeFavorite = useCallback(
+    async (id: string, type: FavoriteType) => {
+      setFavorites((prev) => prev.filter((f) => !(f.id === id && f.type === type)));
+
+      if (user) {
+        await supabase
+          .from("favorites")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("item_id", id)
+          .eq("item_type", type);
+      }
+    },
+    [user]
+  );
+
+  const isFavorite = useCallback(
+    (id: string, type: FavoriteType) => {
+      return favorites.some((f) => f.id === id && f.type === type);
+    },
+    [favorites]
+  );
+
+  const getFavoritesByType = useCallback(
+    (type: FavoriteType) => {
+      return favorites.filter((f) => f.type === type);
+    },
+    [favorites]
+  );
+
+  const clearAll = useCallback(async () => {
     setFavorites([]);
-  };
+    if (user) {
+      await supabase.from("favorites").delete().eq("user_id", user.id);
+    }
+  }, [user]);
 
   return (
     <FavoritesContext.Provider
@@ -68,6 +140,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         getFavoritesByType,
         clearAll,
         totalCount: favorites.length,
+        loading,
       }}
     >
       {children}
