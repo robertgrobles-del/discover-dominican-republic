@@ -71,6 +71,14 @@ import Opiniones from "./pages/Opiniones";
 import Sugerencias from "./pages/Sugerencias";
 import PrensaComunicacion from "./pages/PrensaComunicacion";
 
+// Backwards-compatible aliases (prevent runtime crashes if an old route/component name lingers)
+const Asistencia = CentroAyuda;
+const Ayuda = CentroAyuda;
+const Nautica = NauticaCruceros;
+const Cruceros = NauticaCruceros;
+const Prensa = PrensaComunicacion;
+const Newsletter = PrensaComunicacion;
+
 const queryClient = new QueryClient();
 
 function AnimatedRoutes() {
