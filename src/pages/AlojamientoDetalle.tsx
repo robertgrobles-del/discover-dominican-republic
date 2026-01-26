@@ -31,11 +31,18 @@ import {
   UsersRound,
   Sailboat,
   CircleDot,
+  Facebook,
+  Instagram,
+  Twitter,
+  Globe,
+  Wine,
+  UtensilsCrossed,
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { AccommodationGallery } from "@/components/AccommodationGallery";
 import hotelEdenRocImg from "@/assets/hotel-eden-roc.jpg";
 import hotelRoomSuiteImg from "@/assets/hotel-room-suite.jpg";
 import heroBeachImg from "@/assets/hero-beach.jpg";
@@ -101,6 +108,54 @@ const hotelData = {
     { name: "Windsurf", icon: Sailboat, included: true, location: "En el hotel" },
     { name: "Campo de golf", icon: CircleDot, included: true, location: "A menos de 3 km" },
   ],
+  restaurants: [
+    {
+      name: "La Caña",
+      cuisine: "Mediterránea & Mariscos",
+      hours: "7:00 AM - 11:00 PM",
+      description: "Restaurante principal con vistas al mar, especializado en cocina mediterránea y mariscos frescos del día.",
+      dressCode: "Smart Casual",
+      reservations: true,
+    },
+    {
+      name: "Beach Grill",
+      cuisine: "BBQ & Caribeña",
+      hours: "12:00 PM - 6:00 PM",
+      description: "Parrillada frente al mar con los mejores cortes de carne y opciones caribeñas.",
+      dressCode: "Casual",
+      reservations: false,
+    },
+    {
+      name: "Minitas Sushi Bar",
+      cuisine: "Japonesa & Fusión",
+      hours: "6:00 PM - 11:00 PM",
+      description: "Experiencia gastronómica japonesa con toques dominicanos y vistas espectaculares.",
+      dressCode: "Elegante",
+      reservations: true,
+    },
+  ],
+  bars: [
+    {
+      name: "Sunset Lounge",
+      type: "Cocktail Bar",
+      hours: "4:00 PM - 1:00 AM",
+      description: "Bar de cócteles premium con la mejor vista del atardecer caribeño.",
+      specialty: "Mojitos artesanales",
+    },
+    {
+      name: "Lobby Bar",
+      type: "Wine & Spirits",
+      hours: "10:00 AM - 12:00 AM",
+      description: "Selección exclusiva de vinos internacionales y licores premium.",
+      specialty: "Cata de rones dominicanos",
+    },
+  ],
+  socialMedia: {
+    facebook: "https://facebook.com/casadecamporesort",
+    instagram: "https://instagram.com/casadecamporesort",
+    twitter: "https://twitter.com/casadecampord",
+    website: "https://www.casadecampo.com.do",
+  },
   rooms: [
     {
       name: "Elite Balcony King",
@@ -233,49 +288,9 @@ export default function AlojamientoDetalle() {
         </div>
       </section>
 
-      {/* Gallery */}
+      {/* Gallery with Lightbox */}
       <section className="container mx-auto px-4 lg:px-8 pb-12">
-        <div className="grid grid-cols-4 grid-rows-2 gap-4 h-[500px]">
-          <motion.div
-            key={currentImage}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="col-span-2 row-span-2 relative rounded-l-2xl overflow-hidden group"
-          >
-            <img
-              src={hotel.images[currentImage]}
-              alt={hotel.name}
-              className="w-full h-full object-cover"
-            />
-            <Button
-              size="icon"
-              variant="outline"
-              className="absolute left-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full bg-background/80"
-              onClick={prevImage}
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <Button
-              size="icon"
-              variant="outline"
-              className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full bg-background/80"
-              onClick={nextImage}
-            >
-              <ChevronRight className="h-5 w-5" />
-            </Button>
-          </motion.div>
-          {hotel.images.slice(1, 5).map((img, i) => (
-            <div
-              key={i}
-              className={`relative overflow-hidden cursor-pointer hover:opacity-90 transition-opacity ${
-                i === 1 ? "rounded-tr-2xl" : i === 3 ? "rounded-br-2xl" : ""
-              }`}
-              onClick={() => setCurrentImage(i + 1)}
-            >
-              <img src={img} alt={`${hotel.name} ${i + 2}`} className="w-full h-full object-cover" />
-            </div>
-          ))}
-        </div>
+        <AccommodationGallery images={hotel.images} name={hotel.name} />
       </section>
 
       {/* Content */}
@@ -338,6 +353,51 @@ export default function AlojamientoDetalle() {
               </div>
             </div>
 
+            {/* Social Media & Website */}
+            <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-2xl p-6 border border-primary/20">
+              <h2 className="font-display text-xl font-bold text-foreground mb-4">
+                Conéctate con Nosotros
+              </h2>
+              <div className="flex flex-wrap gap-3 mb-4">
+                <a
+                  href={hotel.socialMedia.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 bg-background rounded-lg border border-border hover:border-primary transition-colors"
+                >
+                  <Facebook className="h-5 w-5 text-blue-600" />
+                  <span className="text-sm font-medium">Facebook</span>
+                </a>
+                <a
+                  href={hotel.socialMedia.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 bg-background rounded-lg border border-border hover:border-primary transition-colors"
+                >
+                  <Instagram className="h-5 w-5 text-pink-600" />
+                  <span className="text-sm font-medium">Instagram</span>
+                </a>
+                <a
+                  href={hotel.socialMedia.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 bg-background rounded-lg border border-border hover:border-primary transition-colors"
+                >
+                  <Twitter className="h-5 w-5 text-sky-500" />
+                  <span className="text-sm font-medium">Twitter</span>
+                </a>
+              </div>
+              <a
+                href={hotel.socialMedia.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-primary hover:underline"
+              >
+                <Globe className="h-4 w-4" />
+                <span className="font-medium">Visitar sitio web oficial</span>
+              </a>
+            </div>
+
             {/* Services */}
             <div>
               <div className="flex items-center justify-between mb-6">
@@ -351,6 +411,76 @@ export default function AlojamientoDetalle() {
                   <div key={service.name} className="flex flex-col items-center gap-2 p-4 bg-surface rounded-xl">
                     <service.icon className="h-6 w-6 text-muted-foreground" />
                     <span className="text-sm text-center text-muted-foreground">{service.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Restaurants */}
+            <div>
+              <h2 className="font-display text-2xl font-bold text-foreground mb-6">
+                <UtensilsCrossed className="inline h-6 w-6 mr-2 text-primary" />
+                Restaurantes del Hotel
+              </h2>
+              <div className="space-y-4">
+                {hotel.restaurants.map((restaurant) => (
+                  <div
+                    key={restaurant.name}
+                    className="bg-surface rounded-2xl p-5 border border-border hover:border-primary/50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-display font-bold text-foreground">{restaurant.name}</h3>
+                          {restaurant.reservations && (
+                            <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">
+                              Requiere Reserva
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-primary mb-2">{restaurant.cuisine}</p>
+                        <p className="text-sm text-muted-foreground mb-3">{restaurant.description}</p>
+                        <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Coffee className="h-3 w-3" />
+                            {restaurant.hours}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            {restaurant.dressCode}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Bars */}
+            <div>
+              <h2 className="font-display text-2xl font-bold text-foreground mb-6">
+                <Wine className="inline h-6 w-6 mr-2 text-primary" />
+                Bares y Lounges
+              </h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                {hotel.bars.map((bar) => (
+                  <div
+                    key={bar.name}
+                    className="bg-surface rounded-2xl p-5 border border-border hover:border-primary/50 transition-colors"
+                  >
+                    <h3 className="font-display font-bold text-foreground mb-1">{bar.name}</h3>
+                    <p className="text-sm text-primary mb-2">{bar.type}</p>
+                    <p className="text-sm text-muted-foreground mb-3">{bar.description}</p>
+                    <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Coffee className="h-3 w-3" />
+                        {bar.hours}
+                      </span>
+                      <span className="flex items-center gap-1 text-primary font-medium">
+                        ★ {bar.specialty}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>

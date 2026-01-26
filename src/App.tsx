@@ -22,13 +22,11 @@ import DirectorioAgencias from "./pages/DirectorioAgencias";
 import GuiaGastronomica from "./pages/GuiaGastronomica";
 import ChefPerfil from "./pages/ChefPerfil";
 import RecetaDetalle from "./pages/RecetaDetalle";
-import Ayuda from "./pages/Ayuda";
+import CentroAyuda from "./pages/CentroAyuda";
 import Sostenible from "./pages/Sostenible";
 import Articulo from "./pages/Articulo";
-import Prensa from "./pages/Prensa";
 import Galeria from "./pages/Galeria";
 import Terminos from "./pages/Terminos";
-import Newsletter from "./pages/Newsletter";
 import Playas from "./pages/Playas";
 import Rios from "./pages/Rios";
 import Alojamientos from "./pages/Alojamientos";
@@ -46,7 +44,7 @@ import InfoTransporte from "./pages/InfoTransporte";
 import NotFound from "./pages/NotFound";
 import Wellness from "./pages/Wellness";
 import Bodas from "./pages/Bodas";
-import Cruceros from "./pages/Cruceros";
+import NauticaCruceros from "./pages/NauticaCruceros";
 import Inversion from "./pages/Inversion";
 import MICE from "./pages/MICE";
 import Experiencias from "./pages/Experiencias";
@@ -71,11 +69,7 @@ import ComparadorDestinos from "./pages/ComparadorDestinos";
 import MisLogros from "./pages/MisLogros";
 import Opiniones from "./pages/Opiniones";
 import Sugerencias from "./pages/Sugerencias";
-import CentroAyuda from "./pages/CentroAyuda";
-import NauticaCruceros from "./pages/NauticaCruceros";
 import PrensaComunicacion from "./pages/PrensaComunicacion";
-import Asistencia from "./pages/Asistencia";
-import Nautica from "./pages/Nautica";
 
 const queryClient = new QueryClient();
 
@@ -102,13 +96,13 @@ function AnimatedRoutes() {
         <Route path="/guia-gastronomica" element={<GuiaGastronomica />} />
         <Route path="/chef/:id" element={<ChefPerfil />} />
         <Route path="/receta/:id" element={<RecetaDetalle />} />
-        <Route path="/ayuda" element={<Ayuda />} />
+        <Route path="/ayuda" element={<CentroAyuda />} />
+        <Route path="/centro-ayuda" element={<CentroAyuda />} />
+        <Route path="/asistencia" element={<CentroAyuda />} />
         <Route path="/sostenible" element={<Sostenible />} />
         <Route path="/articulo/:id" element={<Articulo />} />
-        <Route path="/prensa" element={<Prensa />} />
         <Route path="/galeria" element={<Galeria />} />
         <Route path="/terminos" element={<Terminos />} />
-        <Route path="/newsletter" element={<Newsletter />} />
         <Route path="/estadisticas" element={<Estadisticas />} />
         <Route path="/partners" element={<Partners />} />
         <Route path="/sobre-nosotros" element={<SobreNosotros />} />
@@ -122,7 +116,9 @@ function AnimatedRoutes() {
         <Route path="/info/transporte" element={<InfoTransporte />} />
         <Route path="/wellness" element={<Wellness />} />
         <Route path="/bodas" element={<Bodas />} />
-        <Route path="/cruceros" element={<Cruceros />} />
+        <Route path="/cruceros" element={<NauticaCruceros />} />
+        <Route path="/nautica" element={<NauticaCruceros />} />
+        <Route path="/nautica-cruceros" element={<NauticaCruceros />} />
         <Route path="/inversion" element={<Inversion />} />
         <Route path="/mice" element={<MICE />} />
         <Route path="/experiencias" element={<Experiencias />} />
@@ -136,8 +132,9 @@ function AnimatedRoutes() {
         <Route path="/pasaporte-digital" element={<PasaporteDigital />} />
         <Route path="/cine-rd" element={<CineRD />} />
         <Route path="/academia" element={<AcademiaTuristica />} />
-        <Route path="/asistencia" element={<Asistencia />} />
-        <Route path="/nautica" element={<Nautica />} />
+        <Route path="/prensa" element={<PrensaComunicacion />} />
+        <Route path="/newsletter" element={<PrensaComunicacion />} />
+        <Route path="/prensa-comunicacion" element={<PrensaComunicacion />} />
         <Route path="/ofertas" element={<Ofertas />} />
         <Route path="/encuesta" element={<Encuesta />} />
         <Route path="/webcams" element={<Webcams />} />
