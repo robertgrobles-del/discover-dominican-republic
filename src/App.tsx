@@ -73,6 +73,11 @@ import Sugerencias from "./pages/Sugerencias";
 import PrensaComunicacion from "./pages/PrensaComunicacion";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
+import CalculadoraPresupuesto from "./pages/CalculadoraPresupuesto";
+import EstadoPlayas from "./pages/EstadoPlayas";
+import GuiasLocales from "./pages/GuiasLocales";
+import DiccionarioDominicano from "./pages/DiccionarioDominicano";
+import MapasTematicos from "./pages/MapasTematicos";
 
 // Backwards-compatible aliases (prevent runtime crashes if an old route/component name lingers)
 const Asistencia = CentroAyuda;
@@ -159,6 +164,11 @@ function AnimatedRoutes() {
         <Route path="/sugerencias" element={<Sugerencias />} />
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
+        <Route path="/calculadora-presupuesto" element={<CalculadoraPresupuesto />} />
+        <Route path="/estado-playas" element={<EstadoPlayas />} />
+        <Route path="/guias-locales" element={<GuiasLocales />} />
+        <Route path="/diccionario" element={<DiccionarioDominicano />} />
+        <Route path="/mapas" element={<MapasTematicos />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
