@@ -55,6 +55,36 @@ const slides = [
       season: "Todo el año"
     }
   },
+  {
+    id: 4,
+    image: puntaCanaImg,
+    tag: "Lujo y relax",
+    title: "Punta Cana",
+    subtitle: "El Destino del Caribe",
+    description: "Resorts de clase mundial, campos de golf y las playas más famosas del Caribe te esperan en el este dominicano.",
+    card: {
+      image: puntaCanaImg,
+      title: "Resorts de Lujo",
+      location: "Bávaro",
+      rating: 4.9,
+      season: "Todo el año"
+    }
+  },
+  {
+    id: 5,
+    image: heroBeachImg,
+    tag: "Aventura sin límites",
+    title: "Puerto Plata",
+    subtitle: "La Costa del Ámbar",
+    description: "Teleférico, 27 Charcos, playas doradas y la historia del ámbar dominicano. Aventura y cultura en la costa norte.",
+    card: {
+      image: heroBeachImg,
+      title: "27 Charcos",
+      location: "Puerto Plata",
+      rating: 4.8,
+      season: "Todo el año"
+    }
+  },
 ];
 
 const stats = [

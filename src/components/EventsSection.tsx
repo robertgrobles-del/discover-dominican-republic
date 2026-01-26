@@ -39,7 +39,7 @@ const events = [
 
 export function EventsSection() {
   return (
-    <section className="py-20 bg-card">
+    <section className="min-h-screen flex flex-col justify-center bg-card py-16">
       <div className="container mx-auto px-4 lg:px-8">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
