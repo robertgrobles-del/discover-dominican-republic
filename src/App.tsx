@@ -59,6 +59,11 @@ import Empleo from "./pages/Empleo";
 import PasaporteDigital from "./pages/PasaporteDigital";
 import CineRD from "./pages/CineRD";
 import AcademiaTuristica from "./pages/AcademiaTuristica";
+import Asistencia from "./pages/Asistencia";
+import Nautica from "./pages/Nautica";
+import Ofertas from "./pages/Ofertas";
+import Encuesta from "./pages/Encuesta";
+import Webcams from "./pages/Webcams";
 
 const queryClient = new QueryClient();
 
@@ -119,6 +124,11 @@ function AnimatedRoutes() {
         <Route path="/pasaporte-digital" element={<PasaporteDigital />} />
         <Route path="/cine-rd" element={<CineRD />} />
         <Route path="/academia" element={<AcademiaTuristica />} />
+        <Route path="/asistencia" element={<Asistencia />} />
+        <Route path="/nautica" element={<Nautica />} />
+        <Route path="/ofertas" element={<Ofertas />} />
+        <Route path="/encuesta" element={<Encuesta />} />
+        <Route path="/webcams" element={<Webcams />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
