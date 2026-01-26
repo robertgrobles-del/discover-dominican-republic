@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { BackToTop } from "@/components/BackToTop";
+import { ChatbotTuristico } from "@/components/ChatbotTuristico";
 import { FavoritesProvider } from "@/hooks/useFavorites";
 import Index from "./pages/Index";
 import Destinos from "./pages/Destinos";
@@ -64,6 +65,9 @@ import Nautica from "./pages/Nautica";
 import Ofertas from "./pages/Ofertas";
 import Encuesta from "./pages/Encuesta";
 import Webcams from "./pages/Webcams";
+import TurismoMedico from "./pages/TurismoMedico";
+import NomadasDigitales from "./pages/NomadasDigitales";
+import TurismoDeportivo from "./pages/TurismoDeportivo";
 
 const queryClient = new QueryClient();
 
@@ -129,6 +133,9 @@ function AnimatedRoutes() {
         <Route path="/ofertas" element={<Ofertas />} />
         <Route path="/encuesta" element={<Encuesta />} />
         <Route path="/webcams" element={<Webcams />} />
+        <Route path="/turismo-medico" element={<TurismoMedico />} />
+        <Route path="/nomadas-digitales" element={<NomadasDigitales />} />
+        <Route path="/turismo-deportivo" element={<TurismoDeportivo />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -146,6 +153,7 @@ const App = () => (
           <ScrollToTop />
           <AnimatedRoutes />
           <BackToTop />
+          <ChatbotTuristico />
         </BrowserRouter>
       </FavoritesProvider>
     </TooltipProvider>
