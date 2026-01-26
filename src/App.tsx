@@ -74,6 +74,8 @@ import Sugerencias from "./pages/Sugerencias";
 import CentroAyuda from "./pages/CentroAyuda";
 import NauticaCruceros from "./pages/NauticaCruceros";
 import PrensaComunicacion from "./pages/PrensaComunicacion";
+import Asistencia from "./pages/Asistencia";
+import Nautica from "./pages/Nautica";
 
 const queryClient = new QueryClient();
 
