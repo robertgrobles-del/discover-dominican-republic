@@ -60,14 +60,20 @@ import Empleo from "./pages/Empleo";
 import PasaporteDigital from "./pages/PasaporteDigital";
 import CineRD from "./pages/CineRD";
 import AcademiaTuristica from "./pages/AcademiaTuristica";
-import Asistencia from "./pages/Asistencia";
-import Nautica from "./pages/Nautica";
 import Ofertas from "./pages/Ofertas";
 import Encuesta from "./pages/Encuesta";
 import Webcams from "./pages/Webcams";
 import TurismoMedico from "./pages/TurismoMedico";
 import NomadasDigitales from "./pages/NomadasDigitales";
 import TurismoDeportivo from "./pages/TurismoDeportivo";
+import ClubRecompensas from "./pages/ClubRecompensas";
+import ComparadorDestinos from "./pages/ComparadorDestinos";
+import MisLogros from "./pages/MisLogros";
+import Opiniones from "./pages/Opiniones";
+import Sugerencias from "./pages/Sugerencias";
+import CentroAyuda from "./pages/CentroAyuda";
+import NauticaCruceros from "./pages/NauticaCruceros";
+import PrensaComunicacion from "./pages/PrensaComunicacion";
 
 const queryClient = new QueryClient();
 
