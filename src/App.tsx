@@ -115,6 +115,9 @@ import HistoriaVivaAR from "./pages/HistoriaVivaAR";
 import CuevaDetalle from "./pages/CuevaDetalle";
 import ParqueNacionalDetalle from "./pages/ParqueNacionalDetalle";
 import DestinoReligiosoDetalle from "./pages/DestinoReligiosoDetalle";
+import MarinaDetalle from "./pages/MarinaDetalle";
+import CulturaTabaco from "./pages/CulturaTabaco";
+import EscuelaRitmos from "./pages/EscuelaRitmos";
 
 // Backwards-compatible aliases
 const Asistencia = CentroAyuda;
@@ -241,6 +244,9 @@ function AnimatedRoutes() {
         <Route path="/cueva/:id" element={<CuevaDetalle />} />
         <Route path="/parque-nacional/:id" element={<ParqueNacionalDetalle />} />
         <Route path="/destino-religioso/:id" element={<DestinoReligiosoDetalle />} />
+        <Route path="/marina/:id" element={<MarinaDetalle />} />
+        <Route path="/cultura-tabaco" element={<CulturaTabaco />} />
+        <Route path="/escuela-ritmos" element={<EscuelaRitmos />} />
         <Route path="/admin" element={<AdminPanel />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
