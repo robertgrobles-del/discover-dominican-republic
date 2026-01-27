@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { 
   Search, MapPin, Star, Music, Wine, Sparkles, PartyPopper, 
   Palmtree, ChevronDown, Calendar, Clock, ChevronRight
@@ -240,7 +241,11 @@ export default function VidaNocturna() {
                       </span>
                     ))}
                   </div>
-                  <Button variant="outline" className="w-full">Ver Detalles y Agenda</Button>
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link to={`/bar/${venue.name.toLowerCase().replace(/\s+/g, '-')}`}>
+                      Ver Detalles y Agenda
+                    </Link>
+                  </Button>
                 </div>
               </motion.div>
             ))}
