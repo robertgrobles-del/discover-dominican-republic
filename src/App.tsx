@@ -87,6 +87,11 @@ import PlanificadorGrupal from "./pages/PlanificadorGrupal";
 import PuertosMarinas from "./pages/PuertosMarinas";
 import HechoEnRD from "./pages/HechoEnRD";
 import ComparadorExperiencias from "./pages/ComparadorExperiencias";
+import Biodiversidad from "./pages/Biodiversidad";
+import SeguridadVial from "./pages/SeguridadVial";
+import Tours360 from "./pages/Tours360";
+import RDEnMovimiento from "./pages/RDEnMovimiento";
+import ETicket from "./pages/ETicket";
 
 // Backwards-compatible aliases (prevent runtime crashes if an old route/component name lingers)
 const Asistencia = CentroAyuda;
@@ -187,6 +192,11 @@ function AnimatedRoutes() {
         <Route path="/puertos-marinas" element={<PuertosMarinas />} />
         <Route path="/hecho-en-rd" element={<HechoEnRD />} />
         <Route path="/comparador-experiencias" element={<ComparadorExperiencias />} />
+        <Route path="/biodiversidad" element={<Biodiversidad />} />
+        <Route path="/seguridad-vial" element={<SeguridadVial />} />
+        <Route path="/tours-360" element={<Tours360 />} />
+        <Route path="/running-ciclismo" element={<RDEnMovimiento />} />
+        <Route path="/e-ticket" element={<ETicket />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
