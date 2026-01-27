@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import {
   FileText,
   Download,
@@ -16,11 +17,14 @@ import {
   Sparkles,
   MapPin,
   Calendar,
+  ChevronRight,
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { ClimateWidget } from "@/components/ClimateWidget";
+import { SEOHead } from "@/components/SEOHead";
 import relaxBeachImg from "@/assets/relax-beach.jpg";
 import samanaImg from "@/assets/samana.jpg";
 import heroBeachImg from "@/assets/hero-beach.jpg";
@@ -116,8 +120,14 @@ export default function Planifica() {
   const [selectedBudget, setSelectedBudget] = useState("Moderado");
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <>
+      <SEOHead
+        title="Planifica tu Viaje a República Dominicana"
+        description="Prepara tu viaje al Caribe: requisitos de entrada, clima por temporada, consejos de salud y herramientas para diseñar tu itinerario perfecto."
+        keywords="planificar viaje República Dominicana, requisitos entrada, clima Caribe, itinerario, E-Ticket, visa dominicana"
+      />
+      <div className="min-h-screen bg-background">
+        <Header />
 
       {/* Hero Section */}
       <section className="relative h-[50vh] min-h-[400px] w-full flex flex-col justify-center items-center overflow-hidden">
@@ -281,55 +291,73 @@ export default function Planifica() {
         </div>
       </section>
 
-      {/* Climate by Season */}
+      {/* Climate Widget Section - Enhanced */}
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-10"
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <h2 className="font-display text-2xl font-bold">Clima por Temporadas</h2>
-            </div>
-            <p className="text-muted-foreground">
-              El clima es tropical todo el año, con una temperatura promedio de 25°C a 31°C.
-            </p>
-          </motion.div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {seasons.map((season, index) => (
+          <div className="grid lg:grid-cols-3 gap-8">
+            {/* Left Column - Season Cards */}
+            <div className="lg:col-span-2">
               <motion.div
-                key={season.name}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="group"
+                className="mb-6"
               >
-                <div className="relative aspect-video rounded-2xl overflow-hidden mb-4">
-                  <img
-                    src={season.image}
-                    alt={season.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
-                  <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-                    <p className="text-sm text-muted-foreground">{season.period}</p>
-                    <p className="text-xl font-bold text-foreground">{season.temp}</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    <h2 className="font-display text-2xl font-bold">Clima por Temporadas</h2>
                   </div>
+                  <Link to="/clima-temporadas">
+                    <Button variant="ghost" size="sm" className="gap-1 text-primary">
+                      Ver guía completa <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
                 </div>
-                <div className="flex items-center gap-2 mb-2">
-                  <season.icon className="h-5 w-5 text-primary" />
-                  <h3 className="font-display font-bold text-foreground">
-                    {season.name}
-                  </h3>
-                </div>
-                <p className="text-muted-foreground text-sm">{season.description}</p>
+                <p className="text-muted-foreground mt-1">
+                  El clima es tropical todo el año, con una temperatura promedio de 25°C a 31°C.
+                </p>
               </motion.div>
-            ))}
+
+              <div className="grid md:grid-cols-3 gap-4">
+                {seasons.map((season, index) => (
+                  <motion.div
+                    key={season.name}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                    className="group"
+                  >
+                    <div className="relative aspect-video rounded-2xl overflow-hidden mb-3">
+                      <img
+                        src={season.image}
+                        alt={season.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+                      <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end">
+                        <p className="text-xs text-muted-foreground">{season.period}</p>
+                        <p className="text-lg font-bold text-foreground">{season.temp}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <season.icon className="h-4 w-4 text-primary" />
+                      <h3 className="font-display font-semibold text-sm text-foreground">
+                        {season.name}
+                      </h3>
+                    </div>
+                    <p className="text-muted-foreground text-xs line-clamp-2">{season.description}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Column - Climate Widget */}
+            <div className="lg:col-span-1">
+              <ClimateWidget variant="full" />
+            </div>
           </div>
         </div>
       </section>
@@ -481,6 +509,7 @@ export default function Planifica() {
       </section>
 
       <Footer />
-    </div>
+      </div>
+    </>
   );
 }

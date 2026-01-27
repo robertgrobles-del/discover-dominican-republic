@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,144 +10,154 @@ import { BackToTop } from "@/components/BackToTop";
 import { ChatbotTuristico } from "@/components/ChatbotTuristico";
 import { FavoritesProvider } from "@/hooks/useFavorites";
 import { AuthProvider } from "@/hooks/useAuth";
-import Index from "./pages/Index";
-import Destinos from "./pages/Destinos";
-import Actividades from "./pages/Actividades";
-import Planifica from "./pages/Planifica";
-import Cultura from "./pages/Cultura";
-import AlojamientoDetalle from "./pages/AlojamientoDetalle";
-import RestauranteDetalle from "./pages/RestauranteDetalle";
-import Revista from "./pages/Revista";
-import Aeropuerto from "./pages/Aeropuerto";
-import VidaNocturna from "./pages/VidaNocturna";
-import DirectorioAgencias from "./pages/DirectorioAgencias";
-import GuiaGastronomica from "./pages/GuiaGastronomica";
-import ChefPerfil from "./pages/ChefPerfil";
-import RecetaDetalle from "./pages/RecetaDetalle";
-import CentroAyuda from "./pages/CentroAyuda";
-import Sostenible from "./pages/Sostenible";
-import Articulo from "./pages/Articulo";
-import Galeria from "./pages/Galeria";
-import Terminos from "./pages/Terminos";
-import Playas from "./pages/Playas";
-import Rios from "./pages/Rios";
-import Alojamientos from "./pages/Alojamientos";
-import Estadisticas from "./pages/Estadisticas";
-import Partners from "./pages/Partners";
-import SobreNosotros from "./pages/SobreNosotros";
-import DestinoDetalle from "./pages/DestinoDetalle";
-import DestinosRegiones from "./pages/DestinosRegiones";
-import Eventos from "./pages/Eventos";
-import ComoLlegar from "./pages/ComoLlegar";
-import Herramientas from "./pages/Herramientas";
-import Patrimonio from "./pages/Patrimonio";
-import InfoSeguridad from "./pages/InfoSeguridad";
-import InfoTransporte from "./pages/InfoTransporte";
-import NotFound from "./pages/NotFound";
-import Wellness from "./pages/Wellness";
-import Bodas from "./pages/Bodas";
-import NauticaCruceros from "./pages/NauticaCruceros";
-import Inversion from "./pages/Inversion";
-import MICE from "./pages/MICE";
-import Experiencias from "./pages/Experiencias";
-import ExperienciaDetalle from "./pages/ExperienciaDetalle";
-import MiViaje from "./pages/MiViaje";
-import Biblioteca from "./pages/Biblioteca";
-import Compras from "./pages/Compras";
-import Accesibilidad from "./pages/Accesibilidad";
-import RDSocial from "./pages/RDSocial";
-import Empleo from "./pages/Empleo";
-import PasaporteDigital from "./pages/PasaporteDigital";
-import CineRD from "./pages/CineRD";
-import AcademiaTuristica from "./pages/AcademiaTuristica";
-import Ofertas from "./pages/Ofertas";
-import Encuesta from "./pages/Encuesta";
-import Webcams from "./pages/Webcams";
-import TurismoMedico from "./pages/TurismoMedico";
-import NomadasDigitales from "./pages/NomadasDigitales";
-import TurismoDeportivo from "./pages/TurismoDeportivo";
-import ClubRecompensas from "./pages/ClubRecompensas";
-import ComparadorDestinos from "./pages/ComparadorDestinos";
-import MisLogros from "./pages/MisLogros";
-import Opiniones from "./pages/Opiniones";
-import Sugerencias from "./pages/Sugerencias";
-import PrensaComunicacion from "./pages/PrensaComunicacion";
-import Login from "./pages/Login";
-import Registro from "./pages/Registro";
-import Perfil from "./pages/Perfil";
-import CalculadoraPresupuesto from "./pages/CalculadoraPresupuesto";
-import EstadoPlayas from "./pages/EstadoPlayas";
-import GuiasLocales from "./pages/GuiasLocales";
-import DiccionarioDominicano from "./pages/DiccionarioDominicano";
-import MapasTematicos from "./pages/MapasTematicos";
-import FotografosLocales from "./pages/FotografosLocales";
-import Conectividad from "./pages/Conectividad";
-import RutasEmbajadores from "./pages/RutasEmbajadores";
-import GuardianCaribe from "./pages/GuardianCaribe";
-import PlanificadorGrupal from "./pages/PlanificadorGrupal";
-import PuertosMarinas from "./pages/PuertosMarinas";
-import HechoEnRD from "./pages/HechoEnRD";
-import ComparadorExperiencias from "./pages/ComparadorExperiencias";
-import Biodiversidad from "./pages/Biodiversidad";
-import SeguridadVial from "./pages/SeguridadVial";
-import Tours360 from "./pages/Tours360";
-import RDEnMovimiento from "./pages/RDEnMovimiento";
-import ETicket from "./pages/ETicket";
-import TurismoSensorial from "./pages/TurismoSensorial";
-import Volunturismo from "./pages/Volunturismo";
-import IdentificadorComida from "./pages/IdentificadorComida";
-import Astroturismo from "./pages/Astroturismo";
-import GuiaEtiqueta from "./pages/GuiaEtiqueta";
-import PodcastRD from "./pages/PodcastRD";
-import SouvenirsDigitales from "./pages/SouvenirsDigitales";
-import EspanolViajero from "./pages/EspanolViajero";
-import SelloCalidad from "./pages/SelloCalidad";
-import PuertoDetalle from "./pages/PuertoDetalle";
-import BarDetalle from "./pages/BarDetalle";
-import AgenciaDetalle from "./pages/AgenciaDetalle";
-import EstadioDetalle from "./pages/EstadioDetalle";
-import ClinicaDetalle from "./pages/ClinicaDetalle";
-import AdminPanel from "./pages/AdminPanel";
-import ParquesTematicos from "./pages/ParquesTematicos";
-import ParqueDetalle from "./pages/ParqueDetalle";
-import Ecoturismo from "./pages/Ecoturismo";
-import TurismoReligioso from "./pages/TurismoReligioso";
-import HistoriaVivaAR from "./pages/HistoriaVivaAR";
-import CuevaDetalle from "./pages/CuevaDetalle";
-import ParqueNacionalDetalle from "./pages/ParqueNacionalDetalle";
-import DestinoReligiosoDetalle from "./pages/DestinoReligiosoDetalle";
-import MarinaDetalle from "./pages/MarinaDetalle";
-import CulturaTabaco from "./pages/CulturaTabaco";
-import EscuelaRitmos from "./pages/EscuelaRitmos";
-import ClimaTemporadas from "./pages/ClimaTemporadas";
-import CulturaCafe from "./pages/CulturaCafe";
-import TalleresArtesanales from "./pages/TalleresArtesanales";
-import AirbnbDetalle from "./pages/AirbnbDetalle";
-import RutasSabor from "./pages/RutasSabor";
 
-// Backwards-compatible aliases
-const Asistencia = CentroAyuda;
-const Ayuda = CentroAyuda;
-const Nautica = NauticaCruceros;
-const Cruceros = NauticaCruceros;
-const Prensa = PrensaComunicacion;
-const Newsletter = PrensaComunicacion;
+// Critical pages - loaded immediately
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
+
+// Lazy loaded pages for better performance
+const Destinos = lazy(() => import("./pages/Destinos"));
+const Actividades = lazy(() => import("./pages/Actividades"));
+const Planifica = lazy(() => import("./pages/Planifica"));
+const Cultura = lazy(() => import("./pages/Cultura"));
+const AlojamientoDetalle = lazy(() => import("./pages/AlojamientoDetalle"));
+const RestauranteDetalle = lazy(() => import("./pages/RestauranteDetalle"));
+const Revista = lazy(() => import("./pages/Revista"));
+const Aeropuerto = lazy(() => import("./pages/Aeropuerto"));
+const VidaNocturna = lazy(() => import("./pages/VidaNocturna"));
+const DirectorioAgencias = lazy(() => import("./pages/DirectorioAgencias"));
+const GuiaGastronomica = lazy(() => import("./pages/GuiaGastronomica"));
+const ChefPerfil = lazy(() => import("./pages/ChefPerfil"));
+const RecetaDetalle = lazy(() => import("./pages/RecetaDetalle"));
+const CentroAyuda = lazy(() => import("./pages/CentroAyuda"));
+const Sostenible = lazy(() => import("./pages/Sostenible"));
+const Articulo = lazy(() => import("./pages/Articulo"));
+const Galeria = lazy(() => import("./pages/Galeria"));
+const Terminos = lazy(() => import("./pages/Terminos"));
+const Playas = lazy(() => import("./pages/Playas"));
+const Rios = lazy(() => import("./pages/Rios"));
+const Alojamientos = lazy(() => import("./pages/Alojamientos"));
+const Estadisticas = lazy(() => import("./pages/Estadisticas"));
+const Partners = lazy(() => import("./pages/Partners"));
+const SobreNosotros = lazy(() => import("./pages/SobreNosotros"));
+const DestinoDetalle = lazy(() => import("./pages/DestinoDetalle"));
+const DestinosRegiones = lazy(() => import("./pages/DestinosRegiones"));
+const Eventos = lazy(() => import("./pages/Eventos"));
+const ComoLlegar = lazy(() => import("./pages/ComoLlegar"));
+const Herramientas = lazy(() => import("./pages/Herramientas"));
+const Patrimonio = lazy(() => import("./pages/Patrimonio"));
+const InfoSeguridad = lazy(() => import("./pages/InfoSeguridad"));
+const InfoTransporte = lazy(() => import("./pages/InfoTransporte"));
+const Wellness = lazy(() => import("./pages/Wellness"));
+const Bodas = lazy(() => import("./pages/Bodas"));
+const NauticaCruceros = lazy(() => import("./pages/NauticaCruceros"));
+const Inversion = lazy(() => import("./pages/Inversion"));
+const MICE = lazy(() => import("./pages/MICE"));
+const Experiencias = lazy(() => import("./pages/Experiencias"));
+const ExperienciaDetalle = lazy(() => import("./pages/ExperienciaDetalle"));
+const MiViaje = lazy(() => import("./pages/MiViaje"));
+const Biblioteca = lazy(() => import("./pages/Biblioteca"));
+const Compras = lazy(() => import("./pages/Compras"));
+const Accesibilidad = lazy(() => import("./pages/Accesibilidad"));
+const RDSocial = lazy(() => import("./pages/RDSocial"));
+const Empleo = lazy(() => import("./pages/Empleo"));
+const PasaporteDigital = lazy(() => import("./pages/PasaporteDigital"));
+const CineRD = lazy(() => import("./pages/CineRD"));
+const AcademiaTuristica = lazy(() => import("./pages/AcademiaTuristica"));
+const Ofertas = lazy(() => import("./pages/Ofertas"));
+const Encuesta = lazy(() => import("./pages/Encuesta"));
+const Webcams = lazy(() => import("./pages/Webcams"));
+const TurismoMedico = lazy(() => import("./pages/TurismoMedico"));
+const NomadasDigitales = lazy(() => import("./pages/NomadasDigitales"));
+const TurismoDeportivo = lazy(() => import("./pages/TurismoDeportivo"));
+const ClubRecompensas = lazy(() => import("./pages/ClubRecompensas"));
+const ComparadorDestinos = lazy(() => import("./pages/ComparadorDestinos"));
+const MisLogros = lazy(() => import("./pages/MisLogros"));
+const Opiniones = lazy(() => import("./pages/Opiniones"));
+const Sugerencias = lazy(() => import("./pages/Sugerencias"));
+const PrensaComunicacion = lazy(() => import("./pages/PrensaComunicacion"));
+const Login = lazy(() => import("./pages/Login"));
+const Registro = lazy(() => import("./pages/Registro"));
+const Perfil = lazy(() => import("./pages/Perfil"));
+const CalculadoraPresupuesto = lazy(() => import("./pages/CalculadoraPresupuesto"));
+const EstadoPlayas = lazy(() => import("./pages/EstadoPlayas"));
+const GuiasLocales = lazy(() => import("./pages/GuiasLocales"));
+const DiccionarioDominicano = lazy(() => import("./pages/DiccionarioDominicano"));
+const MapasTematicos = lazy(() => import("./pages/MapasTematicos"));
+const FotografosLocales = lazy(() => import("./pages/FotografosLocales"));
+const Conectividad = lazy(() => import("./pages/Conectividad"));
+const RutasEmbajadores = lazy(() => import("./pages/RutasEmbajadores"));
+const GuardianCaribe = lazy(() => import("./pages/GuardianCaribe"));
+const PlanificadorGrupal = lazy(() => import("./pages/PlanificadorGrupal"));
+const PuertosMarinas = lazy(() => import("./pages/PuertosMarinas"));
+const HechoEnRD = lazy(() => import("./pages/HechoEnRD"));
+const ComparadorExperiencias = lazy(() => import("./pages/ComparadorExperiencias"));
+const Biodiversidad = lazy(() => import("./pages/Biodiversidad"));
+const SeguridadVial = lazy(() => import("./pages/SeguridadVial"));
+const Tours360 = lazy(() => import("./pages/Tours360"));
+const RDEnMovimiento = lazy(() => import("./pages/RDEnMovimiento"));
+const ETicket = lazy(() => import("./pages/ETicket"));
+const TurismoSensorial = lazy(() => import("./pages/TurismoSensorial"));
+const Volunturismo = lazy(() => import("./pages/Volunturismo"));
+const IdentificadorComida = lazy(() => import("./pages/IdentificadorComida"));
+const Astroturismo = lazy(() => import("./pages/Astroturismo"));
+const GuiaEtiqueta = lazy(() => import("./pages/GuiaEtiqueta"));
+const PodcastRD = lazy(() => import("./pages/PodcastRD"));
+const SouvenirsDigitales = lazy(() => import("./pages/SouvenirsDigitales"));
+const EspanolViajero = lazy(() => import("./pages/EspanolViajero"));
+const SelloCalidad = lazy(() => import("./pages/SelloCalidad"));
+const PuertoDetalle = lazy(() => import("./pages/PuertoDetalle"));
+const BarDetalle = lazy(() => import("./pages/BarDetalle"));
+const AgenciaDetalle = lazy(() => import("./pages/AgenciaDetalle"));
+const EstadioDetalle = lazy(() => import("./pages/EstadioDetalle"));
+const ClinicaDetalle = lazy(() => import("./pages/ClinicaDetalle"));
+const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const ParquesTematicos = lazy(() => import("./pages/ParquesTematicos"));
+const ParqueDetalle = lazy(() => import("./pages/ParqueDetalle"));
+const Ecoturismo = lazy(() => import("./pages/Ecoturismo"));
+const TurismoReligioso = lazy(() => import("./pages/TurismoReligioso"));
+const HistoriaVivaAR = lazy(() => import("./pages/HistoriaVivaAR"));
+const CuevaDetalle = lazy(() => import("./pages/CuevaDetalle"));
+const ParqueNacionalDetalle = lazy(() => import("./pages/ParqueNacionalDetalle"));
+const DestinoReligiosoDetalle = lazy(() => import("./pages/DestinoReligiosoDetalle"));
+const MarinaDetalle = lazy(() => import("./pages/MarinaDetalle"));
+const CulturaTabaco = lazy(() => import("./pages/CulturaTabaco"));
+const EscuelaRitmos = lazy(() => import("./pages/EscuelaRitmos"));
+const ClimaTemporadas = lazy(() => import("./pages/ClimaTemporadas"));
+const CulturaCafe = lazy(() => import("./pages/CulturaCafe"));
+const TalleresArtesanales = lazy(() => import("./pages/TalleresArtesanales"));
+const AirbnbDetalle = lazy(() => import("./pages/AirbnbDetalle"));
+const RutasSabor = lazy(() => import("./pages/RutasSabor"));
+
 const queryClient = new QueryClient();
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="min-h-screen bg-background flex items-center justify-center">
+    <div className="flex flex-col items-center gap-4">
+      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <p className="text-muted-foreground text-sm">Cargando...</p>
+    </div>
+  </div>
+);
 
 function AnimatedRoutes() {
   const location = useLocation();
   
   return (
     <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Index />} />
-        <Route path="/destinos" element={<Destinos />} />
-        <Route path="/actividades" element={<Actividades />} />
-        <Route path="/planifica" element={<Planifica />} />
-        <Route path="/cultura" element={<Cultura />} />
-        <Route path="/playas" element={<Playas />} />
-        <Route path="/rios" element={<Rios />} />
-        <Route path="/alojamientos" element={<Alojamientos />} />
+      <Suspense fallback={<PageLoader />}>
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<Index />} />
+          <Route path="/destinos" element={<Destinos />} />
+          <Route path="/actividades" element={<Actividades />} />
+          <Route path="/planifica" element={<Planifica />} />
+          <Route path="/cultura" element={<Cultura />} />
+          <Route path="/playas" element={<Playas />} />
+          <Route path="/rios" element={<Rios />} />
+          <Route path="/alojamientos" element={<Alojamientos />} />
+          <Route path="/alojamiento/:id" element={<AlojamientoDetalle />} />
+          <Route path="/restaurante/:id" element={<RestauranteDetalle />} />
         <Route path="/alojamiento/:id" element={<AlojamientoDetalle />} />
         <Route path="/restaurante/:id" element={<RestauranteDetalle />} />
         <Route path="/revista" element={<Revista />} />
@@ -258,9 +269,10 @@ function AnimatedRoutes() {
         <Route path="/rutas-sabor" element={<RutasSabor />} />
         <Route path="/airbnb/:id" element={<AirbnbDetalle />} />
         <Route path="/admin" element={<AdminPanel />} />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </AnimatePresence>
   );
 }
