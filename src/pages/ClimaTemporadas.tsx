@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,6 +21,38 @@ import {
   Mountain,
   ChevronRight,
 } from "lucide-react";
+
+// JSON-LD schema for climate page
+const generateClimateSchema = () => ({
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "¿Cuál es la mejor época para visitar República Dominicana?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "La mejor época para visitar República Dominicana es durante la temporada seca, de diciembre a abril, con temperaturas ideales entre 25-30°C y cielos despejados.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "¿Cuántos días de sol tiene República Dominicana?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "República Dominicana tiene más de 300 días de sol al año, con una temperatura promedio de 25°C a 31°C durante todo el año.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "¿Cuándo es la temporada de huracanes en República Dominicana?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "La temporada de huracanes va de agosto a noviembre. Se recomienda monitorear el clima y contratar seguro de viaje durante estos meses.",
+      },
+    },
+  ],
+});
 
 const temporadas = [
   {
@@ -102,6 +136,12 @@ const eventosPorMes = [
 export default function ClimaTemporadas() {
   return (
     <PageTransition>
+      <SEOHead
+        title="Clima y Temporadas en República Dominicana"
+        description="Descubre el clima tropical de República Dominicana. 300+ días de sol, temperaturas de 25-31°C y la mejor época para visitar según tus intereses."
+        keywords="clima República Dominicana, temporadas, mejor época visitar, temperatura Punta Cana, huracanes Caribe, vacaciones"
+        jsonLd={generateClimateSchema()}
+      />
       <div className="min-h-screen bg-background">
         <Header />
 
@@ -345,9 +385,11 @@ export default function ClimaTemporadas() {
               <p className="text-white/80 mb-8 max-w-xl mx-auto">
                 Usa nuestras herramientas para encontrar la fecha perfecta según tus intereses.
               </p>
-              <Button size="lg" className="gap-2 bg-white text-blue-900 hover:bg-white/90">
-                Ir al Planificador <ChevronRight className="h-4 w-4" />
-              </Button>
+              <Link to="/planifica">
+                <Button size="lg" className="gap-2 bg-white text-blue-900 hover:bg-white/90">
+                  Ir al Planificador <ChevronRight className="h-4 w-4" />
+                </Button>
+              </Link>
             </motion.div>
           </div>
         </section>
