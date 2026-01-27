@@ -22,6 +22,7 @@ import puntaCana from "@/assets/punta-cana.jpg";
 const experiencias = [
   { id: "ecoturismo", nombre: "Ecoturismo", imagen: whaleSamana, desc: "Conecta con la naturaleza virgen de RD" },
   { id: "aventura", nombre: "Aventura", imagen: adventure, desc: "Adrenalina en el paraíso caribeño" },
+  { id: "parques-tematicos", nombre: "Parques Temáticos", imagen: puntaCana, desc: "Diversión extrema y emociones para todos" },
   { id: "cultura", nombre: "Cultura", imagen: santoDomingo, desc: "500 años de historia viva" },
   { id: "romance", nombre: "Romance", imagen: relaxBeach, desc: "Amor en el Caribe" },
   { id: "golf", nombre: "Golf", imagen: hotelEdenRoc, desc: "Campos de clase mundial" },
