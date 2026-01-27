@@ -1,8 +1,10 @@
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import useEmblaCarousel from "embla-carousel-react";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import samanaImg from "@/assets/samana.jpg";
@@ -57,6 +59,34 @@ const destinations = [
 ];
 
 export function DestinationsSection() {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    loop: true, 
+    align: "start",
+    slidesToScroll: 1,
+  });
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setCanScrollPrev(emblaApi.canScrollPrev());
+    setCanScrollNext(emblaApi.canScrollNext());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
+    return () => {
+      emblaApi.off("select", onSelect);
+      emblaApi.off("reInit", onSelect);
+    };
+  }, [emblaApi, onSelect]);
+
   return (
     <section className="min-h-screen flex flex-col justify-center bg-background py-16">
       <div className="container mx-auto px-4 lg:px-8">
@@ -84,7 +114,29 @@ export function DestinationsSection() {
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
+            className="flex items-center gap-4"
           >
+            {/* Carousel Controls */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={scrollPrev}
+                disabled={!canScrollPrev}
+                className="rounded-full"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={scrollNext}
+                disabled={!canScrollNext}
+                className="rounded-full"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
             <Link to="/destinos">
               <Button variant="link" className="text-primary gap-2">
                 Ver todos los destinos
@@ -94,102 +146,57 @@ export function DestinationsSection() {
           </motion.div>
         </div>
 
-        {/* Destination Cards - First row of 4 */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          {destinations.slice(0, 4).map((destination, index) => (
-            <motion.div
-              key={destination.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="group relative aspect-[3/4] rounded-xl overflow-hidden"
-            >
-              <Link to={`/destino/${destination.id}`} className="block h-full">
-                {/* Background Image */}
-                <img
-                  src={destination.image}
-                  alt={destination.name}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
-                
-                {/* Favorite Button */}
-                <FavoriteButton
-                  id={destination.id}
-                  type="destino"
-                  name={destination.name}
-                  image={destination.image}
-                  className="absolute top-4 right-4 z-10"
-                />
-                
-                {/* Content */}
-                <div className="absolute inset-x-0 bottom-0 p-6">
-                  <h3 className="font-display text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                    {destination.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                    {destination.description}
-                  </p>
-                  <div className="flex items-center gap-1 text-primary text-sm font-medium group-hover:gap-2 transition-all">
-                    <span>Explorar destino</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </div>
+        {/* Carousel */}
+        <div className="overflow-hidden" ref={emblaRef}>
+          <div className="flex gap-4">
+            {destinations.map((destination, index) => (
+              <motion.div
+                key={destination.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="flex-shrink-0 w-[280px] md:w-[320px] lg:w-[350px]"
+              >
+                <div className="group relative aspect-[3/4] rounded-xl overflow-hidden">
+                  <Link to={`/destino/${destination.id}`} className="block h-full">
+                    {/* Background Image */}
+                    <img
+                      src={destination.image}
+                      alt={destination.name}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+                    
+                    {/* Favorite Button */}
+                    <FavoriteButton
+                      id={destination.id}
+                      type="destino"
+                      name={destination.name}
+                      image={destination.image}
+                      className="absolute top-4 right-4 z-10"
+                    />
+                    
+                    {/* Content */}
+                    <div className="absolute inset-x-0 bottom-0 p-6">
+                      <h3 className="font-display text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                        {destination.name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                        {destination.description}
+                      </p>
+                      <div className="flex items-center gap-1 text-primary text-sm font-medium group-hover:gap-2 transition-all">
+                        <span>Explorar destino</span>
+                        <ChevronRight className="h-4 w-4" />
+                      </div>
+                    </div>
+                  </Link>
                 </div>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Destination Cards - Second row of 3 */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-          {destinations.slice(4).map((destination, index) => (
-            <motion.div
-              key={destination.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: (index + 4) * 0.1 }}
-              className="group relative aspect-[4/3] rounded-xl overflow-hidden"
-            >
-              <Link to={`/destino/${destination.id}`} className="block h-full">
-                {/* Background Image */}
-                <img
-                  src={destination.image}
-                  alt={destination.name}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
-                
-                {/* Favorite Button */}
-                <FavoriteButton
-                  id={destination.id}
-                  type="destino"
-                  name={destination.name}
-                  image={destination.image}
-                  className="absolute top-4 right-4 z-10"
-                />
-                
-                {/* Content */}
-                <div className="absolute inset-x-0 bottom-0 p-5">
-                  <h3 className="font-display text-xl font-bold text-foreground mb-1 group-hover:text-primary transition-colors">
-                    {destination.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                    {destination.description}
-                  </p>
-                  <div className="flex items-center gap-1 text-primary text-sm font-medium group-hover:gap-2 transition-all">
-                    <span>Explorar</span>
-                    <ChevronRight className="h-4 w-4" />
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
