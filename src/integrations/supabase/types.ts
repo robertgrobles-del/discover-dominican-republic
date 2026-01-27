@@ -713,6 +713,7 @@ export type Database = {
           image_url: string | null
           latitude: number | null
           longitude: number | null
+          municipality_id: string | null
           name: string
           province_id: string | null
           short_description: string | null
@@ -732,6 +733,7 @@ export type Database = {
           image_url?: string | null
           latitude?: number | null
           longitude?: number | null
+          municipality_id?: string | null
           name: string
           province_id?: string | null
           short_description?: string | null
@@ -751,6 +753,7 @@ export type Database = {
           image_url?: string | null
           latitude?: number | null
           longitude?: number | null
+          municipality_id?: string | null
           name?: string
           province_id?: string | null
           short_description?: string | null
@@ -760,6 +763,13 @@ export type Database = {
           weather_info?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "destinations_municipality_id_fkey"
+            columns: ["municipality_id"]
+            isOneToOne: false
+            referencedRelation: "municipalities"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "destinations_province_id_fkey"
             columns: ["province_id"]
@@ -1066,6 +1076,77 @@ export type Database = {
           },
         ]
       }
+      municipalities: {
+        Row: {
+          area_km2: number | null
+          created_at: string
+          description: string | null
+          gallery: string[] | null
+          highlights: string[] | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_tourist_destination: boolean | null
+          latitude: number | null
+          longitude: number | null
+          municipality_type: string | null
+          name: string
+          population: number | null
+          province_id: string | null
+          short_description: string | null
+          slug: string | null
+          updated_at: string
+        }
+        Insert: {
+          area_km2?: number | null
+          created_at?: string
+          description?: string | null
+          gallery?: string[] | null
+          highlights?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_tourist_destination?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          municipality_type?: string | null
+          name: string
+          population?: number | null
+          province_id?: string | null
+          short_description?: string | null
+          slug?: string | null
+          updated_at?: string
+        }
+        Update: {
+          area_km2?: number | null
+          created_at?: string
+          description?: string | null
+          gallery?: string[] | null
+          highlights?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_tourist_destination?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          municipality_type?: string | null
+          name?: string
+          population?: number | null
+          province_id?: string | null
+          short_description?: string | null
+          slug?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "municipalities_province_id_fkey"
+            columns: ["province_id"]
+            isOneToOne: false
+            referencedRelation: "provinces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ports_marinas: {
         Row: {
           address: string | null
@@ -1160,30 +1241,54 @@ export type Database = {
       }
       provinces: {
         Row: {
+          area_km2: number | null
+          capital: string | null
           created_at: string
           description: string | null
+          highlights: string[] | null
           id: string
           image_url: string | null
+          is_featured: boolean | null
+          latitude: number | null
+          longitude: number | null
           name: string
+          population: number | null
           region: string | null
+          slug: string | null
           updated_at: string
         }
         Insert: {
+          area_km2?: number | null
+          capital?: string | null
           created_at?: string
           description?: string | null
+          highlights?: string[] | null
           id?: string
           image_url?: string | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
           name: string
+          population?: number | null
           region?: string | null
+          slug?: string | null
           updated_at?: string
         }
         Update: {
+          area_km2?: number | null
+          capital?: string | null
           created_at?: string
           description?: string | null
+          highlights?: string[] | null
           id?: string
           image_url?: string | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
           name?: string
+          population?: number | null
           region?: string | null
+          slug?: string | null
           updated_at?: string
         }
         Relationships: []
