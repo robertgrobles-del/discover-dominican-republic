@@ -14,6 +14,176 @@ export type Database = {
   }
   public: {
     Tables: {
+      airbnb_listings: {
+        Row: {
+          accuracy_rating: number | null
+          address: string | null
+          amenities: string[] | null
+          bathrooms: number | null
+          bedrooms: number | null
+          beds: number | null
+          cancellation_details: string | null
+          cancellation_policy: string | null
+          check_in_time: string | null
+          check_out_time: string | null
+          checkin_rating: number | null
+          cleaning_fee: number | null
+          cleanliness_rating: number | null
+          communication_rating: number | null
+          created_at: string
+          description: string | null
+          destination_id: string | null
+          gallery: string[] | null
+          guests: number | null
+          host_description: string | null
+          host_image: string | null
+          host_languages: string[] | null
+          host_name: string | null
+          host_response_rate: number | null
+          host_response_time: string | null
+          host_since: string | null
+          house_rules: string[] | null
+          id: string
+          image_url: string | null
+          instant_book: boolean | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          is_superhost: boolean | null
+          latitude: number | null
+          location_rating: number | null
+          longitude: number | null
+          max_nights: number | null
+          min_nights: number | null
+          name: string
+          neighborhood_description: string | null
+          price_per_night: number | null
+          price_range: string | null
+          property_type: string | null
+          rating: number | null
+          review_count: number | null
+          safety_features: string[] | null
+          service_fee: number | null
+          short_description: string | null
+          slug: string | null
+          updated_at: string
+          value_rating: number | null
+        }
+        Insert: {
+          accuracy_rating?: number | null
+          address?: string | null
+          amenities?: string[] | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          beds?: number | null
+          cancellation_details?: string | null
+          cancellation_policy?: string | null
+          check_in_time?: string | null
+          check_out_time?: string | null
+          checkin_rating?: number | null
+          cleaning_fee?: number | null
+          cleanliness_rating?: number | null
+          communication_rating?: number | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string | null
+          gallery?: string[] | null
+          guests?: number | null
+          host_description?: string | null
+          host_image?: string | null
+          host_languages?: string[] | null
+          host_name?: string | null
+          host_response_rate?: number | null
+          host_response_time?: string | null
+          host_since?: string | null
+          house_rules?: string[] | null
+          id?: string
+          image_url?: string | null
+          instant_book?: boolean | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_superhost?: boolean | null
+          latitude?: number | null
+          location_rating?: number | null
+          longitude?: number | null
+          max_nights?: number | null
+          min_nights?: number | null
+          name: string
+          neighborhood_description?: string | null
+          price_per_night?: number | null
+          price_range?: string | null
+          property_type?: string | null
+          rating?: number | null
+          review_count?: number | null
+          safety_features?: string[] | null
+          service_fee?: number | null
+          short_description?: string | null
+          slug?: string | null
+          updated_at?: string
+          value_rating?: number | null
+        }
+        Update: {
+          accuracy_rating?: number | null
+          address?: string | null
+          amenities?: string[] | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          beds?: number | null
+          cancellation_details?: string | null
+          cancellation_policy?: string | null
+          check_in_time?: string | null
+          check_out_time?: string | null
+          checkin_rating?: number | null
+          cleaning_fee?: number | null
+          cleanliness_rating?: number | null
+          communication_rating?: number | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string | null
+          gallery?: string[] | null
+          guests?: number | null
+          host_description?: string | null
+          host_image?: string | null
+          host_languages?: string[] | null
+          host_name?: string | null
+          host_response_rate?: number | null
+          host_response_time?: string | null
+          host_since?: string | null
+          house_rules?: string[] | null
+          id?: string
+          image_url?: string | null
+          instant_book?: boolean | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_superhost?: boolean | null
+          latitude?: number | null
+          location_rating?: number | null
+          longitude?: number | null
+          max_nights?: number | null
+          min_nights?: number | null
+          name?: string
+          neighborhood_description?: string | null
+          price_per_night?: number | null
+          price_range?: string | null
+          property_type?: string | null
+          rating?: number | null
+          review_count?: number | null
+          safety_features?: string[] | null
+          service_fee?: number | null
+          short_description?: string | null
+          slug?: string | null
+          updated_at?: string
+          value_rating?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "airbnb_listings_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bars: {
         Row: {
           address: string | null
