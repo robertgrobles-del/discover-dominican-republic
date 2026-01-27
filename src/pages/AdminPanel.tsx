@@ -52,7 +52,8 @@ type EntityType =
   | 'events' 
   | 'clinics' 
   | 'ports_marinas' 
-  | 'stadiums';
+  | 'stadiums'
+  | 'theme_parks';
 
 interface EntityConfig {
   name: string;
@@ -152,6 +153,13 @@ const entityConfigs: Record<EntityType, EntityConfig> = {
     icon: <Trophy className="h-5 w-5" />,
     description: "Estadios y complejos deportivos",
     fields: ["name", "slug", "destination_id", "stadium_type", "sport_types", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "capacity", "home_teams", "facilities", "services", "latitude", "longitude", "rating", "is_featured"],
+    requiredFields: ["name"]
+  },
+  theme_parks: {
+    name: "Parques Temáticos",
+    icon: <Heart className="h-5 w-5" />,
+    description: "Parques de diversiones y temáticos",
+    fields: ["name", "slug", "destination_id", "park_type", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "price_adult", "price_child", "price_range", "opening_hours", "attractions", "services", "includes", "age_restrictions", "duration_recommended", "latitude", "longitude", "rating", "is_featured"],
     requiredFields: ["name"]
   }
 };
