@@ -112,6 +112,9 @@ import ParqueDetalle from "./pages/ParqueDetalle";
 import Ecoturismo from "./pages/Ecoturismo";
 import TurismoReligioso from "./pages/TurismoReligioso";
 import HistoriaVivaAR from "./pages/HistoriaVivaAR";
+import CuevaDetalle from "./pages/CuevaDetalle";
+import ParqueNacionalDetalle from "./pages/ParqueNacionalDetalle";
+import DestinoReligiosoDetalle from "./pages/DestinoReligiosoDetalle";
 
 // Backwards-compatible aliases
 const Asistencia = CentroAyuda;
@@ -235,6 +238,9 @@ function AnimatedRoutes() {
         <Route path="/ecoturismo" element={<Ecoturismo />} />
         <Route path="/turismo-religioso" element={<TurismoReligioso />} />
         <Route path="/historia-viva-ar" element={<HistoriaVivaAR />} />
+        <Route path="/cueva/:id" element={<CuevaDetalle />} />
+        <Route path="/parque-nacional/:id" element={<ParqueNacionalDetalle />} />
+        <Route path="/destino-religioso/:id" element={<DestinoReligiosoDetalle />} />
         <Route path="/admin" element={<AdminPanel />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

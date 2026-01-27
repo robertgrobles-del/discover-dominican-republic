@@ -270,7 +270,9 @@ export default function Ecoturismo() {
                               />
                             </div>
                           </div>
-                          <Button variant="outline" size="sm">Ver Detalles</Button>
+                          <Link to={`/cueva/${cueva.id}`}>
+                            <Button variant="outline" size="sm">Ver Detalles</Button>
+                          </Link>
                         </div>
                       </div>
                     </motion.div>
@@ -485,7 +487,9 @@ export default function Ecoturismo() {
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-primary font-semibold">{parque.precio}</span>
-                          <Button variant="outline" size="sm">Ver Detalles</Button>
+                          <Link to={`/parque-nacional/${parque.id}`}>
+                            <Button variant="outline" size="sm">Ver Detalles</Button>
+                          </Link>
                         </div>
                       </div>
                     </motion.div>
