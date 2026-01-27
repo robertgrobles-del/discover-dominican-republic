@@ -38,10 +38,11 @@ const megaMenuDondeIr = {
     { name: "Puerto Plata", desc: "Costa del Ámbar", image: puertoPlata, href: "/destino/puerto-plata" },
   ],
   regiones: [
-    { name: "Región Norte", href: "/destinos?region=norte" },
-    { name: "Región Este", href: "/destinos?region=este" },
-    { name: "Región Sur", href: "/destinos?region=sur" },
-    { name: "Santo Domingo", href: "/destinos?region=santo-domingo" },
+    { name: "Ver Todas las Provincias", href: "/provincias" },
+    { name: "Región Norte (Cibao)", href: "/provincias?region=norte" },
+    { name: "Región Este", href: "/provincias?region=este" },
+    { name: "Región Sur", href: "/provincias?region=sur" },
+    { name: "Gran Santo Domingo", href: "/provincias?region=santo-domingo" },
   ]
 };
 
