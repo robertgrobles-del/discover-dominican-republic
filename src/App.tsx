@@ -92,15 +92,23 @@ import SeguridadVial from "./pages/SeguridadVial";
 import Tours360 from "./pages/Tours360";
 import RDEnMovimiento from "./pages/RDEnMovimiento";
 import ETicket from "./pages/ETicket";
+import TurismoSensorial from "./pages/TurismoSensorial";
+import Volunturismo from "./pages/Volunturismo";
+import IdentificadorComida from "./pages/IdentificadorComida";
+import Astroturismo from "./pages/Astroturismo";
+import GuiaEtiqueta from "./pages/GuiaEtiqueta";
+import PodcastRD from "./pages/PodcastRD";
+import SouvenirsDigitales from "./pages/SouvenirsDigitales";
+import EspanolViajero from "./pages/EspanolViajero";
+import SelloCalidad from "./pages/SelloCalidad";
 
-// Backwards-compatible aliases (prevent runtime crashes if an old route/component name lingers)
+// Backwards-compatible aliases
 const Asistencia = CentroAyuda;
 const Ayuda = CentroAyuda;
 const Nautica = NauticaCruceros;
 const Cruceros = NauticaCruceros;
 const Prensa = PrensaComunicacion;
 const Newsletter = PrensaComunicacion;
-
 const queryClient = new QueryClient();
 
 function AnimatedRoutes() {
@@ -197,6 +205,15 @@ function AnimatedRoutes() {
         <Route path="/tours-360" element={<Tours360 />} />
         <Route path="/running-ciclismo" element={<RDEnMovimiento />} />
         <Route path="/e-ticket" element={<ETicket />} />
+        <Route path="/turismo-sensorial" element={<TurismoSensorial />} />
+        <Route path="/volunturismo" element={<Volunturismo />} />
+        <Route path="/identificador-comida" element={<IdentificadorComida />} />
+        <Route path="/astroturismo" element={<Astroturismo />} />
+        <Route path="/guia-etiqueta" element={<GuiaEtiqueta />} />
+        <Route path="/podcast" element={<PodcastRD />} />
+        <Route path="/souvenirs-digitales" element={<SouvenirsDigitales />} />
+        <Route path="/espanol-viajero" element={<EspanolViajero />} />
+        <Route path="/sello-calidad" element={<SelloCalidad />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
