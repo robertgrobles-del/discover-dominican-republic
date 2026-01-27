@@ -30,7 +30,9 @@ const experiencias = [
   { id: "deportes", nombre: "Deportes", imagen: adventure, desc: "Recreación al aire libre" },
   { id: "acuaticos", nombre: "Deportes Acuáticos", imagen: diving, desc: "Aventura en el mar" },
   { id: "museos", nombre: "Museos", imagen: santoDomingo, desc: "Historia y arte" },
-  { id: "bienestar", nombre: "Bienestar", imagen: relaxBeach, desc: "Tu refugio de paz" },
+  { id: "bienestar", nombre: "Bienestar y Salud", imagen: relaxBeach, desc: "Tu refugio de paz y sanación", link: "/wellness" },
+  { id: "turismo-medico", nombre: "Turismo Médico", imagen: hotelEdenRoc, desc: "Salud de clase mundial a precios accesibles", link: "/turismo-medico" },
+  { id: "nomadas", nombre: "Nómadas Digitales", imagen: puntaCana, desc: "Trabaja desde el paraíso caribeño", link: "/nomadas-digitales" },
   { id: "lujo", nombre: "Lujo", imagen: hotelEdenRoc, desc: "Experiencias exclusivas" },
   { id: "compras", nombre: "Compras", imagen: merengue, desc: "Tesoros del Caribe" },
 ];
@@ -103,7 +105,7 @@ export default function Experiencias() {
                   key={exp.id}
                   className="group relative rounded-2xl overflow-hidden aspect-[4/5]"
                 >
-                  <Link to={`/experiencia/${exp.id}`} className="block h-full">
+                  <Link to={(exp as any).link || `/experiencia/${exp.id}`} className="block h-full">
                     <img
                       src={exp.imagen}
                       alt={exp.nombre}

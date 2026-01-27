@@ -101,6 +101,11 @@ import PodcastRD from "./pages/PodcastRD";
 import SouvenirsDigitales from "./pages/SouvenirsDigitales";
 import EspanolViajero from "./pages/EspanolViajero";
 import SelloCalidad from "./pages/SelloCalidad";
+import PuertoDetalle from "./pages/PuertoDetalle";
+import BarDetalle from "./pages/BarDetalle";
+import AgenciaDetalle from "./pages/AgenciaDetalle";
+import EstadioDetalle from "./pages/EstadioDetalle";
+import ClinicaDetalle from "./pages/ClinicaDetalle";
 
 // Backwards-compatible aliases
 const Asistencia = CentroAyuda;
@@ -214,6 +219,11 @@ function AnimatedRoutes() {
         <Route path="/souvenirs-digitales" element={<SouvenirsDigitales />} />
         <Route path="/espanol-viajero" element={<EspanolViajero />} />
         <Route path="/sello-calidad" element={<SelloCalidad />} />
+        <Route path="/puerto/:id" element={<PuertoDetalle />} />
+        <Route path="/bar/:id" element={<BarDetalle />} />
+        <Route path="/agencia/:id" element={<AgenciaDetalle />} />
+        <Route path="/estadio/:id" element={<EstadioDetalle />} />
+        <Route path="/clinica/:id" element={<ClinicaDetalle />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

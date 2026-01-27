@@ -232,13 +232,15 @@ export default function PuertosMarinas() {
                             </div>
 
                             <div className="flex gap-3">
-                              <Button className="gap-2">
-                                <Calendar className="h-4 w-4" />
-                                Ver Calendario de Cruceros
-                              </Button>
+                              <Link to={`/puerto/${port.id}`}>
+                                <Button className="gap-2">
+                                  Ver Detalle Completo
+                                  <ArrowRight className="h-4 w-4" />
+                                </Button>
+                              </Link>
                               <Button variant="outline" className="gap-2">
-                                Ver en Mapa
-                                <ArrowRight className="h-4 w-4" />
+                                <Calendar className="h-4 w-4" />
+                                Agregar al Plan
                               </Button>
                             </div>
                           </div>
