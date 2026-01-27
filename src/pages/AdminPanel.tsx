@@ -1,0 +1,633 @@
+import { useState, useEffect } from "react";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Navigate } from "react-router-dom";
+import { 
+  Upload, 
+  FileSpreadsheet, 
+  Hotel, 
+  UtensilsCrossed, 
+  Wine, 
+  Users, 
+  Building2, 
+  Map, 
+  MapPin,
+  Calendar,
+  Heart,
+  Ship,
+  Trophy,
+  Stethoscope,
+  Download,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  Shield,
+  AlertTriangle
+} from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+type EntityType = 
+  | 'provinces' 
+  | 'destinations' 
+  | 'hotels' 
+  | 'restaurants' 
+  | 'bars' 
+  | 'tour_guides' 
+  | 'travel_agencies' 
+  | 'tour_operators' 
+  | 'experiences' 
+  | 'events' 
+  | 'clinics' 
+  | 'ports_marinas' 
+  | 'stadiums';
+
+interface EntityConfig {
+  name: string;
+  icon: React.ReactNode;
+  description: string;
+  fields: string[];
+  requiredFields: string[];
+}
+
+const entityConfigs: Record<EntityType, EntityConfig> = {
+  provinces: {
+    name: "Provincias",
+    icon: <MapPin className="h-5 w-5" />,
+    description: "Provincias de República Dominicana",
+    fields: ["name", "region", "description", "image_url"],
+    requiredFields: ["name"]
+  },
+  destinations: {
+    name: "Destinos",
+    icon: <Map className="h-5 w-5" />,
+    description: "Destinos turísticos",
+    fields: ["name", "slug", "province_id", "description", "short_description", "image_url", "gallery", "highlights", "typical_dishes", "latitude", "longitude", "weather_info", "best_time_to_visit", "how_to_get_there"],
+    requiredFields: ["name"]
+  },
+  hotels: {
+    name: "Hoteles",
+    icon: <Hotel className="h-5 w-5" />,
+    description: "Alojamientos y resorts",
+    fields: ["name", "slug", "destination_id", "category", "stars", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "price_range", "amenities", "latitude", "longitude", "rating", "is_featured"],
+    requiredFields: ["name"]
+  },
+  restaurants: {
+    name: "Restaurantes",
+    icon: <UtensilsCrossed className="h-5 w-5" />,
+    description: "Restaurantes y gastronomía",
+    fields: ["name", "slug", "destination_id", "category", "cuisine_type", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "price_range", "opening_hours", "services", "signature_dishes", "latitude", "longitude", "rating", "is_featured"],
+    requiredFields: ["name"]
+  },
+  bars: {
+    name: "Bares y Discotecas",
+    icon: <Wine className="h-5 w-5" />,
+    description: "Vida nocturna",
+    fields: ["name", "slug", "destination_id", "bar_type", "ambiance", "music_style", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "price_range", "opening_hours", "dress_code", "minimum_age", "services", "latitude", "longitude", "rating", "is_featured"],
+    requiredFields: ["name"]
+  },
+  tour_guides: {
+    name: "Guías Turísticos",
+    icon: <Users className="h-5 w-5" />,
+    description: "Guías certificados",
+    fields: ["name", "slug", "destination_id", "specialties", "languages", "description", "image_url", "phone", "email", "website", "years_experience", "certifications", "price_range", "rating", "is_certified"],
+    requiredFields: ["name"]
+  },
+  travel_agencies: {
+    name: "Agencias de Viaje",
+    icon: <Building2 className="h-5 w-5" />,
+    description: "Agencias de viajes",
+    fields: ["name", "slug", "destination_id", "agency_type", "description", "short_description", "image_url", "logo_url", "address", "phone", "email", "website", "services", "specialties", "languages", "certifications", "rating", "is_featured"],
+    requiredFields: ["name"]
+  },
+  tour_operators: {
+    name: "Tour Operadores",
+    icon: <Building2 className="h-5 w-5" />,
+    description: "Operadores turísticos",
+    fields: ["name", "slug", "destination_id", "operator_type", "description", "short_description", "image_url", "logo_url", "address", "phone", "email", "website", "services", "tour_types", "languages", "certifications", "rating", "is_featured"],
+    requiredFields: ["name"]
+  },
+  experiences: {
+    name: "Experiencias",
+    icon: <Heart className="h-5 w-5" />,
+    description: "Actividades y experiencias",
+    fields: ["name", "slug", "destination_id", "category", "experience_type", "description", "short_description", "image_url", "gallery", "duration", "difficulty", "price_range", "best_season", "included", "requirements", "highlights", "rating", "is_featured"],
+    requiredFields: ["name"]
+  },
+  events: {
+    name: "Eventos",
+    icon: <Calendar className="h-5 w-5" />,
+    description: "Eventos y festivales",
+    fields: ["name", "slug", "destination_id", "event_type", "description", "short_description", "image_url", "gallery", "start_date", "end_date", "start_time", "end_time", "venue", "address", "price_range", "ticket_url", "organizer", "is_recurring", "recurrence_pattern", "is_featured"],
+    requiredFields: ["name"]
+  },
+  clinics: {
+    name: "Clínicas",
+    icon: <Stethoscope className="h-5 w-5" />,
+    description: "Clínicas y centros médicos",
+    fields: ["name", "slug", "destination_id", "clinic_type", "specialties", "description", "short_description", "image_url", "gallery", "address", "phone", "emergency_phone", "email", "website", "opening_hours", "services", "certifications", "insurance_accepted", "languages", "latitude", "longitude", "rating", "is_24_hours", "is_featured"],
+    requiredFields: ["name"]
+  },
+  ports_marinas: {
+    name: "Puertos y Marinas",
+    icon: <Ship className="h-5 w-5" />,
+    description: "Puertos de cruceros y marinas",
+    fields: ["name", "slug", "destination_id", "port_type", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "cruise_lines", "facilities", "services", "capacity", "latitude", "longitude", "rating", "is_featured"],
+    requiredFields: ["name"]
+  },
+  stadiums: {
+    name: "Estadios",
+    icon: <Trophy className="h-5 w-5" />,
+    description: "Estadios y complejos deportivos",
+    fields: ["name", "slug", "destination_id", "stadium_type", "sport_types", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "capacity", "home_teams", "facilities", "services", "latitude", "longitude", "rating", "is_featured"],
+    requiredFields: ["name"]
+  }
+};
+
+const AdminPanel = () => {
+  const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [checkingRole, setCheckingRole] = useState(true);
+  const [selectedEntity, setSelectedEntity] = useState<EntityType>('hotels');
+  const [csvData, setCsvData] = useState<Record<string, string>[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({ success: 0, failed: 0 });
+  const [entityCounts, setEntityCounts] = useState<Record<EntityType, number>>({} as Record<EntityType, number>);
+
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (!user) {
+        setCheckingRole(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase.rpc('has_role', {
+          _user_id: user.id,
+          _role: 'admin'
+        });
+
+        if (error) throw error;
+        setIsAdmin(data);
+      } catch (error) {
+        console.error('Error checking admin role:', error);
+        setIsAdmin(false);
+      } finally {
+        setCheckingRole(false);
+      }
+    };
+
+    if (!authLoading) {
+      checkAdminRole();
+    }
+  }, [user, authLoading]);
+
+  useEffect(() => {
+    const fetchEntityCounts = async () => {
+      const counts: Record<EntityType, number> = {} as Record<EntityType, number>;
+      
+      for (const entity of Object.keys(entityConfigs) as EntityType[]) {
+        const { count } = await supabase
+          .from(entity)
+          .select('*', { count: 'exact', head: true });
+        counts[entity] = count || 0;
+      }
+      
+      setEntityCounts(counts);
+    };
+
+    if (isAdmin) {
+      fetchEntityCounts();
+    }
+  }, [isAdmin]);
+
+  const parseCSV = (text: string): Record<string, string>[] => {
+    const lines = text.split('\n').filter(line => line.trim());
+    if (lines.length < 2) return [];
+
+    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    const data: Record<string, string>[] = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+      const row: Record<string, string> = {};
+      headers.forEach((header, index) => {
+        row[header] = values[index] || '';
+      });
+      data.push(row);
+    }
+
+    return data;
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const data = parseCSV(text);
+      setCsvData(data);
+      toast({
+        title: "Archivo cargado",
+        description: `Se encontraron ${data.length} registros para importar.`
+      });
+    };
+    reader.readAsText(file);
+  };
+
+  const processArrayField = (value: string): string[] | null => {
+    if (!value || value === '') return null;
+    return value.split('|').map(v => v.trim()).filter(v => v);
+  };
+
+  const processData = (row: Record<string, string>, entityType: EntityType) => {
+    const config = entityConfigs[entityType];
+    const processedRow: Record<string, unknown> = {};
+
+    config.fields.forEach(field => {
+      if (row[field] !== undefined && row[field] !== '') {
+        // Handle array fields
+        if (['gallery', 'highlights', 'typical_dishes', 'amenities', 'services', 'signature_dishes', 
+             'specialties', 'languages', 'certifications', 'tour_types', 'included', 'requirements',
+             'insurance_accepted', 'cruise_lines', 'facilities', 'sport_types', 'home_teams'].includes(field)) {
+          processedRow[field] = processArrayField(row[field]);
+        }
+        // Handle boolean fields
+        else if (['is_featured', 'is_active', 'is_certified', 'is_recurring', 'is_24_hours'].includes(field)) {
+          processedRow[field] = row[field].toLowerCase() === 'true' || row[field] === '1';
+        }
+        // Handle numeric fields
+        else if (['stars', 'minimum_age', 'years_experience', 'capacity', 'review_count'].includes(field)) {
+          const num = parseInt(row[field]);
+          processedRow[field] = isNaN(num) ? null : num;
+        }
+        // Handle decimal fields
+        else if (['latitude', 'longitude', 'rating'].includes(field)) {
+          const num = parseFloat(row[field]);
+          processedRow[field] = isNaN(num) ? null : num;
+        }
+        else {
+          processedRow[field] = row[field];
+        }
+      }
+    });
+
+    return processedRow;
+  };
+
+  const handleImport = async () => {
+    if (csvData.length === 0) {
+      toast({
+        title: "Error",
+        description: "No hay datos para importar.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setUploading(true);
+    setUploadProgress({ success: 0, failed: 0 });
+
+    let successCount = 0;
+    let failedCount = 0;
+
+    for (const row of csvData) {
+      try {
+        const processedData = processData(row, selectedEntity);
+        const { error } = await supabase
+          .from(selectedEntity)
+          .insert([processedData as never]);
+
+        if (error) throw error;
+        successCount++;
+      } catch (error) {
+        console.error('Error inserting row:', error);
+        failedCount++;
+      }
+      setUploadProgress({ success: successCount, failed: failedCount });
+    }
+
+    setUploading(false);
+    setCsvData([]);
+    
+    toast({
+      title: "Importación completada",
+      description: `${successCount} registros importados exitosamente. ${failedCount > 0 ? `${failedCount} fallidos.` : ''}`
+    });
+
+    // Refresh counts
+    const { count } = await supabase
+      .from(selectedEntity)
+      .select('*', { count: 'exact', head: true });
+    setEntityCounts(prev => ({ ...prev, [selectedEntity]: count || 0 }));
+  };
+
+  const downloadTemplate = (entityType: EntityType) => {
+    const config = entityConfigs[entityType];
+    const csvContent = config.fields.join(',') + '\n';
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `template_${entityType}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  if (authLoading || checkingRole) {
+    return (
+      <PageTransition>
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </PageTransition>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!isAdmin) {
+    return (
+      <PageTransition>
+        <Header />
+        <main className="min-h-screen bg-background pt-24 pb-16">
+          <div className="container mx-auto px-4">
+            <Card className="max-w-md mx-auto">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <Shield className="h-8 w-8 text-destructive" />
+                  <CardTitle>Acceso Denegado</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  No tienes permisos de administrador para acceder a esta sección.
+                  Contacta al administrador del sistema si crees que esto es un error.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        <Footer />
+      </PageTransition>
+    );
+  }
+
+  return (
+    <PageTransition>
+      <SEOHead
+        title="Panel Administrativo | Descubre RD"
+        description="Panel de administración para gestionar contenido turístico"
+      />
+      <Header />
+      
+      <main className="min-h-screen bg-background pt-24 pb-16">
+        <div className="container mx-auto px-4">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <Shield className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl font-bold">Panel Administrativo</h1>
+            </div>
+            <p className="text-muted-foreground">
+              Gestiona el contenido del portal turístico mediante carga masiva de datos CSV
+            </p>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+            {(Object.entries(entityConfigs) as [EntityType, EntityConfig][]).slice(0, 6).map(([key, config]) => (
+              <Card key={key} className="cursor-pointer hover:border-primary transition-colors" onClick={() => setSelectedEntity(key)}>
+                <CardContent className="p-4 text-center">
+                  <div className="flex justify-center mb-2 text-primary">
+                    {config.icon}
+                  </div>
+                  <p className="text-2xl font-bold">{entityCounts[key] || 0}</p>
+                  <p className="text-xs text-muted-foreground">{config.name}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="grid lg:grid-cols-4 gap-8">
+            {/* Sidebar - Entity Selection */}
+            <div className="lg:col-span-1">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Entidades</CardTitle>
+                  <CardDescription>Selecciona el tipo de datos a importar</CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <ScrollArea className="h-[500px]">
+                    <div className="p-4 space-y-1">
+                      {(Object.entries(entityConfigs) as [EntityType, EntityConfig][]).map(([key, config]) => (
+                        <button
+                          key={key}
+                          onClick={() => {
+                            setSelectedEntity(key);
+                            setCsvData([]);
+                          }}
+                          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                            selectedEntity === key 
+                              ? 'bg-primary text-primary-foreground' 
+                              : 'hover:bg-muted'
+                          }`}
+                        >
+                          {config.icon}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm truncate">{config.name}</p>
+                            <p className={`text-xs truncate ${selectedEntity === key ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                              {entityCounts[key] || 0} registros
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Main Content */}
+            <div className="lg:col-span-3 space-y-6">
+              {/* Selected Entity Info */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                        {entityConfigs[selectedEntity].icon}
+                      </div>
+                      <div>
+                        <CardTitle>{entityConfigs[selectedEntity].name}</CardTitle>
+                        <CardDescription>{entityConfigs[selectedEntity].description}</CardDescription>
+                      </div>
+                    </div>
+                    <Badge variant="secondary">{entityCounts[selectedEntity] || 0} registros</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="upload">
+                    <TabsList className="mb-4">
+                      <TabsTrigger value="upload">
+                        <Upload className="h-4 w-4 mr-2" />
+                        Cargar CSV
+                      </TabsTrigger>
+                      <TabsTrigger value="template">
+                        <FileSpreadsheet className="h-4 w-4 mr-2" />
+                        Plantilla
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="upload" className="space-y-4">
+                      <Alert>
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Formato de archivo</AlertTitle>
+                        <AlertDescription>
+                          El archivo CSV debe contener las columnas definidas en la plantilla. 
+                          Para campos múltiples (arrays), separa los valores con el caracter "|".
+                        </AlertDescription>
+                      </Alert>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="csv-file">Archivo CSV</Label>
+                        <Input
+                          id="csv-file"
+                          type="file"
+                          accept=".csv"
+                          onChange={handleFileUpload}
+                          disabled={uploading}
+                        />
+                      </div>
+
+                      {csvData.length > 0 && (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm text-muted-foreground">
+                              {csvData.length} registros listos para importar
+                            </p>
+                            <Button onClick={handleImport} disabled={uploading}>
+                              {uploading ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Importando...
+                                </>
+                              ) : (
+                                <>
+                                  <Upload className="h-4 w-4 mr-2" />
+                                  Importar Datos
+                                </>
+                              )}
+                            </Button>
+                          </div>
+
+                          {uploading && (
+                            <div className="flex items-center gap-4 text-sm">
+                              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                                <CheckCircle className="h-4 w-4" />
+                                {uploadProgress.success} exitosos
+                              </span>
+                              <span className="flex items-center gap-1 text-destructive">
+                                <XCircle className="h-4 w-4" />
+                                {uploadProgress.failed} fallidos
+                              </span>
+                            </div>
+                          )}
+
+                          <ScrollArea className="h-[300px] border rounded-lg">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  {Object.keys(csvData[0] || {}).map(header => (
+                                    <TableHead key={header} className="whitespace-nowrap">
+                                      {header}
+                                    </TableHead>
+                                  ))}
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {csvData.slice(0, 10).map((row, index) => (
+                                  <TableRow key={index}>
+                                    {Object.values(row).map((value, i) => (
+                                      <TableCell key={i} className="max-w-[200px] truncate">
+                                        {value}
+                                      </TableCell>
+                                    ))}
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </ScrollArea>
+                          {csvData.length > 10 && (
+                            <p className="text-xs text-muted-foreground text-center">
+                              Mostrando 10 de {csvData.length} registros
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </TabsContent>
+
+                    <TabsContent value="template" className="space-y-4">
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="font-medium mb-2">Campos disponibles:</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {entityConfigs[selectedEntity].fields.map(field => (
+                              <Badge 
+                                key={field} 
+                                variant={entityConfigs[selectedEntity].requiredFields.includes(field) ? "default" : "secondary"}
+                              >
+                                {field}
+                                {entityConfigs[selectedEntity].requiredFields.includes(field) && " *"}
+                              </Badge>
+                            ))}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-2">* Campos obligatorios</p>
+                        </div>
+
+                        <Alert>
+                          <FileSpreadsheet className="h-4 w-4" />
+                          <AlertTitle>Campos con valores múltiples</AlertTitle>
+                          <AlertDescription>
+                            Para campos como "amenities", "services", "languages", etc., separa los valores con "|".
+                            Ejemplo: WiFi|Piscina|Spa|Gimnasio
+                          </AlertDescription>
+                        </Alert>
+
+                        <Button onClick={() => downloadTemplate(selectedEntity)} variant="outline">
+                          <Download className="h-4 w-4 mr-2" />
+                          Descargar Plantilla CSV
+                        </Button>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </PageTransition>
+  );
+};
+
+export default AdminPanel;

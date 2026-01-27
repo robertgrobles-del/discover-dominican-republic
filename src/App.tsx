@@ -106,6 +106,7 @@ import BarDetalle from "./pages/BarDetalle";
 import AgenciaDetalle from "./pages/AgenciaDetalle";
 import EstadioDetalle from "./pages/EstadioDetalle";
 import ClinicaDetalle from "./pages/ClinicaDetalle";
+import AdminPanel from "./pages/AdminPanel";
 
 // Backwards-compatible aliases
 const Asistencia = CentroAyuda;
@@ -224,6 +225,7 @@ function AnimatedRoutes() {
         <Route path="/agencia/:id" element={<AgenciaDetalle />} />
         <Route path="/estadio/:id" element={<EstadioDetalle />} />
         <Route path="/clinica/:id" element={<ClinicaDetalle />} />
+        <Route path="/admin" element={<AdminPanel />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
