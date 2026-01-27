@@ -1,360 +1,443 @@
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
-import { Link } from "react-router-dom";
-import { MapPin, Star, Heart, Leaf, Filter, Grid, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Slider } from "@/components/ui/slider";
-import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { 
+  Search, MapPin, Star, Bed, Users, Home, Building2, 
+  SlidersHorizontal, X, Wifi, Car, Waves, Utensils, Dumbbell
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
-import hotelBillini from "@/assets/hotel-billini.jpg";
-import hotelClareVerde from "@/assets/hotel-clare-verde.jpg";
-import hotelEdenRoc from "@/assets/hotel-eden-roc.jpg";
 import hotelRoomSuite from "@/assets/hotel-room-suite.jpg";
 
-const alojamientos = [
-  {
-    id: "paradisus",
-    nombre: "Paradisus Grand Cana",
-    ubicacion: "Bávaro, Punta Cana",
-    rating: 4.9,
-    imagen: hotelEdenRoc,
-    precio: 450,
-    precioOriginal: 620,
-    tags: ["All-Inclusive", "Spa", "Playa Privada"],
-    tipo: "Colección Lujo",
-    sostenible: false
-  },
-  {
-    id: "eco-villas",
-    nombre: "Eco Villas Samaná",
-    ubicacion: "Las Terrenas, Samaná",
-    rating: 4.7,
-    imagen: hotelClareVerde,
-    precio: 120,
-    precioOriginal: null,
-    tags: ["WiFi", "Energía Solar", "Cocina"],
-    tipo: "Eco-Lodge",
-    sostenible: true
-  },
-  {
-    id: "embajador",
-    nombre: "El Embajador Royal",
-    ubicacion: "Santo Domingo",
-    rating: 4.9,
-    imagen: hotelBillini,
-    precio: 185,
-    precioOriginal: 210,
-    tags: ["Business", "Piscina", "Gimnasio"],
-    tipo: "Hotel Urbano",
-    sostenible: false
-  },
-  {
-    id: "surf-lodge",
-    nombre: "Cabarete Surf Lodge",
-    ubicacion: "Cabarete, Puerto Plata",
-    rating: 4.5,
-    imagen: hotelRoomSuite,
-    precio: 85,
-    precioOriginal: null,
-    tags: ["Surf", "Bar", "Frente al Mar"],
-    tipo: "Boutique",
-    sostenible: false
-  },
-  {
-    id: "casa-xvi",
-    nombre: "Casa del XVI",
-    ubicacion: "Zona Colonial, Santo Domingo",
-    rating: 4.8,
-    imagen: hotelBillini,
-    precio: 230,
-    precioOriginal: null,
-    tags: ["Histórico", "Boutique", "Piscina"],
-    tipo: "Heritage",
-    sostenible: true
-  },
-  {
-    id: "mountain-lodge",
-    nombre: "Jarabacoa Mountain Lodge",
-    ubicacion: "Jarabacoa, La Vega",
-    rating: 4.6,
-    imagen: hotelClareVerde,
-    precio: 95,
-    precioOriginal: null,
-    tags: ["Naturaleza", "Rafting", "Vistas"],
-    tipo: "Eco-Lodge",
-    sostenible: true
-  }
+type AccommodationType = "all" | "hotel" | "airbnb";
+
+interface Hotel {
+  id: string;
+  name: string;
+  slug: string | null;
+  short_description: string | null;
+  image_url: string | null;
+  price_range: string | null;
+  rating: number | null;
+  stars: number | null;
+  category: string | null;
+  amenities: string[] | null;
+  address: string | null;
+  destinations?: { name: string } | null;
+}
+
+interface Airbnb {
+  id: string;
+  name: string;
+  slug: string | null;
+  short_description: string | null;
+  image_url: string | null;
+  price_per_night: number | null;
+  rating: number | null;
+  guests: number | null;
+  bedrooms: number | null;
+  is_superhost: boolean | null;
+  property_type: string | null;
+  amenities: string[] | null;
+  address: string | null;
+  destinations?: { name: string } | null;
+}
+
+const amenitiesOptions = [
+  { id: "wifi", label: "WiFi", icon: Wifi },
+  { id: "parking", label: "Parking", icon: Car },
+  { id: "pool", label: "Piscina", icon: Waves },
+  { id: "restaurant", label: "Restaurante", icon: Utensils },
+  { id: "gym", label: "Gimnasio", icon: Dumbbell },
 ];
 
-const tiposAlojamiento = ["Hoteles", "Resorts All-Inclusive", "Villas Privadas", "Apartamentos"];
-const regiones = ["Punta Cana", "Santo Domingo", "Puerto Plata", "Samaná", "La Romana"];
-
-const AlojamientoCard = ({ alojamiento, index }: { alojamiento: typeof alojamientos[0]; index: number }) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
-
-  return (
-    <div className="group bg-card rounded-xl overflow-hidden border border-border hover:border-primary/50 transition-all duration-300">
-      <div className="relative aspect-[4/3] overflow-hidden">
-        {!imageLoaded && <Skeleton className="absolute inset-0" />}
-        <img
-          src={alojamiento.imagen}
-          alt={alojamiento.nombre}
-          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-            imageLoaded ? "opacity-100" : "opacity-0"
-          }`}
-          onLoad={() => setImageLoaded(true)}
-        />
-        
-        {alojamiento.tipo === "Colección Lujo" && (
-          <Badge className="absolute top-4 left-4 bg-amber-500 text-white">
-            COLECCIÓN LUJO
-          </Badge>
-        )}
-        {alojamiento.sostenible && (
-          <Badge className="absolute top-4 left-4 bg-emerald-500 text-white gap-1">
-            <Leaf className="w-3 h-3" /> Sostenible
-          </Badge>
-        )}
-        
-        <button
-          onClick={() => setIsFavorite(!isFavorite)}
-          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 flex items-center justify-center hover:bg-white transition-colors"
-        >
-          <Heart className={`w-5 h-5 ${isFavorite ? "fill-red-500 text-red-500" : "text-gray-600"}`} />
-        </button>
-      </div>
-
-      <div className="p-5">
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="font-display font-bold text-lg text-foreground">{alojamiento.nombre}</h3>
-          <div className="flex items-center gap-1">
-            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-medium text-foreground">{alojamiento.rating}</span>
-          </div>
-        </div>
-        
-        <div className="flex items-center gap-1 text-muted-foreground text-sm mb-3">
-          <MapPin className="w-4 h-4 text-primary" />
-          <span>{alojamiento.ubicacion}</span>
-        </div>
-
-        <div className="flex flex-wrap gap-2 mb-4">
-          {alojamiento.tags.map((tag) => (
-            <span key={tag} className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">
-              {tag}
-            </span>
-          ))}
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-xs text-muted-foreground">Precio por noche</span>
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-foreground">${alojamiento.precio}</span>
-              {alojamiento.precioOriginal && (
-                <span className="text-sm text-muted-foreground line-through">${alojamiento.precioOriginal}</span>
-              )}
-            </div>
-          </div>
-          <Link to={`/alojamiento/${alojamiento.id}`}>
-            <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              Ver detalles
-            </Button>
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-};
+const priceRanges = [
+  { value: "all", label: "Todos los precios" },
+  { value: "$", label: "Económico ($)" },
+  { value: "$$", label: "Moderado ($$)" },
+  { value: "$$$", label: "Premium ($$$)" },
+  { value: "$$$$", label: "Lujo ($$$$)" },
+];
 
 export default function Alojamientos() {
-  const [priceRange, setPriceRange] = useState([50, 350]);
-  const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const [type, setType] = useState<AccommodationType>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [priceRange, setPriceRange] = useState("all");
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [airbnbs, setAirbnbs] = useState<Airbnb[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const alojamientosSchema = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    name: "Alojamientos en República Dominicana",
-    description: "Encuentra los mejores hoteles, resorts y villas en República Dominicana",
-    itemListElement: alojamientos.map((a, i) => ({
-      "@type": "ListItem",
-      position: i + 1,
-      item: {
-        "@type": "Hotel",
-        name: a.nombre,
-        image: a.imagen,
-        address: a.ubicacion,
-        priceRange: `$${a.precio}`,
-        aggregateRating: {
-          "@type": "AggregateRating",
-          ratingValue: a.rating,
-          bestRating: 5
-        }
-      }
-    }))
+  useEffect(() => {
+    async function fetchAccommodations() {
+      setLoading(true);
+      
+      const [hotelsRes, airbnbsRes] = await Promise.all([
+        supabase
+          .from("hotels")
+          .select("id, name, slug, short_description, image_url, price_range, rating, stars, category, amenities, address, destinations(name)")
+          .eq("is_active", true)
+          .limit(50),
+        supabase
+          .from("airbnb_listings")
+          .select("id, name, slug, short_description, image_url, price_per_night, rating, guests, bedrooms, is_superhost, property_type, amenities, address, destinations(name)")
+          .eq("is_active", true)
+          .limit(50),
+      ]);
+
+      if (hotelsRes.data) setHotels(hotelsRes.data as Hotel[]);
+      if (airbnbsRes.data) setAirbnbs(airbnbsRes.data as Airbnb[]);
+      setLoading(false);
+    }
+
+    fetchAccommodations();
+  }, []);
+
+  const filteredHotels = hotels.filter((hotel) => {
+    if (searchQuery && !hotel.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (priceRange !== "all" && hotel.price_range !== priceRange) return false;
+    return true;
+  });
+
+  const filteredAirbnbs = airbnbs.filter((airbnb) => {
+    if (searchQuery && !airbnb.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    return true;
+  });
+
+  const toggleAmenity = (amenity: string) => {
+    setSelectedAmenities((prev) =>
+      prev.includes(amenity) ? prev.filter((a) => a !== amenity) : [...prev, amenity]
+    );
   };
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setPriceRange("all");
+    setSelectedAmenities([]);
+  };
+
+  const totalResults =
+    type === "all"
+      ? filteredHotels.length + filteredAirbnbs.length
+      : type === "hotel"
+      ? filteredHotels.length
+      : filteredAirbnbs.length;
 
   return (
     <PageTransition>
       <SEOHead
-        title="Alojamientos en República Dominicana - Hoteles, Resorts y Villas"
-        description="Descubre los mejores hoteles, resorts all-inclusive, eco-lodges y villas privadas en República Dominicana. Reserva tu estancia perfecta en el Caribe."
-        keywords="hoteles República Dominicana, resorts Punta Cana, villas Samaná, all-inclusive RD"
-        jsonLd={alojamientosSchema}
+        title="Alojamientos en República Dominicana - Hoteles y Airbnb"
+        description="Encuentra el alojamiento perfecto en RD. Hoteles de lujo, resorts todo incluido y propiedades Airbnb con anfitriones locales."
+        keywords="hoteles República Dominicana, Airbnb Punta Cana, resorts Santo Domingo, alojamiento Caribe"
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
-        
-        <main className="flex-1 pt-20">
-          {/* Search Bar */}
-          <div className="border-b border-border bg-card">
-            <div className="container mx-auto px-4 py-4">
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex-1 min-w-[200px] p-3 rounded-lg bg-secondary">
-                  <span className="text-xs text-muted-foreground">DESTINO</span>
-                  <p className="font-medium text-foreground">República Dominicana</p>
-                </div>
-                <div className="flex-1 min-w-[150px] p-3 rounded-lg bg-secondary">
-                  <span className="text-xs text-muted-foreground">FECHAS</span>
-                  <p className="font-medium text-muted-foreground">Agregar fechas</p>
-                </div>
-                <div className="flex-1 min-w-[150px] p-3 rounded-lg bg-secondary">
-                  <span className="text-xs text-muted-foreground">HUÉSPEDES</span>
-                  <p className="font-medium text-foreground">2 adultos, 1 niño</p>
-                </div>
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground h-12 px-6">
-                  Buscar
-                </Button>
-                <div className="flex border border-border rounded-lg overflow-hidden">
-                  <Button
-                    variant={viewMode === "list" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode("list")}
-                    className="rounded-none"
-                  >
-                    <Grid className="w-4 h-4 mr-2" /> Lista
-                  </Button>
-                  <Button
-                    variant={viewMode === "map" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode("map")}
-                    className="rounded-none"
-                  >
-                    <Map className="w-4 h-4 mr-2" /> Mapa
-                  </Button>
-                </div>
-              </div>
-            </div>
+
+        {/* Hero */}
+        <section className="relative h-[50vh] min-h-[400px] flex items-end mt-16">
+          <div className="absolute inset-0">
+            <img
+              src={hotelRoomSuite}
+              alt="Alojamientos en República Dominicana"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
           </div>
 
-          <div className="container mx-auto px-4 py-8">
-            <div className="flex flex-col lg:flex-row gap-8">
-              {/* Sidebar Filters */}
-              <aside className="w-full lg:w-72 shrink-0">
-                <div className="lg:sticky lg:top-24 space-y-6">
-                  {/* Map Preview */}
-                  <div className="rounded-xl overflow-hidden bg-secondary aspect-[4/3] relative">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Button variant="secondary" className="gap-2">
-                        <Map className="w-4 h-4" /> Ver en mapa
-                      </Button>
-                    </div>
-                  </div>
+          <div className="relative z-10 container mx-auto px-4 pb-12">
+            <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
+              ENCUENTRA TU ESTANCIA PERFECTA
+            </Badge>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4 max-w-2xl">
+              Alojamientos en <span className="text-gradient">República Dominicana</span>
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-xl">
+              Desde resorts de lujo hasta acogedoras casas con anfitriones locales. Encuentra tu hogar lejos de casa.
+            </p>
+          </div>
+        </section>
 
-                  {/* Price Range */}
-                  <div className="bg-card rounded-xl p-5 border border-border">
-                    <h3 className="font-semibold text-foreground mb-4">Rango de precio</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Precio promedio por noche: ${Math.round((priceRange[0] + priceRange[1]) / 2)}
-                    </p>
-                    <Slider
-                      value={priceRange}
-                      onValueChange={setPriceRange}
-                      min={50}
-                      max={500}
-                      step={10}
-                      className="mb-4"
-                    />
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 p-2 rounded bg-secondary text-center text-sm">
-                        $ {priceRange[0]}
-                      </div>
-                      <span className="text-muted-foreground">-</span>
-                      <div className="flex-1 p-2 rounded bg-secondary text-center text-sm">
-                        $ {priceRange[1]}+
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Tipo de Alojamiento */}
-                  <div className="bg-card rounded-xl p-5 border border-border">
-                    <h3 className="font-semibold text-foreground mb-4">Tipo de Alojamiento</h3>
-                    <div className="space-y-3">
-                      {tiposAlojamiento.map((tipo, i) => (
-                        <div key={tipo} className="flex items-center gap-3">
-                          <Checkbox id={`tipo-${i}`} defaultChecked={i === 0} />
-                          <label htmlFor={`tipo-${i}`} className="text-sm text-foreground cursor-pointer">
-                            {tipo}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Región */}
-                  <div className="bg-card rounded-xl p-5 border border-border">
-                    <h3 className="font-semibold text-foreground mb-4">Región</h3>
-                    <div className="space-y-3">
-                      {regiones.map((region, i) => (
-                        <div key={region} className="flex items-center gap-3">
-                          <Checkbox id={`region-${i}`} defaultChecked={i === 0} />
-                          <label htmlFor={`region-${i}`} className="text-sm text-foreground cursor-pointer">
-                            {region}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+        {/* Filters Bar */}
+        <section className="sticky top-16 z-40 bg-background border-b border-border py-4">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+              {/* Search & Type Tabs */}
+              <div className="flex flex-col sm:flex-row gap-4 flex-1 w-full md:w-auto">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar por nombre o ubicación..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
-              </aside>
 
-              {/* Results */}
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h1 className="text-2xl font-display font-bold text-foreground">Alojamientos en RD</h1>
-                    <p className="text-muted-foreground">450+ lugares para hospedarte encontrados</p>
-                  </div>
-                  <Button variant="outline" className="gap-2">
-                    Ordenar por: Recomendados
+                <Tabs value={type} onValueChange={(v) => setType(v as AccommodationType)}>
+                  <TabsList className="bg-secondary/50">
+                    <TabsTrigger value="all" className="gap-2">
+                      <Bed className="h-4 w-4" />
+                      Todos
+                    </TabsTrigger>
+                    <TabsTrigger value="hotel" className="gap-2">
+                      <Building2 className="h-4 w-4" />
+                      Hoteles
+                    </TabsTrigger>
+                    <TabsTrigger value="airbnb" className="gap-2">
+                      <Home className="h-4 w-4" />
+                      Airbnb
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+
+              {/* Filter Toggle & Price */}
+              <div className="flex gap-2 items-center">
+                <Select value={priceRange} onValueChange={setPriceRange}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Precio" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {priceRanges.map((range) => (
+                      <SelectItem key={range.value} value={range.value}>
+                        {range.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Button
+                  variant={showFilters ? "default" : "outline"}
+                  size="icon"
+                  onClick={() => setShowFilters(!showFilters)}
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+
+                {(searchQuery || priceRange !== "all" || selectedAmenities.length > 0) && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
+                    <X className="h-4 w-4" />
+                    Limpiar
                   </Button>
-                </div>
+                )}
+              </div>
+            </div>
 
-                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {alojamientos.map((alojamiento, index) => (
-                    <AlojamientoCard key={alojamiento.id} alojamiento={alojamiento} index={index} />
+            {/* Expanded Filters */}
+            {showFilters && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="pt-4 border-t border-border mt-4"
+              >
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-sm text-muted-foreground mr-2">Amenidades:</span>
+                  {amenitiesOptions.map((amenity) => (
+                    <Button
+                      key={amenity.id}
+                      variant={selectedAmenities.includes(amenity.id) ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => toggleAmenity(amenity.id)}
+                      className="gap-2"
+                    >
+                      <amenity.icon className="h-3 w-3" />
+                      {amenity.label}
+                    </Button>
                   ))}
                 </div>
-
-                {/* Pagination */}
-                <div className="flex items-center justify-center gap-2 mt-12">
-                  <Button variant="outline">Anterior</Button>
-                  <Button className="bg-primary text-primary-foreground">1</Button>
-                  <Button variant="outline">2</Button>
-                  <Button variant="outline">3</Button>
-                  <span className="text-muted-foreground">...</span>
-                  <Button variant="outline">Siguiente</Button>
-                </div>
-              </div>
-            </div>
+              </motion.div>
+            )}
           </div>
-        </main>
+        </section>
+
+        {/* Results */}
+        <section className="py-12 flex-1">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-8">
+              <p className="text-muted-foreground">
+                <span className="font-semibold text-foreground">{totalResults}</span> alojamientos encontrados
+              </p>
+            </div>
+
+            {loading ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="bg-card rounded-xl overflow-hidden animate-pulse">
+                    <div className="aspect-[4/3] bg-muted" />
+                    <div className="p-4 space-y-3">
+                      <div className="h-4 bg-muted rounded w-3/4" />
+                      <div className="h-3 bg-muted rounded w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {/* Hotels */}
+                {(type === "all" || type === "hotel") &&
+                  filteredHotels.map((hotel) => (
+                    <motion.div
+                      key={hotel.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="group"
+                    >
+                      <Link to={`/alojamiento/${hotel.slug || hotel.id}`}>
+                        <Card className="overflow-hidden border-border hover:border-primary/50 transition-colors">
+                          <div className="aspect-[4/3] relative overflow-hidden">
+                            <img
+                              src={hotel.image_url || hotelRoomSuite}
+                              alt={hotel.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                            <div className="absolute top-3 right-3">
+                              <FavoriteButton
+                                id={hotel.id}
+                                type="hotel"
+                                name={hotel.name}
+                                image={hotel.image_url || ""}
+                                location={hotel.address || ""}
+                              />
+                            </div>
+                            {hotel.stars && (
+                              <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground">
+                                {hotel.stars} ★
+                              </Badge>
+                            )}
+                          </div>
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                                {hotel.name}
+                              </h3>
+                              {hotel.rating && (
+                                <div className="flex items-center gap-1 text-sm">
+                                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                  <span className="font-medium">{hotel.rating}</span>
+                                </div>
+                              )}
+                            </div>
+                            {hotel.destinations?.name && (
+                              <p className="text-sm text-muted-foreground flex items-center gap-1 mb-2">
+                                <MapPin className="h-3 w-3" />
+                                {hotel.destinations.name}
+                              </p>
+                            )}
+                            <div className="flex items-center justify-between">
+                              <Badge variant="secondary" className="text-xs">
+                                <Building2 className="h-3 w-3 mr-1" />
+                                Hotel
+                              </Badge>
+                              {hotel.price_range && (
+                                <span className="text-sm font-semibold text-primary">{hotel.price_range}</span>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    </motion.div>
+                  ))}
+
+                {/* Airbnbs */}
+                {(type === "all" || type === "airbnb") &&
+                  filteredAirbnbs.map((airbnb) => (
+                    <motion.div
+                      key={airbnb.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="group"
+                    >
+                      <Link to={`/airbnb/${airbnb.slug || airbnb.id}`}>
+                        <Card className="overflow-hidden border-border hover:border-primary/50 transition-colors">
+                          <div className="aspect-[4/3] relative overflow-hidden">
+                            <img
+                              src={airbnb.image_url || hotelRoomSuite}
+                              alt={airbnb.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                            <div className="absolute top-3 right-3">
+                              <FavoriteButton
+                                id={airbnb.id}
+                                type="airbnb"
+                                name={airbnb.name}
+                                image={airbnb.image_url || ""}
+                                location={airbnb.address || ""}
+                              />
+                            </div>
+                            {airbnb.is_superhost && (
+                              <Badge className="absolute top-3 left-3 bg-rose-500 text-white">
+                                Superhost
+                              </Badge>
+                            )}
+                          </div>
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <h3 className="font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                                {airbnb.name}
+                              </h3>
+                              {airbnb.rating && (
+                                <div className="flex items-center gap-1 text-sm">
+                                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                                  <span className="font-medium">{airbnb.rating}</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 text-sm text-muted-foreground mb-2">
+                              {airbnb.guests && (
+                                <span className="flex items-center gap-1">
+                                  <Users className="h-3 w-3" />
+                                  {airbnb.guests}
+                                </span>
+                              )}
+                              {airbnb.bedrooms && (
+                                <span className="flex items-center gap-1">
+                                  <Bed className="h-3 w-3" />
+                                  {airbnb.bedrooms} hab.
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <Badge variant="secondary" className="text-xs">
+                                <Home className="h-3 w-3 mr-1" />
+                                {airbnb.property_type || "Airbnb"}
+                              </Badge>
+                              {airbnb.price_per_night && (
+                                <span className="text-sm font-semibold text-primary">
+                                  ${airbnb.price_per_night}/noche
+                                </span>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    </motion.div>
+                  ))}
+              </div>
+            )}
+
+            {!loading && totalResults === 0 && (
+              <div className="text-center py-16">
+                <Bed className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-foreground mb-2">No se encontraron resultados</h3>
+                <p className="text-muted-foreground mb-4">Intenta ajustar los filtros o buscar con otro término.</p>
+                <Button onClick={clearFilters}>Limpiar filtros</Button>
+              </div>
+            )}
+          </div>
+        </section>
 
         <Footer />
       </div>

@@ -59,10 +59,10 @@ const megaMenuQueHacer = {
   categorias: [
     { name: "Ecoturismo", href: "/ecoturismo", icon: Mountain },
     { name: "Turismo Religioso", href: "/turismo-religioso", icon: Heart },
-    { name: "Cultura del Café", href: "/cultura-cafe", icon: Utensils },
-    { name: "Cultura del Tabaco", href: "/cultura-tabaco", icon: Sparkles },
+    { name: "Rutas del Sabor", href: "/rutas-sabor", icon: Utensils },
     { name: "Escuela de Ritmos", href: "/escuela-ritmos", icon: Music },
-    { name: "Talleres Artesanales", href: "/talleres-artesanales", icon: Sparkles },
+    { name: "Parques Temáticos", href: "/parques-tematicos", icon: Sparkles },
+    { name: "Clima y Temporadas", href: "/clima-temporadas", icon: Sun },
     { name: "Golf", href: "/turismo-deportivo", icon: Sparkles },
   ],
   nichos: [

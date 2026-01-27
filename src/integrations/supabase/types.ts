@@ -184,6 +184,110 @@ export type Database = {
           },
         ]
       }
+      artisanal_workshops: {
+        Row: {
+          address: string | null
+          craft_types: string[] | null
+          created_at: string
+          description: string | null
+          destination_id: string | null
+          duration: string | null
+          email: string | null
+          gallery: string[] | null
+          id: string
+          image_url: string | null
+          includes: string[] | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          languages: string[] | null
+          latitude: number | null
+          longitude: number | null
+          max_participants: number | null
+          name: string
+          opening_hours: string | null
+          phone: string | null
+          price_range: string | null
+          rating: number | null
+          review_count: number | null
+          short_description: string | null
+          skill_level: string | null
+          slug: string | null
+          updated_at: string
+          website: string | null
+          workshop_type: string | null
+        }
+        Insert: {
+          address?: string | null
+          craft_types?: string[] | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string | null
+          duration?: string | null
+          email?: string | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          includes?: string[] | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          languages?: string[] | null
+          latitude?: number | null
+          longitude?: number | null
+          max_participants?: number | null
+          name: string
+          opening_hours?: string | null
+          phone?: string | null
+          price_range?: string | null
+          rating?: number | null
+          review_count?: number | null
+          short_description?: string | null
+          skill_level?: string | null
+          slug?: string | null
+          updated_at?: string
+          website?: string | null
+          workshop_type?: string | null
+        }
+        Update: {
+          address?: string | null
+          craft_types?: string[] | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string | null
+          duration?: string | null
+          email?: string | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          includes?: string[] | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          languages?: string[] | null
+          latitude?: number | null
+          longitude?: number | null
+          max_participants?: number | null
+          name?: string
+          opening_hours?: string | null
+          phone?: string | null
+          price_range?: string | null
+          rating?: number | null
+          review_count?: number | null
+          short_description?: string | null
+          skill_level?: string | null
+          slug?: string | null
+          updated_at?: string
+          website?: string | null
+          workshop_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artisanal_workshops_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bars: {
         Row: {
           address: string | null
@@ -278,6 +382,110 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "bars_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      caves: {
+        Row: {
+          address: string | null
+          cave_type: string | null
+          created_at: string
+          description: string | null
+          destination_id: string | null
+          difficulty: string | null
+          email: string | null
+          flora_fauna: string[] | null
+          gallery: string[] | null
+          highlights: string[] | null
+          historical_info: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          opening_hours: string | null
+          phone: string | null
+          price_adult: number | null
+          price_child: number | null
+          rating: number | null
+          review_count: number | null
+          short_description: string | null
+          slug: string | null
+          tour_duration: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          cave_type?: string | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string | null
+          difficulty?: string | null
+          email?: string | null
+          flora_fauna?: string[] | null
+          gallery?: string[] | null
+          highlights?: string[] | null
+          historical_info?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          opening_hours?: string | null
+          phone?: string | null
+          price_adult?: number | null
+          price_child?: number | null
+          rating?: number | null
+          review_count?: number | null
+          short_description?: string | null
+          slug?: string | null
+          tour_duration?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          cave_type?: string | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string | null
+          difficulty?: string | null
+          email?: string | null
+          flora_fauna?: string[] | null
+          gallery?: string[] | null
+          highlights?: string[] | null
+          historical_info?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          opening_hours?: string | null
+          phone?: string | null
+          price_adult?: number | null
+          price_child?: number | null
+          rating?: number | null
+          review_count?: number | null
+          short_description?: string | null
+          slug?: string | null
+          tour_duration?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "caves_destination_id_fkey"
             columns: ["destination_id"]
             isOneToOne: false
             referencedRelation: "destinations"
@@ -382,6 +590,110 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "clinics_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coffee_experiences: {
+        Row: {
+          address: string | null
+          altitude: string | null
+          coffee_varieties: string[] | null
+          created_at: string
+          description: string | null
+          destination_id: string | null
+          email: string | null
+          experience_type: string | null
+          gallery: string[] | null
+          id: string
+          image_url: string | null
+          includes: string[] | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          opening_hours: string | null
+          phone: string | null
+          price_range: string | null
+          production_process: string | null
+          rating: number | null
+          review_count: number | null
+          short_description: string | null
+          slug: string | null
+          tasting_notes: string | null
+          tour_duration: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          altitude?: string | null
+          coffee_varieties?: string[] | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string | null
+          email?: string | null
+          experience_type?: string | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          includes?: string[] | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          opening_hours?: string | null
+          phone?: string | null
+          price_range?: string | null
+          production_process?: string | null
+          rating?: number | null
+          review_count?: number | null
+          short_description?: string | null
+          slug?: string | null
+          tasting_notes?: string | null
+          tour_duration?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          altitude?: string | null
+          coffee_varieties?: string[] | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string | null
+          email?: string | null
+          experience_type?: string | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          includes?: string[] | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          opening_hours?: string | null
+          phone?: string | null
+          price_range?: string | null
+          production_process?: string | null
+          rating?: number | null
+          review_count?: number | null
+          short_description?: string | null
+          slug?: string | null
+          tasting_notes?: string | null
+          tour_duration?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coffee_experiences_destination_id_fkey"
             columns: ["destination_id"]
             isOneToOne: false
             referencedRelation: "destinations"
@@ -1021,6 +1333,98 @@ export type Database = {
           verified?: boolean | null
         }
         Relationships: []
+      }
+      rivers: {
+        Row: {
+          activities: string[] | null
+          address: string | null
+          adrenaline_level: number | null
+          best_season: string | null
+          certified_guides: boolean | null
+          created_at: string
+          description: string | null
+          destination_id: string | null
+          difficulty: string | null
+          duration: string | null
+          gallery: string[] | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          price_range: string | null
+          rating: number | null
+          review_count: number | null
+          safety_tips: string[] | null
+          short_description: string | null
+          slug: string | null
+          updated_at: string
+        }
+        Insert: {
+          activities?: string[] | null
+          address?: string | null
+          adrenaline_level?: number | null
+          best_season?: string | null
+          certified_guides?: boolean | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string | null
+          difficulty?: string | null
+          duration?: string | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          price_range?: string | null
+          rating?: number | null
+          review_count?: number | null
+          safety_tips?: string[] | null
+          short_description?: string | null
+          slug?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activities?: string[] | null
+          address?: string | null
+          adrenaline_level?: number | null
+          best_season?: string | null
+          certified_guides?: boolean | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string | null
+          difficulty?: string | null
+          duration?: string | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          price_range?: string | null
+          rating?: number | null
+          review_count?: number | null
+          safety_tips?: string[] | null
+          short_description?: string | null
+          slug?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rivers_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stadiums: {
         Row: {
