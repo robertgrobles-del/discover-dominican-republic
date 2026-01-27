@@ -122,6 +122,7 @@ import ClimaTemporadas from "./pages/ClimaTemporadas";
 import CulturaCafe from "./pages/CulturaCafe";
 import TalleresArtesanales from "./pages/TalleresArtesanales";
 import AirbnbDetalle from "./pages/AirbnbDetalle";
+import RutasSabor from "./pages/RutasSabor";
 
 // Backwards-compatible aliases
 const Asistencia = CentroAyuda;
@@ -254,6 +255,7 @@ function AnimatedRoutes() {
         <Route path="/clima-temporadas" element={<ClimaTemporadas />} />
         <Route path="/cultura-cafe" element={<CulturaCafe />} />
         <Route path="/talleres-artesanales" element={<TalleresArtesanales />} />
+        <Route path="/rutas-sabor" element={<RutasSabor />} />
         <Route path="/airbnb/:id" element={<AirbnbDetalle />} />
         <Route path="/admin" element={<AdminPanel />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
