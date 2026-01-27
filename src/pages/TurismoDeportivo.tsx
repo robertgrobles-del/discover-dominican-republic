@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Trophy,
   Target,
@@ -20,6 +21,7 @@ import {
   Flag,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { GolfSection } from "@/components/sports/GolfSection";
 
 const sports = [
   {
@@ -188,55 +190,198 @@ export default function TurismoDeportivo() {
           </div>
         </section>
 
-        {/* Sports Categories */}
-        <section className="py-20">
+        {/* Tabs for different sports */}
+        <section className="py-8">
           <div className="container mx-auto px-4 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-12"
-            >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Deportes y <span className="text-gradient">Actividades</span>
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Desde golf de campeonato hasta aventuras extremas en la montaña.
-              </p>
-            </motion.div>
+            <Tabs defaultValue="todos" className="w-full">
+              <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4 h-auto gap-2 bg-transparent mb-8">
+                <TabsTrigger value="todos" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3">
+                  Todos
+                </TabsTrigger>
+                <TabsTrigger value="golf" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3">
+                  ⛳ Golf
+                </TabsTrigger>
+                <TabsTrigger value="senderismo" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3">
+                  🥾 Senderismo
+                </TabsTrigger>
+                <TabsTrigger value="acuaticos" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3">
+                  🏄 Acuáticos
+                </TabsTrigger>
+              </TabsList>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {sports.map((sport, index) => (
-                <motion.div
-                  key={sport.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="group bg-card rounded-2xl p-6 border border-border hover:border-primary/50 transition-all hover:shadow-lg"
-                >
-                  <div className={`w-12 h-12 rounded-xl ${sport.color} flex items-center justify-center mb-4`}>
-                    <sport.icon className="h-6 w-6 text-white" />
-                  </div>
-                  <h3 className="font-display text-xl font-bold text-foreground mb-2">{sport.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-4">{sport.description}</p>
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 text-sm">
-                      <MapPin className="h-4 w-4 text-primary" />
-                      <span className="text-muted-foreground">{sport.destinations.join(", ")}</span>
+              {/* TAB: TODOS */}
+              <TabsContent value="todos">
+                <section className="py-12">
+                  <div className="container mx-auto">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      className="text-center mb-12"
+                    >
+                      <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+                        Deportes y <span className="text-gradient">Actividades</span>
+                      </h2>
+                      <p className="text-muted-foreground max-w-2xl mx-auto">
+                        Desde golf de campeonato hasta aventuras extremas en la montaña.
+                      </p>
+                    </motion.div>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {sports.map((sport, index) => (
+                        <motion.div
+                          key={sport.title}
+                          initial={{ opacity: 0, y: 20 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: index * 0.1 }}
+                          className="group bg-card rounded-2xl p-6 border border-border hover:border-primary/50 transition-all hover:shadow-lg"
+                        >
+                          <div className={`w-12 h-12 rounded-xl ${sport.color} flex items-center justify-center mb-4`}>
+                            <sport.icon className="h-6 w-6 text-white" />
+                          </div>
+                          <h3 className="font-display text-xl font-bold text-foreground mb-2">{sport.title}</h3>
+                          <p className="text-sm text-muted-foreground mb-4">{sport.description}</p>
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2 text-sm">
+                              <MapPin className="h-4 w-4 text-primary" />
+                              <span className="text-muted-foreground">{sport.destinations.join(", ")}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Calendar className="h-4 w-4 text-primary" />
+                              <span className="text-muted-foreground">Temporada: {sport.season}</span>
+                            </div>
+                          </div>
+                          <Button variant="link" className="text-primary p-0 mt-4 gap-1">
+                            Ver más
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </motion.div>
+                      ))}
                     </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="h-4 w-4 text-primary" />
-                      <span className="text-muted-foreground">Temporada: {sport.season}</span>
+                  </div>
+                </section>
+              </TabsContent>
+
+              {/* TAB: GOLF */}
+              <TabsContent value="golf">
+                <GolfSection />
+              </TabsContent>
+
+              {/* TAB: SENDERISMO - Uses existing hiking routes */}
+              <TabsContent value="senderismo">
+                <section className="py-12">
+                  <div className="container mx-auto">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      className="text-center mb-12"
+                    >
+                      <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+                        Rutas de <span className="text-gradient">Senderismo</span>
+                      </h2>
+                      <p className="text-muted-foreground max-w-2xl mx-auto">
+                        Desde caminatas fáciles hasta expediciones de montaña en la Cordillera Central.
+                      </p>
+                    </motion.div>
+
+                    <div className="grid md:grid-cols-3 gap-6">
+                      {hikingRoutes.map((route, index) => (
+                        <motion.div
+                          key={route.name}
+                          initial={{ opacity: 0, y: 20 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: index * 0.1 }}
+                          className="bg-card rounded-2xl p-6 border border-border"
+                        >
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-display text-xl font-bold text-foreground">{route.name}</h3>
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              route.difficulty === "Fácil" ? "bg-green-500/20 text-green-500" :
+                              route.difficulty === "Moderado" ? "bg-amber-500/20 text-amber-500" :
+                              "bg-red-500/20 text-red-500"
+                            }`}>
+                              {route.difficulty}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-4">{route.description}</p>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Clock className="h-4 w-4 text-primary" />
+                              Duración: {route.duration}
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Mountain className="h-4 w-4 text-primary" />
+                              Altitud: {route.altitude}
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Flag className="h-4 w-4 text-primary" />
+                              Inicio: {route.startPoint}
+                            </div>
+                          </div>
+                          <Button className="w-full mt-4" variant="outline">
+                            Agregar al Plan de Viaje
+                          </Button>
+                        </motion.div>
+                      ))}
                     </div>
                   </div>
-                  <Button variant="link" className="text-primary p-0 mt-4 gap-1">
-                    Ver más
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </motion.div>
-              ))}
-            </div>
+                </section>
+              </TabsContent>
+
+              {/* TAB: ACUATICOS */}
+              <TabsContent value="acuaticos">
+                <section className="py-12">
+                  <div className="container mx-auto">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      className="text-center mb-12"
+                    >
+                      <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+                        Deportes <span className="text-gradient">Acuáticos</span>
+                      </h2>
+                      <p className="text-muted-foreground max-w-2xl mx-auto">
+                        Las mejores condiciones del Caribe para surf, kitesurf, buceo y más.
+                      </p>
+                    </motion.div>
+
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {sports.filter(s => s.title === "Surf & Kitesurf" || s.title === "Buceo").map((sport, index) => (
+                        <motion.div
+                          key={sport.title}
+                          initial={{ opacity: 0, y: 20 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: index * 0.1 }}
+                          className="group bg-card rounded-2xl p-6 border border-border hover:border-primary/50 transition-all"
+                        >
+                          <div className={`w-12 h-12 rounded-xl ${sport.color} flex items-center justify-center mb-4`}>
+                            <sport.icon className="h-6 w-6 text-white" />
+                          </div>
+                          <h3 className="font-display text-xl font-bold text-foreground mb-2">{sport.title}</h3>
+                          <p className="text-sm text-muted-foreground mb-4">{sport.description}</p>
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2 text-sm">
+                              <MapPin className="h-4 w-4 text-primary" />
+                              <span className="text-muted-foreground">{sport.destinations.join(", ")}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Calendar className="h-4 w-4 text-primary" />
+                              <span className="text-muted-foreground">Temporada: {sport.season}</span>
+                            </div>
+                          </div>
+                          <Button className="w-full mt-4">Ver Experiencias</Button>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              </TabsContent>
+            </Tabs>
           </div>
         </section>
 
@@ -309,66 +454,7 @@ export default function TurismoDeportivo() {
           </div>
         </section>
 
-        {/* Hiking Routes */}
-        <section className="py-20">
-          <div className="container mx-auto px-4 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-12"
-            >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Rutas de <span className="text-gradient">Senderismo</span>
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Desde caminatas fáciles hasta expediciones de montaña en la Cordillera Central.
-              </p>
-            </motion.div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {hikingRoutes.map((route, index) => (
-                <motion.div
-                  key={route.name}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-card rounded-2xl p-6 border border-border"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-display text-xl font-bold text-foreground">{route.name}</h3>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      route.difficulty === "Fácil" ? "bg-green-500/20 text-green-500" :
-                      route.difficulty === "Moderado" ? "bg-amber-500/20 text-amber-500" :
-                      "bg-red-500/20 text-red-500"
-                    }`}>
-                      {route.difficulty}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4">{route.description}</p>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4 text-primary" />
-                      Duración: {route.duration}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Mountain className="h-4 w-4 text-primary" />
-                      Altitud: {route.altitude}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Flag className="h-4 w-4 text-primary" />
-                      Inicio: {route.startPoint}
-                    </div>
-                  </div>
-                  <Button className="w-full mt-4" variant="outline">
-                    Agregar al Plan de Viaje
-                  </Button>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* Removed duplicate hiking routes section - now inside tabs */}
 
         {/* Upcoming Events */}
         <section className="py-20 bg-card">
