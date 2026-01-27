@@ -1,17 +1,26 @@
 import { useState, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, Menu, X, ChevronRight, Globe, Compass, Plane, FileText, 
   MapPin, Waves, Mountain, Utensils, Music, Calendar, Building2, Car,
   Bed, Users, Heart, Info, BookOpen, Camera, Sun, Sparkles, Ship, 
-  TrendingUp, Briefcase, ShoppingBag, Download, Accessibility, Route
+  TrendingUp, Briefcase, ShoppingBag, Download, Accessibility, Route,
+  User, LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { WeatherWidget } from "@/components/WeatherWidget";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import puntaCana from "@/assets/punta-cana.jpg";
 import samana from "@/assets/samana.jpg";
@@ -111,7 +120,9 @@ export function Header() {
   const [activeMegaMenu, setActiveMegaMenu] = useState<MegaMenuType>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { user, loading, signOut } = useAuth();
 
   const handleMouseEnter = (megaMenu: MegaMenuType) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -126,6 +137,11 @@ export function Header() {
 
   const handleMegaMenuEnter = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
   };
 
   return (
@@ -180,6 +196,52 @@ export function Header() {
               >
                 <Search className="h-5 w-5" />
               </Button>
+
+              {/* Auth Button */}
+              {!loading && (
+                user ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+                        <User className="h-5 w-5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <div className="px-2 py-1.5">
+                        <p className="text-sm font-medium text-foreground truncate">{user.email}</p>
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/perfil" className="flex items-center gap-2 cursor-pointer">
+                          <User className="h-4 w-4" />
+                          Mi Perfil
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/mi-viaje" className="flex items-center gap-2 cursor-pointer">
+                          <Heart className="h-4 w-4" />
+                          Favoritos
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Cerrar Sesión
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Link to="/login">
+                    <Button variant="outline" size="sm" className="hidden sm:flex gap-2">
+                      <User className="h-4 w-4" />
+                      Iniciar Sesión
+                    </Button>
+                    <Button variant="ghost" size="icon" className="sm:hidden text-muted-foreground hover:text-foreground">
+                      <User className="h-5 w-5" />
+                    </Button>
+                  </Link>
+                )
+              )}
               
               <Button
                 variant="ghost"

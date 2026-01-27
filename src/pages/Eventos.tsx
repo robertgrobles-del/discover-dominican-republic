@@ -1,6 +1,7 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
 import { Link } from "react-router-dom";
 import { Calendar, MapPin, ChevronLeft, ChevronRight, Clock, ThumbsUp, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -64,8 +65,40 @@ export default function Eventos() {
   const [selectedCategoria, setSelectedCategoria] = useState("Todo");
   const [heroLoaded, setHeroLoaded] = useState(false);
 
+  const eventosSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Eventos en República Dominicana",
+    description: "Calendario de eventos culturales, festivales y ferias en República Dominicana",
+    itemListElement: eventos.map((e, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "Event",
+        name: e.titulo,
+        description: e.descripcion,
+        image: e.imagen,
+        location: {
+          "@type": "Place",
+          name: e.ubicacion,
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: e.ubicacion,
+            addressCountry: "DO"
+          }
+        }
+      }
+    }))
+  };
+
   return (
     <PageTransition>
+      <SEOHead
+        title="Eventos en República Dominicana - Festivales, Carnavales y Ferias"
+        description="Descubre el calendario de eventos culturales, festivales de música, carnavales y ferias gastronómicas en República Dominicana."
+        keywords="eventos República Dominicana, carnaval La Vega, festivales RD, ferias dominicanas"
+        jsonLd={eventosSchema}
+      />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
         

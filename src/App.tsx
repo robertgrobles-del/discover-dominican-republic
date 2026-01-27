@@ -73,6 +73,7 @@ import Sugerencias from "./pages/Sugerencias";
 import PrensaComunicacion from "./pages/PrensaComunicacion";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
+import Perfil from "./pages/Perfil";
 import CalculadoraPresupuesto from "./pages/CalculadoraPresupuesto";
 import EstadoPlayas from "./pages/EstadoPlayas";
 import GuiasLocales from "./pages/GuiasLocales";
@@ -164,6 +165,7 @@ function AnimatedRoutes() {
         <Route path="/sugerencias" element={<Sugerencias />} />
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
+        <Route path="/perfil" element={<Perfil />} />
         <Route path="/calculadora-presupuesto" element={<CalculadoraPresupuesto />} />
         <Route path="/estado-playas" element={<EstadoPlayas />} />
         <Route path="/guias-locales" element={<GuiasLocales />} />
