@@ -79,6 +79,14 @@ import EstadoPlayas from "./pages/EstadoPlayas";
 import GuiasLocales from "./pages/GuiasLocales";
 import DiccionarioDominicano from "./pages/DiccionarioDominicano";
 import MapasTematicos from "./pages/MapasTematicos";
+import FotografosLocales from "./pages/FotografosLocales";
+import Conectividad from "./pages/Conectividad";
+import RutasEmbajadores from "./pages/RutasEmbajadores";
+import GuardianCaribe from "./pages/GuardianCaribe";
+import PlanificadorGrupal from "./pages/PlanificadorGrupal";
+import PuertosMarinas from "./pages/PuertosMarinas";
+import HechoEnRD from "./pages/HechoEnRD";
+import ComparadorExperiencias from "./pages/ComparadorExperiencias";
 
 // Backwards-compatible aliases (prevent runtime crashes if an old route/component name lingers)
 const Asistencia = CentroAyuda;
@@ -171,6 +179,14 @@ function AnimatedRoutes() {
         <Route path="/guias-locales" element={<GuiasLocales />} />
         <Route path="/diccionario" element={<DiccionarioDominicano />} />
         <Route path="/mapas" element={<MapasTematicos />} />
+        <Route path="/fotografos" element={<FotografosLocales />} />
+        <Route path="/conectividad" element={<Conectividad />} />
+        <Route path="/embajadores" element={<RutasEmbajadores />} />
+        <Route path="/guardian-caribe" element={<GuardianCaribe />} />
+        <Route path="/planificador-grupal" element={<PlanificadorGrupal />} />
+        <Route path="/puertos-marinas" element={<PuertosMarinas />} />
+        <Route path="/hecho-en-rd" element={<HechoEnRD />} />
+        <Route path="/comparador-experiencias" element={<ComparadorExperiencias />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
