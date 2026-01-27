@@ -109,6 +109,9 @@ import ClinicaDetalle from "./pages/ClinicaDetalle";
 import AdminPanel from "./pages/AdminPanel";
 import ParquesTematicos from "./pages/ParquesTematicos";
 import ParqueDetalle from "./pages/ParqueDetalle";
+import Ecoturismo from "./pages/Ecoturismo";
+import TurismoReligioso from "./pages/TurismoReligioso";
+import HistoriaVivaAR from "./pages/HistoriaVivaAR";
 
 // Backwards-compatible aliases
 const Asistencia = CentroAyuda;
@@ -229,6 +232,9 @@ function AnimatedRoutes() {
         <Route path="/clinica/:id" element={<ClinicaDetalle />} />
         <Route path="/parques-tematicos" element={<ParquesTematicos />} />
         <Route path="/parque/:id" element={<ParqueDetalle />} />
+        <Route path="/ecoturismo" element={<Ecoturismo />} />
+        <Route path="/turismo-religioso" element={<TurismoReligioso />} />
+        <Route path="/historia-viva-ar" element={<HistoriaVivaAR />} />
         <Route path="/admin" element={<AdminPanel />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
