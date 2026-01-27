@@ -2,6 +2,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -158,9 +159,11 @@ export default function TurismoReligioso() {
                       </div>
 
                       <div className="flex gap-3">
-                        <Button className="flex-1 gap-2">
-                          Leer historia completa <ChevronRight className="h-4 w-4" />
-                        </Button>
+                        <Link to={`/destino-religioso/${destino.id}`} className="flex-1">
+                          <Button className="w-full gap-2">
+                            Leer historia completa <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </Link>
                         <Button variant="outline">Ver horarios</Button>
                       </div>
                     </div>
