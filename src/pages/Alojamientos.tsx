@@ -1,6 +1,7 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
 import { Link } from "react-router-dom";
 import { MapPin, Star, Heart, Leaf, Filter, Grid, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -176,8 +177,37 @@ export default function Alojamientos() {
   const [priceRange, setPriceRange] = useState([50, 350]);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
+  const alojamientosSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Alojamientos en República Dominicana",
+    description: "Encuentra los mejores hoteles, resorts y villas en República Dominicana",
+    itemListElement: alojamientos.map((a, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "Hotel",
+        name: a.nombre,
+        image: a.imagen,
+        address: a.ubicacion,
+        priceRange: `$${a.precio}`,
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: a.rating,
+          bestRating: 5
+        }
+      }
+    }))
+  };
+
   return (
     <PageTransition>
+      <SEOHead
+        title="Alojamientos en República Dominicana - Hoteles, Resorts y Villas"
+        description="Descubre los mejores hoteles, resorts all-inclusive, eco-lodges y villas privadas en República Dominicana. Reserva tu estancia perfecta en el Caribe."
+        keywords="hoteles República Dominicana, resorts Punta Cana, villas Samaná, all-inclusive RD"
+        jsonLd={alojamientosSchema}
+      />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
         

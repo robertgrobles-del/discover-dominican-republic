@@ -1,6 +1,7 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
 import { Link } from "react-router-dom";
 import { ChevronRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -42,8 +43,31 @@ export default function Experiencias() {
     exp.desc.toLowerCase().includes(search.toLowerCase())
   );
 
+  const experienciasSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Experiencias en República Dominicana",
+    description: "Descubre las mejores experiencias turísticas en República Dominicana",
+    itemListElement: experiencias.map((e, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      item: {
+        "@type": "TouristAttraction",
+        name: e.nombre,
+        description: e.desc,
+        image: e.imagen
+      }
+    }))
+  };
+
   return (
     <PageTransition>
+      <SEOHead
+        title="Experiencias en República Dominicana - Aventura, Cultura y Bienestar"
+        description="Desde ecoturismo y aventura hasta gastronomía y bienestar, descubre todas las formas de vivir el paraíso caribeño en República Dominicana."
+        keywords="experiencias República Dominicana, ecoturismo RD, aventura Caribe, turismo cultural"
+        jsonLd={experienciasSchema}
+      />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
 
