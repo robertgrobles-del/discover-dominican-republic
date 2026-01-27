@@ -947,6 +947,113 @@ export type Database = {
           },
         ]
       }
+      theme_parks: {
+        Row: {
+          address: string | null
+          age_restrictions: string | null
+          attractions: string[] | null
+          created_at: string
+          description: string | null
+          destination_id: string | null
+          duration_recommended: string | null
+          email: string | null
+          gallery: string[] | null
+          id: string
+          image_url: string | null
+          includes: string[] | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          opening_hours: string | null
+          park_type: string | null
+          phone: string | null
+          price_adult: number | null
+          price_child: number | null
+          price_range: string | null
+          rating: number | null
+          review_count: number | null
+          services: string[] | null
+          short_description: string | null
+          slug: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          age_restrictions?: string | null
+          attractions?: string[] | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string | null
+          duration_recommended?: string | null
+          email?: string | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          includes?: string[] | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          opening_hours?: string | null
+          park_type?: string | null
+          phone?: string | null
+          price_adult?: number | null
+          price_child?: number | null
+          price_range?: string | null
+          rating?: number | null
+          review_count?: number | null
+          services?: string[] | null
+          short_description?: string | null
+          slug?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          age_restrictions?: string | null
+          attractions?: string[] | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string | null
+          duration_recommended?: string | null
+          email?: string | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          includes?: string[] | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          opening_hours?: string | null
+          park_type?: string | null
+          phone?: string | null
+          price_adult?: number | null
+          price_child?: number | null
+          price_range?: string | null
+          rating?: number | null
+          review_count?: number | null
+          services?: string[] | null
+          short_description?: string | null
+          slug?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "theme_parks_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tour_guides: {
         Row: {
           certifications: string[] | null
