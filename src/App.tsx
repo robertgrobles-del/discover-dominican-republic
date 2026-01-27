@@ -118,6 +118,9 @@ import DestinoReligiosoDetalle from "./pages/DestinoReligiosoDetalle";
 import MarinaDetalle from "./pages/MarinaDetalle";
 import CulturaTabaco from "./pages/CulturaTabaco";
 import EscuelaRitmos from "./pages/EscuelaRitmos";
+import ClimaTemporadas from "./pages/ClimaTemporadas";
+import CulturaCafe from "./pages/CulturaCafe";
+import TalleresArtesanales from "./pages/TalleresArtesanales";
 
 // Backwards-compatible aliases
 const Asistencia = CentroAyuda;
@@ -247,6 +250,9 @@ function AnimatedRoutes() {
         <Route path="/marina/:id" element={<MarinaDetalle />} />
         <Route path="/cultura-tabaco" element={<CulturaTabaco />} />
         <Route path="/escuela-ritmos" element={<EscuelaRitmos />} />
+        <Route path="/clima-temporadas" element={<ClimaTemporadas />} />
+        <Route path="/cultura-cafe" element={<CulturaCafe />} />
+        <Route path="/talleres-artesanales" element={<TalleresArtesanales />} />
         <Route path="/admin" element={<AdminPanel />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

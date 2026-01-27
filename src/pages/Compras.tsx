@@ -4,11 +4,12 @@ import { PageTransition } from "@/components/PageTransition";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronRight, MapPin, Store, Gem, ShoppingBag, Coffee, HelpCircle, Crown, CreditCard, User } from "lucide-react";
+import { ChevronRight, MapPin, Store, Gem, ShoppingBag, Coffee, HelpCircle, Crown, CreditCard, User, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useState } from "react";
+import { TesorosTierra } from "@/components/compras/TesorosTierra";
 
 import merengue from "@/assets/merengue-dance.jpg";
 import gastronomy from "@/assets/gastronomy.jpg";
@@ -114,13 +115,20 @@ export default function Compras() {
         <section className="py-8">
           <div className="container mx-auto px-4">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 h-auto gap-2 bg-transparent mb-8">
+              <TabsList className="grid w-full max-w-lg mx-auto grid-cols-3 h-auto gap-2 bg-transparent mb-8">
                 <TabsTrigger 
                   value="general" 
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
                 >
                   <ShoppingBag className="h-4 w-4" />
                   Guía General
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="tesoros" 
+                  className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
+                >
+                  <Gem className="h-4 w-4" />
+                  Tesoros de la Tierra
                 </TabsTrigger>
                 <TabsTrigger 
                   value="lujo" 
@@ -265,6 +273,11 @@ export default function Compras() {
                     </div>
                   </div>
                 </div>
+              </TabsContent>
+
+              {/* ========== TAB: TESOROS DE LA TIERRA ========== */}
+              <TabsContent value="tesoros">
+                <TesorosTierra />
               </TabsContent>
 
               {/* ========== TAB: SHOPPING DE LUJO ========== */}
