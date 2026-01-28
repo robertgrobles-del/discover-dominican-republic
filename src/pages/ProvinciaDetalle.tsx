@@ -18,18 +18,26 @@ import { PageTransition } from "@/components/PageTransition";
 export default function ProvinciaDetalle() {
   const { id } = useParams<{ id: string }>();
 
+  // Check if id is a valid UUID format
+  const isUUID = id ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) : false;
+
   const { data: province, isLoading: loadingProvince } = useQuery({
     queryKey: ["province", id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("provinces")
-        .select("*")
-        .or(`slug.eq.${id},id.eq.${id}`)
-        .maybeSingle();
+      let query = supabase.from("provinces").select("*");
+      
+      if (isUUID) {
+        query = query.or(`slug.eq.${id},id.eq.${id}`);
+      } else {
+        query = query.eq("slug", id);
+      }
+      
+      const { data, error } = await query.maybeSingle();
       
       if (error) throw error;
       return data;
     },
+    enabled: !!id,
   });
 
   const { data: municipalities } = useQuery({
