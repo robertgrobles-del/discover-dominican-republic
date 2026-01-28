@@ -2,13 +2,16 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { Link, useParams } from "react-router-dom";
-import { MapPin, Cloud, Calendar, Share2, Play, ChevronRight } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { MapPin, Cloud, Calendar, Play, ChevronRight, Users, Map, ArrowLeft, Bed, Utensils, GlassWater, Sparkles, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { SEOHead, generateDestinationSchema } from "@/components/SEOHead";
+import { supabase } from "@/integrations/supabase/client";
 
 import { DestinationGallery } from "@/components/destination/DestinationGallery";
 import { DestinationActivities } from "@/components/destination/DestinationActivities";
@@ -17,6 +20,7 @@ import { DestinationRestaurants } from "@/components/destination/DestinationRest
 import { DestinationNightlife } from "@/components/destination/DestinationNightlife";
 import { HowToGetThere } from "@/components/destination/HowToGetThere";
 
+// Static fallback data for rich destinations
 import samana from "@/assets/samana.jpg";
 import whaleSamana from "@/assets/whale-samana.jpg";
 import heroBeach from "@/assets/hero-beach.jpg";
@@ -31,7 +35,7 @@ import diving from "@/assets/diving.jpg";
 import relaxBeach from "@/assets/relax-beach.jpg";
 import merengue from "@/assets/merengue-dance.jpg";
 
-// Destination data
+// Static destination data with rich content
 const destinosData: Record<string, {
   nombre: string;
   subtitulo: string;
@@ -240,23 +244,254 @@ const destinosData: Record<string, {
   },
 };
 
+// Map province slugs to destination slugs for unified routing
+const provinceToDestinationMap: Record<string, string> = {
+  "samana": "samana",
+  "puerto-plata": "puerto-plata", 
+  "distrito-nacional": "santo-domingo",
+  "la-altagracia": "punta-cana",
+};
+
 export default function DestinoDetalle() {
   const { id } = useParams();
   const [heroLoaded, setHeroLoaded] = useState(false);
 
-  const destino = destinosData[id || "samana"] || destinosData.samana;
+  // Check for static data first - this allows immediate render
+  const staticDestino = destinosData[id || ""] || (id ? destinosData[provinceToDestinationMap[id] || ""] : null);
+
+  // Check if id is a valid UUID format
+  const isUUID = id ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) : false;
+
+  // Only query DB if no static data exists
+  const shouldQueryDb = !staticDestino;
+
+  // First try to find in database (destinations table)
+  const { data: dbDestination, isLoading: loadingDestination } = useQuery({
+    queryKey: ["destination-detail", id],
+    queryFn: async () => {
+      let query = supabase.from("destinations").select(`
+        *,
+        province:provinces(id, name, slug, region, capital, population, area_km2, highlights, image_url)
+      `);
+      
+      if (isUUID) {
+        query = query.or(`slug.eq.${id},id.eq.${id}`);
+      } else {
+        query = query.eq("slug", id);
+      }
+      
+      const { data, error } = await query.maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id && shouldQueryDb,
+  });
+
+  // Also check if this is a province (only if not a destination and querying DB)
+  const { data: dbProvince, isLoading: loadingProvince } = useQuery({
+    queryKey: ["province-as-destination", id],
+    queryFn: async () => {
+      let query = supabase.from("provinces").select("*");
+      
+      if (isUUID) {
+        query = query.or(`slug.eq.${id},id.eq.${id}`);
+      } else {
+        query = query.eq("slug", id);
+      }
+      
+      const { data, error } = await query.maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id && shouldQueryDb && !loadingDestination && !dbDestination,
+  });
+
+  // Get related data for province view
+  const provinceId = dbProvince?.id || dbDestination?.province_id;
+  const destinationIds = dbDestination ? [dbDestination.id] : [];
+
+  const { data: destinations } = useQuery({
+    queryKey: ["province-destinations", provinceId],
+    queryFn: async () => {
+      if (!provinceId) return [];
+      const { data, error } = await supabase
+        .from("destinations")
+        .select("*")
+        .eq("province_id", provinceId)
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!provinceId && !!dbProvince,
+  });
+
+  const { data: municipalities } = useQuery({
+    queryKey: ["province-municipalities", provinceId],
+    queryFn: async () => {
+      if (!provinceId) return [];
+      const { data, error } = await supabase
+        .from("municipalities")
+        .select("*")
+        .eq("province_id", provinceId)
+        .eq("is_active", true)
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!provinceId && !!dbProvince,
+  });
+
+  const allDestinationIds = dbProvince && destinations ? destinations.map(d => d.id) : destinationIds;
+
+  const { data: hotels } = useQuery({
+    queryKey: ["destination-hotels", allDestinationIds],
+    queryFn: async () => {
+      if (allDestinationIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("hotels")
+        .select("*")
+        .in("destination_id", allDestinationIds)
+        .eq("is_active", true)
+        .limit(8);
+      if (error) throw error;
+      return data;
+    },
+    enabled: allDestinationIds.length > 0,
+  });
+
+  const { data: restaurants } = useQuery({
+    queryKey: ["destination-restaurants", allDestinationIds],
+    queryFn: async () => {
+      if (allDestinationIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("restaurants")
+        .select("*")
+        .in("destination_id", allDestinationIds)
+        .eq("is_active", true)
+        .limit(8);
+      if (error) throw error;
+      return data;
+    },
+    enabled: allDestinationIds.length > 0,
+  });
+
+  const { data: bars } = useQuery({
+    queryKey: ["destination-bars", allDestinationIds],
+    queryFn: async () => {
+      if (allDestinationIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("bars")
+        .select("*")
+        .in("destination_id", allDestinationIds)
+        .eq("is_active", true)
+        .limit(8);
+      if (error) throw error;
+      return data;
+    },
+    enabled: allDestinationIds.length > 0,
+  });
+
+  const { data: experiences } = useQuery({
+    queryKey: ["destination-experiences", allDestinationIds],
+    queryFn: async () => {
+      if (allDestinationIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("experiences")
+        .select("*")
+        .in("destination_id", allDestinationIds)
+        .eq("is_active", true)
+        .limit(8);
+      if (error) throw error;
+      return data;
+    },
+    enabled: allDestinationIds.length > 0,
+  });
+
+  // Determine which view to show
+  const isProvinceView = !!dbProvince && !dbDestination;
+  const hasDbData = !!dbDestination || !!dbProvince;
+
+  // Show loading only if we don't have static data AND we're still loading
+  const showLoading = !staticDestino && (loadingDestination || loadingProvince);
+
+  // Loading state (only when no static data available)
+  if (showLoading) {
+    return (
+      <PageTransition>
+        <Header />
+        <div className="min-h-screen bg-background py-24">
+          <div className="container mx-auto px-4">
+            <Skeleton className="h-[50vh] rounded-xl mb-8" />
+            <Skeleton className="h-12 w-1/2 mb-4" />
+            <Skeleton className="h-6 w-3/4" />
+          </div>
+        </div>
+        <Footer />
+      </PageTransition>
+    );
+  }
+
+  // 404 state - only if both static and DB data are missing (and not loading)
+  if (!staticDestino && !hasDbData && !loadingDestination && !loadingProvince) {
+    return (
+      <PageTransition>
+        <Header />
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-foreground mb-4">Destino no encontrado</h1>
+            <Link to="/destinos">
+              <Button>Ver todos los destinos</Button>
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </PageTransition>
+    );
+  }
+
+  // Build display data
+  const displayData = staticDestino ? {
+    name: staticDestino.nombre,
+    subtitle: staticDestino.subtitulo,
+    description: staticDestino.descripcion,
+    image: staticDestino.heroImage,
+    region: "República Dominicana",
+    clima: staticDestino.clima,
+    temporada: staticDestino.temporada,
+    galeria: staticDestino.galeria,
+    highlights: [] as string[],
+    population: null as number | null,
+    area: null as number | null,
+    capital: null as string | null,
+  } : {
+    name: dbProvince?.name || dbDestination?.name || "",
+    subtitle: isProvinceView ? (dbProvince?.region || "Provincia") : "Destino Turístico",
+    description: dbProvince?.description || dbDestination?.description || "",
+    image: dbProvince?.image_url || dbDestination?.image_url || "/placeholder.svg",
+    region: dbProvince?.region || dbDestination?.province?.region || "República Dominicana",
+    clima: { temp: 28, condicion: "Tropical" },
+    temporada: { meses: "Todo el año", evento: "Turismo" },
+    galeria: (dbDestination?.gallery || []).map((src: string) => ({ src, alt: dbDestination?.name || "" })),
+    highlights: dbProvince?.highlights || dbDestination?.highlights || [],
+    population: dbProvince?.population || null,
+    area: dbProvince?.area_km2 || null,
+    capital: dbProvince?.capital || null,
+  };
+
+  const municipios = municipalities?.filter(m => m.municipality_type === 'municipio') || [];
+  const distritos = municipalities?.filter(m => m.municipality_type === 'distrito_municipal') || [];
 
   return (
     <PageTransition>
       <SEOHead
-        title={`${destino.nombre} - ${destino.subtitulo}`}
-        description={destino.descripcion}
-        keywords={`${destino.nombre}, República Dominicana, turismo, vacaciones, playas, hoteles`}
-        image={destino.heroImage}
+        title={`${displayData.name} - ${displayData.subtitle}`}
+        description={displayData.description}
+        keywords={`${displayData.name}, República Dominicana, turismo, vacaciones, playas, hoteles`}
+        image={displayData.image}
         jsonLd={generateDestinationSchema({
-          name: destino.nombre,
-          description: destino.descripcion,
-          image: destino.heroImage,
+          name: displayData.name,
+          description: displayData.description,
+          image: displayData.image,
           url: `https://descubrerd.com/destino/${id}`,
         })}
       />
@@ -264,11 +499,11 @@ export default function DestinoDetalle() {
         <Header />
         
         {/* Hero */}
-        <section className="relative h-[60vh] flex items-end overflow-hidden">
+        <section className="relative h-[60vh] min-h-[400px] flex items-end overflow-hidden">
           {!heroLoaded && <Skeleton className="absolute inset-0" />}
           <img
-            src={destino.heroImage}
-            alt={destino.nombre}
+            src={displayData.image}
+            alt={displayData.name}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
               heroLoaded ? "opacity-100" : "opacity-0"
             }`}
@@ -277,28 +512,62 @@ export default function DestinoDetalle() {
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
           
           <div className="relative z-10 container mx-auto px-4 pb-12">
+            <Link to={isProvinceView ? "/provincias" : "/destinos"} className="inline-flex items-center text-white/80 hover:text-white mb-4 transition-colors">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              {isProvinceView ? "Volver a Provincias" : "Volver a Destinos"}
+            </Link>
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
               <div>
                 <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
-                  DESTINO PREMIUM
+                  {isProvinceView ? displayData.region : "DESTINO PREMIUM"}
                 </Badge>
                 <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-4">
-                  {destino.nombre}:<br />
-                  <span className="text-gradient">{destino.subtitulo}</span>
+                  {displayData.name}
+                  {displayData.subtitle && (
+                    <>
+                      <br />
+                      <span className="text-gradient">{displayData.subtitle}</span>
+                    </>
+                  )}
                 </h1>
                 <p className="text-lg text-white/80 max-w-xl mb-6">
-                  {destino.descripcion}
+                  {displayData.description}
                 </p>
+                
+                {/* Province stats */}
+                {isProvinceView && (
+                  <div className="flex flex-wrap gap-4 text-white/90 mb-6">
+                    {displayData.capital && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-4 w-4" />
+                        Capital: {displayData.capital}
+                      </span>
+                    )}
+                    {displayData.population && (
+                      <span className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        {displayData.population.toLocaleString()} habitantes
+                      </span>
+                    )}
+                    {displayData.area && (
+                      <span className="flex items-center gap-1">
+                        <Map className="h-4 w-4" />
+                        {displayData.area.toLocaleString()} km²
+                      </span>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex flex-wrap gap-3">
                   <Button size="lg" className="gap-2">
-                    <Play className="h-4 w-4" /> Ver Video Completo
+                    <Play className="h-4 w-4" /> Ver Video
                   </Button>
                   <FavoriteButton
-                    id={id || "samana"}
-                    type="destino"
-                    name={destino.nombre}
-                    image={destino.heroImage}
-                    location="República Dominicana"
+                    id={id || ""}
+                    type={isProvinceView ? "provincia" : "destino"}
+                    name={displayData.name}
+                    image={displayData.image}
+                    location={displayData.region}
                     variant="button"
                     size="lg"
                     className="bg-white/10 border-white/30 text-white hover:bg-white/20"
@@ -311,120 +580,443 @@ export default function DestinoDetalle() {
                 <div className="bg-card/80 backdrop-blur-md rounded-xl p-4 border border-border">
                   <div className="flex items-center gap-2 text-primary mb-1">
                     <Cloud className="h-4 w-4" />
-                    <span className="text-xs uppercase tracking-wider">Clima Actual</span>
+                    <span className="text-xs uppercase tracking-wider">Clima</span>
                   </div>
-                  <p className="text-3xl font-bold text-foreground">{destino.clima.temp}°C</p>
-                  <p className="text-sm text-muted-foreground">{destino.clima.condicion}</p>
+                  <p className="text-3xl font-bold text-foreground">{displayData.clima.temp}°C</p>
+                  <p className="text-sm text-muted-foreground">{displayData.clima.condicion}</p>
                 </div>
                 <div className="bg-card/80 backdrop-blur-md rounded-xl p-4 border border-border">
                   <div className="flex items-center gap-2 text-primary mb-1">
                     <Calendar className="h-4 w-4" />
                     <span className="text-xs uppercase tracking-wider">Temporada</span>
                   </div>
-                  <p className="text-2xl font-bold text-foreground">{destino.temporada.meses}</p>
-                  <p className="text-sm text-muted-foreground">{destino.temporada.evento}</p>
+                  <p className="text-2xl font-bold text-foreground">{displayData.temporada.meses}</p>
+                  <p className="text-sm text-muted-foreground">{displayData.temporada.evento}</p>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Gallery */}
-        <section className="py-12">
-          <div className="container mx-auto px-4">
-            <DestinationGallery images={destino.galeria} />
-          </div>
-        </section>
-
-        {/* Description */}
-        <section className="py-12 bg-card/30">
-          <div className="container mx-auto px-4">
-            <div className="max-w-4xl">
-              <h2 className="font-display text-2xl font-bold text-foreground mb-6">
-                Sobre {destino.nombre}
-              </h2>
-              <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                {destino.descripcion} Este destino ofrece una combinación única de naturaleza, cultura y aventura 
-                que lo convierte en uno de los lugares más especiales de República Dominicana. Desde playas 
-                vírgenes hasta experiencias gastronómicas auténticas, {destino.nombre} tiene algo para cada viajero.
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <Badge variant="secondary" className="gap-1">
-                  <MapPin className="h-3 w-3" /> Región Este
-                </Badge>
-                <Badge variant="secondary">Mejor época: {destino.temporada.meses}</Badge>
-                <Badge variant="secondary">{destino.temporada.evento}</Badge>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Activities */}
-        <DestinationActivities activities={destino.actividades} destinoId={id || "samana"} />
-
-        {/* Hotels */}
-        <DestinationHotels hotels={destino.hoteles} destinoId={id || "samana"} />
-
-        {/* Restaurants */}
-        <DestinationRestaurants restaurantes={destino.restaurantes} destinoId={id || "samana"} />
-
-        {/* Nightlife */}
-        <DestinationNightlife venues={destino.vidaNocturna} destinoNombre={destino.nombre} />
-
-        {/* How to Get There */}
-        <HowToGetThere 
-          aeropuertoCercano={destino.aeropuerto}
-          opciones={destino.transporte}
-        />
-
-        {/* Suggested Route */}
-        <section className="py-16 bg-card/30">
-          <div className="container mx-auto px-4">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8">
-              Ruta Sugerida: {destino.rutaSugerida.length} Días en {destino.nombre}
-            </h2>
-            
-            <div className="grid lg:grid-cols-2 gap-8">
-              <div className="space-y-0">
-                {destino.rutaSugerida.map((dia, index) => (
-                  <div key={dia.dia} className="relative pl-8 pb-8 last:pb-0">
-                    {index < destino.rutaSugerida.length - 1 && (
-                      <div className="absolute left-[11px] top-8 w-0.5 h-[calc(100%-24px)] bg-border" />
-                    )}
-                    <div className={`absolute left-0 top-0 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                      index === 0 ? "border-primary bg-primary/20" : "border-border bg-background"
-                    }`}>
-                      <div className={`w-2 h-2 rounded-full ${index === 0 ? "bg-primary" : "bg-muted-foreground"}`} />
-                    </div>
-                    <div>
-                      <span className="text-primary text-xs font-semibold uppercase tracking-wider">
-                        DÍA {dia.dia}: {dia.titulo}
-                      </span>
-                      <h3 className="font-display font-bold text-lg text-foreground mt-1 mb-2">{dia.lugar}</h3>
-                      <p className="text-sm text-muted-foreground">{dia.desc}</p>
-                    </div>
-                  </div>
+        {/* Highlights */}
+        {displayData.highlights && displayData.highlights.length > 0 && (
+          <section className="py-8 border-b border-border">
+            <div className="container mx-auto px-4">
+              <div className="flex flex-wrap gap-2">
+                {displayData.highlights.map((highlight: string, i: number) => (
+                  <Badge key={i} variant="secondary">{highlight}</Badge>
                 ))}
               </div>
+            </div>
+          </section>
+        )}
 
-              <div className="rounded-2xl overflow-hidden aspect-[4/3]">
-                <img 
-                  src={destino.galeria[1]?.src || destino.heroImage} 
-                  alt="Ruta sugerida" 
-                  className="w-full h-full object-cover"
-                />
+        {/* Static destination rich content */}
+        {staticDestino && (
+          <>
+            {/* Gallery */}
+            <section className="py-12">
+              <div className="container mx-auto px-4">
+                <DestinationGallery images={staticDestino.galeria} />
               </div>
-            </div>
+            </section>
 
-            <div className="mt-8 text-center">
-              <Link to="/herramientas">
-                <Button size="lg" className="gap-2">
-                  Crear mi Itinerario Personalizado <ChevronRight className="h-4 w-4" />
-                </Button>
-              </Link>
+            {/* Description */}
+            <section className="py-12 bg-card/30">
+              <div className="container mx-auto px-4">
+                <div className="max-w-4xl">
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-6">
+                    Sobre {staticDestino.nombre}
+                  </h2>
+                  <p className="text-lg text-muted-foreground leading-relaxed mb-6">
+                    {staticDestino.descripcion} Este destino ofrece una combinación única de naturaleza, cultura y aventura 
+                    que lo convierte en uno de los lugares más especiales de República Dominicana.
+                  </p>
+                  <div className="flex flex-wrap gap-3">
+                    <Badge variant="secondary" className="gap-1">
+                      <MapPin className="h-3 w-3" /> {displayData.region}
+                    </Badge>
+                    <Badge variant="secondary">Mejor época: {staticDestino.temporada.meses}</Badge>
+                    <Badge variant="secondary">{staticDestino.temporada.evento}</Badge>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Activities */}
+            <DestinationActivities activities={staticDestino.actividades} destinoId={id || ""} />
+
+            {/* Hotels */}
+            <DestinationHotels hotels={staticDestino.hoteles} destinoId={id || ""} />
+
+            {/* Restaurants */}
+            <DestinationRestaurants restaurantes={staticDestino.restaurantes} destinoId={id || ""} />
+
+            {/* Nightlife */}
+            <DestinationNightlife venues={staticDestino.vidaNocturna} destinoNombre={staticDestino.nombre} />
+
+            {/* How to Get There */}
+            <HowToGetThere 
+              aeropuertoCercano={staticDestino.aeropuerto}
+              opciones={staticDestino.transporte}
+            />
+
+            {/* Suggested Route */}
+            <section className="py-16 bg-card/30">
+              <div className="container mx-auto px-4">
+                <h2 className="font-display text-2xl font-bold text-foreground mb-8">
+                  Ruta Sugerida: {staticDestino.rutaSugerida.length} Días en {staticDestino.nombre}
+                </h2>
+                
+                <div className="grid lg:grid-cols-2 gap-8">
+                  <div className="space-y-0">
+                    {staticDestino.rutaSugerida.map((dia, index) => (
+                      <div key={dia.dia} className="relative pl-8 pb-8 last:pb-0">
+                        {index < staticDestino.rutaSugerida.length - 1 && (
+                          <div className="absolute left-[11px] top-8 w-0.5 h-[calc(100%-24px)] bg-border" />
+                        )}
+                        <div className={`absolute left-0 top-0 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                          index === 0 ? "border-primary bg-primary/20" : "border-border bg-background"
+                        }`}>
+                          <div className={`w-2 h-2 rounded-full ${index === 0 ? "bg-primary" : "bg-muted-foreground"}`} />
+                        </div>
+                        <div>
+                          <span className="text-primary text-xs font-semibold uppercase tracking-wider">
+                            DÍA {dia.dia}: {dia.titulo}
+                          </span>
+                          <h3 className="font-display font-bold text-lg text-foreground mt-1 mb-2">{dia.lugar}</h3>
+                          <p className="text-sm text-muted-foreground">{dia.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="rounded-2xl overflow-hidden aspect-[4/3]">
+                    <img 
+                      src={staticDestino.galeria[1]?.src || staticDestino.heroImage} 
+                      alt="Ruta sugerida" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-8 text-center">
+                  <Link to="/mi-viaje">
+                    <Button size="lg" className="gap-2">
+                      Crear mi Itinerario Personalizado <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </section>
+          </>
+        )}
+
+        {/* Dynamic database content with tabs */}
+        {hasDbData && !staticDestino && (
+          <section className="py-12">
+            <div className="container mx-auto px-4">
+              <Tabs defaultValue={isProvinceView ? "destinos" : "hoteles"} className="space-y-8">
+                <TabsList className="flex flex-wrap gap-2 bg-transparent h-auto p-0">
+                  {isProvinceView && (
+                    <TabsTrigger value="destinos" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Destinos ({destinations?.length || 0})
+                    </TabsTrigger>
+                  )}
+                  {isProvinceView && (
+                    <TabsTrigger value="municipios" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                      <Building2 className="h-4 w-4 mr-2" />
+                      Municipios ({municipios.length})
+                    </TabsTrigger>
+                  )}
+                  <TabsTrigger value="hoteles" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                    <Bed className="h-4 w-4 mr-2" />
+                    Hoteles ({hotels?.length || 0})
+                  </TabsTrigger>
+                  <TabsTrigger value="restaurantes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                    <Utensils className="h-4 w-4 mr-2" />
+                    Restaurantes ({restaurants?.length || 0})
+                  </TabsTrigger>
+                  <TabsTrigger value="bares" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                    <GlassWater className="h-4 w-4 mr-2" />
+                    Bares ({bars?.length || 0})
+                  </TabsTrigger>
+                  <TabsTrigger value="actividades" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Actividades ({experiences?.length || 0})
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* Destinos Tab */}
+                {isProvinceView && (
+                  <TabsContent value="destinos">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {destinations?.map((destination) => (
+                        <Link
+                          key={destination.id}
+                          to={`/destino/${destination.slug || destination.id}`}
+                          className="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg transition-all"
+                        >
+                          <div className="aspect-video relative overflow-hidden">
+                            <img
+                              src={destination.image_url || "/placeholder.svg"}
+                              alt={destination.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              loading="lazy"
+                            />
+                          </div>
+                          <div className="p-4">
+                            <h3 className="font-display text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+                              {destination.name}
+                            </h3>
+                            {destination.short_description && (
+                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                {destination.short_description}
+                              </p>
+                            )}
+                          </div>
+                        </Link>
+                      ))}
+                      {(!destinations || destinations.length === 0) && (
+                        <p className="text-muted-foreground col-span-full text-center py-12">
+                          No hay destinos registrados.
+                        </p>
+                      )}
+                    </div>
+                  </TabsContent>
+                )}
+
+                {/* Municipios Tab */}
+                {isProvinceView && (
+                  <TabsContent value="municipios">
+                    <div className="space-y-8">
+                      {municipios.length > 0 && (
+                        <div>
+                          <h3 className="font-display text-xl font-bold text-foreground mb-4">
+                            Municipios ({municipios.length})
+                          </h3>
+                          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {municipios.map((municipio) => (
+                              <div
+                                key={municipio.id}
+                                className="bg-card rounded-lg border border-border p-4 hover:shadow-md transition-shadow"
+                              >
+                                <h4 className="font-semibold text-foreground">{municipio.name}</h4>
+                                {municipio.population && (
+                                  <p className="text-sm text-muted-foreground mt-1">
+                                    <Users className="h-3 w-3 inline mr-1" />
+                                    {municipio.population.toLocaleString()} hab.
+                                  </p>
+                                )}
+                                {municipio.is_tourist_destination && (
+                                  <Badge variant="secondary" className="mt-2 text-xs">
+                                    Destino Turístico
+                                  </Badge>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {distritos.length > 0 && (
+                        <div>
+                          <h3 className="font-display text-xl font-bold text-foreground mb-4">
+                            Distritos Municipales ({distritos.length})
+                          </h3>
+                          <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-3">
+                            {distritos.map((distrito) => (
+                              <div key={distrito.id} className="bg-muted/50 rounded-lg p-3">
+                                <p className="text-sm font-medium text-foreground">{distrito.name}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {municipios.length === 0 && distritos.length === 0 && (
+                        <p className="text-muted-foreground text-center py-12">
+                          No hay municipios registrados.
+                        </p>
+                      )}
+                    </div>
+                  </TabsContent>
+                )}
+
+                {/* Hoteles Tab */}
+                <TabsContent value="hoteles">
+                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {hotels?.map((hotel) => (
+                      <Link
+                        key={hotel.id}
+                        to={`/alojamiento/${hotel.slug || hotel.id}`}
+                        className="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg transition-all"
+                      >
+                        <div className="aspect-[4/3] relative overflow-hidden">
+                          <img
+                            src={hotel.image_url || "/placeholder.svg"}
+                            alt={hotel.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            loading="lazy"
+                          />
+                          {hotel.stars && (
+                            <Badge className="absolute top-3 right-3 bg-card/90 text-foreground">
+                              {"★".repeat(hotel.stars)}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                            {hotel.name}
+                          </h3>
+                          {hotel.price_range && (
+                            <p className="text-sm text-primary font-medium mt-1">{hotel.price_range}</p>
+                          )}
+                        </div>
+                      </Link>
+                    ))}
+                    {(!hotels || hotels.length === 0) && (
+                      <p className="text-muted-foreground col-span-full text-center py-12">
+                        No hay hoteles registrados.
+                      </p>
+                    )}
+                  </div>
+                </TabsContent>
+
+                {/* Restaurantes Tab */}
+                <TabsContent value="restaurantes">
+                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {restaurants?.map((restaurant) => (
+                      <Link
+                        key={restaurant.id}
+                        to={`/restaurante/${restaurant.slug || restaurant.id}`}
+                        className="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg transition-all"
+                      >
+                        <div className="aspect-[4/3] relative overflow-hidden">
+                          <img
+                            src={restaurant.image_url || "/placeholder.svg"}
+                            alt={restaurant.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            loading="lazy"
+                          />
+                          {restaurant.cuisine_type && (
+                            <Badge className="absolute top-3 left-3 bg-primary/90">
+                              {restaurant.cuisine_type}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                            {restaurant.name}
+                          </h3>
+                          {restaurant.price_range && (
+                            <p className="text-sm text-muted-foreground mt-1">{restaurant.price_range}</p>
+                          )}
+                        </div>
+                      </Link>
+                    ))}
+                    {(!restaurants || restaurants.length === 0) && (
+                      <p className="text-muted-foreground col-span-full text-center py-12">
+                        No hay restaurantes registrados.
+                      </p>
+                    )}
+                  </div>
+                </TabsContent>
+
+                {/* Bares Tab */}
+                <TabsContent value="bares">
+                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {bars?.map((bar) => (
+                      <Link
+                        key={bar.id}
+                        to={`/bar/${bar.slug || bar.id}`}
+                        className="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg transition-all"
+                      >
+                        <div className="aspect-[4/3] relative overflow-hidden">
+                          <img
+                            src={bar.image_url || "/placeholder.svg"}
+                            alt={bar.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            loading="lazy"
+                          />
+                          {bar.bar_type && (
+                            <Badge className="absolute top-3 left-3 bg-primary/90">
+                              {bar.bar_type}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                            {bar.name}
+                          </h3>
+                          {bar.music_style && (
+                            <p className="text-sm text-muted-foreground mt-1">{bar.music_style}</p>
+                          )}
+                        </div>
+                      </Link>
+                    ))}
+                    {(!bars || bars.length === 0) && (
+                      <p className="text-muted-foreground col-span-full text-center py-12">
+                        No hay bares registrados.
+                      </p>
+                    )}
+                  </div>
+                </TabsContent>
+
+                {/* Actividades Tab */}
+                <TabsContent value="actividades">
+                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {experiences?.map((exp) => (
+                      <Link
+                        key={exp.id}
+                        to={`/experiencia/${exp.slug || exp.id}`}
+                        className="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg transition-all"
+                      >
+                        <div className="aspect-[4/3] relative overflow-hidden">
+                          <img
+                            src={exp.image_url || "/placeholder.svg"}
+                            alt={exp.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            loading="lazy"
+                          />
+                          {exp.category && (
+                            <Badge className="absolute top-3 left-3 bg-primary/90">
+                              {exp.category}
+                            </Badge>
+                          )}
+                          {exp.difficulty && (
+                            <Badge className="absolute top-3 right-3 bg-card/90 text-foreground">
+                              {exp.difficulty}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="p-4">
+                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                            {exp.name}
+                          </h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            {exp.duration && (
+                              <span className="text-xs text-muted-foreground">{exp.duration}</span>
+                            )}
+                            {exp.price_range && (
+                              <span className="text-xs text-primary font-medium">{exp.price_range}</span>
+                            )}
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                    {(!experiences || experiences.length === 0) && (
+                      <p className="text-muted-foreground col-span-full text-center py-12">
+                        No hay actividades registradas.
+                      </p>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         <Footer />
       </div>
