@@ -134,7 +134,7 @@ export default function Provincias() {
                       transition={{ delay: index * 0.05 }}
                     >
                       <Link
-                        to={`/provincia/${province.slug || province.id}`}
+                        to={`/destino/${province.slug || province.id}`}
                         className="group block bg-card rounded-xl border border-border overflow-hidden hover:shadow-xl transition-all duration-300"
                       >
                         <div className="aspect-[4/3] relative overflow-hidden">
