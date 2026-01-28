@@ -129,6 +129,8 @@ const TalleresArtesanales = lazy(() => import("./pages/TalleresArtesanales"));
 const AirbnbDetalle = lazy(() => import("./pages/AirbnbDetalle"));
 const RutasSabor = lazy(() => import("./pages/RutasSabor"));
 const Provincias = lazy(() => import("./pages/Provincias"));
+const DestinosRegion = lazy(() => import("./pages/DestinosRegion"));
+const DestinosCategoria = lazy(() => import("./pages/DestinosCategoria"));
 
 const queryClient = new QueryClient();
 
@@ -271,6 +273,8 @@ function AnimatedRoutes() {
         <Route path="/airbnb/:id" element={<AirbnbDetalle />} />
         <Route path="/provincias" element={<Provincias />} />
         <Route path="/provincia/:id" element={<DestinoDetalle />} />
+        <Route path="/destinos/region/:region" element={<DestinosRegion />} />
+        <Route path="/destinos/categoria/:categoria" element={<DestinosCategoria />} />
         <Route path="/admin" element={<AdminPanel />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

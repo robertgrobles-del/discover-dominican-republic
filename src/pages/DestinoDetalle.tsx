@@ -19,6 +19,7 @@ import { DestinationHotels } from "@/components/destination/DestinationHotels";
 import { DestinationRestaurants } from "@/components/destination/DestinationRestaurants";
 import { DestinationNightlife } from "@/components/destination/DestinationNightlife";
 import { HowToGetThere } from "@/components/destination/HowToGetThere";
+import { SubDestinationsSection } from "@/components/destinations/SubDestinationsSection";
 
 // Static fallback data for rich destinations
 import samana from "@/assets/samana.jpg";
@@ -1016,6 +1017,15 @@ export default function DestinoDetalle() {
               </Tabs>
             </div>
           </section>
+        )}
+
+        {/* Sub-destinations for provinces */}
+        {isProvinceView && destinations && destinations.length > 0 && (
+          <SubDestinationsSection
+            parentName={displayData.name}
+            destinations={destinations}
+            municipalities={municipalities || []}
+          />
         )}
 
         <Footer />
