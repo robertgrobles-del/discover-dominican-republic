@@ -1,20 +1,11 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Building2, Users, MapPin } from "lucide-react";
+import { Building2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-interface Province {
-  id: string;
-  name: string;
-  slug: string | null;
-  image_url: string | null;
-  region: string | null;
-  capital: string | null;
-  population: number | null;
-}
+import { Destination } from "@/data/destinations";
 
 interface ProvincesGridProps {
-  provinces: Province[];
+  provinces: Destination[];
 }
 
 export function ProvincesGrid({ provinces }: ProvincesGridProps) {
@@ -51,19 +42,19 @@ export function ProvincesGrid({ provinces }: ProvincesGridProps) {
               transition={{ delay: index * 0.05 }}
             >
               <Link
-                to={`/destino/${province.slug || province.id}`}
+                to={`/destinos/${province.slug}`}
                 className="group block bg-card rounded-xl border border-border overflow-hidden hover:border-primary/50 hover:shadow-lg transition-all cursor-pointer"
               >
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img
-                    src={province.image_url || "/placeholder.svg"}
+                    src={province.imageUrl || "/placeholder.svg"}
                     alt={province.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     loading="lazy"
                   />
                   {province.region && (
                     <div className="absolute top-2 right-2">
-                      <span className="text-[10px] font-medium bg-black/50 backdrop-blur-sm text-white px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-medium bg-black/50 backdrop-blur-sm text-white px-2 py-0.5 rounded-full capitalize">
                         {province.region}
                       </span>
                     </div>
@@ -73,18 +64,10 @@ export function ProvincesGrid({ provinces }: ProvincesGridProps) {
                   <h3 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">
                     {province.name}
                   </h3>
-                  {province.capital && (
-                    <div className="flex items-center gap-1 text-muted-foreground text-xs mt-1">
-                      <MapPin className="h-3 w-3" />
-                      <span className="truncate">{province.capital}</span>
-                    </div>
-                  )}
-                  {province.population && (
-                    <div className="flex items-center gap-1 text-muted-foreground text-xs mt-0.5">
-                      <Users className="h-3 w-3" />
-                      <span>{(province.population / 1000).toFixed(0)}k hab.</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1 text-muted-foreground text-xs mt-1">
+                    <MapPin className="h-3 w-3" />
+                    <span className="truncate">{province.region}</span>
+                  </div>
                 </div>
               </Link>
             </motion.div>

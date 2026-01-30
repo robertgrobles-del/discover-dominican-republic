@@ -2,8 +2,7 @@ import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { SEOHead } from "@/components/SEOHead";
 
 import { PopularDestinations } from "@/components/destinations/PopularDestinations";
 import { RegionsSection } from "@/components/destinations/RegionsSection";
@@ -12,57 +11,29 @@ import { ProvincesGrid } from "@/components/destinations/ProvincesGrid";
 import { MunicipalitiesSection } from "@/components/destinations/MunicipalitiesSection";
 import { DestinationsByCategory } from "@/components/destinations/DestinationsByCategory";
 
+import { 
+  getPopularDestinations, 
+  getRecommendedDestinations, 
+  getProvinces, 
+  getMunicipalities 
+} from "@/data/destinations";
+
 import heroBeach from "@/assets/hero-beach.jpg";
 
 export default function Destinos() {
-  // Fetch destinations
-  const { data: destinations } = useQuery({
-    queryKey: ["all-destinations"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("destinations")
-        .select("*")
-        .order("name")
-        .limit(20);
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Fetch provinces
-  const { data: provinces } = useQuery({
-    queryKey: ["all-provinces"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("provinces")
-        .select("*")
-        .order("name");
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Fetch municipalities
-  const { data: municipalities } = useQuery({
-    queryKey: ["all-municipalities"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("municipalities")
-        .select("*")
-        .eq("is_active", true)
-        .order("name")
-        .limit(20);
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  // Split destinations for different sections
-  const popularDestinations = destinations?.slice(0, 6) || [];
-  const recommendedDestinations = destinations?.slice(6, 12) || [];
+  // Obtener datos estáticos
+  const popularDestinations = getPopularDestinations();
+  const recommendedDestinations = getRecommendedDestinations();
+  const provinces = getProvinces();
+  const municipalities = getMunicipalities();
 
   return (
     <PageTransition>
+      <SEOHead
+        title="Destinos Turísticos de República Dominicana"
+        description="Explora todos los destinos turísticos de República Dominicana: playas paradisíacas, montañas, ciudades coloniales y mucho más."
+        keywords="destinos República Dominicana, turismo RD, playas Caribe, Punta Cana, Santo Domingo, Samaná"
+      />
       <div className="min-h-screen bg-background">
         <Header />
 
@@ -120,10 +91,10 @@ export default function Destinos() {
         <RecommendedDestinations destinations={recommendedDestinations} />
 
         {/* Provinces Grid */}
-        <ProvincesGrid provinces={provinces || []} />
+        <ProvincesGrid provinces={provinces} />
 
         {/* Municipalities */}
-        <MunicipalitiesSection municipalities={municipalities || []} />
+        <MunicipalitiesSection municipalities={municipalities} />
 
         {/* Destinations by Category */}
         <DestinationsByCategory />

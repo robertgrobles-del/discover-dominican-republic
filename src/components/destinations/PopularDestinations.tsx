@@ -2,15 +2,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MapPin, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-interface Destination {
-  id: string;
-  name: string;
-  slug: string | null;
-  image_url: string | null;
-  short_description: string | null;
-  highlights?: string[] | null;
-}
+import { Destination } from "@/data/destinations";
 
 interface PopularDestinationsProps {
   destinations: Destination[];
@@ -50,11 +42,11 @@ export function PopularDestinations({ destinations }: PopularDestinationsProps) 
               transition={{ delay: index * 0.1 }}
             >
               <Link
-                to={`/destino/${dest.slug || dest.id}`}
+                to={`/destinos/${dest.slug}`}
                 className="group block relative rounded-2xl overflow-hidden aspect-[4/3] cursor-pointer"
               >
                 <img
-                  src={dest.image_url || "/placeholder.svg"}
+                  src={dest.imageUrl || "/placeholder.svg"}
                   alt={dest.name}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   loading="lazy"
@@ -69,14 +61,14 @@ export function PopularDestinations({ destinations }: PopularDestinationsProps) 
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <div className="flex items-center gap-2 text-white/80 text-sm mb-2">
                     <MapPin className="h-4 w-4" />
-                    <span>República Dominicana</span>
+                    <span>{dest.province || dest.region}</span>
                   </div>
                   <h3 className="font-display text-2xl font-bold text-white group-hover:text-primary transition-colors">
                     {dest.name}
                   </h3>
-                  {dest.short_description && (
+                  {dest.shortDescription && (
                     <p className="text-white/70 text-sm mt-2 line-clamp-2">
-                      {dest.short_description}
+                      {dest.shortDescription}
                     </p>
                   )}
                   {dest.highlights && dest.highlights.length > 0 && (
