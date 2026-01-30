@@ -149,6 +149,15 @@ const Bayahibe = lazy(() => import("./pages/destinos/Bayahibe"));
 const LaAltagracia = lazy(() => import("./pages/destinos/LaAltagracia"));
 const PedernalesDestino = lazy(() => import("./pages/destinos/Pedernales"));
 const BahiaDeLasAguilas = lazy(() => import("./pages/destinos/BahiaDeLasAguilas"));
+const Constanza = lazy(() => import("./pages/destinos/Constanza"));
+const LasGaleras = lazy(() => import("./pages/destinos/LasGaleras"));
+const BocaChica = lazy(() => import("./pages/destinos/BocaChica"));
+const JuanDolio = lazy(() => import("./pages/destinos/JuanDolio"));
+const PlayaRincon = lazy(() => import("./pages/destinos/PlayaRincon"));
+const Higuey = lazy(() => import("./pages/destinos/Higuey"));
+const Santiago = lazy(() => import("./pages/destinos/Santiago"));
+const LaVega = lazy(() => import("./pages/destinos/LaVega"));
+const Barahona = lazy(() => import("./pages/destinos/Barahona"));
 
 const queryClient = new QueryClient();
 
@@ -294,22 +303,31 @@ function AnimatedRoutes() {
         <Route path="/destinos/region/:region" element={<DestinosRegion />} />
         <Route path="/destinos/categoria/:categoria" element={<DestinosCategoria />} />
         {/* Static destination pages */}
-        <Route path="/destino/punta-cana" element={<PuntaCana />} />
-        <Route path="/destino/bavaro" element={<Bavaro />} />
-        <Route path="/destino/cap-cana" element={<CapCana />} />
-        <Route path="/destino/samana" element={<Samana />} />
-        <Route path="/destino/las-terrenas" element={<LasTerrenas />} />
-        <Route path="/destino/puerto-plata" element={<PuertoPlataDestino />} />
-        <Route path="/destino/cabarete" element={<Cabarete />} />
-        <Route path="/destino/sosua" element={<Sosua />} />
-        <Route path="/destino/santo-domingo" element={<SantoDomingoDestino />} />
-        <Route path="/destino/zona-colonial" element={<ZonaColonial />} />
-        <Route path="/destino/jarabacoa" element={<Jarabacoa />} />
-        <Route path="/destino/la-romana" element={<LaRomana />} />
-        <Route path="/destino/bayahibe" element={<Bayahibe />} />
-        <Route path="/destino/la-altagracia" element={<LaAltagracia />} />
-        <Route path="/destino/pedernales" element={<PedernalesDestino />} />
-        <Route path="/destino/bahia-de-las-aguilas" element={<BahiaDeLasAguilas />} />
+        <Route path="/destinos/punta-cana" element={<PuntaCana />} />
+        <Route path="/destinos/bavaro" element={<Bavaro />} />
+        <Route path="/destinos/cap-cana" element={<CapCana />} />
+        <Route path="/destinos/samana" element={<Samana />} />
+        <Route path="/destinos/las-terrenas" element={<LasTerrenas />} />
+        <Route path="/destinos/puerto-plata" element={<PuertoPlataDestino />} />
+        <Route path="/destinos/cabarete" element={<Cabarete />} />
+        <Route path="/destinos/sosua" element={<Sosua />} />
+        <Route path="/destinos/santo-domingo" element={<SantoDomingoDestino />} />
+        <Route path="/destinos/zona-colonial" element={<ZonaColonial />} />
+        <Route path="/destinos/jarabacoa" element={<Jarabacoa />} />
+        <Route path="/destinos/la-romana" element={<LaRomana />} />
+        <Route path="/destinos/bayahibe" element={<Bayahibe />} />
+        <Route path="/destinos/la-altagracia" element={<LaAltagracia />} />
+        <Route path="/destinos/pedernales" element={<PedernalesDestino />} />
+        <Route path="/destinos/bahia-de-las-aguilas" element={<BahiaDeLasAguilas />} />
+        <Route path="/destinos/constanza" element={<Constanza />} />
+        <Route path="/destinos/las-galeras" element={<LasGaleras />} />
+        <Route path="/destinos/boca-chica" element={<BocaChica />} />
+        <Route path="/destinos/juan-dolio" element={<JuanDolio />} />
+        <Route path="/destinos/playa-rincon" element={<PlayaRincon />} />
+        <Route path="/destinos/higuey" element={<Higuey />} />
+        <Route path="/destinos/santiago" element={<Santiago />} />
+        <Route path="/destinos/la-vega" element={<LaVega />} />
+        <Route path="/destinos/barahona" element={<Barahona />} />
         <Route path="/admin" element={<AdminPanel />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

@@ -39,7 +39,7 @@ const regions: Region[] = [
   },
   {
     name: "Santo Domingo",
-    slug: "distrito-nacional",
+    slug: "santo-domingo",
     description: "La capital histórica y cultural del Caribe",
     image: "https://images.unsplash.com/photo-1533106497176-45ae19e68ba2?w=800&q=80",
     provinceCount: 2,

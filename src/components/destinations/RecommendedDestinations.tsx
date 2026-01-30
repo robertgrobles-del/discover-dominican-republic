@@ -3,16 +3,7 @@ import { motion } from "framer-motion";
 import { Sparkles, Star, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-
-interface Destination {
-  id: string;
-  name: string;
-  slug: string | null;
-  image_url: string | null;
-  short_description: string | null;
-  highlights?: string[] | null;
-  best_time_to_visit?: string | null;
-}
+import { Destination } from "@/data/destinations";
 
 interface RecommendedDestinationsProps {
   destinations: Destination[];
@@ -52,11 +43,11 @@ export function RecommendedDestinations({ destinations }: RecommendedDestination
               transition={{ delay: index * 0.1 }}
               className="flex-shrink-0 w-[300px]"
             >
-              <Link to={`/destino/${dest.slug || dest.id}`} className="block">
+              <Link to={`/destinos/${dest.slug}`} className="block">
                 <Card className="overflow-hidden border-border hover:border-primary/50 transition-all hover:shadow-xl cursor-pointer group h-full">
                   <div className="relative aspect-[3/4]">
                     <img
-                      src={dest.image_url || "/placeholder.svg"}
+                      src={dest.imageUrl || "/placeholder.svg"}
                       alt={dest.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"
@@ -75,15 +66,15 @@ export function RecommendedDestinations({ destinations }: RecommendedDestination
                       <h3 className="font-display text-xl font-bold text-white group-hover:text-primary transition-colors">
                         {dest.name}
                       </h3>
-                      {dest.short_description && (
+                      {dest.shortDescription && (
                         <p className="text-white/70 text-sm mt-2 line-clamp-2">
-                          {dest.short_description}
+                          {dest.shortDescription}
                         </p>
                       )}
-                      {dest.best_time_to_visit && (
+                      {dest.bestTimeToVisit && (
                         <div className="flex items-center gap-1 text-white/60 text-xs mt-3">
                           <Clock className="h-3 w-3" />
-                          <span>Mejor época: {dest.best_time_to_visit}</span>
+                          <span>Mejor época: {dest.bestTimeToVisit}</span>
                         </div>
                       )}
                     </CardContent>
