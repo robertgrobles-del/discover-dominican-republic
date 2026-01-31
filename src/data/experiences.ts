@@ -1,12 +1,39 @@
 // Datos estáticos de experiencias turísticas de República Dominicana
+//
+// === GUÍA PARA CREAR NUEVAS PÁGINAS DE EXPERIENCIA ===
+//
+// 1. AGREGAR DATOS: Añadir el objeto de la experiencia a este archivo (experiences array)
+// 2. CREAR PÁGINA: Crear archivo en src/pages/experiencias/NombreExperiencia.tsx
+// 3. AGREGAR RUTA: Registrar la ruta en src/App.tsx como /experiencia/slug
+//
+// Ejemplo de página de experiencia:
+// ```tsx
+// import { StaticExperiencePage } from "@/components/StaticExperiencePage";
+// import { getExperienceBySlug } from "@/data/experiences";
+//
+// export default function ExperienciaEjemplo() {
+//   const experience = getExperienceBySlug('experiencia-ejemplo');
+//   if (!experience) return <div>Experiencia no encontrada</div>;
+//   return <StaticExperiencePage experience={experience} />;
+// }
+// ```
+//
+// === JERARQUÍA ===
+// La experiencia puede pertenecer a un destino, municipio y/o provincia
+// - destinationId: ID del destino donde está (ej: 'jarabacoa')
+// - provinceId: ID de la provincia (ej: 'la-vega')
+// - municipalityId: ID del municipio si aplica (opcional)
 
 export interface Experience {
   id: string;
   slug: string;
   name: string;
-  destinationId: string;
-  destinationName: string;
-  province: string;
+  // Jerarquía geográfica
+  destinationId: string;       // ID del destino
+  destinationName: string;     // Nombre para mostrar
+  province: string;            // Nombre de la provincia para mostrar
+  provinceId?: string;         // ID de la provincia padre
+  municipalityId?: string;     // ID del municipio padre (si aplica)
   category: 'aventura' | 'cultura' | 'naturaleza' | 'gastronomia' | 'wellness' | 'romance' | 'familia' | 'lujo' | 'deportes';
   experienceType: string;
   difficulty?: 'facil' | 'moderado' | 'dificil';

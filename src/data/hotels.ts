@@ -1,12 +1,39 @@
 // Datos estáticos de hoteles de República Dominicana
+//
+// === GUÍA PARA CREAR NUEVAS PÁGINAS DE HOTEL ===
+//
+// 1. AGREGAR DATOS: Añadir el objeto del hotel a este archivo (hotels array)
+// 2. CREAR PÁGINA: Crear archivo en src/pages/alojamientos/NombreHotel.tsx
+// 3. AGREGAR RUTA: Registrar la ruta en src/App.tsx como /alojamiento/slug
+//
+// Ejemplo de página de hotel:
+// ```tsx
+// import { StaticHotelPage } from "@/components/StaticHotelPage";
+// import { getHotelBySlug } from "@/data/hotels";
+//
+// export default function HotelEjemplo() {
+//   const hotel = getHotelBySlug('hotel-ejemplo');
+//   if (!hotel) return <div>Hotel no encontrado</div>;
+//   return <StaticHotelPage hotel={hotel} />;
+// }
+// ```
+//
+// === JERARQUÍA ===
+// El hotel puede pertenecer a un destino, municipio y/o provincia
+// - destinationId: ID del destino donde está (ej: 'punta-cana')
+// - provinceId: ID de la provincia (ej: 'la-altagracia')
+// - municipalityId: ID del municipio si aplica (opcional)
 
 export interface Hotel {
   id: string;
   slug: string;
   name: string;
-  destinationId: string;
-  destinationName: string;
-  province: string;
+  // Jerarquía geográfica
+  destinationId: string;       // ID del destino
+  destinationName: string;     // Nombre para mostrar
+  province: string;            // Nombre de la provincia para mostrar
+  provinceId?: string;         // ID de la provincia padre
+  municipalityId?: string;     // ID del municipio padre (si aplica)
   category: 'resort' | 'boutique' | 'all-inclusive' | 'business' | 'eco-lodge';
   stars: number;
   shortDescription: string;
