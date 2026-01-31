@@ -1,12 +1,39 @@
 // Datos estáticos de restaurantes de República Dominicana
+//
+// === GUÍA PARA CREAR NUEVAS PÁGINAS DE RESTAURANTE ===
+//
+// 1. AGREGAR DATOS: Añadir el objeto del restaurante a este archivo (restaurants array)
+// 2. CREAR PÁGINA: Crear archivo en src/pages/restaurantes/NombreRestaurante.tsx
+// 3. AGREGAR RUTA: Registrar la ruta en src/App.tsx como /restaurante/slug
+//
+// Ejemplo de página de restaurante:
+// ```tsx
+// import { StaticRestaurantPage } from "@/components/StaticRestaurantPage";
+// import { getRestaurantBySlug } from "@/data/restaurants";
+//
+// export default function RestauranteEjemplo() {
+//   const restaurant = getRestaurantBySlug('restaurante-ejemplo');
+//   if (!restaurant) return <div>Restaurante no encontrado</div>;
+//   return <StaticRestaurantPage restaurant={restaurant} />;
+// }
+// ```
+//
+// === JERARQUÍA ===
+// El restaurante puede pertenecer a un destino, municipio y/o provincia
+// - destinationId: ID del destino donde está (ej: 'zona-colonial')
+// - provinceId: ID de la provincia (ej: 'santo-domingo')
+// - municipalityId: ID del municipio si aplica (opcional)
 
 export interface Restaurant {
   id: string;
   slug: string;
   name: string;
-  destinationId: string;
-  destinationName: string;
-  province: string;
+  // Jerarquía geográfica
+  destinationId: string;       // ID del destino
+  destinationName: string;     // Nombre para mostrar
+  province: string;            // Nombre de la provincia para mostrar
+  provinceId?: string;         // ID de la provincia padre
+  municipalityId?: string;     // ID del municipio padre (si aplica)
   cuisineType: string[];
   category: 'fine-dining' | 'casual' | 'local' | 'seafood' | 'international' | 'fusion';
   shortDescription: string;

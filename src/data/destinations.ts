@@ -1,11 +1,40 @@
 // Datos estáticos de destinos turísticos de República Dominicana
+// 
+// === GUÍA PARA CREAR NUEVAS PÁGINAS DE DESTINO ===
+// 
+// 1. AGREGAR DATOS: Añadir el objeto del destino a este archivo (destinations array)
+// 2. CREAR PÁGINA: Crear archivo en src/pages/destinos/NombreDestino.tsx
+// 3. AGREGAR RUTA: Registrar la ruta en src/App.tsx
+//
+// Ejemplo de página de destino:
+// ```tsx
+// import { StaticDestinationPage } from "@/components/StaticDestinationPage";
+// import { getDestinationBySlug } from "@/data/destinations";
+//
+// export default function NombreDestino() {
+//   const destination = getDestinationBySlug('nombre-destino');
+//   if (!destination) return <div>Destino no encontrado</div>;
+//   return <StaticDestinationPage destination={destination} />;
+// }
+// ```
+//
+// === JERARQUÍA ===
+// Provincia → Municipio → Destino
+// - provinceId: ID de la provincia padre (obligatorio para municipios y destinos)
+// - municipalityId: ID del municipio padre (opcional, solo si está dentro de un municipio)
+// 
+// Ejemplo: Playa Boca Chica está en municipio Boca Chica que está en provincia Santo Domingo
+// { id: 'playa-boca-chica', provinceId: 'santo-domingo', municipalityId: 'boca-chica-muni', ... }
 
 export interface Destination {
   id: string;
   slug: string;
   name: string;
-  province?: string;
-  provinceSlug?: string;
+  // Campos de jerarquía
+  province?: string;           // Nombre de la provincia (para mostrar)
+  provinceSlug?: string;       // Slug de la provincia (para URLs)
+  provinceId?: string;         // ID de la provincia padre
+  municipalityId?: string;     // ID del municipio padre (si aplica)
   region: 'norte' | 'sur' | 'este' | 'santo-domingo';
   type: 'provincia' | 'destino' | 'municipio';
   categories: ('playa' | 'montaña' | 'ecoturismo' | 'cultura' | 'aventura' | 'rios' | 'ciudad' | 'lujo')[];
@@ -605,8 +634,37 @@ export function getDestinationById(id: string): Destination | undefined {
   return destinations.find(d => d.id === id);
 }
 
-export function getDestinationsByProvince(provinceSlug: string): Destination[] {
-  return destinations.filter(d => d.provinceSlug === provinceSlug && d.type !== 'provincia');
+// Obtener destinos por provincia (slug o id)
+export function getDestinationsByProvince(provinceSlugOrId: string): Destination[] {
+  return destinations.filter(d => 
+    (d.provinceSlug === provinceSlugOrId || d.provinceId === provinceSlugOrId) && 
+    d.type !== 'provincia'
+  );
+}
+
+// Obtener municipios de una provincia
+export function getMunicipalitiesByProvince(provinceId: string): Destination[] {
+  return destinations.filter(d => d.provinceId === provinceId && d.type === 'municipio');
+}
+
+// Obtener destinos de un municipio
+export function getDestinationsByMunicipality(municipalityId: string): Destination[] {
+  return destinations.filter(d => d.municipalityId === municipalityId);
+}
+
+// Obtener la cadena jerárquica completa de un destino
+export function getDestinationHierarchy(destinationId: string): {
+  province?: Destination;
+  municipality?: Destination;
+  destination?: Destination;
+} {
+  const destination = getDestinationById(destinationId);
+  if (!destination) return {};
+  
+  const province = destination.provinceId ? getDestinationById(destination.provinceId) : undefined;
+  const municipality = destination.municipalityId ? getDestinationById(destination.municipalityId) : undefined;
+  
+  return { province, municipality, destination };
 }
 
 export function getDestinationsByRegion(region: string): Destination[] {
@@ -648,4 +706,9 @@ export function searchDestinations(query: string): Destination[] {
     d.shortDescription.toLowerCase().includes(lowerQuery) ||
     d.province?.toLowerCase().includes(lowerQuery)
   );
+}
+
+// Obtener URL del destino según su tipo
+export function getDestinationUrl(destination: Destination): string {
+  return `/destino/${destination.slug}`;
 }

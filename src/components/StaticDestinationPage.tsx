@@ -8,9 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Calendar, Thermometer, Utensils, Star, ChevronRight, Hotel, UtensilsCrossed, Wine, Compass, Users } from "lucide-react";
+import { MapPin, Calendar, Thermometer, Utensils, Star, ChevronRight, Hotel, UtensilsCrossed, Wine, Compass, Users, Home } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Destination, getDestinationsByProvince } from "@/data/destinations";
+import { Destination, getDestinationsByProvince, getDestinationById } from "@/data/destinations";
 import { getHotelsByDestination } from "@/data/hotels";
 import { getRestaurantsByDestination } from "@/data/restaurants";
 import { getBarsByDestination } from "@/data/bars";
@@ -26,6 +26,10 @@ export function StaticDestinationPage({ destination }: StaticDestinationPageProp
   const bars = getBarsByDestination(destination.id);
   const experiences = getExperiencesByDestination(destination.id);
   const subDestinations = destination.type === 'provincia' ? getDestinationsByProvince(destination.slug) : [];
+  
+  // Obtener jerarquía para breadcrumbs
+  const province = destination.provinceId ? getDestinationById(destination.provinceId) : undefined;
+  const municipality = destination.municipalityId ? getDestinationById(destination.municipalityId) : undefined;
 
   const categoryLabels: Record<string, string> = {
     playa: 'Playa',
@@ -46,6 +50,48 @@ export function StaticDestinationPage({ destination }: StaticDestinationPageProp
       />
       <Header />
       
+      {/* Breadcrumbs */}
+      <nav className="bg-muted/50 border-b">
+        <div className="container mx-auto px-4 py-3">
+          <ol className="flex items-center gap-2 text-sm">
+            <li>
+              <Link to="/" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
+                <Home className="h-4 w-4" />
+                Inicio
+              </Link>
+            </li>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            <li>
+              <Link to="/destinos" className="text-muted-foreground hover:text-primary transition-colors">
+                Destinos
+              </Link>
+            </li>
+            {province && destination.type !== 'provincia' && (
+              <>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                <li>
+                  <Link to={`/destino/${province.slug}`} className="text-muted-foreground hover:text-primary transition-colors">
+                    {province.name}
+                  </Link>
+                </li>
+              </>
+            )}
+            {municipality && destination.type === 'destino' && (
+              <>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                <li>
+                  <Link to={`/destino/${municipality.slug}`} className="text-muted-foreground hover:text-primary transition-colors">
+                    {municipality.name}
+                  </Link>
+                </li>
+              </>
+            )}
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            <li className="text-foreground font-medium">{destination.name}</li>
+          </ol>
+        </div>
+      </nav>
+
       {/* Hero Section */}
       <section className="relative h-[60vh] min-h-[400px]">
         <div 
@@ -67,6 +113,11 @@ export function StaticDestinationPage({ destination }: StaticDestinationPageProp
                 Provincia
               </Badge>
             )}
+            {destination.type === 'municipio' && (
+              <Badge variant="outline" className="border-white/50 text-white">
+                Municipio
+              </Badge>
+            )}
           </div>
           
           <div className="flex items-start justify-between">
@@ -75,10 +126,13 @@ export function StaticDestinationPage({ destination }: StaticDestinationPageProp
                 {destination.name}
               </h1>
               {destination.province && (
-                <p className="flex items-center gap-2 text-white/90 text-lg">
+                <Link 
+                  to={`/destino/${destination.provinceSlug}`}
+                  className="flex items-center gap-2 text-white/90 text-lg hover:text-white transition-colors"
+                >
                   <MapPin className="h-5 w-5" />
                   {destination.province}
-                </p>
+                </Link>
               )}
             </div>
             <FavoriteButton
@@ -186,7 +240,7 @@ export function StaticDestinationPage({ destination }: StaticDestinationPageProp
                     {hotels.map(hotel => (
                       <Link 
                         key={hotel.id}
-                        to={`/hotel/${hotel.slug}`}
+                        to={`/alojamiento/${hotel.slug}`}
                         className="group"
                       >
                         <Card className="overflow-hidden hover:shadow-lg transition-shadow">

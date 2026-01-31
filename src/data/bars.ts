@@ -1,12 +1,39 @@
 // Datos estáticos de bares y discotecas de República Dominicana
+//
+// === GUÍA PARA CREAR NUEVAS PÁGINAS DE BAR/DISCOTECA ===
+//
+// 1. AGREGAR DATOS: Añadir el objeto del bar a este archivo (bars array)
+// 2. CREAR PÁGINA: Crear archivo en src/pages/bares/NombreBar.tsx
+// 3. AGREGAR RUTA: Registrar la ruta en src/App.tsx como /bar/slug
+//
+// Ejemplo de página de bar:
+// ```tsx
+// import { StaticBarPage } from "@/components/StaticBarPage";
+// import { getBarBySlug } from "@/data/bars";
+//
+// export default function BarEjemplo() {
+//   const bar = getBarBySlug('bar-ejemplo');
+//   if (!bar) return <div>Bar no encontrado</div>;
+//   return <StaticBarPage bar={bar} />;
+// }
+// ```
+//
+// === JERARQUÍA ===
+// El bar puede pertenecer a un destino, municipio y/o provincia
+// - destinationId: ID del destino donde está (ej: 'zona-colonial')
+// - provinceId: ID de la provincia (ej: 'santo-domingo')
+// - municipalityId: ID del municipio si aplica (opcional)
 
 export interface Bar {
   id: string;
   slug: string;
   name: string;
-  destinationId: string;
-  destinationName: string;
-  province: string;
+  // Jerarquía geográfica
+  destinationId: string;       // ID del destino
+  destinationName: string;     // Nombre para mostrar
+  province: string;            // Nombre de la provincia para mostrar
+  provinceId?: string;         // ID de la provincia padre
+  municipalityId?: string;     // ID del municipio padre (si aplica)
   barType: 'cocktail-bar' | 'lounge' | 'nightclub' | 'beach-bar' | 'rooftop' | 'sports-bar' | 'pub';
   shortDescription: string;
   description: string;
