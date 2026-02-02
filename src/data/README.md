@@ -8,6 +8,8 @@ Este documento explica cómo funciona el sistema de páginas estáticas y cómo 
 src/
 ├── data/                    # Archivos de datos TypeScript
 │   ├── destinations.ts      # Destinos (provincias, municipios, destinos)
+│   ├── beaches.ts           # Playas
+│   ├── rivers.ts            # Ríos y cascadas
 │   ├── hotels.ts            # Hoteles y resorts
 │   ├── restaurants.ts       # Restaurantes
 │   ├── bars.ts              # Bares y discotecas
@@ -18,6 +20,8 @@ src/
 │   │   ├── PuntaCana.tsx
 │   │   ├── SantoDomingo.tsx
 │   │   └── ...
+│   ├── playas/              # Páginas individuales de playas (por crear)
+│   ├── rios/                # Páginas individuales de ríos (por crear)
 │   ├── alojamientos/        # Páginas individuales de hoteles (por crear)
 │   ├── restaurantes/        # Páginas individuales de restaurantes (por crear)
 │   └── bares/               # Páginas individuales de bares (por crear)
@@ -234,3 +238,106 @@ import { getExperiencesByDestination, getExperienceBySlug } from "@/data/experie
 Cuando agregas un hotel/restaurante/bar a un destino, automáticamente aparecerá en la página de ese destino gracias a las funciones `getXByDestination()`.
 
 Ejemplo: Si creas un hotel con `destinationId: 'punta-cana'`, aparecerá automáticamente en la pestaña "Hoteles" de la página de Punta Cana.
+
+## Cómo Crear una Nueva Página de Playa
+
+### Paso 1: Agregar datos en `src/data/beaches.ts`
+
+```typescript
+{
+  id: 'playa-ejemplo',
+  slug: 'playa-ejemplo',
+  name: 'Playa Ejemplo',
+  province: 'La Altagracia',
+  provinceId: 'la-altagracia',
+  provinceSlug: 'la-altagracia',
+  destinationId: 'punta-cana',           // Opcional
+  destinationName: 'Punta Cana',         // Opcional
+  beachType: 'arena-blanca',             // 'arena-blanca' | 'arena-dorada' | 'virgen' | 'bahia' | 'deportiva' | 'urbana'
+  shortDescription: 'Descripción corta...',
+  description: 'Descripción completa...',
+  imageUrl: '/playa.jpg',
+  gallery: ['/img1.jpg', '/img2.jpg'],
+  activities: ['Snorkel', 'Natación'],
+  amenities: ['Restaurantes', 'Duchas'],
+  rating: 4.8,
+  waterColor: 'Turquesa cristalino',
+  sandType: 'Arena blanca fina',
+  waveIntensity: 'calma',                // 'calma' | 'moderada' | 'fuerte'
+  crowdLevel: 'media',                   // 'baja' | 'media' | 'alta'
+  accessType: 'publico',                 // 'publico' | 'semi-privado' | 'privado'
+  parkingAvailable: true,
+  lifeguardOnDuty: true,
+  howToGetThere: 'Cómo llegar...',
+  bestTimeToVisit: 'Todo el año',
+  isPopular: true,
+  isFeatured: true
+}
+```
+
+### Funciones de utilidad para playas
+
+```typescript
+import { 
+  getBeachBySlug,
+  getBeachesByProvince,
+  getBeachesByDestination,
+  getPopularBeaches,
+  getFeaturedBeaches,
+  getVirginBeaches,
+  getCalmBeaches
+} from "@/data/beaches";
+```
+
+## Cómo Crear una Nueva Página de Río
+
+### Paso 1: Agregar datos en `src/data/rivers.ts`
+
+```typescript
+{
+  id: 'rio-ejemplo',
+  slug: 'rio-ejemplo',
+  name: 'Río Ejemplo',
+  provinces: [
+    { id: 'la-vega', name: 'La Vega', slug: 'la-vega' }
+  ],
+  mainProvinceId: 'la-vega',
+  mainProvinceName: 'La Vega',
+  destinationId: 'jarabacoa',
+  destinationName: 'Jarabacoa',
+  riverType: 'cascada',                  // 'montaña' | 'cascada' | 'charco' | 'cañon' | 'manantial'
+  shortDescription: 'Descripción corta...',
+  description: 'Descripción completa...',
+  imageUrl: '/rio.jpg',
+  gallery: ['/img1.jpg', '/img2.jpg'],
+  activities: ['Rafting', 'Natación'],
+  waterTemperature: 'fria',              // 'fria' | 'templada' | 'fresca'
+  currentIntensity: 'moderada',          // 'suave' | 'moderada' | 'fuerte'
+  difficulty: 'moderado',                // 'facil' | 'moderado' | 'dificil' | 'experto'
+  adrenalineLevel: 3,                    // 1-5
+  guidesRequired: true,
+  safetyTips: ['Tip 1', 'Tip 2'],
+  duration: '2-3 horas',
+  bestSeason: 'Todo el año',
+  priceRange: '$$',
+  rating: 4.7,
+  reviewCount: 500,
+  howToGetThere: 'Cómo llegar...',
+  isPopular: true,
+  isFeatured: true
+}
+```
+
+### Funciones de utilidad para ríos
+
+```typescript
+import { 
+  getRiverBySlug,
+  getRiversByProvince,
+  getRiversByDestination,
+  getRiversByDifficulty,
+  getRiversByAdrenaline,
+  getCascadas,
+  getRaftingRivers
+} from "@/data/rivers";
+```

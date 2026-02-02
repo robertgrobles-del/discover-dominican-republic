@@ -62,6 +62,7 @@ export const hotels: Hotel[] = [
     destinationId: 'punta-cana',
     destinationName: 'Punta Cana',
     province: 'La Altagracia',
+    provinceId: 'la-altagracia',
     category: 'all-inclusive',
     stars: 5,
     shortDescription: 'El resort todo incluido más grande del Caribe con casino y entretenimiento.',
