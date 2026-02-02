@@ -7,89 +7,34 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
+import { beaches, Beach } from "@/data/beaches";
 
 import heroBeach from "@/assets/hero-beach.jpg";
-import puntaCana from "@/assets/punta-cana.jpg";
-import samana from "@/assets/samana.jpg";
-import puertoPlata from "@/assets/puerto-plata.jpg";
-import relaxBeach from "@/assets/relax-beach.jpg";
 
-const playas = [
-  {
-    id: "bavaro",
-    nombre: "Playa Bávaro",
-    ubicacion: "Punta Cana",
-    rating: 4.9,
-    imagen: puntaCana,
-    descripcion: "Arena blanca y aguas cristalinas en uno de los destinos más famosos del Caribe.",
-    actividades: ["Snorkel", "Parasailing", "Catamarán"],
-    tipo: "Arena Blanca"
-  },
-  {
-    id: "rincon",
-    nombre: "Playa Rincón",
-    ubicacion: "Samaná",
-    rating: 4.8,
-    imagen: samana,
-    descripcion: "Considerada una de las mejores playas del mundo por su belleza natural intacta.",
-    actividades: ["Natación", "Picnic", "Fotografía"],
-    tipo: "Virgen"
-  },
-  {
-    id: "sosua",
-    nombre: "Playa Sosúa",
-    ubicacion: "Puerto Plata",
-    rating: 4.6,
-    imagen: puertoPlata,
-    descripcion: "Bahía protegida con excelentes condiciones para el snorkel y buceo.",
-    actividades: ["Buceo", "Snorkel", "Kayak"],
-    tipo: "Bahía"
-  },
-  {
-    id: "las-terrenas",
-    nombre: "Playa Las Terrenas",
-    ubicacion: "Samaná",
-    rating: 4.7,
-    imagen: relaxBeach,
-    descripcion: "Ambiente bohemio europeo con palmeras inclinadas sobre aguas turquesas.",
-    actividades: ["Surf", "Kitesurf", "Yoga"],
-    tipo: "Cosmopolita"
-  },
-  {
-    id: "bahia-aguilas",
-    nombre: "Bahía de las Águilas",
-    ubicacion: "Pedernales",
-    rating: 5.0,
-    imagen: heroBeach,
-    descripcion: "8 km de arena virgen en el parque nacional más prístino de RD.",
-    actividades: ["Ecoturismo", "Natación", "Camping"],
-    tipo: "Virgen"
-  },
-  {
-    id: "cabarete",
-    nombre: "Playa Cabarete",
-    ubicacion: "Puerto Plata",
-    rating: 4.7,
-    imagen: puertoPlata,
-    descripcion: "Capital mundial del windsurf y kitesurf con vientos perfectos todo el año.",
-    actividades: ["Kitesurf", "Windsurf", "Surf"],
-    tipo: "Deportiva"
-  }
-];
+// Mapeo de tipos de playa para mostrar
+const beachTypeLabels: Record<Beach['beachType'], string> = {
+  'arena-blanca': 'Arena Blanca',
+  'arena-dorada': 'Arena Dorada',
+  'virgen': 'Virgen',
+  'bahia': 'Bahía',
+  'deportiva': 'Deportiva',
+  'urbana': 'Urbana'
+};
 
-const PlayaCard = ({ playa, index }: { playa: typeof playas[0]; index: number }) => {
+const PlayaCard = ({ playa, index }: { playa: Beach; index: number }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
-    <div
-      className="group relative overflow-hidden rounded-xl bg-card border border-border hover:border-primary/50 transition-all duration-500"
+    <Link
+      to={`/playa/${playa.slug}`}
+      className="group relative overflow-hidden rounded-xl bg-card border border-border hover:border-primary/50 transition-all duration-500 block"
       style={{ animationDelay: `${index * 100}ms` }}
     >
       <div className="relative aspect-[4/3] overflow-hidden">
         {!imageLoaded && <Skeleton className="absolute inset-0" />}
         <img
-          src={playa.imagen}
-          alt={playa.nombre}
+          src={playa.imageUrl}
+          alt={playa.name}
           className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${
             imageLoaded ? "opacity-100" : "opacity-0"
           }`}
@@ -97,7 +42,7 @@ const PlayaCard = ({ playa, index }: { playa: typeof playas[0]; index: number })
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         <Badge className="absolute top-4 left-4 bg-primary/90 text-primary-foreground">
-          {playa.tipo}
+          {beachTypeLabels[playa.beachType]}
         </Badge>
         <div className="absolute top-4 right-4 flex items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-full">
           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
@@ -108,30 +53,30 @@ const PlayaCard = ({ playa, index }: { playa: typeof playas[0]; index: number })
       <div className="p-6">
         <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
           <MapPin className="w-4 h-4 text-primary" />
-          <span>{playa.ubicacion}</span>
+          <span>{playa.destinationName || playa.province}</span>
         </div>
-        <h3 className="text-xl font-display font-bold text-foreground mb-2">{playa.nombre}</h3>
-        <p className="text-muted-foreground text-sm mb-4 line-clamp-2">{playa.descripcion}</p>
+        <h3 className="text-xl font-display font-bold text-foreground mb-2">{playa.name}</h3>
+        <p className="text-muted-foreground text-sm mb-4 line-clamp-2">{playa.shortDescription}</p>
         
         <div className="flex flex-wrap gap-2 mb-4">
-          {playa.actividades.map((act) => (
+          {playa.activities.slice(0, 3).map((act) => (
             <span key={act} className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">
               {act}
             </span>
           ))}
         </div>
 
-        <Link to={`/destinos`}>
-          <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-            Explorar Playa
-          </Button>
-        </Link>
+        <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+          Explorar Playa
+        </Button>
       </div>
-    </div>
+    </Link>
   );
 };
 
 export default function Playas() {
+  const featuredBeaches = beaches.filter(b => b.isFeatured);
+  
   return (
     <PageTransition>
       <div className="min-h-screen flex flex-col bg-background">
@@ -194,7 +139,7 @@ export default function Playas() {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {playas.map((playa, index) => (
+              {featuredBeaches.map((playa, index) => (
                 <PlayaCard key={playa.id} playa={playa} index={index} />
               ))}
             </div>
