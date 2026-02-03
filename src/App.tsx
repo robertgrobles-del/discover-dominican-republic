@@ -108,6 +108,8 @@ const EspanolViajero = lazy(() => import("./pages/EspanolViajero"));
 const SelloCalidad = lazy(() => import("./pages/SelloCalidad"));
 const PuertoDetalle = lazy(() => import("./pages/PuertoDetalle"));
 const BarDetalle = lazy(() => import("./pages/BarDetalle"));
+const PlayaDetalle = lazy(() => import("./pages/PlayaDetalle"));
+const RioDetalle = lazy(() => import("./pages/RioDetalle"));
 const AgenciaDetalle = lazy(() => import("./pages/AgenciaDetalle"));
 const EstadioDetalle = lazy(() => import("./pages/EstadioDetalle"));
 const ClinicaDetalle = lazy(() => import("./pages/ClinicaDetalle"));
@@ -184,9 +186,9 @@ function AnimatedRoutes() {
           <Route path="/planifica" element={<Planifica />} />
           <Route path="/cultura" element={<Cultura />} />
           <Route path="/playas" element={<Playas />} />
-          <Route path="/playa/:slug" element={<Playas />} />
+          <Route path="/playa/:slug" element={<PlayaDetalle />} />
           <Route path="/rios" element={<Rios />} />
-          <Route path="/rio/:slug" element={<Rios />} />
+          <Route path="/rio/:slug" element={<RioDetalle />} />
           <Route path="/alojamientos" element={<Alojamientos />} />
           <Route path="/alojamiento/:id" element={<AlojamientoDetalle />} />
           <Route path="/restaurante/:id" element={<RestauranteDetalle />} />
