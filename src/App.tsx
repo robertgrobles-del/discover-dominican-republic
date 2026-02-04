@@ -131,8 +131,10 @@ const TalleresArtesanales = lazy(() => import("./pages/TalleresArtesanales"));
 const AirbnbDetalle = lazy(() => import("./pages/AirbnbDetalle"));
 const RutasSabor = lazy(() => import("./pages/RutasSabor"));
 const Provincias = lazy(() => import("./pages/Provincias"));
+const ProvinciaDetalle = lazy(() => import("./pages/ProvinciaDetalle"));
 const DestinosRegion = lazy(() => import("./pages/DestinosRegion"));
 const DestinosCategoria = lazy(() => import("./pages/DestinosCategoria"));
+const MunicipioDetalle = lazy(() => import("./pages/MunicipioDetalle"));
 
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
@@ -303,7 +305,8 @@ function AnimatedRoutes() {
         <Route path="/rutas-sabor" element={<RutasSabor />} />
         <Route path="/airbnb/:id" element={<AirbnbDetalle />} />
         <Route path="/provincias" element={<Provincias />} />
-        <Route path="/provincia/:id" element={<DestinoDetalle />} />
+        <Route path="/provincia/:slug" element={<ProvinciaDetalle />} />
+        <Route path="/municipio/:slug" element={<MunicipioDetalle />} />
         <Route path="/destinos/region/:region" element={<DestinosRegion />} />
         <Route path="/destinos/categoria/:categoria" element={<DestinosCategoria />} />
         {/* Static destination pages - /destino/slug */}

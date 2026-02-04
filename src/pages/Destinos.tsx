@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
+import { BetweenSectionsAd } from "@/components/ads";
 
 import { PopularDestinations } from "@/components/destinations/PopularDestinations";
 import { RegionsSection } from "@/components/destinations/RegionsSection";
@@ -84,11 +85,17 @@ export default function Destinos() {
         {/* Popular Destinations */}
         <PopularDestinations destinations={popularDestinations} />
 
+        {/* Banner Ad */}
+        <BetweenSectionsAd />
+
         {/* Regions */}
         <RegionsSection />
 
         {/* Recommended Destinations */}
         <RecommendedDestinations destinations={recommendedDestinations} />
+
+        {/* Banner Ad */}
+        <BetweenSectionsAd />
 
         {/* Provinces Grid */}
         <ProvincesGrid provinces={provinces} />

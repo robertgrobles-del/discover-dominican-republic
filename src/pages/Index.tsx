@@ -8,6 +8,7 @@ import { DestinationsSection } from "@/components/DestinationsSection";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead, generateOrganizationSchema } from "@/components/SEOHead";
+import { BetweenSectionsAd, MobileAd } from "@/components/ads";
 
 const Index = () => {
   return (
@@ -20,10 +21,13 @@ const Index = () => {
       />
       <div className="min-h-screen bg-background">
         <Header />
+        <MobileAd />
         <HeroSlideshow />
         <InterestSection />
+        <BetweenSectionsAd />
         <EventsSection />
         <RestaurantsBarsSection />
+        <BetweenSectionsAd />
         <AccommodationsSection />
         <DestinationsSection />
         <Footer />
