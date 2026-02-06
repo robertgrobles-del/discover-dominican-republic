@@ -136,6 +136,14 @@ const DestinosRegion = lazy(() => import("./pages/DestinosRegion"));
 const DestinosCategoria = lazy(() => import("./pages/DestinosCategoria"));
 const MunicipioDetalle = lazy(() => import("./pages/MunicipioDetalle"));
 
+// New pages
+const AlquilerVehiculos = lazy(() => import("./pages/AlquilerVehiculos"));
+const Museos = lazy(() => import("./pages/Museos"));
+const Casinos = lazy(() => import("./pages/Casinos"));
+const SpasWellness = lazy(() => import("./pages/SpasWellness"));
+const Emergencias = lazy(() => import("./pages/Emergencias"));
+const NewsletterPage = lazy(() => import("./pages/NewsletterPage"));
+const SistemaAfiliados = lazy(() => import("./pages/SistemaAfiliados"));
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
 const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
@@ -309,6 +317,18 @@ function AnimatedRoutes() {
         <Route path="/municipio/:slug" element={<MunicipioDetalle />} />
         <Route path="/destinos/region/:region" element={<DestinosRegion />} />
         <Route path="/destinos/categoria/:categoria" element={<DestinosCategoria />} />
+        
+        {/* New pages */}
+        <Route path="/alquiler-vehiculos" element={<AlquilerVehiculos />} />
+        <Route path="/rent-a-car" element={<AlquilerVehiculos />} />
+        <Route path="/museos" element={<Museos />} />
+        <Route path="/casinos" element={<Casinos />} />
+        <Route path="/spas" element={<SpasWellness />} />
+        <Route path="/spas-wellness" element={<SpasWellness />} />
+        <Route path="/emergencias" element={<Emergencias />} />
+        <Route path="/newsletter-subscribe" element={<NewsletterPage />} />
+        <Route path="/afiliados" element={<SistemaAfiliados />} />
+        
         {/* Static destination pages - /destino/slug */}
         <Route path="/destino/punta-cana" element={<PuntaCana />} />
         <Route path="/destino/bavaro" element={<Bavaro />} />
