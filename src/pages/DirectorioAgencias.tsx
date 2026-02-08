@@ -1,21 +1,21 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { 
   Search, MapPin, Phone, Mail, Globe, ChevronRight, ChevronLeft,
-  Check, Building2, Compass, Bus, Download, ExternalLink
+  Check, Building2, Compass, Bus, Download, ExternalLink, FileText, Image
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-
 const agencies = [
   {
-    id: 1,
+    id: "tropical-caribbean",
     name: "Tropical Caribbean Tours",
     verified: true,
     location: "Punta Cana",
@@ -29,7 +29,7 @@ const agencies = [
     hasWeb: true
   },
   {
-    id: 2,
+    id: "econature-republic",
     name: "EcoNature Republic",
     verified: true,
     location: "Samaná",
@@ -43,7 +43,7 @@ const agencies = [
     hasWeb: false
   },
   {
-    id: 3,
+    id: "santo-domingo-experts",
     name: "Santo Domingo City Experts",
     verified: false,
     location: "Santo Domingo",
@@ -60,6 +60,7 @@ const agencies = [
 
 const excursions = [
   {
+    id: "isla-saona-vip",
     title: "Isla Saona VIP",
     price: 45,
     duration: "8 Horas",
@@ -67,6 +68,7 @@ const excursions = [
     image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop"
   },
   {
+    id: "los-haitises-cayo",
     title: "Los Haitises & Cayo",
     price: 85,
     duration: "6 Horas",
@@ -74,6 +76,7 @@ const excursions = [
     image: "https://images.unsplash.com/photo-1559827291-72ee739d0d9a?w=400&h=300&fit=crop"
   },
   {
+    id: "santo-domingo-historico",
     title: "Santo Domingo Histórico",
     price: 60,
     duration: "5 Horas",
@@ -81,12 +84,20 @@ const excursions = [
     image: "https://images.unsplash.com/photo-1585535116934-9e1a14063e35?w=400&h=300&fit=crop"
   },
   {
+    id: "buggy-adventure-macao",
     title: "Buggy Adventure Macao",
     price: 120,
     duration: "4 Horas",
     location: "Punta Cana",
     image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop"
   }
+];
+
+const b2bResources = [
+  { id: 1, title: "Kit de Marketing 2024", type: "ZIP", size: "45 MB", icon: Image },
+  { id: 2, title: "Tarifas B2B Q1 2026", type: "PDF", size: "2.3 MB", icon: FileText },
+  { id: 3, title: "Galería Profesional HD", type: "ZIP", size: "120 MB", icon: Image },
+  { id: 4, title: "Contrato de Colaboración", type: "DOCX", size: "156 KB", icon: FileText },
 ];
 
 export default function DirectorioAgencias() {
@@ -146,9 +157,9 @@ export default function DirectorioAgencias() {
       </section>
 
       {/* Main Tabs */}
-      <section className="border-b border-border bg-card/50">
-        <div className="container mx-auto px-4">
-          <Tabs defaultValue="directorio">
+      <Tabs defaultValue="directorio" className="w-full">
+        <section className="border-b border-border bg-card/50">
+          <div className="container mx-auto px-4">
             <TabsList className="bg-transparent h-auto p-0">
               <TabsTrigger value="directorio" className="gap-2 data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none py-4">
                 <Building2 className="h-4 w-4" />
@@ -163,9 +174,11 @@ export default function DirectorioAgencias() {
                 Recursos B2B
               </TabsTrigger>
             </TabsList>
-          </Tabs>
-        </div>
-      </section>
+          </div>
+        </section>
+
+        {/* Tab Content: Directorio */}
+        <TabsContent value="directorio" className="mt-0">
 
       <div className="container mx-auto px-4 py-12">
         <div className="grid lg:grid-cols-4 gap-8">
@@ -316,9 +329,11 @@ export default function DirectorioAgencias() {
                             </Button>
                           )}
                         </div>
-                        <Button variant="link" className="text-primary gap-1">
-                          Ver Perfil Completo <ChevronRight className="h-4 w-4" />
-                        </Button>
+                        <Link to={`/agencia/${agency.id}`}>
+                          <Button variant="link" className="text-primary gap-1">
+                            Ver Perfil Completo <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </Link>
                       </div>
                     </div>
                   </div>
@@ -350,54 +365,137 @@ export default function DirectorioAgencias() {
           </div>
         </div>
 
-        {/* Excursions Catalog */}
+        {/* Excursions Catalog in Directorio tab */}
         <section className="mt-16 pt-16 border-t border-border">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="font-display text-2xl font-bold text-foreground">Catálogo de Excursiones Destacadas</h2>
               <p className="text-sm text-muted-foreground">Experiencias B2B con comisiones preferenciales.</p>
             </div>
-            <Button variant="link" className="text-primary gap-1">
-              Ver todo el catálogo <ChevronRight className="h-4 w-4" />
-            </Button>
+            <Link to="/experiencias">
+              <Button variant="link" className="text-primary gap-1">
+                Ver todo el catálogo <ChevronRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {excursions.map((exc, index) => (
-              <motion.div
-                key={exc.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="group cursor-pointer"
-              >
-                <div className="aspect-[4/3] rounded-xl overflow-hidden relative mb-3">
-                  <img 
-                    src={exc.image} 
-                    alt={exc.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
-                    Desde ${exc.price} USD
+              <Link key={exc.id} to={`/experiencia/${exc.id}`}>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="group cursor-pointer"
+                >
+                  <div className="aspect-[4/3] rounded-xl overflow-hidden relative mb-3">
+                    <img 
+                      src={exc.image} 
+                      alt={exc.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
+                      Desde ${exc.price} USD
+                    </div>
                   </div>
-                </div>
-                <h3 className="font-display font-bold text-foreground group-hover:text-primary transition-colors">
-                  {exc.title}
-                </h3>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>{exc.duration}</span>
-                  <span>•</span>
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    {exc.location}
-                  </span>
-                </div>
-              </motion.div>
+                  <h3 className="font-display font-bold text-foreground group-hover:text-primary transition-colors">
+                    {exc.title}
+                  </h3>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>{exc.duration}</span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {exc.location}
+                    </span>
+                  </div>
+                </motion.div>
+              </Link>
             ))}
           </div>
         </section>
       </div>
+        </TabsContent>
+
+        {/* Tab Content: Catálogo de Excursiones */}
+        <TabsContent value="catalogo" className="mt-0">
+          <div className="container mx-auto px-4 py-12">
+            <h2 className="font-display text-3xl font-bold text-foreground mb-8">Catálogo Completo de Excursiones</h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {excursions.map((exc, index) => (
+                <Link key={exc.id} to={`/experiencia/${exc.id}`}>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                    className="group cursor-pointer bg-card rounded-xl overflow-hidden border border-border hover:border-primary/50 transition-colors"
+                  >
+                    <div className="aspect-[4/3] relative overflow-hidden">
+                      <img 
+                        src={exc.image} 
+                        alt={exc.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
+                        Desde ${exc.price} USD
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-display font-bold text-foreground group-hover:text-primary transition-colors mb-2">
+                        {exc.title}
+                      </h3>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>{exc.duration}</span>
+                        <span>•</span>
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {exc.location}
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Tab Content: Recursos B2B */}
+        <TabsContent value="recursos" className="mt-0">
+          <div className="container mx-auto px-4 py-12">
+            <h2 className="font-display text-3xl font-bold text-foreground mb-4">Recursos B2B</h2>
+            <p className="text-muted-foreground mb-8 max-w-2xl">
+              Descarga materiales oficiales de marketing, tarifas preferenciales y documentación para partners.
+            </p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {b2bResources.map((resource, index) => (
+                <motion.div
+                  key={resource.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className="bg-card rounded-xl border border-border p-6 hover:border-primary/50 transition-colors group cursor-pointer"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                    <resource.icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="font-display font-bold text-foreground mb-2">{resource.title}</h3>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                    <span className="px-2 py-0.5 bg-muted rounded text-xs">{resource.type}</span>
+                    <span>{resource.size}</span>
+                  </div>
+                  <Button variant="outline" className="w-full gap-2">
+                    <Download className="h-4 w-4" /> Descargar
+                  </Button>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <Footer />
     </div>
