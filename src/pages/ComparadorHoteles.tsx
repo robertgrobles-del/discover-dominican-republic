@@ -94,8 +94,6 @@ const hotels = [
   }
 ];
 
-const [selected, setSelected] = [1, 2];
-
 export default function ComparadorHoteles() {
   const [selectedHotels, setSelectedHotels] = useState<number[]>([1, 2]);
   const hotelsToCompare = hotels.filter(h => selectedHotels.includes(h.id));
