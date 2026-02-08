@@ -43,6 +43,7 @@ const SobreNosotros = lazy(() => import("./pages/SobreNosotros"));
 const DestinoDetalle = lazy(() => import("./pages/DestinoDetalle"));
 const DestinosRegiones = lazy(() => import("./pages/DestinosRegiones"));
 const Eventos = lazy(() => import("./pages/Eventos"));
+const EventoDetalle = lazy(() => import("./pages/EventoDetalle"));
 const ComoLlegar = lazy(() => import("./pages/ComoLlegar"));
 const Herramientas = lazy(() => import("./pages/Herramientas"));
 const Patrimonio = lazy(() => import("./pages/Patrimonio"));
@@ -240,6 +241,7 @@ function AnimatedRoutes() {
           <Route path="/destino/:id" element={<DestinoDetalle />} />
           <Route path="/destinos-regiones" element={<DestinosRegiones />} />
           <Route path="/eventos" element={<Eventos />} />
+          <Route path="/evento/:id" element={<EventoDetalle />} />
           <Route path="/como-llegar" element={<ComoLlegar />} />
           <Route path="/herramientas" element={<Herramientas />} />
           <Route path="/patrimonio" element={<Patrimonio />} />
