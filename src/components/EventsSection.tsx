@@ -39,7 +39,34 @@ const events = [
 
 export function EventsSection() {
   return (
-    <section className="min-h-screen flex flex-col justify-center bg-card py-16">
+    <section className="relative min-h-screen flex flex-col justify-center bg-card py-16">
+      {/* Left Skyscraper Ad */}
+      <div className="hidden 2xl:block absolute left-4 top-1/2 -translate-y-1/2 z-10">
+        <div className="sticky top-24">
+          <div className="w-[160px] h-[600px] bg-gradient-to-br from-muted/50 to-muted/20 border border-dashed border-border/50 rounded-lg flex flex-col items-center justify-center overflow-hidden">
+            <img 
+              src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=160&h=600&fit=crop" 
+              alt="Publicidad eventos"
+              className="w-full h-full object-cover"
+            />
+            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">Publicidad</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Skyscraper Ad */}
+      <div className="hidden 2xl:block absolute right-4 top-1/2 -translate-y-1/2 z-10">
+        <div className="sticky top-24">
+          <div className="w-[160px] h-[600px] bg-gradient-to-br from-muted/50 to-muted/20 border border-dashed border-border/50 rounded-lg flex flex-col items-center justify-center overflow-hidden">
+            <img 
+              src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=160&h=600&fit=crop" 
+              alt="Publicidad festivales"
+              className="w-full h-full object-cover"
+            />
+            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">Publicidad</span>
+          </div>
+        </div>
+      </div>
       <div className="container mx-auto px-4 lg:px-8">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
