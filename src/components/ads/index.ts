@@ -5,6 +5,9 @@ export {
   InlineAd, 
   BetweenSectionsAd, 
   MobileAd,
-  CompactInlineAd
+  CompactInlineAd,
+  SquareAd,
+  HalfPageAd,
+  PanoramaAd
 } from "./BannerAd";
 export type { AdSize, AdPlacement } from "./BannerAd";

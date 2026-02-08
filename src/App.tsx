@@ -144,6 +144,13 @@ const SpasWellness = lazy(() => import("./pages/SpasWellness"));
 const Emergencias = lazy(() => import("./pages/Emergencias"));
 const NewsletterPage = lazy(() => import("./pages/NewsletterPage"));
 const SistemaAfiliados = lazy(() => import("./pages/SistemaAfiliados"));
+const AudioGuias = lazy(() => import("./pages/AudioGuias"));
+const CheckInDigital = lazy(() => import("./pages/CheckInDigital"));
+const Badges = lazy(() => import("./pages/Badges"));
+const ComparadorHoteles = lazy(() => import("./pages/ComparadorHoteles"));
+const EncuestaPostViaje = lazy(() => import("./pages/EncuestaPostViaje"));
+const ClimaYTemporadas = lazy(() => import("./pages/ClimaYTemporadas"));
+const MuseosMonumentos = lazy(() => import("./pages/MuseosMonumentos"));
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
 const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
@@ -328,6 +335,13 @@ function AnimatedRoutes() {
         <Route path="/emergencias" element={<Emergencias />} />
         <Route path="/newsletter-subscribe" element={<NewsletterPage />} />
         <Route path="/afiliados" element={<SistemaAfiliados />} />
+        <Route path="/audio-guias" element={<AudioGuias />} />
+        <Route path="/check-in" element={<CheckInDigital />} />
+        <Route path="/badges" element={<Badges />} />
+        <Route path="/comparador-hoteles" element={<ComparadorHoteles />} />
+        <Route path="/encuesta-post-viaje" element={<EncuestaPostViaje />} />
+        <Route path="/clima" element={<ClimaYTemporadas />} />
+        <Route path="/museos-monumentos" element={<MuseosMonumentos />} />
         
         {/* Static destination pages - /destino/slug */}
         <Route path="/destino/punta-cana" element={<PuntaCana />} />
