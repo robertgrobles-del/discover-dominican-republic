@@ -176,10 +176,12 @@ export default function Planifica() {
             transition={{ delay: 0.3 }}
             className="flex flex-wrap justify-center gap-4"
           >
-            <Button className="gap-2">
-              <Calendar className="h-4 w-4" />
-              Crear Itinerario
-            </Button>
+            <Link to="/mi-viaje">
+              <Button className="gap-2">
+                <Calendar className="h-4 w-4" />
+                Crear Itinerario
+              </Button>
+            </Link>
             <Button variant="outline" className="gap-2">
               <Download className="h-4 w-4" />
               Descargar Guía PDF
@@ -454,10 +456,12 @@ export default function Planifica() {
                 </div>
               </div>
 
-              <Button size="lg" className="w-full gap-2">
-                <Sparkles className="h-5 w-5" />
-                Generar mi viaje
-              </Button>
+              <Link to="/mi-viaje">
+                <Button size="lg" className="w-full gap-2">
+                  <Sparkles className="h-5 w-5" />
+                  Generar mi viaje
+                </Button>
+              </Link>
             </motion.div>
 
             {/* Itinerary Preview */}
