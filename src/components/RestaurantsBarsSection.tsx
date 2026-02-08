@@ -1,14 +1,29 @@
 import { motion } from "framer-motion";
-import { Star, ChevronRight, MapPin, Clock, Wine, Utensils } from "lucide-react";
+import { Star, ChevronRight, MapPin, Clock, Wine, Utensils, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { Badge } from "@/components/ui/badge";
 import gastronomyImg from "@/assets/gastronomy.jpg";
 import divingImg from "@/assets/diving.jpg";
 import laBanderaImg from "@/assets/la-bandera.jpg";
 import beachCategoryImg from "@/assets/beach-category.jpg";
+
+// Restaurante patrocinado destacado
+const sponsoredRestaurant = {
+  id: "sponsored-restaurant",
+  name: "La Casa del Chef",
+  rating: 4.9,
+  location: "Cap Cana, Punta Cana",
+  cuisine: "Alta Cocina Caribeña",
+  priceRange: "$$$$",
+  image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800",
+  openNow: true,
+  speciality: "Menú Degustación 7 Tiempos",
+  isSponsored: true,
+};
 
 const restaurants = [
   {
@@ -33,18 +48,20 @@ const restaurants = [
     openNow: true,
     speciality: "La Bandera Dominicana",
   },
-  {
-    id: "blue-mall-steak",
-    name: "Prime Blue",
-    rating: 4.8,
-    location: "Blue Mall, Punta Cana",
-    cuisine: "Steakhouse Premium",
-    priceRange: "$$$$",
-    image: beachCategoryImg,
-    openNow: false,
-    speciality: "Tomahawk Steak",
-  },
 ];
+
+// Bar patrocinado destacado
+const sponsoredBar = {
+  id: "sponsored-bar",
+  name: "Oro Lounge",
+  rating: 4.9,
+  location: "Cap Cana, Punta Cana",
+  type: "Premium Lounge",
+  specialty: "Cócteles de Autor",
+  image: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=800",
+  atmosphere: "Ultra Exclusivo",
+  isSponsored: true,
+};
 
 const bars = [
   {
@@ -87,19 +104,22 @@ const bars = [
     image: laBanderaImg,
     atmosphere: "Fiesta Total",
   },
-  {
-    id: "mamma-lounge",
-    name: "Mamma Lounge",
-    rating: 4.7,
-    location: "Piantini, Santo Domingo",
-    type: "Lounge Bar",
-    specialty: "Martinis Signature",
-    image: divingImg,
-    atmosphere: "Sofisticado",
-  },
 ];
 
-function RestaurantCard({ restaurant, index }: { restaurant: typeof restaurants[0]; index: number }) {
+interface RestaurantType {
+  id: string;
+  name: string;
+  rating: number;
+  location: string;
+  cuisine: string;
+  priceRange: string;
+  image: string;
+  openNow: boolean;
+  speciality: string;
+  isSponsored?: boolean;
+}
+
+function RestaurantCard({ restaurant, index }: { restaurant: RestaurantType; index: number }) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
@@ -108,7 +128,9 @@ function RestaurantCard({ restaurant, index }: { restaurant: typeof restaurants[
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1 }}
-      className="group bg-surface rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl hover:shadow-primary/5 transition-all"
+      className={`group bg-surface rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl hover:shadow-primary/5 transition-all ${
+        restaurant.isSponsored ? 'ring-2 ring-primary/50' : ''
+      }`}
     >
       <div className="relative aspect-[16/10] overflow-hidden">
         {!imageLoaded && <Skeleton className="absolute inset-0 w-full h-full" />}
@@ -121,7 +143,13 @@ function RestaurantCard({ restaurant, index }: { restaurant: typeof restaurants[
           onLoad={() => setImageLoaded(true)}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-        <div className="absolute top-3 left-3 flex gap-2">
+        <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
+          {restaurant.isSponsored && (
+            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1">
+              <Megaphone className="h-3 w-3" />
+              Patrocinado
+            </Badge>
+          )}
           <span className="bg-background/80 backdrop-blur-sm text-foreground text-xs font-medium px-2 py-1 rounded">
             {restaurant.cuisine}
           </span>
@@ -185,7 +213,19 @@ function RestaurantCard({ restaurant, index }: { restaurant: typeof restaurants[
   );
 }
 
-function BarCard({ bar, index }: { bar: typeof bars[0]; index: number }) {
+interface BarType {
+  id: string;
+  name: string;
+  rating: number;
+  location: string;
+  type: string;
+  specialty: string;
+  image: string;
+  atmosphere: string;
+  isSponsored?: boolean;
+}
+
+function BarCard({ bar, index }: { bar: BarType; index: number }) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
@@ -194,7 +234,9 @@ function BarCard({ bar, index }: { bar: typeof bars[0]; index: number }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.05 }}
-      className="group relative aspect-[3/4] rounded-xl overflow-hidden cursor-pointer"
+      className={`group relative aspect-[3/4] rounded-xl overflow-hidden cursor-pointer ${
+        bar.isSponsored ? 'ring-2 ring-primary/50' : ''
+      }`}
     >
       {!imageLoaded && <Skeleton className="absolute inset-0 w-full h-full" />}
       <img
@@ -207,8 +249,14 @@ function BarCard({ bar, index }: { bar: typeof bars[0]; index: number }) {
       />
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
       
-      <div className="absolute top-4 left-4 flex gap-2">
-        <span className="bg-primary/90 backdrop-blur-sm text-primary-foreground text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1">
+      <div className="absolute top-4 left-4 flex flex-col gap-2">
+        {bar.isSponsored && (
+          <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1 w-fit">
+            <Megaphone className="h-3 w-3" />
+            Patrocinado
+          </Badge>
+        )}
+        <span className="bg-primary/90 backdrop-blur-sm text-primary-foreground text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1 w-fit">
           <Wine className="h-3 w-3" />
           {bar.type}
         </span>
@@ -277,7 +325,7 @@ export function RestaurantsBarsSection() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {restaurants.map((restaurant, index) => (
+            {[sponsoredRestaurant, ...restaurants].map((restaurant, index) => (
               <RestaurantCard key={restaurant.id} restaurant={restaurant} index={index} />
             ))}
           </div>
@@ -343,7 +391,7 @@ export function RestaurantsBarsSection() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {bars.map((bar, index) => (
+            {[sponsoredBar, ...bars].map((bar, index) => (
               <BarCard key={bar.id} bar={bar} index={index} />
             ))}
           </div>
