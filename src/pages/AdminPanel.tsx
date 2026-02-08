@@ -33,11 +33,19 @@ import {
   XCircle,
   Loader2,
   Shield,
-  AlertTriangle
+  AlertTriangle,
+  List,
+  Coffee,
+  Mountain,
+  Waves,
+  Sparkles,
+  Home
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { EntityList } from "@/components/admin/EntityList";
+import { EntityType as AdminEntityType } from "@/hooks/useAdminEntities";
 
 type EntityType = 
   | 'provinces' 
@@ -53,7 +61,13 @@ type EntityType =
   | 'clinics' 
   | 'ports_marinas' 
   | 'stadiums'
-  | 'theme_parks';
+  | 'theme_parks'
+  | 'caves'
+  | 'rivers'
+  | 'coffee_experiences'
+  | 'airbnb_listings'
+  | 'artisanal_workshops'
+  | 'municipalities';
 
 interface EntityConfig {
   name: string;
@@ -161,7 +175,209 @@ const entityConfigs: Record<EntityType, EntityConfig> = {
     description: "Parques de diversiones y temáticos",
     fields: ["name", "slug", "destination_id", "park_type", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "price_adult", "price_child", "price_range", "opening_hours", "attractions", "services", "includes", "age_restrictions", "duration_recommended", "latitude", "longitude", "rating", "is_featured"],
     requiredFields: ["name"]
+  },
+  caves: {
+    name: "Cuevas",
+    icon: <Mountain className="h-5 w-5" />,
+    description: "Cuevas y formaciones geológicas",
+    fields: ["name", "slug", "destination_id", "cave_type", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "difficulty", "tour_duration", "opening_hours", "highlights", "flora_fauna", "historical_info", "price_adult", "price_child", "latitude", "longitude", "rating", "is_featured"],
+    requiredFields: ["name"]
+  },
+  rivers: {
+    name: "Ríos",
+    icon: <Waves className="h-5 w-5" />,
+    description: "Ríos y actividades acuáticas",
+    fields: ["name", "slug", "destination_id", "description", "short_description", "image_url", "gallery", "address", "difficulty", "activities", "best_season", "duration", "price_range", "safety_tips", "adrenaline_level", "certified_guides", "latitude", "longitude", "rating", "is_featured"],
+    requiredFields: ["name"]
+  },
+  coffee_experiences: {
+    name: "Experiencias de Café",
+    icon: <Coffee className="h-5 w-5" />,
+    description: "Tours de café y experiencias",
+    fields: ["name", "slug", "destination_id", "experience_type", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "coffee_varieties", "altitude", "tour_duration", "price_range", "includes", "production_process", "tasting_notes", "opening_hours", "latitude", "longitude", "rating", "is_featured"],
+    requiredFields: ["name"]
+  },
+  airbnb_listings: {
+    name: "Airbnb",
+    icon: <Home className="h-5 w-5" />,
+    description: "Alojamientos tipo Airbnb",
+    fields: ["name", "slug", "destination_id", "property_type", "description", "short_description", "image_url", "gallery", "address", "guests", "bedrooms", "beds", "bathrooms", "price_per_night", "cleaning_fee", "service_fee", "amenities", "house_rules", "check_in_time", "check_out_time", "cancellation_policy", "host_name", "host_image", "host_description", "is_superhost", "min_nights", "max_nights", "instant_book", "latitude", "longitude", "rating", "is_featured"],
+    requiredFields: ["name"]
+  },
+  artisanal_workshops: {
+    name: "Talleres Artesanales",
+    icon: <Sparkles className="h-5 w-5" />,
+    description: "Talleres de artesanía local",
+    fields: ["name", "slug", "destination_id", "workshop_type", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "craft_types", "duration", "price_range", "includes", "skill_level", "languages", "max_participants", "opening_hours", "latitude", "longitude", "rating", "is_featured"],
+    requiredFields: ["name"]
+  },
+  municipalities: {
+    name: "Municipios",
+    icon: <MapPin className="h-5 w-5" />,
+    description: "Municipios y distritos",
+    fields: ["name", "slug", "province_id", "municipality_type", "description", "short_description", "image_url", "gallery", "highlights", "population", "area_km2", "is_tourist_destination", "latitude", "longitude"],
+    requiredFields: ["name"]
   }
+};
+
+// Configuración de campos para el formulario CRUD
+const getFieldsConfig = (entity: EntityType) => {
+  const fieldTypeMap: Record<string, 'text' | 'textarea' | 'number' | 'boolean' | 'array' | 'url' | 'email' | 'date' | 'time'> = {
+    name: 'text',
+    slug: 'text',
+    description: 'textarea',
+    short_description: 'textarea',
+    image_url: 'url',
+    gallery: 'array',
+    address: 'text',
+    phone: 'text',
+    email: 'email',
+    website: 'url',
+    price_range: 'text',
+    opening_hours: 'text',
+    rating: 'number',
+    latitude: 'number',
+    longitude: 'number',
+    is_featured: 'boolean',
+    is_active: 'boolean',
+    is_certified: 'boolean',
+    is_24_hours: 'boolean',
+    is_superhost: 'boolean',
+    instant_book: 'boolean',
+    is_tourist_destination: 'boolean',
+    certified_guides: 'boolean',
+    stars: 'number',
+    minimum_age: 'number',
+    years_experience: 'number',
+    capacity: 'number',
+    guests: 'number',
+    bedrooms: 'number',
+    beds: 'number',
+    bathrooms: 'number',
+    price_per_night: 'number',
+    cleaning_fee: 'number',
+    service_fee: 'number',
+    min_nights: 'number',
+    max_nights: 'number',
+    price_adult: 'number',
+    price_child: 'number',
+    adrenaline_level: 'number',
+    population: 'number',
+    area_km2: 'number',
+    max_participants: 'number',
+    review_count: 'number',
+    amenities: 'array',
+    services: 'array',
+    facilities: 'array',
+    highlights: 'array',
+    typical_dishes: 'array',
+    signature_dishes: 'array',
+    specialties: 'array',
+    languages: 'array',
+    certifications: 'array',
+    tour_types: 'array',
+    included: 'array',
+    requirements: 'array',
+    insurance_accepted: 'array',
+    cruise_lines: 'array',
+    sport_types: 'array',
+    home_teams: 'array',
+    attractions: 'array',
+    includes: 'array',
+    activities: 'array',
+    safety_tips: 'array',
+    flora_fauna: 'array',
+    coffee_varieties: 'array',
+    craft_types: 'array',
+    house_rules: 'array',
+    start_date: 'date',
+    end_date: 'date',
+    start_time: 'time',
+    end_time: 'time',
+    check_in_time: 'time',
+    check_out_time: 'time'
+  };
+
+  const labelMap: Record<string, string> = {
+    name: 'Nombre',
+    slug: 'Slug (URL)',
+    description: 'Descripción',
+    short_description: 'Descripción corta',
+    image_url: 'Imagen principal (URL)',
+    gallery: 'Galería de imágenes',
+    address: 'Dirección',
+    phone: 'Teléfono',
+    email: 'Email',
+    website: 'Sitio web',
+    price_range: 'Rango de precios',
+    opening_hours: 'Horario',
+    rating: 'Calificación',
+    latitude: 'Latitud',
+    longitude: 'Longitud',
+    is_featured: 'Destacado',
+    is_active: 'Activo',
+    destination_id: 'ID Destino',
+    province_id: 'ID Provincia',
+    category: 'Categoría',
+    cuisine_type: 'Tipo de cocina',
+    bar_type: 'Tipo de bar',
+    ambiance: 'Ambiente',
+    music_style: 'Estilo musical',
+    dress_code: 'Código de vestimenta',
+    minimum_age: 'Edad mínima',
+    agency_type: 'Tipo de agencia',
+    operator_type: 'Tipo de operador',
+    experience_type: 'Tipo de experiencia',
+    event_type: 'Tipo de evento',
+    clinic_type: 'Tipo de clínica',
+    port_type: 'Tipo de puerto',
+    stadium_type: 'Tipo de estadio',
+    park_type: 'Tipo de parque',
+    cave_type: 'Tipo de cueva',
+    workshop_type: 'Tipo de taller',
+    municipality_type: 'Tipo de municipio',
+    property_type: 'Tipo de propiedad',
+    stars: 'Estrellas',
+    amenities: 'Amenidades',
+    services: 'Servicios',
+    facilities: 'Instalaciones',
+    highlights: 'Puntos destacados',
+    typical_dishes: 'Platos típicos',
+    signature_dishes: 'Platos estrella',
+    specialties: 'Especialidades',
+    languages: 'Idiomas',
+    certifications: 'Certificaciones',
+    guests: 'Huéspedes',
+    bedrooms: 'Habitaciones',
+    beds: 'Camas',
+    bathrooms: 'Baños',
+    price_per_night: 'Precio por noche',
+    host_name: 'Nombre del anfitrión',
+    is_superhost: 'Superanfitrión',
+    difficulty: 'Dificultad',
+    duration: 'Duración',
+    tour_duration: 'Duración del tour',
+    best_season: 'Mejor temporada',
+    capacity: 'Capacidad',
+    start_date: 'Fecha inicio',
+    end_date: 'Fecha fin',
+    venue: 'Lugar',
+    ticket_url: 'URL de tickets',
+    organizer: 'Organizador',
+    is_recurring: 'Recurrente',
+    coffee_varieties: 'Variedades de café',
+    altitude: 'Altitud',
+    tasting_notes: 'Notas de cata'
+  };
+
+  const config = entityConfigs[entity];
+  return config.fields.map(field => ({
+    name: field,
+    label: labelMap[field] || field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    type: fieldTypeMap[field] || 'text',
+    required: config.requiredFields.includes(field),
+    showInList: ['rating', 'category', 'price_range', 'is_featured'].includes(field)
+  }));
 };
 
 const AdminPanel = () => {
@@ -492,8 +708,12 @@ const AdminPanel = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <Tabs defaultValue="upload">
+                  <Tabs defaultValue="manage">
                     <TabsList className="mb-4">
+                      <TabsTrigger value="manage">
+                        <List className="h-4 w-4 mr-2" />
+                        Gestionar
+                      </TabsTrigger>
                       <TabsTrigger value="upload">
                         <Upload className="h-4 w-4 mr-2" />
                         Cargar CSV
@@ -503,6 +723,14 @@ const AdminPanel = () => {
                         Plantilla
                       </TabsTrigger>
                     </TabsList>
+
+                    <TabsContent value="manage">
+                      <EntityList 
+                        entity={selectedEntity as AdminEntityType}
+                        entityName={entityConfigs[selectedEntity].name.slice(0, -1)}
+                        fields={getFieldsConfig(selectedEntity)}
+                      />
+                    </TabsContent>
 
                     <TabsContent value="upload" className="space-y-4">
                       <Alert>
@@ -548,7 +776,7 @@ const AdminPanel = () => {
 
                           {uploading && (
                             <div className="flex items-center gap-4 text-sm">
-                              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                              <span className="flex items-center gap-1 text-primary">
                                 <CheckCircle className="h-4 w-4" />
                                 {uploadProgress.success} exitosos
                               </span>
