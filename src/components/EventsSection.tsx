@@ -3,6 +3,7 @@ import { Calendar, MapPin, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { LazyImage } from "@/components/ui/lazy-image";
 import carnivalImg from "@/assets/carnival.jpg";
 import jazzImg from "@/assets/jazz-festival.jpg";
 import tasteImg from "@/assets/taste-event.jpg";
@@ -114,10 +115,11 @@ export function EventsSection() {
             >
               {/* Image with Date Badge */}
               <div className="relative aspect-video overflow-hidden">
-                <img
+                <LazyImage
                   src={event.image}
                   alt={event.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  containerClassName="w-full h-full"
                 />
                 <div className="absolute top-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg px-3 py-2 text-center min-w-[48px]">
                   <span className="block text-xl font-bold text-foreground leading-none">
