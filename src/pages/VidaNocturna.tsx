@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
 
 const categories = [
   { id: "all", label: "Todos", icon: Sparkles },
@@ -333,6 +334,9 @@ export default function VidaNocturna() {
           </div>
         </section>
       </div>
+
+      {/* Ad before footer */}
+      <BetweenSectionsAd showDemo />
 
       <Footer />
     </div>

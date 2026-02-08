@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
 
 import rafting from "@/assets/rafting.jpg";
 import adventure from "@/assets/adventure.jpg";
@@ -403,6 +404,9 @@ export default function Rios() {
             </div>
           </div>
         </section>
+
+        {/* Ad before footer */}
+        <BetweenSectionsAd showDemo />
 
         <Footer />
       </div>

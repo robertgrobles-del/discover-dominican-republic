@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
 
 import adventure from "@/assets/adventure.jpg";
 import diving from "@/assets/diving.jpg";
@@ -97,6 +98,9 @@ export default function Experiencias() {
           </div>
         </section>
 
+        {/* Ad after hero */}
+        <CompactInlineAd showDemo />
+
         {/* Grid de Experiencias */}
         <section className="py-16">
           <div className="container mx-auto px-4">
@@ -144,6 +148,9 @@ export default function Experiencias() {
             )}
           </div>
         </section>
+
+        {/* Ad between sections */}
+        <BetweenSectionsAd showDemo />
 
         {/* CTA */}
         <section className="py-16 bg-card/30">

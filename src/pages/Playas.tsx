@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { beaches, Beach } from "@/data/beaches";
+import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
 
 import heroBeach from "@/assets/hero-beach.jpg";
 
@@ -126,6 +127,9 @@ export default function Playas() {
           </div>
         </section>
 
+        {/* Ad after features */}
+        <CompactInlineAd showDemo />
+
         {/* Playas Grid */}
         <section className="py-16 flex-1">
           <div className="container mx-auto px-4">
@@ -145,6 +149,9 @@ export default function Playas() {
             </div>
           </div>
         </section>
+
+        {/* Ad before footer */}
+        <BetweenSectionsAd showDemo />
 
         <Footer />
       </div>

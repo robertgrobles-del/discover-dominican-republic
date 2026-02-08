@@ -86,7 +86,7 @@ export default function Destinos() {
         <PopularDestinations destinations={popularDestinations} />
 
         {/* Banner Ad */}
-        <BetweenSectionsAd />
+        <BetweenSectionsAd showDemo />
 
         {/* Regions */}
         <RegionsSection />
@@ -95,7 +95,7 @@ export default function Destinos() {
         <RecommendedDestinations destinations={recommendedDestinations} />
 
         {/* Banner Ad */}
-        <BetweenSectionsAd />
+        <BetweenSectionsAd showDemo />
 
         {/* Provinces Grid */}
         <ProvincesGrid provinces={provinces} />

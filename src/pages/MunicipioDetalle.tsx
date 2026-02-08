@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 
 import { ProvinceActivities } from "@/components/province/ProvinceActivities";
 import { ProvinceFeaturedSection } from "@/components/province/ProvinceFeaturedSection";
-import { InlineAd } from "@/components/ads/BannerAd";
+import { InlineAd, BetweenSectionsAd } from "@/components/ads";
 
 import { destinations, getDestinationBySlug } from "@/data/destinations";
 import { hotels } from "@/data/hotels";
@@ -216,7 +216,7 @@ export default function MunicipioDetalle() {
         )}
 
         {/* Banner Ad */}
-        <InlineAd />
+        <InlineAd showDemo />
 
         {/* Activities */}
         <ProvinceActivities
@@ -286,6 +286,9 @@ export default function MunicipioDetalle() {
             </div>
           </div>
         </section>
+
+        {/* Ad before footer */}
+        <BetweenSectionsAd showDemo />
       </main>
 
       <Footer />

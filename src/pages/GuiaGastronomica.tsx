@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { BetweenSectionsAd } from "@/components/ads";
 
 const priceRanges = ["$", "$$", "$$$", "$$$$"];
 
@@ -349,6 +350,9 @@ export default function GuiaGastronomica() {
           </div>
         </div>
       </div>
+
+      {/* Ad before footer */}
+      <BetweenSectionsAd showDemo />
 
       <Footer />
     </div>

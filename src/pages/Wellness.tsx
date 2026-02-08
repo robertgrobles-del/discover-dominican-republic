@@ -6,6 +6,7 @@ import { Waves, Heart, Mountain, Leaf, MapPin, Star, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
 import heroBeach from "@/assets/hero-beach.jpg";
 import hotelClareVerde from "@/assets/hotel-clare-verde.jpg";
 import adventure from "@/assets/adventure.jpg";
@@ -274,6 +275,9 @@ export default function Wellness() {
             </p>
           </div>
         </section>
+
+        {/* Ad before footer */}
+        <BetweenSectionsAd showDemo />
 
         <Footer />
       </div>

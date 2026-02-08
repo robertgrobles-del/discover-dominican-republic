@@ -11,7 +11,7 @@ import { ProvinceActivities } from "@/components/province/ProvinceActivities";
 import { ProvinceDestinations } from "@/components/province/ProvinceDestinations";
 import { ProvinceFeaturedSection } from "@/components/province/ProvinceFeaturedSection";
 import { ProvinceNightlife } from "@/components/province/ProvinceNightlife";
-import { BetweenSectionsAd } from "@/components/ads/BannerAd";
+import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
 
 import { destinations, getDestinationBySlug } from "@/data/destinations";
 import { hotels } from "@/data/hotels";
@@ -201,7 +201,7 @@ export default function ProvinciaDetalle() {
         />
 
         {/* Final Banner Ad */}
-        <BetweenSectionsAd />
+        <BetweenSectionsAd showDemo />
       </main>
 
       <Footer />
