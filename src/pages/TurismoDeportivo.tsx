@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { GolfSection } from "@/components/sports/GolfSection";
+import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
 
 const sports = [
   {
@@ -528,6 +529,9 @@ export default function TurismoDeportivo() {
             </motion.div>
           </div>
         </section>
+
+        {/* Ad before footer */}
+        <BetweenSectionsAd showDemo />
 
         <Footer />
       </div>

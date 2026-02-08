@@ -13,6 +13,7 @@ import {
   AlertCircle, Ship, Thermometer
 } from "lucide-react";
 import { useState } from "react";
+import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
 
 import whaleSamana from "@/assets/whale-samana.jpg";
 import adventure from "@/assets/adventure.jpg";
@@ -511,6 +512,9 @@ export default function Ecoturismo() {
             </Tabs>
           </div>
         </section>
+
+        {/* Ad before footer */}
+        <BetweenSectionsAd showDemo />
 
         <Footer />
       </div>

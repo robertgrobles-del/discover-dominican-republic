@@ -3,6 +3,7 @@ import { ChevronRight, Play, Music, Heart, MapPin, Calendar } from "lucide-react
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
 import laBanderaImg from "@/assets/la-bandera.jpg";
 import merengueImg from "@/assets/merengue-dance.jpg";
 import carnivalImg from "@/assets/carnival.jpg";
@@ -180,6 +181,9 @@ export default function Cultura() {
         </div>
       </section>
 
+      {/* Ad between sections */}
+      <CompactInlineAd showDemo />
+
       {/* Music & Folklore Section */}
       <section className="py-20 bg-background">
         <div className="container mx-auto px-4 lg:px-8">
@@ -329,6 +333,9 @@ export default function Cultura() {
           </div>
         </div>
       </section>
+
+      {/* Ad before CTA */}
+      <BetweenSectionsAd showDemo />
 
       {/* CTA Section */}
       <section className="py-16 bg-primary">

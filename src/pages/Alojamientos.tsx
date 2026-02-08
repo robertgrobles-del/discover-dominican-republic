@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { BetweenSectionsAd, SidebarAd, CompactInlineAd } from "@/components/ads";
 
 import hotelRoomSuite from "@/assets/hotel-room-suite.jpg";
 
@@ -438,6 +439,9 @@ export default function Alojamientos() {
             )}
           </div>
         </section>
+
+        {/* Ad before footer */}
+        <BetweenSectionsAd showDemo />
 
         <Footer />
       </div>

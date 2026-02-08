@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { PageTransition } from "@/components/PageTransition";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { CompactInlineAd } from "@/components/ads";
 import heroBeachImg from "@/assets/hero-beach.jpg";
 
 export default function Login() {
@@ -151,6 +152,9 @@ export default function Login() {
             </motion.div>
           </div>
         </main>
+
+        {/* Ad before footer */}
+        <CompactInlineAd showDemo />
 
         <Footer />
       </div>
