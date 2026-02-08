@@ -157,7 +157,7 @@ export function EventsSection() {
                     <MapPin className="h-4 w-4" />
                     <span>{event.location}</span>
                   </div>
-                  <Link to={`/eventos`} className="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+                  <Link to={`/evento/${event.id}`} className="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
                     Detalles
                     <ChevronRight className="h-4 w-4" />
                   </Link>

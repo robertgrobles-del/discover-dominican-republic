@@ -21,7 +21,7 @@ const categorias = ["Todo", "Culturales", "Regionales", "Ferias", "Exposiciones"
 
 const eventos = [
   {
-    id: 1,
+    id: "1",
     titulo: "Carnaval de La Vega",
     fecha: "5 OCT - 10:00 AM",
     categoria: "Cultural",
@@ -30,7 +30,7 @@ const eventos = [
     ubicacion: "La Vega"
   },
   {
-    id: 2,
+    id: "2",
     titulo: "DR Jazz Festival",
     fecha: "12 OCT - 6:00 PM",
     categoria: "Música",
@@ -39,7 +39,7 @@ const eventos = [
     ubicacion: "Cabarete"
   },
   {
-    id: 3,
+    id: "3",
     titulo: "Feria Gastronómica",
     fecha: "15 OCT - 9:00 AM",
     categoria: "Feria",
