@@ -151,6 +151,16 @@ const ComparadorHoteles = lazy(() => import("./pages/ComparadorHoteles"));
 const EncuestaPostViaje = lazy(() => import("./pages/EncuestaPostViaje"));
 const ClimaYTemporadas = lazy(() => import("./pages/ClimaYTemporadas"));
 const MuseosMonumentos = lazy(() => import("./pages/MuseosMonumentos"));
+const ItinerarioIA = lazy(() => import("./pages/ItinerarioIA"));
+const TraductorViajero = lazy(() => import("./pages/TraductorViajero"));
+const ReservaDirecta = lazy(() => import("./pages/ReservaDirecta"));
+const ListaEmpaque = lazy(() => import("./pages/ListaEmpaque"));
+const ConversorMoneda = lazy(() => import("./pages/ConversorMoneda"));
+const CostosViaje = lazy(() => import("./pages/CostosViaje"));
+const ZonasHorarias = lazy(() => import("./pages/ZonasHorarias"));
+const RequisitosViaje = lazy(() => import("./pages/RequisitosViaje"));
+const ContactosEmergencia = lazy(() => import("./pages/ContactosEmergencia"));
+const EscuelaViajero = lazy(() => import("./pages/EscuelaViajero"));
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
 const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
@@ -342,6 +352,16 @@ function AnimatedRoutes() {
         <Route path="/encuesta-post-viaje" element={<EncuestaPostViaje />} />
         <Route path="/clima" element={<ClimaYTemporadas />} />
         <Route path="/museos-monumentos" element={<MuseosMonumentos />} />
+        <Route path="/itinerario-ia" element={<ItinerarioIA />} />
+        <Route path="/traductor" element={<TraductorViajero />} />
+        <Route path="/reserva-directa" element={<ReservaDirecta />} />
+        <Route path="/lista-empaque" element={<ListaEmpaque />} />
+        <Route path="/conversor-moneda" element={<ConversorMoneda />} />
+        <Route path="/costos-viaje" element={<CostosViaje />} />
+        <Route path="/zonas-horarias" element={<ZonasHorarias />} />
+        <Route path="/requisitos-viaje" element={<RequisitosViaje />} />
+        <Route path="/contactos-emergencia" element={<ContactosEmergencia />} />
+        <Route path="/escuela-viajero" element={<EscuelaViajero />} />
         
         {/* Static destination pages - /destino/slug */}
         <Route path="/destino/punta-cana" element={<PuntaCana />} />
