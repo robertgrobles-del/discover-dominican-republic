@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface Restaurant {
   id: string;
+  slug?: string;
   nombre: string;
   imagen: string;
   tipo: string;
@@ -43,7 +44,7 @@ export function DestinationRestaurants({ restaurantes, destinoId }: DestinationR
           {restaurantes.map((rest) => (
             <Link 
               key={rest.id} 
-              to={`/restaurante/${rest.id}`}
+              to={`/restaurante/${rest.slug || rest.id}`}
               className="group bg-card rounded-xl border border-border overflow-hidden hover:shadow-lg transition-all"
             >
               <div className="relative aspect-[4/3]">
