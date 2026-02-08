@@ -2,10 +2,9 @@ import { motion } from "framer-motion";
 import { Star, ChevronRight, MapPin, Clock, Wine, Utensils, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Badge } from "@/components/ui/badge";
+import { LazyImage } from "@/components/ui/lazy-image";
 import gastronomyImg from "@/assets/gastronomy.jpg";
 import divingImg from "@/assets/diving.jpg";
 import laBanderaImg from "@/assets/la-bandera.jpg";
@@ -120,8 +119,6 @@ interface RestaurantType {
 }
 
 function RestaurantCard({ restaurant, index }: { restaurant: RestaurantType; index: number }) {
-  const [imageLoaded, setImageLoaded] = useState(false);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -133,14 +130,11 @@ function RestaurantCard({ restaurant, index }: { restaurant: RestaurantType; ind
       }`}
     >
       <div className="relative aspect-[16/10] overflow-hidden">
-        {!imageLoaded && <Skeleton className="absolute inset-0 w-full h-full" />}
-        <img
+        <LazyImage
           src={restaurant.image}
           alt={restaurant.name}
-          className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
-            imageLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          onLoad={() => setImageLoaded(true)}
+          className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
+          containerClassName="w-full h-full"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
         <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
@@ -226,8 +220,6 @@ interface BarType {
 }
 
 function BarCard({ bar, index }: { bar: BarType; index: number }) {
-  const [imageLoaded, setImageLoaded] = useState(false);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -238,14 +230,11 @@ function BarCard({ bar, index }: { bar: BarType; index: number }) {
         bar.isSponsored ? 'ring-2 ring-primary/50' : ''
       }`}
     >
-      {!imageLoaded && <Skeleton className="absolute inset-0 w-full h-full" />}
-      <img
+      <LazyImage
         src={bar.image}
         alt={bar.name}
-        className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${
-          imageLoaded ? 'opacity-100' : 'opacity-0'
-        }`}
-        onLoad={() => setImageLoaded(true)}
+        className="absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
+        containerClassName="absolute inset-0"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
       

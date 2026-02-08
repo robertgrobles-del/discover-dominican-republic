@@ -2,6 +2,7 @@ import { useRef, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { LazyImage } from "@/components/ui/lazy-image";
 import adventureImg from "@/assets/adventure.jpg";
 import beachImg from "@/assets/beach-category.jpg";
 import historyImg from "@/assets/history.jpg";
@@ -143,10 +144,11 @@ export function InterestSection() {
               <Link to={interest.link} className="block h-full">
                 <div className="group relative h-full rounded-2xl overflow-hidden cursor-pointer">
                   {/* Background Image */}
-                  <img
+                  <LazyImage
                     src={interest.image}
                     alt={interest.title}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    containerClassName="absolute inset-0"
                   />
                   
                   {/* Gradient Overlay */}

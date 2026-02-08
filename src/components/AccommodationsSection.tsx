@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { LazyImage } from "@/components/ui/lazy-image";
 import hotelEdenRocImg from "@/assets/hotel-eden-roc.jpg";
 import hotelClareVerdeImg from "@/assets/hotel-clare-verde.jpg";
 import hotelBilliniImg from "@/assets/hotel-billini.jpg";
@@ -123,10 +124,11 @@ function AccommodationCard({ item, type }: AccommodationCardProps) {
     >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden">
-        <img
+        <LazyImage
           src={item.image}
           alt={item.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          containerClassName="w-full h-full"
         />
         <div className="absolute top-4 left-4 flex gap-2 flex-wrap">
           {item.isSponsored && (

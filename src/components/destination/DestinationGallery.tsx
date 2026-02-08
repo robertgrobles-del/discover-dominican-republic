@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight, Expand, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { LazyImage } from "@/components/ui/lazy-image";
 
 interface DestinationGalleryProps {
   images: { src: string; alt: string }[];
@@ -22,10 +23,11 @@ export function DestinationGallery({ images }: DestinationGalleryProps) {
           className="col-span-2 row-span-2 relative rounded-2xl overflow-hidden cursor-pointer group"
           onClick={() => setIsFullscreen(true)}
         >
-          <img 
+          <LazyImage 
             src={images[0]?.src} 
             alt={images[0]?.alt}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            containerClassName="w-full h-full"
           />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
             <Expand className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -42,10 +44,11 @@ export function DestinationGallery({ images }: DestinationGalleryProps) {
               setIsFullscreen(true);
             }}
           >
-            <img 
+            <LazyImage 
               src={img.src} 
               alt={img.alt}
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              containerClassName="w-full h-full"
             />
             {index === 3 && images.length > 5 && (
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
