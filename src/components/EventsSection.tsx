@@ -67,7 +67,7 @@ export function EventsSection() {
           </div>
         </div>
       </div>
-      <div className="container mx-auto px-4 lg:px-8">
+      <div className="container mx-auto px-4 lg:px-8 2xl:px-48">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
           <motion.div

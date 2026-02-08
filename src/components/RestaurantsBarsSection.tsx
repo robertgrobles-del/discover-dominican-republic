@@ -309,7 +309,7 @@ export function RestaurantsBarsSection() {
             <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">Publicidad</span>
           </div>
         </div>
-        <div className="container mx-auto px-4 lg:px-8">
+        <div className="container mx-auto px-4 lg:px-8 2xl:px-48">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
