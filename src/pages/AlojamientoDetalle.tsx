@@ -43,6 +43,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { AccommodationGallery } from "@/components/AccommodationGallery";
+import { DetailPageSidebarAd, MobileStickyFooterAd, InlineAd } from "@/components/ads";
 import hotelEdenRocImg from "@/assets/hotel-eden-roc.jpg";
 import hotelRoomSuiteImg from "@/assets/hotel-room-suite.jpg";
 import heroBeachImg from "@/assets/hero-beach.jpg";
@@ -798,6 +799,12 @@ export default function AlojamientoDetalle() {
           </div>
         </div>
       </section>
+
+      {/* Ad inline antes del footer */}
+      <InlineAd showDemo variant="large" />
+      
+      {/* Footer sticky ad para móvil */}
+      <MobileStickyFooterAd showDemo />
 
       <Footer />
     </div>

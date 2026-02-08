@@ -8,6 +8,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SearchResultsAd } from "@/components/ads";
 
 import puntaCana from "@/assets/punta-cana.jpg";
 import santoDomingo from "@/assets/santo-domingo.jpg";
@@ -251,6 +252,11 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                 ) : results.length > 0 ? (
                   /* Search Results */
                   <div className="p-2">
+                    {/* Ad en resultados de búsqueda */}
+                    {results.length >= 3 && (
+                      <SearchResultsAd showDemo className="mb-4" />
+                    )}
+                    
                     {Object.entries(groupedResults).map(([category, items]) => (
                       <div key={category} className="mb-4">
                         <div className="px-2 py-1">

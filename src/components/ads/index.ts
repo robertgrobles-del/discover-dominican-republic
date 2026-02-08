@@ -11,3 +11,6 @@ export {
   PanoramaAd
 } from "./BannerAd";
 export type { AdSize, AdPlacement } from "./BannerAd";
+export { MobileStickyFooterAd } from "./MobileStickyFooterAd";
+export { SearchResultsAd } from "./SearchResultsAd";
+export { DetailPageSidebarAd } from "./DetailPageSidebarAd";
