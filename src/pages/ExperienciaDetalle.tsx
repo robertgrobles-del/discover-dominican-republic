@@ -6,6 +6,7 @@ import { MapPin, Star, Clock, Users, ChevronRight, Heart, Share2, Play, Instagra
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
+import { DetailPageSidebarAd, MobileStickyFooterAd, BetweenSectionsAd } from "@/components/ads";
 
 import adventure from "@/assets/adventure.jpg";
 import diving from "@/assets/diving.jpg";
@@ -556,6 +557,12 @@ export default function ExperienciaDetalle() {
             </div>
           </div>
         </section>
+
+        {/* Banner Ad antes del footer */}
+        <BetweenSectionsAd showDemo />
+
+        {/* Footer sticky ad para móvil */}
+        <MobileStickyFooterAd showDemo />
 
         <Footer />
       </div>

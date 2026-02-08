@@ -85,7 +85,7 @@ export default function Destinos() {
         {/* Popular Destinations */}
         <PopularDestinations destinations={popularDestinations} />
 
-        {/* Banner Ad */}
+        {/* Banner Ad antes de regiones */}
         <BetweenSectionsAd showDemo />
 
         {/* Regions */}

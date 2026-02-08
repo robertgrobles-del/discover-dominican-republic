@@ -5,10 +5,11 @@ import { EventsSection } from "@/components/EventsSection";
 import { AccommodationsSection } from "@/components/AccommodationsSection";
 import { RestaurantsBarsSection } from "@/components/RestaurantsBarsSection";
 import { DestinationsSection } from "@/components/DestinationsSection";
+import { NewsSection } from "@/components/NewsSection";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead, generateOrganizationSchema } from "@/components/SEOHead";
-import { BetweenSectionsAd, MobileAd } from "@/components/ads";
+import { BetweenSectionsAd, MobileAd, MobileStickyFooterAd } from "@/components/ads";
 
 const Index = () => {
   return (
@@ -30,6 +31,12 @@ const Index = () => {
         <BetweenSectionsAd showDemo />
         <AccommodationsSection />
         <DestinationsSection />
+        <BetweenSectionsAd showDemo />
+        <NewsSection />
+        
+        {/* Footer sticky ad para móvil */}
+        <MobileStickyFooterAd showDemo />
+        
         <Footer />
       </div>
     </PageTransition>

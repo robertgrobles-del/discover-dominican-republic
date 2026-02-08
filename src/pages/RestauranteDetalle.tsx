@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { DetailPageSidebarAd, MobileStickyFooterAd } from "@/components/ads";
 import { getRestaurantBySlug } from "@/data/restaurants";
 import { getDestinationBySlug, getDestinationById } from "@/data/destinations";
 
@@ -385,10 +386,16 @@ export default function RestauranteDetalle() {
                   </div>
                 </div>
               )}
+              
+              {/* Ad Sidebar */}
+              <DetailPageSidebarAd showDemo variant="square" />
             </div>
           </div>
         </div>
       </div>
+
+      {/* Footer sticky ad para móvil */}
+      <MobileStickyFooterAd showDemo />
 
       <Footer />
     </div>
