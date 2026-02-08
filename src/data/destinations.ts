@@ -52,6 +52,37 @@ export interface Destination {
   isPopular?: boolean;
   isRecommended?: boolean;
   isFeatured?: boolean;
+  // Nuevos campos de información ampliada
+  activities?: {
+    name: string;
+    type: 'aventura' | 'cultural' | 'relajación' | 'naturaleza' | 'gastronómico' | 'nocturno';
+    duration?: string;
+    price?: string;
+    description?: string;
+  }[];
+  attractions?: {
+    name: string;
+    type: 'natural' | 'histórico' | 'entretenimiento' | 'religioso';
+    description?: string;
+    entryFee?: string;
+    hours?: string;
+  }[];
+  tips?: string[];
+  safetyInfo?: string;
+  currency?: string;
+  language?: string;
+  timezone?: string;
+  nearbyAirport?: string;
+  distanceFromAirport?: string;
+  averageBudget?: {
+    budget: string;
+    mid: string;
+    luxury: string;
+  };
+  bestFor?: string[];
+  notRecommendedFor?: string[];
+  minimumDays?: number;
+  idealDays?: number;
 }
 
 export const destinations: Destination[] = [
@@ -260,16 +291,48 @@ export const destinations: Destination[] = [
     description: 'Punta Cana es el corazón turístico del Caribe, famoso por sus 48 kilómetros de playas de arena blanca bordeadas de cocoteros. Aquí encontrarás los mejores resorts todo incluido, campos de golf de campeonato, y una infinidad de actividades acuáticas y de aventura.',
     imageUrl: '/placeholder.svg',
     gallery: ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg'],
-    highlights: ['Playa Bávaro', 'Hoyo Azul', 'Indigenous Eyes Ecological Park', 'Golf'],
-    bestTimeToVisit: 'Diciembre a Abril',
-    howToGetThere: 'Aeropuerto Internacional de Punta Cana (PUJ).',
-    weatherInfo: 'Clima tropical perfecto con sol casi todo el año.',
-    typicalDishes: ['Langosta', 'Pescado con coco', 'Ceviche tropical'],
+    highlights: ['Playa Bávaro', 'Hoyo Azul', 'Indigenous Eyes Ecological Park', 'Golf de clase mundial', 'Vida nocturna vibrante'],
+    bestTimeToVisit: 'Diciembre a Abril para clima perfecto; todo el año es bueno',
+    howToGetThere: 'Aeropuerto Internacional de Punta Cana (PUJ) - el más transitado del Caribe. Vuelos directos desde 70+ ciudades.',
+    weatherInfo: 'Clima tropical perfecto con temperatura promedio de 27°C. Temporada de huracanes junio-noviembre (raro impacto directo).',
+    typicalDishes: ['Langosta a la criolla', 'Pescado con coco', 'Ceviche tropical', 'Mofongo de mariscos'],
     latitude: 18.5601,
     longitude: -68.3725,
     isPopular: true,
     isRecommended: true,
-    isFeatured: true
+    isFeatured: true,
+    activities: [
+      { name: 'Snorkel en arrecifes', type: 'aventura', duration: '3 horas', price: '$45-80 USD', description: 'Explora los coloridos arrecifes de coral con guías expertos' },
+      { name: 'Excursión a Isla Saona', type: 'naturaleza', duration: 'Día completo', price: '$80-150 USD', description: 'Paraíso virgen con piscinas naturales y estrellas de mar' },
+      { name: 'Tirolesa en Scape Park', type: 'aventura', duration: '4 horas', price: '$100-180 USD', description: '12 líneas de zipline sobre cenotes y selva tropical' },
+      { name: 'Golf en Punta Espada', type: 'relajación', duration: '5 horas', price: '$350+ USD', description: 'Campo diseñado por Jack Nicklaus, ranked #1 en el Caribe' },
+      { name: 'Fiesta en Coco Bongo', type: 'nocturno', duration: '4 horas', price: '$80-120 USD', description: 'El club nocturno más famoso del Caribe con shows espectaculares' },
+      { name: 'Tour gastronómico', type: 'gastronómico', duration: '3 horas', price: '$60-90 USD', description: 'Degusta los sabores auténticos dominicanos' },
+    ],
+    attractions: [
+      { name: 'Hoyo Azul', type: 'natural', description: 'Cenote de aguas turquesas en un acantilado de 75 pies', entryFee: '$25 USD', hours: '8:00 AM - 5:00 PM' },
+      { name: 'Indigenous Eyes Ecological Park', type: 'natural', description: '12 lagunas de agua dulce en reserva ecológica privada', entryFee: '$50 USD', hours: '8:30 AM - 5:30 PM' },
+      { name: 'Playa Macao', type: 'natural', description: 'Playa pública perfecta para surf y ambiente local auténtico' },
+      { name: 'Marinarium', type: 'entretenimiento', description: 'Nada con tiburones y rayas en ambiente controlado', entryFee: '$99 USD' },
+    ],
+    tips: [
+      'Reserva excursiones con anticipación en temporada alta (dic-abril)',
+      'Negocia precios con vendedores de playa - siempre puedes obtener mejor precio',
+      'Lleva protector solar reef-safe para proteger los arrecifes',
+      'El agua del grifo no es potable - usa embotellada',
+      'Propina estándar: 10-15% en restaurantes fuera del resort',
+    ],
+    nearbyAirport: 'Aeropuerto Internacional de Punta Cana (PUJ)',
+    distanceFromAirport: '15-30 minutos dependiendo del resort',
+    averageBudget: {
+      budget: '$100-150 USD/día',
+      mid: '$200-350 USD/día',
+      luxury: '$500+ USD/día',
+    },
+    bestFor: ['Parejas en luna de miel', 'Familias', 'Amantes del golf', 'Viajeros de lujo', 'Fiestas y vida nocturna'],
+    notRecommendedFor: ['Mochileros con presupuesto muy limitado', 'Quienes buscan experiencia cultural auténtica'],
+    minimumDays: 3,
+    idealDays: 5,
   },
   {
     id: 'bavaro',
@@ -353,16 +416,46 @@ export const destinations: Destination[] = [
     description: 'Las Terrenas es un encantador pueblo costero con un toque europeo, particularmente francés e italiano. Sus playas vírgenes, restaurantes gourmet y ambiente relajado lo convierten en el destino favorito de viajeros que buscan autenticidad y belleza natural.',
     imageUrl: '/placeholder.svg',
     gallery: ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg'],
-    highlights: ['Playa Cosón', 'Playa Bonita', 'Pueblo El Limón', 'Gastronomía internacional'],
-    bestTimeToVisit: 'Diciembre a Abril',
-    howToGetThere: '45 minutos desde el Aeropuerto El Catey.',
-    weatherInfo: 'Clima tropical húmedo con lluvias ocasionales.',
-    typicalDishes: ['Pescado con coco', 'Cocina francesa-dominicana', 'Langostinos'],
+    highlights: ['Playa Cosón', 'Playa Bonita', 'Cascada El Limón', 'Gastronomía internacional', 'Avistamiento de ballenas'],
+    bestTimeToVisit: 'Enero a Marzo para ballenas; Diciembre a Abril para clima',
+    howToGetThere: '45 minutos desde el Aeropuerto El Catey (AZS) o 2.5 horas desde Santo Domingo.',
+    weatherInfo: 'Clima tropical húmedo. Más lluvioso que el este. Temperaturas 24-30°C.',
+    typicalDishes: ['Pescado con coco', 'Cocina francesa-dominicana', 'Langostinos', 'Cangrejo guisado'],
     latitude: 19.3120,
     longitude: -69.5420,
     isPopular: true,
     isRecommended: true,
-    isFeatured: true
+    isFeatured: true,
+    activities: [
+      { name: 'Cascada El Limón a caballo', type: 'aventura', duration: '4 horas', price: '$35-60 USD', description: 'Cabalgata por senderos selváticos hasta una cascada de 40 metros' },
+      { name: 'Avistamiento de ballenas', type: 'naturaleza', duration: '4 horas', price: '$60-90 USD', description: 'Experiencia única con ballenas jorobadas (enero-marzo)' },
+      { name: 'Tour Parque Los Haitises', type: 'naturaleza', duration: 'Día completo', price: '$80-120 USD', description: 'Manglares, cuevas Taínas y bahía con islotes' },
+      { name: 'Clases de kitesurf', type: 'aventura', duration: '3 horas', price: '$100-150 USD', description: 'Aprende kitesurf en Playa Popy con instructores certificados' },
+      { name: 'Tour gastronómico', type: 'gastronómico', duration: '3 horas', price: '$50-80 USD', description: 'Descubre la fusión franco-dominicana única del pueblo' },
+    ],
+    attractions: [
+      { name: 'Cascada El Limón', type: 'natural', description: 'Majestuosa cascada de 40 metros en la selva tropical', entryFee: '$5-10 USD (sin tour)' },
+      { name: 'Playa Cosón', type: 'natural', description: '4 km de arena dorada y cocoteros - menos turística' },
+      { name: 'Playa Bonita', type: 'natural', description: 'Bahía tranquila ideal para snorkel y kayak' },
+      { name: 'Pueblo Pescadores', type: 'entretenimiento', description: 'Centro gastronómico con restaurantes de clase mundial' },
+    ],
+    tips: [
+      'Alquila un quad o moto para explorar las playas remotas',
+      'Los restaurantes franceses ofrecen la mejor relación calidad-precio para cenas',
+      'Reserva avistamiento de ballenas con anticipación en temporada alta',
+      'La electricidad puede ser intermitente - los hoteles buenos tienen generador',
+    ],
+    nearbyAirport: 'Aeropuerto Internacional El Catey (AZS)',
+    distanceFromAirport: '45 minutos',
+    averageBudget: {
+      budget: '$60-100 USD/día',
+      mid: '$120-200 USD/día',
+      luxury: '$300+ USD/día',
+    },
+    bestFor: ['Parejas románticas', 'Fotógrafos', 'Amantes de la naturaleza', 'Foodies', 'Viajeros independientes'],
+    notRecommendedFor: ['Quienes buscan vida nocturna intensa', 'Familias con niños que prefieren resorts'],
+    minimumDays: 2,
+    idealDays: 4,
   },
   {
     id: 'las-galeras',
@@ -447,16 +540,48 @@ export const destinations: Destination[] = [
     description: 'Jarabacoa es el destino de montaña más importante de República Dominicana, conocido como la ciudad de la eterna primavera por su clima fresco. Rodeado de ríos, cascadas y pinos, ofrece actividades de aventura como rafting, canyoning, parapente y senderismo hacia el Pico Duarte.',
     imageUrl: '/placeholder.svg',
     gallery: ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg'],
-    highlights: ['Salto de Jimenoa', 'Rafting en Río Yaque', 'Pico Duarte', 'Parapente'],
-    bestTimeToVisit: 'Todo el año, fresco especialmente de noviembre a febrero',
-    howToGetThere: '2 horas desde Santo Domingo.',
-    weatherInfo: 'Clima templado de montaña, 18-25°C durante el día.',
-    typicalDishes: ['Chivo liniero', 'Habichuelas con dulce', 'Moro de guandules'],
+    highlights: ['Salto de Jimenoa', 'Rafting en Río Yaque', 'Pico Duarte', 'Parapente', 'Café de altura'],
+    bestTimeToVisit: 'Todo el año; nov-feb más fresco; evitar sep-oct por lluvias',
+    howToGetThere: '2 horas desde Santo Domingo por autopista Duarte. No hay aeropuerto cercano.',
+    weatherInfo: 'Clima templado de montaña único en el Caribe. 16-25°C. Puede bajar a 10°C en invierno.',
+    typicalDishes: ['Chivo liniero', 'Habichuelas con dulce', 'Moro de guandules', 'Café orgánico'],
     latitude: 19.1200,
     longitude: -70.6400,
     isPopular: true,
     isRecommended: true,
-    isFeatured: true
+    isFeatured: true,
+    activities: [
+      { name: 'Rafting Río Yaque del Norte', type: 'aventura', duration: '3-4 horas', price: '$65-95 USD', description: 'Rápidos clase II-III en el río más largo del Caribe' },
+      { name: 'Canyoning', type: 'aventura', duration: '4 horas', price: '$75-100 USD', description: 'Rappel por cascadas, saltos y natación en cañones' },
+      { name: 'Parapente', type: 'aventura', duration: '30 min vuelo', price: '$80-120 USD', description: 'Vuela sobre el valle con vistas espectaculares' },
+      { name: 'Expedición Pico Duarte', type: 'aventura', duration: '2-3 días', price: '$250-400 USD', description: 'Conquista el pico más alto del Caribe (3,098m)' },
+      { name: 'Tour de café', type: 'gastronómico', duration: '2 horas', price: '$25-45 USD', description: 'Visita fincas de café orgánico y degustación' },
+      { name: 'Cabalgata a cascadas', type: 'naturaleza', duration: '3 horas', price: '$35-50 USD', description: 'Recorre senderos a caballo hacia cascadas escondidas' },
+    ],
+    attractions: [
+      { name: 'Salto de Jimenoa', type: 'natural', description: 'Cascada de 40 metros accesible por puente colgante', entryFee: 'RD$ 100 (~$2 USD)' },
+      { name: 'Salto Baiguate', type: 'natural', description: 'Cascada con piscina natural para nadar', entryFee: 'RD$ 100' },
+      { name: 'Pico Duarte', type: 'natural', description: 'El techo del Caribe a 3,098 metros - requiere 2-3 días' },
+      { name: 'Rancho Baiguate', type: 'entretenimiento', description: 'Centro de ecoaventura con todas las actividades' },
+    ],
+    tips: [
+      'Trae ropa abrigada - las noches son frescas (10-15°C)',
+      'Reserva expediciones al Pico Duarte con semanas de anticipación',
+      'Los mejores operadores de aventura: Rancho Baiguate y Flying Tony',
+      'El café local es excelente - compra directamente en fincas',
+      'Alquila un carro 4x4 para explorar caminos rurales',
+    ],
+    nearbyAirport: 'Aeropuerto del Cibao (STI) en Santiago',
+    distanceFromAirport: '1.5 horas desde Santiago',
+    averageBudget: {
+      budget: '$40-70 USD/día',
+      mid: '$80-150 USD/día',
+      luxury: '$200+ USD/día',
+    },
+    bestFor: ['Aventureros', 'Amantes de la naturaleza', 'Senderistas', 'Escapada del calor costero'],
+    notRecommendedFor: ['Quienes buscan playa', 'Viajeros que prefieren resorts todo incluido'],
+    minimumDays: 2,
+    idealDays: 3,
   },
   {
     id: 'constanza',
