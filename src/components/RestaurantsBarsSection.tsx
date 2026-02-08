@@ -13,6 +13,7 @@ import beachCategoryImg from "@/assets/beach-category.jpg";
 // Restaurante patrocinado destacado
 const sponsoredRestaurant = {
   id: "sponsored-restaurant",
+  slug: "la-yola-cap-cana",
   name: "La Casa del Chef",
   rating: 4.9,
   location: "Cap Cana, Punta Cana",
@@ -27,6 +28,7 @@ const sponsoredRestaurant = {
 const restaurants = [
   {
     id: "sabor-premium",
+    slug: "pat-e-palo",
     name: "Sabor Premium",
     rating: 4.9,
     location: "Zona Colonial, Santo Domingo",
@@ -38,6 +40,7 @@ const restaurants = [
   },
   {
     id: "el-conuco",
+    slug: "meson-de-bari",
     name: "El Conuco Gourmet",
     rating: 4.7,
     location: "Piantini, Santo Domingo",
@@ -107,6 +110,7 @@ const bars = [
 
 interface RestaurantType {
   id: string;
+  slug?: string;
   name: string;
   rating: number;
   location: string;
@@ -189,13 +193,13 @@ function RestaurantCard({ restaurant, index }: { restaurant: RestaurantType; ind
         </p>
 
         <div className="flex items-center justify-between pt-4 border-t border-border">
-          <Link to={`/restaurante/${restaurant.id}`}>
+          <Link to={restaurant.slug ? `/restaurante/${restaurant.slug}` : '/guia-gastronomica'}>
             <Button size="sm" className="gap-1">
               <Utensils className="h-3.5 w-3.5" />
               Reservar Mesa
             </Button>
           </Link>
-          <Link to={`/restaurante/${restaurant.id}`}>
+          <Link to={restaurant.slug ? `/restaurante/${restaurant.slug}` : '/guia-gastronomica'}>
             <Button size="sm" variant="ghost" className="gap-1">
               Ver Menú
               <ChevronRight className="h-3.5 w-3.5" />
