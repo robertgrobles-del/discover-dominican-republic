@@ -178,16 +178,19 @@ export function BannerAd({
     );
   }
 
+  const isFullWidth = placement === "between-sections";
+
   const AdContent = (
     <div
       className={cn(
         "relative overflow-hidden rounded-lg group",
         "hover:shadow-lg transition-shadow",
+        isFullWidth && "!rounded-none",
         className
       )}
       style={{ 
         width: "100%", 
-        maxWidth: config.width, 
+        maxWidth: isFullWidth ? "none" : config.width, 
         height: config.height 
       }}
       data-ad-id={adId}
@@ -289,12 +292,12 @@ export function InlineAd({ className, showDemo = false, variant = "medium" }: { 
 
 export function BetweenSectionsAd({ className, showDemo = false }: { className?: string; showDemo?: boolean }) {
   return (
-    <div className={cn("container mx-auto px-4 py-3", className)}>
-      <div className="hidden md:flex justify-center">
-        <BannerAd size="billboard" placement="between-sections" showDemo={showDemo} />
+    <div className={cn("w-full py-3", className)}>
+      <div className="hidden md:block w-full">
+        <BannerAd size="billboard" placement="between-sections" showDemo={showDemo} className="!max-w-none !w-full" />
       </div>
-      <div className="flex md:hidden justify-center">
-        <BannerAd size="mobile-large" placement="between-sections" showDemo={showDemo} />
+      <div className="block md:hidden w-full px-4">
+        <BannerAd size="mobile-large" placement="between-sections" showDemo={showDemo} className="!max-w-none !w-full" />
       </div>
     </div>
   );
