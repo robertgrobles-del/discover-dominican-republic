@@ -390,8 +390,8 @@ export function RestaurantsBarsSection() {
             </motion.div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {[sponsoredBar, ...bars].map((bar, index) => (
+          <div className="grid md:grid-cols-3 gap-6">
+            {[sponsoredBar, ...bars.slice(0, 2)].map((bar, index) => (
               <BarCard key={bar.id} bar={bar} index={index} />
             ))}
           </div>
