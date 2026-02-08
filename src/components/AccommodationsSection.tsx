@@ -183,7 +183,30 @@ function AccommodationCard({ item, type }: AccommodationCardProps) {
 
 export function AccommodationsSection() {
   return (
-    <section className="min-h-screen flex flex-col justify-center bg-card py-16">
+    <section className="relative min-h-screen flex flex-col justify-center bg-card py-16">
+      {/* Left Skyscraper Ad */}
+      <div className="hidden 2xl:block absolute left-4 top-1/2 -translate-y-1/2 z-10">
+        <div className="w-[160px] h-[600px] rounded-lg overflow-hidden shadow-lg">
+          <img 
+            src="https://images.unsplash.com/photo-1582719508461-905c673771fd?w=160&h=600&fit=crop" 
+            alt="Publicidad hoteles de lujo"
+            className="w-full h-full object-cover"
+          />
+          <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">Publicidad</span>
+        </div>
+      </div>
+
+      {/* Right Skyscraper Ad */}
+      <div className="hidden 2xl:block absolute right-4 top-1/2 -translate-y-1/2 z-10">
+        <div className="w-[160px] h-[600px] rounded-lg overflow-hidden shadow-lg">
+          <img 
+            src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=160&h=600&fit=crop" 
+            alt="Publicidad resorts"
+            className="w-full h-full object-cover"
+          />
+          <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">Publicidad</span>
+        </div>
+      </div>
       <div className="container mx-auto px-4 lg:px-8">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">

@@ -161,6 +161,7 @@ const ZonasHorarias = lazy(() => import("./pages/ZonasHorarias"));
 const RequisitosViaje = lazy(() => import("./pages/RequisitosViaje"));
 const ContactosEmergencia = lazy(() => import("./pages/ContactosEmergencia"));
 const EscuelaViajero = lazy(() => import("./pages/EscuelaViajero"));
+const EmpleoDetalle = lazy(() => import("./pages/EmpleoDetalle"));
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
 const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
@@ -261,6 +262,7 @@ function AnimatedRoutes() {
         <Route path="/accesibilidad" element={<Accesibilidad />} />
         <Route path="/rd-social" element={<RDSocial />} />
         <Route path="/empleo" element={<Empleo />} />
+        <Route path="/empleo/:id" element={<EmpleoDetalle />} />
         <Route path="/pasaporte-digital" element={<PasaporteDigital />} />
         <Route path="/cine-rd" element={<CineRD />} />
         <Route path="/academia" element={<AcademiaTuristica />} />

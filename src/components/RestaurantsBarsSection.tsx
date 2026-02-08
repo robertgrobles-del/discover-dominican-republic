@@ -285,7 +285,30 @@ export function RestaurantsBarsSection() {
       </section>
 
       {/* Bars Section */}
-      <section className="min-h-screen flex flex-col justify-center bg-card py-16">
+      <section className="relative min-h-screen flex flex-col justify-center bg-card py-16">
+        {/* Left Skyscraper Ad */}
+        <div className="hidden 2xl:block absolute left-4 top-1/2 -translate-y-1/2 z-10">
+          <div className="w-[160px] h-[600px] rounded-lg overflow-hidden shadow-lg">
+            <img 
+              src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=160&h=600&fit=crop" 
+              alt="Publicidad cócteles"
+              className="w-full h-full object-cover"
+            />
+            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">Publicidad</span>
+          </div>
+        </div>
+
+        {/* Right Skyscraper Ad */}
+        <div className="hidden 2xl:block absolute right-4 top-1/2 -translate-y-1/2 z-10">
+          <div className="w-[160px] h-[600px] rounded-lg overflow-hidden shadow-lg">
+            <img 
+              src="https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=160&h=600&fit=crop" 
+              alt="Publicidad vida nocturna"
+              className="w-full h-full object-cover"
+            />
+            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">Publicidad</span>
+          </div>
+        </div>
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
             <motion.div

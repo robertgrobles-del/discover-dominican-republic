@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -122,6 +124,11 @@ export default function Empleo() {
 
   return (
     <PageTransition>
+      <SEOHead
+        title="Empleo en Turismo | Bolsa de Trabajo RD"
+        description="Encuentra las mejores oportunidades laborales en el sector turístico de República Dominicana. Hoteles, restaurantes, agencias de viajes y más."
+        keywords="empleo turismo, trabajo hoteles, vacantes Punta Cana, empleo hotelería, trabajo turismo RD"
+      />
       <div className="min-h-screen bg-background">
         <Header />
 
@@ -279,9 +286,11 @@ export default function Empleo() {
                           <p className="text-xs text-muted-foreground flex items-center gap-1 mt-2">
                             <MapPin className="h-3 w-3" /> {job.location}
                           </p>
-                          <Button variant="outline" size="sm" className="w-full mt-4">
-                            Ver Detalle
-                          </Button>
+                          <Link to={`/empleo/gerente-recepcion-grand-paradise`}>
+                            <Button variant="outline" size="sm" className="w-full mt-4">
+                              Ver Detalle
+                            </Button>
+                          </Link>
                         </div>
                       </motion.div>
                     ))}
@@ -351,7 +360,9 @@ export default function Empleo() {
                         </div>
                         
                         <div className="flex items-center gap-2">
-                          <Button>Aplicar</Button>
+                          <Link to={`/empleo/coordinador-eventos`}>
+                            <Button>Aplicar</Button>
+                          </Link>
                           <Button variant="ghost" size="icon">
                             <Bookmark className="h-4 w-4" />
                           </Button>
