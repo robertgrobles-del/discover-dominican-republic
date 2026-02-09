@@ -27,6 +27,7 @@ const Aeropuerto = lazy(() => import("./pages/Aeropuerto"));
 const VidaNocturna = lazy(() => import("./pages/VidaNocturna"));
 const DirectorioAgencias = lazy(() => import("./pages/DirectorioAgencias"));
 const GuiaGastronomica = lazy(() => import("./pages/GuiaGastronomica"));
+const Restaurantes = lazy(() => import("./pages/Restaurantes"));
 const ChefPerfil = lazy(() => import("./pages/ChefPerfil"));
 const RecetaDetalle = lazy(() => import("./pages/RecetaDetalle"));
 const CentroAyuda = lazy(() => import("./pages/CentroAyuda"));
@@ -220,6 +221,7 @@ function AnimatedRoutes() {
           <Route path="/rio/:slug" element={<RioDetalle />} />
           <Route path="/alojamientos" element={<Alojamientos />} />
           <Route path="/alojamiento/:id" element={<AlojamientoDetalle />} />
+          <Route path="/restaurante" element={<Restaurantes />} />
           <Route path="/restaurante/:id" element={<RestauranteDetalle />} />
           <Route path="/revista" element={<Revista />} />
           <Route path="/aeropuerto" element={<Aeropuerto />} />

@@ -1,314 +1,329 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Search, MapPin, Star, Heart, Eye, ChevronDown } from "lucide-react";
+import { Star, ChevronRight, Utensils, BookOpen, MapPin, Download, ArrowRight, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { BetweenSectionsAd } from "@/components/ads";
+import { getFeaturedRestaurants } from "@/data/restaurants";
 
-const priceRanges = ["$", "$$", "$$$", "$$$$"];
-
-const cuisineTypes = [
-  { id: "criolla", label: "Criolla Dominicana", checked: true },
-  { id: "mariscos", label: "Mariscos", checked: false },
-  { id: "italiana", label: "Italiana", checked: false },
-  { id: "asian", label: "Fusión Asiática", checked: false },
+const gastronomicRoutes = [
+  {
+    id: "ruta-colonial",
+    title: "Ruta de la Zona Colonial",
+    description: "Recorre los restaurantes más emblemáticos del casco histórico de Santo Domingo, desde brasseries europeas hasta fondas criollas centenarias.",
+    image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&h=400&fit=crop",
+    stops: 5,
+    duration: "1 día",
+    difficulty: "Fácil",
+  },
+  {
+    id: "ruta-mariscos",
+    title: "Ruta del Marisco Caribeño",
+    description: "De Punta Cana a Samaná, descubre los mejores restaurantes de mariscos frente al mar con las capturas más frescas del Caribe.",
+    image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&h=400&fit=crop",
+    stops: 4,
+    duration: "2-3 días",
+    difficulty: "Moderada",
+  },
+  {
+    id: "ruta-montana",
+    title: "Sabores de Montaña",
+    description: "Explora la gastronomía de Jarabacoa y Constanza: chivo al horno, trucha fresca y café orgánico entre paisajes de montaña.",
+    image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=400&fit=crop",
+    stops: 3,
+    duration: "1-2 días",
+    difficulty: "Fácil",
+  },
 ];
 
-const popularTags = [
-  "Pet Friendly", "Romántico", "Vista al Mar", "Música en Vivo", "Rooftop", "Desayuno"
+const blogPosts = [
+  {
+    id: "platos-imperdibles",
+    title: "10 Platos Dominicanos que Debes Probar",
+    excerpt: "Desde la Bandera hasta el mangú, una guía completa de los sabores que definen la cocina criolla dominicana.",
+    image: "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=600&h=400&fit=crop",
+    category: "Guía",
+    readTime: "8 min",
+  },
+  {
+    id: "street-food",
+    title: "Street Food: Comer en la Calle como un Local",
+    excerpt: "Los mejores puestos callejeros, frituras y chimichurris que encontrarás en cada esquina de la República Dominicana.",
+    image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&h=400&fit=crop",
+    category: "Experiencia",
+    readTime: "6 min",
+  },
+  {
+    id: "ron-dominicano",
+    title: "La Cultura del Ron Dominicano",
+    excerpt: "Brugal, Barceló, Bermúdez: descubre la historia y tradición detrás de los rones más premiados del mundo.",
+    image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&h=400&fit=crop",
+    category: "Cultura",
+    readTime: "10 min",
+  },
+  {
+    id: "cacao-chocolate",
+    title: "Del Cacao al Chocolate: Ruta del Cacao",
+    excerpt: "República Dominicana es el mayor exportador de cacao orgánico. Visita las plantaciones y degusta chocolate artesanal.",
+    image: "https://images.unsplash.com/photo-1481391319762-47dff72954d9?w=600&h=400&fit=crop",
+    category: "Ruta",
+    readTime: "7 min",
+  },
 ];
 
-const restaurants = [
-  {
-    id: 1,
-    slug: "pat-e-palo",
-    name: "Pat'e Palo European Brasserie",
-    rating: 4.8,
-    priceRange: "$$$",
-    location: "Zona Colonial",
-    cuisine: "Europea",
-    tags: ["Romántico", "Terraza"],
-    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop"
-  },
-  {
-    id: 2,
-    slug: "meson-de-bari",
-    name: "Mesón de Bari",
-    rating: 4.5,
-    priceRange: "$$",
-    location: "Zona Colonial",
-    cuisine: "Criolla",
-    tags: ["Familiar", "Tradicional"],
-    image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=300&fit=crop"
-  },
-  {
-    id: 3,
-    slug: "jellyfish-punta-cana",
-    name: "Jellyfish Restaurant",
-    rating: 4.9,
-    priceRange: "$$$$",
-    location: "Punta Cana",
-    cuisine: "Mediterránea",
-    tags: ["Vista al Mar", "Elegante"],
-    image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=300&fit=crop"
-  },
-  {
-    id: 4,
-    slug: "bliss",
-    name: "Bliss Restaurant",
-    rating: 4.7,
-    priceRange: "$$",
-    location: "Cabarete",
-    cuisine: "Saludable",
-    tags: ["Vegano", "Casual"],
-    image: "https://images.unsplash.com/photo-1579027989536-b7b1f875659b?w=400&h=300&fit=crop"
-  }
+const recommendations = [
+  { label: "Mejor para parejas", emoji: "💑", slug: "pat-e-palo", name: "Pat'e Palo" },
+  { label: "Mejor vista al mar", emoji: "🌊", slug: "jellyfish-punta-cana", name: "Jellyfish" },
+  { label: "Mejor comida local", emoji: "🇩🇴", slug: "meson-de-bari", name: "Mesón de Bari" },
+  { label: "Mejor fusión", emoji: "🍽️", slug: "buche-perico", name: "Buche Perico" },
+  { label: "Mejor italiano", emoji: "🇮🇹", slug: "la-piazzetta", name: "La Piazzetta" },
+  { label: "Mejor saludable", emoji: "🥗", slug: "bliss", name: "Bliss Restaurant" },
 ];
 
 export default function GuiaGastronomica() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedPrice, setSelectedPrice] = useState("$$");
-  const [selectedTag, setSelectedTag] = useState("Romántico");
+  const featuredRestaurants = getFeaturedRestaurants().slice(0, 4);
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
-      {/* Hero Section */}
-      <section className="relative py-16">
+
+      {/* Hero */}
+      <section className="relative py-24 mt-16">
         <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1920&h=400&fit=crop"
-            alt="Gastronomía RD"
+            src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1920&h=600&fit=crop"
+            alt="Gastronomía Dominicana"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/30" />
         </div>
-        
         <div className="relative container mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground italic mb-4">
-              Explora los sabores de la isla
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
+              <BookOpen className="h-3 w-3 mr-1" /> Guía Gastronómica
+            </Badge>
+            <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-4">
+              Sabores de República Dominicana
             </h1>
-            <p className="text-muted-foreground mb-8">
-              Desde puestos callejeros hasta estrellas Michelin en el Caribe.
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+              Tu guía completa para descubrir la riqueza culinaria de la isla: rutas gastronómicas, recetas tradicionales, restaurantes destacados y mucho más.
             </p>
-
-            {/* Search Bar */}
-            <div className="flex gap-2 max-w-xl mx-auto bg-card/80 backdrop-blur-md p-2 rounded-xl border border-border">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar por nombre, plato o chef..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-transparent border-0 focus-visible:ring-0"
-                />
-              </div>
-              <Button>Buscar</Button>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Link to="/restaurante">
+                <Button size="lg" className="gap-2">
+                  <Utensils className="h-4 w-4" />
+                  Ver todos los restaurantes
+                </Button>
+              </Link>
+              <Button size="lg" variant="outline" className="gap-2">
+                <Download className="h-4 w-4" />
+                Descargar Guía PDF
+              </Button>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Breadcrumb */}
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>Inicio</span>
-          <span>/</span>
-          <span className="text-foreground">Dónde Comer</span>
+      {/* Quick Recommendations */}
+      <section className="py-12 border-b border-border">
+        <div className="container mx-auto px-4">
+          <h2 className="font-display text-xl font-bold text-foreground mb-6 text-center">
+            Recomendaciones Rápidas
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            {recommendations.map((rec) => (
+              <Link
+                key={rec.slug}
+                to={`/restaurante/${rec.slug}`}
+                className="bg-card border border-border rounded-xl p-4 text-center hover:border-primary/50 hover:shadow-md transition-all group"
+              >
+                <span className="text-2xl block mb-2">{rec.emoji}</span>
+                <p className="text-xs text-muted-foreground mb-1">{rec.label}</p>
+                <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{rec.name}</p>
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="container mx-auto px-4 pb-12">
-        <div className="grid lg:grid-cols-12 gap-8">
-          {/* Filters Sidebar */}
-          <div className="lg:col-span-4">
-            <div className="bg-card rounded-xl border border-border p-6 sticky top-24">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-display font-bold text-foreground">Filtros</h3>
-                <Button variant="link" className="text-primary text-sm p-0">Limpiar todo</Button>
+      {/* Featured Restaurants */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <div className="flex items-center gap-2 text-primary mb-2">
+                <Crown className="h-5 w-5" />
+                <span className="text-sm font-semibold uppercase tracking-wider">Selección del Editor</span>
               </div>
-
-              <Accordion type="multiple" defaultValue={["provincia", "cocina", "precio"]} className="space-y-4">
-                {/* Province Filter */}
-                <AccordionItem value="provincia" className="border-0">
-                  <AccordionTrigger className="bg-surface rounded-lg px-4 py-3 hover:no-underline">
-                    Provincia / Ciudad
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-4">
-                    <Select defaultValue="santo-domingo">
-                      <SelectTrigger className="bg-transparent">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="santo-domingo">Santo Domingo</SelectItem>
-                        <SelectItem value="punta-cana">Punta Cana</SelectItem>
-                        <SelectItem value="santiago">Santiago</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </AccordionContent>
-                </AccordionItem>
-
-                {/* Cuisine Type Filter */}
-                <AccordionItem value="cocina" className="border-0">
-                  <AccordionTrigger className="bg-surface rounded-lg px-4 py-3 hover:no-underline">
-                    Tipo de Cocina
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-4 space-y-3">
-                    {cuisineTypes.map((type) => (
-                      <div key={type.id} className="flex items-center gap-2">
-                        <Checkbox id={type.id} defaultChecked={type.checked} />
-                        <label htmlFor={type.id} className="text-sm text-muted-foreground">{type.label}</label>
-                      </div>
-                    ))}
-                  </AccordionContent>
-                </AccordionItem>
-
-                {/* Price Filter */}
-                <AccordionItem value="precio" className="border-0">
-                  <AccordionTrigger className="bg-surface rounded-lg px-4 py-3 hover:no-underline">
-                    Precio
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-4">
-                    <div className="flex gap-2">
-                      {priceRanges.map((price) => (
-                        <Button
-                          key={price}
-                          variant={selectedPrice === price ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedPrice(price)}
-                        >
-                          {price}
-                        </Button>
-                      ))}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-
-              {/* Popular Tags */}
-              <div className="mt-6">
-                <h4 className="text-xs font-medium text-muted-foreground mb-3 uppercase">Etiquetas Populares</h4>
-                <div className="flex flex-wrap gap-2">
-                  {popularTags.map((tag) => (
-                    <Button
-                      key={tag}
-                      variant={selectedTag === tag ? "default" : "outline"}
-                      size="sm"
-                      className="text-xs"
-                      onClick={() => setSelectedTag(tag)}
-                    >
-                      {tag}
-                    </Button>
-                  ))}
-                </div>
-              </div>
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+                Restaurantes Destacados
+              </h2>
             </div>
+            <Link to="/restaurante">
+              <Button variant="outline" className="gap-1">
+                Ver todos <ChevronRight className="h-4 w-4" />
+              </Button>
+            </Link>
           </div>
 
-          {/* Restaurant Grid */}
-          <div className="lg:col-span-8">
-            {/* Results Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <span className="text-2xl font-bold text-foreground">124</span>
-                <span className="text-muted-foreground ml-2">Restaurantes</span>
-                <p className="text-sm text-muted-foreground">Mostrando resultados en Santo Domingo</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Ordenar por:</span>
-                <Select defaultValue="recomendados">
-                  <SelectTrigger className="w-[160px] bg-card">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="recomendados">Recomendados</SelectItem>
-                    <SelectItem value="rating">Mayor Rating</SelectItem>
-                    <SelectItem value="precio-asc">Precio: Menor a Mayor</SelectItem>
-                    <SelectItem value="precio-desc">Precio: Mayor a Menor</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Restaurant Cards Grid */}
-            <div className="grid sm:grid-cols-2 gap-4">
-              {restaurants.map((restaurant, index) => (
-                <motion.div
-                  key={restaurant.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  viewport={{ once: true }}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredRestaurants.map((r, i) => (
+              <motion.div
+                key={r.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <Link
+                  to={`/restaurante/${r.slug}`}
+                  className="block bg-card rounded-xl overflow-hidden border border-border group hover:shadow-lg transition-all"
                 >
-                  <Link 
-                    to={`/restaurante/${restaurant.slug}`}
-                    className="block bg-card rounded-xl overflow-hidden border border-border group hover:border-primary/50 transition-colors"
-                  >
-                    <div className="aspect-[4/3] relative overflow-hidden">
-                      <img 
-                        src={restaurant.image} 
-                        alt={restaurant.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="absolute top-3 left-3 bg-background/50 backdrop-blur-sm hover:bg-background/80"
-                        onClick={(e) => e.preventDefault()}
-                      >
-                        <Heart className="h-4 w-4" />
-                      </Button>
-                      <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full">
-                        <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-                        <span className="text-xs font-medium">{restaurant.rating}</span>
-                      </div>
+                  <div className="aspect-[4/3] relative overflow-hidden">
+                    <img src={r.imageUrl} alt={r.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full">
+                      <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                      <span className="text-xs font-medium">{r.rating}</span>
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-display font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                        {restaurant.name}
-                      </h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                        <span>{restaurant.priceRange}</span>
-                        <span>•</span>
-                        <span>{restaurant.location}</span>
-                        <span>•</span>
-                        <span>{restaurant.cuisine}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {restaurant.tags.map((tag) => (
-                          <span key={tag} className="text-xs px-2 py-1 bg-muted rounded-full text-muted-foreground">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" className="flex-1">Reservar</Button>
-                        <Button variant="outline" size="icon">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
+                  </div>
+                  <div className="p-4">
+                    <Badge variant="secondary" className="mb-2 text-xs">{r.priceRange} · {r.cuisineType[0]}</Badge>
+                    <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{r.name}</h3>
+                    <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                      <MapPin className="h-3 w-3" /> {r.destinationName}
+                    </p>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Ad before footer */}
       <BetweenSectionsAd showDemo />
+
+      {/* Gastronomic Routes */}
+      <section className="py-16 bg-card">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">Rutas</Badge>
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
+              Rutas Gastronómicas
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              Itinerarios curados para explorar los mejores sabores de cada región dominicana.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {gastronomicRoutes.map((route, i) => (
+              <motion.div
+                key={route.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <Card className="overflow-hidden group hover:shadow-lg transition-all h-full">
+                  <div className="aspect-[16/10] relative overflow-hidden">
+                    <img src={route.image} alt={route.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <div className="absolute bottom-3 left-3 flex gap-2">
+                      <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">{route.stops} paradas</Badge>
+                      <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">{route.duration}</Badge>
+                    </div>
+                  </div>
+                  <CardContent className="p-5">
+                    <h3 className="font-display text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                      {route.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">{route.description}</p>
+                    <Button variant="outline" size="sm" className="gap-1 w-full">
+                      Explorar ruta <ArrowRight className="h-3 w-3" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Blog Posts */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">Blog</Badge>
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
+              Artículos sobre Gastronomía
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">
+              Historias, recetas y secretos de la cocina dominicana contados por expertos locales.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {blogPosts.map((post, i) => (
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <Link
+                  to={`/articulo/${post.id}`}
+                  className="flex flex-col sm:flex-row gap-4 bg-card border border-border rounded-xl overflow-hidden group hover:shadow-lg transition-all"
+                >
+                  <div className="sm:w-48 aspect-video sm:aspect-square flex-shrink-0 overflow-hidden">
+                    <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  </div>
+                  <div className="p-4 sm:p-5 flex flex-col justify-center">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="secondary" className="text-xs">{post.category}</Badge>
+                      <span className="text-xs text-muted-foreground">{post.readTime} lectura</span>
+                    </div>
+                    <h3 className="font-display font-bold text-foreground group-hover:text-primary transition-colors mb-2">
+                      {post.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{post.excerpt}</p>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Downloadable Guide CTA */}
+      <section className="py-16 bg-primary/5">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <BookOpen className="h-12 w-12 text-primary mx-auto mb-4" />
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">
+                Descarga la Guía Gastronómica Completa
+              </h2>
+              <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
+                Más de 50 páginas con restaurantes, recetas, rutas culinarias y recomendaciones de chefs locales. Disponible en PDF para llevar en tu viaje.
+              </p>
+              <div className="flex flex-wrap gap-4 justify-center">
+                <Button size="lg" className="gap-2">
+                  <Download className="h-4 w-4" />
+                  Descargar Gratis (PDF)
+                </Button>
+                <Link to="/restaurante">
+                  <Button size="lg" variant="outline" className="gap-2">
+                    Explorar restaurantes <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
 
       <Footer />
     </div>
