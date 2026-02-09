@@ -123,91 +123,91 @@ interface RestaurantType {
 }
 
 function RestaurantCard({ restaurant, index }: { restaurant: RestaurantType; index: number }) {
+  const restaurantLink = restaurant.slug ? `/restaurante/${restaurant.slug}` : '/guia-gastronomica';
+  
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.1 }}
-      className={`group bg-surface rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl hover:shadow-primary/5 transition-all ${
-        restaurant.isSponsored ? 'ring-2 ring-primary/50' : ''
-      }`}
-    >
-      <div className="relative aspect-[16/10] overflow-hidden">
-        <LazyImage
-          src={restaurant.image}
-          alt={restaurant.name}
-          className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
-          containerClassName="w-full h-full"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-        <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
-          {restaurant.isSponsored && (
-            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1">
-              <Megaphone className="h-3 w-3" />
-              Patrocinado
-            </Badge>
-          )}
-          <span className="bg-background/80 backdrop-blur-sm text-foreground text-xs font-medium px-2 py-1 rounded">
-            {restaurant.cuisine}
-          </span>
-          {restaurant.openNow && (
-            <span className="bg-primary/90 backdrop-blur-sm text-primary-foreground text-xs font-medium px-2 py-1 rounded flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              Abierto
-            </span>
-          )}
-        </div>
-        <div className="absolute top-3 right-3 flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
-            <Star className="h-3 w-3 fill-current" />
-            {restaurant.rating}
-          </div>
-          <FavoriteButton
-            id={restaurant.id}
-            type="restaurante"
-            name={restaurant.name}
-            image={restaurant.image}
-            location={restaurant.location}
-            size="sm"
+    <Link to={restaurantLink}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ delay: index * 0.1 }}
+        className={`group bg-surface rounded-2xl overflow-hidden cursor-pointer hover:shadow-xl hover:shadow-primary/5 transition-all ${
+          restaurant.isSponsored ? 'ring-2 ring-primary/50' : ''
+        }`}
+      >
+        <div className="relative aspect-[16/10] overflow-hidden">
+          <LazyImage
+            src={restaurant.image}
+            alt={restaurant.name}
+            className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
+            containerClassName="w-full h-full"
           />
-        </div>
-      </div>
-
-      <div className="p-5">
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div>
-            <h3 className="font-display text-lg font-bold text-foreground group-hover:text-primary transition-colors">
-              {restaurant.name}
-            </h3>
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <MapPin className="h-3.5 w-3.5" />
-              {restaurant.location}
-            </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+          <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
+            {restaurant.isSponsored && (
+              <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1">
+                <Megaphone className="h-3 w-3" />
+                Patrocinado
+              </Badge>
+            )}
+            <span className="bg-background/80 backdrop-blur-sm text-foreground text-xs font-medium px-2 py-1 rounded">
+              {restaurant.cuisine}
+            </span>
+            {restaurant.openNow && (
+              <span className="bg-primary/90 backdrop-blur-sm text-primary-foreground text-xs font-medium px-2 py-1 rounded flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                Abierto
+              </span>
+            )}
           </div>
-          <span className="text-primary font-bold">{restaurant.priceRange}</span>
+          <div className="absolute top-3 right-3 flex items-center gap-2">
+            <div className="flex items-center gap-1 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
+              <Star className="h-3 w-3 fill-current" />
+              {restaurant.rating}
+            </div>
+            <FavoriteButton
+              id={restaurant.id}
+              type="restaurante"
+              name={restaurant.name}
+              image={restaurant.image}
+              location={restaurant.location}
+              size="sm"
+            />
+          </div>
         </div>
 
-        <p className="text-sm text-muted-foreground mb-4">
-          <span className="font-medium text-foreground">Especialidad:</span> {restaurant.speciality}
-        </p>
+        <div className="p-5">
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <div>
+              <h3 className="font-display text-lg font-bold text-foreground group-hover:text-primary transition-colors">
+                {restaurant.name}
+              </h3>
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <MapPin className="h-3.5 w-3.5" />
+                {restaurant.location}
+              </div>
+            </div>
+            <span className="text-primary font-bold">{restaurant.priceRange}</span>
+          </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-border">
-          <Link to={restaurant.slug ? `/restaurante/${restaurant.slug}` : '/guia-gastronomica'}>
+          <p className="text-sm text-muted-foreground mb-4">
+            <span className="font-medium text-foreground">Especialidad:</span> {restaurant.speciality}
+          </p>
+
+          <div className="flex items-center justify-between pt-4 border-t border-border">
             <Button size="sm" className="gap-1">
               <Utensils className="h-3.5 w-3.5" />
               Reservar Mesa
             </Button>
-          </Link>
-          <Link to={restaurant.slug ? `/restaurante/${restaurant.slug}` : '/guia-gastronomica'}>
             <Button size="sm" variant="ghost" className="gap-1">
               Ver Menú
               <ChevronRight className="h-3.5 w-3.5" />
             </Button>
-          </Link>
+          </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </Link>
   );
 }
 
