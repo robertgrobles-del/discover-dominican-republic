@@ -29,7 +29,7 @@ export default function RestauranteDetalle() {
         <div className="container mx-auto px-4 py-24 text-center">
           <h1 className="text-2xl font-bold text-foreground mb-4">Restaurante no encontrado</h1>
           <p className="text-muted-foreground mb-8">El restaurante que buscas no existe o ha sido removido.</p>
-          <Link to="/guia-gastronomica">
+          <Link to="/restaurante">
             <Button>Ver todos los restaurantes</Button>
           </Link>
         </div>
@@ -44,7 +44,7 @@ export default function RestauranteDetalle() {
   // Generar breadcrumbs
   const breadcrumbs = [
     { label: "Inicio", href: "/" },
-    { label: "Restaurantes", href: "/guia-gastronomica" },
+    { label: "Restaurantes", href: "/restaurante" },
     { label: restaurant.province, href: `/destino/${restaurant.provinceId || restaurant.destinationId}` },
   ];
 

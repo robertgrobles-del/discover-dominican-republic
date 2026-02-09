@@ -123,7 +123,7 @@ interface RestaurantType {
 }
 
 function RestaurantCard({ restaurant, index }: { restaurant: RestaurantType; index: number }) {
-  const restaurantLink = restaurant.slug ? `/restaurante/${restaurant.slug}` : '/guia-gastronomica';
+  const restaurantLink = restaurant.slug ? `/restaurante/${restaurant.slug}` : '/restaurante';
   
   return (
     <Link to={restaurantLink}>
@@ -308,9 +308,9 @@ export function RestaurantsBarsSection() {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
             >
-              <Link to="/guia-gastronomica">
+              <Link to="/restaurante">
                 <Button variant="link" className="text-primary gap-2">
-                  Ver guía gastronómica
+                  Ver todos los restaurantes
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </Link>

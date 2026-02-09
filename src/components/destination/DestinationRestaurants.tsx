@@ -33,7 +33,7 @@ export function DestinationRestaurants({ restaurantes, destinoId }: DestinationR
               Dónde Comer
             </h2>
           </div>
-          <Link to="/guia-gastronomica">
+          <Link to="/restaurante">
             <Button variant="outline" size="sm" className="gap-1">
               Ver más <ChevronRight className="h-4 w-4" />
             </Button>
