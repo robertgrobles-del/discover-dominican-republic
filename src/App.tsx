@@ -143,6 +143,7 @@ const AlquilerVehiculos = lazy(() => import("./pages/AlquilerVehiculos"));
 const Museos = lazy(() => import("./pages/Museos"));
 const Casinos = lazy(() => import("./pages/Casinos"));
 const SpasWellness = lazy(() => import("./pages/SpasWellness"));
+const SpaDetalle = lazy(() => import("./pages/SpaDetalle"));
 const Emergencias = lazy(() => import("./pages/Emergencias"));
 const NewsletterPage = lazy(() => import("./pages/NewsletterPage"));
 const SistemaAfiliados = lazy(() => import("./pages/SistemaAfiliados"));
@@ -346,6 +347,7 @@ function AnimatedRoutes() {
           <Route path="/casinos" element={<Casinos />} />
           <Route path="/spas" element={<SpasWellness />} />
           <Route path="/spas-wellness" element={<SpasWellness />} />
+          <Route path="/spa/:slug" element={<SpaDetalle />} />
           <Route path="/emergencias" element={<Emergencias />} />
           <Route path="/newsletter-subscribe" element={<NewsletterPage />} />
           <Route path="/afiliados" element={<SistemaAfiliados />} />
