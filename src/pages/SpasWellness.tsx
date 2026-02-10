@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { 
   Sparkles, MapPin, Clock, Phone, Star, Heart, Leaf,
   Droplets, Smile, ChevronRight, Filter, Search
@@ -16,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 const spas = [
   {
     id: "1",
+    slug: "six-senses-spa",
     name: "Six Senses Spa",
     image: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&h=500&fit=crop",
     category: "Resort Spa",
@@ -31,6 +33,7 @@ const spas = [
   },
   {
     id: "2",
+    slug: "spa-sanctuary",
     name: "Spa Sanctuary",
     image: "https://images.unsplash.com/photo-1540555700478-4be289fbec6b?w=800&h=500&fit=crop",
     category: "Day Spa",
@@ -46,6 +49,7 @@ const spas = [
   },
   {
     id: "3",
+    slug: "casa-de-campo-spa",
     name: "Casa de Campo Spa",
     image: "https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=800&h=500&fit=crop",
     category: "Resort Spa",
@@ -61,6 +65,7 @@ const spas = [
   },
   {
     id: "4",
+    slug: "jarabacoa-eco-spa",
     name: "Jarabacoa Eco Spa",
     image: "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=800&h=500&fit=crop",
     category: "Eco Spa",
@@ -158,12 +163,12 @@ export default function SpasWellness() {
           {/* Spa Cards */}
           <div className="grid md:grid-cols-2 gap-6">
             {filteredSpas.map((spa, index) => (
+              <Link key={spa.id} to={`/spa/${spa.slug}`} className="block">
               <motion.div
-                key={spa.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="bg-card rounded-xl border border-border overflow-hidden card-lift group"
+                className="bg-card rounded-xl border border-border overflow-hidden card-lift group h-full"
               >
                 <div className="grid md:grid-cols-5">
                   <div className="md:col-span-2 aspect-video md:aspect-auto relative overflow-hidden">
@@ -214,12 +219,13 @@ export default function SpasWellness() {
                     </div>
 
                     <Button className="w-full gap-2">
-                      Reservar
+                      Ver Detalles
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               </motion.div>
+              </Link>
             ))}
           </div>
 

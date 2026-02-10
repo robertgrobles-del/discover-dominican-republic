@@ -29,6 +29,7 @@ const tratamientos = [
 const retiros = [
   {
     id: 1,
+    slug: "santuario-del-mar",
     nombre: "Santuario del Mar Spa",
     ubicacion: "Punta Cana, La Altagracia",
     descripcion: "Experiencia de rejuvenecimiento total frente al mar Caribe con tratamientos...",
@@ -41,6 +42,7 @@ const retiros = [
   },
   {
     id: 2,
+    slug: "el-valle-yoga-loft",
     nombre: "El Valle Yoga Loft",
     ubicacion: "Las Terrenas, Samaná",
     descripcion: "Conecta con la naturaleza en nuestros bungalows ecológicos y sesiones...",
@@ -53,6 +55,7 @@ const retiros = [
   },
   {
     id: 3,
+    slug: "eco-retiro-los-pinos",
     nombre: "Eco-Retiro Los Pinos",
     ubicacion: "Jarabacoa, La Vega",
     descripcion: "Aire fresco, meditación guiada y senderismo consciente en la eterna...",
@@ -162,7 +165,7 @@ export default function Wellness() {
 
             <div className="grid md:grid-cols-3 gap-6">
               {retiros.map((retiro) => (
-                <div key={retiro.id} className="bg-card rounded-2xl border border-border overflow-hidden group">
+                <Link key={retiro.id} to={`/spa/${retiro.slug}`} className="bg-card rounded-2xl border border-border overflow-hidden group block hover:shadow-lg transition-shadow">
                   <div className="relative aspect-[4/3]">
                     <img 
                       src={retiro.imagen} 
@@ -172,7 +175,7 @@ export default function Wellness() {
                     <Badge className="absolute top-4 left-4 bg-primary/90 text-primary-foreground text-xs">
                       {retiro.tipo}
                     </Badge>
-                    <button className="absolute top-4 right-4 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center hover:bg-white">
+                    <button className="absolute top-4 right-4 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center hover:bg-white" onClick={(e) => e.preventDefault()}>
                       <Heart className="h-4 w-4 text-muted-foreground" />
                     </button>
                   </div>
@@ -201,7 +204,7 @@ export default function Wellness() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
