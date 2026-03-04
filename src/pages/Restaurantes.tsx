@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Search, Star, Heart, Eye, Megaphone, MapPin, Clock, Utensils, ChevronRight } from "lucide-react";
+import { Search, Star, Heart, Eye, Megaphone, MapPin, Clock, Utensils, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,7 +12,8 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { BetweenSectionsAd } from "@/components/ads";
-import { restaurants as allRestaurants } from "@/data/restaurants";
+import { restaurants as staticRestaurants, type Restaurant } from "@/data/restaurants";
+import { supabase } from "@/integrations/supabase/client";
 
 const priceRanges = ["$", "$$", "$$$", "$$$$"];
 
@@ -47,6 +48,48 @@ export default function Restaurantes() {
   const [selectedDestination, setSelectedDestination] = useState("all");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("recomendados");
+  const [dbRestaurants, setDbRestaurants] = useState<Restaurant[]>([]);
+
+  useEffect(() => {
+    supabase.from('restaurants').select('*').eq('is_active', true).then(({ data }) => {
+      if (data) {
+        const mapped: Restaurant[] = data.map(r => ({
+          id: r.id,
+          slug: r.slug || r.id,
+          name: r.name,
+          destinationId: r.destination_id || '',
+          destinationName: '',
+          province: '',
+          cuisineType: r.cuisine_type ? [r.cuisine_type] : [],
+          category: (r.category as Restaurant['category']) || 'casual',
+          shortDescription: r.short_description || '',
+          description: r.description || '',
+          imageUrl: r.image_url || '/placeholder.svg',
+          gallery: r.gallery || [],
+          signatureDishes: r.signature_dishes || [],
+          priceRange: (r.price_range as Restaurant['priceRange']) || '$$',
+          rating: Number(r.rating) || 0,
+          reviewCount: r.review_count || 0,
+          address: r.address || '',
+          phone: r.phone || undefined,
+          email: r.email || undefined,
+          website: r.website || undefined,
+          openingHours: r.opening_hours || '',
+          services: r.services || [],
+          latitude: r.latitude ? Number(r.latitude) : undefined,
+          longitude: r.longitude ? Number(r.longitude) : undefined,
+          isFeatured: r.is_featured || false,
+        }));
+        setDbRestaurants(mapped);
+      }
+    });
+  }, []);
+
+  const allRestaurants = useMemo(() => {
+    const staticSlugs = new Set(staticRestaurants.map(r => r.slug));
+    const uniqueDb = dbRestaurants.filter(r => !staticSlugs.has(r.slug));
+    return [...staticRestaurants, ...uniqueDb];
+  }, [dbRestaurants]);
 
   const filteredRestaurants = useMemo(() => {
     let results = [...allRestaurants];
