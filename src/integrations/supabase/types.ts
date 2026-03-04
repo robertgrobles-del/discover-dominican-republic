@@ -389,6 +389,123 @@ export type Database = {
           },
         ]
       }
+      beaches: {
+        Row: {
+          access_type: string | null
+          activities: string[] | null
+          address: string | null
+          amenities: string[] | null
+          beach_type: string | null
+          best_time_to_visit: string | null
+          created_at: string
+          crowd_level: string | null
+          description: string | null
+          destination_id: string | null
+          gallery: string[] | null
+          how_to_get_there: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          is_popular: boolean | null
+          latitude: number | null
+          lifeguard_on_duty: boolean | null
+          longitude: number | null
+          name: string
+          parking_available: boolean | null
+          province_id: string | null
+          rating: number | null
+          review_count: number | null
+          sand_type: string | null
+          short_description: string | null
+          slug: string | null
+          updated_at: string
+          water_color: string | null
+          wave_intensity: string | null
+        }
+        Insert: {
+          access_type?: string | null
+          activities?: string[] | null
+          address?: string | null
+          amenities?: string[] | null
+          beach_type?: string | null
+          best_time_to_visit?: string | null
+          created_at?: string
+          crowd_level?: string | null
+          description?: string | null
+          destination_id?: string | null
+          gallery?: string[] | null
+          how_to_get_there?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_popular?: boolean | null
+          latitude?: number | null
+          lifeguard_on_duty?: boolean | null
+          longitude?: number | null
+          name: string
+          parking_available?: boolean | null
+          province_id?: string | null
+          rating?: number | null
+          review_count?: number | null
+          sand_type?: string | null
+          short_description?: string | null
+          slug?: string | null
+          updated_at?: string
+          water_color?: string | null
+          wave_intensity?: string | null
+        }
+        Update: {
+          access_type?: string | null
+          activities?: string[] | null
+          address?: string | null
+          amenities?: string[] | null
+          beach_type?: string | null
+          best_time_to_visit?: string | null
+          created_at?: string
+          crowd_level?: string | null
+          description?: string | null
+          destination_id?: string | null
+          gallery?: string[] | null
+          how_to_get_there?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_popular?: boolean | null
+          latitude?: number | null
+          lifeguard_on_duty?: boolean | null
+          longitude?: number | null
+          name?: string
+          parking_available?: boolean | null
+          province_id?: string | null
+          rating?: number | null
+          review_count?: number | null
+          sand_type?: string | null
+          short_description?: string | null
+          slug?: string | null
+          updated_at?: string
+          water_color?: string | null
+          wave_intensity?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beaches_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "beaches_province_id_fkey"
+            columns: ["province_id"]
+            isOneToOne: false
+            referencedRelation: "provinces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       caves: {
         Row: {
           address: string | null
@@ -1524,6 +1641,101 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "rivers_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spas_wellness: {
+        Row: {
+          address: string | null
+          amenities: string[] | null
+          created_at: string
+          description: string | null
+          destination_id: string | null
+          email: string | null
+          gallery: string[] | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          opening_hours: string | null
+          phone: string | null
+          price_range: string | null
+          rating: number | null
+          review_count: number | null
+          services: string[] | null
+          short_description: string | null
+          slug: string | null
+          spa_type: string | null
+          treatments: string[] | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          amenities?: string[] | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string | null
+          email?: string | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          opening_hours?: string | null
+          phone?: string | null
+          price_range?: string | null
+          rating?: number | null
+          review_count?: number | null
+          services?: string[] | null
+          short_description?: string | null
+          slug?: string | null
+          spa_type?: string | null
+          treatments?: string[] | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          amenities?: string[] | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string | null
+          email?: string | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          opening_hours?: string | null
+          phone?: string | null
+          price_range?: string | null
+          rating?: number | null
+          review_count?: number | null
+          services?: string[] | null
+          short_description?: string | null
+          slug?: string | null
+          spa_type?: string | null
+          treatments?: string[] | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spas_wellness_destination_id_fkey"
             columns: ["destination_id"]
             isOneToOne: false
             referencedRelation: "destinations"
