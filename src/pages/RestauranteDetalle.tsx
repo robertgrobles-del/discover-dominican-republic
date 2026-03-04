@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, MapPin, Clock, Phone, Globe, Mail, Users, ChevronRight, Utensils, DollarSign, Home } from "lucide-react";
+import { Star, MapPin, Clock, Phone, Globe, Mail, Users, ChevronRight, Utensils, DollarSign, Home, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,16 +11,61 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { DetailPageSidebarAd, MobileStickyFooterAd } from "@/components/ads";
-import { getRestaurantBySlug } from "@/data/restaurants";
+import { getRestaurantBySlug, type Restaurant } from "@/data/restaurants";
 import { getDestinationBySlug, getDestinationById } from "@/data/destinations";
+import { supabase } from "@/integrations/supabase/client";
+
+function useRestaurantBySlug(slug?: string) {
+  const [dbRestaurant, setDbRestaurant] = useState<Restaurant | null>(null);
+  const [loading, setLoading] = useState(false);
+  const staticRestaurant = slug ? getRestaurantBySlug(slug) : null;
+
+  useEffect(() => {
+    if (staticRestaurant || !slug) return;
+    setLoading(true);
+    supabase.from('restaurants').select('*').eq('slug', slug).eq('is_active', true).maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setDbRestaurant({
+            id: data.id, slug: data.slug || data.id, name: data.name,
+            destinationId: data.destination_id || '', destinationName: '', province: '',
+            cuisineType: data.cuisine_type ? [data.cuisine_type] : [],
+            category: (data.category as Restaurant['category']) || 'casual',
+            shortDescription: data.short_description || '', description: data.description || '',
+            imageUrl: data.image_url || '/placeholder.svg', gallery: data.gallery || [],
+            signatureDishes: data.signature_dishes || [],
+            priceRange: (data.price_range as Restaurant['priceRange']) || '$$',
+            rating: Number(data.rating) || 0, reviewCount: data.review_count || 0,
+            address: data.address || '', phone: data.phone || undefined,
+            email: data.email || undefined, website: data.website || undefined,
+            openingHours: data.opening_hours || '', services: data.services || [],
+            latitude: data.latitude ? Number(data.latitude) : undefined,
+            longitude: data.longitude ? Number(data.longitude) : undefined,
+            isFeatured: data.is_featured || false,
+          });
+        }
+        setLoading(false);
+      });
+  }, [slug, staticRestaurant]);
+
+  return { restaurant: staticRestaurant || dbRestaurant, loading };
+}
 
 export default function RestauranteDetalle() {
   const { slug } = useParams<{ slug: string }>();
-  const restaurant = slug ? getRestaurantBySlug(slug) : null;
+  const { restaurant, loading } = useRestaurantBySlug(slug);
   
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("19:00");
   const [selectedGuests, setSelectedGuests] = useState("2");
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!restaurant) {
     return (
