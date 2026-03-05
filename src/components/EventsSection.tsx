@@ -1,14 +1,16 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Calendar, MapPin, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { LazyImage } from "@/components/ui/lazy-image";
+import { supabase } from "@/integrations/supabase/client";
 import carnivalImg from "@/assets/carnival.jpg";
 import jazzImg from "@/assets/jazz-festival.jpg";
 import tasteImg from "@/assets/taste-event.jpg";
 
-const events = [
+const staticEvents = [
   {
     id: "carnaval-dominicano",
     title: "Carnaval Dominicano",
@@ -38,7 +40,56 @@ const events = [
   },
 ];
 
+const MONTH_NAMES = ["ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC"];
+const EVENT_COLORS = ["bg-pink-500","bg-amber-500","bg-emerald-500","bg-blue-500","bg-purple-500"];
+
+interface DisplayEvent {
+  id: string;
+  title: string;
+  category: string;
+  location: string;
+  date: { day: number; month: string };
+  image: string;
+  color: string;
+}
+
 export function EventsSection() {
+  const [events, setEvents] = useState<DisplayEvent[]>(staticEvents);
+
+  useEffect(() => {
+    async function fetchEvents() {
+      const { data } = await supabase
+        .from("events")
+        .select("*")
+        .eq("is_active", true)
+        .order("start_date", { ascending: true })
+        .limit(6);
+
+      if (data && data.length > 0) {
+        const staticSlugs = new Set(staticEvents.map(e => e.id));
+        const dbEvents: DisplayEvent[] = data
+          .filter(e => !staticSlugs.has(e.slug || ""))
+          .map((e, i) => {
+            const startDate = e.start_date ? new Date(e.start_date) : new Date();
+            return {
+              id: e.slug || e.id,
+              title: e.name,
+              category: e.event_type || "Evento",
+              location: e.venue || e.address || "RD",
+              date: {
+                day: startDate.getDate(),
+                month: MONTH_NAMES[startDate.getMonth()],
+              },
+              image: e.image_url || carnivalImg,
+              color: EVENT_COLORS[(staticEvents.length + i) % EVENT_COLORS.length],
+            };
+          });
+        setEvents([...staticEvents, ...dbEvents].slice(0, 6));
+      }
+    }
+    fetchEvents();
+  }, []);
+
   return (
     <section className="relative min-h-screen flex flex-col justify-center bg-card py-16">
       {/* Left Skyscraper Ad */}
@@ -104,7 +155,7 @@ export function EventsSection() {
 
         {/* Event Cards */}
         <div className="grid md:grid-cols-3 gap-6">
-          {events.map((event, index) => (
+          {events.slice(0, 3).map((event, index) => (
             <motion.div
               key={event.id}
               initial={{ opacity: 0, y: 20 }}
