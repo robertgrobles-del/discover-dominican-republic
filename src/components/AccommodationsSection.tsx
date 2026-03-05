@@ -6,6 +6,9 @@ import { FavoriteButton } from "@/components/FavoriteButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { LazyImage } from "@/components/ui/lazy-image";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import hotelEdenRocImg from "@/assets/hotel-eden-roc.jpg";
 import hotelClareVerdeImg from "@/assets/hotel-clare-verde.jpg";
 import hotelBilliniImg from "@/assets/hotel-billini.jpg";
@@ -24,13 +27,13 @@ const sponsoredHotel = {
   isSponsored: true,
 };
 
-const hotels = [
+const staticHotels = [
   {
     id: "eden-roc-cap-cana",
     name: "Eden Roc Cap Cana",
     rating: 4.9,
     location: "Punta Cana",
-    description: "Suites exclusivas y villa privadas con piscinas personalizadas. El epítome del lujo y la exclusividad en la costa este del Caribe.",
+    description: "Suites exclusivas y villa privadas con piscinas personalizadas.",
     price: 485,
     originalPrice: 580,
     image: hotelEdenRocImg,
@@ -41,35 +44,20 @@ const hotels = [
     name: "Billini Hotel",
     rating: 4.8,
     location: "Santo Domingo",
-    description: "Hotel boutique modernidad colonial fusion. La mejor ubicación en el corazón histórico de la ciudad.",
+    description: "Hotel boutique modernidad colonial fusion.",
     price: 210,
     image: hotelBilliniImg,
     tags: ["Boutique", "Colonial"],
   },
 ];
 
-// Airbnb patrocinado destacado
-const sponsoredAirbnb = {
-  id: "sponsored-airbnb",
-  name: "Penthouse Oceanview",
-  rating: 4.98,
-  location: "Cap Cana, Punta Cana",
-  description: "Penthouse de lujo con terraza privada de 200m², piscina infinita y vistas panorámicas al océano. El mejor alojamiento exclusivo del Caribe.",
-  price: 650,
-  image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800",
-  tags: ["Penthouse", "Océano"],
-  guests: 6,
-  host: "Superhost",
-  isSponsored: true,
-};
-
-const airbnbs = [
+const staticAirbnbs = [
   {
     id: "villa-oceanica-punta-cana",
     name: "Villa Oceánica",
     rating: 4.95,
     location: "Punta Cana",
-    description: "Villa frente al mar con piscina infinita, 4 habitaciones y servicio de chef privado. Perfecta para grupos.",
+    description: "Villa frente al mar con piscina infinita, 4 habitaciones y servicio de chef privado.",
     price: 350,
     image: "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800",
     tags: ["Villa", "Frente al Mar"],
@@ -81,7 +69,7 @@ const airbnbs = [
     name: "Cabaña en la Montaña",
     rating: 4.92,
     location: "Jarabacoa",
-    description: "Refugio acogedor rodeado de pinos con chimenea, jacuzzi al aire libre y vistas espectaculares a los valles.",
+    description: "Refugio acogedor rodeado de pinos con chimenea, jacuzzi al aire libre.",
     price: 120,
     image: "https://images.unsplash.com/photo-1449158743715-0a90ebb6d2d8?w=800",
     tags: ["Cabaña", "Montaña"],
@@ -214,6 +202,78 @@ function AccommodationCard({ item, type }: AccommodationCardProps) {
 }
 
 export function AccommodationsSection() {
+  const { data: dbHotels } = useQuery({
+    queryKey: ['home-hotels'],
+    queryFn: async () => {
+      const { data } = await supabase.from('hotels').select('*').eq('is_active', true).order('is_featured', { ascending: false }).limit(6);
+      return data || [];
+    },
+  });
+
+  const { data: dbAirbnbs } = useQuery({
+    queryKey: ['home-airbnbs'],
+    queryFn: async () => {
+      const { data } = await supabase.from('airbnb_listings').select('*').eq('is_active', true).order('is_featured', { ascending: false }).limit(6);
+      return data || [];
+    },
+  });
+
+  const hotels = useMemo(() => {
+    const items = [...staticHotels];
+    const ids = new Set(items.map(h => h.id));
+    (dbHotels || []).forEach(h => {
+      if (!ids.has(h.slug || h.id)) {
+        items.push({
+          id: h.slug || h.id,
+          name: h.name,
+          rating: Number(h.rating) || 0,
+          location: h.address || '',
+          description: h.short_description || '',
+          price: 0,
+          image: h.image_url || '/placeholder.svg',
+          tags: [h.category || 'Hotel'].filter(Boolean),
+        });
+      }
+    });
+    return items;
+  }, [dbHotels]);
+
+  const airbnbs = useMemo(() => {
+    const items = [...staticAirbnbs];
+    const ids = new Set(items.map(a => a.id));
+    (dbAirbnbs || []).forEach(a => {
+      if (!ids.has(a.slug || a.id)) {
+        items.push({
+          id: a.slug || a.id,
+          name: a.name,
+          rating: Number(a.rating) || 0,
+          location: a.address || '',
+          description: a.short_description || '',
+          price: Number(a.price_per_night) || 0,
+          image: a.image_url || '/placeholder.svg',
+          tags: [a.property_type || 'Alojamiento'].filter(Boolean),
+          guests: a.guests || 2,
+          host: a.is_superhost ? "Superhost" : undefined,
+        });
+      }
+    });
+    return items;
+  }, [dbAirbnbs]);
+
+  const sponsoredAirbnb = {
+    id: "sponsored-airbnb",
+    name: "Penthouse Oceanview",
+    rating: 4.98,
+    location: "Cap Cana, Punta Cana",
+    description: "Penthouse de lujo con terraza privada de 200m², piscina infinita y vistas panorámicas al océano.",
+    price: 650,
+    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800",
+    tags: ["Penthouse", "Océano"],
+    guests: 6,
+    host: "Superhost",
+    isSponsored: true,
+  };
+
   return (
     <section className="relative min-h-screen flex flex-col justify-center bg-card py-16">
       {/* Left Skyscraper Ad */}
@@ -286,11 +346,11 @@ export function AccommodationsSection() {
 
           <TabsContent value="todos">
             <div className="grid md:grid-cols-3 gap-6">
-              {[sponsoredHotel, hotels[0], airbnbs[0]].map((item, index) => (
+              {[sponsoredHotel, hotels[0], airbnbs[0]].filter(Boolean).map((item) => (
                 <AccommodationCard
                   key={item.id}
                   item={item}
-                  type={item.id.includes('airbnb') || airbnbs.some(a => a.id === item.id) ? "airbnb" : "hotel"}
+                  type={airbnbs.some(a => a.id === item.id) ? "airbnb" : "hotel"}
                 />
               ))}
             </div>

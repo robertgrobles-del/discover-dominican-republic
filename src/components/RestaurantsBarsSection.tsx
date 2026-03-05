@@ -5,6 +5,9 @@ import { Link } from "react-router-dom";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Badge } from "@/components/ui/badge";
 import { LazyImage } from "@/components/ui/lazy-image";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import gastronomyImg from "@/assets/gastronomy.jpg";
 import divingImg from "@/assets/diving.jpg";
 import laBanderaImg from "@/assets/la-bandera.jpg";
@@ -25,7 +28,7 @@ const sponsoredRestaurant = {
   isSponsored: true,
 };
 
-const restaurants = [
+const staticRestaurants = [
   {
     id: "sabor-premium",
     slug: "pat-e-palo",
@@ -65,7 +68,7 @@ const sponsoredBar = {
   isSponsored: true,
 };
 
-const bars = [
+const staticBars = [
   {
     id: "la-terraza-lounge",
     name: "La Terraza Lounge",
@@ -280,6 +283,64 @@ function BarCard({ bar, index }: { bar: BarType; index: number }) {
 }
 
 export function RestaurantsBarsSection() {
+  const { data: dbRestaurants } = useQuery({
+    queryKey: ['home-restaurants'],
+    queryFn: async () => {
+      const { data } = await supabase.from('restaurants').select('*').eq('is_active', true).eq('is_featured', true).limit(4);
+      return data || [];
+    },
+  });
+
+  const { data: dbBars } = useQuery({
+    queryKey: ['home-bars'],
+    queryFn: async () => {
+      const { data } = await supabase.from('bars').select('*').eq('is_active', true).eq('is_featured', true).limit(4);
+      return data || [];
+    },
+  });
+
+  const restaurants = useMemo(() => {
+    const items = [...staticRestaurants];
+    const ids = new Set(items.map(r => r.id));
+    (dbRestaurants || []).forEach(r => {
+      if (!ids.has(r.slug || r.id)) {
+        items.push({
+          id: r.slug || r.id,
+          slug: r.slug || r.id,
+          name: r.name,
+          rating: Number(r.rating) || 0,
+          location: r.address || '',
+          cuisine: r.cuisine_type || 'Cocina Dominicana',
+          priceRange: r.price_range || '$$',
+          image: r.image_url || '/placeholder.svg',
+          openNow: true,
+          speciality: (r.signature_dishes || [])[0] || r.short_description || '',
+        });
+      }
+    });
+    return items;
+  }, [dbRestaurants]);
+
+  const bars = useMemo(() => {
+    const items = [...staticBars];
+    const ids = new Set(items.map(b => b.id));
+    (dbBars || []).forEach(b => {
+      if (!ids.has(b.slug || b.id)) {
+        items.push({
+          id: b.slug || b.id,
+          name: b.name,
+          rating: Number(b.rating) || 0,
+          location: b.address || '',
+          type: b.bar_type || 'Bar',
+          specialty: b.short_description || '',
+          image: b.image_url || '/placeholder.svg',
+          atmosphere: b.ambiance || 'Elegante',
+        });
+      }
+    });
+    return items;
+  }, [dbBars]);
+
   return (
     <>
       {/* Restaurants Section */}
@@ -318,7 +379,7 @@ export function RestaurantsBarsSection() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {[sponsoredRestaurant, ...restaurants].map((restaurant, index) => (
+            {[sponsoredRestaurant, ...restaurants].slice(0, 3).map((restaurant, index) => (
               <RestaurantCard key={restaurant.id} restaurant={restaurant} index={index} />
             ))}
           </div>
