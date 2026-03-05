@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
+import { supabase } from "@/integrations/supabase/client";
 
 import carnival from "@/assets/carnival.jpg";
 import jazzFestival from "@/assets/jazz-festival.jpg";
@@ -105,6 +106,35 @@ export default function Eventos() {
   const [selectedGenero, setSelectedGenero] = useState("Todos");
   const [heroLoaded, setHeroLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState("calendario");
+  const [dbEvents, setDbEvents] = useState<any[]>([]);
+
+  useEffect(() => {
+    supabase
+      .from("events")
+      .select("*")
+      .eq("is_active", true)
+      .order("start_date", { ascending: true })
+      .then(({ data }) => {
+        if (data) setDbEvents(data);
+      });
+  }, []);
+
+  // Merge static + DB events, DB first, dedup by slug-like id
+  const staticSlugs = new Set(eventos.map(e => e.id));
+  const mergedEventos = [
+    ...dbEvents
+      .filter(e => !staticSlugs.has(e.slug))
+      .map(e => ({
+        id: e.slug || e.id,
+        titulo: e.name,
+        fecha: e.start_date ? new Date(e.start_date).toLocaleDateString("es-DO", { day: "numeric", month: "short" }).toUpperCase() : "",
+        categoria: e.event_type || "Evento",
+        imagen: e.image_url || carnival,
+        descripcion: e.short_description || e.description || "",
+        ubicacion: e.address || "",
+      })),
+    ...eventos,
+  ];
 
   const eventosSchema = {
     "@context": "https://schema.org",
@@ -254,7 +284,7 @@ export default function Eventos() {
 
                   {/* Events Grid */}
                   <div className="lg:col-span-3 grid md:grid-cols-3 gap-6">
-                    {eventos.map((evento) => (
+                    {mergedEventos.slice(0, 6).map((evento) => (
                       <div key={evento.id} className="bg-card rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-colors">
                         <div className="relative aspect-[4/3]">
                           <img src={evento.imagen} alt={evento.titulo} className="w-full h-full object-cover" />
