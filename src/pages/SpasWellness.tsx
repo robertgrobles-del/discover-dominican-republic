@@ -100,7 +100,7 @@ export default function SpasWellness() {
   const { data: dbSpas } = useQuery({
     queryKey: ['spas-list'],
     queryFn: async () => {
-      const { data } = await supabase.from('spas_wellness').select('*').eq('is_active', true).order('is_featured', { ascending: false });
+      const { data } = await supabase.from('spas_wellness').select('*').eq('is_active', true).order('is_sponsored', { ascending: false }).order('is_featured', { ascending: false });
       return data || [];
     },
   });

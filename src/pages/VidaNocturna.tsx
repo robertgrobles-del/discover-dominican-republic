@@ -51,7 +51,7 @@ export default function VidaNocturna() {
   const { data: dbBars } = useQuery({
     queryKey: ['bars-list'],
     queryFn: async () => {
-      const { data } = await supabase.from('bars').select('*').eq('is_active', true).order('is_featured', { ascending: false });
+      const { data } = await supabase.from('bars').select('*').eq('is_active', true).order('is_sponsored', { ascending: false }).order('is_featured', { ascending: false });
       return data || [];
     },
   });
