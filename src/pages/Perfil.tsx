@@ -10,10 +10,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { 
   User, Heart, Star, Settings, MapPin, Calendar, Trash2, 
-  ChevronRight, Edit3, Save, X
+  ChevronRight, Edit3, Save, X, Globe, Compass
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,24 +31,66 @@ interface Review {
   created_at: string;
 }
 
+interface Profile {
+  display_name: string | null;
+  bio: string | null;
+  preferred_language: string | null;
+  travel_interests: string[] | null;
+  avatar_url: string | null;
+}
+
+const interestOptions = [
+  "Playas", "Aventura", "Cultura", "Gastronomía", "Historia",
+  "Ecoturismo", "Vida Nocturna", "Bienestar", "Golf", "Buceo"
+];
+
 export default function Perfil() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const { favorites, removeFavorite, loading: favLoading } = useFavorites();
   const [reviews, setReviews] = useState<Review[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [displayName, setDisplayName] = useState("");
+  const [profile, setProfile] = useState<Profile>({
+    display_name: "",
+    bio: "",
+    preferred_language: "es",
+    travel_interests: [],
+    avatar_url: null,
+  });
+  const [profileLoading, setProfileLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
+      fetchProfile();
       fetchUserReviews();
-      setDisplayName(user.email?.split("@")[0] || "");
     }
   }, [user]);
 
+  const fetchProfile = async () => {
+    if (!user) return;
+    setProfileLoading(true);
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("display_name, bio, preferred_language, travel_interests, avatar_url")
+      .eq("id", user.id)
+      .single();
+
+    if (!error && data) {
+      setProfile({
+        display_name: data.display_name || user.email?.split("@")[0] || "",
+        bio: data.bio || "",
+        preferred_language: data.preferred_language || "es",
+        travel_interests: data.travel_interests || [],
+        avatar_url: data.avatar_url,
+      });
+    } else {
+      setProfile(prev => ({ ...prev, display_name: user.email?.split("@")[0] || "" }));
+    }
+    setProfileLoading(false);
+  };
+
   const fetchUserReviews = async () => {
     if (!user) return;
-    
     setReviewsLoading(true);
     const { data, error } = await supabase
       .from("reviews")
@@ -55,20 +98,12 @@ export default function Perfil() {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Error fetching reviews:", error);
-    } else {
-      setReviews(data || []);
-    }
+    if (!error) setReviews(data || []);
     setReviewsLoading(false);
   };
 
   const handleDeleteReview = async (reviewId: string) => {
-    const { error } = await supabase
-      .from("reviews")
-      .delete()
-      .eq("id", reviewId);
-
+    const { error } = await supabase.from("reviews").delete().eq("id", reviewId);
     if (error) {
       toast.error("Error al eliminar la opinión");
     } else {
@@ -77,9 +112,36 @@ export default function Perfil() {
     }
   };
 
-  const handleSaveProfile = () => {
-    setIsEditing(false);
-    toast.success("Perfil actualizado");
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        display_name: profile.display_name,
+        bio: profile.bio,
+        preferred_language: profile.preferred_language,
+        travel_interests: profile.travel_interests,
+      })
+      .eq("id", user.id);
+
+    if (error) {
+      toast.error("Error al guardar el perfil");
+    } else {
+      toast.success("Perfil actualizado");
+      setIsEditing(false);
+    }
+  };
+
+  const toggleInterest = (interest: string) => {
+    setProfile(prev => {
+      const current = prev.travel_interests || [];
+      return {
+        ...prev,
+        travel_interests: current.includes(interest)
+          ? current.filter(i => i !== interest)
+          : [...current, interest],
+      };
+    });
   };
 
   if (authLoading) {
@@ -90,9 +152,7 @@ export default function Perfil() {
     );
   }
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
 
   return (
     <PageTransition>
@@ -112,11 +172,13 @@ export default function Perfil() {
                   <User className="h-12 w-12 text-primary" />
                 </div>
                 <div className="text-center md:text-left flex-1">
-                  {isEditing ? (
+                  {profileLoading ? (
+                    <Skeleton className="h-8 w-48 mb-2" />
+                  ) : isEditing ? (
                     <div className="flex items-center gap-2 justify-center md:justify-start">
                       <Input
-                        value={displayName}
-                        onChange={(e) => setDisplayName(e.target.value)}
+                        value={profile.display_name || ""}
+                        onChange={(e) => setProfile(p => ({ ...p, display_name: e.target.value }))}
                         className="max-w-xs"
                       />
                       <Button size="icon" variant="ghost" onClick={handleSaveProfile}>
@@ -129,7 +191,7 @@ export default function Perfil() {
                   ) : (
                     <div className="flex items-center gap-2 justify-center md:justify-start">
                       <h1 className="font-display text-2xl font-bold text-foreground">
-                        {displayName}
+                        {profile.display_name}
                       </h1>
                       <Button size="icon" variant="ghost" onClick={() => setIsEditing(true)}>
                         <Edit3 className="h-4 w-4" />
@@ -137,13 +199,18 @@ export default function Perfil() {
                     </div>
                   )}
                   <p className="text-muted-foreground">{user.email}</p>
-                  <div className="flex items-center gap-4 mt-2 justify-center md:justify-start">
+                  <div className="flex items-center gap-4 mt-2 justify-center md:justify-start flex-wrap">
                     <Badge variant="secondary" className="gap-1">
                       <Heart className="h-3 w-3" /> {favorites.length} Favoritos
                     </Badge>
                     <Badge variant="secondary" className="gap-1">
                       <Star className="h-3 w-3" /> {reviews.length} Opiniones
                     </Badge>
+                    {(profile.travel_interests?.length || 0) > 0 && (
+                      <Badge variant="secondary" className="gap-1">
+                        <Compass className="h-3 w-3" /> {profile.travel_interests!.length} Intereses
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </div>
@@ -178,36 +245,19 @@ export default function Perfil() {
                     <Card>
                       <CardContent className="py-12 text-center">
                         <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="font-semibold text-foreground mb-2">
-                          No tienes favoritos guardados
-                        </h3>
-                        <p className="text-muted-foreground mb-4">
-                          Explora destinos, hoteles y experiencias para guardar tus favoritos.
-                        </p>
-                        <Link to="/destinos">
-                          <Button>Explorar Destinos</Button>
-                        </Link>
+                        <h3 className="font-semibold text-foreground mb-2">No tienes favoritos guardados</h3>
+                        <p className="text-muted-foreground mb-4">Explora destinos, hoteles y experiencias para guardar tus favoritos.</p>
+                        <Link to="/destinos"><Button>Explorar Destinos</Button></Link>
                       </CardContent>
                     </Card>
                   ) : (
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {favorites.map((fav, index) => (
-                        <motion.div
-                          key={fav.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                        >
+                        <motion.div key={fav.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }}>
                           <Card className="overflow-hidden group">
                             <div className="relative aspect-video">
-                              <img
-                                src={fav.image || "/placeholder.svg"}
-                                alt={fav.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                              <Badge className="absolute top-3 left-3 capitalize">
-                                {fav.type}
-                              </Badge>
+                              <img src={fav.image || "/placeholder.svg"} alt={fav.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                              <Badge className="absolute top-3 left-3 capitalize">{fav.type}</Badge>
                             </div>
                             <CardContent className="p-4">
                               <h3 className="font-semibold text-foreground mb-1">{fav.name}</h3>
@@ -218,16 +268,9 @@ export default function Perfil() {
                               )}
                               <div className="flex items-center justify-between mt-4">
                                 <Link to={`/${fav.type}/${fav.id}`}>
-                                  <Button variant="outline" size="sm" className="gap-1">
-                                    Ver <ChevronRight className="h-4 w-4" />
-                                  </Button>
+                                  <Button variant="outline" size="sm" className="gap-1">Ver <ChevronRight className="h-4 w-4" /></Button>
                                 </Link>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="text-destructive"
-                                  onClick={() => removeFavorite(fav.id, fav.type)}
-                                >
+                                <Button variant="ghost" size="icon" className="text-destructive" onClick={() => removeFavorite(fav.id, fav.type)}>
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
@@ -243,34 +286,21 @@ export default function Perfil() {
                 <TabsContent value="opiniones">
                   {reviewsLoading ? (
                     <div className="space-y-4">
-                      {[...Array(3)].map((_, i) => (
-                        <Skeleton key={i} className="h-32 rounded-xl" />
-                      ))}
+                      {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-32 rounded-xl" />)}
                     </div>
                   ) : reviews.length === 0 ? (
                     <Card>
                       <CardContent className="py-12 text-center">
                         <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="font-semibold text-foreground mb-2">
-                          No has publicado opiniones
-                        </h3>
-                        <p className="text-muted-foreground mb-4">
-                          Comparte tus experiencias de viaje con otros viajeros.
-                        </p>
-                        <Link to="/opiniones">
-                          <Button>Escribir Opinión</Button>
-                        </Link>
+                        <h3 className="font-semibold text-foreground mb-2">No has publicado opiniones</h3>
+                        <p className="text-muted-foreground mb-4">Comparte tus experiencias de viaje con otros viajeros.</p>
+                        <Link to="/opiniones"><Button>Escribir Opinión</Button></Link>
                       </CardContent>
                     </Card>
                   ) : (
                     <div className="space-y-4">
                       {reviews.map((review, index) => (
-                        <motion.div
-                          key={review.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                        >
+                        <motion.div key={review.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }}>
                           <Card>
                             <CardContent className="p-6">
                               <div className="flex items-start justify-between">
@@ -280,34 +310,17 @@ export default function Perfil() {
                                     <Badge variant="secondary">{review.category}</Badge>
                                   </div>
                                   <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                                    <span className="flex items-center gap-1">
-                                      <MapPin className="h-3 w-3" /> {review.location}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                      <Calendar className="h-3 w-3" /> 
-                                      {new Date(review.created_at).toLocaleDateString("es-DO")}
-                                    </span>
+                                    <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {review.location}</span>
+                                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(review.created_at).toLocaleDateString("es-DO")}</span>
                                     <span className="flex items-center gap-1">
                                       {[...Array(5)].map((_, i) => (
-                                        <Star
-                                          key={i}
-                                          className={`h-3 w-3 ${
-                                            i < review.rating
-                                              ? "fill-yellow-400 text-yellow-400"
-                                              : "text-muted-foreground"
-                                          }`}
-                                        />
+                                        <Star key={i} className={`h-3 w-3 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`} />
                                       ))}
                                     </span>
                                   </div>
                                   <p className="text-muted-foreground line-clamp-2">{review.content}</p>
                                 </div>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="text-destructive"
-                                  onClick={() => handleDeleteReview(review.id)}
-                                >
+                                <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteReview(review.id)}>
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
@@ -321,27 +334,90 @@ export default function Perfil() {
 
                 {/* Configuración Tab */}
                 <TabsContent value="configuracion">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Configuración de Cuenta</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div>
-                        <label className="text-sm font-medium text-foreground">Email</label>
-                        <Input value={user.email || ""} disabled className="mt-1" />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          El email no puede ser modificado
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Información Personal</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium text-foreground">Email</label>
+                          <Input value={user.email || ""} disabled className="mt-1" />
+                          <p className="text-xs text-muted-foreground mt-1">El email no puede ser modificado</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-foreground">Nombre para mostrar</label>
+                          <Input
+                            value={profile.display_name || ""}
+                            onChange={(e) => setProfile(p => ({ ...p, display_name: e.target.value }))}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-foreground">Bio</label>
+                          <Textarea
+                            value={profile.bio || ""}
+                            onChange={(e) => setProfile(p => ({ ...p, bio: e.target.value }))}
+                            placeholder="Cuéntanos sobre ti como viajero..."
+                            className="mt-1"
+                            rows={3}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-foreground flex items-center gap-1">
+                            <Globe className="h-3 w-3" /> Idioma preferido
+                          </label>
+                          <select
+                            value={profile.preferred_language || "es"}
+                            onChange={(e) => setProfile(p => ({ ...p, preferred_language: e.target.value }))}
+                            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                          >
+                            <option value="es">Español</option>
+                            <option value="en">English</option>
+                            <option value="fr">Français</option>
+                            <option value="de">Deutsch</option>
+                          </select>
+                        </div>
+                        <Button onClick={handleSaveProfile} className="w-full">Guardar Cambios</Button>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Compass className="h-5 w-5" /> Intereses de Viaje
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Selecciona tus intereses para recibir recomendaciones personalizadas.
                         </p>
-                      </div>
+                        <div className="flex flex-wrap gap-2">
+                          {interestOptions.map(interest => (
+                            <Badge
+                              key={interest}
+                              variant={(profile.travel_interests || []).includes(interest) ? "default" : "outline"}
+                              className="cursor-pointer transition-colors"
+                              onClick={() => toggleInterest(interest)}
+                            >
+                              {interest}
+                            </Badge>
+                          ))}
+                        </div>
+                        <Button onClick={handleSaveProfile} variant="outline" className="w-full mt-6">
+                          Guardar Intereses
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <Card className="mt-6">
+                    <CardContent className="py-6 flex items-center justify-between">
                       <div>
-                        <label className="text-sm font-medium text-foreground">Nombre para mostrar</label>
-                        <Input
-                          value={displayName}
-                          onChange={(e) => setDisplayName(e.target.value)}
-                          className="mt-1"
-                        />
+                        <h3 className="font-semibold text-foreground">Cerrar Sesión</h3>
+                        <p className="text-sm text-muted-foreground">Cierra tu sesión en este dispositivo.</p>
                       </div>
-                      <Button onClick={handleSaveProfile}>Guardar Cambios</Button>
+                      <Button variant="destructive" onClick={signOut}>Cerrar Sesión</Button>
                     </CardContent>
                   </Card>
                 </TabsContent>

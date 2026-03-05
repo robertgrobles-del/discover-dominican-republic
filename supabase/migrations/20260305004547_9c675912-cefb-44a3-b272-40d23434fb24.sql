@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS events_slug_unique ON public.events (slug) WHERE slug IS NOT NULL;
