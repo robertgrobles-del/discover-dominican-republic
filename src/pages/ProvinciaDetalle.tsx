@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
+import { useMemo } from "react";
 
 import { ProvinceHero } from "@/components/province/ProvinceHero";
 import { ProvinceTechCard } from "@/components/province/ProvinceTechCard";
@@ -17,13 +18,131 @@ import { destinations, getDestinationBySlug } from "@/data/destinations";
 import { hotels } from "@/data/hotels";
 import { restaurants } from "@/data/restaurants";
 import { bars } from "@/data/bars";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 export default function ProvinciaDetalle() {
   const { slug } = useParams<{ slug: string }>();
   
   // Find province data from static destinations
   const province = getDestinationBySlug(slug || "");
+
+  // Fetch DB data for this province - hooks must be before early returns
+  const { data: dbHotels } = useQuery({
+    queryKey: ['province-hotels', slug],
+    queryFn: async () => {
+      const { data: prov } = await supabase.from('provinces').select('id').eq('slug', slug!).maybeSingle();
+      if (!prov) return [];
+      const { data } = await supabase.from('hotels').select('*').eq('destination_id', prov.id).eq('is_active', true).limit(10);
+      return data || [];
+    },
+    enabled: !!slug && !!province,
+  });
+
+  const { data: dbRestaurants } = useQuery({
+    queryKey: ['province-restaurants', slug],
+    queryFn: async () => {
+      const { data: prov } = await supabase.from('provinces').select('id').eq('slug', slug!).maybeSingle();
+      if (!prov) return [];
+      const { data } = await supabase.from('restaurants').select('*').eq('destination_id', prov.id).eq('is_active', true).limit(10);
+      return data || [];
+    },
+    enabled: !!slug && !!province,
+  });
+
+  const { data: dbBars } = useQuery({
+    queryKey: ['province-bars', slug],
+    queryFn: async () => {
+      const { data: prov } = await supabase.from('provinces').select('id').eq('slug', slug!).maybeSingle();
+      if (!prov) return [];
+      const { data } = await supabase.from('bars').select('*').eq('destination_id', prov.id).eq('is_active', true).limit(10);
+      return data || [];
+    },
+    enabled: !!slug && !!province,
+  });
   
+  // Get hotels in this province (static + DB merged)
+  const provinceHotels = useMemo(() => {
+    if (!province || province.type !== "provincia") return [];
+    const staticItems = hotels.filter(
+      h => h.province?.toLowerCase() === province.name.toLowerCase() || h.provinceId === province.id
+    ).map(h => ({
+      id: h.id, slug: h.slug, name: h.name, imageUrl: h.imageUrl,
+      shortDescription: h.shortDescription, rating: h.rating,
+      priceRange: h.priceRange, category: h.category, address: h.address,
+    }));
+    const slugs = new Set(staticItems.map(h => h.slug));
+    (dbHotels || []).forEach(h => {
+      if (h.slug && !slugs.has(h.slug)) {
+        staticItems.push({
+          id: h.id, slug: h.slug, name: h.name, imageUrl: h.image_url || '/placeholder.svg',
+          shortDescription: h.short_description || '', rating: Number(h.rating) || 0,
+          priceRange: h.price_range || '$$', category: h.category || 'Hotel', address: h.address || '',
+        } as any);
+      }
+    });
+    return staticItems;
+  }, [province, dbHotels]);
+
+  // Get restaurants (static + DB merged)
+  const provinceRestaurants = useMemo(() => {
+    if (!province || province.type !== "provincia") return [];
+    const staticItems = restaurants.filter(
+      r => r.province?.toLowerCase() === province.name.toLowerCase() || r.provinceId === province.id
+    ).map(r => ({
+      id: r.id, slug: r.slug, name: r.name, imageUrl: r.imageUrl,
+      shortDescription: r.shortDescription, rating: r.rating,
+      priceRange: r.priceRange, category: Array.isArray(r.cuisineType) ? r.cuisineType[0] : (r.cuisineType || r.category),
+      address: r.address,
+    }));
+    const slugs = new Set(staticItems.map(r => r.slug));
+    (dbRestaurants || []).forEach(r => {
+      if (r.slug && !slugs.has(r.slug)) {
+        staticItems.push({
+          id: r.id, slug: r.slug || '', name: r.name, imageUrl: r.image_url || '/placeholder.svg',
+          shortDescription: r.short_description || '', rating: Number(r.rating) || 0,
+          priceRange: r.price_range || '$$', category: r.cuisine_type || r.category || 'Restaurante',
+          address: r.address || '',
+        } as any);
+      }
+    });
+    return staticItems;
+  }, [province, dbRestaurants]);
+
+  // Get bars (static + DB merged)
+  const provinceBars = useMemo(() => {
+    if (!province || province.type !== "provincia") return [];
+    const staticItems = bars.filter(
+      b => b.province?.toLowerCase() === province.name.toLowerCase() || b.provinceId === province.id
+    ).map(b => ({
+      id: b.id, slug: b.slug, name: b.name, imageUrl: b.imageUrl,
+      barType: b.barType, musicStyle: Array.isArray(b.musicStyle) ? b.musicStyle.join(", ") : b.musicStyle,
+      priceRange: b.priceRange, rating: b.rating, address: b.address, openingHours: b.openingHours,
+    }));
+    const slugs = new Set(staticItems.map(b => b.slug));
+    (dbBars || []).forEach(b => {
+      if (b.slug && !slugs.has(b.slug)) {
+        staticItems.push({
+          id: b.id, slug: b.slug || '', name: b.name, imageUrl: b.image_url || '/placeholder.svg',
+          barType: b.bar_type || 'lounge', musicStyle: b.music_style || '',
+          priceRange: b.price_range || '$$', rating: Number(b.rating) || 0,
+          address: b.address || '', openingHours: b.opening_hours || '',
+        } as any);
+      }
+    });
+    return staticItems;
+  }, [province, dbBars]);
+
+  // Get destinations within this province
+  const provinceDestinations = useMemo(() => {
+    if (!province) return [];
+    return destinations.filter(d => d.provinceSlug === province.slug && d.type !== "provincia");
+  }, [province]);
+
+  const heroImages = province?.gallery?.length 
+    ? province.gallery 
+    : [province?.imageUrl || "/placeholder.svg"];
+
   if (!province || province.type !== "provincia") {
     return (
       <PageTransition>
@@ -40,65 +159,6 @@ export default function ProvinciaDetalle() {
       </PageTransition>
     );
   }
-
-  // Get destinations within this province
-  const provinceDestinations = destinations.filter(
-    d => d.provinceSlug === province.slug && d.type !== "provincia"
-  );
-
-  // Get hotels in this province (matching by province name or slug)
-  const provinceHotels = hotels.filter(
-    h => h.province?.toLowerCase() === province.name.toLowerCase() ||
-         h.provinceId === province.id
-  ).map(h => ({
-    id: h.id,
-    slug: h.slug,
-    name: h.name,
-    imageUrl: h.imageUrl,
-    shortDescription: h.shortDescription,
-    rating: h.rating,
-    priceRange: h.priceRange,
-    category: h.category,
-    address: h.address,
-  }));
-
-  // Get restaurants in this province
-  const provinceRestaurants = restaurants.filter(
-    r => r.province?.toLowerCase() === province.name.toLowerCase() ||
-         r.provinceId === province.id
-  ).map(r => ({
-    id: r.id,
-    slug: r.slug,
-    name: r.name,
-    imageUrl: r.imageUrl,
-    shortDescription: r.shortDescription,
-    rating: r.rating,
-    priceRange: r.priceRange,
-    category: Array.isArray(r.cuisineType) ? r.cuisineType[0] : (r.cuisineType || r.category),
-    address: r.address,
-  }));
-
-  // Get bars/nightlife in this province
-  const provinceBars = bars.filter(
-    b => b.province?.toLowerCase() === province.name.toLowerCase() ||
-         b.provinceId === province.id
-  ).map(b => ({
-    id: b.id,
-    slug: b.slug,
-    name: b.name,
-    imageUrl: b.imageUrl,
-    barType: b.barType,
-    musicStyle: Array.isArray(b.musicStyle) ? b.musicStyle.join(", ") : b.musicStyle,
-    priceRange: b.priceRange,
-    rating: b.rating,
-    address: b.address,
-    openingHours: b.openingHours,
-  }));
-
-  // Mock data for demonstration (since actual static data may be limited)
-  const heroImages = province.gallery?.length 
-    ? province.gallery 
-    : [province.imageUrl || "/placeholder.svg"];
 
   return (
     <PageTransition>

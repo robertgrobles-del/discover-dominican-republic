@@ -11,6 +11,8 @@ import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { getBarBySlug, Bar } from "@/data/bars";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 const barTypeLabels: Record<Bar['barType'], string> = {
   'cocktail-bar': 'Cocktail Bar',
@@ -24,7 +26,57 @@ const barTypeLabels: Record<Bar['barType'], string> = {
 
 export default function BarDetalle() {
   const { id } = useParams<{ id: string }>();
-  const bar = id ? getBarBySlug(id) : undefined;
+  const staticBar = id ? getBarBySlug(id) : undefined;
+
+  // Fetch from DB if not found in static data
+  const { data: dbBar, isLoading } = useQuery({
+    queryKey: ['bar-detail', id],
+    queryFn: async () => {
+      const { data } = await supabase.from('bars').select('*').eq('slug', id!).maybeSingle();
+      return data;
+    },
+    enabled: !!id && !staticBar,
+  });
+
+  // Merge: static takes priority, DB as fallback
+  const bar: Bar | undefined = staticBar || (dbBar ? {
+    id: dbBar.id,
+    slug: dbBar.slug || id || '',
+    name: dbBar.name,
+    description: dbBar.description || '',
+    shortDescription: dbBar.short_description || '',
+    imageUrl: dbBar.image_url || '/placeholder.svg',
+    gallery: dbBar.gallery || [],
+    barType: (dbBar.bar_type as Bar['barType']) || 'lounge',
+    musicStyle: dbBar.music_style ? dbBar.music_style.split(',').map((s: string) => s.trim()) : [],
+    address: dbBar.address || '',
+    destinationId: dbBar.destination_id || '',
+    destinationName: '',
+    province: '',
+    rating: Number(dbBar.rating) || 0,
+    reviewCount: dbBar.review_count || 0,
+    priceRange: (dbBar.price_range || '$$') as Bar['priceRange'],
+    openingHours: dbBar.opening_hours || '',
+    minimumAge: dbBar.minimum_age || 18,
+    dressCode: dbBar.dress_code || '',
+    phone: dbBar.phone || '',
+    website: dbBar.website || '',
+    services: dbBar.services || [],
+  } : undefined);
+
+  if (isLoading && !staticBar) {
+    return (
+      <PageTransition>
+        <div className="min-h-screen bg-background">
+          <Header />
+          <div className="container mx-auto px-4 py-32 text-center">
+            <div className="animate-pulse text-muted-foreground">Cargando...</div>
+          </div>
+          <Footer />
+        </div>
+      </PageTransition>
+    );
+  }
 
   if (!bar) {
     return (
