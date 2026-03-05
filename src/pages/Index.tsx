@@ -10,6 +10,8 @@ import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead, generateOrganizationSchema } from "@/components/SEOHead";
 import { BetweenSectionsAd, MobileAd, MobileStickyFooterAd } from "@/components/ads";
+import { StatsSection } from "@/components/StatsSection";
+import { TestimonialsSection } from "@/components/TestimonialsSection";
 
 const Index = () => {
   return (
@@ -24,6 +26,7 @@ const Index = () => {
         <Header />
         <MobileAd showDemo />
         <HeroSlideshow />
+        <StatsSection />
         <InterestSection />
         <BetweenSectionsAd showDemo />
         <EventsSection />
@@ -32,6 +35,7 @@ const Index = () => {
         <AccommodationsSection />
         <DestinationsSection />
         <BetweenSectionsAd showDemo />
+        <TestimonialsSection />
         <NewsSection />
         
         {/* Footer sticky ad para móvil */}
