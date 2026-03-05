@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { 
@@ -13,8 +13,10 @@ import { Input } from "@/components/ui/input";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
-const spas = [
+const staticSpas = [
   {
     id: "1",
     slug: "six-senses-spa",
@@ -81,13 +83,57 @@ const spas = [
   },
 ];
 
+const spaTypeLabels: Record<string, string> = {
+  'resort-spa': 'Resort Spa',
+  'day-spa': 'Day Spa',
+  'eco-spa': 'Eco Spa',
+  'medical-spa': 'Medical Spa',
+};
+
 const categories = ["Todos", "Resort Spa", "Day Spa", "Eco Spa", "Medical Spa"];
 
 export default function SpasWellness() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("Todos");
 
-  const filteredSpas = spas.filter((spa) => {
+  // Fetch from Supabase
+  const { data: dbSpas } = useQuery({
+    queryKey: ['spas-list'],
+    queryFn: async () => {
+      const { data } = await supabase.from('spas_wellness').select('*').eq('is_active', true).order('is_featured', { ascending: false });
+      return data || [];
+    },
+  });
+
+  // Merge static + DB
+  const allSpas = useMemo(() => {
+    const merged = staticSpas.map(s => ({ ...s }));
+    const slugs = new Set(merged.map(s => s.slug));
+    (dbSpas || []).forEach(db => {
+      if (db.slug && !slugs.has(db.slug)) {
+        merged.push({
+          id: db.id,
+          slug: db.slug,
+          name: db.name,
+          image: db.image_url || '/placeholder.svg',
+          category: spaTypeLabels[db.spa_type || ''] || db.spa_type || 'Spa',
+          location: db.address || '',
+          rating: Number(db.rating) || 0,
+          reviews: db.review_count || 0,
+          priceFrom: 0,
+          duration: '',
+          description: db.short_description || db.description || '',
+          services: db.services || [],
+          highlights: db.treatments || [],
+          featured: db.is_featured || false,
+        });
+        slugs.add(db.slug);
+      }
+    });
+    return merged;
+  }, [dbSpas]);
+
+  const filteredSpas = allSpas.filter((spa) => {
     const matchesSearch = spa.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       spa.location.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = activeCategory === "Todos" || spa.category === activeCategory;

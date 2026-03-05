@@ -48,6 +48,7 @@ export type Database = {
           instant_book: boolean | null
           is_active: boolean | null
           is_featured: boolean | null
+          is_sponsored: boolean | null
           is_superhost: boolean | null
           latitude: number | null
           location_rating: number | null
@@ -101,6 +102,7 @@ export type Database = {
           instant_book?: boolean | null
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_sponsored?: boolean | null
           is_superhost?: boolean | null
           latitude?: number | null
           location_rating?: number | null
@@ -154,6 +156,7 @@ export type Database = {
           instant_book?: boolean | null
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_sponsored?: boolean | null
           is_superhost?: boolean | null
           latitude?: number | null
           location_rating?: number | null
@@ -303,6 +306,7 @@ export type Database = {
           image_url: string | null
           is_active: boolean | null
           is_featured: boolean | null
+          is_sponsored: boolean | null
           latitude: number | null
           longitude: number | null
           minimum_age: number | null
@@ -333,6 +337,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_sponsored?: boolean | null
           latitude?: number | null
           longitude?: number | null
           minimum_age?: number | null
@@ -363,6 +368,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_sponsored?: boolean | null
           latitude?: number | null
           longitude?: number | null
           minimum_age?: number | null
@@ -1002,6 +1008,7 @@ export type Database = {
           included: string[] | null
           is_active: boolean | null
           is_featured: boolean | null
+          is_sponsored: boolean | null
           name: string
           price_range: string | null
           rating: number | null
@@ -1027,6 +1034,7 @@ export type Database = {
           included?: string[] | null
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_sponsored?: boolean | null
           name: string
           price_range?: string | null
           rating?: number | null
@@ -1052,6 +1060,7 @@ export type Database = {
           included?: string[] | null
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_sponsored?: boolean | null
           name?: string
           price_range?: string | null
           rating?: number | null
@@ -1118,6 +1127,7 @@ export type Database = {
           image_url: string | null
           is_active: boolean | null
           is_featured: boolean | null
+          is_sponsored: boolean | null
           latitude: number | null
           longitude: number | null
           name: string
@@ -1144,6 +1154,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_sponsored?: boolean | null
           latitude?: number | null
           longitude?: number | null
           name: string
@@ -1170,6 +1181,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_sponsored?: boolean | null
           latitude?: number | null
           longitude?: number | null
           name?: string
@@ -1457,6 +1469,7 @@ export type Database = {
           image_url: string | null
           is_active: boolean | null
           is_featured: boolean | null
+          is_sponsored: boolean | null
           latitude: number | null
           longitude: number | null
           name: string
@@ -1485,6 +1498,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_sponsored?: boolean | null
           latitude?: number | null
           longitude?: number | null
           name: string
@@ -1513,6 +1527,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_sponsored?: boolean | null
           latitude?: number | null
           longitude?: number | null
           name?: string
@@ -1694,6 +1709,7 @@ export type Database = {
           image_url: string | null
           is_active: boolean | null
           is_featured: boolean | null
+          is_sponsored: boolean | null
           latitude: number | null
           longitude: number | null
           name: string
@@ -1722,6 +1738,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_sponsored?: boolean | null
           latitude?: number | null
           longitude?: number | null
           name: string
@@ -1750,6 +1767,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_featured?: boolean | null
+          is_sponsored?: boolean | null
           latitude?: number | null
           longitude?: number | null
           name?: string
