@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams, Link } from "react-router-dom";
 import {
@@ -37,7 +37,9 @@ import {
   Globe,
   Wine,
   UtensilsCrossed,
+  Loader2,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -209,8 +211,30 @@ export default function AlojamientoDetalle() {
   const [checkIn, setCheckIn] = useState("2024-11-15");
   const [checkOut, setCheckOut] = useState("2024-11-20");
   const [guests, setGuests] = useState(2);
+  const [dbHotel, setDbHotel] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const hotel = hotelData; // In real app, fetch by id
+  useEffect(() => {
+    async function fetchHotel() {
+      if (!id) { setLoading(false); return; }
+      const { data } = await supabase
+        .from("hotels")
+        .select("*, destinations(name)")
+        .or(`slug.eq.${id},id.eq.${id}`)
+        .maybeSingle();
+      setDbHotel(data);
+      setLoading(false);
+    }
+    fetchHotel();
+  }, [id]);
+
+  // Merge: use DB data for header/meta if available, static for detailed sections
+  const hotelName = dbHotel?.name || hotelData.name;
+  const hotelLocation = dbHotel?.address || (dbHotel?.destinations?.name ? `${dbHotel.destinations.name}, República Dominicana` : hotelData.location);
+  const hotelRating = dbHotel?.rating || hotelData.rating;
+  const hotelDescription = dbHotel?.description || hotelData.description;
+  const hotelImages = dbHotel?.gallery?.length ? dbHotel.gallery : hotelData.images;
+  const hotel = hotelData; // keep static data for detailed sections
 
   const nights = 5;
   const basePrice = 450 * nights;
@@ -226,6 +250,15 @@ export default function AlojamientoDetalle() {
     setCurrentImage((prev) => (prev - 1 + hotel.images.length) % hotel.images.length);
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Header />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -239,7 +272,7 @@ export default function AlojamientoDetalle() {
           <ChevronRight className="h-4 w-4" />
           <span>La Romana</span>
           <ChevronRight className="h-4 w-4" />
-          <span className="text-foreground">{hotel.name}</span>
+          <span className="text-foreground">{hotelName}</span>
         </nav>
       </div>
 
@@ -248,36 +281,34 @@ export default function AlojamientoDetalle() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
-              {hotel.name}
+              {hotelName}
             </h1>
             <div className="flex flex-wrap items-center gap-4 text-sm">
               <div className="flex items-center gap-1 text-muted-foreground">
                 <MapPin className="h-4 w-4 text-primary" />
-                {hotel.location}
+                {hotelLocation}
               </div>
               <div className="flex items-center gap-1">
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`h-4 w-4 ${
-                        i < Math.floor(hotel.rating) ? "fill-amber-400 text-amber-400" : "text-muted-foreground"
-                      }`}
+                    className={`h-4 w-4 ${i < Math.floor(hotelRating) ? "fill-amber-400 text-amber-400" : "text-muted-foreground"}`}
                     />
                   ))}
                 </div>
-                <span className="text-foreground font-medium">{hotel.rating}</span>
+                <span className="text-foreground font-medium">{hotelRating}</span>
                 <span className="text-muted-foreground">({hotel.reviews} reseñas)</span>
               </div>
             </div>
           </div>
           <div className="flex gap-3">
             <FavoriteButton
-              id={hotel.id}
+              id={dbHotel?.id || hotel.id}
               type="hotel"
-              name={hotel.name}
-              image={hotel.images[0]}
-              location={hotel.location}
+              name={hotelName}
+              image={hotelImages[0]}
+              location={hotelLocation}
               variant="button"
               size="md"
             />
@@ -291,7 +322,7 @@ export default function AlojamientoDetalle() {
 
       {/* Gallery with Lightbox */}
       <section className="container mx-auto px-4 lg:px-8 pb-12">
-        <AccommodationGallery images={hotel.images} name={hotel.name} />
+        <AccommodationGallery images={hotelImages} name={hotelName} />
       </section>
 
       {/* Content */}
@@ -305,7 +336,7 @@ export default function AlojamientoDetalle() {
                 Sobre este alojamiento
               </h2>
               <p className="text-muted-foreground leading-relaxed mb-4">
-                {hotel.description}
+                {hotelDescription}
               </p>
               <div className="flex flex-wrap gap-2">
                 {hotel.tags.map((tag) => (

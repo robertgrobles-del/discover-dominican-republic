@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import samanaImg from "@/assets/samana.jpg";
 
 export default function Registro() {
+  const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -56,7 +57,8 @@ export default function Registro() {
 
     setIsLoading(true);
 
-    const { error } = await signUp(email, password);
+    const { error } = await signUp(email, password, displayName);
+    // display_name is passed via metadata and picked up by the DB trigger
 
     if (error) {
       toast({
@@ -120,6 +122,22 @@ export default function Registro() {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="displayName">Nombre</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="displayName"
+                      type="text"
+                      placeholder="Tu nombre"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="email">Correo electrónico</Label>
                   <div className="relative">
