@@ -13,7 +13,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { 
   Search, MapPin, Star, Bed, Users, Home, Building2, 
-  SlidersHorizontal, X, Wifi, Car, Waves, Utensils, Dumbbell
+  SlidersHorizontal, X, Wifi, Car, Waves, Utensils, Dumbbell, Megaphone
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { FavoriteButton } from "@/components/FavoriteButton";
@@ -35,6 +35,8 @@ interface Hotel {
   category: string | null;
   amenities: string[] | null;
   address: string | null;
+  is_sponsored?: boolean | null;
+  is_featured?: boolean | null;
   destinations?: { name: string } | null;
 }
 
@@ -49,6 +51,8 @@ interface Airbnb {
   guests: number | null;
   bedrooms: number | null;
   is_superhost: boolean | null;
+  is_sponsored?: boolean | null;
+  is_featured?: boolean | null;
   property_type: string | null;
   amenities: string[] | null;
   address: string | null;
@@ -88,13 +92,17 @@ export default function Alojamientos() {
       const [hotelsRes, airbnbsRes] = await Promise.all([
         supabase
           .from("hotels")
-          .select("id, name, slug, short_description, image_url, price_range, rating, stars, category, amenities, address, destinations(name)")
+          .select("id, name, slug, short_description, image_url, price_range, rating, stars, category, amenities, address, is_sponsored, is_featured, destinations(name)")
           .eq("is_active", true)
+          .order("is_sponsored", { ascending: false })
+          .order("is_featured", { ascending: false })
           .limit(50),
         supabase
           .from("airbnb_listings")
-          .select("id, name, slug, short_description, image_url, price_per_night, rating, guests, bedrooms, is_superhost, property_type, amenities, address, destinations(name)")
+          .select("id, name, slug, short_description, image_url, price_per_night, rating, guests, bedrooms, is_superhost, is_sponsored, is_featured, property_type, amenities, address, destinations(name)")
           .eq("is_active", true)
+          .order("is_sponsored", { ascending: false })
+          .order("is_featured", { ascending: false })
           .limit(50),
       ]);
 
@@ -297,7 +305,7 @@ export default function Alojamientos() {
                       className="group"
                     >
                       <Link to={`/alojamiento/${hotel.slug || hotel.id}`}>
-                        <Card className="overflow-hidden border-border hover:border-primary/50 transition-colors">
+                        <Card className={`overflow-hidden transition-colors ${hotel.is_sponsored ? 'border-primary/50 ring-1 ring-primary/30' : 'border-border hover:border-primary/50'}`}>
                           <div className="aspect-[4/3] relative overflow-hidden">
                             <img
                               src={hotel.image_url || hotelRoomSuite}
@@ -313,11 +321,15 @@ export default function Alojamientos() {
                                 location={hotel.address || ""}
                               />
                             </div>
-                            {hotel.stars && (
+                            {hotel.is_sponsored ? (
+                              <Badge className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1">
+                                <Megaphone className="h-3 w-3" /> Patrocinado
+                              </Badge>
+                            ) : hotel.stars ? (
                               <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground">
                                 {hotel.stars} ★
                               </Badge>
-                            )}
+                            ) : null}
                           </div>
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between gap-2 mb-2">
@@ -362,7 +374,7 @@ export default function Alojamientos() {
                       className="group"
                     >
                       <Link to={`/airbnb/${airbnb.slug || airbnb.id}`}>
-                        <Card className="overflow-hidden border-border hover:border-primary/50 transition-colors">
+                        <Card className={`overflow-hidden transition-colors ${airbnb.is_sponsored ? 'border-primary/50 ring-1 ring-primary/30' : 'border-border hover:border-primary/50'}`}>
                           <div className="aspect-[4/3] relative overflow-hidden">
                             <img
                               src={airbnb.image_url || hotelRoomSuite}
@@ -378,11 +390,15 @@ export default function Alojamientos() {
                                 location={airbnb.address || ""}
                               />
                             </div>
-                            {airbnb.is_superhost && (
+                            {airbnb.is_sponsored ? (
+                              <Badge className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1">
+                                <Megaphone className="h-3 w-3" /> Patrocinado
+                              </Badge>
+                            ) : airbnb.is_superhost ? (
                               <Badge className="absolute top-3 left-3 bg-rose-500 text-white">
                                 Superhost
                               </Badge>
-                            )}
+                            ) : null}
                           </div>
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between gap-2 mb-2">

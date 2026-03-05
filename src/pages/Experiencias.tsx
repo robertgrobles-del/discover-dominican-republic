@@ -47,7 +47,7 @@ export default function Experiencias() {
   const { data: dbExperiences } = useQuery({
     queryKey: ['experiences-list'],
     queryFn: async () => {
-      const { data } = await supabase.from('experiences').select('*').eq('is_active', true).order('is_featured', { ascending: false });
+      const { data } = await supabase.from('experiences').select('*').eq('is_active', true).order('is_sponsored', { ascending: false }).order('is_featured', { ascending: false });
       return data || [];
     },
   });

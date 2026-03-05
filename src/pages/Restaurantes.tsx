@@ -51,7 +51,10 @@ export default function Restaurantes() {
   const [dbRestaurants, setDbRestaurants] = useState<Restaurant[]>([]);
 
   useEffect(() => {
-    supabase.from('restaurants').select('*').eq('is_active', true).then(({ data }) => {
+    supabase.from('restaurants').select('*').eq('is_active', true)
+      .order('is_sponsored', { ascending: false })
+      .order('is_featured', { ascending: false })
+      .then(({ data }) => {
       if (data) {
         const mapped: Restaurant[] = data.map(r => ({
           id: r.id,
@@ -79,6 +82,7 @@ export default function Restaurantes() {
           latitude: r.latitude ? Number(r.latitude) : undefined,
           longitude: r.longitude ? Number(r.longitude) : undefined,
           isFeatured: r.is_featured || false,
+          isSponsored: (r as any).is_sponsored || false,
         }));
         setDbRestaurants(mapped);
       }
@@ -94,8 +98,12 @@ export default function Restaurantes() {
   const filteredRestaurants = useMemo(() => {
     let results = [...allRestaurants];
 
-    // Sort sponsored first
-    results.sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0));
+    // Sort sponsored first, then featured
+    results.sort((a, b) => {
+      const aSponsored = (a as any).isSponsored ? 2 : (a.isFeatured ? 1 : 0);
+      const bSponsored = (b as any).isSponsored ? 2 : (b.isFeatured ? 1 : 0);
+      return bSponsored - aSponsored;
+    });
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -297,7 +305,13 @@ export default function Restaurantes() {
                         alt={restaurant.name}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
-                      {restaurant.isFeatured && (
+                      {((restaurant as any).isSponsored) && (
+                        <Badge className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1">
+                          <Megaphone className="h-3 w-3" />
+                          Patrocinado
+                        </Badge>
+                      )}
+                      {!((restaurant as any).isSponsored) && restaurant.isFeatured && (
                         <Badge className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1">
                           <Megaphone className="h-3 w-3" />
                           Destacado
