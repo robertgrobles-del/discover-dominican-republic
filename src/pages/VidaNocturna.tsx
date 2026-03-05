@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { 
@@ -11,6 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { bars as staticBarsData } from "@/data/bars";
 
 const categories = [
   { id: "all", label: "Todos", icon: Sparkles },
@@ -21,68 +24,13 @@ const categories = [
   { id: "playa", label: "Playa", icon: Palmtree }
 ];
 
-const venues = [
-  {
-    name: "Lulú Tasting Bar",
-    location: "Zona Colonial",
-    rating: 4.9,
-    description: "Ambiente sofisticado en el corazón de la ciudad colonial. Perfecto para degustaciones y...",
-    tags: ["Casual Elegante", "Jazz / Lounge"],
-    image: "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=500&h=350&fit=crop",
-    badge: "#ChillZone",
-    badgeColor: "bg-purple-500"
-  },
-  {
-    name: "Coco Bongo",
-    location: "Punta Cana",
-    rating: 4.7,
-    description: "El show nocturno más famoso del Caribe. Acróbatas, imitadores y fiesta non-stop.",
-    tags: ["Smart Casual", "Show / Top 40"],
-    image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=500&h=350&fit=crop",
-    badge: "#FiestaExtrema",
-    badgeColor: "bg-red-500"
-  },
-  {
-    name: "Sugar Cane House",
-    location: "Santo Domingo",
-    rating: 4.8,
-    description: "Vistas increíbles de la ciudad con los mejores cócteles de autor basados en ron local.",
-    tags: ["Casual", "Mixología"],
-    image: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=500&h=350&fit=crop",
-    badge: "#RooftopView",
-    badgeColor: "bg-cyan-500"
-  },
-  {
-    name: "Mosquito Bar",
-    location: "Las Terrenas",
-    rating: 4.8,
-    description: "El lugar icónico para ver el atardecer y bailar descalzo en la arena. Ambiente bohemio.",
-    tags: ["Playa Chic", "Deep House"],
-    image: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=500&h=350&fit=crop",
-    badge: "#PlayaVibes",
-    badgeColor: "bg-amber-500"
-  },
-  {
-    name: "La Fabrica",
-    location: "Santiago",
-    rating: 4.6,
-    description: "Música electrónica y alternativa en un ambiente industrial renovado. Solo para conocedores.",
-    tags: ["Urbano", "Techno"],
-    image: "https://images.unsplash.com/photo-1545128485-c400e7702796?w=500&h=350&fit=crop",
-    badge: "#Underground",
-    badgeColor: "bg-slate-500"
-  },
-  {
-    name: "El Mesón de la Cava",
-    location: "Santo Domingo",
-    rating: 4.9,
-    description: "Una cueva natural convertida en restaurante y bar. Una experiencia única en el Caribe.",
-    tags: ["Formal", "En Vivo"],
-    image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=500&h=350&fit=crop",
-    badge: "#VinoYArte",
-    badgeColor: "bg-rose-500"
-  }
-];
+const categoryToType: Record<string, string[]> = {
+  chill: ['lounge', 'cocktail-bar'],
+  fiesta: ['nightclub'],
+  jazz: ['cocktail-bar'],
+  rooftop: ['rooftop'],
+  playa: ['beach-bar'],
+};
 
 const houseDrinks = [
   { name: "Mojito de Chinola", venue: "Lulú Tasting Bar", offer: "2x1 los Jueves", image: "https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=100&h=100&fit=crop" },
@@ -99,6 +47,62 @@ export default function VidaNocturna() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState("santo-domingo");
+
+  const { data: dbBars } = useQuery({
+    queryKey: ['bars-list'],
+    queryFn: async () => {
+      const { data } = await supabase.from('bars').select('*').eq('is_active', true).order('is_featured', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const allVenues = useMemo(() => {
+    const staticMapped = staticBarsData.map(b => ({
+      name: b.name,
+      slug: b.slug,
+      location: b.destinationName,
+      rating: b.rating,
+      description: b.shortDescription,
+      tags: [b.dressCode || '', b.musicStyle[0] || ''].filter(Boolean),
+      image: b.imageUrl !== '/placeholder.svg' ? b.imageUrl : `https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=500&h=350&fit=crop`,
+      badge: b.barType === 'nightclub' ? '#FiestaExtrema' : b.barType === 'beach-bar' ? '#PlayaVibes' : b.barType === 'rooftop' ? '#RooftopView' : '#ChillZone',
+      badgeColor: b.barType === 'nightclub' ? 'bg-red-500' : b.barType === 'beach-bar' ? 'bg-amber-500' : b.barType === 'rooftop' ? 'bg-cyan-500' : 'bg-purple-500',
+      barType: b.barType,
+    }));
+    const slugs = new Set(staticMapped.map(v => v.slug));
+    (dbBars || []).forEach(db => {
+      const slug = db.slug || db.id;
+      if (!slugs.has(slug)) {
+        staticMapped.push({
+          name: db.name,
+          slug,
+          location: db.address || '',
+          rating: Number(db.rating) || 0,
+          description: db.short_description || '',
+          tags: [db.dress_code, db.music_style].filter(Boolean) as string[],
+          image: db.image_url || `https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=500&h=350&fit=crop`,
+          badge: '#Nuevo',
+          badgeColor: 'bg-primary',
+          barType: (db.bar_type || 'lounge') as any,
+        });
+        slugs.add(slug);
+      }
+    });
+    return staticMapped;
+  }, [dbBars]);
+
+  const filteredVenues = useMemo(() => {
+    let results = allVenues;
+    if (activeCategory !== 'all') {
+      const types = categoryToType[activeCategory] || [];
+      results = results.filter(v => types.includes(v.barType));
+    }
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      results = results.filter(v => v.name.toLowerCase().includes(q) || v.location.toLowerCase().includes(q));
+    }
+    return results;
+  }, [allVenues, activeCategory, searchQuery]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -201,9 +205,9 @@ export default function VidaNocturna() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {venues.map((venue, index) => (
+            {filteredVenues.map((venue, index) => (
               <motion.div
-                key={venue.name}
+                key={venue.slug}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
@@ -243,7 +247,7 @@ export default function VidaNocturna() {
                     ))}
                   </div>
                   <Button variant="outline" className="w-full" asChild>
-                    <Link to={`/bar/${venue.name.toLowerCase().replace(/\s+/g, '-')}`}>
+                    <Link to={`/bar/${venue.slug}`}>
                       Ver Detalles y Agenda
                     </Link>
                   </Button>
@@ -252,11 +256,12 @@ export default function VidaNocturna() {
             ))}
           </div>
 
-          <div className="text-center mt-8">
-            <Button variant="outline" className="gap-2">
-              Cargar más lugares <ChevronDown className="h-4 w-4" />
-            </Button>
-          </div>
+          {filteredVenues.length === 0 && (
+            <div className="text-center py-12">
+              <Wine className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No se encontraron lugares con esos filtros.</p>
+            </div>
+          )}
         </section>
 
         {/* Bottom Section: Drinks & Agenda */}

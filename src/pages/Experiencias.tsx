@@ -6,9 +6,11 @@ import { Link } from "react-router-dom";
 import { ChevronRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 import adventure from "@/assets/adventure.jpg";
 import diving from "@/assets/diving.jpg";
@@ -20,7 +22,7 @@ import hotelEdenRoc from "@/assets/hotel-eden-roc.jpg";
 import santoDomingo from "@/assets/santo-domingo.jpg";
 import puntaCana from "@/assets/punta-cana.jpg";
 
-const experiencias = [
+const staticExperiencias = [
   { id: "ecoturismo", nombre: "Ecoturismo", imagen: whaleSamana, desc: "Conecta con la naturaleza virgen de RD" },
   { id: "aventura", nombre: "Aventura", imagen: adventure, desc: "Adrenalina en el paraíso caribeño" },
   { id: "parques-tematicos", nombre: "Parques Temáticos", imagen: puntaCana, desc: "Diversión extrema y emociones para todos", link: "/parques-tematicos" },
@@ -41,6 +43,32 @@ const experiencias = [
 
 export default function Experiencias() {
   const [search, setSearch] = useState("");
+
+  const { data: dbExperiences } = useQuery({
+    queryKey: ['experiences-list'],
+    queryFn: async () => {
+      const { data } = await supabase.from('experiences').select('*').eq('is_active', true).order('is_featured', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const experiencias = useMemo(() => {
+    const items = [...staticExperiencias];
+    const ids = new Set(items.map(e => e.id));
+    (dbExperiences || []).forEach(e => {
+      const slug = e.slug || e.id;
+      if (!ids.has(slug)) {
+        items.push({
+          id: slug,
+          nombre: e.name,
+          imagen: e.image_url || adventure,
+          desc: e.short_description || '',
+        });
+        ids.add(slug);
+      }
+    });
+    return items;
+  }, [dbExperiences]);
 
   const filteredExperiencias = experiencias.filter(exp => 
     exp.nombre.toLowerCase().includes(search.toLowerCase()) ||
