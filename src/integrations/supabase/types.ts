@@ -902,6 +902,42 @@ export type Database = {
           },
         ]
       }
+      contest_registrations: {
+        Row: {
+          created_at: string
+          edad: string | null
+          email: string
+          id: string
+          intereses: string[] | null
+          nombre: string
+          pais: string | null
+          telefono: string | null
+          visitado: string | null
+        }
+        Insert: {
+          created_at?: string
+          edad?: string | null
+          email: string
+          id?: string
+          intereses?: string[] | null
+          nombre: string
+          pais?: string | null
+          telefono?: string | null
+          visitado?: string | null
+        }
+        Update: {
+          created_at?: string
+          edad?: string | null
+          email?: string
+          id?: string
+          intereses?: string[] | null
+          nombre?: string
+          pais?: string | null
+          telefono?: string | null
+          visitado?: string | null
+        }
+        Relationships: []
+      }
       destinations: {
         Row: {
           best_time_to_visit: string | null
@@ -2249,6 +2285,30 @@ export type Database = {
           },
         ]
       }
+      survey_responses: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          respuestas: Json
+          survey_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          respuestas?: Json
+          survey_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          respuestas?: Json
+          survey_id?: string
+        }
+        Relationships: []
+      }
       theme_parks: {
         Row: {
           address: string | null
@@ -2730,6 +2790,66 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      vacation_registrations: {
+        Row: {
+          acompanantes: string | null
+          aeropuerto: string | null
+          alojamiento: string | null
+          como_supo: string | null
+          created_at: string
+          destino: string | null
+          email: string
+          fecha_llegada: string | null
+          fecha_salida: string | null
+          id: string
+          intereses: string[] | null
+          nombre: string
+          nombre_alojamiento: string | null
+          pais: string | null
+          primera_vez: string | null
+          telefono: string | null
+          tipo_viajero: string | null
+        }
+        Insert: {
+          acompanantes?: string | null
+          aeropuerto?: string | null
+          alojamiento?: string | null
+          como_supo?: string | null
+          created_at?: string
+          destino?: string | null
+          email: string
+          fecha_llegada?: string | null
+          fecha_salida?: string | null
+          id?: string
+          intereses?: string[] | null
+          nombre: string
+          nombre_alojamiento?: string | null
+          pais?: string | null
+          primera_vez?: string | null
+          telefono?: string | null
+          tipo_viajero?: string | null
+        }
+        Update: {
+          acompanantes?: string | null
+          aeropuerto?: string | null
+          alojamiento?: string | null
+          como_supo?: string | null
+          created_at?: string
+          destino?: string | null
+          email?: string
+          fecha_llegada?: string | null
+          fecha_salida?: string | null
+          id?: string
+          intereses?: string[] | null
+          nombre?: string
+          nombre_alojamiento?: string | null
+          pais?: string | null
+          primera_vez?: string | null
+          telefono?: string | null
+          tipo_viajero?: string | null
         }
         Relationships: []
       }
