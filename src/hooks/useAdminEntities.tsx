@@ -7,7 +7,9 @@ export type EntityType =
   | 'coffee_experiences' | 'caves' | 'rivers' | 'theme_parks'
   | 'clinics' | 'stadiums' | 'ports_marinas' | 'artisanal_workshops'
   | 'tour_guides' | 'travel_agencies' | 'tour_operators'
-  | 'destinations' | 'provinces' | 'municipalities' | 'airbnb_listings';
+  | 'destinations' | 'provinces' | 'municipalities' | 'airbnb_listings'
+  | 'ad_banners' | 'historical_figures' | 'historical_events'
+  | 'tour_packages' | 'job_vacancies';
 
 interface Filters {
   destination_id?: string;

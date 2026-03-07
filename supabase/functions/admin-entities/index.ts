@@ -13,7 +13,8 @@ const VALID_ENTITIES = [
   'clinics', 'stadiums', 'ports_marinas', 'artisanal_workshops',
   'tour_guides', 'travel_agencies', 'tour_operators',
   'destinations', 'provinces', 'municipalities', 'airbnb_listings',
-  'beaches', 'spas_wellness'
+  'beaches', 'spas_wellness', 'ad_banners',
+  'historical_figures', 'historical_events', 'tour_packages', 'job_vacancies'
 ] as const;
 
 type EntityType = typeof VALID_ENTITIES[number];
