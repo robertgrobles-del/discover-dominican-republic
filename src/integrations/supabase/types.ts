@@ -1325,6 +1325,204 @@ export type Database = {
         }
         Relationships: []
       }
+      gamification_levels: {
+        Row: {
+          color: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          level_number: number
+          marketplace_discount: number | null
+          name: string
+          perks: string[] | null
+          title: string
+          xp_required: number
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          level_number: number
+          marketplace_discount?: number | null
+          name: string
+          perks?: string[] | null
+          title: string
+          xp_required?: number
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          level_number?: number
+          marketplace_discount?: number | null
+          name?: string
+          perks?: string[] | null
+          title?: string
+          xp_required?: number
+        }
+        Relationships: []
+      }
+      gamification_missions: {
+        Row: {
+          category: string | null
+          coin_reward: number
+          created_at: string
+          description: string | null
+          end_date: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          min_level: number | null
+          mission_type: string
+          name: string
+          short_description: string | null
+          start_date: string | null
+          target_action: string
+          target_count: number
+          updated_at: string
+          xp_reward: number
+        }
+        Insert: {
+          category?: string | null
+          coin_reward?: number
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          min_level?: number | null
+          mission_type?: string
+          name: string
+          short_description?: string | null
+          start_date?: string | null
+          target_action: string
+          target_count?: number
+          updated_at?: string
+          xp_reward?: number
+        }
+        Update: {
+          category?: string | null
+          coin_reward?: number
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          min_level?: number | null
+          mission_type?: string
+          name?: string
+          short_description?: string | null
+          start_date?: string | null
+          target_action?: string
+          target_count?: number
+          updated_at?: string
+          xp_reward?: number
+        }
+        Relationships: []
+      }
+      gamification_prizes: {
+        Row: {
+          coin_cost: number
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          min_level: number | null
+          name: string
+          prize_type: string
+          quantity_available: number | null
+          quantity_redeemed: number | null
+          short_description: string | null
+          sponsor: string | null
+          terms: string | null
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          coin_cost?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          min_level?: number | null
+          name: string
+          prize_type?: string
+          quantity_available?: number | null
+          quantity_redeemed?: number | null
+          short_description?: string | null
+          sponsor?: string | null
+          terms?: string | null
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          coin_cost?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          min_level?: number | null
+          name?: string
+          prize_type?: string
+          quantity_available?: number | null
+          quantity_redeemed?: number | null
+          short_description?: string | null
+          sponsor?: string | null
+          terms?: string | null
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
+      gamification_transactions: {
+        Row: {
+          coin_amount: number | null
+          created_at: string
+          description: string | null
+          id: string
+          source_id: string | null
+          source_type: string | null
+          transaction_type: string
+          user_id: string
+          xp_amount: number | null
+        }
+        Insert: {
+          coin_amount?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          source_id?: string | null
+          source_type?: string | null
+          transaction_type: string
+          user_id: string
+          xp_amount?: number | null
+        }
+        Update: {
+          coin_amount?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          source_id?: string | null
+          source_type?: string | null
+          transaction_type?: string
+          user_id?: string
+          xp_amount?: number | null
+        }
+        Relationships: []
+      }
       historical_events: {
         Row: {
           category: string | null
@@ -1948,6 +2146,71 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          total_earnings_coins: number | null
+          total_referrals: number | null
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          total_earnings_coins?: number | null
+          total_referrals?: number | null
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          total_earnings_coins?: number | null
+          total_referrals?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      referral_uses: {
+        Row: {
+          coins_awarded: number | null
+          created_at: string
+          id: string
+          referral_code_id: string
+          referred_user_id: string
+          xp_awarded: number | null
+        }
+        Insert: {
+          coins_awarded?: number | null
+          created_at?: string
+          id?: string
+          referral_code_id: string
+          referred_user_id: string
+          xp_awarded?: number | null
+        }
+        Update: {
+          coins_awarded?: number | null
+          created_at?: string
+          id?: string
+          referral_code_id?: string
+          referred_user_id?: string
+          xp_awarded?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_uses_referral_code_id_fkey"
+            columns: ["referral_code_id"]
+            isOneToOne: false
+            referencedRelation: "referral_codes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       restaurants: {
         Row: {
@@ -2866,6 +3129,133 @@ export type Database = {
             columns: ["destination_id"]
             isOneToOne: false
             referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_gamification: {
+        Row: {
+          coins: number
+          created_at: string
+          current_level: number
+          id: string
+          last_activity_date: string | null
+          streak_days: number
+          total_missions_completed: number
+          total_purchases: number
+          total_referrals: number
+          total_xp: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          coins?: number
+          created_at?: string
+          current_level?: number
+          id?: string
+          last_activity_date?: string | null
+          streak_days?: number
+          total_missions_completed?: number
+          total_purchases?: number
+          total_referrals?: number
+          total_xp?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          coins?: number
+          created_at?: string
+          current_level?: number
+          id?: string
+          last_activity_date?: string | null
+          streak_days?: number
+          total_missions_completed?: number
+          total_purchases?: number
+          total_referrals?: number
+          total_xp?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_missions: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          is_completed: boolean
+          mission_id: string
+          progress: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          mission_id: string
+          progress?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          mission_id?: string
+          progress?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_missions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "gamification_missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_prize_redemptions: {
+        Row: {
+          coins_spent: number
+          created_at: string
+          id: string
+          prize_id: string
+          redeemed_at: string | null
+          redemption_code: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          coins_spent: number
+          created_at?: string
+          id?: string
+          prize_id: string
+          redeemed_at?: string | null
+          redemption_code?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          coins_spent?: number
+          created_at?: string
+          id?: string
+          prize_id?: string
+          redeemed_at?: string | null
+          redemption_code?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_prize_redemptions_prize_id_fkey"
+            columns: ["prize_id"]
+            isOneToOne: false
+            referencedRelation: "gamification_prizes"
             referencedColumns: ["id"]
           },
         ]
