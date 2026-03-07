@@ -4,78 +4,44 @@ import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { useTranslation } from "@/hooks/useI18n";
 import {
   Scale, ShieldCheck, AlertTriangle, Camera, Leaf, Car,
   Cigarette, Wine, Phone, MapPin, Ban, Info, CheckCircle
 } from "lucide-react";
 
-const leyes = [
-  {
-    icon: AlertTriangle, titulo: "Drogas", severidad: "GRAVE", color: "text-destructive",
-    desc: "Tolerancia CERO. Posesión, consumo o tráfico de cualquier droga conlleva penas de 5 a 20 años de cárcel. No hay excepciones para turistas.",
-    consejo: "No aceptes paquetes de desconocidos. No lleves sustancias ilegales."
-  },
-  {
-    icon: Camera, titulo: "Fotografía", severidad: "MODERADA", color: "text-amber-500",
-    desc: "Prohibido fotografiar instalaciones militares, policiales y aeropuertos (áreas restringidas). Pide permiso antes de fotografiar personas, especialmente niños.",
-    consejo: "En la Zona Colonial y zonas turísticas puedes fotografiar libremente."
-  },
-  {
-    icon: Car, titulo: "Conducción", severidad: "MODERADA", color: "text-amber-500",
-    desc: "Límite de alcohol: 0.05% BAC. Usar celular al conducir es ilegal. Cinturón de seguridad obligatorio. Menores de 12 años en asiento trasero.",
-    consejo: "Si te detienen, pide identificación del oficial. No pagues 'multas' informales."
-  },
-  {
-    icon: Leaf, titulo: "Medio Ambiente", severidad: "MODERADA", color: "text-emerald-500",
-    desc: "Prohibido recolectar coral, carey, larimar de áreas protegidas. Prohibido pescar en parques nacionales. Multas por tirar basura en playas.",
-    consejo: "Compra larimar y ámbar solo en tiendas certificadas con factura."
-  },
-  {
-    icon: Wine, titulo: "Alcohol", severidad: "LEVE", color: "text-sky-500",
-    desc: "Edad legal para beber: 18 años. No se permite consumo en vía pública (aunque se tolera en zonas turísticas). Conducir ebrio es delito.",
-    consejo: "El ron dominicano es excelente pero potente. Hidrátate entre tragos."
-  },
-  {
-    icon: Cigarette, titulo: "Tabaco", severidad: "LEVE", color: "text-sky-500",
-    desc: "Prohibido fumar en espacios públicos cerrados, restaurantes y transporte público. Multas de RD$5,000-25,000.",
-    consejo: "Los puros dominicanos se disfrutan mejor en terrazas y áreas designadas."
-  },
-  {
-    icon: Ban, titulo: "Drones", severidad: "MODERADA", color: "text-amber-500",
-    desc: "Uso de drones requiere permiso del IDAC (Instituto Dominicano de Aviación Civil). Prohibido volar sobre aeropuertos, zonas militares y multitudes.",
-    consejo: "Solicita permiso online al menos 15 días antes. Multas y confiscación si vuelas sin permiso."
-  },
-  {
-    icon: Phone, titulo: "Estafas comunes", severidad: "INFORMACIÓN", color: "text-primary",
-    desc: "Taxistas sin taxímetro con precios inflados. Cambistas callejeros con tasas malas. 'Guías' no oficiales que cobran servicios no solicitados.",
-    consejo: "Negocia precios ANTES del servicio. Usa apps de transporte. Cambia dinero en bancos."
-  },
-];
-
-const derechosTurista = [
-  "Derecho a recibir precios justos sin discriminación por nacionalidad",
-  "Derecho a asistencia de la Policía Turística (POLITUR) las 24 horas",
-  "Derecho a presentar quejas ante el Ministerio de Turismo",
-  "Derecho a información clara sobre precios antes de consumir",
-  "Derecho a negarte a servicios no solicitados",
-  "Derecho a asistencia consular de tu país",
-  "Derecho a traducción si eres detenido y no hablas español",
-];
-
-const numerosUtiles = [
-  { servicio: "Emergencia general", numero: "911" },
-  { servicio: "Policía Turística (POLITUR)", numero: "+1 809-200-3500" },
-  { servicio: "Ministerio de Turismo", numero: "+1 809-221-4660" },
-  { servicio: "Protección al consumidor (ProConsumidor)", numero: "+1 809-683-4757" },
-  { servicio: "Defensoría del Pueblo", numero: "+1 809-381-7777" },
-];
-
 export default function LeyesTurista() {
+  const { t } = useTranslation();
+
+  const leyes = [
+    { icon: AlertTriangle, titulo: t("laws.drugs"), severidad: t("laws.severe"), color: "text-destructive", desc: t("laws.drugsDesc"), consejo: t("laws.drugsTip") },
+    { icon: Camera, titulo: t("laws.photography"), severidad: t("laws.moderate"), color: "text-amber-500", desc: t("laws.photographyDesc"), consejo: t("laws.photographyTip") },
+    { icon: Car, titulo: t("laws.driving"), severidad: t("laws.moderate"), color: "text-amber-500", desc: t("laws.drivingDesc"), consejo: t("laws.drivingTip") },
+    { icon: Leaf, titulo: t("laws.environment"), severidad: t("laws.moderate"), color: "text-emerald-500", desc: t("laws.environmentDesc"), consejo: t("laws.environmentTip") },
+    { icon: Wine, titulo: t("laws.alcohol"), severidad: t("laws.mild"), color: "text-sky-500", desc: t("laws.alcoholDesc"), consejo: t("laws.alcoholTip") },
+    { icon: Cigarette, titulo: t("laws.tobacco"), severidad: t("laws.mild"), color: "text-sky-500", desc: t("laws.tobaccoDesc"), consejo: t("laws.tobaccoTip") },
+    { icon: Ban, titulo: t("laws.drones"), severidad: t("laws.moderate"), color: "text-amber-500", desc: t("laws.dronesDesc"), consejo: t("laws.dronesTip") },
+    { icon: Phone, titulo: t("laws.scams"), severidad: t("laws.info"), color: "text-primary", desc: t("laws.scamsDesc"), consejo: t("laws.scamsTip") },
+  ];
+
+  const derechosTurista = [
+    t("laws.right1"), t("laws.right2"), t("laws.right3"), t("laws.right4"),
+    t("laws.right5"), t("laws.right6"), t("laws.right7"),
+  ];
+
+  const numerosUtiles = [
+    { servicio: t("laws.emergency"), numero: "911" },
+    { servicio: t("laws.touristPolice"), numero: "+1 809-200-3500" },
+    { servicio: t("laws.tourismMinistry"), numero: "+1 809-221-4660" },
+    { servicio: t("laws.consumerProtection"), numero: "+1 809-683-4757" },
+    { servicio: t("laws.ombudsman"), numero: "+1 809-381-7777" },
+  ];
+
   return (
     <PageTransition>
       <SEOHead
-        title="Leyes y Normas para Turistas en República Dominicana"
-        description="Lo que todo turista debe saber: leyes sobre drogas, fotografía, drones, alcohol, conducción y derechos del turista en RD."
+        title={t("laws.seoTitle")}
+        description={t("laws.seoDescription")}
         keywords="leyes turista dominicana, normas viajero RD, drones dominicana, drogas RD, derechos turista"
       />
       <div className="min-h-screen flex flex-col bg-background">
@@ -84,18 +50,17 @@ export default function LeyesTurista() {
         <section className="relative py-20 bg-gradient-to-b from-primary/10 to-background">
           <div className="container mx-auto px-4 text-center">
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
-              <Scale className="h-3 w-3 mr-1" /> Información Legal
+              <Scale className="h-3 w-3 mr-1" /> {t("laws.legalInfo")}
             </Badge>
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Leyes y Normas para <span className="text-primary">Turistas</span>
+              {t("laws.title")} <span className="text-primary">{t("laws.titleHighlight")}</span>
             </h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Conoce las reglas básicas para disfrutar RD sin problemas. Tu seguridad y tu libertad dependen de estar informado.
+              {t("laws.subtitle")}
             </p>
           </div>
         </section>
 
-        {/* Leyes */}
         <section className="py-12">
           <div className="container mx-auto px-4 max-w-4xl">
             <div className="space-y-4">
@@ -107,7 +72,7 @@ export default function LeyesTurista() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-semibold text-foreground">{l.titulo}</h3>
-                          <Badge variant={l.severidad === "GRAVE" ? "destructive" : "outline"} className="text-[10px]">
+                          <Badge variant={l.severidad === t("laws.severe") ? "destructive" : "outline"} className="text-[10px]">
                             {l.severidad}
                           </Badge>
                         </div>
@@ -122,10 +87,9 @@ export default function LeyesTurista() {
           </div>
         </section>
 
-        {/* Derechos */}
         <section className="py-12 bg-card/50">
           <div className="container mx-auto px-4 max-w-3xl">
-            <h2 className="font-display text-xl font-bold text-foreground mb-6 text-center">🛡️ Tus Derechos como Turista</h2>
+            <h2 className="font-display text-xl font-bold text-foreground mb-6 text-center">🛡️ {t("laws.yourRights")}</h2>
             <div className="space-y-2">
               {derechosTurista.map(d => (
                 <div key={d} className="flex items-start gap-3 bg-background rounded-xl p-4 border border-border">
@@ -137,10 +101,9 @@ export default function LeyesTurista() {
           </div>
         </section>
 
-        {/* Números */}
         <section className="py-12">
           <div className="container mx-auto px-4 max-w-2xl">
-            <h2 className="font-display text-xl font-bold text-foreground mb-6 text-center">📞 Números Útiles</h2>
+            <h2 className="font-display text-xl font-bold text-foreground mb-6 text-center">📞 {t("laws.usefulNumbers")}</h2>
             <div className="space-y-2">
               {numerosUtiles.map(n => (
                 <div key={n.servicio} className="flex items-center justify-between bg-card rounded-xl p-4 border border-border">
