@@ -4,6 +4,7 @@ import { Music, ChevronRight, Clock, Star, MapPin } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/hooks/useI18n";
 
 interface NightlifeVenue {
   id: string;
@@ -24,11 +25,8 @@ interface ProvinceNightlifeProps {
   venues: NightlifeVenue[];
 }
 
-export function ProvinceNightlife({ 
-  provinceName, 
-  provinceSlug,
-  venues 
-}: ProvinceNightlifeProps) {
+export function ProvinceNightlife({ provinceName, provinceSlug, venues }: ProvinceNightlifeProps) {
+  const { t } = useTranslation();
   if (venues.length === 0) return null;
 
   return (
@@ -43,18 +41,16 @@ export function ProvinceNightlife({
           <div>
             <div className="flex items-center gap-2 text-primary mb-2">
               <Music className="h-5 w-5" />
-              <span className="text-sm font-semibold uppercase tracking-wider">Vida Nocturna</span>
+              <span className="text-sm font-semibold uppercase tracking-wider">{t("province.nightlife")}</span>
             </div>
             <h2 className="font-display text-3xl md:text-4xl font-bold">
-              Dónde Salir en {provinceName}
+              {t("province.whereToGoOut")} {provinceName}
             </h2>
-            <p className="text-muted-foreground mt-2">
-              Bares, discotecas y entretenimiento nocturno
-            </p>
+            <p className="text-muted-foreground mt-2">{t("province.nightlifeSubtitle")}</p>
           </div>
           <Link to={`/vida-nocturna?provincia=${provinceSlug}`}>
             <Button variant="outline" className="hidden md:flex gap-2">
-              Ver todo <ChevronRight className="h-4 w-4" />
+              {t("province.viewAllNightlife")} <ChevronRight className="h-4 w-4" />
             </Button>
           </Link>
         </motion.div>
@@ -68,45 +64,22 @@ export function ProvinceNightlife({
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
             >
-              <Link 
-                to={`/bar/${venue.slug || venue.id}`}
-                className="block group"
-              >
+              <Link to={`/bar/${venue.slug || venue.id}`} className="block group">
                 <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 h-full bg-card/50 backdrop-blur-sm">
                   <div className="relative aspect-[4/3] overflow-hidden">
-                    <img
-                      src={venue.imageUrl || "/placeholder.svg"}
-                      alt={venue.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      loading="lazy"
-                    />
+                    <img src={venue.imageUrl || "/placeholder.svg"} alt={venue.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                    
-                    {venue.barType && (
-                      <Badge className="absolute top-3 left-3 bg-primary/90">
-                        {venue.barType}
-                      </Badge>
-                    )}
-                    
-                    {venue.priceRange && (
-                      <Badge className="absolute top-3 right-3 bg-card/90 text-foreground">
-                        {venue.priceRange}
-                      </Badge>
-                    )}
-
+                    {venue.barType && <Badge className="absolute top-3 left-3 bg-primary/90">{venue.barType}</Badge>}
+                    {venue.priceRange && <Badge className="absolute top-3 right-3 bg-card/90 text-foreground">{venue.priceRange}</Badge>}
                     <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <h3 className="font-display font-bold text-white text-lg mb-1">
-                        {venue.name}
-                      </h3>
+                      <h3 className="font-display font-bold text-white text-lg mb-1">{venue.name}</h3>
                       {venue.musicStyle && (
                         <p className="text-white/70 text-sm flex items-center gap-1">
-                          <Music className="h-3 w-3" />
-                          {venue.musicStyle}
+                          <Music className="h-3 w-3" />{venue.musicStyle}
                         </p>
                       )}
                     </div>
                   </div>
-
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                       {venue.rating && (
@@ -139,7 +112,7 @@ export function ProvinceNightlife({
           <div className="mt-8 text-center md:hidden">
             <Link to={`/vida-nocturna?provincia=${provinceSlug}`}>
               <Button variant="outline" className="gap-2">
-                Ver más <ChevronRight className="h-4 w-4" />
+                {t("province.viewMoreBtn")} <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
           </div>

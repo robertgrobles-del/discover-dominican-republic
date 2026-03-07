@@ -4,6 +4,7 @@ import { MapPin, ChevronRight, Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/hooks/useI18n";
 import type { Destination } from "@/data/destinations";
 
 interface ProvinceDestinationsProps {
@@ -12,11 +13,8 @@ interface ProvinceDestinationsProps {
   destinations: Destination[];
 }
 
-export function ProvinceDestinations({ 
-  provinceName, 
-  provinceSlug,
-  destinations 
-}: ProvinceDestinationsProps) {
+export function ProvinceDestinations({ provinceName, provinceSlug, destinations }: ProvinceDestinationsProps) {
+  const { t } = useTranslation();
   if (destinations.length === 0) return null;
 
   return (
@@ -31,18 +29,18 @@ export function ProvinceDestinations({
           <div>
             <Badge className="mb-4 bg-primary/10 text-primary">
               <MapPin className="h-3 w-3 mr-1" />
-              Destinos
+              {t("province.destinations")}
             </Badge>
             <h2 className="font-display text-3xl md:text-4xl font-bold">
-              Lugares de {provinceName}
+              {t("province.placesOf")} {provinceName}
             </h2>
             <p className="text-muted-foreground mt-2">
-              {destinations.length} destinos por descubrir
+              {destinations.length} {t("province.destinationsToDiscover")}
             </p>
           </div>
           <Link to={`/destinos?provincia=${provinceSlug}`}>
             <Button variant="outline" className="hidden md:flex gap-2">
-              Ver todos <ChevronRight className="h-4 w-4" />
+              {t("province.viewAll")} <ChevronRight className="h-4 w-4" />
             </Button>
           </Link>
         </motion.div>
@@ -66,44 +64,28 @@ export function ProvinceDestinations({
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                    
-                    {/* Type Badge */}
-                    <Badge 
-                      className="absolute top-3 left-3" 
-                      variant={destination.type === "municipio" ? "secondary" : "default"}
-                    >
-                      {destination.type === "municipio" ? "Municipio" : "Destino"}
+                    <Badge className="absolute top-3 left-3" variant={destination.type === "municipio" ? "secondary" : "default"}>
+                      {destination.type === "municipio" ? t("province.municipality") : t("province.destination")}
                     </Badge>
-
-                    {/* Popular Badge */}
                     {destination.isPopular && (
                       <Badge className="absolute top-3 right-3 bg-yellow-500/90 text-yellow-900">
                         <Star className="h-3 w-3 mr-1 fill-current" />
-                        Popular
+                        {t("province.popular")}
                       </Badge>
                     )}
-
-                    {/* Title Overlay */}
                     <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <h3 className="font-display text-xl font-bold text-white mb-1">
-                        {destination.name}
-                      </h3>
-                      <p className="text-white/80 text-sm line-clamp-2">
-                        {destination.shortDescription}
-                      </p>
+                      <h3 className="font-display text-xl font-bold text-white mb-1">{destination.name}</h3>
+                      <p className="text-white/80 text-sm line-clamp-2">{destination.shortDescription}</p>
                     </div>
                   </div>
-
                   <CardContent className="p-4">
                     <div className="flex flex-wrap gap-2">
                       {destination.categories.slice(0, 3).map((cat) => (
-                        <Badge key={cat} variant="outline" className="text-xs">
-                          {cat}
-                        </Badge>
+                        <Badge key={cat} variant="outline" className="text-xs">{cat}</Badge>
                       ))}
                     </div>
                     <div className="mt-3 flex items-center text-primary text-sm font-medium group-hover:underline">
-                      Explorar <ChevronRight className="h-4 w-4 ml-1" />
+                      {t("province.exploreLink")} <ChevronRight className="h-4 w-4 ml-1" />
                     </div>
                   </CardContent>
                 </Card>
@@ -116,7 +98,7 @@ export function ProvinceDestinations({
           <div className="mt-8 text-center md:hidden">
             <Link to={`/destinos?provincia=${provinceSlug}`}>
               <Button variant="outline" className="gap-2">
-                Ver todos los destinos <ChevronRight className="h-4 w-4" />
+                {t("province.viewAllDestinations")} <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
           </div>
