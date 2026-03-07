@@ -152,7 +152,7 @@ export default function RestauranteDetalle() {
                       <Utensils className="h-3 w-3 mr-1" /> {categoryLabels[restaurant.category] || restaurant.category}
                     </Badge>
                     {restaurant.isFeatured && (
-                      <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 backdrop-blur-sm">⭐ Destacado</Badge>
+                      <Badge className="bg-accent/20 text-accent-foreground border-accent/30 backdrop-blur-sm">⭐ Destacado</Badge>
                     )}
                   </div>
                   <h1 className="font-display text-3xl md:text-5xl font-bold text-foreground">{restaurant.name}</h1>
@@ -189,7 +189,7 @@ export default function RestauranteDetalle() {
             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
               {restaurant.rating > 0 && (
                 <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
+                  <Star className="h-4 w-4 text-primary fill-primary" />
                   <span className="font-medium text-foreground">{restaurant.rating}</span>
                   <span>({restaurant.reviewCount} reseñas)</span>
                 </div>
