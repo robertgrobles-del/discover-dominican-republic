@@ -2,7 +2,8 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   MapPin, Star, Waves, Umbrella, Car, ShieldCheck, Sun, 
-  Thermometer, Users, ChevronRight, Navigation, Clock, Info
+  Thermometer, Users, ChevronRight, Navigation, Clock, Info,
+  Camera, Share2, Droplets, Wind, Compass
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,10 +12,12 @@ import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { SEOHead } from "@/components/SEOHead";
-import { getBeachBySlug, Beach } from "@/data/beaches";
+import { getBeachBySlug } from "@/data/beaches";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Lightbox } from "@/components/ui/lightbox";
+import { useState } from "react";
 
 const beachTypeLabels: Record<string, string> = {
   'arena-blanca': 'Arena Blanca',
@@ -26,22 +29,19 @@ const beachTypeLabels: Record<string, string> = {
 };
 
 const waveLabels: Record<string, { label: string; color: string }> = {
-  'calma': { label: 'Oleaje Calmo', color: 'bg-green-500' },
-  'moderada': { label: 'Oleaje Moderado', color: 'bg-yellow-500' },
-  'fuerte': { label: 'Oleaje Fuerte', color: 'bg-red-500' }
+  'calma': { label: 'Oleaje Calmo', color: 'bg-emerald-500/80 text-white' },
+  'moderada': { label: 'Oleaje Moderado', color: 'bg-amber-500/80 text-white' },
+  'fuerte': { label: 'Oleaje Fuerte', color: 'bg-red-500/80 text-white' }
 };
 
-const crowdLabels: Record<string, { label: string; color: string }> = {
-  'baja': { label: 'Poca Afluencia', color: 'bg-green-500' },
-  'media': { label: 'Afluencia Media', color: 'bg-yellow-500' },
-  'alta': { label: 'Alta Afluencia', color: 'bg-orange-500' }
+const crowdLabels: Record<string, { label: string; icon: typeof Users }> = {
+  'baja': { label: 'Poca Afluencia', icon: Users },
+  'media': { label: 'Afluencia Media', icon: Users },
+  'alta': { label: 'Alta Afluencia', icon: Users }
 };
 
 function useBeachData(slug: string | undefined) {
-  // Try static first
   const staticBeach = slug ? getBeachBySlug(slug) : undefined;
-
-  // Fallback to Supabase
   const { data: dbBeach, isLoading } = useQuery({
     queryKey: ['beach', slug],
     queryFn: async () => {
@@ -56,13 +56,14 @@ function useBeachData(slug: string | undefined) {
     },
     enabled: !staticBeach && !!slug,
   });
-
   return { beach: staticBeach || dbBeach, isLoading: !staticBeach && isLoading };
 }
 
 export default function PlayaDetalle() {
   const { slug } = useParams<{ slug: string }>();
   const { beach: rawBeach, isLoading } = useBeachData(slug);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
 
   if (isLoading) {
     return (
@@ -87,11 +88,10 @@ export default function PlayaDetalle() {
         <div className="min-h-screen bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32 text-center">
+            <Waves className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h1 className="text-3xl font-bold mb-4">Playa no encontrada</h1>
             <p className="text-muted-foreground mb-8">La playa que buscas no existe o ha sido movida.</p>
-            <Link to="/playas">
-              <Button>Ver todas las playas</Button>
-            </Link>
+            <Link to="/playas"><Button>Ver todas las playas</Button></Link>
           </div>
           <Footer />
         </div>
@@ -99,7 +99,7 @@ export default function PlayaDetalle() {
     );
   }
 
-  // Normalize data from either source
+  // Normalize data
   const beach = {
     id: (rawBeach as any).id || '',
     name: (rawBeach as any).name || '',
@@ -128,6 +128,7 @@ export default function PlayaDetalle() {
 
   const waveInfo = waveLabels[beach.waveIntensity] || waveLabels['calma'];
   const crowdInfo = crowdLabels[beach.crowdLevel] || crowdLabels['media'];
+  const allImages = [beach.imageUrl, ...beach.gallery].filter(Boolean);
 
   return (
     <PageTransition>
@@ -160,199 +161,283 @@ export default function PlayaDetalle() {
           </div>
         </div>
 
-        {/* Hero */}
-        <section className="relative h-[50vh] min-h-[400px]">
-          <div className="absolute inset-0">
-            <img src={beach.imageUrl} alt={beach.name} className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-          </div>
-          <div className="absolute bottom-0 left-0 right-0 p-8 container mx-auto">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <div className="flex items-center gap-3 mb-4">
-                <Badge className="bg-primary/20 text-primary border-primary/30">
-                  <Waves className="h-3 w-3 mr-1" /> {beachTypeLabels[beach.beachType] || beach.beachType}
-                </Badge>
-                <Badge className={`${waveInfo.color} text-white`}>{waveInfo.label}</Badge>
-                <FavoriteButton id={beach.id} type="playa" name={beach.name} image={beach.imageUrl} location={beach.province} variant="button" />
+        {/* Hero with Gallery Grid */}
+        <section className="relative">
+          <div className="container mx-auto px-4 py-6">
+            <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[50vh] min-h-[400px] rounded-2xl overflow-hidden">
+              {/* Main image */}
+              <div
+                className="col-span-2 row-span-2 relative cursor-pointer group"
+                onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}
+              >
+                <img src={beach.imageUrl} alt={beach.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Badge className="bg-primary/20 text-primary border-primary/30 backdrop-blur-sm">
+                      <Waves className="h-3 w-3 mr-1" /> {beachTypeLabels[beach.beachType] || beach.beachType}
+                    </Badge>
+                    <Badge className={`${waveInfo.color} backdrop-blur-sm`}>{waveInfo.label}</Badge>
+                  </div>
+                  <h1 className="font-display text-3xl md:text-5xl font-bold text-foreground">{beach.name}</h1>
+                </div>
               </div>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{beach.name}</h1>
-              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                {beach.rating > 0 && (
-                  <>
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                      <span className="font-medium text-foreground">{beach.rating}</span>
+              {/* Side images */}
+              {allImages.slice(1, 5).map((img, i) => (
+                <div
+                  key={i}
+                  className="relative cursor-pointer group overflow-hidden"
+                  onClick={() => { setLightboxIndex(i + 1); setLightboxOpen(true); }}
+                >
+                  <img src={img} alt={`${beach.name} ${i + 2}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  {i === 3 && allImages.length > 5 && (
+                    <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+                      <span className="text-foreground font-bold text-lg flex items-center gap-2">
+                        <Camera className="h-5 w-5" /> +{allImages.length - 5}
+                      </span>
                     </div>
-                    <span>·</span>
-                  </>
-                )}
-                {beach.province && (
-                  <>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>{beach.province}</span>
-                      {beach.destinationName && <span>· {beach.destinationName}</span>}
-                    </div>
-                    <span>·</span>
-                  </>
-                )}
-                <span>{beach.accessType === 'publico' ? 'Acceso Público' : beach.accessType === 'semi-privado' ? 'Semi-Privada' : 'Privada'}</span>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Gallery */}
-        {beach.gallery.length > 1 && (
-          <section className="container mx-auto px-4 -mt-8 relative z-10">
-            <div className="grid grid-cols-4 gap-2 rounded-xl overflow-hidden">
-              {beach.gallery.slice(0, 4).map((img: string, i: number) => (
-                <div key={i} className="aspect-video">
-                  <img src={img} alt={`${beach.name} ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer" />
+                  )}
+                </div>
+              ))}
+              {/* Fill empty slots */}
+              {allImages.length < 5 && [...Array(5 - allImages.length)].map((_, i) => (
+                <div key={`empty-${i}`} className="bg-muted/50 flex items-center justify-center">
+                  <Camera className="h-8 w-8 text-muted-foreground/30" />
                 </div>
               ))}
             </div>
-          </section>
-        )}
+          </div>
+        </section>
 
+        {/* Action Bar */}
+        <section className="border-b border-border">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              {beach.rating > 0 && (
+                <div className="flex items-center gap-1">
+                  <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
+                  <span className="font-medium text-foreground">{beach.rating}</span>
+                </div>
+              )}
+              {beach.province && (
+                <div className="flex items-center gap-1">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  <span>{beach.province}</span>
+                  {beach.destinationName && <span>· {beach.destinationName}</span>}
+                </div>
+              )}
+              <span className="flex items-center gap-1">
+                <Compass className="h-4 w-4 text-primary" />
+                {beach.accessType === 'publico' ? 'Acceso Público' : beach.accessType === 'semi-privado' ? 'Semi-Privada' : 'Privada'}
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <FavoriteButton id={beach.id} type="playa" name={beach.name} image={beach.imageUrl} location={beach.province} variant="button" size="md" />
+              <Button variant="outline" size="sm" className="gap-2">
+                <Share2 className="h-4 w-4" /> Compartir
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Main Content */}
         <div className="container mx-auto px-4 py-12">
           <div className="grid lg:grid-cols-3 gap-12">
+            {/* Left Column */}
             <div className="lg:col-span-2 space-y-12">
+              {/* Quick Stats */}
               <section>
-                <h2 className="font-display text-2xl font-bold text-foreground mb-4">Sobre {beach.name}</h2>
-                <p className="text-muted-foreground leading-relaxed mb-6">{beach.description}</p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   {beach.sandType && (
-                    <div className="bg-card rounded-xl p-4 border border-border text-center">
-                      <Waves className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs text-muted-foreground">Tipo de Arena</p>
-                      <p className="text-sm font-medium text-foreground">{beach.sandType}</p>
-                    </div>
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}
+                      className="bg-card rounded-xl p-5 border border-border text-center hover:border-primary/30 transition-colors">
+                      <Droplets className="h-7 w-7 text-primary mx-auto mb-2" />
+                      <p className="text-xs text-muted-foreground mb-1">Tipo de Arena</p>
+                      <p className="text-sm font-semibold text-foreground">{beach.sandType}</p>
+                    </motion.div>
                   )}
                   {beach.waterColor && (
-                    <div className="bg-card rounded-xl p-4 border border-border text-center">
-                      <Thermometer className="h-6 w-6 text-primary mx-auto mb-2" />
-                      <p className="text-xs text-muted-foreground">Color del Agua</p>
-                      <p className="text-sm font-medium text-foreground">{beach.waterColor}</p>
-                    </div>
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+                      className="bg-card rounded-xl p-5 border border-border text-center hover:border-primary/30 transition-colors">
+                      <Thermometer className="h-7 w-7 text-primary mx-auto mb-2" />
+                      <p className="text-xs text-muted-foreground mb-1">Color del Agua</p>
+                      <p className="text-sm font-semibold text-foreground">{beach.waterColor}</p>
+                    </motion.div>
                   )}
-                  <div className="bg-card rounded-xl p-4 border border-border text-center">
-                    <Users className="h-6 w-6 text-primary mx-auto mb-2" />
-                    <p className="text-xs text-muted-foreground">Afluencia</p>
-                    <p className="text-sm font-medium text-foreground">{crowdInfo.label}</p>
-                  </div>
-                  <div className="bg-card rounded-xl p-4 border border-border text-center">
-                    <ShieldCheck className="h-6 w-6 text-primary mx-auto mb-2" />
-                    <p className="text-xs text-muted-foreground">Salvavidas</p>
-                    <p className="text-sm font-medium text-foreground">{beach.lifeguardOnDuty ? 'Disponible' : 'No disponible'}</p>
-                  </div>
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+                    className="bg-card rounded-xl p-5 border border-border text-center hover:border-primary/30 transition-colors">
+                    <Wind className="h-7 w-7 text-primary mx-auto mb-2" />
+                    <p className="text-xs text-muted-foreground mb-1">Oleaje</p>
+                    <p className="text-sm font-semibold text-foreground">{waveInfo.label}</p>
+                  </motion.div>
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+                    className="bg-card rounded-xl p-5 border border-border text-center hover:border-primary/30 transition-colors">
+                    <Users className="h-7 w-7 text-primary mx-auto mb-2" />
+                    <p className="text-xs text-muted-foreground mb-1">Afluencia</p>
+                    <p className="text-sm font-semibold text-foreground">{crowdInfo.label}</p>
+                  </motion.div>
                 </div>
               </section>
 
+              {/* Description */}
+              <section>
+                <h2 className="font-display text-2xl font-bold text-foreground mb-4">Sobre {beach.name}</h2>
+                <p className="text-muted-foreground leading-relaxed text-lg">{beach.description}</p>
+              </section>
+
+              {/* Activities */}
               {beach.activities.length > 0 && (
                 <section>
-                  <h3 className="font-display text-xl font-bold text-foreground mb-4">Actividades Disponibles</h3>
+                  <h3 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <Waves className="h-5 w-5 text-primary" /> Actividades Disponibles
+                  </h3>
                   <div className="flex flex-wrap gap-2">
                     {beach.activities.map((activity: string) => (
-                      <Badge key={activity} variant="secondary" className="text-sm py-2 px-4">{activity}</Badge>
+                      <Badge key={activity} variant="secondary" className="text-sm py-2 px-4 hover:bg-primary/20 transition-colors cursor-default">
+                        {activity}
+                      </Badge>
                     ))}
                   </div>
                 </section>
               )}
 
-              {beach.amenities.length > 0 && (
+              {/* Amenities */}
+              {(beach.amenities.length > 0 || beach.parkingAvailable || beach.lifeguardOnDuty) && (
                 <section>
-                  <h3 className="font-display text-xl font-bold text-foreground mb-4">Servicios y Amenidades</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <h3 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <Umbrella className="h-5 w-5 text-primary" /> Servicios y Amenidades
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     {beach.amenities.map((amenity: string) => (
-                      <div key={amenity} className="flex items-center gap-2 text-muted-foreground">
-                        <div className="w-2 h-2 rounded-full bg-primary" />
-                        <span className="text-sm">{amenity}</span>
+                      <div key={amenity} className="flex items-center gap-3 p-3 bg-card rounded-lg border border-border">
+                        <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                        <span className="text-sm text-muted-foreground">{amenity}</span>
                       </div>
                     ))}
                     {beach.parkingAvailable && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Car className="h-4 w-4 text-primary" />
-                        <span className="text-sm">Estacionamiento</span>
+                      <div className="flex items-center gap-3 p-3 bg-card rounded-lg border border-border">
+                        <Car className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span className="text-sm text-muted-foreground">Estacionamiento</span>
+                      </div>
+                    )}
+                    {beach.lifeguardOnDuty && (
+                      <div className="flex items-center gap-3 p-3 bg-card rounded-lg border border-border">
+                        <ShieldCheck className="h-4 w-4 text-primary flex-shrink-0" />
+                        <span className="text-sm text-muted-foreground">Salvavidas en servicio</span>
                       </div>
                     )}
                   </div>
                 </section>
               )}
 
+              {/* How to Get There */}
               {beach.howToGetThere && (
                 <section>
                   <div className="flex items-center gap-2 mb-4">
                     <Navigation className="h-5 w-5 text-primary" />
                     <h3 className="font-display text-xl font-bold text-foreground">Cómo Llegar</h3>
                   </div>
-                  <div className="bg-card rounded-xl p-6 border border-border">
-                    <p className="text-muted-foreground">{beach.howToGetThere}</p>
+                  <div className="bg-primary/5 rounded-2xl p-6 border border-primary/20">
+                    <p className="text-muted-foreground leading-relaxed">{beach.howToGetThere}</p>
                   </div>
                 </section>
               )}
             </div>
 
+            {/* Right Column - Sidebar */}
             <div className="space-y-6">
-              {beach.bestTimeToVisit && (
-                <div className="bg-card rounded-xl border border-border p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Sun className="h-5 w-5 text-primary" />
-                    <h3 className="font-display font-bold text-foreground">Mejor Época</h3>
-                  </div>
-                  <p className="text-muted-foreground text-sm">{beach.bestTimeToVisit}</p>
-                </div>
-              )}
-
-              <div className="bg-primary/10 rounded-xl border border-primary/20 p-6">
-                <h3 className="font-display font-bold text-foreground mb-4">Información Rápida</h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Acceso</span>
-                    <span className="font-medium text-foreground">
-                      {beach.accessType === 'publico' ? 'Público' : beach.accessType === 'semi-privado' ? 'Semi-Privado' : 'Privado'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Oleaje</span>
-                    <span className="font-medium text-foreground">{waveInfo.label}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Estacionamiento</span>
-                    <span className="font-medium text-foreground">{beach.parkingAvailable ? 'Sí' : 'No'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Salvavidas</span>
-                    <span className="font-medium text-foreground">{beach.lifeguardOnDuty ? 'Sí' : 'No'}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-card rounded-xl border border-border p-6">
-                <h3 className="font-display font-bold text-foreground mb-4">Ubicación</h3>
-                <div className="aspect-video bg-muted rounded-lg flex items-center justify-center mb-4">
-                  <MapPin className="h-8 w-8 text-primary" />
-                </div>
-                {beach.province && (
-                  <>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {beach.province}
-                      {beach.destinationName && ` · ${beach.destinationName}`}
-                    </p>
-                    <Link to={`/destino/${beach.provinceSlug}`}>
-                      <Button variant="outline" size="sm" className="w-full">Ver {beach.province}</Button>
-                    </Link>
-                  </>
+              <div className="sticky top-32 space-y-6">
+                {/* Best Time */}
+                {beach.bestTimeToVisit && (
+                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+                    className="bg-card rounded-2xl border border-border p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Sun className="h-5 w-5 text-primary" />
+                      <h3 className="font-display font-bold text-foreground">Mejor Época para Visitar</h3>
+                    </div>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{beach.bestTimeToVisit}</p>
+                  </motion.div>
                 )}
-              </div>
 
-              <div className="bg-card rounded-xl border border-border p-6">
-                <Button className="w-full mb-3">Agregar al Plan de Viaje</Button>
-                <Button variant="outline" className="w-full">Compartir</Button>
+                {/* Quick Info Card */}
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}
+                  className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl border border-primary/20 p-6">
+                  <h3 className="font-display font-bold text-foreground mb-4 flex items-center gap-2">
+                    <Info className="h-5 w-5 text-primary" /> Información Rápida
+                  </h3>
+                  <div className="space-y-4 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Acceso</span>
+                      <Badge variant="secondary">
+                        {beach.accessType === 'publico' ? 'Público' : beach.accessType === 'semi-privado' ? 'Semi-Privado' : 'Privado'}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Oleaje</span>
+                      <Badge className={waveInfo.color}>{waveInfo.label.replace('Oleaje ', '')}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Estacionamiento</span>
+                      <span className={`font-medium ${beach.parkingAvailable ? 'text-emerald-400' : 'text-muted-foreground'}`}>
+                        {beach.parkingAvailable ? '✓ Disponible' : '✗ No'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Salvavidas</span>
+                      <span className={`font-medium ${beach.lifeguardOnDuty ? 'text-emerald-400' : 'text-muted-foreground'}`}>
+                        {beach.lifeguardOnDuty ? '✓ En servicio' : '✗ No'}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Location */}
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
+                  className="bg-card rounded-2xl border border-border p-6">
+                  <h3 className="font-display font-bold text-foreground mb-4 flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-primary" /> Ubicación
+                  </h3>
+                  <div className="aspect-video bg-muted rounded-lg flex items-center justify-center mb-4 overflow-hidden">
+                    <MapPin className="h-8 w-8 text-primary animate-pulse" />
+                  </div>
+                  {beach.province && (
+                    <>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {beach.province}
+                        {beach.destinationName && ` · ${beach.destinationName}`}
+                      </p>
+                      <Link to={`/destino/${beach.provinceSlug}`}>
+                        <Button variant="outline" size="sm" className="w-full gap-2">
+                          <Compass className="h-4 w-4" /> Ver {beach.province}
+                        </Button>
+                      </Link>
+                    </>
+                  )}
+                </motion.div>
+
+                {/* CTA */}
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}
+                  className="bg-card rounded-2xl border border-border p-6 space-y-3">
+                  <Button className="w-full">Agregar al Plan de Viaje</Button>
+                  <Button variant="outline" className="w-full gap-2">
+                    <Share2 className="h-4 w-4" /> Compartir esta Playa
+                  </Button>
+                </motion.div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Lightbox */}
+        {lightboxOpen && (
+          <Lightbox
+            images={allImages}
+            currentIndex={lightboxIndex}
+            onClose={() => setLightboxOpen(false)}
+            onNext={() => setLightboxIndex((prev) => (prev + 1) % allImages.length)}
+            onPrev={() => setLightboxIndex((prev) => (prev - 1 + allImages.length) % allImages.length)}
+          />
+        )}
 
         <Footer />
       </div>
