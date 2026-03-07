@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/hooks/useI18n";
 
 interface ActivityCategory {
   id: string;
@@ -97,10 +98,11 @@ export function ProvinceActivities({
   provinceSlug,
   categories = [] 
 }: ProvinceActivitiesProps) {
+  const { t } = useTranslation();
+
   // Filter activities based on province categories, or show all
   const displayActivities = categories.length > 0 
     ? allActivities.filter(act => categories.includes(act.id) || 
-        // Always show related activities
         (categories.includes("playa") && act.id === "buceo") ||
         (categories.includes("ecoturismo") && (act.id === "montaña" || act.id === "rios"))
       ).slice(0, 8)
@@ -116,13 +118,13 @@ export function ProvinceActivities({
           className="text-center mb-12"
         >
           <Badge className="mb-4 bg-primary/10 text-primary">
-            Qué hacer
+            {t("provinceAct.badge")}
           </Badge>
           <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-            Actividades en {provinceName}
+            {t("provinceAct.title")} {provinceName}
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Descubre todas las experiencias que puedes vivir en esta provincia
+            {t("provinceAct.subtitle")}
           </p>
         </motion.div>
 
@@ -149,7 +151,7 @@ export function ProvinceActivities({
                       {activity.description}
                     </p>
                     <div className="flex items-center text-primary text-sm font-medium">
-                      Ver actividades
+                      {t("provinceAct.viewActivities")}
                       <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </CardContent>

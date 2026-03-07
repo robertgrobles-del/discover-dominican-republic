@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, MapPin, Users, Ruler } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/hooks/useI18n";
 
 interface ProvinceHeroProps {
   name: string;
@@ -15,12 +16,7 @@ interface ProvinceHeroProps {
   highlights?: string[];
 }
 
-const regionLabels: Record<string, string> = {
-  norte: "Región Norte (Cibao)",
-  sur: "Región Sur",
-  este: "Región Este",
-  "santo-domingo": "Gran Santo Domingo",
-};
+// Region labels moved to translation function
 
 export function ProvinceHero({
   name,
@@ -32,7 +28,15 @@ export function ProvinceHero({
   images,
   highlights,
 }: ProvinceHeroProps) {
+  const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  const regionLabels: Record<string, string> = {
+    norte: t("provinceHero.regionNorth"),
+    sur: t("provinceHero.regionSouth"),
+    este: t("provinceHero.regionEast"),
+    "santo-domingo": t("provinceHero.regionSD"),
+  };
   const slideCount = images.length || 1;
 
   useEffect(() => {
@@ -120,7 +124,7 @@ export function ProvinceHero({
               <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm px-4 py-2 rounded-lg">
                 <MapPin className="h-4 w-4 text-primary" />
                 <div>
-                  <span className="text-xs text-muted-foreground block">Capital</span>
+                  <span className="text-xs text-muted-foreground block">{t("provinceHero.capital")}</span>
                   <span className="text-sm font-semibold">{capital}</span>
                 </div>
               </div>
@@ -129,7 +133,7 @@ export function ProvinceHero({
               <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm px-4 py-2 rounded-lg">
                 <Users className="h-4 w-4 text-primary" />
                 <div>
-                  <span className="text-xs text-muted-foreground block">Población</span>
+                  <span className="text-xs text-muted-foreground block">{t("provinceHero.population")}</span>
                   <span className="text-sm font-semibold">{population.toLocaleString()}</span>
                 </div>
               </div>
@@ -138,7 +142,7 @@ export function ProvinceHero({
               <div className="flex items-center gap-2 bg-card/80 backdrop-blur-sm px-4 py-2 rounded-lg">
                 <Ruler className="h-4 w-4 text-primary" />
                 <div>
-                  <span className="text-xs text-muted-foreground block">Área</span>
+                  <span className="text-xs text-muted-foreground block">{t("provinceHero.area")}</span>
                   <span className="text-sm font-semibold">{areaKm2.toLocaleString()} km²</span>
                 </div>
               </div>

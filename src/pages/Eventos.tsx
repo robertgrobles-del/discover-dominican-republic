@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect } from "react";
 import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "@/hooks/useI18n";
 
 import carnival from "@/assets/carnival.jpg";
 import jazzFestival from "@/assets/jazz-festival.jpg";
@@ -102,6 +103,7 @@ const festivalesMusicales = [
 const generosMusicales = ["Todos", "Jazz", "Merengue", "Electrónica", "Bachata"];
 
 export default function Eventos() {
+  const { t } = useTranslation();
   const [selectedCategoria, setSelectedCategoria] = useState("Todo");
   const [selectedGenero, setSelectedGenero] = useState("Todos");
   const [heroLoaded, setHeroLoaded] = useState(false);
@@ -169,8 +171,8 @@ export default function Eventos() {
   return (
     <PageTransition>
       <SEOHead
-        title="Eventos en República Dominicana - Festivales, Carnavales y Ferias"
-        description="Descubre el calendario de eventos culturales, festivales de música, carnavales y ferias gastronómicas en República Dominicana."
+        title={t("eventos.seoTitle")}
+        description={t("eventos.seoDesc")}
         keywords="eventos República Dominicana, carnaval La Vega, festivales RD, ferias dominicanas, jazz festival, merengue"
         jsonLd={eventosSchema}
       />
@@ -182,7 +184,7 @@ export default function Eventos() {
           {!heroLoaded && <Skeleton className="absolute inset-0" />}
           <img
             src={carnival}
-            alt="Eventos en República Dominicana"
+            alt={t("eventos.heroAlt")}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
               heroLoaded ? "opacity-100" : "opacity-0"
             }`}
@@ -192,13 +194,13 @@ export default function Eventos() {
           
           <div className="relative z-10 text-center px-4">
             <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-4 italic">
-              Descubre el Ritmo de la Isla
+              {t("eventos.heroTitle")}
             </h1>
             <p className="text-lg text-white/80 max-w-2xl mx-auto mb-8">
-              Explora los eventos culturales, ferias gastronómicas y festivales musicales más vibrantes de República Dominicana.
+              {t("eventos.heroSubtitle")}
             </p>
             <Button size="lg" className="gap-2">
-              <Calendar className="h-5 w-5" /> Ver Calendario Completo
+              <Calendar className="h-5 w-5" /> {t("eventos.viewCalendar")}
             </Button>
           </div>
         </section>
@@ -213,14 +215,14 @@ export default function Eventos() {
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
                 >
                   <Calendar className="h-4 w-4" />
-                  Calendario General
+                  {t("eventos.generalCalendar")}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="festivales" 
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
                 >
                   <Music className="h-4 w-4" />
-                  Festivales Musicales
+                  {t("eventos.musicFestivals")}
                 </TabsTrigger>
               </TabsList>
 
@@ -229,8 +231,8 @@ export default function Eventos() {
                 {/* Próximos Eventos */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                   <div>
-                    <h2 className="font-display text-2xl font-bold text-foreground">Próximos Eventos</h2>
-                    <p className="text-muted-foreground">Explora por categoría o fecha</p>
+                    <h2 className="font-display text-2xl font-bold text-foreground">{t("eventos.upcoming")}</h2>
+                    <p className="text-muted-foreground">{t("eventos.exploreByCategory")}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {categorias.map((cat) => (
@@ -270,7 +272,7 @@ export default function Eventos() {
                       ))}
                     </div>
                     <div className="border-t border-border pt-4">
-                      <p className="text-sm font-semibold text-foreground mb-3">Filtrar por Ubicación</p>
+                      <p className="text-sm font-semibold text-foreground mb-3">{t("eventos.filterByLocation")}</p>
                       <div className="space-y-2">
                         {["Santo Domingo", "Punta Cana", "Puerto Plata"].map((loc, i) => (
                           <div key={loc} className="flex items-center gap-2">
@@ -304,7 +306,7 @@ export default function Eventos() {
                               <span>{evento.ubicacion}</span>
                             </div>
                             <Link to={`/evento/${evento.id}`} className="text-primary text-sm font-medium flex items-center gap-1 hover:underline">
-                              Ver Detalles <ChevronRight className="h-4 w-4" />
+                              {t("eventos.viewDetails")} <ChevronRight className="h-4 w-4" />
                             </Link>
                           </div>
                         </div>
@@ -315,7 +317,7 @@ export default function Eventos() {
 
                 {/* Evento Destacado */}
                 <div className="mt-16">
-                  <span className="text-primary text-sm font-semibold uppercase tracking-wider">EVENTO DESTACADO</span>
+                  <span className="text-primary text-sm font-semibold uppercase tracking-wider">{t("eventos.featuredEvent")}</span>
                   <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mt-2 mb-8">
                     <div>
                       <h2 className="font-display text-3xl font-bold text-foreground">{eventoDestacado.titulo}</h2>
@@ -351,10 +353,10 @@ export default function Eventos() {
                   <div className="grid lg:grid-cols-2 gap-12">
                     {/* Info */}
                     <div>
-                      <h3 className="font-display font-bold text-lg text-foreground mb-4">Sobre el Evento</h3>
+                      <h3 className="font-display font-bold text-lg text-foreground mb-4">{t("eventos.aboutEvent")}</h3>
                       <p className="text-muted-foreground whitespace-pre-line mb-8">{eventoDestacado.descripcion}</p>
 
-                      <h3 className="font-display font-bold text-lg text-foreground mb-4">Agenda del Día (Inauguración)</h3>
+                      <h3 className="font-display font-bold text-lg text-foreground mb-4">{t("eventos.dayAgenda")}</h3>
                       <div className="space-y-4">
                         {eventoDestacado.agenda.map((item, i) => (
                           <div key={i} className="flex gap-4">
@@ -377,8 +379,8 @@ export default function Eventos() {
                       <div className="rounded-2xl overflow-hidden aspect-video bg-secondary relative">
                         <img src={carnival} alt="Ubicación" className="w-full h-full object-cover" />
                         <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                          <Button size="lg" variant="secondary" className="gap-2">
-                            <Play className="h-5 w-5" /> Ver Video
+                           <Button size="lg" variant="secondary" className="gap-2">
+                            <Play className="h-5 w-5" /> {t("eventos.watchVideo")}
                           </Button>
                         </div>
                       </div>
@@ -386,16 +388,16 @@ export default function Eventos() {
                       <div className="bg-card rounded-xl border border-border p-6">
                         <h4 className="font-semibold text-foreground mb-2">Parque de las Flores</h4>
                         <p className="text-sm text-muted-foreground mb-4">Av. Pedro A. Rivera, La Vega</p>
-                        <Button variant="outline" className="w-full">Ver en Mapa</Button>
+                        <Button variant="outline" className="w-full">{t("eventos.viewOnMap")}</Button>
                       </div>
 
-                      <div className="bg-card rounded-xl border border-border p-6">
-                        <h4 className="font-semibold text-foreground mb-2">¿Te interesa asistir?</h4>
+                       <div className="bg-card rounded-xl border border-border p-6">
+                        <h4 className="font-semibold text-foreground mb-2">{t("eventos.interested")}</h4>
                         <p className="text-sm text-muted-foreground mb-4">
-                          Regístrate para recibir actualizaciones, cambios de agenda y ofertas exclusivas de hoteles cercanos.
+                          {t("eventos.interestedDesc")}
                         </p>
                         <Button className="w-full gap-2">
-                          <ThumbsUp className="h-4 w-4" /> Me Interesa
+                          <ThumbsUp className="h-4 w-4" /> {t("eventos.imInterested")}
                         </Button>
                       </div>
                     </div>
@@ -407,10 +409,10 @@ export default function Eventos() {
               <TabsContent value="festivales">
                 <div className="mb-8">
                   <h2 className="font-display text-2xl font-bold text-foreground mb-2">
-                    Ritmo y Música: Festivales RD
+                    {t("eventos.musicRhythm")}
                   </h2>
                   <p className="text-muted-foreground">
-                    Vive la vibrante escena musical del Caribe. Jazz, Merengue y Electrónica bajo las estrellas.
+                    {t("eventos.musicRhythmDesc")}
                   </p>
                 </div>
 
@@ -455,7 +457,7 @@ export default function Eventos() {
                         <div className="flex items-center justify-between">
                           <span className="text-primary font-semibold">{festival.precio}</span>
                           <Button size="sm" className="gap-1">
-                            <Ticket className="h-3 w-3" /> Comprar
+                            <Ticket className="h-3 w-3" /> {t("eventos.buy")}
                           </Button>
                         </div>
                       </div>
@@ -465,8 +467,8 @@ export default function Eventos() {
 
                 {/* Mapa de Escenarios */}
                 <div className="bg-card rounded-xl border border-border p-6 mb-12">
-                  <h3 className="font-display font-bold text-lg text-foreground mb-4">Mapas de Escenarios</h3>
-                  <p className="text-muted-foreground mb-6">Encuentra tu camino entre los ritmos. Explora las ubicaciones de los escenarios principales.</p>
+                  <h3 className="font-display font-bold text-lg text-foreground mb-4">{t("eventos.stageMaps")}</h3>
+                  <p className="text-muted-foreground mb-6">{t("eventos.stageMapsDesc")}</p>
                   
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
@@ -501,12 +503,12 @@ export default function Eventos() {
                 {/* CTA Newsletter */}
                 <div className="bg-gradient-to-r from-primary/10 to-purple-500/10 rounded-2xl p-8 text-center">
                   <Music className="h-12 w-12 text-primary mx-auto mb-4" />
-                  <h3 className="font-display text-xl font-bold text-foreground mb-2">Recibe alertas de nuevos conciertos</h3>
+                  <h3 className="font-display text-xl font-bold text-foreground mb-2">{t("eventos.concertAlerts")}</h3>
                   <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
-                    Sé el primero en enterarte de nuevos festivales, preventas exclusivas y experiencias VIP.
+                    {t("eventos.concertAlertsDesc")}
                   </p>
                   <Button size="lg" className="gap-2">
-                    Suscribirse <ChevronRight className="h-4 w-4" />
+                    {t("eventos.subscribe")} <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
               </TabsContent>
@@ -518,9 +520,9 @@ export default function Eventos() {
         <section className="py-16">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="font-display text-2xl font-bold text-foreground">Memorias: Edición 2023</h2>
+              <h2 className="font-display text-2xl font-bold text-foreground">{t("eventos.memories")}</h2>
               <Link to="/galeria" className="text-primary text-sm font-medium hover:underline">
-                Ver Galería Completa
+                {t("eventos.viewFullGallery")}
               </Link>
             </div>
             <div className="grid grid-cols-3 gap-4">
