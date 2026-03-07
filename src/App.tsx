@@ -382,6 +382,10 @@ function AnimatedRoutes() {
           <Route path="/historia" element={<HistoriaRD />} />
           <Route path="/historia/personaje/:slug" element={<PersonajeHistorico />} />
           <Route path="/historia/evento/:slug" element={<EventoHistorico />} />
+          <Route path="/reservas-naturales" element={<ReservasNaturales />} />
+          <Route path="/turismo-comunitario" element={<TurismoComunitario />} />
+          <Route path="/autor-invitado" element={<AutorInvitado />} />
+          <Route path="/contratar-influencers" element={<ContratarInfluencers />} />
 
           {/* Static destination pages - /destino/slug */}
           <Route path="/destino/punta-cana" element={<PuntaCana />} />
