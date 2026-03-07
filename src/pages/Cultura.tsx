@@ -4,42 +4,45 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
+import { useTranslation } from "@/hooks/useI18n";
 import laBanderaImg from "@/assets/la-bandera.jpg";
 import merengueImg from "@/assets/merengue-dance.jpg";
 import carnivalImg from "@/assets/carnival.jpg";
 import historyImg from "@/assets/history.jpg";
 import gastronomyImg from "@/assets/gastronomy.jpg";
 
-const festivals = [
-  {
-    name: "Carnaval Vegano",
-    month: "Febrero",
-    location: "La Vega, RD",
-    category: "Cultural",
-    description: "La celebración folklórica más vibrante y antigua de América, llena de color, disfraces de diablos...",
-    image: carnivalImg,
-  },
-  {
-    name: "Festival del Merengue",
-    month: "Julio",
-    location: "Santo Domingo, RD",
-    category: "Musical",
-    description: "Una semana dedicada a nuestro ritmo nacional con orquestas en vivo en el Malecón y ferias...",
-    image: merengueImg,
-  },
-  {
-    name: "Día de la Altagracia",
-    month: "Enero",
-    location: "Higüey, RD",
-    category: "Religioso",
-    description: "La peregrinación más importante del país hacia la Basílica de Higüey para honrar a la madre espiritual...",
-    image: historyImg,
-  },
-];
-
-const ingredients = ["Arroz", "Habichuelas", "Carne Guisada", "Plátano"];
-
 export default function Cultura() {
+  const { t } = useTranslation();
+
+  const festivals = [
+    {
+      name: "Carnaval Vegano",
+      monthKey: "Febrero",
+      location: "La Vega, RD",
+      category: "Cultural",
+      description: "La celebración folklórica más vibrante y antigua de América, llena de color, disfraces de diablos...",
+      image: carnivalImg,
+    },
+    {
+      name: "Festival del Merengue",
+      monthKey: "Julio",
+      location: "Santo Domingo, RD",
+      category: "Musical",
+      description: "Una semana dedicada a nuestro ritmo nacional con orquestas en vivo en el Malecón y ferias...",
+      image: merengueImg,
+    },
+    {
+      name: "Día de la Altagracia",
+      monthKey: "Enero",
+      location: "Higüey, RD",
+      category: "Religioso",
+      description: "La peregrinación más importante del país hacia la Basílica de Higüey para honrar a la madre espiritual...",
+      image: historyImg,
+    },
+  ];
+
+  const ingredients = ["Arroz", "Habichuelas", "Carne Guisada", "Plátano"];
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -61,7 +64,7 @@ export default function Cultura() {
             animate={{ opacity: 1, y: 0 }}
             className="inline-block bg-primary/20 text-primary text-sm font-medium px-4 py-2 rounded-full mb-6"
           >
-            República Dominicana
+            {t("cultura.tag")}
           </motion.span>
 
           <motion.h1
@@ -70,7 +73,7 @@ export default function Cultura() {
             transition={{ delay: 0.1 }}
             className="font-display text-4xl md:text-6xl font-bold mb-4"
           >
-            Esencia <span className="text-gradient italic">Dominicana</span>
+            {t("cultura.title")} <span className="text-gradient italic">{t("cultura.titleHighlight")}</span>
           </motion.h1>
 
           <motion.p
@@ -79,7 +82,7 @@ export default function Cultura() {
             transition={{ delay: 0.2 }}
             className="text-muted-foreground text-lg max-w-2xl mx-auto mb-8"
           >
-            Un viaje vibrante a través de nuestros sabores auténticos, ritmos que mueven el alma y tradiciones que perduran.
+            {t("cultura.subtitle")}
           </motion.p>
 
           <motion.div
@@ -88,10 +91,10 @@ export default function Cultura() {
             transition={{ delay: 0.3 }}
             className="flex flex-wrap justify-center gap-4"
           >
-            <Button className="gap-2">Explorar Cultura</Button>
+            <Button className="gap-2">{t("cultura.exploreCulture")}</Button>
             <Button variant="outline" className="gap-2">
               <Play className="h-4 w-4" />
-              Ver Video
+              {t("cultura.watchVideo")}
             </Button>
           </motion.div>
         </div>
@@ -107,28 +110,26 @@ export default function Cultura() {
               viewport={{ once: true }}
             >
               <span className="text-primary text-sm font-medium uppercase tracking-wider">
-                Gastronomía
+                {t("cultura.gastronomy")}
               </span>
               <h2 className="font-display text-4xl md:text-5xl font-bold mt-3 mb-6">
-                Sabores de la <span className="text-gradient">Isla</span>
+                {t("cultura.flavorsTitle")} <span className="text-gradient">{t("cultura.flavorsHighlight")}</span>
               </h2>
               <p className="text-muted-foreground mb-6 leading-relaxed">
-                Descubre los ingredientes frescos y las recetas centenarias que definen nuestra identidad culinaria. 
-                Desde la costa hasta las montañas, cada plato cuenta una historia de tradición y pasión.
+                {t("cultura.flavorsDesc")}
               </p>
 
               {/* Featured Dish */}
               <div className="bg-surface rounded-2xl p-6 mb-6">
                 <div className="flex items-center gap-2 text-primary text-sm mb-3">
                   <span className="w-2 h-2 bg-primary rounded-full" />
-                  Receta Típica
+                  {t("cultura.typicalRecipe")}
                 </div>
                 <h3 className="font-display text-2xl font-bold text-foreground mb-3">
-                  La Bandera Dominicana
+                  {t("cultura.laBandera")}
                 </h3>
                 <p className="text-muted-foreground text-sm mb-4">
-                  El símbolo de nuestra mesa diaria. Una armonía perfecta de arroz blanco, habichuelas rojas guisadas y carne, 
-                  acompañada de tostones y ensalada fresca.
+                  {t("cultura.laBanderaDesc")}
                 </p>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {ingredients.map((ing) => (
@@ -141,7 +142,7 @@ export default function Cultura() {
                   ))}
                 </div>
                 <Button variant="outline" className="gap-2">
-                  Ver Receta Paso a Paso
+                  {t("cultura.viewRecipe")}
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -160,7 +161,7 @@ export default function Cultura() {
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-4 left-4 bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded">
-                  Plato del Mes
+                  {t("cultura.dishOfMonth")}
                 </div>
               </div>
               <div className="relative aspect-square rounded-2xl overflow-hidden">
@@ -173,7 +174,7 @@ export default function Cultura() {
               <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center">
                 <div className="text-center p-4">
                   <p className="text-amber-500 font-bold text-2xl">100+</p>
-                  <p className="text-muted-foreground text-sm">Recetas tradicionales</p>
+                  <p className="text-muted-foreground text-sm">{t("cultura.traditionalRecipes")}</p>
                 </div>
               </div>
             </motion.div>
@@ -203,7 +204,7 @@ export default function Cultura() {
                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
                 <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
                   <div>
-                    <p className="text-xs text-muted-foreground">Ahora Sonando</p>
+                    <p className="text-xs text-muted-foreground">{t("cultura.nowPlaying")}</p>
                     <p className="font-display font-bold text-foreground">Compadre Pedro Juan</p>
                     <p className="text-xs text-primary">Luis Alberti - Merengue Clásico</p>
                   </div>
@@ -218,12 +219,12 @@ export default function Cultura() {
                 <div className="bg-surface rounded-xl p-4">
                   <Music className="h-6 w-6 text-primary mb-2" />
                   <h4 className="font-display font-bold text-foreground">Merengue</h4>
-                  <p className="text-xs text-muted-foreground">Energía y Fiesta</p>
+                  <p className="text-xs text-muted-foreground">{t("cultura.energyParty")}</p>
                 </div>
                 <div className="bg-surface rounded-xl p-4">
                   <Heart className="h-6 w-6 text-rose-500 mb-2" />
                   <h4 className="font-display font-bold text-foreground">Bachata</h4>
-                  <p className="text-xs text-muted-foreground">Sentimiento y Pasión</p>
+                  <p className="text-xs text-muted-foreground">{t("cultura.feelingPassion")}</p>
                 </div>
               </div>
             </motion.div>
@@ -235,24 +236,22 @@ export default function Cultura() {
               className="order-1 lg:order-2"
             >
               <span className="text-primary text-sm font-medium uppercase tracking-wider">
-                Música y Folklore
+                {t("cultura.musicFolklore")}
               </span>
               <h2 className="font-display text-4xl md:text-5xl font-bold mt-3 mb-6">
-                Ritmos que Mueven el{" "}
-                <span className="text-gradient">Alma</span>
+                {t("cultura.rhythmsTitle")}{" "}
+                <span className="text-gradient">{t("cultura.rhythmsHighlight")}</span>
               </h2>
               <p className="text-muted-foreground mb-8 leading-relaxed">
-                Desde el contagioso compás del <span className="text-primary font-medium">Merengue</span>, 
-                Patrimonio Inmaterial de la Humanidad, hasta la pasión nostálgica de la <span className="text-primary font-medium">Bachata</span>. 
-                Nuestra música es el latido de la isla.
+                {t("cultura.rhythmsDesc")}
               </p>
 
               <p className="text-muted-foreground text-sm italic border-l-2 border-primary pl-4 mb-6">
-                "El merengue no se baila, se siente. Cuando suena, el cuerpo simplemente obedece al ritmo."
+                {t("cultura.rhythmsQuote")}
               </p>
 
               <Button className="gap-2">
-                Escuchar Playlist
+                {t("cultura.listenPlaylist")}
                 <Play className="h-4 w-4" />
               </Button>
             </motion.div>
@@ -270,13 +269,13 @@ export default function Cultura() {
             className="text-center mb-12"
           >
             <span className="text-primary text-sm font-medium uppercase tracking-wider">
-              Tradición Viva
+              {t("cultura.livingTradition")}
             </span>
             <h2 className="font-display text-3xl md:text-4xl font-bold mt-3 mb-4">
-              Fiestas Patronales
+              {t("cultura.patronFestivals")}
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Celebra con nosotros. Cada pueblo tiene su santo, su fiesta y su forma única de expresar la alegría dominicana.
+              {t("cultura.patronDesc")}
             </p>
           </motion.div>
 
@@ -297,7 +296,7 @@ export default function Cultura() {
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute top-4 left-4 bg-primary text-primary-foreground text-xs font-medium px-2 py-1 rounded">
-                    {festival.month}
+                    {festival.monthKey}
                   </div>
                 </div>
                 <div className="p-5">
@@ -317,7 +316,7 @@ export default function Cultura() {
                     {festival.description}
                   </p>
                   <Button variant="link" className="text-primary p-0 gap-1">
-                    Ver detalles
+                    {t("cultura.viewDetails")}
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -328,7 +327,7 @@ export default function Cultura() {
           <div className="text-center mt-10">
             <Button variant="outline" className="gap-2">
               <Calendar className="h-4 w-4" />
-              Ver Calendario Completo
+              {t("cultura.viewFullCalendar")}
             </Button>
           </div>
         </div>
@@ -347,19 +346,19 @@ export default function Cultura() {
             className="text-center"
           >
             <h2 className="font-display text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
-              ¿Listo para saborear la experiencia?
+              {t("cultura.ctaTitle")}
             </h2>
             <p className="text-primary-foreground/80 mb-8 max-w-lg mx-auto">
-              Suscríbete a nuestro boletín y recibe una guía gratuita con las mejores rutas gastronómicas de la isla.
+              {t("cultura.ctaDesc")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
               <input
                 type="email"
-                placeholder="Tu correo electrónico"
+                placeholder={t("cultura.emailPlaceholder")}
                 className="flex-1 px-4 py-3 rounded-lg bg-primary-foreground/10 border border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary-foreground/30"
               />
               <Button variant="secondary" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
-                Suscribirme
+                {t("cultura.subscribe")}
               </Button>
             </div>
           </motion.div>

@@ -1,16 +1,19 @@
 import { motion } from "framer-motion";
 import { Play, ChevronRight, Sun, Ruler, Landmark, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/hooks/useI18n";
 import heroImage from "@/assets/whale-samana.jpg";
 
-const stats = [
-  { icon: Sun, value: "300+", label: "Días de sol" },
-  { icon: Ruler, value: "1,600 km", label: "De costas" },
-  { icon: Landmark, value: "29", label: "Parques nacionales" },
-  { icon: Users, value: "10M+", label: "Visitantes" },
-];
-
 export function Hero() {
+  const { t } = useTranslation();
+
+  const stats = [
+    { icon: Sun, value: "300+", label: t("hero.sunDays") },
+    { icon: Ruler, value: "1,600 km", label: t("hero.coastline") },
+    { icon: Landmark, value: "29", label: t("hero.nationalParks") },
+    { icon: Users, value: "10M+", label: t("hero.visitors") },
+  ];
+
   return (
     <section className="relative h-screen w-full flex flex-col overflow-hidden">
       {/* Background Image */}
@@ -41,7 +44,7 @@ export function Hero() {
           >
             <span className="inline-flex items-center gap-2 text-primary text-sm font-medium mb-4">
               <span className="w-8 h-px bg-primary" />
-              El paraíso del Caribe
+              {t("hero.static.tag")}
             </span>
           </motion.div>
 
@@ -51,9 +54,9 @@ export function Hero() {
             transition={{ delay: 0.3 }}
             className="font-display text-4xl md:text-6xl lg:text-7xl font-bold mb-6"
           >
-            <span className="text-foreground">Samaná</span>
+            <span className="text-foreground">{t("hero.static.title")}</span>
             <br />
-            <span className="text-gradient">El Santuario de la Naturaleza</span>
+            <span className="text-gradient">{t("hero.static.subtitle")}</span>
           </motion.h1>
 
           <motion.p
@@ -62,7 +65,7 @@ export function Hero() {
             transition={{ delay: 0.4 }}
             className="text-lg text-muted-foreground mb-8 max-w-lg"
           >
-            Donde las montañas besan el mar y las ballenas jorobadas danzan cada invierno. Descubre un paraíso ecológico sin igual.
+            {t("hero.static.description")}
           </motion.p>
 
           <motion.div
@@ -72,12 +75,12 @@ export function Hero() {
             className="flex flex-wrap gap-4"
           >
             <Button size="lg" className="gap-2 font-display">
-              Explorar Destinos
+              {t("hero.static.cta")}
               <ChevronRight className="h-4 w-4" />
             </Button>
             <Button size="lg" variant="outline" className="gap-2 font-display">
               <Play className="h-4 w-4" />
-              Ver Video
+              {t("hero.static.video")}
             </Button>
           </motion.div>
         </div>

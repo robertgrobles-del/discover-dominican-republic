@@ -13,25 +13,26 @@ import { beaches as staticBeaches, Beach } from "@/data/beaches";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
+import { useTranslation } from "@/hooks/useI18n";
 
 import heroBeach from "@/assets/hero-beach.jpg";
 
-const beachTypeLabels: Record<string, string> = {
-  'arena-blanca': 'Arena Blanca',
-  'arena-dorada': 'Arena Dorada',
-  'virgen': 'Virgen',
-  'bahia': 'Bahía',
-  'deportiva': 'Deportiva',
-  'urbana': 'Urbana'
-};
-
-const PlayaCard = ({ playa, index }: { playa: any; index: number }) => {
+const PlayaCard = ({ playa, index, t }: { playa: any; index: number; t: (key: string) => string }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const slug = playa.slug || playa.id;
   const imageUrl = playa.imageUrl || playa.image_url || '/placeholder.svg';
   const beachType = playa.beachType || playa.beach_type || 'arena-blanca';
   const shortDesc = playa.shortDescription || playa.short_description || '';
   const destName = playa.destinationName || playa.destination_name || playa.province || '';
+
+  const beachTypeLabels: Record<string, string> = {
+    'arena-blanca': t("playas.whiteSand"),
+    'arena-dorada': t("playas.goldenSand"),
+    'virgen': t("playas.virgin"),
+    'bahia': t("playas.bay"),
+    'deportiva': t("playas.sports"),
+    'urbana': t("playas.urban"),
+  };
 
   return (
     <Link
@@ -72,7 +73,7 @@ const PlayaCard = ({ playa, index }: { playa: any; index: number }) => {
             ))}
           </div>
         )}
-        <Button className="w-full">Explorar Playa</Button>
+        <Button className="w-full">{t("playas.exploreBeach")}</Button>
       </div>
     </Link>
   );
@@ -81,8 +82,17 @@ const PlayaCard = ({ playa, index }: { playa: any; index: number }) => {
 export default function Playas() {
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<string>("todos");
+  const { t } = useTranslation();
 
-  // Fetch from Supabase
+  const beachTypeLabels: Record<string, string> = {
+    'arena-blanca': t("playas.whiteSand"),
+    'arena-dorada': t("playas.goldenSand"),
+    'virgen': t("playas.virgin"),
+    'bahia': t("playas.bay"),
+    'deportiva': t("playas.sports"),
+    'urbana': t("playas.urban"),
+  };
+
   const { data: dbBeaches } = useQuery({
     queryKey: ['beaches-list'],
     queryFn: async () => {
@@ -91,7 +101,6 @@ export default function Playas() {
     },
   });
 
-  // Merge static + DB, deduplicate by slug
   const allBeaches = useMemo(() => {
     const merged = [...staticBeaches];
     const slugs = new Set(merged.map(b => b.slug));
@@ -119,8 +128,8 @@ export default function Playas() {
   return (
     <PageTransition>
       <SEOHead
-        title="Playas de República Dominicana - Las Mejores del Caribe"
-        description="Descubre más de 400 playas paradisíacas en República Dominicana. Arena blanca, aguas turquesa y vida marina."
+        title={t("playas.seoTitle")}
+        description={t("playas.seoDesc")}
         keywords="playas, República Dominicana, caribe, arena blanca, Punta Cana, Samaná, Bayahibe"
       />
       <div className="min-h-screen flex flex-col bg-background">
@@ -128,17 +137,17 @@ export default function Playas() {
         
         {/* Hero */}
         <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
-          <img src={heroBeach} alt="Playas de República Dominicana" className="absolute inset-0 w-full h-full object-cover" />
+          <img src={heroBeach} alt={t("playas.seoTitle")} className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
           <div className="relative z-10 text-center px-4">
             <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
-              <Waves className="w-4 h-4 mr-2" /> Paraíso Caribeño
+              <Waves className="w-4 h-4 mr-2" /> {t("playas.caribbeanParadise")}
             </Badge>
             <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-4">
-              Playas de <span className="text-gradient">República Dominicana</span>
+              {t("playas.title")} <span className="text-gradient">{t("playas.titleHighlight")}</span>
             </h1>
             <p className="text-lg text-white/80 max-w-2xl mx-auto">
-              Descubre más de 1,600 km de costa con algunas de las playas más hermosas del mundo
+              {t("playas.subtitle")}
             </p>
           </div>
         </section>
@@ -148,10 +157,10 @@ export default function Playas() {
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {[
-                { icon: Umbrella, label: "400+ Playas", desc: "En todo el país" },
-                { icon: Waves, label: "Aguas Cálidas", desc: "24-28°C todo el año" },
-                { icon: Fish, label: "Vida Marina", desc: "Arrecifes de coral" },
-                { icon: Camera, label: "Paisajes Únicos", desc: "Postales naturales" }
+                { icon: Umbrella, label: t("playas.beaches400"), desc: t("playas.beaches400Desc") },
+                { icon: Waves, label: t("playas.warmWaters"), desc: t("playas.warmWatersDesc") },
+                { icon: Fish, label: t("playas.marineLife"), desc: t("playas.marineLifeDesc") },
+                { icon: Camera, label: t("playas.uniqueLandscapes"), desc: t("playas.uniqueLandscapesDesc") }
               ].map((feature) => (
                 <div key={feature.label} className="text-center">
                   <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -174,21 +183,21 @@ export default function Playas() {
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar playas..."
+                  placeholder={t("playas.searchPlaceholder")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-10"
                 />
               </div>
               <div className="flex flex-wrap gap-2">
-                {types.map(t => (
+                {types.map(tp => (
                   <Button
-                    key={t}
-                    variant={filterType === t ? "default" : "outline"}
+                    key={tp}
+                    variant={filterType === tp ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setFilterType(t)}
+                    onClick={() => setFilterType(tp)}
                   >
-                    {t === 'todos' ? 'Todas' : beachTypeLabels[t] || t}
+                    {tp === 'todos' ? t("playas.all") : beachTypeLabels[tp] || tp}
                   </Button>
                 ))}
               </div>
@@ -201,21 +210,21 @@ export default function Playas() {
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="font-display text-3xl font-bold text-foreground mb-4">
-                {filterType === 'todos' ? 'Todas las Playas' : `Playas ${beachTypeLabels[filterType]}`}
+                {filterType === 'todos' ? t("playas.allBeaches") : `${t("playas.beachesType")} ${beachTypeLabels[filterType]}`}
               </h2>
               <p className="text-muted-foreground">
-                {filtered.length} {filtered.length === 1 ? 'playa encontrada' : 'playas encontradas'}
+                {filtered.length} {filtered.length === 1 ? t("playas.beachFound") : t("playas.beachesFound")}
               </p>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filtered.map((playa, index) => (
-                <PlayaCard key={playa.slug || playa.id} playa={playa} index={index} />
+                <PlayaCard key={playa.slug || playa.id} playa={playa} index={index} t={t} />
               ))}
             </div>
             {filtered.length === 0 && (
               <div className="text-center py-20">
                 <Waves className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No se encontraron playas con esos filtros.</p>
+                <p className="text-muted-foreground">{t("playas.noResults")}</p>
               </div>
             )}
           </div>

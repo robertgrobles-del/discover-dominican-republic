@@ -18,6 +18,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { BetweenSectionsAd, SidebarAd, CompactInlineAd } from "@/components/ads";
+import { useTranslation } from "@/hooks/useI18n";
 
 import hotelRoomSuite from "@/assets/hotel-room-suite.jpg";
 
@@ -59,22 +60,6 @@ interface Airbnb {
   destinations?: { name: string } | null;
 }
 
-const amenitiesOptions = [
-  { id: "wifi", label: "WiFi", icon: Wifi },
-  { id: "parking", label: "Parking", icon: Car },
-  { id: "pool", label: "Piscina", icon: Waves },
-  { id: "restaurant", label: "Restaurante", icon: Utensils },
-  { id: "gym", label: "Gimnasio", icon: Dumbbell },
-];
-
-const priceRanges = [
-  { value: "all", label: "Todos los precios" },
-  { value: "$", label: "Económico ($)" },
-  { value: "$$", label: "Moderado ($$)" },
-  { value: "$$$", label: "Premium ($$$)" },
-  { value: "$$$$", label: "Lujo ($$$$)" },
-];
-
 export default function Alojamientos() {
   const [type, setType] = useState<AccommodationType>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -84,6 +69,23 @@ export default function Alojamientos() {
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [airbnbs, setAirbnbs] = useState<Airbnb[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
+
+  const amenitiesOptions = [
+    { id: "wifi", label: "WiFi", icon: Wifi },
+    { id: "parking", label: "Parking", icon: Car },
+    { id: "pool", label: t("alojamientos.pool"), icon: Waves },
+    { id: "restaurant", label: t("alojamientos.restaurant"), icon: Utensils },
+    { id: "gym", label: t("alojamientos.gym"), icon: Dumbbell },
+  ];
+
+  const priceRanges = [
+    { value: "all", label: t("alojamientos.allPrices") },
+    { value: "$", label: t("alojamientos.budget") },
+    { value: "$$", label: t("alojamientos.moderate") },
+    { value: "$$$", label: t("alojamientos.premium") },
+    { value: "$$$$", label: t("alojamientos.luxury") },
+  ];
 
   useEffect(() => {
     async function fetchAccommodations() {
@@ -147,8 +149,8 @@ export default function Alojamientos() {
   return (
     <PageTransition>
       <SEOHead
-        title="Alojamientos en República Dominicana - Hoteles y Airbnb"
-        description="Encuentra el alojamiento perfecto en RD. Hoteles de lujo, resorts todo incluido y propiedades Airbnb con anfitriones locales."
+        title={t("alojamientos.seoTitle")}
+        description={t("alojamientos.seoDesc")}
         keywords="hoteles República Dominicana, Airbnb Punta Cana, resorts Santo Domingo, alojamiento Caribe"
       />
       <div className="min-h-screen flex flex-col bg-background">
@@ -159,7 +161,7 @@ export default function Alojamientos() {
           <div className="absolute inset-0">
             <img
               src={hotelRoomSuite}
-              alt="Alojamientos en República Dominicana"
+              alt={t("alojamientos.seoTitle")}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
@@ -167,13 +169,13 @@ export default function Alojamientos() {
 
           <div className="relative z-10 container mx-auto px-4 pb-12">
             <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
-              ENCUENTRA TU ESTANCIA PERFECTA
+              {t("alojamientos.findPerfectStay")}
             </Badge>
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4 max-w-2xl">
-              Alojamientos en <span className="text-gradient">República Dominicana</span>
+              {t("alojamientos.title")} <span className="text-gradient">{t("alojamientos.titleHighlight")}</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl">
-              Desde resorts de lujo hasta acogedoras casas con anfitriones locales. Encuentra tu hogar lejos de casa.
+              {t("alojamientos.subtitle")}
             </p>
           </div>
         </section>
@@ -182,12 +184,11 @@ export default function Alojamientos() {
         <section className="sticky top-16 z-40 bg-background border-b border-border py-4">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-              {/* Search & Type Tabs */}
               <div className="flex flex-col sm:flex-row gap-4 flex-1 w-full md:w-auto">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar por nombre o ubicación..."
+                    placeholder={t("alojamientos.searchPlaceholder")}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
@@ -198,11 +199,11 @@ export default function Alojamientos() {
                   <TabsList className="bg-secondary/50">
                     <TabsTrigger value="all" className="gap-2">
                       <Bed className="h-4 w-4" />
-                      Todos
+                      {t("alojamientos.all")}
                     </TabsTrigger>
                     <TabsTrigger value="hotel" className="gap-2">
                       <Building2 className="h-4 w-4" />
-                      Hoteles
+                      {t("alojamientos.hotels")}
                     </TabsTrigger>
                     <TabsTrigger value="airbnb" className="gap-2">
                       <Home className="h-4 w-4" />
@@ -212,11 +213,10 @@ export default function Alojamientos() {
                 </Tabs>
               </div>
 
-              {/* Filter Toggle & Price */}
               <div className="flex gap-2 items-center">
                 <Select value={priceRange} onValueChange={setPriceRange}>
                   <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Precio" />
+                    <SelectValue placeholder={t("common.price")} />
                   </SelectTrigger>
                   <SelectContent>
                     {priceRanges.map((range) => (
@@ -238,13 +238,12 @@ export default function Alojamientos() {
                 {(searchQuery || priceRange !== "all" || selectedAmenities.length > 0) && (
                   <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
                     <X className="h-4 w-4" />
-                    Limpiar
+                    {t("alojamientos.clear")}
                   </Button>
                 )}
               </div>
             </div>
 
-            {/* Expanded Filters */}
             {showFilters && (
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
@@ -253,7 +252,7 @@ export default function Alojamientos() {
                 className="pt-4 border-t border-border mt-4"
               >
                 <div className="flex flex-wrap gap-2">
-                  <span className="text-sm text-muted-foreground mr-2">Amenidades:</span>
+                  <span className="text-sm text-muted-foreground mr-2">{t("alojamientos.amenities")}</span>
                   {amenitiesOptions.map((amenity) => (
                     <Button
                       key={amenity.id}
@@ -277,7 +276,7 @@ export default function Alojamientos() {
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-8">
               <p className="text-muted-foreground">
-                <span className="font-semibold text-foreground">{totalResults}</span> alojamientos encontrados
+                <span className="font-semibold text-foreground">{totalResults}</span> {t("alojamientos.found")}
               </p>
             </div>
 
@@ -323,7 +322,7 @@ export default function Alojamientos() {
                             </div>
                             {hotel.is_sponsored ? (
                               <Badge className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1">
-                                <Megaphone className="h-3 w-3" /> Patrocinado
+                                <Megaphone className="h-3 w-3" /> {t("alojamientos.sponsored")}
                               </Badge>
                             ) : hotel.stars ? (
                               <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground">
@@ -392,7 +391,7 @@ export default function Alojamientos() {
                             </div>
                             {airbnb.is_sponsored ? (
                               <Badge className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1">
-                                <Megaphone className="h-3 w-3" /> Patrocinado
+                                <Megaphone className="h-3 w-3" /> {t("alojamientos.sponsored")}
                               </Badge>
                             ) : airbnb.is_superhost ? (
                               <Badge className="absolute top-3 left-3 bg-rose-500 text-white">
@@ -422,7 +421,7 @@ export default function Alojamientos() {
                               {airbnb.bedrooms && (
                                 <span className="flex items-center gap-1">
                                   <Bed className="h-3 w-3" />
-                                  {airbnb.bedrooms} hab.
+                                  {airbnb.bedrooms} {t("alojamientos.rooms")}
                                 </span>
                               )}
                             </div>
@@ -433,7 +432,7 @@ export default function Alojamientos() {
                               </Badge>
                               {airbnb.price_per_night && (
                                 <span className="text-sm font-semibold text-primary">
-                                  ${airbnb.price_per_night}/noche
+                                  ${airbnb.price_per_night}{t("alojamientos.perNight")}
                                 </span>
                               )}
                             </div>
@@ -448,15 +447,14 @@ export default function Alojamientos() {
             {!loading && totalResults === 0 && (
               <div className="text-center py-16">
                 <Bed className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-foreground mb-2">No se encontraron resultados</h3>
-                <p className="text-muted-foreground mb-4">Intenta ajustar los filtros o buscar con otro término.</p>
-                <Button onClick={clearFilters}>Limpiar filtros</Button>
+                <h3 className="text-xl font-semibold text-foreground mb-2">{t("alojamientos.noResults")}</h3>
+                <p className="text-muted-foreground mb-4">{t("alojamientos.noResultsDesc")}</p>
+                <Button onClick={clearFilters}>{t("alojamientos.clearFilters")}</Button>
               </div>
             )}
           </div>
         </section>
 
-        {/* Ad before footer */}
         <BetweenSectionsAd showDemo />
 
         <Footer />
