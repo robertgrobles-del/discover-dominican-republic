@@ -175,6 +175,7 @@ const TurismoComunitario = lazy(() => import("./pages/TurismoComunitario"));
 const AutorInvitado = lazy(() => import("./pages/AutorInvitado"));
 const ContratarInfluencers = lazy(() => import("./pages/ContratarInfluencers"));
 const Marketplace = lazy(() => import("./pages/Marketplace"));
+const SorteosYPremios = lazy(() => import("./pages/SorteosYPremios"));
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
 const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
