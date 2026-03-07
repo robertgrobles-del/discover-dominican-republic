@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Gift, Trophy, Star, PartyPopper, Hotel, UtensilsCrossed,
   Palmtree, Ship, Compass, Camera, Music, Heart, CheckCircle,
@@ -117,12 +118,26 @@ function RegistroSorteo() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.nombre || !form.email || !form.acepta) {
       toast.error("Completa los campos obligatorios y acepta los términos");
       return;
     }
+    setLoading(true);
+    const { error } = await supabase.from("contest_registrations").insert({
+      nombre: form.nombre,
+      email: form.email,
+      telefono: form.telefono || null,
+      pais: form.pais || null,
+      edad: form.edad || null,
+      visitado: form.visitado || null,
+      intereses: form.intereses.length ? form.intereses : null,
+    });
+    setLoading(false);
+    if (error) { toast.error("Error al registrar. Intenta de nuevo."); return; }
     toast.success("🎉 ¡Registro exitoso! Ya participas en el sorteo. ¡Buena suerte!");
     setForm({ nombre: "", email: "", telefono: "", pais: "", edad: "", visitado: "", intereses: [], acepta: false });
   };
@@ -215,8 +230,8 @@ function RegistroSorteo() {
           </label>
         </div>
 
-        <Button type="submit" size="lg" className="w-full gap-2">
-          <Gift className="h-4 w-4" /> Registrarme y participar
+        <Button type="submit" size="lg" className="w-full gap-2" disabled={loading}>
+          <Gift className="h-4 w-4" /> {loading ? "Registrando..." : "Registrarme y participar"}
         </Button>
       </form>
     </div>
@@ -323,8 +338,14 @@ function EncuestaDetalle({ encuesta }: { encuesta: typeof encuestas[0] }) {
           placeholder="tu@email.com"
           className="mb-4"
         />
-        <Button className="w-full gap-2" onClick={() => {
+        <Button className="w-full gap-2" onClick={async () => {
           if (!email) { toast.error("Ingresa tu email para participar"); return; }
+          const { error } = await supabase.from("survey_responses").insert({
+            survey_id: encuesta.id,
+            email,
+            respuestas: respuestas,
+          });
+          if (error) { toast.error("Error al enviar. Intenta de nuevo."); return; }
           setEnviado(true);
           toast.success("🎉 ¡Encuesta enviada! Ya participas en el sorteo.");
         }}>
