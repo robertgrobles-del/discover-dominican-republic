@@ -7,6 +7,7 @@ import { FavoriteButton } from "@/components/FavoriteButton";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { supabase } from "@/integrations/supabase/client";
 import useEmblaCarousel from "embla-carousel-react";
+import { useTranslation } from "@/hooks/useI18n";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import samanaImg from "@/assets/samana.jpg";
@@ -43,6 +44,7 @@ interface DisplayDestination {
 }
 
 export function DestinationsSection() {
+  const { t } = useTranslation();
   const [destinations, setDestinations] = useState<DisplayDestination[]>(staticDestinations);
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start", slidesToScroll: 1 });
   const [canScrollPrev, setCanScrollPrev] = useState(false);
@@ -107,14 +109,14 @@ export function DestinationsSection() {
           >
             <span className="inline-flex items-center gap-2 text-muted-foreground text-sm font-medium mb-3">
               <span className="w-8 h-px bg-border" />
-              Destinos Populares
+              {t("destinations.popular")}
             </span>
             <h2 className="font-display text-3xl md:text-4xl font-bold">
-              Sumérgete en nuestros{" "}
-              <span className="text-gradient">paraísos</span>
+              {t("destinations.immerse")}{" "}
+              <span className="text-gradient">{t("destinations.paradise")}</span>
             </h2>
             <p className="text-muted-foreground mt-3 max-w-lg">
-              Desde playas de arenas blancas hasta las cimas más altas del Caribe.
+              {t("destinations.subtitle")}
             </p>
           </motion.div>
 
@@ -134,7 +136,7 @@ export function DestinationsSection() {
             </div>
             <Link to="/destinos">
               <Button variant="link" className="text-primary gap-2">
-                Ver todos los destinos
+                {t("destinations.viewAll")}
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
@@ -177,7 +179,7 @@ export function DestinationsSection() {
                         {destination.description}
                       </p>
                       <div className="flex items-center gap-1 text-primary text-sm font-medium group-hover:gap-2 transition-all">
-                        <span>Explorar destino</span>
+                        <span>{t("destinations.explore")}</span>
                         <ChevronRight className="h-4 w-4" />
                       </div>
                     </div>

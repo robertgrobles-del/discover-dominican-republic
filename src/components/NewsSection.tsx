@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { InlineAd } from "@/components/ads";
+import { useTranslation } from "@/hooks/useI18n";
 import carnivalImg from "@/assets/carnival.jpg";
 import whaleSamanaImg from "@/assets/whale-samana.jpg";
 import gastronomyImg from "@/assets/gastronomy.jpg";
@@ -51,13 +52,13 @@ const news = [
 ];
 
 export function NewsSection() {
+  const { t } = useTranslation();
   const featuredNews = news.find(n => n.featured);
   const regularNews = news.filter(n => !n.featured);
 
   return (
     <section className="py-16 bg-card">
       <div className="container mx-auto px-4 lg:px-8">
-        {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -66,13 +67,13 @@ export function NewsSection() {
           >
             <span className="inline-flex items-center gap-2 text-muted-foreground text-sm font-medium mb-3">
               <span className="w-8 h-px bg-border" />
-              Últimas Noticias
+              {t("news.latest")}
             </span>
             <h2 className="font-display text-3xl md:text-4xl font-bold">
-              Mantente <span className="text-gradient">Informado</span>
+              {t("news.stayInformed")} <span className="text-gradient">{t("news.informed")}</span>
             </h2>
             <p className="text-muted-foreground mt-3 max-w-lg">
-              Lo último sobre turismo, eventos y novedades de República Dominicana.
+              {t("news.subtitle")}
             </p>
           </motion.div>
 
@@ -83,7 +84,7 @@ export function NewsSection() {
           >
             <Link to="/revista">
               <Button variant="outline" className="gap-2">
-                Ver todas las noticias
+                {t("news.viewAll")}
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
@@ -208,7 +209,7 @@ export function NewsSection() {
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>{article.date}</span>
                     <span className="text-primary font-medium group-hover:underline">
-                      Leer más
+                      {t("common.readMore")}
                     </span>
                   </div>
                 </div>

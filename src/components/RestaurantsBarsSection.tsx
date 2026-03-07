@@ -8,6 +8,7 @@ import { LazyImage } from "@/components/ui/lazy-image";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { useTranslation } from "@/hooks/useI18n";
 import gastronomyImg from "@/assets/gastronomy.jpg";
 import divingImg from "@/assets/diving.jpg";
 import laBanderaImg from "@/assets/la-bandera.jpg";
@@ -125,7 +126,7 @@ interface RestaurantType {
   isSponsored?: boolean;
 }
 
-function RestaurantCard({ restaurant, index }: { restaurant: RestaurantType; index: number }) {
+function RestaurantCard({ restaurant, index, t }: { restaurant: RestaurantType; index: number; t: (key: string) => string }) {
   const restaurantLink = restaurant.slug ? `/restaurante/${restaurant.slug}` : '/restaurante';
   
   return (
@@ -151,7 +152,7 @@ function RestaurantCard({ restaurant, index }: { restaurant: RestaurantType; ind
             {restaurant.isSponsored && (
               <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1">
                 <Megaphone className="h-3 w-3" />
-                Patrocinado
+                {t("accommodations.sponsored")}
               </Badge>
             )}
             <span className="bg-background/80 backdrop-blur-sm text-foreground text-xs font-medium px-2 py-1 rounded">
@@ -160,7 +161,7 @@ function RestaurantCard({ restaurant, index }: { restaurant: RestaurantType; ind
             {restaurant.openNow && (
               <span className="bg-primary/90 backdrop-blur-sm text-primary-foreground text-xs font-medium px-2 py-1 rounded flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                Abierto
+                {t("restaurants.open")}
               </span>
             )}
           </div>
@@ -195,16 +196,16 @@ function RestaurantCard({ restaurant, index }: { restaurant: RestaurantType; ind
           </div>
 
           <p className="text-sm text-muted-foreground mb-4">
-            <span className="font-medium text-foreground">Especialidad:</span> {restaurant.speciality}
+            <span className="font-medium text-foreground">{t("restaurants.specialty")}</span> {restaurant.speciality}
           </p>
 
           <div className="flex items-center justify-between pt-4 border-t border-border">
             <Button size="sm" className="gap-1">
               <Utensils className="h-3.5 w-3.5" />
-              Reservar Mesa
+              {t("restaurants.bookTable")}
             </Button>
             <Button size="sm" variant="ghost" className="gap-1">
-              Ver Menú
+              {t("restaurants.viewMenu")}
               <ChevronRight className="h-3.5 w-3.5" />
             </Button>
           </div>
@@ -226,7 +227,7 @@ interface BarType {
   isSponsored?: boolean;
 }
 
-function BarCard({ bar, index }: { bar: BarType; index: number }) {
+function BarCard({ bar, index, t }: { bar: BarType; index: number; t: (key: string) => string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -249,7 +250,7 @@ function BarCard({ bar, index }: { bar: BarType; index: number }) {
         {bar.isSponsored && (
           <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1 w-fit">
             <Megaphone className="h-3 w-3" />
-            Patrocinado
+            {t("accommodations.sponsored")}
           </Badge>
         )}
         <span className="bg-primary/90 backdrop-blur-sm text-primary-foreground text-xs font-medium px-2.5 py-1 rounded-full flex items-center gap-1 w-fit">
@@ -283,6 +284,7 @@ function BarCard({ bar, index }: { bar: BarType; index: number }) {
 }
 
 export function RestaurantsBarsSection() {
+  const { t } = useTranslation();
   const { data: dbRestaurants } = useQuery({
     queryKey: ['home-restaurants'],
     queryFn: async () => {
@@ -354,13 +356,13 @@ export function RestaurantsBarsSection() {
             >
               <span className="inline-flex items-center gap-2 text-muted-foreground text-sm font-medium mb-3">
                 <span className="w-8 h-px bg-border" />
-                Sabores del Caribe
+                {t("restaurants.flavors")}
               </span>
               <h2 className="font-display text-3xl md:text-4xl font-bold">
-                Restaurantes <span className="text-gradient">Destacados</span>
+                {t("restaurants.title")} <span className="text-gradient">{t("restaurants.featured")}</span>
               </h2>
               <p className="text-muted-foreground mt-3 max-w-lg">
-                Una experiencia gastronómica que fusiona tradición caribeña con técnicas contemporáneas.
+                {t("restaurants.subtitle")}
               </p>
             </motion.div>
 
@@ -371,7 +373,7 @@ export function RestaurantsBarsSection() {
             >
               <Link to="/restaurante">
                 <Button variant="link" className="text-primary gap-2">
-                  Ver todos los restaurantes
+                  {t("restaurants.viewAll")}
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </Link>
@@ -380,7 +382,7 @@ export function RestaurantsBarsSection() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {[sponsoredRestaurant, ...restaurants].slice(0, 3).map((restaurant, index) => (
-              <RestaurantCard key={restaurant.id} restaurant={restaurant} index={index} />
+              <RestaurantCard key={restaurant.id} restaurant={restaurant} index={index} t={t} />
             ))}
           </div>
         </div>
@@ -393,10 +395,10 @@ export function RestaurantsBarsSection() {
           <div className="w-[160px] h-[600px] rounded-lg overflow-hidden shadow-lg">
             <img 
               src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=160&h=600&fit=crop" 
-              alt="Publicidad cócteles"
+              alt={t("events.ad")}
               className="w-full h-full object-cover"
             />
-            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">Publicidad</span>
+            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">{t("events.ad")}</span>
           </div>
         </div>
 
@@ -405,10 +407,10 @@ export function RestaurantsBarsSection() {
           <div className="w-[160px] h-[600px] rounded-lg overflow-hidden shadow-lg">
             <img 
               src="https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=160&h=600&fit=crop" 
-              alt="Publicidad vida nocturna"
+              alt={t("events.ad")}
               className="w-full h-full object-cover"
             />
-            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">Publicidad</span>
+            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">{t("events.ad")}</span>
           </div>
         </div>
         <div className="container mx-auto px-4 lg:px-8 2xl:px-48">
@@ -420,13 +422,13 @@ export function RestaurantsBarsSection() {
             >
               <span className="inline-flex items-center gap-2 text-muted-foreground text-sm font-medium mb-3">
                 <span className="w-8 h-px bg-border" />
-                Vida Nocturna
+                {t("bars.nightlife")}
               </span>
               <h2 className="font-display text-3xl md:text-4xl font-bold">
-                Bares <span className="text-gradient">Recomendados</span>
+                {t("bars.title")} <span className="text-gradient">{t("bars.recommended")}</span>
               </h2>
               <p className="text-muted-foreground mt-3 max-w-lg">
-                Desde cócteles artesanales hasta noches de merengue bajo las estrellas.
+                {t("bars.subtitle")}
               </p>
             </motion.div>
 
@@ -437,7 +439,7 @@ export function RestaurantsBarsSection() {
             >
               <Link to="/vida-nocturna">
                 <Button variant="link" className="text-primary gap-2">
-                  Explorar vida nocturna
+                  {t("bars.exploreNightlife")}
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </Link>
@@ -446,7 +448,7 @@ export function RestaurantsBarsSection() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {[sponsoredBar, ...bars.slice(0, 2)].map((bar, index) => (
-              <BarCard key={bar.id} bar={bar} index={index} />
+              <BarCard key={bar.id} bar={bar} index={index} t={t} />
             ))}
           </div>
         </div>

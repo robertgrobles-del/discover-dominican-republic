@@ -9,6 +9,7 @@ import { LazyImage } from "@/components/ui/lazy-image";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { useTranslation } from "@/hooks/useI18n";
 import hotelEdenRocImg from "@/assets/hotel-eden-roc.jpg";
 import hotelClareVerdeImg from "@/assets/hotel-clare-verde.jpg";
 import hotelBilliniImg from "@/assets/hotel-billini.jpg";
@@ -96,9 +97,10 @@ interface AccommodationItem {
 interface AccommodationCardProps {
   item: AccommodationItem;
   type: "hotel" | "airbnb";
+  t: (key: string) => string;
 }
 
-function AccommodationCard({ item, type }: AccommodationCardProps) {
+function AccommodationCard({ item, type, t }: AccommodationCardProps) {
   const isAirbnb = type === "airbnb";
 
   return (
@@ -122,7 +124,7 @@ function AccommodationCard({ item, type }: AccommodationCardProps) {
           {item.isSponsored && (
             <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1">
               <Megaphone className="h-3 w-3" />
-              Patrocinado
+              {t("accommodations.sponsored")}
             </Badge>
           )}
           {item.tags.map((tag) => (
@@ -169,7 +171,7 @@ function AccommodationCard({ item, type }: AccommodationCardProps) {
               {isAirbnb && item.guests && (
                 <span className="flex items-center gap-1 ml-2">
                   <Users className="h-3 w-3" />
-                  {item.guests} huéspedes
+                  {item.guests} {t("accommodations.guests")}
                 </span>
               )}
             </p>
@@ -188,11 +190,11 @@ function AccommodationCard({ item, type }: AccommodationCardProps) {
               </span>
             )}
             <span className="text-xl font-bold text-foreground">${item.price}</span>
-            <span className="text-sm text-muted-foreground">/noche</span>
+            <span className="text-sm text-muted-foreground">{t("accommodations.perNight")}</span>
           </div>
           <Link to={`/alojamiento/${item.id}`}>
             <Button size="sm" variant={isAirbnb ? "default" : "outline"}>
-              {isAirbnb ? "Reservar" : "Ver Disponibilidad"}
+              {isAirbnb ? t("accommodations.book") : t("accommodations.checkAvailability")}
             </Button>
           </Link>
         </div>
@@ -202,6 +204,7 @@ function AccommodationCard({ item, type }: AccommodationCardProps) {
 }
 
 export function AccommodationsSection() {
+  const { t } = useTranslation();
   const { data: dbHotels } = useQuery({
     queryKey: ['home-hotels'],
     queryFn: async () => {
@@ -284,8 +287,8 @@ export function AccommodationsSection() {
             alt="Publicidad hoteles de lujo"
             className="w-full h-full object-cover"
           />
-          <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">Publicidad</span>
-        </div>
+           <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">{t("accommodations.ad")}</span>
+         </div>
       </div>
 
       {/* Right Skyscraper Ad */}
@@ -296,8 +299,8 @@ export function AccommodationsSection() {
             alt="Publicidad resorts"
             className="w-full h-full object-cover"
           />
-          <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">Publicidad</span>
-        </div>
+           <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">{t("accommodations.ad")}</span>
+         </div>
       </div>
       <div className="container mx-auto px-4 lg:px-8 2xl:px-48">
         {/* Section Header */}
@@ -309,13 +312,13 @@ export function AccommodationsSection() {
           >
             <span className="inline-flex items-center gap-2 text-muted-foreground text-sm font-medium mb-3">
               <span className="w-8 h-px bg-border" />
-              Estancia Exclusiva
+              {t("accommodations.exclusive")}
             </span>
             <h2 className="font-display text-3xl md:text-4xl font-bold">
-              Alojamientos <span className="text-gradient">Destacados</span>
+              {t("accommodations.title")} <span className="text-gradient">{t("accommodations.featured")}</span>
             </h2>
             <p className="text-muted-foreground mt-3 max-w-lg">
-              Una selección curada de lujo, confort y experiencias auténticas.
+              {t("accommodations.subtitle")}
             </p>
           </motion.div>
 
@@ -326,7 +329,7 @@ export function AccommodationsSection() {
           >
             <Link to="/alojamientos">
               <Button variant="link" className="text-primary gap-2">
-                Ver todos los alojamientos
+                {t("accommodations.viewAll")}
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
@@ -336,8 +339,8 @@ export function AccommodationsSection() {
         {/* Tabs */}
         <Tabs defaultValue="todos" className="w-full">
           <TabsList className="mb-8">
-            <TabsTrigger value="todos">Todos</TabsTrigger>
-            <TabsTrigger value="hoteles">Hoteles</TabsTrigger>
+            <TabsTrigger value="todos">{t("accommodations.all")}</TabsTrigger>
+            <TabsTrigger value="hoteles">{t("accommodations.hotels")}</TabsTrigger>
             <TabsTrigger value="airbnb" className="gap-2">
               <Home className="h-4 w-4" />
               Airbnb
@@ -351,6 +354,7 @@ export function AccommodationsSection() {
                   key={item.id}
                   item={item}
                   type={airbnbs.some(a => a.id === item.id) ? "airbnb" : "hotel"}
+                  t={t}
                 />
               ))}
             </div>
@@ -359,7 +363,7 @@ export function AccommodationsSection() {
           <TabsContent value="hoteles">
             <div className="grid md:grid-cols-3 gap-6">
               {[sponsoredHotel, ...hotels].map((hotel) => (
-                <AccommodationCard key={hotel.id} item={hotel} type="hotel" />
+                <AccommodationCard key={hotel.id} item={hotel} type="hotel" t={t} />
               ))}
             </div>
           </TabsContent>
@@ -367,7 +371,7 @@ export function AccommodationsSection() {
           <TabsContent value="airbnb">
             <div className="grid md:grid-cols-3 gap-6">
               {[sponsoredAirbnb, ...airbnbs].map((airbnb) => (
-                <AccommodationCard key={airbnb.id} item={airbnb} type="airbnb" />
+                <AccommodationCard key={airbnb.id} item={airbnb} type="airbnb" t={t} />
               ))}
             </div>
           </TabsContent>

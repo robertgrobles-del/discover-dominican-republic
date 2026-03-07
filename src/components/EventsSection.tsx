@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "@/hooks/useI18n";
 import carnivalImg from "@/assets/carnival.jpg";
 import jazzImg from "@/assets/jazz-festival.jpg";
 import tasteImg from "@/assets/taste-event.jpg";
@@ -54,6 +55,7 @@ interface DisplayEvent {
 }
 
 export function EventsSection() {
+  const { t } = useTranslation();
   const [events, setEvents] = useState<DisplayEvent[]>(staticEvents);
 
   useEffect(() => {
@@ -101,7 +103,7 @@ export function EventsSection() {
               alt="Publicidad eventos"
               className="w-full h-full object-cover"
             />
-            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">Publicidad</span>
+            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">{t("events.ad")}</span>
           </div>
         </div>
       </div>
@@ -115,7 +117,7 @@ export function EventsSection() {
               alt="Publicidad festivales"
               className="w-full h-full object-cover"
             />
-            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">Publicidad</span>
+            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">{t("events.ad")}</span>
           </div>
         </div>
       </div>
@@ -129,13 +131,13 @@ export function EventsSection() {
           >
             <span className="inline-flex items-center gap-2 text-muted-foreground text-sm font-medium mb-3">
               <span className="w-8 h-px bg-border" />
-              Eventos Próximos
+              {t("events.upcoming")}
             </span>
             <h2 className="font-display text-3xl md:text-4xl font-bold">
-              Próximos <span className="text-gradient">Eventos</span>
+              {t("events.next")} <span className="text-gradient">{t("events.events")}</span>
             </h2>
             <p className="text-muted-foreground mt-3 max-w-lg">
-              Vive la vibrante cultura dominicana a través de festivales, música y arte.
+              {t("events.subtitle")}
             </p>
           </motion.div>
 
@@ -147,7 +149,7 @@ export function EventsSection() {
             <Link to="/eventos">
               <Button variant="outline" className="gap-2">
                 <Calendar className="h-4 w-4" />
-                Ver Calendario Completo
+                {t("events.viewCalendar")}
               </Button>
             </Link>
           </motion.div>
@@ -201,7 +203,7 @@ export function EventsSection() {
                   {event.title}
                 </h3>
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                  Experimenta la magia de los eventos culturales más emblemáticos del Caribe.
+                  {t("events.description")}
                 </p>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1 text-muted-foreground text-sm">
@@ -209,7 +211,7 @@ export function EventsSection() {
                     <span>{event.location}</span>
                   </div>
                   <Link to={`/evento/${event.id}`} className="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
-                    Detalles
+                    {t("events.details")}
                     <ChevronRight className="h-4 w-4" />
                   </Link>
                 </div>
