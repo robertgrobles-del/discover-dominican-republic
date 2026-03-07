@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { BetweenSectionsAd } from "@/components/ads";
+import { useTranslation } from "@/hooks/useI18n";
 
 import { PopularDestinations } from "@/components/destinations/PopularDestinations";
 import { RegionsSection } from "@/components/destinations/RegionsSection";
@@ -22,7 +23,7 @@ import {
 import heroBeach from "@/assets/hero-beach.jpg";
 
 export default function Destinos() {
-  // Obtener datos estáticos
+  const { t } = useTranslation();
   const popularDestinations = getPopularDestinations();
   const recommendedDestinations = getRecommendedDestinations();
   const provinces = getProvinces();
@@ -31,8 +32,8 @@ export default function Destinos() {
   return (
     <PageTransition>
       <SEOHead
-        title="Destinos Turísticos de República Dominicana"
-        description="Explora todos los destinos turísticos de República Dominicana: playas paradisíacas, montañas, ciudades coloniales y mucho más."
+        title={t("destinos.seoTitle")}
+        description={t("destinos.seoDescription")}
         keywords="destinos República Dominicana, turismo RD, playas Caribe, Punta Cana, Santo Domingo, Samaná"
       />
       <div className="min-h-screen bg-background">
@@ -43,7 +44,7 @@ export default function Destinos() {
           <div className="absolute inset-0 z-0">
             <img
               src={heroBeach}
-              alt="Playas de República Dominicana"
+              alt={t("destinos.heroAlt")}
               className="h-full w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-background/20" />
@@ -55,7 +56,7 @@ export default function Destinos() {
               animate={{ opacity: 1, y: 0 }}
               className="inline-block bg-primary/20 text-primary text-sm font-medium px-4 py-2 rounded-full mb-6"
             >
-              🌴 Descubre tu paraíso
+              🌴 {t("destinos.discoverParadise")}
             </motion.span>
 
             <motion.h1
@@ -64,10 +65,10 @@ export default function Destinos() {
               transition={{ delay: 0.1 }}
               className="font-display text-4xl md:text-6xl lg:text-7xl font-bold mb-6"
             >
-              Explora los{" "}
-              <span className="text-gradient">Destinos</span>
+              {t("destinos.exploreThe")}{" "}
+              <span className="text-gradient">{t("destinos.destinations")}</span>
               <br />
-              de República Dominicana
+              {t("destinos.ofDR")}
             </motion.h1>
 
             <motion.p
@@ -76,34 +77,18 @@ export default function Destinos() {
               transition={{ delay: 0.2 }}
               className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto"
             >
-              Desde playas infinitas hasta montañas esmeralda, descubre cada rincón 
-              de la isla más diversa del Caribe.
+              {t("destinos.heroSubtitle")}
             </motion.p>
           </div>
         </section>
 
-        {/* Popular Destinations */}
         <PopularDestinations destinations={popularDestinations} />
-
-        {/* Banner Ad antes de regiones */}
         <BetweenSectionsAd showDemo />
-
-        {/* Regions */}
         <RegionsSection />
-
-        {/* Recommended Destinations */}
         <RecommendedDestinations destinations={recommendedDestinations} />
-
-        {/* Banner Ad */}
         <BetweenSectionsAd showDemo />
-
-        {/* Provinces Grid */}
         <ProvincesGrid provinces={provinces} />
-
-        {/* Municipalities */}
         <MunicipalitiesSection municipalities={municipalities} />
-
-        {/* Destinations by Category */}
         <DestinationsByCategory />
 
         <Footer />
