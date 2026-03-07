@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import { RecommendationsWidget } from "@/components/RecommendationsWidget";
 import { HeroSlideshow } from "@/components/HeroSlideshow";
 import { InterestSection } from "@/components/InterestSection";
 import { EventsSection } from "@/components/EventsSection";
@@ -38,6 +39,10 @@ const Index = () => {
         <TestimonialsSection />
         <NewsSection />
         
+        {/* Recomendaciones IA */}
+        <section className="container mx-auto px-4 py-12">
+          <RecommendationsWidget />
+        </section>
         {/* Footer sticky ad para móvil */}
         <MobileStickyFooterAd showDemo />
         
