@@ -354,6 +354,7 @@ export function AccommodationsSection() {
                   key={item.id}
                   item={item}
                   type={airbnbs.some(a => a.id === item.id) ? "airbnb" : "hotel"}
+                  t={t}
                 />
               ))}
             </div>
@@ -362,7 +363,7 @@ export function AccommodationsSection() {
           <TabsContent value="hoteles">
             <div className="grid md:grid-cols-3 gap-6">
               {[sponsoredHotel, ...hotels].map((hotel) => (
-                <AccommodationCard key={hotel.id} item={hotel} type="hotel" />
+                <AccommodationCard key={hotel.id} item={hotel} type="hotel" t={t} />
               ))}
             </div>
           </TabsContent>
@@ -370,7 +371,7 @@ export function AccommodationsSection() {
           <TabsContent value="airbnb">
             <div className="grid md:grid-cols-3 gap-6">
               {[sponsoredAirbnb, ...airbnbs].map((airbnb) => (
-                <AccommodationCard key={airbnb.id} item={airbnb} type="airbnb" />
+                <AccommodationCard key={airbnb.id} item={airbnb} type="airbnb" t={t} />
               ))}
             </div>
           </TabsContent>
