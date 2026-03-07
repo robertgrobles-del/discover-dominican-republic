@@ -11,17 +11,19 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageTransition } from "@/components/PageTransition";
-
-const regions = [
-  { id: "norte", name: "Región Norte (Cibao)" },
-  { id: "sur", name: "Región Sur" },
-  { id: "este", name: "Región Este" },
-  { id: "santo-domingo", name: "Gran Santo Domingo" },
-];
+import { useTranslation } from "@/hooks/useI18n";
 
 export default function Provincias() {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+
+  const regions = [
+    { id: "norte", name: t("provincias.regionNorth") },
+    { id: "sur", name: t("provincias.regionSouth") },
+    { id: "este", name: t("provincias.regionEast") },
+    { id: "santo-domingo", name: t("provincias.regionSD") },
+  ];
 
   const { data: provinces, isLoading } = useQuery({
     queryKey: ["provinces"],
@@ -30,7 +32,6 @@ export default function Provincias() {
         .from("provinces")
         .select("*")
         .order("name");
-      
       if (error) throw error;
       return data;
     },
@@ -45,44 +46,35 @@ export default function Provincias() {
   return (
     <PageTransition>
       <SEOHead
-        title="Provincias de República Dominicana | Descubre RD"
-        description="Explora las 32 provincias de República Dominicana. Descubre destinos turísticos, municipios, hoteles, restaurantes y actividades en cada región."
+        title={t("provincias.seoTitle")}
+        description={t("provincias.seoDesc")}
         keywords="provincias dominicanas, regiones RD, turismo provincial, Cibao, Sur, Este, Santo Domingo"
       />
       <Header />
       
       <main className="min-h-screen bg-background">
-        {/* Hero Section */}
         <section className="relative py-24 bg-gradient-to-br from-primary/20 via-background to-background">
           <div className="container mx-auto px-4">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="max-w-3xl"
-            >
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl">
               <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
                 <Map className="h-3 w-3 mr-1" />
-                32 Provincias
+                {t("provincias.badge")}
               </Badge>
               <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-                Provincias de República Dominicana
+                {t("provincias.title")}
               </h1>
-              <p className="text-lg text-muted-foreground">
-                Descubre la diversidad geográfica y cultural de cada provincia. 
-                Desde las montañas del Cibao hasta las playas del Este.
-              </p>
+              <p className="text-lg text-muted-foreground">{t("provincias.subtitle")}</p>
             </motion.div>
           </div>
         </section>
 
-        {/* Filters */}
         <section className="py-8 border-b border-border">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar provincia..."
+                  placeholder={t("provincias.searchPlaceholder")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -94,7 +86,7 @@ export default function Provincias() {
                   className="cursor-pointer"
                   onClick={() => setSelectedRegion(null)}
                 >
-                  Todas
+                  {t("provincias.all")}
                 </Badge>
                 {regions.map((region) => (
                   <Badge
@@ -111,7 +103,6 @@ export default function Provincias() {
           </div>
         </section>
 
-        {/* Provinces Grid */}
         <section className="py-16">
           <div className="container mx-auto px-4">
             {isLoading ? (
@@ -123,7 +114,7 @@ export default function Provincias() {
             ) : (
               <>
                 <p className="text-muted-foreground mb-6">
-                  {filteredProvinces?.length || 0} provincias encontradas
+                  {filteredProvinces?.length || 0} {t("provincias.found")}
                 </p>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {filteredProvinces?.map((province, index) => (
@@ -146,13 +137,11 @@ export default function Provincias() {
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                           <div className="absolute bottom-0 left-0 right-0 p-4">
-                            <h3 className="font-display text-xl font-bold text-white mb-1">
-                              {province.name}
-                            </h3>
+                            <h3 className="font-display text-xl font-bold text-white mb-1">{province.name}</h3>
                             {province.capital && (
                               <p className="text-white/80 text-sm flex items-center gap-1">
                                 <MapPin className="h-3 w-3" />
-                                Capital: {province.capital}
+                                {t("provincias.capital")}: {province.capital}
                               </p>
                             )}
                           </div>
@@ -162,7 +151,7 @@ export default function Provincias() {
                             {province.population && (
                               <span className="flex items-center gap-1">
                                 <Users className="h-3.5 w-3.5" />
-                                {province.population.toLocaleString()} hab.
+                                {province.population.toLocaleString()} {t("provincias.hab")}
                               </span>
                             )}
                             {province.area_km2 && (
@@ -172,14 +161,12 @@ export default function Provincias() {
                           {province.highlights && province.highlights.length > 0 && (
                             <div className="flex flex-wrap gap-1">
                               {province.highlights.slice(0, 2).map((highlight: string, i: number) => (
-                                <Badge key={i} variant="secondary" className="text-xs">
-                                  {highlight}
-                                </Badge>
+                                <Badge key={i} variant="secondary" className="text-xs">{highlight}</Badge>
                               ))}
                             </div>
                           )}
                           <div className="mt-3 flex items-center text-primary text-sm font-medium group-hover:underline">
-                            Explorar <ChevronRight className="h-4 w-4 ml-1" />
+                            {t("provincias.explore")} <ChevronRight className="h-4 w-4 ml-1" />
                           </div>
                         </div>
                       </Link>
