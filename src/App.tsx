@@ -375,7 +375,10 @@ function AnimatedRoutes() {
           <Route path="/escuela-viajero" element={<EscuelaViajero />} />
           <Route path="/tours" element={<Tours />} />
           <Route path="/tour/:slug" element={<TourDetalle />} />
-          
+          <Route path="/historia" element={<HistoriaRD />} />
+          <Route path="/historia/personaje/:slug" element={<PersonajeHistorico />} />
+          <Route path="/historia/evento/:slug" element={<EventoHistorico />} />
+
           {/* Static destination pages - /destino/slug */}
           <Route path="/destino/punta-cana" element={<PuntaCana />} />
           <Route path="/destino/bavaro" element={<Bavaro />} />
