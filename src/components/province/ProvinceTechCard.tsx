@@ -6,6 +6,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useTranslation } from "@/hooks/useI18n";
 
 interface ProvinceTechCardProps {
   name: string;
@@ -33,12 +34,7 @@ const categoryIcons: Record<string, string> = {
   lujo: "💎",
 };
 
-const regionLabels: Record<string, string> = {
-  norte: "Región Norte",
-  sur: "Región Sur",
-  este: "Región Este",
-  "santo-domingo": "Gran Santo Domingo",
-};
+// Region labels moved to component for i18n
 
 export function ProvinceTechCard({
   name,
@@ -54,7 +50,14 @@ export function ProvinceTechCard({
   longitude,
   categories,
 }: ProvinceTechCardProps) {
-  return (
+  const { t } = useTranslation();
+
+  const regionLabels: Record<string, string> = {
+    norte: t("provinceHero.regionNorth"),
+    sur: t("provinceHero.regionSouth"),
+    este: t("provinceHero.regionEast"),
+    "santo-domingo": t("provinceHero.regionSD"),
+  };
     <section className="py-16 bg-muted/30">
       <div className="container mx-auto px-4">
         <motion.div
@@ -66,7 +69,7 @@ export function ProvinceTechCard({
             <CardHeader className="border-b border-border">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <CardTitle className="font-display text-2xl">
-                  Ficha Técnica de {name}
+                  {t("techCard.title")} {name}
                 </CardTitle>
                 {categories && categories.length > 0 && (
                   <div className="flex gap-2">
@@ -86,39 +89,39 @@ export function ProvinceTechCard({
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg flex items-center gap-2">
                     <Globe className="h-5 w-5 text-primary" />
-                    Geografía
+                    {t("techCard.geography")}
                   </h3>
                   <div className="space-y-3">
                     <InfoRow 
                       icon={<MapPin className="h-4 w-4" />} 
-                      label="Región" 
+                      label={t("techCard.region")} 
                       value={regionLabels[region]} 
                     />
                     {capital && (
                       <InfoRow 
                         icon={<Mountain className="h-4 w-4" />} 
-                        label="Capital" 
+                        label={t("provinceHero.capital")} 
                         value={capital} 
                       />
                     )}
                     {areaKm2 && (
                       <InfoRow 
                         icon={<Ruler className="h-4 w-4" />} 
-                        label="Superficie" 
+                        label={t("techCard.area")} 
                         value={`${areaKm2.toLocaleString()} km²`} 
                       />
                     )}
                     {population && (
                       <InfoRow 
                         icon={<Users className="h-4 w-4" />} 
-                        label="Población" 
+                        label={t("provinceHero.population")} 
                         value={population.toLocaleString()} 
                       />
                     )}
                     {latitude && longitude && (
                       <InfoRow 
                         icon={<MapPin className="h-4 w-4" />} 
-                        label="Coordenadas" 
+                        label={t("techCard.coordinates")} 
                         value={`${latitude.toFixed(4)}°N, ${Math.abs(longitude).toFixed(4)}°O`} 
                       />
                     )}
@@ -131,27 +134,27 @@ export function ProvinceTechCard({
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg flex items-center gap-2">
                     <Calendar className="h-5 w-5 text-primary" />
-                    Viaje
+                    {t("techCard.travel")}
                   </h3>
                   <div className="space-y-3">
                     {bestTimeToVisit && (
                       <InfoRow 
                         icon={<Clock className="h-4 w-4" />} 
-                        label="Mejor época" 
+                        label={t("techCard.bestTime")} 
                         value={bestTimeToVisit} 
                       />
                     )}
                     {weatherInfo && (
                       <InfoRow 
                         icon={<Thermometer className="h-4 w-4" />} 
-                        label="Clima" 
+                        label={t("techCard.climate")} 
                         value={weatherInfo} 
                       />
                     )}
                     {howToGetThere && (
                       <InfoRow 
                         icon={<Plane className="h-4 w-4" />} 
-                        label="Cómo llegar" 
+                        label={t("techCard.howToGet")} 
                         value={howToGetThere} 
                       />
                     )}
@@ -165,7 +168,7 @@ export function ProvinceTechCard({
                   <div className="space-y-4">
                     <h3 className="font-semibold text-lg flex items-center gap-2">
                       <Utensils className="h-5 w-5 text-primary" />
-                      Gastronomía Típica
+                      {t("techCard.gastronomy")}
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       {typicalDishes.map((dish, index) => (
