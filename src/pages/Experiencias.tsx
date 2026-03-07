@@ -11,6 +11,7 @@ import { FavoriteButton } from "@/components/FavoriteButton";
 import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "@/hooks/useI18n";
 
 import adventure from "@/assets/adventure.jpg";
 import diving from "@/assets/diving.jpg";
@@ -43,6 +44,7 @@ const staticExperiencias = [
 
 export default function Experiencias() {
   const [search, setSearch] = useState("");
+  const { t } = useTranslation();
 
   const { data: dbExperiences } = useQuery({
     queryKey: ['experiences-list'],
@@ -95,8 +97,8 @@ export default function Experiencias() {
   return (
     <PageTransition>
       <SEOHead
-        title="Experiencias en República Dominicana - Aventura, Cultura y Bienestar"
-        description="Desde ecoturismo y aventura hasta gastronomía y bienestar, descubre todas las formas de vivir el paraíso caribeño en República Dominicana."
+        title={t("experiencias.seoTitle")}
+        description={t("experiencias.seoDesc")}
         keywords="experiencias República Dominicana, ecoturismo RD, aventura Caribe, turismo cultural"
         jsonLd={experienciasSchema}
       />
@@ -107,17 +109,17 @@ export default function Experiencias() {
         <section className="relative py-20 bg-gradient-to-b from-primary/10 to-background">
           <div className="container mx-auto px-4 text-center">
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Experiencias en <span className="text-gradient">República Dominicana</span>
+              {t("experiencias.title")} <span className="text-gradient">{t("experiencias.titleHighlight")}</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Desde ecoturismo y aventura hasta gastronomía y bienestar, descubre todas las formas de vivir el paraíso caribeño.
+              {t("experiencias.subtitle")}
             </p>
             
             <div className="max-w-md mx-auto relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Buscar experiencias..."
+                placeholder={t("experiencias.searchPlaceholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-12 h-12 bg-card border-border"
@@ -126,7 +128,6 @@ export default function Experiencias() {
           </div>
         </section>
 
-        {/* Ad after hero */}
         <CompactInlineAd showDemo />
 
         {/* Grid de Experiencias */}
@@ -151,7 +152,7 @@ export default function Experiencias() {
                       </h3>
                       <p className="text-white/80 text-sm mb-3">{exp.desc}</p>
                       <span className="inline-flex items-center text-primary text-sm font-medium">
-                        Explorar <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                        {t("experiencias.explore")} <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
                       </span>
                     </div>
                   </Link>
@@ -168,30 +169,29 @@ export default function Experiencias() {
 
             {filteredExperiencias.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-muted-foreground">No se encontraron experiencias para "{search}"</p>
+                <p className="text-muted-foreground">{t("experiencias.noResults")} "{search}"</p>
                 <Button variant="outline" className="mt-4" onClick={() => setSearch("")}>
-                  Limpiar búsqueda
+                  {t("experiencias.clearSearch")}
                 </Button>
               </div>
             )}
           </div>
         </section>
 
-        {/* Ad between sections */}
         <BetweenSectionsAd showDemo />
 
         {/* CTA */}
         <section className="py-16 bg-card/30">
           <div className="container mx-auto px-4 text-center">
             <h2 className="font-display text-2xl font-bold text-foreground mb-4">
-              ¿No sabes por dónde empezar?
+              {t("experiencias.ctaTitle")}
             </h2>
             <p className="text-muted-foreground mb-6">
-              Usa nuestro planificador de viajes para crear un itinerario personalizado según tus intereses.
+              {t("experiencias.ctaDesc")}
             </p>
             <Link to="/herramientas">
               <Button size="lg" className="gap-2">
-                Planificar mi Viaje <ChevronRight className="h-4 w-4" />
+                {t("experiencias.planMyTrip")} <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
           </div>
