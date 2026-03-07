@@ -1205,6 +1205,144 @@ export type Database = {
           },
         ]
       }
+      job_vacancies: {
+        Row: {
+          address: string | null
+          applicants_count: number | null
+          application_email: string | null
+          application_url: string | null
+          benefits: string[] | null
+          category: string | null
+          company_description: string | null
+          company_logo: string | null
+          company_name: string
+          created_at: string
+          deadline: string | null
+          department: string | null
+          description: string | null
+          education: string | null
+          experience_level: string | null
+          hotel_id: string | null
+          id: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          is_remote: boolean | null
+          is_urgent: boolean | null
+          job_type: string | null
+          languages: string[] | null
+          location: string | null
+          province: string | null
+          requirements: string[] | null
+          responsibilities: string[] | null
+          restaurant_id: string | null
+          salary_currency: string | null
+          salary_max: number | null
+          salary_min: number | null
+          salary_range: string | null
+          short_description: string | null
+          skills: string[] | null
+          slug: string | null
+          title: string
+          updated_at: string
+          views_count: number | null
+        }
+        Insert: {
+          address?: string | null
+          applicants_count?: number | null
+          application_email?: string | null
+          application_url?: string | null
+          benefits?: string[] | null
+          category?: string | null
+          company_description?: string | null
+          company_logo?: string | null
+          company_name: string
+          created_at?: string
+          deadline?: string | null
+          department?: string | null
+          description?: string | null
+          education?: string | null
+          experience_level?: string | null
+          hotel_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_remote?: boolean | null
+          is_urgent?: boolean | null
+          job_type?: string | null
+          languages?: string[] | null
+          location?: string | null
+          province?: string | null
+          requirements?: string[] | null
+          responsibilities?: string[] | null
+          restaurant_id?: string | null
+          salary_currency?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
+          salary_range?: string | null
+          short_description?: string | null
+          skills?: string[] | null
+          slug?: string | null
+          title: string
+          updated_at?: string
+          views_count?: number | null
+        }
+        Update: {
+          address?: string | null
+          applicants_count?: number | null
+          application_email?: string | null
+          application_url?: string | null
+          benefits?: string[] | null
+          category?: string | null
+          company_description?: string | null
+          company_logo?: string | null
+          company_name?: string
+          created_at?: string
+          deadline?: string | null
+          department?: string | null
+          description?: string | null
+          education?: string | null
+          experience_level?: string | null
+          hotel_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_remote?: boolean | null
+          is_urgent?: boolean | null
+          job_type?: string | null
+          languages?: string[] | null
+          location?: string | null
+          province?: string | null
+          requirements?: string[] | null
+          responsibilities?: string[] | null
+          restaurant_id?: string | null
+          salary_currency?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
+          salary_range?: string | null
+          short_description?: string | null
+          skills?: string[] | null
+          slug?: string | null
+          title?: string
+          updated_at?: string
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_vacancies_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_vacancies_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       municipalities: {
         Row: {
           area_km2: number | null

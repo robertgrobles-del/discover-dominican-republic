@@ -8,413 +8,307 @@ import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Search,
-  MapPin,
-  Briefcase,
-  Clock,
-  DollarSign,
-  ChevronRight,
-  ChevronLeft,
-  Bookmark,
-  Building,
-  GraduationCap,
-  Users,
+  Search, MapPin, Briefcase, Clock, DollarSign, ChevronRight,
+  Building, GraduationCap, Users, Zap, Globe, Star,
 } from "lucide-react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
-const provinces = [
-  { name: "La Altagracia (Punta Cana)", count: 124 },
-  { name: "Santo Domingo", count: 86 },
-  { name: "Puerto Plata", count: 42 },
-  { name: "Samaná", count: 18 },
-];
+const categoryLabels: Record<string, { label: string; icon: typeof Briefcase }> = {
+  hoteleria: { label: "Hotelería", icon: Building },
+  gastronomia: { label: "Gastronomía", icon: Star },
+  tours: { label: "Tours & Excursiones", icon: Globe },
+  wellness: { label: "Spa & Bienestar", icon: Star },
+  marketing: { label: "Marketing", icon: Zap },
+  operaciones: { label: "Operaciones", icon: Users },
+};
 
-const categories = [
-  "Hotelería & Alojamiento",
-  "Alimentos y Bebidas",
-  "Agencias de Viaje",
-  "Entretenimiento",
-];
+const jobTypeLabels: Record<string, string> = {
+  'full-time': 'Tiempo Completo',
+  'part-time': 'Medio Tiempo',
+  'contract': 'Contrato',
+  'freelance': 'Freelance',
+};
 
-const experienceLevels = [
-  "Sin experiencia",
-  "Junior (1-2 años)",
-  "Senior (3-5 años)",
-  "Gerencial (+5 años)",
-];
+const experienceLabels: Record<string, string> = {
+  'entry': 'Sin experiencia',
+  'junior': 'Junior (1-2 años)',
+  'mid': 'Intermedio (2-4 años)',
+  'senior': 'Senior (5+ años)',
+  'director': 'Director / Gerencial',
+};
 
-const featuredJobs = [
-  {
-    id: 1,
-    title: "Gerente de Recepción",
-    company: "Grand Paradise Resort",
-    location: "Bávaro, Punta Cana",
-    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop",
-    urgent: true,
-  },
-  {
-    id: 2,
-    title: "Chef Ejecutivo",
-    company: "Restaurante El Conde",
-    location: "Santo Domingo, DN",
-    image: "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=400&h=300&fit=crop",
-    urgent: false,
-  },
-  {
-    id: 3,
-    title: "Guía Turístico Bilingüe",
-    company: "EcoTours RD",
-    location: "Las Terrenas, Samaná",
-    image: "https://images.unsplash.com/photo-1530789253388-582c481c54b0?w=400&h=300&fit=crop",
-    urgent: false,
-  },
-];
+function useJobVacancies() {
+  return useQuery({
+    queryKey: ['job-vacancies'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('job_vacancies')
+        .select('*')
+        .eq('is_active', true)
+        .order('is_featured', { ascending: false })
+        .order('is_urgent', { ascending: false })
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+}
 
-const jobs = [
-  {
-    id: 4,
-    title: "Coordinador de Eventos y Bodas",
-    company: "Punta Cana Princess",
-    time: "Hace 2 horas",
-    salary: "$45k - $60k/mes",
-    tags: ["Tiempo Completo", "Presencial", "Inglés Avanzado"],
-    remote: false,
-  },
-  {
-    id: 5,
-    title: "Agente de Reservas Senior",
-    company: "Caribe Tours & Travel",
-    time: "Hace 5 horas",
-    salary: null,
-    tags: ["Híbrido", "Atención al Cliente"],
-    remote: true,
-  },
-  {
-    id: 6,
-    title: "Bartender Mixólogo",
-    company: "Hard Rock Cafe SD",
-    time: "Ayer",
-    salary: "Propinas + Beneficios",
-    tags: ["Turno Rotativo", "Experiencia 2+ años"],
-    remote: false,
-  },
-  {
-    id: 7,
-    title: "Gerente de Operaciones",
-    company: "Grupo Hotelero Internacional",
-    time: "Hace 2 días",
-    salary: "Confidencial",
-    tags: ["La Romana", "Alta Gerencia"],
-    remote: false,
-  },
-];
+function timeAgo(dateStr: string) {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffMs = now.getTime() - date.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  if (diffHours < 1) return 'Hace menos de 1 hora';
+  if (diffHours < 24) return `Hace ${diffHours} horas`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) return 'Ayer';
+  if (diffDays < 7) return `Hace ${diffDays} días`;
+  if (diffDays < 30) return `Hace ${Math.floor(diffDays / 7)} semanas`;
+  return `Hace ${Math.floor(diffDays / 30)} meses`;
+}
 
 export default function Empleo() {
+  const { data: vacancies, isLoading } = useJobVacancies();
   const [searchTerm, setSearchTerm] = useState("");
-  const [location, setLocation] = useState("");
-  const [selectedExperience, setSelectedExperience] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedProvince, setSelectedProvince] = useState("all");
+  const [selectedExperience, setSelectedExperience] = useState("all");
+
+  const featured = vacancies?.filter(v => v.is_featured) || [];
+  const filtered = vacancies?.filter(v => {
+    const matchesSearch = !searchTerm || 
+      v.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.company_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || v.category === selectedCategory;
+    const matchesProvince = selectedProvince === 'all' || v.province === selectedProvince;
+    const matchesExperience = selectedExperience === 'all' || v.experience_level === selectedExperience;
+    return matchesSearch && matchesCategory && matchesProvince && matchesExperience;
+  }) || [];
+
+  const provinces = [...new Set(vacancies?.map(v => v.province).filter(Boolean) || [])];
 
   return (
     <PageTransition>
       <SEOHead
         title="Empleo en Turismo | Bolsa de Trabajo RD"
-        description="Encuentra las mejores oportunidades laborales en el sector turístico de República Dominicana. Hoteles, restaurantes, agencias de viajes y más."
-        keywords="empleo turismo, trabajo hoteles, vacantes Punta Cana, empleo hotelería, trabajo turismo RD"
+        description="Encuentra las mejores oportunidades laborales en el sector turístico de República Dominicana."
+        keywords="empleo turismo, trabajo hoteles, vacantes Punta Cana, empleo hotelería"
       />
       <div className="min-h-screen bg-background">
         <Header />
 
-        {/* Hero Section */}
+        {/* Hero */}
         <section className="pt-24 pb-12 bg-gradient-to-b from-primary/10 to-background">
           <div className="container mx-auto px-4 text-center">
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Tu carrera en el turismo <span className="text-primary italic">empieza aquí</span>
-            </h1>
-            <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-              Conectamos a los mejores profesionales con hoteles, restaurantes y agencias 
-              líderes en República Dominicana.
-            </p>
-            
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+              <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
+                <Briefcase className="h-3 w-3 mr-1" /> {vacancies?.length || 0} vacantes activas
+              </Badge>
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
+                Tu carrera en el turismo <span className="text-primary italic">empieza aquí</span>
+              </h1>
+              <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
+                Conectamos a los mejores profesionales con hoteles, restaurantes y empresas turísticas líderes en República Dominicana.
+              </p>
+            </motion.div>
+
             {/* Search Bar */}
             <div className="max-w-3xl mx-auto bg-card rounded-xl border border-border p-2 flex flex-col md:flex-row gap-2">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Cargo o palabra clave (ej. Chef, Recepcionista)"
+                  placeholder="Buscar por puesto o empresa..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 border-0 bg-transparent"
+                  className="pl-10 border-0 bg-transparent focus-visible:ring-0"
                 />
               </div>
-              <div className="flex-1">
-                <Select value={location} onValueChange={setLocation}>
-                  <SelectTrigger className="border-0 bg-transparent">
-                    <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                    <SelectValue placeholder="Cualquier ubicación" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {provinces.map((p) => (
-                      <SelectItem key={p.name} value={p.name}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button size="lg">Buscar</Button>
+              <Select value={selectedProvince} onValueChange={setSelectedProvince}>
+                <SelectTrigger className="md:w-48 bg-background">
+                  <MapPin className="h-4 w-4 text-muted-foreground mr-2" />
+                  <SelectValue placeholder="Ubicación" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las zonas</SelectItem>
+                  {provinces.map(p => (
+                    <SelectItem key={p} value={p!}>{p}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button className="gap-2"><Search className="h-4 w-4" /> Buscar</Button>
             </div>
           </div>
         </section>
 
-        {/* Main Content */}
-        <section className="py-12">
-          <div className="container mx-auto px-4">
-            <div className="grid lg:grid-cols-4 gap-8">
-              {/* Filters Sidebar */}
-              <aside className="lg:col-span-1 space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="font-semibold text-foreground">Filtros</h2>
-                  <Button variant="link" className="text-primary p-0 h-auto">
-                    Limpiar todo
-                  </Button>
-                </div>
+        {/* Filters */}
+        <section className="border-b border-border">
+          <div className="container mx-auto px-4 py-4 flex flex-wrap items-center gap-4">
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-44 bg-background">
+                <SelectValue placeholder="Categoría" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las categorías</SelectItem>
+                {Object.entries(categoryLabels).map(([key, val]) => (
+                  <SelectItem key={key} value={key}>{val.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={selectedExperience} onValueChange={setSelectedExperience}>
+              <SelectTrigger className="w-48 bg-background">
+                <SelectValue placeholder="Experiencia" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Cualquier experiencia</SelectItem>
+                {Object.entries(experienceLabels).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-sm text-muted-foreground ml-auto">
+              {filtered.length} resultado{filtered.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+        </section>
 
-                {/* Province Filter */}
-                <div className="bg-card rounded-xl border border-border p-4">
-                  <h3 className="font-medium text-foreground mb-3 text-sm uppercase tracking-wider">
-                    Provincia
-                  </h3>
-                  <div className="space-y-2">
-                    {provinces.map((province) => (
-                      <label key={province.name} className="flex items-center gap-2 cursor-pointer">
-                        <Checkbox id={province.name} />
-                        <span className="text-sm text-foreground flex-1">{province.name}</span>
-                        <span className="text-xs text-muted-foreground">{province.count}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Category Filter */}
-                <div className="bg-card rounded-xl border border-border p-4">
-                  <h3 className="font-medium text-foreground mb-3 text-sm uppercase tracking-wider">
-                    Categoría
-                  </h3>
-                  <div className="space-y-2">
-                    {categories.map((category) => (
-                      <label key={category} className="flex items-center gap-2 cursor-pointer">
-                        <Checkbox id={category} />
-                        <span className="text-sm text-foreground">{category}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Experience Filter */}
-                <div className="bg-card rounded-xl border border-border p-4">
-                  <h3 className="font-medium text-foreground mb-3 text-sm uppercase tracking-wider">
-                    Experiencia
-                  </h3>
-                  <div className="space-y-2">
-                    {experienceLevels.map((level) => (
-                      <label key={level} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="experience"
-                          value={level}
-                          checked={selectedExperience === level}
-                          onChange={(e) => setSelectedExperience(e.target.value)}
-                          className="text-primary"
-                        />
-                        <span className="text-sm text-foreground">{level}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              </aside>
-
-              {/* Job Listings */}
-              <div className="lg:col-span-3 space-y-8">
-                {/* Featured Jobs */}
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="font-display text-xl font-bold text-foreground">
-                      Vacantes Destacadas
-                    </h2>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="icon" className="h-8 w-8">
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="icon" className="h-8 w-8">
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
+        {/* Featured Jobs */}
+        {featured.length > 0 && (
+          <section className="container mx-auto px-4 py-8">
+            <h2 className="font-display text-xl font-bold text-foreground mb-6 flex items-center gap-2">
+              <Zap className="h-5 w-5 text-primary" /> Vacantes Destacadas
+            </h2>
+            <div className="grid md:grid-cols-3 gap-4">
+              {featured.slice(0, 3).map((job, i) => (
+                <motion.div key={job.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
+                  <Link to={`/empleo/${job.slug}`}>
+                    <div className="relative rounded-xl overflow-hidden group h-52 border border-border">
+                      <img src={job.company_logo || '/placeholder.svg'} alt={job.company_name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+                      <div className="absolute bottom-4 left-4 right-4">
+                        {job.is_urgent && (
+                          <Badge className="mb-2 bg-destructive/20 text-destructive border-destructive/30">🔥 Urgente</Badge>
+                        )}
+                        <h3 className="font-display font-bold text-foreground text-lg">{job.title}</h3>
+                        <p className="text-sm text-muted-foreground">{job.company_name}</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                          <MapPin className="h-3 w-3" /> {job.location}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="grid md:grid-cols-3 gap-4">
-                    {featuredJobs.map((job, index) => (
-                      <motion.div
-                        key={job.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="bg-card rounded-xl border border-border overflow-hidden group cursor-pointer hover:border-primary/50 transition-colors"
-                      >
-                        <div className="relative h-40">
-                          <img
-                            src={job.image}
-                            alt={job.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                          {job.urgent && (
-                            <Badge className="absolute top-3 left-3 bg-orange-500 text-white">
-                              Urgente
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="p-4">
-                          <h3 className="font-semibold text-foreground mb-1">{job.title}</h3>
-                          <p className="text-sm text-muted-foreground">{job.company}</p>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1 mt-2">
-                            <MapPin className="h-3 w-3" /> {job.location}
-                          </p>
-                          <Link to={`/empleo/gerente-recepcion-grand-paradise`}>
-                            <Button variant="outline" size="sm" className="w-full mt-4">
-                              Ver Detalle
-                            </Button>
-                          </Link>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        )}
 
-                {/* Latest Jobs */}
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="font-display text-xl font-bold text-foreground">
-                      Últimas Ofertas
-                    </h2>
-                    <Select defaultValue="recent">
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Ordenar por" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="recent">Más recientes</SelectItem>
-                        <SelectItem value="salary">Mayor salario</SelectItem>
-                        <SelectItem value="relevance">Relevancia</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+        {/* Job Listings */}
+        <section className="container mx-auto px-4 py-8">
+          <h2 className="font-display text-xl font-bold text-foreground mb-6">
+            Todas las Vacantes
+          </h2>
 
-                  <div className="space-y-4">
-                    {jobs.map((job, index) => (
-                      <motion.div
-                        key={job.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="bg-card rounded-xl border border-border p-4 flex flex-col md:flex-row md:items-center gap-4 hover:border-primary/50 transition-colors"
-                      >
-                        <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <Briefcase className="h-6 w-6 text-primary" />
+          {isLoading ? (
+            <div className="space-y-4">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-32 w-full rounded-xl" />
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-16">
+              <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No se encontraron vacantes con esos filtros.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filtered.map((job, i) => (
+                <motion.div
+                  key={job.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                >
+                  <Link to={`/empleo/${job.slug}`}>
+                    <div className="bg-card rounded-xl border border-border p-5 hover:border-primary/30 transition-all group">
+                      <div className="flex items-start gap-4">
+                        <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted flex-shrink-0">
+                          <img src={job.company_logo || '/placeholder.svg'} alt={job.company_name} className="w-full h-full object-cover" />
                         </div>
-                        
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-4">
                             <div>
-                              <h3 className="font-semibold text-foreground">{job.title}</h3>
-                              <p className="text-sm text-muted-foreground">
-                                {job.company} • {job.time}
+                              <h3 className="font-display font-bold text-foreground group-hover:text-primary transition-colors text-lg">
+                                {job.title}
+                              </h3>
+                              <p className="text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                                <Building className="h-3 w-3" /> {job.company_name}
+                                <span>·</span>
+                                <MapPin className="h-3 w-3" /> {job.location}
                               </p>
                             </div>
-                            <div className="flex items-center gap-2">
-                              {job.remote && (
-                                <Badge variant="outline" className="text-primary border-primary">
-                                  Remoto
-                                </Badge>
-                              )}
-                              {job.salary && (
-                                <Badge className="bg-primary/10 text-primary">
-                                  {job.salary}
-                                </Badge>
-                              )}
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              {job.is_urgent && <Badge className="bg-destructive/20 text-destructive border-destructive/30 text-xs">Urgente</Badge>}
+                              {job.is_remote && <Badge variant="secondary" className="text-xs">Remoto</Badge>}
                             </div>
                           </div>
-                          
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {job.tags.map((tag) => (
-                              <Badge key={tag} variant="secondary" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))}
+                          <p className="text-sm text-muted-foreground mt-2 line-clamp-1">{job.short_description}</p>
+                          <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-muted-foreground">
+                            {job.salary_range && (
+                              <span className="flex items-center gap-1 text-primary font-medium">
+                                <DollarSign className="h-3 w-3" /> {job.salary_range}
+                              </span>
+                            )}
+                            <span className="flex items-center gap-1">
+                              <Briefcase className="h-3 w-3" /> {jobTypeLabels[job.job_type || 'full-time'] || job.job_type}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <GraduationCap className="h-3 w-3" /> {experienceLabels[job.experience_level || 'mid'] || job.experience_level}
+                            </span>
+                            <span className="flex items-center gap-1 ml-auto">
+                              <Clock className="h-3 w-3" /> {timeAgo(job.created_at)}
+                            </span>
                           </div>
+                          {job.skills && job.skills.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-3">
+                              {job.skills.slice(0, 4).map((skill) => (
+                                <Badge key={skill} variant="outline" className="text-xs py-0.5">{skill}</Badge>
+                              ))}
+                              {job.skills.length > 4 && (
+                                <Badge variant="outline" className="text-xs py-0.5">+{job.skills.length - 4}</Badge>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Link to={`/empleo/coordinador-eventos`}>
-                            <Button>Aplicar</Button>
-                          </Link>
-                          <Button variant="ghost" size="icon">
-                            <Bookmark className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-
-                  <div className="text-center mt-8">
-                    <Button variant="outline" className="gap-2">
-                      Cargar más vacantes <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-2" />
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
             </div>
-          </div>
+          )}
         </section>
 
-        {/* Stats Section */}
-        <section className="py-12 bg-card/30">
-          <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-4 gap-6 text-center">
-              <div>
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <Briefcase className="h-6 w-6 text-primary" />
-                </div>
-                <p className="text-3xl font-bold text-foreground">2,500+</p>
-                <p className="text-sm text-muted-foreground">Empleos Activos</p>
-              </div>
-              <div>
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <Building className="h-6 w-6 text-primary" />
-                </div>
-                <p className="text-3xl font-bold text-foreground">450+</p>
-                <p className="text-sm text-muted-foreground">Empresas Registradas</p>
-              </div>
-              <div>
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <Users className="h-6 w-6 text-primary" />
-                </div>
-                <p className="text-3xl font-bold text-foreground">15,000+</p>
-                <p className="text-sm text-muted-foreground">Candidatos</p>
-              </div>
-              <div>
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <GraduationCap className="h-6 w-6 text-primary" />
-                </div>
-                <p className="text-3xl font-bold text-foreground">85%</p>
-                <p className="text-sm text-muted-foreground">Tasa de Colocación</p>
-              </div>
-            </div>
+        {/* CTA */}
+        <section className="container mx-auto px-4 py-12">
+          <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl border border-primary/20 p-8 md:p-12 text-center">
+            <Building className="h-12 w-12 text-primary mx-auto mb-4" />
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">
+              ¿Eres hotel o empresa turística?
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto mb-6">
+              Publica tus vacantes y llega a miles de profesionales del turismo en República Dominicana.
+            </p>
+            <Button size="lg" className="gap-2">
+              <Briefcase className="h-4 w-4" /> Publicar Vacante
+            </Button>
           </div>
         </section>
 
