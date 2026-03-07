@@ -13,6 +13,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { BetweenSectionsAd } from "@/components/ads";
+import { useTranslation } from "@/hooks/useI18n";
 import heroBeach from "@/assets/hero-beach.jpg";
 
 const categoryConfig: Record<string, { label: string; icon: typeof Compass; color: string }> = {
@@ -30,6 +31,7 @@ const difficultyColors: Record<string, string> = {
 };
 
 export default function Tours() {
+  const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState("all");
 
   const { data: packages, isLoading } = useQuery({
@@ -56,8 +58,8 @@ export default function Tours() {
   return (
     <PageTransition>
       <SEOHead
-        title="Tours y Paquetes Turísticos - República Dominicana"
-        description="Descubre los mejores tours y paquetes turísticos en República Dominicana: aventura, cultura, bienestar y gastronomía."
+        title={t("tours.seoTitle")}
+        description={t("tours.seoDesc")}
         keywords="tours República Dominicana, paquetes turísticos, excursiones, aventura caribe"
       />
       <div className="min-h-screen bg-background">
@@ -66,17 +68,17 @@ export default function Tours() {
         {/* Hero */}
         <section className="relative h-[60vh] min-h-[450px] flex items-end">
           <div className="absolute inset-0">
-            <img src={heroBeach} alt="Tours en República Dominicana" className="w-full h-full object-cover" />
+            <img src={heroBeach} alt={t("tours.heroAlt")} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20" />
           </div>
           <div className="relative container mx-auto px-4 pb-12">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <Badge className="bg-primary/20 text-primary mb-4">🗺️ Experiencias Curadas</Badge>
+              <Badge className="bg-primary/20 text-primary mb-4">🗺️ {t("tours.curatedBadge")}</Badge>
               <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-4">
-                Tours y <span className="text-gradient">Paquetes</span>
+                {t("tours.heroTitle")}
               </h1>
               <p className="text-muted-foreground text-lg max-w-2xl">
-                Viajes diseñados por expertos locales con todo incluido. Desde aventuras épicas hasta retiros de bienestar.
+                {t("tours.heroSubtitle")}
               </p>
             </motion.div>
           </div>
@@ -88,7 +90,7 @@ export default function Tours() {
             <Tabs value={activeCategory} onValueChange={setActiveCategory}>
               <TabsList className="bg-transparent h-auto flex-wrap gap-2">
                 <TabsTrigger value="all" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-full px-4">
-                  Todos
+                  {t("tours.all")}
                 </TabsTrigger>
                 {Object.entries(categoryConfig).map(([key, { label, icon: Icon }]) => (
                   <TabsTrigger key={key} value={key} className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary rounded-full px-4 gap-1">
@@ -111,8 +113,8 @@ export default function Tours() {
           ) : filtered.length === 0 ? (
             <div className="text-center py-24">
               <Compass className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-foreground mb-2">No hay tours disponibles</h2>
-              <p className="text-muted-foreground">Pronto agregaremos más opciones en esta categoría.</p>
+              <h2 className="text-2xl font-bold text-foreground mb-2">{t("tours.noTours")}</h2>
+              <p className="text-muted-foreground">{t("tours.noToursDesc")}</p>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 gap-8">
@@ -151,7 +153,7 @@ export default function Tours() {
 
                           {pkg.is_sponsored && (
                             <Badge className="absolute top-4 right-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white">
-                              <Megaphone className="h-3 w-3 mr-1" /> Patrocinado
+                              <Megaphone className="h-3 w-3 mr-1" /> {t("tours.sponsored")}
                             </Badge>
                           )}
                         </div>
@@ -173,7 +175,7 @@ export default function Tours() {
                             )}
                             {pkg.max_group_size && (
                               <span className="flex items-center gap-1">
-                                <Users className="h-4 w-4 text-primary" /> Máx. {pkg.max_group_size}
+                                <Users className="h-4 w-4 text-primary" /> {t("tours.maxGroup")} {pkg.max_group_size}
                               </span>
                             )}
                             {pkg.rating && (
@@ -186,14 +188,14 @@ export default function Tours() {
                           <div className="flex items-center justify-between pt-4 border-t border-border">
                             {pkg.price_from ? (
                               <div>
-                                <span className="text-xs text-muted-foreground">Desde</span>
+                                <span className="text-xs text-muted-foreground">{t("tours.from")}</span>
                                 <p className="text-2xl font-bold text-primary">${pkg.price_from} <span className="text-sm font-normal text-muted-foreground">{pkg.price_currency}</span></p>
                               </div>
                             ) : (
-                              <span className="text-muted-foreground">Consultar precio</span>
+                              <span className="text-muted-foreground">{t("tours.checkPrice")}</span>
                             )}
                             <Button variant="outline" size="sm" className="gap-1 group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                              Ver detalles <ChevronRight className="h-4 w-4" />
+                              {t("tours.viewDetails")} <ChevronRight className="h-4 w-4" />
                             </Button>
                           </div>
                         </div>
