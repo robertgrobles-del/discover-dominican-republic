@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { ExternalLink, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useBanner, type AdBanner } from "@/hooks/useAdBanners";
+import { BannerMediaContent } from "./BannerMediaContent";
 
 // Demo images for tourism ads (fallback)
 import adBeachResort from "@/assets/ads/ad-beach-resort.jpg";
@@ -182,7 +183,13 @@ export function BannerAd({
         data-ad-placement={placement}
         data-ad-section={section || activeBanner?.section}
       >
-        <img src={resolvedImageUrl} alt={resolvedAltText} className="w-full h-full object-cover" loading="lazy" />
+        <BannerMediaContent
+          contentType={activeBanner?.content_type || "image"}
+          imageUrl={resolvedImageUrl}
+          altText={resolvedAltText}
+          banner={activeBanner}
+          height={config.height}
+        />
         
         <div className={cn("absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent flex items-center")}>
           <div className={cn("text-white px-4", isCompact ? "py-1" : "py-3")}>
