@@ -2,7 +2,7 @@ import { useState, useEffect, createContext, useContext, ReactNode, useCallback 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
-export type FavoriteType = "destino" | "hotel" | "experiencia" | "restaurante" | "evento" | "parque" | "bar" | "agencia" | "guia" | "clinica" | "puerto" | "estadio" | "cueva" | "parque-nacional" | "destino-religioso" | "airbnb" | "provincia" | "playa" | "rio" | "spa";
+export type FavoriteType = "destino" | "hotel" | "experiencia" | "restaurante" | "evento" | "parque" | "bar" | "agencia" | "guia" | "clinica" | "puerto" | "estadio" | "cueva" | "parque-nacional" | "destino-religioso" | "airbnb" | "provincia" | "playa" | "rio" | "spa" | "tour";
 
 export interface FavoriteItem {
   id: string;

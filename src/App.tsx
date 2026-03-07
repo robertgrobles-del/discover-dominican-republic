@@ -165,6 +165,8 @@ const RequisitosViaje = lazy(() => import("./pages/RequisitosViaje"));
 const ContactosEmergencia = lazy(() => import("./pages/ContactosEmergencia"));
 const EscuelaViajero = lazy(() => import("./pages/EscuelaViajero"));
 const EmpleoDetalle = lazy(() => import("./pages/EmpleoDetalle"));
+const Tours = lazy(() => import("./pages/Tours"));
+const TourDetalle = lazy(() => import("./pages/TourDetalle"));
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
 const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
@@ -368,6 +370,8 @@ function AnimatedRoutes() {
           <Route path="/requisitos-viaje" element={<RequisitosViaje />} />
           <Route path="/contactos-emergencia" element={<ContactosEmergencia />} />
           <Route path="/escuela-viajero" element={<EscuelaViajero />} />
+          <Route path="/tours" element={<Tours />} />
+          <Route path="/tour/:slug" element={<TourDetalle />} />
           
           {/* Static destination pages - /destino/slug */}
           <Route path="/destino/punta-cana" element={<PuntaCana />} />
