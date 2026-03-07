@@ -419,6 +419,9 @@ function AnimatedRoutes() {
           <Route path="/vuelve-a-casa" element={<VuelveACasa />} />
           <Route path="/aduanas" element={<AduanasDutyFree />} />
           <Route path="/leyes-turista" element={<LeyesTurista />} />
+          <Route path="/guia-halal-kosher" element={<GuiaHalalKosher />} />
+          <Route path="/viajar-con-mascotas" element={<ViajarConMascotas />} />
+          <Route path="/viajeros-senior" element={<ViajerosSenior />} />
 
           {/* Static destination pages - /destino/slug */}
           <Route path="/destino/punta-cana" element={<PuntaCana />} />
