@@ -429,15 +429,12 @@ export default function PlayaDetalle() {
         </div>
 
         {/* Lightbox */}
-        {lightboxOpen && (
-          <Lightbox
-            images={allImages}
-            currentIndex={lightboxIndex}
-            onClose={() => setLightboxOpen(false)}
-            onNext={() => setLightboxIndex((prev) => (prev + 1) % allImages.length)}
-            onPrev={() => setLightboxIndex((prev) => (prev - 1 + allImages.length) % allImages.length)}
-          />
-        )}
+        <Lightbox
+          images={allImages}
+          initialIndex={lightboxIndex}
+          isOpen={lightboxOpen}
+          onClose={() => setLightboxOpen(false)}
+        />
 
         <Footer />
       </div>
