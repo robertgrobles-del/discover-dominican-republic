@@ -177,6 +177,18 @@ const ContratarInfluencers = lazy(() => import("./pages/ContratarInfluencers"));
 const Marketplace = lazy(() => import("./pages/Marketplace"));
 const SorteosYPremios = lazy(() => import("./pages/SorteosYPremios"));
 const VacacionesRD = lazy(() => import("./pages/VacacionesRD"));
+const GuiaPracticaPais = lazy(() => import("./pages/GuiaPracticaPais"));
+const EmbajadasConsulados = lazy(() => import("./pages/EmbajadasConsulados"));
+const SeguroViaje = lazy(() => import("./pages/SeguroViaje"));
+const ItinerariosRecomendados = lazy(() => import("./pages/ItinerariosRecomendados"));
+const GuiaLGBTQ = lazy(() => import("./pages/GuiaLGBTQ"));
+const ViajeraSola = lazy(() => import("./pages/ViajeraSola"));
+const GuiaVegana = lazy(() => import("./pages/GuiaVegana"));
+const FamiliaConNinos = lazy(() => import("./pages/FamiliaConNinos"));
+const CalendarioMensual = lazy(() => import("./pages/CalendarioMensual"));
+const VuelveACasa = lazy(() => import("./pages/VuelveACasa"));
+const AduanasDutyFree = lazy(() => import("./pages/AduanasDutyFree"));
+const LeyesTurista = lazy(() => import("./pages/LeyesTurista"));
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
 const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
@@ -392,6 +404,18 @@ function AnimatedRoutes() {
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/sorteos" element={<SorteosYPremios />} />
           <Route path="/vacaciones" element={<VacacionesRD />} />
+          <Route path="/guia-practica" element={<GuiaPracticaPais />} />
+          <Route path="/embajadas" element={<EmbajadasConsulados />} />
+          <Route path="/seguro-viaje" element={<SeguroViaje />} />
+          <Route path="/itinerarios" element={<ItinerariosRecomendados />} />
+          <Route path="/guia-lgbtq" element={<GuiaLGBTQ />} />
+          <Route path="/viajera-sola" element={<ViajeraSola />} />
+          <Route path="/guia-vegana" element={<GuiaVegana />} />
+          <Route path="/familia" element={<FamiliaConNinos />} />
+          <Route path="/calendario" element={<CalendarioMensual />} />
+          <Route path="/vuelve-a-casa" element={<VuelveACasa />} />
+          <Route path="/aduanas" element={<AduanasDutyFree />} />
+          <Route path="/leyes-turista" element={<LeyesTurista />} />
 
           {/* Static destination pages - /destino/slug */}
           <Route path="/destino/punta-cana" element={<PuntaCana />} />
