@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Plane, Gift, Hotel, UtensilsCrossed, Compass, Heart,
   PartyPopper, Calendar, Users, MapPin, Star, CheckCircle,
@@ -68,12 +69,34 @@ export default function VacacionesRD() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.nombre || !form.email || !form.fechaLlegada || !form.destino || !form.acepta) {
       toast.error("Completa los campos obligatorios y acepta los términos");
       return;
     }
+    setLoading(true);
+    const { error } = await supabase.from("vacation_registrations").insert({
+      nombre: form.nombre,
+      email: form.email,
+      telefono: form.telefono || null,
+      pais: form.pais || null,
+      acompanantes: form.acompanantes || null,
+      tipo_viajero: form.tipoViajero || null,
+      fecha_llegada: form.fechaLlegada || null,
+      fecha_salida: form.fechaSalida || null,
+      aeropuerto: form.aeropuerto || null,
+      destino: form.destino,
+      alojamiento: form.alojamiento || null,
+      nombre_alojamiento: form.nombreAlojamiento || null,
+      intereses: form.intereses.length ? form.intereses : null,
+      primera_vez: form.primeraVez || null,
+      como_supo: form.comoSupo || null,
+    });
+    setLoading(false);
+    if (error) { toast.error("Error al registrar. Intenta de nuevo."); return; }
     toast.success("🎉 ¡Registro exitoso! Ya participas para ganar premios durante tus vacaciones. ¡Bienvenido a RD!");
     setForm({
       nombre: "", email: "", telefono: "", pais: "",
@@ -325,8 +348,8 @@ export default function VacacionesRD() {
                   </label>
                 </div>
 
-                <Button type="submit" size="lg" className="w-full gap-2 text-base">
-                  <Gift className="h-5 w-5" /> Registrar mi viaje y participar
+                <Button type="submit" size="lg" className="w-full gap-2 text-base" disabled={loading}>
+                  <Gift className="h-5 w-5" /> {loading ? "Registrando..." : "Registrar mi viaje y participar"}
                 </Button>
 
                 <p className="text-center text-xs text-muted-foreground mt-3">
