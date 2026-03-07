@@ -39,7 +39,12 @@ import {
   Mountain,
   Waves,
   Sparkles,
-  Home
+  Home,
+  Image,
+  BookOpen,
+  Landmark,
+  Briefcase,
+  Compass,
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -67,7 +72,12 @@ type EntityType =
   | 'coffee_experiences'
   | 'airbnb_listings'
   | 'artisanal_workshops'
-  | 'municipalities';
+  | 'municipalities'
+  | 'ad_banners'
+  | 'historical_figures'
+  | 'historical_events'
+  | 'tour_packages'
+  | 'job_vacancies';
 
 interface EntityConfig {
   name: string;
@@ -217,6 +227,41 @@ const entityConfigs: Record<EntityType, EntityConfig> = {
     description: "Municipios y distritos",
     fields: ["name", "slug", "province_id", "municipality_type", "description", "short_description", "image_url", "gallery", "highlights", "population", "area_km2", "is_tourist_destination", "latitude", "longitude"],
     requiredFields: ["name"]
+  },
+  ad_banners: {
+    name: "Banners Publicitarios",
+    icon: <Image className="h-5 w-5" />,
+    description: "Gestión de banners y publicidad",
+    fields: ["name", "slug", "image_url", "alt_text", "target_url", "headline", "subtext", "cta_text", "sponsor", "banner_type", "placement", "section", "page", "start_date", "end_date", "priority", "is_active", "is_featured"],
+    requiredFields: ["name", "banner_type", "placement"]
+  },
+  historical_figures: {
+    name: "Personajes Históricos",
+    icon: <BookOpen className="h-5 w-5" />,
+    description: "Biografías de personajes históricos",
+    fields: ["name", "slug", "title", "birth_date", "death_date", "birth_place", "era", "category", "short_description", "description", "biography", "achievements", "quotes", "image_url", "gallery", "is_featured"],
+    requiredFields: ["name"]
+  },
+  historical_events: {
+    name: "Eventos Históricos",
+    icon: <Landmark className="h-5 w-5" />,
+    description: "Hechos y eventos históricos de RD",
+    fields: ["name", "slug", "event_date", "end_date", "year", "era", "category", "location", "short_description", "description", "significance", "key_figures", "consequences", "image_url", "gallery", "sources", "is_featured"],
+    requiredFields: ["name"]
+  },
+  tour_packages: {
+    name: "Paquetes Turísticos",
+    icon: <Compass className="h-5 w-5" />,
+    description: "Tours y paquetes de viaje",
+    fields: ["name", "slug", "destination_id", "description", "short_description", "image_url", "gallery", "duration", "difficulty", "price_from", "price_range", "max_group_size", "min_age", "included", "not_included", "highlights", "requirements", "languages", "departure_point", "best_season", "category", "rating", "is_featured", "is_sponsored"],
+    requiredFields: ["name"]
+  },
+  job_vacancies: {
+    name: "Vacantes de Empleo",
+    icon: <Briefcase className="h-5 w-5" />,
+    description: "Ofertas de trabajo en turismo",
+    fields: ["title", "slug", "company_name", "company_logo", "company_description", "description", "short_description", "location", "address", "province", "salary_range", "salary_min", "salary_max", "job_type", "experience_level", "education", "category", "department", "languages", "responsibilities", "requirements", "benefits", "skills", "application_url", "application_email", "deadline", "is_urgent", "is_remote", "is_featured"],
+    requiredFields: ["title", "company_name"]
   }
 };
 
@@ -266,6 +311,17 @@ const getFieldsConfig = (entity: EntityType) => {
     area_km2: 'number',
     max_participants: 'number',
     review_count: 'number',
+    priority: 'number',
+    year: 'number',
+    salary_min: 'number',
+    salary_max: 'number',
+    price_from: 'number',
+    max_group_size: 'number',
+    min_age: 'number',
+    impressions: 'number',
+    clicks: 'number',
+    applicants_count: 'number',
+    views_count: 'number',
     amenities: 'array',
     services: 'array',
     facilities: 'array',
@@ -290,12 +346,29 @@ const getFieldsConfig = (entity: EntityType) => {
     coffee_varieties: 'array',
     craft_types: 'array',
     house_rules: 'array',
+    achievements: 'array',
+    quotes: 'array',
+    related_events: 'array',
+    key_figures: 'array',
+    consequences: 'array',
+    sources: 'array',
+    responsibilities: 'array',
+    benefits: 'array',
+    skills: 'array',
+    not_included: 'array',
     start_date: 'date',
     end_date: 'date',
+    deadline: 'date',
     start_time: 'time',
     end_time: 'time',
     check_in_time: 'time',
-    check_out_time: 'time'
+    check_out_time: 'time',
+    biography: 'textarea',
+    significance: 'textarea',
+    company_description: 'textarea',
+    is_urgent: 'boolean',
+    is_remote: 'boolean',
+    is_sponsored: 'boolean'
   };
 
   const labelMap: Record<string, string> = {
@@ -367,7 +440,64 @@ const getFieldsConfig = (entity: EntityType) => {
     is_recurring: 'Recurrente',
     coffee_varieties: 'Variedades de café',
     altitude: 'Altitud',
-    tasting_notes: 'Notas de cata'
+    tasting_notes: 'Notas de cata',
+    // Banner fields
+    alt_text: 'Texto alternativo',
+    target_url: 'URL destino',
+    headline: 'Titular',
+    subtext: 'Subtexto',
+    cta_text: 'Texto del botón (CTA)',
+    sponsor: 'Patrocinador',
+    banner_type: 'Tipo de banner',
+    placement: 'Ubicación',
+    section: 'Sección',
+    page: 'Página',
+    priority: 'Prioridad',
+    impressions: 'Impresiones',
+    clicks: 'Clics',
+    // Historical fields
+    title: 'Título',
+    birth_date: 'Fecha de nacimiento',
+    death_date: 'Fecha de fallecimiento',
+    birth_place: 'Lugar de nacimiento',
+    era: 'Época',
+    biography: 'Biografía',
+    achievements: 'Logros',
+    quotes: 'Frases célebres',
+    event_date: 'Fecha del evento',
+    year: 'Año',
+    location: 'Ubicación',
+    significance: 'Significado histórico',
+    key_figures: 'Figuras clave',
+    consequences: 'Consecuencias',
+    sources: 'Fuentes',
+    // Job fields
+    company_name: 'Empresa',
+    company_logo: 'Logo empresa (URL)',
+    company_description: 'Descripción empresa',
+    salary_range: 'Rango salarial',
+    salary_min: 'Salario mínimo',
+    salary_max: 'Salario máximo',
+    job_type: 'Tipo de empleo',
+    experience_level: 'Nivel de experiencia',
+    education: 'Educación requerida',
+    department: 'Departamento',
+    responsibilities: 'Responsabilidades',
+    benefits: 'Beneficios',
+    skills: 'Habilidades',
+    application_url: 'URL para aplicar',
+    application_email: 'Email para aplicar',
+    deadline: 'Fecha límite',
+    is_urgent: 'Urgente',
+    is_remote: 'Remoto',
+    is_sponsored: 'Patrocinado',
+    province: 'Provincia',
+    // Tour package fields
+    price_from: 'Precio desde',
+    max_group_size: 'Tamaño máx. grupo',
+    min_age: 'Edad mínima',
+    departure_point: 'Punto de salida',
+    not_included: 'No incluido'
   };
 
   const config = entityConfigs[entity];
