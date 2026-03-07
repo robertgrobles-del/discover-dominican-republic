@@ -389,6 +389,7 @@ function AnimatedRoutes() {
           <Route path="/autor-invitado" element={<AutorInvitado />} />
           <Route path="/contratar-influencers" element={<ContratarInfluencers />} />
           <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/sorteos" element={<SorteosYPremios />} />
 
           {/* Static destination pages - /destino/slug */}
           <Route path="/destino/punta-cana" element={<PuntaCana />} />
