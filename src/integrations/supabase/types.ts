@@ -2159,6 +2159,113 @@ export type Database = {
           },
         ]
       }
+      tour_packages: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          destination_id: string | null
+          destinations: string[] | null
+          difficulty: string | null
+          duration: string | null
+          gallery: string[] | null
+          highlights: string[] | null
+          id: string
+          image_url: string | null
+          included: string[] | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          is_sponsored: boolean | null
+          itinerary: Json | null
+          languages: string[] | null
+          max_group_size: number | null
+          meeting_point: string | null
+          min_age: number | null
+          name: string
+          not_included: string[] | null
+          price_currency: string | null
+          price_from: number | null
+          rating: number | null
+          review_count: number | null
+          short_description: string | null
+          slug: string | null
+          start_times: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string | null
+          destinations?: string[] | null
+          difficulty?: string | null
+          duration?: string | null
+          gallery?: string[] | null
+          highlights?: string[] | null
+          id?: string
+          image_url?: string | null
+          included?: string[] | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_sponsored?: boolean | null
+          itinerary?: Json | null
+          languages?: string[] | null
+          max_group_size?: number | null
+          meeting_point?: string | null
+          min_age?: number | null
+          name: string
+          not_included?: string[] | null
+          price_currency?: string | null
+          price_from?: number | null
+          rating?: number | null
+          review_count?: number | null
+          short_description?: string | null
+          slug?: string | null
+          start_times?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          destination_id?: string | null
+          destinations?: string[] | null
+          difficulty?: string | null
+          duration?: string | null
+          gallery?: string[] | null
+          highlights?: string[] | null
+          id?: string
+          image_url?: string | null
+          included?: string[] | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          is_sponsored?: boolean | null
+          itinerary?: Json | null
+          languages?: string[] | null
+          max_group_size?: number | null
+          meeting_point?: string | null
+          min_age?: number | null
+          name?: string
+          not_included?: string[] | null
+          price_currency?: string | null
+          price_from?: number | null
+          rating?: number | null
+          review_count?: number | null
+          short_description?: string | null
+          slug?: string | null
+          start_times?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tour_packages_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       travel_agencies: {
         Row: {
           address: string | null
