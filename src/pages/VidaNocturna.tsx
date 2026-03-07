@@ -14,15 +14,7 @@ import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { bars as staticBarsData } from "@/data/bars";
-
-const categories = [
-  { id: "all", label: "Todos", icon: Sparkles },
-  { id: "chill", label: "Chill & Lounge", icon: Wine },
-  { id: "fiesta", label: "Fiesta Extrema", icon: PartyPopper },
-  { id: "jazz", label: "Jazz & En Vivo", icon: Music },
-  { id: "rooftop", label: "Rooftop", icon: Sparkles },
-  { id: "playa", label: "Playa", icon: Palmtree }
-];
+import { useTranslation } from "@/hooks/useI18n";
 
 const categoryToType: Record<string, string[]> = {
   chill: ['lounge', 'cocktail-bar'],
@@ -44,9 +36,19 @@ const nightAgenda = [
 ];
 
 export default function VidaNocturna() {
+  const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCity, setSelectedCity] = useState("santo-domingo");
+
+  const categories = [
+    { id: "all", label: t("nightlife.all"), icon: Sparkles },
+    { id: "chill", label: t("nightlife.chillLounge"), icon: Wine },
+    { id: "fiesta", label: t("nightlife.extremeParty"), icon: PartyPopper },
+    { id: "jazz", label: t("nightlife.jazzLive"), icon: Music },
+    { id: "rooftop", label: t("nightlife.rooftop"), icon: Sparkles },
+    { id: "playa", label: t("nightlife.beach"), icon: Palmtree }
+  ];
 
   const { data: dbBars } = useQuery({
     queryKey: ['bars-list'],
@@ -127,24 +129,23 @@ export default function VidaNocturna() {
           >
             <span className="inline-flex items-center gap-2 px-3 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-full mb-4">
               <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              En vivo ahora
+              {t("nightlife.liveNow")}
             </span>
             <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-2">
-              Descubre la Noche
+              {t("nightlife.discoverThe")}
             </h1>
             <h2 className="font-display text-4xl md:text-5xl font-bold text-primary mb-6">
-              Dominicana
+              {t("nightlife.dominican")}
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              La guía definitiva de los mejores bares, discotecas y eventos exclusivos en la isla.
+              {t("nightlife.heroDesc")}
             </p>
 
-            {/* Search Bar */}
             <div className="flex gap-2 max-w-xl mx-auto bg-card/80 backdrop-blur-md p-2 rounded-full border border-border">
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar lugar o DJ..."
+                  placeholder={t("nightlife.searchPlaceholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 bg-transparent border-0 focus-visible:ring-0"
@@ -164,7 +165,7 @@ export default function VidaNocturna() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button className="rounded-full px-6">Buscar</Button>
+              <Button className="rounded-full px-6">{t("nightlife.search")}</Button>
             </div>
           </motion.div>
         </div>
@@ -174,7 +175,7 @@ export default function VidaNocturna() {
       <section className="border-b border-border bg-card/50 sticky top-16 z-30">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
-            <span className="text-sm text-muted-foreground whitespace-nowrap">Filtrar por ambiente:</span>
+            <span className="text-sm text-muted-foreground whitespace-nowrap">{t("nightlife.filterByAmbiance")}</span>
             {categories.map((cat) => (
               <Button
                 key={cat.id}
@@ -192,15 +193,14 @@ export default function VidaNocturna() {
       </section>
 
       <div className="container mx-auto px-4 py-12">
-        {/* Featured Venues */}
         <section className="mb-16">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="font-display text-2xl font-bold text-foreground">Lugares Destacados</h2>
-              <p className="text-sm text-muted-foreground">Los sitios más calientes de este fin de semana</p>
+              <h2 className="font-display text-2xl font-bold text-foreground">{t("nightlife.featuredVenues")}</h2>
+              <p className="text-sm text-muted-foreground">{t("nightlife.hottestSpots")}</p>
             </div>
             <Button variant="link" className="text-primary gap-1">
-              Ver todo el mapa <ChevronRight className="h-4 w-4" />
+              {t("nightlife.viewMap")} <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
 
@@ -215,15 +215,9 @@ export default function VidaNocturna() {
                 className="bg-card rounded-xl overflow-hidden border border-border group cursor-pointer hover:border-primary/50 transition-colors"
               >
                 <div className="aspect-[4/3] relative overflow-hidden">
-                  <img 
-                    src={venue.image} 
-                    alt={venue.name} 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                  />
+                  <img src={venue.image} alt={venue.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                   <div className="absolute top-3 left-3">
-                    <span className={`text-xs px-2 py-1 rounded-full text-white font-medium ${venue.badgeColor}`}>
-                      {venue.badge}
-                    </span>
+                    <span className={`text-xs px-2 py-1 rounded-full text-white font-medium ${venue.badgeColor}`}>{venue.badge}</span>
                   </div>
                   <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full">
                     <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
@@ -241,15 +235,11 @@ export default function VidaNocturna() {
                   <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{venue.description}</p>
                   <div className="flex flex-wrap gap-2 mb-4">
                     {venue.tags.map(tag => (
-                      <span key={tag} className="text-xs px-2 py-1 bg-muted rounded-full text-muted-foreground">
-                        {tag}
-                      </span>
+                      <span key={tag} className="text-xs px-2 py-1 bg-muted rounded-full text-muted-foreground">{tag}</span>
                     ))}
                   </div>
                   <Button variant="outline" className="w-full" asChild>
-                    <Link to={`/bar/${venue.slug}`}>
-                      Ver Detalles y Agenda
-                    </Link>
+                    <Link to={`/bar/${venue.slug}`}>{t("nightlife.viewDetails")}</Link>
                   </Button>
                 </div>
               </motion.div>
@@ -259,29 +249,20 @@ export default function VidaNocturna() {
           {filteredVenues.length === 0 && (
             <div className="text-center py-12">
               <Wine className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No se encontraron lugares con esos filtros.</p>
+              <p className="text-muted-foreground">{t("nightlife.noResults")}</p>
             </div>
           )}
         </section>
 
-        {/* Bottom Section: Drinks & Agenda */}
         <section className="grid lg:grid-cols-2 gap-12">
-          {/* House Drinks */}
           <div>
             <div className="flex items-center gap-2 mb-6">
               <Wine className="h-5 w-5 text-primary" />
-              <h3 className="font-display text-xl font-bold text-foreground">Tragos de la Casa</h3>
+              <h3 className="font-display text-xl font-bold text-foreground">{t("nightlife.houseDrinks")}</h3>
             </div>
             <div className="space-y-4">
               {houseDrinks.map((drink, i) => (
-                <motion.div
-                  key={drink.name}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  viewport={{ once: true }}
-                  className="flex items-center gap-4 bg-card rounded-xl p-4 border border-border"
-                >
+                <motion.div key={drink.name} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} viewport={{ once: true }} className="flex items-center gap-4 bg-card rounded-xl p-4 border border-border">
                   <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                     <img src={drink.image} alt={drink.name} className="w-full h-full object-cover" />
                   </div>
@@ -296,22 +277,14 @@ export default function VidaNocturna() {
             </div>
           </div>
 
-          {/* Night Agenda */}
           <div>
             <div className="flex items-center gap-2 mb-6">
               <Calendar className="h-5 w-5 text-primary" />
-              <h3 className="font-display text-xl font-bold text-foreground">Agenda Nocturna</h3>
+              <h3 className="font-display text-xl font-bold text-foreground">{t("nightlife.nightAgenda")}</h3>
             </div>
             <div className="space-y-4">
               {nightAgenda.map((event, i) => (
-                <motion.div
-                  key={event.event}
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  viewport={{ once: true }}
-                  className="flex items-center gap-4 bg-card rounded-xl p-4 border border-border"
-                >
+                <motion.div key={event.event} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} viewport={{ once: true }} className="flex items-center gap-4 bg-card rounded-xl p-4 border border-border">
                   <div className="w-14 text-center flex-shrink-0">
                     <p className="text-xs text-muted-foreground">{event.day}</p>
                     <p className="text-2xl font-bold text-foreground">{event.date}</p>
@@ -321,28 +294,21 @@ export default function VidaNocturna() {
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <span>{event.venue}</span>
                       <span>•</span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {event.time}
-                      </span>
+                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{event.time}</span>
                     </div>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full text-white ${event.badgeColor}`}>
-                    {event.badge}
-                  </span>
+                  <span className={`text-xs px-2 py-1 rounded-full text-white ${event.badgeColor}`}>{event.badge}</span>
                 </motion.div>
               ))}
             </div>
             <Button variant="link" className="w-full mt-4 text-primary">
-              Ver calendario completo
+              {t("nightlife.viewFullCalendar")}
             </Button>
           </div>
         </section>
       </div>
 
-      {/* Ad before footer */}
       <BetweenSectionsAd showDemo />
-
       <Footer />
     </div>
   );
