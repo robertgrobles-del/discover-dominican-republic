@@ -39,7 +39,12 @@ import {
   Mountain,
   Waves,
   Sparkles,
-  Home
+  Home,
+  Image,
+  BookOpen,
+  Landmark,
+  Briefcase,
+  Compass,
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -67,7 +72,12 @@ type EntityType =
   | 'coffee_experiences'
   | 'airbnb_listings'
   | 'artisanal_workshops'
-  | 'municipalities';
+  | 'municipalities'
+  | 'ad_banners'
+  | 'historical_figures'
+  | 'historical_events'
+  | 'tour_packages'
+  | 'job_vacancies';
 
 interface EntityConfig {
   name: string;
