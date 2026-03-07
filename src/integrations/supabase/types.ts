@@ -265,6 +265,104 @@ export type Database = {
           },
         ]
       }
+      article_translations: {
+        Row: {
+          article_id: string
+          content: string | null
+          created_at: string
+          excerpt: string | null
+          id: string
+          locale: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          article_id: string
+          content?: string | null
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          locale: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          article_id?: string
+          content?: string | null
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          locale?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_translations_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      articles: {
+        Row: {
+          author_image: string | null
+          author_name: string | null
+          category: string | null
+          content: string | null
+          created_at: string
+          excerpt: string | null
+          gallery: string[] | null
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          is_published: boolean | null
+          published_at: string | null
+          slug: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_image?: string | null
+          author_name?: string | null
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          excerpt?: string | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          published_at?: string | null
+          slug?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_image?: string | null
+          author_name?: string | null
+          category?: string | null
+          content?: string | null
+          created_at?: string
+          excerpt?: string | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          published_at?: string | null
+          slug?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       artisanal_workshops: {
         Row: {
           address: string | null

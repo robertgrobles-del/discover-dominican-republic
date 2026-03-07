@@ -4,105 +4,63 @@ import { Play, ChevronRight, Sun, Ruler, Landmark, Users, ChevronLeft, MapPin, S
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "@/hooks/useI18n";
 import whaleSamanaImg from "@/assets/whale-samana.jpg";
 import heroBeachImg from "@/assets/hero-beach.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 
-const slides = [
+interface SlideData {
+  id: number;
+  image: string;
+  tagKey: string;
+  titleKey: string;
+  subtitleKey: string;
+  descriptionKey: string;
+  card: {
+    image: string;
+    titleKey: string;
+    location: string;
+    rating: number;
+    seasonKey: string;
+  };
+}
+
+const slideTemplates: SlideData[] = [
   {
-    id: 1,
-    image: whaleSamanaImg,
-    tag: "El paraíso del Caribe",
-    title: "Samaná",
-    subtitle: "El Santuario de la Naturaleza",
-    description: "Donde las montañas besan el mar y las ballenas jorobadas danzan cada invierno. Descubre un paraíso ecológico sin igual.",
-    card: {
-      image: whaleSamanaImg,
-      title: "Avistamiento de Ballenas",
-      location: "Bahía de Samaná",
-      rating: 4.9,
-      season: "Ene - Mar"
-    }
+    id: 1, image: whaleSamanaImg, tagKey: "hero.caribbeanParadise",
+    titleKey: "hero.slide1.title", subtitleKey: "hero.slide1.subtitle", descriptionKey: "hero.slide1.description",
+    card: { image: whaleSamanaImg, titleKey: "hero.slide1.cardTitle", location: "Bahía de Samaná", rating: 4.9, seasonKey: "hero.slide1.cardSeason" }
   },
   {
-    id: 2,
-    image: heroBeachImg,
-    tag: "Vive la experiencia",
-    title: "El Caribe que",
-    subtitle: "lo tiene todo",
-    description: "Playas vírgenes, montañas majestuosas y una historia vibrante te esperan. Descubre un paraíso donde cada rincón cuenta una nueva historia.",
-    card: {
-      image: puntaCanaImg,
-      title: "Playas de Ensueño",
-      location: "Punta Cana",
-      rating: 4.8,
-      season: "Todo el año"
-    }
+    id: 2, image: heroBeachImg, tagKey: "hero.liveExperience",
+    titleKey: "hero.slide2.title", subtitleKey: "hero.slide2.subtitle", descriptionKey: "hero.slide2.description",
+    card: { image: puntaCanaImg, titleKey: "hero.slide2.cardTitle", location: "Punta Cana", rating: 4.8, seasonKey: "common.allYear" }
   },
   {
-    id: 3,
-    image: santoDomingoImg,
-    tag: "Historia y cultura",
-    title: "Santo Domingo",
-    subtitle: "La Primera Ciudad del Nuevo Mundo",
-    description: "Camina por las calles donde comenzó la historia de América. Arquitectura colonial, gastronomía auténtica y noches de merengue.",
-    card: {
-      image: santoDomingoImg,
-      title: "Zona Colonial",
-      location: "Santo Domingo",
-      rating: 4.7,
-      season: "Todo el año"
-    }
+    id: 3, image: santoDomingoImg, tagKey: "hero.historyAndCulture",
+    titleKey: "hero.slide3.title", subtitleKey: "hero.slide3.subtitle", descriptionKey: "hero.slide3.description",
+    card: { image: santoDomingoImg, titleKey: "hero.slide3.cardTitle", location: "Santo Domingo", rating: 4.7, seasonKey: "common.allYear" }
   },
   {
-    id: 4,
-    image: puntaCanaImg,
-    tag: "Lujo y relax",
-    title: "Punta Cana",
-    subtitle: "El Destino del Caribe",
-    description: "Resorts de clase mundial, campos de golf y las playas más famosas del Caribe te esperan en el este dominicano.",
-    card: {
-      image: puntaCanaImg,
-      title: "Resorts de Lujo",
-      location: "Bávaro",
-      rating: 4.9,
-      season: "Todo el año"
-    }
+    id: 4, image: puntaCanaImg, tagKey: "hero.luxuryAndRelax",
+    titleKey: "hero.slide4.title", subtitleKey: "hero.slide4.subtitle", descriptionKey: "hero.slide4.description",
+    card: { image: puntaCanaImg, titleKey: "hero.slide4.cardTitle", location: "Bávaro", rating: 4.9, seasonKey: "common.allYear" }
   },
   {
-    id: 5,
-    image: heroBeachImg,
-    tag: "Aventura sin límites",
-    title: "Puerto Plata",
-    subtitle: "La Costa del Ámbar",
-    description: "Teleférico, 27 Charcos, playas doradas y la historia del ámbar dominicano. Aventura y cultura en la costa norte.",
-    card: {
-      image: heroBeachImg,
-      title: "27 Charcos",
-      location: "Puerto Plata",
-      rating: 4.8,
-      season: "Todo el año"
-    }
+    id: 5, image: heroBeachImg, tagKey: "hero.unlimitedAdventure",
+    titleKey: "hero.slide5.title", subtitleKey: "hero.slide5.subtitle", descriptionKey: "hero.slide5.description",
+    card: { image: heroBeachImg, titleKey: "hero.slide5.cardTitle", location: "Puerto Plata", rating: 4.8, seasonKey: "common.allYear" }
   },
 ];
 
-const stats = [
-  { icon: Sun, value: "300+", label: "Días de sol" },
-  { icon: Ruler, value: "1,600 km", label: "De costas" },
-  { icon: Landmark, value: "29", label: "Parques nacionales" },
-  { icon: Users, value: "10M+", label: "Visitantes" },
-];
-
-// Card component for the carousel
 function DestinationCard({ 
-  card, 
-  isActive, 
-  onClick 
+  card, isActive, onClick, t
 }: { 
-  card: typeof slides[0]['card']; 
+  card: { image: string; title: string; location: string; rating: number; season: string };
   isActive: boolean;
   onClick: () => void;
+  t: (key: string) => string;
 }) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
@@ -119,15 +77,11 @@ function DestinationCard({
         isActive ? 'border-primary/50 shadow-xl shadow-primary/10' : 'border-border/30 shadow-lg'
       }`}>
         <div className="aspect-[4/3] relative overflow-hidden">
-          {!imageLoaded && (
-            <Skeleton className="absolute inset-0 w-full h-full" />
-          )}
+          {!imageLoaded && <Skeleton className="absolute inset-0 w-full h-full" />}
           <img
             src={card.image}
             alt={card.title}
-            className={`w-full h-full object-cover transition-opacity duration-500 ${
-              imageLoaded ? 'opacity-100' : 'opacity-0'
-            }`}
+            className={`w-full h-full object-cover transition-opacity duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
             onLoad={() => setImageLoaded(true)}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
@@ -159,13 +113,34 @@ export function HeroSlideshow() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [bgLoaded, setBgLoaded] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
+
+  const slides = slideTemplates.map(s => ({
+    ...s,
+    tag: t(s.tagKey),
+    title: t(s.titleKey),
+    subtitle: t(s.subtitleKey),
+    description: t(s.descriptionKey),
+    card: {
+      ...s.card,
+      title: t(s.card.titleKey),
+      season: t(s.card.seasonKey),
+    }
+  }));
+
+  const stats = [
+    { icon: Sun, value: "300+", label: t("hero.sunDays") },
+    { icon: Ruler, value: "1,600 km", label: t("hero.coastline") },
+    { icon: Landmark, value: "29", label: t("hero.nationalParks") },
+    { icon: Users, value: "10M+", label: t("hero.visitors") },
+  ];
 
   const nextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
+    setCurrentSlide((prev) => (prev + 1) % slideTemplates.length);
   }, []);
 
   const prevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    setCurrentSlide((prev) => (prev - 1 + slideTemplates.length) % slideTemplates.length);
   }, []);
 
   const goToSlide = useCallback((index: number) => {
@@ -178,17 +153,12 @@ export function HeroSlideshow() {
     return () => clearInterval(interval);
   }, [isAutoPlaying, nextSlide]);
 
-  // Smooth scroll carousel to center active card
   useEffect(() => {
     if (carouselRef.current) {
-      const cardWidth = 288 + 16; // w-72 (288px) + gap-4 (16px)
+      const cardWidth = 288 + 16;
       const containerWidth = carouselRef.current.offsetWidth;
       const scrollPosition = (currentSlide * cardWidth) - (containerWidth / 2) + (cardWidth / 2);
-      
-      carouselRef.current.scrollTo({
-        left: Math.max(0, scrollPosition),
-        behavior: 'smooth'
-      });
+      carouselRef.current.scrollTo({ left: Math.max(0, scrollPosition), behavior: 'smooth' });
     }
   }, [currentSlide]);
 
@@ -196,7 +166,6 @@ export function HeroSlideshow() {
 
   return (
     <section className="relative h-screen w-full flex flex-col overflow-hidden">
-      {/* Background Images with smooth crossfade */}
       <AnimatePresence mode="sync">
         <motion.div
           key={slide.id}
@@ -206,15 +175,11 @@ export function HeroSlideshow() {
           transition={{ duration: 1.5, ease: [0.4, 0, 0.2, 1] }}
           className="absolute inset-0 z-0"
         >
-          {!bgLoaded && (
-            <Skeleton className="absolute inset-0 w-full h-full rounded-none" />
-          )}
+          {!bgLoaded && <Skeleton className="absolute inset-0 w-full h-full rounded-none" />}
           <motion.img
             src={slide.image}
             alt={slide.title}
-            className={`h-full w-full object-cover transition-opacity duration-700 ${
-              bgLoaded ? 'opacity-100' : 'opacity-0'
-            }`}
+            className={`h-full w-full object-cover transition-opacity duration-700 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`}
             initial={{ scale: 1.05 }}
             animate={{ scale: 1 }}
             transition={{ duration: 8, ease: "linear" }}
@@ -225,10 +190,8 @@ export function HeroSlideshow() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Content */}
       <div className="relative z-10 flex-1 flex flex-col justify-center container mx-auto px-4 lg:px-8 pt-16">
         <div className="grid lg:grid-cols-5 gap-8 items-center">
-          {/* Text Content - 3 columns */}
           <div className="lg:col-span-3 max-w-2xl">
             <AnimatePresence mode="wait">
               <motion.div
@@ -281,7 +244,7 @@ export function HeroSlideshow() {
             >
               <Button size="lg" className="gap-2 font-display" asChild>
                 <Link to="/destinos">
-                  Explorar Destinos
+                  {t("hero.cta")}
                   <ChevronRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -292,9 +255,7 @@ export function HeroSlideshow() {
             </motion.div>
           </div>
 
-          {/* Cards Carousel - 2 columns, positioned right */}
           <div className="hidden lg:flex lg:col-span-2 flex-col items-end">
-            {/* Horizontal scrolling card carousel */}
             <div 
               ref={carouselRef}
               className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 pr-4 max-w-full scroll-smooth"
@@ -305,24 +266,18 @@ export function HeroSlideshow() {
                   key={s.id}
                   card={s.card}
                   isActive={index === currentSlide}
-                  onClick={() => {
-                    setIsAutoPlaying(false);
-                    goToSlide(index);
-                  }}
+                  onClick={() => { setIsAutoPlaying(false); goToSlide(index); }}
+                  t={t}
                 />
               ))}
             </div>
 
-            {/* Slide Controls - Below the cards, aligned right */}
             <div className="flex items-center gap-4 mt-6 pr-4">
               <Button
                 size="icon"
                 variant="outline"
                 className="rounded-full w-10 h-10 bg-background/50 backdrop-blur-sm border-border/50 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
-                onClick={() => {
-                  setIsAutoPlaying(false);
-                  prevSlide();
-                }}
+                onClick={() => { setIsAutoPlaying(false); prevSlide(); }}
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
@@ -331,14 +286,9 @@ export function HeroSlideshow() {
                 {slides.map((_, index) => (
                   <button
                     key={index}
-                    onClick={() => {
-                      setIsAutoPlaying(false);
-                      goToSlide(index);
-                    }}
+                    onClick={() => { setIsAutoPlaying(false); goToSlide(index); }}
                     className={`h-2 rounded-full transition-all duration-500 ease-out ${
-                      index === currentSlide
-                        ? "w-8 bg-primary"
-                        : "w-2 bg-muted-foreground/50 hover:bg-muted-foreground"
+                      index === currentSlide ? "w-8 bg-primary" : "w-2 bg-muted-foreground/50 hover:bg-muted-foreground"
                     }`}
                   />
                 ))}
@@ -348,10 +298,7 @@ export function HeroSlideshow() {
                 size="icon"
                 variant="outline"
                 className="rounded-full w-10 h-10 bg-background/50 backdrop-blur-sm border-border/50 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
-                onClick={() => {
-                  setIsAutoPlaying(false);
-                  nextSlide();
-                }}
+                onClick={() => { setIsAutoPlaying(false); nextSlide(); }}
               >
                 <ChevronRight className="h-5 w-5" />
               </Button>
@@ -360,7 +307,6 @@ export function HeroSlideshow() {
         </div>
       </div>
 
-      {/* Stats Bar */}
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}

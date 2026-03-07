@@ -8,48 +8,50 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-
-const footerSections = {
-  sitemap: {
-    title: "Sitemap",
-    links: [
-      { name: "Destinos", href: "/destinos" },
-      { name: "Experiencias", href: "/experiencias" },
-      { name: "Alojamientos", href: "/alojamientos" },
-      { name: "Eventos", href: "/eventos" },
-      { name: "Playas", href: "/playas" },
-      { name: "Gastronomía", href: "/guia-gastronomica" },
-      { name: "Vida Nocturna", href: "/vida-nocturna" },
-      { name: "Wellness", href: "/wellness" },
-    ],
-  },
-  comunidad: {
-    title: "Comunidad",
-    links: [
-      { name: "Directorio de Agencias", href: "/directorio-agencias" },
-      { name: "Tour Operadores", href: "/directorio-agencias" },
-      { name: "Guías Locales", href: "/guias-locales" },
-      { name: "Kit de Prensa", href: "/prensa" },
-      { name: "Programa de Afiliados", href: "/partners" },
-      { name: "Embajadores", href: "/embajadores" },
-    ],
-  },
-  corporativo: {
-    title: "Corporativo",
-    links: [
-      { name: "Sobre Nosotros", href: "/sobre-nosotros" },
-      { name: "RD en Cifras", href: "/estadisticas" },
-      { name: "Inversión Turística", href: "/inversion" },
-      { name: "Empleos", href: "/empleo" },
-      { name: "Academia Turística", href: "/academia" },
-      { name: "Términos y Privacidad", href: "/terminos" },
-    ],
-  },
-};
+import { useTranslation } from "@/hooks/useI18n";
 
 export function Footer() {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [email, setEmail] = useState("");
+  const { t } = useTranslation();
+
+  const footerSections = {
+    sitemap: {
+      title: t("footer.sitemap"),
+      links: [
+        { name: t("footer.destinations"), href: "/destinos" },
+        { name: t("footer.experiences"), href: "/experiencias" },
+        { name: t("footer.accommodations"), href: "/alojamientos" },
+        { name: t("footer.events"), href: "/eventos" },
+        { name: t("footer.beaches"), href: "/playas" },
+        { name: t("footer.gastronomy"), href: "/guia-gastronomica" },
+        { name: t("footer.nightlife"), href: "/vida-nocturna" },
+        { name: t("footer.wellness"), href: "/wellness" },
+      ],
+    },
+    comunidad: {
+      title: t("footer.community"),
+      links: [
+        { name: t("footer.agencyDirectory"), href: "/directorio-agencias" },
+        { name: t("footer.tourOperators"), href: "/directorio-agencias" },
+        { name: t("footer.localGuides"), href: "/guias-locales" },
+        { name: t("footer.pressKit"), href: "/prensa" },
+        { name: t("footer.affiliateProgram"), href: "/partners" },
+        { name: t("footer.ambassadors"), href: "/embajadores" },
+      ],
+    },
+    corporativo: {
+      title: t("footer.corporate"),
+      links: [
+        { name: t("footer.aboutUs"), href: "/sobre-nosotros" },
+        { name: t("footer.rdInNumbers"), href: "/estadisticas" },
+        { name: t("footer.touristInvestment"), href: "/inversion" },
+        { name: t("footer.jobs"), href: "/empleo" },
+        { name: t("footer.touristAcademy"), href: "/academia" },
+        { name: t("footer.termsAndPrivacy"), href: "/terminos" },
+      ],
+    },
+  };
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
@@ -57,7 +59,6 @@ export function Footer() {
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle newsletter submission
     console.log("Newsletter signup:", email);
     setEmail("");
   };
@@ -67,7 +68,6 @@ export function Footer() {
       <div className="container mx-auto px-4 lg:px-8 py-12 lg:py-16">
         {/* Desktop: 4 Column Grid */}
         <div className="hidden lg:grid lg:grid-cols-4 gap-12">
-          {/* Column 1: Sitemap */}
           <div>
             <h4 className="font-display font-bold text-foreground mb-4 flex items-center gap-2">
               <MapPin className="h-4 w-4 text-primary" />
@@ -75,11 +75,8 @@ export function Footer() {
             </h4>
             <ul className="space-y-3">
               {footerSections.sitemap.links.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    to={link.href}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
+                <li key={link.href}>
+                  <Link to={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                     {link.name}
                   </Link>
                 </li>
@@ -87,7 +84,6 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Column 2: Comunidad */}
           <div>
             <h4 className="font-display font-bold text-foreground mb-4 flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" />
@@ -96,10 +92,7 @@ export function Footer() {
             <ul className="space-y-3">
               {footerSections.comunidad.links.map((link) => (
                 <li key={link.name}>
-                  <Link
-                    to={link.href}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
+                  <Link to={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                     {link.name}
                   </Link>
                 </li>
@@ -107,7 +100,6 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Column 3: Corporativo */}
           <div>
             <h4 className="font-display font-bold text-foreground mb-4 flex items-center gap-2">
               <Building className="h-4 w-4 text-primary" />
@@ -116,10 +108,7 @@ export function Footer() {
             <ul className="space-y-3">
               {footerSections.corporativo.links.map((link) => (
                 <li key={link.name}>
-                  <Link
-                    to={link.href}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
+                  <Link to={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                     {link.name}
                   </Link>
                 </li>
@@ -127,14 +116,12 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Column 4: Social + Newsletter */}
           <div>
             <h4 className="font-display font-bold text-foreground mb-4 flex items-center gap-2">
               <Newspaper className="h-4 w-4 text-primary" />
-              Conecta con RD
+              {t("footer.connectWithRD")}
             </h4>
             
-            {/* Social Icons */}
             <div className="flex items-center gap-3 mb-6">
               <Button variant="outline" size="icon" className="text-muted-foreground hover:text-primary hover:border-primary">
                 <Youtube className="h-4 w-4" />
@@ -150,14 +137,13 @@ export function Footer() {
               </Button>
             </div>
 
-            {/* Newsletter */}
             <p className="text-sm text-muted-foreground mb-3">
-              Recibe ofertas y novedades turísticas
+              {t("footer.newsletter")}
             </p>
             <form onSubmit={handleNewsletterSubmit} className="flex gap-2">
               <Input
                 type="email"
-                placeholder="Tu email"
+                placeholder={t("footer.newsletterPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="flex-1 bg-background"
@@ -168,10 +154,9 @@ export function Footer() {
               </Button>
             </form>
 
-            {/* App Download */}
             <div className="mt-6 pt-6 border-t border-border">
               <p className="text-sm text-muted-foreground mb-3 flex items-center gap-2">
-                <Smartphone className="h-4 w-4" /> App Móvil
+                <Smartphone className="h-4 w-4" /> {t("footer.downloadApp")}
               </p>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="text-xs">
@@ -208,10 +193,7 @@ export function Footer() {
                 <ul className="pb-4 space-y-3">
                   {section.links.map((link) => (
                     <li key={link.name}>
-                      <Link
-                        to={link.href}
-                        className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                      >
+                      <Link to={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
                         {link.name}
                       </Link>
                     </li>
@@ -221,9 +203,8 @@ export function Footer() {
             </div>
           ))}
 
-          {/* Social + Newsletter for Mobile */}
           <div className="pt-6">
-            <h4 className="font-display font-bold text-foreground mb-4">Síguenos</h4>
+            <h4 className="font-display font-bold text-foreground mb-4">{t("footer.connectWithRD")}</h4>
             <div className="flex items-center gap-3 mb-6">
               <Button variant="outline" size="icon" className="text-muted-foreground hover:text-primary">
                 <Youtube className="h-4 w-4" />
@@ -243,7 +224,7 @@ export function Footer() {
             <form onSubmit={handleNewsletterSubmit} className="flex gap-2">
               <Input
                 type="email"
-                placeholder="Tu email"
+                placeholder={t("footer.newsletterPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="flex-1"
@@ -262,22 +243,22 @@ export function Footer() {
             <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
               <span className="font-display font-bold text-primary-foreground text-sm">RD</span>
             </div>
-            <span className="font-display font-bold text-foreground">Descubre República Dominicana</span>
+            <span className="font-display font-bold text-foreground">{t("hero.title")}</span>
           </div>
 
           <p className="text-sm text-muted-foreground text-center">
-            © {new Date().getFullYear()} Ministerio de Turismo de República Dominicana. Todos los derechos reservados.
+            © {new Date().getFullYear()} {t("footer.madeWithLove")}. {t("footer.rights")}.
           </p>
 
           <div className="flex items-center gap-4">
             <Link to="/terminos" className="text-xs text-muted-foreground hover:text-primary">
-              Términos
+              {t("footer.terms")}
             </Link>
             <Link to="/accesibilidad" className="text-xs text-muted-foreground hover:text-primary">
-              Accesibilidad
+              {t("footer.accessibility")}
             </Link>
             <Link to="/ayuda" className="text-xs text-muted-foreground hover:text-primary">
-              Ayuda
+              {t("footer.contact")}
             </Link>
           </div>
         </div>
