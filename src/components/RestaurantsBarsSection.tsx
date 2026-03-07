@@ -395,10 +395,10 @@ export function RestaurantsBarsSection() {
           <div className="w-[160px] h-[600px] rounded-lg overflow-hidden shadow-lg">
             <img 
               src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=160&h=600&fit=crop" 
-              alt="Publicidad cócteles"
+              alt={t("events.ad")}
               className="w-full h-full object-cover"
             />
-            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">Publicidad</span>
+            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">{t("events.ad")}</span>
           </div>
         </div>
 
@@ -407,10 +407,10 @@ export function RestaurantsBarsSection() {
           <div className="w-[160px] h-[600px] rounded-lg overflow-hidden shadow-lg">
             <img 
               src="https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=160&h=600&fit=crop" 
-              alt="Publicidad vida nocturna"
+              alt={t("events.ad")}
               className="w-full h-full object-cover"
             />
-            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">Publicidad</span>
+            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">{t("events.ad")}</span>
           </div>
         </div>
         <div className="container mx-auto px-4 lg:px-8 2xl:px-48">
@@ -422,13 +422,13 @@ export function RestaurantsBarsSection() {
             >
               <span className="inline-flex items-center gap-2 text-muted-foreground text-sm font-medium mb-3">
                 <span className="w-8 h-px bg-border" />
-                Vida Nocturna
+                {t("bars.nightlife")}
               </span>
               <h2 className="font-display text-3xl md:text-4xl font-bold">
-                Bares <span className="text-gradient">Recomendados</span>
+                {t("bars.title")} <span className="text-gradient">{t("bars.recommended")}</span>
               </h2>
               <p className="text-muted-foreground mt-3 max-w-lg">
-                Desde cócteles artesanales hasta noches de merengue bajo las estrellas.
+                {t("bars.subtitle")}
               </p>
             </motion.div>
 
@@ -439,7 +439,7 @@ export function RestaurantsBarsSection() {
             >
               <Link to="/vida-nocturna">
                 <Button variant="link" className="text-primary gap-2">
-                  Explorar vida nocturna
+                  {t("bars.exploreNightlife")}
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </Link>
@@ -448,7 +448,7 @@ export function RestaurantsBarsSection() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {[sponsoredBar, ...bars.slice(0, 2)].map((bar, index) => (
-              <BarCard key={bar.id} bar={bar} index={index} />
+              <BarCard key={bar.id} bar={bar} index={index} t={t} />
             ))}
           </div>
         </div>
