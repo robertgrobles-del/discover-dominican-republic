@@ -14,6 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_banners: {
+        Row: {
+          alt_text: string | null
+          banner_type: string
+          clicks: number | null
+          created_at: string
+          cta_text: string | null
+          end_date: string | null
+          headline: string | null
+          id: string
+          image_url: string | null
+          impressions: number | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          name: string
+          page: string | null
+          placement: string
+          priority: number | null
+          section: string | null
+          slug: string | null
+          sponsor: string | null
+          start_date: string | null
+          subtext: string | null
+          target_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          alt_text?: string | null
+          banner_type?: string
+          clicks?: number | null
+          created_at?: string
+          cta_text?: string | null
+          end_date?: string | null
+          headline?: string | null
+          id?: string
+          image_url?: string | null
+          impressions?: number | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          name: string
+          page?: string | null
+          placement?: string
+          priority?: number | null
+          section?: string | null
+          slug?: string | null
+          sponsor?: string | null
+          start_date?: string | null
+          subtext?: string | null
+          target_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          alt_text?: string | null
+          banner_type?: string
+          clicks?: number | null
+          created_at?: string
+          cta_text?: string | null
+          end_date?: string | null
+          headline?: string | null
+          id?: string
+          image_url?: string | null
+          impressions?: number | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          name?: string
+          page?: string | null
+          placement?: string
+          priority?: number | null
+          section?: string | null
+          slug?: string | null
+          sponsor?: string | null
+          start_date?: string | null
+          subtext?: string | null
+          target_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       airbnb_listings: {
         Row: {
           accuracy_rating: number | null
