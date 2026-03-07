@@ -10,6 +10,7 @@ import { BackToTop } from "@/components/BackToTop";
 import { ChatbotTuristico } from "@/components/ChatbotTuristico";
 import { FavoritesProvider } from "@/hooks/useFavorites";
 import { AuthProvider } from "@/hooks/useAuth";
+import { I18nProvider } from "@/hooks/useI18n";
 
 // Critical pages - loaded immediately
 import Index from "./pages/Index";
@@ -489,18 +490,20 @@ function AnimatedRoutes() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AuthProvider>
-        <FavoritesProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <ScrollToTop />
-            <AnimatedRoutes />
-            <BackToTop />
-            <ChatbotTuristico />
-          </BrowserRouter>
-        </FavoritesProvider>
-      </AuthProvider>
+      <I18nProvider>
+        <AuthProvider>
+          <FavoritesProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <ScrollToTop />
+              <AnimatedRoutes />
+              <BackToTop />
+              <ChatbotTuristico />
+            </BrowserRouter>
+          </FavoritesProvider>
+        </AuthProvider>
+      </I18nProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

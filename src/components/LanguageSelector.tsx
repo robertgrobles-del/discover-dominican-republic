@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Globe, Check, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
@@ -7,9 +6,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { useI18n, type Locale } from "@/hooks/useI18n";
 
 interface Language {
-  code: string;
+  code: Locale;
   name: string;
   flag: string;
 }
@@ -24,7 +24,8 @@ const languages: Language[] = [
 ];
 
 export function LanguageSelector() {
-  const [selectedLang, setSelectedLang] = useState<Language>(languages[0]);
+  const { locale, setLocale } = useI18n();
+  const selectedLang = languages.find(l => l.code === locale) || languages[0];
 
   return (
     <DropdownMenu>
@@ -39,14 +40,14 @@ export function LanguageSelector() {
         {languages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
-            onClick={() => setSelectedLang(lang)}
+            onClick={() => setLocale(lang.code)}
             className="flex items-center justify-between cursor-pointer"
           >
             <div className="flex items-center gap-2">
               <span className="text-base">{lang.flag}</span>
               <span>{lang.name}</span>
             </div>
-            {selectedLang.code === lang.code && (
+            {locale === lang.code && (
               <Check className="h-4 w-4 text-primary" />
             )}
           </DropdownMenuItem>
