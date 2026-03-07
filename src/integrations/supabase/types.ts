@@ -17,8 +17,11 @@ export type Database = {
       ad_banners: {
         Row: {
           alt_text: string | null
+          animation_config: Json | null
+          animation_type: string | null
           banner_type: string
           clicks: number | null
+          content_type: string
           created_at: string
           cta_text: string | null
           end_date: string | null
@@ -33,17 +36,26 @@ export type Database = {
           placement: string
           priority: number | null
           section: string | null
+          slider_interval: number | null
+          slider_items: Json | null
           slug: string | null
           sponsor: string | null
           start_date: string | null
           subtext: string | null
           target_url: string | null
           updated_at: string
+          video_autoplay: boolean | null
+          video_loop: boolean | null
+          video_muted: boolean | null
+          video_url: string | null
         }
         Insert: {
           alt_text?: string | null
+          animation_config?: Json | null
+          animation_type?: string | null
           banner_type?: string
           clicks?: number | null
+          content_type?: string
           created_at?: string
           cta_text?: string | null
           end_date?: string | null
@@ -58,17 +70,26 @@ export type Database = {
           placement?: string
           priority?: number | null
           section?: string | null
+          slider_interval?: number | null
+          slider_items?: Json | null
           slug?: string | null
           sponsor?: string | null
           start_date?: string | null
           subtext?: string | null
           target_url?: string | null
           updated_at?: string
+          video_autoplay?: boolean | null
+          video_loop?: boolean | null
+          video_muted?: boolean | null
+          video_url?: string | null
         }
         Update: {
           alt_text?: string | null
+          animation_config?: Json | null
+          animation_type?: string | null
           banner_type?: string
           clicks?: number | null
+          content_type?: string
           created_at?: string
           cta_text?: string | null
           end_date?: string | null
@@ -83,12 +104,18 @@ export type Database = {
           placement?: string
           priority?: number | null
           section?: string | null
+          slider_interval?: number | null
+          slider_items?: Json | null
           slug?: string | null
           sponsor?: string | null
           start_date?: string | null
           subtext?: string | null
           target_url?: string | null
           updated_at?: string
+          video_autoplay?: boolean | null
+          video_loop?: boolean | null
+          video_muted?: boolean | null
+          video_url?: string | null
         }
         Relationships: []
       }

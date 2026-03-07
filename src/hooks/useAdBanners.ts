@@ -23,6 +23,15 @@ export interface AdBanner {
   priority: number | null;
   is_active: boolean | null;
   is_featured: boolean | null;
+  content_type: string;
+  video_url: string | null;
+  video_autoplay: boolean | null;
+  video_loop: boolean | null;
+  video_muted: boolean | null;
+  animation_type: string | null;
+  animation_config: Record<string, unknown> | null;
+  slider_items: Record<string, unknown>[] | null;
+  slider_interval: number | null;
 }
 
 /**
