@@ -170,6 +170,10 @@ const TourDetalle = lazy(() => import("./pages/TourDetalle"));
 const HistoriaRD = lazy(() => import("./pages/HistoriaRD"));
 const PersonajeHistorico = lazy(() => import("./pages/PersonajeHistorico"));
 const EventoHistorico = lazy(() => import("./pages/EventoHistorico"));
+const ReservasNaturales = lazy(() => import("./pages/ReservasNaturales"));
+const TurismoComunitario = lazy(() => import("./pages/TurismoComunitario"));
+const AutorInvitado = lazy(() => import("./pages/AutorInvitado"));
+const ContratarInfluencers = lazy(() => import("./pages/ContratarInfluencers"));
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
 const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
