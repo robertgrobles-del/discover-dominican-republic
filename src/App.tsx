@@ -167,6 +167,9 @@ const EscuelaViajero = lazy(() => import("./pages/EscuelaViajero"));
 const EmpleoDetalle = lazy(() => import("./pages/EmpleoDetalle"));
 const Tours = lazy(() => import("./pages/Tours"));
 const TourDetalle = lazy(() => import("./pages/TourDetalle"));
+const HistoriaRD = lazy(() => import("./pages/HistoriaRD"));
+const PersonajeHistorico = lazy(() => import("./pages/PersonajeHistorico"));
+const EventoHistorico = lazy(() => import("./pages/EventoHistorico"));
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
 const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
@@ -372,7 +375,10 @@ function AnimatedRoutes() {
           <Route path="/escuela-viajero" element={<EscuelaViajero />} />
           <Route path="/tours" element={<Tours />} />
           <Route path="/tour/:slug" element={<TourDetalle />} />
-          
+          <Route path="/historia" element={<HistoriaRD />} />
+          <Route path="/historia/personaje/:slug" element={<PersonajeHistorico />} />
+          <Route path="/historia/evento/:slug" element={<EventoHistorico />} />
+
           {/* Static destination pages - /destino/slug */}
           <Route path="/destino/punta-cana" element={<PuntaCana />} />
           <Route path="/destino/bavaro" element={<Bavaro />} />

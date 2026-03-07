@@ -1113,6 +1113,150 @@ export type Database = {
         }
         Relationships: []
       }
+      historical_events: {
+        Row: {
+          category: string | null
+          consequences: string[] | null
+          created_at: string
+          description: string | null
+          end_date: string | null
+          era: string | null
+          event_date: string | null
+          gallery: string[] | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          key_figures: string[] | null
+          location: string | null
+          name: string
+          short_description: string | null
+          significance: string | null
+          slug: string | null
+          sources: string[] | null
+          updated_at: string
+          year: number | null
+        }
+        Insert: {
+          category?: string | null
+          consequences?: string[] | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          era?: string | null
+          event_date?: string | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          key_figures?: string[] | null
+          location?: string | null
+          name: string
+          short_description?: string | null
+          significance?: string | null
+          slug?: string | null
+          sources?: string[] | null
+          updated_at?: string
+          year?: number | null
+        }
+        Update: {
+          category?: string | null
+          consequences?: string[] | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          era?: string | null
+          event_date?: string | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          key_figures?: string[] | null
+          location?: string | null
+          name?: string
+          short_description?: string | null
+          significance?: string | null
+          slug?: string | null
+          sources?: string[] | null
+          updated_at?: string
+          year?: number | null
+        }
+        Relationships: []
+      }
+      historical_figures: {
+        Row: {
+          achievements: string[] | null
+          biography: string | null
+          birth_date: string | null
+          birth_place: string | null
+          category: string | null
+          created_at: string
+          death_date: string | null
+          description: string | null
+          era: string | null
+          gallery: string[] | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          name: string
+          quotes: string[] | null
+          related_events: string[] | null
+          short_description: string | null
+          slug: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          achievements?: string[] | null
+          biography?: string | null
+          birth_date?: string | null
+          birth_place?: string | null
+          category?: string | null
+          created_at?: string
+          death_date?: string | null
+          description?: string | null
+          era?: string | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          name: string
+          quotes?: string[] | null
+          related_events?: string[] | null
+          short_description?: string | null
+          slug?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          achievements?: string[] | null
+          biography?: string | null
+          birth_date?: string | null
+          birth_place?: string | null
+          category?: string | null
+          created_at?: string
+          death_date?: string | null
+          description?: string | null
+          era?: string | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          name?: string
+          quotes?: string[] | null
+          related_events?: string[] | null
+          short_description?: string | null
+          slug?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       hotels: {
         Row: {
           address: string | null
