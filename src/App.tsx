@@ -387,6 +387,7 @@ function AnimatedRoutes() {
           <Route path="/turismo-comunitario" element={<TurismoComunitario />} />
           <Route path="/autor-invitado" element={<AutorInvitado />} />
           <Route path="/contratar-influencers" element={<ContratarInfluencers />} />
+          <Route path="/marketplace" element={<Marketplace />} />
 
           {/* Static destination pages - /destino/slug */}
           <Route path="/destino/punta-cana" element={<PuntaCana />} />
