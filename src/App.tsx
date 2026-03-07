@@ -10,6 +10,7 @@ import { BackToTop } from "@/components/BackToTop";
 import { ChatbotTuristico } from "@/components/ChatbotTuristico";
 import { FavoritesProvider } from "@/hooks/useFavorites";
 import { AuthProvider } from "@/hooks/useAuth";
+import { I18nProvider } from "@/hooks/useI18n";
 
 // Critical pages - loaded immediately
 import Index from "./pages/Index";
@@ -189,6 +190,9 @@ const CalendarioMensual = lazy(() => import("./pages/CalendarioMensual"));
 const VuelveACasa = lazy(() => import("./pages/VuelveACasa"));
 const AduanasDutyFree = lazy(() => import("./pages/AduanasDutyFree"));
 const LeyesTurista = lazy(() => import("./pages/LeyesTurista"));
+const GuiaHalalKosher = lazy(() => import("./pages/GuiaHalalKosher"));
+const ViajarConMascotas = lazy(() => import("./pages/ViajarConMascotas"));
+const ViajerosSenior = lazy(() => import("./pages/ViajerosSenior"));
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
 const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
@@ -416,6 +420,9 @@ function AnimatedRoutes() {
           <Route path="/vuelve-a-casa" element={<VuelveACasa />} />
           <Route path="/aduanas" element={<AduanasDutyFree />} />
           <Route path="/leyes-turista" element={<LeyesTurista />} />
+          <Route path="/guia-halal-kosher" element={<GuiaHalalKosher />} />
+          <Route path="/viajar-con-mascotas" element={<ViajarConMascotas />} />
+          <Route path="/viajeros-senior" element={<ViajerosSenior />} />
 
           {/* Static destination pages - /destino/slug */}
           <Route path="/destino/punta-cana" element={<PuntaCana />} />
@@ -483,18 +490,20 @@ function AnimatedRoutes() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AuthProvider>
-        <FavoritesProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <ScrollToTop />
-            <AnimatedRoutes />
-            <BackToTop />
-            <ChatbotTuristico />
-          </BrowserRouter>
-        </FavoritesProvider>
-      </AuthProvider>
+      <I18nProvider>
+        <AuthProvider>
+          <FavoritesProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <ScrollToTop />
+              <AnimatedRoutes />
+              <BackToTop />
+              <ChatbotTuristico />
+            </BrowserRouter>
+          </FavoritesProvider>
+        </AuthProvider>
+      </I18nProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
