@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,7 +32,7 @@ export function NotificationBell() {
     if (!user) return;
 
     const fetchNotifications = async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("notifications")
         .select("*")
         .eq("user_id", user.id)
@@ -44,7 +43,6 @@ export function NotificationBell() {
 
     fetchNotifications();
 
-    // Realtime subscription
     const channel = supabase
       .channel("user-notifications")
       .on(
@@ -60,7 +58,7 @@ export function NotificationBell() {
   }, [user]);
 
   const markAsRead = async (id: string) => {
-    await supabase.from("notifications").update({ is_read: true }).eq("id", id);
+    await (supabase as any).from("notifications").update({ is_read: true }).eq("id", id);
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
   };
 
@@ -68,7 +66,7 @@ export function NotificationBell() {
     if (!user) return;
     const unread = notifications.filter((n) => !n.is_read).map((n) => n.id);
     if (unread.length === 0) return;
-    await supabase.from("notifications").update({ is_read: true }).in("id", unread);
+    await (supabase as any).from("notifications").update({ is_read: true }).in("id", unread);
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
   };
 
@@ -85,7 +83,7 @@ export function NotificationBell() {
     info: "bg-blue-500",
     offer: "bg-green-500",
     event: "bg-purple-500",
-    alert: "bg-red-500",
+    alert: "bg-destructive",
     reward: "bg-yellow-500",
   };
 

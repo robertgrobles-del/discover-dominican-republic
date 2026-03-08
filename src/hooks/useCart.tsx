@@ -31,9 +31,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const db = supabase as any;
+
   const fetchCart = useCallback(async () => {
     if (!user) { setItems([]); return; }
-    const { data } = await supabase.from("cart_items").select("*").eq("user_id", user.id).order("created_at");
+    const { data } = await db.from("cart_items").select("*").eq("user_id", user.id).order("created_at");
     if (data) setItems(data.map((d: any) => ({ id: d.id, product_id: d.product_id, product_name: d.product_name, product_image: d.product_image, price: Number(d.price), quantity: d.quantity })));
   }, [user]);
 
@@ -46,7 +48,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       await updateQuantity(existing.id, existing.quantity + 1);
       return;
     }
-    const { error } = await supabase.from("cart_items").insert({ user_id: user.id, ...item });
+    const { error } = await db.from("cart_items").insert({ user_id: user.id, ...item });
     if (!error) {
       toast({ title: "Agregado al carrito", description: item.product_name });
       fetchCart();
@@ -54,19 +56,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeItem = async (id: string) => {
-    await supabase.from("cart_items").delete().eq("id", id);
+    await db.from("cart_items").delete().eq("id", id);
     setItems((prev) => prev.filter((i) => i.id !== id));
   };
 
   const updateQuantity = async (id: string, quantity: number) => {
     if (quantity <= 0) { await removeItem(id); return; }
-    await supabase.from("cart_items").update({ quantity }).eq("id", id);
+    await db.from("cart_items").update({ quantity }).eq("id", id);
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, quantity } : i)));
   };
 
   const clearCart = async () => {
     if (!user) return;
-    await supabase.from("cart_items").delete().eq("user_id", user.id);
+    await db.from("cart_items").delete().eq("user_id", user.id);
     setItems([]);
   };
 
