@@ -292,6 +292,36 @@ export type Database = {
           },
         ]
       }
+      analytics_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          page: string | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          page?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          page?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       article_translations: {
         Row: {
           article_id: string
@@ -2364,6 +2394,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      reservations: {
+        Row: {
+          check_in: string | null
+          check_out: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          currency: string | null
+          guests: number | null
+          id: string
+          item_id: string
+          item_image: string | null
+          item_name: string
+          item_type: string
+          notes: string | null
+          status: string | null
+          total_price: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          check_in?: string | null
+          check_out?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          currency?: string | null
+          guests?: number | null
+          id?: string
+          item_id: string
+          item_image?: string | null
+          item_name: string
+          item_type: string
+          notes?: string | null
+          status?: string | null
+          total_price?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          check_in?: string | null
+          check_out?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          currency?: string | null
+          guests?: number | null
+          id?: string
+          item_id?: string
+          item_image?: string | null
+          item_name?: string
+          item_type?: string
+          notes?: string | null
+          status?: string | null
+          total_price?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       restaurants: {
         Row: {
