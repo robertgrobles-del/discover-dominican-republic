@@ -49,6 +49,7 @@ export function Footer() {
         { name: t("footer.jobs"), href: "/empleo" },
         { name: t("footer.touristAcademy"), href: "/academia" },
         { name: t("footer.termsAndPrivacy"), href: "/terminos" },
+        { name: "Mapa del sitio", href: "/sitemap" },
       ],
     },
   };
