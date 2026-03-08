@@ -1,5 +1,4 @@
 import { useParams, Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
@@ -7,6 +6,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LazyImage } from "@/components/ui/lazy-image";
 import {
   Landmark, MapPin, Calendar, ChevronRight, Users,
   Share2, ArrowLeft, AlertTriangle, BookOpen,
@@ -118,7 +118,12 @@ export default function EventoHistorico() {
 
         {/* Hero Image */}
         <section className="relative h-[40vh] overflow-hidden">
-          <img src={event.image_url || "/placeholder.svg"} alt={event.name} className="w-full h-full object-cover" />
+          <LazyImage
+            src={event.image_url || "/placeholder.svg"}
+            alt={event.name}
+            className="w-full h-full object-cover"
+            containerClassName="w-full h-full"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
           <div className="absolute bottom-8 left-0 right-0">
             <div className="container mx-auto px-4">
@@ -140,14 +145,14 @@ export default function EventoHistorico() {
           <div className="grid lg:grid-cols-3 gap-12">
             <div className="lg:col-span-2 space-y-10">
               {/* Description */}
-              <section>
+              <section className="animate-fade-in">
                 <h2 className="font-display text-xl font-bold text-foreground mb-4">¿Qué sucedió?</h2>
                 <p className="text-muted-foreground leading-relaxed text-lg">{event.description}</p>
               </section>
 
               {/* Significance */}
               {event.significance && (
-                <section>
+                <section className="animate-fade-in" style={{ animationDelay: '100ms' }}>
                   <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                     <BookOpen className="h-5 w-5 text-primary" /> Significado Histórico
                   </h2>
@@ -179,13 +184,12 @@ export default function EventoHistorico() {
                   </h2>
                   <ul className="space-y-3">
                     {event.consequences.map((c, i) => (
-                      <motion.li key={i} initial={{ opacity: 0, x: -10 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}
-                        className="flex items-start gap-3">
+                      <li key={i} className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                           <ChevronRight className="h-4 w-4 text-primary" />
                         </div>
                         <span className="text-muted-foreground">{c}</span>
-                      </motion.li>
+                      </li>
                     ))}
                   </ul>
                 </section>
@@ -199,10 +203,14 @@ export default function EventoHistorico() {
                   </h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {event.gallery.map((img, i) => (
-                      <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}
-                        className="aspect-video rounded-xl overflow-hidden border border-border">
-                        <img src={img} alt={`${event.name} - ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                      </motion.div>
+                      <div key={i} className="aspect-video rounded-xl overflow-hidden border border-border">
+                        <LazyImage
+                          src={img}
+                          alt={`${event.name} - ${i + 1}`}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          containerClassName="w-full h-full"
+                        />
+                      </div>
                     ))}
                   </div>
                 </section>
@@ -232,8 +240,7 @@ export default function EventoHistorico() {
                   <Share2 className="h-4 w-4" /> Compartir
                 </Button>
 
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-                  className="bg-card rounded-2xl border border-border p-6">
+                <div className="bg-card rounded-2xl border border-border p-6 animate-fade-in">
                   <h3 className="font-display font-bold text-foreground mb-4">Datos del Evento</h3>
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between"><span className="text-muted-foreground">Fecha</span><span className="font-medium text-foreground">{event.event_date}</span></div>
@@ -241,18 +248,20 @@ export default function EventoHistorico() {
                     {event.location && <div className="flex justify-between"><span className="text-muted-foreground">Lugar</span><span className="font-medium text-foreground text-right max-w-[160px]">{event.location}</span></div>}
                     {event.era && <div className="flex justify-between"><span className="text-muted-foreground">Época</span><Badge className={`text-xs ${eraColors[event.era] || ""}`}>{event.era}</Badge></div>}
                   </div>
-                </motion.div>
+                </div>
 
                 {related && related.length > 0 && (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}
-                    className="bg-card rounded-2xl border border-border p-6">
+                  <div className="bg-card rounded-2xl border border-border p-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
                     <h3 className="font-display font-bold text-foreground mb-4">Eventos Relacionados</h3>
                     <div className="space-y-3">
                       {related.map((r) => (
                         <Link key={r.id} to={`/historia/evento/${r.slug}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors group">
-                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted">
-                            <img src={r.image_url || "/placeholder.svg"} alt={r.name} className="w-full h-full object-cover" />
-                          </div>
+                          <LazyImage
+                            src={r.image_url || "/placeholder.svg"}
+                            alt={r.name}
+                            className="w-full h-full object-cover"
+                            containerClassName="w-10 h-10 rounded-lg overflow-hidden bg-muted"
+                          />
                           <div>
                             <p className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">{r.name}</p>
                             <p className="text-xs text-muted-foreground">{r.event_date}</p>
@@ -260,7 +269,7 @@ export default function EventoHistorico() {
                         </Link>
                       ))}
                     </div>
-                  </motion.div>
+                  </div>
                 )}
               </div>
             </div>
