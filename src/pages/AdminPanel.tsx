@@ -770,7 +770,11 @@ const AdminPanel = () => {
           {/* Dashboard Overview */}
           <AdminDashboard />
 
-          {/* Stats Grid */}
+          {/* Import Establecimientos */}
+          <div className="mt-8">
+            <AdminImportEstablecimientos />
+          </div>
+
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8 mt-8">
             {(Object.entries(entityConfigs) as [EntityType, EntityConfig][]).slice(0, 6).map(([key, config]) => (
               <Card key={key} className="cursor-pointer hover:border-primary transition-colors" onClick={() => setSelectedEntity(key)}>
