@@ -284,6 +284,7 @@ function AnimatedRoutes() {
           <Route path="/estadisticas" element={<Estadisticas />} />
           <Route path="/partners" element={<Partners />} />
           <Route path="/sobre-nosotros" element={<SobreNosotros />} />
+          <Route path="/sitemap" element={<Sitemap />} />
           <Route path="/destino/:id" element={<DestinoDetalle />} />
           <Route path="/destinos-regiones" element={<DestinosRegiones />} />
           <Route path="/eventos" element={<Eventos />} />
