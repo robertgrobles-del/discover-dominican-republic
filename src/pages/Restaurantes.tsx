@@ -58,6 +58,7 @@ export default function Restaurantes() {
   ];
 
   useEffect(() => {
+    setIsLoading(true);
     supabase.from('restaurants').select('*').eq('is_active', true)
       .order('is_sponsored', { ascending: false })
       .order('is_featured', { ascending: false })
@@ -82,6 +83,7 @@ export default function Restaurantes() {
         }));
         setDbRestaurants(mapped);
       }
+      setIsLoading(false);
     });
   }, []);
 
