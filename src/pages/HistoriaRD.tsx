@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -8,10 +7,11 @@ import { SEOHead } from "@/components/SEOHead";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LazyImage } from "@/components/ui/lazy-image";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   BookOpen, Crown, Sword, Landmark, Calendar, MapPin,
-  ChevronRight, Quote, Users, Star, Clock,
+  ChevronRight, Users, Clock,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -87,19 +87,17 @@ export default function HistoriaRD() {
             <div className="absolute top-20 left-10 w-64 h-64 rounded-full bg-primary blur-3xl" />
             <div className="absolute bottom-10 right-10 w-96 h-96 rounded-full bg-primary blur-3xl" />
           </div>
-          <div className="container mx-auto px-4 text-center relative z-10">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
-                <BookOpen className="h-3 w-3 mr-1" /> Patrimonio Histórico
-              </Badge>
-              <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-4">
-                Historia de <span className="text-primary italic">República Dominicana</span>
-              </h1>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-                Más de 500 años de historia, heroísmo y cultura. Conoce los personajes y eventos
-                que forjaron la identidad de nuestra nación caribeña.
-              </p>
-            </motion.div>
+          <div className="container mx-auto px-4 text-center relative z-10 animate-fade-in">
+            <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
+              <BookOpen className="h-3 w-3 mr-1" /> Patrimonio Histórico
+            </Badge>
+            <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-4">
+              Historia de <span className="text-primary italic">República Dominicana</span>
+            </h1>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              Más de 500 años de historia, heroísmo y cultura. Conoce los personajes y eventos
+              que forjaron la identidad de nuestra nación caribeña.
+            </p>
           </div>
         </section>
 
@@ -111,47 +109,42 @@ export default function HistoriaRD() {
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredFigures.map((figure, i) => (
-                <motion.div
-                  key={figure.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                >
-                  <Link to={`/historia/personaje/${figure.slug}`}>
-                    <div className="bg-card rounded-2xl border border-border overflow-hidden group hover:border-primary/30 transition-all hover:shadow-lg">
-                      <div className="relative h-48 overflow-hidden">
-                        <img
-                          src={figure.image_url || "/placeholder.svg"}
-                          alt={figure.name}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-                        {figure.era && (
-                          <Badge className={`absolute top-3 right-3 text-xs ${eraColors[figure.era] || "bg-muted"}`}>
-                            {figure.era}
-                          </Badge>
+                <Link key={figure.id} to={`/historia/personaje/${figure.slug}`}
+                  className="animate-fade-in" style={{ animationDelay: `${i * 80}ms` }}>
+                  <div className="bg-card rounded-2xl border border-border overflow-hidden group hover:border-primary/30 transition-all hover:shadow-lg">
+                    <div className="relative h-48 overflow-hidden">
+                      <LazyImage
+                        src={figure.image_url || "/placeholder.svg"}
+                        alt={figure.name}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        containerClassName="w-full h-full"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+                      {figure.era && (
+                        <Badge className={`absolute top-3 right-3 text-xs ${eraColors[figure.era] || "bg-muted"}`}>
+                          {figure.era}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="p-5">
+                      <p className="text-xs text-primary font-semibold uppercase tracking-wider mb-1">{figure.title}</p>
+                      <h3 className="font-display font-bold text-lg text-foreground group-hover:text-primary transition-colors">
+                        {figure.name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{figure.short_description}</p>
+                      <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        <span>{figure.birth_date}</span>
+                        {figure.death_date && (
+                          <>
+                            <span>—</span>
+                            <span>{figure.death_date}</span>
+                          </>
                         )}
                       </div>
-                      <div className="p-5">
-                        <p className="text-xs text-primary font-semibold uppercase tracking-wider mb-1">{figure.title}</p>
-                        <h3 className="font-display font-bold text-lg text-foreground group-hover:text-primary transition-colors">
-                          {figure.name}
-                        </h3>
-                        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{figure.short_description}</p>
-                        <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          <span>{figure.birth_date}</span>
-                          {figure.death_date && (
-                            <>
-                              <span>—</span>
-                              <span>{figure.death_date}</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
                     </div>
-                  </Link>
-                </motion.div>
+                  </div>
+                </Link>
               ))}
             </div>
           </section>
@@ -179,13 +172,10 @@ export default function HistoriaRD() {
               ) : (
                 <div className="max-w-4xl mx-auto">
                   {events?.map((event, i) => (
-                    <motion.div
+                    <div
                       key={event.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.05 }}
-                      className="relative pl-16 pb-12 last:pb-0"
+                      className="relative pl-16 pb-12 last:pb-0 animate-fade-in"
+                      style={{ animationDelay: `${Math.min(i * 40, 400)}ms` }}
                     >
                       {i < (events?.length || 0) - 1 && (
                         <div className="absolute left-[27px] top-14 w-0.5 h-[calc(100%-40px)] bg-border" />
@@ -217,7 +207,7 @@ export default function HistoriaRD() {
                           </div>
                         </div>
                       </Link>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
               )}
@@ -232,34 +222,31 @@ export default function HistoriaRD() {
                   {figures?.map((figure, i) => {
                     const Icon = categoryIcons[figure.category || "politica"] || Crown;
                     return (
-                      <motion.div
-                        key={figure.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                      >
-                        <Link to={`/historia/personaje/${figure.slug}`}>
-                          <div className="bg-card rounded-xl border border-border p-5 hover:border-primary/30 transition-all group flex gap-5">
-                            <div className="w-20 h-20 rounded-xl overflow-hidden bg-muted flex-shrink-0">
-                              <img src={figure.image_url || "/placeholder.svg"} alt={figure.name} className="w-full h-full object-cover" />
+                      <Link key={figure.id} to={`/historia/personaje/${figure.slug}`}
+                        className="animate-fade-in" style={{ animationDelay: `${Math.min(i * 30, 300)}ms` }}>
+                        <div className="bg-card rounded-xl border border-border p-5 hover:border-primary/30 transition-all group flex gap-5">
+                          <LazyImage
+                            src={figure.image_url || "/placeholder.svg"}
+                            alt={figure.name}
+                            className="w-full h-full object-cover"
+                            containerClassName="w-20 h-20 rounded-xl overflow-hidden bg-muted flex-shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Icon className="h-4 w-4 text-primary" />
+                              <span className="text-xs text-primary font-semibold uppercase">{figure.title}</span>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <Icon className="h-4 w-4 text-primary" />
-                                <span className="text-xs text-primary font-semibold uppercase">{figure.title}</span>
-                              </div>
-                              <h3 className="font-display font-bold text-foreground group-hover:text-primary transition-colors">{figure.name}</h3>
-                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{figure.short_description}</p>
-                              <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                                <MapPin className="h-3 w-3" /> {figure.birth_place}
-                                <span>·</span>
-                                <Calendar className="h-3 w-3" /> {figure.birth_date}
-                              </div>
+                            <h3 className="font-display font-bold text-foreground group-hover:text-primary transition-colors">{figure.name}</h3>
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{figure.short_description}</p>
+                            <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                              <MapPin className="h-3 w-3" /> {figure.birth_place}
+                              <span>·</span>
+                              <Calendar className="h-3 w-3" /> {figure.birth_date}
                             </div>
-                            <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary flex-shrink-0 self-center" />
                           </div>
-                        </Link>
-                      </motion.div>
+                          <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary flex-shrink-0 self-center" />
+                        </div>
+                      </Link>
                     );
                   })}
                 </div>
@@ -272,32 +259,33 @@ export default function HistoriaRD() {
                 <div className="grid md:grid-cols-2 gap-4">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 w-full rounded-xl" />)}</div>
               ) : (
                 <div className="grid md:grid-cols-2 gap-4">
-                  {events?.map((event, i) => {
-                    const Icon = categoryIcons[event.category || "politica"] || Landmark;
-                    return (
-                      <motion.div key={event.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                        <Link to={`/historia/evento/${event.slug}`}>
-                          <div className="bg-card rounded-xl border border-border overflow-hidden group hover:border-primary/30 transition-all">
-                            <div className="relative h-40">
-                              <img src={event.image_url || "/placeholder.svg"} alt={event.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-                              <div className="absolute bottom-3 left-4 right-4">
-                                {event.era && <Badge className={`text-xs mb-1 ${eraColors[event.era] || "bg-muted"}`}>{event.era}</Badge>}
-                                <h3 className="font-display font-bold text-foreground group-hover:text-primary transition-colors">{event.name}</h3>
-                              </div>
-                            </div>
-                            <div className="p-4">
-                              <p className="text-sm text-muted-foreground line-clamp-2">{event.short_description}</p>
-                              <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {event.event_date}</span>
-                                {event.location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {event.location}</span>}
-                              </div>
-                            </div>
+                  {events?.map((event, i) => (
+                    <Link key={event.id} to={`/historia/evento/${event.slug}`}
+                      className="animate-fade-in" style={{ animationDelay: `${Math.min(i * 30, 300)}ms` }}>
+                      <div className="bg-card rounded-xl border border-border overflow-hidden group hover:border-primary/30 transition-all">
+                        <div className="relative h-40">
+                          <LazyImage
+                            src={event.image_url || "/placeholder.svg"}
+                            alt={event.name}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            containerClassName="w-full h-full"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+                          <div className="absolute bottom-3 left-4 right-4">
+                            {event.era && <Badge className={`text-xs mb-1 ${eraColors[event.era] || "bg-muted"}`}>{event.era}</Badge>}
+                            <h3 className="font-display font-bold text-foreground group-hover:text-primary transition-colors">{event.name}</h3>
                           </div>
-                        </Link>
-                      </motion.div>
-                    );
-                  })}
+                        </div>
+                        <div className="p-4">
+                          <p className="text-sm text-muted-foreground line-clamp-2">{event.short_description}</p>
+                          <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {event.event_date}</span>
+                            {event.location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {event.location}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               )}
             </TabsContent>

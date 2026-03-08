@@ -1,5 +1,4 @@
 import { useParams, Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
@@ -7,9 +6,10 @@ import { SEOHead } from "@/components/SEOHead";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LazyImage } from "@/components/ui/lazy-image";
 import {
   BookOpen, Crown, MapPin, Calendar, ChevronRight, Quote,
-  Award, Share2, ArrowLeft, Sword, Users,
+  Award, Share2, ArrowLeft,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -120,10 +120,13 @@ export default function PersonajeHistorico() {
         <section className="border-b border-border">
           <div className="container mx-auto px-4 py-10">
             <div className="flex flex-col md:flex-row gap-8 items-start">
-              <div className="w-full md:w-72 h-72 rounded-2xl overflow-hidden bg-muted flex-shrink-0 border border-border">
-                <img src={figure.image_url || "/placeholder.svg"} alt={figure.name} className="w-full h-full object-cover" />
-              </div>
-              <div className="flex-1">
+              <LazyImage
+                src={figure.image_url || "/placeholder.svg"}
+                alt={figure.name}
+                className="w-full h-full object-cover"
+                containerClassName="w-full md:w-72 h-72 rounded-2xl overflow-hidden bg-muted flex-shrink-0 border border-border"
+              />
+              <div className="flex-1 animate-fade-in">
                 <div className="flex items-center gap-3 mb-3">
                   {figure.era && <Badge className={eraColors[figure.era] || "bg-muted"}>{figure.era}</Badge>}
                   {figure.is_featured && <Badge className="bg-primary/20 text-primary border-primary/30">⭐ Destacado</Badge>}
@@ -147,7 +150,7 @@ export default function PersonajeHistorico() {
             <div className="lg:col-span-2 space-y-10">
               {/* Biography */}
               {figure.biography && (
-                <section>
+                <section className="animate-fade-in">
                   <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
                     <BookOpen className="h-5 w-5 text-primary" /> Biografía
                   </h2>
@@ -165,13 +168,12 @@ export default function PersonajeHistorico() {
                   </h2>
                   <ul className="space-y-3">
                     {figure.achievements.map((a, i) => (
-                      <motion.li key={i} initial={{ opacity: 0, x: -10 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}
-                        className="flex items-start gap-3">
+                      <li key={i} className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                           <Award className="h-4 w-4 text-primary" />
                         </div>
                         <span className="text-muted-foreground">{a}</span>
-                      </motion.li>
+                      </li>
                     ))}
                   </ul>
                 </section>
@@ -185,11 +187,10 @@ export default function PersonajeHistorico() {
                   </h2>
                   <div className="space-y-4">
                     {figure.quotes.map((q, i) => (
-                      <motion.div key={i} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                        className="bg-card rounded-xl border border-border p-6 relative">
+                      <div key={i} className="bg-card rounded-xl border border-border p-6 relative animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
                         <Quote className="absolute top-4 left-4 h-6 w-6 text-primary/20" />
                         <p className="text-foreground font-display text-lg italic pl-8">{q}</p>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 </section>
@@ -203,10 +204,14 @@ export default function PersonajeHistorico() {
                   </h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {figure.gallery.map((img, i) => (
-                      <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}
-                        className="aspect-square rounded-xl overflow-hidden border border-border">
-                        <img src={img} alt={`${figure.name} - ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                      </motion.div>
+                      <div key={i} className="aspect-square rounded-xl overflow-hidden border border-border">
+                        <LazyImage
+                          src={img}
+                          alt={`${figure.name} - ${i + 1}`}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          containerClassName="w-full h-full"
+                        />
+                      </div>
                     ))}
                   </div>
                 </section>
@@ -221,8 +226,7 @@ export default function PersonajeHistorico() {
                 </Button>
 
                 {/* Info card */}
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-                  className="bg-card rounded-2xl border border-border p-6">
+                <div className="bg-card rounded-2xl border border-border p-6 animate-fade-in">
                   <h3 className="font-display font-bold text-foreground mb-4">Datos</h3>
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between"><span className="text-muted-foreground">Nacimiento</span><span className="font-medium text-foreground">{figure.birth_date}</span></div>
@@ -230,19 +234,21 @@ export default function PersonajeHistorico() {
                     <div className="flex justify-between"><span className="text-muted-foreground">Lugar</span><span className="font-medium text-foreground">{figure.birth_place}</span></div>
                     {figure.era && <div className="flex justify-between"><span className="text-muted-foreground">Época</span><Badge className={`text-xs ${eraColors[figure.era] || ""}`}>{figure.era}</Badge></div>}
                   </div>
-                </motion.div>
+                </div>
 
                 {/* Related */}
                 {related && related.length > 0 && (
-                  <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}
-                    className="bg-card rounded-2xl border border-border p-6">
+                  <div className="bg-card rounded-2xl border border-border p-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
                     <h3 className="font-display font-bold text-foreground mb-4">Personajes Relacionados</h3>
                     <div className="space-y-3">
                       {related.map((r) => (
                         <Link key={r.id} to={`/historia/personaje/${r.slug}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors group">
-                          <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted">
-                            <img src={r.image_url || "/placeholder.svg"} alt={r.name} className="w-full h-full object-cover" />
-                          </div>
+                          <LazyImage
+                            src={r.image_url || "/placeholder.svg"}
+                            alt={r.name}
+                            className="w-full h-full object-cover"
+                            containerClassName="w-10 h-10 rounded-lg overflow-hidden bg-muted"
+                          />
                           <div>
                             <p className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">{r.name}</p>
                             <p className="text-xs text-muted-foreground">{r.title}</p>
@@ -250,7 +256,7 @@ export default function PersonajeHistorico() {
                         </Link>
                       ))}
                     </div>
-                  </motion.div>
+                  </div>
                 )}
               </div>
             </div>
