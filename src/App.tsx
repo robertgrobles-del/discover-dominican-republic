@@ -327,6 +327,7 @@ function AnimatedRoutes() {
           <Route path="/sugerencias" element={<Sugerencias />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/perfil" element={<Perfil />} />
           <Route path="/calculadora-presupuesto" element={<CalculadoraPresupuesto />} />
           <Route path="/estado-playas" element={<EstadoPlayas />} />
