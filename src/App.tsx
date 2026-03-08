@@ -500,6 +500,7 @@ const App = () => (
       <I18nProvider>
         <AuthProvider>
           <FavoritesProvider>
+            <CartProvider>
             <Toaster />
             <Sonner />
             <BrowserRouter>
