@@ -185,12 +185,12 @@ export function usePassport() {
   }, [user]);
 
   // Add a new stamp
-  const addStamp = useCallback(async (stamp: Partial<PassportStamp>) => {
+  const addStamp = useCallback(async (stampData: Omit<PassportStamp, 'id' | 'user_id' | 'created_at'>) => {
     if (!user) return false;
 
     const { error } = await supabase.from("passport_stamps").insert([{
       user_id: user.id,
-      ...stamp,
+      ...stampData,
     }]);
 
     if (error) {
@@ -198,7 +198,7 @@ export function usePassport() {
       return false;
     }
 
-    toast.success(`✅ Sello agregado: ${stamp.stamp_name}`);
+    toast.success(`✅ Sello agregado: ${stampData.stamp_name}`);
     await fetchStamps();
     return true;
   }, [user, fetchStamps]);
