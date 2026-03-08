@@ -58,7 +58,6 @@ export default function Registro() {
     setIsLoading(true);
 
     const { error } = await signUp(email, password, displayName);
-    // display_name is passed via metadata and picked up by the DB trigger
 
     if (error) {
       toast({
@@ -68,10 +67,11 @@ export default function Registro() {
       });
     } else {
       toast({
-        title: "¡Cuenta creada!",
-        description: "Tu cuenta ha sido creada exitosamente. Ya puedes iniciar sesión.",
+        title: "¡Bienvenido!",
+        description: "Tu cuenta ha sido creada. Redirigiendo...",
       });
-      navigate("/login");
+      // With auto-confirm, the user is automatically signed in
+      navigate("/perfil");
     }
 
     setIsLoading(false);

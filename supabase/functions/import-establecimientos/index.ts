@@ -5,6 +5,18 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function detectDelimiter(headerLine: string): string {
+  // Check tab first (most common in TXT exports), then pipe, then comma
+  if (headerLine.includes("\t")) return "\t";
+  if (headerLine.includes("|")) return "|";
+  return ",";
+}
+
+function parseLine(line: string, delimiter: string): string[] {
+  if (delimiter === ",") return parseCsvLine(line);
+  return line.split(delimiter).map((s) => s.trim());
+}
+
 function parseCsvLine(line: string): string[] {
   const result: string[] = [];
   let current = "";
@@ -48,11 +60,22 @@ Deno.serve(async (req) => {
     }
 
     const lines = csv_text.split("\n").filter((l: string) => l.trim());
+    if (lines.length < 2) {
+      return new Response(JSON.stringify({ error: "File has no data rows" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Auto-detect delimiter from header line
+    const delimiter = detectDelimiter(lines[0]);
+    console.log(`Detected delimiter: ${delimiter === "\t" ? "TAB" : delimiter}, total lines: ${lines.length}`);
+
     // Skip header
     const dataLines = lines.slice(1);
 
     const records = dataLines.map((line: string) => {
-      const cols = parseCsvLine(line);
+      const cols = parseLine(line, delimiter);
       const fechaRaw = cols[10] || "";
       let fecha: string | null = null;
       if (fechaRaw && /^\d{4}-\d{2}-\d{2}$/.test(fechaRaw)) {
@@ -75,7 +98,7 @@ Deno.serve(async (req) => {
         correo: cols[12] || null,
         is_active: true,
       };
-    });
+    }).filter((r: any) => r.nombre && r.nombre !== "Sin nombre");
 
     // Insert in batches of 500
     let inserted = 0;
@@ -94,7 +117,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, inserted }),
+      JSON.stringify({ success: true, inserted, delimiter: delimiter === "\t" ? "tab" : delimiter }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
