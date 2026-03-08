@@ -190,6 +190,39 @@ export default function EventoHistorico() {
                   </ul>
                 </section>
               )}
+
+              {/* Gallery */}
+              {event.gallery && event.gallery.length > 0 && (
+                <section>
+                  <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    📷 Galería
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {event.gallery.map((img, i) => (
+                      <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}
+                        className="aspect-video rounded-xl overflow-hidden border border-border">
+                        <img src={img} alt={`${event.name} - ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                      </motion.div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Sources */}
+              {event.sources && event.sources.length > 0 && (
+                <section>
+                  <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 text-primary" /> Fuentes
+                  </h2>
+                  <ul className="space-y-2">
+                    {event.sources.map((s, i) => (
+                      <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                        <span className="text-primary">•</span> {s}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
             </div>
 
             {/* Sidebar */}
