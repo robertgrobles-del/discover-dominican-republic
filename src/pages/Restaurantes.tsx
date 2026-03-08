@@ -18,6 +18,17 @@ import { useTranslation } from "@/hooks/useI18n";
 
 const priceRanges = ["$", "$$", "$$$", "$$$$"];
 
+const cuisineCategories = [
+  { id: "all", label: "Todos", icon: "🍽️" },
+  { id: "dominicana", label: "Dominicana", icon: "🇩🇴" },
+  { id: "internacional", label: "Internacional", icon: "🌍" },
+  { id: "mariscos", label: "Mariscos", icon: "🦞" },
+  { id: "italiana", label: "Italiana", icon: "🍝" },
+  { id: "japonesa", label: "Japonesa", icon: "🍣" },
+  { id: "parrilla", label: "Parrilla", icon: "🥩" },
+  { id: "vegetariana", label: "Vegetariana", icon: "🥗" },
+];
+
 const destinations = [
   { id: "all", labelKey: "restaurantes.allDestinations" },
   { id: "zona-colonial", label: "Zona Colonial" },
