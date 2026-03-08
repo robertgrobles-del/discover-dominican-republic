@@ -11,6 +11,7 @@ import { ChatbotTuristico } from "@/components/ChatbotTuristico";
 import { FavoritesProvider } from "@/hooks/useFavorites";
 import { AuthProvider } from "@/hooks/useAuth";
 import { I18nProvider } from "@/hooks/useI18n";
+import { CartProvider } from "@/hooks/useCart";
 
 // Critical pages - loaded immediately
 import Index from "./pages/Index";
