@@ -509,6 +509,7 @@ const App = () => (
               <BackToTop />
               <ChatbotTuristico />
             </BrowserRouter>
+            </CartProvider>
           </FavoritesProvider>
         </AuthProvider>
       </I18nProvider>

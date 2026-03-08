@@ -201,6 +201,8 @@ export function Header() {
               </div>
               <LanguageSelector />
               <ThemeToggle />
+              <NotificationBell />
+              <CartDrawer />
               <Button 
                 variant="ghost" 
                 size="icon" 
