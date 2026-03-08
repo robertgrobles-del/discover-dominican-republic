@@ -175,6 +175,7 @@ const HistoriaRD = lazy(() => import("./pages/HistoriaRD"));
 const PersonajeHistorico = lazy(() => import("./pages/PersonajeHistorico"));
 const EventoHistorico = lazy(() => import("./pages/EventoHistorico"));
 const ReservasNaturales = lazy(() => import("./pages/ReservasNaturales"));
+const Loteria = lazy(() => import("./pages/Loteria"));
 const TurismoComunitario = lazy(() => import("./pages/TurismoComunitario"));
 const AutorInvitado = lazy(() => import("./pages/AutorInvitado"));
 const ContratarInfluencers = lazy(() => import("./pages/ContratarInfluencers"));
@@ -417,6 +418,8 @@ function AnimatedRoutes() {
           <Route path="/tour/:slug" element={<TourDetalle />} />
           <Route path="/historia" element={<HistoriaRD />} />
           <Route path="/historia/personaje/:slug" element={<PersonajeHistorico />} />
+          <Route path="/historia/evento/:slug" element={<EventoHistorico />} />
+          <Route path="/loteria" element={<Loteria />} />
           <Route path="/historia/evento/:slug" element={<EventoHistorico />} />
           <Route path="/reservas-naturales" element={<ReservasNaturales />} />
           <Route path="/turismo-comunitario" element={<TurismoComunitario />} />
