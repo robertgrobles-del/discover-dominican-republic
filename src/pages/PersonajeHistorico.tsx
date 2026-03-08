@@ -194,6 +194,23 @@ export default function PersonajeHistorico() {
                   </div>
                 </section>
               )}
+
+              {/* Gallery */}
+              {figure.gallery && figure.gallery.length > 0 && (
+                <section>
+                  <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    📷 Galería
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {figure.gallery.map((img, i) => (
+                      <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}
+                        className="aspect-square rounded-xl overflow-hidden border border-border">
+                        <img src={img} alt={`${figure.name} - ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                      </motion.div>
+                    ))}
+                  </div>
+                </section>
+              )}
             </div>
 
             {/* Sidebar */}

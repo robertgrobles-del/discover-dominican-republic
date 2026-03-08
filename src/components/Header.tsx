@@ -126,6 +126,7 @@ export function Header() {
   const megaMenuSobreElPais = [
     { name: t("header.cultureTraditions"), href: "/cultura", icon: Heart, desc: t("header.cultureDesc") },
     { name: t("header.history"), href: "/patrimonio", icon: BookOpen, desc: t("header.historyDesc") },
+    { name: "Historia de RD", href: "/historia", icon: BookOpen, desc: "Personajes y eventos históricos" },
     { name: t("header.typicalCuisine"), href: "/cultura#gastronomia", icon: Utensils, desc: t("header.cuisineDesc") },
     { name: t("header.mediaGallery"), href: "/galeria", icon: Camera, desc: t("header.galleryDesc") },
     { name: t("header.embassies"), href: "/embajadas", icon: Globe, desc: t("header.embassiesDesc") },
