@@ -107,9 +107,11 @@ export default function Restaurantes() {
     if (selectedPrice) results = results.filter(r => r.priceRange === selectedPrice);
     if (selectedDestination !== "all") results = results.filter(r => r.destinationId === selectedDestination);
     if (selectedTag) results = results.filter(r => r.services.some(s => s.toLowerCase().includes(selectedTag.toLowerCase())));
+    if (selectedCuisine !== "all") results = results.filter(r => r.cuisineType.some(c => c.toLowerCase().includes(selectedCuisine.toLowerCase())));
     if (sortBy === "rating") results.sort((a, b) => b.rating - a.rating);
+    if (sortBy === "name") results.sort((a, b) => a.name.localeCompare(b.name));
     return results;
-  }, [searchQuery, selectedPrice, selectedDestination, selectedTag, sortBy]);
+  }, [searchQuery, selectedPrice, selectedDestination, selectedTag, selectedCuisine, sortBy]);
 
   return (
     <div className="min-h-screen bg-background">
