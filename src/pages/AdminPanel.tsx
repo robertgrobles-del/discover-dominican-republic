@@ -52,6 +52,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { EntityList } from "@/components/admin/EntityList";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { AdminImportEstablecimientos } from "@/components/admin/AdminImportEstablecimientos";
+import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
 import { EntityType as AdminEntityType } from "@/hooks/useAdminEntities";
 
 type EntityType = 
