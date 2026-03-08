@@ -186,7 +186,7 @@ export default function Restaurantes() {
             <div className="bg-card rounded-xl border border-border p-6 sticky top-24">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-display font-bold text-foreground">{t("restaurantes.filters")}</h3>
-                <Button variant="link" className="text-primary text-sm p-0" onClick={() => { setSelectedPrice(null); setSelectedDestination("all"); setSelectedTag(null); setSearchQuery(""); }}>
+                <Button variant="link" className="text-primary text-sm p-0" onClick={() => { setSelectedPrice(null); setSelectedDestination("all"); setSelectedTag(null); setSelectedCuisine("all"); setSearchQuery(""); }}>
                   {t("restaurantes.clearAll")}
                 </Button>
               </div>
