@@ -1174,6 +1174,66 @@ export type Database = {
           },
         ]
       }
+      establecimientos: {
+        Row: {
+          actividad: string | null
+          correo: string | null
+          created_at: string
+          estatus_establecimiento: string | null
+          estatus_licencia: string | null
+          estatus_proceso: string | null
+          fecha_vencimiento: string | null
+          id: string
+          is_active: boolean | null
+          nombre: string
+          numero_identificacion: string | null
+          provincia: string | null
+          rut: string | null
+          sector_zona: string | null
+          subsector: string
+          telefono: string | null
+          updated_at: string
+        }
+        Insert: {
+          actividad?: string | null
+          correo?: string | null
+          created_at?: string
+          estatus_establecimiento?: string | null
+          estatus_licencia?: string | null
+          estatus_proceso?: string | null
+          fecha_vencimiento?: string | null
+          id?: string
+          is_active?: boolean | null
+          nombre: string
+          numero_identificacion?: string | null
+          provincia?: string | null
+          rut?: string | null
+          sector_zona?: string | null
+          subsector: string
+          telefono?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actividad?: string | null
+          correo?: string | null
+          created_at?: string
+          estatus_establecimiento?: string | null
+          estatus_licencia?: string | null
+          estatus_proceso?: string | null
+          fecha_vencimiento?: string | null
+          id?: string
+          is_active?: boolean | null
+          nombre?: string
+          numero_identificacion?: string | null
+          provincia?: string | null
+          rut?: string | null
+          sector_zona?: string | null
+          subsector?: string
+          telefono?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           address: string | null
