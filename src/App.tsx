@@ -182,6 +182,7 @@ const VacacionesRD = lazy(() => import("./pages/VacacionesRD"));
 const Blog = lazy(() => import("./pages/Blog"));
 const FeedSocial = lazy(() => import("./pages/FeedSocial"));
 const MapaInteractivo = lazy(() => import("./pages/MapaInteractivo"));
+const Establecimientos = lazy(() => import("./pages/Establecimientos"));
 const GuiaPracticaPais = lazy(() => import("./pages/GuiaPracticaPais"));
 const EmbajadasConsulados = lazy(() => import("./pages/EmbajadasConsulados"));
 const SeguroViaje = lazy(() => import("./pages/SeguroViaje"));
