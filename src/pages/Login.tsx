@@ -121,12 +121,31 @@ export default function Login() {
                 </Button>
               </form>
 
-              <p className="text-center text-muted-foreground mt-6">
-                ¿No tienes cuenta?{" "}
-                <Link to="/registro" className="text-primary hover:underline font-medium">
-                  Regístrate gratis
+              <div className="flex items-center justify-between mt-6">
+                <Link to="/registro" className="text-primary hover:underline font-medium text-sm">
+                  ¿No tienes cuenta? Regístrate
                 </Link>
-              </p>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!email) {
+                      toast({ variant: "destructive", title: "Ingresa tu email", description: "Escribe tu correo para recuperar la contraseña." });
+                      return;
+                    }
+                    const { error } = await (await import("@/integrations/supabase/client")).supabase.auth.resetPasswordForEmail(email, {
+                      redirectTo: `${window.location.origin}/reset-password`,
+                    });
+                    if (error) {
+                      toast({ variant: "destructive", title: "Error", description: error.message });
+                    } else {
+                      toast({ title: "Correo enviado", description: "Revisa tu bandeja de entrada para restablecer tu contraseña." });
+                    }
+                  }}
+                  className="text-muted-foreground hover:text-primary text-sm"
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
             </motion.div>
 
             {/* Image */}
