@@ -13,6 +13,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { WeatherWidget } from "@/components/WeatherWidget";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { GlobalSearch } from "@/components/GlobalSearch";
+import { NotificationBell } from "@/components/NotificationBell";
+import { CartDrawer } from "@/components/CartDrawer";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/hooks/useI18n";
 import {
@@ -199,6 +201,8 @@ export function Header() {
               </div>
               <LanguageSelector />
               <ThemeToggle />
+              <NotificationBell />
+              <CartDrawer />
               <Button 
                 variant="ghost" 
                 size="icon" 

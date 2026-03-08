@@ -50,6 +50,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { EntityList } from "@/components/admin/EntityList";
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { EntityType as AdminEntityType } from "@/hooks/useAdminEntities";
 
 type EntityType = 
@@ -765,8 +766,11 @@ const AdminPanel = () => {
             </p>
           </div>
 
+          {/* Dashboard Overview */}
+          <AdminDashboard />
+
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8 mt-8">
             {(Object.entries(entityConfigs) as [EntityType, EntityConfig][]).slice(0, 6).map(([key, config]) => (
               <Card key={key} className="cursor-pointer hover:border-primary transition-colors" onClick={() => setSelectedEntity(key)}>
                 <CardContent className="p-4 text-center">
