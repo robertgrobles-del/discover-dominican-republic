@@ -181,6 +181,7 @@ const SorteosYPremios = lazy(() => import("./pages/SorteosYPremios"));
 const VacacionesRD = lazy(() => import("./pages/VacacionesRD"));
 const Blog = lazy(() => import("./pages/Blog"));
 const FeedSocial = lazy(() => import("./pages/FeedSocial"));
+const MapaInteractivo = lazy(() => import("./pages/MapaInteractivo"));
 const GuiaPracticaPais = lazy(() => import("./pages/GuiaPracticaPais"));
 const EmbajadasConsulados = lazy(() => import("./pages/EmbajadasConsulados"));
 const SeguroViaje = lazy(() => import("./pages/SeguroViaje"));
