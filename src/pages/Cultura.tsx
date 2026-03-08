@@ -337,6 +337,124 @@ export default function Cultura() {
         </div>
       </section>
 
+      {/* Museums & Heritage Section */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <span className="text-primary text-sm font-medium uppercase tracking-wider">Patrimonio</span>
+            <h2 className="font-display text-3xl md:text-4xl font-bold mt-3 mb-4">
+              Museos y <span className="text-gradient">Monumentos</span>
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Desde la primera catedral de América hasta museos de arte contemporáneo, la República Dominicana guarda 500 años de historia.
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { name: "Zona Colonial", desc: "Patrimonio UNESCO, la primera ciudad del Nuevo Mundo", icon: Landmark, image: colonialDoorImg, link: "/destino/zona-colonial" },
+              { name: "Museo del Hombre", desc: "Arte y cultura taína precolombina", icon: BookOpen, image: santoDomingoImg, link: "/museos" },
+              { name: "Alcázar de Colón", desc: "Palacio virreinal del siglo XVI restaurado", icon: Landmark, image: historyImg, link: "/museos" },
+              { name: "Arte Contemporáneo", desc: "Galerías y expresiones artísticas dominicanas", icon: Palette, image: gastronomyImg, link: "/museos" },
+            ].map((item, index) => (
+              <motion.div
+                key={item.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Link to={item.link}>
+                  <Card className="overflow-hidden group h-full border-border hover:border-primary/50 transition-colors">
+                    <div className="aspect-[4/3] relative overflow-hidden">
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+                      <div className="absolute bottom-3 left-3">
+                        <div className="p-2 rounded-lg bg-primary/20 backdrop-blur-sm">
+                          <item.icon className="h-5 w-5 text-primary" />
+                        </div>
+                      </div>
+                    </div>
+                    <CardContent className="p-4">
+                      <h3 className="font-display font-bold text-foreground group-hover:text-primary transition-colors">{item.name}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">{item.desc}</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="text-center mt-10">
+            <Link to="/museos">
+              <Button variant="outline" className="gap-2">
+                <Landmark className="h-4 w-4" /> Explorar todos los museos
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* History Timeline Teaser */}
+      <section className="py-20 bg-card">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+            >
+              <span className="text-primary text-sm font-medium uppercase tracking-wider">Historia Viva</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mt-3 mb-6">
+                500 Años de <span className="text-gradient">Historia</span>
+              </h2>
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                Desde la llegada de Cristóbal Colón en 1492 hasta la República Dominicana moderna, cada rincón de esta isla cuenta una historia fascinante de conquista, resistencia, cultura y renacimiento.
+              </p>
+              <div className="space-y-4 mb-8">
+                {[
+                  { year: "1492", event: "Llegada de Colón a la isla La Española" },
+                  { year: "1844", event: "Independencia Nacional — Juan Pablo Duarte" },
+                  { year: "1916", event: "Primera ocupación norteamericana" },
+                  { year: "1965", event: "Revolución de Abril y la guerra civil" },
+                ].map((item) => (
+                  <div key={item.year} className="flex items-start gap-4">
+                    <span className="text-primary font-bold text-lg min-w-[60px]">{item.year}</span>
+                    <div className="flex-1 border-l-2 border-primary/30 pl-4">
+                      <p className="text-foreground text-sm">{item.event}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Link to="/historia">
+                <Button className="gap-2">
+                  Explorar la historia completa <ChevronRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative aspect-[4/3] rounded-2xl overflow-hidden"
+            >
+              <img src={colonialDoorImg} alt="Zona Colonial" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
+              <div className="absolute bottom-6 left-6 right-6">
+                <p className="text-foreground font-display text-xl font-bold">Zona Colonial</p>
+                <p className="text-muted-foreground text-sm">Patrimonio de la Humanidad UNESCO</p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
       {/* Ad before CTA */}
       <BetweenSectionsAd showDemo />
 
