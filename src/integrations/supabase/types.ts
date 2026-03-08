@@ -1204,6 +1204,89 @@ export type Database = {
           },
         ]
       }
+      digital_collectibles: {
+        Row: {
+          animated_url: string | null
+          coin_value: number | null
+          collectible_type: string
+          created_at: string
+          current_supply: number | null
+          description: string | null
+          event_id: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_tradeable: boolean | null
+          name: string
+          rarity: string
+          season: string | null
+          short_description: string | null
+          slug: string | null
+          thumbnail_url: string | null
+          total_supply: number | null
+          unlock_condition: string | null
+          unlock_requirement: Json | null
+          updated_at: string
+          xp_value: number | null
+        }
+        Insert: {
+          animated_url?: string | null
+          coin_value?: number | null
+          collectible_type: string
+          created_at?: string
+          current_supply?: number | null
+          description?: string | null
+          event_id?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_tradeable?: boolean | null
+          name: string
+          rarity?: string
+          season?: string | null
+          short_description?: string | null
+          slug?: string | null
+          thumbnail_url?: string | null
+          total_supply?: number | null
+          unlock_condition?: string | null
+          unlock_requirement?: Json | null
+          updated_at?: string
+          xp_value?: number | null
+        }
+        Update: {
+          animated_url?: string | null
+          coin_value?: number | null
+          collectible_type?: string
+          created_at?: string
+          current_supply?: number | null
+          description?: string | null
+          event_id?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_tradeable?: boolean | null
+          name?: string
+          rarity?: string
+          season?: string | null
+          short_description?: string | null
+          slug?: string | null
+          thumbnail_url?: string | null
+          total_supply?: number | null
+          unlock_condition?: string | null
+          unlock_requirement?: Json | null
+          updated_at?: string
+          xp_value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "digital_collectibles_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       establecimientos: {
         Row: {
           actividad: string | null
@@ -1672,6 +1755,80 @@ export type Database = {
           xp_amount?: number | null
         }
         Relationships: []
+      }
+      gamified_routes: {
+        Row: {
+          completion_badge_id: string | null
+          created_at: string
+          description: string | null
+          difficulty: string | null
+          distance_km: number | null
+          duration_days: number | null
+          gallery: string[] | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          min_level: number | null
+          name: string
+          route_type: string
+          short_description: string | null
+          slug: string | null
+          total_coin_reward: number | null
+          total_xp_reward: number | null
+          updated_at: string
+        }
+        Insert: {
+          completion_badge_id?: string | null
+          created_at?: string
+          description?: string | null
+          difficulty?: string | null
+          distance_km?: number | null
+          duration_days?: number | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          min_level?: number | null
+          name: string
+          route_type?: string
+          short_description?: string | null
+          slug?: string | null
+          total_coin_reward?: number | null
+          total_xp_reward?: number | null
+          updated_at?: string
+        }
+        Update: {
+          completion_badge_id?: string | null
+          created_at?: string
+          description?: string | null
+          difficulty?: string | null
+          distance_km?: number | null
+          duration_days?: number | null
+          gallery?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          min_level?: number | null
+          name?: string
+          route_type?: string
+          short_description?: string | null
+          slug?: string | null
+          total_coin_reward?: number | null
+          total_xp_reward?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gamified_routes_completion_badge_id_fkey"
+            columns: ["completion_badge_id"]
+            isOneToOne: false
+            referencedRelation: "gamification_prizes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       historical_events: {
         Row: {
@@ -2210,6 +2367,114 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      passport_stamps: {
+        Row: {
+          beach_id: string | null
+          coins_earned: number | null
+          created_at: string
+          destination_id: string | null
+          experience_id: string | null
+          hotel_id: string | null
+          id: string
+          is_verified: boolean | null
+          notes: string | null
+          photos: string[] | null
+          rating: number | null
+          restaurant_id: string | null
+          stamp_image: string | null
+          stamp_location: string | null
+          stamp_name: string
+          stamp_type: string
+          user_id: string
+          verification_data: Json | null
+          verification_method: string | null
+          visited_at: string
+          xp_earned: number | null
+        }
+        Insert: {
+          beach_id?: string | null
+          coins_earned?: number | null
+          created_at?: string
+          destination_id?: string | null
+          experience_id?: string | null
+          hotel_id?: string | null
+          id?: string
+          is_verified?: boolean | null
+          notes?: string | null
+          photos?: string[] | null
+          rating?: number | null
+          restaurant_id?: string | null
+          stamp_image?: string | null
+          stamp_location?: string | null
+          stamp_name: string
+          stamp_type: string
+          user_id: string
+          verification_data?: Json | null
+          verification_method?: string | null
+          visited_at?: string
+          xp_earned?: number | null
+        }
+        Update: {
+          beach_id?: string | null
+          coins_earned?: number | null
+          created_at?: string
+          destination_id?: string | null
+          experience_id?: string | null
+          hotel_id?: string | null
+          id?: string
+          is_verified?: boolean | null
+          notes?: string | null
+          photos?: string[] | null
+          rating?: number | null
+          restaurant_id?: string | null
+          stamp_image?: string | null
+          stamp_location?: string | null
+          stamp_name?: string
+          stamp_type?: string
+          user_id?: string
+          verification_data?: Json | null
+          verification_method?: string | null
+          visited_at?: string
+          xp_earned?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "passport_stamps_beach_id_fkey"
+            columns: ["beach_id"]
+            isOneToOne: false
+            referencedRelation: "beaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "passport_stamps_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "passport_stamps_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "passport_stamps_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "passport_stamps_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ports_marinas: {
         Row: {
@@ -2755,6 +3020,115 @@ export type Database = {
             columns: ["destination_id"]
             isOneToOne: false
             referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      route_checkpoints: {
+        Row: {
+          beach_id: string | null
+          challenge_task: string | null
+          checkpoint_description: string | null
+          checkpoint_name: string
+          checkpoint_order: number
+          checkpoint_type: string
+          coin_reward: number | null
+          created_at: string
+          destination_id: string | null
+          experience_id: string | null
+          hotel_id: string | null
+          id: string
+          is_mandatory: boolean | null
+          latitude: number | null
+          longitude: number | null
+          photo_required: boolean | null
+          restaurant_id: string | null
+          route_id: string
+          xp_reward: number | null
+        }
+        Insert: {
+          beach_id?: string | null
+          challenge_task?: string | null
+          checkpoint_description?: string | null
+          checkpoint_name: string
+          checkpoint_order: number
+          checkpoint_type: string
+          coin_reward?: number | null
+          created_at?: string
+          destination_id?: string | null
+          experience_id?: string | null
+          hotel_id?: string | null
+          id?: string
+          is_mandatory?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          photo_required?: boolean | null
+          restaurant_id?: string | null
+          route_id: string
+          xp_reward?: number | null
+        }
+        Update: {
+          beach_id?: string | null
+          challenge_task?: string | null
+          checkpoint_description?: string | null
+          checkpoint_name?: string
+          checkpoint_order?: number
+          checkpoint_type?: string
+          coin_reward?: number | null
+          created_at?: string
+          destination_id?: string | null
+          experience_id?: string | null
+          hotel_id?: string | null
+          id?: string
+          is_mandatory?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          photo_required?: boolean | null
+          restaurant_id?: string | null
+          route_id?: string
+          xp_reward?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_checkpoints_beach_id_fkey"
+            columns: ["beach_id"]
+            isOneToOne: false
+            referencedRelation: "beaches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_checkpoints_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_checkpoints_experience_id_fkey"
+            columns: ["experience_id"]
+            isOneToOne: false
+            referencedRelation: "experiences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_checkpoints_hotel_id_fkey"
+            columns: ["hotel_id"]
+            isOneToOne: false
+            referencedRelation: "hotels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_checkpoints_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_checkpoints_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "gamified_routes"
             referencedColumns: ["id"]
           },
         ]
@@ -3553,6 +3927,104 @@ export type Database = {
           },
         ]
       }
+      user_checkpoint_completions: {
+        Row: {
+          checkpoint_id: string
+          coins_earned: number | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          photo_url: string | null
+          route_id: string
+          user_id: string
+          verification_data: Json | null
+          xp_earned: number | null
+        }
+        Insert: {
+          checkpoint_id: string
+          coins_earned?: number | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          photo_url?: string | null
+          route_id: string
+          user_id: string
+          verification_data?: Json | null
+          xp_earned?: number | null
+        }
+        Update: {
+          checkpoint_id?: string
+          coins_earned?: number | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          photo_url?: string | null
+          route_id?: string
+          user_id?: string
+          verification_data?: Json | null
+          xp_earned?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_checkpoint_completions_checkpoint_id_fkey"
+            columns: ["checkpoint_id"]
+            isOneToOne: false
+            referencedRelation: "route_checkpoints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_checkpoint_completions_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "gamified_routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_collectibles: {
+        Row: {
+          acquired_at: string | null
+          acquisition_method: string | null
+          collectible_id: string
+          created_at: string
+          display_order: number | null
+          id: string
+          is_favorite: boolean | null
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string | null
+          acquisition_method?: string | null
+          collectible_id: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_favorite?: boolean | null
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string | null
+          acquisition_method?: string | null
+          collectible_id?: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_favorite?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_collectibles_collectible_id_fkey"
+            columns: ["collectible_id"]
+            isOneToOne: false
+            referencedRelation: "digital_collectibles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_gamification: {
         Row: {
           coins: number
@@ -3700,6 +4172,65 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_route_progress: {
+        Row: {
+          checkpoints_completed: number | null
+          completed_at: string | null
+          completion_percentage: number | null
+          created_at: string
+          current_checkpoint: number | null
+          id: string
+          is_completed: boolean | null
+          route_id: string
+          started_at: string | null
+          total_checkpoints: number | null
+          total_coins_earned: number | null
+          total_xp_earned: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          checkpoints_completed?: number | null
+          completed_at?: string | null
+          completion_percentage?: number | null
+          created_at?: string
+          current_checkpoint?: number | null
+          id?: string
+          is_completed?: boolean | null
+          route_id: string
+          started_at?: string | null
+          total_checkpoints?: number | null
+          total_coins_earned?: number | null
+          total_xp_earned?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          checkpoints_completed?: number | null
+          completed_at?: string | null
+          completion_percentage?: number | null
+          created_at?: string
+          current_checkpoint?: number | null
+          id?: string
+          is_completed?: boolean | null
+          route_id?: string
+          started_at?: string | null
+          total_checkpoints?: number | null
+          total_coins_earned?: number | null
+          total_xp_earned?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_route_progress_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "gamified_routes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vacation_registrations: {
         Row: {
