@@ -117,13 +117,16 @@ export default function Restaurantes() {
     <div className="min-h-screen bg-background">
       <Header />
       
-      <section className="relative py-16 mt-16">
+      <section className="relative py-20 mt-16">
         <div className="absolute inset-0">
           <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1920&h=400&fit=crop" alt={t("restaurantes.breadcrumb")} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
         </div>
         <div className="relative container mx-auto px-4 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 gap-2">
+              <Utensils className="h-3 w-3" /> {filteredRestaurants.length} restaurantes
+            </Badge>
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{t("restaurantes.title")}</h1>
             <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">{t("restaurantes.subtitle")}</p>
             <div className="flex gap-2 max-w-xl mx-auto bg-card/80 backdrop-blur-md p-2 rounded-xl border border-border">
@@ -131,6 +134,38 @@ export default function Restaurantes() {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input placeholder={t("restaurantes.searchPlaceholder")} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 bg-transparent border-0 focus-visible:ring-0" />
               </div>
+              <Button>{t("restaurantes.search")}</Button>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Cuisine Category Filter - Sticky */}
+      <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-md border-b border-border">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {cuisineCategories.map((cat) => (
+              <Button
+                key={cat.id}
+                variant={selectedCuisine === cat.id ? "default" : "outline"}
+                size="sm"
+                className="shrink-0 gap-2"
+                onClick={() => setSelectedCuisine(cat.id)}
+              >
+                <span>{cat.icon}</span> {cat.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Link to="/" className="hover:text-primary">{t("restaurantes.home")}</Link>
+          <span>/</span>
+          <span className="text-foreground">{t("restaurantes.breadcrumb")}</span>
+        </div>
+      </div>
               <Button>{t("restaurantes.search")}</Button>
             </div>
           </motion.div>
