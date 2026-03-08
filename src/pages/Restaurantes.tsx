@@ -166,19 +166,8 @@ export default function Restaurantes() {
           <span className="text-foreground">{t("restaurantes.breadcrumb")}</span>
         </div>
       </div>
-              <Button>{t("restaurantes.search")}</Button>
-            </div>
-          </motion.div>
-        </div>
-      </section>
 
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Link to="/" className="hover:text-primary">{t("restaurantes.home")}</Link>
-          <span>/</span>
-          <span className="text-foreground">{t("restaurantes.breadcrumb")}</span>
-        </div>
-      </div>
+
 
       <div className="container mx-auto px-4 pb-12">
         <div className="grid lg:grid-cols-12 gap-8">
