@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronRight, Play, Music, Heart, MapPin, Calendar, Landmark, BookOpen, Palette } from "lucide-react";
+import { ChevronRight, Play, Music, Heart, MapPin, Calendar, Landmark, BookOpen, Palette, Sparkles, Globe, Drumstick } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
 import { useTranslation } from "@/hooks/useI18n";
 import laBanderaImg from "@/assets/la-bandera.jpg";
@@ -15,8 +17,19 @@ import gastronomyImg from "@/assets/gastronomy.jpg";
 import colonialDoorImg from "@/assets/colonial-door.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 
+const culturalCategories = [
+  { id: "all", label: "Todo", icon: "🇩🇴" },
+  { id: "gastronomy", label: "Gastronomía", icon: "🍽️" },
+  { id: "music", label: "Música", icon: "🎵" },
+  { id: "festivals", label: "Festivales", icon: "🎭" },
+  { id: "history", label: "Historia", icon: "📜" },
+  { id: "museums", label: "Museos", icon: "🏛️" },
+  { id: "art", label: "Arte", icon: "🎨" },
+];
+
 export default function Cultura() {
   const { t } = useTranslation();
+  const [activeCategory, setActiveCategory] = useState("all");
 
   const festivals = [
     {
@@ -50,6 +63,25 @@ export default function Cultura() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+
+      {/* Sticky Cultural Category Nav */}
+      <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-md border-b border-border">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {culturalCategories.map((cat) => (
+              <Button
+                key={cat.id}
+                variant={activeCategory === cat.id ? "default" : "outline"}
+                size="sm"
+                className="shrink-0 gap-2"
+                onClick={() => setActiveCategory(cat.id)}
+              >
+                <span>{cat.icon}</span> {cat.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Hero Section */}
       <section className="relative h-[70vh] min-h-[500px] w-full flex flex-col justify-center items-center overflow-hidden">
@@ -101,6 +133,33 @@ export default function Cultura() {
               {t("cultura.watchVideo")}
             </Button>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Cultural Stats */}
+      <section className="py-8 bg-card border-b border-border">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { value: "500+", label: "Años de historia", icon: "📜" },
+              { value: "2", label: "Géneros Patrimonio UNESCO", icon: "🎵" },
+              { value: "100+", label: "Fiestas patronales", icon: "🎭" },
+              { value: "50+", label: "Museos y monumentos", icon: "🏛️" },
+            ].map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="text-center p-4"
+              >
+                <span className="text-2xl mb-2 block">{stat.icon}</span>
+                <p className="text-2xl md:text-3xl font-bold text-foreground">{stat.value}</p>
+                <p className="text-sm text-muted-foreground">{stat.label}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 

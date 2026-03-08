@@ -18,6 +18,17 @@ import { useTranslation } from "@/hooks/useI18n";
 
 const priceRanges = ["$", "$$", "$$$", "$$$$"];
 
+const cuisineCategories = [
+  { id: "all", label: "Todos", icon: "🍽️" },
+  { id: "dominicana", label: "Dominicana", icon: "🇩🇴" },
+  { id: "internacional", label: "Internacional", icon: "🌍" },
+  { id: "mariscos", label: "Mariscos", icon: "🦞" },
+  { id: "italiana", label: "Italiana", icon: "🍝" },
+  { id: "japonesa", label: "Japonesa", icon: "🍣" },
+  { id: "parrilla", label: "Parrilla", icon: "🥩" },
+  { id: "vegetariana", label: "Vegetariana", icon: "🥗" },
+];
+
 const destinations = [
   { id: "all", labelKey: "restaurantes.allDestinations" },
   { id: "zona-colonial", label: "Zona Colonial" },
@@ -37,7 +48,9 @@ export default function Restaurantes() {
   const [selectedDestination, setSelectedDestination] = useState("all");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("recomendados");
+  const [selectedCuisine, setSelectedCuisine] = useState("all");
   const [dbRestaurants, setDbRestaurants] = useState<Restaurant[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const popularTags = [
     t("restaurantes.seaView"), t("restaurantes.romantic"), t("restaurantes.familyFriendly"),
@@ -45,6 +58,7 @@ export default function Restaurantes() {
   ];
 
   useEffect(() => {
+    setIsLoading(true);
     supabase.from('restaurants').select('*').eq('is_active', true)
       .order('is_sponsored', { ascending: false })
       .order('is_featured', { ascending: false })
@@ -69,6 +83,7 @@ export default function Restaurantes() {
         }));
         setDbRestaurants(mapped);
       }
+      setIsLoading(false);
     });
   }, []);
 
@@ -92,21 +107,26 @@ export default function Restaurantes() {
     if (selectedPrice) results = results.filter(r => r.priceRange === selectedPrice);
     if (selectedDestination !== "all") results = results.filter(r => r.destinationId === selectedDestination);
     if (selectedTag) results = results.filter(r => r.services.some(s => s.toLowerCase().includes(selectedTag.toLowerCase())));
+    if (selectedCuisine !== "all") results = results.filter(r => r.cuisineType.some(c => c.toLowerCase().includes(selectedCuisine.toLowerCase())));
     if (sortBy === "rating") results.sort((a, b) => b.rating - a.rating);
+    if (sortBy === "name") results.sort((a, b) => a.name.localeCompare(b.name));
     return results;
-  }, [searchQuery, selectedPrice, selectedDestination, selectedTag, sortBy]);
+  }, [searchQuery, selectedPrice, selectedDestination, selectedTag, selectedCuisine, sortBy]);
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       
-      <section className="relative py-16 mt-16">
+      <section className="relative py-20 mt-16">
         <div className="absolute inset-0">
           <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1920&h=400&fit=crop" alt={t("restaurantes.breadcrumb")} className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />
         </div>
         <div className="relative container mx-auto px-4 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 gap-2">
+              <Utensils className="h-3 w-3" /> {filteredRestaurants.length} restaurantes
+            </Badge>
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{t("restaurantes.title")}</h1>
             <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">{t("restaurantes.subtitle")}</p>
             <div className="flex gap-2 max-w-xl mx-auto bg-card/80 backdrop-blur-md p-2 rounded-xl border border-border">
@@ -120,6 +140,25 @@ export default function Restaurantes() {
         </div>
       </section>
 
+      {/* Cuisine Category Filter - Sticky */}
+      <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-md border-b border-border">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {cuisineCategories.map((cat) => (
+              <Button
+                key={cat.id}
+                variant={selectedCuisine === cat.id ? "default" : "outline"}
+                size="sm"
+                className="shrink-0 gap-2"
+                onClick={() => setSelectedCuisine(cat.id)}
+              >
+                <span>{cat.icon}</span> {cat.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Link to="/" className="hover:text-primary">{t("restaurantes.home")}</Link>
@@ -128,13 +167,15 @@ export default function Restaurantes() {
         </div>
       </div>
 
+
+
       <div className="container mx-auto px-4 pb-12">
         <div className="grid lg:grid-cols-12 gap-8">
           <div className="lg:col-span-4">
             <div className="bg-card rounded-xl border border-border p-6 sticky top-24">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-display font-bold text-foreground">{t("restaurantes.filters")}</h3>
-                <Button variant="link" className="text-primary text-sm p-0" onClick={() => { setSelectedPrice(null); setSelectedDestination("all"); setSelectedTag(null); setSearchQuery(""); }}>
+                <Button variant="link" className="text-primary text-sm p-0" onClick={() => { setSelectedPrice(null); setSelectedDestination("all"); setSelectedTag(null); setSelectedCuisine("all"); setSearchQuery(""); }}>
                   {t("restaurantes.clearAll")}
                 </Button>
               </div>
@@ -187,6 +228,7 @@ export default function Restaurantes() {
                   <SelectContent>
                     <SelectItem value="recomendados">{t("restaurantes.recommended")}</SelectItem>
                     <SelectItem value="rating">{t("restaurantes.highestRating")}</SelectItem>
+                    <SelectItem value="name">A-Z</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
