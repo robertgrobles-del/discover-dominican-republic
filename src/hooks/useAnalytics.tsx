@@ -21,9 +21,9 @@ export function usePageTracking() {
 }
 
 export function trackEvent(eventType: string, metadata?: Record<string, unknown>) {
-  supabase.from("analytics_events").insert({
+  supabase.from("analytics_events").insert([{
     event_type: eventType,
-    metadata: metadata || {},
+    metadata: (metadata || {}) as any,
     session_id: sessionId,
-  }).then(() => {});
+  }]).then(() => {});
 }
