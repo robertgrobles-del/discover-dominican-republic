@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronRight, Play, Music, Heart, MapPin, Calendar, Landmark, BookOpen, Palette } from "lucide-react";
+import { ChevronRight, Play, Music, Heart, MapPin, Calendar, Landmark, BookOpen, Palette, Sparkles, Globe, Drumstick } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
 import { useTranslation } from "@/hooks/useI18n";
 import laBanderaImg from "@/assets/la-bandera.jpg";
@@ -14,6 +16,16 @@ import historyImg from "@/assets/history.jpg";
 import gastronomyImg from "@/assets/gastronomy.jpg";
 import colonialDoorImg from "@/assets/colonial-door.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
+
+const culturalCategories = [
+  { id: "all", label: "Todo", icon: "🇩🇴" },
+  { id: "gastronomy", label: "Gastronomía", icon: "🍽️" },
+  { id: "music", label: "Música", icon: "🎵" },
+  { id: "festivals", label: "Festivales", icon: "🎭" },
+  { id: "history", label: "Historia", icon: "📜" },
+  { id: "museums", label: "Museos", icon: "🏛️" },
+  { id: "art", label: "Arte", icon: "🎨" },
+];
 
 export default function Cultura() {
   const { t } = useTranslation();
