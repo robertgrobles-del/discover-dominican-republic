@@ -81,9 +81,14 @@ export function AdminImportEstablecimientos() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          Importa establecimientos turísticos del MITUR. Puedes subir archivos CSV o importar los datos precargados.
-        </p>
+        <div className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            Importa establecimientos turísticos del MITUR. Puedes subir archivos <Badge variant="outline">CSV</Badge> o <Badge variant="outline">TXT</Badge> delimitados por comas, tabuladores o pipes.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Formato esperado: Subsector, Actividad, RUT, No. Identificación, Nombre, Sector/Zona, Provincia, Estatus Proceso, Estatus Licencia, Estatus Establecimiento, Fecha Vencimiento, Teléfono, Correo
+          </p>
+        </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <Button onClick={handleImportBundled} disabled={importing}>
@@ -96,10 +101,10 @@ export function AdminImportEstablecimientos() {
 
           <Button asChild disabled={importing} variant="outline">
             <label className="cursor-pointer">
-              <Upload className="h-4 w-4 mr-2" /> Subir CSV
+              <FileText className="h-4 w-4 mr-2" /> Subir archivo (CSV / TXT)
               <input
                 type="file"
-                accept=".txt,.csv"
+                accept=".txt,.csv,.tsv"
                 multiple
                 className="hidden"
                 onChange={handleFileUpload}
