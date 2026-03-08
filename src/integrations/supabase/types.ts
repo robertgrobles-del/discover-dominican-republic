@@ -2047,6 +2047,66 @@ export type Database = {
           },
         ]
       }
+      lottery_results: {
+        Row: {
+          bonus_number: number | null
+          created_at: string
+          draw_date: string
+          draw_time: string | null
+          draw_type: string | null
+          id: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          jackpot_amount: string | null
+          logo_url: string | null
+          lottery_name: string
+          next_draw_date: string | null
+          next_jackpot_estimate: string | null
+          prize_pool: string | null
+          slug: string | null
+          updated_at: string
+          winning_numbers: number[] | null
+        }
+        Insert: {
+          bonus_number?: number | null
+          created_at?: string
+          draw_date: string
+          draw_time?: string | null
+          draw_type?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          jackpot_amount?: string | null
+          logo_url?: string | null
+          lottery_name: string
+          next_draw_date?: string | null
+          next_jackpot_estimate?: string | null
+          prize_pool?: string | null
+          slug?: string | null
+          updated_at?: string
+          winning_numbers?: number[] | null
+        }
+        Update: {
+          bonus_number?: number | null
+          created_at?: string
+          draw_date?: string
+          draw_time?: string | null
+          draw_type?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          jackpot_amount?: string | null
+          logo_url?: string | null
+          lottery_name?: string
+          next_draw_date?: string | null
+          next_jackpot_estimate?: string | null
+          prize_pool?: string | null
+          slug?: string | null
+          updated_at?: string
+          winning_numbers?: number[] | null
+        }
+        Relationships: []
+      }
       municipalities: {
         Row: {
           area_km2: number | null
