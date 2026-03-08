@@ -136,6 +136,33 @@ export default function Cultura() {
         </div>
       </section>
 
+      {/* Cultural Stats */}
+      <section className="py-8 bg-card border-b border-border">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              { value: "500+", label: "Años de historia", icon: "📜" },
+              { value: "2", label: "Géneros Patrimonio UNESCO", icon: "🎵" },
+              { value: "100+", label: "Fiestas patronales", icon: "🎭" },
+              { value: "50+", label: "Museos y monumentos", icon: "🏛️" },
+            ].map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="text-center p-4"
+              >
+                <span className="text-2xl mb-2 block">{stat.icon}</span>
+                <p className="text-2xl md:text-3xl font-bold text-foreground">{stat.value}</p>
+                <p className="text-sm text-muted-foreground">{stat.label}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Gastronomy Section */}
       <section className="py-20 bg-card">
         <div className="container mx-auto px-4 lg:px-8">
