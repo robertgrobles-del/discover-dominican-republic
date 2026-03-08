@@ -331,6 +331,9 @@ function AnimatedRoutes() {
           <Route path="/club-recompensas" element={<ClubRecompensas />} />
           <Route path="/gamificacion" element={<GamificacionHub />} />
           <Route path="/perfil-jugador" element={<PerfilJugador />} />
+          <Route path="/retos" element={<RetosTuristicos />} />
+          <Route path="/trivia" element={<TriviaTuristica />} />
+          <Route path="/mapa-misiones" element={<MapaMisiones />} />
           <Route path="/comparador" element={<ComparadorDestinos />} />
           <Route path="/mis-logros" element={<MisLogros />} />
           <Route path="/opiniones" element={<Opiniones />} />
