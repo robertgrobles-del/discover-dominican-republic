@@ -50,6 +50,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { EntityList } from "@/components/admin/EntityList";
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { EntityType as AdminEntityType } from "@/hooks/useAdminEntities";
 
 type EntityType = 
