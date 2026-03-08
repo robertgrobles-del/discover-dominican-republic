@@ -241,6 +241,13 @@ const PageLoader = () => (
 function AnimatedRoutes() {
   const location = useLocation();
   
+  // Page view tracking
+  useEffect(() => {
+    import("@/hooks/useAnalytics").then(({ trackEvent }) => {
+      trackEvent("page_view", { page: location.pathname });
+    });
+  }, [location.pathname]);
+  
   return (
     <AnimatePresence mode="wait">
       <Suspense fallback={<PageLoader />}>
