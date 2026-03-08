@@ -228,6 +228,7 @@ export default function Restaurantes() {
                   <SelectContent>
                     <SelectItem value="recomendados">{t("restaurantes.recommended")}</SelectItem>
                     <SelectItem value="rating">{t("restaurantes.highestRating")}</SelectItem>
+                    <SelectItem value="name">A-Z</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
