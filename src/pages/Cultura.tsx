@@ -64,6 +64,25 @@ export default function Cultura() {
     <div className="min-h-screen bg-background">
       <Header />
 
+      {/* Sticky Cultural Category Nav */}
+      <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-md border-b border-border">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            {culturalCategories.map((cat) => (
+              <Button
+                key={cat.id}
+                variant={activeCategory === cat.id ? "default" : "outline"}
+                size="sm"
+                className="shrink-0 gap-2"
+                onClick={() => setActiveCategory(cat.id)}
+              >
+                <span>{cat.icon}</span> {cat.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <section className="relative h-[70vh] min-h-[500px] w-full flex flex-col justify-center items-center overflow-hidden">
         <div className="absolute inset-0 z-0">
