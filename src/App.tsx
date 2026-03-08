@@ -84,6 +84,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Registro = lazy(() => import("./pages/Registro"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Perfil = lazy(() => import("./pages/Perfil"));
+const Sitemap = lazy(() => import("./pages/Sitemap"));
 const CalculadoraPresupuesto = lazy(() => import("./pages/CalculadoraPresupuesto"));
 const EstadoPlayas = lazy(() => import("./pages/EstadoPlayas"));
 const GuiasLocales = lazy(() => import("./pages/GuiasLocales"));
