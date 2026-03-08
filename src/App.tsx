@@ -204,6 +204,9 @@ const ViajarConMascotas = lazy(() => import("./pages/ViajarConMascotas"));
 const ViajerosSenior = lazy(() => import("./pages/ViajerosSenior"));
 const GamificacionHub = lazy(() => import("./pages/GamificacionHub"));
 const PerfilJugador = lazy(() => import("./pages/PerfilJugador"));
+const RetosTuristicos = lazy(() => import("./pages/RetosTuristicos"));
+const TriviaTuristica = lazy(() => import("./pages/TriviaTuristica"));
+const MapaMisiones = lazy(() => import("./pages/MapaMisiones"));
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
 const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
@@ -328,6 +331,9 @@ function AnimatedRoutes() {
           <Route path="/club-recompensas" element={<ClubRecompensas />} />
           <Route path="/gamificacion" element={<GamificacionHub />} />
           <Route path="/perfil-jugador" element={<PerfilJugador />} />
+          <Route path="/retos" element={<RetosTuristicos />} />
+          <Route path="/trivia" element={<TriviaTuristica />} />
+          <Route path="/mapa-misiones" element={<MapaMisiones />} />
           <Route path="/comparador" element={<ComparadorDestinos />} />
           <Route path="/mis-logros" element={<MisLogros />} />
           <Route path="/opiniones" element={<Opiniones />} />
