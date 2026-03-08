@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
-import { ChevronRight, Play, Music, Heart, MapPin, Calendar } from "lucide-react";
+import { ChevronRight, Play, Music, Heart, MapPin, Calendar, Landmark, BookOpen, Palette } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
 import { useTranslation } from "@/hooks/useI18n";
 import laBanderaImg from "@/assets/la-bandera.jpg";
@@ -10,6 +12,8 @@ import merengueImg from "@/assets/merengue-dance.jpg";
 import carnivalImg from "@/assets/carnival.jpg";
 import historyImg from "@/assets/history.jpg";
 import gastronomyImg from "@/assets/gastronomy.jpg";
+import colonialDoorImg from "@/assets/colonial-door.jpg";
+import santoDomingoImg from "@/assets/santo-domingo.jpg";
 
 export default function Cultura() {
   const { t } = useTranslation();
