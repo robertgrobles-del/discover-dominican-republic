@@ -484,6 +484,7 @@ function AnimatedRoutes() {
           
           <Route path="/blog" element={<Blog />} />
           <Route path="/feed" element={<FeedSocial />} />
+          <Route path="/mapa-interactivo" element={<MapaInteractivo />} />
           <Route path="/admin" element={<AdminPanel />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
