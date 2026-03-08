@@ -48,7 +48,9 @@ export default function Restaurantes() {
   const [selectedDestination, setSelectedDestination] = useState("all");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState("recomendados");
+  const [selectedCuisine, setSelectedCuisine] = useState("all");
   const [dbRestaurants, setDbRestaurants] = useState<Restaurant[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const popularTags = [
     t("restaurantes.seaView"), t("restaurantes.romantic"), t("restaurantes.familyFriendly"),
