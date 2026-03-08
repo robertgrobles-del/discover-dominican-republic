@@ -12,11 +12,11 @@ export function usePageTracking() {
   const location = useLocation();
   
   useEffect(() => {
-    supabase.from("analytics_events").insert({
+    supabase.from("analytics_events").insert([{
       event_type: "page_view",
       page: location.pathname,
       session_id: sessionId,
-    }).then(() => {});
+    }]).then(() => {});
   }, [location.pathname]);
 }
 
