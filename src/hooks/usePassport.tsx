@@ -188,10 +188,10 @@ export function usePassport() {
   const addStamp = useCallback(async (stamp: Partial<PassportStamp>) => {
     if (!user) return false;
 
-    const { error } = await supabase.from("passport_stamps").insert({
+    const { error } = await supabase.from("passport_stamps").insert([{
       user_id: user.id,
       ...stamp,
-    });
+    }]);
 
     if (error) {
       toast.error("Error al agregar sello");
