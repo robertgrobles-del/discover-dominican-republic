@@ -52,6 +52,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { EntityList } from "@/components/admin/EntityList";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { AdminImportEstablecimientos } from "@/components/admin/AdminImportEstablecimientos";
+import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
 import { EntityType as AdminEntityType } from "@/hooks/useAdminEntities";
 
 type EntityType = 
@@ -768,12 +769,22 @@ const AdminPanel = () => {
           </div>
 
           {/* Dashboard Overview */}
-          <AdminDashboard />
-
-          {/* Import Establecimientos */}
-          <div className="mt-8">
-            <AdminImportEstablecimientos />
-          </div>
+          <Tabs defaultValue="dashboard" className="mb-8">
+            <TabsList>
+              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+              <TabsTrigger value="analytics">Analíticas</TabsTrigger>
+              <TabsTrigger value="import">Importar</TabsTrigger>
+            </TabsList>
+            <TabsContent value="dashboard">
+              <AdminDashboard />
+            </TabsContent>
+            <TabsContent value="analytics">
+              <AdminAnalytics />
+            </TabsContent>
+            <TabsContent value="import">
+              <AdminImportEstablecimientos />
+            </TabsContent>
+          </Tabs>
 
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8 mt-8">
             {(Object.entries(entityConfigs) as [EntityType, EntityConfig][]).slice(0, 6).map(([key, config]) => (

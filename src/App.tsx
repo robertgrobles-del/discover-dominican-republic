@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -183,6 +183,7 @@ const Blog = lazy(() => import("./pages/Blog"));
 const FeedSocial = lazy(() => import("./pages/FeedSocial"));
 const MapaInteractivo = lazy(() => import("./pages/MapaInteractivo"));
 const Establecimientos = lazy(() => import("./pages/Establecimientos"));
+const Reservas = lazy(() => import("./pages/Reservas"));
 const GuiaPracticaPais = lazy(() => import("./pages/GuiaPracticaPais"));
 const EmbajadasConsulados = lazy(() => import("./pages/EmbajadasConsulados"));
 const SeguroViaje = lazy(() => import("./pages/SeguroViaje"));
@@ -239,6 +240,13 @@ const PageLoader = () => (
 
 function AnimatedRoutes() {
   const location = useLocation();
+  
+  // Page view tracking
+  useEffect(() => {
+    import("@/hooks/useAnalytics").then(({ trackEvent }) => {
+      trackEvent("page_view", { page: location.pathname });
+    });
+  }, [location.pathname]);
   
   return (
     <AnimatePresence mode="wait">
@@ -487,6 +495,7 @@ function AnimatedRoutes() {
           <Route path="/feed" element={<FeedSocial />} />
           <Route path="/mapa-interactivo" element={<MapaInteractivo />} />
           <Route path="/establecimientos" element={<Establecimientos />} />
+          <Route path="/reservas" element={<Reservas />} />
           <Route path="/admin" element={<AdminPanel />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
