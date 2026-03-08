@@ -203,6 +203,7 @@ const GuiaHalalKosher = lazy(() => import("./pages/GuiaHalalKosher"));
 const ViajarConMascotas = lazy(() => import("./pages/ViajarConMascotas"));
 const ViajerosSenior = lazy(() => import("./pages/ViajerosSenior"));
 const GamificacionHub = lazy(() => import("./pages/GamificacionHub"));
+const PerfilJugador = lazy(() => import("./pages/PerfilJugador"));
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
 const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
