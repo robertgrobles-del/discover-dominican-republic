@@ -29,6 +29,7 @@ const culturalCategories = [
 
 export default function Cultura() {
   const { t } = useTranslation();
+  const [activeCategory, setActiveCategory] = useState("all");
 
   const festivals = [
     {
