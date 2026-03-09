@@ -204,6 +204,7 @@ export function Header() {
               <LanguageSelector />
               <ThemeToggle />
               <NotificationBell />
+              {user && <UserProgressWidget />}
               <CartDrawer />
               <Button 
                 variant="ghost" 
