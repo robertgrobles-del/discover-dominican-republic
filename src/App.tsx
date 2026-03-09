@@ -370,11 +370,11 @@ function AnimatedRoutes() {
           <Route path="/souvenirs-digitales" element={<SouvenirsDigitales />} />
           <Route path="/espanol-viajero" element={<EspanolViajero />} />
           <Route path="/sello-calidad" element={<SelloCalidad />} />
-          <Route path="/puerto/:id" element={<PuertoDetalle />} />
-          <Route path="/bar/:id" element={<BarDetalle />} />
-          <Route path="/agencia/:id" element={<AgenciaDetalle />} />
-          <Route path="/estadio/:id" element={<EstadioDetalle />} />
-          <Route path="/clinica/:id" element={<ClinicaDetalle />} />
+          <Route path="/puerto/:slug" element={<PuertoDetalle />} />
+          <Route path="/bar/:slug" element={<BarDetalle />} />
+          <Route path="/agencia/:slug" element={<AgenciaDetalle />} />
+          <Route path="/estadio/:slug" element={<EstadioDetalle />} />
+          <Route path="/clinica/:slug" element={<ClinicaDetalle />} />
           <Route path="/parques-tematicos" element={<ParquesTematicos />} />
           <Route path="/parque/:id" element={<ParqueDetalle />} />
           <Route path="/ecoturismo" element={<Ecoturismo />} />
