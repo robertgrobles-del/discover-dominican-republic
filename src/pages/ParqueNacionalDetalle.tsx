@@ -187,7 +187,7 @@ const parquesData: Record<string, {
 };
 
 export default function ParqueNacionalDetalle() {
-  const { id } = useParams<{ id: string }>();
+  const { slug: id } = useParams<{ slug: string }>();
   const parque = parquesData[id || ""];
 
   if (!parque) {

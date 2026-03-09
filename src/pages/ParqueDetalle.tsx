@@ -176,7 +176,7 @@ const parquesData: Record<string, {
 };
 
 export default function ParqueDetalle() {
-  const { id } = useParams<{ id: string }>();
+  const { slug: id } = useParams<{ slug: string }>();
   const parque = parquesData[id || ""] || parquesData["scape-park"];
 
   const handleShare = async () => {

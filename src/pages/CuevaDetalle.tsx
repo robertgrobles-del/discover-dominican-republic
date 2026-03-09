@@ -166,7 +166,7 @@ const cuevasData: Record<string, {
 };
 
 export default function CuevaDetalle() {
-  const { id } = useParams<{ id: string }>();
+  const { slug: id } = useParams<{ slug: string }>();
   const cueva = cuevasData[id || ""];
 
   if (!cueva) {

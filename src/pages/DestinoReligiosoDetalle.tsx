@@ -149,7 +149,7 @@ const destinosReligiososData: Record<string, {
 };
 
 export default function DestinoReligiosoDetalle() {
-  const { id } = useParams<{ id: string }>();
+  const { slug: id } = useParams<{ slug: string }>();
   const destino = destinosReligiososData[id || ""];
 
   if (!destino) {
