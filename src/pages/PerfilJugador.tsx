@@ -164,7 +164,15 @@ export default function PerfilJugador() {
                   <Button variant="outline" size="sm" asChild className="gap-2">
                     <Link to="/perfil"><Edit className="h-3 w-3" /> Editar Perfil</Link>
                   </Button>
-                  <Button variant="outline" size="sm" className="gap-2">
+                  <Button variant="outline" size="sm" className="gap-2" onClick={() => {
+                    const text = `🎮 Soy ${currentLevel?.title || "Viajero"} nivel ${userGamification?.current_level || 1} en DescubreRD!\n⚡ ${userGamification?.total_xp || 0} XP | 🏆 ${completedMissions.length} misiones completadas\n🔥 Racha: ${userGamification?.streak_days || 0} días`;
+                    if (navigator.share) {
+                      navigator.share({ title: "Mi Perfil DescubreRD", text, url: window.location.href });
+                    } else {
+                      navigator.clipboard.writeText(text);
+                      toast.success("¡Estadísticas copiadas al portapapeles!");
+                    }
+                  }}>
                     <Share2 className="h-3 w-3" /> Compartir
                   </Button>
                 </div>
