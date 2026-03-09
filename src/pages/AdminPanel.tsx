@@ -53,6 +53,7 @@ import { EntityList } from "@/components/admin/EntityList";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { AdminImportEstablecimientos } from "@/components/admin/AdminImportEstablecimientos";
 import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
+import { AdminGamification } from "@/components/admin/AdminGamification";
 import { EntityType as AdminEntityType } from "@/hooks/useAdminEntities";
 
 type EntityType = 
