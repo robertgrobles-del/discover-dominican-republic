@@ -800,12 +800,16 @@ const RioCard = ({ rio, index }: { rio: typeof rios[0]; index: number }) => {
 export default function Rios() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filtroAdrenalina, setFiltroAdrenalina] = useState<string | null>(null);
+  const [filtroTipo, setFiltroTipo] = useState<string | null>(null);
+
+  const tiposUnicos = Array.from(new Set(rios.map(r => r.tipo)));
 
   const riosFiltrados = rios.filter((rio) => {
     const matchSearch = rio.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
       rio.ubicacion.toLowerCase().includes(searchQuery.toLowerCase());
     const matchAdrenalina = !filtroAdrenalina || rio.adrenalina === filtroAdrenalina;
-    return matchSearch && matchAdrenalina;
+    const matchTipo = !filtroTipo || rio.tipo === filtroTipo;
+    return matchSearch && matchAdrenalina && matchTipo;
   });
 
   return (
