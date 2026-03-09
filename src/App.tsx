@@ -376,7 +376,7 @@ function AnimatedRoutes() {
           <Route path="/estadio/:slug" element={<EstadioDetalle />} />
           <Route path="/clinica/:slug" element={<ClinicaDetalle />} />
           <Route path="/parques-tematicos" element={<ParquesTematicos />} />
-          <Route path="/parque/:id" element={<ParqueDetalle />} />
+          <Route path="/parque/:slug" element={<ParqueDetalle />} />
           <Route path="/ecoturismo" element={<Ecoturismo />} />
           <Route path="/turismo-religioso" element={<TurismoReligioso />} />
           <Route path="/historia-viva-ar" element={<HistoriaVivaAR />} />
