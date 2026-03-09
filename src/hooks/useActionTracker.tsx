@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useAchievementChecker } from "@/hooks/useAchievementChecker";
 import { toast } from "sonner";
 
 export type ActionType = 
