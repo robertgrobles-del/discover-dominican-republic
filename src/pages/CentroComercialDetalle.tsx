@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { DistancesFromCities } from "@/components/destination/DistancesFromCities";
+import type { FavoriteType } from "@/hooks/useFavorites";
 import { getMallBySlug } from "@/data/shopping-malls";
 import { motion } from "framer-motion";
 import {
