@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   Gift, Star, Trophy, Award, Ticket, Crown,
@@ -18,6 +18,10 @@ import { useGamification } from "@/hooks/useGamification";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { AchievementsTab } from "@/components/gamification/AchievementsTab";
+import { LeaderboardTab } from "@/components/gamification/LeaderboardTab";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const missionCategoryIcons: Record<string, React.ReactNode> = {
   exploration: <Target className="h-4 w-4" />,
@@ -39,6 +43,39 @@ export default function ClubRecompensas() {
   } = useGamification();
   const [activeTab, setActiveTab] = useState("overview");
   const [prizeFilter, setPrizeFilter] = useState("all");
+  const [achievements, setAchievements] = useState<any[]>([]);
+  const [userAchievements, setUserAchievements] = useState<any[]>([]);
+  const [loadingAchievements, setLoadingAchievements] = useState(true);
+
+  // Fetch achievements
+  useEffect(() => {
+    const fetchAchievements = async () => {
+      try {
+        const { data: achData } = await supabase
+          .from('achievements')
+          .select('*')
+          .eq('is_active', true)
+          .order('display_order', { ascending: true });
+        
+        if (achData) setAchievements(achData);
+
+        if (user) {
+          const { data: userAchData } = await supabase
+            .from('user_achievements')
+            .select('*')
+            .eq('user_id', user.id);
+          
+          if (userAchData) setUserAchievements(userAchData);
+        }
+      } catch (error) {
+        console.error('Error fetching achievements:', error);
+      } finally {
+        setLoadingAchievements(false);
+      }
+    };
+
+    fetchAchievements();
+  }, [user]);
 
   const currentLevel = getCurrentLevel();
   const nextLevel = getNextLevel();
@@ -202,6 +239,7 @@ export default function ClubRecompensas() {
             <TabsList className="w-full justify-start overflow-x-auto mb-8">
               <TabsTrigger value="overview" className="gap-2"><Star className="h-4 w-4" />Resumen</TabsTrigger>
               <TabsTrigger value="missions" className="gap-2"><Target className="h-4 w-4" />Misiones</TabsTrigger>
+              <TabsTrigger value="achievements" className="gap-2"><Award className="h-4 w-4" />Logros</TabsTrigger>
               <TabsTrigger value="prizes" className="gap-2"><Gift className="h-4 w-4" />Premios</TabsTrigger>
               <TabsTrigger value="levels" className="gap-2"><TrendingUp className="h-4 w-4" />Niveles</TabsTrigger>
               <TabsTrigger value="leaderboard" className="gap-2"><Trophy className="h-4 w-4" />Ranking</TabsTrigger>
@@ -467,6 +505,22 @@ export default function ClubRecompensas() {
               </div>
             </TabsContent>
 
+            {/* ACHIEVEMENTS TAB */}
+            <TabsContent value="achievements">
+              {loadingAchievements ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[1, 2, 3, 4, 5, 6].map(i => (
+                    <Skeleton key={i} className="h-48 rounded-xl" />
+                  ))}
+                </div>
+              ) : (
+                <AchievementsTab 
+                  achievements={achievements}
+                  userAchievements={userAchievements}
+                />
+              )}
+            </TabsContent>
+
             {/* LEVELS TAB */}
             <TabsContent value="levels">
               <div className="max-w-3xl mx-auto space-y-4">
@@ -522,62 +576,10 @@ export default function ClubRecompensas() {
 
             {/* LEADERBOARD TAB */}
             <TabsContent value="leaderboard">
-              <div className="max-w-2xl mx-auto">
-                <div className="space-y-2">
-                  {leaderboard.map((entry, i) => {
-                    const isMe = entry.user_id === user?.id;
-                    const levelInfo = levels.find(l => l.level_number === entry.current_level);
-                    return (
-                      <motion.div
-                        key={entry.user_id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        className={`p-4 rounded-xl border flex items-center gap-4 transition-all ${
-                          isMe ? "bg-primary/5 border-primary/30" : 
-                          i < 3 ? "bg-card border-border" : "bg-background border-border"
-                        }`}
-                      >
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
-                          i === 0 ? "bg-amber-100 text-amber-700" :
-                          i === 1 ? "bg-gray-100 text-gray-600" :
-                          i === 2 ? "bg-orange-100 text-orange-700" :
-                          "bg-muted text-muted-foreground"
-                        }`}>
-                          {i < 3 ? ["🥇", "🥈", "🥉"][i] : `#${i + 1}`}
-                        </div>
-
-                        <span className="text-xl">{levelInfo?.icon || "🌱"}</span>
-
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-foreground truncate">
-                            {entry.display_name} {isMe && "(Tú)"}
-                          </p>
-                          <p className="text-xs text-muted-foreground">{levelInfo?.title} · {entry.total_missions_completed} misiones</p>
-                        </div>
-
-                        <div className="text-right">
-                          <p className="font-bold text-foreground">{entry.total_xp.toLocaleString()}</p>
-                          <p className="text-xs text-muted-foreground">XP</p>
-                        </div>
-
-                        {entry.streak_days > 0 && (
-                          <Badge variant="secondary" className="text-xs gap-1">
-                            <Flame className="h-3 w-3" /> {entry.streak_days}
-                          </Badge>
-                        )}
-                      </motion.div>
-                    );
-                  })}
-
-                  {leaderboard.length === 0 && (
-                    <div className="text-center py-12">
-                      <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground">Sé el primero en aparecer en el ranking.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <LeaderboardTab 
+                leaderboard={leaderboard}
+                currentUserId={user?.id}
+              />
             </TabsContent>
           </Tabs>
         </div>
