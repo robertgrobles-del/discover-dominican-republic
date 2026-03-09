@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Páginas principales -->
+  <url><loc>https://descubrerd.lovable.app/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destinos</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://descubrerd.lovable.app/provincias</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://descubrerd.lovable.app/playas</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://descubrerd.lovable.app/alojamientos</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://descubrerd.lovable.app/restaurante</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/experiencias</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/eventos</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/tours</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/actividades</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/cultura</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/vida-nocturna</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/blog</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+
+  <!-- Destinos estáticos -->
+  <url><loc>https://descubrerd.lovable.app/destino/punta-cana</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/bavaro</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/cap-cana</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/samana</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/las-terrenas</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/puerto-plata</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/cabarete</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/sosua</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/santo-domingo</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/zona-colonial</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/jarabacoa</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/la-romana</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/bayahibe</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/la-altagracia</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/pedernales</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/bahia-de-las-aguilas</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/constanza</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/las-galeras</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/boca-chica</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/juan-dolio</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/playa-rincon</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/higuey</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/santiago</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/la-vega</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/destino/barahona</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+
+  <!-- Planificación -->
+  <url><loc>https://descubrerd.lovable.app/planifica</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/como-llegar</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/clima-temporadas</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/requisitos-viaje</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/seguro-viaje</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/conversor-moneda</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/lista-empaque</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/calculadora-presupuesto</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/herramientas</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/aeropuerto</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/embajadas</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://descubrerd.lovable.app/emergencias</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://descubrerd.lovable.app/guia-practica</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/itinerarios</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+
+  <!-- Turismo especializado -->
+  <url><loc>https://descubrerd.lovable.app/ecoturismo</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/turismo-medico</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/turismo-deportivo</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/turismo-religioso</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/turismo-comunitario</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/turismo-sensorial</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://descubrerd.lovable.app/astroturismo</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://descubrerd.lovable.app/wellness</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/bodas</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/cruceros</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/sostenible</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+  <!-- Guías nicho -->
+  <url><loc>https://descubrerd.lovable.app/guia-lgbtq</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/viajera-sola</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/guia-vegana</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/familia</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/nomadas-digitales</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/viajar-con-mascotas</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://descubrerd.lovable.app/viajeros-senior</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://descubrerd.lovable.app/vuelve-a-casa</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://descubrerd.lovable.app/guia-halal-kosher</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+
+  <!-- Cultura y patrimonio -->
+  <url><loc>https://descubrerd.lovable.app/historia</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/patrimonio</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/museos-monumentos</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/cultura-cafe</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/cultura-tabaco</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/cine-rd</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://descubrerd.lovable.app/biodiversidad</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+  <!-- Compras y gastronomía -->
+  <url><loc>https://descubrerd.lovable.app/compras</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/guia-gastronomica</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/hecho-en-rd</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/rutas-sabor</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+
+  <!-- Herramientas -->
+  <url><loc>https://descubrerd.lovable.app/mapa-interactivo</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/webcams</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/comparador</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/comparador-hoteles</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/traductor</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://descubrerd.lovable.app/itinerario-ia</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/diccionario</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://descubrerd.lovable.app/espanol-viajero</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+
+  <!-- Información -->
+  <url><loc>https://descubrerd.lovable.app/sobre-nosotros</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://descubrerd.lovable.app/terminos</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://descubrerd.lovable.app/accesibilidad</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://descubrerd.lovable.app/sitemap</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://descubrerd.lovable.app/ofertas</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://descubrerd.lovable.app/marketplace</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/galeria</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/estadisticas</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://descubrerd.lovable.app/rios</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://descubrerd.lovable.app/spas</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/casinos</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/museos</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/parques-tematicos</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/reservas-naturales</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://descubrerd.lovable.app/puertos-marinas</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+</urlset>
