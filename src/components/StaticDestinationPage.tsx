@@ -10,6 +10,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MapPin, Calendar, Thermometer, Utensils, Star, ChevronRight, Hotel, UtensilsCrossed, Wine, Compass, Users, Home } from "lucide-react";
 import { DistancesFromCities } from "@/components/destination/DistancesFromCities";
+import { DestinationAboutTabs } from "@/components/destination/DestinationAboutTabs";
+import { RelatedBlogPosts } from "@/components/destination/RelatedBlogPosts";
 import { Link } from "react-router-dom";
 import { Destination, getDestinationsByProvince, getDestinationById } from "@/data/destinations";
 import { getHotelsByDestination } from "@/data/hotels";
