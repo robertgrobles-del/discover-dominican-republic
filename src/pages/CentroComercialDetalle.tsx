@@ -78,7 +78,7 @@ export default function CentroComercialDetalle() {
                   <MapPin className="h-4 w-4" /> {mall.direccion}
                 </p>
               </div>
-              <FavoriteButton itemId={mall.slug} itemType="centro-comercial" />
+              <FavoriteButton id={mall.slug} type={"destination" as any} name={mall.nombre} image={mall.imagen} />
             </div>
           </div>
         </section>
