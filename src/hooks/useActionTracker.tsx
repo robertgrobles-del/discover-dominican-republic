@@ -157,10 +157,15 @@ export function useActionTracker() {
           }
         }
       }
+
+      // Check for achievement unlocks after processing actions
+      if (user) {
+        await checkAchievements();
+      }
     } catch (error) {
       console.error("Error tracking action:", error);
     }
-  }, [user]);
+  }, [user, checkAchievements]);
 
   const trackDailyCheckin = useCallback(async () => {
     if (!user) return false;
