@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ChevronRight, Play, Music, Heart, MapPin, Calendar, Landmark, BookOpen, Palette, Sparkles, Globe, Drumstick } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
+import { PageBreadcrumbs } from "@/components/PageBreadcrumbs";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
