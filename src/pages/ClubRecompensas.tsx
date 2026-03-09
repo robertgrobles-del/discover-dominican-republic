@@ -239,6 +239,7 @@ export default function ClubRecompensas() {
             <TabsList className="w-full justify-start overflow-x-auto mb-8">
               <TabsTrigger value="overview" className="gap-2"><Star className="h-4 w-4" />Resumen</TabsTrigger>
               <TabsTrigger value="missions" className="gap-2"><Target className="h-4 w-4" />Misiones</TabsTrigger>
+              <TabsTrigger value="achievements" className="gap-2"><Award className="h-4 w-4" />Logros</TabsTrigger>
               <TabsTrigger value="prizes" className="gap-2"><Gift className="h-4 w-4" />Premios</TabsTrigger>
               <TabsTrigger value="levels" className="gap-2"><TrendingUp className="h-4 w-4" />Niveles</TabsTrigger>
               <TabsTrigger value="leaderboard" className="gap-2"><Trophy className="h-4 w-4" />Ranking</TabsTrigger>
