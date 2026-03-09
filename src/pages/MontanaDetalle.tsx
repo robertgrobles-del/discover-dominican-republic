@@ -71,7 +71,7 @@ export default function MontanaDetalle() {
                     <span className="flex items-center gap-1"><Star className="h-4 w-4 text-yellow-400" />{mountain.rating} ({mountain.reviewCount})</span>
                   </div>
                 </div>
-                <FavoriteButton id={mountain.id} type="experiencia" className="text-white" />
+                <FavoriteButton id={mountain.id} type="experiencia" name={mountain.name} image={mountain.imageUrl} className="text-white" />
               </div>
             </div>
           </div>
