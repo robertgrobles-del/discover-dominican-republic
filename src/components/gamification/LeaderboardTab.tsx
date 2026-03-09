@@ -35,9 +35,9 @@ const getRankIcon = (rank: number) => {
 };
 
 const getRankBadgeColor = (rank: number) => {
-  if (rank === 1) return "bg-gradient-to-r from-yellow-500 to-yellow-600 text-white border-yellow-400";
-  if (rank === 2) return "bg-gradient-to-r from-gray-400 to-gray-500 text-white border-gray-300";
-  if (rank === 3) return "bg-gradient-to-r from-amber-700 to-amber-800 text-white border-amber-600";
+  if (rank === 1) return "bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-400/50";
+  if (rank === 2) return "bg-gradient-to-r from-slate-400 to-slate-500 text-white border-slate-300/50";
+  if (rank === 3) return "bg-gradient-to-r from-orange-600 to-orange-700 text-white border-orange-500/50";
   return "";
 };
 
