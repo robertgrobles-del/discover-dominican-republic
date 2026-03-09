@@ -443,7 +443,6 @@ function AnimatedRoutes() {
           <Route path="/historia/personaje/:slug" element={<PersonajeHistorico />} />
           <Route path="/historia/evento/:slug" element={<EventoHistorico />} />
           <Route path="/loteria" element={<Loteria />} />
-          <Route path="/historia/evento/:slug" element={<EventoHistorico />} />
           <Route path="/reservas-naturales" element={<ReservasNaturales />} />
           <Route path="/montanas" element={<Montanas />} />
           <Route path="/montana/:slug" element={<MontanaDetalle />} />
