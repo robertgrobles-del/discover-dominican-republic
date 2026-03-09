@@ -254,7 +254,7 @@ const provinceToDestinationMap: Record<string, string> = {
 };
 
 export default function DestinoDetalle() {
-  const { id } = useParams();
+  const { slug: id } = useParams<{ slug: string }>();
   const [heroLoaded, setHeroLoaded] = useState(false);
 
   // Check for static data first - this allows immediate render

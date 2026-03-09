@@ -70,7 +70,7 @@ const estadio = {
 };
 
 export default function EstadioDetalle() {
-  const { id } = useParams();
+  const { slug: id } = useParams<{ slug: string }>();
 
   return (
     <PageTransition>

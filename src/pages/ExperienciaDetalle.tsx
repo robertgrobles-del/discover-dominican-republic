@@ -363,7 +363,7 @@ const experienciasData: Record<string, {
 };
 
 export default function ExperienciaDetalle() {
-  const { id } = useParams();
+  const { slug: id } = useParams<{ slug: string }>();
   const [saved, setSaved] = useState(false);
 
   const experiencia = experienciasData[id || "ecoturismo"] || experienciasData.ecoturismo;

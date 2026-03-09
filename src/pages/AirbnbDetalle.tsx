@@ -85,7 +85,7 @@ const amenityIcons: Record<string, React.ElementType> = {
 };
 
 const AirbnbDetalle = () => {
-  const { id } = useParams();
+  const { slug: id } = useParams<{ slug: string }>();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [checkIn, setCheckIn] = useState("");
