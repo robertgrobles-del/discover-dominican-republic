@@ -26,6 +26,7 @@ interface TrackActionOptions {
 
 export function useActionTracker() {
   const { user } = useAuth();
+  const { checkAchievements } = useAchievementChecker();
 
   const trackAction = useCallback(async ({ 
     actionType, 
