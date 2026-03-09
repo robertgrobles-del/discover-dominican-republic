@@ -390,7 +390,7 @@ function AnimatedRoutes() {
           <Route path="/cultura-cafe" element={<CulturaCafe />} />
           <Route path="/talleres-artesanales" element={<TalleresArtesanales />} />
           <Route path="/rutas-sabor" element={<RutasSabor />} />
-          <Route path="/airbnb/:id" element={<AirbnbDetalle />} />
+          <Route path="/airbnb/:slug" element={<AirbnbDetalle />} />
           <Route path="/provincias" element={<Provincias />} />
           <Route path="/provincia/:slug" element={<ProvinciaDetalle />} />
           <Route path="/municipio/:slug" element={<MunicipioDetalle />} />
