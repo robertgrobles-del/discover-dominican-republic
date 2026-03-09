@@ -53,6 +53,7 @@ import { EntityList } from "@/components/admin/EntityList";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { AdminImportEstablecimientos } from "@/components/admin/AdminImportEstablecimientos";
 import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
+import { AdminGamification } from "@/components/admin/AdminGamification";
 import { EntityType as AdminEntityType } from "@/hooks/useAdminEntities";
 
 type EntityType = 
@@ -773,6 +774,7 @@ const AdminPanel = () => {
             <TabsList>
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
               <TabsTrigger value="analytics">Analíticas</TabsTrigger>
+              <TabsTrigger value="gamificacion">Gamificación</TabsTrigger>
               <TabsTrigger value="import">Importar</TabsTrigger>
             </TabsList>
             <TabsContent value="dashboard">
@@ -780,6 +782,9 @@ const AdminPanel = () => {
             </TabsContent>
             <TabsContent value="analytics">
               <AdminAnalytics />
+            </TabsContent>
+            <TabsContent value="gamificacion">
+              <AdminGamification />
             </TabsContent>
             <TabsContent value="import">
               <AdminImportEstablecimientos />
