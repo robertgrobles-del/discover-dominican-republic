@@ -435,6 +435,8 @@ function AnimatedRoutes() {
           <Route path="/loteria" element={<Loteria />} />
           <Route path="/historia/evento/:slug" element={<EventoHistorico />} />
           <Route path="/reservas-naturales" element={<ReservasNaturales />} />
+          <Route path="/montanas" element={<Montanas />} />
+          <Route path="/montana/:slug" element={<MontanaDetalle />} />
           <Route path="/turismo-comunitario" element={<TurismoComunitario />} />
           <Route path="/autor-invitado" element={<AutorInvitado />} />
           <Route path="/contratar-influencers" element={<ContratarInfluencers />} />
