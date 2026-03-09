@@ -43,6 +43,39 @@ export default function ClubRecompensas() {
   } = useGamification();
   const [activeTab, setActiveTab] = useState("overview");
   const [prizeFilter, setPrizeFilter] = useState("all");
+  const [achievements, setAchievements] = useState<any[]>([]);
+  const [userAchievements, setUserAchievements] = useState<any[]>([]);
+  const [loadingAchievements, setLoadingAchievements] = useState(true);
+
+  // Fetch achievements
+  useEffect(() => {
+    const fetchAchievements = async () => {
+      try {
+        const { data: achData } = await supabase
+          .from('achievements')
+          .select('*')
+          .eq('is_active', true)
+          .order('display_order', { ascending: true });
+        
+        if (achData) setAchievements(achData);
+
+        if (user) {
+          const { data: userAchData } = await supabase
+            .from('user_achievements')
+            .select('*')
+            .eq('user_id', user.id);
+          
+          if (userAchData) setUserAchievements(userAchData);
+        }
+      } catch (error) {
+        console.error('Error fetching achievements:', error);
+      } finally {
+        setLoadingAchievements(false);
+      }
+    };
+
+    fetchAchievements();
+  }, [user]);
 
   const currentLevel = getCurrentLevel();
   const nextLevel = getNextLevel();
