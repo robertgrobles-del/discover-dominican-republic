@@ -94,6 +94,7 @@ const MapasTematicos = lazy(() => import("./pages/MapasTematicos"));
 const FotografosLocales = lazy(() => import("./pages/FotografosLocales"));
 const Conectividad = lazy(() => import("./pages/Conectividad"));
 const RutasEmbajadores = lazy(() => import("./pages/RutasEmbajadores"));
+const RequisitosEmbajadores = lazy(() => import("./pages/RequisitosEmbajadores"));
 const GuardianCaribe = lazy(() => import("./pages/GuardianCaribe"));
 const PlanificadorGrupal = lazy(() => import("./pages/PlanificadorGrupal"));
 const PuertosMarinas = lazy(() => import("./pages/PuertosMarinas"));
