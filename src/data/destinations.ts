@@ -298,7 +298,28 @@ export const destinations: Destination[] = [
     latitude: 19.4517,
     longitude: -70.6970,
     isPopular: true,
-    isFeatured: true
+    isFeatured: true,
+    about: {
+      history: 'Fundada en 1495 por 30 caballeros de la Orden de Santiago, es la segunda ciudad más antigua fundada por europeos en el Nuevo Mundo. Jugó un papel crucial en las luchas independentistas y la Restauración de la República en 1863. El Monumento a los Héroes de la Restauración, inaugurado en 1944, es su ícono más representativo.',
+      geography: 'Situada en el Valle del Cibao, la región agrícola más fértil del país, a 178 metros sobre el nivel del mar. Rodeada por la Cordillera Central al sur y la Cordillera Septentrional al norte.',
+      artAndCulture: 'Capital cultural del Cibao, hogar del Centro León (uno de los museos más importantes del Caribe), galerías de arte y una vibrante escena de música urbana. Las fábricas artesanales de cigarros premium y la cultura del tabaco son parte integral de su identidad.',
+      economy: 'Segunda economía del país. Líder en manufactura de tabaco (cigarros premium), zonas francas, agroindustria y comercio. La provincia aporta el 10% del PIB nacional.',
+      demographics: 'Más de 1 millón de habitantes en el área metropolitana. Segunda ciudad más poblada del país, con una clase media en crecimiento y universidades de prestigio como PUCMM y UTESA.',
+      pointsOfInterest: [
+        { name: 'Monumento a los Héroes', type: 'histórico', description: 'Torre de 67 metros con vista panorámica de la ciudad y el valle.' },
+        { name: 'Centro León', type: 'cultural', description: 'Museo de arte, historia y cultura dominicana de clase mundial.' },
+        { name: 'Calle del Sol', type: 'cultural', description: 'Arteria comercial principal con arquitectura victoriana y art déco.' },
+        { name: 'Fortaleza San Luis', type: 'histórico', description: 'Fortín colonial restaurado con exposiciones históricas.' },
+      ],
+      whatToDo: [
+        'Visitar el Centro León y sus exposiciones',
+        'Tour por fábricas de cigarros artesanales',
+        'Subir al Monumento a los Héroes al atardecer',
+        'Degustar gastronomía cibaeña auténtica',
+        'Explorar la vida nocturna del centro',
+        'Recorrer la Calle del Sol y sus tiendas',
+      ],
+    },
   },
   {
     id: 'pedernales',
