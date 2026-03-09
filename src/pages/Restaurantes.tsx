@@ -15,6 +15,7 @@ import { BetweenSectionsAd } from "@/components/ads";
 import { restaurants as staticRestaurants, type Restaurant } from "@/data/restaurants";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/hooks/useI18n";
+import { PageBreadcrumbs } from "@/components/PageBreadcrumbs";
 
 const priceRanges = ["$", "$$", "$$$", "$$$$"];
 
