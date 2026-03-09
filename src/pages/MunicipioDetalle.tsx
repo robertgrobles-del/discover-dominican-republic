@@ -216,6 +216,13 @@ export default function MunicipioDetalle() {
           </section>
         )}
 
+        {/* Distances from cities */}
+        <DistancesFromCities
+          latitude={municipality.latitude}
+          longitude={municipality.longitude}
+          destinationName={municipality.name}
+        />
+
         {/* Banner Ad */}
         <InlineAd showDemo />
 

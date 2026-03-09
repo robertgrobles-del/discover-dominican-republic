@@ -425,6 +425,13 @@ export function StaticDestinationPage({ destination }: StaticDestinationPageProp
                 )}
               </TabsContent>
             </Tabs>
+
+            {/* Distances from major cities */}
+            <DistancesFromCities
+              latitude={destination.latitude}
+              longitude={destination.longitude}
+              destinationName={destination.name}
+            />
           </div>
 
           {/* Right Column - Sidebar */}

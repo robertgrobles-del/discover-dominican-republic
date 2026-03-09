@@ -208,6 +208,12 @@ export default function ProvinciaDetalle() {
           categories={province.categories}
         />
 
+        <DistancesFromCities
+          latitude={province.latitude}
+          longitude={province.longitude}
+          destinationName={province.name}
+        />
+
         <BetweenSectionsAd />
 
         <ProvinceActivities
