@@ -173,7 +173,7 @@ export default function CentroComercialDetalle() {
 
                 {/* Distances */}
                 {mall.latitude && mall.longitude && (
-                  <DistancesFromCities latitude={mall.latitude} longitude={mall.longitude} />
+                  <DistancesFromCities latitude={mall.latitude} longitude={mall.longitude} destinationName={mall.nombre} />
                 )}
               </div>
 
