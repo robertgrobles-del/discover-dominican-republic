@@ -279,8 +279,8 @@ function AnimatedRoutes() {
           <Route path="/vida-nocturna" element={<VidaNocturna />} />
           <Route path="/directorio-agencias" element={<DirectorioAgencias />} />
           <Route path="/guia-gastronomica" element={<GuiaGastronomica />} />
-          <Route path="/chef/:id" element={<ChefPerfil />} />
-          <Route path="/receta/:id" element={<RecetaDetalle />} />
+          <Route path="/chef/:slug" element={<ChefPerfil />} />
+          <Route path="/receta/:slug" element={<RecetaDetalle />} />
           <Route path="/ayuda" element={<CentroAyuda />} />
           <Route path="/centro-ayuda" element={<CentroAyuda />} />
           <Route path="/asistencia" element={<CentroAyuda />} />
