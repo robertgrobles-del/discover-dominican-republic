@@ -6,7 +6,6 @@ import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { BetweenSectionsAd } from "@/components/ads";
 import { useTranslation } from "@/hooks/useI18n";
-import { PageBreadcrumbs } from "@/components/PageBreadcrumbs";
 
 import { PopularDestinations } from "@/components/destinations/PopularDestinations";
 import { RegionsSection } from "@/components/destinations/RegionsSection";
