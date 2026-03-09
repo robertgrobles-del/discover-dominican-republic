@@ -537,6 +537,7 @@ const App = () => (
               <AnimatedRoutes />
               <BackToTop />
               <ChatbotTuristico />
+              <GamificationToastOverlay />
             </BrowserRouter>
             </CartProvider>
           </FavoritesProvider>
