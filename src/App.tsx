@@ -210,6 +210,7 @@ const TriviaTuristica = lazy(() => import("./pages/TriviaTuristica"));
 const MapaMisiones = lazy(() => import("./pages/MapaMisiones"));
 const Montanas = lazy(() => import("./pages/Montanas"));
 const MontanaDetalle = lazy(() => import("./pages/MontanaDetalle"));
+const AeropuertoDetalle = lazy(() => import("./pages/AeropuertoDetalle"));
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
 const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
