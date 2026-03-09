@@ -98,7 +98,7 @@ const AirbnbDetalle = () => {
       const { data, error } = await supabase
         .from('airbnb_listings')
         .select('*')
-        .eq('id', id)
+        .or(`slug.eq.${id},id.eq.${id}`)
         .maybeSingle();
       
       if (error) throw error;
