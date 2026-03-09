@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { PageBreadcrumbs } from "@/components/PageBreadcrumbs";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
