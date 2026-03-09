@@ -8,6 +8,7 @@ import { AnimatePresence } from "framer-motion";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { BackToTop } from "@/components/BackToTop";
 import { ChatbotTuristico } from "@/components/ChatbotTuristico";
+import { GamificationToastOverlay } from "@/components/gamification/GamificationToast";
 import { FavoritesProvider } from "@/hooks/useFavorites";
 import { AuthProvider } from "@/hooks/useAuth";
 import { I18nProvider } from "@/hooks/useI18n";
@@ -536,6 +537,7 @@ const App = () => (
               <AnimatedRoutes />
               <BackToTop />
               <ChatbotTuristico />
+              <GamificationToastOverlay />
             </BrowserRouter>
             </CartProvider>
           </FavoritesProvider>

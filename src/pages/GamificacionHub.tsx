@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
   Trophy, Star, Target, Flame, Crown, Map, Compass, Zap,
   Award, Gift, Users, Gamepad2, BookOpen, Camera, Route,
-  ChevronRight, Play, Shield, Sparkles, TrendingUp, Medal
+  ChevronRight, Play, Shield, Sparkles, TrendingUp, Medal,
+  Clock, Calendar, ArrowRight, Gem
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -15,14 +16,15 @@ import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { useGamification } from "@/hooks/useGamification";
 import { useAuth } from "@/hooks/useAuth";
-import { CircularProgress } from "@/components/ui/progress-bar";
+import { useActionTracker } from "@/hooks/useActionTracker";
+import { MissionCard } from "@/components/gamification/MissionCard";
 
 const features = [
-  { icon: Target, title: "Retos Turísticos", desc: "Completa misiones de exploración, gastronomía y cultura", link: "/club-recompensas", color: "text-blue-500", bg: "bg-blue-500/10" },
-  { icon: Map, title: "Mapa de Misiones", desc: "Descubre retos cercanos en el mapa interactivo", link: "/mapa-interactivo", color: "text-emerald-500", bg: "bg-emerald-500/10" },
-  { icon: BookOpen, title: "Trivia Turística", desc: "Pon a prueba tus conocimientos del país", link: "/club-recompensas", color: "text-purple-500", bg: "bg-purple-500/10" },
+  { icon: Target, title: "Retos Turísticos", desc: "Completa misiones de exploración, gastronomía y cultura", link: "/retos-turisticos", color: "text-blue-500", bg: "bg-blue-500/10" },
+  { icon: Map, title: "Mapa de Misiones", desc: "Descubre retos cercanos en el mapa interactivo", link: "/mapa-misiones", color: "text-emerald-500", bg: "bg-emerald-500/10" },
+  { icon: BookOpen, title: "Trivia Turística", desc: "Pon a prueba tus conocimientos del país", link: "/trivia-turistica", color: "text-purple-500", bg: "bg-purple-500/10" },
   { icon: Award, title: "Insignias", desc: "Colecciona badges explorando destinos", link: "/badges", color: "text-amber-500", bg: "bg-amber-500/10" },
-  { icon: Route, title: "Rutas Gamificadas", desc: "Completa rutas temáticas y gana recompensas", link: "/club-recompensas", color: "text-rose-500", bg: "bg-rose-500/10" },
+  { icon: Gem, title: "Coleccionables", desc: "Desbloquea souvenirs digitales únicos", link: "/souvenirs-digitales", color: "text-rose-500", bg: "bg-rose-500/10" },
   { icon: Gift, title: "Recompensas", desc: "Canjea monedas por experiencias exclusivas", link: "/club-recompensas", color: "text-primary", bg: "bg-primary/10" },
 ];
 
@@ -37,14 +39,36 @@ const howItWorks = [
 export default function GamificacionHub() {
   const { user } = useAuth();
   const {
-    userGamification, levels, missions, leaderboard, loading,
+    userGamification, levels, missions, userMissions, leaderboard, loading,
     getCurrentLevel, getNextLevel, getXpProgress
   } = useGamification();
+  const { trackDailyCheckin } = useActionTracker();
+  const [checkedIn, setCheckedIn] = useState(false);
 
   const currentLevel = getCurrentLevel();
   const nextLevel = getNextLevel();
   const xpProgress = getXpProgress();
   const featuredMissions = missions.filter(m => m.is_featured).slice(0, 6);
+
+  // Daily missions
+  const dailyMissions = useMemo(() => missions.filter(m => m.mission_type === "daily").slice(0, 3), [missions]);
+  const weeklyMissions = useMemo(() => missions.filter(m => m.mission_type === "weekly").slice(0, 3), [missions]);
+
+  // Auto daily check-in
+  useEffect(() => {
+    if (user && !checkedIn) {
+      trackDailyCheckin().then(result => {
+        if (result) setCheckedIn(true);
+      });
+    }
+  }, [user, checkedIn, trackDailyCheckin]);
+
+  const getMissionProgress = (missionId: string) =>
+    userMissions.find(um => um.mission_id === missionId);
+
+  // Stats
+  const completedCount = userMissions.filter(um => um.is_completed).length;
+  const activeCount = userMissions.filter(um => !um.is_completed && um.progress > 0).length;
 
   return (
     <PageTransition>
@@ -58,7 +82,7 @@ export default function GamificacionHub() {
         {/* Hero */}
         <section className="relative min-h-[80vh] flex items-center overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-amber-500/10" />
-          <div className="absolute top-20 right-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
+          <div className="absolute top-20 right-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-10 left-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
           
           <div className="relative container mx-auto px-4 py-24">
@@ -79,7 +103,7 @@ export default function GamificacionHub() {
                 <div className="flex flex-wrap gap-4">
                   {user ? (
                     <Button size="lg" asChild className="gap-2">
-                      <Link to="/club-recompensas"><Flame className="h-5 w-5" /> Continuar Aventura</Link>
+                      <Link to="/retos-turisticos"><Flame className="h-5 w-5" /> Explorar Retos</Link>
                     </Button>
                   ) : (
                     <Button size="lg" asChild className="gap-2">
@@ -97,9 +121,12 @@ export default function GamificacionHub() {
                 {user && userGamification ? (
                   <div className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border p-8 shadow-xl">
                     <div className="flex items-center gap-4 mb-6">
-                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-3xl border-2 border-primary/30">
+                      <motion.div
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-3xl border-2 border-primary/30"
+                      >
                         {currentLevel?.icon || "🌱"}
-                      </div>
+                      </motion.div>
                       <div>
                         <h2 className="text-xl font-bold text-foreground">{currentLevel?.title || "Viajero"}</h2>
                         <p className="text-sm text-muted-foreground">Nivel {userGamification.current_level}</p>
@@ -107,21 +134,21 @@ export default function GamificacionHub() {
                     </div>
                     
                     <div className="grid grid-cols-3 gap-4 mb-6">
-                      <div className="text-center p-3 rounded-xl bg-background border border-border">
-                        <Zap className="h-5 w-5 text-amber-500 mx-auto mb-1" />
-                        <p className="text-lg font-bold text-foreground">{userGamification.total_xp.toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground">XP Total</p>
-                      </div>
-                      <div className="text-center p-3 rounded-xl bg-background border border-border">
-                        <Crown className="h-5 w-5 text-primary mx-auto mb-1" />
-                        <p className="text-lg font-bold text-foreground">{userGamification.coins.toLocaleString()}</p>
-                        <p className="text-xs text-muted-foreground">Monedas</p>
-                      </div>
-                      <div className="text-center p-3 rounded-xl bg-background border border-border">
-                        <Flame className="h-5 w-5 text-orange-500 mx-auto mb-1" />
-                        <p className="text-lg font-bold text-foreground">{userGamification.streak_days}</p>
-                        <p className="text-xs text-muted-foreground">Racha</p>
-                      </div>
+                      {[
+                        { icon: Zap, value: userGamification.total_xp, label: "XP Total", color: "text-amber-500" },
+                        { icon: Crown, value: userGamification.coins, label: "Monedas", color: "text-primary" },
+                        { icon: Flame, value: userGamification.streak_days, label: "Racha", color: "text-orange-500" },
+                      ].map((stat) => (
+                        <motion.div
+                          key={stat.label}
+                          whileHover={{ scale: 1.05 }}
+                          className="text-center p-3 rounded-xl bg-background border border-border"
+                        >
+                          <stat.icon className={`h-5 w-5 ${stat.color} mx-auto mb-1`} />
+                          <p className="text-lg font-bold text-foreground">{stat.value.toLocaleString()}</p>
+                          <p className="text-xs text-muted-foreground">{stat.label}</p>
+                        </motion.div>
+                      ))}
                     </div>
 
                     {nextLevel && (
@@ -130,30 +157,58 @@ export default function GamificacionHub() {
                           <span className="text-muted-foreground">Progreso al siguiente nivel</span>
                           <span className="font-medium text-foreground">{xpProgress}%</span>
                         </div>
-                        <Progress value={xpProgress} className="h-3" />
+                        <div className="relative">
+                          <Progress value={xpProgress} className="h-3" />
+                          <motion.div
+                            className="absolute top-0 left-0 h-3 rounded-full bg-gradient-to-r from-primary/50 to-primary opacity-50"
+                            style={{ width: `${xpProgress}%` }}
+                            animate={{ opacity: [0.3, 0.6, 0.3] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          />
+                        </div>
                         <p className="text-xs text-muted-foreground text-right">
                           {nextLevel.xp_required - userGamification.total_xp} XP para {nextLevel.title}
                         </p>
                       </div>
                     )}
 
+                    {/* Quick stats row */}
+                    <div className="grid grid-cols-2 gap-3 mt-6">
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 text-xs">
+                        <Target className="h-3.5 w-3.5 text-emerald-500" />
+                        <span className="text-muted-foreground">{activeCount} retos activos</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50 text-xs">
+                        <Medal className="h-3.5 w-3.5 text-amber-500" />
+                        <span className="text-muted-foreground">{completedCount} completados</span>
+                      </div>
+                    </div>
+
                     <Button className="w-full mt-6 gap-2" asChild>
-                      <Link to="/club-recompensas"><Trophy className="h-4 w-4" /> Ver Mi Progreso Completo</Link>
+                      <Link to="/perfil-jugador"><Trophy className="h-4 w-4" /> Ver Mi Perfil</Link>
                     </Button>
                   </div>
                 ) : (
                   <div className="bg-card/80 backdrop-blur-xl rounded-2xl border border-border p-8 shadow-xl">
                     <div className="text-center">
-                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-amber-500/20 flex items-center justify-center mx-auto mb-6">
+                      <motion.div
+                        animate={{ y: [0, -8, 0] }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                        className="w-24 h-24 rounded-full bg-gradient-to-br from-primary/20 to-amber-500/20 flex items-center justify-center mx-auto mb-6"
+                      >
                         <Trophy className="h-12 w-12 text-primary" />
-                      </div>
+                      </motion.div>
                       <h3 className="text-xl font-bold text-foreground mb-2">¿Listo para la aventura?</h3>
                       <p className="text-muted-foreground mb-6">Crea tu cuenta y comienza a ganar puntos desde tu primera acción.</p>
                       <div className="grid grid-cols-3 gap-3 mb-6">
                         {["🏖️ Playas", "🍽️ Comida", "🏔️ Aventura"].map(item => (
-                          <div key={item} className="p-3 rounded-lg bg-background border border-border text-center">
+                          <motion.div
+                            key={item}
+                            whileHover={{ scale: 1.05 }}
+                            className="p-3 rounded-lg bg-background border border-border text-center"
+                          >
                             <span className="text-sm">{item}</span>
-                          </div>
+                          </motion.div>
                         ))}
                       </div>
                     </div>
@@ -163,6 +218,100 @@ export default function GamificacionHub() {
             </div>
           </div>
         </section>
+
+        {/* Daily & Weekly Challenges */}
+        {user && (dailyMissions.length > 0 || weeklyMissions.length > 0) && (
+          <section className="py-12 bg-card border-y border-border">
+            <div className="container mx-auto px-4">
+              <div className="grid lg:grid-cols-2 gap-8">
+                {/* Daily */}
+                {dailyMissions.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+                        <Clock className="h-5 w-5 text-emerald-500" />
+                      </div>
+                      <div>
+                        <h2 className="font-bold text-foreground">Retos Diarios</h2>
+                        <p className="text-xs text-muted-foreground">Se reinician cada 24 horas</p>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      {dailyMissions.map((m) => {
+                        const prog = getMissionProgress(m.id);
+                        const pct = prog ? (prog.progress / m.target_count) * 100 : 0;
+                        return (
+                          <motion.div
+                            key={m.id}
+                            whileHover={{ x: 4 }}
+                            className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${
+                              prog?.is_completed ? "bg-primary/5 border-primary/20" : "bg-background border-border"
+                            }`}
+                          >
+                            <span className="text-2xl">{m.icon}</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-foreground text-sm">{m.name}</p>
+                              {!prog?.is_completed && <Progress value={pct} className="h-1 mt-1.5" />}
+                            </div>
+                            <Badge variant={prog?.is_completed ? "default" : "secondary"} className="text-xs gap-1 shrink-0">
+                              <Zap className="h-3 w-3" /> {m.xp_reward}
+                            </Badge>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Weekly */}
+                {weeklyMissions.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center">
+                        <Calendar className="h-5 w-5 text-orange-500" />
+                      </div>
+                      <div>
+                        <h2 className="font-bold text-foreground">Retos Semanales</h2>
+                        <p className="text-xs text-muted-foreground">Más desafiantes, mejores recompensas</p>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      {weeklyMissions.map((m) => {
+                        const prog = getMissionProgress(m.id);
+                        const pct = prog ? (prog.progress / m.target_count) * 100 : 0;
+                        return (
+                          <motion.div
+                            key={m.id}
+                            whileHover={{ x: 4 }}
+                            className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${
+                              prog?.is_completed ? "bg-primary/5 border-primary/20" : "bg-background border-border"
+                            }`}
+                          >
+                            <span className="text-2xl">{m.icon}</span>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-foreground text-sm">{m.name}</p>
+                              {!prog?.is_completed && <Progress value={pct} className="h-1 mt-1.5" />}
+                            </div>
+                            <div className="flex gap-1.5 shrink-0">
+                              <Badge variant={prog?.is_completed ? "default" : "secondary"} className="text-xs gap-1">
+                                <Zap className="h-3 w-3" /> {m.xp_reward}
+                              </Badge>
+                              {m.coin_reward > 0 && (
+                                <Badge variant="outline" className="text-xs gap-1">
+                                  <Crown className="h-3 w-3" /> {m.coin_reward}
+                                </Badge>
+                              )}
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* How It Works */}
         <section className="py-20 bg-card">
@@ -187,12 +336,15 @@ export default function GamificacionHub() {
                   transition={{ delay: i * 0.1 }}
                   className="text-center relative"
                 >
-                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 relative">
+                  <motion.div
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 relative"
+                  >
                     <item.icon className="h-7 w-7 text-primary" />
                     <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
                       {item.step}
                     </span>
-                  </div>
+                  </motion.div>
                   <h3 className="font-bold text-foreground mb-2">{item.title}</h3>
                   <p className="text-sm text-muted-foreground">{item.desc}</p>
                   {i < howItWorks.length - 1 && (
@@ -204,17 +356,22 @@ export default function GamificacionHub() {
           </div>
         </section>
 
-        {/* Quick Ranking */}
+        {/* Leaderboard + Featured Challenges */}
         <section className="py-20 bg-background">
           <div className="container mx-auto px-4">
             <div className="grid lg:grid-cols-2 gap-12">
               {/* Leaderboard */}
               <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-                <div className="flex items-center gap-3 mb-6">
-                  <Trophy className="h-6 w-6 text-amber-500" />
-                  <h2 className="font-display text-2xl font-bold text-foreground">Top Exploradores</h2>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <Trophy className="h-6 w-6 text-amber-500" />
+                    <h2 className="font-display text-2xl font-bold text-foreground">Top Exploradores</h2>
+                  </div>
+                  <Button variant="ghost" size="sm" asChild className="gap-1">
+                    <Link to="/club-recompensas">Ver todos <ArrowRight className="h-4 w-4" /></Link>
+                  </Button>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {leaderboard.slice(0, 8).map((entry, i) => (
                     <motion.div
                       key={entry.user_id}
@@ -222,7 +379,8 @@ export default function GamificacionHub() {
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.05 }}
-                      className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${
+                      whileHover={{ x: 4 }}
+                      className={`flex items-center gap-4 p-3.5 rounded-xl border transition-all ${
                         i < 3 ? "bg-primary/5 border-primary/20" : "bg-card border-border"
                       }`}
                     >
@@ -236,7 +394,7 @@ export default function GamificacionHub() {
                       </span>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-foreground text-sm truncate">{entry.display_name}</p>
-                        <p className="text-xs text-muted-foreground">Nivel {entry.current_level}</p>
+                        <p className="text-xs text-muted-foreground">Nivel {entry.current_level} • Racha: {entry.streak_days}d</p>
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-foreground text-sm">{entry.total_xp.toLocaleString()}</p>
@@ -255,46 +413,32 @@ export default function GamificacionHub() {
 
               {/* Featured Challenges */}
               <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-                <div className="flex items-center gap-3 mb-6">
-                  <Target className="h-6 w-6 text-primary" />
-                  <h2 className="font-display text-2xl font-bold text-foreground">Retos Destacados</h2>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <Target className="h-6 w-6 text-primary" />
+                    <h2 className="font-display text-2xl font-bold text-foreground">Retos Destacados</h2>
+                  </div>
+                  <Button variant="ghost" size="sm" asChild className="gap-1">
+                    <Link to="/retos-turisticos">Ver todos <ArrowRight className="h-4 w-4" /></Link>
+                  </Button>
                 </div>
-                <div className="space-y-3">
-                  {featuredMissions.map((mission, i) => (
-                    <motion.div
+                <div className="grid grid-cols-2 gap-4">
+                  {featuredMissions.slice(0, 4).map((mission) => (
+                    <MissionCard
                       key={mission.id}
-                      initial={{ opacity: 0, x: 10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.05 }}
-                      className="p-4 rounded-xl bg-card border border-border hover:border-primary/30 transition-all group"
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className="text-2xl">{mission.icon}</span>
-                        <div className="flex-1">
-                          <h3 className="font-bold text-foreground text-sm group-hover:text-primary transition-colors">{mission.name}</h3>
-                          <p className="text-xs text-muted-foreground mb-2">{mission.short_description}</p>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="text-xs gap-1"><Zap className="h-3 w-3" /> {mission.xp_reward} XP</Badge>
-                            {mission.coin_reward > 0 && (
-                              <Badge variant="outline" className="text-xs gap-1"><Crown className="h-3 w-3" /> {mission.coin_reward}</Badge>
-                            )}
-                            <Badge variant="outline" className="text-xs">{mission.mission_type}</Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
+                      mission={mission}
+                      progress={getMissionProgress(mission.id)}
+                      isLocked={(userGamification?.current_level || 1) < mission.min_level}
+                      currentLevel={userGamification?.current_level || 1}
+                    />
                   ))}
-                  {featuredMissions.length === 0 && (
-                    <div className="text-center py-12 text-muted-foreground">
-                      <Target className="h-10 w-10 mx-auto mb-3 opacity-50" />
-                      <p className="text-sm">Próximamente: misiones emocionantes</p>
-                    </div>
-                  )}
                 </div>
-                <Button variant="outline" className="w-full mt-4 gap-2" asChild>
-                  <Link to="/club-recompensas">Ver todos los retos <ChevronRight className="h-4 w-4" /></Link>
-                </Button>
+                {featuredMissions.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground bg-card rounded-xl border border-border">
+                    <Target className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">Próximamente: misiones emocionantes</p>
+                  </div>
+                )}
               </motion.div>
             </div>
           </div>
@@ -316,6 +460,7 @@ export default function GamificacionHub() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08 }}
+                  whileHover={{ y: -4 }}
                 >
                   <Link to={f.link} className="block p-6 rounded-2xl bg-background border border-border hover:border-primary/30 transition-all group h-full">
                     <div className={`w-12 h-12 rounded-xl ${f.bg} flex items-center justify-center mb-4`}>
@@ -354,13 +499,20 @@ export default function GamificacionHub() {
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.08 }}
+                    whileHover={{ scale: 1.05 }}
                     className={`p-5 rounded-2xl text-center border transition-all ${
                       isCurrentLevel ? "bg-primary/10 border-primary/40 ring-2 ring-primary/20" :
                       isUnlocked ? "bg-card border-primary/20" :
                       "bg-card border-border opacity-60"
                     }`}
                   >
-                    <span className="text-4xl mb-3 block">{level.icon}</span>
+                    <motion.span
+                      className="text-4xl mb-3 block"
+                      animate={isCurrentLevel ? { scale: [1, 1.15, 1] } : undefined}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      {level.icon}
+                    </motion.span>
                     <p className="font-bold text-sm text-foreground">{level.title}</p>
                     <p className="text-xs text-muted-foreground mb-2">{level.xp_required.toLocaleString()} XP</p>
                     {level.marketplace_discount > 0 && (
