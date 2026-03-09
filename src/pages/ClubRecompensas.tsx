@@ -505,6 +505,22 @@ export default function ClubRecompensas() {
               </div>
             </TabsContent>
 
+            {/* ACHIEVEMENTS TAB */}
+            <TabsContent value="achievements">
+              {loadingAchievements ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[1, 2, 3, 4, 5, 6].map(i => (
+                    <Skeleton key={i} className="h-48 rounded-xl" />
+                  ))}
+                </div>
+              ) : (
+                <AchievementsTab 
+                  achievements={achievements}
+                  userAchievements={userAchievements}
+                />
+              )}
+            </TabsContent>
+
             {/* LEVELS TAB */}
             <TabsContent value="levels">
               <div className="max-w-3xl mx-auto space-y-4">
