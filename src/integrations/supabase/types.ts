@@ -2411,6 +2411,111 @@ export type Database = {
         }
         Relationships: []
       }
+      monuments: {
+        Row: {
+          address: string | null
+          architect: string | null
+          created_at: string | null
+          description: string | null
+          destination_id: string | null
+          entry_fee: string | null
+          gallery: string[] | null
+          highlights: string[] | null
+          historical_period: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          latitude: number | null
+          longitude: number | null
+          monument_type: string | null
+          name: string
+          opening_hours: string | null
+          phone: string | null
+          province_id: string | null
+          rating: number | null
+          review_count: number | null
+          short_description: string | null
+          slug: string | null
+          updated_at: string | null
+          website: string | null
+          year_built: string | null
+        }
+        Insert: {
+          address?: string | null
+          architect?: string | null
+          created_at?: string | null
+          description?: string | null
+          destination_id?: string | null
+          entry_fee?: string | null
+          gallery?: string[] | null
+          highlights?: string[] | null
+          historical_period?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          monument_type?: string | null
+          name: string
+          opening_hours?: string | null
+          phone?: string | null
+          province_id?: string | null
+          rating?: number | null
+          review_count?: number | null
+          short_description?: string | null
+          slug?: string | null
+          updated_at?: string | null
+          website?: string | null
+          year_built?: string | null
+        }
+        Update: {
+          address?: string | null
+          architect?: string | null
+          created_at?: string | null
+          description?: string | null
+          destination_id?: string | null
+          entry_fee?: string | null
+          gallery?: string[] | null
+          highlights?: string[] | null
+          historical_period?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          monument_type?: string | null
+          name?: string
+          opening_hours?: string | null
+          phone?: string | null
+          province_id?: string | null
+          rating?: number | null
+          review_count?: number | null
+          short_description?: string | null
+          slug?: string | null
+          updated_at?: string | null
+          website?: string | null
+          year_built?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monuments_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "monuments_province_id_fkey"
+            columns: ["province_id"]
+            isOneToOne: false
+            referencedRelation: "provinces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       municipalities: {
         Row: {
           area_km2: number | null
@@ -2514,6 +2619,120 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      parks: {
+        Row: {
+          activities: string[] | null
+          address: string | null
+          area_km2: number | null
+          created_at: string | null
+          description: string | null
+          destination_id: string | null
+          ecosystems: string[] | null
+          entry_fee: string | null
+          established_year: number | null
+          flora_fauna: string[] | null
+          gallery: string[] | null
+          highlights: string[] | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          opening_hours: string | null
+          park_type: string | null
+          phone: string | null
+          province_id: string | null
+          rating: number | null
+          review_count: number | null
+          short_description: string | null
+          slug: string | null
+          trails: string[] | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          activities?: string[] | null
+          address?: string | null
+          area_km2?: number | null
+          created_at?: string | null
+          description?: string | null
+          destination_id?: string | null
+          ecosystems?: string[] | null
+          entry_fee?: string | null
+          established_year?: number | null
+          flora_fauna?: string[] | null
+          gallery?: string[] | null
+          highlights?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          opening_hours?: string | null
+          park_type?: string | null
+          phone?: string | null
+          province_id?: string | null
+          rating?: number | null
+          review_count?: number | null
+          short_description?: string | null
+          slug?: string | null
+          trails?: string[] | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          activities?: string[] | null
+          address?: string | null
+          area_km2?: number | null
+          created_at?: string | null
+          description?: string | null
+          destination_id?: string | null
+          ecosystems?: string[] | null
+          entry_fee?: string | null
+          established_year?: number | null
+          flora_fauna?: string[] | null
+          gallery?: string[] | null
+          highlights?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          opening_hours?: string | null
+          park_type?: string | null
+          phone?: string | null
+          province_id?: string | null
+          rating?: number | null
+          review_count?: number | null
+          short_description?: string | null
+          slug?: string | null
+          trails?: string[] | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parks_destination_id_fkey"
+            columns: ["destination_id"]
+            isOneToOne: false
+            referencedRelation: "destinations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parks_province_id_fkey"
+            columns: ["province_id"]
+            isOneToOne: false
+            referencedRelation: "provinces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       passport_stamps: {
         Row: {

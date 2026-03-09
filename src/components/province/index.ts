@@ -4,3 +4,5 @@ export { ProvinceActivities } from "./ProvinceActivities";
 export { ProvinceDestinations } from "./ProvinceDestinations";
 export { ProvinceFeaturedSection } from "./ProvinceFeaturedSection";
 export { ProvinceNightlife } from "./ProvinceNightlife";
+export { ProvinceMonuments } from "./ProvinceMonuments";
+export { ProvinceParks } from "./ProvinceParks";

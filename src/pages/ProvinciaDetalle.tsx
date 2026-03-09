@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { Home, ChevronRight, Building2, Utensils, Music } from "lucide-react";
+import { Home, ChevronRight, Building2, Utensils } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
@@ -12,7 +12,9 @@ import { ProvinceActivities } from "@/components/province/ProvinceActivities";
 import { ProvinceDestinations } from "@/components/province/ProvinceDestinations";
 import { ProvinceFeaturedSection } from "@/components/province/ProvinceFeaturedSection";
 import { ProvinceNightlife } from "@/components/province/ProvinceNightlife";
-import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
+import { ProvinceMonuments } from "@/components/province/ProvinceMonuments";
+import { ProvinceParks } from "@/components/province/ProvinceParks";
+import { BetweenSectionsAd } from "@/components/ads";
 
 import { destinations, getDestinationBySlug } from "@/data/destinations";
 import { hotels } from "@/data/hotels";
@@ -23,45 +25,48 @@ import { useQuery } from "@tanstack/react-query";
 
 export default function ProvinciaDetalle() {
   const { slug } = useParams<{ slug: string }>();
-  
-  // Find province data from static destinations
   const province = getDestinationBySlug(slug || "");
 
-  // Fetch DB data for this province - hooks must be before early returns
+  // Fetch province DB ID for monument/park queries
+  const { data: dbProvince } = useQuery({
+    queryKey: ['province-db-id', slug],
+    queryFn: async () => {
+      const { data } = await supabase.from('provinces').select('id').eq('slug', slug!).maybeSingle();
+      return data;
+    },
+    enabled: !!slug && !!province,
+  });
+
   const { data: dbHotels } = useQuery({
     queryKey: ['province-hotels', slug],
     queryFn: async () => {
-      const { data: prov } = await supabase.from('provinces').select('id').eq('slug', slug!).maybeSingle();
-      if (!prov) return [];
-      const { data } = await supabase.from('hotels').select('*').eq('destination_id', prov.id).eq('is_active', true).limit(10);
+      if (!dbProvince) return [];
+      const { data } = await supabase.from('hotels').select('*').eq('destination_id', dbProvince.id).eq('is_active', true).limit(10);
       return data || [];
     },
-    enabled: !!slug && !!province,
+    enabled: !!dbProvince,
   });
 
   const { data: dbRestaurants } = useQuery({
     queryKey: ['province-restaurants', slug],
     queryFn: async () => {
-      const { data: prov } = await supabase.from('provinces').select('id').eq('slug', slug!).maybeSingle();
-      if (!prov) return [];
-      const { data } = await supabase.from('restaurants').select('*').eq('destination_id', prov.id).eq('is_active', true).limit(10);
+      if (!dbProvince) return [];
+      const { data } = await supabase.from('restaurants').select('*').eq('destination_id', dbProvince.id).eq('is_active', true).limit(10);
       return data || [];
     },
-    enabled: !!slug && !!province,
+    enabled: !!dbProvince,
   });
 
   const { data: dbBars } = useQuery({
     queryKey: ['province-bars', slug],
     queryFn: async () => {
-      const { data: prov } = await supabase.from('provinces').select('id').eq('slug', slug!).maybeSingle();
-      if (!prov) return [];
-      const { data } = await supabase.from('bars').select('*').eq('destination_id', prov.id).eq('is_active', true).limit(10);
+      if (!dbProvince) return [];
+      const { data } = await supabase.from('bars').select('*').eq('destination_id', dbProvince.id).eq('is_active', true).limit(10);
       return data || [];
     },
-    enabled: !!slug && !!province,
+    enabled: !!dbProvince,
   });
-  
-  // Get hotels in this province (static + DB merged)
+
   const provinceHotels = useMemo(() => {
     if (!province || province.type !== "provincia") return [];
     const staticItems = hotels.filter(
@@ -84,7 +89,6 @@ export default function ProvinciaDetalle() {
     return staticItems;
   }, [province, dbHotels]);
 
-  // Get restaurants (static + DB merged)
   const provinceRestaurants = useMemo(() => {
     if (!province || province.type !== "provincia") return [];
     const staticItems = restaurants.filter(
@@ -109,7 +113,6 @@ export default function ProvinciaDetalle() {
     return staticItems;
   }, [province, dbRestaurants]);
 
-  // Get bars (static + DB merged)
   const provinceBars = useMemo(() => {
     if (!province || province.type !== "provincia") return [];
     const staticItems = bars.filter(
@@ -133,14 +136,13 @@ export default function ProvinciaDetalle() {
     return staticItems;
   }, [province, dbBars]);
 
-  // Get destinations within this province
   const provinceDestinations = useMemo(() => {
     if (!province) return [];
     return destinations.filter(d => d.provinceSlug === province.slug && d.type !== "provincia");
   }, [province]);
 
-  const heroImages = province?.gallery?.length 
-    ? province.gallery 
+  const heroImages = province?.gallery?.length
+    ? province.gallery
     : [province?.imageUrl || "/placeholder.svg"];
 
   if (!province || province.type !== "provincia") {
@@ -171,12 +173,10 @@ export default function ProvinciaDetalle() {
       <Header />
 
       <main className="min-h-screen bg-background">
-        {/* Breadcrumb */}
         <div className="container mx-auto px-4 pt-4">
           <nav className="flex items-center gap-2 text-sm text-muted-foreground">
             <Link to="/" className="hover:text-primary flex items-center gap-1">
-              <Home className="h-4 w-4" />
-              Inicio
+              <Home className="h-4 w-4" /> Inicio
             </Link>
             <ChevronRight className="h-4 w-4" />
             <Link to="/destinos" className="hover:text-primary">Destinos</Link>
@@ -187,7 +187,6 @@ export default function ProvinciaDetalle() {
           </nav>
         </div>
 
-        {/* Hero Section */}
         <ProvinceHero
           name={province.name}
           region={province.region}
@@ -196,7 +195,6 @@ export default function ProvinciaDetalle() {
           highlights={province.highlights}
         />
 
-        {/* Tech Card */}
         <ProvinceTechCard
           name={province.name}
           region={province.region}
@@ -209,27 +207,38 @@ export default function ProvinciaDetalle() {
           categories={province.categories}
         />
 
-        {/* Banner Ad */}
         <BetweenSectionsAd />
 
-        {/* Activities Section */}
         <ProvinceActivities
           provinceName={province.name}
           provinceSlug={province.slug}
           categories={province.categories}
         />
 
-        {/* Destinations in Province */}
         <ProvinceDestinations
           provinceName={province.name}
           provinceSlug={province.slug}
           destinations={provinceDestinations}
         />
 
-        {/* Banner Ad */}
+        {/* Monuments */}
+        {dbProvince && (
+          <ProvinceMonuments
+            provinceId={dbProvince.id}
+            provinceName={province.name}
+          />
+        )}
+
         <BetweenSectionsAd />
 
-        {/* Featured Hotels */}
+        {/* Parks */}
+        {dbProvince && (
+          <ProvinceParks
+            provinceId={dbProvince.id}
+            provinceName={province.name}
+          />
+        )}
+
         <ProvinceFeaturedSection
           title={`Hoteles en ${province.name}`}
           subtitle="Alojamiento"
@@ -240,7 +249,6 @@ export default function ProvinciaDetalle() {
           emptyMessage="Próximamente hoteles destacados"
         />
 
-        {/* Featured Restaurants */}
         <div className="bg-muted/30">
           <ProvinceFeaturedSection
             title={`Restaurantes en ${province.name}`}
@@ -253,14 +261,12 @@ export default function ProvinciaDetalle() {
           />
         </div>
 
-        {/* Nightlife */}
         <ProvinceNightlife
           provinceName={province.name}
           provinceSlug={province.slug}
           venues={provinceBars}
         />
 
-        {/* Final Banner Ad */}
         <BetweenSectionsAd showDemo />
       </main>
 
