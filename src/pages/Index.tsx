@@ -13,6 +13,10 @@ import { SEOHead, generateOrganizationSchema } from "@/components/SEOHead";
 import { BetweenSectionsAd, MobileAd, MobileStickyFooterAd } from "@/components/ads";
 import { StatsSection } from "@/components/StatsSection";
 import { TestimonialsSection } from "@/components/TestimonialsSection";
+import { QuickExploreStrip } from "@/components/QuickExploreStrip";
+import { ShoppingHighlightSection } from "@/components/ShoppingHighlightSection";
+import { TransportHighlightSection } from "@/components/TransportHighlightSection";
+import { TravelerToolsStrip } from "@/components/TravelerToolsStrip";
 
 const Index = () => {
   return (
@@ -27,6 +31,7 @@ const Index = () => {
         <Header />
         <MobileAd showDemo />
         <HeroSlideshow />
+        <QuickExploreStrip />
         <StatsSection />
         <InterestSection />
         <BetweenSectionsAd showDemo />
@@ -35,7 +40,10 @@ const Index = () => {
         <BetweenSectionsAd showDemo />
         <AccommodationsSection />
         <DestinationsSection />
+        <ShoppingHighlightSection />
         <BetweenSectionsAd showDemo />
+        <TransportHighlightSection />
+        <TravelerToolsStrip />
         <TestimonialsSection />
         <NewsSection />
         
