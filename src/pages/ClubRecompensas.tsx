@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   Gift, Star, Trophy, Award, Ticket, Crown,
@@ -18,6 +18,10 @@ import { useGamification } from "@/hooks/useGamification";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { AchievementsTab } from "@/components/gamification/AchievementsTab";
+import { LeaderboardTab } from "@/components/gamification/LeaderboardTab";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const missionCategoryIcons: Record<string, React.ReactNode> = {
   exploration: <Target className="h-4 w-4" />,
