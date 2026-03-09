@@ -225,6 +225,11 @@ export default function MunicipioDetalle() {
           destinationName={municipality.name}
         />
 
+        {/* About Tabs */}
+        {municipality.about && (
+          <DestinationAboutTabs name={municipality.name} data={municipality.about} />
+        )}
+
         {/* Banner Ad */}
         <InlineAd showDemo />
 
