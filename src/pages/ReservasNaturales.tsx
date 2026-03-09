@@ -459,7 +459,7 @@ const stats = [
   { icon: Mountain, label: "Áreas Protegidas", value: "128" },
 ];
 
-const categorias = ["Todos", "Bosque húmedo", "Marino-costero", "Montaña", "Marino-terrestre", "Bosque de montaña"];
+const categorias = ["Todos", "Bosque húmedo", "Marino-costero", "Montaña", "Marino-terrestre", "Bosque de montaña", "Bosque nuboso", "Lacustre", "Submarino", "Cascada", "Desierto costero", "Cueva con lagos", "Laguna subterránea", "Depresión geológica", "Humedal", "Manglar", "Playa virgen"];
 
 export default function ReservasNaturales() {
   const [search, setSearch] = useState("");
