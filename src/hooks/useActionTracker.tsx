@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useAchievementChecker } from "@/hooks/useAchievementChecker";
 import { toast } from "sonner";
 
 export type ActionType = 
@@ -25,6 +26,7 @@ interface TrackActionOptions {
 
 export function useActionTracker() {
   const { user } = useAuth();
+  const { checkAchievements } = useAchievementChecker();
 
   const trackAction = useCallback(async ({ 
     actionType, 
@@ -155,10 +157,15 @@ export function useActionTracker() {
           }
         }
       }
+
+      // Check for achievement unlocks after processing actions
+      if (user) {
+        await checkAchievements();
+      }
     } catch (error) {
       console.error("Error tracking action:", error);
     }
-  }, [user]);
+  }, [user, checkAchievements]);
 
   const trackDailyCheckin = useCallback(async () => {
     if (!user) return false;
