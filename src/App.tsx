@@ -309,7 +309,7 @@ function AnimatedRoutes() {
           <Route path="/inversion" element={<Inversion />} />
           <Route path="/mice" element={<MICE />} />
           <Route path="/experiencias" element={<Experiencias />} />
-          <Route path="/experiencia/:id" element={<ExperienciaDetalle />} />
+          <Route path="/experiencia/:slug" element={<ExperienciaDetalle />} />
           <Route path="/mi-viaje" element={<MiViaje />} />
           <Route path="/biblioteca" element={<Biblioteca />} />
           <Route path="/compras" element={<Compras />} />
