@@ -453,10 +453,10 @@ const reservas = [
 ];
 
 const stats = [
-  { icon: TreePine, label: "Parques Nacionales", value: "29" },
-  { icon: Shield, label: "Reservas Científicas", value: "12" },
-  { icon: Bird, label: "Especies Endémicas", value: "300+" },
-  { icon: Mountain, label: "Áreas Protegidas", value: "128" },
+  { icon: TreePine, label: "Parques Nacionales", value: "13" },
+  { icon: Shield, label: "Reservas Científicas", value: "3" },
+  { icon: Bird, label: "Monumentos Naturales", value: "5" },
+  { icon: Mountain, label: "Áreas Protegidas", value: "30+" },
 ];
 
 const categorias = ["Todos", "Bosque húmedo", "Marino-costero", "Montaña", "Marino-terrestre", "Bosque de montaña", "Bosque nuboso", "Lacustre", "Submarino", "Cascada", "Desierto costero", "Cueva con lagos", "Laguna subterránea", "Depresión geológica", "Humedal", "Manglar", "Playa virgen"];

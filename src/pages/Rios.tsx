@@ -861,9 +861,9 @@ export default function Rios() {
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {[
-                { icon: Droplets, label: "30+ Ríos", desc: "Para explorar" },
-                { icon: Mountain, label: "Cascadas", desc: "Impresionantes" },
-                { icon: TreePine, label: "Naturaleza", desc: "Virgen y exuberante" },
+                { icon: Droplets, label: "50+ Destinos", desc: "Para explorar" },
+                { icon: Mountain, label: "26 Cascadas", desc: "Impresionantes" },
+                { icon: TreePine, label: "20 Balnearios", desc: "Pozas y ríos" },
                 { icon: Compass, label: "Aventura", desc: "Para todos los niveles" }
               ].map((feature) => (
                 <div key={feature.label} className="text-center">
