@@ -105,7 +105,7 @@ export function GamificationStats() {
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="p-4 flex flex-col items-center text-center gap-1">
-            <Trophy className="h-6 w-6 text-yellow-500" />
+            <Trophy className="h-6 w-6 text-primary" />
             <span className="text-2xl font-bold">{counts?.achievements || 0}</span>
             <span className="text-xs text-muted-foreground">Logros</span>
           </CardContent>
@@ -113,7 +113,7 @@ export function GamificationStats() {
 
         <Card>
           <CardContent className="p-4 flex flex-col items-center text-center gap-1">
-            <Target className="h-6 w-6 text-blue-500" />
+            <Target className="h-6 w-6 text-accent-foreground" />
             <span className="text-2xl font-bold">{counts?.missions || 0}</span>
             <span className="text-xs text-muted-foreground">Misiones</span>
           </CardContent>
@@ -121,7 +121,7 @@ export function GamificationStats() {
 
         <Card>
           <CardContent className="p-4 flex flex-col items-center text-center gap-1">
-            <Gift className="h-6 w-6 text-purple-500" />
+            <Gift className="h-6 w-6 text-primary" />
             <span className="text-2xl font-bold">{counts?.prizes || 0}</span>
             <span className="text-xs text-muted-foreground">Premios</span>
           </CardContent>
@@ -129,7 +129,7 @@ export function GamificationStats() {
 
         <Card>
           <CardContent className="p-4 flex flex-col items-center text-center gap-1">
-            <TrendingUp className="h-6 w-6 text-green-500" />
+            <TrendingUp className="h-6 w-6 text-accent-foreground" />
             <span className="text-2xl font-bold">{counts?.routes || 0}</span>
             <span className="text-xs text-muted-foreground">Rutas</span>
           </CardContent>
@@ -137,7 +137,7 @@ export function GamificationStats() {
 
         <Card>
           <CardContent className="p-4 flex flex-col items-center text-center gap-1">
-            <Users className="h-6 w-6 text-pink-500" />
+            <Users className="h-6 w-6 text-primary" />
             <span className="text-2xl font-bold">{counts?.seasons || 0}</span>
             <span className="text-xs text-muted-foreground">Temporadas</span>
           </CardContent>
