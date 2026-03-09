@@ -50,7 +50,7 @@ export function ShoppingHighlightSection() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <Badge className="absolute top-3 left-3 bg-background/80 backdrop-blur text-foreground text-[10px]">
-                      {mall.tiendas}+ {t("shopping.stores")}
+                      {mall.tiendas}+ {t("shoppingMalls.stores")}
                     </Badge>
                   </div>
                   <CardContent className="p-4">
