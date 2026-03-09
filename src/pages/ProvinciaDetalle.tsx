@@ -15,6 +15,7 @@ import { ProvinceNightlife } from "@/components/province/ProvinceNightlife";
 import { ProvinceMonuments } from "@/components/province/ProvinceMonuments";
 import { ProvinceParks } from "@/components/province/ProvinceParks";
 import { BetweenSectionsAd } from "@/components/ads";
+import { DistancesFromCities } from "@/components/destination/DistancesFromCities";
 
 import { destinations, getDestinationBySlug } from "@/data/destinations";
 import { hotels } from "@/data/hotels";
@@ -205,6 +206,12 @@ export default function ProvinciaDetalle() {
           latitude={province.latitude}
           longitude={province.longitude}
           categories={province.categories}
+        />
+
+        <DistancesFromCities
+          latitude={province.latitude}
+          longitude={province.longitude}
+          destinationName={province.name}
         />
 
         <BetweenSectionsAd />

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { ProvinceActivities } from "@/components/province/ProvinceActivities";
 import { ProvinceFeaturedSection } from "@/components/province/ProvinceFeaturedSection";
 import { InlineAd, BetweenSectionsAd } from "@/components/ads";
+import { DistancesFromCities } from "@/components/destination/DistancesFromCities";
 
 import { destinations, getDestinationBySlug } from "@/data/destinations";
 import { hotels } from "@/data/hotels";
@@ -214,6 +215,13 @@ export default function MunicipioDetalle() {
             </div>
           </section>
         )}
+
+        {/* Distances from cities */}
+        <DistancesFromCities
+          latitude={municipality.latitude}
+          longitude={municipality.longitude}
+          destinationName={municipality.name}
+        />
 
         {/* Banner Ad */}
         <InlineAd showDemo />
