@@ -878,9 +878,29 @@ export default function Rios() {
           </div>
         </section>
 
-        {/* Filtros de Adrenalina */}
+        {/* Filtros */}
         <section className="py-8 bg-card/30">
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto px-4 space-y-4">
+            {/* Filtro por tipo */}
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <span className="text-sm text-muted-foreground font-medium">Tipo:</span>
+              {tiposUnicos.map((tipo) => (
+                <Button
+                  key={tipo}
+                  variant={filtroTipo === tipo ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFiltroTipo(filtroTipo === tipo ? null : tipo)}
+                >
+                  {tipo}
+                </Button>
+              ))}
+              {filtroTipo && (
+                <Button variant="ghost" size="sm" onClick={() => setFiltroTipo(null)}>
+                  Limpiar
+                </Button>
+              )}
+            </div>
+            {/* Filtro por adrenalina */}
             <div className="flex flex-wrap items-center justify-center gap-3">
               <span className="text-sm text-muted-foreground font-medium">Nivel Adrenalina:</span>
               {["Baja", "Media", "Alta", "Extrema"].map((nivel) => (
