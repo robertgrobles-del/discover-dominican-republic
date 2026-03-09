@@ -210,6 +210,7 @@ const TriviaTuristica = lazy(() => import("./pages/TriviaTuristica"));
 const MapaMisiones = lazy(() => import("./pages/MapaMisiones"));
 const Montanas = lazy(() => import("./pages/Montanas"));
 const MontanaDetalle = lazy(() => import("./pages/MontanaDetalle"));
+const AeropuertoDetalle = lazy(() => import("./pages/AeropuertoDetalle"));
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
 const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
@@ -278,6 +279,7 @@ function AnimatedRoutes() {
           <Route path="/restaurante/:slug" element={<RestauranteDetalle />} />
           <Route path="/revista" element={<Revista />} />
           <Route path="/aeropuerto" element={<Aeropuerto />} />
+          <Route path="/aeropuerto/:slug" element={<AeropuertoDetalle />} />
           <Route path="/vida-nocturna" element={<VidaNocturna />} />
           <Route path="/directorio-agencias" element={<DirectorioAgencias />} />
           <Route path="/guia-gastronomica" element={<GuiaGastronomica />} />
