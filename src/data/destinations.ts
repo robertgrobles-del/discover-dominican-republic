@@ -210,7 +210,30 @@ export const destinations: Destination[] = [
     latitude: 19.7934,
     longitude: -70.6884,
     isPopular: true,
-    isFeatured: true
+    isFeatured: true,
+    about: {
+      history: 'Fundada en 1502 por Nicolás de Ovando con el nombre de San Felipe de Puerto Plata. Fue puerto clave del comercio colonial y sufrió las devastaciones de Osorio en 1605. En el siglo XIX, el general Gregorio Luperón lideró desde aquí la Guerra de Restauración. El turismo masivo llegó en los años 80 con el desarrollo de Playa Dorada.',
+      geography: 'Situada en la costa norte (Atlántico), flanqueada por la Cordillera Septentrional. El Pico Isabel de Torres (793 m) domina el paisaje urbano. La provincia cuenta con 120 km de costa con playas de arena dorada y formaciones coralinas.',
+      artAndCulture: 'Cuna del ámbar dominicano, con el Museo del Ámbar albergando piezas de hasta 40 millones de años. Las fiestas patronales de San Felipe (mayo) y el carnaval con sus "taimáscaros" son tradiciones emblemáticas. La influencia afrocaribeña marca la música y la gastronomía local.',
+      economy: 'Turismo (Playa Dorada, Sosúa, Cabarete), zonas francas industriales, producción de ron y tabaco. El puerto de carga de Maimón es importante para el comercio exterior.',
+      demographics: 'Aproximadamente 330,000 habitantes. Comunidad cosmopolita con importante presencia de europeos y norteamericanos residentes, especialmente en Sosúa y Cabarete.',
+      pointsOfInterest: [
+        { name: 'Teleférico Pico Isabel de Torres', type: 'natural', description: 'Único teleférico del Caribe con jardín botánico en la cumbre.' },
+        { name: 'Fortaleza San Felipe', type: 'histórico', description: 'Fortín colonial del s. XVI, hoy museo militar.' },
+        { name: 'Museo del Ámbar', type: 'cultural', description: 'Colección de ámbar dominicano con insectos prehistóricos.' },
+        { name: 'Ocean World Adventure Park', type: 'entretenimiento', description: 'Parque con delfines, leones marinos y acuario.' },
+        { name: '27 Charcos de Damajagua', type: 'natural', description: 'Cascadas naturales para canyoning y aventura acuática.' },
+      ],
+      whatToDo: [
+        'Subir en teleférico al Pico Isabel de Torres',
+        'Kitesurf y windsurf en Cabarete',
+        'Canyoning en los 27 Charcos de Damajagua',
+        'Snorkel en los arrecifes de Sosúa',
+        'Tour por fábricas de ron y tabaco',
+        'Explorar la Fortaleza San Felipe',
+        'Visitar el Museo del Ámbar',
+      ],
+    },
   },
   {
     id: 'santo-domingo',
