@@ -156,7 +156,7 @@ export default function AlojamientoDetalle() {
   const hotelDescription = staticHotel?.description || dbHotel?.description || "";
   const hotelShortDesc = staticHotel?.shortDescription || dbHotel?.short_description || "";
   const hotelStars = staticHotel?.stars || dbHotel?.stars || 5;
-  const hotelCategory = staticHotel?.category || dbHotel?.hotel_type || "resort";
+  const hotelCategory = staticHotel?.category || dbHotel?.category || "resort";
   const hotelPriceRange = staticHotel?.priceRange || dbHotel?.price_range || "$$$";
   const hotelAmenities = staticHotel?.amenities || (dbHotel?.amenities as string[]) || [];
   const hotelPhone = staticHotel?.phone || dbHotel?.phone || "";
