@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -7,47 +7,46 @@ import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   MapPin, Trophy, Star, Lock, CheckCircle2, Zap,
-  Filter, Eye, ChevronRight, Compass, Target, Flame
+  ChevronRight, Compass, Target, Flame
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { useGamification } from "@/hooks/useGamification";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 type MissionStatus = "locked" | "available" | "active" | "completed";
 type FilterType = "all" | "available" | "active" | "completed";
 
-interface Mission {
+interface MapMission {
   id: string;
-  title: string;
+  name: string;
   description: string;
+  short_description: string;
+  icon: string;
+  xp_reward: number;
+  coin_reward: number;
+  target_count: number;
+  category: string;
+  mission_type: string;
+  min_level: number;
+  // Location from destination
   lat: number;
   lng: number;
-  xp: number;
-  coins: number;
-  difficulty: "easy" | "medium" | "hard";
-  status: MissionStatus;
   region: string;
-  category: string;
+  status: MissionStatus;
+  progress: number;
 }
 
-const missions: Mission[] = [
-  { id: "1", title: "Zona Colonial Explorer", description: "Visita 3 museos históricos en la Zona Colonial", lat: 18.4735, lng: -69.8827, xp: 200, coins: 50, difficulty: "easy", status: "completed", region: "Santo Domingo", category: "Cultural" },
-  { id: "2", title: "Conquista la Playa Bávaro", description: "Registra tu visita a la icónica playa de Bávaro", lat: 18.6878, lng: -68.4506, xp: 100, coins: 25, difficulty: "easy", status: "active", region: "Punta Cana", category: "Exploración" },
-  { id: "3", title: "Avistamiento de Ballenas", description: "Vive la experiencia de avistar ballenas jorobadas", lat: 19.2057, lng: -69.3398, xp: 350, coins: 100, difficulty: "medium", status: "available", region: "Samaná", category: "Naturaleza" },
-  { id: "4", title: "Sabores de Puerto Plata", description: "Prueba 3 platos típicos en restaurantes locales", lat: 19.7934, lng: -70.6884, xp: 250, coins: 60, difficulty: "medium", status: "available", region: "Puerto Plata", category: "Gastronómico" },
-  { id: "5", title: "Expedición Pico Duarte", description: "Sube el pico más alto del Caribe", lat: 19.0293, lng: -70.9998, xp: 500, coins: 150, difficulty: "hard", status: "locked", region: "La Vega", category: "Aventura" },
-  { id: "6", title: "El Lago Enriquillo", description: "Descubre el lago más grande de las Antillas", lat: 18.5085, lng: -71.5856, xp: 300, coins: 80, difficulty: "medium", status: "available", region: "Independencia", category: "Naturaleza" },
-  { id: "7", title: "Ruta del Cacao", description: "Visita una plantación de cacao y aprende el proceso", lat: 19.3003, lng: -70.2531, xp: 200, coins: 50, difficulty: "easy", status: "completed", region: "Espaillat", category: "Cultural" },
-  { id: "8", title: "Surf en Cabarete", description: "Toma una clase de surf o kitesurf", lat: 19.7580, lng: -70.4087, xp: 300, coins: 75, difficulty: "medium", status: "available", region: "Puerto Plata", category: "Aventura" },
-];
-
-const statusConfig: Record<MissionStatus, { color: string; icon: typeof MapPin; label: string; markerColor: string }> = {
-  completed: { color: "text-green-500", icon: CheckCircle2, label: "Completada", markerColor: "#22c55e" },
-  active: { color: "text-primary", icon: Zap, label: "En progreso", markerColor: "#3b82f6" },
-  available: { color: "text-yellow-500", icon: Star, label: "Disponible", markerColor: "#eab308" },
-  locked: { color: "text-muted-foreground", icon: Lock, label: "Bloqueada", markerColor: "#6b7280" },
+const statusConfig: Record<MissionStatus, { color: string; label: string; markerColor: string }> = {
+  completed: { color: "text-green-500", label: "Completada", markerColor: "#22c55e" },
+  active: { color: "text-primary", label: "En progreso", markerColor: "#3b82f6" },
+  available: { color: "text-yellow-500", label: "Disponible", markerColor: "#eab308" },
+  locked: { color: "text-muted-foreground", label: "Bloqueada", markerColor: "#6b7280" },
 };
 
 const createMissionIcon = (status: MissionStatus) => {
@@ -62,13 +61,84 @@ const createMissionIcon = (status: MissionStatus) => {
   });
 };
 
-export default function MapaMisiones() {
-  const [filter, setFilter] = useState<FilterType>("all");
-  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+// Default locations for missions by category
+const categoryLocations: Record<string, { lat: number; lng: number; region: string }[]> = {
+  exploration: [
+    { lat: 18.47, lng: -69.88, region: "Santo Domingo" },
+    { lat: 18.69, lng: -68.45, region: "Punta Cana" },
+    { lat: 19.21, lng: -69.34, region: "Samaná" },
+    { lat: 19.79, lng: -70.69, region: "Puerto Plata" },
+  ],
+  gastronomy: [
+    { lat: 18.50, lng: -69.90, region: "Santo Domingo" },
+    { lat: 19.45, lng: -70.69, region: "Santiago" },
+    { lat: 18.42, lng: -68.97, region: "La Romana" },
+  ],
+  culture: [
+    { lat: 18.47, lng: -69.88, region: "Zona Colonial" },
+    { lat: 19.30, lng: -70.25, region: "La Vega" },
+    { lat: 19.45, lng: -70.70, region: "Santiago" },
+  ],
+  social: [
+    { lat: 18.48, lng: -69.93, region: "Santo Domingo" },
+    { lat: 18.69, lng: -68.41, region: "Bávaro" },
+  ],
+  engagement: [
+    { lat: 18.50, lng: -69.85, region: "Santo Domingo" },
+    { lat: 19.76, lng: -70.41, region: "Cabarete" },
+  ],
+  commerce: [
+    { lat: 18.49, lng: -69.89, region: "Santo Domingo" },
+    { lat: 18.69, lng: -68.42, region: "Punta Cana" },
+  ],
+  referral: [
+    { lat: 18.48, lng: -69.90, region: "Santo Domingo" },
+  ],
+  planning: [
+    { lat: 18.50, lng: -69.88, region: "Santo Domingo" },
+    { lat: 19.03, lng: -71.00, region: "Jarabacoa" },
+  ],
+};
 
-  const filtered = missions.filter(m => filter === "all" || m.status === filter);
-  const completedCount = missions.filter(m => m.status === "completed").length;
-  const explorationPct = Math.round((completedCount / missions.length) * 100);
+export default function MapaMisiones() {
+  const { user } = useAuth();
+  const { missions, userMissions, userGamification, loading } = useGamification();
+  const [filter, setFilter] = useState<FilterType>("all");
+  const [selectedMission, setSelectedMission] = useState<MapMission | null>(null);
+
+  // Map missions to map data with locations
+  const mapMissions: MapMission[] = missions.map((m, i) => {
+    const progress = userMissions.find(um => um.mission_id === m.id);
+    const isLocked = (userGamification?.current_level || 1) < m.min_level;
+    const isCompleted = progress?.is_completed || false;
+    const isActive = !isCompleted && (progress?.progress || 0) > 0;
+
+    const locations = categoryLocations[m.category] || categoryLocations.exploration;
+    const loc = locations[i % locations.length];
+
+    return {
+      id: m.id,
+      name: m.name,
+      description: m.description || m.short_description,
+      short_description: m.short_description,
+      icon: m.icon,
+      xp_reward: m.xp_reward,
+      coin_reward: m.coin_reward,
+      target_count: m.target_count,
+      category: m.category,
+      mission_type: m.mission_type,
+      min_level: m.min_level,
+      lat: loc.lat + (Math.random() - 0.5) * 0.1,
+      lng: loc.lng + (Math.random() - 0.5) * 0.1,
+      region: loc.region,
+      status: isLocked ? "locked" : isCompleted ? "completed" : isActive ? "active" : "available",
+      progress: progress?.progress || 0,
+    };
+  });
+
+  const filtered = mapMissions.filter(m => filter === "all" || m.status === filter);
+  const completedCount = mapMissions.filter(m => m.status === "completed").length;
+  const explorationPct = mapMissions.length > 0 ? Math.round((completedCount / mapMissions.length) * 100) : 0;
 
   return (
     <PageTransition>
@@ -98,9 +168,9 @@ export default function MapaMisiones() {
             {/* Filters */}
             <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
               {([
-                { id: "all" as const, label: "Todas", count: missions.length },
-                { id: "available" as const, label: "Disponibles", count: missions.filter(m => m.status === "available").length },
-                { id: "active" as const, label: "En progreso", count: missions.filter(m => m.status === "active").length },
+                { id: "all" as const, label: "Todas", count: mapMissions.length },
+                { id: "available" as const, label: "Disponibles", count: mapMissions.filter(m => m.status === "available").length },
+                { id: "active" as const, label: "En progreso", count: mapMissions.filter(m => m.status === "active").length },
                 { id: "completed" as const, label: "Completadas", count: completedCount },
               ]).map(f => (
                 <Button
@@ -120,98 +190,122 @@ export default function MapaMisiones() {
         {/* Map + Sidebar */}
         <section className="pb-8">
           <div className="container mx-auto px-4">
-            <div className="grid lg:grid-cols-3 gap-4" style={{ minHeight: "550px" }}>
-              {/* Map */}
-              <div className="lg:col-span-2 rounded-xl overflow-hidden border border-border" style={{ minHeight: "500px" }}>
-                <MapContainer
-                  center={[18.9, -70.0]}
-                  zoom={8}
-                  style={{ width: "100%", height: "100%", minHeight: "500px" }}
-                  scrollWheelZoom
-                >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  {filtered.map((m) => (
-                    <Marker
-                      key={m.id}
-                      position={[m.lat, m.lng]}
-                      icon={createMissionIcon(m.status)}
-                      eventHandlers={{ click: () => setSelectedMission(m) }}
-                    >
-                      <Popup>
-                        <div className="text-center p-1">
-                          <p className="font-bold text-sm">{m.title}</p>
-                          <p className="text-xs text-gray-500">{m.region} • +{m.xp} XP</p>
-                        </div>
-                      </Popup>
-                    </Marker>
-                  ))}
-                </MapContainer>
-              </div>
-
-              {/* Sidebar */}
-              <div className="space-y-3 max-h-[550px] overflow-y-auto pr-1">
-                {selectedMission ? (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-card rounded-xl border border-border p-5">
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedMission(null)} className="mb-3 -ml-2">&larr; Volver a la lista</Button>
-                    <Badge className={`${statusConfig[selectedMission.status].color} bg-current/10 mb-3`}>
-                      {statusConfig[selectedMission.status].label}
-                    </Badge>
-                    <h3 className="text-lg font-bold text-foreground mb-2">{selectedMission.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-4">{selectedMission.description}</p>
-                    <div className="flex gap-2 mb-4">
-                      <Badge className="bg-primary/10 text-primary">+{selectedMission.xp} XP</Badge>
-                      <Badge className="bg-yellow-500/10 text-yellow-500">🪙 {selectedMission.coins}</Badge>
-                      <Badge variant="outline">{selectedMission.category}</Badge>
-                    </div>
-                    <div className="text-xs text-muted-foreground mb-4">
-                      <p><MapPin className="h-3 w-3 inline mr-1" />{selectedMission.region}</p>
-                    </div>
-                    {selectedMission.status === "available" && (
-                      <Button className="w-full gap-1"><Target className="h-4 w-4" /> Aceptar misión</Button>
-                    )}
-                    {selectedMission.status === "active" && (
-                      <Button className="w-full gap-1"><Zap className="h-4 w-4" /> Registrar visita</Button>
-                    )}
-                    {selectedMission.status === "completed" && (
-                      <Button variant="outline" className="w-full gap-1" disabled><CheckCircle2 className="h-4 w-4" /> Completada</Button>
-                    )}
-                  </motion.div>
-                ) : (
-                  filtered.map((m) => {
-                    const cfg = statusConfig[m.status];
-                    const StatusIcon = cfg.icon;
-                    return (
-                      <motion.button
+            {loading ? (
+              <Skeleton className="h-[550px] rounded-xl" />
+            ) : (
+              <div className="grid lg:grid-cols-3 gap-4" style={{ minHeight: "550px" }}>
+                {/* Map */}
+                <div className="lg:col-span-2 rounded-xl overflow-hidden border border-border" style={{ minHeight: "500px" }}>
+                  <MapContainer
+                    center={[18.9, -70.0]}
+                    zoom={8}
+                    style={{ width: "100%", height: "100%", minHeight: "500px" }}
+                    scrollWheelZoom
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    {filtered.map((m) => (
+                      <Marker
                         key={m.id}
-                        onClick={() => setSelectedMission(m)}
-                        whileHover={{ scale: 1.01 }}
-                        className={`w-full text-left bg-card rounded-xl border border-border p-4 hover:shadow-md transition-shadow ${m.status === "locked" ? "opacity-60" : ""}`}
+                        position={[m.lat, m.lng]}
+                        icon={createMissionIcon(m.status)}
+                        eventHandlers={{ click: () => setSelectedMission(m) }}
                       >
-                        <div className="flex items-start gap-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0`} style={{ backgroundColor: cfg.markerColor + "20" }}>
-                            <StatusIcon className="h-5 w-5" style={{ color: cfg.markerColor }} />
+                        <Popup>
+                          <div className="text-center p-1">
+                            <p className="font-bold text-sm">{m.icon} {m.name}</p>
+                            <p className="text-xs text-gray-500">{m.region} • +{m.xp_reward} XP</p>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-0.5">
-                              <h4 className="font-semibold text-foreground text-sm truncate">{m.title}</h4>
-                            </div>
-                            <p className="text-xs text-muted-foreground mb-1">{m.region} • {m.category}</p>
-                            <div className="flex gap-2">
-                              <span className="text-xs font-medium text-primary">+{m.xp} XP</span>
-                              <span className="text-xs text-yellow-500">🪙 {m.coins}</span>
-                            </div>
+                        </Popup>
+                      </Marker>
+                    ))}
+                  </MapContainer>
+                </div>
+
+                {/* Sidebar */}
+                <div className="space-y-3 max-h-[550px] overflow-y-auto pr-1">
+                  {selectedMission ? (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-card rounded-xl border border-border p-5">
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedMission(null)} className="mb-3 -ml-2">&larr; Volver</Button>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-3xl">{selectedMission.icon}</span>
+                        <Badge variant="outline">{statusConfig[selectedMission.status].label}</Badge>
+                      </div>
+                      <h3 className="text-lg font-bold text-foreground mb-2">{selectedMission.name}</h3>
+                      <p className="text-sm text-muted-foreground mb-4">{selectedMission.description}</p>
+                      <div className="flex gap-2 mb-4 flex-wrap">
+                        <Badge className="bg-amber-500/10 text-amber-600 border-amber-200">
+                          <Zap className="h-3 w-3 mr-1" /> +{selectedMission.xp_reward} XP
+                        </Badge>
+                        {selectedMission.coin_reward > 0 && (
+                          <Badge className="bg-primary/10 text-primary border-primary/20">
+                            🪙 {selectedMission.coin_reward}
+                          </Badge>
+                        )}
+                        <Badge variant="outline">{selectedMission.category}</Badge>
+                      </div>
+                      <div className="text-xs text-muted-foreground mb-4">
+                        <p><MapPin className="h-3 w-3 inline mr-1" />{selectedMission.region}</p>
+                      </div>
+
+                      {selectedMission.status !== "completed" && selectedMission.status !== "locked" && (
+                        <div className="mb-4">
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className="text-muted-foreground">Progreso</span>
+                            <span className="font-medium">{selectedMission.progress}/{selectedMission.target_count}</span>
                           </div>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
+                          <Progress value={(selectedMission.progress / selectedMission.target_count) * 100} className="h-2" />
                         </div>
-                      </motion.button>
-                    );
-                  })
-                )}
+                      )}
+
+                      {selectedMission.status === "completed" && (
+                        <Button variant="outline" className="w-full gap-1" disabled>
+                          <CheckCircle2 className="h-4 w-4" /> Completada
+                        </Button>
+                      )}
+                      {selectedMission.status === "locked" && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Lock className="h-3 w-3" /> Requiere nivel {selectedMission.min_level}
+                        </p>
+                      )}
+                    </motion.div>
+                  ) : (
+                    filtered.map((m) => {
+                      const cfg = statusConfig[m.status];
+                      return (
+                        <motion.button
+                          key={m.id}
+                          onClick={() => setSelectedMission(m)}
+                          whileHover={{ scale: 1.01 }}
+                          className={`w-full text-left bg-card rounded-xl border border-border p-4 hover:shadow-md transition-shadow ${m.status === "locked" ? "opacity-60" : ""}`}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className="text-2xl">{m.status === "locked" ? "🔒" : m.icon}</span>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-foreground text-sm truncate">{m.name}</h4>
+                              <p className="text-xs text-muted-foreground mb-1">{m.region} • {m.category}</p>
+                              <div className="flex gap-2">
+                                <span className="text-xs font-medium text-primary">+{m.xp_reward} XP</span>
+                                {m.coin_reward > 0 && <span className="text-xs text-yellow-500">🪙 {m.coin_reward}</span>}
+                              </div>
+                            </div>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
+                          </div>
+                        </motion.button>
+                      );
+                    })
+                  )}
+                  {filtered.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Target className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No hay misiones en esta categoría</p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </section>
 

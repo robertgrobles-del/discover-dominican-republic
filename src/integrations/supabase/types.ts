@@ -4130,6 +4130,99 @@ export type Database = {
           },
         ]
       }
+      trivia_questions: {
+        Row: {
+          category: string
+          correct_index: number
+          created_at: string
+          difficulty: string
+          explanation: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          options: string[]
+          question: string
+          times_answered: number
+          times_correct: number
+          updated_at: string
+          xp_reward: number
+        }
+        Insert: {
+          category?: string
+          correct_index: number
+          created_at?: string
+          difficulty?: string
+          explanation?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          options: string[]
+          question: string
+          times_answered?: number
+          times_correct?: number
+          updated_at?: string
+          xp_reward?: number
+        }
+        Update: {
+          category?: string
+          correct_index?: number
+          created_at?: string
+          difficulty?: string
+          explanation?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          options?: string[]
+          question?: string
+          times_answered?: number
+          times_correct?: number
+          updated_at?: string
+          xp_reward?: number
+        }
+        Relationships: []
+      }
+      trivia_sessions: {
+        Row: {
+          coins_earned: number
+          completed_at: string
+          correct_answers: number
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          max_streak: number
+          score: number
+          total_questions: number
+          user_id: string
+          xp_earned: number
+        }
+        Insert: {
+          coins_earned?: number
+          completed_at?: string
+          correct_answers?: number
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          max_streak?: number
+          score?: number
+          total_questions?: number
+          user_id: string
+          xp_earned?: number
+        }
+        Update: {
+          coins_earned?: number
+          completed_at?: string
+          correct_answers?: number
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          max_streak?: number
+          score?: number
+          total_questions?: number
+          user_id?: string
+          xp_earned?: number
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           achievement_id: string
