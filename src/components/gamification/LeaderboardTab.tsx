@@ -24,11 +24,11 @@ interface LeaderboardTabProps {
 const getRankIcon = (rank: number) => {
   switch (rank) {
     case 1:
-      return <Crown className="w-5 h-5 text-yellow-500" />;
+      return <Crown className="w-5 h-5 text-amber-500" />;
     case 2:
-      return <Medal className="w-5 h-5 text-gray-400" />;
+      return <Medal className="w-5 h-5 text-slate-400" />;
     case 3:
-      return <Award className="w-5 h-5 text-amber-700" />;
+      return <Award className="w-5 h-5 text-orange-700" />;
     default:
       return <span className="text-sm font-bold text-muted-foreground">#{rank}</span>;
   }

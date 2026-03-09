@@ -27,10 +27,10 @@ interface AchievementsTabProps {
 }
 
 const rarityConfig = {
-  common: { color: "hsl(var(--muted-foreground))", label: "Común", glow: "hsl(var(--muted))" },
-  rare: { color: "hsl(210, 100%, 60%)", label: "Raro", glow: "hsl(210, 100%, 70%)" },
-  epic: { color: "hsl(270, 100%, 65%)", label: "Épico", glow: "hsl(270, 100%, 75%)" },
-  legendary: { color: "hsl(45, 100%, 55%)", label: "Legendario", glow: "hsl(45, 100%, 65%)" }
+  common: { color: "hsl(var(--muted-foreground))", label: "Común", glow: "hsl(var(--muted) / 0.3)" },
+  rare: { color: "hsl(210, 100%, 60%)", label: "Raro", glow: "hsl(210, 100%, 70% / 0.3)" },
+  epic: { color: "hsl(270, 100%, 65%)", label: "Épico", glow: "hsl(270, 100%, 75% / 0.3)" },
+  legendary: { color: "hsl(45, 100%, 55%)", label: "Legendario", glow: "hsl(45, 100%, 65% / 0.3)" }
 };
 
 const categoryIcons = {
