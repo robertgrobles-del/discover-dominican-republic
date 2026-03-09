@@ -1,15 +1,16 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
+import { TesorosTierra } from "@/components/compras/TesorosTierra";
+import { CentrosComercialesSection } from "@/components/compras/CentrosComercialesSection";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronRight, MapPin, Store, Gem, ShoppingBag, Coffee, HelpCircle, Crown, CreditCard, User, Sparkles } from "lucide-react";
+import { ChevronRight, MapPin, Store, Gem, ShoppingBag, HelpCircle, Crown, CreditCard, User, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { useState } from "react";
-import { TesorosTierra } from "@/components/compras/TesorosTierra";
 
 import merengue from "@/assets/merengue-dance.jpg";
 import gastronomy from "@/assets/gastronomy.jpg";
@@ -57,7 +58,6 @@ const consejosViajero = [
 
 const marcasInternacionales = ["Louis Vuitton", "Cartier", "Rolex", "Carolina Herrera", "Zara"];
 
-// ==================== SHOPPING DE LUJO ====================
 const boutiquesLujo = [
   { nombre: "Louis Vuitton", categoria: "Marroquinería & Ready-to-Wear", flagship: true },
   { nombre: "Cartier", categoria: "Haute Horlogerie & Joyas", flagship: false },
@@ -71,7 +71,7 @@ const dutyFreeInfo = [
 ];
 
 export default function Compras() {
-  const [activeTab, setActiveTab] = useState("general");
+  const [activeTab, setActiveTab] = useState("malls");
 
   return (
     <PageTransition>
@@ -115,7 +115,14 @@ export default function Compras() {
         <section className="py-8">
           <div className="container mx-auto px-4">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full max-w-lg mx-auto grid-cols-3 h-auto gap-2 bg-transparent mb-8">
+              <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4 h-auto gap-2 bg-transparent mb-8">
+                <TabsTrigger 
+                  value="malls" 
+                  className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  Malls
+                </TabsTrigger>
                 <TabsTrigger 
                   value="general" 
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
@@ -128,16 +135,21 @@ export default function Compras() {
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
                 >
                   <Gem className="h-4 w-4" />
-                  Tesoros de la Tierra
+                  Tesoros
                 </TabsTrigger>
                 <TabsTrigger 
                   value="lujo" 
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
                 >
                   <Crown className="h-4 w-4" />
-                  Shopping de Lujo
+                  Lujo
                 </TabsTrigger>
               </TabsList>
+
+              {/* ========== TAB: CENTROS COMERCIALES ========== */}
+              <TabsContent value="malls">
+                <CentrosComercialesSection />
+              </TabsContent>
 
               {/* ========== TAB: GUÍA GENERAL ========== */}
               <TabsContent value="general">
@@ -222,7 +234,6 @@ export default function Compras() {
 
                 {/* Consejos y Mapa */}
                 <div className="grid lg:grid-cols-2 gap-12">
-                  {/* Consejos */}
                   <div>
                     <div className="flex items-center gap-2 mb-6">
                       <HelpCircle className="h-5 w-5 text-primary" />
@@ -230,7 +241,6 @@ export default function Compras() {
                         Consejos para el Viajero
                       </h2>
                     </div>
-
                     <Accordion type="single" collapsible className="space-y-2">
                       {consejosViajero.map((consejo, index) => (
                         <AccordionItem key={index} value={`item-${index}`} className="bg-card rounded-xl border border-border px-4">
@@ -245,7 +255,6 @@ export default function Compras() {
                     </Accordion>
                   </div>
 
-                  {/* Mapa */}
                   <div className="bg-card rounded-2xl border border-border overflow-hidden">
                     <div className="aspect-[4/3] relative">
                       <img
@@ -294,7 +303,6 @@ export default function Compras() {
                   </p>
                 </div>
 
-                {/* BlueMall Section */}
                 <div className="bg-card rounded-2xl border border-border p-8 mb-12">
                   <div className="flex items-center gap-2 mb-6">
                     <Badge className="bg-primary text-primary-foreground">SANTO DOMINGO</Badge>
@@ -319,14 +327,12 @@ export default function Compras() {
                   </Button>
                 </div>
 
-                {/* Punta Cana Village */}
                 <div className="grid md:grid-cols-2 gap-8 mb-12">
                   <div className="bg-card rounded-2xl border border-border p-8">
                     <h3 className="font-display text-xl font-bold text-foreground mb-4">Punta Cana Village</h3>
                     <p className="text-muted-foreground mb-6">
                       Un ambiente relajado y sofisticado donde el diseño local se encuentra con marcas internacionales de resort.
                     </p>
-                    
                     <div className="space-y-4 mb-6">
                       <div>
                         <h4 className="font-semibold text-foreground mb-1">Diseñadores Locales</h4>
@@ -341,16 +347,13 @@ export default function Compras() {
                         </p>
                       </div>
                     </div>
-
                     <Button variant="outline" className="gap-2">
                       Ver Directorio <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
 
-                  {/* Duty Free */}
                   <div className="bg-card rounded-2xl border border-border p-8">
                     <h3 className="font-display text-xl font-bold text-foreground mb-6">Duty Free Privileges</h3>
-                    
                     <div className="space-y-4">
                       {dutyFreeInfo.map((info, i) => (
                         <div key={i} className="flex gap-4">
@@ -365,7 +368,6 @@ export default function Compras() {
                   </div>
                 </div>
 
-                {/* VIP Concierge */}
                 <div className="bg-gradient-to-r from-amber-500/10 to-primary/10 rounded-2xl p-8 text-center">
                   <User className="h-12 w-12 text-primary mx-auto mb-4" />
                   <h3 className="font-display text-xl font-bold text-foreground mb-2">Experiencia VIP Concierge</h3>

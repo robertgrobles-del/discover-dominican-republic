@@ -211,6 +211,10 @@ const MapaMisiones = lazy(() => import("./pages/MapaMisiones"));
 const Montanas = lazy(() => import("./pages/Montanas"));
 const MontanaDetalle = lazy(() => import("./pages/MontanaDetalle"));
 const AeropuertoDetalle = lazy(() => import("./pages/AeropuertoDetalle"));
+const MetroSantoDomingo = lazy(() => import("./pages/MetroSantoDomingo"));
+const TelefericoSantoDomingo = lazy(() => import("./pages/TelefericoSantoDomingo"));
+const MonorielSantiago = lazy(() => import("./pages/MonorielSantiago"));
+const CentroComercialDetalle = lazy(() => import("./pages/CentroComercialDetalle"));
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
 const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
@@ -305,6 +309,10 @@ function AnimatedRoutes() {
           <Route path="/patrimonio" element={<Patrimonio />} />
           <Route path="/info/seguridad" element={<InfoSeguridad />} />
           <Route path="/info/transporte" element={<InfoTransporte />} />
+          <Route path="/metro-santo-domingo" element={<MetroSantoDomingo />} />
+          <Route path="/teleferico-santo-domingo" element={<TelefericoSantoDomingo />} />
+          <Route path="/monoriel-santiago" element={<MonorielSantiago />} />
+          <Route path="/centro-comercial/:slug" element={<CentroComercialDetalle />} />
           <Route path="/wellness" element={<Wellness />} />
           <Route path="/bodas" element={<Bodas />} />
           <Route path="/cruceros" element={<NauticaCruceros />} />
