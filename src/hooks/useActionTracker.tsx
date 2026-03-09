@@ -33,13 +33,19 @@ export function useActionTracker() {
   }: TrackActionOptions) => {
     try {
       // Log analytics event (works for all users)
-      await supabase.from("analytics_events").insert({
+      const sessionId = sessionStorage.getItem("session_id") || (() => {
+        const newId = crypto.randomUUID();
+        sessionStorage.setItem("session_id", newId);
+        return newId;
+      })();
+
+      await supabase.from("analytics_events").insert([{
         event_type: actionType,
         user_id: user?.id || null,
         page: window.location.pathname,
         metadata,
-        session_id: sessionStorage.getItem("session_id") || crypto.randomUUID()
-      });
+        session_id: sessionId
+      }]);
 
       // Gamification only for logged-in users
       if (!user) return;
