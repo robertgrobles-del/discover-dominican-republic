@@ -15,6 +15,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { NotificationBell } from "@/components/NotificationBell";
 import { CartDrawer } from "@/components/CartDrawer";
+import { UserProgressWidget } from "@/components/gamification/UserProgressWidget";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/hooks/useI18n";
 import {
@@ -203,6 +204,7 @@ export function Header() {
               <LanguageSelector />
               <ThemeToggle />
               <NotificationBell />
+              {user && <UserProgressWidget />}
               <CartDrawer />
               <Button 
                 variant="ghost" 
