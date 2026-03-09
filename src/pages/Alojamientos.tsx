@@ -156,6 +156,7 @@ export default function Alojamientos() {
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
+        <PageBreadcrumbs items={[{ label: "Alojamientos" }]} />
 
         {/* Hero */}
         <section className="relative h-[50vh] min-h-[400px] flex items-end mt-16">

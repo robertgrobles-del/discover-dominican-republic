@@ -64,6 +64,7 @@ export default function Cultura() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <PageBreadcrumbs items={[{ label: "Cultura" }]} />
 
       {/* Sticky Cultural Category Nav */}
       <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-md border-b border-border">
