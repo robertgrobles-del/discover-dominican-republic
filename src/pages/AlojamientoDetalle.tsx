@@ -117,7 +117,8 @@ function generateBars(hotel: StaticHotel | null) {
 }
 
 export default function AlojamientoDetalle() {
-  const { id } = useParams();
+  const { slug } = useParams<{ slug: string }>();
+  const id = slug; // backward compat
   const [checkIn, setCheckIn] = useState("2025-04-15");
   const [checkOut, setCheckOut] = useState("2025-04-20");
   const [guests, setGuests] = useState(2);
