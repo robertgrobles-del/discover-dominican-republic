@@ -89,7 +89,7 @@ function timeAgo(dateStr: string) {
 }
 
 export default function EmpleoDetalle() {
-  const { id } = useParams<{ id: string }>();
+  const { slug: id } = useParams<{ slug: string }>();
   const { data: job, isLoading } = useJobVacancy(id);
   const { data: similarJobs } = useSimilarJobs(job?.category, job?.id);
 

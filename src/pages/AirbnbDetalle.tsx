@@ -85,7 +85,7 @@ const amenityIcons: Record<string, React.ElementType> = {
 };
 
 const AirbnbDetalle = () => {
-  const { id } = useParams();
+  const { slug: id } = useParams<{ slug: string }>();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [checkIn, setCheckIn] = useState("");
@@ -98,7 +98,7 @@ const AirbnbDetalle = () => {
       const { data, error } = await supabase
         .from('airbnb_listings')
         .select('*')
-        .eq('id', id)
+        .or(`slug.eq.${id},id.eq.${id}`)
         .maybeSingle();
       
       if (error) throw error;

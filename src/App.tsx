@@ -271,31 +271,31 @@ function AnimatedRoutes() {
           <Route path="/rios" element={<Rios />} />
           <Route path="/rio/:slug" element={<RioDetalle />} />
           <Route path="/alojamientos" element={<Alojamientos />} />
-          <Route path="/alojamiento/:id" element={<AlojamientoDetalle />} />
+          <Route path="/alojamiento/:slug" element={<AlojamientoDetalle />} />
           <Route path="/restaurante" element={<Restaurantes />} />
-          <Route path="/restaurante/:id" element={<RestauranteDetalle />} />
+          <Route path="/restaurante/:slug" element={<RestauranteDetalle />} />
           <Route path="/revista" element={<Revista />} />
           <Route path="/aeropuerto" element={<Aeropuerto />} />
           <Route path="/vida-nocturna" element={<VidaNocturna />} />
           <Route path="/directorio-agencias" element={<DirectorioAgencias />} />
           <Route path="/guia-gastronomica" element={<GuiaGastronomica />} />
-          <Route path="/chef/:id" element={<ChefPerfil />} />
-          <Route path="/receta/:id" element={<RecetaDetalle />} />
+          <Route path="/chef/:slug" element={<ChefPerfil />} />
+          <Route path="/receta/:slug" element={<RecetaDetalle />} />
           <Route path="/ayuda" element={<CentroAyuda />} />
           <Route path="/centro-ayuda" element={<CentroAyuda />} />
           <Route path="/asistencia" element={<CentroAyuda />} />
           <Route path="/sostenible" element={<Sostenible />} />
-          <Route path="/articulo/:id" element={<Articulo />} />
+          <Route path="/articulo/:slug" element={<Articulo />} />
           <Route path="/galeria" element={<Galeria />} />
           <Route path="/terminos" element={<Terminos />} />
           <Route path="/estadisticas" element={<Estadisticas />} />
           <Route path="/partners" element={<Partners />} />
           <Route path="/sobre-nosotros" element={<SobreNosotros />} />
           <Route path="/sitemap" element={<Sitemap />} />
-          <Route path="/destino/:id" element={<DestinoDetalle />} />
+          <Route path="/destino/:slug" element={<DestinoDetalle />} />
           <Route path="/destinos-regiones" element={<DestinosRegiones />} />
           <Route path="/eventos" element={<Eventos />} />
-          <Route path="/evento/:id" element={<EventoDetalle />} />
+          <Route path="/evento/:slug" element={<EventoDetalle />} />
           <Route path="/como-llegar" element={<ComoLlegar />} />
           <Route path="/herramientas" element={<Herramientas />} />
           <Route path="/patrimonio" element={<Patrimonio />} />
@@ -309,14 +309,14 @@ function AnimatedRoutes() {
           <Route path="/inversion" element={<Inversion />} />
           <Route path="/mice" element={<MICE />} />
           <Route path="/experiencias" element={<Experiencias />} />
-          <Route path="/experiencia/:id" element={<ExperienciaDetalle />} />
+          <Route path="/experiencia/:slug" element={<ExperienciaDetalle />} />
           <Route path="/mi-viaje" element={<MiViaje />} />
           <Route path="/biblioteca" element={<Biblioteca />} />
           <Route path="/compras" element={<Compras />} />
           <Route path="/accesibilidad" element={<Accesibilidad />} />
           <Route path="/rd-social" element={<RDSocial />} />
           <Route path="/empleo" element={<Empleo />} />
-          <Route path="/empleo/:id" element={<EmpleoDetalle />} />
+          <Route path="/empleo/:slug" element={<EmpleoDetalle />} />
           <Route path="/pasaporte-digital" element={<PasaporteDigital />} />
           <Route path="/cine-rd" element={<CineRD />} />
           <Route path="/academia" element={<AcademiaTuristica />} />
@@ -370,27 +370,27 @@ function AnimatedRoutes() {
           <Route path="/souvenirs-digitales" element={<SouvenirsDigitales />} />
           <Route path="/espanol-viajero" element={<EspanolViajero />} />
           <Route path="/sello-calidad" element={<SelloCalidad />} />
-          <Route path="/puerto/:id" element={<PuertoDetalle />} />
-          <Route path="/bar/:id" element={<BarDetalle />} />
-          <Route path="/agencia/:id" element={<AgenciaDetalle />} />
-          <Route path="/estadio/:id" element={<EstadioDetalle />} />
-          <Route path="/clinica/:id" element={<ClinicaDetalle />} />
+          <Route path="/puerto/:slug" element={<PuertoDetalle />} />
+          <Route path="/bar/:slug" element={<BarDetalle />} />
+          <Route path="/agencia/:slug" element={<AgenciaDetalle />} />
+          <Route path="/estadio/:slug" element={<EstadioDetalle />} />
+          <Route path="/clinica/:slug" element={<ClinicaDetalle />} />
           <Route path="/parques-tematicos" element={<ParquesTematicos />} />
-          <Route path="/parque/:id" element={<ParqueDetalle />} />
+          <Route path="/parque/:slug" element={<ParqueDetalle />} />
           <Route path="/ecoturismo" element={<Ecoturismo />} />
           <Route path="/turismo-religioso" element={<TurismoReligioso />} />
           <Route path="/historia-viva-ar" element={<HistoriaVivaAR />} />
-          <Route path="/cueva/:id" element={<CuevaDetalle />} />
-          <Route path="/parque-nacional/:id" element={<ParqueNacionalDetalle />} />
-          <Route path="/destino-religioso/:id" element={<DestinoReligiosoDetalle />} />
-          <Route path="/marina/:id" element={<MarinaDetalle />} />
+          <Route path="/cueva/:slug" element={<CuevaDetalle />} />
+          <Route path="/parque-nacional/:slug" element={<ParqueNacionalDetalle />} />
+          <Route path="/destino-religioso/:slug" element={<DestinoReligiosoDetalle />} />
+          <Route path="/marina/:slug" element={<MarinaDetalle />} />
           <Route path="/cultura-tabaco" element={<CulturaTabaco />} />
           <Route path="/escuela-ritmos" element={<EscuelaRitmos />} />
           <Route path="/clima-temporadas" element={<ClimaTemporadas />} />
           <Route path="/cultura-cafe" element={<CulturaCafe />} />
           <Route path="/talleres-artesanales" element={<TalleresArtesanales />} />
           <Route path="/rutas-sabor" element={<RutasSabor />} />
-          <Route path="/airbnb/:id" element={<AirbnbDetalle />} />
+          <Route path="/airbnb/:slug" element={<AirbnbDetalle />} />
           <Route path="/provincias" element={<Provincias />} />
           <Route path="/provincia/:slug" element={<ProvinciaDetalle />} />
           <Route path="/municipio/:slug" element={<MunicipioDetalle />} />

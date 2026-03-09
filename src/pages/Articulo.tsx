@@ -39,7 +39,7 @@ interface RelatedArticle {
 }
 
 export default function Articulo() {
-  const { id } = useParams<{ id: string }>();
+  const { slug: id } = useParams<{ slug: string }>();
   const [article, setArticle] = useState<Article | null>(null);
   const [related, setRelated] = useState<RelatedArticle[]>([]);
   const [loading, setLoading] = useState(true);

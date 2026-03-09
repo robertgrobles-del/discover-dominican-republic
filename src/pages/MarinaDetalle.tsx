@@ -123,7 +123,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 export default function MarinaDetalle() {
-  const { id } = useParams<{ id: string }>();
+  const { slug: id } = useParams<{ slug: string }>();
   const marina = marinasData[id || ""];
 
   if (!marina) {

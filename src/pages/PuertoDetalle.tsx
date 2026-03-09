@@ -56,7 +56,7 @@ const puerto = {
 };
 
 export default function PuertoDetalle() {
-  const { id } = useParams();
+  const { slug: id } = useParams<{ slug: string }>();
   const [activeTab, setActiveTab] = useState("info");
 
   return (

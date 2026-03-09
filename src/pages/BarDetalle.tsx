@@ -25,7 +25,7 @@ const barTypeLabels: Record<Bar['barType'], string> = {
 };
 
 export default function BarDetalle() {
-  const { id } = useParams<{ id: string }>();
+  const { slug: id } = useParams<{ slug: string }>();
   const staticBar = id ? getBarBySlug(id) : undefined;
 
   // Fetch from DB if not found in static data

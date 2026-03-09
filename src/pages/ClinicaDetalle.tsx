@@ -64,7 +64,7 @@ const clinica = {
 };
 
 export default function ClinicaDetalle() {
-  const { id } = useParams();
+  const { slug: id } = useParams<{ slug: string }>();
 
   return (
     <PageTransition>
