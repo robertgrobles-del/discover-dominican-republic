@@ -117,8 +117,9 @@ export default function Restaurantes() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <PageBreadcrumbs items={[{ label: t("restaurantes.breadcrumb") || "Restaurantes" }]} />
       
-      <section className="relative py-20 mt-16">
+      <section className="relative py-20">
         <div className="absolute inset-0">
           <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1920&h=400&fit=crop" alt={t("restaurantes.breadcrumb")} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/40" />

@@ -28,6 +28,7 @@ export default function Actividades() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <PageBreadcrumbs items={[{ label: "Actividades" }]} />
 
       {/* Hero Section */}
       <section className="relative h-[70vh] w-full flex flex-col justify-center items-center overflow-hidden">

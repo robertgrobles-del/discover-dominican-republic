@@ -176,9 +176,10 @@ export default function Playas() {
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
+        <PageBreadcrumbs items={[{ label: t("playas.breadcrumb") || "Playas" }]} />
         
         {/* Hero */}
-        <section className="relative h-[60vh] flex items-center justify-center overflow-hidden">
+        <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
           <img src={heroBeach} alt={t("playas.seoTitle")} className="absolute inset-0 w-full h-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
           <div className="relative z-10 text-center px-4">
