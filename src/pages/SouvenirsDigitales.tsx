@@ -53,13 +53,13 @@ const rarityConfig: Record<string, { label: string; gradient: string; border: st
 };
 
 const typeLabels: Record<string, string> = {
-  stamp: "Sello",
-  card: "Tarjeta",
-  badge_skin: "Skin de Insignia",
-  avatar_frame: "Marco de Avatar",
-  wallpaper: "Wallpaper",
-  postcard: "Postal",
-  souvenir: "Souvenir",
+  landmark: "Lugar Emblemático",
+  culture: "Cultural",
+  nature: "Naturaleza",
+  food: "Gastronomía",
+  activity: "Actividad",
+  event: "Evento",
+  special: "Especial",
 };
 
 export default function SouvenirsDigitales() {
