@@ -279,6 +279,7 @@ function AnimatedRoutes() {
           <Route path="/restaurante/:slug" element={<RestauranteDetalle />} />
           <Route path="/revista" element={<Revista />} />
           <Route path="/aeropuerto" element={<Aeropuerto />} />
+          <Route path="/aeropuerto/:slug" element={<AeropuertoDetalle />} />
           <Route path="/vida-nocturna" element={<VidaNocturna />} />
           <Route path="/directorio-agencias" element={<DirectorioAgencias />} />
           <Route path="/guia-gastronomica" element={<GuiaGastronomica />} />
