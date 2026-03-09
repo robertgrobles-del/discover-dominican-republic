@@ -13,6 +13,8 @@ import { ProvinceActivities } from "@/components/province/ProvinceActivities";
 import { ProvinceFeaturedSection } from "@/components/province/ProvinceFeaturedSection";
 import { InlineAd, BetweenSectionsAd } from "@/components/ads";
 import { DistancesFromCities } from "@/components/destination/DistancesFromCities";
+import { DestinationAboutTabs } from "@/components/destination/DestinationAboutTabs";
+import { RelatedBlogPosts } from "@/components/destination/RelatedBlogPosts";
 
 import { destinations, getDestinationBySlug } from "@/data/destinations";
 import { hotels } from "@/data/hotels";
