@@ -218,6 +218,11 @@ export default function ProvinciaDetalle() {
 
         <BetweenSectionsAd />
 
+        {/* About Tabs - History, Geography, Culture, etc. */}
+        {province.about && (
+          <DestinationAboutTabs name={province.name} data={province.about} />
+        )}
+
         <ProvinceActivities
           provinceName={province.name}
           provinceSlug={province.slug}
