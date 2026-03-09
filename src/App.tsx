@@ -316,7 +316,7 @@ function AnimatedRoutes() {
           <Route path="/accesibilidad" element={<Accesibilidad />} />
           <Route path="/rd-social" element={<RDSocial />} />
           <Route path="/empleo" element={<Empleo />} />
-          <Route path="/empleo/:id" element={<EmpleoDetalle />} />
+          <Route path="/empleo/:slug" element={<EmpleoDetalle />} />
           <Route path="/pasaporte-digital" element={<PasaporteDigital />} />
           <Route path="/cine-rd" element={<CineRD />} />
           <Route path="/academia" element={<AcademiaTuristica />} />
