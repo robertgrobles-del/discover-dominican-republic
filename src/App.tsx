@@ -305,6 +305,10 @@ function AnimatedRoutes() {
           <Route path="/patrimonio" element={<Patrimonio />} />
           <Route path="/info/seguridad" element={<InfoSeguridad />} />
           <Route path="/info/transporte" element={<InfoTransporte />} />
+          <Route path="/metro-santo-domingo" element={<MetroSantoDomingo />} />
+          <Route path="/teleferico-santo-domingo" element={<TelefericoSantoDomingo />} />
+          <Route path="/monoriel-santiago" element={<MonorielSantiago />} />
+          <Route path="/centro-comercial/:slug" element={<CentroComercialDetalle />} />
           <Route path="/wellness" element={<Wellness />} />
           <Route path="/bodas" element={<Bodas />} />
           <Route path="/cruceros" element={<NauticaCruceros />} />
