@@ -271,9 +271,9 @@ function AnimatedRoutes() {
           <Route path="/rios" element={<Rios />} />
           <Route path="/rio/:slug" element={<RioDetalle />} />
           <Route path="/alojamientos" element={<Alojamientos />} />
-          <Route path="/alojamiento/:id" element={<AlojamientoDetalle />} />
+          <Route path="/alojamiento/:slug" element={<AlojamientoDetalle />} />
           <Route path="/restaurante" element={<Restaurantes />} />
-          <Route path="/restaurante/:id" element={<RestauranteDetalle />} />
+          <Route path="/restaurante/:slug" element={<RestauranteDetalle />} />
           <Route path="/revista" element={<Revista />} />
           <Route path="/aeropuerto" element={<Aeropuerto />} />
           <Route path="/vida-nocturna" element={<VidaNocturna />} />
