@@ -83,6 +83,18 @@ export interface Destination {
   notRecommendedFor?: string[];
   minimumDays?: number;
   idealDays?: number;
+  // Campos de contenido enriquecido
+  about?: {
+    history?: string;
+    geography?: string;
+    artAndCulture?: string;
+    politicalDivision?: string;
+    economy?: string;
+    demographics?: string;
+    location?: string;
+    pointsOfInterest?: { name: string; type: string; description?: string }[];
+    whatToDo?: string[];
+  };
 }
 
 export const destinations: Destination[] = [
@@ -106,7 +118,34 @@ export const destinations: Destination[] = [
     latitude: 18.5825,
     longitude: -68.4055,
     isPopular: true,
-    isFeatured: true
+    isFeatured: true,
+    about: {
+      history: 'La Altagracia fue creada como provincia en 1844, al nacer la República Dominicana. Su nombre proviene de la Virgen de la Altagracia, patrona del pueblo dominicano. Higüey, su capital, fue fundada en 1502 por Juan de Esquivel y es hogar de la Basílica Nuestra Señora de la Altagracia, diseñada por los arquitectos franceses André Dunoyer de Segonzac y Pierre Dupré, inaugurada en 1971.',
+      geography: 'Ubicada en el extremo oriental de la isla, La Altagracia posee 160 km de costa bañados por el mar Caribe y el océano Atlántico. Su territorio es predominantemente llano con suelos calizos y vegetación subtropical. Incluye las islas Saona y Catalinita, parte del Parque Nacional del Este.',
+      artAndCulture: 'La cultura altagraciana gira en torno a las tradiciones religiosas, especialmente la peregrinación anual a la Basílica de Higüey el 21 de enero. Los palos (atabales) y la música de gagá marcan las festividades. La artesanía local incluye trabajos en concha de lambí y madera de coco.',
+      politicalDivision: 'La provincia se divide en 4 municipios: Higüey (capital), San Rafael del Yuma, Bávaro y La Otra Banda, además de 7 distritos municipales.',
+      economy: 'El turismo es el motor económico principal, con más de 35,000 habitaciones hoteleras que generan el 70% del turismo nacional. La agricultura (caña de azúcar, ganadería) y la pesca complementan la economía local.',
+      demographics: 'Población estimada de 390,000 habitantes. Es una de las provincias con mayor crecimiento demográfico debido a la migración laboral vinculada al sector turístico. La mayoría de la población se concentra en Higüey y las zonas turísticas.',
+      location: 'Extremo este de la isla de La Española. Limita al norte con el océano Atlántico, al este y sur con el mar Caribe, y al oeste con las provincias El Seibo y La Romana.',
+      pointsOfInterest: [
+        { name: 'Basílica Nuestra Señora de la Altagracia', type: 'religioso', description: 'Monumento arquitectónico moderno y centro de peregrinación nacional.' },
+        { name: 'Parque Nacional del Este', type: 'natural', description: 'Área protegida con manglares, cuevas taínas y la Isla Saona.' },
+        { name: 'Indigenous Eyes Ecological Park', type: 'natural', description: '12 lagunas de agua dulce en medio de la selva tropical.' },
+        { name: 'Altos de Chavón', type: 'cultural', description: 'Réplica de villa mediterránea del s. XVI con anfiteatro y galerías.' },
+        { name: 'Hoyo Azul', type: 'natural', description: 'Cenote de aguas turquesas al pie de un acantilado de 75 metros.' },
+        { name: 'Museo de Ponce de León', type: 'histórico', description: 'Casa-fortaleza del conquistador en San Rafael del Yuma.' },
+      ],
+      whatToDo: [
+        'Buceo y snorkel en Isla Saona y Catalina',
+        'Golf en campos de campeonato (Punta Espada, Corales)',
+        'Safari en buggies por la campiña',
+        'Tirolesa en Scape Park',
+        'Peregrinación a la Basílica de Higüey',
+        'Paseo en catamarán por la costa',
+        'Visita a la Cueva de Padre Nuestro',
+        'Observación de manatíes en los manglares',
+      ],
+    },
   },
   {
     id: 'samana',
@@ -127,7 +166,30 @@ export const destinations: Destination[] = [
     latitude: 19.2056,
     longitude: -69.3364,
     isPopular: true,
-    isFeatured: true
+    isFeatured: true,
+    about: {
+      history: 'Samaná fue bautizada como "Bahía de las Flechas" por Cristóbal Colón en 1493 tras un enfrentamiento con los indígenas ciguayos. En el siglo XIX recibió inmigrantes afroamericanos libertos de EE.UU. que fundaron comunidades como Philadelphia y Bethesda, cuya herencia cultural anglófona persiste hoy.',
+      geography: 'Península que se extiende hacia el Atlántico norte, con una topografía montañosa cubierta de bosque tropical húmedo. El Parque Nacional Los Haitises al sur presenta formaciones de mogotes (colinas cónicas) únicas en el Caribe, con cuevas con petroglifos taínos.',
+      artAndCulture: 'La cultura samanesa fusiona raíces africanas, taínas y la herencia anglófona de los descendientes de afroamericanos. La música de bambulá y los himnos gospel en inglés conviven con el merengue y la bachata. La Semana Santa en las comunidades de descendientes es una experiencia cultural única.',
+      economy: 'Turismo ecológico y de aventura como motor principal. La pesca artesanal, la producción de cacao orgánico y el aceite de coco complementan la economía. El avistamiento de ballenas genera más de $30 millones anuales.',
+      demographics: 'Aproximadamente 120,000 habitantes. Comunidad multicultural con presencia de europeos residentes (principalmente franceses e italianos) en Las Terrenas y descendientes afroamericanos en las zonas rurales.',
+      pointsOfInterest: [
+        { name: 'Parque Nacional Los Haitises', type: 'natural', description: 'Bosque húmedo con mogotes, cuevas taínas y manglares.' },
+        { name: 'Cascada El Limón', type: 'natural', description: 'Caída de agua de 40 metros accesible a caballo o a pie.' },
+        { name: 'Playa Rincón', type: 'natural', description: 'Votada como una de las 10 mejores playas del mundo.' },
+        { name: 'Cayo Levantado', type: 'natural', description: 'Isla paradisíaca conocida como "Isla Bacardí".' },
+        { name: 'Puente de Samaná', type: 'histórico', description: 'Puente peatonal que cruza la bahía con vistas espectaculares.' },
+      ],
+      whatToDo: [
+        'Avistamiento de ballenas jorobadas (enero-marzo)',
+        'Excursión a la Cascada El Limón',
+        'Tour en lancha por Los Haitises',
+        'Buceo y snorkel en la costa',
+        'Senderismo en la Sierra de Samaná',
+        'Paseo a caballo por playas vírgenes',
+        'Degustación de cacao orgánico',
+      ],
+    },
   },
   {
     id: 'puerto-plata',
@@ -148,7 +210,30 @@ export const destinations: Destination[] = [
     latitude: 19.7934,
     longitude: -70.6884,
     isPopular: true,
-    isFeatured: true
+    isFeatured: true,
+    about: {
+      history: 'Fundada en 1502 por Nicolás de Ovando con el nombre de San Felipe de Puerto Plata. Fue puerto clave del comercio colonial y sufrió las devastaciones de Osorio en 1605. En el siglo XIX, el general Gregorio Luperón lideró desde aquí la Guerra de Restauración. El turismo masivo llegó en los años 80 con el desarrollo de Playa Dorada.',
+      geography: 'Situada en la costa norte (Atlántico), flanqueada por la Cordillera Septentrional. El Pico Isabel de Torres (793 m) domina el paisaje urbano. La provincia cuenta con 120 km de costa con playas de arena dorada y formaciones coralinas.',
+      artAndCulture: 'Cuna del ámbar dominicano, con el Museo del Ámbar albergando piezas de hasta 40 millones de años. Las fiestas patronales de San Felipe (mayo) y el carnaval con sus "taimáscaros" son tradiciones emblemáticas. La influencia afrocaribeña marca la música y la gastronomía local.',
+      economy: 'Turismo (Playa Dorada, Sosúa, Cabarete), zonas francas industriales, producción de ron y tabaco. El puerto de carga de Maimón es importante para el comercio exterior.',
+      demographics: 'Aproximadamente 330,000 habitantes. Comunidad cosmopolita con importante presencia de europeos y norteamericanos residentes, especialmente en Sosúa y Cabarete.',
+      pointsOfInterest: [
+        { name: 'Teleférico Pico Isabel de Torres', type: 'natural', description: 'Único teleférico del Caribe con jardín botánico en la cumbre.' },
+        { name: 'Fortaleza San Felipe', type: 'histórico', description: 'Fortín colonial del s. XVI, hoy museo militar.' },
+        { name: 'Museo del Ámbar', type: 'cultural', description: 'Colección de ámbar dominicano con insectos prehistóricos.' },
+        { name: 'Ocean World Adventure Park', type: 'entretenimiento', description: 'Parque con delfines, leones marinos y acuario.' },
+        { name: '27 Charcos de Damajagua', type: 'natural', description: 'Cascadas naturales para canyoning y aventura acuática.' },
+      ],
+      whatToDo: [
+        'Subir en teleférico al Pico Isabel de Torres',
+        'Kitesurf y windsurf en Cabarete',
+        'Canyoning en los 27 Charcos de Damajagua',
+        'Snorkel en los arrecifes de Sosúa',
+        'Tour por fábricas de ron y tabaco',
+        'Explorar la Fortaleza San Felipe',
+        'Visitar el Museo del Ámbar',
+      ],
+    },
   },
   {
     id: 'santo-domingo',
@@ -169,7 +254,34 @@ export const destinations: Destination[] = [
     latitude: 18.4861,
     longitude: -69.9312,
     isPopular: true,
-    isFeatured: true
+    isFeatured: true,
+    about: {
+      history: 'Fundada el 5 de agosto de 1496 por Bartolomé Colón, Santo Domingo es la primera ciudad permanente del Nuevo Mundo. Fue capital del imperio español en las Américas durante más de un siglo. La Zona Colonial alberga las primeras instituciones europeas del continente: la primera catedral (1521), el primer hospital (1503), la primera universidad (1538) y el primer monasterio.',
+      geography: 'Situada en la costa sur de la isla, en la desembocadura del río Ozama. La ciudad se extiende sobre una llanura costera con elevaciones menores. El malecón recorre 12 km a lo largo del mar Caribe.',
+      artAndCulture: 'Santo Domingo es el epicentro cultural del país con más de 20 museos, teatros como el Teatro Nacional Eduardo Brito y el Palacio de Bellas Artes. La escena artística contemporánea florece en galerías de la Zona Colonial y el barrio de Gazcue. El merengue, declarado Patrimonio Inmaterial de la Humanidad por la UNESCO, tiene aquí su mayor expresión.',
+      politicalDivision: 'El Distrito Nacional (DN) alberga la capital. La provincia de Santo Domingo se divide en 4 municipios: Santo Domingo Este, Santo Domingo Oeste, Santo Domingo Norte y Boca Chica, más 7 distritos municipales.',
+      economy: 'Como capital, concentra el 35% del PIB nacional. Los sectores dominantes son servicios financieros, comercio, telecomunicaciones, turismo urbano y zonas francas industriales. Es sede de las principales instituciones gubernamentales y corporativas.',
+      demographics: 'La Gran Santo Domingo supera los 4 millones de habitantes, representando cerca del 40% de la población nacional. Es una ciudad multicultural con comunidades de más de 100 nacionalidades.',
+      location: 'Costa sur de la isla, a orillas del mar Caribe y el río Ozama. A 150 km de Punta Cana, 155 km de Santiago y 245 km de Samaná.',
+      pointsOfInterest: [
+        { name: 'Zona Colonial', type: 'histórico', description: 'Patrimonio de la Humanidad UNESCO con más de 300 edificaciones coloniales.' },
+        { name: 'Alcázar de Colón', type: 'histórico', description: 'Palacio de Diego Colón, hoy museo virreinal con vistas al río Ozama.' },
+        { name: 'Los Tres Ojos', type: 'natural', description: 'Sistema de cuevas con lagos subterráneos de aguas cristalinas.' },
+        { name: 'Jardín Botánico Nacional', type: 'natural', description: 'Uno de los jardines botánicos más grandes del Caribe.' },
+        { name: 'Centro León Cultural', type: 'cultural', description: 'Espacio de arte, historia y cultura dominicana.' },
+        { name: 'Faro a Colón', type: 'histórico', description: 'Monumento en forma de cruz que alberga los restos de Cristóbal Colón.' },
+      ],
+      whatToDo: [
+        'Recorrido a pie por la Zona Colonial',
+        'Tour gastronómico por los mercados y restaurantes',
+        'Visitar museos y galerías de arte',
+        'Disfrutar del malecón al atardecer',
+        'Explorar las cuevas de Los Tres Ojos',
+        'Vida nocturna en la Zona Colonial y Piantini',
+        'Compras en Blue Mall y Ágora Mall',
+        'Paseo en bote por el río Ozama',
+      ],
+    },
   },
   {
     id: 'la-romana',
@@ -232,7 +344,28 @@ export const destinations: Destination[] = [
     latitude: 19.4517,
     longitude: -70.6970,
     isPopular: true,
-    isFeatured: true
+    isFeatured: true,
+    about: {
+      history: 'Fundada en 1495 por 30 caballeros de la Orden de Santiago, es la segunda ciudad más antigua fundada por europeos en el Nuevo Mundo. Jugó un papel crucial en las luchas independentistas y la Restauración de la República en 1863. El Monumento a los Héroes de la Restauración, inaugurado en 1944, es su ícono más representativo.',
+      geography: 'Situada en el Valle del Cibao, la región agrícola más fértil del país, a 178 metros sobre el nivel del mar. Rodeada por la Cordillera Central al sur y la Cordillera Septentrional al norte.',
+      artAndCulture: 'Capital cultural del Cibao, hogar del Centro León (uno de los museos más importantes del Caribe), galerías de arte y una vibrante escena de música urbana. Las fábricas artesanales de cigarros premium y la cultura del tabaco son parte integral de su identidad.',
+      economy: 'Segunda economía del país. Líder en manufactura de tabaco (cigarros premium), zonas francas, agroindustria y comercio. La provincia aporta el 10% del PIB nacional.',
+      demographics: 'Más de 1 millón de habitantes en el área metropolitana. Segunda ciudad más poblada del país, con una clase media en crecimiento y universidades de prestigio como PUCMM y UTESA.',
+      pointsOfInterest: [
+        { name: 'Monumento a los Héroes', type: 'histórico', description: 'Torre de 67 metros con vista panorámica de la ciudad y el valle.' },
+        { name: 'Centro León', type: 'cultural', description: 'Museo de arte, historia y cultura dominicana de clase mundial.' },
+        { name: 'Calle del Sol', type: 'cultural', description: 'Arteria comercial principal con arquitectura victoriana y art déco.' },
+        { name: 'Fortaleza San Luis', type: 'histórico', description: 'Fortín colonial restaurado con exposiciones históricas.' },
+      ],
+      whatToDo: [
+        'Visitar el Centro León y sus exposiciones',
+        'Tour por fábricas de cigarros artesanales',
+        'Subir al Monumento a los Héroes al atardecer',
+        'Degustar gastronomía cibaeña auténtica',
+        'Explorar la vida nocturna del centro',
+        'Recorrer la Calle del Sol y sus tiendas',
+      ],
+    },
   },
   {
     id: 'pedernales',

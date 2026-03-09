@@ -16,6 +16,8 @@ import { ProvinceMonuments } from "@/components/province/ProvinceMonuments";
 import { ProvinceParks } from "@/components/province/ProvinceParks";
 import { BetweenSectionsAd } from "@/components/ads";
 import { DistancesFromCities } from "@/components/destination/DistancesFromCities";
+import { DestinationAboutTabs } from "@/components/destination/DestinationAboutTabs";
+import { RelatedBlogPosts } from "@/components/destination/RelatedBlogPosts";
 
 import { destinations, getDestinationBySlug } from "@/data/destinations";
 import { hotels } from "@/data/hotels";
@@ -216,6 +218,11 @@ export default function ProvinciaDetalle() {
 
         <BetweenSectionsAd />
 
+        {/* About Tabs - History, Geography, Culture, etc. */}
+        {province.about && (
+          <DestinationAboutTabs name={province.name} data={province.about} />
+        )}
+
         <ProvinceActivities
           provinceName={province.name}
           provinceSlug={province.slug}
@@ -273,6 +280,8 @@ export default function ProvinciaDetalle() {
           provinceSlug={province.slug}
           venues={provinceBars}
         />
+        {/* Related Blog Posts */}
+        <RelatedBlogPosts destinationName={province.name} destinationSlug={province.slug} />
 
         <BetweenSectionsAd showDemo />
       </main>

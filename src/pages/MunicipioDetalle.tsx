@@ -13,6 +13,8 @@ import { ProvinceActivities } from "@/components/province/ProvinceActivities";
 import { ProvinceFeaturedSection } from "@/components/province/ProvinceFeaturedSection";
 import { InlineAd, BetweenSectionsAd } from "@/components/ads";
 import { DistancesFromCities } from "@/components/destination/DistancesFromCities";
+import { DestinationAboutTabs } from "@/components/destination/DestinationAboutTabs";
+import { RelatedBlogPosts } from "@/components/destination/RelatedBlogPosts";
 
 import { destinations, getDestinationBySlug } from "@/data/destinations";
 import { hotels } from "@/data/hotels";
@@ -223,6 +225,11 @@ export default function MunicipioDetalle() {
           destinationName={municipality.name}
         />
 
+        {/* About Tabs */}
+        {municipality.about && (
+          <DestinationAboutTabs name={municipality.name} data={municipality.about} />
+        )}
+
         {/* Banner Ad */}
         <InlineAd showDemo />
 
@@ -294,6 +301,9 @@ export default function MunicipioDetalle() {
             </div>
           </div>
         </section>
+
+        {/* Related Blog Posts */}
+        <RelatedBlogPosts destinationName={municipality.name} destinationSlug={municipality.slug} />
 
         {/* Ad before footer */}
         <BetweenSectionsAd showDemo />
