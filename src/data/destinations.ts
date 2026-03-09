@@ -83,6 +83,18 @@ export interface Destination {
   notRecommendedFor?: string[];
   minimumDays?: number;
   idealDays?: number;
+  // Campos de contenido enriquecido
+  about?: {
+    history?: string;
+    geography?: string;
+    artAndCulture?: string;
+    politicalDivision?: string;
+    economy?: string;
+    demographics?: string;
+    location?: string;
+    pointsOfInterest?: { name: string; type: string; description?: string }[];
+    whatToDo?: string[];
+  };
 }
 
 export const destinations: Destination[] = [
