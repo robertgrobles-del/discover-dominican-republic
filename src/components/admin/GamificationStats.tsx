@@ -253,10 +253,10 @@ export function GamificationStats() {
                   <span
                     className={`text-xs px-2 py-1 rounded ${
                       redemption.status === "completed"
-                        ? "bg-green-100 text-green-700"
+                        ? "bg-green-500/10 text-green-700 dark:text-green-400"
                         : redemption.status === "pending"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : "bg-gray-100 text-gray-700"
+                        ? "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400"
+                        : "bg-muted text-muted-foreground"
                     }`}
                   >
                     {redemption.status}
