@@ -1,298 +1,362 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Image,
-  Palette,
-  Download,
-  Share2,
-  Heart,
-  ShoppingCart,
-  ChevronRight,
-  Sparkles,
-  Smartphone,
-  Monitor,
-  Frame,
+  Sparkles, Lock, Crown, Star, Gift, ChevronRight,
+  Gem, Eye, Heart, Share2, Filter
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useGamification } from "@/hooks/useGamification";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const categories = [
-  { name: "Wallpapers", icon: Monitor, count: 156 },
-  { name: "Fondos Móvil", icon: Smartphone, count: 89 },
-  { name: "Postales", icon: Frame, count: 45 },
-  { name: "Arte Digital", icon: Palette, count: 67 },
-];
+interface Collectible {
+  id: string;
+  name: string;
+  description: string | null;
+  short_description: string | null;
+  image_url: string | null;
+  thumbnail_url: string | null;
+  animated_url: string | null;
+  collectible_type: string;
+  rarity: string;
+  xp_value: number | null;
+  coin_value: number | null;
+  total_supply: number | null;
+  current_supply: number | null;
+  is_tradeable: boolean | null;
+  unlock_condition: string | null;
+  season: string | null;
+}
 
-const artworks = [
-  {
-    id: 1,
-    title: "Atardecer en Samaná",
-    artist: "María Pérez",
-    type: "Fotografía Digital",
-    price: 0,
-    downloads: "2.3K",
-    image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400",
-  },
-  {
-    id: 2,
-    title: "Zona Colonial Ilustrada",
-    artist: "Juan García",
-    type: "Ilustración",
-    price: 150,
-    downloads: "890",
-    image: "https://images.unsplash.com/photo-1583422409516-2895a77efded?w=400",
-  },
-  {
-    id: 3,
-    title: "Merengue en Acuarela",
-    artist: "Ana Rodríguez",
-    type: "Arte Digital",
-    price: 200,
-    downloads: "1.2K",
-    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400",
-  },
-  {
-    id: 4,
-    title: "Playa Rincón",
-    artist: "Carlos Méndez",
-    type: "Fotografía",
-    price: 0,
-    downloads: "4.5K",
-    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400",
-  },
-  {
-    id: 5,
-    title: "Flora Endémica RD",
-    artist: "Laura Sánchez",
-    type: "Ilustración Botánica",
-    price: 250,
-    downloads: "567",
-    image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400",
-  },
-  {
-    id: 6,
-    title: "Carnaval de La Vega",
-    artist: "Pedro Jiménez",
-    type: "Fotografía",
-    price: 0,
-    downloads: "3.1K",
-    image: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=400",
-  },
-];
+interface UserCollectible {
+  id: string;
+  collectible_id: string;
+  acquired_at: string | null;
+  acquisition_method: string | null;
+  is_favorite: boolean | null;
+}
 
-const collections = [
-  {
-    name: "Playas Paradisíacas",
-    items: 24,
-    image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300",
-  },
-  {
-    name: "Cultura Viva",
-    items: 18,
-    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300",
-  },
-  {
-    name: "Arquitectura Colonial",
-    items: 32,
-    image: "https://images.unsplash.com/photo-1583422409516-2895a77efded?w=300",
-  },
-];
+const rarityConfig: Record<string, { label: string; gradient: string; border: string; text: string }> = {
+  common: { label: "Común", gradient: "from-slate-400 to-slate-500", border: "border-slate-400/30", text: "text-slate-400" },
+  uncommon: { label: "Poco Común", gradient: "from-emerald-400 to-emerald-600", border: "border-emerald-400/30", text: "text-emerald-400" },
+  rare: { label: "Raro", gradient: "from-blue-400 to-blue-600", border: "border-blue-400/30", text: "text-blue-400" },
+  epic: { label: "Épico", gradient: "from-purple-400 to-purple-600", border: "border-purple-400/30", text: "text-purple-400" },
+  legendary: { label: "Legendario", gradient: "from-amber-400 to-amber-600", border: "border-amber-400/30", text: "text-amber-400" },
+};
+
+const typeLabels: Record<string, string> = {
+  landmark: "Lugar Emblemático",
+  culture: "Cultural",
+  nature: "Naturaleza",
+  food: "Gastronomía",
+  activity: "Actividad",
+  event: "Evento",
+  special: "Especial",
+};
 
 export default function SouvenirsDigitales() {
+  const { user } = useAuth();
+  const { userGamification } = useGamification();
+  const [collectibles, setCollectibles] = useState<Collectible[]>([]);
+  const [userCollectibles, setUserCollectibles] = useState<UserCollectible[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("all");
+  const [rarityFilter, setRarityFilter] = useState("all");
+  const [selectedItem, setSelectedItem] = useState<Collectible | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      const { data: coll } = await supabase
+        .from("digital_collectibles")
+        .select("*")
+        .eq("is_active", true)
+        .order("rarity", { ascending: false });
+      if (coll) setCollectibles(coll as Collectible[]);
+
+      if (user) {
+        const { data: uc } = await supabase
+          .from("user_collectibles")
+          .select("*")
+          .eq("user_id", user.id);
+        if (uc) setUserCollectibles(uc as UserCollectible[]);
+      }
+      setLoading(false);
+    };
+    load();
+  }, [user]);
+
+  const isOwned = (collectibleId: string) => userCollectibles.some(uc => uc.collectible_id === collectibleId);
+  const ownedCount = userCollectibles.length;
+  const totalCount = collectibles.length;
+
+  const filteredCollectibles = collectibles.filter(c => {
+    if (activeTab === "owned") return isOwned(c.id);
+    if (activeTab === "locked") return !isOwned(c.id);
+    return true;
+  }).filter(c => rarityFilter === "all" || c.rarity === rarityFilter);
+
+  const toggleFavorite = async (collectibleId: string) => {
+    if (!user) return;
+    const uc = userCollectibles.find(u => u.collectible_id === collectibleId);
+    if (!uc) return;
+    const newFav = !uc.is_favorite;
+    await supabase.from("user_collectibles").update({ is_favorite: newFav }).eq("id", uc.id);
+    setUserCollectibles(prev => prev.map(u => u.id === uc.id ? { ...u, is_favorite: newFav } : u));
+    toast.success(newFav ? "Añadido a favoritos ❤️" : "Eliminado de favoritos");
+  };
+
   return (
     <PageTransition>
+      <SEOHead
+        title="Souvenirs Digitales - Coleccionables RD"
+        description="Colecciona souvenirs digitales únicos explorando República Dominicana. Tarjetas, sellos y más."
+      />
       <div className="min-h-screen bg-background">
         <Header />
 
         {/* Hero */}
         <section className="relative py-20 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-teal-900/90 via-cyan-900/80 to-slate-900/90" />
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1920')] bg-cover bg-center opacity-20" />
-          <div className="container mx-auto px-4 lg:px-8 relative z-10">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="max-w-3xl mx-auto text-center"
-            >
-              <Badge className="mb-4 bg-teal-500/20 text-teal-200 border-teal-400/30">
-                <Sparkles className="h-3 w-3 mr-1" />
-                GALERÍA DIGITAL
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-background to-purple-500/10" />
+          <div className="absolute top-10 right-10 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl" />
+          <div className="container mx-auto px-4 relative z-10">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl mx-auto text-center">
+              <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 gap-2 px-4 py-2">
+                <Gem className="h-4 w-4" /> Colección Digital
               </Badge>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-6">
-                Souvenirs <span className="text-teal-400">Digitales</span>
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
+                Souvenirs <span className="text-gradient">Digitales</span>
               </h1>
-              <p className="text-xl text-white/80 mb-8">
-                Llévate un pedazo de República Dominicana. Arte digital, fotografías 
-                y wallpapers de artistas locales.
+              <p className="text-lg text-muted-foreground mb-8">
+                Colecciona items digitales únicos explorando República Dominicana. 
+                Cada destino, reto y logro puede desbloquear piezas exclusivas.
               </p>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Categories */}
-        <section className="py-12 bg-card border-b border-border">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="flex flex-wrap justify-center gap-4">
-              {categories.map((cat) => (
-                <Button
-                  key={cat.name}
-                  variant="outline"
-                  className="gap-2 rounded-full"
-                >
-                  <cat.icon className="h-4 w-4" />
-                  {cat.name}
-                  <Badge variant="secondary">{cat.count}</Badge>
-                </Button>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Collections */}
-        <section className="py-16">
-          <div className="container mx-auto px-4 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mb-8"
-            >
-              <h2 className="font-display text-2xl font-bold mb-2">Colecciones Destacadas</h2>
-            </motion.div>
-
-            <div className="flex gap-4 overflow-x-auto pb-4">
-              {collections.map((col, index) => (
-                <motion.div
-                  key={col.name}
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="shrink-0 w-64 group cursor-pointer"
-                >
-                  <div className="aspect-[4/3] rounded-2xl overflow-hidden relative mb-3">
-                    <img
-                      src={col.image}
-                      alt={col.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute bottom-4 left-4">
-                      <p className="text-white font-bold">{col.name}</p>
-                      <p className="text-white/70 text-sm">{col.items} items</p>
-                    </div>
+              {user && (
+                <div className="flex justify-center gap-6">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-foreground">{ownedCount}</p>
+                    <p className="text-xs text-muted-foreground">Coleccionados</p>
                   </div>
-                </motion.div>
-              ))}
-            </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-foreground">{totalCount}</p>
+                    <p className="text-xs text-muted-foreground">Disponibles</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-foreground">{totalCount > 0 ? Math.round((ownedCount / totalCount) * 100) : 0}%</p>
+                    <p className="text-xs text-muted-foreground">Completado</p>
+                  </div>
+                </div>
+              )}
+            </motion.div>
           </div>
         </section>
 
-        {/* Gallery Grid */}
-        <section className="py-20 bg-card">
-          <div className="container mx-auto px-4 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="flex items-end justify-between mb-12"
-            >
-              <div>
-                <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                  Galería de <span className="text-gradient">Arte</span>
-                </h2>
-                <p className="text-muted-foreground">
-                  Descarga gratis o apoya a artistas locales con tu compra.
-                </p>
+        {/* Filters & Content */}
+        <section className="py-8">
+          <div className="container mx-auto px-4">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+                <TabsList>
+                  <TabsTrigger value="all">Todos ({totalCount})</TabsTrigger>
+                  <TabsTrigger value="owned">Míos ({ownedCount})</TabsTrigger>
+                  <TabsTrigger value="locked">Por Desbloquear ({totalCount - ownedCount})</TabsTrigger>
+                </TabsList>
+
+                <div className="flex gap-2 flex-wrap">
+                  {["all", "common", "uncommon", "rare", "epic", "legendary"].map(r => (
+                    <Button
+                      key={r}
+                      variant={rarityFilter === r ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setRarityFilter(r)}
+                      className="text-xs"
+                    >
+                      {r === "all" ? "Todas" : rarityConfig[r]?.label || r}
+                    </Button>
+                  ))}
+                </div>
               </div>
-              <Button variant="outline" className="hidden md:flex gap-2">
-                Ver todo
-                <ChevronRight className="h-4 w-4" />
+
+              <TabsContent value={activeTab} className="mt-0">
+                {loading ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {[...Array(8)].map((_, i) => (
+                      <div key={i} className="aspect-square rounded-2xl bg-muted animate-pulse" />
+                    ))}
+                  </div>
+                ) : filteredCollectibles.length === 0 ? (
+                  <div className="text-center py-16">
+                    <Gem className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-bold text-foreground mb-2">
+                      {activeTab === "owned" ? "Aún no tienes coleccionables" : "No hay items en esta categoría"}
+                    </h3>
+                    <p className="text-muted-foreground mb-4">Explora destinos y completa retos para desbloquear</p>
+                    <Button asChild>
+                      <Link to="/gamificacion">Explorar Retos</Link>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {filteredCollectibles.map((item, i) => {
+                      const owned = isOwned(item.id);
+                      const rarity = rarityConfig[item.rarity] || rarityConfig.common;
+                      const userCol = userCollectibles.find(uc => uc.collectible_id === item.id);
+
+                      return (
+                        <motion.div
+                          key={item.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.03 }}
+                          className={`group relative rounded-2xl border overflow-hidden transition-all cursor-pointer hover:scale-[1.02] ${
+                            owned ? `${rarity.border} bg-card` : "border-border bg-card/50"
+                          }`}
+                          onClick={() => setSelectedItem(item)}
+                        >
+                          {/* Image */}
+                          <div className="aspect-square relative overflow-hidden">
+                            {item.image_url || item.thumbnail_url ? (
+                              <img
+                                src={item.thumbnail_url || item.image_url || ""}
+                                alt={item.name}
+                                className={`w-full h-full object-cover transition-all ${
+                                  !owned ? "grayscale opacity-40" : "group-hover:scale-105"
+                                }`}
+                              />
+                            ) : (
+                              <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${rarity.gradient} ${!owned ? "opacity-30" : ""}`}>
+                                <Gem className="h-12 w-12 text-white/50" />
+                              </div>
+                            )}
+
+                            {!owned && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-background/50">
+                                <Lock className="h-8 w-8 text-muted-foreground" />
+                              </div>
+                            )}
+
+                            {/* Rarity badge */}
+                            <Badge className={`absolute top-2 right-2 text-xs bg-background/80 backdrop-blur-sm ${rarity.text}`}>
+                              {rarity.label}
+                            </Badge>
+
+                            {/* Supply */}
+                            {item.total_supply && (
+                              <Badge variant="outline" className="absolute top-2 left-2 text-xs bg-background/80 backdrop-blur-sm">
+                                {item.current_supply || 0}/{item.total_supply}
+                              </Badge>
+                            )}
+
+                            {/* Hover actions */}
+                            {owned && (
+                              <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  size="icon"
+                                  variant="secondary"
+                                  className="h-8 w-8 rounded-full"
+                                  onClick={(e) => { e.stopPropagation(); toggleFavorite(item.id); }}
+                                >
+                                  <Heart className={`h-3.5 w-3.5 ${userCol?.is_favorite ? "fill-red-500 text-red-500" : ""}`} />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Info */}
+                          <div className="p-3">
+                            <p className="font-bold text-foreground text-sm truncate">{item.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{item.short_description || typeLabels[item.collectible_type] || item.collectible_type}</p>
+                            <div className="flex items-center gap-2 mt-2">
+                              {item.xp_value && item.xp_value > 0 && (
+                                <Badge variant="secondary" className="text-xs gap-1"><Star className="h-3 w-3" /> {item.xp_value} XP</Badge>
+                              )}
+                              {item.coin_value && item.coin_value > 0 && (
+                                <Badge variant="outline" className="text-xs gap-1"><Crown className="h-3 w-3" /> {item.coin_value}</Badge>
+                              )}
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+        </section>
+
+        {/* Detail Modal */}
+        {selectedItem && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4" onClick={() => setSelectedItem(null)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-card rounded-2xl border border-border max-w-md w-full overflow-hidden shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              {selectedItem.image_url && (
+                <img src={selectedItem.image_url} alt={selectedItem.name} className="w-full h-64 object-cover" />
+              )}
+              <div className="p-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge className={`${rarityConfig[selectedItem.rarity]?.text || ""}`}>
+                    {rarityConfig[selectedItem.rarity]?.label || selectedItem.rarity}
+                  </Badge>
+                  <Badge variant="outline">{typeLabels[selectedItem.collectible_type] || selectedItem.collectible_type}</Badge>
+                </div>
+                <h2 className="text-xl font-bold text-foreground mb-2">{selectedItem.name}</h2>
+                <p className="text-sm text-muted-foreground mb-4">{selectedItem.description || selectedItem.short_description}</p>
+
+                {selectedItem.unlock_condition && !isOwned(selectedItem.id) && (
+                  <div className="p-3 rounded-lg bg-muted/50 mb-4">
+                    <p className="text-xs font-medium text-muted-foreground">Cómo desbloquear:</p>
+                    <p className="text-sm text-foreground">{selectedItem.unlock_condition}</p>
+                  </div>
+                )}
+
+                {selectedItem.season && (
+                  <p className="text-xs text-muted-foreground mb-4">Temporada: {selectedItem.season}</p>
+                )}
+
+                <div className="flex gap-2">
+                  {isOwned(selectedItem.id) ? (
+                    <Badge className="bg-emerald-500/10 text-emerald-500 gap-1"><Star className="h-3 w-3" /> En tu colección</Badge>
+                  ) : (
+                    <Badge variant="outline" className="gap-1"><Lock className="h-3 w-3" /> Bloqueado</Badge>
+                  )}
+                </div>
+              </div>
+              <div className="border-t border-border p-4 flex justify-end">
+                <Button variant="outline" onClick={() => setSelectedItem(null)}>Cerrar</Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* CTA */}
+        <section className="py-16 bg-card border-t border-border">
+          <div className="container mx-auto px-4 text-center">
+            <Gem className="h-12 w-12 text-primary mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-foreground mb-4">Desbloquea más coleccionables</h2>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              Completa misiones, visita destinos y participa en eventos para expandir tu colección.
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Button asChild className="gap-2">
+                <Link to="/gamificacion"><Sparkles className="h-4 w-4" /> Ver Misiones</Link>
               </Button>
-            </motion.div>
-
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-              {artworks.map((art, index) => (
-                <motion.div
-                  key={art.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.05 }}
-                  className="group"
-                >
-                  <div className="aspect-square rounded-2xl overflow-hidden relative mb-3">
-                    <img
-                      src={art.image}
-                      alt={art.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <Button size="icon" variant="secondary" className="rounded-full">
-                        <Heart className="h-4 w-4" />
-                      </Button>
-                      <Button size="icon" variant="secondary" className="rounded-full">
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Button size="icon" variant="secondary" className="rounded-full">
-                        <Share2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    {art.price === 0 && (
-                      <Badge className="absolute top-3 left-3 bg-green-500/90 text-white">
-                        Gratis
-                      </Badge>
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="font-display font-bold text-foreground truncate">{art.title}</h3>
-                    <p className="text-sm text-muted-foreground">{art.artist}</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Download className="h-3 w-3" />
-                        {art.downloads}
-                      </span>
-                      {art.price > 0 ? (
-                        <span className="text-sm font-bold text-primary">${art.price} DOP</span>
-                      ) : (
-                        <span className="text-sm text-green-600 font-medium">Descarga libre</span>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+              <Button variant="outline" asChild className="gap-2">
+                <Link to="/pasaporte-digital"><Gift className="h-4 w-4" /> Mi Pasaporte</Link>
+              </Button>
             </div>
-          </div>
-        </section>
-
-        {/* Artist CTA */}
-        <section className="py-20">
-          <div className="container mx-auto px-4 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="bg-gradient-to-r from-teal-900 to-cyan-900 rounded-3xl p-8 md:p-12 text-center"
-            >
-              <Palette className="h-16 w-16 text-teal-300 mx-auto mb-6" />
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-                ¿Eres artista dominicano?
-              </h2>
-              <p className="text-white/80 mb-8 max-w-xl mx-auto">
-                Únete a nuestra plataforma y comparte tu arte con viajeros de todo el mundo. 
-                Tú decides el precio o si lo ofreces gratis.
-              </p>
-              <div className="flex flex-wrap justify-center gap-4">
-                <Button size="lg" className="gap-2 bg-white text-teal-900 hover:bg-white/90">
-                  Subir mi Arte
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Conocer más
-                </Button>
-              </div>
-            </motion.div>
           </div>
         </section>
 
