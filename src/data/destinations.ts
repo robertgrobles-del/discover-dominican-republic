@@ -166,7 +166,30 @@ export const destinations: Destination[] = [
     latitude: 19.2056,
     longitude: -69.3364,
     isPopular: true,
-    isFeatured: true
+    isFeatured: true,
+    about: {
+      history: 'Samaná fue bautizada como "Bahía de las Flechas" por Cristóbal Colón en 1493 tras un enfrentamiento con los indígenas ciguayos. En el siglo XIX recibió inmigrantes afroamericanos libertos de EE.UU. que fundaron comunidades como Philadelphia y Bethesda, cuya herencia cultural anglófona persiste hoy.',
+      geography: 'Península que se extiende hacia el Atlántico norte, con una topografía montañosa cubierta de bosque tropical húmedo. El Parque Nacional Los Haitises al sur presenta formaciones de mogotes (colinas cónicas) únicas en el Caribe, con cuevas con petroglifos taínos.',
+      artAndCulture: 'La cultura samanesa fusiona raíces africanas, taínas y la herencia anglófona de los descendientes de afroamericanos. La música de bambulá y los himnos gospel en inglés conviven con el merengue y la bachata. La Semana Santa en las comunidades de descendientes es una experiencia cultural única.',
+      economy: 'Turismo ecológico y de aventura como motor principal. La pesca artesanal, la producción de cacao orgánico y el aceite de coco complementan la economía. El avistamiento de ballenas genera más de $30 millones anuales.',
+      demographics: 'Aproximadamente 120,000 habitantes. Comunidad multicultural con presencia de europeos residentes (principalmente franceses e italianos) en Las Terrenas y descendientes afroamericanos en las zonas rurales.',
+      pointsOfInterest: [
+        { name: 'Parque Nacional Los Haitises', type: 'natural', description: 'Bosque húmedo con mogotes, cuevas taínas y manglares.' },
+        { name: 'Cascada El Limón', type: 'natural', description: 'Caída de agua de 40 metros accesible a caballo o a pie.' },
+        { name: 'Playa Rincón', type: 'natural', description: 'Votada como una de las 10 mejores playas del mundo.' },
+        { name: 'Cayo Levantado', type: 'natural', description: 'Isla paradisíaca conocida como "Isla Bacardí".' },
+        { name: 'Puente de Samaná', type: 'histórico', description: 'Puente peatonal que cruza la bahía con vistas espectaculares.' },
+      ],
+      whatToDo: [
+        'Avistamiento de ballenas jorobadas (enero-marzo)',
+        'Excursión a la Cascada El Limón',
+        'Tour en lancha por Los Haitises',
+        'Buceo y snorkel en la costa',
+        'Senderismo en la Sierra de Samaná',
+        'Paseo a caballo por playas vírgenes',
+        'Degustación de cacao orgánico',
+      ],
+    },
   },
   {
     id: 'puerto-plata',
