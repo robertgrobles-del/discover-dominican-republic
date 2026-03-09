@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import {
   User, Trophy, Star, Zap, Crown, Flame, Target, Award,
   MapPin, Camera, Edit, Share2, ChevronRight, Calendar,
