@@ -285,7 +285,7 @@ function AnimatedRoutes() {
           <Route path="/centro-ayuda" element={<CentroAyuda />} />
           <Route path="/asistencia" element={<CentroAyuda />} />
           <Route path="/sostenible" element={<Sostenible />} />
-          <Route path="/articulo/:id" element={<Articulo />} />
+          <Route path="/articulo/:slug" element={<Articulo />} />
           <Route path="/galeria" element={<Galeria />} />
           <Route path="/terminos" element={<Terminos />} />
           <Route path="/estadisticas" element={<Estadisticas />} />
