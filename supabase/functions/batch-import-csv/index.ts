@@ -70,13 +70,7 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    const { base_url } = await req.json();
-    if (!base_url) {
-      return new Response(JSON.stringify({ error: "base_url is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const storageBase = `${supabaseUrl}/storage/v1/object/public/csv-imports`;
 
     const files = [
       "turismo-aventura.csv",
@@ -90,7 +84,7 @@ Deno.serve(async (req) => {
 
     for (const file of files) {
       try {
-        const url = `${base_url}/data/${file}`;
+        const url = `${storageBase}/${file}`;
         console.log(`Fetching: ${url}`);
         const resp = await fetch(url);
         if (!resp.ok) {
