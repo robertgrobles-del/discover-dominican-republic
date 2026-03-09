@@ -43,7 +43,7 @@ export function useActionTracker() {
         event_type: actionType,
         user_id: user?.id || null,
         page: window.location.pathname,
-        metadata,
+        metadata: metadata as Record<string, string | number | boolean | null>,
         session_id: sessionId
       }]);
 
