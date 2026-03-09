@@ -7,94 +7,94 @@ import { EntityType } from "@/hooks/useAdminEntities";
 
 export function AdminGamification() {
   // Configuración de campos para Logros
-  const achievementFields = {
-    name: { label: "Nombre", type: "text" as const, required: true },
-    slug: { label: "Slug", type: "text" as const },
-    description: { label: "Descripción", type: "textarea" as const },
-    short_description: { label: "Descripción corta", type: "textarea" as const },
-    achievement_type: { label: "Tipo", type: "text" as const },
-    category: { label: "Categoría", type: "text" as const },
-    rarity: { label: "Rareza", type: "text" as const },
-    xp_reward: { label: "Recompensa XP", type: "number" as const },
-    coin_reward: { label: "Recompensa Monedas", type: "number" as const },
-    icon: { label: "Icono", type: "text" as const },
-    image_url: { label: "Imagen URL", type: "url" as const },
-    badge_color: { label: "Color de insignia", type: "text" as const },
-    unlock_condition: { label: "Condición de desbloqueo", type: "textarea" as const },
-    min_level: { label: "Nivel mínimo", type: "number" as const },
-    is_hidden: { label: "Oculto", type: "boolean" as const },
-    is_active: { label: "Activo", type: "boolean" as const },
-  };
+  const achievementFields = [
+    { name: "name", label: "Nombre", type: "text" as const, required: true, showInList: true },
+    { name: "slug", label: "Slug", type: "text" as const },
+    { name: "description", label: "Descripción", type: "textarea" as const },
+    { name: "short_description", label: "Descripción corta", type: "textarea" as const, showInList: true },
+    { name: "achievement_type", label: "Tipo", type: "text" as const, showInList: true },
+    { name: "category", label: "Categoría", type: "text" as const, showInList: true },
+    { name: "rarity", label: "Rareza", type: "text" as const, showInList: true },
+    { name: "xp_reward", label: "Recompensa XP", type: "number" as const, showInList: true },
+    { name: "coin_reward", label: "Recompensa Monedas", type: "number" as const },
+    { name: "icon", label: "Icono", type: "text" as const },
+    { name: "image_url", label: "Imagen URL", type: "url" as const },
+    { name: "badge_color", label: "Color de insignia", type: "text" as const },
+    { name: "unlock_condition", label: "Condición de desbloqueo", type: "textarea" as const },
+    { name: "min_level", label: "Nivel mínimo", type: "number" as const },
+    { name: "is_hidden", label: "Oculto", type: "boolean" as const },
+    { name: "is_active", label: "Activo", type: "boolean" as const, showInList: true },
+  ];
 
   // Configuración de campos para Misiones
-  const missionFields = {
-    name: { label: "Nombre", type: "text" as const, required: true },
-    description: { label: "Descripción", type: "textarea" as const },
-    short_description: { label: "Descripción corta", type: "textarea" as const },
-    mission_type: { label: "Tipo", type: "text" as const },
-    category: { label: "Categoría", type: "text" as const },
-    target_action: { label: "Acción objetivo", type: "text" as const },
-    target_count: { label: "Cantidad objetivo", type: "number" as const },
-    xp_reward: { label: "Recompensa XP", type: "number" as const },
-    coin_reward: { label: "Recompensa Monedas", type: "number" as const },
-    icon: { label: "Icono", type: "text" as const },
-    min_level: { label: "Nivel mínimo", type: "number" as const },
-    start_date: { label: "Fecha inicio", type: "date" as const },
-    end_date: { label: "Fecha fin", type: "date" as const },
-    is_active: { label: "Activa", type: "boolean" as const },
-    is_featured: { label: "Destacada", type: "boolean" as const },
-  };
+  const missionFields = [
+    { name: "name", label: "Nombre", type: "text" as const, required: true, showInList: true },
+    { name: "description", label: "Descripción", type: "textarea" as const },
+    { name: "short_description", label: "Descripción corta", type: "textarea" as const },
+    { name: "mission_type", label: "Tipo", type: "text" as const, showInList: true },
+    { name: "category", label: "Categoría", type: "text" as const, showInList: true },
+    { name: "target_action", label: "Acción objetivo", type: "text" as const },
+    { name: "target_count", label: "Cantidad objetivo", type: "number" as const, showInList: true },
+    { name: "xp_reward", label: "Recompensa XP", type: "number" as const, showInList: true },
+    { name: "coin_reward", label: "Recompensa Monedas", type: "number" as const },
+    { name: "icon", label: "Icono", type: "text" as const },
+    { name: "min_level", label: "Nivel mínimo", type: "number" as const },
+    { name: "start_date", label: "Fecha inicio", type: "date" as const },
+    { name: "end_date", label: "Fecha fin", type: "date" as const },
+    { name: "is_active", label: "Activa", type: "boolean" as const, showInList: true },
+    { name: "is_featured", label: "Destacada", type: "boolean" as const },
+  ];
 
   // Configuración de campos para Premios
-  const prizeFields = {
-    name: { label: "Nombre", type: "text" as const, required: true },
-    description: { label: "Descripción", type: "textarea" as const },
-    short_description: { label: "Descripción corta", type: "textarea" as const },
-    prize_type: { label: "Tipo", type: "text" as const },
-    coin_cost: { label: "Costo en monedas", type: "number" as const },
-    image_url: { label: "Imagen URL", type: "url" as const },
-    sponsor: { label: "Patrocinador", type: "text" as const },
-    terms: { label: "Términos y condiciones", type: "textarea" as const },
-    quantity_available: { label: "Cantidad disponible", type: "number" as const },
-    quantity_redeemed: { label: "Cantidad canjeada", type: "number" as const },
-    min_level: { label: "Nivel mínimo", type: "number" as const },
-    valid_until: { label: "Válido hasta", type: "date" as const },
-    is_active: { label: "Activo", type: "boolean" as const },
-    is_featured: { label: "Destacado", type: "boolean" as const },
-  };
+  const prizeFields = [
+    { name: "name", label: "Nombre", type: "text" as const, required: true, showInList: true },
+    { name: "description", label: "Descripción", type: "textarea" as const },
+    { name: "short_description", label: "Descripción corta", type: "textarea" as const },
+    { name: "prize_type", label: "Tipo", type: "text" as const, showInList: true },
+    { name: "coin_cost", label: "Costo en monedas", type: "number" as const, showInList: true },
+    { name: "image_url", label: "Imagen URL", type: "url" as const },
+    { name: "sponsor", label: "Patrocinador", type: "text" as const, showInList: true },
+    { name: "terms", label: "Términos y condiciones", type: "textarea" as const },
+    { name: "quantity_available", label: "Cantidad disponible", type: "number" as const },
+    { name: "quantity_redeemed", label: "Cantidad canjeada", type: "number" as const },
+    { name: "min_level", label: "Nivel mínimo", type: "number" as const },
+    { name: "valid_until", label: "Válido hasta", type: "date" as const },
+    { name: "is_active", label: "Activo", type: "boolean" as const, showInList: true },
+    { name: "is_featured", label: "Destacado", type: "boolean" as const },
+  ];
 
   // Configuración de campos para Rutas Gamificadas
-  const routeFields = {
-    name: { label: "Nombre", type: "text" as const, required: true },
-    slug: { label: "Slug", type: "text" as const },
-    description: { label: "Descripción", type: "textarea" as const },
-    short_description: { label: "Descripción corta", type: "textarea" as const },
-    route_type: { label: "Tipo", type: "text" as const },
-    difficulty: { label: "Dificultad", type: "text" as const },
-    duration_days: { label: "Duración (días)", type: "number" as const },
-    distance_km: { label: "Distancia (km)", type: "number" as const },
-    total_xp_reward: { label: "Recompensa XP total", type: "number" as const },
-    total_coin_reward: { label: "Recompensa monedas total", type: "number" as const },
-    min_level: { label: "Nivel mínimo", type: "number" as const },
-    image_url: { label: "Imagen URL", type: "url" as const },
-    is_active: { label: "Activa", type: "boolean" as const },
-    is_featured: { label: "Destacada", type: "boolean" as const },
-  };
+  const routeFields = [
+    { name: "name", label: "Nombre", type: "text" as const, required: true, showInList: true },
+    { name: "slug", label: "Slug", type: "text" as const },
+    { name: "description", label: "Descripción", type: "textarea" as const },
+    { name: "short_description", label: "Descripción corta", type: "textarea" as const },
+    { name: "route_type", label: "Tipo", type: "text" as const, showInList: true },
+    { name: "difficulty", label: "Dificultad", type: "text" as const, showInList: true },
+    { name: "duration_days", label: "Duración (días)", type: "number" as const },
+    { name: "distance_km", label: "Distancia (km)", type: "number" as const },
+    { name: "total_xp_reward", label: "Recompensa XP total", type: "number" as const, showInList: true },
+    { name: "total_coin_reward", label: "Recompensa monedas total", type: "number" as const },
+    { name: "min_level", label: "Nivel mínimo", type: "number" as const },
+    { name: "image_url", label: "Imagen URL", type: "url" as const },
+    { name: "is_active", label: "Activa", type: "boolean" as const, showInList: true },
+    { name: "is_featured", label: "Destacada", type: "boolean" as const },
+  ];
 
   // Configuración de campos para Temporadas
-  const seasonFields = {
-    name: { label: "Nombre", type: "text" as const, required: true },
-    description: { label: "Descripción", type: "textarea" as const },
-    short_description: { label: "Descripción corta", type: "textarea" as const },
-    season_number: { label: "Número de temporada", type: "number" as const },
-    start_date: { label: "Fecha inicio", type: "date" as const },
-    end_date: { label: "Fecha fin", type: "date" as const },
-    theme: { label: "Tema", type: "text" as const },
-    xp_multiplier: { label: "Multiplicador XP", type: "number" as const },
-    coin_multiplier: { label: "Multiplicador monedas", type: "number" as const },
-    image_url: { label: "Imagen URL", type: "url" as const },
-    is_active: { label: "Activa", type: "boolean" as const },
-  };
+  const seasonFields = [
+    { name: "name", label: "Nombre", type: "text" as const, required: true, showInList: true },
+    { name: "description", label: "Descripción", type: "textarea" as const },
+    { name: "short_description", label: "Descripción corta", type: "textarea" as const },
+    { name: "season_number", label: "Número de temporada", type: "number" as const, showInList: true },
+    { name: "start_date", label: "Fecha inicio", type: "date" as const, showInList: true },
+    { name: "end_date", label: "Fecha fin", type: "date" as const, showInList: true },
+    { name: "theme", label: "Tema", type: "text" as const, showInList: true },
+    { name: "xp_multiplier", label: "Multiplicador XP", type: "number" as const },
+    { name: "coin_multiplier", label: "Multiplicador monedas", type: "number" as const },
+    { name: "image_url", label: "Imagen URL", type: "url" as const },
+    { name: "is_active", label: "Activa", type: "boolean" as const, showInList: true },
+  ];
 
   return (
     <div className="space-y-6">
