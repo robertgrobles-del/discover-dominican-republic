@@ -75,7 +75,7 @@ export function ShoppingHighlightSection() {
         <div className="text-center mt-8">
           <Button variant="outline" asChild>
             <Link to="/compras" className="gap-2">
-              {t("shopping.viewAll")} <ArrowRight className="h-4 w-4" />
+              {t("shoppingMalls.viewAll")} <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
