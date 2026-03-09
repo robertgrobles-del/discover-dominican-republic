@@ -1,4 +1,5 @@
 import { Header } from "@/components/Header";
+import { PageBreadcrumbs } from "@/components/PageBreadcrumbs";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
