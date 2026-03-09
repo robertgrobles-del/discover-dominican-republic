@@ -14,6 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          achievement_type: string
+          badge_color: string | null
+          category: string
+          coin_reward: number | null
+          created_at: string
+          description: string | null
+          display_order: number | null
+          icon: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_hidden: boolean | null
+          min_level: number | null
+          name: string
+          rarity: string
+          short_description: string | null
+          slug: string | null
+          total_unlocked: number | null
+          unlock_condition: string | null
+          unlock_requirement: Json | null
+          updated_at: string
+          xp_reward: number | null
+        }
+        Insert: {
+          achievement_type?: string
+          badge_color?: string | null
+          category?: string
+          coin_reward?: number | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_hidden?: boolean | null
+          min_level?: number | null
+          name: string
+          rarity?: string
+          short_description?: string | null
+          slug?: string | null
+          total_unlocked?: number | null
+          unlock_condition?: string | null
+          unlock_requirement?: Json | null
+          updated_at?: string
+          xp_reward?: number | null
+        }
+        Update: {
+          achievement_type?: string
+          badge_color?: string | null
+          category?: string
+          coin_reward?: number | null
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_hidden?: boolean | null
+          min_level?: number | null
+          name?: string
+          rarity?: string
+          short_description?: string | null
+          slug?: string | null
+          total_unlocked?: number | null
+          unlock_condition?: string | null
+          unlock_requirement?: Json | null
+          updated_at?: string
+          xp_reward?: number | null
+        }
+        Relationships: []
+      }
       ad_banners: {
         Row: {
           alt_text: string | null
@@ -1720,6 +1795,78 @@ export type Database = {
         }
         Relationships: []
       }
+      gamification_seasons: {
+        Row: {
+          banner_url: string | null
+          coin_multiplier: number | null
+          color_primary: string | null
+          color_secondary: string | null
+          created_at: string
+          description: string | null
+          end_date: string
+          icon: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_featured: boolean | null
+          name: string
+          participant_count: number | null
+          season_type: string
+          short_description: string | null
+          slug: string | null
+          start_date: string
+          theme: string | null
+          updated_at: string
+          xp_multiplier: number | null
+        }
+        Insert: {
+          banner_url?: string | null
+          coin_multiplier?: number | null
+          color_primary?: string | null
+          color_secondary?: string | null
+          created_at?: string
+          description?: string | null
+          end_date: string
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          name: string
+          participant_count?: number | null
+          season_type?: string
+          short_description?: string | null
+          slug?: string | null
+          start_date: string
+          theme?: string | null
+          updated_at?: string
+          xp_multiplier?: number | null
+        }
+        Update: {
+          banner_url?: string | null
+          coin_multiplier?: number | null
+          color_primary?: string | null
+          color_secondary?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          name?: string
+          participant_count?: number | null
+          season_type?: string
+          short_description?: string | null
+          slug?: string | null
+          start_date?: string
+          theme?: string | null
+          updated_at?: string
+          xp_multiplier?: number | null
+        }
+        Relationships: []
+      }
       gamification_transactions: {
         Row: {
           coin_amount: number | null
@@ -3133,6 +3280,62 @@ export type Database = {
           },
         ]
       }
+      season_rewards: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_exclusive: boolean | null
+          name: string
+          quantity_available: number | null
+          quantity_claimed: number | null
+          reward_type: string
+          reward_value: Json | null
+          season_id: string
+          unlock_requirement: string | null
+          unlock_requirement_value: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_exclusive?: boolean | null
+          name: string
+          quantity_available?: number | null
+          quantity_claimed?: number | null
+          reward_type?: string
+          reward_value?: Json | null
+          season_id: string
+          unlock_requirement?: string | null
+          unlock_requirement_value?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_exclusive?: boolean | null
+          name?: string
+          quantity_available?: number | null
+          quantity_claimed?: number | null
+          reward_type?: string
+          reward_value?: Json | null
+          season_id?: string
+          unlock_requirement?: string | null
+          unlock_requirement_value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_rewards_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "gamification_seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       social_comments: {
         Row: {
           content: string
@@ -3927,6 +4130,47 @@ export type Database = {
           },
         ]
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          created_at: string
+          display_order: number | null
+          id: string
+          is_favorite: boolean | null
+          progress: number | null
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_favorite?: boolean | null
+          progress?: number | null
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_favorite?: boolean | null
+          progress?: number | null
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_checkpoint_completions: {
         Row: {
           checkpoint_id: string
@@ -4228,6 +4472,59 @@ export type Database = {
             columns: ["route_id"]
             isOneToOne: false
             referencedRelation: "gamified_routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_season_progress: {
+        Row: {
+          coins_earned: number | null
+          created_at: string
+          id: string
+          last_activity_at: string | null
+          missions_completed: number | null
+          rank: number | null
+          rewards_claimed: number | null
+          season_id: string
+          started_at: string
+          updated_at: string
+          user_id: string
+          xp_earned: number | null
+        }
+        Insert: {
+          coins_earned?: number | null
+          created_at?: string
+          id?: string
+          last_activity_at?: string | null
+          missions_completed?: number | null
+          rank?: number | null
+          rewards_claimed?: number | null
+          season_id: string
+          started_at?: string
+          updated_at?: string
+          user_id: string
+          xp_earned?: number | null
+        }
+        Update: {
+          coins_earned?: number | null
+          created_at?: string
+          id?: string
+          last_activity_at?: string | null
+          missions_completed?: number | null
+          rank?: number | null
+          rewards_claimed?: number | null
+          season_id?: string
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+          xp_earned?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_season_progress_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "gamification_seasons"
             referencedColumns: ["id"]
           },
         ]
