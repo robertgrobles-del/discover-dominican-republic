@@ -364,6 +364,7 @@ function AnimatedRoutes() {
           <Route path="/fotografos" element={<FotografosLocales />} />
           <Route path="/conectividad" element={<Conectividad />} />
           <Route path="/embajadores" element={<RutasEmbajadores />} />
+          <Route path="/requisitos-embajadores" element={<RequisitosEmbajadores />} />
           <Route path="/guardian-caribe" element={<GuardianCaribe />} />
           <Route path="/planificador-grupal" element={<PlanificadorGrupal />} />
           <Route path="/puertos-marinas" element={<PuertosMarinas />} />

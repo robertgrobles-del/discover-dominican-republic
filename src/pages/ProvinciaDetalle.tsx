@@ -275,6 +275,8 @@ export default function ProvinciaDetalle() {
           provinceSlug={province.slug}
           venues={provinceBars}
         />
+        {/* Related Blog Posts */}
+        <RelatedBlogPosts destinationName={province.name} destinationSlug={province.slug} />
 
         <BetweenSectionsAd showDemo />
       </main>

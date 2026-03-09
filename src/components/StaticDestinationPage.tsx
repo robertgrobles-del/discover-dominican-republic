@@ -428,12 +428,20 @@ export function StaticDestinationPage({ destination }: StaticDestinationPageProp
               </TabsContent>
             </Tabs>
 
+            {/* About Tabs */}
+            {destination.about && (
+              <DestinationAboutTabs name={destination.name} data={destination.about} />
+            )}
+
             {/* Distances from major cities */}
             <DistancesFromCities
               latitude={destination.latitude}
               longitude={destination.longitude}
               destinationName={destination.name}
             />
+
+            {/* Related Blog Posts */}
+            <RelatedBlogPosts destinationName={destination.name} destinationSlug={destination.slug} />
           </div>
 
           {/* Right Column - Sidebar */}

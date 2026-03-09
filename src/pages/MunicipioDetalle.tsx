@@ -302,6 +302,9 @@ export default function MunicipioDetalle() {
           </div>
         </section>
 
+        {/* Related Blog Posts */}
+        <RelatedBlogPosts destinationName={municipality.name} destinationSlug={municipality.slug} />
+
         {/* Ad before footer */}
         <BetweenSectionsAd showDemo />
       </main>
