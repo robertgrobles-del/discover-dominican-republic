@@ -992,12 +992,12 @@ export const es: Record<string, string> = {
   "quickExplore.sports": "Deportes",
   "quickExplore.wellness": "Bienestar",
   "quickExplore.gallery": "Galería",
-  // === SHOPPING SECTION ===
-  "shopping.badge": "Compras",
-  "shopping.title": "Centros Comerciales Destacados",
-  "shopping.subtitle": "Descubre las mejores opciones de compras en República Dominicana.",
-  "shopping.stores": "tiendas",
-  "shopping.viewAll": "Ver todos los centros comerciales",
+  // === SHOPPING MALLS SECTION ===
+  "shoppingMalls.badge": "Compras",
+  "shoppingMalls.title": "Centros Comerciales Destacados",
+  "shoppingMalls.subtitle": "Descubre las mejores opciones de compras en República Dominicana.",
+  "shoppingMalls.stores": "tiendas",
+  "shoppingMalls.viewAll": "Ver todos los centros comerciales",
   // === TRANSPORT SECTION ===
   "transport.badge": "Transporte Moderno",
   "transport.title": "Muévete por el País",

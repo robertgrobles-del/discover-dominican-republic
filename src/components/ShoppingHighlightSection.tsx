@@ -22,13 +22,13 @@ export function ShoppingHighlightSection() {
           className="text-center mb-10"
         >
           <Badge className="mb-3 bg-pink-500/15 text-pink-400 border-pink-500/25">
-            <ShoppingBag className="h-3 w-3 mr-1" /> {t("shopping.badge")}
+            <ShoppingBag className="h-3 w-3 mr-1" /> {t("shoppingMalls.badge")}
           </Badge>
           <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
-            {t("shopping.title")}
+            {t("shoppingMalls.title")}
           </h2>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            {t("shopping.subtitle")}
+            {t("shoppingMalls.subtitle")}
           </p>
         </motion.div>
 

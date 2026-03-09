@@ -963,12 +963,12 @@ export const en: Record<string, string> = {
   "quickExplore.sports": "Sports",
   "quickExplore.wellness": "Wellness",
   "quickExplore.gallery": "Gallery",
-  // === SHOPPING SECTION ===
-  "shopping.badge": "Shopping",
-  "shopping.title": "Featured Shopping Malls",
-  "shopping.subtitle": "Discover the best shopping options in the Dominican Republic.",
-  "shopping.stores": "stores",
-  "shopping.viewAll": "View all shopping malls",
+  // === SHOPPING MALLS SECTION ===
+  "shoppingMalls.badge": "Shopping",
+  "shoppingMalls.title": "Featured Shopping Malls",
+  "shoppingMalls.subtitle": "Discover the best shopping options in the Dominican Republic.",
+  "shoppingMalls.stores": "stores",
+  "shoppingMalls.viewAll": "View all shopping malls",
   // === TRANSPORT SECTION ===
   "transport.badge": "Modern Transport",
   "transport.title": "Get Around the Country",
