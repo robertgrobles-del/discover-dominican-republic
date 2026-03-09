@@ -380,10 +380,10 @@ function AnimatedRoutes() {
           <Route path="/ecoturismo" element={<Ecoturismo />} />
           <Route path="/turismo-religioso" element={<TurismoReligioso />} />
           <Route path="/historia-viva-ar" element={<HistoriaVivaAR />} />
-          <Route path="/cueva/:id" element={<CuevaDetalle />} />
-          <Route path="/parque-nacional/:id" element={<ParqueNacionalDetalle />} />
-          <Route path="/destino-religioso/:id" element={<DestinoReligiosoDetalle />} />
-          <Route path="/marina/:id" element={<MarinaDetalle />} />
+          <Route path="/cueva/:slug" element={<CuevaDetalle />} />
+          <Route path="/parque-nacional/:slug" element={<ParqueNacionalDetalle />} />
+          <Route path="/destino-religioso/:slug" element={<DestinoReligiosoDetalle />} />
+          <Route path="/marina/:slug" element={<MarinaDetalle />} />
           <Route path="/cultura-tabaco" element={<CulturaTabaco />} />
           <Route path="/escuela-ritmos" element={<EscuelaRitmos />} />
           <Route path="/clima-temporadas" element={<ClimaTemporadas />} />
