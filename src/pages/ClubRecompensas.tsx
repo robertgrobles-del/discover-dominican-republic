@@ -576,62 +576,10 @@ export default function ClubRecompensas() {
 
             {/* LEADERBOARD TAB */}
             <TabsContent value="leaderboard">
-              <div className="max-w-2xl mx-auto">
-                <div className="space-y-2">
-                  {leaderboard.map((entry, i) => {
-                    const isMe = entry.user_id === user?.id;
-                    const levelInfo = levels.find(l => l.level_number === entry.current_level);
-                    return (
-                      <motion.div
-                        key={entry.user_id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        className={`p-4 rounded-xl border flex items-center gap-4 transition-all ${
-                          isMe ? "bg-primary/5 border-primary/30" : 
-                          i < 3 ? "bg-card border-border" : "bg-background border-border"
-                        }`}
-                      >
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${
-                          i === 0 ? "bg-amber-100 text-amber-700" :
-                          i === 1 ? "bg-gray-100 text-gray-600" :
-                          i === 2 ? "bg-orange-100 text-orange-700" :
-                          "bg-muted text-muted-foreground"
-                        }`}>
-                          {i < 3 ? ["🥇", "🥈", "🥉"][i] : `#${i + 1}`}
-                        </div>
-
-                        <span className="text-xl">{levelInfo?.icon || "🌱"}</span>
-
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-foreground truncate">
-                            {entry.display_name} {isMe && "(Tú)"}
-                          </p>
-                          <p className="text-xs text-muted-foreground">{levelInfo?.title} · {entry.total_missions_completed} misiones</p>
-                        </div>
-
-                        <div className="text-right">
-                          <p className="font-bold text-foreground">{entry.total_xp.toLocaleString()}</p>
-                          <p className="text-xs text-muted-foreground">XP</p>
-                        </div>
-
-                        {entry.streak_days > 0 && (
-                          <Badge variant="secondary" className="text-xs gap-1">
-                            <Flame className="h-3 w-3" /> {entry.streak_days}
-                          </Badge>
-                        )}
-                      </motion.div>
-                    );
-                  })}
-
-                  {leaderboard.length === 0 && (
-                    <div className="text-center py-12">
-                      <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground">Sé el primero en aparecer en el ranking.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <LeaderboardTab 
+                leaderboard={leaderboard}
+                currentUserId={user?.id}
+              />
             </TabsContent>
           </Tabs>
         </div>
