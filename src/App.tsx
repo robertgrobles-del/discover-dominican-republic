@@ -295,7 +295,7 @@ function AnimatedRoutes() {
           <Route path="/destino/:slug" element={<DestinoDetalle />} />
           <Route path="/destinos-regiones" element={<DestinosRegiones />} />
           <Route path="/eventos" element={<Eventos />} />
-          <Route path="/evento/:id" element={<EventoDetalle />} />
+          <Route path="/evento/:slug" element={<EventoDetalle />} />
           <Route path="/como-llegar" element={<ComoLlegar />} />
           <Route path="/herramientas" element={<Herramientas />} />
           <Route path="/patrimonio" element={<Patrimonio />} />
