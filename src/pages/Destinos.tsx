@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { PageBreadcrumbs } from "@/components/PageBreadcrumbs";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
@@ -38,6 +39,7 @@ export default function Destinos() {
       />
       <div className="min-h-screen bg-background">
         <Header />
+        <PageBreadcrumbs items={[{ label: t("destinos.breadcrumb") || "Destinos" }]} />
 
         {/* Hero Section */}
         <section className="relative h-[70vh] min-h-[500px] w-full flex flex-col justify-center items-center">

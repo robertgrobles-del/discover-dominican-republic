@@ -3,6 +3,7 @@ import { useState } from "react";
 import { TesorosTierra } from "@/components/compras/TesorosTierra";
 import { CentrosComercialesSection } from "@/components/compras/CentrosComercialesSection";
 import { Header } from "@/components/Header";
+import { PageBreadcrumbs } from "@/components/PageBreadcrumbs";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { Link } from "react-router-dom";
@@ -77,6 +78,7 @@ export default function Compras() {
     <PageTransition>
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
+        <PageBreadcrumbs items={[{ label: "Compras" }]} />
 
         {/* Hero */}
         <section className="relative h-[60vh] min-h-[500px] flex items-end mt-16">

@@ -164,20 +164,86 @@ export function generateReviewSchema(review: {
   return {
     "@context": "https://schema.org",
     "@type": "Review",
-    author: {
-      "@type": "Person",
-      name: review.author,
-    },
-    reviewRating: {
-      "@type": "Rating",
-      ratingValue: review.rating,
-      bestRating: 5,
-    },
+    author: { "@type": "Person", name: review.author },
+    reviewRating: { "@type": "Rating", ratingValue: review.rating, bestRating: 5 },
     datePublished: review.datePublished,
     reviewBody: review.reviewBody,
-    itemReviewed: {
-      "@type": "TouristDestination",
-      name: review.itemReviewed,
-    },
+    itemReviewed: { "@type": "TouristDestination", name: review.itemReviewed },
+  };
+}
+
+export function generateBeachSchema(beach: {
+  name: string;
+  description: string;
+  image?: string;
+  latitude?: number;
+  longitude?: number;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Beach",
+    name: beach.name,
+    description: beach.description,
+    image: beach.image,
+    geo: beach.latitude && beach.longitude ? {
+      "@type": "GeoCoordinates",
+      latitude: beach.latitude,
+      longitude: beach.longitude,
+    } : undefined,
+    containedInPlace: { "@type": "Country", name: "República Dominicana" },
+  };
+}
+
+export function generateRestaurantSchema(restaurant: {
+  name: string;
+  description: string;
+  image?: string;
+  priceRange?: string;
+  rating?: number;
+  address?: string;
+  cuisine?: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Restaurant",
+    name: restaurant.name,
+    description: restaurant.description,
+    image: restaurant.image,
+    priceRange: restaurant.priceRange,
+    servesCuisine: restaurant.cuisine,
+    aggregateRating: restaurant.rating ? {
+      "@type": "AggregateRating",
+      ratingValue: restaurant.rating,
+      bestRating: 5,
+    } : undefined,
+    address: restaurant.address ? {
+      "@type": "PostalAddress",
+      addressLocality: restaurant.address,
+      addressCountry: "DO",
+    } : undefined,
+  };
+}
+
+export function generateEventSchema(event: {
+  name: string;
+  description: string;
+  startDate?: string;
+  endDate?: string;
+  location?: string;
+  image?: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: event.name,
+    description: event.description,
+    startDate: event.startDate,
+    endDate: event.endDate,
+    image: event.image,
+    location: event.location ? {
+      "@type": "Place",
+      name: event.location,
+      address: { "@type": "PostalAddress", addressCountry: "DO" },
+    } : undefined,
   };
 }
