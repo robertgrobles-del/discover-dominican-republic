@@ -17,7 +17,8 @@ const riverTypeLabels: Record<River['riverType'], string> = {
   'cascada': 'Cascada',
   'charco': 'Charcos',
   'cañon': 'Cañón',
-  'manantial': 'Manantial'
+  'manantial': 'Manantial',
+  'río': 'Río'
 };
 
 const difficultyLabels: Record<River['difficulty'], { label: string; color: string }> = {

@@ -41,7 +41,7 @@ export interface River {
   destinationId?: string;        // Destino turístico asociado (si aplica)
   destinationName?: string;      // Nombre del destino para mostrar
   // Información general
-  riverType: 'montaña' | 'cascada' | 'charco' | 'cañon' | 'manantial';
+  riverType: 'montaña' | 'cascada' | 'charco' | 'cañon' | 'manantial' | 'río';
   shortDescription: string;
   description: string;
   imageUrl: string;
