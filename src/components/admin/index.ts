@@ -3,3 +3,5 @@ export { EntityList } from './EntityList';
 export { AdminDashboard } from './AdminDashboard';
 export { AdminAnalytics } from './AdminAnalytics';
 export { AdminImportEstablecimientos } from './AdminImportEstablecimientos';
+export { AdminGamification } from './AdminGamification';
+export { GamificationStats } from './GamificationStats';
