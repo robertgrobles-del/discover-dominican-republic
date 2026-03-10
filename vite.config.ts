@@ -122,6 +122,7 @@ export default defineConfig(({ mode }) => ({
     }),
   ].filter(Boolean),
   build: {
+    sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks: {
