@@ -59,7 +59,7 @@ export function InterestSection() {
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
-    const singleSetWidth = container.scrollWidth / 3;
+    const singleSetWidth = container.scrollWidth / 2;
     container.scrollLeft = singleSetWidth;
     let animationId: number;
     let lastTime = 0;
