@@ -49,16 +49,38 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
-        globPatterns: ["**/*.{css,html,ico,png,svg,jpg,jpeg,webp}"],
+        globPatterns: ["**/*.{css,html,ico,png,svg,jpg,jpeg,webp,js}"],
         runtimeCaching: [
           {
-            urlPattern: /\.js$/,
-            handler: "NetworkFirst",
+            urlPattern: /\/assets\/.*\.js$/,
+            handler: "CacheFirst",
             options: {
-              cacheName: "js-cache",
+              cacheName: "js-assets",
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+                maxEntries: 80,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year (hashed filenames)
+              },
+            },
+          },
+          {
+            urlPattern: /\/assets\/.*\.(jpg|jpeg|png|webp|svg|avif)$/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "image-assets",
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year (hashed filenames)
+              },
+            },
+          },
+          {
+            urlPattern: /\/assets\/.*\.css$/,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "css-assets",
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
               },
             },
           },
@@ -80,6 +102,17 @@ export default defineConfig(({ mode }) => ({
               cacheName: "google-fonts",
               expiration: {
                 maxEntries: 30,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/cdn\.gpteng\.co\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "gpteng-fonts",
+              expiration: {
+                maxEntries: 10,
                 maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
               },
             },

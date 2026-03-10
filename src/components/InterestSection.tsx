@@ -116,8 +116,8 @@ export function InterestSection() {
           onMouseLeave={handleMouseLeave}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
-          className="h-full flex gap-4 overflow-x-auto no-scrollbar px-4 lg:px-8"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          className="h-full flex gap-4 overflow-x-auto no-scrollbar px-4 lg:px-8 will-change-scroll"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', contain: 'layout style' }}
         >
           {tripleInterests.map((interest, index) => (
             <motion.div

@@ -169,33 +169,47 @@ export function HeroSlideshow() {
 
   return (
     <section className="relative h-screen w-full flex flex-col overflow-hidden">
-      <AnimatePresence mode="sync">
-        <motion.div
-          key={slide.id}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.5, ease: [0.4, 0, 0.2, 1] }}
-          className="absolute inset-0 z-0"
-        >
-          {!bgLoaded && <Skeleton className="absolute inset-0 w-full h-full rounded-none" />}
-          <motion.img
+      {/* First slide rendered without AnimatePresence to eliminate LCP render delay */}
+      {currentSlide === 0 && !bgLoaded ? (
+        <div className="absolute inset-0 z-0">
+          <img
             src={slide.image}
             alt={slide.title}
-            className={`h-full w-full object-cover transition-opacity duration-700 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`}
-            initial={{ scale: 1.05 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 8, ease: "linear" }}
+            className="h-full w-full object-cover"
             onLoad={() => setBgLoaded(true)}
-            // @ts-ignore - fetchPriority is valid HTML but not in React types yet
-            fetchPriority={currentSlide === 0 ? "high" : "auto"}
-            loading={currentSlide === 0 ? "eager" : "lazy"}
-            decoding={currentSlide === 0 ? "sync" : "async"}
+            // @ts-ignore
+            fetchPriority="high"
+            loading="eager"
+            decoding="sync"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/50 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
-        </motion.div>
-      </AnimatePresence>
+        </div>
+      ) : (
+        <AnimatePresence mode="sync">
+          <motion.div
+            key={slide.id}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.5, ease: [0.4, 0, 0.2, 1] }}
+            className="absolute inset-0 z-0"
+          >
+            <motion.img
+              src={slide.image}
+              alt={slide.title}
+              className="h-full w-full object-cover"
+              initial={{ scale: 1.05 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 8, ease: "linear" }}
+              loading="lazy"
+              decoding="async"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/50 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
+          </motion.div>
+        </AnimatePresence>
+      )
 
       <div className="relative z-10 flex-1 flex flex-col justify-center container mx-auto px-4 lg:px-8 pt-16">
         <div className="grid lg:grid-cols-5 gap-8 items-center">
