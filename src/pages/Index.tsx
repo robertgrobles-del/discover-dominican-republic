@@ -18,7 +18,7 @@ const TransportHighlightSection = lazy(() => import("@/components/TransportHighl
 const TravelerToolsStrip = lazy(() => import("@/components/TravelerToolsStrip").then(m => ({ default: m.TravelerToolsStrip })));
 const TestimonialsSection = lazy(() => import("@/components/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })));
 const NewsSection = lazy(() => import("@/components/NewsSection").then(m => ({ default: m.NewsSection })));
-const RecommendationsWidget = lazy(() => import("@/components/RecommendationsWidget").then(m => ({ default: m.RecommendationsWidget })));
+
 const Footer = lazy(() => import("@/components/Footer").then(m => ({ default: m.Footer })));
 const BetweenSectionsAd = lazy(() => import("@/components/ads").then(m => ({ default: m.BetweenSectionsAd })));
 
