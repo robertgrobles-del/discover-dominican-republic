@@ -155,10 +155,13 @@ export function HeroSlideshow() {
 
   useEffect(() => {
     if (carouselRef.current) {
-      const cardWidth = 288 + 16;
-      const containerWidth = carouselRef.current.offsetWidth;
-      const scrollPosition = (currentSlide * cardWidth) - (containerWidth / 2) + (cardWidth / 2);
-      carouselRef.current.scrollTo({ left: Math.max(0, scrollPosition), behavior: 'smooth' });
+      const el = carouselRef.current;
+      requestAnimationFrame(() => {
+        const cardWidth = 288 + 16;
+        const containerWidth = el.offsetWidth;
+        const scrollPosition = (currentSlide * cardWidth) - (containerWidth / 2) + (cardWidth / 2);
+        el.scrollTo({ left: Math.max(0, scrollPosition), behavior: 'smooth' });
+      });
     }
   }, [currentSlide]);
 
