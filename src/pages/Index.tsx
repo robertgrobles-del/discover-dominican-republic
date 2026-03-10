@@ -51,9 +51,6 @@ const Index = () => {
           <TravelerToolsStrip />
           <TestimonialsSection />
           <NewsSection />
-          <section className="container mx-auto px-4 py-12">
-            <RecommendationsWidget />
-          </section>
           <MobileStickyFooterAd showDemo />
           <Footer />
         </Suspense>
