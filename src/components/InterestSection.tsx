@@ -48,9 +48,9 @@ export function InterestSection() {
       const container = scrollRef.current;
       const singleSetWidth = container.scrollWidth / 2;
       if (container.scrollLeft < singleSetWidth * 0.2) {
-        container.scrollLeft = container.scrollLeft + singleSetWidth;
+        container.scrollLeft += singleSetWidth;
       } else if (container.scrollLeft > singleSetWidth * 1.5) {
-        container.scrollLeft = container.scrollLeft - singleSetWidth;
+        container.scrollLeft -= singleSetWidth;
       }
     }
   }, []);

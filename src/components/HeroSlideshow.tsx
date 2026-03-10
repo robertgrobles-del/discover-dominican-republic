@@ -111,7 +111,6 @@ function DestinationCard({
 export function HeroSlideshow() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [bgLoaded, setBgLoaded] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
 
