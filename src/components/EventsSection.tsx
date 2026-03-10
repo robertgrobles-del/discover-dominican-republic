@@ -98,11 +98,9 @@ export function EventsSection() {
       <div className="hidden 2xl:block absolute left-4 top-1/2 -translate-y-1/2 z-10">
         <div className="sticky top-24">
           <div className="w-[160px] h-[600px] bg-gradient-to-br from-muted/50 to-muted/20 border border-dashed border-border/50 rounded-lg flex flex-col items-center justify-center overflow-hidden">
-            <img 
-              src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=160&h=600&fit=crop" 
-              alt="Publicidad eventos"
-              className="w-full h-full object-cover"
-            />
+            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+              <span className="text-muted-foreground text-xs text-center px-2">{t("events.ad")}</span>
+            </div>
             <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">{t("events.ad")}</span>
           </div>
         </div>
