@@ -184,6 +184,10 @@ export function HeroSlideshow() {
             animate={{ scale: 1 }}
             transition={{ duration: 8, ease: "linear" }}
             onLoad={() => setBgLoaded(true)}
+            // @ts-ignore - fetchPriority is valid HTML but not in React types yet
+            fetchPriority={currentSlide === 0 ? "high" : "auto"}
+            loading={currentSlide === 0 ? "eager" : "lazy"}
+            decoding={currentSlide === 0 ? "sync" : "async"}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/50 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
