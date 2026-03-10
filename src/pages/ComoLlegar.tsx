@@ -3,22 +3,41 @@ import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
-import { Plane, Ship, Bus, Clock, MapPin, Car, ArrowRight, Maximize2, Navigation } from "lucide-react";
+import { Plane, Ship, Bus, Clock, MapPin, Car, ArrowRight, Maximize2, Navigation, Star, Globe, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { airports } from "@/data/airports";
 
 import heroBeach from "@/assets/hero-beach.jpg";
 
+// ==================== TIEMPOS DE VUELO EXPANDIDOS ====================
 const tiemposVuelo = [
-  { ciudad: "New York", tiempo: "3h 50m" },
-  { ciudad: "Madrid", tiempo: "8h 15m" },
-  { ciudad: "Miami", tiempo: "2h 10m" },
-  { ciudad: "Bogotá", tiempo: "2h 30m" },
-  { ciudad: "Panamá", tiempo: "2h 45m" },
+  { ciudad: "New York", aeropuertoOrigen: "JFK", aeropuertoDestino: "PUJ", tiempo: "3h 50m", aerolineas: "JetBlue, Delta, United" },
+  { ciudad: "New York", aeropuertoOrigen: "EWR", aeropuertoDestino: "SDQ", tiempo: "3h 45m", aerolineas: "United, Spirit" },
+  { ciudad: "Miami", aeropuertoOrigen: "MIA", aeropuertoDestino: "SDQ", tiempo: "2h 10m", aerolineas: "American, Arajet" },
+  { ciudad: "Miami", aeropuertoOrigen: "MIA", aeropuertoDestino: "PUJ", tiempo: "2h 30m", aerolineas: "American, JetBlue" },
+  { ciudad: "Madrid", aeropuertoOrigen: "MAD", aeropuertoDestino: "SDQ", tiempo: "8h 15m", aerolineas: "Iberia, Air Europa" },
+  { ciudad: "Madrid", aeropuertoOrigen: "MAD", aeropuertoDestino: "PUJ", tiempo: "8h 45m", aerolineas: "Iberia, Evelop" },
+  { ciudad: "Toronto", aeropuertoOrigen: "YYZ", aeropuertoDestino: "PUJ", tiempo: "4h 20m", aerolineas: "Air Canada, WestJet" },
+  { ciudad: "Toronto", aeropuertoOrigen: "YYZ", aeropuertoDestino: "POP", tiempo: "4h 10m", aerolineas: "WestJet, Sunwing" },
+  { ciudad: "Bogotá", aeropuertoOrigen: "BOG", aeropuertoDestino: "SDQ", tiempo: "2h 30m", aerolineas: "Avianca, Arajet" },
+  { ciudad: "Panamá", aeropuertoOrigen: "PTY", aeropuertoDestino: "SDQ", tiempo: "2h 45m", aerolineas: "Copa Airlines" },
+  { ciudad: "Frankfurt", aeropuertoOrigen: "FRA", aeropuertoDestino: "PUJ", tiempo: "9h 30m", aerolineas: "Condor, Eurowings" },
+  { ciudad: "París", aeropuertoOrigen: "CDG", aeropuertoDestino: "PUJ", tiempo: "9h 00m", aerolineas: "Air France, Corsair" },
+  { ciudad: "Fort Lauderdale", aeropuertoOrigen: "FLL", aeropuertoDestino: "SDQ", tiempo: "2h 15m", aerolineas: "Spirit, JetBlue" },
+  { ciudad: "Boston", aeropuertoOrigen: "BOS", aeropuertoDestino: "PUJ", tiempo: "4h 05m", aerolineas: "JetBlue" },
+  { ciudad: "Atlanta", aeropuertoOrigen: "ATL", aeropuertoDestino: "PUJ", tiempo: "3h 40m", aerolineas: "Delta" },
+  { ciudad: "Charlotte", aeropuertoOrigen: "CLT", aeropuertoDestino: "PUJ", tiempo: "3h 30m", aerolineas: "American Airlines" },
+  { ciudad: "Houston", aeropuertoOrigen: "IAH", aeropuertoDestino: "PUJ", tiempo: "4h 15m", aerolineas: "United" },
+  { ciudad: "Montreal", aeropuertoOrigen: "YUL", aeropuertoDestino: "PUJ", tiempo: "4h 30m", aerolineas: "Air Canada, Air Transat" },
+  { ciudad: "San Juan PR", aeropuertoOrigen: "SJU", aeropuertoDestino: "SDQ", tiempo: "0h 45m", aerolineas: "JetBlue, Cape Air" },
+  { ciudad: "Lima", aeropuertoOrigen: "LIM", aeropuertoDestino: "SDQ", tiempo: "5h 30m", aerolineas: "LATAM, Arajet" },
+  { ciudad: "México DF", aeropuertoOrigen: "MEX", aeropuertoDestino: "SDQ", tiempo: "4h 00m", aerolineas: "Arajet, Volaris" },
+  { ciudad: "Londres", aeropuertoOrigen: "LGW", aeropuertoDestino: "PUJ", tiempo: "9h 15m", aerolineas: "TUI, Virgin Atlantic" },
 ];
 
 const opcionesTransporte = [
@@ -117,9 +136,69 @@ const rutasFerry = [
   { ruta: "Mayagüez → Santo Domingo", precio: "Desde $89", frecuencia: "Bajo demanda", duracion: "8h" }
 ];
 
+// ==================== CALCULADORA DE RUTAS ====================
+interface RoutePoint {
+  value: string;
+  label: string;
+  lat: number;
+  lng: number;
+}
+
+const routePoints: RoutePoint[] = [
+  { value: "sdq", label: "Santo Domingo (SDQ)", lat: 18.4861, lng: -69.9312 },
+  { value: "puj", label: "Punta Cana (PUJ)", lat: 18.5601, lng: -68.3725 },
+  { value: "samana", label: "Samaná (Las Terrenas)", lat: 19.2058, lng: -69.3322 },
+  { value: "santiago", label: "Santiago de los Caballeros", lat: 19.4517, lng: -70.6970 },
+  { value: "puerto-plata", label: "Puerto Plata", lat: 19.7934, lng: -70.6884 },
+  { value: "la-romana", label: "La Romana", lat: 18.4274, lng: -68.9728 },
+  { value: "barahona", label: "Barahona", lat: 18.2085, lng: -71.1005 },
+  { value: "jarabacoa", label: "Jarabacoa", lat: 19.1200, lng: -70.6363 },
+  { value: "constanza", label: "Constanza", lat: 18.9100, lng: -70.7500 },
+  { value: "bayahibe", label: "Bayahíbe", lat: 18.3672, lng: -68.8370 },
+  { value: "cabarete", label: "Cabarete", lat: 19.7500, lng: -70.4167 },
+  { value: "sosua", label: "Sosúa", lat: 19.7570, lng: -70.5150 },
+  { value: "boca-chica", label: "Boca Chica", lat: 18.4500, lng: -69.6060 },
+  { value: "higuey", label: "Higüey", lat: 18.6152, lng: -68.7078 },
+  { value: "pedernales", label: "Pedernales", lat: 18.0370, lng: -71.7440 },
+  { value: "las-galeras", label: "Las Galeras", lat: 19.2833, lng: -69.0500 },
+  { value: "cap-cana", label: "Cap Cana", lat: 18.5000, lng: -68.3800 },
+  { value: "juan-dolio", label: "Juan Dolio", lat: 18.4333, lng: -69.4333 },
+  { value: "la-vega", label: "La Vega", lat: 19.2220, lng: -70.5295 },
+  { value: "san-cristobal", label: "San Cristóbal", lat: 18.4167, lng: -70.1000 },
+];
+
+function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function calcRoute(origin: RoutePoint, dest: RoutePoint) {
+  const straightKm = haversine(origin.lat, origin.lng, dest.lat, dest.lng);
+  const roadKm = Math.round(straightKm * 1.35);
+  const hours = roadKm / 60;
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  const time = h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m} min`;
+  return { distance: roadKm, time };
+}
+
 export default function ComoLlegar() {
   const [heroLoaded, setHeroLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState("internacional");
+  const [origin, setOrigin] = useState("sdq");
+  const [destination, setDestination] = useState("samana");
+
+  const routeResult = useMemo(() => {
+    const o = routePoints.find(r => r.value === origin);
+    const d = routePoints.find(r => r.value === destination);
+    if (!o || !d || o.value === d.value) return null;
+    return calcRoute(o, d);
+  }, [origin, destination]);
 
   return (
     <PageTransition>
@@ -147,7 +226,6 @@ export default function ComoLlegar() {
               Tu guía logística completa para explorar la República Dominicana. Encuentra conexiones aéreas, marítimas y calcula tus rutas internas.
             </p>
             
-            {/* Search Bar */}
             <div className="max-w-xl mx-auto flex items-center gap-2 bg-card rounded-xl p-2 border border-border">
               <div className="flex items-center gap-2 flex-1 px-3">
                 <MapPin className="h-5 w-5 text-muted-foreground" />
@@ -202,47 +280,85 @@ export default function ComoLlegar() {
                   La República Dominicana es el destino mejor conectado del Caribe, con 8 aeropuertos internacionales y múltiples puertos de cruceros recibiendo visitantes diariamente.
                 </p>
 
-                <div className="grid md:grid-cols-3 gap-6 mb-12">
-                  <div className="bg-card rounded-xl border border-border p-6">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                      <Plane className="h-6 w-6 text-primary" />
-                    </div>
-                    <h3 className="font-semibold text-foreground mb-2">Aeropuertos Internacionales</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Punta Cana (PUJ), Santo Domingo (SDQ), Santiago (STI) y Puerto Plata (POP) concentran el 90% de los vuelos.
-                    </p>
-                  </div>
-                  
-                  <div className="bg-card rounded-xl border border-border p-6">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                      <Ship className="h-6 w-6 text-primary" />
-                    </div>
-                    <h3 className="font-semibold text-foreground mb-2">Puertos de Cruceros</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Terminales turísticas de clase mundial en Amber Cove, Taino Bay, La Romana y Sans Souci.
-                    </p>
-                  </div>
-                  
-                  <div className="bg-card rounded-xl border border-border p-6">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                      <Bus className="h-6 w-6 text-primary" />
-                    </div>
-                    <h3 className="font-semibold text-foreground mb-2">Ferry del Caribe</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Conexión marítima regular para pasajeros y vehículos entre San Juan, Puerto Rico y Santo Domingo.
-                    </p>
+                {/* ===== AEROPUERTOS GRID ===== */}
+                <div className="mb-12">
+                  <h3 className="font-display font-semibold text-xl text-foreground mb-6 flex items-center gap-2">
+                    <Plane className="h-5 w-5 text-primary" />
+                    Aeropuertos de República Dominicana
+                  </h3>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {airports.map((airport) => (
+                      <Link
+                        key={airport.id}
+                        to={`/aeropuerto/${airport.slug}`}
+                        className="group bg-card rounded-xl border border-border p-5 hover:border-primary/50 hover:shadow-lg transition-all"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                            <Plane className="h-5 w-5 text-primary" />
+                          </div>
+                          <Badge variant={airport.type === 'internacional' ? 'default' : 'secondary'} className="text-[10px]">
+                            {airport.code}
+                          </Badge>
+                        </div>
+                        <h4 className="font-semibold text-foreground text-sm mb-1 group-hover:text-primary transition-colors line-clamp-2">
+                          {airport.name}
+                        </h4>
+                        <p className="text-xs text-muted-foreground mb-3 flex items-center gap-1">
+                          <MapPin className="h-3 w-3 flex-shrink-0" />
+                          {airport.city}, {airport.provinceName}
+                        </p>
+                        <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
+                          {airport.shortDescription}
+                        </p>
+                        <div className="flex items-center justify-between pt-3 border-t border-border">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                            <span className="font-medium text-foreground">{airport.rating}</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Globe className="h-3 w-3" />
+                            <span>{airport.airlines.length} aerolíneas</span>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
                   </div>
                 </div>
 
-                {/* Tiempos de Vuelo */}
+                {/* ===== TIEMPOS DE VUELO MEJORADOS ===== */}
                 <div className="mb-12">
-                  <h3 className="font-semibold text-foreground mb-4">Conectividad Directa (Tiempo de Vuelo)</h3>
-                  <div className="flex flex-wrap gap-4">
-                    {tiemposVuelo.map((vuelo) => (
-                      <div key={vuelo.ciudad} className="bg-card rounded-xl border border-border px-6 py-4">
-                        <Plane className="h-5 w-5 text-primary mb-2" />
-                        <p className="font-semibold text-foreground">{vuelo.ciudad}</p>
-                        <p className="text-sm text-muted-foreground">{vuelo.tiempo}</p>
+                  <h3 className="font-display font-semibold text-xl text-foreground mb-2 flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-primary" />
+                    Conectividad Directa (Tiempo de Vuelo)
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-6">Rutas con vuelos directos desde las principales ciudades del mundo</p>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {tiemposVuelo.map((vuelo, idx) => (
+                      <div
+                        key={idx}
+                        className="bg-card rounded-xl border border-border p-4 hover:border-primary/40 transition-colors group"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-mono font-bold bg-secondary text-foreground px-1.5 py-0.5 rounded">
+                              {vuelo.aeropuertoOrigen}
+                            </span>
+                            <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-xs font-mono font-bold bg-primary/15 text-primary px-1.5 py-0.5 rounded">
+                              {vuelo.aeropuertoDestino}
+                            </span>
+                          </div>
+                          <Plane className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                        </div>
+                        <p className="font-semibold text-foreground text-sm">{vuelo.ciudad}</p>
+                        <div className="flex items-center gap-1 mt-1 mb-2">
+                          <Clock className="h-3 w-3 text-primary" />
+                          <span className="text-sm font-bold text-primary">{vuelo.tiempo}</span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground line-clamp-1">
+                          {vuelo.aerolineas}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -260,7 +376,6 @@ export default function ComoLlegar() {
                   Conecta con República Dominicana a través de ferries internacionales y cruceros de lujo. Una forma única de llegar disfrutando del viaje.
                 </p>
 
-                {/* Terminales y Ferries */}
                 <div className="grid md:grid-cols-2 gap-6 mb-12">
                   {viasMaritimas.map((via) => (
                     <div key={via.id} className="bg-card rounded-xl border border-border p-6 hover:border-primary/50 transition-colors">
@@ -303,7 +418,6 @@ export default function ComoLlegar() {
                   ))}
                 </div>
 
-                {/* Tabla de Rutas Ferry */}
                 <div className="bg-card rounded-xl border border-border p-6 mb-12">
                   <h3 className="font-semibold text-foreground mb-6 flex items-center gap-2">
                     <Ship className="h-5 w-5 text-primary" />
@@ -333,7 +447,6 @@ export default function ComoLlegar() {
                   </div>
                 </div>
 
-                {/* Información Importante */}
                 <div className="grid md:grid-cols-3 gap-6">
                   <div className="bg-card rounded-xl border border-border p-6">
                     <Clock className="h-8 w-8 text-primary mb-4" />
@@ -370,7 +483,6 @@ export default function ComoLlegar() {
                   Explora la red de aeropuertos domésticos y conecta con los rincones más hermosos de República Dominicana a través de vuelos regulares y servicios de air taxi.
                 </p>
 
-                {/* Operadores Aéreos */}
                 <div className="grid md:grid-cols-3 gap-6 mb-12">
                   {operadoresAereos.map((op) => (
                     <div key={op.id} className="bg-card rounded-xl border border-border p-6 hover:border-primary/50 transition-colors">
@@ -394,7 +506,6 @@ export default function ComoLlegar() {
                   ))}
                 </div>
 
-                {/* Rutas Populares */}
                 <div className="bg-card rounded-xl border border-border p-6 mb-12">
                   <h3 className="font-semibold text-foreground mb-6">Rutas Populares</h3>
                   <div className="overflow-x-auto">
@@ -421,7 +532,6 @@ export default function ComoLlegar() {
                   </div>
                 </div>
 
-                {/* Info Importante */}
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="bg-card rounded-xl border border-border p-6">
                     <Bus className="h-8 w-8 text-primary mb-4" />
@@ -462,26 +572,32 @@ export default function ComoLlegar() {
                 <div className="space-y-4 mb-6">
                   <div>
                     <label className="text-xs text-muted-foreground uppercase tracking-wider">ORIGEN</label>
-                    <Select defaultValue="sdq">
+                    <Select value={origin} onValueChange={setOrigin}>
                       <SelectTrigger className="mt-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="sdq">Santo Domingo (SDQ)</SelectItem>
-                        <SelectItem value="puj">Punta Cana (PUJ)</SelectItem>
+                        {routePoints.map((point) => (
+                          <SelectItem key={point.value} value={point.value} disabled={point.value === destination}>
+                            {point.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
                   
                   <div>
                     <label className="text-xs text-muted-foreground uppercase tracking-wider">DESTINO</label>
-                    <Select defaultValue="samana">
+                    <Select value={destination} onValueChange={setDestination}>
                       <SelectTrigger className="mt-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="samana">Samaná (Las Terrenas)</SelectItem>
-                        <SelectItem value="punta-cana">Punta Cana</SelectItem>
+                        {routePoints.map((point) => (
+                          <SelectItem key={point.value} value={point.value} disabled={point.value === origin}>
+                            {point.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -490,11 +606,15 @@ export default function ComoLlegar() {
                 <div className="grid grid-cols-2 gap-4 p-4 bg-secondary/50 rounded-lg mb-6">
                   <div>
                     <p className="text-xs text-muted-foreground uppercase">DISTANCIA ESTIMADA</p>
-                    <p className="text-2xl font-bold text-foreground">178 km</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {routeResult ? `${routeResult.distance} km` : "—"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground uppercase">TIEMPO (AUTO)</p>
-                    <p className="text-2xl font-bold text-primary">2h 30m</p>
+                    <p className="text-2xl font-bold text-primary">
+                      {routeResult ? routeResult.time : "—"}
+                    </p>
                   </div>
                 </div>
 
@@ -540,7 +660,9 @@ export default function ComoLlegar() {
                   <div>
                     <p className="text-xs text-muted-foreground uppercase">VISTA PREVIA</p>
                     <p className="font-medium text-foreground">Ruta Visualizada</p>
-                    <p className="text-sm text-muted-foreground">Santo Domingo → Samaná</p>
+                    <p className="text-sm text-muted-foreground">
+                      {routePoints.find(r => r.value === origin)?.label} → {routePoints.find(r => r.value === destination)?.label}
+                    </p>
                   </div>
                   <Button size="icon" variant="ghost">
                     <Maximize2 className="h-5 w-5" />
