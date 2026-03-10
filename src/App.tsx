@@ -552,9 +552,11 @@ const App = () => (
             <BrowserRouter>
               <ScrollToTop />
               <AnimatedRoutes />
-              <BackToTop />
-              <ChatbotTuristico />
-              <GamificationToastOverlay />
+              <Suspense fallback={null}>
+                <BackToTop />
+                <ChatbotTuristico />
+                <GamificationToastOverlay />
+              </Suspense>
             </BrowserRouter>
             </CartProvider>
           </FavoritesProvider>
