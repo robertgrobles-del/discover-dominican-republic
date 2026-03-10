@@ -37,7 +37,7 @@ const Index = () => {
         <HeroSlideshow />
         <QuickExploreStrip />
         <Suspense fallback={null}>
-          <StatsSection />
+          
           <InterestSection />
           <BetweenSectionsAd showDemo />
           <EventsSection />
