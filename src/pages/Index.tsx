@@ -36,29 +36,27 @@ const Index = () => {
         <MobileAd showDemo />
         <HeroSlideshow />
         <QuickExploreStrip />
-        <StatsSection />
-        <InterestSection />
-        <BetweenSectionsAd showDemo />
-        <EventsSection />
-        <RestaurantsBarsSection />
-        <BetweenSectionsAd showDemo />
-        <AccommodationsSection />
-        <DestinationsSection />
-        <ShoppingHighlightSection />
-        <BetweenSectionsAd showDemo />
-        <TransportHighlightSection />
-        <TravelerToolsStrip />
-        <TestimonialsSection />
-        <NewsSection />
-        
-        {/* Recomendaciones IA */}
-        <section className="container mx-auto px-4 py-12">
-          <RecommendationsWidget />
-        </section>
-        {/* Footer sticky ad para móvil */}
-        <MobileStickyFooterAd showDemo />
-        
-        <Footer />
+        <Suspense fallback={null}>
+          <StatsSection />
+          <InterestSection />
+          <BetweenSectionsAd showDemo />
+          <EventsSection />
+          <RestaurantsBarsSection />
+          <BetweenSectionsAd showDemo />
+          <AccommodationsSection />
+          <DestinationsSection />
+          <ShoppingHighlightSection />
+          <BetweenSectionsAd showDemo />
+          <TransportHighlightSection />
+          <TravelerToolsStrip />
+          <TestimonialsSection />
+          <NewsSection />
+          <section className="container mx-auto px-4 py-12">
+            <RecommendationsWidget />
+          </section>
+          <MobileStickyFooterAd showDemo />
+          <Footer />
+        </Suspense>
       </div>
     </PageTransition>
   );
