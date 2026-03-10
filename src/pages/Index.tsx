@@ -35,7 +35,7 @@ const Index = () => {
         <Header />
         <MobileAd showDemo />
         <HeroSlideshow />
-        <QuickExploreStrip />
+        
         <Suspense fallback={null}>
           
           <InterestSection />
