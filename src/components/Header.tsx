@@ -281,11 +281,11 @@ export function Header() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="absolute left-0 right-0 top-full bg-background border-b border-border shadow-xl"
+              className="absolute left-0 right-0 top-full bg-background border-b border-border shadow-xl max-h-[50vh] overflow-y-auto"
               onMouseEnter={handleMegaMenuEnter}
               onMouseLeave={handleMouseLeave}
             >
-              <div className="container mx-auto px-4 lg:px-8 py-8">
+              <div className="container mx-auto px-4 lg:px-8 py-6">
                 
                 {/* DONDE IR Mega Menu */}
                 {activeMegaMenu === "dondeIr" && (
