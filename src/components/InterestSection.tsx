@@ -58,17 +58,29 @@ export function InterestSection() {
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
-    const singleSetWidth = container.scrollWidth / 2;
-    container.scrollLeft = singleSetWidth;
+    // Cache the single-set width once after layout
+    let singleSetWidth = 0;
+    requestAnimationFrame(() => {
+      singleSetWidth = container.scrollWidth / 2;
+      container.scrollLeft = singleSetWidth;
+    });
     let animationId: number;
     let lastTime = 0;
     const speed = 0.5;
     const animate = (currentTime: number) => {
-      if (!isScrollingRef.current) {
+      if (!isScrollingRef.current && singleSetWidth > 0) {
         if (lastTime) {
           const delta = currentTime - lastTime;
-          container.scrollLeft += speed * (delta / 16);
-          resetToCenter();
+          // Batch: read scrollLeft, compute, then write once
+          const currentScroll = container.scrollLeft;
+          const newScroll = currentScroll + speed * (delta / 16);
+          container.scrollLeft = newScroll;
+          // Inline reset check to avoid extra read
+          if (newScroll < singleSetWidth * 0.2) {
+            container.scrollLeft = newScroll + singleSetWidth;
+          } else if (newScroll > singleSetWidth * 1.5) {
+            container.scrollLeft = newScroll - singleSetWidth;
+          }
         }
         lastTime = currentTime;
       }
@@ -76,7 +88,7 @@ export function InterestSection() {
     };
     animationId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationId);
-  }, [resetToCenter]);
+  }, []);
 
   const handleMouseEnter = () => { isScrollingRef.current = true; };
   const handleMouseLeave = () => { isScrollingRef.current = false; };

@@ -125,12 +125,35 @@ export default defineConfig(({ mode }) => ({
     sourcemap: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-motion': ['framer-motion'],
-          'vendor-query': ['@tanstack/react-query'],
-          'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-ui': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-popover', '@radix-ui/react-tabs', '@radix-ui/react-tooltip'],
+        manualChunks(id) {
+          // Core React runtime
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/') || id.includes('node_modules/react-router')) {
+            return 'vendor-react';
+          }
+          // Animation library
+          if (id.includes('node_modules/framer-motion')) {
+            return 'vendor-motion';
+          }
+          // Data fetching
+          if (id.includes('node_modules/@tanstack')) {
+            return 'vendor-query';
+          }
+          // Supabase
+          if (id.includes('node_modules/@supabase')) {
+            return 'vendor-supabase';
+          }
+          // All Radix UI in one chunk
+          if (id.includes('node_modules/@radix-ui')) {
+            return 'vendor-ui';
+          }
+          // Lucide icons - bundle together instead of individual chunks
+          if (id.includes('node_modules/lucide-react')) {
+            return 'vendor-icons';
+          }
+          // All local assets (images) in one chunk to avoid 30+ tiny image wrapper chunks
+          if (id.includes('/src/assets/') && (id.endsWith('.jpg') || id.endsWith('.png') || id.endsWith('.webp'))) {
+            return 'assets-images';
+          }
         },
       },
     },
