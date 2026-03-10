@@ -345,105 +345,68 @@ export function Header() {
 
                 {/* QUE HACER Mega Menu */}
                 {activeMegaMenu === "queHacer" && (
-                  <div className="grid lg:grid-cols-4 gap-8">
+                  <div className="grid lg:grid-cols-4 gap-6">
                     <div>
-                      <div className="flex items-center gap-2 text-primary mb-4">
-                        <Compass className="h-5 w-5" />
-                        <h3 className="font-display font-bold uppercase tracking-wider text-sm">{t("footer.experiences")}</h3>
+                      <div className="flex items-center gap-2 text-primary mb-3">
+                        <Compass className="h-4 w-4" />
+                        <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("footer.experiences")}</h3>
                       </div>
-                      <nav className="space-y-1">
+                      <nav className="space-y-0.5">
                         {megaMenuQueHacer.experiencias.map((item) => (
-                          <Link
-                            key={item.href}
-                            to={item.href}
-                            onClick={() => setActiveMegaMenu(null)}
-                            className="flex items-center gap-2 p-2 rounded-lg hover:bg-secondary/50 transition-colors group"
-                          >
-                            <item.icon className="h-4 w-4 text-primary" />
-                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">
-                              {item.name}
-                            </span>
+                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
+                            <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
                           </Link>
                         ))}
                       </nav>
                     </div>
 
                     <div>
-                      <div className="flex items-center gap-2 text-primary mb-4">
-                        <Sparkles className="h-5 w-5" />
-                        <h3 className="font-display font-bold uppercase tracking-wider text-sm">{t("header.byInterest")}</h3>
+                      <div className="flex items-center gap-2 text-primary mb-3">
+                        <Sparkles className="h-4 w-4" />
+                        <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("header.byInterest")}</h3>
                       </div>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-1.5">
                         {megaMenuQueHacer.categorias.map((item) => (
-                          <Link
-                            key={item.href}
-                            to={item.href}
-                            onClick={() => setActiveMegaMenu(null)}
-                            className="text-sm text-foreground hover:text-primary px-3 py-1.5 bg-secondary/50 rounded-full hover:bg-secondary transition-colors"
-                          >
+                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="text-xs text-foreground hover:text-primary px-2.5 py-1 bg-secondary/50 rounded-full hover:bg-secondary transition-colors">
                             {item.name}
                           </Link>
                         ))}
                       </div>
-                      <Link 
-                        to="/experiencias" 
-                        onClick={() => setActiveMegaMenu(null)}
-                        className="inline-flex items-center gap-1 text-primary text-sm font-medium hover:underline mt-4"
-                      >
-                        {t("header.viewAllExperiences")} <ChevronRight className="h-4 w-4" />
+                      <Link to="/experiencias" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-1 text-primary text-xs font-medium hover:underline mt-3">
+                        {t("header.viewAllExperiences")} <ChevronRight className="h-3 w-3" />
                       </Link>
                     </div>
 
                     <div>
-                      <div className="flex items-center gap-2 text-primary mb-4">
-                        <Building2 className="h-5 w-5" />
-                        <h3 className="font-display font-bold uppercase tracking-wider text-sm">{t("header.specialized")}</h3>
+                      <div className="flex items-center gap-2 text-primary mb-3">
+                        <Building2 className="h-4 w-4" />
+                        <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("header.specialized")}</h3>
                       </div>
-                      <nav className="space-y-1">
-                        {megaMenuQueHacer.nichos.map((item) => (
-                          <Link
-                            key={item.href}
-                            to={item.href}
-                            onClick={() => setActiveMegaMenu(null)}
-                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors group"
-                          >
-                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                              <item.icon className="h-4 w-4 text-primary" />
-                            </div>
-                            <div>
-                              <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors block">
-                                {item.name}
-                              </span>
-                              <span className="text-xs text-muted-foreground">{item.desc}</span>
-                            </div>
+                      <nav className="space-y-0.5">
+                        {megaMenuQueHacer.nichos.slice(0, 6).map((item) => (
+                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
+                            <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
                           </Link>
                         ))}
                       </nav>
                     </div>
                     
-                    <div className="space-y-3">
-                      <Link 
-                        to="/wellness" 
-                        onClick={() => setActiveMegaMenu(null)}
-                        className="group relative rounded-xl overflow-hidden aspect-[4/3] block"
-                      >
+                    <div>
+                      <nav className="space-y-0.5 mb-3">
+                        {megaMenuQueHacer.nichos.slice(6).map((item) => (
+                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
+                            <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
+                          </Link>
+                        ))}
+                      </nav>
+                      <Link to="/wellness" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-xl overflow-hidden aspect-[16/9]">
                         <img src={samana} alt="Wellness" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                        <div className="absolute bottom-4 left-4">
-                          <span className="text-white font-semibold">Wellness & Spa</span>
-                          <p className="text-white/80 text-xs">{t("header.wellnessDesc")}</p>
-                        </div>
-                      </Link>
-                      <Link 
-                        to="/bodas" 
-                        onClick={() => setActiveMegaMenu(null)}
-                        className="group relative rounded-xl overflow-hidden aspect-[4/3] block"
-                      >
-                        <img src={puntaCana} alt="Bodas" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                        <div className="absolute bottom-4 left-4">
-                          <span className="text-white font-semibold">{t("header.destinationWeddings")}</span>
-                          <p className="text-white/80 text-xs">{t("header.marryInParadise")}</p>
+                        <div className="absolute bottom-2 left-3">
+                          <span className="text-white font-semibold text-sm">Wellness & Spa</span>
                         </div>
                       </Link>
                     </div>
