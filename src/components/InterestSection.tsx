@@ -47,9 +47,10 @@ export function InterestSection() {
     if (scrollRef.current && !isScrollingRef.current) {
       const container = scrollRef.current;
       const singleSetWidth = container.scrollWidth / 3;
-      if (container.scrollLeft < singleSetWidth * 0.3) {
+    const singleSetWidth = container.scrollWidth / 2;
+      if (container.scrollLeft < singleSetWidth * 0.2) {
         container.scrollLeft = container.scrollLeft + singleSetWidth;
-      } else if (container.scrollLeft > singleSetWidth * 1.7) {
+      } else if (container.scrollLeft > singleSetWidth * 1.5) {
         container.scrollLeft = container.scrollLeft - singleSetWidth;
       }
     }
