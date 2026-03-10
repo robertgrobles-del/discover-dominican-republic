@@ -6,16 +6,18 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { ScrollToTop } from "@/components/ScrollToTop";
-import { BackToTop } from "@/components/BackToTop";
-import { ChatbotTuristico } from "@/components/ChatbotTuristico";
-import { GamificationToastOverlay } from "@/components/gamification/GamificationToast";
 import { FavoritesProvider } from "@/hooks/useFavorites";
 import { AuthProvider } from "@/hooks/useAuth";
 import { I18nProvider } from "@/hooks/useI18n";
 import { CartProvider } from "@/hooks/useCart";
 
-// Critical pages - loaded immediately
-import Index from "./pages/Index";
+// Lazy load non-critical global UI
+const BackToTop = lazy(() => import("@/components/BackToTop").then(m => ({ default: m.BackToTop })));
+const ChatbotTuristico = lazy(() => import("@/components/ChatbotTuristico").then(m => ({ default: m.ChatbotTuristico })));
+const GamificationToastOverlay = lazy(() => import("@/components/gamification/GamificationToast").then(m => ({ default: m.GamificationToastOverlay })));
+
+// All pages lazy loaded
+const Index = lazy(() => import("./pages/Index"));
 import NotFound from "./pages/NotFound";
 
 // Lazy loaded pages for better performance
