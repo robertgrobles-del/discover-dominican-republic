@@ -111,7 +111,6 @@ function DestinationCard({
 export function HeroSlideshow() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [bgLoaded, setBgLoaded] = useState(false);
   const carouselRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
 
@@ -169,23 +168,23 @@ export function HeroSlideshow() {
 
   return (
     <section className="relative h-screen w-full flex flex-col overflow-hidden">
-      {/* First slide rendered without AnimatePresence to eliminate LCP render delay */}
-      {currentSlide === 0 && !bgLoaded ? (
-        <div className="absolute inset-0 z-0">
-          <img
-            src={slide.image}
-            alt={slide.title}
-            className="h-full w-full object-cover"
-            onLoad={() => setBgLoaded(true)}
-            // @ts-ignore
-            fetchPriority="high"
-            loading="eager"
-            decoding="sync"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/50 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
-        </div>
-      ) : (
+      {/* Static first image always present for instant LCP */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src={slideTemplates[0].image}
+          alt=""
+          className={`h-full w-full object-cover transition-opacity duration-700 ${currentSlide === 0 ? 'opacity-100' : 'opacity-0'}`}
+          // @ts-ignore
+          fetchPriority="high"
+          loading="eager"
+          decoding="sync"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/50 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
+      </div>
+
+      {/* Animated slides for non-first slides */}
+      {currentSlide !== 0 && (
         <AnimatePresence mode="sync">
           <motion.div
             key={slide.id}
