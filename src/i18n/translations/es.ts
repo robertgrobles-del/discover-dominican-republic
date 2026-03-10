@@ -79,6 +79,11 @@ export const es: Record<string, string> = {
   "interest.wellness": "Bienestar",
   "interest.culture": "Cultura",
   "interest.ecotourism": "Ecoturismo",
+  "interest.mountains": "Montañas",
+  "interest.shopping": "Compras",
+  "interest.religious": "Religioso",
+  "interest.cruises": "Cruceros",
+  "interest.sports": "Deportes",
   // Footer
   "footer.rights": "Todos los derechos reservados",
   "footer.privacy": "Privacidad",

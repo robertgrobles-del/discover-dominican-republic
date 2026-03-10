@@ -1,7 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Header } from "@/components/Header";
 import { HeroSlideshow } from "@/components/HeroSlideshow";
-import { QuickExploreStrip } from "@/components/QuickExploreStrip";
+
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead, generateOrganizationSchema } from "@/components/SEOHead";
 import { MobileAd, MobileStickyFooterAd } from "@/components/ads";
@@ -35,7 +35,7 @@ const Index = () => {
         <Header />
         <MobileAd showDemo />
         <HeroSlideshow />
-        <QuickExploreStrip />
+        
         <Suspense fallback={null}>
           
           <InterestSection />

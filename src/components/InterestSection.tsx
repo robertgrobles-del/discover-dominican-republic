@@ -12,16 +12,26 @@ import divingImg from "@/assets/diving.jpg";
 import relaxBeachImg from "@/assets/relax-beach.jpg";
 import carnivalImg from "@/assets/carnival.jpg";
 import raftingImg from "@/assets/rafting.jpg";
+import samanaImg from "@/assets/samana.jpg";
+import colonialDoorImg from "@/assets/colonial-door.jpg";
+import whaleSamanaImg from "@/assets/whale-samana.jpg";
+import puntaCanaImg from "@/assets/punta-cana.jpg";
+import laRomanaImg from "@/assets/la-romana.jpg";
 
 const interestKeys = [
-  { key: "interest.adventure", image: adventureImg, link: "/experiencias?cat=aventura" },
+  { key: "interest.adventure", image: adventureImg, link: "/actividades" },
   { key: "interest.beaches", image: beachImg, link: "/playas" },
+  { key: "interest.mountains", image: samanaImg, link: "/montanas" },
   { key: "interest.history", image: historyImg, link: "/patrimonio" },
   { key: "interest.gastronomy", image: gastronomyImg, link: "/guia-gastronomica" },
+  { key: "interest.shopping", image: laRomanaImg, link: "/compras" },
   { key: "interest.diving", image: divingImg, link: "/experiencias?cat=acuaticos" },
   { key: "interest.wellness", image: relaxBeachImg, link: "/wellness" },
   { key: "interest.culture", image: carnivalImg, link: "/cultura" },
-  { key: "interest.ecotourism", image: raftingImg, link: "/sostenible" },
+  { key: "interest.ecotourism", image: raftingImg, link: "/ecoturismo" },
+  { key: "interest.religious", image: colonialDoorImg, link: "/turismo-religioso" },
+  { key: "interest.cruises", image: whaleSamanaImg, link: "/nautica-cruceros" },
+  { key: "interest.sports", image: puntaCanaImg, link: "/turismo-deportivo" },
 ];
 
 export function InterestSection() {
