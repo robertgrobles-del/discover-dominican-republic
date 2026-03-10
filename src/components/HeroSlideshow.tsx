@@ -209,7 +209,7 @@ export function HeroSlideshow() {
             <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
           </motion.div>
         </AnimatePresence>
-      )
+      )}
 
       <div className="relative z-10 flex-1 flex flex-col justify-center container mx-auto px-4 lg:px-8 pt-16">
         <div className="grid lg:grid-cols-5 gap-8 items-center">
