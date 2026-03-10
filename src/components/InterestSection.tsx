@@ -40,7 +40,8 @@ export function InterestSection() {
   const { t } = useTranslation();
 
   const interests = interestKeys.map(i => ({ title: t(i.key), image: i.image, link: i.link }));
-  const tripleInterests = [...interests, ...interests, ...interests];
+  // Use only 2x instead of 3x to reduce DOM nodes (39 → 26)
+  const tripleInterests = [...interests, ...interests];
 
   const resetToCenter = useCallback(() => {
     if (scrollRef.current && !isScrollingRef.current) {
