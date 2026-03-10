@@ -40,15 +40,16 @@ export function InterestSection() {
   const { t } = useTranslation();
 
   const interests = interestKeys.map(i => ({ title: t(i.key), image: i.image, link: i.link }));
-  const tripleInterests = [...interests, ...interests, ...interests];
+  // Use only 2x instead of 3x to reduce DOM nodes (39 → 26)
+  const tripleInterests = [...interests, ...interests];
 
   const resetToCenter = useCallback(() => {
     if (scrollRef.current && !isScrollingRef.current) {
       const container = scrollRef.current;
-      const singleSetWidth = container.scrollWidth / 3;
-      if (container.scrollLeft < singleSetWidth * 0.3) {
+      const singleSetWidth = container.scrollWidth / 2;
+      if (container.scrollLeft < singleSetWidth * 0.2) {
         container.scrollLeft = container.scrollLeft + singleSetWidth;
-      } else if (container.scrollLeft > singleSetWidth * 1.7) {
+      } else if (container.scrollLeft > singleSetWidth * 1.5) {
         container.scrollLeft = container.scrollLeft - singleSetWidth;
       }
     }
@@ -57,7 +58,7 @@ export function InterestSection() {
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
-    const singleSetWidth = container.scrollWidth / 3;
+    const singleSetWidth = container.scrollWidth / 2;
     container.scrollLeft = singleSetWidth;
     let animationId: number;
     let lastTime = 0;
@@ -114,8 +115,8 @@ export function InterestSection() {
           onMouseLeave={handleMouseLeave}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
-          className="h-full flex gap-4 overflow-x-auto no-scrollbar px-4 lg:px-8"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          className="h-full flex gap-4 overflow-x-auto no-scrollbar px-4 lg:px-8 will-change-scroll"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', contain: 'layout style' }}
         >
           {tripleInterests.map((interest, index) => (
             <motion.div
