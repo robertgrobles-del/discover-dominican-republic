@@ -1,22 +1,26 @@
+import { lazy, Suspense } from "react";
 import { Header } from "@/components/Header";
-import { RecommendationsWidget } from "@/components/RecommendationsWidget";
 import { HeroSlideshow } from "@/components/HeroSlideshow";
-import { InterestSection } from "@/components/InterestSection";
-import { EventsSection } from "@/components/EventsSection";
-import { AccommodationsSection } from "@/components/AccommodationsSection";
-import { RestaurantsBarsSection } from "@/components/RestaurantsBarsSection";
-import { DestinationsSection } from "@/components/DestinationsSection";
-import { NewsSection } from "@/components/NewsSection";
-import { Footer } from "@/components/Footer";
+import { QuickExploreStrip } from "@/components/QuickExploreStrip";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead, generateOrganizationSchema } from "@/components/SEOHead";
-import { BetweenSectionsAd, MobileAd, MobileStickyFooterAd } from "@/components/ads";
-import { StatsSection } from "@/components/StatsSection";
-import { TestimonialsSection } from "@/components/TestimonialsSection";
-import { QuickExploreStrip } from "@/components/QuickExploreStrip";
-import { ShoppingHighlightSection } from "@/components/ShoppingHighlightSection";
-import { TransportHighlightSection } from "@/components/TransportHighlightSection";
-import { TravelerToolsStrip } from "@/components/TravelerToolsStrip";
+import { MobileAd, MobileStickyFooterAd } from "@/components/ads";
+
+// Lazy load below-fold sections
+const StatsSection = lazy(() => import("@/components/StatsSection").then(m => ({ default: m.StatsSection })));
+const InterestSection = lazy(() => import("@/components/InterestSection").then(m => ({ default: m.InterestSection })));
+const EventsSection = lazy(() => import("@/components/EventsSection").then(m => ({ default: m.EventsSection })));
+const RestaurantsBarsSection = lazy(() => import("@/components/RestaurantsBarsSection").then(m => ({ default: m.RestaurantsBarsSection })));
+const AccommodationsSection = lazy(() => import("@/components/AccommodationsSection").then(m => ({ default: m.AccommodationsSection })));
+const DestinationsSection = lazy(() => import("@/components/DestinationsSection").then(m => ({ default: m.DestinationsSection })));
+const ShoppingHighlightSection = lazy(() => import("@/components/ShoppingHighlightSection").then(m => ({ default: m.ShoppingHighlightSection })));
+const TransportHighlightSection = lazy(() => import("@/components/TransportHighlightSection").then(m => ({ default: m.TransportHighlightSection })));
+const TravelerToolsStrip = lazy(() => import("@/components/TravelerToolsStrip").then(m => ({ default: m.TravelerToolsStrip })));
+const TestimonialsSection = lazy(() => import("@/components/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })));
+const NewsSection = lazy(() => import("@/components/NewsSection").then(m => ({ default: m.NewsSection })));
+const RecommendationsWidget = lazy(() => import("@/components/RecommendationsWidget").then(m => ({ default: m.RecommendationsWidget })));
+const Footer = lazy(() => import("@/components/Footer").then(m => ({ default: m.Footer })));
+const BetweenSectionsAd = lazy(() => import("@/components/ads").then(m => ({ default: m.BetweenSectionsAd })));
 
 const Index = () => {
   return (
@@ -32,29 +36,27 @@ const Index = () => {
         <MobileAd showDemo />
         <HeroSlideshow />
         <QuickExploreStrip />
-        <StatsSection />
-        <InterestSection />
-        <BetweenSectionsAd showDemo />
-        <EventsSection />
-        <RestaurantsBarsSection />
-        <BetweenSectionsAd showDemo />
-        <AccommodationsSection />
-        <DestinationsSection />
-        <ShoppingHighlightSection />
-        <BetweenSectionsAd showDemo />
-        <TransportHighlightSection />
-        <TravelerToolsStrip />
-        <TestimonialsSection />
-        <NewsSection />
-        
-        {/* Recomendaciones IA */}
-        <section className="container mx-auto px-4 py-12">
-          <RecommendationsWidget />
-        </section>
-        {/* Footer sticky ad para móvil */}
-        <MobileStickyFooterAd showDemo />
-        
-        <Footer />
+        <Suspense fallback={null}>
+          <StatsSection />
+          <InterestSection />
+          <BetweenSectionsAd showDemo />
+          <EventsSection />
+          <RestaurantsBarsSection />
+          <BetweenSectionsAd showDemo />
+          <AccommodationsSection />
+          <DestinationsSection />
+          <ShoppingHighlightSection />
+          <BetweenSectionsAd showDemo />
+          <TransportHighlightSection />
+          <TravelerToolsStrip />
+          <TestimonialsSection />
+          <NewsSection />
+          <section className="container mx-auto px-4 py-12">
+            <RecommendationsWidget />
+          </section>
+          <MobileStickyFooterAd showDemo />
+          <Footer />
+        </Suspense>
       </div>
     </PageTransition>
   );
