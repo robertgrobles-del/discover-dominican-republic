@@ -7,7 +7,7 @@ import { SEOHead, generateOrganizationSchema } from "@/components/SEOHead";
 import { MobileAd, MobileStickyFooterAd } from "@/components/ads";
 
 // Lazy load below-fold sections
-const StatsSection = lazy(() => import("@/components/StatsSection").then(m => ({ default: m.StatsSection })));
+
 const InterestSection = lazy(() => import("@/components/InterestSection").then(m => ({ default: m.InterestSection })));
 const EventsSection = lazy(() => import("@/components/EventsSection").then(m => ({ default: m.EventsSection })));
 const RestaurantsBarsSection = lazy(() => import("@/components/RestaurantsBarsSection").then(m => ({ default: m.RestaurantsBarsSection })));
@@ -37,7 +37,7 @@ const Index = () => {
         <HeroSlideshow />
         <QuickExploreStrip />
         <Suspense fallback={null}>
-          <StatsSection />
+          
           <InterestSection />
           <BetweenSectionsAd showDemo />
           <EventsSection />
