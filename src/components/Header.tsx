@@ -71,20 +71,16 @@ export function Header() {
   const megaMenuQueHacer = {
     experiencias: [
       { name: t("interest.beaches"), href: "/playas", icon: Waves, desc: t("header.beachesDesc") },
-      { name: t("header.rivers"), href: "/rios", icon: Mountain, desc: t("header.riversDesc") },
       { name: t("header.adventureSports"), href: "/actividades", icon: Compass, desc: t("header.adventureDesc") },
       { name: t("interest.gastronomy"), href: "/guia-gastronomica", icon: Utensils, desc: t("header.gastronomyDesc") },
       { name: t("bars.nightlife"), href: "/vida-nocturna", icon: Music, desc: t("header.nightlifeDesc") },
-      { name: t("footer.events"), href: "/eventos", icon: Calendar, desc: t("header.eventsDesc") },
       { name: t("header.heritage"), href: "/patrimonio", icon: Building2, desc: t("header.heritageDesc") },
     ],
     categorias: [
       { name: t("interest.ecotourism"), href: "/ecoturismo", icon: Mountain },
-      { name: t("header.religiousTourism"), href: "/turismo-religioso", icon: Heart },
       { name: t("header.flavorRoutes"), href: "/rutas-sabor", icon: Utensils },
-      { name: t("header.rhythmSchool"), href: "/escuela-ritmos", icon: Music },
       { name: t("header.themeParks"), href: "/parques-tematicos", icon: Sparkles },
-      { name: t("header.climateSeasons"), href: "/clima-temporadas", icon: Sun },
+      { name: t("footer.events"), href: "/eventos", icon: Calendar },
       { name: "Golf", href: "/turismo-deportivo", icon: Sparkles },
     ],
     nichos: [
@@ -92,13 +88,7 @@ export function Header() {
       { name: t("header.destinationWeddings"), href: "/bodas", icon: Heart, desc: t("header.weddingsDesc") },
       { name: t("header.cruises"), href: "/cruceros", icon: Ship, desc: t("header.cruisesDesc") },
       { name: t("niche.family"), href: "/familia-con-ninos", icon: Users, desc: t("header.familyDesc") },
-      { name: t("niche.lgbtq"), href: "/guia-lgbtq", icon: Heart, desc: t("header.lgbtqDesc") },
       { name: t("niche.solo"), href: "/viajera-sola", icon: User, desc: t("header.soloDesc") },
-      { name: t("niche.vegan"), href: "/guia-vegana", icon: Utensils, desc: t("header.veganDesc") },
-      { name: t("niche.halal"), href: "/guia-halal-kosher", icon: Utensils, desc: t("header.halalDesc") },
-      { name: t("niche.pets"), href: "/viajar-con-mascotas", icon: Heart, desc: t("header.petsDesc") },
-      { name: t("niche.senior"), href: "/viajeros-senior", icon: Accessibility, desc: t("header.seniorDesc") },
-      { name: t("niche.diaspora"), href: "/vuelve-a-casa", icon: Heart, desc: t("header.diasporaDesc") },
     ],
   };
 
