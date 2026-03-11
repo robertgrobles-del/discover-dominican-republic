@@ -116,12 +116,8 @@ export function Header() {
     { name: "Historia de RD", href: "/historia", icon: BookOpen, desc: "Personajes y eventos históricos" },
     { name: t("header.typicalCuisine"), href: "/cultura#gastronomia", icon: Utensils, desc: t("header.cuisineDesc") },
     { name: t("header.mediaGallery"), href: "/galeria", icon: Camera, desc: t("header.galleryDesc") },
-    { name: t("header.embassies"), href: "/embajadas", icon: Globe, desc: t("header.embassiesDesc") },
-    { name: t("header.customs"), href: "/aduanas", icon: ShoppingBag, desc: t("header.customsDesc") },
-    { name: t("header.touristLaws"), href: "/leyes-turista", icon: FileText, desc: t("header.lawsDesc") },
     { name: t("header.shopping"), href: "/compras", icon: ShoppingBag, desc: t("header.shoppingDesc") },
-    { name: t("header.accessible"), href: "/accesibilidad", icon: Accessibility, desc: t("header.accessibleDesc") },
-    { name: t("header.sustainable"), href: "/sostenible", icon: Mountain, desc: t("header.sustainableDesc") },
+    { name: t("header.embassies"), href: "/embajadas", icon: Globe, desc: t("header.embassiesDesc") },
     { name: t("header.practicalInfo"), href: "/info/seguridad", icon: Info, desc: t("header.safetyDesc") },
   ];
 
