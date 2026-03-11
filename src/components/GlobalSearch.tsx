@@ -332,7 +332,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
               <div className="p-3 border-t border-border bg-muted/30">
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>Presiona <kbd className="px-1.5 py-0.5 rounded bg-muted font-mono">ESC</kbd> para cerrar</span>
-                  <span>{results.length} resultados</span>
+                  <span>{isSearching ? <Loader2 className="h-3 w-3 animate-spin inline mr-1" /> : null}{results.length} resultados</span>
                 </div>
               </div>
             </div>

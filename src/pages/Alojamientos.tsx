@@ -117,9 +117,16 @@ export default function Alojamientos() {
     fetchAccommodations();
   }, []);
 
+  const [ratingFilter, setRatingFilter] = useState<number>(0);
+
   const filteredHotels = hotels.filter((hotel) => {
     if (searchQuery && !hotel.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     if (priceRange !== "all" && hotel.price_range !== priceRange) return false;
+    if (ratingFilter > 0 && (hotel.rating ?? 0) < ratingFilter) return false;
+    if (selectedAmenities.length > 0 && hotel.amenities) {
+      const hotelAmenities = hotel.amenities.map(a => a.toLowerCase());
+      if (!selectedAmenities.every(sa => hotelAmenities.some(ha => ha.includes(sa)))) return false;
+    }
     return true;
   });
 

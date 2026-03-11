@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Hotel, Waves, UtensilsCrossed, Layers, ZoomIn, ZoomOut, Locate } from "lucide-react";
+import { MapPin, Hotel, Waves, UtensilsCrossed, ZoomIn, ZoomOut, Locate } from "lucide-react";
 import { cn } from "@/lib/utils";
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 type MapLayer = "destinations" | "hotels" | "beaches" | "restaurants";
 
@@ -31,7 +33,7 @@ const layerConfig: Record<MapLayer, { label: string; color: string; icon: typeof
 export function InteractiveMap({ className }: { className?: string }) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<any>(null);
-  const markersLayer = useRef<any>(null);
+  const clusterGroup = useRef<any>(null);
   const [activeLayers, setActiveLayers] = useState<MapLayer[]>(["destinations", "hotels", "beaches"]);
   const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
 
@@ -39,7 +41,6 @@ export function InteractiveMap({ className }: { className?: string }) {
     queryKey: ["map-markers", activeLayers],
     queryFn: async () => {
       const results: MapMarker[] = [];
-
       if (activeLayers.includes("destinations")) {
         const { data } = await supabase.from("destinations").select("id, name, latitude, longitude, image_url, slug").not("latitude", "is", null);
         data?.forEach((d) => results.push({ id: d.id, name: d.name, lat: Number(d.latitude), lng: Number(d.longitude), type: "destinations", image: d.image_url, slug: d.slug }));
@@ -56,7 +57,6 @@ export function InteractiveMap({ className }: { className?: string }) {
         const { data } = await supabase.from("restaurants").select("id, name, latitude, longitude, image_url, rating, slug").eq("is_active", true).not("latitude", "is", null);
         data?.forEach((r) => results.push({ id: r.id, name: r.name, lat: Number(r.latitude), lng: Number(r.longitude), type: "restaurants", image: r.image_url, rating: r.rating ? Number(r.rating) : null, slug: r.slug }));
       }
-
       return results;
     },
     staleTime: 5 * 60 * 1000,
@@ -66,7 +66,7 @@ export function InteractiveMap({ className }: { className?: string }) {
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
 
-    import("leaflet").then((L) => {
+    Promise.all([import("leaflet"), import("leaflet.markercluster")]).then(([L]) => {
       const map = L.map(mapRef.current!, {
         center: [18.9, -70.0],
         zoom: 8,
@@ -77,7 +77,13 @@ export function InteractiveMap({ className }: { className?: string }) {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(map);
 
-      markersLayer.current = L.layerGroup().addTo(map);
+      clusterGroup.current = (L as any).markerClusterGroup({
+        maxClusterRadius: 50,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
+      });
+      map.addLayer(clusterGroup.current);
       leafletMap.current = map;
     });
 
@@ -87,12 +93,12 @@ export function InteractiveMap({ className }: { className?: string }) {
     };
   }, []);
 
-  // Update markers
+  // Update markers with clustering
   useEffect(() => {
-    if (!leafletMap.current || !markersLayer.current) return;
+    if (!leafletMap.current || !clusterGroup.current) return;
 
     import("leaflet").then((L) => {
-      markersLayer.current.clearLayers();
+      clusterGroup.current.clearLayers();
 
       markers.forEach((m) => {
         const config = layerConfig[m.type];
@@ -105,14 +111,28 @@ export function InteractiveMap({ className }: { className?: string }) {
           iconAnchor: [14, 14],
         });
 
-        const marker = L.marker([m.lat, m.lng], { icon }).addTo(markersLayer.current);
+        const marker = L.marker([m.lat, m.lng], { icon });
+
+        // Rich popup
+        const popupContent = `
+          <div style="min-width:200px;font-family:system-ui,sans-serif;">
+            ${m.image ? `<img src="${m.image}" alt="${m.name}" style="width:100%;height:100px;object-fit:cover;border-radius:8px 8px 0 0;margin:-12px -12px 8px -12px;width:calc(100% + 24px);" />` : ""}
+            <div style="padding:0 2px;">
+              <span style="display:inline-block;font-size:10px;padding:2px 6px;border-radius:4px;background:${config.color}22;color:${config.color};margin-bottom:4px;">${config.label}</span>
+              <h4 style="margin:4px 0;font-weight:600;font-size:14px;">${m.name}</h4>
+              ${m.rating ? `<p style="font-size:12px;color:#888;">⭐ ${m.rating}</p>` : ""}
+              <a href="/${m.type === "destinations" ? "destino" : m.type === "hotels" ? "alojamiento" : m.type === "beaches" ? "playa" : "restaurante"}/${m.slug || m.id}" style="display:inline-block;margin-top:6px;font-size:12px;color:hsl(var(--primary));text-decoration:none;font-weight:500;">Ver detalle →</a>
+            </div>
+          </div>`;
+
+        marker.bindPopup(popupContent, { maxWidth: 250, className: "custom-popup" });
+        marker.bindTooltip(m.name, { direction: "top", offset: [0, -14] });
 
         marker.on("click", () => {
           setSelectedMarker(m);
-          leafletMap.current?.setView([m.lat, m.lng], 12, { animate: true });
         });
 
-        marker.bindTooltip(m.name, { direction: "top", offset: [0, -14] });
+        clusterGroup.current.addLayer(marker);
       });
     });
   }, [markers]);
@@ -128,7 +148,6 @@ export function InteractiveMap({ className }: { className?: string }) {
 
   return (
     <div className={cn("relative", className)}>
-      {/* Map container */}
       <div ref={mapRef} className="w-full h-[500px] md:h-[600px] rounded-xl overflow-hidden border border-border shadow-lg" />
 
       {/* Layer controls */}
@@ -171,40 +190,6 @@ export function InteractiveMap({ className }: { className?: string }) {
           <Locate className="h-4 w-4" />
         </Button>
       </div>
-
-      {/* Selected marker popup */}
-      {selectedMarker && (
-        <div className="absolute bottom-4 left-4 right-4 z-[1000] md:left-auto md:right-4 md:w-80">
-          <Card className="bg-background/95 backdrop-blur-sm shadow-xl">
-            <CardContent className="p-3">
-              <div className="flex gap-3">
-                {selectedMarker.image && (
-                  <img src={selectedMarker.image} alt={selectedMarker.name} className="w-20 h-20 rounded-lg object-cover" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <Badge variant="outline" className="text-[10px] mb-1" style={{ borderColor: layerConfig[selectedMarker.type].color, color: layerConfig[selectedMarker.type].color }}>
-                    {layerConfig[selectedMarker.type].label}
-                  </Badge>
-                  <h4 className="font-semibold text-sm truncate">{selectedMarker.name}</h4>
-                  {selectedMarker.rating && (
-                    <p className="text-xs text-muted-foreground">⭐ {selectedMarker.rating}</p>
-                  )}
-                  <div className="flex gap-2 mt-2">
-                    <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setSelectedMarker(null)}>
-                      Cerrar
-                    </Button>
-                    <Button size="sm" className="text-xs h-7" asChild>
-                      <a href={`/${selectedMarker.type === "destinations" ? "destino" : selectedMarker.type === "hotels" ? "alojamiento" : selectedMarker.type === "beaches" ? "playa" : "restaurante"}/${selectedMarker.slug || selectedMarker.id}`}>
-                        Ver detalle
-                      </a>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
 
       {/* Stats */}
       <div className="absolute bottom-4 right-4 z-[1000] hidden md:block">

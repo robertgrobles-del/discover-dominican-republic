@@ -202,6 +202,14 @@ export function TripPlanner() {
                   <Mail className="h-4 w-4" />
                   Email
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => copyToClipboard(generateItineraryText())} className="gap-2 cursor-pointer">
+                  <Link2 className="h-4 w-4" />
+                  Copiar itinerario
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => shareNative({ title: tripName, text: generateItineraryText() })} className="gap-2 cursor-pointer">
+                  <ExternalLink className="h-4 w-4" />
+                  Compartir nativo
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
