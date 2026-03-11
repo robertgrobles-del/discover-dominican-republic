@@ -297,9 +297,9 @@ export function Header() {
                 
                 {/* DONDE IR Mega Menu */}
                 {activeMegaMenu === "dondeIr" && (
-                  <div className="grid lg:grid-cols-3 gap-6">
+                  <div className="grid lg:grid-cols-3 gap-4">
                     <div>
-                      <div className="flex items-center gap-2 text-primary mb-3">
+                      <div className="flex items-center gap-2 text-primary mb-2">
                         <Globe className="h-4 w-4" />
                         <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("destinations.popular")}</h3>
                       </div>
@@ -309,9 +309,9 @@ export function Header() {
                             key={item.name}
                             to={item.href}
                             onClick={() => setActiveMegaMenu(null)}
-                            className="flex items-center gap-2.5 group p-1.5 rounded-lg hover:bg-secondary/50 transition-colors"
+                            className="flex items-center gap-2 group p-1 rounded-lg hover:bg-secondary/50 transition-colors"
                           >
-                            <div className="w-10 h-7 rounded overflow-hidden flex-shrink-0">
+                            <div className="w-8 h-6 rounded overflow-hidden flex-shrink-0">
                               <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
                             </div>
                             <div>
@@ -321,13 +321,13 @@ export function Header() {
                           </Link>
                         ))}
                       </nav>
-                      <Link to="/destinos" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-1 text-primary text-xs font-medium hover:underline mt-3">
+                      <Link to="/destinos" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-1 text-primary text-xs font-medium hover:underline mt-2">
                         {t("destinations.viewAll")} <ChevronRight className="h-3 w-3" />
                       </Link>
                     </div>
                     
                     <div>
-                      <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-3">{t("header.byRegion")}</h4>
+                      <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">{t("header.byRegion")}</h4>
                       <div className="flex flex-wrap gap-1.5">
                         {megaMenuDondeIr.regiones.map((region) => (
                           <Link key={region.href} to={region.href} onClick={() => setActiveMegaMenu(null)} className="text-xs text-foreground hover:text-primary px-2.5 py-1 bg-secondary/50 rounded-full hover:bg-secondary transition-colors">
@@ -338,12 +338,12 @@ export function Header() {
                     </div>
 
                     <div>
-                      <Link to="/destino/samana" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-xl overflow-hidden aspect-[16/10]">
+                      <Link to="/destino/samana" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-xl overflow-hidden h-full max-h-[28vh]">
                         <img src={samana} alt="Bahía de las Águilas" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                        <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <div className="absolute bottom-0 left-0 right-0 p-3">
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-medium mb-1">★ {t("header.destinationOfMonth")}</span>
-                          <h4 className="font-display text-base font-bold text-white leading-tight">Bahía de las Águilas</h4>
+                          <h4 className="font-display text-sm font-bold text-white leading-tight">Bahía de las Águilas</h4>
                           <p className="text-white/80 text-xs">{t("header.mostBeautifulBeach")}</p>
                         </div>
                       </Link>
