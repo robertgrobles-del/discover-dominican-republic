@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ChevronRight, Search, MapPin, Palmtree, Compass } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { PageTransition } from "@/components/PageTransition";
 import heroBeachImg from "@/assets/hero-beach.jpg";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
@@ -11,24 +13,28 @@ import samanaImg from "@/assets/samana.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 
 const suggestedDestinations = [
-  {
-    name: "Punta Cana",
-    description: "Playas de clase mundial",
-    image: puntaCanaImg,
-  },
-  {
-    name: "Samaná",
-    description: "Ecoturismo y ballenas",
-    image: samanaImg,
-  },
-  {
-    name: "Santo Domingo",
-    description: "Historia y cultura vibrante",
-    image: santoDomingoImg,
-  },
+  { name: "Punta Cana", description: "Playas de clase mundial", image: puntaCanaImg, slug: "punta-cana" },
+  { name: "Samaná", description: "Ecoturismo y ballenas", image: samanaImg, slug: "samana" },
+  { name: "Santo Domingo", description: "Historia y cultura vibrante", image: santoDomingoImg, slug: "santo-domingo" },
+];
+
+const quickLinks = [
+  { label: "Playas", href: "/playas", icon: Palmtree },
+  { label: "Destinos", href: "/destinos", icon: MapPin },
+  { label: "Actividades", href: "/actividades", icon: Compass },
 ];
 
 export default function NotFound() {
+  const [search, setSearch] = useState("");
+  const navigate = useNavigate();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (search.trim()) {
+      navigate(`/destinos?q=${encodeURIComponent(search.trim())}`);
+    }
+  };
+
   return (
     <PageTransition>
       <div className="min-h-screen bg-background flex flex-col">
@@ -73,15 +79,52 @@ export default function NotFound() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-muted-foreground mb-8"
+                className="text-muted-foreground mb-6"
               >
-                Aunque este camino es desconocido, el paraíso real está a solo un clic de distancia. No te preocupes, en República Dominicana perderse también es parte de la aventura.
+                Aunque este camino es desconocido, el paraíso real está a solo un clic. No te preocupes, en República Dominicana perderse también es parte de la aventura.
               </motion.p>
 
+              {/* Search bar */}
+              <motion.form
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+                onSubmit={handleSearch}
+                className="flex gap-2 max-w-md mx-auto mb-6"
+              >
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar destinos, playas, hoteles..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Button type="submit">Buscar</Button>
+              </motion.form>
+
+              {/* Quick links */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
+                className="flex flex-wrap justify-center gap-3 mb-6"
+              >
+                {quickLinks.map(link => (
+                  <Link key={link.href} to={link.href}>
+                    <Button variant="outline" size="sm" className="gap-1.5">
+                      <link.icon className="h-3.5 w-3.5" />
+                      {link.label}
+                    </Button>
+                  </Link>
+                ))}
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.45 }}
                 className="flex flex-wrap justify-center gap-4"
               >
                 <Link to="/">
@@ -124,7 +167,7 @@ export default function NotFound() {
                   transition={{ delay: index * 0.1 }}
                   className="group cursor-pointer"
                 >
-                  <Link to="/destinos">
+                  <Link to={`/destino/${destination.slug}`}>
                     <div className="relative aspect-[4/3] rounded-2xl overflow-hidden mb-4">
                       <img
                         src={destination.image}
@@ -132,6 +175,10 @@ export default function NotFound() {
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+                      <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-white">
+                        <MapPin className="h-4 w-4" />
+                        <span className="text-sm font-medium">{destination.name}</span>
+                      </div>
                     </div>
                     <h4 className="font-display text-lg font-bold group-hover:text-primary transition-colors">
                       {destination.name}
