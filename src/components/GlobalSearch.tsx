@@ -86,45 +86,76 @@ interface GlobalSearchProps {
 
 export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<typeof filteredResults>([]);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [results, setResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
-  // Filter results based on query
-  const filteredResults = query.length > 1 ? [
-    ...searchData.destinos.filter(d => 
-      d.nombre.toLowerCase().includes(query.toLowerCase()) ||
-      d.desc.toLowerCase().includes(query.toLowerCase())
-    ).map(d => ({ ...d, category: "Destinos", icon: MapPin })),
-    ...searchData.hoteles.filter(h => 
-      h.nombre.toLowerCase().includes(query.toLowerCase()) ||
-      h.desc.toLowerCase().includes(query.toLowerCase())
-    ).map(h => ({ ...h, category: "Hoteles", icon: Building2 })),
-    ...searchData.restaurantes.filter(r => 
-      r.nombre.toLowerCase().includes(query.toLowerCase()) ||
-      r.desc.toLowerCase().includes(query.toLowerCase())
-    ).map(r => ({ ...r, category: "Restaurantes", icon: Utensils })),
-    ...searchData.experiencias.filter(e => 
-      e.nombre.toLowerCase().includes(query.toLowerCase()) ||
-      e.desc.toLowerCase().includes(query.toLowerCase())
-    ).map(e => ({ ...e, category: "Experiencias", icon: Compass })),
-    ...searchData.eventos.filter(ev => 
-      ev.nombre.toLowerCase().includes(query.toLowerCase()) ||
-      ev.desc.toLowerCase().includes(query.toLowerCase())
-    ).map(ev => ({ ...ev, category: "Eventos", icon: Calendar })),
-    ...searchData.paginas.filter(p => 
-      p.nombre.toLowerCase().includes(query.toLowerCase()) ||
-      p.desc.toLowerCase().includes(query.toLowerCase())
-    ).map(p => ({ ...p, category: "Páginas", icon: p.icon || FileText })),
-    ...searchData.blog.filter(b => 
-      b.nombre.toLowerCase().includes(query.toLowerCase()) ||
-      b.desc.toLowerCase().includes(query.toLowerCase())
-    ).map(b => ({ ...b, category: "Blog", icon: FileText })),
-  ] : [];
-
+  // Debounce query by 300ms
   useEffect(() => {
-    setResults(filteredResults);
+    const timer = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(timer);
   }, [query]);
+
+  // Search local + DB when debounced query changes
+  useEffect(() => {
+    if (debouncedQuery.length < 2) {
+      setResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    const q = debouncedQuery.toLowerCase();
+    setIsSearching(true);
+
+    // Local static results
+    const localResults = [
+      ...searchData.destinos.filter(d => d.nombre.toLowerCase().includes(q) || d.desc.toLowerCase().includes(q)).map(d => ({ ...d, category: "Destinos", icon: MapPin })),
+      ...searchData.hoteles.filter(h => h.nombre.toLowerCase().includes(q) || h.desc.toLowerCase().includes(q)).map(h => ({ ...h, category: "Hoteles", icon: Building2 })),
+      ...searchData.restaurantes.filter(r => r.nombre.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q)).map(r => ({ ...r, category: "Restaurantes", icon: Utensils })),
+      ...searchData.experiencias.filter(e => e.nombre.toLowerCase().includes(q) || e.desc.toLowerCase().includes(q)).map(e => ({ ...e, category: "Experiencias", icon: Compass })),
+      ...searchData.eventos.filter(ev => ev.nombre.toLowerCase().includes(q) || ev.desc.toLowerCase().includes(q)).map(ev => ({ ...ev, category: "Eventos", icon: Calendar })),
+      ...searchData.paginas.filter(p => p.nombre.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q)).map(p => ({ ...p, category: "Páginas", icon: p.icon || FileText })),
+      ...searchData.blog.filter(b => b.nombre.toLowerCase().includes(q) || b.desc.toLowerCase().includes(q)).map(b => ({ ...b, category: "Blog", icon: FileText })),
+    ];
+
+    // Also search Supabase for DB results
+    const searchDb = async () => {
+      try {
+        const [destRes, hotelRes, beachRes] = await Promise.all([
+          supabase.from("destinations").select("id, name, slug, image_url").ilike("name", `%${debouncedQuery}%`).limit(5),
+          supabase.from("hotels").select("id, name, slug, image_url").ilike("name", `%${debouncedQuery}%`).eq("is_active", true).limit(5),
+          supabase.from("beaches").select("id, name, slug, image_url").ilike("name", `%${debouncedQuery}%`).eq("is_active", true).limit(5),
+        ]);
+
+        const dbResults: any[] = [];
+        destRes.data?.forEach(d => {
+          if (!localResults.some(lr => lr.nombre === d.name)) {
+            dbResults.push({ id: d.id, nombre: d.name, desc: "Destino", image: d.image_url, href: `/destino/${d.slug || d.id}`, category: "Destinos", icon: MapPin });
+          }
+        });
+        hotelRes.data?.forEach(h => {
+          if (!localResults.some(lr => lr.nombre === h.name)) {
+            dbResults.push({ id: h.id, nombre: h.name, desc: "Hotel", image: h.image_url, href: `/alojamiento/${h.slug || h.id}`, category: "Hoteles", icon: Building2 });
+          }
+        });
+        beachRes.data?.forEach(b => {
+          if (!localResults.some(lr => lr.nombre === b.name)) {
+            dbResults.push({ id: b.id, nombre: b.name, desc: "Playa", image: b.image_url, href: `/playa/${b.slug || b.id}`, category: "Playas", icon: Compass });
+          }
+        });
+
+        setResults([...localResults, ...dbResults]);
+      } catch {
+        setResults(localResults);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    searchDb();
+  }, [debouncedQuery]);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
