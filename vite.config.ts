@@ -48,8 +48,10 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         globPatterns: ["**/*.{css,html,ico,png,svg,jpg,jpeg,webp,js}"],
+        navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [
           {
             urlPattern: /\/assets\/.*\.js$/,
@@ -58,7 +60,7 @@ export default defineConfig(({ mode }) => ({
               cacheName: "js-assets",
               expiration: {
                 maxEntries: 80,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year (hashed filenames)
+                maxAgeSeconds: 60 * 60 * 24 * 365,
               },
             },
           },
@@ -69,7 +71,7 @@ export default defineConfig(({ mode }) => ({
               cacheName: "image-assets",
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year (hashed filenames)
+                maxAgeSeconds: 60 * 60 * 24 * 365,
               },
             },
           },
@@ -80,8 +82,20 @@ export default defineConfig(({ mode }) => ({
               cacheName: "css-assets",
               expiration: {
                 maxEntries: 20,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                maxAgeSeconds: 60 * 60 * 24 * 365,
               },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/.*\.supabase\.co\/rest\/v1\/.*/i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "supabase-api",
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60, // 1 hour
+              },
+              networkTimeoutSeconds: 5,
             },
           },
           {
@@ -91,7 +105,7 @@ export default defineConfig(({ mode }) => ({
               cacheName: "unsplash-images",
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                maxAgeSeconds: 60 * 60 * 24 * 30,
               },
             },
           },
@@ -102,7 +116,7 @@ export default defineConfig(({ mode }) => ({
               cacheName: "google-fonts",
               expiration: {
                 maxEntries: 30,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                maxAgeSeconds: 60 * 60 * 24 * 365,
               },
             },
           },
@@ -113,7 +127,7 @@ export default defineConfig(({ mode }) => ({
               cacheName: "gpteng-fonts",
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                maxAgeSeconds: 60 * 60 * 24 * 365,
               },
             },
           },
