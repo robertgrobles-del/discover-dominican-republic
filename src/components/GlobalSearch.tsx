@@ -183,11 +183,11 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
   };
 
   // Group results by category
-  const groupedResults = results.reduce((acc, result) => {
+  const groupedResults = results.reduce((acc: Record<string, any[]>, result: any) => {
     if (!acc[result.category]) acc[result.category] = [];
     acc[result.category].push(result);
     return acc;
-  }, {} as Record<string, typeof results>);
+  }, {} as Record<string, any[]>);
 
   return (
     <AnimatePresence>
