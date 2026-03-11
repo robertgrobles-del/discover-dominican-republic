@@ -40,7 +40,7 @@ const Index = () => {
         keywords="República Dominicana, turismo, playas, Punta Cana, Samaná, Santo Domingo, hoteles, viajes Caribe"
         jsonLd={generateOrganizationSchema()}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background" id="main-content">
         <Header />
         <MobileAd showDemo />
         <HeroSlideshow />
