@@ -260,20 +260,37 @@ export default function Alojamientos() {
                 exit={{ height: 0, opacity: 0 }}
                 className="pt-4 border-t border-border mt-4"
               >
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-sm text-muted-foreground mr-2">{t("alojamientos.amenities")}</span>
-                  {amenitiesOptions.map((amenity) => (
-                    <Button
-                      key={amenity.id}
-                      variant={selectedAmenities.includes(amenity.id) ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => toggleAmenity(amenity.id)}
-                      className="gap-2"
-                    >
-                      <amenity.icon className="h-3 w-3" />
-                      {amenity.label}
-                    </Button>
-                  ))}
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm text-muted-foreground mr-2">{t("alojamientos.amenities")}</span>
+                    {amenitiesOptions.map((amenity) => (
+                      <Button
+                        key={amenity.id}
+                        variant={selectedAmenities.includes(amenity.id) ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => toggleAmenity(amenity.id)}
+                        className="gap-2"
+                      >
+                        <amenity.icon className="h-3 w-3" />
+                        {amenity.label}
+                      </Button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Rating mínimo:</span>
+                    {[3, 3.5, 4, 4.5].map((r) => (
+                      <Button
+                        key={r}
+                        variant={ratingFilter === r ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setRatingFilter(ratingFilter === r ? 0 : r)}
+                        className="gap-1"
+                      >
+                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                        {r}+
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </motion.div>
             )}
