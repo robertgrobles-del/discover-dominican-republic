@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { motion, Reorder, AnimatePresence } from "framer-motion";
-import { Calendar, MapPin, Clock, Trash2, Plus, GripVertical, ChevronRight, Sparkles, Save, Share2, Mail } from "lucide-react";
+import { Calendar, MapPin, Clock, Trash2, Plus, GripVertical, ChevronRight, Sparkles, Save, Share2, Mail, Link2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { copyToClipboard, shareNative } from "@/lib/share-utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
