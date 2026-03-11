@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { ChevronRight, ChevronLeft, Mountain, Waves, Landmark, Ship, Anchor, Compass } from "lucide-react";
 import { Header } from "@/components/Header";
-import { PageBreadcrumbs } from "@/components/PageBreadcrumbs";
+
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import heroBeach from "@/assets/hero-beach.jpg";
