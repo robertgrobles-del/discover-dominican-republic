@@ -293,7 +293,7 @@ export function Header() {
               onMouseEnter={handleMegaMenuEnter}
               onMouseLeave={handleMouseLeave}
             >
-              <div className="container mx-auto px-4 lg:px-8 py-6">
+              <div className="container mx-auto px-4 lg:px-8 py-4">
                 
                 {/* DONDE IR Mega Menu */}
                 {activeMegaMenu === "dondeIr" && (
