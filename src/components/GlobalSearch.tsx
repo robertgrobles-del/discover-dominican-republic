@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, X, MapPin, Building2, Utensils, Calendar, Compass, 
-  FileText, Sparkles, Clock, TrendingUp
+  FileText, Sparkles, Clock, TrendingUp, Loader2
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SearchResultsAd } from "@/components/ads";
+import { supabase } from "@/integrations/supabase/client";
 
 import puntaCana from "@/assets/punta-cana.jpg";
 import santoDomingo from "@/assets/santo-domingo.jpg";
