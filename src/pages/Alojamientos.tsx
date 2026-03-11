@@ -117,9 +117,16 @@ export default function Alojamientos() {
     fetchAccommodations();
   }, []);
 
+  const [ratingFilter, setRatingFilter] = useState<number>(0);
+
   const filteredHotels = hotels.filter((hotel) => {
     if (searchQuery && !hotel.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     if (priceRange !== "all" && hotel.price_range !== priceRange) return false;
+    if (ratingFilter > 0 && (hotel.rating ?? 0) < ratingFilter) return false;
+    if (selectedAmenities.length > 0 && hotel.amenities) {
+      const hotelAmenities = hotel.amenities.map(a => a.toLowerCase());
+      if (!selectedAmenities.every(sa => hotelAmenities.some(ha => ha.includes(sa)))) return false;
+    }
     return true;
   });
 
@@ -138,6 +145,7 @@ export default function Alojamientos() {
     setSearchQuery("");
     setPriceRange("all");
     setSelectedAmenities([]);
+    setRatingFilter(0);
   };
 
   const totalResults =
@@ -253,20 +261,37 @@ export default function Alojamientos() {
                 exit={{ height: 0, opacity: 0 }}
                 className="pt-4 border-t border-border mt-4"
               >
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-sm text-muted-foreground mr-2">{t("alojamientos.amenities")}</span>
-                  {amenitiesOptions.map((amenity) => (
-                    <Button
-                      key={amenity.id}
-                      variant={selectedAmenities.includes(amenity.id) ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => toggleAmenity(amenity.id)}
-                      className="gap-2"
-                    >
-                      <amenity.icon className="h-3 w-3" />
-                      {amenity.label}
-                    </Button>
-                  ))}
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm text-muted-foreground mr-2">{t("alojamientos.amenities")}</span>
+                    {amenitiesOptions.map((amenity) => (
+                      <Button
+                        key={amenity.id}
+                        variant={selectedAmenities.includes(amenity.id) ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => toggleAmenity(amenity.id)}
+                        className="gap-2"
+                      >
+                        <amenity.icon className="h-3 w-3" />
+                        {amenity.label}
+                      </Button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Rating mínimo:</span>
+                    {[3, 3.5, 4, 4.5].map((r) => (
+                      <Button
+                        key={r}
+                        variant={ratingFilter === r ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setRatingFilter(ratingFilter === r ? 0 : r)}
+                        className="gap-1"
+                      >
+                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                        {r}+
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </motion.div>
             )}
