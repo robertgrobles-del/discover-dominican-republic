@@ -281,93 +281,62 @@ export function Header() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="absolute left-0 right-0 top-full bg-background border-b border-border shadow-xl"
+              className="absolute left-0 right-0 top-full bg-background border-b border-border shadow-xl max-h-[50vh] overflow-y-auto"
               onMouseEnter={handleMegaMenuEnter}
               onMouseLeave={handleMouseLeave}
             >
-              <div className="container mx-auto px-4 lg:px-8 py-8">
+              <div className="container mx-auto px-4 lg:px-8 py-6">
                 
                 {/* DONDE IR Mega Menu */}
                 {activeMegaMenu === "dondeIr" && (
-                  <div className="grid lg:grid-cols-4 gap-8">
-                    <div className="lg:col-span-2">
-                      <div className="flex items-center gap-2 text-primary mb-6">
-                        <Globe className="h-5 w-5" />
-                        <h3 className="font-display font-bold uppercase tracking-wider text-sm">{t("destinations.popular")}</h3>
+                  <div className="grid lg:grid-cols-3 gap-6">
+                    <div>
+                      <div className="flex items-center gap-2 text-primary mb-3">
+                        <Globe className="h-4 w-4" />
+                        <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("destinations.popular")}</h3>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <nav className="space-y-0.5">
                         {megaMenuDondeIr.destinos.map((item) => (
                           <Link
                             key={item.name}
                             to={item.href}
                             onClick={() => setActiveMegaMenu(null)}
-                            className="flex items-center gap-3 group p-2 rounded-lg hover:bg-secondary/50 transition-colors"
+                            className="flex items-center gap-2.5 group p-1.5 rounded-lg hover:bg-secondary/50 transition-colors"
                           >
-                            <div className="w-14 h-10 rounded-lg overflow-hidden flex-shrink-0">
-                              <img 
-                                src={item.image} 
-                                alt={item.name} 
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                              />
+                            <div className="w-10 h-7 rounded overflow-hidden flex-shrink-0">
+                              <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
                             </div>
                             <div>
-                              <p className="font-semibold text-foreground group-hover:text-primary transition-colors text-sm">
-                                {item.name}
-                              </p>
-                              <p className="text-xs text-muted-foreground">{item.desc}</p>
+                              <p className="font-semibold text-foreground group-hover:text-primary transition-colors text-sm leading-tight">{item.name}</p>
+                              <p className="text-[11px] text-muted-foreground leading-tight">{item.desc}</p>
                             </div>
                           </Link>
                         ))}
-                      </div>
-                      
-                      {/* Regiones */}
-                      <div className="mt-6 pt-6 border-t border-border">
-                        <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-3">{t("header.byRegion")}</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {megaMenuDondeIr.regiones.map((region) => (
-                            <Link
-                              key={region.href}
-                              to={region.href}
-                              onClick={() => setActiveMegaMenu(null)}
-                              className="text-sm text-foreground hover:text-primary px-3 py-1 bg-secondary/50 rounded-full hover:bg-secondary transition-colors"
-                            >
-                              {region.name}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <Link 
-                        to="/destinos" 
-                        onClick={() => setActiveMegaMenu(null)}
-                        className="inline-flex items-center gap-1 text-primary text-sm font-medium hover:underline mt-6"
-                      >
-                        {t("destinations.viewAll")} <ChevronRight className="h-4 w-4" />
+                      </nav>
+                      <Link to="/destinos" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-1 text-primary text-xs font-medium hover:underline mt-3">
+                        {t("destinations.viewAll")} <ChevronRight className="h-3 w-3" />
                       </Link>
                     </div>
                     
-                    <div className="lg:col-span-2">
-                      <Link 
-                        to="/destino/samana" 
-                        onClick={() => setActiveMegaMenu(null)}
-                        className="block group relative rounded-2xl overflow-hidden aspect-[16/9]"
-                      >
-                        <img 
-                          src={samana}
-                          alt="Bahía de las Águilas"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
+                    <div>
+                      <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-3">{t("header.byRegion")}</h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {megaMenuDondeIr.regiones.map((region) => (
+                          <Link key={region.href} to={region.href} onClick={() => setActiveMegaMenu(null)} className="text-xs text-foreground hover:text-primary px-2.5 py-1 bg-secondary/50 rounded-full hover:bg-secondary transition-colors">
+                            {region.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <Link to="/destino/samana" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-xl overflow-hidden aspect-[16/10]">
+                        <img src={samana} alt="Bahía de las Águilas" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                        <div className="absolute bottom-0 left-0 right-0 p-6">
-                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium mb-2">
-                            ★ {t("header.destinationOfMonth")}
-                          </span>
-                          <h4 className="font-display text-xl font-bold text-white mb-1">
-                            Bahía de las Águilas
-                          </h4>
-                          <p className="text-white/80 text-sm">
-                            {t("header.mostBeautifulBeach")}
-                          </p>
+                        <div className="absolute bottom-0 left-0 right-0 p-4">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-medium mb-1">★ {t("header.destinationOfMonth")}</span>
+                          <h4 className="font-display text-base font-bold text-white leading-tight">Bahía de las Águilas</h4>
+                          <p className="text-white/80 text-xs">{t("header.mostBeautifulBeach")}</p>
                         </div>
                       </Link>
                     </div>
@@ -376,105 +345,68 @@ export function Header() {
 
                 {/* QUE HACER Mega Menu */}
                 {activeMegaMenu === "queHacer" && (
-                  <div className="grid lg:grid-cols-4 gap-8">
+                  <div className="grid lg:grid-cols-4 gap-6">
                     <div>
-                      <div className="flex items-center gap-2 text-primary mb-4">
-                        <Compass className="h-5 w-5" />
-                        <h3 className="font-display font-bold uppercase tracking-wider text-sm">{t("footer.experiences")}</h3>
+                      <div className="flex items-center gap-2 text-primary mb-3">
+                        <Compass className="h-4 w-4" />
+                        <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("footer.experiences")}</h3>
                       </div>
-                      <nav className="space-y-1">
+                      <nav className="space-y-0.5">
                         {megaMenuQueHacer.experiencias.map((item) => (
-                          <Link
-                            key={item.href}
-                            to={item.href}
-                            onClick={() => setActiveMegaMenu(null)}
-                            className="flex items-center gap-2 p-2 rounded-lg hover:bg-secondary/50 transition-colors group"
-                          >
-                            <item.icon className="h-4 w-4 text-primary" />
-                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">
-                              {item.name}
-                            </span>
+                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
+                            <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
                           </Link>
                         ))}
                       </nav>
                     </div>
 
                     <div>
-                      <div className="flex items-center gap-2 text-primary mb-4">
-                        <Sparkles className="h-5 w-5" />
-                        <h3 className="font-display font-bold uppercase tracking-wider text-sm">{t("header.byInterest")}</h3>
+                      <div className="flex items-center gap-2 text-primary mb-3">
+                        <Sparkles className="h-4 w-4" />
+                        <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("header.byInterest")}</h3>
                       </div>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-1.5">
                         {megaMenuQueHacer.categorias.map((item) => (
-                          <Link
-                            key={item.href}
-                            to={item.href}
-                            onClick={() => setActiveMegaMenu(null)}
-                            className="text-sm text-foreground hover:text-primary px-3 py-1.5 bg-secondary/50 rounded-full hover:bg-secondary transition-colors"
-                          >
+                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="text-xs text-foreground hover:text-primary px-2.5 py-1 bg-secondary/50 rounded-full hover:bg-secondary transition-colors">
                             {item.name}
                           </Link>
                         ))}
                       </div>
-                      <Link 
-                        to="/experiencias" 
-                        onClick={() => setActiveMegaMenu(null)}
-                        className="inline-flex items-center gap-1 text-primary text-sm font-medium hover:underline mt-4"
-                      >
-                        {t("header.viewAllExperiences")} <ChevronRight className="h-4 w-4" />
+                      <Link to="/experiencias" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-1 text-primary text-xs font-medium hover:underline mt-3">
+                        {t("header.viewAllExperiences")} <ChevronRight className="h-3 w-3" />
                       </Link>
                     </div>
 
                     <div>
-                      <div className="flex items-center gap-2 text-primary mb-4">
-                        <Building2 className="h-5 w-5" />
-                        <h3 className="font-display font-bold uppercase tracking-wider text-sm">{t("header.specialized")}</h3>
+                      <div className="flex items-center gap-2 text-primary mb-3">
+                        <Building2 className="h-4 w-4" />
+                        <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("header.specialized")}</h3>
                       </div>
-                      <nav className="space-y-1">
-                        {megaMenuQueHacer.nichos.map((item) => (
-                          <Link
-                            key={item.href}
-                            to={item.href}
-                            onClick={() => setActiveMegaMenu(null)}
-                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors group"
-                          >
-                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                              <item.icon className="h-4 w-4 text-primary" />
-                            </div>
-                            <div>
-                              <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors block">
-                                {item.name}
-                              </span>
-                              <span className="text-xs text-muted-foreground">{item.desc}</span>
-                            </div>
+                      <nav className="space-y-0.5">
+                        {megaMenuQueHacer.nichos.slice(0, 6).map((item) => (
+                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
+                            <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
                           </Link>
                         ))}
                       </nav>
                     </div>
                     
-                    <div className="space-y-3">
-                      <Link 
-                        to="/wellness" 
-                        onClick={() => setActiveMegaMenu(null)}
-                        className="group relative rounded-xl overflow-hidden aspect-[4/3] block"
-                      >
+                    <div>
+                      <nav className="space-y-0.5 mb-3">
+                        {megaMenuQueHacer.nichos.slice(6).map((item) => (
+                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
+                            <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
+                          </Link>
+                        ))}
+                      </nav>
+                      <Link to="/wellness" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-xl overflow-hidden aspect-[16/9]">
                         <img src={samana} alt="Wellness" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                        <div className="absolute bottom-4 left-4">
-                          <span className="text-white font-semibold">Wellness & Spa</span>
-                          <p className="text-white/80 text-xs">{t("header.wellnessDesc")}</p>
-                        </div>
-                      </Link>
-                      <Link 
-                        to="/bodas" 
-                        onClick={() => setActiveMegaMenu(null)}
-                        className="group relative rounded-xl overflow-hidden aspect-[4/3] block"
-                      >
-                        <img src={puntaCana} alt="Bodas" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                        <div className="absolute bottom-4 left-4">
-                          <span className="text-white font-semibold">{t("header.destinationWeddings")}</span>
-                          <p className="text-white/80 text-xs">{t("header.marryInParadise")}</p>
+                        <div className="absolute bottom-2 left-3">
+                          <span className="text-white font-semibold text-sm">Wellness & Spa</span>
                         </div>
                       </Link>
                     </div>
@@ -483,62 +415,39 @@ export function Header() {
 
                 {/* DONDE QUEDARSE Mega Menu */}
                 {activeMegaMenu === "dondeQuedarse" && (
-                  <div className="grid lg:grid-cols-3 gap-8">
+                  <div className="grid lg:grid-cols-3 gap-6">
                     <div>
-                      <div className="flex items-center gap-2 text-primary mb-6">
-                        <Bed className="h-5 w-5" />
-                        <h3 className="font-display font-bold uppercase tracking-wider text-sm">{t("accommodations.title")}</h3>
+                      <div className="flex items-center gap-2 text-primary mb-3">
+                        <Bed className="h-4 w-4" />
+                        <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("accommodations.title")}</h3>
                       </div>
-                      <nav className="space-y-1">
+                      <nav className="space-y-0.5">
                         {megaMenuDondeQuedarse.map((item) => (
-                          <Link
-                            key={item.href}
-                            to={item.href}
-                            onClick={() => setActiveMegaMenu(null)}
-                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors group"
-                          >
-                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                              <item.icon className="h-4 w-4 text-primary" />
-                            </div>
-                            <span className="text-foreground group-hover:text-primary transition-colors">
-                              {item.name}
-                            </span>
+                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1.5 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
+                            <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
                           </Link>
                         ))}
                       </nav>
-                      <Link 
-                        to="/alojamientos" 
-                        onClick={() => setActiveMegaMenu(null)}
-                        className="inline-flex items-center gap-1 text-primary text-sm font-medium hover:underline mt-6"
-                      >
-                        {t("accommodations.viewAll")} <ChevronRight className="h-4 w-4" />
+                      <Link to="/alojamientos" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-1 text-primary text-xs font-medium hover:underline mt-3">
+                        {t("accommodations.viewAll")} <ChevronRight className="h-3 w-3" />
                       </Link>
                     </div>
                     
                     <div className="lg:col-span-2">
-                      <div className="bg-card rounded-2xl border border-border p-6">
-                        <h4 className="font-display font-bold text-foreground mb-2">{t("header.lookingSpecial")}</h4>
-                        <p className="text-muted-foreground text-sm mb-4">
-                          {t("header.lookingSpecialDesc")}
-                        </p>
-                        <div className="grid grid-cols-2 gap-4">
-                          <Link 
-                            to="/alojamientos?tipo=all-inclusive" 
-                            onClick={() => setActiveMegaMenu(null)}
-                            className="bg-secondary/50 rounded-xl p-4 hover:bg-secondary transition-colors"
-                          >
-                            <Sun className="h-6 w-6 text-primary mb-2" />
+                      <div className="bg-card rounded-xl border border-border p-4">
+                        <h4 className="font-display font-bold text-foreground text-sm mb-2">{t("header.lookingSpecial")}</h4>
+                        <p className="text-muted-foreground text-xs mb-3">{t("header.lookingSpecialDesc")}</p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <Link to="/alojamientos?tipo=all-inclusive" onClick={() => setActiveMegaMenu(null)} className="bg-secondary/50 rounded-lg p-3 hover:bg-secondary transition-colors">
+                            <Sun className="h-5 w-5 text-primary mb-1" />
                             <p className="font-semibold text-foreground text-sm">{t("header.allInclusive")}</p>
-                            <p className="text-xs text-muted-foreground">{t("header.allInclusiveDesc")}</p>
+                            <p className="text-[11px] text-muted-foreground">{t("header.allInclusiveDesc")}</p>
                           </Link>
-                          <Link 
-                            to="/alojamientos?tipo=ecolodge" 
-                            onClick={() => setActiveMegaMenu(null)}
-                            className="bg-secondary/50 rounded-xl p-4 hover:bg-secondary transition-colors"
-                          >
-                            <Mountain className="h-6 w-6 text-primary mb-2" />
+                          <Link to="/alojamientos?tipo=ecolodge" onClick={() => setActiveMegaMenu(null)} className="bg-secondary/50 rounded-lg p-3 hover:bg-secondary transition-colors">
+                            <Mountain className="h-5 w-5 text-primary mb-1" />
                             <p className="font-semibold text-foreground text-sm">Eco-Lodges</p>
-                            <p className="text-xs text-muted-foreground">{t("header.sustainableDesc")}</p>
+                            <p className="text-[11px] text-muted-foreground">{t("header.sustainableDesc")}</p>
                           </Link>
                         </div>
                       </div>
@@ -548,58 +457,36 @@ export function Header() {
 
                 {/* PLANIFICAR Mega Menu */}
                 {activeMegaMenu === "planificar" && (
-                  <div className="grid lg:grid-cols-3 gap-8">
-                    <div>
-                      <div className="flex items-center gap-2 text-primary mb-6">
-                        <Plane className="h-5 w-5" />
-                        <h3 className="font-display font-bold uppercase tracking-wider text-sm">{t("header.planYourTrip")}</h3>
+                  <div className="grid lg:grid-cols-4 gap-6">
+                    <div className="lg:col-span-2">
+                      <div className="flex items-center gap-2 text-primary mb-3">
+                        <Plane className="h-4 w-4" />
+                        <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("header.planYourTrip")}</h3>
                       </div>
-                      <nav className="space-y-1">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
                         {megaMenuPlanificar.map((item) => (
-                          <Link
-                            key={item.href}
-                            to={item.href}
-                            onClick={() => setActiveMegaMenu(null)}
-                            className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors group"
-                          >
-                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                              <item.icon className="h-4 w-4 text-primary" />
-                            </div>
-                            <div>
-                              <span className="text-foreground group-hover:text-primary transition-colors block text-sm">
-                                {item.name}
-                              </span>
-                              <span className="text-xs text-muted-foreground">{item.desc}</span>
-                            </div>
+                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1.5 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
+                            <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
                           </Link>
                         ))}
-                      </nav>
+                      </div>
                     </div>
                     
                     <div className="lg:col-span-2">
-                      <div className="bg-card rounded-2xl border border-border p-6">
-                        <h4 className="font-display font-bold text-foreground mb-2">{t("header.firstTime")}</h4>
-                        <p className="text-muted-foreground text-sm mb-4">
-                          {t("header.firstTimeDesc")}
-                        </p>
-                        <div className="grid grid-cols-2 gap-4">
-                          <Link 
-                            to="/como-llegar" 
-                            onClick={() => setActiveMegaMenu(null)}
-                            className="bg-secondary/50 rounded-xl p-4 hover:bg-secondary transition-colors"
-                          >
-                            <Plane className="h-6 w-6 text-primary mb-2" />
+                      <div className="bg-card rounded-xl border border-border p-4">
+                        <h4 className="font-display font-bold text-foreground text-sm mb-2">{t("header.firstTime")}</h4>
+                        <p className="text-muted-foreground text-xs mb-3">{t("header.firstTimeDesc")}</p>
+                        <div className="grid grid-cols-2 gap-3">
+                          <Link to="/como-llegar" onClick={() => setActiveMegaMenu(null)} className="bg-secondary/50 rounded-lg p-3 hover:bg-secondary transition-colors">
+                            <Plane className="h-5 w-5 text-primary mb-1" />
                             <p className="font-semibold text-foreground text-sm">{t("plan.howToGetThere")}</p>
-                            <p className="text-xs text-muted-foreground">{t("header.flightsDesc")}</p>
+                            <p className="text-[11px] text-muted-foreground">{t("header.flightsDesc")}</p>
                           </Link>
-                          <Link 
-                            to="/herramientas" 
-                            onClick={() => setActiveMegaMenu(null)}
-                            className="bg-secondary/50 rounded-xl p-4 hover:bg-secondary transition-colors"
-                          >
-                            <FileText className="h-6 w-6 text-primary mb-2" />
+                          <Link to="/herramientas" onClick={() => setActiveMegaMenu(null)} className="bg-secondary/50 rounded-lg p-3 hover:bg-secondary transition-colors">
+                            <FileText className="h-5 w-5 text-primary mb-1" />
                             <p className="font-semibold text-foreground text-sm">{t("plan.tools")}</p>
-                            <p className="text-xs text-muted-foreground">{t("header.toolsDesc")}</p>
+                            <p className="text-[11px] text-muted-foreground">{t("header.toolsDesc")}</p>
                           </Link>
                         </div>
                       </div>
@@ -609,52 +496,30 @@ export function Header() {
 
                 {/* SOBRE EL PAIS Mega Menu */}
                 {activeMegaMenu === "sobreElPais" && (
-                  <div className="grid lg:grid-cols-3 gap-8">
+                  <div className="grid lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2">
-                      <div className="flex items-center gap-2 text-primary mb-6">
-                        <Heart className="h-5 w-5" />
-                        <h3 className="font-display font-bold uppercase tracking-wider text-sm">{t("header.knowCountry")}</h3>
+                      <div className="flex items-center gap-2 text-primary mb-3">
+                        <Heart className="h-4 w-4" />
+                        <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("header.knowCountry")}</h3>
                       </div>
-                      <div className="grid md:grid-cols-2 gap-2">
+                      <div className="grid grid-cols-3 gap-x-4 gap-y-0.5">
                         {megaMenuSobreElPais.map((item) => (
-                          <Link
-                            key={item.href}
-                            to={item.href}
-                            onClick={() => setActiveMegaMenu(null)}
-                            className="flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors group"
-                          >
-                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                              <item.icon className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                              <span className="font-medium text-foreground group-hover:text-primary transition-colors block">
-                                {item.name}
-                              </span>
-                              <span className="text-xs text-muted-foreground">{item.desc}</span>
-                            </div>
+                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1.5 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
+                            <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
                           </Link>
                         ))}
                       </div>
                     </div>
                     
                     <div>
-                      <Link 
-                        to="/cultura" 
-                        onClick={() => setActiveMegaMenu(null)}
-                        className="block group relative rounded-2xl overflow-hidden aspect-[4/3]"
-                      >
+                      <Link to="/cultura" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-xl overflow-hidden aspect-[16/10]">
                         <img src={santoDomingo} alt="Cultura" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                        <div className="absolute bottom-0 left-0 right-0 p-4">
-                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium mb-2">
-                            {t("header.discover")}
-                          </span>
-                          <h4 className="font-display text-lg font-bold text-white">
-                            {t("header.dominicanCulture")}
-                          </h4>
-                          <p className="text-white/80 text-sm">
-                            {t("header.musicGastronomyTraditions")}
-                          </p>
+                        <div className="absolute bottom-0 left-0 right-0 p-3">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-medium mb-1">{t("header.discover")}</span>
+                          <h4 className="font-display text-sm font-bold text-white leading-tight">{t("header.dominicanCulture")}</h4>
+                          <p className="text-white/80 text-xs">{t("header.musicGastronomyTraditions")}</p>
                         </div>
                       </Link>
                     </div>
