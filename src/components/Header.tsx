@@ -71,20 +71,16 @@ export function Header() {
   const megaMenuQueHacer = {
     experiencias: [
       { name: t("interest.beaches"), href: "/playas", icon: Waves, desc: t("header.beachesDesc") },
-      { name: t("header.rivers"), href: "/rios", icon: Mountain, desc: t("header.riversDesc") },
       { name: t("header.adventureSports"), href: "/actividades", icon: Compass, desc: t("header.adventureDesc") },
       { name: t("interest.gastronomy"), href: "/guia-gastronomica", icon: Utensils, desc: t("header.gastronomyDesc") },
       { name: t("bars.nightlife"), href: "/vida-nocturna", icon: Music, desc: t("header.nightlifeDesc") },
-      { name: t("footer.events"), href: "/eventos", icon: Calendar, desc: t("header.eventsDesc") },
       { name: t("header.heritage"), href: "/patrimonio", icon: Building2, desc: t("header.heritageDesc") },
     ],
     categorias: [
       { name: t("interest.ecotourism"), href: "/ecoturismo", icon: Mountain },
-      { name: t("header.religiousTourism"), href: "/turismo-religioso", icon: Heart },
       { name: t("header.flavorRoutes"), href: "/rutas-sabor", icon: Utensils },
-      { name: t("header.rhythmSchool"), href: "/escuela-ritmos", icon: Music },
       { name: t("header.themeParks"), href: "/parques-tematicos", icon: Sparkles },
-      { name: t("header.climateSeasons"), href: "/clima-temporadas", icon: Sun },
+      { name: t("footer.events"), href: "/eventos", icon: Calendar },
       { name: "Golf", href: "/turismo-deportivo", icon: Sparkles },
     ],
     nichos: [
@@ -92,13 +88,7 @@ export function Header() {
       { name: t("header.destinationWeddings"), href: "/bodas", icon: Heart, desc: t("header.weddingsDesc") },
       { name: t("header.cruises"), href: "/cruceros", icon: Ship, desc: t("header.cruisesDesc") },
       { name: t("niche.family"), href: "/familia-con-ninos", icon: Users, desc: t("header.familyDesc") },
-      { name: t("niche.lgbtq"), href: "/guia-lgbtq", icon: Heart, desc: t("header.lgbtqDesc") },
       { name: t("niche.solo"), href: "/viajera-sola", icon: User, desc: t("header.soloDesc") },
-      { name: t("niche.vegan"), href: "/guia-vegana", icon: Utensils, desc: t("header.veganDesc") },
-      { name: t("niche.halal"), href: "/guia-halal-kosher", icon: Utensils, desc: t("header.halalDesc") },
-      { name: t("niche.pets"), href: "/viajar-con-mascotas", icon: Heart, desc: t("header.petsDesc") },
-      { name: t("niche.senior"), href: "/viajeros-senior", icon: Accessibility, desc: t("header.seniorDesc") },
-      { name: t("niche.diaspora"), href: "/vuelve-a-casa", icon: Heart, desc: t("header.diasporaDesc") },
     ],
   };
 
@@ -112,16 +102,12 @@ export function Header() {
 
   const megaMenuPlanificar = [
     { name: t("plan.howToGetThere"), href: "/como-llegar", icon: Plane, desc: t("header.flightsDesc") },
-    { name: t("plan.airports"), href: "/aeropuerto", icon: Plane, desc: t("header.airportsDesc") },
     { name: t("plan.entryReq"), href: "/planifica", icon: FileText, desc: t("header.visasDesc") },
     { name: t("plan.transport"), href: "/info/transporte", icon: Car, desc: t("header.transportDesc") },
     { name: t("plan.practicalGuide"), href: "/guia-practica", icon: Info, desc: t("header.practicalDesc") },
     { name: t("plan.insurance"), href: "/seguro-viaje", icon: Heart, desc: t("header.insuranceDesc") },
     { name: t("plan.itineraries"), href: "/itinerarios", icon: Route, desc: t("header.itinerariesDesc") },
-    { name: t("plan.calendar"), href: "/calendario", icon: Calendar, desc: t("header.calendarDesc") },
-    { name: t("plan.tools"), href: "/herramientas", icon: Compass, desc: t("header.toolsDesc") },
     { name: t("plan.planner"), href: "/mi-viaje", icon: Route, desc: t("header.plannerDesc") },
-    { name: t("plan.agencies"), href: "/directorio-agencias", icon: Users, desc: t("header.agenciesDesc") },
   ];
 
   const megaMenuSobreElPais = [
@@ -130,12 +116,8 @@ export function Header() {
     { name: "Historia de RD", href: "/historia", icon: BookOpen, desc: "Personajes y eventos históricos" },
     { name: t("header.typicalCuisine"), href: "/cultura#gastronomia", icon: Utensils, desc: t("header.cuisineDesc") },
     { name: t("header.mediaGallery"), href: "/galeria", icon: Camera, desc: t("header.galleryDesc") },
-    { name: t("header.embassies"), href: "/embajadas", icon: Globe, desc: t("header.embassiesDesc") },
-    { name: t("header.customs"), href: "/aduanas", icon: ShoppingBag, desc: t("header.customsDesc") },
-    { name: t("header.touristLaws"), href: "/leyes-turista", icon: FileText, desc: t("header.lawsDesc") },
     { name: t("header.shopping"), href: "/compras", icon: ShoppingBag, desc: t("header.shoppingDesc") },
-    { name: t("header.accessible"), href: "/accesibilidad", icon: Accessibility, desc: t("header.accessibleDesc") },
-    { name: t("header.sustainable"), href: "/sostenible", icon: Mountain, desc: t("header.sustainableDesc") },
+    { name: t("header.embassies"), href: "/embajadas", icon: Globe, desc: t("header.embassiesDesc") },
     { name: t("header.practicalInfo"), href: "/info/seguridad", icon: Info, desc: t("header.safetyDesc") },
   ];
 
@@ -353,7 +335,7 @@ export function Header() {
 
                 {/* QUE HACER Mega Menu */}
                 {activeMegaMenu === "queHacer" && (
-                  <div className="grid lg:grid-cols-4 gap-4">
+                  <div className="grid lg:grid-cols-3 gap-4">
                     <div>
                       <div className="flex items-center gap-2 text-primary mb-2">
                         <Compass className="h-4 w-4" />
@@ -367,10 +349,7 @@ export function Header() {
                           </Link>
                         ))}
                       </nav>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center gap-2 text-primary mb-2">
+                      <div className="flex items-center gap-2 text-primary mb-2 mt-4">
                         <Sparkles className="h-4 w-4" />
                         <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("header.byInterest")}</h3>
                       </div>
@@ -381,9 +360,6 @@ export function Header() {
                           </Link>
                         ))}
                       </div>
-                      <Link to="/experiencias" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-1 text-primary text-xs font-medium hover:underline mt-2">
-                        {t("header.viewAllExperiences")} <ChevronRight className="h-3 w-3" />
-                      </Link>
                     </div>
 
                     <div>
@@ -392,29 +368,24 @@ export function Header() {
                         <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("header.specialized")}</h3>
                       </div>
                       <nav className="space-y-0">
-                        {megaMenuQueHacer.nichos.slice(0, 6).map((item) => (
+                        {megaMenuQueHacer.nichos.map((item) => (
                           <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-0.5 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
                             <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                             <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
                           </Link>
                         ))}
                       </nav>
+                      <Link to="/experiencias" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-1 text-primary text-xs font-medium hover:underline mt-2">
+                        {t("header.viewAllExperiences")} <ChevronRight className="h-3 w-3" />
+                      </Link>
                     </div>
-                    
+
                     <div>
-                      <nav className="space-y-0">
-                        {megaMenuQueHacer.nichos.slice(6).map((item) => (
-                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-0.5 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
-                            <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
-                          </Link>
-                        ))}
-                      </nav>
-                      <Link to="/wellness" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-lg overflow-hidden h-20 mt-2">
+                      <Link to="/wellness" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-lg overflow-hidden h-full max-h-[28vh]">
                         <img src={samana} alt="Wellness" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                        <div className="absolute bottom-1.5 left-2">
-                          <span className="text-white font-semibold text-xs">Wellness & Spa</span>
+                        <div className="absolute bottom-2 left-3">
+                          <span className="text-white font-semibold text-sm">Wellness & Spa</span>
                         </div>
                       </Link>
                     </div>
@@ -510,7 +481,7 @@ export function Header() {
                         <Heart className="h-4 w-4" />
                         <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("header.knowCountry")}</h3>
                       </div>
-                      <div className="grid grid-cols-3 gap-x-4 gap-y-0">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-0">
                         {megaMenuSobreElPais.map((item) => (
                           <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
                             <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
