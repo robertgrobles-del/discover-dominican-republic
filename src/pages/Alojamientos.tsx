@@ -145,6 +145,7 @@ export default function Alojamientos() {
     setSearchQuery("");
     setPriceRange("all");
     setSelectedAmenities([]);
+    setRatingFilter(0);
   };
 
   const totalResults =
