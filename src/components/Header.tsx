@@ -218,6 +218,7 @@ export function Header() {
                 size="icon" 
                 className="text-muted-foreground hover:text-foreground"
                 onClick={() => setIsSearchOpen(true)}
+                aria-label="Buscar"
               >
                 <Search className="h-5 w-5" />
               </Button>
