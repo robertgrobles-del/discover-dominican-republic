@@ -296,7 +296,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                             {category}
                           </Badge>
                         </div>
-                        {items.slice(0, 3).map((item) => (
+                        {(items as any[]).slice(0, 3).map((item: any) => (
                           <button
                             key={item.id}
                             onClick={() => handleSelect(item.href)}
