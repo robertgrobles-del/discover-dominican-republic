@@ -245,7 +245,16 @@ const Santiago = lazy(() => import("./pages/destinos/Santiago"));
 const LaVega = lazy(() => import("./pages/destinos/LaVega"));
 const Barahona = lazy(() => import("./pages/destinos/Barahona"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,   // 5 min — data stays fresh, no refetch
+      gcTime: 15 * 60 * 1000,     // 15 min — cache kept in memory
+      refetchOnWindowFocus: false, // don't refetch when tab regains focus
+      retry: 1,                    // single retry on failure
+    },
+  },
+});
 
 // Loading fallback component
 const PageLoader = () => (
