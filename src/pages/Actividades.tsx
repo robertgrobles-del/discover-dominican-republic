@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { ChevronRight, ChevronLeft, Mountain, Waves, Landmark, Ship, Anchor, Compass } from "lucide-react";
 import { Header } from "@/components/Header";
-import { PageBreadcrumbs } from "@/components/PageBreadcrumbs";
+
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import heroBeach from "@/assets/hero-beach.jpg";
@@ -28,7 +28,7 @@ export default function Actividades() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <PageBreadcrumbs items={[{ label: "Actividades" }]} />
+      
 
       {/* Hero Section */}
       <section className="relative h-[70vh] w-full flex flex-col justify-center items-center overflow-hidden">

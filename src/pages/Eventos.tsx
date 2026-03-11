@@ -1,5 +1,5 @@
 import { Header } from "@/components/Header";
-import { PageBreadcrumbs } from "@/components/PageBreadcrumbs";
+
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
@@ -179,7 +179,7 @@ export default function Eventos() {
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
-        <PageBreadcrumbs items={[{ label: "Eventos" }]} />
+        
         
         {/* Hero */}
         <section className="relative h-[50vh] flex items-center justify-center overflow-hidden pt-16">

@@ -16,7 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { useTranslation } from "@/hooks/useI18n";
-import { PageBreadcrumbs } from "@/components/PageBreadcrumbs";
+
 
 import heroBeach from "@/assets/hero-beach.jpg";
 
@@ -176,7 +176,7 @@ export default function Playas() {
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
-        <PageBreadcrumbs items={[{ label: t("playas.breadcrumb") || "Playas" }]} />
+        
         
         {/* Hero */}
         <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
