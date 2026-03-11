@@ -39,7 +39,7 @@ export default function Destinos() {
       />
       <div className="min-h-screen bg-background">
         <Header />
-        <PageBreadcrumbs items={[{ label: t("destinos.breadcrumb") || "Destinos" }]} />
+        
 
         {/* Hero Section */}
         <section className="relative h-[70vh] min-h-[500px] w-full flex flex-col justify-center items-center">

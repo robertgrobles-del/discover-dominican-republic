@@ -78,7 +78,7 @@ export default function Compras() {
     <PageTransition>
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
-        <PageBreadcrumbs items={[{ label: "Compras" }]} />
+        
 
         {/* Hero */}
         <section className="relative h-[60vh] min-h-[500px] flex items-end mt-16">

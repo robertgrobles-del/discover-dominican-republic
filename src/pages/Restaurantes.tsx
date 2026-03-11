@@ -117,7 +117,7 @@ export default function Restaurantes() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <PageBreadcrumbs items={[{ label: t("restaurantes.breadcrumb") || "Restaurantes" }]} />
+      
       
       <section className="relative py-20">
         <div className="absolute inset-0">

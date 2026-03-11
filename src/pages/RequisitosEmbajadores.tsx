@@ -86,10 +86,6 @@ export default function RequisitosEmbajadores() {
       <Header />
 
       <main className="min-h-screen bg-background">
-        <PageBreadcrumbs items={[
-          { label: "Embajadores", href: "/embajadores" },
-          { label: "Requisitos" },
-        ]} />
 
         {/* Hero */}
         <section className="relative py-16 md:py-24 overflow-hidden">

@@ -176,7 +176,7 @@ export default function Playas() {
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
-        <PageBreadcrumbs items={[{ label: t("playas.breadcrumb") || "Playas" }]} />
+        
         
         {/* Hero */}
         <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
