@@ -102,16 +102,12 @@ export function Header() {
 
   const megaMenuPlanificar = [
     { name: t("plan.howToGetThere"), href: "/como-llegar", icon: Plane, desc: t("header.flightsDesc") },
-    { name: t("plan.airports"), href: "/aeropuerto", icon: Plane, desc: t("header.airportsDesc") },
     { name: t("plan.entryReq"), href: "/planifica", icon: FileText, desc: t("header.visasDesc") },
     { name: t("plan.transport"), href: "/info/transporte", icon: Car, desc: t("header.transportDesc") },
     { name: t("plan.practicalGuide"), href: "/guia-practica", icon: Info, desc: t("header.practicalDesc") },
     { name: t("plan.insurance"), href: "/seguro-viaje", icon: Heart, desc: t("header.insuranceDesc") },
     { name: t("plan.itineraries"), href: "/itinerarios", icon: Route, desc: t("header.itinerariesDesc") },
-    { name: t("plan.calendar"), href: "/calendario", icon: Calendar, desc: t("header.calendarDesc") },
-    { name: t("plan.tools"), href: "/herramientas", icon: Compass, desc: t("header.toolsDesc") },
     { name: t("plan.planner"), href: "/mi-viaje", icon: Route, desc: t("header.plannerDesc") },
-    { name: t("plan.agencies"), href: "/directorio-agencias", icon: Users, desc: t("header.agenciesDesc") },
   ];
 
   const megaMenuSobreElPais = [
