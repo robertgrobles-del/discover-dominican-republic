@@ -481,7 +481,7 @@ export function Header() {
                         <Heart className="h-4 w-4" />
                         <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("header.knowCountry")}</h3>
                       </div>
-                      <div className="grid grid-cols-3 gap-x-4 gap-y-0">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-0">
                         {megaMenuSobreElPais.map((item) => (
                           <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
                             <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
