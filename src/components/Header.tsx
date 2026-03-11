@@ -423,37 +423,37 @@ export function Header() {
 
                 {/* DONDE QUEDARSE Mega Menu */}
                 {activeMegaMenu === "dondeQuedarse" && (
-                  <div className="grid lg:grid-cols-3 gap-6">
+                  <div className="grid lg:grid-cols-3 gap-4">
                     <div>
-                      <div className="flex items-center gap-2 text-primary mb-3">
+                      <div className="flex items-center gap-2 text-primary mb-2">
                         <Bed className="h-4 w-4" />
                         <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("accommodations.title")}</h3>
                       </div>
-                      <nav className="space-y-0.5">
+                      <nav className="space-y-0">
                         {megaMenuDondeQuedarse.map((item) => (
-                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1.5 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
+                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
                             <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                             <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
                           </Link>
                         ))}
                       </nav>
-                      <Link to="/alojamientos" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-1 text-primary text-xs font-medium hover:underline mt-3">
+                      <Link to="/alojamientos" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-1 text-primary text-xs font-medium hover:underline mt-2">
                         {t("accommodations.viewAll")} <ChevronRight className="h-3 w-3" />
                       </Link>
                     </div>
                     
                     <div className="lg:col-span-2">
-                      <div className="bg-card rounded-xl border border-border p-4">
-                        <h4 className="font-display font-bold text-foreground text-sm mb-2">{t("header.lookingSpecial")}</h4>
-                        <p className="text-muted-foreground text-xs mb-3">{t("header.lookingSpecialDesc")}</p>
-                        <div className="grid grid-cols-2 gap-3">
-                          <Link to="/alojamientos?tipo=all-inclusive" onClick={() => setActiveMegaMenu(null)} className="bg-secondary/50 rounded-lg p-3 hover:bg-secondary transition-colors">
-                            <Sun className="h-5 w-5 text-primary mb-1" />
+                      <div className="bg-card rounded-lg border border-border p-3">
+                        <h4 className="font-display font-bold text-foreground text-sm mb-1">{t("header.lookingSpecial")}</h4>
+                        <p className="text-muted-foreground text-xs mb-2">{t("header.lookingSpecialDesc")}</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Link to="/alojamientos?tipo=all-inclusive" onClick={() => setActiveMegaMenu(null)} className="bg-secondary/50 rounded-lg p-2.5 hover:bg-secondary transition-colors">
+                            <Sun className="h-4 w-4 text-primary mb-1" />
                             <p className="font-semibold text-foreground text-sm">{t("header.allInclusive")}</p>
                             <p className="text-[11px] text-muted-foreground">{t("header.allInclusiveDesc")}</p>
                           </Link>
-                          <Link to="/alojamientos?tipo=ecolodge" onClick={() => setActiveMegaMenu(null)} className="bg-secondary/50 rounded-lg p-3 hover:bg-secondary transition-colors">
-                            <Mountain className="h-5 w-5 text-primary mb-1" />
+                          <Link to="/alojamientos?tipo=ecolodge" onClick={() => setActiveMegaMenu(null)} className="bg-secondary/50 rounded-lg p-2.5 hover:bg-secondary transition-colors">
+                            <Mountain className="h-4 w-4 text-primary mb-1" />
                             <p className="font-semibold text-foreground text-sm">Eco-Lodges</p>
                             <p className="text-[11px] text-muted-foreground">{t("header.sustainableDesc")}</p>
                           </Link>
@@ -465,15 +465,15 @@ export function Header() {
 
                 {/* PLANIFICAR Mega Menu */}
                 {activeMegaMenu === "planificar" && (
-                  <div className="grid lg:grid-cols-4 gap-6">
+                  <div className="grid lg:grid-cols-4 gap-4">
                     <div className="lg:col-span-2">
-                      <div className="flex items-center gap-2 text-primary mb-3">
+                      <div className="flex items-center gap-2 text-primary mb-2">
                         <Plane className="h-4 w-4" />
                         <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("header.planYourTrip")}</h3>
                       </div>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-0">
                         {megaMenuPlanificar.map((item) => (
-                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1.5 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
+                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
                             <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                             <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
                           </Link>
@@ -482,17 +482,17 @@ export function Header() {
                     </div>
                     
                     <div className="lg:col-span-2">
-                      <div className="bg-card rounded-xl border border-border p-4">
-                        <h4 className="font-display font-bold text-foreground text-sm mb-2">{t("header.firstTime")}</h4>
-                        <p className="text-muted-foreground text-xs mb-3">{t("header.firstTimeDesc")}</p>
-                        <div className="grid grid-cols-2 gap-3">
-                          <Link to="/como-llegar" onClick={() => setActiveMegaMenu(null)} className="bg-secondary/50 rounded-lg p-3 hover:bg-secondary transition-colors">
-                            <Plane className="h-5 w-5 text-primary mb-1" />
+                      <div className="bg-card rounded-lg border border-border p-3">
+                        <h4 className="font-display font-bold text-foreground text-sm mb-1">{t("header.firstTime")}</h4>
+                        <p className="text-muted-foreground text-xs mb-2">{t("header.firstTimeDesc")}</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Link to="/como-llegar" onClick={() => setActiveMegaMenu(null)} className="bg-secondary/50 rounded-lg p-2.5 hover:bg-secondary transition-colors">
+                            <Plane className="h-4 w-4 text-primary mb-1" />
                             <p className="font-semibold text-foreground text-sm">{t("plan.howToGetThere")}</p>
                             <p className="text-[11px] text-muted-foreground">{t("header.flightsDesc")}</p>
                           </Link>
-                          <Link to="/herramientas" onClick={() => setActiveMegaMenu(null)} className="bg-secondary/50 rounded-lg p-3 hover:bg-secondary transition-colors">
-                            <FileText className="h-5 w-5 text-primary mb-1" />
+                          <Link to="/herramientas" onClick={() => setActiveMegaMenu(null)} className="bg-secondary/50 rounded-lg p-2.5 hover:bg-secondary transition-colors">
+                            <FileText className="h-4 w-4 text-primary mb-1" />
                             <p className="font-semibold text-foreground text-sm">{t("plan.tools")}</p>
                             <p className="text-[11px] text-muted-foreground">{t("header.toolsDesc")}</p>
                           </Link>
@@ -504,15 +504,15 @@ export function Header() {
 
                 {/* SOBRE EL PAIS Mega Menu */}
                 {activeMegaMenu === "sobreElPais" && (
-                  <div className="grid lg:grid-cols-3 gap-6">
+                  <div className="grid lg:grid-cols-3 gap-4">
                     <div className="lg:col-span-2">
-                      <div className="flex items-center gap-2 text-primary mb-3">
+                      <div className="flex items-center gap-2 text-primary mb-2">
                         <Heart className="h-4 w-4" />
                         <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("header.knowCountry")}</h3>
                       </div>
-                      <div className="grid grid-cols-3 gap-x-4 gap-y-0.5">
+                      <div className="grid grid-cols-3 gap-x-4 gap-y-0">
                         {megaMenuSobreElPais.map((item) => (
-                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1.5 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
+                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
                             <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                             <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
                           </Link>
@@ -521,10 +521,10 @@ export function Header() {
                     </div>
                     
                     <div>
-                      <Link to="/cultura" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-xl overflow-hidden aspect-[16/10]">
+                      <Link to="/cultura" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-lg overflow-hidden h-full max-h-[28vh]">
                         <img src={santoDomingo} alt="Cultura" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                        <div className="absolute bottom-0 left-0 right-0 p-3">
+                        <div className="absolute bottom-0 left-0 right-0 p-2.5">
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-medium mb-1">{t("header.discover")}</span>
                           <h4 className="font-display text-sm font-bold text-white leading-tight">{t("header.dominicanCulture")}</h4>
                           <p className="text-white/80 text-xs">{t("header.musicGastronomyTraditions")}</p>
