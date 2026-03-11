@@ -183,7 +183,7 @@ export function Header() {
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-1" aria-label="Navegación principal">
               {navLinks.map((link) => (
                 <div
                   key={link.href}
