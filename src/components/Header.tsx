@@ -335,7 +335,7 @@ export function Header() {
 
                 {/* QUE HACER Mega Menu */}
                 {activeMegaMenu === "queHacer" && (
-                  <div className="grid lg:grid-cols-4 gap-4">
+                  <div className="grid lg:grid-cols-3 gap-4">
                     <div>
                       <div className="flex items-center gap-2 text-primary mb-2">
                         <Compass className="h-4 w-4" />
@@ -349,10 +349,7 @@ export function Header() {
                           </Link>
                         ))}
                       </nav>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center gap-2 text-primary mb-2">
+                      <div className="flex items-center gap-2 text-primary mb-2 mt-4">
                         <Sparkles className="h-4 w-4" />
                         <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("header.byInterest")}</h3>
                       </div>
@@ -363,9 +360,6 @@ export function Header() {
                           </Link>
                         ))}
                       </div>
-                      <Link to="/experiencias" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-1 text-primary text-xs font-medium hover:underline mt-2">
-                        {t("header.viewAllExperiences")} <ChevronRight className="h-3 w-3" />
-                      </Link>
                     </div>
 
                     <div>
@@ -374,29 +368,24 @@ export function Header() {
                         <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("header.specialized")}</h3>
                       </div>
                       <nav className="space-y-0">
-                        {megaMenuQueHacer.nichos.slice(0, 6).map((item) => (
+                        {megaMenuQueHacer.nichos.map((item) => (
                           <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-0.5 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
                             <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                             <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
                           </Link>
                         ))}
                       </nav>
+                      <Link to="/experiencias" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-1 text-primary text-xs font-medium hover:underline mt-2">
+                        {t("header.viewAllExperiences")} <ChevronRight className="h-3 w-3" />
+                      </Link>
                     </div>
-                    
+
                     <div>
-                      <nav className="space-y-0">
-                        {megaMenuQueHacer.nichos.slice(6).map((item) => (
-                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-0.5 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
-                            <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
-                          </Link>
-                        ))}
-                      </nav>
-                      <Link to="/wellness" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-lg overflow-hidden h-20 mt-2">
+                      <Link to="/wellness" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-lg overflow-hidden h-full max-h-[28vh]">
                         <img src={samana} alt="Wellness" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                        <div className="absolute bottom-1.5 left-2">
-                          <span className="text-white font-semibold text-xs">Wellness & Spa</span>
+                        <div className="absolute bottom-2 left-3">
+                          <span className="text-white font-semibold text-sm">Wellness & Spa</span>
                         </div>
                       </Link>
                     </div>
