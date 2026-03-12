@@ -77,7 +77,7 @@ export function EventsSection() {
               id: e.slug || e.id,
               title: e.name,
               category: e.event_type || "Evento",
-              location: e.venue || e.address || "RD",
+              location: e.address || "RD",
               date: {
                 day: startDate.getDate(),
                 month: MONTH_NAMES[startDate.getMonth()],

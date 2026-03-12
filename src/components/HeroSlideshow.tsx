@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, ChevronRight, Sun, Ruler, Landmark, Users, ChevronLeft, MapPin, Star, Calendar } from "lucide-react";
+import { ChevronRight, Sun, Ruler, Landmark, Users, ChevronLeft, MapPin, Star, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";

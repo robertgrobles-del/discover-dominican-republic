@@ -178,7 +178,7 @@ export function NewsSection() {
 
         {/* More News Row */}
         <div className="grid md:grid-cols-3 gap-6 mt-8">
-          {regularNews.slice(1).map((article, index) => (
+          {regularNews.map((article, index) => (
             <motion.article
               key={article.id}
               initial={{ opacity: 0, y: 20 }}
