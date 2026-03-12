@@ -175,48 +175,6 @@ export function NewsSection() {
             <InlineAd showDemo variant="square-sm" />
           </div>
         </div>
-
-        {/* More News Row */}
-        <div className="grid md:grid-cols-3 gap-6 mt-8">
-          {regularNews.slice(1).map((article, index) => (
-            <motion.article
-              key={article.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              className="group bg-surface rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
-            >
-              <Link to={`/articulo/${article.id}`}>
-                <div className="relative aspect-video overflow-hidden">
-                  <LazyImage
-                    src={article.image}
-                    alt={article.title}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    containerClassName="w-full h-full"
-                  />
-                </div>
-                <div className="p-4">
-                  <Badge variant="secondary" className="mb-2 text-xs">
-                    {article.category}
-                  </Badge>
-                  <h4 className="font-display font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors mb-2">
-                    {article.title}
-                  </h4>
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                    {article.excerpt}
-                  </p>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{article.date}</span>
-                    <span className="text-primary font-medium group-hover:underline">
-                      {t("common.readMore")}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            </motion.article>
-          ))}
-        </div>
       </div>
     </section>
   );

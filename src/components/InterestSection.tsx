@@ -98,8 +98,8 @@ export function InterestSection() {
   };
 
   return (
-    <section className="h-screen flex flex-col bg-background overflow-hidden">
-      <div className="container mx-auto px-4 lg:px-8 pt-16 pb-8">
+    <section className="flex flex-col bg-background overflow-hidden" style={{ height: 'min(80vh, 700px)' }}>
+      <div className="container mx-auto px-4 lg:px-8 pt-12 pb-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
