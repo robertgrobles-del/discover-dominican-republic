@@ -346,7 +346,7 @@ export function RestaurantsBarsSection() {
   return (
     <>
       {/* Restaurants Section */}
-      <section className="min-h-screen flex flex-col justify-center bg-background py-16">
+      <section className="bg-background py-16">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
             <motion.div
