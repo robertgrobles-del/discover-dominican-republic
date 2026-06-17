@@ -22,7 +22,7 @@ const interestKeys = [
   { key: "interest.adventure", image: adventureImg, link: "/actividades" },
   { key: "interest.beaches", image: beachImg, link: "/playas" },
   { key: "interest.mountains", image: samanaImg, link: "/montanas" },
-  { key: "interest.history", image: historyImg, link: "/patrimonio" },
+  { key: "interest.heritage", image: colonialDoorImg, link: "/patrimonio" },
   { key: "interest.gastronomy", image: gastronomyImg, link: "/guia-gastronomica" },
   { key: "interest.shopping", image: laRomanaImg, link: "/compras" },
   { key: "interest.diving", image: divingImg, link: "/experiencias?cat=acuaticos" },

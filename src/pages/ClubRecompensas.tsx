@@ -46,6 +46,26 @@ export default function ClubRecompensas() {
   const [achievements, setAchievements] = useState<any[]>([]);
   const [userAchievements, setUserAchievements] = useState<any[]>([]);
   const [loadingAchievements, setLoadingAchievements] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [timeLeft, setTimeLeft] = useState({ hours: 4, minutes: 12, seconds: 45 });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev.seconds > 0) {
+          return { ...prev, seconds: prev.seconds - 1 };
+        } else if (prev.minutes > 0) {
+          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
+        } else if (prev.hours > 0) {
+          return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
+        } else {
+          clearInterval(timer);
+          return prev;
+        }
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Fetch achievements
   useEffect(() => {
@@ -434,74 +454,164 @@ export default function ClubRecompensas() {
 
             {/* PRIZES TAB */}
             <TabsContent value="prizes">
-              <div className="flex gap-2 mb-6 overflow-x-auto">
-                {["all", "experience", "product"].map(f => (
-                  <Button key={f} variant={prizeFilter === f ? "default" : "outline"} size="sm" className="rounded-full"
-                    onClick={() => setPrizeFilter(f)}>
-                    {f === "all" ? "Todos" : f === "experience" ? "🎫 Experiencias" : "🎁 Productos"}
-                  </Button>
-                ))}
+              {/* Flash Sale Banner */}
+              <motion.div 
+                initial={{ opacity: 0, y: -15 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-8 p-6 rounded-2xl border border-red-500/30 bg-gradient-to-r from-red-500/10 via-amber-500/5 to-red-500/10 shadow-md relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full blur-2xl" />
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="flex items-center gap-4">
+                    <span className="text-4xl">⚡</span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-red-500 text-white border-none text-[10px] animate-pulse">VENTA FLASH</Badge>
+                        <span className="text-xs text-red-500 font-bold uppercase tracking-wider">Descuento del 40%</span>
+                      </div>
+                      <h3 className="font-bold text-foreground mt-1">Excursión Premium: Buggies en Macao</h3>
+                      <p className="text-xs text-muted-foreground">¡Solo 150 monedas (precio regular 250 monedas)! Muy pocas unidades disponibles.</p>
+                    </div>
+                  </div>
+
+                  {/* Countdown Timer boxes */}
+                  <div className="flex items-center gap-3">
+                    <div className="text-center">
+                      <div className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center font-bold text-foreground text-sm">
+                        {String(timeLeft.hours).padStart(2, "0")}
+                      </div>
+                      <span className="text-[9px] text-muted-foreground">horas</span>
+                    </div>
+                    <span className="text-foreground font-bold">:</span>
+                    <div className="text-center">
+                      <div className="w-10 h-10 rounded-lg bg-card border border-border flex items-center justify-center font-bold text-foreground text-sm">
+                        {String(timeLeft.minutes).padStart(2, "0")}
+                      </div>
+                      <span className="text-[9px] text-muted-foreground">min</span>
+                    </div>
+                    <span className="text-foreground font-bold">:</span>
+                    <div className="text-center">
+                      <div className="w-10 h-10 rounded-lg bg-card border-red-500/30 border flex items-center justify-center font-bold text-red-500 text-sm animate-pulse">
+                        {String(timeLeft.seconds).padStart(2, "0")}
+                      </div>
+                      <span className="text-[9px] text-muted-foreground">seg</span>
+                    </div>
+
+                    <Button 
+                      size="sm" 
+                      disabled={!(userGamification && userGamification.coins >= 150)}
+                      onClick={() => {
+                        toast.success("🎁 ¡Excursión Flash Canjeada! Código: FLASH-BUGGY-RD");
+                      }}
+                      className="bg-red-500 hover:bg-red-600 text-white ml-2 text-xs font-semibold shadow-sm shrink-0"
+                    >
+                      Canjear Oferta
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Filter controls & Search */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div className="flex gap-2 overflow-x-auto pb-1 shrink-0">
+                  {["all", "experience", "product"].map(f => (
+                    <Button key={f} variant={prizeFilter === f ? "default" : "outline"} size="sm" className="rounded-full"
+                      onClick={() => setPrizeFilter(f)}>
+                      {f === "all" ? "Todos los premios" : f === "experience" ? "🎫 Experiencias" : "🎁 Productos"}
+                    </Button>
+                  ))}
+                </div>
+
+                <div className="relative w-full md:max-w-xs">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Buscar recompensa..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 text-xs"
+                  />
+                </div>
               </div>
 
+              {/* Prizes Grid */}
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {prizes.filter(p => prizeFilter === "all" || p.prize_type === prizeFilter).map((prize, i) => {
-                  const canAfford = (userGamification?.coins || 0) >= prize.coin_cost;
-                  const meetsLevel = (userGamification?.current_level || 1) >= prize.min_level;
-                  return (
-                    <motion.div
-                      key={prize.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.05 }}
-                      className="rounded-xl overflow-hidden bg-card border border-border hover:shadow-lg hover:border-primary/30 transition-all"
-                    >
-                      <div className="relative h-40 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                        <span className="text-6xl">{prize.prize_type === "experience" ? "🎫" : "🎁"}</span>
-                        {prize.is_featured && (
-                          <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground">⭐ Destacado</Badge>
-                        )}
-                        {prize.sponsor && (
-                          <Badge variant="secondary" className="absolute top-3 right-3 text-xs">
-                            {prize.sponsor}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="p-5">
-                        <h3 className="font-bold text-foreground mb-1">{prize.name}</h3>
-                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{prize.description}</p>
-                        
-                        <div className="flex items-center gap-2 mb-4">
-                          {prize.min_level > 1 && (
-                            <Badge variant={meetsLevel ? "secondary" : "destructive"} className="text-xs gap-1">
-                              {meetsLevel ? <Check className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-                              Nivel {prize.min_level}+
-                            </Badge>
+                {prizes
+                  .filter(p => {
+                    const matchesFilter = prizeFilter === "all" || p.prize_type === prizeFilter;
+                    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                          p.description.toLowerCase().includes(searchQuery.toLowerCase());
+                    return matchesFilter && matchesSearch;
+                  })
+                  .map((prize, i) => {
+                    const canAfford = (userGamification?.coins || 0) >= prize.coin_cost;
+                    const meetsLevel = (userGamification?.current_level || 1) >= prize.min_level;
+                    return (
+                      <motion.div
+                        key={prize.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: i * 0.05 }}
+                        className="rounded-xl overflow-hidden bg-card border border-border hover:shadow-lg hover:border-primary/30 transition-all"
+                      >
+                        <div className="relative h-40 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                          <span className="text-6xl">{prize.prize_type === "experience" ? "🎫" : "🎁"}</span>
+                          {prize.is_featured && (
+                            <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground">⭐ Destacado</Badge>
                           )}
-                          {prize.quantity_available && (
-                            <Badge variant="outline" className="text-xs">
-                              {prize.quantity_available - prize.quantity_redeemed} disponibles
+                          {prize.sponsor && (
+                            <Badge variant="secondary" className="absolute top-3 right-3 text-xs">
+                              {prize.sponsor}
                             </Badge>
                           )}
                         </div>
-
-                        <div className="flex items-center justify-between pt-4 border-t border-border">
-                          <div>
-                            <span className="text-2xl font-bold text-foreground">{prize.coin_cost}</span>
-                            <span className="text-sm text-muted-foreground ml-1">monedas</span>
+                        <div className="p-5">
+                          <h3 className="font-bold text-foreground mb-1">{prize.name}</h3>
+                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{prize.description}</p>
+                          
+                          <div className="flex items-center gap-2 mb-4">
+                            {prize.min_level > 1 && (
+                              <Badge variant={meetsLevel ? "secondary" : "destructive"} className="text-xs gap-1">
+                                {meetsLevel ? <Check className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                                Nivel {prize.min_level}+
+                              </Badge>
+                            )}
+                            {prize.quantity_available && (
+                              <Badge variant="outline" className="text-xs">
+                                {prize.quantity_available - prize.quantity_redeemed} disponibles
+                              </Badge>
+                            )}
                           </div>
-                          <Button 
-                            size="sm" 
-                            disabled={!canAfford || !meetsLevel}
-                            onClick={() => redeemPrize(prize.id)}
-                          >
-                            {!meetsLevel ? "Nivel insuficiente" : !canAfford ? "Sin fondos" : "Canjear"}
-                          </Button>
+
+                          <div className="flex items-center justify-between pt-4 border-t border-border">
+                            <div>
+                              <span className="text-2xl font-bold text-foreground">{prize.coin_cost}</span>
+                              <span className="text-sm text-muted-foreground ml-1">monedas</span>
+                            </div>
+                            <Button 
+                              size="sm" 
+                              disabled={!canAfford || !meetsLevel}
+                              onClick={() => redeemPrize(prize.id)}
+                            >
+                              {!meetsLevel ? "Nivel insuficiente" : !canAfford ? "Sin fondos" : "Canjear"}
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
+                      </motion.div>
+                    );
+                  })
+                }
+                {prizes.filter(p => {
+                  const matchesFilter = prizeFilter === "all" || p.prize_type === prizeFilter;
+                  const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                        p.description.toLowerCase().includes(searchQuery.toLowerCase());
+                  return matchesFilter && matchesSearch;
+                }).length === 0 && (
+                  <div className="col-span-full text-center py-12 bg-card border border-border rounded-xl">
+                    <Search className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-50" />
+                    <p className="text-muted-foreground text-sm">No se encontraron recompensas que coincidan con la búsqueda.</p>
+                  </div>
+                )}
               </div>
             </TabsContent>
 

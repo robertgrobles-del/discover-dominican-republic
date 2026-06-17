@@ -6,7 +6,7 @@ import {
   MapPin, Waves, Mountain, Utensils, Music, Calendar, Building2, Car,
   Bed, Users, Heart, Info, BookOpen, Camera, Sun, Sparkles, Ship, 
   TrendingUp, Briefcase, ShoppingBag, Download, Accessibility, Route,
-  User, LogOut
+  User, LogOut, Radio, Leaf, Gift, Trophy, Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -75,12 +75,16 @@ export function Header() {
       { name: t("interest.gastronomy"), href: "/guia-gastronomica", icon: Utensils, desc: t("header.gastronomyDesc") },
       { name: t("bars.nightlife"), href: "/vida-nocturna", icon: Music, desc: t("header.nightlifeDesc") },
       { name: t("header.heritage"), href: "/patrimonio", icon: Building2, desc: t("header.heritageDesc") },
+      { name: "Eventos en Vivo", href: "/eventos-vivo", icon: Radio, desc: "Qué está pasando esta noche" },
+      { name: "Vive como un Local", href: "/vive-local", icon: Users, desc: "Inmersión cultural y costumbres" },
+      { name: "Bebidas de RD", href: "/bebidas-rd", icon: Utensils, desc: "Ron, mamajuana y catas" },
     ],
     categorias: [
-      { name: t("interest.ecotourism"), href: "/ecoturismo", icon: Mountain },
+      { name: "Turismo Sostenible", href: "/sostenible", icon: Leaf },
       { name: t("header.flavorRoutes"), href: "/rutas-sabor", icon: Utensils },
       { name: t("header.themeParks"), href: "/parques-tematicos", icon: Sparkles },
       { name: t("footer.events"), href: "/eventos", icon: Calendar },
+      { name: "Pelota LIDOM", href: "/lidom", icon: Activity },
       { name: "Golf", href: "/turismo-deportivo", icon: Sparkles },
     ],
     nichos: [
@@ -89,6 +93,11 @@ export function Header() {
       { name: t("header.cruises"), href: "/cruceros", icon: Ship, desc: t("header.cruisesDesc") },
       { name: t("niche.family"), href: "/familia-con-ninos", icon: Users, desc: t("header.familyDesc") },
       { name: t("niche.solo"), href: "/viajera-sola", icon: User, desc: t("header.soloDesc") },
+      { name: "MICE & Bodas B2B", href: "/mice-bodas", icon: Building2, desc: "Estimador de venues y congresos" },
+      { name: "Eventos en Grupo", href: "/eventos-grupo", icon: Users, desc: "Excursiones compartidas entre viajeros" },
+      { name: "Programa de Creadores", href: "/creadores", icon: Camera, desc: "Comparte y gana comisiones" },
+      { name: "Concursos Fotografía", href: "/concursos", icon: Trophy, desc: "Participa y gana premios" },
+      { name: "Diario de Viaje", href: "/diario-viaje", icon: BookOpen, desc: "Crea tu diario tipo revista" },
     ],
   };
 
@@ -101,6 +110,10 @@ export function Header() {
   ];
 
   const megaMenuPlanificar = [
+    { name: "Reserva Directa", href: "/reserva-directa", icon: Calendar, desc: "Hoteles, vuelos y actividades" },
+    { name: "eSIM Dominicana", href: "/esim", icon: Globe, desc: "Datos móviles 5G prepago" },
+    { name: "Tarjeta RD Pass", href: "/tarjeta-prepago", icon: ShoppingBag, desc: "Descuentos y pagos locales" },
+    { name: "Salud y Farmacias 24h", href: "/salud-24h", icon: Activity, desc: "Hospitales y farmacias de turno" },
     { name: t("plan.howToGetThere"), href: "/como-llegar", icon: Plane, desc: t("header.flightsDesc") },
     { name: t("plan.entryReq"), href: "/planifica", icon: FileText, desc: t("header.visasDesc") },
     { name: t("plan.transport"), href: "/info/transporte", icon: Car, desc: t("header.transportDesc") },
@@ -112,11 +125,12 @@ export function Header() {
 
   const megaMenuSobreElPais = [
     { name: t("header.cultureTraditions"), href: "/cultura", icon: Heart, desc: t("header.cultureDesc") },
-    { name: t("header.history"), href: "/patrimonio", icon: BookOpen, desc: t("header.historyDesc") },
+    { name: t("header.heritage"), href: "/patrimonio", icon: Building2, desc: t("header.heritageDesc") },
     { name: "Historia de RD", href: "/historia", icon: BookOpen, desc: "Personajes y eventos históricos" },
     { name: t("header.typicalCuisine"), href: "/cultura#gastronomia", icon: Utensils, desc: t("header.cuisineDesc") },
     { name: t("header.mediaGallery"), href: "/galeria", icon: Camera, desc: t("header.galleryDesc") },
-    { name: t("header.shopping"), href: "/compras", icon: ShoppingBag, desc: t("header.shoppingDesc") },
+    { name: "Marketplace RD", href: "/marketplace", icon: ShoppingBag, desc: "Comprar souvenirs locales" },
+    { name: "Suscripción Sabores RD", href: "/suscripciones-sabores", icon: Gift, desc: "Cajas de productos dominicanos" },
     { name: t("header.embassies"), href: "/embajadas", icon: Globe, desc: t("header.embassiesDesc") },
     { name: t("header.practicalInfo"), href: "/info/seguridad", icon: Info, desc: t("header.safetyDesc") },
   ];
@@ -229,6 +243,18 @@ export function Header() {
                         <Link to="/mi-viaje" className="flex items-center gap-2 cursor-pointer">
                           <Heart className="h-4 w-4" />
                           {t("common.favorite")}
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/diario-viaje" className="flex items-center gap-2 cursor-pointer">
+                          <BookOpen className="h-4 w-4" />
+                          Mi Diario de Viaje
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/creadores" className="flex items-center gap-2 cursor-pointer">
+                          <Camera className="h-4 w-4" />
+                          Panel Creadores
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
@@ -529,11 +555,50 @@ export function Header() {
                     {link.name}
                   </Link>
                 ))}
-                <div className="border-t border-border my-2 pt-2">
-                  <Link to="/eventos" onClick={() => setIsMenuOpen(false)} className="block py-2 text-muted-foreground hover:text-primary">{t("footer.events")}</Link>
-                  <Link to="/patrimonio" onClick={() => setIsMenuOpen(false)} className="block py-2 text-muted-foreground hover:text-primary">{t("header.heritage")}</Link>
-                  <Link to="/como-llegar" onClick={() => setIsMenuOpen(false)} className="block py-2 text-muted-foreground hover:text-primary">{t("plan.howToGetThere")}</Link>
-                  <Link to="/alojamientos" onClick={() => setIsMenuOpen(false)} className="block py-2 text-muted-foreground hover:text-primary">{t("accommodations.title")}</Link>
+                <div className="border-t border-border my-2 pt-2 space-y-4">
+                  {/* Sección Planifica y Reserva */}
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary px-2 mb-1">
+                      Planifica y Reserva
+                    </h4>
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                      <Link to="/reserva-directa" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50 font-medium">Reserva Directa</Link>
+                      <Link to="/esim" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">eSIM Turística</Link>
+                      <Link to="/tarjeta-prepago" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Tarjeta RD Pass</Link>
+                      <Link to="/salud-24h" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                        Salud 24h
+                      </Link>
+                      <Link to="/como-llegar" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">{t("plan.howToGetThere")}</Link>
+                      <Link to="/alojamientos" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">{t("accommodations.title")}</Link>
+                      <Link to="/seguro-viaje" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">{t("plan.insurance")}</Link>
+                    </div>
+                  </div>
+
+                  {/* Sección Experiencias y E-commerce */}
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary px-2 mb-1">
+                      Experiencias y E-commerce
+                    </h4>
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                      <Link to="/eventos-vivo" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50 font-medium text-foreground flex items-center gap-1">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                        </span>
+                        En Vivo
+                      </Link>
+                      <Link to="/lidom" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Pelota LIDOM</Link>
+                      <Link to="/vive-local" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Vive Local</Link>
+                      <Link to="/bebidas-rd" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Bebidas RD</Link>
+                      <Link to="/sostenible" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Sostenibilidad</Link>
+                      <Link to="/marketplace" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Marketplace</Link>
+                      <Link to="/suscripciones-sabores" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Suscripción Sabores</Link>
+                      <Link to="/eventos-grupo" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Excursión Grupal</Link>
+                      <Link to="/creadores" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Creadores</Link>
+                      <Link to="/diario-viaje" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Diario Revista</Link>
+                    </div>
+                  </div>
                 </div>
               </nav>
             </motion.div>

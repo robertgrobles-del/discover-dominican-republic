@@ -1,24 +1,33 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { 
-  Instagram, 
-  Twitter, 
-  Heart, 
-  MessageCircle, 
-  Share2, 
-  MapPin, 
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  Instagram,
+  Twitter,
+  Heart,
+  MessageCircle,
+  Share2,
+  MapPin,
   Camera,
   Play,
   Search,
   TrendingUp,
   Trophy,
-  Plus
+  Plus,
+  X,
+  Send,
+  Zap,
+  AlertCircle,
+  CheckCircle2
 } from "lucide-react";
 
 const filters = ["Todos", "Instagram", "TikTok", "Punta Cana", "Samaná", "Mejores Fotos"];
@@ -108,8 +117,135 @@ const weeklyWinners = [
 ];
 
 export default function RDSocial() {
+  const { user } = useAuth();
   const [activeFilter, setActiveFilter] = useState("Todos");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isTikTokOpen, setIsTikTokOpen] = useState(false);
+  const [activeReelIndex, setActiveReelIndex] = useState(0);
+
+  // Comment system state
+  const [openComments, setOpenComments] = useState<Set<number>>(new Set());
+  const [commentText, setCommentText] = useState<Record<number, string>>({});
+  const [commentedPosts, setCommentedPosts] = useState<Set<string>>(new Set());
+  const [postsCommentedToday, setPostsCommentedToday] = useState(0);
+  const [submitting, setSubmitting] = useState<number | null>(null);
+  const DAILY_LIMIT = 3;
+
+  // Load current comment stats on mount
+  const loadCommentStats = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase.rpc("get_my_comment_stats");
+    if (data) {
+      const stats = data as { posts_today: number; total_comments: number };
+      setPostsCommentedToday(stats.posts_today);
+    }
+    // Load which posts the user already commented on today
+    const { data: myComments } = await supabase
+      .from("post_comments")
+      .select("post_id")
+      .eq("user_id", user.id);
+    if (myComments) {
+      setCommentedPosts(new Set(myComments.map((c: { post_id: string }) => c.post_id)));
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadCommentStats();
+  }, [loadCommentStats]);
+
+  const toggleComments = (postId: number) => {
+    setOpenComments(prev => {
+      const next = new Set(prev);
+      if (next.has(postId)) next.delete(postId);
+      else next.add(postId);
+      return next;
+    });
+  };
+
+  const handleComment = async (postId: number) => {
+    const postIdStr = String(postId);
+    const text = (commentText[postId] || "").trim();
+
+    if (!user) {
+      toast.error("Inicia sesión para comentar y ganar puntos");
+      return;
+    }
+    if (text.length < 3) {
+      toast.error("El comentario debe tener al menos 3 caracteres");
+      return;
+    }
+    if (commentedPosts.has(postIdStr)) {
+      toast.error("Ya comentaste en esta publicación");
+      return;
+    }
+    if (postsCommentedToday >= DAILY_LIMIT) {
+      toast.error(`Límite diario alcanzado. Solo puedes comentar en ${DAILY_LIMIT} posts por día.`);
+      return;
+    }
+
+    setSubmitting(postId);
+    try {
+      const { data, error } = await supabase.rpc("post_comment", {
+        p_post_id: postIdStr,
+        p_content: text
+      });
+
+      if (error) throw error;
+
+      const result = data as { success: boolean; error?: string; xp_awarded?: number; coins_awarded?: number; posts_today?: number };
+
+      if (!result.success) {
+        const messages: Record<string, string> = {
+          already_commented: "Ya comentaste en esta publicación",
+          daily_limit_reached: `Límite de ${DAILY_LIMIT} posts por día alcanzado`,
+          content_too_short: "El comentario es muy corto (mínimo 3 caracteres)",
+          not_authenticated: "Debes iniciar sesión para comentar"
+        };
+        toast.error(messages[result.error!] || "No se pudo publicar el comentario");
+        return;
+      }
+
+      // Success
+      setCommentedPosts(prev => new Set([...prev, postIdStr]));
+      setPostsCommentedToday(result.posts_today ?? postsCommentedToday + 1);
+      setCommentText(prev => ({ ...prev, [postId]: "" }));
+      toast.success(`¡Comentario publicado! +${result.xp_awarded} XP +${result.coins_awarded} 🪙`, {
+        description: `${DAILY_LIMIT - (result.posts_today ?? 0)} posts más disponibles hoy`
+      });
+    } catch (err) {
+      console.error("Error posting comment:", err);
+      toast.error("Error al publicar el comentario. Intenta de nuevo.");
+    } finally {
+      setSubmitting(null);
+    }
+  };
+
+  const mockReels = [
+    {
+      id: "r1",
+      videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-caribbean-beach-with-palm-trees-1524-large.mp4",
+      user: "@explorer_rd",
+      desc: "¡Descubriendo una playa secreta en Las Terrenas! El agua está increíble 🌴☀️ #DescubreRD #LasTerrenas #Naturaleza",
+      likes: "14.2k",
+      comments: 540
+    },
+    {
+      id: "r2",
+      videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-diving-in-a-clear-blue-sea-44026-large.mp4",
+      user: "@submarino_dr",
+      desc: "Haciendo buceo libre en las cristalinas aguas de Cayo Arena. ¡Vimos un banco de peces cirujano! 🐠🤿 #Buceo #CayoArena",
+      likes: "9.8k",
+      comments: 320
+    },
+    {
+      id: "r3",
+      videoUrl: "https://assets.mixkit.co/videos/preview/mixkit-driving-on-a-curved-road-surrounded-by-forest-34316-large.mp4",
+      user: "@ruteros_rd",
+      desc: "Cruzando la sinuosa carretera de montaña en Constanza. ¡El clima aquí arriba es un sueño! 🏔️🚗 #Constanza #Roadtrip #Frio",
+      likes: "18.5k",
+      comments: 710
+    }
+  ];
 
   return (
     <PageTransition>
@@ -140,11 +276,11 @@ export default function RDSocial() {
             </p>
             
             <div className="flex flex-wrap justify-center gap-4 mb-8">
-              <Button size="lg" className="gap-2">
-                <Camera className="h-4 w-4" /> Compartir Historia
+              <Button size="lg" className="gap-2" onClick={() => setIsTikTokOpen(true)}>
+                <Play className="h-4 w-4 fill-current" /> Ver TikTok Reels RD
               </Button>
               <Button size="lg" variant="outline" className="gap-2 bg-white/10 border-white/30 text-white hover:bg-white/20">
-                <Play className="h-4 w-4" /> Ver Galería en Vivo
+                <Camera className="h-4 w-4" /> Compartir Historia
               </Button>
             </div>
             
@@ -214,7 +350,16 @@ export default function RDSocial() {
                 >
                   <div className="bg-card rounded-xl border border-border overflow-hidden group hover:shadow-xl transition-shadow">
                     {!post.isText && (
-                      <div className="relative">
+                      <div 
+                        className={`relative ${post.isVideo ? "cursor-pointer" : ""}`}
+                        onClick={() => {
+                          if (post.isVideo) {
+                            setIsTikTokOpen(true);
+                            setActiveReelIndex(0);
+                            toast.info("Abriendo reproductor de Reels verticales");
+                          }
+                        }}
+                      >
                         <img
                           src={post.image}
                           alt={post.caption}
@@ -258,16 +403,111 @@ export default function RDSocial() {
                       <p className="text-sm text-foreground mb-3">{post.caption}</p>
                       
                       <div className="flex items-center gap-4 text-muted-foreground text-sm">
-                        <button className="flex items-center gap-1 hover:text-primary transition-colors">
+                        <button className="flex items-center gap-1 hover:text-rose-500 transition-colors">
                           <Heart className="h-4 w-4" /> {(post.likes / 1000).toFixed(1)}k
                         </button>
-                        <button className="flex items-center gap-1 hover:text-primary transition-colors">
-                          <MessageCircle className="h-4 w-4" /> {post.comments}
+                        <button
+                          onClick={() => toggleComments(post.id)}
+                          className={`flex items-center gap-1 transition-colors ${
+                            commentedPosts.has(String(post.id))
+                              ? "text-primary font-semibold"
+                              : "hover:text-primary"
+                          }`}
+                          title="Comentar y ganar XP"
+                        >
+                          <MessageCircle className="h-4 w-4" />
+                          {post.comments + (commentedPosts.has(String(post.id)) ? 1 : 0)}
+                          {commentedPosts.has(String(post.id)) && (
+                            <CheckCircle2 className="h-3 w-3 text-primary ml-0.5" />
+                          )}
                         </button>
-                        <button className="ml-auto hover:text-primary transition-colors">
+                        <button
+                          className="ml-auto hover:text-primary transition-colors"
+                          title="Compartir publicación"
+                          aria-label="Compartir publicación"
+                          onClick={() => {
+                            navigator.share?.({ url: window.location.href, title: post.caption }) ||
+                            navigator.clipboard.writeText(window.location.href);
+                            toast.success("Enlace copiado");
+                          }}
+                        >
                           <Share2 className="h-4 w-4" />
                         </button>
                       </div>
+
+                      {/* Comment form */}
+                      <AnimatePresence>
+                        {openComments.has(post.id) && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="mt-3 pt-3 border-t border-border space-y-2">
+                              {/* Daily limit indicator */}
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-muted-foreground flex items-center gap-1">
+                                  <Zap className="h-3 w-3 text-amber-500" />
+                                  +15 XP +5🪙 por comentar
+                                </span>
+                                <span className={`font-medium ${
+                                  postsCommentedToday >= DAILY_LIMIT
+                                    ? "text-destructive"
+                                    : "text-muted-foreground"
+                                }`}>
+                                  {postsCommentedToday}/{DAILY_LIMIT} hoy
+                                </span>
+                              </div>
+
+                              {commentedPosts.has(String(post.id)) ? (
+                                <div className="flex items-center gap-2 text-xs text-primary bg-primary/5 rounded-lg px-3 py-2">
+                                  <CheckCircle2 className="h-3.5 w-3.5 flex-shrink-0" />
+                                  Ya comentaste en este post ✓
+                                </div>
+                              ) : postsCommentedToday >= DAILY_LIMIT ? (
+                                <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-500/10 rounded-lg px-3 py-2">
+                                  <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                                  Límite diario alcanzado. Vuelve mañana.
+                                </div>
+                              ) : !user ? (
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted rounded-lg px-3 py-2">
+                                  <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                                  Inicia sesión para comentar y ganar puntos
+                                </div>
+                              ) : (
+                                <div className="flex gap-2">
+                                  <Textarea
+                                    placeholder="Escribe tu comentario..."
+                                    value={commentText[post.id] || ""}
+                                    onChange={e => setCommentText(prev => ({ ...prev, [post.id]: e.target.value }))}
+                                    className="text-sm resize-none min-h-[60px]"
+                                    maxLength={500}
+                                    onKeyDown={e => {
+                                      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                                        handleComment(post.id);
+                                      }
+                                    }}
+                                  />
+                                  <Button
+                                    size="icon"
+                                    onClick={() => handleComment(post.id)}
+                                    disabled={submitting === post.id || !commentText[post.id]?.trim()}
+                                    className="self-end shrink-0"
+                                  >
+                                    {submitting === post.id ? (
+                                      <span className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                      <Send className="h-4 w-4" />
+                                    )}
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
                 </motion.div>
@@ -372,6 +612,102 @@ export default function RDSocial() {
             </div>
           </div>
         </section>
+
+        {/* TikTok Style Reels Viewer */}
+        <AnimatePresence>
+          {isTikTokOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black z-[2000] flex items-center justify-center p-0 md:p-4"
+            >
+              {/* Close Button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsTikTokOpen(false)}
+                className="absolute top-4 right-4 text-white hover:bg-white/10 z-[2010]"
+              >
+                <X className="h-6 w-6" />
+              </Button>
+
+              {/* Reels frame */}
+              <div className="relative w-full max-w-[450px] h-full md:h-[80vh] md:rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 flex flex-col justify-between shadow-2xl">
+                {/* Active Video Player */}
+                <div className="absolute inset-0 z-0">
+                  <video
+                    src={mockReels[activeReelIndex].videoUrl}
+                    className="w-full h-full object-cover"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+                </div>
+
+                {/* Vertical navigation arrows (Side of the screen) */}
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-4 z-10 text-white items-center">
+                  <button
+                    onClick={() => setActiveReelIndex(prev => (prev - 1 + mockReels.length) % mockReels.length)}
+                    className="p-2 bg-black/60 rounded-full hover:bg-black/80 transition"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    onClick={() => setActiveReelIndex(prev => (prev + 1) % mockReels.length)}
+                    className="p-2 bg-black/60 rounded-full hover:bg-black/80 transition"
+                  >
+                    ▼
+                  </button>
+                </div>
+
+                {/* Top Label */}
+                <div className="relative z-10 p-4 flex justify-between items-center text-white">
+                  <Badge className="bg-red-500 text-white font-bold uppercase tracking-wider text-[10px]">
+                    RD Reels
+                  </Badge>
+                  <span className="text-xs text-white/70 font-mono">
+                    {activeReelIndex + 1} / {mockReels.length}
+                  </span>
+                </div>
+
+                {/* Bottom Overlay (Creator info, tags, music) */}
+                <div className="relative z-10 p-6 text-white space-y-3 mt-auto">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center font-bold text-xs">
+                      {mockReels[activeReelIndex].user.charAt(1).toUpperCase()}
+                    </div>
+                    <span className="font-bold text-sm">{mockReels[activeReelIndex].user}</span>
+                    <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-400 border-none text-[9px]">
+                      Creador Local
+                    </Badge>
+                  </div>
+                  
+                  <p className="text-xs text-white/90 leading-relaxed">
+                    {mockReels[activeReelIndex].desc}
+                  </p>
+
+                  <div className="flex gap-4 pt-2 text-xs border-t border-white/10 mt-1">
+                    <button className="flex items-center gap-1.5 hover:text-red-400 transition" onClick={() => toast.success("¡Me gusta registrado!")}>
+                      <Heart className="h-4 w-4" /> {mockReels[activeReelIndex].likes}
+                    </button>
+                    <button className="flex items-center gap-1.5 hover:text-blue-400 transition" onClick={() => toast.info("Comentarios desactivados en la simulación")}>
+                      <MessageCircle className="h-4 w-4" /> {mockReels[activeReelIndex].comments}
+                    </button>
+                    <button className="flex items-center gap-1.5 hover:text-green-400 transition" onClick={() => {
+                      navigator.clipboard.writeText(window.location.href);
+                      toast.success("¡Enlace del reel copiado!");
+                    }}>
+                      <Share2 className="h-4 w-4" /> Compartir
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <Footer />
       </div>

@@ -9,6 +9,7 @@ import { SectionSkeleton } from "@/components/ui/section-skeleton";
 
 // Lazy load below-fold sections
 const InterestSection = lazy(() => import("@/components/InterestSection").then(m => ({ default: m.InterestSection })));
+const GamificationTeaser = lazy(() => import("@/components/GamificationTeaser").then(m => ({ default: m.GamificationTeaser })));
 const EventsSection = lazy(() => import("@/components/EventsSection").then(m => ({ default: m.EventsSection })));
 const RestaurantsBarsSection = lazy(() => import("@/components/RestaurantsBarsSection").then(m => ({ default: m.RestaurantsBarsSection })));
 const AccommodationsSection = lazy(() => import("@/components/AccommodationsSection").then(m => ({ default: m.AccommodationsSection })));
@@ -47,6 +48,10 @@ const Index = () => {
 
         <LazySection name="InterestSection">
           <InterestSection />
+        </LazySection>
+
+        <LazySection name="GamificationTeaser">
+          <GamificationTeaser />
         </LazySection>
 
         <Suspense fallback={null}><BetweenSectionsAd showDemo /></Suspense>

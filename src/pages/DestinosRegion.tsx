@@ -119,7 +119,7 @@ export default function DestinosRegion() {
                     transition={{ delay: index * 0.05 }}
                   >
                     <Link
-                      to={`/destinos/${province.slug}`}
+                      to={`/provincia/${province.slug}`}
                       className="group block relative rounded-xl overflow-hidden aspect-video cursor-pointer"
                     >
                       <img
@@ -158,7 +158,7 @@ export default function DestinosRegion() {
                   transition={{ delay: index * 0.05 }}
                 >
                   <Link
-                    to={`/destinos/${dest.slug}`}
+                    to={`/destino/${dest.slug}`}
                     className="group block relative rounded-2xl overflow-hidden aspect-[4/3] cursor-pointer"
                   >
                     <img

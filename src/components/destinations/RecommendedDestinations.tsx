@@ -37,7 +37,7 @@ export function RecommendedDestinations({ destinations }: RecommendedDestination
         <div className="flex gap-6 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
           {destinations.map((dest, index) => (
             <motion.div key={dest.id} initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.1 }} className="flex-shrink-0 w-[300px]">
-              <Link to={`/destinos/${dest.slug}`} className="block">
+              <Link to={`/destino/${dest.slug}`} className="block">
                 <Card className="overflow-hidden border-border hover:border-primary/50 transition-all hover:shadow-xl cursor-pointer group h-full">
                   <div className="relative aspect-[3/4]">
                     <img src={dest.imageUrl || "/placeholder.svg"} alt={dest.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />

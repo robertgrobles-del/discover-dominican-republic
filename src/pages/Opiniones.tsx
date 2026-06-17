@@ -36,6 +36,8 @@ interface Review {
   title: string;
   content: string;
   images?: string[];
+  videoUrl?: string;
+  video_url?: string;
   helpful_count: number;
   user_id: string;
 }
@@ -121,6 +123,8 @@ function StarRating({ rating, interactive = false, onRate }: { rating: number; i
           onMouseLeave={() => interactive && setHovered(0)}
           onClick={() => interactive && onRate?.(star)}
           className={interactive ? "cursor-pointer" : "cursor-default"}
+          title={`Calificar con ${star} estrellas`}
+          aria-label={`Calificar con ${star} estrellas`}
         >
           <Star
             className={`h-5 w-5 transition-colors ${
@@ -145,7 +149,7 @@ function formatDate(dateString: string) {
   return date.toLocaleDateString('es-DO', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function ReviewCard({ review }: { review: Review }) {
+function ReviewCard({ review, onShare, onReply }: { review: Review, onShare: () => void, onReply: () => void }) {
   const TravelerIcon = travelerTypes.find((t) => t.id === review.traveler_type)?.icon || User;
 
   return (
@@ -212,16 +216,27 @@ function ReviewCard({ review }: { review: Review }) {
         </div>
       )}
 
+      {review.videoUrl && (
+        <div className="mb-4 rounded-xl overflow-hidden max-w-[320px] border border-border">
+          <video src={review.videoUrl} controls className="w-full object-cover h-[180px]" />
+        </div>
+      )}
+      {review.video_url && !review.videoUrl && (
+        <div className="mb-4 rounded-xl overflow-hidden max-w-[320px] border border-border">
+          <video src={review.video_url} controls className="w-full object-cover h-[180px]" />
+        </div>
+      )}
+
       <div className="flex items-center gap-4 pt-4 border-t border-border">
         <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
           <ThumbsUp className="h-4 w-4" />
           Útil ({review.helpful_count})
         </Button>
-        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
+        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={onReply}>
           <MessageSquare className="h-4 w-4" />
           Responder
         </Button>
-        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground ml-auto">
+        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground ml-auto" onClick={onShare}>
           <Share2 className="h-4 w-4" />
         </Button>
       </div>
@@ -239,6 +254,66 @@ export default function Opiniones() {
   const [sortBy, setSortBy] = useState("Más Recientes");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  const [isRecording, setIsRecording] = useState(false);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<any | null>(null);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+      
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+      
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "video/webm" });
+        const url = URL.createObjectURL(blob);
+        setVideoPreviewUrl(url);
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      setMediaStream(stream);
+      setMediaRecorder(recorder);
+      
+      // Assign source stream to video element
+      setTimeout(() => {
+        const videoElement = document.getElementById("camera-preview") as HTMLVideoElement;
+        if (videoElement) {
+          videoElement.srcObject = stream;
+        }
+      }, 300);
+
+      recorder.start();
+      setIsRecording(true);
+      toast({ title: "Grabación Iniciada", description: "La cámara está grabando tu reseña (máx. 8 segundos)." });
+      
+      // Auto-stop after 8 seconds
+      setTimeout(() => {
+        if (recorder.state === "recording") {
+          recorder.stop();
+          setIsRecording(false);
+          toast({ title: "Grabación Completada", description: "Tu video de 8 segundos está listo." });
+        }
+      }, 8000);
+      
+    } catch (err) {
+      console.error(err);
+      toast({ variant: "destructive", title: "Error", description: "No se pudo acceder a la cámara o micrófono." });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      toast({ title: "Grabación Detenida", description: "Tu video se ha procesado con éxito." });
+    }
+  };
   
   // Form state
   const [formData, setFormData] = useState({
@@ -290,7 +365,7 @@ export default function Opiniones() {
 
     setSubmitting(true);
 
-    const { error } = await supabase.from("reviews").insert({
+    const insertPayload: any = {
       user_id: user.id,
       author_name: user.email?.split("@")[0] || "Usuario",
       verified: true,
@@ -300,7 +375,14 @@ export default function Opiniones() {
       category: formData.category,
       title: formData.title,
       content: formData.content,
-    });
+    };
+
+    // If a video review is recorded, save it in the payload (in case column exists)
+    if (videoPreviewUrl) {
+      insertPayload.video_url = videoPreviewUrl;
+    }
+
+    const { error } = await (supabase as any).from("reviews").insert(insertPayload);
 
     if (error) {
       toast({
@@ -313,9 +395,28 @@ export default function Opiniones() {
         title: "¡Gracias!",
         description: "Tu reseña ha sido publicada exitosamente.",
       });
+      
+      // Add locally so video preview plays instantly on screen
+      const localReview: Review = {
+        id: "loc-" + Math.random().toString(36).substring(2, 9),
+        author_name: user.email?.split("@")[0] || "Usuario",
+        verified: true,
+        rating: formData.rating,
+        traveler_type: formData.traveler_type as any,
+        location: formData.location,
+        category: formData.category,
+        title: formData.title,
+        content: formData.content,
+        videoUrl: videoPreviewUrl || undefined,
+        helpful_count: 0,
+        user_id: user.id,
+        created_at: new Date().toISOString()
+      };
+      setReviews(prev => [localReview, ...prev]);
+
       setDialogOpen(false);
       setFormData({ title: "", content: "", rating: 0, traveler_type: "", location: "", category: "" });
-      loadReviews();
+      setVideoPreviewUrl(null);
     }
 
     setSubmitting(false);
@@ -574,6 +675,7 @@ export default function Opiniones() {
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
                     className="bg-card border border-border text-sm font-medium rounded-lg py-2 pl-3 pr-8"
+                    title="Ordenar opiniones por"
                   >
                     {sortOptions.map((opt) => (
                       <option key={opt}>{opt}</option>
@@ -589,7 +691,12 @@ export default function Opiniones() {
               ) : (
                 <div className="space-y-6">
                   {filteredReviews.map((review) => (
-                    <ReviewCard key={review.id} review={review} />
+                    <ReviewCard 
+                      key={review.id} 
+                      review={review}
+                      onReply={() => toast({ title: "Responder", description: "La función de respuestas estará disponible pronto." })}
+                      onShare={() => { navigator.clipboard.writeText(window.location.href); toast({ title: "Enlace copiado", description: "El enlace ha sido copiado al portapapeles." }); }}
+                    />
                   ))}
                 </div>
               )}

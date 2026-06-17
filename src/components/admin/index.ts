@@ -5,3 +5,5 @@ export { AdminAnalytics } from './AdminAnalytics';
 export { AdminImportEstablecimientos } from './AdminImportEstablecimientos';
 export { AdminGamification } from './AdminGamification';
 export { GamificationStats } from './GamificationStats';
+export { AdminUsuarios } from './AdminUsuarios';
+export { AdminOperadores } from './AdminOperadores';

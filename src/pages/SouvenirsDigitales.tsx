@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   Sparkles, Lock, Crown, Star, Gift, ChevronRight,
-  Gem, Eye, Heart, Share2, Filter
+  Gem, Eye, Heart, Share2, Filter, Wallet, ArrowRight, RefreshCw, Layers, Send
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -72,6 +72,20 @@ export default function SouvenirsDigitales() {
   const [rarityFilter, setRarityFilter] = useState("all");
   const [selectedItem, setSelectedItem] = useState<Collectible | null>(null);
 
+  // Web3 Simulation State
+  const [isConnected, setIsConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [walletAddress, setWalletAddress] = useState("");
+  const [simulatedBalance, setSimulatedBalance] = useState(0.45); // ETH
+  const [mintedNfts, setMintedNfts] = useState<string[]>([]); // Array of collectible IDs
+  const [txHistory, setTxHistory] = useState<any[]>([]);
+  const [isMining, setIsMining] = useState(false);
+  const [miningProgress, setMiningProgress] = useState("");
+  const [activeItemForMint, setActiveItemForMint] = useState<Collectible | null>(null);
+  const [transferRecipient, setTransferRecipient] = useState("");
+  const [activeItemForTransfer, setActiveItemForTransfer] = useState<Collectible | null>(null);
+  const [isTransferring, setIsTransferring] = useState(false);
+
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -88,11 +102,145 @@ export default function SouvenirsDigitales() {
           .select("*")
           .eq("user_id", user.id);
         if (uc) setUserCollectibles(uc as UserCollectible[]);
+        
+        // Load Web3 state
+        const localConnected = localStorage.getItem(`wallet_connected_${user.id}`) === "true";
+        setIsConnected(localConnected);
+        if (localConnected) {
+          setWalletAddress(localStorage.getItem(`wallet_address_${user.id}`) || "0x7a2d4...f68b");
+        }
+        
+        const localMinted = localStorage.getItem(`minted_nfts_${user.id}`);
+        if (localMinted) {
+          setMintedNfts(JSON.parse(localMinted));
+        }
+
+        const localHistory = localStorage.getItem(`nft_txs_${user.id}`);
+        if (localHistory) {
+          setTxHistory(JSON.parse(localHistory));
+        }
       }
       setLoading(false);
     };
     load();
   }, [user]);
+
+  const connectWallet = () => {
+    if (!user) {
+      toast.error("Inicia sesión para conectar tu billetera");
+      return;
+    }
+    setIsConnecting(true);
+    setTimeout(() => {
+      const mockAddr = "0x7d2fE" + Math.random().toString(16).substring(2, 10).toUpperCase() + "B52c4";
+      setIsConnected(true);
+      setIsConnecting(false);
+      setWalletAddress(mockAddr);
+      localStorage.setItem(`wallet_connected_${user.id}`, "true");
+      localStorage.setItem(`wallet_address_${user.id}`, mockAddr);
+      toast.success("Billetera Web3 conectada correctamente 🦊");
+      
+      // Add transaction history
+      addTx("Conexión de Billetera", "Billetera", mockAddr, "0x" + Math.random().toString(16).substring(2, 15));
+    }, 1200);
+  };
+
+  const disconnectWallet = () => {
+    if (!user) return;
+    setIsConnected(false);
+    setWalletAddress("");
+    localStorage.removeItem(`wallet_connected_${user.id}`);
+    localStorage.removeItem(`wallet_address_${user.id}`);
+    toast.success("Billetera desconectada");
+  };
+
+  const addTx = (action: string, assetName: string, recipient: string, hash: string) => {
+    if (!user) return;
+    const newTx = {
+      id: Math.random().toString(),
+      action,
+      assetName,
+      recipient,
+      hash,
+      timestamp: new Date().toLocaleString()
+    };
+    setTxHistory(prev => {
+      const updated = [newTx, ...prev];
+      localStorage.setItem(`nft_txs_${user.id}`, JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const startMinting = (item: Collectible) => {
+    if (!isConnected) {
+      toast.error("Por favor, conecta tu billetera primero.");
+      return;
+    }
+    setActiveItemForMint(item);
+    setIsMining(true);
+    setMiningProgress("Calculando costo de gas...");
+    
+    setTimeout(() => {
+      setMiningProgress("Esperando aprobación en billetera...");
+      setTimeout(() => {
+        setMiningProgress("Minando bloque en blockchain (simulado)...");
+        setTimeout(() => {
+          if (user) {
+            const txHash = "0x" + Math.random().toString(16).substring(2, 18) + Math.random().toString(16).substring(2, 18);
+            const updatedMinted = [...mintedNfts, item.id];
+            setMintedNfts(updatedMinted);
+            localStorage.setItem(`minted_nfts_${user.id}`, JSON.stringify(updatedMinted));
+            setSimulatedBalance(prev => Math.max(0, prev - 0.0045)); // deduct gas
+            addTx("Minteado NFT", item.name, walletAddress, txHash);
+            toast.success(`¡${item.name} minteado con éxito como NFT! 🎉`);
+          }
+          setIsMining(false);
+          setActiveItemForMint(null);
+        }, 1500);
+      }, 1000);
+    }, 800);
+  };
+
+  const handleTransfer = async () => {
+    if (!activeItemForTransfer || !transferRecipient) {
+      toast.error("Por favor ingresa un destinatario");
+      return;
+    }
+    setIsTransferring(true);
+    
+    setTimeout(async () => {
+      const item = activeItemForTransfer;
+      const userCol = userCollectibles.find(uc => uc.collectible_id === item.id);
+      
+      if (userCol && user) {
+        // Delete from Supabase
+        const { error } = await supabase.from("user_collectibles").delete().eq("id", userCol.id);
+        if (error) {
+          toast.error("Error al procesar la transferencia en el servidor");
+          setIsTransferring(false);
+          return;
+        }
+        
+        // Update local state
+        setUserCollectibles(prev => prev.filter(u => u.id !== userCol.id));
+        
+        // Remove from minted list if it was there
+        const updatedMinted = mintedNfts.filter(id => id !== item.id);
+        setMintedNfts(updatedMinted);
+        localStorage.setItem(`minted_nfts_${user.id}`, JSON.stringify(updatedMinted));
+        
+        // Add transaction
+        const txHash = "0x" + Math.random().toString(16).substring(2, 18) + Math.random().toString(16).substring(2, 18);
+        addTx("Transferencia NFT", item.name, transferRecipient, txHash);
+        
+        toast.success(`NFT "${item.name}" transferido con éxito a ${transferRecipient}`);
+      }
+      
+      setIsTransferring(false);
+      setActiveItemForTransfer(null);
+      setTransferRecipient("");
+    }, 2000);
+  };
 
   const isOwned = (collectibleId: string) => userCollectibles.some(uc => uc.collectible_id === collectibleId);
   const ownedCount = userCollectibles.length;
@@ -168,21 +316,26 @@ export default function SouvenirsDigitales() {
                   <TabsTrigger value="all">Todos ({totalCount})</TabsTrigger>
                   <TabsTrigger value="owned">Míos ({ownedCount})</TabsTrigger>
                   <TabsTrigger value="locked">Por Desbloquear ({totalCount - ownedCount})</TabsTrigger>
+                  <TabsTrigger value="wallet" className="gap-2">
+                    <Wallet className="h-4 w-4" /> Wallet NFT
+                  </TabsTrigger>
                 </TabsList>
 
-                <div className="flex gap-2 flex-wrap">
-                  {["all", "common", "uncommon", "rare", "epic", "legendary"].map(r => (
-                    <Button
-                      key={r}
-                      variant={rarityFilter === r ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setRarityFilter(r)}
-                      className="text-xs"
-                    >
-                      {r === "all" ? "Todas" : rarityConfig[r]?.label || r}
-                    </Button>
-                  ))}
-                </div>
+                {activeTab !== "wallet" && (
+                  <div className="flex gap-2 flex-wrap">
+                    {["all", "common", "uncommon", "rare", "epic", "legendary"].map(r => (
+                      <Button
+                        key={r}
+                        variant={rarityFilter === r ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setRarityFilter(r)}
+                        className="text-xs"
+                      >
+                        {r === "all" ? "Todas" : rarityConfig[r]?.label || r}
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <TabsContent value={activeTab} className="mt-0">
@@ -289,7 +442,285 @@ export default function SouvenirsDigitales() {
                   </div>
                 )}
               </TabsContent>
+
+              {/* simulated Wallet NFT Tab content */}
+              <TabsContent value="wallet" className="mt-0">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Billetera Info y Conexión */}
+                  <div className="lg:col-span-1 space-y-6">
+                    <Card className="border-border bg-card/70 backdrop-blur-md">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-foreground">
+                          <Wallet className="h-5 w-5 text-primary" />
+                          Billetera Web3
+                        </CardTitle>
+                        <CardDescription>
+                          Vincula tu wallet descentralizada para mintear y transferir souvenirs en blockchain.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {!isConnected ? (
+                          <Button 
+                            className="w-full gap-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold"
+                            onClick={connectWallet}
+                            disabled={isConnecting}
+                          >
+                            {isConnecting ? (
+                              <>
+                                <RefreshCw className="h-4 w-4 animate-spin" />
+                                Conectando...
+                              </>
+                            ) : (
+                              <>
+                                <Wallet className="h-4 w-4" />
+                                Conectar Billetera Web3
+                              </>
+                            )}
+                          </Button>
+                        ) : (
+                          <div className="space-y-4">
+                            <div className="p-3 bg-secondary/30 rounded-lg border border-border">
+                              <p className="text-xs text-muted-foreground font-semibold">Dirección de Wallet</p>
+                              <p className="text-sm font-mono text-foreground select-all break-all">{walletAddress}</p>
+                            </div>
+
+                            <div className="flex justify-between items-center px-1">
+                              <div>
+                                <p className="text-xs text-muted-foreground">Balance Estimado</p>
+                                <p className="text-lg font-bold text-foreground">{simulatedBalance.toFixed(4)} ETH</p>
+                              </div>
+                              <Badge className="bg-primary/20 text-primary border border-primary/30">
+                                Ethereum Mainnet
+                              </Badge>
+                            </div>
+
+                            <Button 
+                              variant="outline" 
+                              className="w-full text-xs text-destructive hover:bg-destructive/15 border-destructive/25"
+                              onClick={disconnectWallet}
+                            >
+                              Desconectar Wallet
+                            </Button>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Historial de Transacciones */}
+                    <Card className="border-border bg-card/70 backdrop-blur-md">
+                      <CardHeader className="py-4">
+                        <CardTitle className="text-sm font-bold flex items-center gap-2">
+                          <Layers className="h-4 w-4 text-primary" />
+                          Historial Blockchain
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="px-4 pb-4">
+                        {txHistory.length === 0 ? (
+                          <p className="text-xs text-muted-foreground text-center py-6">No hay transacciones registradas.</p>
+                        ) : (
+                          <ScrollArea className="h-[220px] pr-2">
+                            <div className="space-y-3">
+                              {txHistory.map(tx => (
+                                <div key={tx.id} className="p-2.5 rounded bg-secondary/25 border border-border/40 text-[11px] space-y-1">
+                                  <div className="flex justify-between items-center font-bold">
+                                    <span className="text-foreground">{tx.action}</span>
+                                    <span className="text-muted-foreground text-[9px]">{tx.timestamp}</span>
+                                  </div>
+                                  <div className="flex justify-between text-muted-foreground">
+                                    <span>Activo: {tx.assetName}</span>
+                                    <span className="truncate max-w-[80px] font-mono">{tx.recipient}</span>
+                                  </div>
+                                  <div className="text-[10px] text-primary hover:underline font-mono truncate cursor-pointer" onClick={() => toast.info(`Tx Hash: ${tx.hash}`)}>
+                                    Tx: {tx.hash}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </ScrollArea>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Inventario de NFTs y Acciones */}
+                  <div className="lg:col-span-2 space-y-6">
+                    <Card className="border-border bg-card/65">
+                      <CardHeader>
+                        <CardTitle className="text-lg font-bold">Mis Coleccionables Acumulados</CardTitle>
+                        <CardDescription>
+                          Solamente tus logros desbloqueados pueden ser minteados y exportados a la blockchain.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        {userCollectibles.length === 0 ? (
+                          <div className="text-center py-12 text-muted-foreground">
+                            <Gem className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                            <p className="text-sm">No tienes coleccionables desbloqueados todavía.</p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {userCollectibles.map(uc => {
+                              const item = collectibles.find(c => c.id === uc.collectible_id);
+                              if (!item) return null;
+                              const isMinted = mintedNfts.includes(item.id);
+                              
+                              return (
+                                <div key={uc.id} className="p-4 rounded-xl border border-border/60 bg-surface flex gap-3 items-center justify-between group hover:border-primary/30 transition-all">
+                                  <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                                      {item.thumbnail_url || item.image_url ? (
+                                        <img src={item.thumbnail_url || item.image_url || ""} alt={item.name} className="w-full h-full object-cover" />
+                                      ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                                          <Gem className="h-5 w-5 text-primary" />
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="font-bold text-sm text-foreground truncate">{item.name}</p>
+                                      <p className="text-[11px] text-muted-foreground truncate">{rarityConfig[item.rarity]?.label}</p>
+                                      {isMinted ? (
+                                        <span className="text-[10px] text-green-500 font-semibold flex items-center gap-0.5 mt-0.5">
+                                          ✓ Minted (NFT)
+                                        </span>
+                                      ) : (
+                                        <span className="text-[10px] text-amber-500 font-semibold flex items-center gap-0.5 mt-0.5">
+                                          Pendiente de Mint
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className="flex gap-1.5 flex-shrink-0">
+                                    {!isMinted ? (
+                                      <Button 
+                                        size="sm" 
+                                        className="h-8 text-xs gap-1.5"
+                                        onClick={() => startMinting(item)}
+                                        disabled={!isConnected || isMining}
+                                      >
+                                        <Sparkles className="h-3.5 w-3.5" />
+                                        Mint NFT
+                                      </Button>
+                                    ) : (
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-8 text-xs gap-1.5 border-primary text-primary hover:bg-primary/10"
+                                        onClick={() => setActiveItemForTransfer(item)}
+                                        disabled={isTransferring}
+                                      >
+                                        <Send className="h-3.5 w-3.5" />
+                                        Transferir
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </TabsContent>
             </Tabs>
+
+            {/* Transfer NFT Modal */}
+            {activeItemForTransfer && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4" onClick={() => { if (!isTransferring) setActiveItemForTransfer(null); }}>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-card rounded-2xl border border-border max-w-md w-full overflow-hidden shadow-2xl p-6"
+                  onClick={e => e.stopPropagation()}
+                >
+                  <h3 className="text-lg font-bold text-foreground mb-2 flex items-center gap-2">
+                    <Send className="h-5 w-5 text-primary" />
+                    Transferir Souvenir NFT
+                  </h3>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Transfiere "{activeItemForTransfer.name}" a otra billetera o usuario de la red. Esta acción es irreversible y removerá el souvenir de tu colección local.
+                  </p>
+
+                  <div className="space-y-4 mb-6">
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground">Dirección o Usuario Destinatario</label>
+                      <Input 
+                        placeholder="Dirección 0x... o nombre de usuario" 
+                        value={transferRecipient}
+                        onChange={(e) => setTransferRecipient(e.target.value)}
+                        disabled={isTransferring}
+                        className="mt-1"
+                      />
+                    </div>
+
+                    <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-[11px] text-yellow-600 dark:text-yellow-400">
+                      ⚠️ <strong>Aviso Importante:</strong> Una vez transferido, perderás los puntos de experiencia (XP) asociados con este logro en la plataforma.
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setActiveItemForTransfer(null)}
+                      disabled={isTransferring}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      onClick={handleTransfer}
+                      disabled={isTransferring || !transferRecipient}
+                      className="gap-2"
+                    >
+                      {isTransferring ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                          Procesando...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-4 w-4" />
+                          Confirmar Transferencia
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+
+            {/* Blockchain Mining Progress overlay */}
+            {isMining && activeItemForMint && (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/90 backdrop-blur-md p-4">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-card rounded-2xl border border-border p-8 max-w-sm w-full text-center space-y-6 shadow-2xl"
+                >
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto animate-pulse">
+                    <RefreshCw className="h-8 w-8 text-primary animate-spin" />
+                  </div>
+                  <div className="space-y-2">
+                    <h4 className="font-bold text-foreground text-lg">Minando Transacción</h4>
+                    <p className="text-xs text-primary font-semibold">{miningProgress}</p>
+                    <p className="text-xs text-muted-foreground font-mono truncate">Logro: {activeItemForMint.name}</p>
+                  </div>
+                  <div className="w-full bg-secondary h-1.5 rounded-full overflow-hidden">
+                    <motion.div 
+                      className="bg-primary h-full rounded-full"
+                      initial={{ width: "10%" }}
+                      animate={{ 
+                        width: miningProgress.includes("confirmación") ? "90%" : 
+                               miningProgress.includes("blockchain") ? "60%" : "30%" 
+                      }}
+                      transition={{ duration: 1 }}
+                    />
+                  </div>
+                </motion.div>
+              </div>
+            )}
           </div>
         </section>
 

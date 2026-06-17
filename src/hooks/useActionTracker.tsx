@@ -1,10 +1,10 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAchievementChecker } from "@/hooks/useAchievementChecker";
 import { toast } from "sonner";
 
-export type ActionType = 
+export type ActionType =
   | "page_visit"
   | "destination_view"
   | "add_favorite"
@@ -16,7 +16,10 @@ export type ActionType =
   | "complete_quiz"
   | "refer_friend"
   | "passport_stamp"
-  | "route_checkpoint";
+  | "route_checkpoint"
+  | "article_read"       // NEW: mejora #2 - XP por lectura
+  | "early_bird"         // NEW: mejora #3 - Early Bird
+  | "session_explorer";  // NEW: mejora #4 - 5+ páginas en sesión
 
 interface TrackActionOptions {
   actionType: ActionType;
@@ -27,11 +30,15 @@ interface TrackActionOptions {
 export function useActionTracker() {
   const { user } = useAuth();
   const { checkAchievements } = useAchievementChecker();
+  // Track page depth per session
+  const sessionPagesRef = useRef<number>(
+    parseInt(sessionStorage.getItem("session_pages") || "0")
+  );
 
-  const trackAction = useCallback(async ({ 
-    actionType, 
+  const trackAction = useCallback(async ({
+    actionType,
     metadata = {},
-    skipNotification = false 
+    skipNotification = false
   }: TrackActionOptions) => {
     try {
       // Log analytics event (works for all users)
@@ -40,6 +47,16 @@ export function useActionTracker() {
         sessionStorage.setItem("session_id", newId);
         return newId;
       })();
+
+      // Track page depth for session_explorer bonus (#4)
+      if (actionType === "page_visit") {
+        sessionPagesRef.current += 1;
+        sessionStorage.setItem("session_pages", String(sessionPagesRef.current));
+        // Trigger session explorer bonus at 5 pages
+        if (sessionPagesRef.current === 5 && user) {
+          await trackAction({ actionType: "session_explorer", skipNotification: true });
+        }
+      }
 
       await supabase.from("analytics_events").insert([{
         event_type: actionType,
@@ -97,62 +114,76 @@ export function useActionTracker() {
 
         // Award XP and coins if completed
         if (isCompleted) {
-          // Get current gamification stats
+          // Get previous gamification level
           const { data: gamification } = await supabase
             .from("user_gamification")
-            .select("*")
+            .select("current_level, streak_days")
             .eq("user_id", user.id)
             .single();
 
-          if (gamification) {
-            const newXp = gamification.total_xp + mission.xp_reward;
-            const newCoins = gamification.coins + mission.coin_reward;
+          const prevLevel = gamification?.current_level || 1;
+          const streak = gamification?.streak_days || 0;
 
-            // Check for level up
-            const { data: levels } = await supabase
-              .from("gamification_levels")
-              .select("*")
-              .order("level_number", { ascending: true });
+          // Apply streak multiplier (#1)
+          const multiplier = streak >= 30 ? 2.0 : streak >= 14 ? 1.75 : streak >= 7 ? 1.5 : streak >= 3 ? 1.25 : 1.0;
+          const finalXp = Math.round(mission.xp_reward * multiplier);
 
-            const newLevel = levels?.reduce((lvl, l) => {
-              if (newXp >= l.xp_required && l.level_number > lvl) return l.level_number;
-              return lvl;
-            }, gamification.current_level) || gamification.current_level;
+          // Call secure RPC to award user XP and Log transactions
+          const { error } = await supabase.rpc("award_user_xp", {
+            xp_to_award: finalXp,
+            coins_to_award: mission.coin_reward,
+            xp_description: `Misión completada: ${mission.name}`,
+            source_type: "mission",
+            source_id: mission.id
+          });
 
-            await supabase
-              .from("user_gamification")
-              .update({
-                total_xp: newXp,
-                coins: newCoins,
-                current_level: newLevel,
-                total_missions_completed: gamification.total_missions_completed + 1,
-                last_activity_date: new Date().toISOString().split('T')[0]
-              })
-              .eq("user_id", user.id);
+          if (error) {
+            console.error("Error awarding XP via RPC:", error);
+            continue;
+          }
 
-            // Log transaction
-            await supabase.from("gamification_transactions").insert({
-              user_id: user.id,
-              transaction_type: "earn",
-              xp_amount: mission.xp_reward,
-              coin_amount: mission.coin_reward,
-              description: `Misión completada: ${mission.name}`,
-              source_type: "mission",
-              source_id: mission.id
+          // Check XP milestones after award (#10)
+          supabase.rpc("check_xp_milestones" as any).then(({ data: milestones }) => {
+            if (milestones && Array.isArray(milestones) && milestones.length > 0) {
+              (milestones as Array<{ badge_icon: string; badge_name: string; xp_threshold: number; coins: number }>)
+                .forEach((m) => {
+                  toast.success(`${m.badge_icon} ¡Hito XP: ${m.badge_name}!`, {
+                    description: `Alcanzaste ${m.xp_threshold.toLocaleString()} XP • +${m.coins} monedas`
+                  });
+                });
+            }
+          });
+
+          // Check streak bonus (#7)
+          supabase.rpc("check_and_award_streak_bonus" as any).then(({ data }) => {
+            const bonus = data as { success?: boolean; xp_awarded?: number; streak?: number } | null;
+            if (bonus?.success && bonus.xp_awarded) {
+              toast.success(`🔥 ¡Bono de racha de ${bonus.streak} días!`, {
+                description: `+${bonus.xp_awarded} XP de recompensa`
+              });
+            }
+          });
+
+          // Fetch new gamification profile to check level up
+          const { data: newGamification } = await supabase
+            .from("user_gamification")
+            .select("current_level")
+            .eq("user_id", user.id)
+            .single();
+
+          const newLevel = newGamification?.current_level || prevLevel;
+
+          // Notifications
+          if (!skipNotification) {
+            const multiplierText = multiplier > 1 ? ` (×${multiplier} por racha)` : "";
+            toast.success(`🎯 ¡Misión completada: ${mission.name}!`, {
+              description: `+${finalXp} XP${multiplierText}, +${mission.coin_reward} monedas`
             });
 
-            // Notifications
-            if (!skipNotification) {
-              toast.success(`🎯 ¡Misión completada: ${mission.name}!`, {
-                description: `+${mission.xp_reward} XP, +${mission.coin_reward} monedas`
+            if (newLevel > prevLevel) {
+              toast.success(`🎉 ¡Subiste al nivel ${newLevel}!`, {
+                description: "¡Sigue explorando para ganar más beneficios!"
               });
-
-              if (newLevel > gamification.current_level) {
-                const levelInfo = levels?.find(l => l.level_number === newLevel);
-                toast.success(`🎉 ¡Subiste al nivel ${newLevel}!`, {
-                  description: levelInfo?.title
-                });
-              }
             }
           }
         }
@@ -167,66 +198,57 @@ export function useActionTracker() {
     }
   }, [user, checkAchievements]);
 
+  /**
+   * Daily check-in with Early Bird bonus (#3)
+   */
   const trackDailyCheckin = useCallback(async () => {
     if (!user) return false;
 
     try {
-      const { data: gamification } = await supabase
-        .from("user_gamification")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
+      const { data, error } = await supabase.rpc("perform_daily_checkin");
+      if (error) {
+        console.error("Error doing check-in RPC:", error);
+        return false;
+      }
 
-      if (!gamification) return false;
-
-      const today = new Date().toISOString().split('T')[0];
-      const lastActivity = gamification.last_activity_date;
-
-      // Already checked in today
-      if (lastActivity === today) return false;
-
-      // Calculate streak
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split('T')[0];
-
-      const newStreak = lastActivity === yesterdayStr 
-        ? gamification.streak_days + 1 
-        : 1;
-
-      // Award daily bonus
-      const xpBonus = 10 + (newStreak * 2);
-      const coinBonus = 5 + newStreak;
-
-      await supabase
-        .from("user_gamification")
-        .update({
-          total_xp: gamification.total_xp + xpBonus,
-          coins: gamification.coins + coinBonus,
-          streak_days: newStreak,
-          last_activity_date: today
-        })
-        .eq("user_id", user.id);
-
-      await supabase.from("gamification_transactions").insert({
-        user_id: user.id,
-        transaction_type: "earn",
-        xp_amount: xpBonus,
-        coin_amount: coinBonus,
-        description: `Check-in diario (racha: ${newStreak} días)`,
-        source_type: "daily_checkin"
-      });
+      const result = data as { success: boolean; xp_awarded?: number; coins_awarded?: number; streak_days?: number };
+      if (!result.success) {
+        // Already checked in today
+        return false;
+      }
 
       // Track action for missions
-      await trackAction({ 
+      await trackAction({
         actionType: "daily_checkin",
-        metadata: { streak: newStreak },
+        metadata: { streak: result.streak_days },
         skipNotification: true
       });
 
+      const streak = result.streak_days || 0;
+      const multiplier = streak >= 30 ? 2.0 : streak >= 14 ? 1.75 : streak >= 7 ? 1.5 : streak >= 3 ? 1.25 : 1.0;
+      const multiplierText = multiplier > 1 ? ` • ×${multiplier} multiplicador activo` : "";
+
       toast.success(`🔥 ¡Check-in diario!`, {
-        description: `Racha: ${newStreak} días • +${xpBonus} XP, +${coinBonus} monedas`
+        description: `Racha: ${streak} días • +${result.xp_awarded} XP, +${result.coins_awarded} monedas${multiplierText}`
       });
+
+      // Try Early Bird bonus (#3)
+      const { data: earlyBird } = await supabase.rpc("perform_early_bird_bonus" as any);
+      const eb = earlyBird as { success?: boolean; xp_awarded?: number } | null;
+      if (eb?.success) {
+        toast.success("🐦 ¡Bono Madrugador!", {
+          description: `+${eb.xp_awarded} XP por conectarte antes de las 9am`
+        });
+      }
+
+      // Check streak bonus (#7)
+      const { data: streakBonus } = await supabase.rpc("check_and_award_streak_bonus" as any);
+      const sb = streakBonus as { success?: boolean; xp_awarded?: number; streak?: number } | null;
+      if (sb?.success && sb.xp_awarded) {
+        toast.success(`🎊 ¡Bono de racha de ${sb.streak} días!`, {
+          description: `+${sb.xp_awarded} XP de recompensa especial`
+        });
+      }
 
       return true;
     } catch (error) {
@@ -235,8 +257,52 @@ export function useActionTracker() {
     }
   }, [user, trackAction]);
 
+  /**
+   * Track article reading time (#2 - XP por lectura)
+   * Call when user has spent >2min on an article
+   */
+  const trackArticleRead = useCallback(async (articleId: string, timeSpentSecs: number) => {
+    if (!user || timeSpentSecs < 120) return; // Min 2 minutes
+
+    const flagKey = `article_read_${articleId}`;
+    if (sessionStorage.getItem(flagKey)) return; // Already tracked this session
+    sessionStorage.setItem(flagKey, "1");
+
+    await trackAction({
+      actionType: "article_read",
+      metadata: { article_id: articleId, time_spent_secs: timeSpentSecs },
+      skipNotification: false
+    });
+  }, [user, trackAction]);
+
+  /**
+   * Track share action with dedup (max 3/day) (#8)
+   */
+  const trackShare = useCallback(async (contentType: string, contentId: string) => {
+    if (!user) return;
+
+    const today = new Date().toDateString();
+    const countKey = `shares_today_${today}`;
+    const count = parseInt(sessionStorage.getItem(countKey) || "0");
+
+    if (count >= 3) {
+      toast.info("Máximo 3 compartidos con XP por día alcanzados");
+      return;
+    }
+
+    sessionStorage.setItem(countKey, String(count + 1));
+
+    await trackAction({
+      actionType: "share_content",
+      metadata: { content_type: contentType, content_id: contentId },
+      skipNotification: false
+    });
+  }, [user, trackAction]);
+
   return {
     trackAction,
-    trackDailyCheckin
+    trackDailyCheckin,
+    trackArticleRead,
+    trackShare,
   };
 }

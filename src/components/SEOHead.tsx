@@ -14,7 +14,7 @@ export function SEOHead({
   title,
   description,
   keywords,
-  image = "https://id-preview--55c187f0-4b9c-49ff-a94c-aeab8c02e18c.lovable.app/og-image.jpg",
+  image = "https://descubrerd.com/og-image.jpg",
   url,
   type = "website",
   jsonLd,
@@ -46,15 +46,23 @@ export function SEOHead({
     updateMeta("og:title", fullTitle, true);
     updateMeta("og:description", description, true);
     updateMeta("og:image", image, true);
+    updateMeta("og:image:secure_url", image, true);
+    updateMeta("og:image:width", "1200", true);
+    updateMeta("og:image:height", "630", true);
+    updateMeta("og:image:type", "image/jpeg", true);
+    updateMeta("og:image:alt", description.slice(0, 100), true);
     updateMeta("og:url", currentUrl, true);
     updateMeta("og:type", type, true);
     updateMeta("og:site_name", "Descubre República Dominicana", true);
 
     // Twitter Card
     updateMeta("twitter:card", "summary_large_image");
+    updateMeta("twitter:site", "@DescubreRD");
+    updateMeta("twitter:creator", "@DescubreRD");
     updateMeta("twitter:title", fullTitle);
     updateMeta("twitter:description", description);
     updateMeta("twitter:image", image);
+    updateMeta("twitter:image:alt", description.slice(0, 100));
 
     // Update or create canonical link
     let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
@@ -91,11 +99,22 @@ export function SEOHead({
 export function generateOrganizationSchema() {
   return {
     "@context": "https://schema.org",
-    "@type": "TouristDestination",
+    "@type": ["Organization", "TourismBusiness"],
     name: "Descubre República Dominicana",
     description: "Portal oficial de turismo de República Dominicana",
     url: "https://descubrerd.com",
-    logo: "https://id-preview--55c187f0-4b9c-49ff-a94c-aeab8c02e18c.lovable.app/logo.png",
+    logo: {
+      "@type": "ImageObject",
+      url: "https://descubrerd.com/logo.png",
+      width: 200,
+      height: 60,
+    },
+    image: "https://descubrerd.com/og-image.jpg",
+    areaServed: {
+      "@type": "Country",
+      name: "República Dominicana",
+      addressCountry: "DO",
+    },
     sameAs: [
       "https://facebook.com/descubrerd",
       "https://instagram.com/descubrerd",

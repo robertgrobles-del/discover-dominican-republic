@@ -36,7 +36,7 @@ export function Footer() {
         { name: t("footer.tourOperators"), href: "/directorio-agencias" },
         { name: t("footer.localGuides"), href: "/guias-locales" },
         { name: t("footer.pressKit"), href: "/prensa" },
-        { name: t("footer.affiliateProgram"), href: "/partners" },
+        { name: t("footer.affiliateProgram"), href: "/afiliados" },
         { name: t("footer.ambassadors"), href: "/embajadores" },
       ],
     },

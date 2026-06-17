@@ -68,6 +68,7 @@ const Compras = lazy(() => import("./pages/Compras"));
 const Accesibilidad = lazy(() => import("./pages/Accesibilidad"));
 const RDSocial = lazy(() => import("./pages/RDSocial"));
 const Empleo = lazy(() => import("./pages/Empleo"));
+const EmpleoDetalle = lazy(() => import("./pages/EmpleoDetalle"));
 const PasaporteDigital = lazy(() => import("./pages/PasaporteDigital"));
 const CineRD = lazy(() => import("./pages/CineRD"));
 const AcademiaTuristica = lazy(() => import("./pages/AcademiaTuristica"));
@@ -172,7 +173,7 @@ const ZonasHorarias = lazy(() => import("./pages/ZonasHorarias"));
 const RequisitosViaje = lazy(() => import("./pages/RequisitosViaje"));
 const ContactosEmergencia = lazy(() => import("./pages/ContactosEmergencia"));
 const EscuelaViajero = lazy(() => import("./pages/EscuelaViajero"));
-const EmpleoDetalle = lazy(() => import("./pages/EmpleoDetalle"));
+const ActividadDetalle = lazy(() => import("./pages/ActividadDetalle"));
 const Tours = lazy(() => import("./pages/Tours"));
 const TourDetalle = lazy(() => import("./pages/TourDetalle"));
 const HistoriaRD = lazy(() => import("./pages/HistoriaRD"));
@@ -198,6 +199,9 @@ const ItinerariosRecomendados = lazy(() => import("./pages/ItinerariosRecomendad
 const GuiaLGBTQ = lazy(() => import("./pages/GuiaLGBTQ"));
 const ViajeraSola = lazy(() => import("./pages/ViajeraSola"));
 const GuiaVegana = lazy(() => import("./pages/GuiaVegana"));
+const ProgramaCreadores = lazy(() => import("./pages/ProgramaCreadores"));
+const ConcursosFotografia = lazy(() => import("./pages/ConcursosFotografia"));
+const DiarioViaje = lazy(() => import("./pages/DiarioViaje"));
 const FamiliaConNinos = lazy(() => import("./pages/FamiliaConNinos"));
 const CalendarioMensual = lazy(() => import("./pages/CalendarioMensual"));
 const VuelveACasa = lazy(() => import("./pages/VuelveACasa"));
@@ -207,7 +211,9 @@ const GuiaHalalKosher = lazy(() => import("./pages/GuiaHalalKosher"));
 const ViajarConMascotas = lazy(() => import("./pages/ViajarConMascotas"));
 const ViajerosSenior = lazy(() => import("./pages/ViajerosSenior"));
 const GamificacionHub = lazy(() => import("./pages/GamificacionHub"));
+const GamificacionTuristica = lazy(() => import("./pages/GamificacionTuristica"));
 const PerfilJugador = lazy(() => import("./pages/PerfilJugador"));
+const ExplorerProfile = lazy(() => import("./pages/ExplorerProfile"));
 const RetosTuristicos = lazy(() => import("./pages/RetosTuristicos"));
 const TriviaTuristica = lazy(() => import("./pages/TriviaTuristica"));
 const MapaMisiones = lazy(() => import("./pages/MapaMisiones"));
@@ -218,6 +224,18 @@ const MetroSantoDomingo = lazy(() => import("./pages/MetroSantoDomingo"));
 const TelefericoSantoDomingo = lazy(() => import("./pages/TelefericoSantoDomingo"));
 const MonorielSantiago = lazy(() => import("./pages/MonorielSantiago"));
 const CentroComercialDetalle = lazy(() => import("./pages/CentroComercialDetalle"));
+const PartnerLogin = lazy(() => import("./pages/PartnerLogin"));
+const PartnerDashboard = lazy(() => import("./pages/PartnerDashboard"));
+const SuscripcionesSabores = lazy(() => import("./pages/SuscripcionesSabores"));
+const TarjetaPrepago = lazy(() => import("./pages/TarjetaPrepago"));
+const ESimTurista = lazy(() => import("./pages/ESimTurista"));
+const EventosVivo = lazy(() => import("./pages/EventosVivo"));
+const LIDOM = lazy(() => import("./pages/LIDOM"));
+const BebidasRD = lazy(() => import("./pages/BebidasRD"));
+const ViveLocal = lazy(() => import("./pages/ViveLocal"));
+const Salud24h = lazy(() => import("./pages/Salud24h"));
+const MICEBodas = lazy(() => import("./pages/MICEBodas"));
+const EventosGrupo = lazy(() => import("./pages/EventosGrupo"));
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
 const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
@@ -355,9 +373,13 @@ function AnimatedRoutes() {
           <Route path="/turismo-deportivo" element={<TurismoDeportivo />} />
           <Route path="/club-recompensas" element={<ClubRecompensas />} />
           <Route path="/gamificacion" element={<GamificacionHub />} />
+          <Route path="/gamificacion-turistica" element={<GamificacionTuristica />} />
           <Route path="/perfil-jugador" element={<PerfilJugador />} />
+          <Route path="/explorador/:id" element={<ExplorerProfile />} />
           <Route path="/retos" element={<RetosTuristicos />} />
+          <Route path="/retos-turisticos" element={<RetosTuristicos />} />
           <Route path="/trivia" element={<TriviaTuristica />} />
+          <Route path="/trivia-turistica" element={<TriviaTuristica />} />
           <Route path="/mapa-misiones" element={<MapaMisiones />} />
           <Route path="/comparador" element={<ComparadorDestinos />} />
           <Route path="/mis-logros" element={<MisLogros />} />
@@ -452,7 +474,9 @@ function AnimatedRoutes() {
           <Route path="/escuela-viajero" element={<EscuelaViajero />} />
           <Route path="/tours" element={<Tours />} />
           <Route path="/tour/:slug" element={<TourDetalle />} />
+          <Route path="/actividad/:slug" element={<ActividadDetalle />} />
           <Route path="/historia" element={<HistoriaRD />} />
+          <Route path="/historia-rd" element={<HistoriaRD />} />
           <Route path="/historia/personaje/:slug" element={<PersonajeHistorico />} />
           <Route path="/historia/evento/:slug" element={<EventoHistorico />} />
           <Route path="/loteria" element={<Loteria />} />
@@ -473,6 +497,7 @@ function AnimatedRoutes() {
           <Route path="/viajera-sola" element={<ViajeraSola />} />
           <Route path="/guia-vegana" element={<GuiaVegana />} />
           <Route path="/familia" element={<FamiliaConNinos />} />
+          <Route path="/familia-con-ninos" element={<FamiliaConNinos />} />
           <Route path="/calendario" element={<CalendarioMensual />} />
           <Route path="/vuelve-a-casa" element={<VuelveACasa />} />
           <Route path="/aduanas" element={<AduanasDutyFree />} />
@@ -541,6 +566,21 @@ function AnimatedRoutes() {
           <Route path="/establecimientos" element={<Establecimientos />} />
           <Route path="/reservas" element={<Reservas />} />
           <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/creadores" element={<ProgramaCreadores />} />
+          <Route path="/concursos" element={<ConcursosFotografia />} />
+          <Route path="/diario-viaje" element={<DiarioViaje />} />
+          <Route path="/partner/login" element={<PartnerLogin />} />
+          <Route path="/partner/dashboard" element={<PartnerDashboard />} />
+          <Route path="/suscripciones-sabores" element={<SuscripcionesSabores />} />
+          <Route path="/tarjeta-prepago" element={<TarjetaPrepago />} />
+          <Route path="/esim" element={<ESimTurista />} />
+          <Route path="/eventos-vivo" element={<EventosVivo />} />
+          <Route path="/lidom" element={<LIDOM />} />
+          <Route path="/bebidas-rd" element={<BebidasRD />} />
+          <Route path="/vive-local" element={<ViveLocal />} />
+          <Route path="/salud-24h" element={<Salud24h />} />
+          <Route path="/mice-bodas" element={<MICEBodas />} />
+          <Route path="/eventos-grupo" element={<EventosGrupo />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

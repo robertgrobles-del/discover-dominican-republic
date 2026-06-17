@@ -68,6 +68,7 @@ export const pt: Record<string, string> = {
   "interest.adventure": "Aventura",
   "interest.beaches": "Praias",
   "interest.history": "História",
+  "interest.heritage": "Patrimônio",
   "interest.gastronomy": "Gastronomia",
   "interest.diving": "Mergulho",
   "interest.wellness": "Bem-estar",

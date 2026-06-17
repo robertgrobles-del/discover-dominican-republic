@@ -134,7 +134,7 @@ export default function DestinosCategoria() {
                   transition={{ delay: index * 0.05 }}
                 >
                   <Link
-                    to={`/destinos/${dest.slug}`}
+                    to={`/destino/${dest.slug}`}
                     className="group block relative rounded-2xl overflow-hidden aspect-[4/3] cursor-pointer"
                   >
                     <img

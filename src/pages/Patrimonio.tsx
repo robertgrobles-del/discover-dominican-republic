@@ -116,7 +116,7 @@ export default function Patrimonio() {
               DESTACADO DEL MES
             </Badge>
             <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-4 italic">
-              Guardianes de la Historia
+              Guardianes del Patrimonio
             </h1>
             <p className="text-lg text-white/80 max-w-xl mb-6">
               Un recorrido inmersivo por la arquitectura y memoria dominicana. Descubre los secretos de la Ciudad Colonial a través de realidad aumentada.

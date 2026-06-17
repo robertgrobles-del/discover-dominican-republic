@@ -35,7 +35,7 @@ export function ProvincesGrid({ provinces }: ProvincesGridProps) {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {provinces.slice(0, 15).map((province, index) => (
             <motion.div key={province.id} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.05 }}>
-              <Link to={`/destinos/${province.slug}`} className="group block bg-card rounded-xl border border-border overflow-hidden hover:border-primary/50 hover:shadow-lg transition-all cursor-pointer">
+              <Link to={`/provincia/${province.slug}`} className="group block bg-card rounded-xl border border-border overflow-hidden hover:border-primary/50 hover:shadow-lg transition-all cursor-pointer">
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img src={province.imageUrl || "/placeholder.svg"} alt={province.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />
                   {province.region && (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -69,7 +69,12 @@ export default function HistoriaRD() {
   const { data: events, isLoading: loadingEvents } = useHistoricalEvents();
   const [activeTab, setActiveTab] = useState("timeline");
 
-  const featuredFigures = figures?.filter((f) => f.is_featured) || [];
+  // Pick 5 random figures from ALL figures (stable during session)
+  const randomFigures = useMemo(() => {
+    if (!figures || figures.length === 0) return [];
+    const shuffled = [...figures].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 5);
+  }, [figures]);
 
   return (
     <PageTransition>
@@ -102,17 +107,19 @@ export default function HistoriaRD() {
         </section>
 
         {/* Featured Figures */}
-        {featuredFigures.length > 0 && (
+        {randomFigures.length > 0 && (
           <section className="container mx-auto px-4 py-12">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 flex items-center gap-2">
-              <Crown className="h-6 w-6 text-primary" /> Figuras Destacadas
+            <h2 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
+              <Crown className="h-6 w-6 text-primary" /> Personajes Destacados
             </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredFigures.map((figure, i) => (
+            {/* Single-row horizontal scroll */}
+            <div className="flex gap-5 overflow-x-auto pb-3 no-scrollbar">
+              {randomFigures.map((figure, i) => (
                 <Link key={figure.id} to={`/historia/personaje/${figure.slug}`}
-                  className="animate-fade-in" style={{ animationDelay: `${i * 80}ms` }}>
-                  <div className="bg-card rounded-2xl border border-border overflow-hidden group hover:border-primary/30 transition-all hover:shadow-lg">
-                    <div className="relative h-48 overflow-hidden">
+                  className="animate-fade-in flex-shrink-0 w-[220px] md:w-[240px]"
+                  style={{ animationDelay: `${i * 80}ms` }}>
+                  <div className="bg-card rounded-2xl border border-border overflow-hidden group hover:border-primary/30 transition-all hover:shadow-lg h-full">
+                    <div className="relative h-44 overflow-hidden">
                       <LazyImage
                         src={figure.image_url || "/placeholder.svg"}
                         alt={figure.name}
@@ -126,13 +133,13 @@ export default function HistoriaRD() {
                         </Badge>
                       )}
                     </div>
-                    <div className="p-5">
+                    <div className="p-4">
                       <p className="text-xs text-primary font-semibold uppercase tracking-wider mb-1">{figure.title}</p>
-                      <h3 className="font-display font-bold text-lg text-foreground group-hover:text-primary transition-colors">
+                      <h3 className="font-display font-bold text-base text-foreground group-hover:text-primary transition-colors">
                         {figure.name}
                       </h3>
-                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{figure.short_description}</p>
-                      <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+                      <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">{figure.short_description}</p>
+                      <div className="flex items-center gap-1.5 mt-3 text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3" />
                         <span>{figure.birth_date}</span>
                         {figure.death_date && (

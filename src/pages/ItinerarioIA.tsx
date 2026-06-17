@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
@@ -53,6 +53,20 @@ export default function ItinerarioIA() {
     notas: ""
   });
 
+  // Load persisted itinerary on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("descubre_rd_last_itinerary");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setItinerary(parsed);
+        setStep(3);
+      } catch (e) {
+        console.error("Error loading persisted itinerary:", e);
+      }
+    }
+  }, []);
+
   const toggleInteres = (id: string) => {
     setFormData(prev => ({
       ...prev,
@@ -67,7 +81,7 @@ export default function ItinerarioIA() {
     // Simular generación de IA
     await new Promise(resolve => setTimeout(resolve, 3000));
     
-    setItinerary({
+    const generatedData = {
       titulo: "Tu Aventura en República Dominicana",
       dias: [
         {
@@ -105,7 +119,10 @@ export default function ItinerarioIA() {
         distanciaTotal: "245 km",
         actividadesIncluidas: 12,
       }
-    });
+    };
+    
+    setItinerary(generatedData);
+    localStorage.setItem("descubre_rd_last_itinerary", JSON.stringify(generatedData));
     setIsGenerating(false);
     setStep(3);
   };
@@ -441,7 +458,11 @@ export default function ItinerarioIA() {
 
                 {/* Actions */}
                 <div className="mt-8 flex justify-center gap-4">
-                  <Button variant="outline" onClick={() => setStep(1)}>
+                  <Button variant="outline" onClick={() => {
+                    localStorage.removeItem("descubre_rd_last_itinerary");
+                    setItinerary(null);
+                    setStep(1);
+                  }}>
                     Crear otro itinerario
                   </Button>
                   <Button onClick={() => generateItinerary()}>

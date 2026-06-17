@@ -150,32 +150,18 @@ export default function TriviaTuristica() {
         max_streak: maxStreak,
       });
 
-      // Award XP via gamification
+      // Award XP via secure RPC (no direct client writes to gamification tables)
       if (totalXpEarned > 0) {
-        const { data: gamification } = await supabase
-          .from("user_gamification")
-          .select("*")
-          .eq("user_id", user.id)
-          .single();
+        const { error: rpcError } = await supabase.rpc("award_user_xp", {
+          xp_to_award: totalXpEarned,
+          coins_to_award: Math.round(totalXpEarned / 2),
+          xp_description: `Trivia completada: ${correctCount}/${questions.length} correctas`,
+          source_type: "trivia",
+          source_id: null,
+        });
 
-        if (gamification) {
-          await supabase
-            .from("user_gamification")
-            .update({
-              total_xp: gamification.total_xp + totalXpEarned,
-              coins: gamification.coins + Math.round(totalXpEarned / 2),
-              last_activity_date: new Date().toISOString().split("T")[0],
-            })
-            .eq("user_id", user.id);
-
-          await supabase.from("gamification_transactions").insert({
-            user_id: user.id,
-            transaction_type: "earn",
-            xp_amount: totalXpEarned,
-            coin_amount: Math.round(totalXpEarned / 2),
-            description: `Trivia completada: ${correctCount}/${questions.length} correctas`,
-            source_type: "trivia",
-          });
+        if (rpcError) {
+          console.error("Error awarding trivia XP via RPC:", rpcError);
         }
 
         // Track for missions

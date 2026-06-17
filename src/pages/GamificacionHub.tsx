@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -18,6 +18,15 @@ import { useGamification } from "@/hooks/useGamification";
 import { useAuth } from "@/hooks/useAuth";
 import { useActionTracker } from "@/hooks/useActionTracker";
 import { MissionCard } from "@/components/gamification/MissionCard";
+import { LevelUpModal } from "@/components/gamification/LevelUpModal";
+import { LeagueWidget } from "@/components/gamification/LeagueWidget";
+import { OnboardingQuest } from "@/components/gamification/OnboardingQuest";
+import { PhotoChallenge } from "@/components/gamification/PhotoChallenge";
+import { FloatingXPBar } from "@/components/gamification/FloatingXPBar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SocialFeed } from "@/components/gamification/SocialFeed";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const features = [
   { icon: Target, title: "Retos Turísticos", desc: "Completa misiones de exploración, gastronomía y cultura", link: "/retos-turisticos", color: "text-blue-500", bg: "bg-blue-500/10" },
@@ -40,10 +49,71 @@ export default function GamificacionHub() {
   const { user } = useAuth();
   const {
     userGamification, levels, missions, userMissions, leaderboard, loading,
-    getCurrentLevel, getNextLevel, getXpProgress
+    getCurrentLevel, getNextLevel, getXpProgress, awardXp
   } = useGamification();
   const { trackDailyCheckin } = useActionTracker();
   const [checkedIn, setCheckedIn] = useState(false);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const prevLevelRef = useRef<number | null>(null);
+
+  // Story Quest State
+  const [storyStage, setStoryStage] = useState<number>(() => {
+    const saved = localStorage.getItem("amber_story_stage");
+    return saved ? parseInt(saved, 10) : 1;
+  });
+  const [storyCompleted, setStoryCompleted] = useState<boolean>(() => {
+    return localStorage.getItem("amber_story_completed") === "true";
+  });
+
+  const handleAdvanceStory = async () => {
+    if (!user) {
+      toast.error("Inicia sesión para participar en la historia.");
+      return;
+    }
+    
+    const rewards = [
+      { xp: 30, coins: 10, desc: "Rumor en Santiago completado" },
+      { xp: 50, coins: 15, desc: "Búsqueda en mina de Puerto Plata completada" },
+      { xp: 40, coins: 10, desc: "Pulido de la gema completado" },
+      { xp: 60, coins: 20, desc: "Visita al Museo del Ámbar completada" },
+      { xp: 100, coins: 50, desc: "¡Revelaste el secreto del Ámbar Dominicano!" },
+    ];
+
+    const currentReward = rewards[storyStage - 1];
+    
+    // Call awardXp
+    await awardXp(currentReward.xp, currentReward.coins, `📖 Historia: ${currentReward.desc}`);
+
+    if (storyStage < 5) {
+      const next = storyStage + 1;
+      setStoryStage(next);
+      localStorage.setItem("amber_story_stage", next.toString());
+      toast.success(`¡Misión completada! Siguiente paso: ${next}/5`);
+    } else {
+      setStoryCompleted(true);
+      localStorage.setItem("amber_story_completed", "true");
+      
+      // Auto unlock 'Ámbar Dominicano' achievement
+      try {
+        const { data: ach } = await supabase
+          .from("achievements")
+          .select("id")
+          .eq("name", "Ámbar Dominicano")
+          .maybeSingle();
+        
+        if (ach) {
+          await supabase.rpc("unlock_user_achievement", {
+            target_achievement_id: ach.id
+          });
+          toast.success("🏆 ¡Desbloqueaste la insignia: Ámbar Dominicano!", {
+            description: "Has completado la historia del Ámbar"
+          });
+        }
+      } catch (err) {
+        console.error("Error auto-unlocking amber badge:", err);
+      }
+    }
+  };
 
   const currentLevel = getCurrentLevel();
   const nextLevel = getNextLevel();
@@ -63,6 +133,21 @@ export default function GamificacionHub() {
     }
   }, [user, checkedIn, trackDailyCheckin]);
 
+  // Detect level up (#49)
+  useEffect(() => {
+    if (!userGamification) return;
+    const lv = userGamification.current_level;
+    if (prevLevelRef.current !== null && lv > prevLevelRef.current) {
+      setShowLevelUp(true);
+    }
+    prevLevelRef.current = lv;
+  }, [userGamification?.current_level]);
+
+  // Streak multiplier
+  const streakDays = userGamification?.streak_days || 0;
+  const multiplier = streakDays >= 30 ? 2.0 : streakDays >= 14 ? 1.75 : streakDays >= 7 ? 1.5 : streakDays >= 3 ? 1.25 : 1.0;
+  const hasMultiplier = multiplier > 1.0;
+
   const getMissionProgress = (missionId: string) =>
     userMissions.find(um => um.mission_id === missionId);
 
@@ -76,7 +161,19 @@ export default function GamificacionHub() {
         title="Gamificación - Explora, Juega y Descubre RD"
         description="Sistema de gamificación turística: completa retos, gana puntos, colecciona insignias y canjea premios explorando República Dominicana."
       />
-      <div className="min-h-screen bg-background">
+
+      {/* Level Up Modal (#49) */}
+      <LevelUpModal
+        isOpen={showLevelUp}
+        newLevel={userGamification?.current_level || 1}
+        levelTitle={currentLevel?.title || "Explorador"}
+        levelIcon={currentLevel?.icon || "🌱"}
+        levelColor={currentLevel?.color || "#8B5CF6"}
+        perks={currentLevel?.perks || []}
+        onClose={() => setShowLevelUp(false)}
+      />
+
+      <div className="min-h-screen bg-background pb-20">
         <Header />
 
         {/* Hero */}
@@ -219,6 +316,115 @@ export default function GamificacionHub() {
           </div>
         </section>
 
+        {/* Onboarding Quest (#47) */}
+        {user && (
+          <div className="container mx-auto px-4 py-6">
+            <OnboardingQuest referralCode={null} />
+          </div>
+        )}
+
+        {/* Story Quest Section (#29) */}
+        {user && (
+          <div className="container mx-auto px-4 py-6">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-3xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-card to-background p-8 shadow-lg relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+              
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 relative z-10">
+                <div>
+                  <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30 mb-2">
+                    📖 Cadena de Misiones (Story Quest)
+                  </Badge>
+                  <h2 className="text-2xl font-bold font-display text-foreground">El Misterio del Ámbar Dominicano</h2>
+                  <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
+                    Sigue la leyenda popular que narra la existencia de una resina prehistórica de valor incalculable. Completa las 5 etapas para revelar el secreto.
+                  </p>
+                </div>
+                {!storyCompleted ? (
+                  <Button 
+                    onClick={handleAdvanceStory} 
+                    className="bg-amber-500 hover:bg-amber-600 text-white gap-2 font-semibold shadow-md shrink-0"
+                  >
+                    <Sparkles className="h-4 w-4" /> Avanzar Misión
+                  </Button>
+                ) : (
+                  <Badge className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30 text-sm py-1.5 px-3">
+                    ✨ ¡Historia Completada!
+                  </Badge>
+                )}
+              </div>
+
+              {/* Progress Steps */}
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 relative z-10">
+                {[
+                  { step: 1, title: "Rumor en Santiago", desc: "Don Tomás te habla de una vieja veta en las colinas.", xp: 30, icon: "🗣️" },
+                  { step: 2, title: "Mina de Puerto Plata", desc: "Explora las colinas del norte en busca de la resina.", xp: 50, icon: "⛰️" },
+                  { step: 3, title: "Pulido de Gema", desc: "Limpia y trabaja la resina para revelar su brillo.", xp: 40, icon: "✨" },
+                  { step: 4, title: "Museo del Ámbar", desc: "Presenta tu hallazgo ante arqueólogos expertos.", xp: 60, icon: "🏛️" },
+                  { step: 5, title: "El Secreto Revelado", desc: "Descubre el insecto prehistórico fosilizado.", xp: 100, icon: "💎" },
+                ].map((s) => {
+                  const isActive = storyStage === s.step && !storyCompleted;
+                  const isCompleted = storyStage > s.step || storyCompleted;
+                  
+                  return (
+                    <div 
+                      key={s.step} 
+                      className={`p-4 rounded-xl border transition-all ${
+                        isActive ? "bg-amber-500/15 border-amber-400 ring-1 ring-amber-400/30 shadow-sm" :
+                        isCompleted ? "bg-emerald-500/5 border-emerald-500/20 opacity-80" :
+                        "bg-card/50 border-border opacity-50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-2xl">{s.icon}</span>
+                        <Badge 
+                          variant={isCompleted ? "default" : isActive ? "secondary" : "outline"}
+                          className={`text-[9px] ${
+                            isCompleted ? "bg-emerald-500 text-white border-none" :
+                            isActive ? "bg-amber-500/20 text-amber-600 border-none" : ""
+                          }`}
+                        >
+                          {isCompleted ? "Completado" : isActive ? "Activo" : "Bloqueado"}
+                        </Badge>
+                      </div>
+                      <h4 className="font-bold text-xs text-foreground mb-1 leading-tight">{s.title}</h4>
+                      <p className="text-[10px] text-muted-foreground leading-normal mb-3">{s.desc}</p>
+                      <Badge variant="outline" className="text-[9px] gap-0.5 border-none bg-muted px-1.5 py-0">
+                        <Zap className="h-2.5 w-2.5 text-amber-500" /> +{s.xp} XP
+                      </Badge>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Streak Multiplier Banner (#1) */}
+        {user && hasMultiplier && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-amber-500/10 border-y border-amber-500/20"
+          >
+            <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <Flame className="h-5 w-5 text-orange-500 flex-shrink-0" />
+                <div>
+                  <span className="font-bold text-foreground text-sm">Multiplicador ×{multiplier} activo</span>
+                  <span className="text-muted-foreground text-sm ml-2">— Racha de {streakDays} días</span>
+                </div>
+              </div>
+              <Badge className="bg-amber-500/20 text-amber-600 border-amber-500/30 text-xs flex-shrink-0">
+                {streakDays >= 30 ? "¡Racha Legendaria! 🔥" : streakDays >= 14 ? "¡Racha Élite! ⚡" : "¡Racha Activa! 🎯"}
+              </Badge>
+            </div>
+          </motion.div>
+        )}
+
         {/* Daily & Weekly Challenges */}
         {user && (dailyMissions.length > 0 || weeklyMissions.length > 0) && (
           <section className="py-12 bg-card border-y border-border">
@@ -356,10 +562,26 @@ export default function GamificacionHub() {
           </div>
         </section>
 
-        {/* Leaderboard + Featured Challenges */}
+        {/* Photo Challenge Section (#27) */}
+        <section className="py-16 bg-card border-y border-border">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <Badge className="mb-2 bg-primary/10 text-primary border-primary/20 gap-2">
+                  <Camera className="h-3 w-3" /> Reto Semanal
+                </Badge>
+                <h2 className="font-display text-2xl font-bold text-foreground">Reto Fotográfico</h2>
+                <p className="text-muted-foreground text-sm">Comparte tu mejor foto y compite por XP</p>
+              </div>
+            </div>
+            <PhotoChallenge />
+          </div>
+        </section>
+
+        {/* Leaderboard + League + Featured Challenges */}
         <section className="py-20 bg-background">
           <div className="container mx-auto px-4">
-            <div className="grid lg:grid-cols-2 gap-12">
+            <div className="grid lg:grid-cols-3 gap-8">
               {/* Leaderboard */}
               <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
                 <div className="flex items-center justify-between mb-6">
@@ -411,34 +633,68 @@ export default function GamificacionHub() {
                 </div>
               </motion.div>
 
-              {/* Featured Challenges */}
-              <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <Target className="h-6 w-6 text-primary" />
-                    <h2 className="font-display text-2xl font-bold text-foreground">Retos Destacados</h2>
-                  </div>
-                  <Button variant="ghost" size="sm" asChild className="gap-1">
-                    <Link to="/retos-turisticos">Ver todos <ArrowRight className="h-4 w-4" /></Link>
-                  </Button>
+              {/* League Widget (#35) */}
+              <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+                <div className="flex items-center gap-3 mb-6">
+                  <Crown className="h-6 w-6 text-primary" />
+                  <h2 className="font-display text-2xl font-bold text-foreground">Liga y Temporada</h2>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  {featuredMissions.slice(0, 4).map((mission) => (
-                    <MissionCard
-                      key={mission.id}
-                      mission={mission}
-                      progress={getMissionProgress(mission.id)}
-                      isLocked={(userGamification?.current_level || 1) < mission.min_level}
-                      currentLevel={userGamification?.current_level || 1}
-                    />
-                  ))}
-                </div>
-                {featuredMissions.length === 0 && (
-                  <div className="text-center py-12 text-muted-foreground bg-card rounded-xl border border-border">
-                    <Target className="h-10 w-10 mx-auto mb-3 opacity-50" />
-                    <p className="text-sm">Próximamente: misiones emocionantes</p>
+                <LeagueWidget />
+              </motion.div>
+
+              {/* Tabs: Featured Challenges or Social Activity Feed */}
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }} 
+                whileInView={{ opacity: 1, x: 0 }} 
+                viewport={{ once: true }}
+                className="space-y-4"
+              >
+                <Tabs defaultValue="featured" className="w-full">
+                  <div className="flex items-center justify-between mb-4 border-b border-border pb-2">
+                    <TabsList className="bg-transparent h-auto p-0 gap-4">
+                      <TabsTrigger 
+                        value="featured"
+                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-2 text-sm font-bold gap-2"
+                      >
+                        <Target className="h-4 w-4 text-primary" /> Retos Destacados
+                      </TabsTrigger>
+                      <TabsTrigger 
+                        value="social"
+                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-0 py-2 text-sm font-bold gap-2"
+                      >
+                        <Users className="h-4 w-4 text-primary" /> Actividad Global
+                      </TabsTrigger>
+                    </TabsList>
+                    
+                    <Button variant="ghost" size="sm" asChild className="gap-1 text-xs">
+                      <Link to="/retos-turisticos">Ver todos <ArrowRight className="h-3 w-3" /></Link>
+                    </Button>
                   </div>
-                )}
+
+                  <TabsContent value="featured" className="mt-0">
+                    <div className="grid grid-cols-2 gap-4">
+                      {featuredMissions.slice(0, 4).map((mission) => (
+                        <MissionCard
+                          key={mission.id}
+                          mission={mission}
+                          progress={getMissionProgress(mission.id)}
+                          isLocked={(userGamification?.current_level || 1) < mission.min_level}
+                          currentLevel={userGamification?.current_level || 1}
+                        />
+                      ))}
+                    </div>
+                    {featuredMissions.length === 0 && (
+                      <div className="text-center py-12 text-muted-foreground bg-card rounded-xl border border-border">
+                        <Target className="h-10 w-10 mx-auto mb-3 opacity-50" />
+                        <p className="text-sm">Próximamente: misiones emocionantes</p>
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="social" className="mt-0">
+                    <SocialFeed />
+                  </TabsContent>
+                </Tabs>
               </motion.div>
             </div>
           </div>
@@ -561,6 +817,9 @@ export default function GamificacionHub() {
 
         <Footer />
       </div>
+
+      {/* Floating XP Bar (#45) */}
+      <FloatingXPBar />
     </PageTransition>
   );
 }

@@ -9,13 +9,55 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { useState } from "react";
+import { CheckoutModal } from "@/components/CheckoutModal";
 import {
   Search, ShoppingBag, Star, MapPin, ChevronRight, Heart,
   Coffee, Gem, Paintbrush, Package, Truck, Shield, Phone,
   Camera, Compass, Car, UtensilsCrossed, Music, Anchor,
   Store, Building2, Globe, Clock, Award, Users, CheckCircle,
-  Filter, TrendingUp
+  Filter, TrendingUp, ArrowRight
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+
+// ─── Artesanos Directo ───────────────────────────────────────────────
+const artesanos = [
+  {
+    id: "artesano-1",
+    nombre: "Taller de Alfarería Higüerito",
+    especialidad: "Alfarería tradicional y Muñecas Limé",
+    ubicacion: "Moca, Espaillat",
+    bio: "Artesanos de tercera generación dedicados a moldear el barro rojo tradicional de Higüerito. Creadores de las famosas muñecas sin rostro (Limé) que representan la identidad y el sincretismo cultural dominicano.",
+    imagen: "https://images.unsplash.com/photo-1540552980157-21d2a565c52b?w=600&auto=format&fit=crop&q=80",
+    telefono: "+1 809-555-0192",
+    verificado: true
+  },
+  {
+    id: "artesano-2",
+    nombre: "Tejedoras de Caña de El Seibo",
+    especialidad: "Cestería y sombreros de caña",
+    ubicacion: "El Seibo",
+    bio: "Cooperativa de mujeres artesanas que mantiene vivo el arte ancestral del tejido de fibras de caña y palma real. Cada pieza cuenta una historia de resiliencia, trabajo en equipo y tradición familiar.",
+    imagen: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&auto=format&fit=crop&q=80",
+    telefono: "+1 809-555-0193",
+    verificado: true
+  },
+  {
+    id: "artesano-3",
+    nombre: "Tallistas de Madera de Bonao",
+    especialidad: "Esculturas en madera y Santos de Palo",
+    ubicacion: "Bonao, Monseñor Nouel",
+    bio: "Colectivo de tallistas especializados en maderas nobles locales como caoba y guayacán. Famosos por sus tallas de aves endémicas dominicanas y hermosas reproducciones de arte sacro tradicional.",
+    imagen: "https://images.unsplash.com/photo-1471506480208-91b3a4cc78be?w=600&auto=format&fit=crop&q=80",
+    telefono: "+1 809-555-0194",
+    verificado: true
+  }
+];
 import gastronomy from "@/assets/gastronomy.jpg";
 import adventureImg from "@/assets/adventure.jpg";
 import colonialDoor from "@/assets/colonial-door.jpg";
@@ -349,6 +391,78 @@ export default function Marketplace() {
   const [catServ, setCatServ] = useState("Todos");
   const [catNeg, setCatNeg] = useState("Todos");
 
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<{ id: string; name: string; type: string; price: number; image?: string; } | null>(null);
+
+  // International Shipping & Detail Modal State
+  const [productModalOpen, setProductModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [shippingDest, setShippingDest] = useState<"Local" | "USA" | "Spain" | "Canada">("Local");
+
+  // Artisan Chat Simulation State
+  const [chatOpen, setChatOpen] = useState(false);
+  const [selectedArtisano, setSelectedArtisano] = useState<any>(null);
+  const [chatMessage, setChatMessage] = useState("");
+  const [chatHistory, setChatHistory] = useState<string[]>([]);
+
+  const handleOpenCheckout = (item: any) => {
+    setSelectedItem(item);
+    setCheckoutOpen(true);
+  };
+
+  const handleOpenProductModal = (product: any) => {
+    setSelectedProduct(product);
+    setShippingDest("Local");
+    setProductModalOpen(true);
+  };
+
+  const getShippingFee = (dest: string) => {
+    if (dest === "USA") return 15;
+    if (dest === "Spain") return 22;
+    if (dest === "Canada") return 25;
+    return 0; // Local
+  };
+
+  const handleProceedToCheckout = () => {
+    if (!selectedProduct) return;
+    setProductModalOpen(false);
+    handleOpenCheckout({
+      id: selectedProduct.id,
+      name: `${selectedProduct.nombre} (Envío: ${shippingDest})`,
+      type: "producto",
+      price: parsePrice(selectedProduct.precio) + getShippingFee(shippingDest),
+      image: selectedProduct.imagen
+    });
+  };
+
+  const handleOpenChat = (artesano: any) => {
+    setSelectedArtisano(artesano);
+    setChatHistory([]);
+    setChatOpen(true);
+  };
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatMessage.trim()) return;
+    
+    const userMsg = chatMessage;
+    setChatHistory(prev => [...prev, userMsg]);
+    setChatMessage("");
+
+    // Simulate artisan response after 1s
+    setTimeout(() => {
+      setChatHistory(prev => [
+        ...prev,
+        `¡Hola! Recibimos tu mensaje en el Taller. Estaremos encantados de ayudarte con tu consulta sobre "${userMsg.substring(0, 15)}...". Nos pondremos en contacto contigo en breve para darte precios y detalles de envío local e internacional. ¡Gracias por apoyar lo local!`
+      ]);
+    }, 1000);
+  };
+
+  const parsePrice = (priceStr: string) => {
+    const match = priceStr.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 25;
+  };
+
   const filteredProd = productos.filter((p) => {
     const matchSearch = p.nombre.toLowerCase().includes(searchProd.toLowerCase()) || p.vendedor.toLowerCase().includes(searchProd.toLowerCase());
     const matchCat = catProd === "Todos" || p.categoria === catProd;
@@ -412,14 +526,17 @@ export default function Marketplace() {
         <section className="py-16">
           <div className="container mx-auto px-4">
             <Tabs defaultValue="productos" className="w-full">
-              <TabsList className="grid w-full max-w-lg mx-auto grid-cols-3 mb-8">
-                <TabsTrigger value="productos" className="gap-1.5">
+              <TabsList className="grid w-full max-w-xl mx-auto grid-cols-4 mb-8">
+                <TabsTrigger value="productos" className="gap-1.5 text-xs sm:text-sm">
                   <ShoppingBag className="h-4 w-4" /> Productos
                 </TabsTrigger>
-                <TabsTrigger value="servicios" className="gap-1.5">
+                <TabsTrigger value="servicios" className="gap-1.5 text-xs sm:text-sm">
                   <Compass className="h-4 w-4" /> Servicios
                 </TabsTrigger>
-                <TabsTrigger value="directorio" className="gap-1.5">
+                <TabsTrigger value="artesanos" className="gap-1.5 text-xs sm:text-sm">
+                  <Paintbrush className="h-4 w-4" /> Artesanos
+                </TabsTrigger>
+                <TabsTrigger value="directorio" className="gap-1.5 text-xs sm:text-sm">
                   <Building2 className="h-4 w-4" /> Directorio
                 </TabsTrigger>
               </TabsList>
@@ -476,11 +593,14 @@ export default function Marketplace() {
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-bold text-primary">{p.precio}</span>
-                          {p.envio && (
-                            <Badge variant="secondary" className="text-[10px] gap-1">
-                              <Truck className="h-3 w-3" /> Envío
-                            </Badge>
-                          )}
+                          <div className="flex items-center gap-1.5">
+                            {p.envio && (
+                              <Badge variant="secondary" className="text-[10px] gap-1 hidden sm:flex">
+                                <Truck className="h-3 w-3" /> Envío
+                              </Badge>
+                            )}
+                            <Button size="sm" onClick={() => handleOpenProductModal(p)}>Comprar</Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -541,8 +661,14 @@ export default function Marketplace() {
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-bold text-primary">{s.precio}</span>
-                          <Button size="sm" variant="outline" className="gap-1">
-                            Contactar <ChevronRight className="h-3 w-3" />
+                          <Button size="sm" className="gap-1" onClick={() => handleOpenCheckout({
+                            id: s.id,
+                            name: s.nombre,
+                            type: "servicio",
+                            price: parsePrice(s.precio),
+                            image: s.imagen
+                          })}>
+                            Reservar <ChevronRight className="h-3 w-3" />
                           </Button>
                         </div>
                       </CardContent>
@@ -550,6 +676,42 @@ export default function Marketplace() {
                   ))}
                 </div>
                 {filteredServ.length === 0 && <EmptyState text="No se encontraron servicios" onClear={() => { setSearchServ(""); setCatServ("Todos"); }} />}
+              </TabsContent>
+
+              {/* ═══ TAB: ARTESANOS DIRECTO ═══ */}
+              <TabsContent value="artesanos">
+                <div className="grid md:grid-cols-3 gap-8">
+                  {artesanos.map((art) => (
+                    <Card key={art.id} className="group overflow-hidden border-border hover:shadow-xl transition-all bg-card/45 flex flex-col justify-between">
+                      <div className="space-y-4">
+                        <div className="aspect-[16/10] overflow-hidden relative">
+                          <img src={art.imagen} alt={art.nombre} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                          <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground text-xs gap-1">
+                            <CheckCircle className="h-3 w-3" /> Taller Verificado
+                          </Badge>
+                          <Badge className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm border-white/10 text-[9px] uppercase font-bold tracking-wider">
+                            {art.especialidad}
+                          </Badge>
+                        </div>
+
+                        <div className="p-5 pt-0 space-y-2">
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5" />
+                            <span>{art.ubicacion}</span>
+                          </div>
+                          <h3 className="font-display text-lg font-bold text-foreground">{art.nombre}</h3>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{art.bio}</p>
+                        </div>
+                      </div>
+
+                      <div className="p-5 pt-0">
+                        <Button variant="outline" className="w-full gap-2 border-primary/20 text-primary hover:bg-primary/5" onClick={() => handleOpenChat(art)}>
+                          <Phone className="h-4 w-4" /> Chat Directo
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               </TabsContent>
 
               {/* ═══ TAB: DIRECTORIO ═══ */}
@@ -663,6 +825,116 @@ export default function Marketplace() {
         </section>
 
         <Footer />
+
+        <CheckoutModal 
+          isOpen={checkoutOpen} 
+          onClose={() => setCheckoutOpen(false)} 
+          item={selectedItem} 
+        />
+
+        {/* Product Details & Shipping Selector Modal */}
+        <Dialog open={productModalOpen} onOpenChange={setProductModalOpen}>
+          <DialogContent className="sm:max-w-[480px]">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold text-foreground">Detalle del Producto</DialogTitle>
+              <DialogDescription className="text-xs">Configure su envío internacional antes de comprar.</DialogDescription>
+            </DialogHeader>
+            {selectedProduct && (
+              <div className="space-y-4 pt-2">
+                <div className="aspect-[16/10] overflow-hidden rounded-lg">
+                  <img src={selectedProduct.imagen} alt={selectedProduct.nombre} className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-foreground">{selectedProduct.nombre}</h3>
+                  <p className="text-xs text-muted-foreground">Por: {selectedProduct.vendedor} • {selectedProduct.ubicacion}</p>
+                  <p className="text-xs text-foreground mt-2 leading-relaxed">{selectedProduct.descripcion}</p>
+                </div>
+
+                {/* Shipping Selector */}
+                <div className="space-y-2 p-4 bg-muted/40 border border-border rounded-lg">
+                  <label className="text-xs font-bold text-muted-foreground uppercase block mb-1">País de Envío</label>
+                  <select
+                    value={shippingDest}
+                    onChange={(e) => setShippingDest(e.target.value as any)}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary mb-2"
+                    title="País de Envío"
+                  >
+                    <option value="Local">República Dominicana (Local) - Gratis</option>
+                    <option value="USA">Estados Unidos (USA) - +$15.00 USD</option>
+                    <option value="Spain">España / Europa - +$22.00 USD</option>
+                    <option value="Canada">Canadá - +$25.00 USD</option>
+                  </select>
+                  
+                  <div className="flex justify-between items-baseline text-xs text-muted-foreground pt-1 border-t border-border/50">
+                    <span>Precio base:</span>
+                    <span className="font-mono">${parsePrice(selectedProduct.precio).toFixed(2)} USD</span>
+                  </div>
+                  <div className="flex justify-between items-baseline text-xs text-muted-foreground">
+                    <span>Costo de envío:</span>
+                    <span className="font-mono">${getShippingFee(shippingDest).toFixed(2)} USD</span>
+                  </div>
+                  <div className="flex justify-between items-baseline text-sm font-bold text-primary pt-1.5 border-t border-border">
+                    <span>Subtotal:</span>
+                    <span className="font-mono">${(parsePrice(selectedProduct.precio) + getShippingFee(shippingDest)).toFixed(2)} USD</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" size="sm" onClick={() => setProductModalOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button size="sm" className="gap-1.5" onClick={handleProceedToCheckout}>
+                    Proceder al Pago <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Artisan Chat Simulation Modal */}
+        <Dialog open={chatOpen} onOpenChange={setChatOpen}>
+          <DialogContent className="sm:max-w-[420px] h-[500px] flex flex-col p-0 overflow-hidden">
+            <DialogHeader className="p-4 pb-2 border-b border-border">
+              <DialogTitle className="text-base font-bold flex items-center gap-2 text-foreground">
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                {selectedArtisano?.nombre}
+              </DialogTitle>
+              <DialogDescription className="text-[10px]">Chat simulado directo con el taller artesanal.</DialogDescription>
+            </DialogHeader>
+            
+            {/* Chat History */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-muted/20 flex flex-col justify-end">
+              <div className="bg-muted text-foreground p-3 rounded-lg text-xs max-w-[85%] self-start leading-normal">
+                ¡Hola! Bienvenido al chat de <strong>{selectedArtisano?.nombre}</strong>. Cuéntame, ¿estás interesado en alguna pieza de {selectedArtisano?.especialidad} o te gustaría cotizar un diseño personalizado?
+              </div>
+              {chatHistory.map((msg, i) => (
+                <div key={i} className={`flex flex-col ${i % 2 === 0 ? "items-end" : "items-start"}`}>
+                  <div className={`p-3 rounded-lg text-xs max-w-[85%] leading-normal ${
+                    i % 2 === 0 ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+                  }`}>
+                    {msg}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Chat Input */}
+            <form onSubmit={handleSendMessage} className="p-3 border-t border-border flex gap-2">
+              <Input
+                type="text"
+                placeholder="Escribe tu consulta aquí..."
+                value={chatMessage}
+                onChange={(e) => setChatMessage(e.target.value)}
+                className="flex-1 text-xs"
+                title="Mensaje para el artesano"
+              />
+              <Button type="submit" size="sm" className="font-bold text-xs px-3">
+                Enviar
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </PageTransition>
   );

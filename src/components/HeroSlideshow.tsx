@@ -65,9 +65,11 @@ function DestinationCard({
   const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
-    <motion.div
+    <motion.button
+      type="button"
       onClick={onClick}
-      className={`flex-shrink-0 w-72 cursor-pointer transition-all duration-500 ease-out ${
+      aria-label={`Ver destino: ${card.title}`}
+      className={`flex-shrink-0 w-72 text-left transition-all duration-500 ease-out ${
         isActive ? 'scale-100 opacity-100' : 'scale-95 opacity-60'
       }`}
       whileHover={{ scale: isActive ? 1.02 : 0.98 }}
@@ -86,25 +88,25 @@ function DestinationCard({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
           <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2.5 py-1 rounded-full">
-            <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500" />
-            <span className="text-xs font-semibold">{card.rating}</span>
+            <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500" aria-hidden="true" />
+            <span className="text-xs font-semibold" aria-label={`Calificación ${card.rating} de 5`}>{card.rating}</span>
           </div>
         </div>
         <div className="p-4">
           <h3 className="font-display font-bold text-foreground mb-2 text-lg">{card.title}</h3>
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <div className="flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5" />
+              <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
               <span>{card.location}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5" />
+              <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
               <span>{card.season}</span>
             </div>
           </div>
         </div>
       </div>
-    </motion.div>
+    </motion.button>
   );
 }
 
@@ -172,7 +174,7 @@ export function HeroSlideshow() {
       <div className="absolute inset-0 z-0">
         <img
           src={slideTemplates[0].image}
-          alt=""
+          alt="Playas paradisíacas de República Dominicana"
           className={`h-full w-full object-cover transition-opacity duration-700 ${currentSlide === 0 ? 'opacity-100' : 'opacity-0'}`}
           // @ts-ignore
           fetchPriority="high"
@@ -278,36 +280,43 @@ export function HeroSlideshow() {
           </div>
 
           <div className="hidden lg:flex lg:col-span-2 flex-col items-end">
-            <div 
-              ref={carouselRef}
-              className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 pr-4 max-w-full scroll-smooth"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-              {slides.map((s, index) => (
-                <DestinationCard
-                  key={s.id}
-                  card={s.card}
-                  isActive={index === currentSlide}
-                  onClick={() => { setIsAutoPlaying(false); goToSlide(index); }}
-                  t={t}
-                />
-              ))}
-            </div>
+          <div
+            ref={carouselRef}
+            role="region"
+            aria-label="Carrusel de destinos turísticos"
+            aria-roledescription="carrusel"
+            className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 pr-4 max-w-full scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none]"
+          >
+            {slides.map((s, index) => (
+              <DestinationCard
+                key={s.id}
+                card={s.card}
+                isActive={index === currentSlide}
+                onClick={() => { setIsAutoPlaying(false); goToSlide(index); }}
+                t={t}
+              />
+            ))}
+          </div>
 
-            <div className="flex items-center gap-4 mt-6 pr-4">
+            <div className="flex items-center gap-4 mt-6 pr-4" role="group" aria-label="Controles del carrusel">
               <Button
                 size="icon"
                 variant="outline"
+                aria-label="Slide anterior"
                 className="rounded-full w-10 h-10 bg-background/50 backdrop-blur-sm border-border/50 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
                 onClick={() => { setIsAutoPlaying(false); prevSlide(); }}
               >
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className="h-5 w-5" aria-hidden="true" />
               </Button>
               
-              <div className="flex gap-2">
-                {slides.map((_, index) => (
+              <div className="flex gap-2" role="tablist" aria-label="Slides del carrusel">
+                {slides.map((s, index) => (
                   <button
                     key={index}
+                    role="tab"
+                    aria-label={`Slide ${index + 1}: ${s.card.title}`}
+                    aria-current={index === currentSlide ? "true" : undefined}
+                    tabIndex={index === currentSlide ? 0 : -1}
                     onClick={() => { setIsAutoPlaying(false); goToSlide(index); }}
                     className={`h-2 rounded-full transition-all duration-500 ease-out ${
                       index === currentSlide ? "w-8 bg-primary" : "w-2 bg-muted-foreground/50 hover:bg-muted-foreground"
@@ -319,10 +328,11 @@ export function HeroSlideshow() {
               <Button
                 size="icon"
                 variant="outline"
+                aria-label="Slide siguiente"
                 className="rounded-full w-10 h-10 bg-background/50 backdrop-blur-sm border-border/50 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
                 onClick={() => { setIsAutoPlaying(false); nextSlide(); }}
               >
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-5 w-5" aria-hidden="true" />
               </Button>
             </div>
           </div>

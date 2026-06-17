@@ -220,7 +220,6 @@ export function useGamification() {
     if (!user || !userGamification) return;
 
     const newXp = userGamification.total_xp + xp;
-    const newCoins = userGamification.coins + coins;
 
     // Check for level up
     const newLevel = levels.reduce((lvl, l) => {
@@ -228,27 +227,19 @@ export function useGamification() {
       return lvl;
     }, userGamification.current_level);
 
-    // Update user gamification
-    await supabase
-      .from("user_gamification")
-      .update({ 
-        total_xp: newXp, 
-        coins: newCoins, 
-        current_level: newLevel,
-        last_activity_date: new Date().toISOString().split('T')[0]
-      })
-      .eq("user_id", user.id);
-
-    // Log transaction
-    await supabase.from("gamification_transactions").insert({
-      user_id: user.id,
-      transaction_type: "earn",
-      xp_amount: xp,
-      coin_amount: coins,
-      description,
+    // Update via secure RPC definer function
+    const { error } = await supabase.rpc("award_user_xp", {
+      xp_to_award: xp,
+      coins_to_award: coins,
+      xp_description: description,
       source_type: sourceType,
       source_id: sourceId
     });
+
+    if (error) {
+      console.error("Error awarding XP:", error);
+      return;
+    }
 
     if (newLevel > userGamification.current_level) {
       const levelInfo = levels.find(l => l.level_number === newLevel);
@@ -278,31 +269,15 @@ export function useGamification() {
       return false;
     }
 
-    // Deduct coins
-    await supabase
-      .from("user_gamification")
-      .update({ coins: userGamification.coins - prize.coin_cost })
-      .eq("user_id", user.id);
-
-    // Create redemption
-    const code = `PRZ-${Date.now().toString(36).toUpperCase()}`;
-    await supabase.from("user_prize_redemptions").insert({
-      user_id: user.id,
-      prize_id: prizeId,
-      coins_spent: prize.coin_cost,
-      redemption_code: code,
-      status: "pending"
+    // Call secure RPC definer function
+    const { data: code, error } = await supabase.rpc("redeem_user_prize", {
+      target_prize_id: prizeId
     });
 
-    // Log transaction
-    await supabase.from("gamification_transactions").insert({
-      user_id: user.id,
-      transaction_type: "spend",
-      coin_amount: -prize.coin_cost,
-      description: `Canje: ${prize.name}`,
-      source_type: "prize_redemption",
-      source_id: prizeId
-    });
+    if (error) {
+      toast.error(error.message || "Error al procesar el canje.");
+      return false;
+    }
 
     toast.success(`🎁 ¡Premio canjeado! Código: ${code}`);
     await fetchUserProfile();

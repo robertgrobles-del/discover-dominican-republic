@@ -82,40 +82,15 @@ export function useAchievementChecker() {
         }
 
         if (unlocked) {
-          // Award the achievement
-          await supabase.from("user_achievements").insert({
-            user_id: user.id,
-            achievement_id: achievement.id,
-            progress: 100,
-            unlocked_at: new Date().toISOString(),
+          // Call secure RPC to unlock achievement
+          const { error } = await supabase.rpc("unlock_user_achievement", {
+            target_achievement_id: achievement.id
           });
 
-          // Award XP/coins
-          if (achievement.xp_reward || achievement.coin_reward) {
-            await supabase
-              .from("user_gamification")
-              .update({
-                total_xp: gamification.total_xp + (achievement.xp_reward || 0),
-                coins: gamification.coins + (achievement.coin_reward || 0),
-              })
-              .eq("user_id", user.id);
-
-            await supabase.from("gamification_transactions").insert({
-              user_id: user.id,
-              transaction_type: "earn",
-              xp_amount: achievement.xp_reward || 0,
-              coin_amount: achievement.coin_reward || 0,
-              description: `Logro desbloqueado: ${achievement.name}`,
-              source_type: "achievement",
-              source_id: achievement.id,
-            });
+          if (error) {
+            console.error("Error unlocking achievement via RPC:", error);
+            continue;
           }
-
-          // Update total unlocked count
-          await supabase
-            .from("achievements")
-            .update({ total_unlocked: (achievement.total_unlocked || 0) + 1 })
-            .eq("id", achievement.id);
 
           toast.success(`🏆 ¡Logro desbloqueado: ${achievement.name}!`, {
             description: `+${achievement.xp_reward || 0} XP${achievement.coin_reward ? `, +${achievement.coin_reward} monedas` : ""}`,

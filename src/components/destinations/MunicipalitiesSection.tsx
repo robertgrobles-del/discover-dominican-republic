@@ -34,7 +34,7 @@ export function MunicipalitiesSection({ municipalities }: MunicipalitiesSectionP
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           {municipalities.slice(0, 8).map((muni, index) => (
             <motion.div key={muni.id} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.05 }} className={index === 0 ? "lg:col-span-2 lg:row-span-2" : ""}>
-              <Link to={`/destinos/${muni.slug}`} className="group block relative rounded-2xl overflow-hidden h-full min-h-[200px] cursor-pointer">
+              <Link to={`/municipio/${muni.slug}`} className="group block relative rounded-2xl overflow-hidden h-full min-h-[200px] cursor-pointer">
                 <img src={muni.imageUrl || "/placeholder.svg"} alt={muni.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-4">

@@ -81,8 +81,8 @@ export default function Partners() {
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
                   <Download className="w-5 h-5" /> Descargar Media Kit
                 </Button>
-                <Button size="lg" variant="outline">
-                  Ver Formatos
+                <Button size="lg" variant="outline" onClick={() => window.location.href = "/partner/login"}>
+                  Acceso a Partners
                 </Button>
               </div>
             </div>
