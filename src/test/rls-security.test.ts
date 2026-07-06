@@ -159,12 +159,9 @@ function assertBlocked(
   label: string,
 ) {
   const { error, data } = result;
-  const rowsReturned =
-    Array.isArray(data) && data.length > 0
-      ? data.length
-      : data && typeof data === "object"
-        ? 1
-        : 0;
+  let rowsReturned = 0;
+  if (Array.isArray(data)) rowsReturned = data.length;
+  else if (data && typeof data === "object") rowsReturned = 1;
   expect(
     error !== null || rowsReturned === 0,
     `${label}: unexpectedly succeeded (rows=${rowsReturned})`,
