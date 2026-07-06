@@ -1,0 +1,52 @@
+# RLS regression gate.
+#
+# Runs src/test/rls-security.test.ts on every PR and push to main.
+# Merges are blocked when the RLS invariants regress (branch
+# protection must be enabled in the GitHub repo settings and this
+# job listed as a required status check).
+
+name: RLS regression tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: rls-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rls:
+    name: RLS security tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run RLS regression tests
+        env:
+          # These must be configured as repository secrets/vars.
+          # VITE_SUPABASE_URL: public project URL (safe to expose)
+          # VITE_SUPABASE_PUBLISHABLE_KEY: anon key (safe to expose)
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: bunx vitest run src/test/rls-security.test.ts --reporter=verbose
+
+      - name: Fail if anon key was missing
+        if: ${{ env.VITE_SUPABASE_PUBLISHABLE_KEY == '' }}
+        env:
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          echo "::error::VITE_SUPABASE_PUBLISHABLE_KEY secret is not configured. RLS tests would silently skip."
+          exit 1
