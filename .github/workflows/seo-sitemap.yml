@@ -1,0 +1,46 @@
+# Sitemap / robots validation gate.
+#
+# Regenerates the sitemap index, section sitemaps, robots.txt and llms.txt
+# from the current routing and asserts they contain only allowed routes,
+# with no duplicates and no dynamic routes. Also fails when the committed
+# files are out of sync with the generator output.
+
+name: SEO sitemap validation
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: seo-sitemap-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sitemap:
+    name: Validate sitemap & robots
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Validate sitemap & robots
+        run: bunx vitest run src/test/sitemap.test.ts --reporter=verbose
+
+      - name: Fail if generated files are not committed
+        run: |
+          if [ -n "$(git status --porcelain public/)" ]; then
+            echo "::error::public/sitemap*.xml, robots.txt or llms.txt are out of sync. Run 'bun run generate:sitemap' and commit the result."
+            git --no-pager diff -- public/
+            exit 1
+          fi
