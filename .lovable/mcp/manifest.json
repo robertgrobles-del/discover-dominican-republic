@@ -1,0 +1,239 @@
+{
+  "version": 1,
+  "sdk_version": "2.2.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://jhwfhhajvmcdmtwslgbb.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "discover-dominican-republic",
+      "version": "0.1.0",
+      "title": "Discover Dominican Republic"
+    },
+    "tools": [
+      {
+        "name": "search_destinations",
+        "title": "Buscar destinos",
+        "description": "Busca destinos turísticos de República Dominicana por nombre o palabra clave y devuelve su descripción y enlace.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "query": {
+              "description": "Texto a buscar en el nombre del destino, por ejemplo 'Samaná'.",
+              "type": "string"
+            },
+            "limit": {
+              "default": 10,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "search_places",
+        "title": "Buscar lugares y experiencias",
+        "description": "Busca restaurantes, bares, hoteles, playas o experiencias publicadas en el portal, con filtro por texto.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "restaurantes",
+                "bares",
+                "hoteles",
+                "playas",
+                "experiencias"
+              ],
+              "description": "Tipo de lugar a buscar."
+            },
+            "query": {
+              "description": "Texto a buscar en el nombre.",
+              "type": "string"
+            },
+            "limit": {
+              "default": 10,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_upcoming_events",
+        "title": "Próximos eventos",
+        "description": "Lista los próximos eventos activos en República Dominicana con fecha, lugar y enlace.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "from": {
+              "description": "Fecha mínima en formato YYYY-MM-DD. Por defecto hoy.",
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "limit": {
+              "default": 10,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_articles",
+        "title": "Artículos del blog",
+        "description": "Lista los artículos publicados del blog de viajes, opcionalmente filtrados por categoría o texto.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "query": {
+              "description": "Texto a buscar en el título.",
+              "type": "string"
+            },
+            "category": {
+              "description": "Categoría exacta del artículo.",
+              "type": "string"
+            },
+            "limit": {
+              "default": 10,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_my_favorites",
+        "title": "Mis favoritos",
+        "description": "Lista los lugares guardados como favoritos por la persona conectada.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "default": 25,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "add_favorite",
+        "title": "Guardar favorito",
+        "description": "Guarda un lugar (destino, playa, hotel, restaurante, bar o experiencia) en los favoritos de la persona conectada.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "item_id": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Identificador o slug del lugar."
+            },
+            "item_type": {
+              "type": "string",
+              "enum": [
+                "destino",
+                "playa",
+                "hotel",
+                "restaurante",
+                "bar",
+                "experiencia",
+                "evento"
+              ],
+              "description": "Tipo de lugar guardado."
+            },
+            "item_name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Nombre visible del lugar."
+            },
+            "item_location": {
+              "description": "Ubicación del lugar.",
+              "type": "string",
+              "maxLength": 200
+            },
+            "item_image": {
+              "description": "URL de la imagen del lugar.",
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "required": [
+            "item_id",
+            "item_type",
+            "item_name"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_my_travel_profile",
+        "title": "Mi perfil de viajero",
+        "description": "Devuelve el perfil de viajero de la persona conectada: nombre, idioma, intereses y progreso de gamificación.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": null,
+        "outputSchema": null
+      }
+    ]
+  }
+}
