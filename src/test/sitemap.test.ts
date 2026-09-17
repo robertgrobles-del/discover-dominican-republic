@@ -99,8 +99,9 @@ describe("sitemap URLs", () => {
 
   it("contains no dynamic or wildcard routes", () => {
     for (const u of allUrls) {
-      expect(u).not.toContain(":");
-      expect(u).not.toContain("*");
+      const path = u.replace(BASE_URL, "") || "/";
+      expect(path).not.toContain(":");
+      expect(path).not.toContain("*");
     }
   });
 
