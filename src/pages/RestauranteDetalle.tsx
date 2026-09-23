@@ -18,6 +18,7 @@ import { FavoriteButton } from "@/components/FavoriteButton";
 import { SEOHead } from "@/components/SEOHead";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Lightbox } from "@/components/ui/lightbox";
+import { useLightbox } from "@/hooks/useLightbox";
 import { getRestaurantBySlug, type Restaurant } from "@/data/restaurants";
 import { getDestinationById } from "@/data/destinations";
 import { getHotelsByDestination } from "@/data/hotels";
@@ -83,9 +84,12 @@ export default function RestauranteDetalle() {
     () => (restaurant?.destinationId ? getExperiencesByDestination(restaurant.destinationId) : []),
     [restaurant?.destinationId]
   );
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
-  
+  const {
+    isOpen: lightboxOpen,
+    currentIndex: lightboxIndex,
+    close: closeLightbox,
+  } = useLightbox();
+
   // Reservation Form State
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -608,7 +612,7 @@ export default function RestauranteDetalle() {
           images={allImages}
           initialIndex={lightboxIndex}
           isOpen={lightboxOpen}
-          onClose={() => setLightboxOpen(false)}
+          onClose={closeLightbox}
         />
 
         <InlineAd showDemo variant="large" />

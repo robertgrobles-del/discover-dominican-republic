@@ -12,12 +12,12 @@ import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { SEOHead } from "@/components/SEOHead";
-import { getBeachBySlug } from "@/data/beaches";
+import { getBeachBySlug, type Beach } from "@/data/beaches";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Lightbox } from "@/components/ui/lightbox";
-import { useState } from "react";
+import { useLightbox } from "@/hooks/useLightbox";
 
 const beachTypeLabels: Record<string, string> = {
   'arena-blanca': 'Arena Blanca',
@@ -40,19 +40,46 @@ const crowdLabels: Record<string, { label: string; icon: typeof Users }> = {
   'alta': { label: 'Alta Afluencia', icon: Users }
 };
 
-function useBeachData(slug: string | undefined) {
+// Row shape returned by the (mock) Supabase `beaches` table. The mock client
+// is untyped (`supabase: any`) by design, so this is the one place that
+// bridges its loose data into a real type: it mirrors `Beach` but with the
+// database's snake_case column names, and every field is optional since rows
+// may be incomplete. `BeachSource` combines it with `Beach` itself (a full
+// `Beach` object always satisfies it, since every extra field is optional)
+// so the rest of the component can read either naming convention without
+// resorting to `as any`.
+interface BeachDbRow {
+  image_url?: string;
+  short_description?: string;
+  beach_type?: string;
+  wave_intensity?: string;
+  crowd_level?: string;
+  access_type?: string;
+  sand_type?: string;
+  water_color?: string;
+  parking_available?: boolean;
+  lifeguard_on_duty?: boolean;
+  how_to_get_there?: string;
+  best_time_to_visit?: string;
+  province_slug?: string;
+  destination_name?: string;
+}
+
+type BeachSource = Partial<Beach> & BeachDbRow;
+
+function useBeachData(slug: string | undefined): { beach: BeachSource | undefined; isLoading: boolean } {
   const staticBeach = slug ? getBeachBySlug(slug) : undefined;
   const { data: dbBeach, isLoading } = useQuery({
     queryKey: ['beach', slug],
-    queryFn: async () => {
+    queryFn: async (): Promise<BeachDbRow | undefined> => {
       const { data, error } = await supabase
         .from('beaches')
         .select('*')
         .eq('slug', slug!)
         .eq('is_active', true)
         .single();
-      if (error) return null;
-      return data;
+      if (error) return undefined;
+      return data as BeachDbRow;
     },
     enabled: !staticBeach && !!slug,
   });
@@ -62,8 +89,12 @@ function useBeachData(slug: string | undefined) {
 export default function PlayaDetalle() {
   const { slug } = useParams<{ slug: string }>();
   const { beach: rawBeach, isLoading } = useBeachData(slug);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const {
+    isOpen: lightboxOpen,
+    currentIndex: lightboxIndex,
+    open: openLightbox,
+    close: closeLightbox,
+  } = useLightbox();
 
   if (isLoading) {
     return (
@@ -99,31 +130,31 @@ export default function PlayaDetalle() {
     );
   }
 
-  // Normalize data
+  // Normalize data (rawBeach is a real `BeachSource`, not `any` - see useBeachData above)
   const beach = {
-    id: (rawBeach as any).id || '',
-    name: (rawBeach as any).name || '',
-    slug: (rawBeach as any).slug || '',
-    description: (rawBeach as any).description || '',
-    shortDescription: (rawBeach as any).shortDescription || (rawBeach as any).short_description || '',
-    imageUrl: (rawBeach as any).imageUrl || (rawBeach as any).image_url || '/placeholder.svg',
-    gallery: (rawBeach as any).gallery || [],
-    beachType: (rawBeach as any).beachType || (rawBeach as any).beach_type || 'arena-blanca',
-    waveIntensity: (rawBeach as any).waveIntensity || (rawBeach as any).wave_intensity || 'calma',
-    crowdLevel: (rawBeach as any).crowdLevel || (rawBeach as any).crowd_level || 'media',
-    accessType: (rawBeach as any).accessType || (rawBeach as any).access_type || 'publico',
-    sandType: (rawBeach as any).sandType || (rawBeach as any).sand_type || '',
-    waterColor: (rawBeach as any).waterColor || (rawBeach as any).water_color || '',
-    activities: (rawBeach as any).activities || [],
-    amenities: (rawBeach as any).amenities || [],
-    parkingAvailable: (rawBeach as any).parkingAvailable ?? (rawBeach as any).parking_available ?? false,
-    lifeguardOnDuty: (rawBeach as any).lifeguardOnDuty ?? (rawBeach as any).lifeguard_on_duty ?? false,
-    howToGetThere: (rawBeach as any).howToGetThere || (rawBeach as any).how_to_get_there || '',
-    bestTimeToVisit: (rawBeach as any).bestTimeToVisit || (rawBeach as any).best_time_to_visit || '',
-    province: (rawBeach as any).province || '',
-    provinceSlug: (rawBeach as any).provinceSlug || (rawBeach as any).province_slug || '',
-    destinationName: (rawBeach as any).destinationName || (rawBeach as any).destination_name || '',
-    rating: (rawBeach as any).rating || 0,
+    id: rawBeach.id || '',
+    name: rawBeach.name || '',
+    slug: rawBeach.slug || '',
+    description: rawBeach.description || '',
+    shortDescription: rawBeach.shortDescription || rawBeach.short_description || '',
+    imageUrl: rawBeach.imageUrl || rawBeach.image_url || '/placeholder.svg',
+    gallery: rawBeach.gallery || [],
+    beachType: rawBeach.beachType || rawBeach.beach_type || 'arena-blanca',
+    waveIntensity: rawBeach.waveIntensity || rawBeach.wave_intensity || 'calma',
+    crowdLevel: rawBeach.crowdLevel || rawBeach.crowd_level || 'media',
+    accessType: rawBeach.accessType || rawBeach.access_type || 'publico',
+    sandType: rawBeach.sandType || rawBeach.sand_type || '',
+    waterColor: rawBeach.waterColor || rawBeach.water_color || '',
+    activities: rawBeach.activities || [],
+    amenities: rawBeach.amenities || [],
+    parkingAvailable: rawBeach.parkingAvailable ?? rawBeach.parking_available ?? false,
+    lifeguardOnDuty: rawBeach.lifeguardOnDuty ?? rawBeach.lifeguard_on_duty ?? false,
+    howToGetThere: rawBeach.howToGetThere || rawBeach.how_to_get_there || '',
+    bestTimeToVisit: rawBeach.bestTimeToVisit || rawBeach.best_time_to_visit || '',
+    province: rawBeach.province || '',
+    provinceSlug: rawBeach.provinceSlug || rawBeach.province_slug || '',
+    destinationName: rawBeach.destinationName || rawBeach.destination_name || '',
+    rating: rawBeach.rating || 0,
   };
 
   const waveInfo = waveLabels[beach.waveIntensity] || waveLabels['calma'];
@@ -168,7 +199,7 @@ export default function PlayaDetalle() {
               {/* Main image */}
               <div
                 className="col-span-2 row-span-2 relative cursor-pointer group"
-                onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}
+                onClick={() => openLightbox(0)}
               >
                 <img src={beach.imageUrl} alt={beach.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
@@ -187,7 +218,7 @@ export default function PlayaDetalle() {
                 <div
                   key={i}
                   className="relative cursor-pointer group overflow-hidden"
-                  onClick={() => { setLightboxIndex(i + 1); setLightboxOpen(true); }}
+                  onClick={() => openLightbox(i + 1)}
                 >
                   <img src={img} alt={`${beach.name} ${i + 2}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                   {i === 3 && allImages.length > 5 && (
@@ -433,7 +464,7 @@ export default function PlayaDetalle() {
           images={allImages}
           initialIndex={lightboxIndex}
           isOpen={lightboxOpen}
-          onClose={() => setLightboxOpen(false)}
+          onClose={closeLightbox}
         />
 
         <Footer />

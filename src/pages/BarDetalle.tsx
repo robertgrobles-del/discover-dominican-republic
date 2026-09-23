@@ -17,6 +17,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { SEOHead } from "@/components/SEOHead";
 import { Lightbox } from "@/components/ui/lightbox";
+import { useLightbox } from "@/hooks/useLightbox";
 import { getBarBySlug, Bar } from "@/data/bars";
 import { getHotelsByDestination } from "@/data/hotels";
 import { getRestaurantsByDestination } from "@/data/restaurants";
@@ -73,8 +74,12 @@ export default function BarDetalle() {
   const { slug: id } = useParams<{ slug: string }>();
   const staticBar = id ? getBarBySlug(id) : undefined;
   
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const {
+    isOpen: lightboxOpen,
+    currentIndex: lightboxIndex,
+    open: openLightbox,
+    close: closeLightbox,
+  } = useLightbox();
   const [vipZone, setVipZone] = useState("Mesa VIP Pista");
   const [guestCount, setGuestCount] = useState("4");
   const [vipName, setVipName] = useState("");
@@ -233,7 +238,7 @@ export default function BarDetalle() {
                 <div
                   key={i}
                   className="aspect-video rounded-xl overflow-hidden cursor-pointer relative group"
-                  onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
+                  onClick={() => openLightbox(i)}
                 >
                   <img
                     src={img}
@@ -553,7 +558,7 @@ export default function BarDetalle() {
           images={allImages}
           initialIndex={lightboxIndex}
           isOpen={lightboxOpen}
-          onClose={() => setLightboxOpen(false)}
+          onClose={closeLightbox}
         />
 
         <InlineAd showDemo variant="large" />

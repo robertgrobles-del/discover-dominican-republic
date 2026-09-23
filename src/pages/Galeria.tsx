@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Grid, Trees, Users, Building2, Utensils, ChevronDown, X, Download, Share2, Heart } from "lucide-react";
 import { Header } from "@/components/Header";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { PageTransition } from "@/components/PageTransition";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useLightbox } from "@/hooks/useLightbox";
 import heroBeachImg from "@/assets/hero-beach.jpg";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
@@ -109,7 +110,10 @@ const galleryItems = [
   },
 ];
 
-function GalleryItem({ item, onClick }: { item: typeof galleryItems[0]; onClick: () => void }) {
+const GalleryItem = forwardRef<HTMLDivElement, { item: typeof galleryItems[0]; onClick: () => void }>(function GalleryItem(
+  { item, onClick },
+  ref
+) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const aspectClass = {
@@ -120,6 +124,7 @@ function GalleryItem({ item, onClick }: { item: typeof galleryItems[0]; onClick:
 
   return (
     <motion.div
+      ref={ref}
       layout
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -154,15 +159,16 @@ function GalleryItem({ item, onClick }: { item: typeof galleryItems[0]; onClick:
       </div>
     </motion.div>
   );
-}
+});
 
 export default function Galeria() {
   const [activeCategory, setActiveCategory] = useState("todo");
-  const [selectedItem, setSelectedItem] = useState<typeof galleryItems[0] | null>(null);
+  const { isOpen: lightboxOpen, currentIndex: selectedIndex, open: openLightbox, close: closeLightbox } = useLightbox();
 
   const filteredItems = galleryItems.filter(
     (item) => activeCategory === "todo" || item.category === activeCategory
   );
+  const selectedItem = lightboxOpen ? filteredItems[selectedIndex] ?? null : null;
 
   return (
     <PageTransition>
@@ -240,11 +246,11 @@ export default function Galeria() {
               className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 auto-rows-[200px]"
             >
               <AnimatePresence mode="popLayout">
-                {filteredItems.map((item) => (
+                {filteredItems.map((item, idx) => (
                   <GalleryItem
                     key={item.id}
                     item={item}
-                    onClick={() => setSelectedItem(item)}
+                    onClick={() => openLightbox(idx)}
                   />
                 ))}
               </AnimatePresence>
@@ -261,7 +267,7 @@ export default function Galeria() {
         </section>
 
         {/* Lightbox Dialog */}
-        <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
+        <Dialog open={!!selectedItem} onOpenChange={(open) => { if (!open) closeLightbox(); }}>
           <DialogContent className="max-w-5xl p-0 bg-background/95 backdrop-blur-xl border-border">
             {selectedItem && (
               <div className="relative">

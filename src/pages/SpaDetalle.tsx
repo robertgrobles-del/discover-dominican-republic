@@ -14,8 +14,57 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { FavoriteButton } from "@/components/FavoriteButton";
 
+// Shape of the static demo spas below. There is no dedicated `src/data/spas.ts`
+// (unlike beaches/restaurants/bars) - this is the closest thing to a real
+// "Spa" type for this page.
+interface Spa {
+  slug: string;
+  name: string;
+  image: string;
+  gallery: string[];
+  category: string;
+  location: string;
+  rating: number;
+  reviews: number;
+  priceFrom: number;
+  duration: string;
+  phone: string;
+  email: string;
+  website: string;
+  description: string;
+  services: string[];
+  highlights: string[];
+  schedule: string;
+  featured: boolean;
+}
+
+// Row shape returned by the (mock) Supabase `spas_wellness` table. The mock
+// client is untyped (`supabase: any`) by design, so this is the one place
+// that bridges its loose data into a real type: it mirrors `Spa` but with the
+// database's snake_case column names (plus a couple of legacy/alternate
+// field names the page already tolerated), and every field is optional since
+// rows may be incomplete. `SpaSource` combines it with `Spa` itself (a full
+// `Spa` object always satisfies it, since every extra field is optional) so
+// the rest of the component can read either naming convention without
+// resorting to `as any`.
+interface SpaDbRow {
+  id?: string;
+  image_url?: string;
+  spa_type?: string;
+  address?: string;
+  review_count?: number;
+  price_from?: number;
+  opening_hours?: string;
+  treatments?: string[];
+  is_featured?: boolean;
+  price_range?: string;
+  priceRange?: string;
+}
+
+type SpaSource = Partial<Spa> & SpaDbRow;
+
 // Static fallback data
-const staticSpas = [
+const staticSpas: Spa[] = [
   {
     slug: "six-senses-spa",
     name: "Six Senses Spa",
@@ -122,20 +171,20 @@ const staticSpas = [
   },
 ];
 
-function useSpaData(slug: string | undefined) {
+function useSpaData(slug: string | undefined): { spa: SpaSource | undefined; isLoading: boolean } {
   const staticSpa = slug ? staticSpas.find(s => s.slug === slug) : undefined;
 
   const { data: dbSpa, isLoading } = useQuery({
     queryKey: ['spa', slug],
-    queryFn: async () => {
+    queryFn: async (): Promise<SpaDbRow | undefined> => {
       const { data, error } = await supabase
         .from('spas_wellness')
         .select('*')
         .eq('slug', slug!)
         .eq('is_active', true)
         .single();
-      if (error) return null;
-      return data;
+      if (error) return undefined;
+      return data as SpaDbRow;
     },
     enabled: !staticSpa && !!slug,
   });
@@ -179,28 +228,28 @@ export default function SpaDetalle() {
     );
   }
 
-  // Normalize
+  // Normalize (rawSpa is a real `SpaSource`, not `any` - see useSpaData above)
   const spa = {
-    slug: (rawSpa as any).slug || '',
-    name: (rawSpa as any).name || '',
-    image: (rawSpa as any).image || (rawSpa as any).image_url || '/placeholder.svg',
-    gallery: (rawSpa as any).gallery || [],
-    category: (rawSpa as any).category || (rawSpa as any).spa_type || '',
-    location: (rawSpa as any).location || (rawSpa as any).address || '',
-    rating: (rawSpa as any).rating || 0,
-    reviews: (rawSpa as any).reviews || (rawSpa as any).review_count || 0,
-    priceFrom: (rawSpa as any).priceFrom || (rawSpa as any).price_from || 0,
-    duration: (rawSpa as any).duration || '',
-    phone: (rawSpa as any).phone || '',
-    email: (rawSpa as any).email || '',
-    website: (rawSpa as any).website || '',
-    description: (rawSpa as any).description || '',
-    services: (rawSpa as any).services || (rawSpa as any).treatments || [],
-    highlights: (rawSpa as any).highlights || [],
-    schedule: (rawSpa as any).schedule || (rawSpa as any).opening_hours || '',
-    featured: (rawSpa as any).featured ?? (rawSpa as any).is_featured ?? false,
-    id: (rawSpa as any).id || (rawSpa as any).slug || '',
-    priceRange: (rawSpa as any).price_range || (rawSpa as any).priceRange || '',
+    slug: rawSpa.slug || '',
+    name: rawSpa.name || '',
+    image: rawSpa.image || rawSpa.image_url || '/placeholder.svg',
+    gallery: rawSpa.gallery || [],
+    category: rawSpa.category || rawSpa.spa_type || '',
+    location: rawSpa.location || rawSpa.address || '',
+    rating: rawSpa.rating || 0,
+    reviews: rawSpa.reviews || rawSpa.review_count || 0,
+    priceFrom: rawSpa.priceFrom || rawSpa.price_from || 0,
+    duration: rawSpa.duration || '',
+    phone: rawSpa.phone || '',
+    email: rawSpa.email || '',
+    website: rawSpa.website || '',
+    description: rawSpa.description || '',
+    services: rawSpa.services || rawSpa.treatments || [],
+    highlights: rawSpa.highlights || [],
+    schedule: rawSpa.schedule || rawSpa.opening_hours || '',
+    featured: rawSpa.featured ?? rawSpa.is_featured ?? false,
+    id: rawSpa.id || rawSpa.slug || '',
+    priceRange: rawSpa.price_range || rawSpa.priceRange || '',
   };
 
   return (

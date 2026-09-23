@@ -19,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { PageTransition } from "@/components/PageTransition";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { useLightbox } from "@/hooks/useLightbox";
 
 // Fallback data for demo
 const fallbackAirbnb = {
@@ -86,8 +87,15 @@ const amenityIcons: Record<string, React.ElementType> = {
 
 const AirbnbDetalle = () => {
   const { slug: id } = useParams<{ slug: string }>();
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const {
+    isOpen: lightboxOpen,
+    currentIndex: currentImageIndex,
+    open: openLightbox,
+    close: closeLightbox,
+    next: nextImage,
+    prev: prevImage,
+    setCurrentIndex: setCurrentImageIndex,
+  } = useLightbox();
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guestCount, setGuestCount] = useState(2);
@@ -151,7 +159,7 @@ const AirbnbDetalle = () => {
           <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[60vh] max-w-7xl mx-auto px-4">
             <div 
               className="col-span-2 row-span-2 relative cursor-pointer overflow-hidden rounded-l-xl"
-              onClick={() => { setCurrentImageIndex(0); setLightboxOpen(true); }}
+              onClick={() => openLightbox(0)}
             >
               <img 
                 src={images[0]} 
@@ -163,7 +171,7 @@ const AirbnbDetalle = () => {
               <div 
                 key={idx}
                 className={`relative cursor-pointer overflow-hidden ${idx === 1 ? 'rounded-tr-xl' : ''} ${idx === 3 ? 'rounded-br-xl' : ''}`}
-                onClick={() => { setCurrentImageIndex(idx + 1); setLightboxOpen(true); }}
+                onClick={() => openLightbox(idx + 1)}
               >
                 <img 
                   src={img} 
@@ -175,7 +183,7 @@ const AirbnbDetalle = () => {
             <Button 
               variant="secondary" 
               className="absolute bottom-4 right-8"
-              onClick={() => setLightboxOpen(true)}
+              onClick={() => openLightbox(currentImageIndex)}
             >
               Mostrar todas las fotos
             </Button>
@@ -513,7 +521,7 @@ const AirbnbDetalle = () => {
             variant="ghost"
             size="icon"
             className="absolute top-4 right-4 text-white hover:bg-white/10"
-            onClick={() => setLightboxOpen(false)}
+            onClick={closeLightbox}
           >
             <X className="h-6 w-6" />
           </Button>
@@ -522,7 +530,7 @@ const AirbnbDetalle = () => {
             variant="ghost"
             size="icon"
             className="absolute left-4 text-white hover:bg-white/10"
-            onClick={() => setCurrentImageIndex(prev => prev > 0 ? prev - 1 : images.length - 1)}
+            onClick={() => prevImage(images.length)}
           >
             <ChevronLeft className="h-8 w-8" />
           </Button>
@@ -537,7 +545,7 @@ const AirbnbDetalle = () => {
             variant="ghost"
             size="icon"
             className="absolute right-4 text-white hover:bg-white/10"
-            onClick={() => setCurrentImageIndex(prev => prev < images.length - 1 ? prev + 1 : 0)}
+            onClick={() => nextImage(images.length)}
           >
             <ChevronRight className="h-8 w-8" />
           </Button>
