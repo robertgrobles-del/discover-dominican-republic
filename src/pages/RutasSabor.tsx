@@ -123,14 +123,14 @@ export default function RutasSabor() {
         <Header />
 
         {/* Hero */}
-        <section className="relative h-[60vh] min-h-[500px] flex items-center justify-center mt-16">
+        <section className="relative h-[60vh] min-h-[500px] flex items-center justify-center">
           <div className="absolute inset-0">
             <img
               src={activeTab === "cafe" ? gastronomy : history}
               alt="Rutas del Sabor Dominicano"
               className="w-full h-full object-cover transition-all duration-700"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/85 to-background/50" />
           </div>
 
           <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
@@ -142,7 +142,7 @@ export default function RutasSabor() {
               <span className="text-gradient">Sabor Dominicano</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Un viaje sensorial por las tradiciones más auténticas de la isla: el café de las montañas del Cibao y el tabaco premium de Santiago.
+              El café de las montañas del Cibao y el tabaco premium de Santiago, directo de la finca a tu taza o tu caja.
             </p>
           </div>
         </section>

@@ -5,13 +5,14 @@ import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, MapPin, ChevronLeft, ChevronRight, Clock, ThumbsUp, Play, Music, Ticket } from "lucide-react";
+import { Calendar, MapPin, ChevronLeft, ChevronRight, Clock, ThumbsUp, Play, Music, Ticket, PlusCircle, Sparkles, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect } from "react";
-import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
+import { BetweenSectionsAd, CompactInlineAd, BannerAd } from "@/components/promo";
+import { RegistroEventoModal } from "@/components/forms/RegistroEventoModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/hooks/useI18n";
 
@@ -109,6 +110,7 @@ export default function Eventos() {
   const [selectedGenero, setSelectedGenero] = useState("Todos");
   const [heroLoaded, setHeroLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState("calendario");
+  const [isRegisterEventModalOpen, setIsRegisterEventModalOpen] = useState(false);
   const [dbEvents, setDbEvents] = useState<any[]>([]);
 
   useEffect(() => {
@@ -192,18 +194,28 @@ export default function Eventos() {
             }`}
             onLoad={() => setHeroLoaded(true)}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-          
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
+
           <div className="relative z-10 text-center px-4">
             <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-4 italic">
               {t("eventos.heroTitle")}
             </h1>
-            <p className="text-lg text-white/80 max-w-2xl mx-auto mb-8">
+            <p className="text-lg text-white/90 max-w-2xl mx-auto mb-8">
               {t("eventos.heroSubtitle")}
             </p>
-            <Button size="lg" className="gap-2">
-              <Calendar className="h-5 w-5" /> {t("eventos.viewCalendar")}
-            </Button>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Button size="lg" className="gap-2">
+                <Calendar className="h-5 w-5" /> {t("eventos.viewCalendar")}
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                onClick={() => setIsRegisterEventModalOpen(true)}
+                className="gap-2 bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-md"
+              >
+                <PlusCircle className="h-5 w-5 text-primary" /> Registrar mi Evento
+              </Button>
+            </div>
           </div>
         </section>
 
@@ -273,6 +285,7 @@ export default function Eventos() {
                         </button>
                       ))}
                     </div>
+
                     <div className="border-t border-border pt-4">
                       <p className="text-sm font-semibold text-foreground mb-3">{t("eventos.filterByLocation")}</p>
                       <div className="space-y-2">
@@ -283,6 +296,17 @@ export default function Eventos() {
                           </div>
                         ))}
                       </div>
+                    </div>
+                    
+                    {/* Skyscraper Banner Ad inside Sidebar */}
+                    <div className="border-t border-border pt-6 hidden sm:flex justify-center">
+                      <BannerAd 
+                        size="wide-skyscraper" 
+                        placement="sidebar" 
+                        showDemo 
+                        industry="alcohol" 
+                        className="shadow-lg"
+                      />
                     </div>
                   </div>
 
@@ -537,10 +561,43 @@ export default function Eventos() {
           </div>
         </section>
 
+        {/* B2B Event Organizer Banner Section */}
+        <section className="py-12 bg-card/60 border-t border-border">
+          <div className="container mx-auto px-4">
+            <div className="rounded-3xl p-8 md:p-10 bg-gradient-to-r from-primary/10 via-card to-purple-500/10 border border-primary/20 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+              <div className="space-y-2 text-center md:text-left">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/20 text-primary rounded-full text-xs font-semibold">
+                  <Building2 className="h-3.5 w-3.5" /> Productoras & Organizadores de Eventos
+                </div>
+                <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+                  ¿Organizas un concierto, festival o evento en RD?
+                </h3>
+                <p className="text-xs md:text-sm text-muted-foreground max-w-2xl leading-relaxed">
+                  Publica tu evento en la agenda oficial de Descubre RD. Conecta con miles de turistas y dominicanos, redirige hacia tu boletería oficial o activa la venta de taquillas.
+                </p>
+              </div>
+              <Button
+                size="lg"
+                onClick={() => setIsRegisterEventModalOpen(true)}
+                className="shrink-0 rounded-2xl h-12 px-6 font-bold text-xs gap-2 shadow-lg shadow-primary/20"
+              >
+                <PlusCircle className="h-4 w-4" />
+                Registrar mi Evento Gratis
+              </Button>
+            </div>
+          </div>
+        </section>
+
         {/* Ad before footer */}
         <BetweenSectionsAd showDemo />
 
         <Footer />
+
+        {/* Registro Evento Modal Dialog */}
+        <RegistroEventoModal 
+          open={isRegisterEventModalOpen} 
+          onClose={() => setIsRegisterEventModalOpen(false)} 
+        />
       </div>
     </PageTransition>
   );

@@ -1,15 +1,21 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
-import { Button } from "@/components/ui/button";
+import { PanoramaAd } from "@/components/promo";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Coffee, MapPin, Compass, AlertCircle, Sparkles, BookOpen, Star } from "lucide-react";
+import { 
+  Coffee, MapPin, Compass, AlertCircle, Sparkles, BookOpen, Star, 
+  ChevronRight, Wine, GlassWater, Clock, CheckCircle, ArrowRight
+} from "lucide-react";
 import { toast } from "sonner";
+
+import gastronomyImg from "@/assets/gastronomy.jpg";
 
 interface Bebida {
   name: string;
@@ -19,205 +25,274 @@ interface Bebida {
   brands: string[];
   image: string;
   rating: number;
+  origin: string;
 }
 
-const mockBebidas: Bebida[] = [
+const bebidasList: Bebida[] = [
   {
-    name: "Ron Dominicano",
+    name: "Ron Dominicano Añejo",
     category: "alcohol",
-    history: "La caña de azúcar introducida por Colón floreció en el fértil suelo dominicano, dando origen a una tradición ronera centenaria basada en el añejamiento natural en barricas de roble.",
-    notes: "Notas intensas de vainilla, caramelo, frutos secos y un toque sutil de madera tostada y cacao.",
-    brands: ["Brugal", "Barceló", "Bermúdez", "Siboney"],
-    image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800",
-    rating: 5.0
+    history: "La caña de azúcar introducida en 1493 floreció en Quisqueya. El método de añejamiento en barricas de roble blanco americano crea rones suaves con denominación de origen.",
+    notes: "Notas intensas de vainilla, caramelo, frutos secos, cacao tostado y un final amaderado sedoso.",
+    brands: ["Brugal (1888, Leyenda)", "Barceló (Imperial)", "Bermúdez", "Siboney"],
+    image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=600&h=400&fit=crop",
+    rating: 5.0,
+    origin: "Puerto Plata & San Pedro"
   },
   {
-    name: "Mamajuana",
+    name: "Mamajuana Taína",
     category: "traditional",
-    history: "Un elixir ancestral curativo heredado de los taínos, quienes preparaban infusiones de raíces y cortezas de árboles. Tras la colonización se le añadió ron y miel de abejas.",
-    notes: "Sabor herbal aromático complejo, dulce, especiado, con matices terrosos y un regusto vigorizante.",
-    brands: ["Kalembú", "Karibú", "Preparación casera tradicional"],
-    image: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=800",
-    rating: 4.9
+    history: "Elixir ancestral curativo heredado de los taínos a base de raíces (bejuco indio, anamú, timacle) maceradas con ron dominicano, vino tinto y miel de abeja pura.",
+    notes: "Sabor herbal aromático, dulce, especiado, con matices terrosos y propiedades energizantes reconocidas.",
+    brands: ["Kalembú", "Karibú", "Elaboración artesanal"],
+    image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=600&h=400&fit=crop",
+    rating: 4.9,
+    origin: "Todo el país / Samaná"
   },
   {
-    name: "Cerveza Presidente",
+    name: "Cerveza Presidente 'Vestida de Novia'",
     category: "alcohol",
-    history: "Nacida en 1935, es la cerveza insignia de República Dominicana. Considerada un elemento clave del folclor popular, presente en cada celebración, colmado y esquina.",
-    notes: "Lager ligera y refrescante, de cuerpo medio, con un suave lúpulo y burbuja fina, servida a temperaturas heladas.",
+    history: "Nacida en 1935, es el ícono cervecero dominicano. El término popular 'vestida de novia' o 'ceniza' describe su punto de congelación exacto con capa de escarcha blanca.",
+    notes: "Pilsner ligera, crujiente y sumamente refrescante, servida entre -2°C y 0°C con suave amargor de lúpulo.",
     brands: ["Cervecería Nacional Dominicana"],
-    image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800",
-    rating: 4.8
+    image: "https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=600&h=400&fit=crop",
+    rating: 4.8,
+    origin: "Santo Domingo"
   },
   {
-    name: "Morir Soñando",
+    name: "Morir Soñando Tradicional",
     category: "non-alcohol",
-    history: "La bebida láctea dulce por excelencia de la gastronomía dominicana. Su nombre lírico refleja la sensación reconfortante de tomar este nutritivo ponche cítrico.",
-    notes: "Textura cremosa y aterciopelada, contraste balanceado entre el dulzor de la leche y la acidez del zumo de naranja natural.",
-    brands: ["Elaboración hogareña y cafeterías locales"],
-    image: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=800",
-    rating: 4.9
+    history: "La joya de las meriendas dominicanas. Un néctar celestial que combina zumo recién exprimido de naranja dulce con leche evaporada bien fría y vainilla.",
+    notes: "Textura aterciopelada de batida cremosa con perfecto balance cítrico dulce sin llegar a cortarse.",
+    brands: ["Cafeterías locales y colmados"],
+    image: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=600&h=400&fit=crop",
+    rating: 4.9,
+    origin: "Tradición Nacional"
+  },
+  {
+    name: "Mabí Taíno de Bejuco Indio / Cacheo",
+    category: "traditional",
+    history: "Bebida fermentada ancestral de corteza de bejuco indio y azúcar de caña. En El Seibo y San Juan de la Maguana se mantiene la receta tradicional en tinajas.",
+    notes: "Efervescencia natural ligera, regusto herbal agridulce y refrescante efecto digestivo.",
+    brands: ["Mabí Seibano", "Mabí de Cacheo"],
+    image: "https://images.unsplash.com/photo-1556881286-fc6915169721?w=600&h=400&fit=crop",
+    rating: 4.7,
+    origin: "El Seibo & San Juan"
+  },
+  {
+    name: "Jugo de Chinola Fresco (Maracuyá)",
+    category: "non-alcohol",
+    history: "La fruta de la pasión caribeña en su máxima expresión. Los campos de Monte Plata y Hato Mayor producen las chinolas más jugosas y aromáticas.",
+    notes: "Explosión cítrica tropical de acidez vibrante, ideal para acompañar un almuerzo de pescado frito en la playa.",
+    brands: ["Puestos playeros y restaurantes"],
+    image: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&h=400&fit=crop",
+    rating: 4.9,
+    origin: "Monte Plata & Hato Mayor"
   }
 ];
 
-const tastingRoutes = [
+const recetasCocteles = [
   {
-    title: "Ruta del Ron del Norte (Puerto Plata)",
-    duration: "4 horas",
-    stops: [
-      { name: "Fábrica de Ron Brugal (Centro de Visitantes)", desc: "Aprende el proceso de destilación y envasado a gran escala y disfruta de una cata guiada de rones premium." },
-      { name: "Casa Ron Macorix", desc: "Museo boutique del ron en el centro histórico, cata de rones saborizados con coco, piña y especias." }
-    ]
+    nombre: "Santo Libre Clásico",
+    ingredientes: ["2 oz Ron Dominicano Añejo o Blanco", "1 oz Zumo de lima recién exprimido", "Refresco de lima-limón (Sprite/7Up)", "Hielo abundante y rodaja de lima"],
+    preparacion: "Llena un vaso alto con hielo, vierte el ron y el zumo de lima, completa con refresco de lima-limón y mezcla suavemente."
   },
   {
-    title: "Ruta Bohemia de la Zona Colonial",
-    duration: "3 horas",
-    stops: [
-      { name: "La Hija de la Flaca Colmado", desc: "Prueba la cerveza Presidente en su punto de congelación exacto ('ceniza') conversando con vecinos." },
-      { name: "El Bodegón de la Mamajuana", desc: "Taller artesanal interactivo para preparar tu propio frasco de mamajuana con corteza local." }
-    ]
+    nombre: "Morir Soñando Perfecto (Truco de la Abuela)",
+    ingredientes: ["1 taza de Zumo de naranja dulce colado", "1 lata de Leche Evaporada bien fría", "3 cucharadas de azúcar de caña", "1 cdta de vainilla y hielo picado"],
+    preparacion: "Disuelve el azúcar y vainilla en la leche evaporada con el hielo. Vierte el zumo de naranja MUY LENTAMENTE mientras bates enérgicamente con cuchara para evitar que la leche se corte."
   }
 ];
 
 export default function BebidasRD() {
   const [activeTab, setActiveTab] = useState<string>("all");
 
-  const filteredBebidas = mockBebidas.filter(bebida => {
+  const filteredBebidas = bebidasList.filter(bebida => {
     if (activeTab === "all") return true;
     return bebida.category === activeTab;
   });
 
-  const handleRouteRequest = (title: string) => {
-    toast.success(`¡Ruta reservada: ${title}! Recibirás el mapa detallado y cupones de cata en tu email.`);
-  };
-
   return (
     <PageTransition>
       <SEOHead
-        title="Guía de Bebidas de República Dominicana"
-        description="Explora las bebidas típicas dominicanas: ron, mamajuana, cerveza Presidente, morir soñando. Rutas de degustación y catas."
+        title="Guía de Bebidas y Licores de República Dominicana | Ron, Mamajuana y Más"
+        description="Descubre las bebidas emblemáticas de RD: Ron dominicano añejo, Mamajuana taína, Cerveza Presidente, Morir Soñando y Mabí. Recetas y rutas de degustación."
+        keywords="bebidas republica dominicana, ron dominicano, mamajuana receta, morir soñando dominicano, cerveza presidente, mabi seibano"
       />
-      <div className="min-h-screen bg-background flex flex-col justify-between">
+      <div className="min-h-screen bg-background text-foreground flex flex-col">
         <Header />
 
-        <main className="flex-grow pt-24 pb-16">
-          <div className="container mx-auto px-4 lg:px-8">
-            
-            {/* Header Title */}
-            <div className="text-center max-w-2xl mx-auto mb-10">
-              <Badge className="mb-3 bg-amber-500/10 text-amber-500 border-amber-500/20 gap-1.5 py-1 px-3">
-                🍹 Sabores de Quisqueya
+        {/* Hero Section */}
+        <section className="relative h-[65vh] min-h-[480px] flex items-end overflow-hidden">
+          <img
+            src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1920&h=800&fit=crop"
+            alt="Bebidas, Licores y Cócteles Típicos de República Dominicana"
+            className="absolute inset-0 w-full h-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-black/30" />
+
+          <div className="relative z-10 container mx-auto px-4 lg:px-8 pb-12">
+            <nav className="flex items-center gap-2 text-xs md:text-sm text-white/80 mb-4">
+              <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
+              <ChevronRight className="h-3.5 w-3.5" />
+              <Link to="/guia-gastronomica" className="hover:text-primary transition-colors">Gastronomía</Link>
+              <ChevronRight className="h-3.5 w-3.5" />
+              <span className="text-white font-medium">Bebidas y Licores de RD</span>
+            </nav>
+
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+              <div>
+                <Badge className="mb-3 bg-amber-500/20 text-amber-300 border-amber-500/30 text-xs px-3 py-1 font-semibold">
+                  🍹 PATRIMONIO LÍQUIDO DE QUISQUEYA
+                </Badge>
+                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">
+                  Bebidas & Licores de RD
+                </h1>
+                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">
+                  Desde rones centenarios galardonados internacionalmente y el místico elixir de mamajuana hasta batidas tropicales como el morir soñando.
+                </p>
+              </div>
+
+              {/* Stats pill */}
+              <div className="flex flex-wrap gap-3 bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-white">
+                <div className="text-center px-3 border-r border-white/10 last:border-none">
+                  <p className="font-display text-2xl font-bold text-amber-400">1888</p>
+                  <p className="text-[11px] text-white/70 uppercase">Herencia Ronera</p>
+                </div>
+                <div className="text-center px-3 border-r border-white/10 last:border-none">
+                  <p className="font-display text-2xl font-bold text-emerald-400">100%</p>
+                  <p className="text-[11px] text-white/70 uppercase">Ingredientes Naturales</p>
+                </div>
+                <div className="text-center px-3">
+                  <p className="font-display text-2xl font-bold text-primary">Taína</p>
+                  <p className="text-[11px] text-white/70 uppercase">Raíz Ancestral</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Category Tabs */}
+        <section className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border/80 py-4 shadow-sm">
+          <div className="container mx-auto px-4 lg:px-8 flex justify-center">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="bg-card border border-border">
+                <TabsTrigger value="all">Todas ({bebidasList.length})</TabsTrigger>
+                <TabsTrigger value="alcohol">Espirituosas & Ron</TabsTrigger>
+                <TabsTrigger value="traditional">Ancestrales & Tradicionales</TabsTrigger>
+                <TabsTrigger value="non-alcohol">Sin Alcohol & Batidas</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        </section>
+
+        {/* Bebidas Grid */}
+        <section className="container mx-auto px-4 lg:px-8 py-12 flex-1">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredBebidas.map((bebida) => (
+              <Card key={bebida.name} className="overflow-hidden bg-card border-border/80 hover:border-primary/40 hover:shadow-xl transition-all duration-300 flex flex-col">
+                <div className="relative h-52 overflow-hidden bg-muted">
+                  <img 
+                    src={bebida.image} 
+                    alt={bebida.name} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/20" />
+
+                  <div className="absolute top-3 left-3">
+                    <Badge className="bg-amber-500 text-slate-950 font-bold border-none text-[11px]">
+                      {bebida.category === "alcohol" ? "Espirituosa" : bebida.category === "traditional" ? "Tradición Ancestral" : "Sin Alcohol"}
+                    </Badge>
+                  </div>
+
+                  <div className="absolute top-3 right-3">
+                    <Badge className="bg-black/70 text-amber-300 border-none text-xs font-bold">
+                      ★ {bebida.rating}
+                    </Badge>
+                  </div>
+
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs">
+                    <span className="flex items-center gap-1 font-semibold">
+                      <MapPin className="h-3.5 w-3.5 text-primary" /> {bebida.origin}
+                    </span>
+                  </div>
+                </div>
+
+                <CardContent className="p-5 flex flex-col flex-1">
+                  <h3 className="font-display font-bold text-xl text-foreground mb-2">
+                    {bebida.name}
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-4 flex-1">
+                    {bebida.history}
+                  </p>
+
+                  <div className="p-3 bg-muted/30 rounded-xl border border-border/60 text-xs text-muted-foreground space-y-1 mb-4">
+                    <strong className="text-foreground block text-[11px] uppercase tracking-wider">Notas de Cata:</strong>
+                    <p className="italic">{bebida.notes}</p>
+                  </div>
+
+                  <div className="pt-3 border-t border-border flex flex-wrap gap-1.5">
+                    {bebida.brands.map((b) => (
+                      <Badge key={b} variant="secondary" className="text-[10px]">
+                        {b}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        {/* Interactive Cocktail & Drink Recipes */}
+        <section className="py-16 bg-card/40 border-y border-border/50">
+          <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
+            <div className="text-center mb-12">
+              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
+                RECETARIO DOMINICANO
               </Badge>
-              <h1 className="font-display text-3xl md:text-5xl font-bold text-foreground">
-                Guía de Bebidas y Licores RD
-              </h1>
-              <p className="text-muted-foreground mt-3 text-base">
-                Descubre el patrimonio líquido de la República Dominicana. Desde el centenario ron añejo hasta la exótica mamajuana de raíces taínas.
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
+                Cómo Preparar Cócteles y Bebidas Icónicas
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
+                Fáciles de hacer en casa o en tu villa de vacaciones para saborear el auténtico espíritu caribeño.
               </p>
             </div>
 
-            {/* Content Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-12">
-              <div className="flex justify-center mb-8">
-                <TabsList className="bg-secondary/40 border border-border">
-                  <TabsTrigger value="all">Todas</TabsTrigger>
-                  <TabsTrigger value="alcohol">Espirituosas</TabsTrigger>
-                  <TabsTrigger value="traditional">Tradicionales</TabsTrigger>
-                  <TabsTrigger value="non-alcohol">Sin Alcohol</TabsTrigger>
-                </TabsList>
-              </div>
-
-              <TabsContent value={activeTab} className="mt-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {filteredBebidas.map((bebida) => (
-                    <Card key={bebida.name} className="overflow-hidden border border-border bg-card/65 hover:border-primary/20 transition-all duration-300 group hover:shadow-xl flex flex-col sm:flex-row h-full">
-                      <div className="sm:w-1/3 relative aspect-square sm:aspect-auto overflow-hidden bg-muted">
-                        <img
-                          src={bebida.image}
-                          alt={bebida.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                      </div>
-                      <div className="p-6 sm:w-2/3 flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[10px] uppercase">
-                              {bebida.category === "alcohol" ? "Con Alcohol" : bebida.category === "non-alcohol" ? "Sin Alcohol" : "Herencia Cultural"}
-                            </Badge>
-                            <div className="flex items-center gap-1">
-                              <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                              <span className="text-xs font-bold text-foreground">{bebida.rating}</span>
-                            </div>
-                          </div>
-                          <h3 className="font-display font-bold text-lg text-foreground mb-3 group-hover:text-primary transition-colors">
-                            {bebida.name}
-                          </h3>
-                          <div className="space-y-3 text-xs text-muted-foreground">
-                            <p className="leading-relaxed"><strong>Historia:</strong> {bebida.history}</p>
-                            <p className="leading-relaxed"><strong>Notas de Cata:</strong> {bebida.notes}</p>
-                          </div>
-                        </div>
-
-                        <div className="border-t border-border/40 pt-4 mt-4 flex items-center justify-between">
-                          <div>
-                            <p className="text-[10px] text-muted-foreground">Marcas Sugeridas</p>
-                            <p className="text-xs font-semibold text-foreground truncate max-w-[150px]">{bebida.brands.join(", ")}</p>
-                          </div>
-                          <Button
-                            size="sm"
-                            onClick={() => toast.info(`Mostrando bares donde disfrutar de: ${bebida.name}`)}
-                            variant="outline"
-                            className="text-xs border-amber-500 text-amber-500 hover:bg-amber-500/10"
-                          >
-                            Dónde Probarla
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
+            <div className="grid md:grid-cols-2 gap-6">
+              {recetasCocteles.map((receta) => (
+                <div key={receta.nombre} className="bg-card border border-border rounded-2xl p-6 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-display font-bold text-xl text-foreground mb-3">{receta.nombre}</h3>
+                    <div className="mb-4">
+                      <h4 className="text-xs font-bold text-primary uppercase mb-2">Ingredientes:</h4>
+                      <ul className="space-y-1 text-xs text-muted-foreground">
+                        {receta.ingredientes.map((ing, i) => (
+                          <li key={i} className="flex items-center gap-1.5">
+                            <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                            <span>{ing}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-secondary/40 rounded-xl border border-border/50 text-xs text-muted-foreground">
+                    <strong className="text-foreground block mb-1">Preparación:</strong>
+                    {receta.preparacion}
+                  </div>
                 </div>
-              </TabsContent>
-            </Tabs>
-
-            {/* Tasting Routes Section */}
-            <div>
-              <h2 className="font-display text-2xl font-bold mb-6 flex items-center gap-2">
-                <Compass className="h-6 w-6 text-primary" /> Rutas de Degustación Sugeridas
-              </h2>
-              <div className="grid md:grid-cols-2 gap-8">
-                {tastingRoutes.map((route) => (
-                  <Card key={route.title} className="bg-secondary/25 border border-border rounded-2xl overflow-hidden flex flex-col justify-between h-full">
-                    <CardHeader className="p-6 pb-2">
-                      <div className="flex justify-between items-center mb-1">
-                        <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px]">Ruta Oficial</Badge>
-                        <span className="text-xs text-muted-foreground">{route.duration}</span>
-                      </div>
-                      <CardTitle className="text-lg font-bold">{route.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6 pt-0 space-y-4">
-                      {route.stops.map((stop, i) => (
-                        <div key={stop.name} className="flex gap-3 items-start border-l-2 border-primary/45 pl-4 ml-1 relative">
-                          <div className="absolute w-3 h-3 rounded-full bg-primary -left-2 top-1 border-2 border-background" />
-                          <div>
-                            <p className="font-bold text-xs text-foreground">{i + 1}. {stop.name}</p>
-                            <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{stop.desc}</p>
-                          </div>
-                        </div>
-                      ))}
-                      <Button
-                        onClick={() => handleRouteRequest(route.title)}
-                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs mt-4 gap-1.5"
-                      >
-                        <MapPin className="h-3.5 w-3.5" /> Solicitar Mapa y Cupones
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              ))}
             </div>
-
           </div>
-        </main>
+        </section>
+
+        {/* Panorama Ad Section */}
+        <section className="py-6 bg-muted/20 border-t border-border/40">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <PanoramaAd showDemo />
+          </div>
+        </section>
 
         <Footer />
       </div>

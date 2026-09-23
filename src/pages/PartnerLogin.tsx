@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
@@ -7,6 +7,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,6 +25,8 @@ export default function PartnerLogin() {
   const [businessName, setBusinessName] = useState("");
   const [businessType, setBusinessType] = useState("hotel");
   const [phone, setPhone] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [subscribeNewsletter, setSubscribeNewsletter] = useState(true);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +73,11 @@ export default function PartnerLogin() {
     e.preventDefault();
     if (!businessName.trim()) {
       toast.error("Por favor ingresa el nombre del negocio.");
+      return;
+    }
+
+    if (!acceptTerms) {
+      toast.error("Debes aceptar los Términos y Condiciones del Programa de Partners.");
       return;
     }
     setLoading(true);
@@ -259,6 +267,37 @@ export default function PartnerLogin() {
                         />
                         <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       </div>
+                    </div>
+
+                    {/* Checkbox 1: Terms & Conditions */}
+                    <div className="flex items-start gap-2.5 pt-1">
+                      <Checkbox
+                        id="partner-terms"
+                        checked={acceptTerms}
+                        onCheckedChange={(c) => setAcceptTerms(c as boolean)}
+                        className="mt-0.5"
+                        required
+                      />
+                      <Label htmlFor="partner-terms" className="text-xs text-muted-foreground leading-tight cursor-pointer">
+                        Acepto los{" "}
+                        <Link to="/terminos" target="_blank" className="text-primary underline font-medium">
+                          Términos de Servicio para Partners
+                        </Link>{" "}
+                        y el tratamiento de datos comerciales. <span className="text-red-500">*</span>
+                      </Label>
+                    </div>
+
+                    {/* Checkbox 2: Newsletter B2B */}
+                    <div className="flex items-start gap-2.5">
+                      <Checkbox
+                        id="partner-newsletter"
+                        checked={subscribeNewsletter}
+                        onCheckedChange={(c) => setSubscribeNewsletter(c as boolean)}
+                        className="mt-0.5"
+                      />
+                      <Label htmlFor="partner-newsletter" className="text-xs text-muted-foreground leading-tight cursor-pointer">
+                        Deseo recibir el boletín corporativo con reportes de ocupación y promociones para establecimientos.
+                      </Label>
                     </div>
 
                     <Button type="submit" className="w-full mt-4" disabled={loading}>

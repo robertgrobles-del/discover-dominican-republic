@@ -3,6 +3,9 @@ import { useState } from "react";
 import { TesorosTierra } from "@/components/compras/TesorosTierra";
 import { CentrosComercialesSection } from "@/components/compras/CentrosComercialesSection";
 import { Header } from "@/components/Header";
+import { CTARegistroEstablecimiento } from "@/components/forms/CTARegistroEstablecimiento";
+import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
+
 
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
@@ -78,10 +81,9 @@ export default function Compras() {
     <PageTransition>
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
-        
 
         {/* Hero */}
-        <section className="relative h-[60vh] min-h-[500px] flex items-end mt-16">
+        <section className="relative h-[60vh] min-h-[500px] flex items-end">
           <div className="absolute inset-0">
             <img
               src={merengue}
@@ -388,6 +390,16 @@ export default function Compras() {
         {/* Marcas Internacionales */}
         <section className="py-12 border-t border-border">
           <div className="container mx-auto px-4">
+            <div className="space-y-8 mb-16">
+              <SorteoLectorBanner origenCategoria="Tiendas, Larimar, Ámbar y Artesanía" />
+
+              <CTARegistroEstablecimiento 
+                tipo="tienda" 
+                titulo="¿Tienes una tienda, boutique o taller de artesanías?" 
+                subtitulo="Añade tu negocio a nuestra guía oficial de compras de cara al lanzamiento. Muestra tus productos insignia, artesanías locales o boutiques de moda a los turistas."
+              />
+            </div>
+
             <p className="text-center text-xs text-muted-foreground uppercase tracking-wider mb-6">
               Encuentra tus marcas favoritas
             </p>

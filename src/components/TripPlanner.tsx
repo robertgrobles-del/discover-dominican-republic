@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, Reorder, AnimatePresence } from "framer-motion";
-import { Calendar, MapPin, Clock, Trash2, Plus, GripVertical, ChevronRight, Sparkles, Save, Share2, Mail, Link2, ExternalLink } from "lucide-react";
+import { Calendar, MapPin, Clock, Trash2, Plus, GripVertical, ChevronRight, Compass, Save, Share2, Mail, Link2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -327,7 +327,7 @@ export function TripPlanner() {
         <div className="sticky top-24">
           <div className="bg-card rounded-xl border border-border p-5">
             <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="h-5 w-5 text-primary" />
+              <Compass className="h-5 w-5 text-primary" />
               <h3 className="font-semibold text-foreground">Actividades Sugeridas</h3>
             </div>
             <p className="text-sm text-muted-foreground mb-4">

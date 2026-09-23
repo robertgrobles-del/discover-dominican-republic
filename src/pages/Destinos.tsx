@@ -4,7 +4,8 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
-import { BetweenSectionsAd } from "@/components/ads";
+import { BetweenSectionsAd } from "@/components/promo";
+import { SectionWithSideAds } from "@/components/SectionWithSideAds";
 import { useTranslation } from "@/hooks/useI18n";
 
 import { PopularDestinations } from "@/components/destinations/PopularDestinations";
@@ -87,7 +88,16 @@ export default function Destinos() {
         <PopularDestinations destinations={popularDestinations} />
         <BetweenSectionsAd showDemo />
         <RegionsSection />
-        <RecommendedDestinations destinations={recommendedDestinations} />
+        
+        <SectionWithSideAds 
+          showAds 
+          leftAdSize="skyscraper" 
+          rightAdSize="skyscraper" 
+          className="container mx-auto"
+        >
+          <RecommendedDestinations destinations={recommendedDestinations} />
+        </SectionWithSideAds>
+
         <BetweenSectionsAd showDemo />
         <ProvincesGrid provinces={provinces} />
         <MunicipalitiesSection municipalities={municipalities} />

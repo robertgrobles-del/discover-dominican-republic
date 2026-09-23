@@ -23,6 +23,7 @@ export function LazyImage({
   const [isLoaded, setIsLoaded] = useState(false);
   const [isInView, setIsInView] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
+  const imgElRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     if (!imgRef.current) return;
@@ -45,6 +46,14 @@ export function LazyImage({
     return () => observer.disconnect();
   }, []);
 
+  // A cached image can finish loading before the onLoad handler attaches,
+  // so onLoad never fires and the image stays stuck at opacity-0 forever.
+  useEffect(() => {
+    if (isInView && imgElRef.current?.complete) {
+      setIsLoaded(true);
+    }
+  }, [isInView, src]);
+
   return (
     <div ref={imgRef} className={cn("relative", containerClassName)}>
       {showSkeleton && !isLoaded && (
@@ -52,6 +61,7 @@ export function LazyImage({
       )}
       {isInView && (
         <img
+          ref={imgElRef}
           src={src}
           alt={alt}
           className={cn(

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { getStoredJSON } from "@/lib/safeStorage";
 
 export default function ConcursosFotografia() {
   const { user } = useAuth();
@@ -29,9 +30,9 @@ export default function ConcursosFotografia() {
 
   // Load submissions from localStorage or mock defaults
   useEffect(() => {
-    const saved = localStorage.getItem("contest_photo_submissions");
+    const saved = getStoredJSON<any[] | null>("contest_photo_submissions", null);
     if (saved) {
-      setPhotoSubmissions(JSON.parse(saved));
+      setPhotoSubmissions(saved);
     } else {
       const defaultSubmissions = [
         {
@@ -66,10 +67,7 @@ export default function ConcursosFotografia() {
       localStorage.setItem("contest_photo_submissions", JSON.stringify(defaultSubmissions));
     }
 
-    const savedVotes = localStorage.getItem("contest_voted_ids");
-    if (savedVotes) {
-      setHasVoted(JSON.parse(savedVotes));
-    }
+    setHasVoted(getStoredJSON<string[]>("contest_voted_ids", []));
   }, []);
 
   const handleVote = (id: string) => {

@@ -10,6 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { 
+  sanitizeInput, 
+  detectSQLiPatterns, 
+  ClientRateLimiter 
+} from "@/lib/security";
 import {
   Instagram,
   Twitter,
@@ -164,16 +169,38 @@ export default function RDSocial() {
 
   const handleComment = async (postId: number) => {
     const postIdStr = String(postId);
-    const text = (commentText[postId] || "").trim();
+    const rawText = commentText[postId] || "";
+    const cleanText = sanitizeInput(rawText);
 
     if (!user) {
       toast.error("Inicia sesión para comentar y ganar puntos");
       return;
     }
-    if (text.length < 3) {
+
+    // Rate limiter: Max 3 comment attempts per 30 seconds per user
+    const rateCheck = ClientRateLimiter.check("comment", user.id, 3, 30000, 60000);
+    if (!rateCheck.allowed) {
+      toast.error(`Comentarios pausados momentáneamente. Espera ${rateCheck.retryAfterSeconds} segundos.`);
+      return;
+    }
+
+    if (cleanText.length < 3) {
       toast.error("El comentario debe tener al menos 3 caracteres");
       return;
     }
+
+    if (cleanText.length > 500) {
+      toast.error("El comentario no puede exceder 500 caracteres");
+      return;
+    }
+
+    // Prevent malicious patterns (SQLi / XSS)
+    if (detectSQLiPatterns(cleanText)) {
+      ClientRateLimiter.recordAttempt("comment", user.id);
+      toast.error("El comentario contiene caracteres o patrones no autorizados");
+      return;
+    }
+
     if (commentedPosts.has(postIdStr)) {
       toast.error("Ya comentaste en esta publicación");
       return;
@@ -187,7 +214,7 @@ export default function RDSocial() {
     try {
       const { data, error } = await supabase.rpc("post_comment", {
         p_post_id: postIdStr,
-        p_content: text
+        p_content: cleanText
       });
 
       if (error) throw error;
@@ -260,7 +287,7 @@ export default function RDSocial() {
               alt="RD Social"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-black/80" />
           </div>
           
           <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
@@ -270,9 +297,8 @@ export default function RDSocial() {
             <h1 className="font-display text-5xl md:text-7xl font-bold text-white mb-4">
               #LaIslaEnRedes
             </h1>
-            <p className="text-lg text-white/80 max-w-2xl mx-auto mb-8">
-              Descubre la República Dominicana real a través de los lentes de miles 
-              de viajeros. Únete a la conversación y comparte tu aventura.
+            <p className="text-lg text-white/90 max-w-2xl mx-auto mb-8">
+              Fotos y videos reales de viajeros en Instagram y TikTok. Comparte los tuyos con el hashtag.
             </p>
             
             <div className="flex flex-wrap justify-center gap-4 mb-8">
@@ -426,9 +452,12 @@ export default function RDSocial() {
                           title="Compartir publicación"
                           aria-label="Compartir publicación"
                           onClick={() => {
-                            navigator.share?.({ url: window.location.href, title: post.caption }) ||
-                            navigator.clipboard.writeText(window.location.href);
-                            toast.success("Enlace copiado");
+                            if (navigator.share) {
+                              navigator.share({ url: window.location.href, title: post.caption });
+                            } else {
+                              navigator.clipboard.writeText(window.location.href);
+                              toast.success("Enlace copiado");
+                            }
                           }}
                         >
                           <Share2 className="h-4 w-4" />

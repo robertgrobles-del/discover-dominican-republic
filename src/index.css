@@ -98,7 +98,45 @@
   }
 
   body {
-    @apply bg-background text-foreground font-body antialiased;
+    @apply bg-background text-foreground font-body antialiased selection:bg-primary selection:text-primary-foreground;
+  }
+
+  /* Global Typographic Hierarchy & Readability (WCAG AAA & Editorial Scale) */
+  h1, .h1 {
+    @apply font-display font-black tracking-tight text-foreground;
+    font-size: clamp(2rem, 4vw + 1rem, 3.5rem);
+    line-height: 1.15;
+  }
+
+  h2, .h2 {
+    @apply font-display font-bold tracking-tight text-foreground;
+    font-size: clamp(1.5rem, 2.5vw + 0.5rem, 2.25rem);
+    line-height: 1.25;
+  }
+
+  h3, .h3 {
+    @apply font-display font-bold text-foreground;
+    font-size: clamp(1.25rem, 1.5vw + 0.25rem, 1.65rem);
+    line-height: 1.35;
+  }
+
+  h4, .h4 {
+    @apply font-display font-semibold text-foreground text-base md:text-lg;
+    line-height: 1.4;
+  }
+
+  h5, .h5 {
+    @apply font-display font-semibold text-foreground text-sm md:text-base;
+    line-height: 1.45;
+  }
+
+  h6, .h6 {
+    @apply font-display font-medium text-muted-foreground text-xs md:text-sm uppercase tracking-wider;
+    line-height: 1.5;
+  }
+
+  p {
+    @apply leading-relaxed text-muted-foreground;
   }
 
   /* Custom scrollbar */
@@ -140,12 +178,14 @@
 
   .glass-card {
     background: hsl(var(--glass-bg));
+    -webkit-backdrop-filter: blur(16px);
     backdrop-filter: blur(16px);
     border: 1px solid hsl(var(--glass-border));
   }
 
   .glass-strong {
     background: hsl(var(--background) / 0.9);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
     backdrop-filter: blur(24px) saturate(180%);
     border: 1px solid hsl(var(--glass-border));
   }
@@ -382,6 +422,7 @@
 /* Lightbox styles */
 .lightbox-overlay {
   background: hsl(var(--background) / 0.95);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 }
 

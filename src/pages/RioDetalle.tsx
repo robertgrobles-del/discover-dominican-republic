@@ -11,6 +11,7 @@ import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { getRiverBySlug, River } from "@/data/rivers";
+import { getRioAsRiver } from "@/data/riosData";
 
 const riverTypeLabels: Record<River['riverType'], string> = {
   'montaña': 'Río de Montaña',
@@ -36,7 +37,7 @@ const tempLabels: Record<River['waterTemperature'], string> = {
 
 export default function RioDetalle() {
   const { slug } = useParams<{ slug: string }>();
-  const river = slug ? getRiverBySlug(slug) : undefined;
+  const river = slug ? (getRiverBySlug(slug) || getRioAsRiver(slug)) : undefined;
 
   if (!river) {
     return (
@@ -64,7 +65,7 @@ export default function RioDetalle() {
         <Header />
 
         {/* Breadcrumbs */}
-        <div className="bg-muted/30 border-b border-border mt-16">
+        <div className="bg-muted/30 border-b border-border">
           <div className="container mx-auto px-4 py-3">
             <nav className="flex items-center gap-2 text-sm text-muted-foreground">
               <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>

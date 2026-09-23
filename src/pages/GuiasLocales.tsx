@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
-  Search, MapPin, Star, Languages, ShieldCheck, TreePine, History, Utensils, Mountain, User
+  Search, MapPin, Star, ShieldCheck, TreePine, History, Utensils, Mountain, User, Phone, Globe, Award
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -10,6 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { CTARegistroEstablecimiento } from "@/components/forms/CTARegistroEstablecimiento";
+import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
 import samanaImg from "@/assets/samana.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import puertoPlataImg from "@/assets/puerto-plata.jpg";
@@ -27,9 +32,12 @@ interface Guide {
   specialties: string[];
   bio: string;
   pricePerHour: number;
+  isEco: boolean;
+  license?: string;
+  phone: string;
 }
 
-const guides: Guide[] = [
+const mockGuides: Guide[] = [
   {
     id: "manuel",
     name: "Manuel Batista",
@@ -43,6 +51,9 @@ const guides: Guide[] = [
     specialties: ["Ecoturismo", "Aves"],
     bio: "Apasionado por la naturaleza de Los Haitises. Especialista en avistamiento de aves y flora endémica.",
     pricePerHour: 35,
+    isEco: true,
+    license: "MA-ECO-2024-048",
+    phone: "+1 (809) 555-0192"
   },
   {
     id: "carmen",
@@ -57,6 +68,8 @@ const guides: Guide[] = [
     specialties: ["Historia", "Arquitectura"],
     bio: "Historiadora certificada especializada en la Zona Colonial y el patrimonio cultural dominicano.",
     pricePerHour: 40,
+    isEco: false,
+    phone: "+1 (809) 555-0100"
   },
   {
     id: "pedro",
@@ -71,6 +84,8 @@ const guides: Guide[] = [
     specialties: ["Aventura", "Gastronomía"],
     bio: "Experto en los 27 Charcos de Damajagua y rutas gastronómicas por el Cibao.",
     pricePerHour: 30,
+    isEco: false,
+    phone: "+1 (809) 555-0243"
   },
   {
     id: "lucia",
@@ -85,21 +100,13 @@ const guides: Guide[] = [
     specialties: ["Playas", "Snorkel"],
     bio: "Guía marina certificada. Tours de snorkel y descubrimiento de arrecifes en la costa este.",
     pricePerHour: 45,
+    isEco: true,
+    license: "MA-ECO-2023-112",
+    phone: "+1 (809) 555-0371"
   },
 ];
 
-const interests = ["Todos", "Ecoturismo", "Historia", "Gastronomía", "Aventura", "Playas"];
-
-const specialtyIcons: Record<string, typeof TreePine> = {
-  Ecoturismo: TreePine,
-  Aves: TreePine,
-  Historia: History,
-  Arquitectura: History,
-  Gastronomía: Utensils,
-  Aventura: Mountain,
-  Playas: Mountain,
-  Snorkel: Mountain,
-};
+const interests = ["Todos", "Ecológico", "Ecoturismo", "Historia", "Gastronomía", "Aventura", "Playas"];
 
 function GuideCard({ guide }: { guide: Guide }) {
   return (
@@ -107,55 +114,79 @@ function GuideCard({ guide }: { guide: Guide }) {
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="bg-card rounded-2xl overflow-hidden border border-border hover:shadow-lg transition-shadow group"
+      className="bg-card rounded-2xl overflow-hidden border border-border hover:shadow-lg transition-shadow flex flex-col justify-between group"
     >
-      {/* Cover */}
-      <div className="h-48 relative overflow-hidden">
-        <img
-          src={guide.coverPhoto}
-          alt={guide.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
-        <div className="absolute top-3 right-3 bg-card/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1">
-          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-          <span className="text-sm font-bold">{guide.rating}</span>
-          <span className="text-xs text-muted-foreground">({guide.reviews})</span>
+      <div>
+        {/* Cover */}
+        <div className="h-48 relative overflow-hidden">
+          <img
+            src={guide.coverPhoto}
+            alt={guide.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+          <div className="absolute top-3 right-3 bg-card/90 backdrop-blur-sm px-2 py-1 rounded-lg flex items-center gap-1">
+            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+            <span className="text-sm font-bold">{guide.rating}</span>
+            <span className="text-xs text-muted-foreground">({guide.reviews})</span>
+          </div>
+          <div className="absolute -bottom-8 left-4">
+            <div className="size-16 rounded-full border-4 border-card overflow-hidden bg-muted">
+              <img src={guide.photo} alt={guide.name} className="w-full h-full object-cover" />
+            </div>
+          </div>
         </div>
-        <div className="absolute -bottom-8 left-4">
-          <div className="size-16 rounded-full border-4 border-card overflow-hidden bg-muted">
-            <img src={guide.photo} alt={guide.name} className="w-full h-full object-cover" />
+
+        {/* Content */}
+        <div className="p-4 pt-10 space-y-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-lg text-foreground">{guide.name}</h3>
+              {guide.certified && (
+                <ShieldCheck className="h-5 w-5 text-emerald-500" />
+              )}
+            </div>
+            <p className="text-xs font-semibold text-primary uppercase tracking-wide mt-0.5">{guide.location}</p>
+            {guide.isEco && guide.license && (
+              <p className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
+                Licencia: {guide.license}
+              </p>
+            )}
+          </div>
+
+          <p className="text-sm text-muted-foreground line-clamp-3">{guide.bio}</p>
+
+          {/* Languages & Specialties */}
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            {guide.languages.map((lang) => (
+              <Badge key={lang} variant="secondary" className="text-[10px]"><Globe className="h-3 w-3 mr-1" /> {lang}</Badge>
+            ))}
+            {guide.specialties.slice(0, 2).map((spec) => (
+              <Badge key={spec} className="text-[10px] bg-primary/10 text-primary border-primary/30">{spec}</Badge>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-4 pt-10">
-        <div className="flex items-center gap-2 mb-1">
-          <h3 className="font-bold text-lg text-foreground">{guide.name}</h3>
-          {guide.certified && (
-            <ShieldCheck className="h-5 w-5 text-primary" />
-          )}
+      {/* Price & Action */}
+      <div className="p-4 border-t border-border flex items-center justify-between">
+        <div>
+          <span className="text-2xl font-bold text-foreground">${guide.pricePerHour}</span>
+          <span className="text-xs text-muted-foreground">/hora</span>
         </div>
-        <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-3">{guide.location}</p>
-        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{guide.bio}</p>
-
-        {/* Languages & Specialties */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {guide.languages.map((lang) => (
-            <Badge key={lang} variant="secondary" className="text-xs">{lang}</Badge>
-          ))}
-          {guide.specialties.slice(0, 2).map((spec) => (
-            <Badge key={spec} className="text-xs bg-primary/10 text-primary border-primary/30">{spec}</Badge>
-          ))}
-        </div>
-
-        {/* Price & Action */}
-        <div className="flex items-center justify-between pt-3 border-t border-border">
-          <div>
-            <span className="text-2xl font-bold text-foreground">${guide.pricePerHour}</span>
-            <span className="text-sm text-muted-foreground">/hora</span>
-          </div>
-          <Button size="sm">Contactar</Button>
+        <div className="flex items-center gap-2">
+          <a href={`tel:${guide.phone.replace(/\D/g, "")}`} title={`Llamar a ${guide.name}`} aria-label={`Llamar a ${guide.name}`}>
+            <Button size="sm" variant="outline" className="gap-1">
+              <Phone className="h-3.5 w-3.5" />
+            </Button>
+          </a>
+          <Button 
+            size="sm"
+            onClick={() => {
+              toast.success(`¡Solicitud de contacto enviada a ${guide.name}!`);
+            }}
+          >
+            Reservar
+          </Button>
         </div>
       </div>
     </motion.div>
@@ -167,8 +198,40 @@ export default function GuiasLocales() {
   const [search, setSearch] = useState("");
   const [locationSearch, setLocationSearch] = useState("");
 
-  const filteredGuides = guides.filter((guide) => {
+  const { data: dbGuides } = useQuery({
+    queryKey: ["tour-guides-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tour_guides")
+        .select("*");
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const guidesList: Guide[] = dbGuides && dbGuides.length > 0
+    ? dbGuides.map((g: any) => ({
+        id: g.id,
+        name: g.name,
+        location: g.location || "General, RD",
+        photo: g.image_url || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
+        coverPhoto: g.cover_photo || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
+        rating: Number(g.rating) || 4.8,
+        reviews: Number(g.reviews) || 15,
+        certified: g.is_certified ?? true,
+        languages: g.languages || ["Español"],
+        specialties: g.specialties || ["Aventura"],
+        bio: g.description || "",
+        pricePerHour: Number(g.price_range?.match(/\d+/)?.[0]) || 35,
+        isEco: g.is_eco_guide || false,
+        license: g.eco_license,
+        phone: g.phone || "+1 (809) 555-0100"
+      }))
+    : mockGuides;
+
+  const filteredGuides = guidesList.filter((guide) => {
     const matchesInterest = selectedInterest === "Todos" || 
+      (selectedInterest === "Ecológico" && guide.isEco) ||
       guide.specialties.some((s) => s.toLowerCase().includes(selectedInterest.toLowerCase()));
     const matchesSearch = guide.name.toLowerCase().includes(search.toLowerCase()) ||
                           guide.bio.toLowerCase().includes(search.toLowerCase());
@@ -179,9 +242,9 @@ export default function GuiasLocales() {
   return (
     <PageTransition>
       <SEOHead
-        title="Guías Locales Certificados"
-        description="Encuentra y reserva guías turísticos certificados por el Ministerio de Turismo. Experiencias auténticas, seguras y memorables."
-        keywords="guías turísticos, guías locales, tours República Dominicana, experiencias auténticas"
+        title="Guías Locales y Ecológicos Certificados - Descubre RD"
+        description="Encuentra y reserva guías turísticos y ecológicos certificados en República Dominicana. Experiencias seguras y sustentables en cada rincón de la isla."
+        keywords="guías turísticos, guías ecológicos, medio ambiente, Los Haitises, Pico Duarte, senderismo RD"
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -195,16 +258,19 @@ export default function GuiasLocales() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30" />
           <div className="relative z-10 text-center max-w-3xl px-4">
+            <Badge className="mb-4 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 gap-1.5 py-1 px-3">
+              <Award className="h-4 w-4" /> Guías Avalados por el Ministerio de Turismo y Medio Ambiente
+            </Badge>
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
               Conecta con República Dominicana a través de su gente
             </h1>
             <p className="text-muted-foreground text-lg mb-8">
-              Encuentra y reserva guías turísticos certificados por el Ministerio de Turismo. Experiencias auténticas, seguras y memorables en cada rincón de la isla.
+              Encuentra guías locales oficiales e intérpretes ambientales. Experiencias seguras, ecológicas y memorables en cada rincón de la isla.
             </p>
             <div className="relative max-w-xl mx-auto">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder="¿Qué te gustaría hacer hoy? Ej. Senderismo, Playa..."
+                placeholder="¿Qué te gustaría hacer hoy? Ej. Senderismo, Aves, Playa..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-12 h-14 text-lg bg-card border-border"
@@ -217,12 +283,12 @@ export default function GuiasLocales() {
           {/* Filters */}
           <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-end pb-8 border-b border-border">
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
-              <div className="flex-1">
+              <div className="flex-1 w-full">
                 <label className="text-sm font-medium text-foreground mb-2 block">Región / Ciudad</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
-                    placeholder="Ej. Samaná, Punta Cana"
+                    placeholder="Ej. Samaná, Puerto Plata"
                     value={locationSearch}
                     onChange={(e) => setLocationSearch(e.target.value)}
                     className="pl-10"
@@ -230,7 +296,7 @@ export default function GuiasLocales() {
                 </div>
               </div>
             </div>
-            <div className="flex-1">
+            <div className="flex-1 w-full">
               <label className="text-sm font-medium text-foreground mb-2 block">Intereses Populares</label>
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {interests.map((interest) => (
@@ -252,8 +318,8 @@ export default function GuiasLocales() {
 
           {/* Results Header */}
           <div className="flex items-center justify-between pt-10 pb-6">
-            <h2 className="text-2xl font-bold text-foreground">Guías Locales Destacados</h2>
-            <select className="bg-transparent border-none text-sm font-bold text-foreground cursor-pointer">
+            <h2 className="text-2xl font-bold text-foreground">Directorio de Guías Certificados</h2>
+            <select className="bg-transparent border-none text-sm font-bold text-foreground cursor-pointer" title="Ordenar por">
               <option>Recomendados</option>
               <option>Mayor Calificación</option>
               <option>Más Recientes</option>
@@ -273,6 +339,17 @@ export default function GuiasLocales() {
               <p className="text-muted-foreground">No se encontraron guías con los filtros seleccionados.</p>
             </div>
           )}
+
+          {/* Banners de Conversión: Sorteo de Lectores + Captación de Guías */}
+          <div className="mt-16 space-y-8">
+            <SorteoLectorBanner origenCategoria="Guías Turísticos y Excursiones" />
+
+            <CTARegistroEstablecimiento
+              tipo="tour"
+              titulo="¿Eres guía turístico o empresa de excursiones?"
+              subtitulo="Certifícate y añade tu perfil profesional a Descubre RD para el gran lanzamiento. Conecta con viajeros y grupos que buscan vivir aventuras inolvidables."
+            />
+          </div>
         </main>
 
         <Footer />

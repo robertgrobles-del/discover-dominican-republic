@@ -6,6 +6,7 @@ import { Landmark, Star, Clock, MapPin, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getSafeCoverImage } from "@/lib/imageCovers";
 
 interface ProvinceMonumentsProps {
   provinceId: string;
@@ -61,7 +62,7 @@ export function ProvinceMonuments({ provinceId, provinceName }: ProvinceMonument
               <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 h-full group">
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img
-                    src={monument.image_url || "/placeholder.svg"}
+                    src={getSafeCoverImage(monument.image_url, "monument", monument.slug)}
                     alt={monument.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     loading="lazy"

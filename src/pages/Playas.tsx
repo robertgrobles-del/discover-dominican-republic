@@ -13,17 +13,17 @@ import { useState, useMemo } from "react";
 import { beaches as staticBeaches, Beach } from "@/data/beaches";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
+import { BetweenSectionsAd, CompactInlineAd, MobileStickyFooterAd, PanoramaAd } from "@/components/promo";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { useTranslation } from "@/hooks/useI18n";
-
+import { getSafeCoverImage } from "@/lib/imageCovers";
 
 import heroBeach from "@/assets/hero-beach.jpg";
 
 const PlayaCard = ({ playa, index, t }: { playa: any; index: number; t: (key: string) => string }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const slug = playa.slug || playa.id;
-  const imageUrl = playa.imageUrl || playa.image_url || '/placeholder.svg';
+  const imageUrl = getSafeCoverImage(playa.imageUrl || playa.image_url, "beach", playa.provinceSlug || playa.slug);
   const beachType = playa.beachType || playa.beach_type || 'arena-blanca';
   const shortDesc = playa.shortDescription || playa.short_description || '';
   const destName = playa.destinationName || playa.destination_name || playa.province || '';
@@ -53,6 +53,7 @@ const PlayaCard = ({ playa, index, t }: { playa: any; index: number; t: (key: st
           alt={playa.name}
           className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${imageLoaded ? "opacity-100" : "opacity-0"}`}
           onLoad={() => setImageLoaded(true)}
+          ref={(img) => { if (img?.complete) setImageLoaded(true); }}
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -181,7 +182,7 @@ export default function Playas() {
         {/* Hero */}
         <section className="relative h-[50vh] flex items-center justify-center overflow-hidden">
           <img src={heroBeach} alt={t("playas.seoTitle")} className="absolute inset-0 w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/10" />
           <div className="relative z-10 text-center px-4">
             <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
               <Waves className="w-4 h-4 mr-2" /> {t("playas.caribbeanParadise")}
@@ -189,7 +190,7 @@ export default function Playas() {
             <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-4">
               {t("playas.title")} <span className="text-gradient">{t("playas.titleHighlight")}</span>
             </h1>
-            <p className="text-lg text-white/80 max-w-2xl mx-auto">
+            <p className="text-lg text-white/90 max-w-2xl mx-auto">
               {t("playas.subtitle")}
             </p>
           </div>
@@ -222,7 +223,7 @@ export default function Playas() {
         <CompactInlineAd showDemo />
 
         {/* Filters */}
-        <section className="py-6 border-b border-border sticky top-16 z-30 bg-background/95 backdrop-blur-sm">
+        <section className="py-6 border-b border-border bg-card/40">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row gap-3 items-center">
               <div className="relative flex-1 max-w-md">
@@ -300,7 +301,15 @@ export default function Playas() {
           </div>
         </section>
 
+        {/* High-Impact Beach Tourism Banner */}
+        <section className="py-4">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <PanoramaAd showDemo />
+          </div>
+        </section>
+
         <BetweenSectionsAd showDemo />
+        <MobileStickyFooterAd showDemo />
         <Footer />
       </div>
     </PageTransition>

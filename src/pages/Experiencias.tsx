@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useState, useMemo } from "react";
 import { FavoriteButton } from "@/components/FavoriteButton";
-import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
+import { BetweenSectionsAd, CompactInlineAd } from "@/components/promo";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "@/hooks/useI18n";

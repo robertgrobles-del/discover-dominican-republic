@@ -153,7 +153,7 @@ export default function ESimTurista() {
                       <Button
                         key={op}
                         variant={operatorFilter === op ? "default" : "outline"}
-                        size="xs"
+                        size="sm"
                         onClick={() => setOperatorFilter(op)}
                         className="text-xs font-bold px-3 py-1"
                       >

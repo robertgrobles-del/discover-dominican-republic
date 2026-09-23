@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader2, ShieldAlert } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,13 @@ import { Label } from "@/components/ui/label";
 import { PageTransition } from "@/components/PageTransition";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { CompactInlineAd } from "@/components/ads";
+import { CompactInlineAd } from "@/components/promo";
+import { 
+  isValidEmail, 
+  sanitizeInput, 
+  detectSQLiPatterns, 
+  ClientRateLimiter 
+} from "@/lib/security";
 import heroBeachImg from "@/assets/hero-beach.jpg";
 
 export default function Login() {
@@ -24,11 +30,48 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanEmail = sanitizeInput(email).toLowerCase();
+
+    // 1. Check Rate Limiter to prevent Brute Force (Max 5 attempts / 60s, 5 min lock)
+    const rateCheck = ClientRateLimiter.check("login", cleanEmail, 5, 60000, 300000);
+    if (!rateCheck.allowed) {
+      toast({
+        variant: "destructive",
+        title: "Acceso Bloqueado por Seguridad",
+        description: `Demasiados intentos fallidos. Por favor espera ${Math.ceil(rateCheck.retryAfterSeconds / 60)} minutos antes de reintentar.`,
+      });
+      return;
+    }
+
+    // 2. Validate email structure
+    if (!isValidEmail(cleanEmail)) {
+      toast({
+        variant: "destructive",
+        title: "Correo Inválido",
+        description: "Por favor introduce un formato de correo electrónico válido.",
+      });
+      return;
+    }
+
+    // 3. Prevent SQLi / Injection attacks
+    if (detectSQLiPatterns(cleanEmail) || detectSQLiPatterns(password)) {
+      ClientRateLimiter.recordAttempt("login", cleanEmail);
+      toast({
+        variant: "destructive",
+        title: "Entrada No Permitida",
+        description: "Se detectaron caracteres o patrones no autorizados por seguridad.",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
-    const { error } = await signIn(email, password);
+    const { error } = await signIn(cleanEmail, password);
 
     if (error) {
+      const record = ClientRateLimiter.recordAttempt("login", cleanEmail, 5, 60000, 300000);
+      const remaining = 5 - (record.isBlocked ? 5 : 1);
+      
       toast({
         variant: "destructive",
         title: "Error al iniciar sesión",
@@ -37,6 +80,8 @@ export default function Login() {
           : error.message,
       });
     } else {
+      // Reset rate limiter upon successful login
+      ClientRateLimiter.reset("login", cleanEmail);
       toast({
         title: "¡Bienvenido!",
         description: "Has iniciado sesión correctamente.",
@@ -162,10 +207,10 @@ export default function Login() {
               <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
               <div className="absolute bottom-8 left-8 right-8">
                 <h2 className="font-display text-2xl font-bold text-foreground mb-2">
-                  Tu próxima aventura te espera
+                  Todo lo que te gusta, en un solo lugar
                 </h2>
                 <p className="text-muted-foreground">
-                  Guarda tus destinos favoritos, comparte opiniones y planifica el viaje perfecto.
+                  Marca tus destinos favoritos, deja tu opinión sobre los lugares que visitaste y arma tu itinerario.
                 </p>
               </div>
             </motion.div>

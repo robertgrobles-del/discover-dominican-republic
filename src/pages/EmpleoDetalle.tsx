@@ -138,7 +138,7 @@ export default function EmpleoDetalle() {
         <Header />
 
         {/* Breadcrumbs */}
-        <div className="bg-muted/30 border-b border-border mt-16">
+        <div className="bg-muted/30 border-b border-border">
           <div className="container mx-auto px-4 py-3">
             <nav className="flex items-center gap-2 text-sm text-muted-foreground">
               <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>

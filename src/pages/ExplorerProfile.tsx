@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
+const supabaseAny = supabase as any;
 import { useAuth } from "@/hooks/useAuth";
 import { BadgeAlbum, BadgeItem, BadgeRarity } from "@/components/gamification/BadgeAlbum";
 import { toast } from "sonner";
@@ -78,11 +79,11 @@ export default function ExplorerProfile() {
     try {
       // Get counts
       const [followersRes, followingRes] = await Promise.all([
-        supabase
+        supabaseAny
           .from("explorer_follows")
           .select("*", { count: "exact", head: true })
           .eq("following_id", id),
-        supabase
+        supabaseAny
           .from("explorer_follows")
           .select("*", { count: "exact", head: true })
           .eq("follower_id", id)
@@ -93,7 +94,7 @@ export default function ExplorerProfile() {
 
       // Check if current user is following
       if (currentUser && !isOwnProfile) {
-        const { data: followCheck } = await supabase
+        const { data: followCheck } = await supabaseAny
           .from("explorer_follows")
           .select("id")
           .eq("follower_id", currentUser.id)
@@ -182,7 +183,7 @@ export default function ExplorerProfile() {
     try {
       if (isFollowing) {
         // Unfollow
-        const { error } = await supabase
+        const { error } = await supabaseAny
           .from("explorer_follows")
           .delete()
           .eq("follower_id", currentUser.id)
@@ -194,7 +195,7 @@ export default function ExplorerProfile() {
         toast.success(`Dejaste de seguir a ${profile?.display_name}`);
       } else {
         // Follow
-        const { error } = await supabase
+        const { error } = await supabaseAny
           .from("explorer_follows")
           .insert({
             follower_id: currentUser.id,
@@ -301,9 +302,9 @@ export default function ExplorerProfile() {
               {/* Profile Avatar */}
               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="relative">
                 <div 
-                  className="w-28 h-28 rounded-full bg-card flex items-center justify-center text-5xl border-4 shadow-xl"
-                  style={{ borderColor: currentLevel?.color || "hsl(var(--primary))" }}
+                  className={`w-28 h-28 rounded-full bg-card flex items-center justify-center text-5xl border-4 shadow-xl level-profile-border-${gamification.current_level}`}
                 >
+                  <style>{`.level-profile-border-${gamification.current_level} { border-color: ${currentLevel?.color || 'currentColor'}; }`}</style>
                   {currentLevel?.icon || "🌱"}
                 </div>
                 <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">

@@ -84,10 +84,14 @@ export function OnboardingQuest({ referralCode }: OnboardingQuestProps) {
     if (!user) return;
     const saved = localStorage.getItem(`${STORAGE_KEY}_${user.id}`);
     if (saved) {
-      const parsed: string[] = JSON.parse(saved);
-      setCompletedSteps(new Set(parsed));
-      // Auto-mark first step
-      if (!parsed.includes("register")) {
+      try {
+        const parsed: string[] = JSON.parse(saved);
+        setCompletedSteps(new Set(parsed));
+        // Auto-mark first step
+        if (!parsed.includes("register")) {
+          markComplete("register");
+        }
+      } catch {
         markComplete("register");
       }
     } else {

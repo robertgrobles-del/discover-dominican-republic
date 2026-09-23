@@ -47,6 +47,20 @@ export function AdminDashboard() {
     staleTime: 60_000,
   });
 
+  const { data: lowStockItems } = useQuery({
+    queryKey: ["admin-low-stock-alert"],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("reward_inventory")
+        .select("id, title, stock_quantity")
+        .lte("stock_quantity", 5)
+        .order("stock_quantity", { ascending: true })
+        .limit(5);
+      return data || [];
+    },
+    staleTime: 30_000,
+  });
+
   const { data: recentReviews } = useQuery({
     queryKey: ["admin-recent-reviews"],
     queryFn: async () => {
@@ -90,6 +104,28 @@ export function AdminDashboard() {
           </Card>
         ))}
       </div>
+
+      {/* Critical Stock Alert Banner */}
+      {lowStockItems && lowStockItems.length > 0 && (
+        <Card className="border-amber-500/40 bg-amber-500/10">
+          <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-amber-500/20 text-amber-600">
+                <ShoppingBag className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-semibold text-sm text-foreground">Alerta de Stock Crítico en Recompensas (&le; 5 unidades)</p>
+                <p className="text-xs text-muted-foreground">
+                  {lowStockItems.map((item: any) => `${item.title} (${item.stock_quantity} disp.)`).join(" • ")}
+                </p>
+              </div>
+            </div>
+            <Badge variant="outline" className="border-amber-500 text-amber-700 bg-amber-500/20 font-mono text-xs">
+              {lowStockItems.length} artículos en riesgo
+            </Badge>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recent activity */}
       <div className="grid md:grid-cols-2 gap-6">

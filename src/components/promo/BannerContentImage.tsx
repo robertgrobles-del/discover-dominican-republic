@@ -5,7 +5,7 @@ interface BannerContentImageProps {
   height?: number;
 }
 
-export function BannerContentImage({ src, alt, width, height }: BannerContentImageProps) {
+export function BannerContentImage({ src, alt, width = 728, height = 90 }: BannerContentImageProps) {
   return (
     <img
       src={src}

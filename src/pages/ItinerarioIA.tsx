@@ -3,7 +3,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
-import { BetweenSectionsAd } from "@/components/ads";
+import { BetweenSectionsAd } from "@/components/promo";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,7 @@ import {
 import { format, addDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const intereses = [
   { id: "playa", label: "Playas", emoji: "🏖️" },
@@ -457,13 +458,25 @@ export default function ItinerarioIA() {
                 </div>
 
                 {/* Actions */}
-                <div className="mt-8 flex justify-center gap-4">
+                <div className="mt-8 flex flex-wrap justify-center gap-4">
                   <Button variant="outline" onClick={() => {
                     localStorage.removeItem("descubre_rd_last_itinerary");
                     setItinerary(null);
                     setStep(1);
                   }}>
                     Crear otro itinerario
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      localStorage.setItem("descubre_rd_saved_offline_itinerary", JSON.stringify(itinerary));
+                      toast.success("💾 ¡Itinerario guardado en tu dispositivo!", {
+                        description: "Podrás consultarlo sin conexión a internet durante tus excursiones."
+                      });
+                    }}
+                    className="gap-2"
+                  >
+                    <Download className="h-4 w-4" /> Guardar Offline (Sin señal)
                   </Button>
                   <Button onClick={() => generateItinerary()}>
                     <Sparkles className="mr-2 h-4 w-4" />

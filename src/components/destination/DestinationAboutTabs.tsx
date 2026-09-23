@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { 
   BookOpen, Mountain, Palette, Landmark, DollarSign, Users, 
-  MapPin, Sparkles, Compass
+  MapPin, Compass
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -76,7 +76,7 @@ export function DestinationAboutTabs({ name, data }: DestinationAboutTabsProps) 
           viewport={{ once: true }}
         >
           <h2 className="font-display text-2xl md:text-3xl font-bold mb-8 flex items-center gap-3">
-            <Sparkles className="h-6 w-6 text-primary" />
+            <Compass className="h-6 w-6 text-primary" />
             Conoce {name}
           </h2>
 

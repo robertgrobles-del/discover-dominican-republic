@@ -17,18 +17,19 @@ export function MobileStickyFooterAd({ className, showDemo = false }: MobileStic
   return (
     <div 
       className={cn(
-        "lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-sm border-t border-border shadow-lg",
+        "lg:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-md border-t border-border/80 shadow-2xl pb-safe",
         className
       )}
     >
-      <div className="relative flex justify-center py-2 px-2">
+      <div className="relative flex justify-center py-2 px-3">
         <Button
-          variant="ghost"
+          variant="secondary"
           size="icon"
-          className="absolute -top-3 right-2 h-6 w-6 rounded-full bg-background border border-border shadow-sm z-10"
+          aria-label="Cerrar anuncio flotante"
+          className="absolute -top-3 right-3 h-6 w-6 rounded-full bg-card border border-border shadow-md hover:bg-destructive hover:text-white transition-colors z-20"
           onClick={() => setIsDismissed(true)}
         >
-          <X className="h-3 w-3" />
+          <X className="h-3 w-3" aria-hidden="true" />
         </Button>
         <BannerAd 
           size="mobile-banner" 
@@ -40,3 +41,4 @@ export function MobileStickyFooterAd({ className, showDemo = false }: MobileStic
     </div>
   );
 }
+

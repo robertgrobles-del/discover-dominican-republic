@@ -33,11 +33,43 @@ const hitos = [
   }
 ];
 
-const liderazgo = [
-  { nombre: "David Martínez", cargo: "MINISTRO DE TURISMO", imagen: null },
-  { nombre: "Elena Vásquez", cargo: "VICEMINISTRA TÉCNICA", imagen: null },
-  { nombre: "Roberto Henríquez", cargo: "DIRECTOR DE CALIDAD", imagen: null },
-  { nombre: "Tammy Reynoso", cargo: "PROMOCIÓN INTERNACIONAL", imagen: null },
+const equipoPortal = [
+  {
+    nombre: "Roberto Guzmán",
+    cargo: "DIRECTOR DE TECNOLOGÍA & PRODUCTO",
+    especialidad: "Arquitectura Web & Experiencia Digital",
+    imagen: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    bio: "Lidera la ingeniería, infraestructura e interactividad del ecosistema digital Descubre RD.",
+    linkedin: "https://linkedin.com",
+    twitter: "https://twitter.com",
+  },
+  {
+    nombre: "Camila Vásquez",
+    cargo: "EDITORA JEFE & CURADURÍA CULTURAL",
+    especialidad: "Periodismo Turístico & Rutas Locales",
+    imagen: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop",
+    bio: "Supervisa la calidad editorial, guías gastronómicas y documentación de destinos en todo el país.",
+    linkedin: "https://linkedin.com",
+    twitter: "https://twitter.com",
+  },
+  {
+    nombre: "Marcos De la Cruz",
+    cargo: "LEAD UI/UX & DISEÑO DE PRODUCTO",
+    especialidad: "Sistemas de Diseño & Accesibilidad",
+    imagen: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop",
+    bio: "Crea experiencias intuitivas y visualmente cautivadoras inspiradas en la riqueza visual caribeña.",
+    linkedin: "https://linkedin.com",
+    twitter: "https://twitter.com",
+  },
+  {
+    nombre: "Laura Santana",
+    cargo: "COORDINACIÓN DE DATOS & ALIANZAS",
+    especialidad: "Verificación de Destinos & Servicios",
+    imagen: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop",
+    bio: "Verifica y mantiene actualizados los datos de alojamientos, actividades y servicios en las 32 provincias.",
+    linkedin: "https://linkedin.com",
+    twitter: "https://twitter.com",
+  },
 ];
 
 export default function SobreNosotros() {
@@ -59,7 +91,7 @@ export default function SobreNosotros() {
             }`}
             onLoad={() => setHeroLoaded(true)}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/50 to-black/85" />
           
           <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
             <Badge className="mb-6 bg-primary/20 text-primary border-primary/30">
@@ -69,9 +101,8 @@ export default function SobreNosotros() {
               La esencia de<br />
               <span className="text-gradient">República Dominicana</span>
             </h1>
-            <p className="text-lg text-white/80 max-w-2xl mx-auto">
-              Nuestra misión es compartir la calidez, la historia y el alma vibrante del Caribe con el mundo. 
-              Más que un destino, somos un sentimiento que perdura.
+            <p className="text-lg text-white/90 max-w-2xl mx-auto">
+              Información oficial de turismo hecha por dominicanos, para que planifiques tu viaje sin sorpresas.
             </p>
           </div>
 
@@ -143,34 +174,69 @@ export default function SobreNosotros() {
           </div>
         </section>
 
-        {/* Liderazgo */}
-        <section className="py-20 bg-card/30">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="font-display text-3xl font-bold text-foreground mb-4">Nuestro Liderazgo</h2>
-              <p className="text-muted-foreground">Las mentes y corazones dedicados a promover lo mejor de nuestra tierra.</p>
+        {/* Equipo del Portal */}
+        <section className="py-20 bg-card/40 border-y border-border/40">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <div className="text-center mb-14">
+              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
+                INNOVACIÓN & DESARROLLO
+              </Badge>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
+                Equipo Detrás de Descubre RD
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
+                Profesionales de la ingeniería web, diseño interactivo, periodismo y hospitalidad dedicados a crear la plataforma turística digital más completa e interactiva de República Dominicana.
+              </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-5xl mx-auto">
-              {liderazgo.map((persona) => (
-                <div key={persona.nombre} className="text-center group">
-                  <div className="w-40 h-40 mx-auto mb-4 rounded-full bg-gradient-to-br from-secondary to-muted overflow-hidden">
-                    {/* Placeholder illustration */}
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                      <svg viewBox="0 0 100 100" className="w-32 h-32">
-                        <circle cx="50" cy="35" r="20" fill="currentColor" opacity="0.3" />
-                        <ellipse cx="50" cy="85" rx="30" ry="25" fill="currentColor" opacity="0.3" />
-                      </svg>
-                    </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {equipoPortal.map((persona) => (
+                <div 
+                  key={persona.nombre} 
+                  className="group bg-card/80 hover:bg-card border border-border/70 hover:border-primary/40 rounded-2xl p-5 text-center transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col items-center"
+                >
+                  <div className="relative w-28 h-28 md:w-32 md:h-32 mb-4 rounded-full overflow-hidden border-2 border-primary/30 group-hover:border-primary transition-colors shadow-md">
+                    <img 
+                      src={persona.imagen} 
+                      alt={persona.nombre}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
                   </div>
-                  <h3 className="font-display font-bold text-foreground">{persona.nombre}</h3>
-                  <p className="text-xs text-muted-foreground tracking-wider uppercase mt-1">{persona.cargo}</p>
-                  <div className="flex justify-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Linkedin className="w-4 h-4" />
+
+                  <h3 className="font-display font-bold text-base md:text-lg text-foreground group-hover:text-primary transition-colors">
+                    {persona.nombre}
+                  </h3>
+                  <p className="text-[11px] font-bold text-primary tracking-wider uppercase mt-1">
+                    {persona.cargo}
+                  </p>
+                  <p className="text-xs text-muted-foreground font-medium mt-1 mb-3">
+                    {persona.especialidad}
+                  </p>
+                  <p className="text-xs text-muted-foreground/90 leading-relaxed mb-4 flex-grow">
+                    {persona.bio}
+                  </p>
+
+                  <div className="flex justify-center gap-1.5 pt-3 border-t border-border/50 w-full">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-full"
+                      asChild
+                    >
+                      <a href={persona.linkedin} target="_blank" rel="noopener noreferrer" aria-label={`LinkedIn de ${persona.nombre}`}>
+                        <Linkedin className="w-4 h-4" />
+                      </a>
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Twitter className="w-4 h-4" />
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-full"
+                      asChild
+                    >
+                      <a href={persona.twitter} target="_blank" rel="noopener noreferrer" aria-label={`Twitter de ${persona.nombre}`}>
+                        <Twitter className="w-4 h-4" />
+                      </a>
                     </Button>
                   </div>
                 </div>

@@ -26,7 +26,7 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
-      className="text-muted-foreground hover:text-foreground"
+      className="text-white hover:text-white hover:bg-white/20 h-9 w-9"
       aria-label="Cambiar tema"
     >
       {isDark ? (

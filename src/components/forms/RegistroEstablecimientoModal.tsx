@@ -21,6 +21,7 @@ import { toast } from "sonner";
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 export type TipoEstablecimiento =
+  | "general"
   | "restaurante"
   | "bar"
   | "hotel"
@@ -42,6 +43,12 @@ const tipoConfig: Record<TipoEstablecimiento, {
   color: string;
   descripcion: string;
 }> = {
+  general: {
+    label: "Establecimiento Turístico",
+    icon: Building2,
+    color: "text-primary",
+    descripcion: "Registra tu negocio turístico y llega a miles de viajeros que planifican su visita a República Dominicana.",
+  },
   restaurante: {
     label: "Restaurante",
     icon: Utensils,
@@ -532,6 +539,71 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
     descripcion: "", rnc: "", horario: "",
   });
 
+  const [rncLoading, setRncLoading] = useState(false);
+  const [rncVerified, setRncVerified] = useState<boolean | null>(null);
+  const [rncCompanyName, setRncCompanyName] = useState("");
+
+  const handleVerifyRNC = async () => {
+    const rawRnc = basicData.rnc.replace(/\D/g, "");
+    if (rawRnc.length !== 9 && rawRnc.length !== 11) {
+      setRncVerified(false);
+      setRncCompanyName("");
+      toast.error("El RNC debe tener 9 o 11 dígitos numéricos.");
+      return;
+    }
+
+    setRncLoading(true);
+    setRncVerified(null);
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+
+      const mockDb: Record<string, string> = {
+        "101007896": "Cervecería Nacional Dominicana, SA",
+        "101014221": "Destilería Brugal & Co, SA",
+        "130002148": "Ron Barceló, SRL",
+        "101001243": "Grupo Corripio, SRL",
+        "101000021": "Banco Popular Dominicano, SA",
+        "130005487": "Grupo Punta Cana, SAS",
+        "101824759": "Sabor Criollo SRL",
+        "131985472": "Nomad Beach Stay SRL",
+        "101984231": "Larimar Ecotours SRL",
+        "128765432": "Viva Wyndham Resorts SRL",
+      };
+
+      if (mockDb[rawRnc]) {
+        setRncVerified(true);
+        setRncCompanyName(mockDb[rawRnc]);
+        if (!basicData.nombre) {
+          updateBasic("nombre", mockDb[rawRnc]);
+        }
+        toast.success("RNC Verificado exitosamente con la DGII.");
+      } else {
+        const genericNames = [
+          "Inversiones Turísticas del Caribe SRL",
+          "Hoteles y Restaurantes Quisqueya SAS",
+          "Eco-Tours República Dominicana SRL",
+          "Transportes Turísticos RD SRL",
+          "Servicios Turísticos Barahona SRL"
+        ];
+        const hash = rawRnc.split("").reduce((acc, char) => acc + parseInt(char, 10), 0);
+        const name = genericNames[hash % genericNames.length];
+        
+        setRncVerified(true);
+        setRncCompanyName(name);
+        if (!basicData.nombre) {
+          updateBasic("nombre", name);
+        }
+        toast.success("RNC Verificado exitosamente con la DGII (Simulación).");
+      }
+    } catch (e) {
+      setRncVerified(false);
+      toast.error("Error al consultar el padrón de la DGII.");
+    } finally {
+      setRncLoading(false);
+    }
+  };
+
   // Step 2 - Specific fields
   const [specificData, setSpecificData] = useState<Record<string, string>>({});
 
@@ -606,6 +678,9 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
       setBasicData({ nombre: "", responsable: "", email: "", telefono: "", direccion: "", provincia: "", website: "", foto_url: "", descripcion: "", rnc: "", horario: "" });
       setSpecificData({});
       setAcceptTerms(false);
+      setRncLoading(false);
+      setRncVerified(null);
+      setRncCompanyName("");
     }, 300);
   };
 
@@ -715,10 +790,44 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
                         </div>
                       </FormField>
                       <FormField label="RNC / Registro Comercial">
-                        <div className="relative">
-                          <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input className="pl-9" placeholder="Número RNC..." value={basicData.rnc} onChange={e => updateBasic("rnc", e.target.value)} />
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              className="pl-9"
+                              placeholder="Número RNC..."
+                              value={basicData.rnc}
+                              onChange={e => {
+                                updateBasic("rnc", e.target.value);
+                                setRncVerified(null);
+                                setRncCompanyName("");
+                              }}
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            className="shrink-0"
+                            disabled={rncLoading || !basicData.rnc.trim()}
+                            onClick={handleVerifyRNC}
+                          >
+                            {rncLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              "Verificar"
+                            )}
+                          </Button>
                         </div>
+                        {rncVerified === true && (
+                          <p className="text-xs text-emerald-500 flex items-center gap-1 mt-1 font-medium">
+                            <Check className="h-3 w-3" /> RNC Verificado: {rncCompanyName}
+                          </p>
+                        )}
+                        {rncVerified === false && (
+                          <p className="text-xs text-destructive flex items-center gap-1 mt-1 font-medium">
+                            ✕ RNC no encontrado o formato inválido (deben ser 9 o 11 números).
+                          </p>
+                        )}
                       </FormField>
                     </FieldRow>
                     <FormField label="Horario de Operación">

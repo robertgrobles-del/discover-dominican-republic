@@ -1,140 +1,150 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 import { 
-  MapPin, Youtube, Twitter, Instagram, Facebook, ChevronDown, ChevronUp, 
-  Mail, Phone, Download, Building, Users, Newspaper, Smartphone 
+  Instagram, Facebook, Twitter, Youtube, Mail, 
+  MapPin, Phone, Shield, Heart,
+  ChevronDown, ChevronUp, Smartphone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { useTranslation } from "@/hooks/useI18n";
+import { toast } from "sonner";
+import { PreFooterPresidenteBanner } from "@/components/promo/PreFooterPresidenteBanner";
 
-export function Footer() {
-  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+interface FooterProps {
+  hidePreFooterBanner?: boolean;
+}
+
+export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
   const [email, setEmail] = useState("");
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const { t } = useTranslation();
 
-  const footerSections = {
-    sitemap: {
-      title: t("footer.sitemap"),
-      links: [
-        { name: t("footer.destinations"), href: "/destinos" },
-        { name: t("footer.experiences"), href: "/experiencias" },
-        { name: t("footer.accommodations"), href: "/alojamientos" },
-        { name: t("footer.events"), href: "/eventos" },
-        { name: t("footer.beaches"), href: "/playas" },
-        { name: t("footer.gastronomy"), href: "/guia-gastronomica" },
-        { name: t("footer.nightlife"), href: "/vida-nocturna" },
-        { name: t("footer.wellness"), href: "/wellness" },
-      ],
-    },
-    comunidad: {
-      title: t("footer.community"),
-      links: [
-        { name: t("footer.agencyDirectory"), href: "/directorio-agencias" },
-        { name: t("footer.tourOperators"), href: "/directorio-agencias" },
-        { name: t("footer.localGuides"), href: "/guias-locales" },
-        { name: t("footer.pressKit"), href: "/prensa" },
-        { name: t("footer.affiliateProgram"), href: "/afiliados" },
-        { name: t("footer.ambassadors"), href: "/embajadores" },
-      ],
-    },
-    corporativo: {
-      title: t("footer.corporate"),
-      links: [
-        { name: t("footer.aboutUs"), href: "/sobre-nosotros" },
-        { name: t("footer.rdInNumbers"), href: "/estadisticas" },
-        { name: t("footer.touristInvestment"), href: "/inversion" },
-        { name: t("footer.jobs"), href: "/empleo" },
-        { name: t("footer.touristAcademy"), href: "/academia" },
-        { name: t("footer.termsAndPrivacy"), href: "/terminos" },
-        { name: "Mapa del sitio", href: "/sitemap" },
-      ],
-    },
+  const handleNewsletterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email) {
+      toast.success(t("footer.newsletterSuccess"));
+      setEmail("");
+    }
   };
 
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
   };
 
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Newsletter signup:", email);
-    setEmail("");
+  const footerSections = {
+    destinos: {
+      title: t("footer.destinations"),
+      links: [
+        { name: "Punta Cana", href: "/destinos/punta-cana" },
+        { name: "Santo Domingo", href: "/destinos/santo-domingo" },
+        { name: "Samaná", href: "/destinos/samana" },
+        { name: "Puerto Plata", href: "/destinos/puerto-plata" },
+        { name: "La Romana", href: "/destinos/la-romana" },
+        { name: "Jarabacoa", href: "/destinos/jarabacoa" },
+        { name: "Barahona", href: "/destinos/barahona" },
+        { name: "Montecristi", href: "/destinos/montecristi" },
+      ],
+    },
+    experiencias: {
+      title: t("footer.experiences"),
+      links: [
+        { name: t("interest.beaches"), href: "/playas" },
+        { name: t("interest.adventure"), href: "/actividades" },
+        { name: t("interest.gastronomy"), href: "/guia-gastronomica" },
+        { name: t("interest.culture"), href: "/cultura" },
+        { name: t("interest.ecotourism"), href: "/ecoturismo" },
+        { name: t("interest.wellness"), href: "/wellness" },
+        { name: t("header.allInclusive"), href: "/alojamientos?tipo=all-inclusive" },
+        { name: "Pelota Invernal LIDOM", href: "/lidom" },
+      ],
+    },
+    planifica: {
+      title: t("nav.plan"),
+      links: [
+        { name: "Reserva Directa", href: "/reserva-directa" },
+        { name: "Itinerario con IA", href: "/itinerario-ia" },
+        { name: "Tarjeta RD Pass", href: "/tarjeta-prepago" },
+        { name: "Salud y Farmacias 24h", href: "/salud-24h" },
+        { name: t("plan.howToGetThere"), href: "/como-llegar" },
+        { name: t("plan.entryReq"), href: "/requisitos-viaje" },
+        { name: t("plan.transport"), href: "/info/transporte" },
+        { name: t("plan.safety"), href: "/info/seguridad" },
+        { name: t("plan.insurance"), href: "/seguro-viaje" },
+        { name: t("plan.faq"), href: "/centro-ayuda" },
+      ],
+    },
+    corporativo: {
+      title: t("footer.corporate"),
+      links: [
+        { name: t("footer.aboutUs"), href: "/sobre-nosotros" },
+        { name: "Portal de Partners B2B", href: "/partners" },
+        { name: "Programa de Creadores", href: "/creadores" },
+        { name: "Gamificación & Premios", href: "/gamificacion-turistica" },
+        { name: t("footer.press"), href: "/prensa" },
+        { name: t("footer.sustainability"), href: "/sostenible" },
+        { name: "Inversión Turística", href: "/inversion" },
+        { name: t("footer.privacy"), href: "/terminos" },
+        { name: t("footer.terms"), href: "/terminos" },
+        { name: t("footer.contact"), href: "/sobre-nosotros#contacto" },
+      ],
+    },
   };
 
   return (
-    <footer className="bg-card border-t border-border">
+    <>
+      {/* 250px Full-Width Cerveza Presidente Banner Before Footer */}
+      {!hidePreFooterBanner && <PreFooterPresidenteBanner />}
+
+      <footer className="bg-card border-t border-border" role="contentinfo">
       <div className="container mx-auto px-4 lg:px-8 py-12 lg:py-16">
-        {/* Desktop: 4 Column Grid */}
-        <div className="hidden lg:grid lg:grid-cols-4 gap-12">
-          <div>
-            <h4 className="font-display font-bold text-foreground mb-4 flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-primary" />
-              {footerSections.sitemap.title}
-            </h4>
-            <ul className="space-y-3">
-              {footerSections.sitemap.links.map((link) => (
-                <li key={link.href}>
-                  <Link to={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+        {/* Desktop: 5 Columns Grid */}
+        <div className="hidden lg:grid grid-cols-5 gap-8 mb-12">
+          {Object.entries(footerSections).map(([key, section]) => (
+            <div key={key}>
+              <h3 className="font-display font-bold text-foreground mb-4 text-base">
+                {section.title}
+              </h3>
+              <ul className="space-y-2.5">
+                {section.links.map((link) => (
+                  <li key={link.name}>
+                    <Link
+                      to={link.href}
+                      className="text-sm text-muted-foreground hover:text-primary transition-colors inline-block"
+                    >
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
 
+          {/* Newsletter Column */}
           <div>
-            <h4 className="font-display font-bold text-foreground mb-4 flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" />
-              {footerSections.comunidad.title}
-            </h4>
-            <ul className="space-y-3">
-              {footerSections.comunidad.links.map((link) => (
-                <li key={link.name}>
-                  <Link to={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
+                <span className="font-display font-black text-slate-950 text-sm">RD</span>
+              </div>
+              <span className="font-display font-bold text-foreground">Descubre RD</span>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              {t("hero.subtitle")}
+            </p>
 
-          <div>
-            <h4 className="font-display font-bold text-foreground mb-4 flex items-center gap-2">
-              <Building className="h-4 w-4 text-primary" />
-              {footerSections.corporativo.title}
-            </h4>
-            <ul className="space-y-3">
-              {footerSections.corporativo.links.map((link) => (
-                <li key={link.name}>
-                  <Link to={link.href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-display font-bold text-foreground mb-4 flex items-center gap-2">
-              <Newspaper className="h-4 w-4 text-primary" />
-              {t("footer.connectWithRD")}
-            </h4>
-            
             <div className="flex items-center gap-3 mb-6">
-              <Button variant="outline" size="icon" className="text-muted-foreground hover:text-primary hover:border-primary">
-                <Youtube className="h-4 w-4" />
+              <Button variant="outline" size="icon" aria-label="Canal de YouTube oficial" className="text-muted-foreground hover:text-primary hover:border-primary">
+                <Youtube className="h-4 w-4" aria-hidden="true" />
               </Button>
-              <Button variant="outline" size="icon" className="text-muted-foreground hover:text-primary hover:border-primary">
-                <Instagram className="h-4 w-4" />
+              <Button variant="outline" size="icon" aria-label="Perfil de Instagram oficial" className="text-muted-foreground hover:text-primary hover:border-primary">
+                <Instagram className="h-4 w-4" aria-hidden="true" />
               </Button>
-              <Button variant="outline" size="icon" className="text-muted-foreground hover:text-primary hover:border-primary">
-                <Facebook className="h-4 w-4" />
+              <Button variant="outline" size="icon" aria-label="Página de Facebook oficial" className="text-muted-foreground hover:text-primary hover:border-primary">
+                <Facebook className="h-4 w-4" aria-hidden="true" />
               </Button>
-              <Button variant="outline" size="icon" className="text-muted-foreground hover:text-primary hover:border-primary">
-                <Twitter className="h-4 w-4" />
+              <Button variant="outline" size="icon" aria-label="Cuenta de Twitter / X oficial" className="text-muted-foreground hover:text-primary hover:border-primary">
+                <Twitter className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
 
@@ -147,23 +157,24 @@ export function Footer() {
                 placeholder={t("footer.newsletterPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                aria-label="Correo electrónico para boletín"
                 className="flex-1 bg-background"
                 required
               />
-              <Button type="submit" size="sm">
-                <Mail className="h-4 w-4" />
+              <Button type="submit" size="sm" aria-label="Suscribirse al boletín informativo">
+                <Mail className="h-4 w-4" aria-hidden="true" />
               </Button>
             </form>
 
             <div className="mt-6 pt-6 border-t border-border">
               <p className="text-sm text-muted-foreground mb-3 flex items-center gap-2">
-                <Smartphone className="h-4 w-4" /> {t("footer.downloadApp")}
+                <Smartphone className="h-4 w-4" aria-hidden="true" /> {t("footer.downloadApp")}
               </p>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="text-xs">
+                <Button variant="outline" size="sm" aria-label="Descargar aplicación en Apple App Store" className="text-xs">
                   App Store
                 </Button>
-                <Button variant="outline" size="sm" className="text-xs">
+                <Button variant="outline" size="sm" aria-label="Descargar aplicación en Google Play Store" className="text-xs">
                   Google Play
                 </Button>
               </div>
@@ -176,14 +187,17 @@ export function Footer() {
           {Object.entries(footerSections).map(([key, section]) => (
             <div key={key} className="border-b border-border">
               <button
+                type="button"
                 onClick={() => toggleSection(key)}
-                className="flex items-center justify-between w-full py-4"
+                aria-expanded={expandedSection === key}
+                aria-label={`Desplegar sección ${section.title}`}
+                className="flex items-center justify-between w-full py-4 text-left"
               >
                 <span className="font-display font-bold text-foreground">{section.title}</span>
                 {expandedSection === key ? (
-                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  <ChevronUp className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 )}
               </button>
               <motion.div
@@ -207,17 +221,17 @@ export function Footer() {
           <div className="pt-6">
             <h4 className="font-display font-bold text-foreground mb-4">{t("footer.connectWithRD")}</h4>
             <div className="flex items-center gap-3 mb-6">
-              <Button variant="outline" size="icon" className="text-muted-foreground hover:text-primary">
-                <Youtube className="h-4 w-4" />
+              <Button variant="outline" size="icon" aria-label="Canal de YouTube" className="text-muted-foreground hover:text-primary">
+                <Youtube className="h-4 w-4" aria-hidden="true" />
               </Button>
-              <Button variant="outline" size="icon" className="text-muted-foreground hover:text-primary">
-                <Instagram className="h-4 w-4" />
+              <Button variant="outline" size="icon" aria-label="Perfil de Instagram" className="text-muted-foreground hover:text-primary">
+                <Instagram className="h-4 w-4" aria-hidden="true" />
               </Button>
-              <Button variant="outline" size="icon" className="text-muted-foreground hover:text-primary">
-                <Facebook className="h-4 w-4" />
+              <Button variant="outline" size="icon" aria-label="Página de Facebook" className="text-muted-foreground hover:text-primary">
+                <Facebook className="h-4 w-4" aria-hidden="true" />
               </Button>
-              <Button variant="outline" size="icon" className="text-muted-foreground hover:text-primary">
-                <Twitter className="h-4 w-4" />
+              <Button variant="outline" size="icon" aria-label="Cuenta de Twitter / X" className="text-muted-foreground hover:text-primary">
+                <Twitter className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
 
@@ -228,42 +242,28 @@ export function Footer() {
                 placeholder={t("footer.newsletterPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                aria-label="Correo electrónico para boletín móvil"
                 className="flex-1"
                 required
               />
-              <Button type="submit" size="sm">
-                <Mail className="h-4 w-4" />
+              <Button type="submit" size="sm" aria-label="Suscribirse al boletín móvil">
+                <Mail className="h-4 w-4" aria-hidden="true" />
               </Button>
             </form>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
-              <span className="font-display font-bold text-primary-foreground text-sm">RD</span>
-            </div>
-            <span className="font-display font-bold text-foreground">{t("hero.title")}</span>
-          </div>
-
-          <p className="text-sm text-muted-foreground text-center">
-            © {new Date().getFullYear()} {t("footer.madeWithLove")}. {t("footer.rights")}.
-          </p>
-
-          <div className="flex items-center gap-4">
-            <Link to="/terminos" className="text-xs text-muted-foreground hover:text-primary">
-              {t("footer.terms")}
-            </Link>
-            <Link to="/accesibilidad" className="text-xs text-muted-foreground hover:text-primary">
-              {t("footer.accessibility")}
-            </Link>
-            <Link to="/ayuda" className="text-xs text-muted-foreground hover:text-primary">
-              {t("footer.contact")}
-            </Link>
+        <div className="pt-8 mt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+          <p>© {new Date().getFullYear()} Descubre República Dominicana. {t("footer.allRightsReserved")}</p>
+          <div className="flex flex-wrap items-center gap-4">
+            <Link to="/terminos" className="hover:text-primary transition-colors">{t("footer.privacy")}</Link>
+            <Link to="/terminos" className="hover:text-primary transition-colors">{t("footer.terms")}</Link>
+            <Link to="/sitemap" className="hover:text-primary transition-colors">Mapa del Sitio</Link>
           </div>
         </div>
       </div>
     </footer>
+    </>
   );
 }

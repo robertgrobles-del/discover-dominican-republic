@@ -14,7 +14,20 @@ const VALID_ENTITIES = [
   'tour_guides', 'travel_agencies', 'tour_operators',
   'destinations', 'provinces', 'municipalities', 'airbnb_listings',
   'beaches', 'spas_wellness', 'ad_banners',
-  'historical_figures', 'historical_events', 'tour_packages', 'job_vacancies'
+  'historical_figures', 'historical_events', 'tour_packages', 'job_vacancies',
+  'establishment_registrations', 'site_settings', 'newsletter_subscribers',
+  'marketing_leads', 'offers', 'ambassadors', 'ambassador_referrals',
+  'achievements', 'gamification_levels', 'profiles', 'partner_profiles',
+  'routes', 'route_stops', 'audio_guides', 'ugc_reports', 'event_tickets',
+  'reward_inventory', 'reward_shipments', 'survey_templates', 'survey_responses',
+  'admin_activity_logs', 'seo_redirections', 'system_webhooks',
+  'ugc_media', 'user_suspensions', 'support_tickets', 'support_messages',
+  'marketing_campaigns', 'points_transactions', 'marketplace_orders',
+  'marketplace_order_items', 'vendor_payments', 'discount_coupons',
+  'weather_alerts', 'emergency_contacts', 'system_cron_jobs', 'ip_rules',
+  'entity_translations', 'lotteries', 'lottery_draws', 'lottery_results',
+  'exchange_rates', 'fuel_prices', 'reservations',
+  'protected_areas', 'bird_species', 'hot_springs', 'offset_projects', 'toll_routes', 'marine_reports'
 ] as const;
 
 type EntityType = typeof VALID_ENTITIES[number];
@@ -94,6 +107,25 @@ serve(async (req) => {
 
     let result;
 
+    const logActivity = async (actionType: string, entityName: string, entityId: string, oldData: any, newData: any) => {
+      try {
+        const ipAddress = req.headers.get('x-real-ip') || req.headers.get('cf-connecting-ip') || '';
+        const userAgent = req.headers.get('user-agent') || '';
+        await supabase.from('admin_activity_logs').insert([{
+          admin_id: user.id,
+          action_type: actionType,
+          entity_name: entityName,
+          entity_id: entityId,
+          ip_address: ipAddress,
+          user_agent: userAgent,
+          old_data: oldData,
+          new_data: newData
+        }]);
+      } catch (err) {
+        console.error('Failed to log admin activity:', err);
+      }
+    };
+
     switch (action) {
       case 'list': {
         let query = supabase.from(entity).select('*', { count: 'exact' });
@@ -109,7 +141,69 @@ serve(async (req) => {
           query = query.eq('is_featured', filters.is_featured);
         }
         if (filters?.search) {
-          query = query.ilike('name', `%${filters.search}%`);
+          let searchField = 'name';
+          if (
+            entity === 'job_vacancies' || 
+            entity === 'offers' || 
+            entity === 'routes' || 
+            entity === 'audio_guides' || 
+            entity === 'reward_inventory' || 
+            entity === 'survey_templates' ||
+            entity === 'marketing_campaigns' ||
+            entity === 'weather_alerts' ||
+            entity === 'offset_projects'
+          ) {
+            searchField = 'title';
+          } else if (entity === 'establishment_registrations' || entity === 'marketing_leads') {
+            searchField = 'nombre';
+          } else if (entity === 'reward_shipments') {
+            searchField = 'recipient_name';
+          } else if (entity === 'route_stops') {
+            searchField = 'place_name';
+          } else if (entity === 'marine_reports') {
+            searchField = 'location';
+          } else if (entity === 'ugc_reports' || entity === 'user_suspensions' || entity === 'points_transactions') {
+            searchField = 'reason';
+          } else if (entity === 'event_tickets') {
+            searchField = 'ticket_code';
+          } else if (entity === 'site_settings') {
+            searchField = 'key';
+          } else if (entity === 'newsletter_subscribers') {
+            searchField = 'email';
+          } else if (entity === 'ambassadors') {
+            searchField = 'referral_code';
+          } else if (entity === 'ambassador_referrals') {
+            searchField = 'referred_email';
+          } else if (entity === 'profiles') {
+            searchField = 'display_name';
+          } else if (entity === 'partner_profiles') {
+            searchField = 'business_name';
+          } else if (entity === 'admin_activity_logs') {
+            searchField = 'entity_name';
+          } else if (entity === 'seo_redirections') {
+            searchField = 'source_path';
+          } else if (entity === 'system_webhooks' || entity === 'ugc_media') {
+            searchField = 'url';
+          } else if (entity === 'support_tickets') {
+            searchField = 'subject';
+          } else if (entity === 'support_messages') {
+            searchField = 'message';
+          } else if (entity === 'discount_coupons') {
+            searchField = 'code';
+          } else if (entity === 'emergency_contacts') {
+            searchField = 'institution';
+          } else if (entity === 'system_cron_jobs') {
+            searchField = 'job_name';
+          } else if (entity === 'ip_rules') {
+            searchField = 'ip_address';
+          } else if (entity === 'marketplace_orders') {
+            searchField = 'payment_method';
+          } else if (entity === 'marketplace_order_items') {
+            searchField = 'item_type';
+          } else if (entity === 'vendor_payments') {
+            searchField = 'payout_reference';
+          }
+          query = query.ilike(searchField, `%${filters.search}%`);
         }
         
         // Paginación
@@ -173,6 +267,11 @@ serve(async (req) => {
           .single();
         
         if (error) throw error;
+
+        if (entity !== 'admin_activity_logs') {
+          await logActivity('create', entity, created.id, null, data);
+        }
+
         result = { data: created, message: 'Created successfully' };
         break;
       }
@@ -203,6 +302,16 @@ serve(async (req) => {
             .trim();
         }
 
+        let oldRecord = null;
+        if (entity !== 'admin_activity_logs') {
+          const { data: oldData } = await supabase
+            .from(entity)
+            .select('*')
+            .eq('id', id)
+            .maybeSingle();
+          oldRecord = oldData;
+        }
+
         const { data: updated, error } = await supabase
           .from(entity)
           .update(data)
@@ -211,6 +320,11 @@ serve(async (req) => {
           .single();
         
         if (error) throw error;
+
+        if (entity !== 'admin_activity_logs') {
+          await logActivity('update', entity, id, oldRecord, data);
+        }
+
         result = { data: updated, message: 'Updated successfully' };
         break;
       }
@@ -223,12 +337,27 @@ serve(async (req) => {
           );
         }
 
+        let oldRecord = null;
+        if (entity !== 'admin_activity_logs') {
+          const { data: oldData } = await supabase
+            .from(entity)
+            .select('*')
+            .eq('id', id)
+            .maybeSingle();
+          oldRecord = oldData;
+        }
+
         const { error } = await supabase
           .from(entity)
           .delete()
           .eq('id', id);
         
         if (error) throw error;
+
+        if (entity !== 'admin_activity_logs') {
+          await logActivity('delete', entity, id, oldRecord, null);
+        }
+
         result = { message: 'Deleted successfully' };
         break;
       }

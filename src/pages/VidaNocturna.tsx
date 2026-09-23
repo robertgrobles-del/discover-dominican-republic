@@ -10,11 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
+import { BetweenSectionsAd, CompactInlineAd } from "@/components/promo";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { bars as staticBarsData } from "@/data/bars";
 import { useTranslation } from "@/hooks/useI18n";
+import { CTARegistroEstablecimiento } from "@/components/forms/CTARegistroEstablecimiento";
+import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
+
 
 const categoryToType: Record<string, string[]> = {
   chill: ['lounge', 'cocktail-bar'],
@@ -306,6 +309,17 @@ export default function VidaNocturna() {
             </Button>
           </div>
         </section>
+        <div className="mt-16 space-y-8">
+          {/* Banner de Sorteos para el Lector */}
+          <SorteoLectorBanner origenCategoria="Bares y Vida Nocturna" />
+
+          {/* Registro de Bares y Discotecas */}
+          <CTARegistroEstablecimiento 
+            tipo="bar" 
+            titulo="¿Tienes un bar, discoteca o lounge?" 
+            subtitulo="Añade tu establecimiento de vida nocturna a nuestra guía para el lanzamiento oficial. Destaca tus noches temáticas, eventos en vivo y especialidades de tragos."
+          />
+        </div>
       </div>
 
       <BetweenSectionsAd showDemo />

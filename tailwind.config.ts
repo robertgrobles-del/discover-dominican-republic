@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import colors from "tailwindcss/colors";
 
 export default {
   darkMode: ["class"],
@@ -55,7 +56,10 @@ export default {
         "surface-elevated": "hsl(var(--surface-elevated))",
         "text-secondary": "hsl(var(--text-secondary))",
         gold: "hsl(var(--gold))",
-        emerald: "hsl(var(--emerald))",
+        emerald: {
+          ...colors.emerald,
+          DEFAULT: "hsl(var(--emerald))",
+        },
         coral: "hsl(var(--coral))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",

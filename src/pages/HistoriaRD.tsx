@@ -116,8 +116,9 @@ export default function HistoriaRD() {
             <div className="flex gap-5 overflow-x-auto pb-3 no-scrollbar">
               {randomFigures.map((figure, i) => (
                 <Link key={figure.id} to={`/historia/personaje/${figure.slug}`}
-                  className="animate-fade-in flex-shrink-0 w-[220px] md:w-[240px]"
-                  style={{ animationDelay: `${i * 80}ms` }}>
+                  className={`animate-fade-in flex-shrink-0 w-[220px] md:w-[240px] figure-link-${figure.id}`}
+                >
+                  <style>{`.figure-link-${figure.id} { animation-delay: ${i * 80}ms; }`}</style>
                   <div className="bg-card rounded-2xl border border-border overflow-hidden group hover:border-primary/30 transition-all hover:shadow-lg h-full">
                     <div className="relative h-44 overflow-hidden">
                       <LazyImage
@@ -181,9 +182,9 @@ export default function HistoriaRD() {
                   {events?.map((event, i) => (
                     <div
                       key={event.id}
-                      className="relative pl-16 pb-12 last:pb-0 animate-fade-in"
-                      style={{ animationDelay: `${Math.min(i * 40, 400)}ms` }}
+                      className={`relative pl-16 pb-12 last:pb-0 animate-fade-in event-item-${event.id}`}
                     >
+                      <style>{`.event-item-${event.id} { animation-delay: ${Math.min(i * 40, 400)}ms; }`}</style>
                       {i < (events?.length || 0) - 1 && (
                         <div className="absolute left-[27px] top-14 w-0.5 h-[calc(100%-40px)] bg-border" />
                       )}
@@ -230,7 +231,9 @@ export default function HistoriaRD() {
                     const Icon = categoryIcons[figure.category || "politica"] || Crown;
                     return (
                       <Link key={figure.id} to={`/historia/personaje/${figure.slug}`}
-                        className="animate-fade-in" style={{ animationDelay: `${Math.min(i * 30, 300)}ms` }}>
+                        className={`animate-fade-in figure-link-tab-${figure.id}`}
+                      >
+                        <style>{`.figure-link-tab-${figure.id} { animation-delay: ${Math.min(i * 30, 300)}ms; }`}</style>
                         <div className="bg-card rounded-xl border border-border p-5 hover:border-primary/30 transition-all group flex gap-5">
                           <LazyImage
                             src={figure.image_url || "/placeholder.svg"}
@@ -268,7 +271,9 @@ export default function HistoriaRD() {
                 <div className="grid md:grid-cols-2 gap-4">
                   {events?.map((event, i) => (
                     <Link key={event.id} to={`/historia/evento/${event.slug}`}
-                      className="animate-fade-in" style={{ animationDelay: `${Math.min(i * 30, 300)}ms` }}>
+                      className={`animate-fade-in event-link-tab-${event.id}`}
+                    >
+                      <style>{`.event-link-tab-${event.id} { animation-delay: ${Math.min(i * 30, 300)}ms; }`}</style>
                       <div className="bg-card rounded-xl border border-border overflow-hidden group hover:border-primary/30 transition-all">
                         <div className="relative h-40">
                           <LazyImage

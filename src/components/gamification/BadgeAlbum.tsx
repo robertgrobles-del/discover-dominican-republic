@@ -59,8 +59,10 @@ export function BadgeCard({ badge, size = "md", showProgress = true, showDetails
 
   return (
     <motion.div
-      whileHover={badge.earned ? { y: -4, scale: 1.02 } : { scale: 1.01 }}
-      className={`relative border-2 text-center transition-all ${sizeClasses[size]} ${
+      whileHover={badge.earned ? { y: -6, scale: 1.04, rotateX: 6, rotateY: -6 } : { scale: 1.01 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      style={{ transformStyle: "preserve-3d", perspective: 800 }}
+      className={`relative border-2 text-center transition-all duration-300 ${sizeClasses[size]} ${
         badge.earned
           ? `bg-gradient-to-br from-card to-card/80 ${cfg.borderClass} ${cfg.glowClass}`
           : "bg-card border-border opacity-65"

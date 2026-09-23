@@ -255,7 +255,7 @@ export default function EventosGrupo() {
                             <CardTitle className="text-sm font-bold truncate max-w-[180px]">{selectedGroup.title}</CardTitle>
                             <CardDescription className="text-[10px]">Chat Grupal de Excursión</CardDescription>
                           </div>
-                          <Button variant="ghost" size="xs" onClick={() => setSelectedGroup(null)}>Cerrar</Button>
+                          <Button variant="ghost" size="sm" onClick={() => setSelectedGroup(null)}>Cerrar</Button>
                         </CardHeader>
 
                         {/* Chat history */}

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Waves, Mountain, TreePine, Droplets, Sun, Building, Sparkles, Music } from "lucide-react";
+import { Waves, Mountain, TreePine, Droplets, Sun, Building, Crown, Music } from "lucide-react";
 import { useTranslation } from "@/hooks/useI18n";
 import { LucideIcon } from "lucide-react";
 
@@ -21,7 +21,7 @@ const categoryDefs: CategoryDef[] = [
   { id: "rios", nameKey: "destinos.catRivers", icon: Droplets, descKey: "destinos.catRiversDesc", color: "text-blue-500", gradient: "from-blue-500/20 to-indigo-500/20", destinations: ["27 Charcos", "Salto del Limón", "Río Chavón"] },
   { id: "wellness", nameKey: "destinos.catWellness", icon: Sun, descKey: "destinos.catWellnessDesc", color: "text-amber-500", gradient: "from-amber-500/20 to-orange-500/20", destinations: ["Casa de Campo", "Punta Cana Spas", "Samaná"] },
   { id: "cultural", nameKey: "destinos.catCultural", icon: Building, descKey: "destinos.catCulturalDesc", color: "text-purple-500", gradient: "from-purple-500/20 to-pink-500/20", destinations: ["Zona Colonial", "Santiago", "La Vega"] },
-  { id: "lujo", nameKey: "destinos.catLuxury", icon: Sparkles, descKey: "destinos.catLuxuryDesc", color: "text-yellow-500", gradient: "from-yellow-500/20 to-amber-500/20", destinations: ["Cap Cana", "Casa de Campo", "Puntacana Resort"] },
+  { id: "lujo", nameKey: "destinos.catLuxury", icon: Crown, descKey: "destinos.catLuxuryDesc", color: "text-yellow-500", gradient: "from-yellow-500/20 to-amber-500/20", destinations: ["Cap Cana", "Casa de Campo", "Puntacana Resort"] },
   { id: "vida-nocturna", nameKey: "destinos.catNightlife", icon: Music, descKey: "destinos.catNightlifeDesc", color: "text-pink-500", gradient: "from-pink-500/20 to-rose-500/20", destinations: ["Santo Domingo", "Punta Cana", "Sosúa"] },
 ];
 

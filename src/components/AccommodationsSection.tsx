@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Star, ChevronRight, Home, Users, Sparkles, Megaphone } from "lucide-react";
+import { Star, ChevronRight, Home, Users, Award, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { FavoriteButton } from "@/components/FavoriteButton";
@@ -139,7 +139,7 @@ function AccommodationCard({ item, type, t }: AccommodationCardProps) {
         <div className="absolute top-4 right-4 flex items-center gap-2">
           {isAirbnb && item.host === "Superhost" && (
             <div className="flex items-center gap-1 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
-              <Sparkles className="h-3 w-3" />
+              <Award className="h-3 w-3" />
               Superhost
             </div>
           )}

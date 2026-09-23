@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { BannerAd } from "@/components/ads";
+import { BannerAd } from "@/components/promo";
 
 interface SectionWithSideAdsProps {
   children: ReactNode;

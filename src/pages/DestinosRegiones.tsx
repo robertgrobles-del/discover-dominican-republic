@@ -88,18 +88,18 @@ export default function DestinosRegiones() {
             }`}
             onLoad={() => setHeroLoaded(true)}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/30 to-background" />
-          
+          <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/50 to-black/85" />
+
           <div className="relative z-10 text-center px-4">
             <Badge className="mb-6 bg-primary/20 text-primary border-primary/30">
               ORGANIZACIÓN TERRITORIAL
             </Badge>
             <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-4 italic">
-              Descubre nuestras<br />
+              Explora por<br />
               <span className="text-gradient not-italic">Regiones</span>
             </h1>
-            <p className="text-lg text-white/70 max-w-xl mx-auto">
-              Navega a través de la geografía dominicana y encuentra tu próximo paraíso.
+            <p className="text-lg text-white/90 max-w-xl mx-auto">
+              Cibao, Sur, Este y Santo Domingo: elige una región para ver sus destinos.
             </p>
           </div>
         </section>

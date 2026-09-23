@@ -61,65 +61,45 @@ export function ChatbotTuristico() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({ messages: newMessages }),
       });
 
-      if (!resp.ok || !resp.body) {
-        const errorData = await resp.json().catch(() => ({}));
-        throw new Error(errorData.error || "Error al conectar con el asistente");
+      if (!resp.ok) {
+        throw new Error("Error en la respuesta del asistente.");
       }
 
-      const reader = resp.body.getReader();
+      const reader = resp.body?.getReader();
       const decoder = new TextDecoder();
-      let textBuffer = "";
 
-      // Add initial empty assistant message
+      if (!reader) throw new Error("No reader available");
+
       setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        
-        textBuffer += decoder.decode(value, { stream: true });
 
-        let newlineIndex: number;
-        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
-          let line = textBuffer.slice(0, newlineIndex);
-          textBuffer = textBuffer.slice(newlineIndex + 1);
+        const chunk = decoder.decode(value, { stream: true });
+        assistantContent += chunk;
 
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (line.startsWith(":") || line.trim() === "") continue;
-          if (!line.startsWith("data: ")) continue;
-
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") break;
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) {
-              assistantContent += content;
-              setMessages((prev) => {
-                const updated = [...prev];
-                updated[updated.length - 1] = { role: "assistant", content: assistantContent };
-                return updated;
-              });
-            }
-          } catch {
-            textBuffer = line + "\n" + textBuffer;
-            break;
-          }
-        }
+        setMessages((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1] = {
+            role: "assistant",
+            content: assistantContent,
+          };
+          return updated;
+        });
       }
-    } catch (error) {
-      console.error("Chat error:", error);
+    } catch (err: any) {
       setMessages((prev) => [
-        ...prev.slice(0, -1),
+        ...prev,
         {
           role: "assistant",
-          content: "Lo siento, hubo un problema al procesar tu solicitud. Por favor, intenta de nuevo. 🙏",
+          content:
+            "Lo siento, ocurrió un error al procesar tu solicitud. Por favor intenta de nuevo.",
         },
       ]);
     } finally {
@@ -134,7 +114,6 @@ export function ChatbotTuristico() {
   };
 
   const handleQuickQuestion = (question: string) => {
-    if (isLoading) return;
     streamChat(question);
   };
 
@@ -151,9 +130,10 @@ export function ChatbotTuristico() {
           >
             <Button
               onClick={() => setIsOpen(true)}
+              aria-label="Abrir asistente turístico virtual Guía RD"
               className="h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 group"
             >
-              <MessageCircle className="h-6 w-6 group-hover:scale-110 transition-transform" />
+              <MessageCircle className="h-6 w-6 group-hover:scale-110 transition-transform" aria-hidden="true" />
             </Button>
             <span className="absolute -top-1 -right-1 h-4 w-4 bg-green-500 rounded-full border-2 border-background animate-pulse" />
           </motion.div>
@@ -178,7 +158,7 @@ export function ChatbotTuristico() {
             <div className="flex items-center justify-between p-4 border-b border-border bg-primary text-primary-foreground">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center">
-                  <Bot className="h-5 w-5" />
+                  <Bot className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div>
                   <h3 className="font-display font-bold">Guía RD</h3>
@@ -189,18 +169,20 @@ export function ChatbotTuristico() {
                 <Button
                   size="icon"
                   variant="ghost"
+                  aria-label={isExpanded ? "Reducir tamaño del chat" : "Expandir tamaño del chat"}
                   className="h-8 w-8 text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
                   onClick={() => setIsExpanded(!isExpanded)}
                 >
-                  {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                  {isExpanded ? <Minimize2 className="h-4 w-4" aria-hidden="true" /> : <Maximize2 className="h-4 w-4" aria-hidden="true" />}
                 </Button>
                 <Button
                   size="icon"
                   variant="ghost"
+                  aria-label="Cerrar ventana del chat"
                   className="h-8 w-8 text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
                   onClick={() => setIsOpen(false)}
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
             </div>
@@ -219,7 +201,7 @@ export function ChatbotTuristico() {
                       message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
                     }`}
                   >
-                    {message.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                    {message.role === "user" ? <User className="h-4 w-4" aria-hidden="true" /> : <Bot className="h-4 w-4" aria-hidden="true" />}
                   </div>
                   <div
                     className={`max-w-[80%] rounded-2xl px-4 py-3 ${
@@ -237,7 +219,7 @@ export function ChatbotTuristico() {
               {isLoading && messages[messages.length - 1]?.content === "" && (
                 <div className="flex gap-3">
                   <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                   </div>
                   <div className="bg-muted rounded-2xl rounded-bl-sm px-4 py-3">
                     <div className="flex gap-1">
@@ -259,6 +241,8 @@ export function ChatbotTuristico() {
                   {quickQuestions.map((q) => (
                     <button
                       key={q}
+                      type="button"
+                      aria-label={`Preguntar rápidamente: ${q}`}
                       onClick={() => handleQuickQuestion(q)}
                       className="text-xs bg-muted hover:bg-muted/80 text-foreground px-3 py-1.5 rounded-full transition-colors"
                     >
@@ -278,10 +262,11 @@ export function ChatbotTuristico() {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Escribe tu pregunta..."
                   disabled={isLoading}
+                  aria-label="Escribe tu mensaje para el asistente"
                   className="flex-1"
                 />
-                <Button type="submit" size="icon" disabled={!input.trim() || isLoading}>
-                  <Send className="h-4 w-4" />
+                <Button type="submit" size="icon" disabled={!input.trim() || isLoading} aria-label="Enviar mensaje al asistente">
+                  <Send className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
             </form>

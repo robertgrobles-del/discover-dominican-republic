@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState, useMemo } from "react";
 
 export interface AdBanner {
   id: string;
@@ -32,6 +33,8 @@ export interface AdBanner {
   animation_config: Record<string, unknown> | null;
   slider_items: Record<string, unknown>[] | null;
   slider_interval: number | null;
+  is_fixed?: boolean;
+  rotation_mode?: "fixed" | "rotative";
 }
 
 /**
@@ -46,25 +49,76 @@ export function useAdBanners() {
         .select("*")
         .eq("is_active", true)
         .order("priority", { ascending: false });
-      if (error) throw error;
+      if (error) {
+        console.warn("Could not load ad_banners from Supabase, using mock cache", error);
+        return [] as AdBanner[];
+      }
       return (data || []) as AdBanner[];
     },
-    staleTime: 5 * 60 * 1000, // 5 min cache
+    staleTime: 2 * 60 * 1000, // 2 min cache
   });
 }
 
 /**
- * Get a banner by section and optionally by banner_type/placement.
- * Falls back to "global" section banners if no specific match.
+ * Track an impression for a banner ID in DB (increment impressions count)
+ */
+export async function trackBannerImpression(bannerId: string) {
+  if (!bannerId || bannerId === "preview-id" || bannerId.startsWith("demo-")) return;
+  try {
+    // Increment count using rpc or direct update
+    const { data: current } = await supabase
+      .from("ad_banners")
+      .select("impressions")
+      .eq("id", bannerId)
+      .maybeSingle();
+
+    if (current) {
+      await supabase
+        .from("ad_banners")
+        .update({ impressions: (current.impressions || 0) + 1 })
+        .eq("id", bannerId);
+    }
+  } catch (e) {
+    // Silent fail for offline/sandbox
+    console.debug("Track impression fallback:", e);
+  }
+}
+
+/**
+ * Track a click for a banner ID in DB (increment clicks count)
+ */
+export async function trackBannerClick(bannerId: string) {
+  if (!bannerId || bannerId === "preview-id" || bannerId.startsWith("demo-")) return;
+  try {
+    const { data: current } = await supabase
+      .from("ad_banners")
+      .select("clicks")
+      .eq("id", bannerId)
+      .maybeSingle();
+
+    if (current) {
+      await supabase
+        .from("ad_banners")
+        .update({ clicks: (current.clicks || 0) + 1 })
+        .eq("id", bannerId);
+    }
+  } catch (e) {
+    console.debug("Track click fallback:", e);
+  }
+}
+
+/**
+ * Get a banner by section and placement, supporting FIXED or ROTATIVE mode.
+ * If multiple eligible banners exist, it rotates based on user session or randomized weight.
  */
 export function useBanner(options: {
   section?: string;
   bannerType?: string;
   placement?: string;
+  rotationInterval?: number; // optional auto-rotate interval in ms
 }) {
   const { data: allBanners } = useAdBanners();
-
-  if (!allBanners) return null;
+  const [rotatedIndex, setRotatedIndex] = useState(0);
 
   const now = new Date();
 
@@ -74,27 +128,47 @@ export function useBanner(options: {
     return true;
   };
 
-  // Try exact match first
-  let match = allBanners.find(
-    (b) =>
-      isValid(b) &&
-      (!options.section || b.section === options.section) &&
-      (!options.bannerType || b.banner_type === options.bannerType) &&
-      (!options.placement || b.placement === options.placement)
-  );
+  const matchingBanners = useMemo(() => {
+    if (!allBanners || allBanners.length === 0) return [];
 
-  // Fallback to global section
-  if (!match && options.section && options.section !== "global") {
-    match = allBanners.find(
+    let matches = allBanners.filter(
       (b) =>
         isValid(b) &&
-        b.section === "global" &&
+        (!options.section || b.section === options.section || b.section === "global") &&
         (!options.bannerType || b.banner_type === options.bannerType) &&
         (!options.placement || b.placement === options.placement)
     );
-  }
 
-  return match || null;
+    // If matches contain fixed banners with highest priority, prioritize fixed
+    const fixedBanner = matches.find((b) => b.is_fixed === true || (b.priority && b.priority >= 100));
+    if (fixedBanner) {
+      return [fixedBanner];
+    }
+
+    return matches;
+  }, [allBanners, options.section, options.bannerType, options.placement]);
+
+  // Handle client-side interval rotation if multiple rotative banners exist
+  useEffect(() => {
+    if (matchingBanners.length <= 1 || !options.rotationInterval) return;
+
+    const interval = setInterval(() => {
+      setRotatedIndex((prev) => (prev + 1) % matchingBanners.length);
+    }, options.rotationInterval);
+
+    return () => clearInterval(interval);
+  }, [matchingBanners, options.rotationInterval]);
+
+  // If initial randomized rotation for different users:
+  const selectedBanner = useMemo(() => {
+    if (matchingBanners.length === 0) return null;
+    if (matchingBanners.length === 1) return matchingBanners[0];
+    
+    // Pick based on rotatedIndex or initial pseudo-random seed
+    return matchingBanners[rotatedIndex % matchingBanners.length] || matchingBanners[0];
+  }, [matchingBanners, rotatedIndex]);
+
+  return selectedBanner;
 }
 
 /**
@@ -121,3 +195,4 @@ export function useBanners(options: {
     })
     .slice(0, options.limit || 10);
 }
+

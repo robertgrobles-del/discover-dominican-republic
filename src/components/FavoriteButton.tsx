@@ -51,12 +51,15 @@ export function FavoriteButton({
     lg: "h-5 w-5",
   };
 
+  const label = isActive ? `Eliminar ${name} de favoritos` : `Guardar ${name} en favoritos`;
+
   if (variant === "button") {
     return (
       <Button
         variant={isActive ? "default" : "outline"}
         size="sm"
         onClick={handleClick}
+        aria-label={label}
         className={cn("gap-2", className)}
       >
         <Heart className={cn(iconSizes[size], isActive && "fill-current")} />
@@ -67,7 +70,10 @@ export function FavoriteButton({
 
   return (
     <button
+      type="button"
       onClick={handleClick}
+      aria-label={label}
+      title={label}
       className={cn(
         sizeClasses[size],
         "rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center transition-all hover:scale-110",
@@ -88,6 +94,7 @@ export function FavoriteButton({
               iconSizes[size],
               isActive ? "fill-current text-primary-foreground" : "text-foreground"
             )}
+            aria-hidden="true"
           />
         </motion.div>
       </AnimatePresence>

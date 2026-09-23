@@ -15,6 +15,8 @@ import { CartProvider } from "@/hooks/useCart";
 const BackToTop = lazy(() => import("@/components/BackToTop").then(m => ({ default: m.BackToTop })));
 const ChatbotTuristico = lazy(() => import("@/components/ChatbotTuristico").then(m => ({ default: m.ChatbotTuristico })));
 const GamificationToastOverlay = lazy(() => import("@/components/gamification/GamificationToast").then(m => ({ default: m.GamificationToastOverlay })));
+const ExitIntentModal = lazy(() => import("@/components/promo/ExitIntentModal").then(m => ({ default: m.ExitIntentModal })));
+const CookieConsentBanner = lazy(() => import("@/components/privacy/CookieConsentBanner").then(m => ({ default: m.CookieConsentBanner })));
 
 // All pages lazy loaded
 const Index = lazy(() => import("./pages/Index"));
@@ -149,11 +151,9 @@ const MunicipioDetalle = lazy(() => import("./pages/MunicipioDetalle"));
 
 // New pages
 const AlquilerVehiculos = lazy(() => import("./pages/AlquilerVehiculos"));
-const Museos = lazy(() => import("./pages/Museos"));
 const Casinos = lazy(() => import("./pages/Casinos"));
 const SpasWellness = lazy(() => import("./pages/SpasWellness"));
 const SpaDetalle = lazy(() => import("./pages/SpaDetalle"));
-const Emergencias = lazy(() => import("./pages/Emergencias"));
 const NewsletterPage = lazy(() => import("./pages/NewsletterPage"));
 const SistemaAfiliados = lazy(() => import("./pages/SistemaAfiliados"));
 const AudioGuias = lazy(() => import("./pages/AudioGuias"));
@@ -161,7 +161,6 @@ const CheckInDigital = lazy(() => import("./pages/CheckInDigital"));
 const Badges = lazy(() => import("./pages/Badges"));
 const ComparadorHoteles = lazy(() => import("./pages/ComparadorHoteles"));
 const EncuestaPostViaje = lazy(() => import("./pages/EncuestaPostViaje"));
-const ClimaYTemporadas = lazy(() => import("./pages/ClimaYTemporadas"));
 const MuseosMonumentos = lazy(() => import("./pages/MuseosMonumentos"));
 const ItinerarioIA = lazy(() => import("./pages/ItinerarioIA"));
 const TraductorViajero = lazy(() => import("./pages/TraductorViajero"));
@@ -171,6 +170,7 @@ const ConversorMoneda = lazy(() => import("./pages/ConversorMoneda"));
 const CostosViaje = lazy(() => import("./pages/CostosViaje"));
 const ZonasHorarias = lazy(() => import("./pages/ZonasHorarias"));
 const RequisitosViaje = lazy(() => import("./pages/RequisitosViaje"));
+const ReglasGamificacion = lazy(() => import("./pages/ReglasGamificacion"));
 const ContactosEmergencia = lazy(() => import("./pages/ContactosEmergencia"));
 const EscuelaViajero = lazy(() => import("./pages/EscuelaViajero"));
 const ActividadDetalle = lazy(() => import("./pages/ActividadDetalle"));
@@ -181,10 +181,34 @@ const PersonajeHistorico = lazy(() => import("./pages/PersonajeHistorico"));
 const EventoHistorico = lazy(() => import("./pages/EventoHistorico"));
 const ReservasNaturales = lazy(() => import("./pages/ReservasNaturales"));
 const Loteria = lazy(() => import("./pages/Loteria"));
+const PreciosCombustible = lazy(() => import("./pages/PreciosCombustible"));
+const CalculadoraCONFOTUR = lazy(() => import("./pages/CalculadoraCONFOTUR"));
+const ObservatorioSargazo = lazy(() => import("./pages/ObservatorioSargazo"));
+const RutaLarimar = lazy(() => import("./pages/RutaLarimar"));
+const CarnavalDominicano = lazy(() => import("./pages/CarnavalDominicano"));
+const PicoDuarte = lazy(() => import("./pages/PicoDuarte"));
+const RutaRonTabaco = lazy(() => import("./pages/RutaRonTabaco"));
+const GolfRD = lazy(() => import("./pages/GolfRD"));
+const TurismoBuceo = lazy(() => import("./pages/TurismoBuceo"));
+const RecetasCriollas = lazy(() => import("./pages/RecetasCriollas"));
+const BienesRaices = lazy(() => import("./pages/BienesRaices"));
+const ProyectosInversion = lazy(() => import("./pages/ProyectosInversion"));
 const TurismoComunitario = lazy(() => import("./pages/TurismoComunitario"));
 const AutorInvitado = lazy(() => import("./pages/AutorInvitado"));
 const ContratarInfluencers = lazy(() => import("./pages/ContratarInfluencers"));
 const Marketplace = lazy(() => import("./pages/Marketplace"));
+const SilentGuide = lazy(() => import("./pages/SilentGuide"));
+
+// 10 New Pending Tourism and Tool Pages
+const CalculadoraTributaria = lazy(() => import("./pages/CalculadoraTributaria"));
+const AreasProtegidas = lazy(() => import("./pages/AreasProtegidas"));
+const ReporteOlasViento = lazy(() => import("./pages/ReporteOlasViento"));
+const RutaHermanasMirabal = lazy(() => import("./pages/RutaHermanasMirabal"));
+const AvistamientoAves = lazy(() => import("./pages/AvistamientoAves"));
+const TransporteUrbano = lazy(() => import("./pages/TransporteUrbano"));
+const AguasTermales = lazy(() => import("./pages/AguasTermales"));
+const CalculadoraCarbono = lazy(() => import("./pages/CalculadoraCarbono"));
+const CalculadoraPeajes = lazy(() => import("./pages/CalculadoraPeajes"));
 const SorteosYPremios = lazy(() => import("./pages/SorteosYPremios"));
 const VacacionesRD = lazy(() => import("./pages/VacacionesRD"));
 const Blog = lazy(() => import("./pages/Blog"));
@@ -232,10 +256,12 @@ const ESimTurista = lazy(() => import("./pages/ESimTurista"));
 const EventosVivo = lazy(() => import("./pages/EventosVivo"));
 const LIDOM = lazy(() => import("./pages/LIDOM"));
 const BebidasRD = lazy(() => import("./pages/BebidasRD"));
-const ViveLocal = lazy(() => import("./pages/ViveLocal"));
 const Salud24h = lazy(() => import("./pages/Salud24h"));
 const MICEBodas = lazy(() => import("./pages/MICEBodas"));
 const EventosGrupo = lazy(() => import("./pages/EventosGrupo"));
+const ViveLocal = lazy(() => import("./pages/ViveLocal"));
+const HistoriaIndex = lazy(() => import("./pages/HistoriaIndex"));
+const HistoriaDetalle = lazy(() => import("./pages/HistoriaDetalle"));
 // Static destination pages
 const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
 const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
@@ -334,6 +360,9 @@ function AnimatedRoutes() {
           <Route path="/destinos-regiones" element={<DestinosRegiones />} />
           <Route path="/eventos" element={<Eventos />} />
           <Route path="/evento/:slug" element={<EventoDetalle />} />
+          <Route path="/evento/:id" element={<EventoDetalle />} />
+          <Route path="/eventos/:slug" element={<EventoDetalle />} />
+          <Route path="/eventos/:id" element={<EventoDetalle />} />
           <Route path="/como-llegar" element={<ComoLlegar />} />
           <Route path="/herramientas" element={<Herramientas />} />
           <Route path="/patrimonio" element={<Patrimonio />} />
@@ -372,8 +401,16 @@ function AnimatedRoutes() {
           <Route path="/nomadas-digitales" element={<NomadasDigitales />} />
           <Route path="/turismo-deportivo" element={<TurismoDeportivo />} />
           <Route path="/club-recompensas" element={<ClubRecompensas />} />
-          <Route path="/gamificacion" element={<GamificacionHub />} />
+          <Route path="/gamificacion" element={<GamificacionTuristica />} />
           <Route path="/gamificacion-turistica" element={<GamificacionTuristica />} />
+          <Route path="/gamificacion-turistica/retos" element={<RetosTuristicos />} />
+          <Route path="/gamificacion-turistica/creadores" element={<ProgramaCreadores />} />
+          <Route path="/gamificacion-turistica/trivia" element={<TriviaTuristica />} />
+          <Route path="/gamificacion-turistica/mapa" element={<MapaMisiones />} />
+          <Route path="/gamificacion-turistica/perfil" element={<PerfilJugador />} />
+          <Route path="/gamificacion-turistica/recompensas" element={<ClubRecompensas />} />
+          <Route path="/gamificacion-turistica/reglas" element={<ReglasGamificacion />} />
+          <Route path="/reglas-gamificacion" element={<ReglasGamificacion />} />
           <Route path="/perfil-jugador" element={<PerfilJugador />} />
           <Route path="/explorador/:id" element={<ExplorerProfile />} />
           <Route path="/retos" element={<RetosTuristicos />} />
@@ -447,12 +484,12 @@ function AnimatedRoutes() {
           {/* New pages */}
           <Route path="/alquiler-vehiculos" element={<AlquilerVehiculos />} />
           <Route path="/rent-a-car" element={<AlquilerVehiculos />} />
-          <Route path="/museos" element={<Museos />} />
+          <Route path="/museos" element={<MuseosMonumentos />} />
           <Route path="/casinos" element={<Casinos />} />
           <Route path="/spas" element={<SpasWellness />} />
           <Route path="/spas-wellness" element={<SpasWellness />} />
           <Route path="/spa/:slug" element={<SpaDetalle />} />
-          <Route path="/emergencias" element={<Emergencias />} />
+          <Route path="/emergencias" element={<ContactosEmergencia />} />
           <Route path="/newsletter-subscribe" element={<NewsletterPage />} />
           <Route path="/afiliados" element={<SistemaAfiliados />} />
           <Route path="/audio-guias" element={<AudioGuias />} />
@@ -460,7 +497,7 @@ function AnimatedRoutes() {
           <Route path="/badges" element={<Badges />} />
           <Route path="/comparador-hoteles" element={<ComparadorHoteles />} />
           <Route path="/encuesta-post-viaje" element={<EncuestaPostViaje />} />
-          <Route path="/clima" element={<ClimaYTemporadas />} />
+          <Route path="/clima" element={<ClimaTemporadas />} />
           <Route path="/museos-monumentos" element={<MuseosMonumentos />} />
           <Route path="/itinerario-ia" element={<ItinerarioIA />} />
           <Route path="/traductor" element={<TraductorViajero />} />
@@ -475,11 +512,14 @@ function AnimatedRoutes() {
           <Route path="/tours" element={<Tours />} />
           <Route path="/tour/:slug" element={<TourDetalle />} />
           <Route path="/actividad/:slug" element={<ActividadDetalle />} />
-          <Route path="/historia" element={<HistoriaRD />} />
+          <Route path="/historia" element={<HistoriaIndex />} />
+          <Route path="/historia/:slug" element={<HistoriaDetalle />} />
           <Route path="/historia-rd" element={<HistoriaRD />} />
           <Route path="/historia/personaje/:slug" element={<PersonajeHistorico />} />
           <Route path="/historia/evento/:slug" element={<EventoHistorico />} />
           <Route path="/loteria" element={<Loteria />} />
+          <Route path="/precios-combustibles" element={<PreciosCombustible />} />
+          <Route path="/precios-combustible" element={<PreciosCombustible />} />
           <Route path="/reservas-naturales" element={<ReservasNaturales />} />
           <Route path="/montanas" element={<Montanas />} />
           <Route path="/montana/:slug" element={<MontanaDetalle />} />
@@ -505,6 +545,35 @@ function AnimatedRoutes() {
           <Route path="/guia-halal-kosher" element={<GuiaHalalKosher />} />
           <Route path="/viajar-con-mascotas" element={<ViajarConMascotas />} />
           <Route path="/viajeros-senior" element={<ViajerosSenior />} />
+
+          {/* 10 New Specialized Tourism and Tool Pages */}
+          <Route path="/confotur-calculadora" element={<CalculadoraCONFOTUR />} />
+          <Route path="/calculadora-confotur" element={<CalculadoraCONFOTUR />} />
+          <Route path="/observatorio-sargazo" element={<ObservatorioSargazo />} />
+          <Route path="/sargazo" element={<ObservatorioSargazo />} />
+          <Route path="/ruta-larimar" element={<RutaLarimar />} />
+          <Route path="/carnaval" element={<CarnavalDominicano />} />
+          <Route path="/carnaval-dominicano" element={<CarnavalDominicano />} />
+          <Route path="/pico-duarte" element={<PicoDuarte />} />
+          <Route path="/ruta-ron-tabaco" element={<RutaRonTabaco />} />
+          <Route path="/golf-rd" element={<GolfRD />} />
+          <Route path="/buceo-snorkel" element={<TurismoBuceo />} />
+          <Route path="/retirados-nomadas" element={<NomadasDigitales />} />
+          <Route path="/recetas-criollas" element={<RecetasCriollas />} />
+          <Route path="/bienes-raices" element={<BienesRaices />} />
+          <Route path="/proyectos-inversion" element={<ProyectosInversion />} />
+
+          {/* 10 New Pending Tourism and Tool Pages */}
+          <Route path="/guias-ecologicos" element={<GuiasLocales />} />
+          <Route path="/calculadora-tributaria" element={<CalculadoraTributaria />} />
+          <Route path="/areas-protegidas" element={<AreasProtegidas />} />
+          <Route path="/reporte-olas-viento" element={<ReporteOlasViento />} />
+          <Route path="/ruta-hermanas-mirabal" element={<RutaHermanasMirabal />} />
+          <Route path="/avistamiento-aves" element={<AvistamientoAves />} />
+          <Route path="/transporte-urbano" element={<TransporteUrbano />} />
+          <Route path="/aguas-termales" element={<AguasTermales />} />
+          <Route path="/calculadora-carbono" element={<CalculadoraCarbono />} />
+          <Route path="/calculadora-peajes" element={<CalculadoraPeajes />} />
 
           {/* Static destination pages - /destino/slug */}
           <Route path="/destino/punta-cana" element={<PuntaCana />} />
@@ -571,6 +640,7 @@ function AnimatedRoutes() {
           <Route path="/diario-viaje" element={<DiarioViaje />} />
           <Route path="/partner/login" element={<PartnerLogin />} />
           <Route path="/partner/dashboard" element={<PartnerDashboard />} />
+          <Route path="/silent-guide" element={<SilentGuide />} />
           <Route path="/suscripciones-sabores" element={<SuscripcionesSabores />} />
           <Route path="/tarjeta-prepago" element={<TarjetaPrepago />} />
           <Route path="/esim" element={<ESimTurista />} />
@@ -605,6 +675,8 @@ const App = () => (
                 <BackToTop />
                 <ChatbotTuristico />
                 <GamificationToastOverlay />
+                <ExitIntentModal />
+                <CookieConsentBanner />
               </Suspense>
             </BrowserRouter>
             </CartProvider>

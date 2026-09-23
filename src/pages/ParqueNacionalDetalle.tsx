@@ -227,7 +227,7 @@ export default function ParqueNacionalDetalle() {
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
         
-        <main className="flex-1 mt-16">
+        <main className="flex-1">
           {/* Breadcrumb */}
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

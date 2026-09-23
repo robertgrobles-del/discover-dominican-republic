@@ -6,6 +6,9 @@ import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import {
   Sparkles, Lock, Crown, Star, Gift, ChevronRight,
   Gem, Eye, Heart, Share2, Filter, Wallet, ArrowRight, RefreshCw, Layers, Send
@@ -16,6 +19,7 @@ import { useGamification } from "@/hooks/useGamification";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getStoredJSON } from "@/lib/safeStorage";
 
 interface Collectible {
   id: string;
@@ -110,15 +114,8 @@ export default function SouvenirsDigitales() {
           setWalletAddress(localStorage.getItem(`wallet_address_${user.id}`) || "0x7a2d4...f68b");
         }
         
-        const localMinted = localStorage.getItem(`minted_nfts_${user.id}`);
-        if (localMinted) {
-          setMintedNfts(JSON.parse(localMinted));
-        }
-
-        const localHistory = localStorage.getItem(`nft_txs_${user.id}`);
-        if (localHistory) {
-          setTxHistory(JSON.parse(localHistory));
-        }
+        setMintedNfts(getStoredJSON(`minted_nfts_${user.id}`, []));
+        setTxHistory(getStoredJSON(`nft_txs_${user.id}`, []));
       }
       setLoading(false);
     };

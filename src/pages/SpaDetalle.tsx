@@ -7,8 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
-  MapPin, Star, Clock, Phone, Mail, Globe, Heart, Leaf, 
-  Droplets, ChevronLeft, Calendar, Users, Sparkles 
+  MapPin, Star, Clock, Phone, Mail, Globe, Heart, Leaf,
+  Droplets, ChevronLeft, Calendar, Users, HeartPulse, Sparkles
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -265,7 +265,7 @@ export default function SpaDetalle() {
                   <div className="grid sm:grid-cols-2 gap-3">
                     {spa.services.map((service: string, i: number) => (
                       <div key={i} className="flex items-center gap-3 p-3 bg-card rounded-lg border border-border">
-                        <Sparkles className="h-4 w-4 text-primary shrink-0" />
+                        <HeartPulse className="h-4 w-4 text-primary shrink-0" />
                         <span className="text-sm">{service}</span>
                       </div>
                     ))}

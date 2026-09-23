@@ -9,7 +9,9 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
@@ -171,29 +173,27 @@ export function InteractiveMap({ className }: { className?: string }) {
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
 
-    Promise.all([import("leaflet"), import("leaflet.markercluster")]).then(([L]) => {
-      const map = L.map(mapRef.current!, {
-        center: [18.9, -70.0],
-        zoom: 8,
-        zoomControl: false,
-      });
+    const map = L.map(mapRef.current, {
+      center: [18.9, -70.0],
+      zoom: 8,
+      zoomControl: false,
+    });
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      }).addTo(map);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
 
-      clusterGroup.current = (L as any).markerClusterGroup({
-        maxClusterRadius: 50,
-        spiderfyOnMaxZoom: true,
-        showCoverageOnHover: false,
-        zoomToBoundsOnClick: true,
-      });
-      map.addLayer(clusterGroup.current);
-      leafletMap.current = map;
+    clusterGroup.current = (L as any).markerClusterGroup({
+      maxClusterRadius: 50,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: true,
+    });
+    map.addLayer(clusterGroup.current);
+    leafletMap.current = map;
 
-      map.on("click", (e: any) => {
-        window.dispatchEvent(new CustomEvent("map-click", { detail: { lat: e.latlng.lat, lng: e.latlng.lng } }));
-      });
+    map.on("click", (e: any) => {
+      window.dispatchEvent(new CustomEvent("map-click", { detail: { lat: e.latlng.lat, lng: e.latlng.lng } }));
     });
 
     return () => {
@@ -206,45 +206,43 @@ export function InteractiveMap({ className }: { className?: string }) {
   useEffect(() => {
     if (!leafletMap.current || !clusterGroup.current) return;
 
-    import("leaflet").then((L) => {
-      clusterGroup.current.clearLayers();
+    clusterGroup.current.clearLayers();
 
-      markers.forEach((m) => {
-        const config = layerConfig[m.type];
-        const icon = L.divIcon({
-          className: "custom-map-marker",
-          html: `<div style="background:${config.color};width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          </div>`,
-          iconSize: [28, 28],
-          iconAnchor: [14, 14],
-        });
-
-        const marker = L.marker([m.lat, m.lng], { icon });
-
-        // Rich popup
-        const popupContent = `
-          <div style="min-width:200px;font-family:system-ui,sans-serif;">
-            ${m.image ? `<img src="${m.image}" alt="${m.name}" style="width:100%;height:100px;object-fit:cover;border-radius:8px 8px 0 0;margin:-12px -12px 8px -12px;width:calc(100% + 24px);" />` : ""}
-            <div style="padding:0 2px;">
-              <span style="display:inline-block;font-size:10px;padding:2px 6px;border-radius:4px;background:${config.color}22;color:${config.color};margin-bottom:4px;">${config.label}</span>
-              <h4 style="margin:4px 0;font-weight:600;font-size:14px;">${m.name}</h4>
-              ${m.rating ? `<p style="font-size:12px;color:#888;">⭐ ${m.rating}</p>` : ""}
-              ${["destinations", "hotels", "beaches", "restaurants"].includes(m.type) 
-                ? `<a href="/${m.type === "destinations" ? "destino" : m.type === "hotels" ? "alojamiento" : m.type === "beaches" ? "playa" : "restaurante"}/${m.slug || m.id}" style="display:inline-block;margin-top:6px;font-size:12px;color:hsl(var(--primary));text-decoration:none;font-weight:500;">Ver detalle →</a>` 
-                : `<span style="font-size:11px;color:#888;display:inline-block;margin-top:4px;">Servicio público / Utilidad</span>`}
-            </div>
-          </div>`;
-
-        marker.bindPopup(popupContent, { maxWidth: 250, className: "custom-popup" });
-        marker.bindTooltip(m.name, { direction: "top", offset: [0, -14] });
-
-        marker.on("click", () => {
-          setSelectedMarker(m);
-        });
-
-        clusterGroup.current.addLayer(marker);
+    markers.forEach((m) => {
+      const config = layerConfig[m.type];
+      const icon = L.divIcon({
+        className: "custom-map-marker",
+        html: `<div style="background:${config.color};width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
       });
+
+      const marker = L.marker([m.lat, m.lng], { icon });
+
+      // Rich popup
+      const popupContent = `
+        <div style="min-width:200px;font-family:system-ui,sans-serif;">
+          ${m.image ? `<img src="${m.image}" alt="${m.name}" style="width:100%;height:100px;object-fit:cover;border-radius:8px 8px 0 0;margin:-12px -12px 8px -12px;width:calc(100% + 24px);" />` : ""}
+          <div style="padding:0 2px;">
+            <span style="display:inline-block;font-size:10px;padding:2px 6px;border-radius:4px;background:${config.color}22;color:${config.color};margin-bottom:4px;">${config.label}</span>
+            <h4 style="margin:4px 0;font-weight:600;font-size:14px;">${m.name}</h4>
+            ${m.rating ? `<p style="font-size:12px;color:#888;">⭐ ${m.rating}</p>` : ""}
+            ${["destinations", "hotels", "beaches", "restaurants"].includes(m.type)
+              ? `<a href="/${m.type === "destinations" ? "destino" : m.type === "hotels" ? "alojamiento" : m.type === "beaches" ? "playa" : "restaurante"}/${m.slug || m.id}" style="display:inline-block;margin-top:6px;font-size:12px;color:hsl(var(--primary));text-decoration:none;font-weight:500;">Ver detalle →</a>`
+              : `<span style="font-size:11px;color:#888;display:inline-block;margin-top:4px;">Servicio público / Utilidad</span>`}
+          </div>
+        </div>`;
+
+      marker.bindPopup(popupContent, { maxWidth: 250, className: "custom-popup" });
+      marker.bindTooltip(m.name, { direction: "top", offset: [0, -14] });
+
+      marker.on("click", () => {
+        setSelectedMarker(m);
+      });
+
+      clusterGroup.current.addLayer(marker);
     });
   }, [markers]);
 

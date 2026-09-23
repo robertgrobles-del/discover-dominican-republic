@@ -12,6 +12,8 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageTransition } from "@/components/PageTransition";
+import { CTARegistroEstablecimiento } from "@/components/forms/CTARegistroEstablecimiento";
+import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -203,8 +205,8 @@ export default function NauticaCruceros() {
             className="absolute inset-0 w-full h-full object-cover object-center"
             aria-hidden="true"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-          
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/85 to-background/50" />
+
           <div className="relative z-10 container mx-auto px-4 lg:px-8 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -711,6 +713,17 @@ export default function NauticaCruceros() {
                 </div>
               </TabsContent>
             </Tabs>
+
+            {/* Banners de Conversión: Sorteo de Lectores + Registro de Marinas y Tours Náuticos */}
+            <div className="mt-16 space-y-8">
+              <SorteoLectorBanner origenCategoria="Turismo Náutico, Cruceros y Catamaranes" />
+
+              <CTARegistroEstablecimiento
+                tipo="tour"
+                titulo="¿Administras una marina, charter de yates o tour en catamarán?"
+                subtitulo="Inscribe tus embarcaciones y servicios náuticos en Descubre RD para el gran lanzamiento oficial. Conecta con navegantes y cruceristas de todo el mundo."
+              />
+            </div>
           </div>
         </section>
 

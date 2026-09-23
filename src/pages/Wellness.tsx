@@ -6,7 +6,7 @@ import { Waves, Heart, Mountain, Leaf, MapPin, Star, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
+import { BetweenSectionsAd, CompactInlineAd } from "@/components/promo";
 import heroBeach from "@/assets/hero-beach.jpg";
 import hotelClareVerde from "@/assets/hotel-clare-verde.jpg";
 import adventure from "@/assets/adventure.jpg";
@@ -88,17 +88,16 @@ export default function Wellness() {
                 alt="Wellness y Retiros" 
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/20" />
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-                <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
+                <Badge className="mb-4 bg-white/10 text-white border-white/30">
                   TURISMO DE BIENESTAR
                 </Badge>
                 <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-4">
                   Wellness y Retiros
                 </h1>
-                <p className="text-white/80 max-w-lg mb-6">
-                  Descubre la paz interior en los paraísos escondidos de República Dominicana. 
-                  Desde yoga en Samaná hasta spas de lujo en Punta Cana.
+                <p className="text-white/90 max-w-lg mb-6">
+                  Yoga, retiros de montaña y spas de lujo. Desde Samaná hasta Punta Cana.
                 </p>
                 <div className="flex gap-3">
                   <Button className="bg-primary text-primary-foreground">

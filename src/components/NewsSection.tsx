@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LazyImage } from "@/components/ui/lazy-image";
-import { InlineAd } from "@/components/ads";
+import { BannerAd } from "@/components/promo";
 import { useTranslation } from "@/hooks/useI18n";
 import carnivalImg from "@/assets/carnival.jpg";
 import whaleSamanaImg from "@/assets/whale-samana.jpg";
@@ -171,8 +171,10 @@ export function NewsSection() {
               </motion.article>
             ))}
             
-            {/* Inline Ad en sección de noticias */}
-            <InlineAd showDemo variant="square-sm" />
+            {/* Inline Ad en sección de noticias - ancho armónico con la columna */}
+            <div className="pt-2 w-full">
+              <BannerAd size="medium-rect" placement="inline" showDemo className="w-full !max-w-none shadow-sm" />
+            </div>
           </div>
         </div>
       </div>

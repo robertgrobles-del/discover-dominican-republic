@@ -332,15 +332,15 @@ export default function Ofertas() {
 
         <main>
         {/* Hero with Countdown */}
-        <section className="relative h-[50vh] min-h-[420px] flex items-center justify-center overflow-hidden pt-16">
+        <section className="relative h-[50vh] min-h-[420px] flex items-center justify-center overflow-hidden">
           <img
             src={puntaCanaImg}
             alt="Vista de Punta Cana, República Dominicana"
             className="absolute inset-0 w-full h-full object-cover object-center"
             aria-hidden="true"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-          
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/85 to-background/50" />
+
           <div className="relative z-10 container mx-auto px-4 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}

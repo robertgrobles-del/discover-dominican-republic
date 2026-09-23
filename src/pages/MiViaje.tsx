@@ -33,7 +33,7 @@ export default function MiViaje() {
         <Header />
 
         {/* Profile Section */}
-        <section className="py-12 bg-card/50 mt-16">
+        <section className="py-12 bg-card/50">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">

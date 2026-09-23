@@ -9,19 +9,16 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { toast } from "sonner";
+import { getStoredJSON } from "@/lib/safeStorage";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Gift, Trophy, Star, PartyPopper, Hotel, UtensilsCrossed,
   Palmtree, Ship, Compass, Camera, Music, Heart, CheckCircle,
-  Send, Clock, Users, MapPin, ChevronRight, Sparkles,
-  ThumbsUp, ThumbsDown, Meh, DollarSign, Plane, ShieldCheck,
-  Smile, Frown, TrendingUp, Award, CalendarDays
+  Send, Clock, Users, CalendarDays, Sparkles, TrendingUp, ChevronRight
 } from "lucide-react";
 import relaxBeach from "@/assets/relax-beach.jpg";
 import puntaCana from "@/assets/punta-cana.jpg";
@@ -29,6 +26,11 @@ import gastronomy from "@/assets/gastronomy.jpg";
 import adventureImg from "@/assets/adventure.jpg";
 import samanaImg from "@/assets/samana.jpg";
 import hotelRoom from "@/assets/hotel-room-suite.jpg";
+
+// Componentes modulares
+import { ScratchCard } from "@/components/sorteos/ScratchCard";
+import { SurveyModule, ENCUESTAS_DISPONIBLES, type SurveyId } from "@/components/sorteos/SurveyModule";
+import { ViralSorteoModule } from "@/components/sorteos/ViralSorteoModule";
 
 // ─── Premios disponibles ────────────────────────────────────────────
 const premios = [
@@ -88,18 +90,6 @@ const premios = [
   },
 ];
 
-// ─── Encuestas disponibles ──────────────────────────────────────────
-type SurveyId = "experiencia" | "estadia" | "gastronomia" | "gastos" | "transporte" | "atencion";
-
-const encuestas: { id: SurveyId; titulo: string; desc: string; icon: React.ElementType; preguntas: number; tiempo: string }[] = [
-  { id: "experiencia", titulo: "Experiencia General", desc: "Cuéntanos cómo fue tu viaje a República Dominicana en general.", icon: Smile, preguntas: 8, tiempo: "3 min" },
-  { id: "estadia", titulo: "Alojamiento y Estadía", desc: "Evalúa la calidad de tu hotel, Airbnb o alojamiento.", icon: Hotel, preguntas: 10, tiempo: "4 min" },
-  { id: "gastronomia", titulo: "Gastronomía y Comida", desc: "Cuéntanos sobre los restaurantes y la comida que probaste.", icon: UtensilsCrossed, preguntas: 8, tiempo: "3 min" },
-  { id: "gastos", titulo: "Presupuesto y Gastos", desc: "Ayúdanos a entender cuánto gastan los visitantes en RD.", icon: DollarSign, preguntas: 7, tiempo: "3 min" },
-  { id: "transporte", titulo: "Transporte y Movilidad", desc: "Evalúa el transporte, aeropuertos y movilidad.", icon: Plane, preguntas: 6, tiempo: "2 min" },
-  { id: "atencion", titulo: "Atención y Servicio", desc: "Califica la hospitalidad y el servicio recibido.", icon: ShieldCheck, preguntas: 7, tiempo: "3 min" },
-];
-
 // ─── Formulario de Registro ─────────────────────────────────────────
 function RegistroSorteo() {
   const [form, setForm] = useState({
@@ -151,7 +141,7 @@ function RegistroSorteo() {
         <p className="text-muted-foreground">Completa el formulario y entra automáticamente en el sorteo de premios increíbles.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-5 bg-card rounded-2xl p-6 md:p-8 border border-border">
+      <form onSubmit={handleSubmit} className="space-y-5 bg-card rounded-2xl p-6 md:p-8 border border-border shadow-sm">
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <Label className="mb-1.5 block">Nombre completo *</Label>
@@ -239,185 +229,19 @@ function RegistroSorteo() {
   );
 }
 
-// ─── Componente de Encuesta ─────────────────────────────────────────
-function EncuestaDetalle({ encuesta }: { encuesta: typeof encuestas[0] }) {
-  const [step, setStep] = useState(0);
-  const [respuestas, setRespuestas] = useState<Record<string, string>>({});
-  const [email, setEmail] = useState("");
-  const [enviado, setEnviado] = useState(false);
-
-  const preguntasPorEncuesta: Record<SurveyId, { pregunta: string; opciones: string[] }[]> = {
-    experiencia: [
-      { pregunta: "¿Cómo calificarías tu experiencia general en RD?", opciones: ["Excelente", "Buena", "Regular", "Mala"] },
-      { pregunta: "¿Qué destino visitaste principalmente?", opciones: ["Punta Cana", "Santo Domingo", "Samaná", "Puerto Plata", "La Romana", "Otro"] },
-      { pregunta: "¿Cómo fue la hospitalidad de la gente local?", opciones: ["Increíble", "Muy buena", "Normal", "Podría mejorar"] },
-      { pregunta: "¿Recomendarías RD a amigos y familiares?", opciones: ["Definitivamente sí", "Probablemente sí", "No estoy seguro/a", "Probablemente no"] },
-      { pregunta: "¿Qué fue lo mejor de tu viaje?", opciones: ["Playas", "Comida", "La gente", "Naturaleza", "Cultura", "Vida nocturna"] },
-      { pregunta: "¿Qué fue lo que menos te gustó?", opciones: ["Tráfico", "Basura", "Seguridad", "Precios", "Nada negativo", "Otro"] },
-      { pregunta: "¿Volverías a visitar República Dominicana?", opciones: ["Sin duda", "Probablemente", "Tal vez", "No creo"] },
-      { pregunta: "¿Cuántas noches te hospedaste?", opciones: ["1-3", "4-7", "8-14", "15+"] },
-    ],
-    estadia: [
-      { pregunta: "¿Qué tipo de alojamiento usaste?", opciones: ["Hotel all-inclusive", "Hotel boutique", "Airbnb", "Villa privada", "Hostel", "Otro"] },
-      { pregunta: "¿Cómo calificas la limpieza?", opciones: ["Impecable", "Buena", "Aceptable", "Deficiente"] },
-      { pregunta: "¿Cómo fue el check-in/check-out?", opciones: ["Rápido y fácil", "Normal", "Lento", "Muy complicado"] },
-      { pregunta: "¿Calidad de las instalaciones?", opciones: ["Superó expectativas", "Como esperaba", "Algo inferior", "Decepcionante"] },
-      { pregunta: "¿El precio fue justo por lo ofrecido?", opciones: ["Gran valor", "Precio justo", "Algo caro", "Muy caro"] },
-      { pregunta: "¿Cómo fue la atención del personal?", opciones: ["Excepcional", "Amable", "Normal", "Indiferente"] },
-      { pregunta: "¿Calidad del WiFi?", opciones: ["Excelente", "Bueno", "Regular", "Malo", "No había"] },
-      { pregunta: "¿El desayuno incluido fue satisfactorio?", opciones: ["Excelente variedad", "Bueno", "Básico", "No incluía", "N/A"] },
-      { pregunta: "¿Calificarías la ubicación como conveniente?", opciones: ["Perfecta", "Buena", "Regular", "Mala"] },
-      { pregunta: "¿Reservarías el mismo alojamiento de nuevo?", opciones: ["Sin duda", "Probablemente", "Buscaría otro", "Nunca"] },
-    ],
-    gastronomia: [
-      { pregunta: "¿Probaste la comida típica dominicana?", opciones: ["Sí, mucha", "Algo", "Muy poco", "No, solo internacional"] },
-      { pregunta: "¿Cuál fue tu plato favorito?", opciones: ["La Bandera", "Mangú", "Sancocho", "Mofongo", "Chivo", "Mariscos", "Otro"] },
-      { pregunta: "¿Cómo calificas la calidad de los restaurantes?", opciones: ["Excelente", "Buena", "Regular", "Mala"] },
-      { pregunta: "¿Los precios de la comida te parecieron?", opciones: ["Muy económicos", "Razonables", "Algo caros", "Muy caros"] },
-      { pregunta: "¿Probaste ron dominicano?", opciones: ["Sí, me encantó", "Sí, estuvo bien", "Un poco", "No probé"] },
-      { pregunta: "¿Visitaste algún food truck o comedor callejero?", opciones: ["Sí, varios", "Uno o dos", "No, solo restaurantes", "No me atreví"] },
-      { pregunta: "¿Encontraste opciones para dietas especiales?", opciones: ["Sí, fácilmente", "Con algo de esfuerzo", "Difícil", "No busqué", "N/A"] },
-      { pregunta: "¿Recomendarías la gastronomía dominicana?", opciones: ["100%", "Probablemente", "Algunos platos", "No realmente"] },
-    ],
-    gastos: [
-      { pregunta: "¿Cuánto gastaste aproximadamente por día?", opciones: ["Menos de US$50", "US$50-100", "US$100-200", "US$200-500", "Más de US$500"] },
-      { pregunta: "¿En qué gastaste más dinero?", opciones: ["Alojamiento", "Comida", "Excursiones", "Compras", "Transporte", "Entretenimiento"] },
-      { pregunta: "¿Usaste tarjeta o efectivo?", opciones: ["Solo tarjeta", "Mayoría tarjeta", "Mitad y mitad", "Mayoría efectivo", "Solo efectivo"] },
-      { pregunta: "¿Encontraste cajeros/ATM fácilmente?", opciones: ["Sí, en todos lados", "Suficientes", "Pocos", "Muy difícil"] },
-      { pregunta: "¿Compraste souvenirs/artesanías?", opciones: ["Sí, muchos", "Algunos", "Muy pocos", "Nada"] },
-      { pregunta: "¿Sentiste que los precios eran justos para turistas?", opciones: ["Sí, muy justos", "Razonables", "Algo inflados", "Muy caros"] },
-      { pregunta: "¿Tu viaje se ajustó al presupuesto planeado?", opciones: ["Gasté menos", "Igual al plan", "Un poco más", "Mucho más"] },
-    ],
-    transporte: [
-      { pregunta: "¿Cómo llegaste a República Dominicana?", opciones: ["Vuelo directo", "Vuelo con escala", "Crucero", "Ya vivo aquí"] },
-      { pregunta: "¿Cómo calificas el aeropuerto de llegada?", opciones: ["Moderno y eficiente", "Bueno", "Aceptable", "Mejorable"] },
-      { pregunta: "¿Qué transporte usaste dentro del país?", opciones: ["Transfer privado", "Taxi", "Uber/DiDi", "Bus turístico", "Alquiler de auto", "Varios"] },
-      { pregunta: "¿Cómo calificas las carreteras?", opciones: ["Buenas", "Aceptables", "Regulares", "Malas"] },
-      { pregunta: "¿Te sentiste seguro/a en el transporte?", opciones: ["Muy seguro/a", "Seguro/a", "Algo inseguro/a", "Inseguro/a"] },
-      { pregunta: "¿Fue fácil moverse entre destinos?", opciones: ["Muy fácil", "Fácil", "Algo complicado", "Muy difícil"] },
-    ],
-    atencion: [
-      { pregunta: "¿Cómo fue la atención en tu hotel/alojamiento?", opciones: ["Excepcional", "Muy buena", "Normal", "Deficiente"] },
-      { pregunta: "¿Cómo fue la atención en restaurantes?", opciones: ["Excelente", "Buena", "Regular", "Mala"] },
-      { pregunta: "¿El personal hablaba tu idioma?", opciones: ["Sí, sin problemas", "Algunos sí", "Poco", "No, fue difícil"] },
-      { pregunta: "¿Te sentiste bienvenido/a en el país?", opciones: ["Muy bienvenido/a", "Bienvenido/a", "Normal", "No mucho"] },
-      { pregunta: "¿Tuviste algún problema que necesitara ayuda?", opciones: ["No, todo bien", "Sí, lo resolvieron rápido", "Sí, tardaron", "Sí, no lo resolvieron"] },
-      { pregunta: "¿Cómo fue la atención en atracciones/excursiones?", opciones: ["Profesional", "Buena", "Aceptable", "Mejorable"] },
-      { pregunta: "¿Recomendarías RD por su hospitalidad?", opciones: ["Absolutamente", "Sí", "Con reservas", "No"] },
-    ],
-  };
-
-  const preguntas = preguntasPorEncuesta[encuesta.id];
-  const totalPreguntas = preguntas.length;
-
-  if (enviado) {
-    return (
-      <div className="text-center py-12 bg-card rounded-2xl border border-border p-8">
-        <PartyPopper className="h-16 w-16 text-primary mx-auto mb-4" />
-        <h3 className="font-display text-2xl font-bold text-foreground mb-2">¡Gracias por participar!</h3>
-        <p className="text-muted-foreground mb-4">Tu encuesta ha sido enviada exitosamente. Ya estás participando en el sorteo.</p>
-        <Badge className="bg-primary/10 text-primary border-primary/20 text-sm py-1.5 px-4">
-          <Gift className="h-4 w-4 mr-1" /> Sorteo activo hasta el 30 de abril
-        </Badge>
-      </div>
-    );
-  }
-
-  // Último paso: email para el sorteo
-  if (step === totalPreguntas) {
-    return (
-      <div className="max-w-md mx-auto bg-card rounded-2xl border border-border p-8">
-        <div className="text-center mb-6">
-          <Gift className="h-10 w-10 text-primary mx-auto mb-3" />
-          <h3 className="font-semibold text-foreground text-lg">¡Último paso!</h3>
-          <p className="text-sm text-muted-foreground">Ingresa tu email para participar en el sorteo de premios.</p>
-        </div>
-        <Input
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          placeholder="tu@email.com"
-          className="mb-4"
-        />
-        <Button className="w-full gap-2" onClick={async () => {
-          if (!email) { toast.error("Ingresa tu email para participar"); return; }
-          const { error } = await supabase.from("survey_responses").insert({
-            survey_id: encuesta.id,
-            email,
-            respuestas: respuestas,
-          });
-          if (error) { toast.error("Error al enviar. Intenta de nuevo."); return; }
-          setEnviado(true);
-          toast.success("🎉 ¡Encuesta enviada! Ya participas en el sorteo.");
-        }}>
-          <Send className="h-4 w-4" /> Enviar y participar en sorteo
-        </Button>
-      </div>
-    );
-  }
-
-  const preguntaActual = preguntas[step];
-
-  return (
-    <div className="max-w-lg mx-auto">
-      {/* Progress */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-          <span>Pregunta {step + 1} de {totalPreguntas}</span>
-          <span>{Math.round(((step + 1) / totalPreguntas) * 100)}%</span>
-        </div>
-        <Progress
-          value={((step + 1) / totalPreguntas) * 100}
-          className="h-2"
-          aria-label={`Pregunta ${step + 1} de ${totalPreguntas}`}
-        />
-      </div>
-
-      <div className="bg-card rounded-2xl border border-border p-6 md:p-8">
-        <h3 className="font-semibold text-foreground text-lg mb-6">{preguntaActual.pregunta}</h3>
-        <RadioGroup
-          value={respuestas[`q${step}`] || ""}
-          onValueChange={v => setRespuestas({ ...respuestas, [`q${step}`]: v })}
-          className="space-y-3"
-        >
-          {preguntaActual.opciones.map(opt => (
-            <div key={opt} className="flex items-center space-x-3 p-3 rounded-xl border border-border hover:border-primary/30 hover:bg-accent/50 transition-colors cursor-pointer">
-              <RadioGroupItem value={opt} id={`q${step}-${opt}`} />
-              <Label htmlFor={`q${step}-${opt}`} className="flex-1 cursor-pointer text-sm">{opt}</Label>
-            </div>
-          ))}
-        </RadioGroup>
-
-        <div className="flex items-center justify-between mt-8">
-          <Button variant="outline" size="sm" onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0}>
-            Anterior
-          </Button>
-          <Button size="sm" onClick={() => {
-            if (!respuestas[`q${step}`]) { toast.error("Selecciona una respuesta"); return; }
-            setStep(step + 1);
-          }} className="gap-1">
-            {step === totalPreguntas - 1 ? "Finalizar" : "Siguiente"} <ChevronRight className="h-3 w-3" />
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── Página Principal ───────────────────────────────────────────────
 export default function SorteosYPremios() {
   const [encuestaActiva, setEncuestaActiva] = useState<SurveyId | null>(null);
 
-  // States for Sweepstakes Gamification
+  // Estados de gamificación de sorteos
   const [ticketCount, setTicketCount] = useState<number>(() => {
     const saved = localStorage.getItem("sorteo_tickets_count");
-    return saved ? parseInt(saved, 10) : 1; // 1 free ticket by default
+    return saved ? parseInt(saved, 10) : 1;
   });
 
-  const [completedTasks, setCompletedTasks] = useState<string[]>(() => {
-    const saved = localStorage.getItem("sorteo_completed_tasks");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [completedTasks, setCompletedTasks] = useState<string[]>(() =>
+    getStoredJSON<string[]>("sorteo_completed_tasks", [])
+  );
 
   const [lastCheckinDate, setLastCheckinDate] = useState<string | null>(() => {
     return localStorage.getItem("sorteo_last_checkin");
@@ -510,25 +334,39 @@ export default function SorteosYPremios() {
           </div>
         </section>
 
-        {/* Tabs: Registro + Encuestas */}
+        {/* Tabs: Registro + Raspa y Gana + Misiones + Encuestas */}
         <section className="py-16">
           <div className="container mx-auto px-4">
             <Tabs defaultValue="registro" className="w-full">
-              <TabsList className="grid w-full max-w-lg mx-auto grid-cols-3 mb-10">
+              <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4 mb-10">
                 <TabsTrigger value="registro" className="gap-1.5" onClick={() => setEncuestaActiva(null)}>
                   <PartyPopper className="h-4 w-4" /> Regístrate
                 </TabsTrigger>
+                <TabsTrigger value="raspadito" className="gap-1.5" onClick={() => setEncuestaActiva(null)}>
+                  <Sparkles className="h-4 w-4" /> Raspadito
+                </TabsTrigger>
                 <TabsTrigger value="misiones" className="gap-1.5" onClick={() => setEncuestaActiva(null)}>
-                  <Sparkles className="h-4 w-4" /> Gana Tickets
+                  <Trophy className="h-4 w-4" /> Misiones
                 </TabsTrigger>
                 <TabsTrigger value="encuestas" className="gap-1.5" onClick={() => setEncuestaActiva(null)}>
                   <Star className="h-4 w-4" /> Encuestas
                 </TabsTrigger>
               </TabsList>
 
-              {/* ═══ TAB: REGISTRO ═══ */}
+              {/* ═══ TAB: REGISTRO MULTI-PUNTOS AVANZADO ═══ */}
               <TabsContent value="registro">
-                <RegistroSorteo />
+                <ViralSorteoModule onPointsUpdated={(newPts) => setTicketCount(newPts)} />
+              </TabsContent>
+
+              {/* ═══ TAB: RASPA Y GANA (MODULAR) ═══ */}
+              <TabsContent value="raspadito">
+                <div className="py-4">
+                  <ScratchCard onRewardClaimed={(r) => {
+                    const newCount = ticketCount + 1;
+                    setTicketCount(newCount);
+                    localStorage.setItem("sorteo_tickets_count", newCount.toString());
+                  }} />
+                </div>
               </TabsContent>
 
               {/* ═══ TAB: MISIONES DE SORTEO ═══ */}
@@ -552,7 +390,6 @@ export default function SorteosYPremios() {
 
                       {/* Ticket Badge */}
                       <div className="bg-white text-primary p-6 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-primary/20 shadow-lg min-w-[150px] relative">
-                        {/* Ticket notches */}
                         <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-indigo-900 border-r border-white/20" />
                         <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-indigo-900 border-l border-white/20" />
                         
@@ -575,8 +412,7 @@ export default function SorteosYPremios() {
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-4">
-                      
-                      {/* Misión 1: Check-in Diario */}
+                      {/* Check-in Diario */}
                       <Card className="border border-border/80 bg-card/45 flex flex-col justify-between group">
                         <CardContent className="p-5 space-y-3">
                           <div className="flex items-start justify-between">
@@ -607,7 +443,7 @@ export default function SorteosYPremios() {
                         </CardContent>
                       </Card>
 
-                      {/* Misión 2: Compartir Descubre RD */}
+                      {/* Compartir Descubre RD */}
                       <Card className="border border-border/80 bg-card/45 flex flex-col justify-between group">
                         <CardContent className="p-5 space-y-3">
                           <div className="flex items-start justify-between">
@@ -642,7 +478,7 @@ export default function SorteosYPremios() {
                         </CardContent>
                       </Card>
 
-                      {/* Misión 3: Seguir Instagram */}
+                      {/* Seguir Instagram */}
                       <Card className="border border-border/80 bg-card/45 flex flex-col justify-between group">
                         <CardContent className="p-5 space-y-3">
                           <div className="flex items-start justify-between">
@@ -680,7 +516,7 @@ export default function SorteosYPremios() {
                         </CardContent>
                       </Card>
 
-                      {/* Misión 4: Seguir TikTok */}
+                      {/* Seguir TikTok */}
                       <Card className="border border-border/80 bg-card/45 flex flex-col justify-between group">
                         <CardContent className="p-5 space-y-3">
                           <div className="flex items-start justify-between">
@@ -717,21 +553,27 @@ export default function SorteosYPremios() {
                           </div>
                         </CardContent>
                       </Card>
-
                     </div>
                   </div>
-
                 </div>
               </TabsContent>
 
-              {/* ═══ TAB: ENCUESTAS ═══ */}
+              {/* ═══ TAB: ENCUESTAS (MODULAR) ═══ */}
               <TabsContent value="encuestas">
                 {encuestaActiva ? (
                   <div>
                     <Button variant="ghost" size="sm" className="mb-4 gap-1" onClick={() => setEncuestaActiva(null)}>
                       ← Volver a encuestas
                     </Button>
-                    <EncuestaDetalle encuesta={encuestas.find(e => e.id === encuestaActiva)!} />
+                    <SurveyModule
+                      survey={ENCUESTAS_DISPONIBLES.find(e => e.id === encuestaActiva)!}
+                      onBack={() => setEncuestaActiva(null)}
+                      onCompleted={() => {
+                        const newCount = ticketCount + 1;
+                        setTicketCount(newCount);
+                        localStorage.setItem("sorteo_tickets_count", newCount.toString());
+                      }}
+                    />
                   </div>
                 ) : (
                   <div>
@@ -744,7 +586,7 @@ export default function SorteosYPremios() {
                     </div>
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                      {encuestas.map(enc => (
+                      {ENCUESTAS_DISPONIBLES.map(enc => (
                         <Card
                           key={enc.id}
                           className="group cursor-pointer border-border hover:border-primary/30 hover:shadow-lg transition-all"

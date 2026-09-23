@@ -99,16 +99,16 @@ export default function EscuelaRitmos() {
         <Header />
         
         {/* Hero */}
-        <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center mt-16 overflow-hidden">
+        <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0">
             <img
               src={merengueDance}
               alt="Baile dominicano"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/85 to-background/50" />
           </div>
-          
+
           <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
             <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
               CULTURA VIVA
@@ -119,7 +119,7 @@ export default function EscuelaRitmos() {
               <span className="text-primary">del Caribe</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Descubre el alma de República Dominicana a través de sus pasos. Domina el Merengue y la Bachata antes de pisar la isla.
+              Merengue y bachata paso a paso, con videotutoriales y escuelas certificadas antes de pisar la isla.
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Button size="lg" className="gap-2">

@@ -79,8 +79,8 @@ export default function DestinosRegion() {
             alt={regionInfo.name}
             className="absolute inset-0 w-full h-full object-cover"
           />
-          <div className={`absolute inset-0 bg-gradient-to-br ${regionInfo.color} opacity-60`} />
-          <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
+          <div className={`absolute inset-0 bg-gradient-to-br ${regionInfo.color} opacity-40`} />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-black/20" />
 
           <div className="relative z-10 container mx-auto px-4 pb-12">
             <Link to="/destinos" className="inline-flex items-center text-white/80 hover:text-white mb-4 transition-colors">
@@ -96,7 +96,7 @@ export default function DestinosRegion() {
             <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-4">
               {regionInfo.name}
             </h1>
-            <p className="text-lg text-white/80 max-w-2xl">
+            <p className="text-lg text-white/90 max-w-2xl">
               {regionInfo.description}
             </p>
           </div>

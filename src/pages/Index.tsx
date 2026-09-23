@@ -3,13 +3,16 @@ import { Header } from "@/components/Header";
 import { HeroSlideshow } from "@/components/HeroSlideshow";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead, generateOrganizationSchema } from "@/components/SEOHead";
-import { MobileAd, MobileStickyFooterAd } from "@/components/ads";
+import { MobileAd, MobileStickyFooterAd, BetweenSectionsAd } from "@/components/promo";
 import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
-import { SectionSkeleton } from "@/components/ui/section-skeleton";
+import { Footer } from "@/components/Footer";
+import { DeferredSection } from "@/components/DeferredSection";
 
-// Lazy load below-fold sections
-const InterestSection = lazy(() => import("@/components/InterestSection").then(m => ({ default: m.InterestSection })));
-const GamificationTeaser = lazy(() => import("@/components/GamificationTeaser").then(m => ({ default: m.GamificationTeaser })));
+// Critical above-the-fold components (loaded immediately for LCP and initial interaction)
+import { InterestSection } from "@/components/InterestSection";
+import { GamificationTeaser } from "@/components/GamificationTeaser";
+
+// Deferred below-the-fold components to break critical request chains & reduce DOM tree size
 const EventsSection = lazy(() => import("@/components/EventsSection").then(m => ({ default: m.EventsSection })));
 const RestaurantsBarsSection = lazy(() => import("@/components/RestaurantsBarsSection").then(m => ({ default: m.RestaurantsBarsSection })));
 const AccommodationsSection = lazy(() => import("@/components/AccommodationsSection").then(m => ({ default: m.AccommodationsSection })));
@@ -19,17 +22,11 @@ const TransportHighlightSection = lazy(() => import("@/components/TransportHighl
 const TravelerToolsStrip = lazy(() => import("@/components/TravelerToolsStrip").then(m => ({ default: m.TravelerToolsStrip })));
 const TestimonialsSection = lazy(() => import("@/components/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })));
 const NewsSection = lazy(() => import("@/components/NewsSection").then(m => ({ default: m.NewsSection })));
-const Footer = lazy(() => import("@/components/Footer").then(m => ({ default: m.Footer })));
-const BetweenSectionsAd = lazy(() => import("@/components/ads").then(m => ({ default: m.BetweenSectionsAd })));
+const SorteoLectorBanner = lazy(() => import("@/components/forms/SorteoLectorBanner").then(m => ({ default: m.SorteoLectorBanner })));
+const CTARegistroEstablecimiento = lazy(() => import("@/components/forms/CTARegistroEstablecimiento").then(m => ({ default: m.CTARegistroEstablecimiento })));
 
-function LazySection({ name, children }: { name: string; children: React.ReactNode }) {
-  return (
-    <SectionErrorBoundary sectionName={name}>
-      <Suspense fallback={<SectionSkeleton />}>
-        {children}
-      </Suspense>
-    </SectionErrorBoundary>
-  );
+function SectionFallback() {
+  return <div className="py-12 flex items-center justify-center min-h-[140px]" aria-hidden="true" />;
 }
 
 const Index = () => {
@@ -43,63 +40,114 @@ const Index = () => {
       />
       <div className="min-h-screen bg-background" id="main-content">
         <Header />
-        <MobileAd showDemo />
         <HeroSlideshow />
 
-        <LazySection name="InterestSection">
+        <SectionErrorBoundary sectionName="InterestSection">
           <InterestSection />
-        </LazySection>
+        </SectionErrorBoundary>
 
-        <LazySection name="GamificationTeaser">
+        <SectionErrorBoundary sectionName="GamificationTeaser">
           <GamificationTeaser />
-        </LazySection>
+        </SectionErrorBoundary>
 
-        <Suspense fallback={null}><BetweenSectionsAd showDemo /></Suspense>
+        <BetweenSectionsAd showDemo />
 
-        <LazySection name="EventsSection">
-          <EventsSection />
-        </LazySection>
+        {/* Dynamic Contest Reader Banner for conversion */}
+        <DeferredSection minHeight="220px">
+          <div className="container mx-auto px-4 lg:px-8">
+            <Suspense fallback={<SectionFallback />}>
+              <SorteoLectorBanner origenCategoria="Turismo Dominicano" />
+            </Suspense>
+          </div>
+        </DeferredSection>
 
-        <LazySection name="RestaurantsBarsSection">
-          <RestaurantsBarsSection />
-        </LazySection>
+        <DeferredSection minHeight="450px">
+          <SectionErrorBoundary sectionName="EventsSection">
+            <Suspense fallback={<SectionFallback />}>
+              <EventsSection />
+            </Suspense>
+          </SectionErrorBoundary>
+        </DeferredSection>
 
-        <Suspense fallback={null}><BetweenSectionsAd showDemo /></Suspense>
+        <DeferredSection minHeight="500px">
+          <SectionErrorBoundary sectionName="RestaurantsBarsSection">
+            <Suspense fallback={<SectionFallback />}>
+              <RestaurantsBarsSection />
+            </Suspense>
+          </SectionErrorBoundary>
+        </DeferredSection>
 
-        <LazySection name="AccommodationsSection">
-          <AccommodationsSection />
-        </LazySection>
+        <BetweenSectionsAd showDemo />
 
-        <LazySection name="DestinationsSection">
-          <DestinationsSection />
-        </LazySection>
+        <DeferredSection minHeight="500px">
+          <SectionErrorBoundary sectionName="AccommodationsSection">
+            <Suspense fallback={<SectionFallback />}>
+              <AccommodationsSection />
+            </Suspense>
+          </SectionErrorBoundary>
+        </DeferredSection>
 
-        <LazySection name="ShoppingHighlightSection">
-          <ShoppingHighlightSection />
-        </LazySection>
+        <DeferredSection minHeight="480px">
+          <SectionErrorBoundary sectionName="DestinationsSection">
+            <Suspense fallback={<SectionFallback />}>
+              <DestinationsSection />
+            </Suspense>
+          </SectionErrorBoundary>
+        </DeferredSection>
 
-        <Suspense fallback={null}><BetweenSectionsAd showDemo /></Suspense>
+        <DeferredSection minHeight="400px">
+          <SectionErrorBoundary sectionName="ShoppingHighlightSection">
+            <Suspense fallback={<SectionFallback />}>
+              <ShoppingHighlightSection />
+            </Suspense>
+          </SectionErrorBoundary>
+        </DeferredSection>
 
-        <LazySection name="TransportHighlightSection">
-          <TransportHighlightSection />
-        </LazySection>
+        <BetweenSectionsAd showDemo />
 
-        <LazySection name="TravelerToolsStrip">
-          <TravelerToolsStrip />
-        </LazySection>
+        <DeferredSection minHeight="400px">
+          <SectionErrorBoundary sectionName="TransportHighlightSection">
+            <Suspense fallback={<SectionFallback />}>
+              <TransportHighlightSection />
+            </Suspense>
+          </SectionErrorBoundary>
+        </DeferredSection>
 
-        <LazySection name="TestimonialsSection">
-          <TestimonialsSection />
-        </LazySection>
+        <DeferredSection minHeight="380px">
+          <SectionErrorBoundary sectionName="TravelerToolsStrip">
+            <Suspense fallback={<SectionFallback />}>
+              <TravelerToolsStrip />
+            </Suspense>
+          </SectionErrorBoundary>
+        </DeferredSection>
 
-        <LazySection name="NewsSection">
-          <NewsSection />
-        </LazySection>
+        {/* B2B Establishment Registration CTA */}
+        <DeferredSection minHeight="260px">
+          <div className="container mx-auto px-4 lg:px-8">
+            <Suspense fallback={<SectionFallback />}>
+              <CTARegistroEstablecimiento tipo="general" />
+            </Suspense>
+          </div>
+        </DeferredSection>
 
-        <Suspense fallback={null}>
-          <MobileStickyFooterAd showDemo />
-          <Footer />
-        </Suspense>
+        <DeferredSection minHeight="350px">
+          <SectionErrorBoundary sectionName="TestimonialsSection">
+            <Suspense fallback={<SectionFallback />}>
+              <TestimonialsSection />
+            </Suspense>
+          </SectionErrorBoundary>
+        </DeferredSection>
+
+        <DeferredSection minHeight="380px">
+          <SectionErrorBoundary sectionName="NewsSection">
+            <Suspense fallback={<SectionFallback />}>
+              <NewsSection />
+            </Suspense>
+          </SectionErrorBoundary>
+        </DeferredSection>
+
+        <MobileStickyFooterAd showDemo />
+        <Footer />
       </div>
     </PageTransition>
   );

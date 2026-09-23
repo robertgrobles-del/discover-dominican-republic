@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { BetweenSectionsAd, CompactInlineAd, PanoramaAd, SquareAd } from "@/components/promo";
+import { SectionWithSideAds } from "@/components/SectionWithSideAds";
 import { getFeaturedRestaurants } from "@/data/restaurants";
 import { SEOHead } from "@/components/SEOHead";
 import { RestaurantRegistrationModal } from "@/components/gastronomy/RestaurantRegistrationModal";
@@ -378,88 +379,95 @@ export default function GuiaGastronomica() {
         </div>
       </section>
 
-      {/* Featured Restaurants with Direct Menu Access */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <div className="flex items-center gap-2 text-primary mb-2">
-                <Crown className="h-5 w-5" />
-                <span className="text-sm font-semibold uppercase tracking-wider">Selección del Editor & Cartas Verificadas</span>
-              </div>
-              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                Restaurantes Destacados
-              </h2>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => setIsRegisterModalOpen(true)}
-                className="hidden sm:flex gap-1.5 border-primary/40 text-primary"
-              >
-                <PlusCircle className="h-4 w-4" /> Registrar Local
-              </Button>
-              <Link to="/restaurante">
-                <Button variant="outline" size="sm" className="gap-1">
-                  Ver todos <ChevronRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredRestaurants.map((r, i) => (
-              <motion.div
-                key={r.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                viewport={{ once: true }}
-              >
-                <div className="block bg-card rounded-xl overflow-hidden border border-border group hover:shadow-lg transition-all h-full flex flex-col justify-between">
-                  <div>
-                    <div className="aspect-[4/3] relative overflow-hidden">
-                      <img src={r.imageUrl} alt={r.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full">
-                        <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-                        <span className="text-xs font-medium">{r.rating}</span>
-                      </div>
-                      <Badge className="absolute top-3 left-3 bg-emerald-600/90 backdrop-blur-sm text-white text-[10px]">
-                        Carta Disponible
-                      </Badge>
-                    </div>
-                    <div className="p-4">
-                      <Badge variant="secondary" className="mb-2 text-xs">{r.priceRange} · {r.cuisineType[0]}</Badge>
-                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{r.name}</h3>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                        <MapPin className="h-3 w-3" /> {r.destinationName}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-4 pt-0 flex gap-2">
-                    <Button 
-                      variant="default" 
-                      size="sm" 
-                      className="w-full text-xs gap-1.5"
-                      onClick={() => openMenuForSlug(r.slug, r.name)}
-                    >
-                      <Utensils className="w-3.5 h-3.5" />
-                      Consultar Menú
-                    </Button>
-                    <Link to={`/restaurante/${r.slug}`} className="w-auto">
-                      <Button variant="outline" size="sm" className="text-xs px-2.5" title="Ver ficha completa">
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </Button>
-                    </Link>
-                  </div>
+      {/* Featured Restaurants with Direct Menu Access & Skyscraper Side Banners */}
+      <SectionWithSideAds 
+        showAds 
+        leftAdSize="skyscraper" 
+        rightAdSize="skyscraper" 
+        className="container mx-auto"
+      >
+        <section className="py-16">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <div className="flex items-center gap-2 text-primary mb-2">
+                  <Crown className="h-5 w-5" />
+                  <span className="text-sm font-semibold uppercase tracking-wider">Selección del Editor & Cartas Verificadas</span>
                 </div>
-              </motion.div>
-            ))}
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+                  Restaurantes Destacados
+                </h2>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setIsRegisterModalOpen(true)}
+                  className="hidden sm:flex gap-1.5 border-primary/40 text-primary"
+                >
+                  <PlusCircle className="h-4 w-4" /> Registrar Local
+                </Button>
+                <Link to="/restaurante">
+                  <Button variant="outline" size="sm" className="gap-1">
+                    Ver todos <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredRestaurants.map((r, i) => (
+                <motion.div
+                  key={r.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <div className="block bg-card rounded-xl overflow-hidden border border-border group hover:shadow-lg transition-all h-full flex flex-col justify-between">
+                    <div>
+                      <div className="aspect-[4/3] relative overflow-hidden">
+                        <img src={r.imageUrl} alt={r.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full">
+                          <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                          <span className="text-xs font-medium">{r.rating}</span>
+                        </div>
+                        <Badge className="absolute top-3 left-3 bg-emerald-600/90 backdrop-blur-sm text-white text-[10px]">
+                          Carta Disponible
+                        </Badge>
+                      </div>
+                      <div className="p-4">
+                        <Badge variant="secondary" className="mb-2 text-xs">{r.priceRange} · {r.cuisineType[0]}</Badge>
+                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{r.name}</h3>
+                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                          <MapPin className="h-3 w-3" /> {r.destinationName}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-4 pt-0 flex gap-2">
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        className="w-full text-xs gap-1.5"
+                        onClick={() => openMenuForSlug(r.slug, r.name)}
+                      >
+                        <Utensils className="w-3.5 h-3.5" />
+                        Consultar Menú
+                      </Button>
+                      <Link to={`/restaurante/${r.slug}`} className="w-auto">
+                        <Button variant="outline" size="sm" className="text-xs px-2.5" title="Ver ficha completa">
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </SectionWithSideAds>
 
       <BetweenSectionsAd showDemo />
 

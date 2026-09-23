@@ -12,6 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageTransition } from "@/components/PageTransition";
 import { useTranslation } from "@/hooks/useI18n";
+import { BetweenSectionsAd, CompactInlineAd, MobileStickyFooterAd, PanoramaAd } from "@/components/promo";
+import { getSafeCoverImage } from "@/lib/imageCovers";
+
+import { ProvincesHeroSlider } from "@/components/provinces/ProvincesHeroSlider";
 
 export default function Provincias() {
   const { t } = useTranslation();
@@ -53,20 +57,8 @@ export default function Provincias() {
       <Header />
       
       <main className="min-h-screen bg-background">
-        <section className="relative py-24 bg-gradient-to-br from-primary/20 via-background to-background">
-          <div className="container mx-auto px-4">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl">
-              <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
-                <Map className="h-3 w-3 mr-1" />
-                {t("provincias.badge")}
-              </Badge>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-                {t("provincias.title")}
-              </h1>
-              <p className="text-lg text-muted-foreground">{t("provincias.subtitle")}</p>
-            </motion.div>
-          </div>
-        </section>
+        {/* Dynamic 5-Slide Cover Slider with 2 Sponsored Experiences */}
+        <ProvincesHeroSlider />
 
         <section className="py-8 border-b border-border">
           <div className="container mx-auto px-4">
@@ -103,7 +95,13 @@ export default function Provincias() {
           </div>
         </section>
 
-        <section className="py-16">
+        <section className="py-4 border-b border-border bg-secondary/10">
+          <div className="container mx-auto px-4 max-w-5xl">
+            <CompactInlineAd showDemo />
+          </div>
+        </section>
+
+        <section className="py-12">
           <div className="container mx-auto px-4">
             {isLoading ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -130,7 +128,7 @@ export default function Provincias() {
                       >
                         <div className="aspect-[4/3] relative overflow-hidden">
                           <img
-                            src={province.image_url || "/placeholder.svg"}
+                            src={getSafeCoverImage(province.image_url, "province", province.slug)}
                             alt={province.name}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                             loading="lazy"
@@ -177,8 +175,17 @@ export default function Provincias() {
             )}
           </div>
         </section>
+
+        {/* Panorama High Impact Regional Tourism Ad */}
+        <section className="py-6">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <PanoramaAd showDemo />
+          </div>
+        </section>
       </main>
 
+      <BetweenSectionsAd showDemo />
+      <MobileStickyFooterAd showDemo />
       <Footer />
     </PageTransition>
   );

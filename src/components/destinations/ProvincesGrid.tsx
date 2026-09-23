@@ -4,6 +4,7 @@ import { Building2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Destination } from "@/data/destinations";
 import { useTranslation } from "@/hooks/useI18n";
+import { getSafeCoverImage } from "@/lib/imageCovers";
 
 interface ProvincesGridProps {
   provinces: Destination[];
@@ -37,7 +38,7 @@ export function ProvincesGrid({ provinces }: ProvincesGridProps) {
             <motion.div key={province.id} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: index * 0.05 }}>
               <Link to={`/provincia/${province.slug}`} className="group block bg-card rounded-xl border border-border overflow-hidden hover:border-primary/50 hover:shadow-lg transition-all cursor-pointer">
                 <div className="relative aspect-[4/3] overflow-hidden">
-                  <img src={province.imageUrl || "/placeholder.svg"} alt={province.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />
+                  <img src={getSafeCoverImage(province.imageUrl, "province", province.slug)} alt={province.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />
                   {province.region && (
                     <div className="absolute top-2 right-2">
                       <span className="text-[10px] font-medium bg-black/50 backdrop-blur-sm text-white px-2 py-0.5 rounded-full capitalize">{province.region}</span>

@@ -266,7 +266,7 @@ export default function PuertoDetalle() {
         <Header />
 
         {/* Hero */}
-        <section className="relative h-[50vh] min-h-[400px] mt-16">
+        <section className="relative h-[50vh] min-h-[400px]">
           <div className="absolute inset-0">
             <img src={puerto.image} alt={puerto.name} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />

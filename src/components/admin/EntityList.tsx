@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { EntityType, useAdminEntities } from '@/hooks/useAdminEntities';
 import { EntityFormDialog } from './EntityFormDialog';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FieldConfig {
   name: string;
@@ -117,12 +118,51 @@ export function EntityList({ entity, entityName, fields }: EntityListProps) {
     fetchItems();
   };
 
-  const handleFormSubmit = async (data: Record<string, unknown>) => {
-    if (editingItem) {
-      await updateEntity(entity, editingItem.id, data);
-    } else {
-      await createEntity(entity, data);
+  const saveTranslations = async (
+    entityType: string,
+    entityId: string,
+    translations: Record<string, Record<string, string>>
+  ) => {
+    const upsertData: any[] = [];
+    
+    Object.entries(translations).forEach(([lang, fields]) => {
+      Object.entries(fields).forEach(([fieldName, text]) => {
+        upsertData.push({
+          entity_type: entityType,
+          entity_id: entityId,
+          language: lang,
+          field_name: fieldName,
+          translation_text: text || '',
+        });
+      });
+    });
+    
+    if (upsertData.length > 0) {
+      const { error } = await supabase
+        .from('entity_translations')
+        .upsert(upsertData, { onConflict: 'entity_type,entity_id,language,field_name' });
+        
+      if (error) {
+        console.error('Error saving translations:', error);
+      }
     }
+  };
+
+  const handleFormSubmit = async (data: Record<string, unknown>, translations?: Record<string, Record<string, string>>) => {
+    let result;
+    if (editingItem) {
+      result = await updateEntity(entity, editingItem.id, data);
+    } else {
+      result = await createEntity(entity, data);
+    }
+
+    if (result?.data && translations) {
+      const entityId = (result.data as any).id || (editingItem ? editingItem.id : null);
+      if (entityId) {
+        await saveTranslations(entity, entityId, translations);
+      }
+    }
+
     setFormOpen(false);
     fetchItems();
   };
@@ -187,7 +227,7 @@ export function EntityList({ entity, entityName, fields }: EntityListProps) {
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">
                     <div>
-                      <p className="truncate max-w-[200px]">{item.name}</p>
+                      <p className="truncate max-w-[200px]">{item.name || (item.nombre as string) || (item.title as string) || 'Sin nombre'}</p>
                       {item.slug && (
                         <p className="text-xs text-muted-foreground truncate max-w-[200px]">
                           /{item.slug}
@@ -201,18 +241,22 @@ export function EntityList({ entity, entityName, fields }: EntityListProps) {
                     </TableCell>
                   ))}
                   <TableCell className="text-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleActive(item)}
-                      className={item.is_active ? 'text-emerald-600' : 'text-muted-foreground'}
-                    >
-                      {item.is_active ? (
-                        <Eye className="h-4 w-4" />
-                      ) : (
-                        <EyeOff className="h-4 w-4" />
-                      )}
-                    </Button>
+                    {item.is_active !== undefined ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleActive(item)}
+                        className={item.is_active ? 'text-emerald-600' : 'text-muted-foreground'}
+                      >
+                        {item.is_active ? (
+                          <Eye className="h-4 w-4" />
+                        ) : (
+                          <EyeOff className="h-4 w-4" />
+                        )}
+                      </Button>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
@@ -273,6 +317,7 @@ export function EntityList({ entity, entityName, fields }: EntityListProps) {
         open={formOpen}
         onOpenChange={setFormOpen}
         title={editingItem ? `Editar ${entityName}` : `Nuevo ${entityName}`}
+        entity={entity}
         fields={fields}
         initialData={editingItem || undefined}
         onSubmit={handleFormSubmit}
@@ -285,7 +330,7 @@ export function EntityList({ entity, entityName, fields }: EntityListProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar este elemento?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Se eliminará permanentemente "{itemToDelete?.name}".
+              Esta acción no se puede deshacer. Se eliminará permanentemente "{itemToDelete?.name || (itemToDelete?.nombre as string) || (itemToDelete?.title as string)}".
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -92,7 +92,7 @@ export default function Empleo() {
     return matchesSearch && matchesCategory && matchesProvince && matchesExperience;
   }) || [];
 
-  const provinces = [...new Set(vacancies?.map(v => v.province).filter(Boolean) || [])];
+  const provinces = [...new Set(vacancies?.map(v => v.province).filter(Boolean) || [])] as string[];
 
   return (
     <PageTransition>

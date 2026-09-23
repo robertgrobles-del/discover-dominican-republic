@@ -56,7 +56,7 @@ export default function Biblioteca() {
         <Header />
 
         {/* Hero */}
-        <section className="relative py-24 flex items-center justify-center mt-16">
+        <section className="relative py-24 flex items-center justify-center">
           <div className="absolute inset-0">
             <img
               src={samana}

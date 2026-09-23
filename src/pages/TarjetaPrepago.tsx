@@ -83,8 +83,11 @@ export default function TarjetaPrepago() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   
-  // Card stats (Simulated balance)
-  const [balance, setBalance] = useState(150.00);
+  // Card stats (Persistent balance)
+  const [balance, setBalance] = useState<number>(() => {
+    const saved = localStorage.getItem("rdpass_balance_usd");
+    return saved ? parseFloat(saved) : 150.00;
+  });
   const [cardNumber] = useState("4892 •••• •••• 9901");
   const [qrVisible, setQrVisible] = useState(false);
 
@@ -103,6 +106,13 @@ export default function TarjetaPrepago() {
       image: "https://images.unsplash.com/photo-1540552980157-21d2a565c52b?w=600&auto=format&fit=crop&q=80"
     });
     setCheckoutOpen(true);
+  };
+
+  const onPaymentSuccess = (amount: number) => {
+    const newBal = Number((balance + amount).toFixed(2));
+    setBalance(newBal);
+    localStorage.setItem("rdpass_balance_usd", newBal.toString());
+    toast.success(`💳 ¡Saldo actualizado con éxito! Nuevo balance: $${newBal} USD`);
   };
 
   const filteredAllies = allies.filter(ally => {

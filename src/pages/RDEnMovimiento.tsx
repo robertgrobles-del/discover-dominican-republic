@@ -87,10 +87,10 @@ const routes = {
 };
 
 const events = [
-  { name: "Santo Domingo Marathon", date: "Marzo 2024", type: "Running", participants: "5,000+" },
-  { name: "RD Bike Tour", date: "Abril 2024", type: "Ciclismo", participants: "2,500+" },
-  { name: "Trail Jarabacoa", date: "Mayo 2024", type: "Trail", participants: "800+" },
-  { name: "Triatlón Samaná", date: "Junio 2024", type: "Multi", participants: "1,200+" },
+  { name: "Santo Domingo Marathon", date: "Marzo 2027", type: "Running", participants: "5,000+" },
+  { name: "RD Bike Tour", date: "Abril 2027", type: "Ciclismo", participants: "2,500+" },
+  { name: "Trail Jarabacoa", date: "Mayo 2027", type: "Trail", participants: "800+" },
+  { name: "Triatlón Samaná", date: "Junio 2027", type: "Multi", participants: "1,200+" },
 ];
 
 const getDifficultyColor = (difficulty: string) => {

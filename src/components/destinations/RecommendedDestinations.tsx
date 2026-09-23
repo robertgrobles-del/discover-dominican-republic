@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Sparkles, Star, Clock } from "lucide-react";
+import { Compass, Star, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Destination } from "@/data/destinations";
@@ -25,7 +25,7 @@ export function RecommendedDestinations({ destinations }: RecommendedDestination
         >
           <div>
             <div className="flex items-center gap-2 text-primary mb-4">
-              <Sparkles className="h-5 w-5" />
+              <Compass className="h-5 w-5" />
               <span className="text-sm font-semibold uppercase tracking-wider">{t("destinos.recommendedForYou")}</span>
             </div>
             <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">

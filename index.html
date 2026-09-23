@@ -10,9 +10,24 @@
     <meta name="robots" content="index, follow" />
     <!-- theme-color: progressive enhancement for Chrome/Safari/Edge (not supported by Firefox) -->
     <meta name="theme-color" content="#13b6ec" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.gpteng.co; img-src 'self' data: blob: https://images.unsplash.com https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://fonts.googleapis.com; frame-ancestors 'self' https://*.lovable.app https://*.lovable.dev;" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.gpteng.co; img-src 'self' data: blob: https://images.unsplash.com https://*.tile.openstreetmap.org; connect-src 'self' https://fonts.googleapis.com; frame-ancestors 'self' https://*.lovable.app https://*.lovable.dev;" />
     <meta http-equiv="X-Frame-Options" content="SAMEORIGIN" />
     <link rel="canonical" href="https://descubrerd.com" />
+    <script>
+      // One-time cleanup: an earlier production build registered a PWA
+      // service worker on this origin. Once installed, it serves its own
+      // cached (and now stale) copy of the app forever, ignoring whatever
+      // the dev server actually serves - no server-side fix can reach it.
+      // This unregisters any leftover service worker and clears its caches.
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations().then((regs) => {
+          regs.forEach((r) => r.unregister());
+        });
+      }
+      if ("caches" in window) {
+        caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
+      }
+    </script>
 
     <!-- Open Graph -->
     <meta property="og:title" content="Descubre República Dominicana - Tu Portal de Turismo del Caribe" />
@@ -43,11 +58,9 @@
     <!-- Preconnect for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://cdn.gpteng.co" crossorigin />
-    <link rel="preconnect" href="https://jhwfhhajvmcdmtwslgbb.supabase.co" />
 
     <!-- Preload LCP hero image -->
-    <link rel="preload" as="image" href="/src/assets/hero-beach.jpg" />
+    <link rel="preload" as="image" href="/src/assets/whale-samana.jpg" fetchpriority="high" />
 
     <!-- Non-render-blocking Google Fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />

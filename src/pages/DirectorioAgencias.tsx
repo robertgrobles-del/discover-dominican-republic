@@ -13,6 +13,8 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { CTARegistroEstablecimiento } from "@/components/forms/CTARegistroEstablecimiento";
+import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
 const agencies = [
   {
     id: "tropical-caribbean",
@@ -125,7 +127,7 @@ export default function DirectorioAgencias() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <span className="inline-flex items-center gap-2 px-3 py-1 bg-green-500/20 text-green-400 text-xs font-medium rounded-full mb-4">
+            <span className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-600 text-white text-xs font-medium rounded-full mb-4 shadow-sm">
               <Check className="h-3 w-3" />
               Verificado por Descubre República Dominicana
             </span>
@@ -496,6 +498,17 @@ export default function DirectorioAgencias() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Banners de Conversión: Sorteo de Lectores + Registro de Agencias de Viajes */}
+      <div className="container mx-auto px-4 pb-16 space-y-8">
+        <SorteoLectorBanner origenCategoria="Agencias de Viajes y Tours" />
+
+        <CTARegistroEstablecimiento
+          tipo="tour"
+          titulo="¿Tienes una agencia de viajes o tour operador?"
+          subtitulo="Inscribe tu agencia y catálogo de excursiones en el directorio oficial de Descubre RD para el gran lanzamiento. Conecta directamente con clientes B2C y B2B."
+        />
+      </div>
 
       <Footer />
     </div>

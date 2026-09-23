@@ -155,7 +155,7 @@ export default function EstadoPlayas() {
       if (data && data.length > 0) {
         const mapped = data.map(mapDbBeachToLocal);
         setBeaches(mapped);
-        const uniqueRegions = ["Todas", ...new Set(mapped.map((b) => b.region))];
+        const uniqueRegions = ["Todas", ...new Set(mapped.map((b) => b.region))] as string[];
         setRegions(uniqueRegions);
       }
       setLoading(false);

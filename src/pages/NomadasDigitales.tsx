@@ -1,8 +1,13 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Laptop,
   Wifi,
@@ -20,8 +25,28 @@ import {
   Star,
   Globe,
   Zap,
+  Award,
+  CheckSquare,
+  FileText,
+  Info
 } from "lucide-react";
 import { Link } from "react-router-dom";
+
+interface DestinationCost {
+  city: string;
+  rent: number;
+  utilities: number;
+  food: number;
+  internet: number;
+  lifestyle: string;
+}
+
+const costsData: DestinationCost[] = [
+  { city: "Santo Domingo", rent: 650, utilities: 100, food: 350, internet: 50, lifestyle: "Urbano, cultural, excelente conectividad de fibra óptica." },
+  { city: "Las Terrenas (Samaná)", rent: 800, utilities: 120, food: 400, internet: 60, lifestyle: "Bohemio, playas tranquilas, comunidad europea multicultural." },
+  { city: "Cabarete (Puerto Plata)", rent: 550, utilities: 90, food: 300, internet: 50, lifestyle: "Deportivo (kitesurf), relajado, ideal para solteros y aventureros." },
+  { city: "Punta Cana / Bávaro", rent: 950, utilities: 150, food: 450, internet: 60, lifestyle: "Resort de lujo, campos de golf, alta seguridad y servicios bilingües." }
+];
 
 const benefits = [
   { icon: Sun, title: "300+ días de sol", description: "Clima tropical perfecto todo el año" },
@@ -101,8 +126,29 @@ const community = [
 ];
 
 export default function NomadasDigitales() {
+  const [selectedCityIndex, setSelectedCityIndex] = useState<number>(0);
+  const [checklist, setChecklist] = useState([
+    { id: 1, item: "Pasaporte vigente con validez mínima de 6 meses", checked: false },
+    { id: 2, item: "Certificado de antecedentes penales (apostillado)", checked: false },
+    { id: 3, item: "Prueba de ingresos estables de fuente extranjera ($2,000 USD individuales / $2,500 parejas)", checked: false },
+    { id: 4, item: "Seguro médico internacional con cobertura en RD", checked: false },
+    { id: 5, item: "Acta de nacimiento y certificado de matrimonio/soltería (apostillados)", checked: false },
+    { id: 6, item: "Carta de solicitud formal explicando motivos de mudanza", checked: false },
+  ]);
+
+  const toggleCheck = (id: number) => {
+    setChecklist(prev => prev.map(c => c.id === id ? { ...c, checked: !c.checked } : c));
+  };
+
+  const currentCity = costsData[selectedCityIndex];
+  const monthlyTotal = currentCity.rent + currentCity.utilities + currentCity.food + currentCity.internet;
+
   return (
     <PageTransition>
+      <SEOHead
+        title="Nómadas Digitales y Retirados en República Dominicana"
+        description="Guía completa para nómadas digitales y retirados en RD. Visados, incentivos de la Ley 171-07, costo de vida, coworking y destinos populares."
+      />
       <div className="min-h-screen bg-background">
         <Header />
 
@@ -118,14 +164,14 @@ export default function NomadasDigitales() {
             >
               <span className="inline-flex items-center gap-2 text-violet-300 text-sm font-medium mb-4">
                 <Laptop className="h-4 w-4" />
-                Trabajo Remoto
+                Vivir, Trabajar y Retirarse en el Paraíso
               </span>
               <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">
-                Nómadas Digitales en <span className="text-violet-400">República Dominicana</span>
+                Nómadas y Retirados en <span className="text-violet-400">República Dominicana</span>
               </h1>
               <p className="text-xl text-white/80 mb-8">
-                Trabaja desde el paraíso caribeño. Internet rápido, bajo costo de vida, 
-                comunidad activa y el mejor clima del mundo. Tu oficina con vista al mar te espera.
+                Establece tu residencia o trabaja remotamente bajo el sol del Caribe. 
+                Internet rápido, incentivos fiscales, bajo costo de vida y playas perfectas.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Button size="lg" className="gap-2 bg-white text-violet-900 hover:bg-white/90">
@@ -133,7 +179,7 @@ export default function NomadasDigitales() {
                   Ver Coworkings
                 </Button>
                 <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Guía de Visa
+                  Calculadora Costo de Vida
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -161,6 +207,143 @@ export default function NomadasDigitales() {
                   <p className="text-sm text-muted-foreground">{benefit.description}</p>
                 </motion.div>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Residency Programs & Visa Details */}
+        <section className="py-20">
+          <div className="container mx-auto px-4 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+                Programas de <span className="text-gradient">Residencia y Visas</span>
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Conoce las opciones legales para mudarte o trabajar a distancia en República Dominicana.
+              </p>
+            </motion.div>
+
+            <div className="grid lg:grid-cols-3 gap-8">
+              {/* Rentista / Retirado Card */}
+              <Card className="border-indigo-500/20 bg-indigo-500/5 col-span-1 lg:col-span-1">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2 text-indigo-700">
+                    <Award className="h-5 w-5" />
+                    Visa de Rentista / Retirado
+                  </CardTitle>
+                  <CardDescription>Incentivos especiales (Ley 171-07)</CardDescription>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground space-y-4 leading-relaxed">
+                  <p>
+                    Perfecto para pensionados o personas con ingresos de inversión garantizados fuera del país.
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-xs">
+                    <li><strong>Monto Mínimo:</strong> $1,500 USD/mes para pensionados, $2,000 USD/mes para rentistas.</li>
+                    <li><strong>Beneficios Fiscales:</strong> Exención de impuestos sobre transferencia inmobiliaria e importación de bienes de hogar/vehículos.</li>
+                    <li><strong>Residencia Express:</strong> Residencia definitiva rápida sin trámites complejos tradicionales.</li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              {/* Nómada Digital & Requisitos Checklist */}
+              <Card className="col-span-1 lg:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <CheckSquare className="h-5 w-5 text-primary" />
+                    Lista de Requisitos (Residencia/Visas)
+                  </CardTitle>
+                  <CardDescription>Requisitos para radicar tu residencia legal en el país</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {checklist.map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => toggleCheck(item.id)}
+                        className="flex items-start gap-3 p-3 bg-muted/40 rounded-lg cursor-pointer hover:bg-muted/80 transition-colors text-xs"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={item.checked}
+                          onChange={() => {}} 
+                          className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 mt-0.5"
+                          title={item.item}
+                          aria-label={item.item}
+                        />
+                        <span className={`${item.checked ? "line-through text-muted-foreground" : "text-foreground font-medium"}`}>
+                          {item.item}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Cost of Living Calculator Section */}
+        <section className="py-20 bg-card border-y border-border">
+          <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
+            <div className="grid lg:grid-cols-12 gap-8 items-center">
+              <div className="lg:col-span-5 space-y-4">
+                <h2 className="font-display text-3xl font-bold">
+                  Calculadora de <span className="text-gradient">Costo de Vida</span>
+                </h2>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  República Dominicana ofrece un excelente estilo de vida con presupuestos muy razonables. Elige tu destino favorito y proyecta tus gastos mensuales estimados.
+                </p>
+                <div className="flex flex-wrap gap-2 pt-2">
+                  {costsData.map((data, index) => (
+                    <Button
+                      key={data.city}
+                      variant={selectedCityIndex === index ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedCityIndex(index)}
+                      className="shrink-0 text-xs"
+                    >
+                      {data.city}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="lg:col-span-7">
+                <Card className="border border-border/80 shadow-md">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex justify-between items-center">
+                      <span>Presupuesto mensual en {currentCity.city}</span>
+                      <Badge className="bg-primary/20 text-primary font-mono text-sm border-none">
+                        ${monthlyTotal} USD / mes
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription className="text-xs">{currentCity.lifestyle}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3 pt-2">
+                    <div className="flex justify-between p-2.5 bg-background border rounded-lg text-xs">
+                      <span className="text-muted-foreground">Alquiler (Apto 1 hab, zona segura):</span>
+                      <span className="font-bold font-mono text-foreground">${currentCity.rent} USD</span>
+                    </div>
+                    <div className="flex justify-between p-2.5 bg-background border rounded-lg text-xs">
+                      <span className="text-muted-foreground">Servicios Básicos (Electricidad, gas, agua):</span>
+                      <span className="font-bold font-mono text-foreground">${currentCity.utilities} USD</span>
+                    </div>
+                    <div className="flex justify-between p-2.5 bg-background border rounded-lg text-xs">
+                      <span className="text-muted-foreground">Alimentación / Compras del súper:</span>
+                      <span className="font-bold font-mono text-foreground">${currentCity.food} USD</span>
+                    </div>
+                    <div className="flex justify-between p-2.5 bg-background border rounded-lg text-xs">
+                      <span className="text-muted-foreground">Internet Residencial (Fibra Óptica):</span>
+                      <span className="font-bold font-mono text-foreground">${currentCity.internet} USD</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
         </section>
@@ -298,7 +481,7 @@ export default function NomadasDigitales() {
           </div>
         </section>
 
-        {/* Visa Information */}
+        {/* Legal Visa Options */}
         <section className="py-20">
           <div className="container mx-auto px-4 lg:px-8">
             <motion.div
@@ -308,10 +491,10 @@ export default function NomadasDigitales() {
               className="text-center mb-12"
             >
               <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Requisitos <span className="text-gradient">Legales</span>
+                Visados para <span className="text-gradient">Trabajo Remoto</span>
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Información sobre visas y permisos de estadía para trabajar remotamente desde RD.
+                Opciones legales rápidas para profesionales remotos y autónomos.
               </p>
             </motion.div>
 
@@ -400,14 +583,14 @@ export default function NomadasDigitales() {
               viewport={{ once: true }}
             >
               <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-                ¿Listo para trabajar desde el paraíso?
+                ¿Listo para trabajar o retirarte en el paraíso?
               </h2>
               <p className="text-white/80 mb-8 max-w-xl mx-auto">
-                Descarga nuestra guía completa para nómadas digitales con todo lo que necesitas saber.
+                Descarga nuestra guía completa para residentes extranjeros con toda la información legal y financiera necesaria.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button size="lg" className="gap-2 bg-white text-violet-900 hover:bg-white/90">
-                  Descargar Guía PDF
+                  Descargar Guía Completa
                 </Button>
                 <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
                   Agregar al Plan de Viaje

@@ -1,87 +1,148 @@
+import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
+import { PanoramaAd } from "@/components/promo";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { CableCar, Clock, DollarSign, MapPin, Users, ChevronRight, Info, Shield, Mountain } from "lucide-react";
+import { 
+  CableCar, Clock, DollarSign, MapPin, Users, ChevronRight, 
+  Info, Shield, Mountain, CreditCard, Sparkles, ArrowRight, Eye, Train
+} from "lucide-react";
 
-const estaciones = [
-  { nombre: "Estación Gualey", ubicacion: "Gualey, Distrito Nacional", tipo: "Terminal" },
-  { nombre: "Estación Sabana Perdida", ubicacion: "Sabana Perdida, Santo Domingo Norte", tipo: "Terminal" },
-  { nombre: "Estación Los Alcarrizos", ubicacion: "Los Alcarrizos, Santo Domingo Oeste", tipo: "Terminal" },
+import santoDomingoImg from "@/assets/santo-domingo.jpg";
+
+const estacionesDetalle = [
+  {
+    nombre: "Estación Gualey (T1)",
+    conexion: "Conexión directa con Metro Línea 2 (Estación Eduardo Brito)",
+    destacado: "Punto neurálgico que une el centro metropolitano con el sistema aéreo.",
+    turismo: "Fácil acceso para conectar hacia la Zona Colonial y el Malecón."
+  },
+  {
+    nombre: "Estación Los Tres Brazos (T2)",
+    conexion: "Cruce sobre el Río Ozama",
+    destacado: "Vistas panorámicas espectaculares del curso fluvial y la vegetación ribereña.",
+    turismo: "Ideal para tomar fotografías aéreas del Gran Santo Domingo."
+  },
+  {
+    nombre: "Estación Sabana Perdida (T3)",
+    conexion: "Estación de transferencia intermodal",
+    destacado: "Centro de operaciones técnicas y garaje de cabinas electromecánicas.",
+    turismo: "Conecta con rutas de autobuses hacia Santo Domingo Norte y Parque Mirador Norte."
+  },
+  {
+    nombre: "Estación Los Alcarrizos (Línea 2)",
+    conexion: "Conexión Autopista Duarte",
+    destacado: "Terminal moderna con capacidad de alta demanda y accesibilidad total.",
+    turismo: "Puerta de entrada oeste hacia el Cibao y el interior del país."
+  }
 ];
 
 const lineasTeleferico = [
   {
-    nombre: "Línea 1 (Teleférico de Santo Domingo)",
-    ruta: "Gualey → Sabana Perdida",
+    nombre: "Línea 1 (Cuenca del Ozama)",
+    ruta: "Gualey ↔ Sabana Perdida",
     longitud: "5.2 km",
-    estaciones: 2,
-    inauguracion: "2018",
-    descripcion: "Conecta el barrio de Gualey en el Distrito Nacional con Sabana Perdida en Santo Domingo Norte, cruzando el río Ozama. Reduce un trayecto de 1+ hora en tráfico a solo 10 minutos.",
+    estaciones: 4,
     tiempo: "10 minutos",
+    descripcion: "Cruza el río Ozama conectando el Distrito Nacional con Santo Domingo Norte. Reduce un trayecto que antes tomaba más de 1 hora en tráfico pesado a solo 10 minutos de vuelo silencioso.",
   },
   {
-    nombre: "Línea 2",
-    ruta: "Gualey → Los Alcarrizos",
-    longitud: "6.5 km",
-    estaciones: 2,
-    inauguracion: "2022",
-    descripcion: "Extiende la red conectando Gualey con Los Alcarrizos al oeste de la ciudad, sirviendo a una de las comunidades más pobladas del Gran Santo Domingo.",
+    nombre: "Línea 2 (Los Alcarrizos)",
+    ruta: "Los Americanos ↔ Los Alcarrizos Central",
+    longitud: "4.2 km",
+    estaciones: 4,
     tiempo: "12 minutos",
+    descripcion: "Sistema de transporte por cable de última generación que comunica los sectores de mayor densidad del oeste con la red troncal del Metro de Santo Domingo.",
   },
 ];
 
 const tarifas = [
-  { tipo: "Pasaje Regular", precio: "RD$ 35" },
-  { tipo: "Estudiantes", precio: "RD$ 15" },
-  { tipo: "Tercera Edad", precio: "Gratis" },
+  { tipo: "Pasaje Integrado (Teleférico + Metro)", precio: "RD$ 35 (USD 0.60)", desc: "Permite trasbordo sin costo adicional entre teleférico y metro." },
+  { tipo: "Viaje Sencillo Teleférico", precio: "RD$ 20 (USD 0.35)", desc: "Válido para un único trayecto en el sistema de cabinas." },
+  { tipo: "Tarjeta Recargable RD Pass / Metro", precio: "RD$ 60 (Emisión única)", desc: "Tarjeta contactless reutilizable para turistas y residentes." },
 ];
 
 const datos = [
   { label: "Capacidad por cabina", value: "10 personas" },
-  { label: "Cabinas en operación", value: "130+" },
-  { label: "Velocidad", value: "21.6 km/h" },
-  { label: "Altura máxima", value: "60 metros" },
-  { label: "Pasajeros/hora", value: "3,000" },
-  { label: "Integración", value: "Metro L1 y L2" },
+  { label: "Cabinas en operación", value: "290+" },
+  { label: "Velocidad constante", value: "21.6 km/h" },
+  { label: "Altura panorámica", value: "60 metros" },
+  { label: "Capacidad / hora", value: "4,500 pas." },
+  { label: "Integración Metro", value: "100% Gratuita" },
 ];
 
 export default function TelefericoSantoDomingo() {
   return (
     <PageTransition>
       <SEOHead
-        title="Teleférico de Santo Domingo - Transporte Aéreo | DescubreRD"
-        description="Guía del Teleférico de Santo Domingo: líneas, estaciones, tarifas y cómo conecta los sectores más poblados de la capital."
+        title="Teleférico de Santo Domingo - Guía de Transporte Aéreo y Vistas Panorámicas | DescubreRD"
+        description="Conoce el Teleférico de Santo Domingo: líneas 1 y 2, estaciones, tarifas integradas con el Metro, horarios y cómo disfrutar de las mejores vistas del río Ozama."
+        keywords="teleferico santo domingo, transporte santo domingo, metro teleferico rd, ruta gualey sabana perdida, los alcarrizos teleferico, vistas rio ozama"
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background text-foreground flex flex-col">
         <Header />
 
-        {/* Hero */}
-        <section className="pt-24 pb-16 bg-gradient-to-b from-primary/10 to-background">
-          <div className="container mx-auto px-4 text-center">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
-                <CableCar className="h-3 w-3 mr-1" /> TRANSPORTE AÉREO URBANO
-              </Badge>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-                Teleférico de <span className="text-gradient">Santo Domingo</span>
-              </h1>
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                El sistema de teleférico urbano más grande del Caribe. Sobrevuela la ciudad y cruza el río Ozama en minutos, con vistas panorámicas impresionantes.
-              </p>
-            </motion.div>
+        {/* Hero Section */}
+        <section className="relative h-[60vh] min-h-[460px] flex items-end overflow-hidden">
+          <img
+            src={santoDomingoImg}
+            alt="Teleférico de Santo Domingo sobrevolando la ciudad y el Río Ozama"
+            className="absolute inset-0 w-full h-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/75 to-black/35" />
+
+          <div className="relative z-10 container mx-auto px-4 lg:px-8 pb-12">
+            <nav className="flex items-center gap-2 text-xs md:text-sm text-white/80 mb-4">
+              <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
+              <ChevronRight className="h-3.5 w-3.5" />
+              <Link to="/transporte-urbano" className="hover:text-primary transition-colors">Transporte Urbano</Link>
+              <ChevronRight className="h-3.5 w-3.5" />
+              <span className="text-white font-medium">Teleférico de Santo Domingo</span>
+            </nav>
+
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+              <div>
+                <Badge className="mb-3 bg-sky-500/20 text-sky-300 border-sky-500/30 text-xs px-3 py-1 font-semibold">
+                  <CableCar className="h-3.5 w-3.5 mr-1.5" /> TRANSPORTE URBANO SOSTENIBLE
+                </Badge>
+                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">
+                  Teleférico de Santo Domingo
+                </h1>
+                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">
+                  El sistema de transporte por cable más innovador del Caribe. Sobrevuela el río Ozama en cabinas silenciosas con vistas panorámicas únicas de la capital.
+                </p>
+              </div>
+
+              {/* Stats Box */}
+              <div className="flex flex-wrap gap-3 bg-black/50 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-white">
+                <div className="text-center px-3 border-r border-white/10 last:border-none">
+                  <p className="font-display text-2xl font-bold text-primary">2</p>
+                  <p className="text-[11px] text-white/70 uppercase">Líneas Activas</p>
+                </div>
+                <div className="text-center px-3 border-r border-white/10 last:border-none">
+                  <p className="font-display text-2xl font-bold text-emerald-400">10 min</p>
+                  <p className="text-[11px] text-white/70 uppercase">Vuelo Promedio</p>
+                </div>
+                <div className="text-center px-3">
+                  <p className="font-display text-2xl font-bold text-sky-400">RD$ 35</p>
+                  <p className="text-[11px] text-white/70 uppercase">Con Metro Incluido</p>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* Stats */}
-        <section className="py-8 border-b border-border">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-4 text-center">
+        {/* Technical Data Ribbon */}
+        <section className="py-6 border-b border-border bg-card/50">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-center">
               {datos.map((d) => (
-                <div key={d.label}>
+                <div key={d.label} className="p-2">
                   <p className="font-display text-lg font-bold text-primary">{d.value}</p>
                   <p className="text-xs text-muted-foreground">{d.label}</p>
                 </div>
@@ -90,61 +151,149 @@ export default function TelefericoSantoDomingo() {
           </div>
         </section>
 
-        {/* Lines */}
-        <section className="py-12">
-          <div className="container mx-auto px-4">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">Líneas del Teleférico</h2>
-            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-              {lineasTeleferico.map((linea) => (
-                <Card key={linea.nombre} className="border-border">
-                  <CardContent className="p-6">
-                    <Badge className="mb-3 bg-primary/20 text-primary">{linea.nombre}</Badge>
-                    <h3 className="font-display text-lg font-bold text-foreground mb-1">{linea.ruta}</h3>
-                    <p className="text-sm text-muted-foreground mb-4">{linea.descripcion}</p>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Clock className="h-3 w-3 text-primary" /> {linea.tiempo}
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <MapPin className="h-3 w-3 text-primary" /> {linea.longitud}
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-3">Inauguración: {linea.inauguracion}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+        {/* Lines and Operations */}
+        <section className="py-16 container mx-auto px-4 lg:px-8 max-w-6xl">
+          <div className="text-center mb-12">
+            <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
+              RED DE RUTAS
+            </Badge>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
+              Líneas en Funcionamiento
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
+              Conexión directa entre el Distrito Nacional, Santo Domingo Norte y Santo Domingo Oeste.
+            </p>
           </div>
-        </section>
 
-        {/* Tarifas */}
-        <section className="py-12 bg-card/50">
-          <div className="container mx-auto px-4 max-w-2xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-6 text-center">Tarifas</h2>
-            <div className="space-y-3">
-              {tarifas.map((t) => (
-                <div key={t.tipo} className="flex items-center justify-between p-4 bg-card rounded-lg border border-border">
-                  <p className="font-medium text-foreground">{t.tipo}</p>
-                  <Badge variant="secondary" className="font-bold">{t.precio}</Badge>
+          <div className="grid md:grid-cols-2 gap-8 mb-16">
+            {lineasTeleferico.map((linea) => (
+              <Card key={linea.nombre} className="border-border/80 bg-card hover:border-primary/40 transition-all flex flex-col">
+                <CardContent className="p-6 flex flex-col flex-1">
+                  <div className="flex items-center justify-between mb-3">
+                    <Badge className="bg-primary/20 text-primary border-primary/30 text-xs font-bold">
+                      {linea.nombre.split("(")[0]}
+                    </Badge>
+                    <span className="text-xs font-semibold text-emerald-500 flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" /> {linea.tiempo}
+                    </span>
+                  </div>
+
+                  <h3 className="font-display font-bold text-xl text-foreground mb-2">
+                    {linea.ruta}
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed mb-6 flex-1">
+                    {linea.descripcion}
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border text-xs text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-primary" />
+                      <span>Longitud: <strong className="text-foreground">{linea.longitud}</strong></span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CableCar className="h-4 w-4 text-primary" />
+                      <span>Estaciones: <strong className="text-foreground">{linea.estaciones}</strong></span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Interactive Stations Guide */}
+          <div className="bg-card border border-border rounded-2xl p-6 md:p-8">
+            <h3 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
+              <MapPin className="h-6 w-6 text-primary" /> Estaciones Clave & Conexiones Turísticas
+            </h3>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {estacionesDetalle.map((est) => (
+                <div key={est.nombre} className="p-4 bg-muted/30 rounded-xl border border-border/60 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-foreground text-sm">{est.nombre}</h4>
+                    <Badge variant="outline" className="text-[10px]">Conexión</Badge>
+                  </div>
+                  <p className="text-xs text-primary font-medium">{est.conexion}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{est.destacado}</p>
+                  <p className="text-[11px] text-muted-foreground/80 italic pt-1">💡 {est.turismo}</p>
                 </div>
               ))}
             </div>
-            <div className="mt-6 p-4 bg-secondary/30 rounded-lg">
-              <p className="text-sm text-muted-foreground flex items-center gap-2">
-                <Info className="h-4 w-4 text-primary flex-shrink-0" />
-                El teleférico usa la misma tarjeta del Metro de Santo Domingo. La integración permite trasbordo gratuito entre ambos sistemas.
-              </p>
+          </div>
+        </section>
+
+        {/* Fares & Schedule */}
+        <section className="py-16 bg-card/40 border-y border-border/50">
+          <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
+                  TARIFAS INTEGRADAS
+                </Badge>
+                <h2 className="font-display text-3xl font-bold text-foreground mb-4">
+                  Cómo Pagar y Moverte en Teleférico
+                </h2>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                  El Teleférico de Santo Domingo utiliza la tarjeta inteligente del Metro. Si entras al Metro y haces transbordo al teleférico en la estación Eduardo Brito / Gualey, ¡el viaje en teleférico no tiene costo adicional!
+                </p>
+
+                <div className="space-y-3">
+                  {tarifas.map((t) => (
+                    <div key={t.tipo} className="p-4 bg-card rounded-xl border border-border">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-semibold text-sm text-foreground">{t.tipo}</span>
+                        <Badge variant="secondary" className="font-bold text-primary">{t.precio}</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{t.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Operations Box */}
+              <div className="bg-gradient-to-br from-primary/10 via-card to-card border border-primary/20 rounded-2xl p-6 md:p-8 space-y-6">
+                <div>
+                  <h3 className="font-display font-bold text-xl text-foreground mb-2 flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-primary" /> Horarios de Servicio
+                  </h3>
+                  <div className="space-y-2 text-sm text-muted-foreground">
+                    <div className="flex justify-between py-1.5 border-b border-border">
+                      <span>Lunes a Viernes:</span>
+                      <strong className="text-foreground">6:00 AM – 10:30 PM</strong>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-border">
+                      <span>Sábados:</span>
+                      <strong className="text-foreground">6:00 AM – 9:00 PM</strong>
+                    </div>
+                    <div className="flex justify-between py-1.5 border-b border-border">
+                      <span>Domingos y Feriados:</span>
+                      <strong className="text-foreground">8:00 AM – 9:00 PM</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2">
+                  <div className="flex items-start gap-3 bg-secondary/50 p-4 rounded-xl text-xs text-muted-foreground">
+                    <Eye className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                    <span>
+                      <strong>Consejo turístico:</strong> Los mejores horarios para tomar fotos panorámicas con la luz dorada sobre el río Ozama son entre las 5:00 PM y las 6:30 PM.
+                    </span>
+                  </div>
+                </div>
+
+                <Button asChild className="w-full gap-2">
+                  <Link to="/metro-santo-domingo">
+                    <Train className="h-4 w-4" /> Ver Red de Metro de Santo Domingo
+                  </Link>
+                </Button>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Horarios */}
-        <section className="py-12">
-          <div className="container mx-auto px-4 max-w-2xl text-center">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-4">Horario de Operación</h2>
-            <p className="text-muted-foreground mb-2">Lunes a Viernes: 6:00 AM - 10:30 PM</p>
-            <p className="text-muted-foreground mb-2">Sábados, Domingos y Feriados: 6:00 AM - 10:00 PM</p>
-            <p className="text-xs text-muted-foreground">Frecuencia: cada 12 segundos sale una cabina</p>
+        {/* Panorama Ad Section */}
+        <section className="py-6 bg-muted/20 border-t border-border/40">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <PanoramaAd showDemo />
           </div>
         </section>
 

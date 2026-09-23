@@ -258,7 +258,7 @@ export default function Sostenible() {
               alt="Naturaleza RD"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/65 to-background/30" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-background/60" />
           </div>
 
           <div className="relative z-10 container mx-auto px-4 lg:px-8 text-center py-24">

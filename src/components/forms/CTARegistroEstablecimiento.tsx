@@ -1,11 +1,17 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { motion } from "framer-motion";
 import { Building2, ChevronRight, Star, TrendingUp, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  RegistroEstablecimientoModal,
-  type TipoEstablecimiento,
-} from "@/components/forms/RegistroEstablecimientoModal";
+import type { TipoEstablecimiento } from "@/components/forms/RegistroEstablecimientoModal";
+
+export type { TipoEstablecimiento };
+
+// Modal is dynamically imported only when user opens it
+const RegistroEstablecimientoModal = lazy(() =>
+  import("@/components/forms/RegistroEstablecimientoModal").then((m) => ({
+    default: m.RegistroEstablecimientoModal,
+  }))
+);
 
 interface Props {
   tipo: TipoEstablecimiento;
@@ -40,7 +46,7 @@ export function CTARegistroEstablecimiento({ tipo, titulo, subtitulo, stats }: P
           {/* Left content */}
           <div className="flex-1">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-xs font-semibold mb-4">
-              <Building2 className="h-3 w-3" />
+              <Building2 className="h-3 w-3" aria-hidden="true" />
               Portal de Empresas Turísticas
             </div>
             <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">
@@ -67,25 +73,30 @@ export function CTARegistroEstablecimiento({ tipo, titulo, subtitulo, stats }: P
             <Button
               size="lg"
               onClick={() => setOpen(true)}
+              aria-label="Abrir formulario para registrar mi establecimiento turístico"
               className="gap-2 shadow-lg shadow-primary/20 whitespace-nowrap"
             >
-              <Building2 className="h-5 w-5" />
+              <Building2 className="h-5 w-5" aria-hidden="true" />
               Registrar mi Establecimiento
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </Button>
             <p className="text-xs text-muted-foreground text-center md:text-right">
               Gratis · Sin tarjeta · Aprobación en 2-3 días
             </p>
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1"><Star className="h-3 w-3 text-amber-500" /> Premium</span>
-              <span className="flex items-center gap-1"><Users className="h-3 w-3 text-primary" /> +2K empresas</span>
-              <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3 text-emerald-500" /> Verificado</span>
+              <span className="flex items-center gap-1"><Star className="h-3 w-3 text-amber-500" aria-hidden="true" /> Premium</span>
+              <span className="flex items-center gap-1"><Users className="h-3 w-3 text-primary" aria-hidden="true" /> +2K empresas</span>
+              <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3 text-emerald-500" aria-hidden="true" /> Verificado</span>
             </div>
           </div>
         </div>
       </motion.section>
 
-      <RegistroEstablecimientoModal open={open} onClose={() => setOpen(false)} tipo={tipo} />
+      {open && (
+        <Suspense fallback={null}>
+          <RegistroEstablecimientoModal open={open} onClose={() => setOpen(false)} tipo={tipo} />
+        </Suspense>
+      )}
     </>
   );
 }

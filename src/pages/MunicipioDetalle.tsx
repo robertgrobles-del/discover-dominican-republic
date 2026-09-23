@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 
 import { ProvinceActivities } from "@/components/province/ProvinceActivities";
 import { ProvinceFeaturedSection } from "@/components/province/ProvinceFeaturedSection";
-import { InlineAd, BetweenSectionsAd } from "@/components/ads";
+import { InlineAd, BetweenSectionsAd } from "@/components/promo";
 import { DistancesFromCities } from "@/components/destination/DistancesFromCities";
 import { DestinationAboutTabs } from "@/components/destination/DestinationAboutTabs";
 import { RelatedBlogPosts } from "@/components/destination/RelatedBlogPosts";

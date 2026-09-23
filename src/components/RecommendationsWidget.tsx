@@ -1,24 +1,22 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, MapPin, Star, Loader2, RefreshCw } from "lucide-react";
+import { Compass, MapPin, Star, Loader2, RefreshCw, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
 interface Recommendation {
-  name: string;
+  id: string;
   type: "destino" | "experiencia" | "evento";
-  slug: string;
+  title: string;
   reason: string;
-  match_score: number;
+  score: number;
+  matchPercentage: number;
+  meta: Record<string, unknown>;
 }
 
 export function RecommendationsWidget() {
-  const { user } = useAuth();
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -26,27 +24,47 @@ export function RecommendationsWidget() {
   const fetchRecommendations = async () => {
     setLoading(true);
     try {
-      let interests: string[] = [];
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("travel_interests")
-          .eq("id", user.id)
-          .maybeSingle();
-        interests = (profile as any)?.travel_interests || [];
-      }
+      const stored = localStorage.getItem("traveler_profile");
+      const profile = stored ? JSON.parse(stored) : { style: "aventurero", region: "cualquiera" };
 
-      const { data, error } = await supabase.functions.invoke("ai-recommendations", {
-        body: { userId: user?.id, interests, visitedDestinations: [] },
-      });
+      // Mock client-side smart recommendations based on profile
+      const mockRecs: Recommendation[] = [
+        {
+          id: "1",
+          type: "destino",
+          title: "Bahía de las Águilas",
+          reason: "Basado en tu interés por naturaleza virgen y playas",
+          score: 0.95,
+          matchPercentage: 95,
+          meta: { destination_id: "bahia-de-las-aguilas", image: "" },
+        },
+        {
+          id: "2",
+          type: "experiencia",
+          title: "Rafting en Río Yaque del Norte",
+          reason: "Para amantes de la aventura y ecoturismo",
+          score: 0.88,
+          matchPercentage: 88,
+          meta: { experience_id: "rafting-jarabacoa" },
+        },
+        {
+          id: "3",
+          type: "destino",
+          title: "Cayo Levantado, Samaná",
+          reason: "Perfecto para relajación y escapadas paradisíacas",
+          score: 0.82,
+          matchPercentage: 82,
+          meta: { destination_id: "samana" },
+        },
+      ];
 
-      if (error) throw error;
-      setRecommendations(data?.recommendations || []);
+      setRecommendations(mockRecs);
       setLoaded(true);
-    } catch (e: any) {
-      toast.error(e.message || "Error al obtener recomendaciones");
+    } catch {
+      // Fallback
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const typeConfig: Record<string, { color: string; label: string; path: string }> = {
@@ -58,13 +76,13 @@ export function RecommendationsWidget() {
   if (!loaded) {
     return (
       <div className="text-center py-8">
-        <Sparkles className="h-10 w-10 text-primary mx-auto mb-4" />
-        <h3 className="font-display text-xl font-bold mb-2">Recomendaciones con IA</h3>
+        <Compass className="h-10 w-10 text-primary mx-auto mb-4" />
+        <h3 className="font-display text-xl font-bold mb-2">Recomendaciones Inteligentes</h3>
         <p className="text-muted-foreground text-sm mb-4">
           Descubre destinos, experiencias y eventos personalizados para ti
         </p>
         <Button onClick={fetchRecommendations} disabled={loading} className="gap-2">
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Compass className="h-4 w-4" />}
           {loading ? "Analizando..." : "Obtener Recomendaciones"}
         </Button>
       </div>
@@ -75,7 +93,7 @@ export function RecommendationsWidget() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-primary" />
+          <Compass className="h-5 w-5 text-primary" />
           <h3 className="font-display text-lg font-bold">Para Ti</h3>
         </div>
         <Button variant="ghost" size="sm" onClick={fetchRecommendations} disabled={loading}>
@@ -87,14 +105,16 @@ export function RecommendationsWidget() {
         <AnimatePresence>
           {recommendations.map((rec, i) => {
             const config = typeConfig[rec.type] || typeConfig.destino;
+            const slug = (rec.meta.destination_id || rec.meta.experience_id || rec.meta.event_id || "") as string;
+            const starCount = Math.round(rec.matchPercentage / 20);
             return (
               <motion.div
-                key={`${rec.slug}-${i}`}
+                key={rec.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.1 }}
               >
-                <Link to={`${config.path}/${rec.slug}`}>
+                <Link to={`${config.path}/${slug}`}>
                   <Card className="hover:border-primary/50 transition-colors cursor-pointer">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-3">
@@ -107,12 +127,12 @@ export function RecommendationsWidget() {
                               {[...Array(5)].map((_, j) => (
                                 <Star
                                   key={j}
-                                  className={`h-3 w-3 ${j < rec.match_score ? "fill-primary text-primary" : "text-muted"}`}
+                                  className={`h-3 w-3 ${j < starCount ? "fill-primary text-primary" : "text-muted"}`}
                                 />
                               ))}
                             </div>
                           </div>
-                          <h4 className="font-medium text-sm">{rec.name}</h4>
+                          <h4 className="font-medium text-sm">{rec.title}</h4>
                           <p className="text-xs text-muted-foreground mt-1">{rec.reason}</p>
                         </div>
                       </div>

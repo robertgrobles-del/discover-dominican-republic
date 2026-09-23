@@ -61,7 +61,7 @@ export default function CentroComercialDetalle() {
         <Header />
 
         {/* Hero */}
-        <section className="relative h-[50vh] min-h-[400px] flex items-end mt-16">
+        <section className="relative h-[50vh] min-h-[400px] flex items-end">
           <div className="absolute inset-0">
             <img src={mall.imagen} alt={mall.nombre} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />

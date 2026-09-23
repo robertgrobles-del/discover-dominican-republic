@@ -180,6 +180,42 @@ export default function ClimaTemporadas() {
           </div>
         </section>
 
+        {/* Pronóstico Actual */}
+        <section className="py-8 bg-muted/30 border-y border-border/50">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card className="text-center p-4 bg-card/60 backdrop-blur-sm border-border/80">
+                <CardContent className="p-0">
+                  <Thermometer className="h-8 w-8 text-red-500 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-foreground">28°C</div>
+                  <div className="text-xs text-muted-foreground">Temperatura Actual</div>
+                </CardContent>
+              </Card>
+              <Card className="text-center p-4 bg-card/60 backdrop-blur-sm border-border/80">
+                <CardContent className="p-0">
+                  <Droplets className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-foreground">75%</div>
+                  <div className="text-xs text-muted-foreground">Humedad</div>
+                </CardContent>
+              </Card>
+              <Card className="text-center p-4 bg-card/60 backdrop-blur-sm border-border/80">
+                <CardContent className="p-0">
+                  <Wind className="h-8 w-8 text-gray-500 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-foreground">15 km/h</div>
+                  <div className="text-xs text-muted-foreground">Viento</div>
+                </CardContent>
+              </Card>
+              <Card className="text-center p-4 bg-card/60 backdrop-blur-sm border-border/80">
+                <CardContent className="p-0">
+                  <Waves className="h-8 w-8 text-cyan-500 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-foreground">27°C</div>
+                  <div className="text-xs text-muted-foreground">Temp. del Mar</div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
         {/* Temporadas */}
         <section className="py-20">
           <div className="container mx-auto px-4">

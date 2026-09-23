@@ -61,7 +61,7 @@ export default function Badges() {
     <PageTransition>
       <SEOHead
         title="Badges y Logros - República Dominicana"
-        description="Colecciona badges exclusivos explorando República Dominicana. Desbloquea logros y compite con otros viajeros."
+        description="Colecciona insignias por cada lugar que visites en República Dominicana y compara tu progreso con otros viajeros."
       />
       <div className="min-h-screen bg-background">
         <Header />

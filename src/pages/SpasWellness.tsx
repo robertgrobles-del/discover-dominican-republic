@@ -15,6 +15,9 @@ import { SEOHead } from "@/components/SEOHead";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { CTARegistroEstablecimiento } from "@/components/forms/CTARegistroEstablecimiento";
+import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
+
 
 const staticSpas = [
   {
@@ -163,8 +166,8 @@ export default function SpasWellness() {
                 Spas & <span className="text-gradient">Wellness</span>
               </h1>
               <p className="text-xl text-muted-foreground mb-8">
-                Renueva cuerpo y mente en los mejores centros de bienestar del Caribe. 
-                Tratamientos exclusivos con ingredientes dominicanos.
+                Masajes, termales y tratamientos con cacao, café y otros ingredientes dominicanos.
+                Filtra por tipo de spa y ubicación.
               </p>
               <div className="flex gap-4 flex-wrap">
                 <Button className="gap-2">
@@ -276,7 +279,7 @@ export default function SpasWellness() {
           </div>
 
           {/* Benefits Section */}
-          <section className="mt-16 bg-gradient-to-r from-emerald/10 via-card to-card rounded-2xl p-8 border border-emerald/30">
+          <section className="mt-16 bg-gradient-to-r from-emerald/10 via-card to-card rounded-2xl p-8 border border-emerald/30 mb-16">
             <h2 className="font-display text-2xl font-bold mb-6 text-center">Beneficios del Bienestar</h2>
             <div className="grid md:grid-cols-4 gap-6">
               {[
@@ -295,6 +298,16 @@ export default function SpasWellness() {
               ))}
             </div>
           </section>
+
+          <div className="space-y-8 mb-16">
+            <SorteoLectorBanner origenCategoria="Spas y Centros de Bienestar" />
+
+            <CTARegistroEstablecimiento 
+              tipo="spa" 
+              titulo="¿Tienes un spa, centro de yoga o retiro de bienestar?" 
+              subtitulo="Añade tu centro de wellness a nuestra guía oficial para el lanzamiento. Destaca tus terapias holísticas, masajes y programas de relajación."
+            />
+          </div>
         </main>
 
         <Footer />

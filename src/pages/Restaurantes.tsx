@@ -11,10 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FavoriteButton } from "@/components/FavoriteButton";
-import { BetweenSectionsAd } from "@/components/ads";
+import { BetweenSectionsAd, CompactInlineAd, PanoramaAd } from "@/components/promo";
 import { restaurants as staticRestaurants, type Restaurant } from "@/data/restaurants";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/hooks/useI18n";
+import { CTARegistroEstablecimiento } from "@/components/forms/CTARegistroEstablecimiento";
+import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
+import { getSafeCoverImage } from "@/lib/imageCovers";
 
 
 const priceRanges = ["$", "$$", "$$$", "$$$$"];
@@ -241,7 +244,7 @@ export default function Restaurantes() {
                 <motion.div key={restaurant.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }} viewport={{ once: true }}>
                   <Link to={`/restaurante/${restaurant.slug}`} className="block bg-card rounded-xl overflow-hidden border border-border group hover:border-primary/50 transition-colors">
                     <div className="aspect-[4/3] relative overflow-hidden">
-                      <img src={restaurant.imageUrl} alt={restaurant.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                      <img src={getSafeCoverImage(restaurant.imageUrl, "restaurant", restaurant.slug)} alt={restaurant.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                       {((restaurant as any).isSponsored) && (
                         <Badge className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1">
                           <Megaphone className="h-3 w-3" />{t("restaurantes.sponsored")}
@@ -278,6 +281,16 @@ export default function Restaurantes() {
             )}
           </div>
         </div>
+      </div>
+
+      <div className="container mx-auto px-4 pb-12 space-y-8">
+        <SorteoLectorBanner origenCategoria="Restaurantes y Gastronomía Dominicana" />
+
+        <CTARegistroEstablecimiento 
+          tipo="restaurante" 
+          titulo="¿Tienes un restaurante o negocio gastronómico?" 
+          subtitulo="Únete a la guía gastronómica oficial de Descubre RD de cara al gran lanzamiento. Muestra tu menú, ubicación y atrae a miles de comensales locales e internacionales."
+        />
       </div>
 
       <BetweenSectionsAd showDemo />

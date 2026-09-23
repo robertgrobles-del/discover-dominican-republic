@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
-import { translations, type Locale } from "@/i18n";
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { translations, loadTranslation, type Locale } from "@/i18n";
 
 export type { Locale };
 
@@ -20,11 +20,24 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem("app-locale");
     return (saved as Locale) || "es";
   });
+  const [, setLoadedVersion] = useState(0);
 
-  const handleSetLocale = useCallback((newLocale: Locale) => {
+  useEffect(() => {
+    if (locale !== "es") {
+      loadTranslation(locale).then(() => {
+        setLoadedVersion((v) => v + 1);
+      });
+    }
+  }, [locale]);
+
+  const handleSetLocale = useCallback(async (newLocale: Locale) => {
+    if (newLocale !== "es") {
+      await loadTranslation(newLocale);
+    }
     setLocale(newLocale);
     localStorage.setItem("app-locale", newLocale);
     document.documentElement.lang = newLocale;
+    setLoadedVersion((v) => v + 1);
   }, []);
 
   const t = useCallback(

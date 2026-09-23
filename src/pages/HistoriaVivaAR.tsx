@@ -72,14 +72,14 @@ export default function HistoriaVivaAR() {
         <Header />
         
         {/* Hero */}
-        <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center mt-16">
+        <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center">
           <div className="absolute inset-0">
             <img
               src={history}
               alt="Historia Viva AR"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/85" />
           </div>
           
           <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
@@ -91,7 +91,7 @@ export default function HistoriaVivaAR() {
               <br />
               <span className="text-gradient">Realidad Aumentada</span>
             </h1>
-            <p className="text-lg text-white/80 max-w-2xl mx-auto mb-8">
+            <p className="text-lg text-white/90 max-w-2xl mx-auto mb-8">
               Viaja en el tiempo y descubre el Monasterio de San Francisco tal como era en el siglo XVI con nuestra tecnología de Realidad Aumentada.
             </p>
             <div className="flex flex-wrap justify-center gap-4">

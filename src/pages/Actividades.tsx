@@ -1,9 +1,11 @@
 import { motion } from "framer-motion";
 import { ChevronRight, ChevronLeft, Mountain, Waves, Landmark, Ship, Anchor, Compass } from "lucide-react";
 import { Header } from "@/components/Header";
-
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { CTARegistroEstablecimiento } from "@/components/forms/CTARegistroEstablecimiento";
+import { SectionWithSideAds } from "@/components/SectionWithSideAds";
+
 import heroBeach from "@/assets/hero-beach.jpg";
 import adventureImg from "@/assets/adventure.jpg";
 import raftingImg from "@/assets/rafting.jpg";
@@ -167,78 +169,85 @@ export default function Actividades() {
         </div>
       </section>
 
-      {/* Sea Section */}
-      <section className="py-20 bg-card">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="order-2 lg:order-1"
-            >
-              <div className="relative aspect-video rounded-2xl overflow-hidden">
-                <img
-                  src={whaleSamanaImg}
-                  alt="Santuario de Ballenas Jorobadas"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
-                <div className="absolute bottom-4 left-4">
-                  <span className="bg-primary/20 text-primary text-xs font-medium px-2 py-1 rounded">
-                    Temporada Enero - Marzo
-                  </span>
-                  <h3 className="font-display text-xl font-bold text-foreground mt-2">
-                    Santuario de Ballenas Jorobadas
-                  </h3>
+      {/* Sea Section wrapped with skyscraper side ads */}
+      <SectionWithSideAds 
+        showAds 
+        leftAdSize="skyscraper" 
+        rightAdSize="skyscraper" 
+        className="container mx-auto"
+      >
+        <section className="py-20 bg-card rounded-3xl my-6">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="order-2 lg:order-1"
+              >
+                <div className="relative aspect-video rounded-2xl overflow-hidden">
+                  <img
+                    src={whaleSamanaImg}
+                    alt="Santuario de Ballenas Jorobadas"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
+                  <div className="absolute bottom-4 left-4">
+                    <span className="bg-primary/20 text-primary text-xs font-medium px-2 py-1 rounded">
+                      Temporada Enero - Marzo
+                    </span>
+                    <h3 className="font-display text-xl font-bold text-foreground mt-2">
+                      Santuario de Ballenas Jorobadas
+                    </h3>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="order-1 lg:order-2"
-            >
-              <span className="text-primary text-sm font-medium uppercase tracking-wider">
-                Profundidad Azul
-              </span>
-              <h2 className="font-display text-4xl md:text-5xl font-bold mt-3 mb-6">
-                Secretos Bajo{" "}
-                <span className="text-gradient">el Mar</span>
-              </h2>
-              <p className="text-muted-foreground mb-8 leading-relaxed">
-                Sumérgete en un universo silencioso lleno de vida y color. Desde los vibrantes arrecifes 
-                de Bayahibe hasta el espectáculo natural de las ballenas jorobadas en la Bahía de Samaná, 
-                el océano Atlántico y el mar Caribe te invitan a explorar sus misterios.
-              </p>
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="order-1 lg:order-2"
+              >
+                <span className="text-primary text-sm font-medium uppercase tracking-wider">
+                  Profundidad Azul
+                </span>
+                <h2 className="font-display text-4xl md:text-5xl font-bold mt-3 mb-6">
+                  Secretos Bajo{" "}
+                  <span className="text-gradient">el Mar</span>
+                </h2>
+                <p className="text-muted-foreground mb-8 leading-relaxed">
+                  Sumérgete en un universo silencioso lleno de vida y color. Desde los vibrantes arrecifes 
+                  de Bayahibe hasta el espectáculo natural de las ballenas jorobadas en la Bahía de Samaná, 
+                  el océano Atlántico y el mar Caribe te invitan a explorar sus misterios.
+                </p>
 
-              <h3 className="font-display font-bold text-foreground mb-4">
-                Actividades Recomendadas
-              </h3>
-              <ul className="space-y-3 mb-8">
-                {seaActivities.map((activity) => (
-                  <li key={activity.name} className="flex items-center gap-3 text-muted-foreground">
-                    <activity.icon className="h-5 w-5 text-primary" />
-                    <span>{activity.name}</span>
-                  </li>
-                ))}
-              </ul>
+                <h3 className="font-display font-bold text-foreground mb-4">
+                  Actividades Recomendadas
+                </h3>
+                <ul className="space-y-3 mb-8">
+                  {seaActivities.map((activity) => (
+                    <li key={activity.name} className="flex items-center gap-3 text-muted-foreground">
+                      <activity.icon className="h-5 w-5 text-primary" />
+                      <span>{activity.name}</span>
+                    </li>
+                  ))}
+                </ul>
 
-              <div className="bg-surface rounded-xl p-4 flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-foreground">Zonas Costeras</p>
-                  <p className="text-sm text-muted-foreground">Samaná, Bayahibe & Punta Cana</p>
+                <div className="bg-surface rounded-xl p-4 flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-foreground">Zonas Costeras</p>
+                    <p className="text-sm text-muted-foreground">Samaná, Bayahibe & Punta Cana</p>
+                  </div>
+                  <Button size="icon" variant="ghost">
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
                 </div>
-                <Button size="icon" variant="ghost">
-                  <ChevronRight className="h-5 w-5" />
-                </Button>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </SectionWithSideAds>
 
       {/* Culture Section */}
       <section className="py-20 bg-background">
@@ -329,7 +338,7 @@ export default function Actividades() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="bg-surface rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-6"
+            className="bg-surface rounded-2xl p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-6 mb-12"
           >
             <div>
               <h2 className="font-display text-2xl md:text-3xl font-bold mb-2">
@@ -344,6 +353,12 @@ export default function Actividades() {
               <Button variant="outline">Ver Mapa Interactivo</Button>
             </div>
           </motion.div>
+
+          <CTARegistroEstablecimiento 
+            tipo="tour" 
+            titulo="¿Eres proveedor de tours o actividades turísticas?" 
+            subtitulo="Registra tus excursiones, tours guiados o actividades de aventura en Descubre RD y conecta con aventureros y familias buscando experiencias únicas."
+          />
         </div>
       </section>
 

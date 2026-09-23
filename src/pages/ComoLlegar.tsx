@@ -206,7 +206,7 @@ export default function ComoLlegar() {
         <Header />
         
         {/* Hero */}
-        <section className="relative py-24 flex items-center justify-center overflow-hidden mt-16">
+        <section className="relative py-24 flex items-center justify-center overflow-hidden">
           {!heroLoaded && <Skeleton className="absolute inset-0" />}
           <img
             src={heroBeach}

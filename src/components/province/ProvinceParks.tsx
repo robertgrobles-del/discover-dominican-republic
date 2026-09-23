@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { TreePine, Star, MapPin, Mountain } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getSafeCoverImage } from "@/lib/imageCovers";
 
 interface ProvinceParksProps {
   provinceId: string;
@@ -59,7 +60,7 @@ export function ProvinceParks({ provinceId, provinceName }: ProvinceParksProps) 
               <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 h-full group">
                 <div className="relative aspect-[16/9] overflow-hidden">
                   <img
-                    src={park.image_url || "/placeholder.svg"}
+                    src={getSafeCoverImage(park.image_url, "waterfall", park.slug)}
                     alt={park.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"

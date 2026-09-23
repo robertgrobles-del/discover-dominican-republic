@@ -3,9 +3,10 @@ import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Film,
   MapPin,
@@ -24,454 +25,333 @@ import {
   Star,
   Clock,
   Clapperboard,
+  Sparkles,
+  Award
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { PanoramaAd } from "@/components/promo";
+import santoDomingoImg from "@/assets/santo-domingo.jpg";
+import samanaImg from "@/assets/samana.jpg";
+import historyImg from "@/assets/history.jpg";
+import adventureImg from "@/assets/adventure.jpg";
 
 const incentives = [
   {
     icon: DollarSign,
-    title: "Crédito Fiscal Transferible",
-    description: "Un crédito fiscal transferible del 25% sobre todos los gastos elegibles realizados en el país, con un mínimo de gasto de US$500,000.",
+    title: "Crédito Fiscal Transferible (25%)",
+    description: "Un crédito fiscal transferible del 25% sobre todos los gastos elegibles realizados en República Dominicana (Artículo 39 Ley 108-10).",
   },
   {
     icon: FileText,
-    title: "Exención de ITBIS",
-    description: "Exención total del impuesto sobre Transferencia de Bienes Industrializados y Servicios (IVA) del 18% en proveedores calificados.",
+    title: "Exención Total de ITBIS (18%)",
+    description: "Exención del 18% en compras de bienes y contratación de servicios calificados directamente vinculados a la producción cinematográfica.",
   },
   {
     icon: Plane,
-    title: "Permisos Ágiles",
-    description: "Ventanilla única de rodaje (DGCINE) para trámites en locaciones públicas, áreas protegidas y zonas históricas rápidamente.",
+    title: "Ventanilla Única DGCINE",
+    description: "Emisión ágil del Permiso Único de Rodaje (PUR) para filmaciones en parques nacionales, monumentos históricos y espacios públicos.",
   },
-];
-
-const locations = [
-  { name: "Zona Colonial", type: "Histórico", image: "https://images.unsplash.com/photo-1583422409516-2895a77efded?w=600&h=400&fit=crop" },
-  { name: "Costas Vírgenes", type: "Playas", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=400&fit=crop" },
-  { name: "Montañas", type: "Cordillera & Jarabacoa", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop" },
-  { name: "Dunas", type: "Baní", image: "https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?w=600&h=400&fit=crop" },
 ];
 
 const productions = [
   { 
     title: "Jurassic Park", 
-    location: "Samaná & Museo del Ámbar", 
+    location: "Samaná, Cascadas y Museo del Ámbar", 
     year: "1993", 
-    genre: "AVENTURA",
-    image: "https://images.unsplash.com/photo-1559583985-c80d8ad9b29f?w=300&h=400&fit=crop" 
+    director: "Steven Spielberg",
+    genre: "AVENTURA & SCI-FI",
+    image: samanaImg,
+    curiosidad: "El mosquito fósil en ámbar que inspiró la trama proviene de las minas de ámbar del Valle del Cibao."
   },
   { 
-    title: "El Padrino II", 
-    location: "Zona Colonial, SD", 
+    title: "El Padrino II (The Godfather II)", 
+    location: "Calle El Conde y Casonas de la Zona Colonial", 
     year: "1974", 
-    genre: "DRAMA",
-    image: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300&h=400&fit=crop" 
+    director: "Francis Ford Coppola",
+    genre: "DRAMA & CLÁSICO",
+    image: historyImg,
+    curiosidad: "Las calles de la Zona Colonial de Santo Domingo recrearon la Habana prerrevolucionaria de los años 50."
   },
   { 
-    title: "Fast & Furious", 
-    location: "Montecristi", 
+    title: "Fast & Furious 4 (Rápidos y Furiosos)", 
+    location: "Montecristi, Autopistas y Costas", 
     year: "2009", 
-    genre: "ACCIÓN",
-    image: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=300&h=400&fit=crop" 
+    director: "Justin Lin (Vin Diesel)",
+    genre: "ACCIÓN & VELOCIDAD",
+    image: adventureImg,
+    curiosidad: "La escena de apertura del robo del camión cisterna fue filmada a lo largo de las carreteras del noroeste dominicano."
   },
   { 
-    title: "The Lost City", 
-    location: "Samaná & Las Terrenas", 
+    title: "The Lost City (La Ciudad Perdida)", 
+    location: "Samaná, Las Terrenas & Casa de Campo", 
     year: "2022", 
-    genre: "COMEDIA",
-    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300&h=400&fit=crop" 
+    director: "Aaron & Adam Nee",
+    genre: "COMEDIA & AVENTURA",
+    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=400&fit=crop",
+    curiosidad: "Sandra Bullock, Channing Tatum y Brad Pitt filmaron durante 4 meses en las selvas de Samaná."
   },
 ];
 
 const experiencias = [
   {
-    titulo: "Ruta Jurásica en Samaná",
-    descripcion: "Explora las cuevas y manglares donde se filmaron escenas clave del clásico de dinosaurios.",
+    titulo: "Ruta Jurásica y Cuevas de Samaná",
+    descripcion: "Visita los paisajes selváticos donde se filmaron escenas icónicas de dinosaurios y cuevas con arte rupestre taíno.",
     duracion: "6 HORAS",
     precio: 85,
     rating: 4.9,
-    imagen: "https://images.unsplash.com/photo-1559583985-c80d8ad9b29f?w=400&h=300&fit=crop"
+    imagen: samanaImg
   },
   {
-    titulo: "Caminata de la Mafia",
-    descripcion: "Recorrido histórico por la Zona Colonial descubriendo los secretos del rodaje de El Padrino II.",
+    titulo: "Caminata de Época: El Padrino en Santo Domingo",
+    descripcion: "Recorrido histórico guiado por las casonas coloniales y balcones del casco antiguo que engañaron al lente de Hollywood.",
     duracion: "3 HORAS",
-    precio: 50,
+    precio: 45,
     rating: 5.0,
-    imagen: "https://images.unsplash.com/photo-1583422409516-2895a77efded?w=400&h=300&fit=crop"
+    imagen: historyImg
   },
   {
-    titulo: "Rápidos y Furiosos: La Costa",
-    descripcion: "Aventura en 4x4 por las carreteras costeras de Montecristi. Adrenalina pura y vistas increíbles.",
-    duracion: "FULL DAY",
+    titulo: "Safari 4x4 por la Costa de Acción",
+    descripcion: "Ruta en todoterreno por los acantilados y playas salvajes utilizadas para secuencias de persecución y películas de acción.",
+    duracion: "DÍA COMPLETO",
     precio: 120,
     rating: 4.8,
-    imagen: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&h=300&fit=crop"
+    imagen: adventureImg
   }
 ];
 
 const infrastructure = [
   {
-    icon: Users,
-    title: "Talento y Crew Local",
-    description: "Personal técnico bilingüe altamente capacitado con experiencia en producciones de Hollywood.",
+    icon: Building,
+    title: "Pinewood Dominican Republic Studios",
+    description: "Complejo de estudios de nivel internacional en Juan Dolio, equipado con el Horizon Water Tank de 60,500 pies cuadrados para rodajes marítimos de gran escala.",
   },
   {
-    icon: Building,
-    title: "Equipamiento y Estudios",
-    description: "Pinewood Dominican Republic Studios cuenta con el Horizon Water Tank, uno de los tanques de agua más grandes del mundo.",
+    icon: Users,
+    title: "Crew Técnico y Talento Bilingüe",
+    description: "Directores de fotografía, ingenieros de sonido, operadores de drones certificados por IDAC y especialistas en efectos prácticos con amplia experiencia en producciones globales.",
   },
   {
     icon: Plane,
-    title: "Logística y Conectividad",
-    description: "8 aeropuertos internacionales y una infraestructura hotelera robusta para alojar equipos de cualquier tamaño.",
+    title: "8 Aeropuertos y Logística Hotelera",
+    description: "Conexiones internacionales sin escalas y capacidad hotelera de más de 85,000 habitaciones para alojar grandes equipos de rodaje con comodidades de primer nivel.",
   },
 ];
 
 export default function CineRD() {
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Turismo Cinematográfico y Locaciones de Cine en RD | Descubre República Dominicana"
+        description="Explora los escenarios de Hollywood en República Dominicana: Jurassic Park, El Padrino II, The Lost City. Conoce la Ley de Cine (108-10), incentivos fiscales y tours de cine."
+        keywords="cine dominicano, locaciones de peliculas en republica dominicana, film commission rd, ley de cine 108-10, jurassic park samana, el padrino zona colonial"
+      />
+      
+      <div className="min-h-screen bg-background flex flex-col justify-between">
         <Header />
 
-        {/* Hero Section */}
-        <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-          <div className="absolute inset-0">
-            <img
-              src="https://images.unsplash.com/photo-1485846234645-a62644f84728?w=1920&h=1080&fit=crop"
-              alt="Cine RD"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background" />
-          </div>
-
-          <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-            <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
-              <Clapperboard className="w-4 h-4 mr-2" />
-              TURISMO CINEMATOGRÁFICO
-            </Badge>
-            <h1 className="font-display text-5xl md:text-7xl font-bold text-white mb-4">
-              RD EN LA <br />
-              <span className="italic">GRAN PANTALLA</span>
-            </h1>
-            <p className="text-lg text-white/80 max-w-2xl mx-auto mb-8">
-              Vive la película. Visita el set. Descubre las locaciones reales de tus filmes favoritos rodados en el paraíso.
-            </p>
-
-            <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="gap-2">
-                <Camera className="h-4 w-4" /> Explorar Locaciones
-              </Button>
-              <Button size="lg" variant="outline" className="gap-2 bg-white/10 border-white/30 text-white hover:bg-white/20">
-                <Play className="h-4 w-4" /> Ver Trailer
-              </Button>
+        <main className="pb-20">
+          {/* Hero Cinematográfico */}
+          <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden">
+            <div className="absolute inset-0">
+              <img
+                src={santoDomingoImg}
+                alt="Turismo Cinematográfico y Escenarios de Cine en República Dominicana"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-black/65 to-black/40" />
             </div>
-          </div>
 
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2"
-          >
-            <ChevronRight className="h-8 w-8 text-white rotate-90" />
-          </motion.div>
-        </section>
+            <div className="relative z-10 text-center px-4 max-w-4xl mx-auto text-white py-16">
+              <Badge className="mb-4 bg-primary/20 text-white border-primary/40 backdrop-blur-md px-3 py-1 font-semibold">
+                <Clapperboard className="w-3.5 h-3.5 mr-1.5 text-primary" />
+                Turismo Cinematográfico & Film Commission
+              </Badge>
+              <h1 className="font-display text-4xl md:text-6xl font-extrabold tracking-tight mb-4 drop-shadow-md">
+                República Dominicana en la <br />
+                <span className="italic text-primary">Gran Pantalla</span>
+              </h1>
+              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto mb-8 leading-relaxed drop-shadow">
+                Visita los sets reales de películas clásicas y producciones contemporáneas que escogieron las costas, selvas y calles coloniales de nuestra isla.
+              </p>
 
-        {/* Cartelera de Estrellas */}
-        <section className="py-20 bg-card/30">
-          <div className="container mx-auto px-4">
-            <h2 className="font-display text-3xl font-bold text-foreground mb-2 text-center">
-              Cartelera de Estrellas
-            </h2>
-            <p className="text-muted-foreground text-center mb-12">
-              Grandes producciones que confiaron en nuestros escenarios
-            </p>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {productions.map((production, index) => (
-                <motion.div
-                  key={production.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="group cursor-pointer"
-                >
-                  <div className="aspect-[3/4] rounded-xl overflow-hidden mb-3 border border-border relative">
-                    <img
-                      src={production.image}
-                      alt={production.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute top-2 left-2">
-                      <Badge className="bg-black/70 text-white text-xs">
-                        {production.genre} • {production.year}
-                      </Badge>
-                    </div>
-                  </div>
-                  <h3 className="font-semibold text-foreground">{production.title}</h3>
-                  <p className="text-sm text-muted-foreground flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />
-                    {production.location}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Set vs Realidad */}
-        <section className="py-20">
-          <div className="container mx-auto px-4">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <Badge className="mb-4 bg-primary/10 text-primary">DETRÁS DE CÁMARAS</Badge>
-                <h2 className="font-display text-3xl font-bold text-foreground mb-4">
-                  Set vs Realidad
-                </h2>
-                <p className="text-muted-foreground mb-6">
-                  Descubre cómo la magia del cine transformó las calles de Santo Domingo en la Habana de los años 50 para "El Padrino II".
-                </p>
-                <Button variant="link" className="text-primary gap-1 p-0">
-                  Ver todas las comparaciones <ChevronRight className="h-4 w-4" />
+              <div className="flex flex-wrap justify-center gap-4">
+                <Button size="lg" className="gap-2 font-bold shadow-md">
+                  <Camera className="h-4 w-4" /> Explorar Locaciones Famosas
+                </Button>
+                <Button size="lg" variant="outline" className="gap-2 bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm">
+                  <Download className="h-4 w-4" /> Guía DGCINE (PDF)
                 </Button>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-card rounded-xl border border-border overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400&h=300&fit=crop"
-                    alt="Escena de película"
-                    className="w-full aspect-video object-cover"
-                  />
-                  <div className="p-4">
-                    <p className="font-semibold text-foreground text-sm">EN LA PELÍCULA</p>
-                    <p className="text-xs text-muted-foreground">Escena de La Habana</p>
-                    <p className="text-xs text-muted-foreground">El Padrino II (1974)</p>
-                  </div>
-                </div>
-                <div className="bg-card rounded-xl border border-border overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1583422409516-2895a77efded?w=400&h=300&fit=crop"
-                    alt="Locación real"
-                    className="w-full aspect-video object-cover"
-                  />
-                  <div className="p-4">
-                    <p className="font-semibold text-foreground text-sm">EN LA REALIDAD</p>
-                    <p className="text-xs text-muted-foreground">Calle El Conde</p>
-                    <p className="text-xs text-muted-foreground">Zona Colonial, Santo Domingo</p>
-                  </div>
-                </div>
-              </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Experiencias de Película */}
-        <section className="py-20 bg-card/30">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="font-display text-3xl font-bold text-foreground mb-2">
-                Experiencias de Película
+          {/* Cartelera de Estrellas */}
+          <section className="container mx-auto px-4 mt-16 max-w-6xl">
+            <div className="text-center max-w-2xl mx-auto mb-12">
+              <span className="text-xs font-bold text-primary uppercase tracking-widest block mb-1">Filmografía en la Isla</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
+                Grandes Producciones Filmadas en RD
               </h2>
-              <p className="text-muted-foreground">
-                Reserva un tour guiado por expertos y revive los momentos más icónicos del cine en República Dominicana.
+              <p className="text-sm text-muted-foreground mt-2">
+                Descubre cómo los paisajes dominicanos han dado vida a algunas de las escenas más recordadas del cine mundial.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {productions.map((prod, index) => (
+                <Card key={prod.title} className="overflow-hidden border border-border/80 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+                  <div>
+                    <div className="relative aspect-[3/4] overflow-hidden">
+                      <img
+                        src={prod.image}
+                        alt={prod.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                      
+                      <div className="absolute top-3 left-3">
+                        <Badge className="bg-black/70 text-white text-[10px] font-semibold backdrop-blur-xs">
+                          {prod.genre} • {prod.year}
+                        </Badge>
+                      </div>
+
+                      <div className="absolute bottom-3 left-3 right-3 text-white">
+                        <h3 className="font-display font-bold text-lg leading-tight drop-shadow">{prod.title}</h3>
+                        <p className="text-xs text-white/80 mt-0.5">Dir: {prod.director}</p>
+                        <p className="text-xs text-primary font-semibold flex items-center gap-1 mt-1">
+                          <MapPin className="h-3 w-3" /> {prod.location}
+                        </p>
+                      </div>
+                    </div>
+
+                    <CardContent className="p-4 space-y-2">
+                      <span className="text-[10px] font-bold uppercase text-muted-foreground block">Curiosidad de Rodaje:</span>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {prod.curiosidad}
+                      </p>
+                    </CardContent>
+                  </div>
+
+                  <div className="p-4 pt-0">
+                    <Button variant="outline" size="sm" className="w-full text-xs font-bold">
+                      Ver Ficha de Locación
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </section>
+
+          {/* Experiencias de Cine y Tours */}
+          <section className="container mx-auto px-4 mt-20 max-w-6xl">
+            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-8">
+              <div>
+                <span className="text-xs font-bold text-primary uppercase tracking-widest block mb-1">Tours y Rutas Guiadas</span>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+                  Experiencias de Película en Primera Persona
+                </h2>
+              </div>
+              <p className="text-xs text-muted-foreground max-w-sm">
+                Recorridos guiados por especialistas en cine que te llevan a los mismos puntos de cámara de tus actores favoritos.
               </p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
               {experiencias.map((exp, index) => (
-                <motion.div
-                  key={exp.titulo}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-card rounded-xl border border-border overflow-hidden group"
-                >
-                  <div className="relative aspect-video overflow-hidden">
-                    <img
-                      src={exp.imagen}
-                      alt={exp.titulo}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <Badge className="absolute top-3 left-3 bg-black/70 text-white">
-                      <Clock className="w-3 h-3 mr-1" />
-                      {exp.duracion}
-                    </Badge>
-                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/60 px-2 py-1 rounded-full">
-                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                      <span className="text-white text-xs">{exp.rating}</span>
+                <Card key={exp.titulo} className="overflow-hidden border border-border/80 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+                  <div>
+                    <div className="relative aspect-video overflow-hidden">
+                      <img
+                        src={exp.imagen}
+                        alt={exp.titulo}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <Badge className="absolute top-3 left-3 bg-black/70 text-white text-[10px]">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {exp.duracion}
+                      </Badge>
+                      <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/60 px-2 py-0.5 rounded-full text-white text-xs">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                        <span>{exp.rating}</span>
+                      </div>
                     </div>
+                    <CardContent className="p-5">
+                      <h3 className="font-bold text-foreground text-base mb-2">{exp.titulo}</h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{exp.descripcion}</p>
+                    </CardContent>
                   </div>
-                  <div className="p-5">
-                    <h3 className="font-semibold text-foreground mb-2">{exp.titulo}</h3>
-                    <p className="text-sm text-muted-foreground mb-4">{exp.descripcion}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-foreground">
-                        Desde ${exp.precio} USD
-                      </span>
-                      <Button size="sm">Reservar</Button>
+
+                  <div className="p-5 pt-0 border-t border-border/50 flex items-center justify-between mt-2">
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block uppercase">Tarifa desde</span>
+                      <span className="text-lg font-bold font-mono text-foreground">${exp.precio} USD</span>
                     </div>
+                    <Button size="sm" className="text-xs font-bold">Reservar Tour</Button>
                   </div>
-                </motion.div>
+                </Card>
               ))}
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Incentives Section */}
-        <section className="py-20">
-          <div className="container mx-auto px-4">
-            <Badge className="bg-primary/10 text-primary mb-4">LEY 108-10</Badge>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Incentivos Competitivos
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mb-12">
-              Un marco legal sólido diseñado para maximizar el presupuesto de producciones 
-              extranjeras y locales.
-            </p>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {incentives.map((incentive, index) => (
-                <motion.div
-                  key={incentive.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-card rounded-xl border border-border p-6"
-                >
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                    <incentive.icon className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-foreground text-lg mb-2">
-                    {incentive.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {incentive.description}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Locations Section */}
-        <section className="py-20 bg-card/30">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
-              <div>
-                <h2 className="font-display text-3xl font-bold text-foreground mb-2">
-                  Escenarios Diversos
+          {/* Incentivos Ley 108-10 y Servicios a Productores */}
+          <section className="container mx-auto px-4 mt-20 max-w-6xl">
+            <div className="bg-card border border-border/80 rounded-3xl p-8 md:p-12 shadow-sm">
+              <div className="max-w-3xl mb-10">
+                <Badge className="bg-primary/10 text-primary border-primary/20 text-xs mb-3 font-semibold">
+                  📜 Ley de Fomento a la Actividad Cinematográfica (108-10)
+                </Badge>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+                  Incentivos Fiscales de Nivel Mundial
                 </h2>
-                <p className="text-muted-foreground">
-                  Desde arquitectura colonial del siglo XVI hasta selvas vírgenes y playas prístinas.
+                <p className="text-xs md:text-sm text-muted-foreground mt-2 leading-relaxed">
+                  República Dominicana ofrece uno de los paquetes de incentivos más competitivos del hemisferio occidental, facilitando transferencias bancarias ágiles y exención total de aranceles de importación temporal de equipos.
                 </p>
               </div>
-              <Button variant="link" className="text-primary gap-1">
-                Ver todas las locaciones <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
 
-            <div className="grid md:grid-cols-4 gap-4">
-              {locations.map((location, index) => (
-                <motion.div
-                  key={location.name}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className={`relative rounded-xl overflow-hidden group cursor-pointer ${
-                    index === 0 ? "md:col-span-2 md:row-span-2" : ""
-                  }`}
-                >
-                  <img
-                    src={location.image}
-                    alt={location.name}
-                    className={`w-full object-cover group-hover:scale-105 transition-transform duration-500 ${
-                      index === 0 ? "h-full" : "aspect-square"
-                    }`}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                  <div className="absolute bottom-4 left-4">
-                    <p className="font-semibold text-white text-lg">{location.name}</p>
-                    <p className="text-sm text-white/70">{location.type}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Infrastructure Section */}
-        <section className="py-20">
-          <div className="container mx-auto px-4">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <h2 className="font-display text-3xl font-bold text-foreground mb-6">
-                  Infraestructura de Clase Mundial
-                </h2>
-                
-                <div className="space-y-6">
-                  {infrastructure.map((item, index) => (
-                    <motion.div
-                      key={item.title}
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.1 }}
-                      className="flex gap-4"
-                    >
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <item.icon className="h-5 w-5 text-primary" />
+              <div className="grid md:grid-cols-3 gap-6 mb-12">
+                {incentives.map((incentive, index) => {
+                  const IconComp = incentive.icon;
+                  return (
+                    <div key={incentive.title} className="bg-muted/30 p-6 rounded-2xl border border-border/50 space-y-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                        <IconComp className="h-5 w-5" />
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground mb-1">{item.title}</h3>
-                        <p className="text-sm text-muted-foreground">{item.description}</p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-
-                <Button variant="outline" className="mt-8 gap-2">
-                  Ver Directorio de Servicios <ArrowRight className="h-4 w-4" />
-                </Button>
+                      <h3 className="font-bold text-foreground text-sm">{incentive.title}</h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{incentive.description}</p>
+                    </div>
+                  );
+                })}
               </div>
 
-              <div className="bg-card rounded-xl border border-border p-6 flex items-center justify-center min-h-[400px]">
-                <div className="text-center">
-                  <MapPin className="h-12 w-12 text-primary mx-auto mb-4" />
-                  <Button className="gap-2">
-                    <Play className="h-4 w-4" /> Mapa Interactivo
-                  </Button>
+              {/* Infraestructura */}
+              <div className="pt-8 border-t border-border/60">
+                <h3 className="font-display font-bold text-xl text-foreground mb-6">
+                  Infraestructura y Estudios Técnicos
+                </h3>
+                <div className="grid md:grid-cols-3 gap-6">
+                  {infrastructure.map((inf, i) => {
+                    const InfIcon = inf.icon;
+                    return (
+                      <div key={i} className="flex gap-3.5">
+                        <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          <InfIcon className="h-4.5 w-4.5" />
+                        </div>
+                        <div className="space-y-1">
+                          <h4 className="font-bold text-foreground text-xs">{inf.title}</h4>
+                          <p className="text-[11px] text-muted-foreground leading-relaxed">{inf.description}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* CTA Section */}
-        <section className="py-20 bg-primary">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
-              ¿Listo para rodar en el paraíso?
-            </h2>
-            <p className="text-primary-foreground/80 max-w-xl mx-auto mb-8">
-              Contáctanos hoy para recibir asesoría gratuita sobre incentivos, 
-              permisos y locaciones.
-            </p>
-
-            <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" variant="secondary" className="gap-2">
-                <Phone className="h-4 w-4" /> Contactar Comisión de Cine
-              </Button>
-              <Button size="lg" variant="outline" className="gap-2 bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10">
-                <Download className="h-4 w-4" /> Descargar Kit de Prensa
-              </Button>
-            </div>
-          </div>
-        </section>
+          {/* Banner Publicitario Oficial */}
+          <section className="container mx-auto px-4 mt-16 max-w-5xl">
+            <PanoramaAd />
+          </section>
+        </main>
 
         <Footer />
       </div>

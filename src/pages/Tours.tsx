@@ -12,7 +12,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
-import { BetweenSectionsAd } from "@/components/ads";
+import { BetweenSectionsAd } from "@/components/promo";
 import { useTranslation } from "@/hooks/useI18n";
 import heroBeach from "@/assets/hero-beach.jpg";
 

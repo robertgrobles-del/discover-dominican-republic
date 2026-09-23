@@ -73,7 +73,7 @@ export default function Accesibilidad() {
         <Header />
 
         {/* Hero */}
-        <section className="relative h-[60vh] min-h-[500px] flex items-center justify-center mt-16">
+        <section className="relative h-[60vh] min-h-[500px] flex items-center justify-center">
           <div className="absolute inset-0">
             <img
               src={laRomana}

@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getStoredJSON } from "@/lib/safeStorage";
 import { useAuth } from "./useAuth";
 
 export type FavoriteType = "destino" | "hotel" | "experiencia" | "restaurante" | "evento" | "parque" | "bar" | "agencia" | "guia" | "clinica" | "puerto" | "estadio" | "cueva" | "parque-nacional" | "destino-religioso" | "airbnb" | "provincia" | "playa" | "rio" | "spa" | "tour" | "reserva-natural";
@@ -59,8 +60,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         });
     } else {
       // Not logged in: use localStorage
-      const stored = localStorage.getItem(STORAGE_KEY);
-      setFavorites(stored ? JSON.parse(stored) : []);
+      setFavorites(getStoredJSON<FavoriteItem[]>(STORAGE_KEY, []));
     }
   }, [user]);
 

@@ -1,24 +1,26 @@
+import { useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { ExternalLink, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useBanner, type AdBanner } from "@/hooks/useAdBanners";
 import { BannerMediaContent } from "./BannerMediaContent";
+import { INDUSTRY_BANNERS_DEMO, type IndustryBannerDemo } from "@/data/mockIndustryBanners";
 
-// Demo images for tourism ads (fallback)
-import adBeachResort from "@/assets/ads/ad-beach-resort.jpg";
-import adAdventure from "@/assets/ads/ad-adventure.jpg";
-import adLuxuryHotel from "@/assets/ads/ad-luxury-hotel.jpg";
-import adWhaleWatching from "@/assets/ads/ad-whale-watching.jpg";
-import adGastronomyMobile from "@/assets/ads/ad-gastronomy-mobile.jpg";
-import adEcoSquare from "@/assets/ads/ad-eco-square.jpg";
-import adSpaSquare from "@/assets/ads/ad-spa-square.jpg";
-import adGolfSkyscraper from "@/assets/ads/ad-golf-skyscraper.jpg";
-import adCasinoSkyscraper from "@/assets/ads/ad-casino-skyscraper.jpg";
-import adDivingWide from "@/assets/ads/ad-diving-wide.jpg";
+// Demo images for tourism promos (fallback)
+import adBeachResort from "@/assets/promo/promo-beach-resort.jpg";
+import adAdventure from "@/assets/promo/promo-adventure.jpg";
+import adLuxuryHotel from "@/assets/promo/promo-luxury-hotel.jpg";
+import adWhaleWatching from "@/assets/promo/promo-whale-watching.jpg";
+import adGastronomyMobile from "@/assets/promo/promo-gastronomy-mobile.jpg";
+import adEcoSquare from "@/assets/promo/promo-eco-square.jpg";
+import adSpaSquare from "@/assets/promo/promo-spa-square.jpg";
+import adGolfSkyscraper from "@/assets/promo/promo-golf-skyscraper.jpg";
+import adCasinoSkyscraper from "@/assets/promo/promo-casino-skyscraper.jpg";
+import adDivingWide from "@/assets/promo/promo-diving-wide.jpg";
 
 export type AdSize = 
   | "leaderboard"       // 728x90
-  | "billboard"         // 970x125
+  | "billboard"         // 970x135
   | "skyscraper"        // 160x600
   | "wide-skyscraper"   // 300x600
   | "half-page"         // 300x600
@@ -30,7 +32,8 @@ export type AdSize =
   | "mobile-large"      // 320x100
   | "mobile-medium"     // 320x250
   | "portrait"          // 300x1050
-  | "panorama";         // 980x120
+  | "panorama"          // 980x120
+  | "full-width-hero";  // 1280x240 Full-Width High-Impact
 
 export type AdPlacement = 
   | "header" 
@@ -38,7 +41,21 @@ export type AdPlacement =
   | "inline" 
   | "footer" 
   | "between-sections"
-  | "sticky";
+  | "sticky"
+  | "topbar"
+  | "exit-intent";
+
+export type IndustryCategory = 
+  | "hotels" 
+  | "restaurants" 
+  | "bars" 
+  | "banks" 
+  | "alcohol" 
+  | "rentcar" 
+  | "airlines" 
+  | "airports" 
+  | "government" 
+  | "presidente";
 
 interface BannerAdProps {
   size: AdSize;
@@ -50,56 +67,169 @@ interface BannerAdProps {
   altText?: string;
   sponsor?: string;
   showDemo?: boolean;
+  showDimensionsBadge?: boolean;
+  /** Specialized Dominican Industry Category for Demo Ads */
+  industry?: IndustryCategory;
   /** Section key to fetch dynamic banner from DB */
   section?: string;
   /** Pass a pre-fetched banner object directly */
   bannerData?: AdBanner | null;
 }
 
-// Default promo messages (fallback when no DB banner)
+// Default promo messages (clean editorial tourism fallback when no DB banner)
 const defaultPromo: Record<string, { headline: string; subtext: string; cta: string }> = {
-  "billboard": { headline: "🌴 República Dominicana, El Mejor Destino del Caribe", subtext: "Tu hotel, restaurante o agencia podría estar aquí", cta: "Anúnciate con nosotros" },
-  "leaderboard": { headline: "✨ Promociona tu negocio turístico", subtext: "Llega a miles de viajeros cada día", cta: "Contáctanos" },
-  "skyscraper": { headline: "🏝️ Destino #1", subtext: "Anuncia aquí", cta: "Ver más" },
-  "wide-skyscraper": { headline: "🌊 Tu negocio en el paraíso", subtext: "Promociona tu establecimiento", cta: "Contactar" },
-  "medium-rect": { headline: "🌅 Espacio Premium", subtext: "Tu marca aquí", cta: "Anunciarse" },
-  "panorama": { headline: "🏖️ República Dominicana te espera", subtext: "Promociona tu establecimiento turístico aquí", cta: "Contáctanos" },
-  "default": { headline: "🌴 Anuncia en RD", subtext: "El mejor destino del Caribe", cta: "Contactar" },
+  "full-width-hero": {
+    headline: "Descubre Quisqueya La Bella: Playas, Cultura y Naturaleza",
+    subtext: "Conoce las ofertas turísticas exclusivas y promociones de operadores certificados en todo el territorio nacional.",
+    cta: "Explorar Todo RD"
+  },
+  "billboard": { 
+    headline: "República Dominicana: Experiencias de Clase Mundial", 
+    subtext: "Descubre alojamientos boutique, gastronomía galardonada y playas de ensueño.", 
+    cta: "Explorar Ofertas" 
+  },
+  "leaderboard": { 
+    headline: "Reserva los Mejores Alojamientos y Tours Oficiales", 
+    subtext: "Conexión directa con operadores turísticos certificados de República Dominicana.", 
+    cta: "Ver Catálogo" 
+  },
+  "skyscraper": { 
+    headline: "Destino Caribe", 
+    subtext: "Guía oficial de hoteles y escapadas.", 
+    cta: "Reservar" 
+  },
+  "wide-skyscraper": { 
+    headline: "Espacios Exclusivos en el Paraíso", 
+    subtext: "Villas, resorts y experiencias frente al mar.", 
+    cta: "Descubrir" 
+  },
+  "medium-rect": { 
+    headline: "Escapadas de Lujo y Aventura", 
+    subtext: "Certificaciones turísticas y experiencias inolvidables.", 
+    cta: "Ver Experiencias" 
+  },
+  "panorama": { 
+    headline: "República Dominicana lo tiene todo", 
+    subtext: "Planifica tus próximas vacaciones con las mejores tarifas y operadores locales.", 
+    cta: "Planificar Viaje" 
+  },
+  "default": { 
+    headline: "Turismo en República Dominicana", 
+    subtext: "Descubre destinos únicos, playas y gastronomía.", 
+    cta: "Conocer Más" 
+  },
 };
 
 const sizeConfig: Record<AdSize, { width: string; height: string; placeholderHeight: string; label: string }> = {
-  "leaderboard": { width: "728px", height: "90px", placeholderHeight: "50px", label: "728×90" },
-  "billboard": { width: "970px", height: "125px", placeholderHeight: "80px", label: "970×125" },
-  "skyscraper": { width: "160px", height: "600px", placeholderHeight: "250px", label: "160×600" },
-  "wide-skyscraper": { width: "300px", height: "600px", placeholderHeight: "280px", label: "300×600" },
-  "half-page": { width: "300px", height: "600px", placeholderHeight: "280px", label: "300×600" },
-  "medium-rect": { width: "300px", height: "250px", placeholderHeight: "100px", label: "300×250" },
-  "large-rect": { width: "336px", height: "280px", placeholderHeight: "110px", label: "336×280" },
-  "square-small": { width: "250px", height: "250px", placeholderHeight: "100px", label: "250×250" },
-  "square-large": { width: "300px", height: "300px", placeholderHeight: "120px", label: "300×300" },
-  "mobile-banner": { width: "320px", height: "50px", placeholderHeight: "30px", label: "320×50" },
-  "mobile-large": { width: "320px", height: "80px", placeholderHeight: "50px", label: "320×80" },
-  "mobile-medium": { width: "320px", height: "250px", placeholderHeight: "100px", label: "320×250" },
-  "portrait": { width: "300px", height: "1050px", placeholderHeight: "400px", label: "300×1050" },
-  "panorama": { width: "980px", height: "100px", placeholderHeight: "60px", label: "980×100" },
+  "full-width-hero": { width: "100%", height: "230px", placeholderHeight: "180px", label: "1280 × 240 (Full Width)" },
+  "leaderboard": { width: "728px", height: "90px", placeholderHeight: "60px", label: "728 × 90" },
+  "billboard": { width: "970px", height: "140px", placeholderHeight: "90px", label: "970 × 140" },
+  "skyscraper": { width: "160px", height: "600px", placeholderHeight: "250px", label: "160 × 600" },
+  "wide-skyscraper": { width: "300px", height: "600px", placeholderHeight: "280px", label: "300 × 600" },
+  "half-page": { width: "300px", height: "600px", placeholderHeight: "280px", label: "300 × 600" },
+  "medium-rect": { width: "300px", height: "250px", placeholderHeight: "120px", label: "300 × 250" },
+  "large-rect": { width: "336px", height: "280px", placeholderHeight: "130px", label: "336 × 280" },
+  "square-small": { width: "250px", height: "250px", placeholderHeight: "110px", label: "250 × 250" },
+  "square-large": { width: "300px", height: "300px", placeholderHeight: "130px", label: "300 × 300" },
+  "mobile-banner": { width: "320px", height: "60px", placeholderHeight: "45px", label: "320 × 60" },
+  "mobile-large": { width: "320px", height: "90px", placeholderHeight: "60px", label: "320 × 90" },
+  "mobile-medium": { width: "320px", height: "250px", placeholderHeight: "120px", label: "320 × 250" },
+  "portrait": { width: "300px", height: "1050px", placeholderHeight: "400px", label: "300 × 1050" },
+  "panorama": { width: "980px", height: "120px", placeholderHeight: "70px", label: "980 × 120" },
 };
 
-// Demo fallback images
-const demoAds: Partial<Record<AdSize, { image: string; alt: string; sponsor: string }>> = {
-  "billboard": { image: adBeachResort, alt: "Resorts de playa en República Dominicana", sponsor: "Visit DR" },
-  "leaderboard": { image: adLuxuryHotel, alt: "Hoteles de lujo en el Caribe", sponsor: "RD Hotels" },
-  "medium-rect": { image: adAdventure, alt: "Aventuras en República Dominicana", sponsor: "Adventure RD" },
-  "large-rect": { image: adDivingWide, alt: "Buceo en el Caribe", sponsor: "Dive RD" },
-  "skyscraper": { image: adWhaleWatching, alt: "Avistamiento de ballenas en Samaná", sponsor: "Whale RD" },
-  "wide-skyscraper": { image: adGolfSkyscraper, alt: "Golf en República Dominicana", sponsor: "Golf RD" },
-  "half-page": { image: adCasinoSkyscraper, alt: "Casinos y entretenimiento", sponsor: "Casino RD" },
-  "mobile-large": { image: adGastronomyMobile, alt: "Gastronomía dominicana", sponsor: "Taste RD" },
-  "mobile-banner": { image: adGastronomyMobile, alt: "Sabores del Caribe", sponsor: "Food Tours" },
-  "mobile-medium": { image: adAdventure, alt: "Excursiones tropicales", sponsor: "Tours RD" },
-  "square-small": { image: adSpaSquare, alt: "Spa y bienestar", sponsor: "Wellness RD" },
-  "square-large": { image: adEcoSquare, alt: "Ecoturismo en RD", sponsor: "Eco Tours" },
-  "portrait": { image: adGolfSkyscraper, alt: "Destinos de golf premium", sponsor: "Golf Premium" },
-  "panorama": { image: adBeachResort, alt: "Playas paradisíacas", sponsor: "Beach RD" },
+// Demo fallback images & dynamic target landing pages
+const demoAds: Partial<Record<AdSize, { image: string; alt: string; sponsor: string; targetUrl: string }>> = {
+  "full-width-hero": { 
+    image: adBeachResort, 
+    alt: "Descubre Quisqueya La Bella: Playas, Cultura y Naturaleza", 
+    sponsor: "Ministerio de Turismo de RD", 
+    targetUrl: "/destinos/punta-cana" 
+  },
+  "billboard": { 
+    image: adBeachResort, 
+    alt: "Resorts de playa en República Dominicana", 
+    sponsor: "Cap Cana & Punta Cana", 
+    targetUrl: "/alojamientos" 
+  },
+  "leaderboard": { 
+    image: adLuxuryHotel, 
+    alt: "Hoteles de lujo en el Caribe", 
+    sponsor: "Colección Boutique RD", 
+    targetUrl: "https://instagram.com/godomrep" 
+  },
+  "medium-rect": { 
+    image: adAdventure, 
+    alt: "Aventuras en República Dominicana", 
+    sponsor: "Turismo Aventura", 
+    targetUrl: "/actividades" 
+  },
+  "large-rect": { 
+    image: adDivingWide, 
+    alt: "Buceo en el Caribe", 
+    sponsor: "Parques Submarinos RD", 
+    targetUrl: "/destinos/samana" 
+  },
+  "skyscraper": { 
+    image: adWhaleWatching, 
+    alt: "Avistamiento de ballenas en Samaná", 
+    sponsor: "Santuario de Samaná", 
+    targetUrl: "/destinos/samana" 
+  },
+  "wide-skyscraper": { 
+    image: adGolfSkyscraper, 
+    alt: "Campos de Golf PGA en República Dominicana", 
+    sponsor: "Golf Dominicano", 
+    targetUrl: "https://instagram.com/godomrep" 
+  },
+  "half-page": { 
+    image: adCasinoSkyscraper, 
+    alt: "Entretenimiento y Vida Nocturna", 
+    sponsor: "Ocio Caribe", 
+    targetUrl: "/vida-nocturna" 
+  },
+  "mobile-large": { 
+    image: adGastronomyMobile, 
+    alt: "Ruta Gastronómica Dominicana", 
+    sponsor: "Sabores de RD", 
+    targetUrl: "/guia-gastronomica" 
+  },
+  "mobile-banner": { 
+    image: adGastronomyMobile, 
+    alt: "Sabores del Caribe", 
+    sponsor: "Gastronomía RD", 
+    targetUrl: "/restaurantes" 
+  },
+  "mobile-medium": { 
+    image: adAdventure, 
+    alt: "Excursiones y Ecoturismo", 
+    sponsor: "Ecoturismo RD", 
+    targetUrl: "/sostenible" 
+  },
+  "square-small": { 
+    image: adSpaSquare, 
+    alt: "Centros de Bienestar y Spa", 
+    sponsor: "Wellness RD", 
+    targetUrl: "/wellness" 
+  },
+  "square-large": { 
+    image: adEcoSquare, 
+    alt: "Ecoturismo y Parques Nacionales", 
+    sponsor: "Parques Nacionales", 
+    targetUrl: "/destinos/jarabacoa" 
+  },
+  "portrait": { 
+    image: adGolfSkyscraper, 
+    alt: "Golf de campeonato en el Caribe", 
+    sponsor: "PGA Tour RD", 
+    targetUrl: "https://instagram.com/godomrep" 
+  },
+  "panorama": { 
+    image: adBeachResort, 
+    alt: "Playas vírgenes de República Dominicana", 
+    sponsor: "Descubre República Dominicana", 
+    targetUrl: "/playas" 
+  },
 };
 
 export function BannerAd({
@@ -108,10 +238,12 @@ export function BannerAd({
   className,
   adId,
   imageUrl,
-  targetUrl = "/partners",
-  altText = "Publicidad",
+  targetUrl = "/alojamientos",
+  altText = "Publicidad Turística Oficial",
   sponsor,
   showDemo = false,
+  showDimensionsBadge = true,
+  industry,
   section,
   bannerData,
 }: BannerAdProps) {
@@ -123,96 +255,237 @@ export function BannerAd({
   );
 
   const activeBanner = bannerData || dynamicBanner;
-
-  const config = sizeConfig[size];
+  const config = sizeConfig[size] || sizeConfig["medium-rect"];
   const demoAd = showDemo ? demoAds[size] : null;
 
-  // Resolve values: bannerData > props > demo > defaults
-  const resolvedImageUrl = activeBanner?.image_url || imageUrl || demoAd?.image;
-  const resolvedAltText = activeBanner?.alt_text || altText || demoAd?.alt || "Publicidad turística";
-  const resolvedTargetUrl = activeBanner?.target_url || targetUrl;
-  const resolvedSponsor = activeBanner?.sponsor || sponsor || demoAd?.sponsor;
-  const resolvedHeadline = activeBanner?.headline || (defaultPromo[size] || defaultPromo["default"]).headline;
-  const resolvedSubtext = activeBanner?.subtext || (defaultPromo[size] || defaultPromo["default"]).subtext;
-  const resolvedCta = activeBanner?.cta_text || (defaultPromo[size] || defaultPromo["default"]).cta;
+  // Resolve industry ad if specified
+  const industryAd = industry
+    ? INDUSTRY_BANNERS_DEMO.find((d) => d.industry === industry)
+    : null;
+
+  // Resolve values: bannerData > props > industryAd > demo > defaults
+  const resolvedImageUrl = activeBanner?.image_url || imageUrl || industryAd?.imageUrl || demoAd?.image;
+  const resolvedAltText = activeBanner?.alt_text || altText || industryAd?.sponsor || demoAd?.alt || "Publicidad turística";
+  const resolvedTargetUrl = activeBanner?.target_url || (industryAd?.targetUrl ?? targetUrl);
+  const resolvedSponsor = activeBanner?.sponsor || sponsor || industryAd?.sponsor || demoAd?.sponsor;
+  const resolvedHeadline = activeBanner?.headline || industryAd?.headline || (defaultPromo[size] || defaultPromo["default"]).headline;
+  const resolvedSubtext = activeBanner?.subtext || industryAd?.subtext || (defaultPromo[size] || defaultPromo["default"]).subtext;
+  const resolvedCta = activeBanner?.cta_text || industryAd?.ctaText || (defaultPromo[size] || defaultPromo["default"]).cta;
+
+  // Count impression on render/view once per banner id
+  useEffect(() => {
+    if (activeBanner?.id && activeBanner.id !== "preview-id") {
+      import("@/hooks/useAdBanners").then(({ trackBannerImpression }) => {
+        trackBannerImpression(activeBanner.id);
+      });
+    }
+  }, [activeBanner?.id]);
+
+  const handleBannerClick = () => {
+    if (activeBanner?.id && activeBanner.id !== "preview-id") {
+      import("@/hooks/useAdBanners").then(({ trackBannerClick }) => {
+        trackBannerClick(activeBanner.id);
+      });
+    }
+  };
 
   const isHorizontal = ["billboard", "leaderboard", "panorama", "mobile-large", "mobile-banner"].includes(size);
-  const isCompact = ["mobile-banner", "mobile-large", "leaderboard"].includes(size);
+  const isVertical = ["skyscraper", "wide-skyscraper", "half-page", "portrait"].includes(size);
+  const isRectangle = ["medium-rect", "large-rect", "square-small", "square-large", "mobile-medium"].includes(size);
+  const isCompact = ["mobile-banner", "mobile-large"].includes(size);
 
   // Placeholder (no image)
   if (!resolvedImageUrl) {
+    const isExternalPlaceholder = resolvedTargetUrl.startsWith("http://") || resolvedTargetUrl.startsWith("https://");
+    const placeholderContent = (
+      <div
+        className={cn(
+          "relative bg-card/80 backdrop-blur-md border border-border/80 hover:border-primary/40 rounded-2xl flex flex-col items-center justify-center p-4 overflow-hidden shadow-sm hover:shadow-md transition-all group w-full cursor-pointer",
+          className
+        )}
+        style={{ maxWidth: config.width, minHeight: config.placeholderHeight }}
+        data-promo-id={adId || activeBanner?.id}
+        data-promo-size={size}
+        data-promo-placement={placement}
+        data-promo-section={section || activeBanner?.section}
+      >
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs uppercase tracking-wider font-semibold text-primary flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+            {resolvedHeadline}
+          </span>
+        </div>
+        <p className="text-xs text-muted-foreground text-center max-w-md">{resolvedSubtext}</p>
+        <span className="text-[11px] font-semibold text-primary group-hover:underline flex items-center gap-1 mt-2.5">
+          {resolvedCta} <ExternalLink className="h-3 w-3" aria-hidden="true" />
+        </span>
+      </div>
+    );
+
+    if (isExternalPlaceholder) {
+      return (
+        <a
+          href={resolvedTargetUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={handleBannerClick}
+          className="block group w-full"
+        >
+          {placeholderContent}
+        </a>
+      );
+    }
+
     return (
       <Link
         to={resolvedTargetUrl}
-        className={cn(
-          "relative bg-gradient-to-br from-primary/10 to-primary/5 border border-dashed border-primary/30 rounded-lg flex flex-col items-center justify-center overflow-hidden",
-          "hover:border-primary/50 hover:from-primary/15 transition-all group",
-          className
-        )}
-        style={{ width: "100%", maxWidth: config.width, height: config.placeholderHeight }}
-        data-ad-id={adId || activeBanner?.id}
-        data-ad-size={size}
-        data-ad-placement={placement}
-        data-ad-section={section || activeBanner?.section}
+        onClick={handleBannerClick}
+        className="block group w-full"
       >
-        <span className="text-xs text-primary font-medium flex items-center gap-1">
-          <MapPin className="h-3 w-3" />
-          {resolvedHeadline}
-        </span>
-        <span className="text-[10px] text-muted-foreground mt-1">{resolvedSubtext}</span>
-        <span className="text-[9px] text-primary/70 group-hover:text-primary hover:underline flex items-center gap-0.5 mt-2 font-medium">
-          {resolvedCta} <ExternalLink className="h-2.5 w-2.5" />
-        </span>
+        {placeholderContent}
       </Link>
     );
   }
 
-  const isFullWidth = placement === "between-sections";
+  const isFullWidth = placement === "between-sections" || placement === "sidebar";
+  const isExternalUrl = resolvedTargetUrl.startsWith("http://") || resolvedTargetUrl.startsWith("https://");
 
-  return (
-    <Link to={resolvedTargetUrl} className="block">
-      <div
-        className={cn(
-          "relative overflow-hidden rounded-lg group hover:shadow-lg transition-shadow",
-          isFullWidth && "!rounded-none",
-          className
-        )}
-        style={{ width: "100%", maxWidth: isFullWidth ? "none" : config.width, height: config.height }}
-        data-ad-id={adId || activeBanner?.id}
-        data-ad-size={size}
-        data-ad-placement={placement}
-        data-ad-section={section || activeBanner?.section}
-      >
-        <BannerMediaContent
-          contentType={activeBanner?.content_type || "image"}
-          imageUrl={resolvedImageUrl}
-          altText={resolvedAltText}
-          banner={activeBanner}
-          height={config.height}
-        />
-        
-        <div className={cn("absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent flex items-center")}>
-          <div className={cn("text-white px-4", isCompact ? "py-1" : "py-3")}>
-            <p className={cn("font-bold leading-tight", isCompact ? "text-xs" : isHorizontal ? "text-sm md:text-base" : "text-xs")}>
-              {resolvedHeadline}
-            </p>
-            {!isCompact && (
-              <p className={cn("text-white/80 mt-0.5", isHorizontal ? "text-xs" : "text-[10px]")}>{resolvedSubtext}</p>
+  const bannerInnerContent = (
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-2xl border border-white/10 shadow-md group-hover:shadow-xl transition-all duration-300 transform-gpu w-full cursor-pointer",
+        placement === "between-sections" && "!rounded-2xl mx-auto container px-0",
+        className
+      )}
+      style={{ 
+        maxWidth: isFullWidth ? "100%" : config.width, 
+        height: config.height 
+      }}
+      data-promo-id={adId || activeBanner?.id}
+      data-promo-size={size}
+      data-promo-placement={placement}
+      data-promo-section={section || activeBanner?.section}
+    >
+      {/* Media Background - Fills 100% of the Container */}
+      <BannerMediaContent
+        contentType={activeBanner?.content_type || "image"}
+        imageUrl={resolvedImageUrl}
+        altText={resolvedAltText}
+        banner={activeBanner}
+        height={config.height}
+      />
+      
+      {/* Proportional Dynamic Overlay matching the exact format */}
+      <div className={cn(
+        "absolute inset-0 z-10 flex",
+        isVertical 
+          ? "bg-gradient-to-t from-slate-950/95 via-slate-950/70 to-slate-950/30 flex-col justify-end p-5 text-center items-center" 
+          : isRectangle
+          ? "bg-gradient-to-t from-slate-950/90 via-slate-950/50 to-transparent flex-col justify-end p-4 text-left"
+          : "bg-gradient-to-r from-slate-950/90 via-slate-950/60 to-transparent flex-row items-center px-4 md:px-6"
+      )}>
+        <div className={cn(
+          "text-white w-full",
+          isHorizontal && "flex items-center justify-between gap-4 w-full py-2"
+        )}>
+          <div className="min-w-0 flex-1 pr-2">
+            {resolvedSponsor && !isCompact && (
+              <span className="inline-block text-[10px] font-semibold uppercase tracking-wider text-amber-300/90 mb-1">
+                {resolvedSponsor}
+              </span>
             )}
-            <span className={cn(
-              "inline-flex items-center gap-1 bg-primary hover:bg-primary/90 text-primary-foreground rounded px-2 py-0.5 mt-1 font-medium transition-colors",
-              isCompact ? "text-[9px]" : "text-[10px]"
+            <h3 className={cn(
+              "font-display font-bold leading-snug text-white drop-shadow-sm", 
+              isCompact 
+                ? "text-xs truncate" 
+                : isVertical
+                ? "text-base md:text-lg mb-2 line-clamp-2"
+                : isRectangle
+                ? "text-base font-bold mb-1 line-clamp-2"
+                : isHorizontal 
+                ? "text-sm md:text-base lg:text-lg truncate" 
+                : "text-sm truncate"
             )}>
-              {resolvedCta} <ExternalLink className="h-2.5 w-2.5" />
+              {resolvedHeadline}
+            </h3>
+            {!isCompact && (
+              <p className={cn(
+                "text-slate-200/90 leading-tight font-normal", 
+                isVertical 
+                  ? "text-xs mb-4 line-clamp-3" 
+                  : isRectangle
+                  ? "text-xs mb-3 line-clamp-2"
+                  : isHorizontal 
+                  ? "text-xs md:text-sm mt-0.5 truncate hidden sm:block" 
+                  : "text-xs truncate"
+              )}>
+                {resolvedSubtext}
+              </p>
+            )}
+          </div>
+
+          <div className={cn("shrink-0", isVertical && "w-full mt-2", isRectangle && "mt-1")}>
+            <span className={cn(
+              "inline-flex items-center justify-center gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl shadow-md shadow-primary/20 transition-transform group-hover:scale-105",
+              isCompact 
+                ? "text-[10px] px-2.5 py-1" 
+                : isVertical
+                ? "w-full text-xs px-4 py-2.5"
+                : isRectangle
+                ? "text-xs px-3.5 py-1.5"
+                : "text-xs px-4 py-2 shrink-0"
+            )}>
+              <span>{resolvedCta}</span>
+              <ExternalLink className="h-3 w-3" aria-hidden="true" />
             </span>
           </div>
         </div>
-
-        {resolvedSponsor && (
-          <span className="absolute top-1 right-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded">{resolvedSponsor}</span>
-        )}
-        <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded">Publicidad</span>
       </div>
+
+      {/* Central Dimension Indicator & Ad Space Status - Red, Larger, Centered in the Banner */}
+      {showDimensionsBadge && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none w-auto max-w-[94%] flex items-center justify-center text-center">
+          <div className="bg-red-600/95 hover:bg-red-600 text-white font-mono font-black text-xs sm:text-sm md:text-base px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border-2 border-white shadow-2xl shadow-red-950/90 backdrop-blur-md flex items-center gap-2 tracking-wider uppercase animate-pulse">
+            <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping shrink-0" />
+            <span className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
+              {config.label} • ESPACIO DISPONIBLE
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Official Sponsored Label */}
+      <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1">
+        <span className="bg-slate-950/80 backdrop-blur-md text-slate-300 text-[9px] font-medium px-2 py-0.5 rounded-full border border-white/10 uppercase tracking-wider shadow-xs">
+          Patrocinado
+        </span>
+      </div>
+    </div>
+  );
+
+  if (isExternalUrl) {
+    return (
+      <a
+        href={resolvedTargetUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={handleBannerClick}
+        className="block group w-full"
+        aria-label={`Anuncio patrocinado: ${resolvedHeadline}`}
+      >
+        {bannerInnerContent}
+      </a>
+    );
+  }
+
+  return (
+    <Link 
+      to={resolvedTargetUrl} 
+      onClick={handleBannerClick}
+      className="block group w-full" 
+      aria-label={`Anuncio patrocinado: ${resolvedHeadline}`}
+    >
+      {bannerInnerContent}
     </Link>
   );
 }
@@ -221,7 +494,7 @@ export function BannerAd({
 
 export function HeaderAd({ className, showDemo = false, section }: { className?: string; showDemo?: boolean; section?: string }) {
   return (
-    <div className={cn("hidden lg:flex justify-center py-2 bg-muted/20", className)}>
+    <div className={cn("hidden lg:flex justify-center py-2.5 container mx-auto px-4 lg:px-8", className)}>
       <BannerAd size="leaderboard" placement="header" showDemo={showDemo} section={section || "global"} />
     </div>
   );
@@ -239,7 +512,7 @@ export function SidebarAd({ className, showDemo = false, variant = "standard", s
 export function InlineAd({ className, showDemo = false, variant = "medium", section }: { className?: string; showDemo?: boolean; variant?: "medium" | "large" | "square-sm" | "square-lg"; section?: string }) {
   const sizeMap: Record<string, AdSize> = { "medium": "medium-rect", "large": "large-rect", "square-sm": "square-small", "square-lg": "square-large" };
   return (
-    <div className={cn("flex justify-center py-4", className)}>
+    <div className={cn("flex justify-center py-6 container mx-auto px-4", className)}>
       <BannerAd size={sizeMap[variant]} placement="inline" className="mx-auto" showDemo={showDemo} section={section} />
     </div>
   );
@@ -247,20 +520,20 @@ export function InlineAd({ className, showDemo = false, variant = "medium", sect
 
 export function BetweenSectionsAd({ className, showDemo = false, section }: { className?: string; showDemo?: boolean; section?: string }) {
   return (
-    <div className={cn("w-full py-3", className)}>
+    <div className={cn("w-full py-6 container mx-auto px-4 lg:px-8", className)}>
       <div className="hidden md:block w-full">
-        <BannerAd size="billboard" placement="between-sections" showDemo={showDemo} className="!max-w-none !w-full" section={section} />
+        <BannerAd size="billboard" placement="between-sections" showDemo={showDemo} className="w-full !max-w-none" section={section} />
       </div>
-      <div className="block md:hidden w-full px-4">
-        <BannerAd size="mobile-large" placement="between-sections" showDemo={showDemo} className="!max-w-none !w-full" section={section} />
+      <div className="block md:hidden w-full">
+        <BannerAd size="mobile-large" placement="between-sections" showDemo={showDemo} className="w-full !max-w-none" section={section} />
       </div>
     </div>
   );
 }
 
-export function MobileAd({ className, showDemo = false, size = "mobile-banner", section }: { className?: string; showDemo?: boolean; size?: "mobile-banner" | "mobile-large" | "mobile-medium"; section?: string }) {
+export function MobileAd({ className, showDemo = false, size = "mobile-large", section }: { className?: string; showDemo?: boolean; size?: "mobile-banner" | "mobile-large" | "mobile-medium"; section?: string }) {
   return (
-    <div className={cn("lg:hidden flex justify-center py-2", className)}>
+    <div className={cn("lg:hidden flex justify-center py-2 px-4", className)}>
       <BannerAd size={size} placement="header" showDemo={showDemo} section={section} />
     </div>
   );
@@ -268,12 +541,12 @@ export function MobileAd({ className, showDemo = false, size = "mobile-banner", 
 
 export function CompactInlineAd({ className, showDemo = false, section }: { className?: string; showDemo?: boolean; section?: string }) {
   return (
-    <div className={cn("flex justify-center py-3", className)}>
-      <div className="hidden md:block">
-        <BannerAd size="leaderboard" placement="inline" showDemo={showDemo} section={section} />
+    <div className={cn("flex justify-center w-full py-3", className)}>
+      <div className="hidden md:block w-full max-w-[970px]">
+        <BannerAd size="billboard" placement="inline" showDemo={showDemo} section={section} className="w-full !max-w-none" />
       </div>
-      <div className="block md:hidden">
-        <BannerAd size="mobile-large" placement="inline" showDemo={showDemo} section={section} />
+      <div className="block md:hidden w-full max-w-[360px]">
+        <BannerAd size="mobile-large" placement="inline" showDemo={showDemo} section={section} className="w-full !max-w-none" />
       </div>
     </div>
   );
@@ -302,3 +575,12 @@ export function PanoramaAd({ className, showDemo = false, section }: { className
     </div>
   );
 }
+
+export function FullWidthHeroAd({ className, showDemo = false, section }: { className?: string; showDemo?: boolean; section?: string }) {
+  return (
+    <div className={cn("w-full py-6 container mx-auto px-4 lg:px-8", className)}>
+      <BannerAd size="full-width-hero" placement="between-sections" showDemo={showDemo} className="w-full !max-w-none shadow-xl" section={section} />
+    </div>
+  );
+}
+

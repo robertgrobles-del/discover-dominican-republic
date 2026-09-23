@@ -74,14 +74,14 @@ export default function TurismoReligioso() {
         <Header />
         
         {/* Hero */}
-        <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center mt-16">
+        <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center">
           <div className="absolute inset-0">
             <img
               src={santoDomingo}
               alt="Turismo Religioso RD"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/50 to-background" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/85" />
           </div>
           
           <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
@@ -91,7 +91,7 @@ export default function TurismoReligioso() {
             <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">
               Turismo Religioso RD
             </h1>
-            <p className="text-lg text-white/80 max-w-2xl mx-auto mb-8">
+            <p className="text-lg text-white/90 max-w-2xl mx-auto mb-8">
               Recorre los tres pilares de la fe dominicana. Desde la primera catedral del Nuevo Mundo hasta el santuario de la patrona nacional.
             </p>
             <div className="flex flex-wrap justify-center gap-4">

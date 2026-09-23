@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, Loader2, User } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader2, User, ShieldCheck, AlertCircle } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { PageTransition } from "@/components/PageTransition";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  isValidEmail, 
+  sanitizeInput, 
+  detectSQLiPatterns, 
+  evaluatePasswordSecurity, 
+  ClientRateLimiter 
+} from "@/lib/security";
 import samanaImg from "@/assets/samana.jpg";
 
 export default function Registro() {
@@ -20,28 +27,67 @@ export default function Registro() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [subscribeNewsletter, setSubscribeNewsletter] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  const passwordSecurity = useMemo(() => evaluatePasswordSecurity(password), [password]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanEmail = sanitizeInput(email).toLowerCase();
+    const cleanName = sanitizeInput(displayName);
 
-    if (password !== confirmPassword) {
+    // 1. Rate limiter against registration flooding/bots (Max 3 / 60s, 10 min lock)
+    const rateCheck = ClientRateLimiter.check("register", cleanEmail || "anonymous", 3, 60000, 600000);
+    if (!rateCheck.allowed) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Las contraseñas no coinciden.",
+        title: "Registro Pausado Temporalmente",
+        description: `Has intentado registrar cuentas repetidamente. Por favor espera ${Math.ceil(rateCheck.retryAfterSeconds / 60)} minutos.`,
       });
       return;
     }
 
-    if (password.length < 6) {
+    // 2. Email RFC verification
+    if (!isValidEmail(cleanEmail)) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "La contraseña debe tener al menos 6 caracteres.",
+        title: "Correo Inválido",
+        description: "Introduce una dirección de correo electrónico válida (ej: usuario@dominio.com).",
+      });
+      return;
+    }
+
+    // 3. Prevent SQL injection and dangerous script tags
+    if (detectSQLiPatterns(cleanEmail) || detectSQLiPatterns(cleanName) || detectSQLiPatterns(password)) {
+      ClientRateLimiter.recordAttempt("register", cleanEmail);
+      toast({
+        variant: "destructive",
+        title: "Entrada No Permitida",
+        description: "Caracteres o patrones de código no permitidos detectados.",
+      });
+      return;
+    }
+
+    // 4. Password confirmation
+    if (password !== confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Error de Contraseña",
+        description: "Las contraseñas ingresadas no coinciden.",
+      });
+      return;
+    }
+
+    // 5. Password Security Criteria
+    if (!passwordSecurity.isSecure) {
+      toast({
+        variant: "destructive",
+        title: "Contraseña Poco Segura",
+        description: `Por favor refuerza tu contraseña: ${passwordSecurity.feedback.join(", ")}.`,
       });
       return;
     }
@@ -49,28 +95,29 @@ export default function Registro() {
     if (!acceptTerms) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Debes aceptar los términos y condiciones.",
+        title: "Términos Requeridos",
+        description: "Debes aceptar los términos de uso y políticas de privacidad.",
       });
       return;
     }
 
     setIsLoading(true);
 
-    const { error } = await signUp(email, password, displayName);
+    const { error } = await signUp(cleanEmail, password, cleanName);
 
     if (error) {
+      ClientRateLimiter.recordAttempt("register", cleanEmail, 3, 60000, 600000);
       toast({
         variant: "destructive",
         title: "Error al registrarse",
         description: error.message,
       });
     } else {
+      ClientRateLimiter.reset("register", cleanEmail);
       toast({
-        title: "¡Bienvenido!",
-        description: "Tu cuenta ha sido creada. Redirigiendo...",
+        title: "¡Bienvenido a Descubre RD!",
+        description: "Tu cuenta ha sido creada exitosamente.",
       });
-      // With auto-confirm, the user is automatically signed in
       navigate("/perfil");
     }
 
@@ -161,7 +208,7 @@ export default function Registro() {
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="Mínimo 6 caracteres"
+                      placeholder="Mínimo 8 caracteres (A-Z, 0-9, !@#)"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="pl-10 pr-10"
@@ -175,6 +222,45 @@ export default function Registro() {
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
                   </div>
+
+                  {/* Password Strength Meter */}
+                  {password.length > 0 && (
+                    <div className="pt-1.5 space-y-1 text-xs">
+                      <div className="flex items-center justify-between font-medium">
+                        <span className="text-muted-foreground">Seguridad:</span>
+                        <span className={
+                          passwordSecurity.score <= 1 
+                            ? "text-red-500 font-bold" 
+                            : passwordSecurity.score === 2 
+                            ? "text-amber-500 font-bold" 
+                            : "text-emerald-500 font-bold"
+                        }>
+                          {passwordSecurity.label}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                        {[1, 2, 3, 4].map((step) => (
+                          <div
+                            key={step}
+                            className={`h-full transition-colors ${
+                              passwordSecurity.score >= step
+                                ? passwordSecurity.score <= 1
+                                  ? "bg-red-500"
+                                  : passwordSecurity.score === 2
+                                  ? "bg-amber-500"
+                                  : "bg-emerald-500"
+                                : "bg-transparent"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      {passwordSecurity.feedback.length > 0 && (
+                        <p className="text-[11px] text-muted-foreground pt-0.5">
+                          Sugerencia: {passwordSecurity.feedback.join(" • ")}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -193,18 +279,32 @@ export default function Registro() {
                   </div>
                 </div>
 
+                {/* Checkbox 1: Mandatory Terms */}
                 <div className="flex items-start gap-3">
                   <Checkbox
                     id="terms"
                     checked={acceptTerms}
                     onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+                    required
                   />
-                  <Label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed">
+                  <Label htmlFor="terms" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
                     Acepto los{" "}
-                    <Link to="/terminos" className="text-primary hover:underline">
+                    <Link to="/terminos" target="_blank" className="text-primary hover:underline font-medium">
                       Términos y Condiciones
                     </Link>{" "}
-                    y la Política de Privacidad.
+                    y la Política de Privacidad de Datos de Descubre RD. <span className="text-red-500">*</span>
+                  </Label>
+                </div>
+
+                {/* Checkbox 2: Newsletter & Exclusive Deals */}
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="newsletter"
+                    checked={subscribeNewsletter}
+                    onCheckedChange={(checked) => setSubscribeNewsletter(checked as boolean)}
+                  />
+                  <Label htmlFor="newsletter" className="text-sm text-muted-foreground leading-relaxed cursor-pointer">
+                    Deseo recibir el boletín oficial con recomendaciones, novedades y ofertas turísticas exclusivas.
                   </Label>
                 </div>
 

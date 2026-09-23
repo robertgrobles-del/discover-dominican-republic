@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { GolfSection } from "@/components/sports/GolfSection";
-import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
+import { BetweenSectionsAd, CompactInlineAd } from "@/components/promo";
 
 const sports = [
   {
@@ -132,19 +132,19 @@ const hikingRoutes = [
 const upcomingEvents = [
   {
     title: "Campeonato de Golf del Caribe",
-    date: "15-18 Mar 2024",
+    date: "15-18 Mar 2027",
     location: "Casa de Campo",
     category: "Golf",
   },
   {
     title: "Santo Domingo Half Marathon",
-    date: "28 Abr 2024",
+    date: "28 Abr 2027",
     location: "Santo Domingo",
     category: "Running",
   },
   {
     title: "Master of the Ocean",
-    date: "Feb 2024",
+    date: "Feb 2027",
     location: "Cabarete",
     category: "Deportes Acuáticos",
   },
@@ -174,8 +174,8 @@ export default function TurismoDeportivo() {
                 Turismo Deportivo en <span className="text-orange-400">República Dominicana</span>
               </h1>
               <p className="text-xl text-white/80 mb-8">
-                Desde el golf de clase mundial hasta el senderismo en la cima más alta del Caribe. 
-                Vive la adrenalina en el paraíso tropical.
+                Golf en campos diseñados por leyendas del deporte, senderismo hasta el Pico Duarte
+                y deportes acuáticos en todo el litoral.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Button size="lg" className="gap-2 bg-white text-orange-900 hover:bg-white/90">

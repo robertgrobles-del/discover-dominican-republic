@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import {
   Clock, Users, Star, ChevronRight, Check, X, MapPin,
-  Globe, Mountain, Heart, Compass, Sparkles, CalendarDays,
+  Globe, Mountain, Heart, Compass, Award, CalendarDays,
   Shield, Megaphone, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -140,7 +140,7 @@ export default function TourDetalle() {
               {tour.highlights && tour.highlights.length > 0 && (
                 <section className="bg-primary/5 rounded-2xl p-6 border border-primary/20">
                   <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-primary" /> Lo Más Destacado
+                    <Award className="h-5 w-5 text-primary" /> Lo Más Destacado
                   </h2>
                   <div className="grid sm:grid-cols-2 gap-3">
                     {tour.highlights.map((h: string, i: number) => (

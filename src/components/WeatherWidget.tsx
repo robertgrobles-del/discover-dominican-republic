@@ -65,10 +65,10 @@ export function WeatherWidget() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/50 hover:bg-secondary transition-colors text-sm">
-          {getWeatherIcon(weather.condition, "h-4 w-4 text-primary")}
-          <span className="font-semibold text-foreground">{weather.temp}°C</span>
-          <span className="hidden md:inline text-muted-foreground text-xs">{weather.city}</span>
+        <button className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/25 border border-white/20 hover:bg-white/20 transition-colors text-xs text-white">
+          {getWeatherIcon(weather.condition, "h-3.5 w-3.5 text-primary")}
+          <span className="font-semibold text-white">{weather.temp}°C</span>
+          <span className="hidden md:inline text-white/80 text-[11px]">{weather.city}</span>
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-4" align="end">

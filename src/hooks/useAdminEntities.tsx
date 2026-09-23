@@ -8,8 +8,19 @@ export type EntityType =
   | 'clinics' | 'stadiums' | 'ports_marinas' | 'artisanal_workshops'
   | 'tour_guides' | 'travel_agencies' | 'tour_operators'
   | 'destinations' | 'provinces' | 'municipalities' | 'airbnb_listings'
-  | 'ad_banners' | 'historical_figures' | 'historical_events'
-  | 'tour_packages' | 'job_vacancies';
+  | 'beaches' | 'spas_wellness' | 'ad_banners' | 'historical_figures' | 'historical_events'
+  | 'tour_packages' | 'job_vacancies' | 'establishment_registrations'
+  | 'site_settings' | 'newsletter_subscribers' | 'marketing_leads' | 'offers'
+  | 'ambassadors' | 'ambassador_referrals' | 'achievements' | 'gamification_levels'
+  | 'profiles' | 'partner_profiles' | 'routes' | 'route_stops' | 'audio_guides'
+  | 'ugc_reports' | 'event_tickets' | 'reward_inventory' | 'reward_shipments'
+  | 'survey_templates' | 'survey_responses' | 'admin_activity_logs' | 'seo_redirections'
+  | 'system_webhooks' | 'ugc_media' | 'user_suspensions' | 'support_tickets'
+  | 'support_messages' | 'marketing_campaigns' | 'points_transactions' | 'marketplace_orders'
+  | 'marketplace_order_items' | 'vendor_payments' | 'discount_coupons' | 'weather_alerts'
+  | 'emergency_contacts' | 'system_cron_jobs' | 'ip_rules' | 'entity_translations'
+  | 'lotteries' | 'lottery_draws' | 'lottery_results' | 'exchange_rates' | 'fuel_prices' | 'reservations'
+  | 'protected_areas' | 'bird_species' | 'hot_springs' | 'offset_projects' | 'toll_routes' | 'marine_reports';
 
 interface Filters {
   destination_id?: string;

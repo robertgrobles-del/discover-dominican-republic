@@ -75,7 +75,7 @@ export default function AgenciaDetalle() {
         <Header />
 
         {/* Hero */}
-        <section className="relative h-[40vh] min-h-[300px] mt-16">
+        <section className="relative h-[40vh] min-h-[300px]">
           <div className="absolute inset-0">
             <img src={agencia.coverImage} alt={agencia.name} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-transparent" />

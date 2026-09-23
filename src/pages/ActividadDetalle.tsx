@@ -584,7 +584,7 @@ export function ActividadDetalle() {
             alt={activity.nombre}
             className="absolute inset-0 w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-black/10" />
           
           <div className="relative z-10 container mx-auto px-4 pb-12">
             <Link to="/actividades" className="inline-flex items-center text-white/80 hover:text-white mb-4 transition-colors">

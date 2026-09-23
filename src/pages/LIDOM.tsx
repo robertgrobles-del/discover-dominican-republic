@@ -341,11 +341,12 @@ export default function LIDOM() {
                       <CheckoutModal
                         isOpen={isCheckoutOpen}
                         onClose={() => setIsCheckoutOpen(false)}
-                        onSuccess={handleCheckoutSuccess}
-                        amount={getPrice() * ticketQuantity}
-                        itemTitle={`Entradas LIDOM: ${selectedGame.homeTeam} vs ${selectedGame.awayTeam} (${ticketQuantity}x ${ticketZone})`}
-                        itemType="activity"
-                        itemId={selectedGame.id}
+                        item={{
+                          id: selectedGame.id,
+                          name: `Entradas LIDOM: ${selectedGame.homeTeam} vs ${selectedGame.awayTeam} (${ticketQuantity}x ${ticketZone})`,
+                          type: "activity",
+                          price: getPrice() * ticketQuantity,
+                        }}
                       />
                     </div>
                   </CardContent>

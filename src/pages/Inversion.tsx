@@ -86,13 +86,22 @@ export default function Inversion() {
               Descubre oportunidades exclusivas con seguridad jurídica, 
               incentivos fiscales de ley y el retorno de inversión más alto de la región.
             </p>
-            <div className="flex gap-4 justify-center">
-              <Button className="bg-cyan-500 hover:bg-cyan-600 text-white">
-                Ver Oportunidades →
-              </Button>
-              <Button variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 gap-2">
-                <Play className="h-4 w-4" /> Ver Video Promocional
-              </Button>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Link to="/bienes-raices">
+                <Button className="bg-cyan-500 hover:bg-cyan-600 text-white">
+                  Ver Bienes Raíces 🏢
+                </Button>
+              </Link>
+              <Link to="/proyectos-inversion">
+                <Button variant="secondary" className="gap-1">
+                  Proyectos & Inversionistas 🤝
+                </Button>
+              </Link>
+              <Link to="/calculadora-confotur">
+                <Button variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20 gap-2">
+                  Calculadora CONFOTUR 📊
+                </Button>
+              </Link>
             </div>
 
             <div className="flex flex-wrap justify-center gap-8 mt-12 text-white/60 text-sm">
@@ -139,8 +148,17 @@ export default function Inversion() {
                 <p className="text-3xl font-bold text-foreground mb-1">$9.800M</p>
                 <p className="text-sm text-emerald-500">+20% vs 2014</p>
                 <div className="mt-6 h-32 bg-gradient-to-r from-cyan-100 to-cyan-50 dark:from-cyan-900/30 dark:to-cyan-800/20 rounded-lg flex items-end justify-around px-4 pb-2">
+                  <style>{`
+                    .chart-bar-0 { height: 40%; }
+                    .chart-bar-1 { height: 50%; }
+                    .chart-bar-2 { height: 55%; }
+                    .chart-bar-3 { height: 60%; }
+                    .chart-bar-4 { height: 70%; }
+                    .chart-bar-5 { height: 80%; }
+                    .chart-bar-6 { height: 100%; }
+                  `}</style>
                   {[40, 50, 55, 60, 70, 80, 100].map((h, i) => (
-                    <div key={i} className="w-6 bg-cyan-500 rounded-t" style={{ height: `${h}%` }} />
+                    <div key={i} className={`w-6 bg-cyan-500 rounded-t chart-bar-${i}`} />
                   ))}
                 </div>
               </div>
@@ -180,9 +198,16 @@ export default function Inversion() {
               ))}
             </div>
 
-            <Button variant="outline" className="mt-8 gap-2">
-              Descargar Texto Completo de la Ley
-            </Button>
+            <div className="flex flex-wrap gap-4 justify-center mt-8">
+              <Button variant="outline" className="gap-2">
+                Descargar Texto de la Ley
+              </Button>
+              <Link to="/calculadora-confotur">
+                <Button className="bg-cyan-500 hover:bg-cyan-600 text-white gap-2">
+                  Calcular Ahorro CONFOTUR 🧮
+                </Button>
+              </Link>
+            </div>
           </div>
         </section>
 

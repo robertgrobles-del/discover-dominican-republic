@@ -75,7 +75,6 @@ export function NotificationBell() {
     const mins = Math.floor(diff / 60000);
     if (mins < 60) return `${mins}m`;
     const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h`;
     return `${Math.floor(hours / 24)}d`;
   };
 
@@ -92,8 +91,13 @@ export function NotificationBell() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          aria-label={`Notificaciones ${unreadCount > 0 ? `(${unreadCount} no leídas)` : ""}`}
+        >
+          <Bell className="h-5 w-5" aria-hidden="true" />
           {unreadCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
               {unreadCount > 9 ? "9+" : unreadCount}
@@ -105,7 +109,7 @@ export function NotificationBell() {
         <div className="flex items-center justify-between p-3 border-b">
           <h4 className="font-semibold text-sm">Notificaciones</h4>
           {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" className="text-xs h-7" onClick={markAllRead}>
+            <Button variant="ghost" size="sm" className="text-xs h-7" onClick={markAllRead} aria-label="Marcar todas las notificaciones como leídas">
               Marcar todo leído
             </Button>
           )}
@@ -119,6 +123,8 @@ export function NotificationBell() {
             notifications.map((n) => (
               <button
                 key={n.id}
+                type="button"
+                aria-label={`Notificación: ${n.title}`}
                 onClick={() => {
                   markAsRead(n.id);
                   if (n.link) window.location.href = n.link;
@@ -128,7 +134,7 @@ export function NotificationBell() {
                   !n.is_read && "bg-primary/5"
                 )}
               >
-                <div className={cn("w-2 h-2 rounded-full mt-1.5 shrink-0", typeColors[n.type] || "bg-primary")} />
+                <div className={cn("w-2 h-2 rounded-full mt-1.5 shrink-0", typeColors[n.type] || "bg-primary")} aria-hidden="true" />
                 <div className="flex-1 min-w-0">
                   <p className={cn("text-sm leading-tight", !n.is_read && "font-semibold")}>{n.title}</p>
                   {n.message && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>}

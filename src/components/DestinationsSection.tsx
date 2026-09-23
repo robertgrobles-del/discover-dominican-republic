@@ -147,45 +147,98 @@ export function DestinationsSection() {
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex gap-4">
             {destinations.map((destination, index) => (
-              <motion.div
-                key={destination.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: Math.min(index * 0.1, 0.5) }}
-                className="flex-shrink-0 w-[280px] md:w-[320px] lg:w-[350px]"
-              >
-                <div className="group relative aspect-[3/4] rounded-xl overflow-hidden">
-                  <Link to={`/destino/${destination.id}`} className="block h-full">
-                    <LazyImage
-                      src={localImageMap[destination.id] || destination.image}
-                      alt={destination.name}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      containerClassName="absolute inset-0"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
-                    <FavoriteButton
-                      id={destination.id}
-                      type="destino"
-                      name={destination.name}
-                      image={localImageMap[destination.id] || destination.image}
-                      className="absolute top-4 right-4 z-10"
-                    />
-                    <div className="absolute inset-x-0 bottom-0 p-6">
-                      <h3 className="font-display text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                        {destination.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                        {destination.description}
-                      </p>
-                      <div className="flex items-center gap-1 text-primary text-sm font-medium group-hover:gap-2 transition-all">
-                        <span>{t("destinations.explore")}</span>
-                        <ChevronRight className="h-4 w-4" />
-                      </div>
+              <>
+                {/* Insert Sponsored Resort Carousel Banner at index 1 */}
+                {index === 1 && (
+                  <motion.div
+                    key="sponsored-destination-resort-ad"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="flex-shrink-0 w-[280px] md:w-[320px] lg:w-[350px]"
+                  >
+                    <div className="group relative aspect-[3/4] rounded-xl overflow-hidden border-2 border-amber-500/50 shadow-xl">
+                      <Link to="/alojamientos" className="block h-full">
+                        <img
+                          src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=80"
+                          alt="Hard Rock Hotel Punta Cana Publicidad"
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                        
+                        {/* Top Sponsor Badge */}
+                        <div className="absolute top-4 left-4 z-10">
+                          <span className="bg-amber-500 text-slate-950 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                            ★ Hotel Patrocinado
+                          </span>
+                        </div>
+
+                        {/* Red Centered Indicator Badge */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none w-auto max-w-[92%] text-center">
+                          <div className="bg-red-600 text-white font-mono font-black text-[10px] sm:text-xs px-3.5 py-1.5 rounded-xl border-2 border-white shadow-2xl shadow-red-950/90 uppercase tracking-wider animate-pulse flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-white animate-ping shrink-0" />
+                            <span className="whitespace-nowrap">SLIDER 350×460 • ESPACIO DISPONIBLE</span>
+                          </div>
+                        </div>
+
+                        <div className="absolute inset-x-0 bottom-0 p-6 z-10">
+                          <span className="text-xs uppercase font-bold text-amber-300">Punta Cana • 5 Estrellas</span>
+                          <h3 className="font-display text-2xl font-bold text-white mb-1 group-hover:text-amber-300 transition-colors">
+                            Hard Rock Hotel & Casino
+                          </h3>
+                          <p className="text-sm text-slate-200 line-clamp-2 mb-4">
+                            Todo Incluido de Lujo con 13 piscinas, campo de golf Nicklaus y acceso exclusivo al casino.
+                          </p>
+                          <div className="flex items-center gap-1 text-amber-400 text-sm font-semibold group-hover:gap-2 transition-all">
+                            <span>Ver Ofertas & Reserva</span>
+                            <ChevronRight className="h-4 w-4" />
+                          </div>
+                        </div>
+                      </Link>
                     </div>
-                  </Link>
-                </div>
-              </motion.div>
+                  </motion.div>
+                )}
+
+                <motion.div
+                  key={destination.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: Math.min(index * 0.1, 0.5) }}
+                  className="flex-shrink-0 w-[280px] md:w-[320px] lg:w-[350px]"
+                >
+                  <div className="group relative aspect-[3/4] rounded-xl overflow-hidden">
+                    <Link to={`/destino/${destination.id}`} className="block h-full">
+                      <LazyImage
+                        src={localImageMap[destination.id] || destination.image}
+                        alt={destination.name}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        containerClassName="absolute inset-0"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+                      <FavoriteButton
+                        id={destination.id}
+                        type="destino"
+                        name={destination.name}
+                        image={localImageMap[destination.id] || destination.image}
+                        className="absolute top-4 right-4 z-10"
+                      />
+                      <div className="absolute inset-x-0 bottom-0 p-6">
+                        <h3 className="font-display text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                          {destination.name}
+                        </h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                          {destination.description}
+                        </p>
+                        <div className="flex items-center gap-1 text-primary text-sm font-medium group-hover:gap-2 transition-all">
+                          <span>{t("destinations.explore")}</span>
+                          <ChevronRight className="h-4 w-4" />
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                </motion.div>
+              </>
             ))}
           </div>
         </div>

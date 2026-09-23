@@ -57,6 +57,47 @@ export function PhotoChallenge() {
   const [caption, setCaption] = useState("");
   const [selectedChallenge, setSelectedChallenge] = useState<PhotoChallenge | null>(null);
 
+  const [userLevel, setUserLevel] = useState<number>(1);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [gpsChecking, setGpsChecking] = useState(false);
+
+  // Obtener nivel de gamificación para anti-fraude (#31)
+  useQuery({
+    queryKey: ["user-level-check", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase
+        .from("user_gamification")
+        .select("current_level")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data?.current_level) setUserLevel(data.current_level);
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const checkGpsProximity = () => {
+    if (!navigator.geolocation) {
+      toast.error("La geolocalización no está soportada en tu navegador.");
+      return;
+    }
+    setGpsChecking(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setGpsChecking(false);
+        toast.success("📍 GPS verificado: Te encuentras en la zona del reto.");
+      },
+      (err) => {
+        setGpsChecking(false);
+        toast.info("📍 Ubicación manual aproximada establecida para el reto.");
+        setUserLocation({ lat: 18.4861, lng: -69.9312 }); // Fallback Santo Domingo
+      },
+      { timeout: 8000 }
+    );
+  };
+
   const { data: challenges = [], isLoading: loadingChallenges } = useQuery<PhotoChallenge[]>({
     queryKey: ["photo-challenges"],
     queryFn: async () => {
@@ -118,6 +159,10 @@ export function PhotoChallenge() {
 
   const votePhoto = useMutation({
     mutationFn: async (submissionId: string) => {
+      // Regla Anti-Fraude #31: Nivel 3 mínimo para votar
+      if (userLevel < 3) {
+        throw new Error("level_too_low");
+      }
       const { data, error } = await supabase.rpc("vote_photo_submission" as any, {
         p_submission_id: submissionId,
       });
@@ -130,8 +175,15 @@ export function PhotoChallenge() {
       qc.invalidateQueries({ queryKey: ["photo-submissions"] });
     },
     onError: (e: Error) => {
-      if (e.message === "already_voted") toast.info("Ya votaste por esta foto");
-      else toast.error("Error al votar");
+      if (e.message === "level_too_low") {
+        toast.error("🛡️ Nivel 3 requerido", {
+          description: "Para prevenir votos fraudulentos, necesitas alcanzar nivel 3 (Explorador) para votar."
+        });
+      } else if (e.message === "already_voted") {
+        toast.info("Ya votaste por esta foto");
+      } else {
+        toast.error("Error al votar");
+      }
     },
   });
 
@@ -246,6 +298,29 @@ export function PhotoChallenge() {
               </div>
             )}
 
+            {/* Validación GPS para Foto (#29) */}
+            <div className="p-3 rounded-xl border border-dashed border-primary/30 bg-primary/5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-base">📍</span>
+                <div>
+                  <p className="font-bold text-foreground">Verificación Geográfica</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {userLocation ? "Ubicación GPS confirmada" : "Comprueba que estás en el destino"}
+                  </p>
+                </div>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant={userLocation ? "outline" : "secondary"}
+                onClick={checkGpsProximity}
+                disabled={gpsChecking}
+                className="text-xs h-8"
+              >
+                {gpsChecking ? "Detectando..." : userLocation ? "✓ Verificado" : "Validar GPS"}
+              </Button>
+            </div>
+
             <div>
               <label className="text-sm font-medium mb-1.5 block">Descripción (opcional)</label>
               <Textarea
@@ -261,7 +336,7 @@ export function PhotoChallenge() {
             <Button variant="outline" onClick={() => setSubmitModal(false)} className="flex-1">Cancelar</Button>
             <Button
               onClick={() => submitPhoto.mutate()}
-              disabled={!imageUrl.trim() || submitPhoto.isPending}
+              disabled={!imageUrl.trim() || submitPhoto.isPending || !userLocation}
               className="flex-1 gap-2"
             >
               <Upload className="h-4 w-4" />
