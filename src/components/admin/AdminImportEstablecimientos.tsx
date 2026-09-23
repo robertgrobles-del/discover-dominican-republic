@@ -82,9 +82,9 @@ export function AdminImportEstablecimientos() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground">
             Importa establecimientos turísticos del MITUR. Puedes subir archivos <Badge variant="outline">CSV</Badge> o <Badge variant="outline">TXT</Badge> delimitados por comas, tabuladores o pipes.
-          </p>
+          </div>
           <p className="text-xs text-muted-foreground">
             Formato esperado: Subsector, Actividad, RUT, No. Identificación, Nombre, Sector/Zona, Provincia, Estatus Proceso, Estatus Licencia, Estatus Establecimiento, Fecha Vencimiento, Teléfono, Correo
           </p>

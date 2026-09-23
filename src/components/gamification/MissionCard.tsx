@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { motion } from "framer-motion";
 import { Zap, Crown, Star, Target, Clock, Flame, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -37,7 +38,10 @@ const typeConfig: Record<string, { label: string; icon: typeof Clock; color: str
   one_time: { label: "Única", icon: Star, color: "text-primary" },
 };
 
-export function MissionCard({ mission, progress, isLocked, currentLevel = 1, onClick }: MissionCardProps) {
+export const MissionCard = forwardRef<HTMLDivElement, MissionCardProps>(function MissionCard(
+  { mission, progress, isLocked, currentLevel = 1, onClick },
+  ref
+) {
   const isCompleted = progress?.is_completed;
   const progressPct = progress ? Math.round((progress.progress / mission.target_count) * 100) : 0;
   const cat = categoryConfig[mission.category] || { label: mission.category, icon: "📌", gradient: "from-muted/30 to-muted/10" };
@@ -46,6 +50,7 @@ export function MissionCard({ mission, progress, isLocked, currentLevel = 1, onC
 
   return (
     <motion.div
+      ref={ref}
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -176,4 +181,4 @@ export function MissionCard({ mission, progress, isLocked, currentLevel = 1, onC
       )}
     </motion.div>
   );
-}
+});

@@ -271,8 +271,8 @@ export default function Eventos() {
                       <Button size="icon" variant="ghost"><ChevronRight className="h-4 w-4" /></Button>
                     </div>
                     <div className="grid grid-cols-7 gap-1 text-center text-sm mb-4">
-                      {["D", "L", "M", "M", "J", "V", "S"].map((d) => (
-                        <span key={d} className="text-muted-foreground py-1">{d}</span>
+                      {["D", "L", "M", "M", "J", "V", "S"].map((d, i) => (
+                        <span key={i} className="text-muted-foreground py-1">{d}</span>
                       ))}
                       {Array.from({ length: 31 }, (_, i) => (
                         <button

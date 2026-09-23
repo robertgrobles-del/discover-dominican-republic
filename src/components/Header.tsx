@@ -7,7 +7,7 @@ import {
   Bed, Users, Heart, Info, BookOpen, Camera, Sun, Ship, 
   TrendingUp, Briefcase, ShoppingBag, Download, Accessibility, Route,
   User, LogOut, Radio, Leaf, Gift, Trophy, Activity,
-  Ticket, HeartPulse, Layers
+  Ticket, HeartPulse, Layers, DollarSign, Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -157,6 +157,8 @@ export function Header({ hasHero, variant, className }: HeaderProps = {}) {
   };
 
   const megaMenuPlanificar = [
+    { name: "Tasas de Cambio Bancarias", href: "/tasas-cambio", icon: DollarSign, desc: "USD, EUR, CAD en bancos de RD" },
+    { name: "Resultados de Loterías", href: "/loterias", icon: Sparkles, desc: "Leidsa, Nacional, Loteka, Real" },
     { name: "Reserva Directa", href: "/reserva-directa", icon: Calendar, desc: "Hoteles, vuelos y actividades" },
     { name: "eSIM Dominicana", href: "/esim", icon: Globe, desc: "Datos móviles 5G prepago" },
     { name: "Tarjeta RD Pass", href: "/tarjeta-prepago", icon: ShoppingBag, desc: "Descuentos y pagos locales" },

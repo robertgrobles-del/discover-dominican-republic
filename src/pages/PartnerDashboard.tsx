@@ -16,10 +16,12 @@ import { Badge } from "@/components/ui/badge";
 import {
   TrendingUp, Users, DollarSign, Star, Calendar, MessageSquare,
   Settings, Loader2, LogOut, CheckCircle2, XCircle, AlertCircle, Save, Reply,
-  Briefcase, QrCode, Mic, Link as LinkIcon, Download, Award, FileText, Sparkles, Plus, Trash2, Camera, Ticket
+  Briefcase, QrCode, Mic, Link as LinkIcon, Download, Award, FileText, Sparkles, Plus, Trash2, Camera, Ticket, Trophy, ShieldCheck
 } from "lucide-react";
 import { GuideToolsModule, AgencyToolsModule, OperatorToolsModule } from "@/components/partner/PartnerToolsModules";
 import { OrganizerEventsManager } from "@/components/partner/OrganizerEventsManager";
+import { AdminDeportesManager } from "@/components/sports/AdminDeportesManager";
+import { MarketplaceEscrowManager } from "@/components/marketplace/MarketplaceEscrowManager";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts";
 import { toast } from "sonner";
 
@@ -313,10 +315,12 @@ export default function PartnerDashboard() {
 
           {/* Tabs Navigation */}
           <Tabs defaultValue="analiticas" className="w-full space-y-6">
-            <TabsList className="w-full max-w-3xl mx-auto grid grid-cols-3 sm:grid-cols-6 bg-muted border border-border p-1 rounded-xl">
+            <TabsList className="w-full max-w-4xl mx-auto flex flex-wrap items-center justify-center gap-1 bg-muted border border-border p-1.5 rounded-2xl">
               <TabsTrigger value="analiticas" className="gap-1 text-xs"><TrendingUp className="h-3.5 w-3.5" /> Analíticas</TabsTrigger>
               <TabsTrigger value="reservas" className="gap-1 text-xs"><Calendar className="h-3.5 w-3.5" /> Reservas</TabsTrigger>
               <TabsTrigger value="eventos" className="gap-1 text-xs text-primary font-bold"><Ticket className="h-3.5 w-3.5" /> Mis Eventos</TabsTrigger>
+              <TabsTrigger value="deportes" className="gap-1 text-xs text-amber-500 font-bold"><Trophy className="h-3.5 w-3.5" /> Torneos & Deportes</TabsTrigger>
+              <TabsTrigger value="marketplace" className="gap-1 text-xs text-emerald-500 font-bold"><ShieldCheck className="h-3.5 w-3.5" /> Ventas & Envíos (Escrow)</TabsTrigger>
               <TabsTrigger value="ficha" className="gap-1 text-xs"><Settings className="h-3.5 w-3.5" /> Mi Ficha</TabsTrigger>
               <TabsTrigger value="resenas" className="gap-1 text-xs"><MessageSquare className="h-3.5 w-3.5" /> Reseñas</TabsTrigger>
               <TabsTrigger value="b2b" className="gap-1 text-xs"><Briefcase className="h-3.5 w-3.5" /> Consola B2B</TabsTrigger>
@@ -441,6 +445,16 @@ export default function PartnerDashboard() {
             {/* TAB CONTENT: ORGANIZER EVENTS & FREE TICKETING */}
             <TabsContent value="eventos">
               <OrganizerEventsManager />
+            </TabsContent>
+
+            {/* TAB CONTENT: SPORTS & TOURNAMENTS (LIDOM, LDF, LNB) */}
+            <TabsContent value="deportes">
+              <AdminDeportesManager />
+            </TabsContent>
+
+            {/* TAB CONTENT: MARKETPLACE ESCROW & CERTIFIED VENDOR */}
+            <TabsContent value="marketplace">
+              <MarketplaceEscrowManager />
             </TabsContent>
 
             {/* TAB CONTENT: PROFILE EDIT */}

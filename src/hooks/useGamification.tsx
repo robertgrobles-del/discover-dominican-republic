@@ -291,6 +291,12 @@ export function useGamification() {
       await Promise.all([fetchLevels(), fetchMissions(), fetchPrizes(), fetchLeaderboard()]);
       if (user) {
         await Promise.all([fetchUserProfile(), fetchUserMissions(), fetchReferralCode()]);
+      } else {
+        // Clear any previous user's data on logout so it doesn't linger for
+        // the next signed-out view or briefly leak into the next login.
+        setUserGamification(null);
+        setUserMissions([]);
+        setReferralCode(null);
       }
       setLoading(false);
     };
