@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import {
   Camera, Video, Instagram, Users, TrendingUp, Star,
-  ChevronRight, CheckCircle, Globe, Zap, Send, MapPin, Heart
+  ChevronRight, CheckCircle, Globe, Zap, Send, MapPin, Heart, Gift
 } from "lucide-react";
 import { toast } from "sonner";
 import relaxBeach from "@/assets/relax-beach.jpg";
@@ -26,7 +26,7 @@ const influencers = [
     nombre: "María Fernández",
     handle: "@viajera_eco",
     imagen: relaxBeach,
-    nicho: "Ecoturismo & Naturaleza",
+    nicho: "viaje",
     seguidores: "185K",
     plataformas: ["Instagram", "YouTube", "TikTok"],
     ubicacion: "Santo Domingo",
@@ -42,7 +42,7 @@ const influencers = [
     nombre: "Pedro Aventurero",
     handle: "@extreme_rd",
     imagen: adventureImg,
-    nicho: "Aventura & Deportes",
+    nicho: "viaje",
     seguidores: "120K",
     plataformas: ["Instagram", "YouTube"],
     ubicacion: "Jarabacoa",
@@ -58,7 +58,7 @@ const influencers = [
     nombre: "Chef María",
     handle: "@sabores_rd",
     imagen: gastronomy,
-    nicho: "Gastronomía",
+    nicho: "foodie",
     seguidores: "95K",
     plataformas: ["Instagram", "TikTok"],
     ubicacion: "Punta Cana",
@@ -74,7 +74,7 @@ const influencers = [
     nombre: "Carolina & Luis",
     handle: "@love_caribbean",
     imagen: puntaCana,
-    nicho: "Romance & Lujo",
+    nicho: "lifestyle",
     seguidores: "210K",
     plataformas: ["Instagram", "YouTube", "Blog"],
     ubicacion: "Punta Cana",
@@ -90,7 +90,7 @@ const influencers = [
     nombre: "Lucía Historia",
     handle: "@patrimonio_rd",
     imagen: santoDomingo,
-    nicho: "Cultura & Historia",
+    nicho: "general",
     seguidores: "75K",
     plataformas: ["Instagram", "YouTube"],
     ubicacion: "Santo Domingo",
@@ -106,7 +106,7 @@ const influencers = [
     nombre: "Familia Viajera",
     handle: "@family_rd",
     imagen: samanaImg,
-    nicho: "Viajes en Familia",
+    nicho: "familia",
     seguidores: "145K",
     plataformas: ["Instagram", "TikTok", "YouTube"],
     ubicacion: "Santiago",
@@ -117,15 +117,47 @@ const influencers = [
     descripcion: "Contenido para familias: parques, playas kid-friendly, hoteles all-inclusive y tips prácticos.",
     destacado: false,
   },
+  {
+    id: "moda-rd",
+    nombre: "Gabriela Moda",
+    handle: "@gabriela_style",
+    imagen: relaxBeach,
+    nicho: "moda",
+    seguidores: "115K",
+    plataformas: ["Instagram", "TikTok"],
+    ubicacion: "Santo Domingo",
+    idiomas: ["Español", "Inglés"],
+    rating: 4.8,
+    campanas: 22,
+    tarifa: "Desde US$ 420",
+    descripcion: "Moda de playa caribeña, tendencias tropicales y sesiones fotográficas de marcas de diseño en resorts.",
+    destacado: false,
+  },
+  {
+    id: "ugc-creator",
+    nombre: "Roberto Creador",
+    handle: "@roberto_ugc",
+    imagen: adventureImg,
+    nicho: "creadores UGC",
+    seguidores: "45K",
+    plataformas: ["TikTok", "Instagram Reels"],
+    ubicacion: "Cabarete",
+    idiomas: ["Español", "Inglés"],
+    rating: 4.9,
+    campanas: 40,
+    tarifa: "Desde US$ 250",
+    descripcion: "Especialista en videos orgánicos, reseñas honestas y contenido generado por usuarios para hoteles y agencias.",
+    destacado: true,
+  }
 ];
 
 const servicios = [
-  { icon: Camera, title: "Cobertura fotográfica", desc: "Sesiones profesionales de tu hotel, restaurante o destino para redes sociales." },
-  { icon: Video, title: "Video & Reels", desc: "Producción de videos cortos para Instagram, TikTok y YouTube Shorts." },
-  { icon: Instagram, title: "Campañas en redes", desc: "Posts, stories y reels patrocinados con alcance garantizado." },
-  { icon: Globe, title: "Blog & SEO", desc: "Artículos de blog con backlinks y posicionamiento orgánico." },
-  { icon: Users, title: "Press trips", desc: "Organización de viajes de prensa con múltiples influencers." },
-  { icon: TrendingUp, title: "Reportes & métricas", desc: "Informes detallados de alcance, engagement y conversiones." },
+  { icon: Camera, title: "Cobertura Fotográfica & Dron", desc: "Sesiones aéreas 4K y fotografía profesional de tu hotel, restaurante o excursión." },
+  { icon: Video, title: "Video & Reels Virales", desc: "Producción de videos de alto impacto para Instagram, TikTok y YouTube Shorts con creadores locales." },
+  { icon: Gift, title: "Degustaciones & Estancias 100% Canjeables", desc: "Invita a influencers seleccionados a vivir tu experiencia a cambio de reseñas y contenido orgánico." },
+  { icon: Heart, title: "Rifas & Sorteos entre Seguidores", desc: "Dinamiza tu comunidad y gana miles de seguidores organizando sorteos conjuntos con creadores verificados." },
+  { icon: Users, title: "Press Trips & Fam Trips", desc: "Organización de viajes de prensa con múltiples influencers para lanzamientos y temporadas turísticas." },
+  { icon: TrendingUp, title: "Métricas & Auditoría de Impacto", desc: "Informes detallados de alcance real, visualizaciones certificadas, engagement y reservas generadas." },
 ];
 
 const proceso = [
@@ -142,6 +174,12 @@ export default function ContratarInfluencers() {
     email: "",
     telefono: "",
     descripcion: "",
+  });
+
+  const [selectedNicho, setSelectedNicho] = useState<string>("all");
+
+  const filteredInfluencers = influencers.filter((inf) => {
+    return selectedNicho === "all" || inf.nicho === selectedNicho;
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -219,9 +257,37 @@ export default function ContratarInfluencers() {
         {/* Influencers */}
         <section className="py-16">
           <div className="container mx-auto px-4">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">Nuestros Creadores</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-4 text-center">Nuestros Creadores</h2>
+            <p className="text-sm text-muted-foreground text-center max-w-xl mx-auto mb-6">
+              Busca influencers por categoría para encontrar el embajador perfecto para tu marca.
+            </p>
+
+            {/* Category filter bar */}
+            <div className="flex flex-wrap justify-center gap-2 mb-8 border-b border-border pb-4">
+              {[
+                { label: "Todos", value: "all" },
+                { label: "Lifestyle", value: "lifestyle" },
+                { label: "Foodie", value: "foodie" },
+                { label: "Viaje", value: "viaje" },
+                { label: "Moda", value: "moda" },
+                { label: "General", value: "general" },
+                { label: "Familia", value: "familia" },
+                { label: "Creadores UGC", value: "creadores UGC" },
+              ].map((cat) => (
+                <Button
+                  key={cat.value}
+                  variant={selectedNicho === cat.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedNicho(cat.value)}
+                  className="capitalize"
+                >
+                  {cat.label}
+                </Button>
+              ))}
+            </div>
+
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {influencers.map((inf) => (
+              {filteredInfluencers.map((inf) => (
                 <Card key={inf.id} className="group overflow-hidden border-border hover:shadow-xl transition-all">
                   <div className="relative aspect-[4/3] overflow-hidden">
                     <img src={inf.imagen} alt={inf.nombre} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -235,7 +301,7 @@ export default function ContratarInfluencers() {
                     </div>
                   </div>
                   <CardContent className="p-5">
-                    <Badge variant="outline" className="mb-2">{inf.nicho}</Badge>
+                    <Badge variant="outline" className="mb-2 capitalize">{inf.nicho}</Badge>
                     <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{inf.descripcion}</p>
 
                     <div className="flex flex-wrap gap-1.5 mb-3">
@@ -258,7 +324,13 @@ export default function ContratarInfluencers() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-semibold text-primary">{inf.tarifa}</span>
                       <Button size="sm" variant="outline" className="gap-1"
-                        onClick={() => document.getElementById("form-contacto")?.scrollIntoView({ behavior: "smooth" })}>
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            descripcion: `Interés en contratar a ${inf.nombre} (${inf.handle}) para una campaña de categoría ${inf.nicho}. \n\nDetalles del proyecto:`
+                          }));
+                          document.getElementById("form-contacto")?.scrollIntoView({ behavior: "smooth" });
+                        }}>
                         Contratar <ChevronRight className="h-3 w-3" />
                       </Button>
                     </div>
@@ -266,6 +338,9 @@ export default function ContratarInfluencers() {
                 </Card>
               ))}
             </div>
+            {filteredInfluencers.length === 0 && (
+              <p className="text-center text-muted-foreground py-8">No hay creadores registrados en esta categoría en este momento.</p>
+            )}
           </div>
         </section>
 

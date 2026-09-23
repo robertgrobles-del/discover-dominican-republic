@@ -6,7 +6,7 @@ import {
   User, Trophy, Star, Zap, Crown, Flame, Target, Award,
   MapPin, Camera, Edit, Share2, ChevronRight, Calendar,
   Shield, Compass, Medal, TrendingUp, Heart, BookOpen,
-  ArrowUp, ArrowDown, Clock, Gift
+  ArrowUp, ArrowDown, Clock, Gift, Sparkles
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -20,6 +20,9 @@ import { useGamification } from "@/hooks/useGamification";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { CircularProgress } from "@/components/ui/progress-bar";
+import { XpHistoryChart } from "@/components/gamification/XpHistoryChart";
+import { CertificateModal } from "@/components/gamification/CertificateModal";
+import { StoryCardModal } from "@/components/gamification/StoryCardModal";
 
 interface Transaction {
   id: string;
@@ -44,6 +47,8 @@ export default function PerfilJugador() {
   const [loadingTx, setLoadingTx] = useState(false);
   const [achievements, setAchievements] = useState<any[]>([]);
   const [userAchievements, setUserAchievements] = useState<any[]>([]);
+  const [storyModalOpen, setStoryModalOpen] = useState(false);
+  const [certModalOpen, setCertModalOpen] = useState(false);
 
   const currentLevel = getCurrentLevel();
   const nextLevel = getNextLevel();
@@ -161,11 +166,26 @@ export default function PerfilJugador() {
                   </div>
                 )}
 
-                <div className="flex gap-3 justify-center md:justify-start">
-                  <Button variant="outline" size="sm" asChild className="gap-2">
+                <div className="flex flex-wrap gap-2.5 justify-center md:justify-start">
+                  <Button variant="outline" size="sm" asChild className="gap-1.5 text-xs rounded-xl">
                     <Link to="/perfil"><Edit className="h-3 w-3" /> Editar Perfil</Link>
                   </Button>
-                  <Button variant="outline" size="sm" className="gap-2" onClick={() => {
+                  <Button 
+                    size="sm" 
+                    onClick={() => setStoryModalOpen(true)}
+                    className="gap-1.5 text-xs rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold hover:opacity-90 shadow-xs"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" /> Historia 9:16
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setCertModalOpen(true)}
+                    className="gap-1.5 text-xs rounded-xl border-amber-500/40 text-amber-600 dark:text-amber-400 font-bold hover:bg-amber-500/10"
+                  >
+                    <Award className="h-3.5 w-3.5 text-amber-500" /> Diploma Oficial
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-1.5 text-xs rounded-xl" onClick={() => {
                     const text = `🎮 Soy ${currentLevel?.title || "Viajero"} nivel ${userGamification?.current_level || 1} en DescubreRD!\n⚡ ${userGamification?.total_xp || 0} XP | 🏆 ${completedMissions.length} misiones completadas\n🔥 Racha: ${userGamification?.streak_days || 0} días`;
                     if (navigator.share) {
                       navigator.share({ title: "Mi Perfil DescubreRD", text, url: window.location.href });
@@ -224,6 +244,12 @@ export default function PerfilJugador() {
 
             {/* Overview */}
             <TabsContent value="overview">
+              {/* Gráfica de Progreso de XP Histórico (#32) */}
+              <XpHistoryChart
+                transactions={transactions}
+                totalXp={userGamification?.total_xp || 0}
+              />
+
               <div className="grid lg:grid-cols-2 gap-8">
                 <div>
                   <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
@@ -473,6 +499,27 @@ export default function PerfilJugador() {
 
         <Footer />
       </div>
+
+      <StoryCardModal
+        open={storyModalOpen}
+        onOpenChange={setStoryModalOpen}
+        userName={profile?.display_name || user?.email?.split("@")[0] || "Explorador RD"}
+        totalProvinces={userGamification?.total_missions_completed || 8}
+        totalXp={userGamification?.total_xp || 0}
+        coins={userGamification?.coins || 0}
+        levelTitle={currentLevel?.title || "Curioso"}
+        levelIcon={currentLevel?.icon || "🌱"}
+        recentProvinces={["Puerto Plata", "Samaná", "La Vega", "Pedernales"]}
+      />
+
+      <CertificateModal
+        open={certModalOpen}
+        onOpenChange={setCertModalOpen}
+        userName={profile?.display_name || user?.email?.split("@")[0] || "Explorador RD"}
+        totalProvinces={userGamification?.total_missions_completed || 8}
+        totalXp={userGamification?.total_xp || 0}
+        levelTitle={currentLevel?.title || "Curioso"}
+      />
     </PageTransition>
   );
 }

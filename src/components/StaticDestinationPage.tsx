@@ -3,17 +3,17 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
-import { FavoriteButton } from "@/components/FavoriteButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Calendar, Thermometer, Utensils, Star, ChevronRight, Hotel, UtensilsCrossed, Wine, Compass, Users, Home } from "lucide-react";
+import { MapPin, Calendar, Thermometer, Utensils, Star, ChevronRight, Hotel, UtensilsCrossed, Wine, Compass, Users } from "lucide-react";
 import { DistancesFromCities } from "@/components/destination/DistancesFromCities";
 import { DestinationAboutTabs } from "@/components/destination/DestinationAboutTabs";
+import { DestinationHeroSlider } from "@/components/destination/DestinationHeroSlider";
 import { RelatedBlogPosts } from "@/components/destination/RelatedBlogPosts";
 import { Link } from "react-router-dom";
-import { Destination, getDestinationsByProvince, getDestinationById } from "@/data/destinations";
+import { Destination, getDestinationsByProvince } from "@/data/destinations";
 import { getHotelsByDestination } from "@/data/hotels";
 import { getRestaurantsByDestination } from "@/data/restaurants";
 import { getBarsByDestination } from "@/data/bars";
@@ -29,21 +29,6 @@ export function StaticDestinationPage({ destination }: StaticDestinationPageProp
   const bars = getBarsByDestination(destination.id);
   const experiences = getExperiencesByDestination(destination.id);
   const subDestinations = destination.type === 'provincia' ? getDestinationsByProvince(destination.slug) : [];
-  
-  // Obtener jerarquía para breadcrumbs
-  const province = destination.provinceId ? getDestinationById(destination.provinceId) : undefined;
-  const municipality = destination.municipalityId ? getDestinationById(destination.municipalityId) : undefined;
-
-  const categoryLabels: Record<string, string> = {
-    playa: 'Playa',
-    montaña: 'Montaña',
-    ecoturismo: 'Ecoturismo',
-    cultura: 'Cultura',
-    aventura: 'Aventura',
-    rios: 'Ríos',
-    ciudad: 'Ciudad',
-    lujo: 'Lujo'
-  };
 
   return (
     <PageTransition>
@@ -52,103 +37,9 @@ export function StaticDestinationPage({ destination }: StaticDestinationPageProp
         description={destination.shortDescription}
       />
       <Header />
-      
-      {/* Breadcrumbs */}
-      <nav className="bg-muted/50 border-b">
-        <div className="container mx-auto px-4 py-3">
-          <ol className="flex items-center gap-2 text-sm">
-            <li>
-              <Link to="/" className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
-                <Home className="h-4 w-4" />
-                Inicio
-              </Link>
-            </li>
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            <li>
-              <Link to="/destinos" className="text-muted-foreground hover:text-primary transition-colors">
-                Destinos
-              </Link>
-            </li>
-            {province && destination.type !== 'provincia' && (
-              <>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                <li>
-                  <Link to={`/destino/${province.slug}`} className="text-muted-foreground hover:text-primary transition-colors">
-                    {province.name}
-                  </Link>
-                </li>
-              </>
-            )}
-            {municipality && destination.type === 'destino' && (
-              <>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                <li>
-                  <Link to={`/destino/${municipality.slug}`} className="text-muted-foreground hover:text-primary transition-colors">
-                    {municipality.name}
-                  </Link>
-                </li>
-              </>
-            )}
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            <li className="text-foreground font-medium">{destination.name}</li>
-          </ol>
-        </div>
-      </nav>
 
       {/* Hero Section */}
-      <section className="relative h-[60vh] min-h-[400px]">
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${destination.imageUrl})` }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-        </div>
-        
-        <div className="relative container mx-auto px-4 h-full flex flex-col justify-end pb-12">
-          <div className="flex items-center gap-2 mb-4">
-            {destination.categories.map(cat => (
-              <Badge key={cat} variant="secondary" className="bg-primary/90 text-primary-foreground">
-                {categoryLabels[cat] || cat}
-              </Badge>
-            ))}
-            {destination.type === 'provincia' && (
-              <Badge variant="outline" className="border-white/50 text-white">
-                Provincia
-              </Badge>
-            )}
-            {destination.type === 'municipio' && (
-              <Badge variant="outline" className="border-white/50 text-white">
-                Municipio
-              </Badge>
-            )}
-          </div>
-          
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
-                {destination.name}
-              </h1>
-              {destination.province && (
-                <Link 
-                  to={`/destino/${destination.provinceSlug}`}
-                  className="flex items-center gap-2 text-white/90 text-lg hover:text-white transition-colors"
-                >
-                  <MapPin className="h-5 w-5" />
-                  {destination.province}
-                </Link>
-              )}
-            </div>
-            <FavoriteButton
-              id={destination.id}
-              type="destino"
-              name={destination.name}
-              image={destination.imageUrl}
-              location={destination.province}
-              className="text-white"
-            />
-          </div>
-        </div>
-      </section>
+      <DestinationHeroSlider destination={destination} hotels={hotels} restaurants={restaurants} />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12">
