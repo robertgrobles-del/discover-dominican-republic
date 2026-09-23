@@ -301,6 +301,7 @@ export function AdminRouteBuilder() {
                           <Button
                             size="icon"
                             variant="ghost"
+                            aria-label="Mover parada arriba"
                             className="h-7 w-7 text-muted-foreground hover:text-foreground"
                             onClick={() => handleMove(index, "up")}
                             disabled={index === 0}
@@ -310,6 +311,7 @@ export function AdminRouteBuilder() {
                           <Button
                             size="icon"
                             variant="ghost"
+                            aria-label="Mover parada abajo"
                             className="h-7 w-7 text-muted-foreground hover:text-foreground"
                             onClick={() => handleMove(index, "down")}
                             disabled={index === stops.length - 1}
@@ -319,6 +321,7 @@ export function AdminRouteBuilder() {
                           <Button
                             size="icon"
                             variant="ghost"
+                            aria-label="Eliminar parada"
                             className="h-7 w-7 text-destructive hover:bg-destructive/10"
                             onClick={() => deleteStopMutation.mutate(stop.id)}
                           >

@@ -299,7 +299,7 @@ function OperatorTable({
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <CardTitle className="text-base">{selectedOp.name}</CardTitle>
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setSelectedOp(null)}>
+                <Button variant="ghost" size="icon" aria-label="Cerrar detalles" className="h-6 w-6" onClick={() => setSelectedOp(null)}>
                   <XCircle className="h-4 w-4" />
                 </Button>
               </div>

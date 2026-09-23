@@ -141,7 +141,7 @@ export function AdminAuditLogs() {
                             {log.entity_name}
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button size="icon" variant="ghost" className="h-7 w-7 text-primary">
+                            <Button size="icon" variant="ghost" aria-label="Ver detalles" className="h-7 w-7 text-primary">
                               <Eye className="h-3.5 w-3.5" />
                             </Button>
                           </TableCell>

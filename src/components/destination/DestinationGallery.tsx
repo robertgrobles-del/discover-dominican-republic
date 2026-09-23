@@ -71,6 +71,7 @@ export function DestinationGallery({ images }: DestinationGalleryProps) {
             <Button
               variant="ghost"
               size="icon"
+              aria-label="Cerrar galería en pantalla completa"
               className="absolute top-4 right-4 text-white hover:bg-white/20"
               onClick={() => setIsFullscreen(false)}
             >
@@ -80,6 +81,7 @@ export function DestinationGallery({ images }: DestinationGalleryProps) {
             <Button
               variant="ghost"
               size="icon"
+              aria-label="Foto anterior"
               className="absolute left-4 text-white hover:bg-white/20"
               onClick={prev}
             >
@@ -100,6 +102,7 @@ export function DestinationGallery({ images }: DestinationGalleryProps) {
             <Button
               variant="ghost"
               size="icon"
+              aria-label="Foto siguiente"
               className="absolute right-4 text-white hover:bg-white/20"
               onClick={next}
             >
