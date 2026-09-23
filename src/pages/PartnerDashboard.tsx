@@ -14,9 +14,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import {
-  TrendingUp, Users, DollarSign, Star, Calendar, MessageSquare, 
-  Settings, Loader2, LogOut, CheckCircle2, XCircle, AlertCircle, Save, Reply
+  TrendingUp, Users, DollarSign, Star, Calendar, MessageSquare,
+  Settings, Loader2, LogOut, CheckCircle2, XCircle, AlertCircle, Save, Reply,
+  Briefcase, QrCode, Mic, Link as LinkIcon, Download, Award, FileText, Sparkles, Plus, Trash2, Camera, Ticket
 } from "lucide-react";
+import { GuideToolsModule, AgencyToolsModule, OperatorToolsModule } from "@/components/partner/PartnerToolsModules";
+import { OrganizerEventsManager } from "@/components/partner/OrganizerEventsManager";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts";
 import { toast } from "sonner";
 
@@ -55,6 +58,7 @@ export default function PartnerDashboard() {
   const [description, setDescription] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [businessType, setBusinessType] = useState("hotel");
 
   // Review reply input state
   const [replyTexts, setReplyTexts] = useState<Record<number, string>>({});
@@ -81,6 +85,7 @@ export default function PartnerDashboard() {
           setDescription(data.description || "");
           setPhone(data.phone || "");
           setEmail(data.email || "");
+          setBusinessType(data.business_type || "hotel");
         } else {
           // If profile does not exist yet (RSC timing), we populate with default values
           const defaultName = user.email ? user.email.split("@")[0].toUpperCase() + " Associates" : "Partner Hotel";
@@ -131,12 +136,21 @@ export default function PartnerDashboard() {
           business_name: businessName,
           description: description,
           phone: phone,
-          email: email
+          email: email,
+          business_type: businessType
         })
         .eq("id", user?.id);
 
       if (error) throw error;
-      toast.success("¡Ficha comercial actualizada con éxito!");
+      setPartnerProfile((prev: any) => ({
+        ...prev,
+        business_name: businessName,
+        description: description,
+        phone: phone,
+        email: email,
+        business_type: businessType
+      }));
+      toast.success("¡Ficha comercial y tipo de negocio actualizados con éxito!");
     } catch (err: any) {
       toast.error(`Error al actualizar ficha: ${err.message || "Por favor intente de nuevo."}`);
     } finally {
@@ -227,13 +241,13 @@ export default function PartnerDashboard() {
             <div>
               <div className="flex items-center gap-2">
                 <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">PARTNER COMERCIAL</Badge>
-                <Badge variant="outline">{partnerProfile?.business_type?.toUpperCase() || "HOTEL"}</Badge>
+                <Badge variant="outline" className="capitalize">{businessType || "hotel"}</Badge>
               </div>
               <h1 className="text-3xl font-bold font-display mt-2 text-foreground">
                 {businessName || "Mi Establecimiento"}
               </h1>
               <p className="text-sm text-muted-foreground mt-0.5">
-                Panel B2B para administración de reservas, analíticas e integraciones de pago.
+                Panel B2B para administración de reservas, analíticas e herramientas de trabajo.
               </p>
             </div>
             <Button variant="outline" className="gap-2 text-red-500 border-red-500/20 hover:bg-red-500/10" onClick={handleLogout}>
@@ -243,7 +257,7 @@ export default function PartnerDashboard() {
 
           {/* Metrics summary cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="border-border">
+            <Card className="border-border shadow-sm">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground font-medium">Ingresos Totales (Neto)</span>
@@ -256,7 +270,7 @@ export default function PartnerDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border-border">
+            <Card className="border-border shadow-sm">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground font-medium">Reservas Pagadas</span>
@@ -269,7 +283,7 @@ export default function PartnerDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border-border">
+            <Card className="border-border shadow-sm">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground font-medium">Comisión Plataforma (10%)</span>
@@ -282,7 +296,7 @@ export default function PartnerDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border-border">
+            <Card className="border-border shadow-sm">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground font-medium">Valoración Media</span>
@@ -299,16 +313,18 @@ export default function PartnerDashboard() {
 
           {/* Tabs Navigation */}
           <Tabs defaultValue="analiticas" className="w-full space-y-6">
-            <TabsList className="flex flex-wrap w-full max-w-xl mx-auto grid grid-cols-4 bg-muted border border-border p-1 rounded-xl">
-              <TabsTrigger value="analiticas" className="gap-1.5"><TrendingUp className="h-4 w-4" /> Analíticas</TabsTrigger>
-              <TabsTrigger value="reservas" className="gap-1.5"><Calendar className="h-4 w-4" /> Reservas</TabsTrigger>
-              <TabsTrigger value="ficha" className="gap-1.5"><Settings className="h-4 w-4" /> Mi Ficha</TabsTrigger>
-              <TabsTrigger value="resenas" className="gap-1.5"><MessageSquare className="h-4 w-4" /> Reseñas</TabsTrigger>
+            <TabsList className="w-full max-w-3xl mx-auto grid grid-cols-3 sm:grid-cols-6 bg-muted border border-border p-1 rounded-xl">
+              <TabsTrigger value="analiticas" className="gap-1 text-xs"><TrendingUp className="h-3.5 w-3.5" /> Analíticas</TabsTrigger>
+              <TabsTrigger value="reservas" className="gap-1 text-xs"><Calendar className="h-3.5 w-3.5" /> Reservas</TabsTrigger>
+              <TabsTrigger value="eventos" className="gap-1 text-xs text-primary font-bold"><Ticket className="h-3.5 w-3.5" /> Mis Eventos</TabsTrigger>
+              <TabsTrigger value="ficha" className="gap-1 text-xs"><Settings className="h-3.5 w-3.5" /> Mi Ficha</TabsTrigger>
+              <TabsTrigger value="resenas" className="gap-1 text-xs"><MessageSquare className="h-3.5 w-3.5" /> Reseñas</TabsTrigger>
+              <TabsTrigger value="b2b" className="gap-1 text-xs"><Briefcase className="h-3.5 w-3.5" /> Consola B2B</TabsTrigger>
             </TabsList>
 
             {/* TAB CONTENT: ANALYTICS */}
             <TabsContent value="analiticas" className="space-y-6">
-              <Card className="border-border">
+              <Card className="border-border shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-xl font-bold">Volumen de Transacciones Recientes</CardTitle>
                   <CardDescription>Visualización mensual de los ingresos recaudados por reservas.</CardDescription>
@@ -334,7 +350,7 @@ export default function PartnerDashboard() {
 
             {/* TAB CONTENT: RESERVATIONS */}
             <TabsContent value="reservas">
-              <Card className="border-border">
+              <Card className="border-border shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-xl font-bold">Registro de Reservas</CardTitle>
                   <CardDescription>Monitorea y cambia el estado de las compras/reservas asociadas a tu servicio.</CardDescription>
@@ -422,9 +438,14 @@ export default function PartnerDashboard() {
               </Card>
             </TabsContent>
 
+            {/* TAB CONTENT: ORGANIZER EVENTS & FREE TICKETING */}
+            <TabsContent value="eventos">
+              <OrganizerEventsManager />
+            </TabsContent>
+
             {/* TAB CONTENT: PROFILE EDIT */}
             <TabsContent value="ficha">
-              <Card className="border-border">
+              <Card className="border-border shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-xl font-bold">Información de la Ficha Comercial</CardTitle>
                   <CardDescription>Edita los datos que se muestran públicamente a los viajeros en Descubre RD.</CardDescription>
@@ -443,6 +464,23 @@ export default function PartnerDashboard() {
                       </div>
 
                       <div className="space-y-2">
+                        <Label htmlFor="biz-type">Tipo de Negocio B2B</Label>
+                        <select
+                          id="biz-type"
+                          value={businessType}
+                          onChange={(e) => setBusinessType(e.target.value)}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          title="Tipo de Establecimiento B2B"
+                        >
+                          <option value="hotel">Hotel / Hospedaje</option>
+                          <option value="restaurante">Restaurante / Fritura</option>
+                          <option value="guia">Guía Turístico Certificado</option>
+                          <option value="agencia">Agencia de Viajes B2B</option>
+                          <option value="operador">Tour Operador / Excursiones</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
                         <Label htmlFor="biz-phone">Teléfono de Reservas</Label>
                         <Input
                           id="biz-phone"
@@ -450,17 +488,17 @@ export default function PartnerDashboard() {
                           onChange={(e) => setPhone(e.target.value)}
                         />
                       </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="biz-email">Email Corporativo de Contacto</Label>
-                      <Input
-                        id="biz-email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
+                      <div className="space-y-2">
+                        <Label htmlFor="biz-email">Email Corporativo de Contacto</Label>
+                        <Input
+                          id="biz-email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-2">
@@ -488,7 +526,7 @@ export default function PartnerDashboard() {
 
             {/* TAB CONTENT: REVIEWS */}
             <TabsContent value="resenas" className="space-y-6">
-              <Card className="border-border">
+              <Card className="border-border shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-xl font-bold">Reseñas y Comentarios de Clientes</CardTitle>
                   <CardDescription>Responde a los testimonios de los turistas para mejorar la reputación de tu marca.</CardDescription>
@@ -537,6 +575,28 @@ export default function PartnerDashboard() {
                   ))}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* TAB CONTENT: B2B TOOLS */}
+            <TabsContent value="b2b">
+              {businessType === "guia" && <GuideToolsModule userId={user?.id} businessName={businessName} />}
+              {businessType === "agencia" && <AgencyToolsModule />}
+              {businessType === "operador" && <OperatorToolsModule />}
+              {businessType !== "guia" && businessType !== "agencia" && businessType !== "operador" && (
+                <Card className="border-border shadow-sm">
+                  <CardContent className="p-8 text-center space-y-4">
+                    <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto">
+                      <Briefcase className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg text-foreground">Consola de Herramientas B2B Profesionales</h3>
+                      <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
+                        Para ver las herramientas personalizadas de tu profesión, por favor cambia tu tipo de negocio en la pestaña <strong>Mi Ficha</strong> a: Guía Turístico, Agencia de Viajes o Tour Operador.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
           </Tabs>
         </main>

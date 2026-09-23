@@ -145,6 +145,11 @@ export function GolfSection() {
               <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
                 Ver Paquetes
               </Button>
+              <Link to="/golf-rd">
+                <Button size="lg" variant="ghost" className="gap-2 text-white hover:bg-white/10">
+                  Guía Completa de Golf en RD <ChevronRight className="h-4 w-4" />
+                </Button>
+              </Link>
             </div>
           </motion.div>
         </div>

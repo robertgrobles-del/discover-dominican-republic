@@ -8,12 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Mountain, Bird, Anchor, TreeDeciduous, MapPin, Clock, 
+  Mountain, Bird, Anchor, TreeDeciduous, MapPin, Clock,
   ChevronRight, Calendar, Users, Download, Play, Headphones,
-  AlertCircle, Ship, Thermometer
+  AlertCircle, Ship, Thermometer, Shield
 } from "lucide-react";
 import { useState } from "react";
-import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
+import { BetweenSectionsAd, CompactInlineAd } from "@/components/promo";
+import { CTARegistroEstablecimiento } from "@/components/forms/CTARegistroEstablecimiento";
+import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
 
 import whaleSamana from "@/assets/whale-samana.jpg";
 import adventure from "@/assets/adventure.jpg";
@@ -149,7 +151,7 @@ export default function Ecoturismo() {
         <Header />
         
         {/* Hero */}
-        <section className="relative h-[60vh] min-h-[500px] flex items-end mt-16">
+        <section className="relative h-[60vh] min-h-[500px] flex items-end">
           <div className="absolute inset-0">
             <img
               src={whaleSamana}
@@ -164,11 +166,11 @@ export default function Ecoturismo() {
               TURISMO DE NATURALEZA
             </Badge>
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4 max-w-3xl">
-              Descubre los secretos{" "}
-              <span className="text-gradient">naturales</span> de Quisqueya
+              La naturaleza{" "}
+              <span className="text-gradient">de Quisqueya</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl mb-8">
-              Desde cuevas milenarias hasta el canto de las ballenas jorobadas. Explora 500+ cuevas, 300+ especies de aves y los parques más biodiversos del Caribe.
+              Cuevas milenarias, ballenas jorobadas y parques nacionales. Explora 500+ cuevas, 300+ especies de aves y decenas de áreas protegidas en todo el país.
             </p>
             
             {/* Stats */}
@@ -510,6 +512,43 @@ export default function Ecoturismo() {
                 </div>
               </TabsContent>
             </Tabs>
+
+            {/* Explora Más: guías especializadas de ecoturismo */}
+            <div className="mt-16">
+              <h3 className="font-display font-bold text-2xl text-foreground mb-6">Explora Más</h3>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { icon: Thermometer, titulo: "Aguas Termales", desc: "Manantiales y balnearios naturales de aguas calientes", link: "/aguas-termales" },
+                  { icon: Shield, titulo: "Áreas Protegidas", desc: "El sistema nacional de parques y reservas de RD", link: "/areas-protegidas" },
+                  { icon: Bird, titulo: "Avistamiento de Aves", desc: "Más de 300 especies, 32 endémicas de la isla", link: "/avistamiento-aves" },
+                ].map((item) => (
+                  <Link
+                    key={item.link}
+                    to={item.link}
+                    className="group flex items-start gap-4 bg-card rounded-xl border border-border p-5 hover:border-primary/50 hover:shadow-md transition-all"
+                  >
+                    <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                      <item.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">{item.titulo}</h4>
+                      <p className="text-sm text-muted-foreground mt-1">{item.desc}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Banners de Conversión: Sorteo de Lectores + Registro de Experiencias Ecoturísticas */}
+            <div className="mt-16 space-y-8">
+              <SorteoLectorBanner origenCategoria="Ecoturismo, Cuevas y Parques Nacionales" />
+
+              <CTARegistroEstablecimiento
+                tipo="tour"
+                titulo="¿Ofreces excursiones ecológicas, avistamiento o senderismo?"
+                subtitulo="Inscribe tu reserva ecológica o tour sostenible en Descubre RD para el gran lanzamiento. Conecta con viajeros comprometidos con la naturaleza."
+              />
+            </div>
           </div>
         </section>
 

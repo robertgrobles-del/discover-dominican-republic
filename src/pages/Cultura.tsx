@@ -8,7 +8,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BetweenSectionsAd, CompactInlineAd } from "@/components/ads";
+import { BetweenSectionsAd, CompactInlineAd } from "@/components/promo";
 import { useTranslation } from "@/hooks/useI18n";
 import laBanderaImg from "@/assets/la-bandera.jpg";
 import merengueImg from "@/assets/merengue-dance.jpg";
@@ -93,7 +93,7 @@ export default function Cultura() {
             alt="Cultura Dominicana"
             className="h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-background/60" />
         </div>
 
         <div className="relative z-10 text-center px-4 pt-16">
@@ -166,7 +166,7 @@ export default function Cultura() {
       </section>
 
       {/* Gastronomy Section */}
-      <section className="py-20 bg-card">
+      <section id="gastronomia" className="py-20 bg-card">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -512,6 +512,37 @@ export default function Cultura() {
                 <p className="text-muted-foreground text-sm">Patrimonio de la Humanidad UNESCO</p>
               </div>
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Rutas y Experiencias Culturales */}
+      <section className="py-16 bg-card">
+        <div className="container mx-auto px-4 lg:px-8">
+          <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-8">
+            Rutas y Experiencias Culturales
+          </h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[
+              { titulo: "Carnaval Dominicano", desc: "Diablos Cojuelos, comparsas y la fiesta más colorida del Caribe", image: carnivalImg, link: "/carnaval" },
+              { titulo: "Ruta del Larimar", desc: "La gema azul única en el mundo, de la mina a la joyería", image: colonialDoorImg, link: "/ruta-larimar" },
+              { titulo: "Ruta del Ron y Tabaco", desc: "Destilerías y vegas de tabaco: tradición centenaria dominicana", image: historyImg, link: "/ruta-ron-tabaco" },
+              { titulo: "Recetas Criollas", desc: "El sabor de la cocina dominicana, de la finca a la mesa", image: gastronomyImg, link: "/recetas-criollas" },
+              { titulo: "Ruta de las Hermanas Mirabal", desc: "Salcedo y el legado de las Mariposas, símbolo de la resistencia", image: laBanderaImg, link: "/ruta-hermanas-mirabal" },
+            ].map((item) => (
+              <Link
+                key={item.link}
+                to={item.link}
+                className="group relative overflow-hidden rounded-xl aspect-[4/3]"
+              >
+                <img src={item.image} alt={item.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <h3 className="font-display font-bold text-white">{item.titulo}</h3>
+                  <p className="text-white/80 text-xs mt-1 line-clamp-2">{item.desc}</p>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>

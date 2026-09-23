@@ -1,12 +1,13 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, Menu, X, ChevronRight, Globe, Compass, Plane, FileText, 
   MapPin, Waves, Mountain, Utensils, Music, Calendar, Building2, Car,
-  Bed, Users, Heart, Info, BookOpen, Camera, Sun, Sparkles, Ship, 
+  Bed, Users, Heart, Info, BookOpen, Camera, Sun, Ship, 
   TrendingUp, Briefcase, ShoppingBag, Download, Accessibility, Route,
-  User, LogOut, Radio, Leaf, Gift, Trophy, Activity
+  User, LogOut, Radio, Leaf, Gift, Trophy, Activity,
+  Ticket, HeartPulse, Layers
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -30,18 +31,70 @@ import puntaCana from "@/assets/punta-cana.jpg";
 import samana from "@/assets/samana.jpg";
 import santoDomingo from "@/assets/santo-domingo.jpg";
 import puertoPlata from "@/assets/puerto-plata.jpg";
+import adventure from "@/assets/adventure.jpg";
+import gastronomy from "@/assets/gastronomy.jpg";
+import diving from "@/assets/diving.jpg";
+import relaxBeach from "@/assets/relax-beach.jpg";
+import adAdventureImg from "@/assets/promo/promo-adventure.jpg";
+
+interface HeaderProps {
+  hasHero?: boolean;
+  variant?: "transparent" | "dark" | "white";
+  className?: string;
+}
 
 type MegaMenuType = "dondeIr" | "queHacer" | "dondeQuedarse" | "planificar" | "sobreElPais" | null;
 
-export function Header() {
+export function Header({ hasHero, variant, className }: HeaderProps = {}) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeMegaMenu, setActiveMegaMenu] = useState<MegaMenuType>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { user, loading, signOut } = useAuth();
   const { t } = useTranslation();
+
+  const isHomePage = location.pathname === "/";
+
+  // List of known routes that feature a full-bleed Hero Banner or Hero Slider
+  const heroRoutes = [
+    "/",
+    "/destinos",
+    "/actividades",
+    "/alojamientos",
+    "/cultura",
+    "/playas",
+    "/planifica",
+    "/experiencias",
+    "/gastronomia",
+    "/guia-gastronomica",
+    "/eventos",
+  ];
+
+  // Check if current route has a hero (e.g. /destino/* or /evento/*)
+  const isDynamicHeroRoute = 
+    location.pathname.startsWith("/destino/") || 
+    location.pathname.startsWith("/evento/");
+
+  // Only transparent if page has a hero banner / slider and not explicitly forced to white
+  const pageHasHero = variant === "white"
+    ? false
+    : (hasHero !== undefined 
+        ? hasHero 
+        : (heroRoutes.includes(location.pathname) || isDynamicHeroRoute));
+
+  const isWhiteVariant = variant === "white";
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 40);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Translated navigation data
   const navLinks = [
@@ -54,60 +107,54 @@ export function Header() {
 
   const megaMenuDondeIr = {
     destinos: [
-      { name: "Punta Cana", desc: t("header.puntaCanaDesc"), image: puntaCana, href: "/destino/punta-cana" },
-      { name: "Samaná", desc: t("header.samanaDesc"), image: samana, href: "/destino/samana" },
-      { name: "Santo Domingo", desc: t("header.santoDomingoDesc"), image: santoDomingo, href: "/destino/santo-domingo" },
-      { name: "Puerto Plata", desc: t("header.puertoPlataDesc"), image: puertoPlata, href: "/destino/puerto-plata" },
+      { name: "Punta Cana", desc: t("header.puntaCanaDesc"), image: puntaCana, href: "/destino/punta-cana", tag: "Costas del Este" },
+      { name: "Samaná", desc: t("header.samanaDesc"), image: samana, href: "/destino/samana", tag: "Santuario de Ballenas" },
+      { name: "Santo Domingo", desc: t("header.santoDomingoDesc"), image: santoDomingo, href: "/destino/santo-domingo", tag: "Ciudad Primada de América" },
+      { name: "Puerto Plata", desc: t("header.puertoPlataDesc"), image: puertoPlata, href: "/destino/puerto-plata", tag: "Costa del Ámbar & Surf" },
     ],
     regiones: [
-      { name: t("header.allProvinces"), href: "/provincias" },
-      { name: t("header.regionNorth"), href: "/provincias?region=norte" },
-      { name: t("header.regionEast"), href: "/provincias?region=este" },
-      { name: t("header.regionSouth"), href: "/provincias?region=sur" },
-      { name: t("header.regionSD"), href: "/provincias?region=santo-domingo" },
+      { name: "Región Norte (Cibao & Costa Atlántica)", desc: "Santiago, Puerto Plata, Jarabacoa, Montecristi", href: "/provincias?region=norte", tag: "Montaña & Ecoturismo", image: puertoPlata },
+      { name: "Región Este (Playas & Golf)", desc: "Punta Cana, La Romana, Bayahíbe, Miches", href: "/provincias?region=este", tag: "All-Inclusive & Arrecifes", image: puntaCana },
+      { name: "Región Sur Profundo (Naturaleza Virgen)", desc: "Barahona, Pedernales, Bahía de las Águilas, Baní", href: "/provincias?region=sur", tag: "Reserva de Biósfera", image: samana },
+      { name: "Gran Santo Domingo (Cultura & Negocios)", desc: "Zona Colonial, Malecón, Gastronomía de Autor", href: "/provincias?region=santo-domingo", tag: "Patrimonio UNESCO", image: santoDomingo },
     ]
   };
 
   const megaMenuQueHacer = {
-    experiencias: [
-      { name: t("interest.beaches"), href: "/playas", icon: Waves, desc: t("header.beachesDesc") },
-      { name: t("header.adventureSports"), href: "/actividades", icon: Compass, desc: t("header.adventureDesc") },
-      { name: t("interest.gastronomy"), href: "/guia-gastronomica", icon: Utensils, desc: t("header.gastronomyDesc") },
-      { name: t("bars.nightlife"), href: "/vida-nocturna", icon: Music, desc: t("header.nightlifeDesc") },
-      { name: t("header.heritage"), href: "/patrimonio", icon: Building2, desc: t("header.heritageDesc") },
-      { name: "Eventos en Vivo", href: "/eventos-vivo", icon: Radio, desc: "Qué está pasando esta noche" },
-      { name: "Vive como un Local", href: "/vive-local", icon: Users, desc: "Inmersión cultural y costumbres" },
-      { name: "Bebidas de RD", href: "/bebidas-rd", icon: Utensils, desc: "Ron, mamajuana y catas" },
+    experienciasTop: [
+      { name: "Aventura, Cascadas & Zipline", desc: "27 Charcos, Samaná y Jarabacoa", image: adventure, href: "/actividades" },
+      { name: "Ruta Gastronómica & Alta Cocina", desc: "Sabores criollos, mariscos y catas de ron", image: gastronomy, href: "/guia-gastronomica" },
+      { name: "Buceo en Arrecifes & Snorkel", desc: "Aguas cristalinas en Bayahíbe y Sosúa", image: diving, href: "/buceo-snorkel" },
+      { name: "Playas Paradisíacas & Catamarán", desc: "Bávaro, Cayo Levantado y Bahía de las Águilas", image: relaxBeach, href: "/playas" },
     ],
     categorias: [
       { name: "Turismo Sostenible", href: "/sostenible", icon: Leaf },
-      { name: t("header.flavorRoutes"), href: "/rutas-sabor", icon: Utensils },
-      { name: t("header.themeParks"), href: "/parques-tematicos", icon: Sparkles },
-      { name: t("footer.events"), href: "/eventos", icon: Calendar },
+      { name: "Rutas del Sabor", href: "/rutas-sabor", icon: Utensils },
+      { name: "Vida Nocturna & Bares", href: "/vida-nocturna", icon: Music },
+      { name: "Patrimonio & Museos", href: "/patrimonio", icon: Building2 },
+      { name: "Eventos & Fiestas", href: "/eventos", icon: Calendar },
+      { name: "Wellness & Spas", href: "/wellness", icon: HeartPulse },
       { name: "Pelota LIDOM", href: "/lidom", icon: Activity },
-      { name: "Golf", href: "/turismo-deportivo", icon: Sparkles },
-    ],
-    nichos: [
-      { name: "Wellness & Spa", href: "/wellness", icon: Sparkles, desc: t("header.wellnessDesc") },
-      { name: t("header.destinationWeddings"), href: "/bodas", icon: Heart, desc: t("header.weddingsDesc") },
-      { name: t("header.cruises"), href: "/cruceros", icon: Ship, desc: t("header.cruisesDesc") },
-      { name: t("niche.family"), href: "/familia-con-ninos", icon: Users, desc: t("header.familyDesc") },
-      { name: t("niche.solo"), href: "/viajera-sola", icon: User, desc: t("header.soloDesc") },
-      { name: "MICE & Bodas B2B", href: "/mice-bodas", icon: Building2, desc: "Estimador de venues y congresos" },
-      { name: "Eventos en Grupo", href: "/eventos-grupo", icon: Users, desc: "Excursiones compartidas entre viajeros" },
-      { name: "Programa de Creadores", href: "/creadores", icon: Camera, desc: "Comparte y gana comisiones" },
-      { name: "Concursos Fotografía", href: "/concursos", icon: Trophy, desc: "Participa y gana premios" },
-      { name: "Diario de Viaje", href: "/diario-viaje", icon: BookOpen, desc: "Crea tu diario tipo revista" },
-    ],
+      { name: "Bodas en el Caribe", href: "/bodas", icon: Heart },
+    ]
   };
 
-  const megaMenuDondeQuedarse = [
-    { name: t("header.hotelsResorts"), href: "/alojamientos?tipo=hotel", icon: Building2 },
-    { name: "Eco-Lodges", href: "/alojamientos?tipo=ecolodge", icon: Mountain },
-    { name: t("header.privateVillas"), href: "/alojamientos?tipo=villa", icon: Bed },
-    { name: t("header.apartments"), href: "/alojamientos?tipo=apartamento", icon: Building2 },
-    { name: t("header.allInclusive"), href: "/alojamientos?tipo=all-inclusive", icon: Sun },
-  ];
+  const megaMenuDondeQuedarse = {
+    tipos: [
+      { name: "Resorts All-Inclusive", desc: "Lujo, piscinas infinitas y todo incluido en la playa", image: puntaCana, href: "/alojamientos?tipo=all-inclusive" },
+      { name: "Hoteles Boutique & Coloniales", desc: "Encanto histórico, arquitectura y trato exclusivo", image: santoDomingo, href: "/alojamientos?tipo=boutique" },
+      { name: "Eco-Lodges de Montaña", desc: "Desconexión en Jarabacoa, Constanza y Samaná", image: samana, href: "/alojamientos?tipo=ecolodge" },
+      { name: "Villas & Penthouses de Playa", desc: "Privacidad frente al mar para grupos y familias", image: puertoPlata, href: "/alojamientos?tipo=villa" },
+    ],
+    categorias: [
+      { name: "Punta Cana & Cap Cana", href: "/alojamientos?destino=punta-cana" },
+      { name: "Las Terrenas & Samaná", href: "/alojamientos?destino=samana" },
+      { name: "Santo Domingo Histórico", href: "/alojamientos?destino=santo-domingo" },
+      { name: "Jarabacoa & Montaña", href: "/alojamientos?destino=jarabacoa" },
+      { name: "Puerto Plata & Cabarete", href: "/alojamientos?destino=puerto-plata" },
+      { name: "Bayahíbe & La Romana", href: "/alojamientos?destino=la-romana" },
+    ]
+  };
 
   const megaMenuPlanificar = [
     { name: "Reserva Directa", href: "/reserva-directa", icon: Calendar, desc: "Hoteles, vuelos y actividades" },
@@ -164,130 +211,167 @@ export function Header() {
       >
         Saltar al contenido principal
       </a>
-      <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border" role="banner">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
-                <span className="font-display font-bold text-primary-foreground text-sm">RD</span>
-              </div>
-              <div className="hidden sm:block">
-                <span className="font-display font-bold text-foreground">República Dominicana</span>
-                <span className="block text-xs text-muted-foreground -mt-1">{t("hero.subtitle")}</span>
-              </div>
-            </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-1" aria-label="Navegación principal">
-              {navLinks.map((link) => (
-                <div
-                  key={link.href}
-                  className="relative"
-                  onMouseEnter={() => handleMouseEnter(link.megaMenu)}
-                  onMouseLeave={handleMouseLeave}
-                >
-                  <Link
-                    to={link.href}
-                    className={`px-4 py-2 text-sm font-medium transition-colors hover:text-primary rounded-lg hover:bg-secondary/50 ${
-                      location.pathname === link.href ? "text-primary" : "text-muted-foreground"
-                    }`}
-                  >
-                    {link.name}
-                  </Link>
+      {/* Header Container */}
+      <div 
+        className={
+          pageHasHero
+            ? `fixed top-0 left-0 right-0 w-full z-50 transition-all duration-300 ease-in-out transform ${
+                isScrolled && !isMenuOpen && !activeMegaMenu
+                  ? "-translate-y-full opacity-0 pointer-events-none" 
+                  : "translate-y-0 opacity-100 pointer-events-auto"
+              } ${className || ""}`
+            : `sticky top-0 left-0 right-0 w-full z-50 shadow-md ${className || ""}`
+        }
+      >
+        <header 
+          className={
+            pageHasHero
+              ? "w-full bg-gradient-to-b from-black/80 via-black/40 to-transparent border-none shadow-none text-white transition-colors duration-300"
+              : isWhiteVariant
+              ? "w-full bg-white/95 dark:bg-card/95 backdrop-blur-md border-b border-border/80 text-foreground shadow-xs transition-colors duration-300"
+              : "w-full bg-slate-950/95 backdrop-blur-md border-b border-border/80 text-white shadow-md transition-colors duration-300"
+          }
+          role="banner"
+        >
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              {/* Logo */}
+              <Link to="/" className="flex items-center gap-2 group">
+                <div className="w-8 h-8 bg-primary rounded flex items-center justify-center shadow-md">
+                  <span className="font-display font-black text-slate-950 text-sm">RD</span>
                 </div>
-              ))}
-            </nav>
+                <div className="hidden sm:block text-left">
+                  <span className={`font-display font-bold text-sm sm:text-base group-hover:text-primary transition-colors ${
+                    isWhiteVariant ? "text-slate-900 dark:text-white" : "text-white drop-shadow-sm"
+                  }`}>
+                    República Dominicana
+                  </span>
+                  <span className={`block text-[11px] -mt-1 ${
+                    isWhiteVariant ? "text-slate-500 dark:text-slate-400" : "text-white/80 drop-shadow-xs"
+                  }`}>
+                    {t("hero.subtitle")}
+                  </span>
+                </div>
+              </Link>
 
-            {/* Actions */}
-            <div className="flex items-center gap-2">
-              <div className="hidden md:block">
-                <WeatherWidget />
-              </div>
-              <LanguageSelector />
-              <ThemeToggle />
-              <NotificationBell />
-              {user && <UserProgressWidget />}
-              <CartDrawer />
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="text-muted-foreground hover:text-foreground"
-                onClick={() => setIsSearchOpen(true)}
-                aria-label="Buscar"
-              >
-                <Search className="h-5 w-5" />
-              </Button>
+              {/* Desktop Navigation */}
+              <nav className="hidden lg:flex items-center gap-1" aria-label="Navegación principal">
+                {navLinks.map((link) => (
+                  <div
+                    key={link.href}
+                    className="relative"
+                    onMouseEnter={() => handleMouseEnter(link.megaMenu)}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    <Link
+                      to={link.href}
+                      className={`px-3.5 py-1.5 text-sm font-medium transition-all rounded-xl ${
+                        isWhiteVariant
+                          ? location.pathname === link.href
+                            ? "text-primary font-bold bg-primary/10"
+                            : "text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800"
+                          : location.pathname === link.href
+                            ? "text-primary font-bold bg-white/10"
+                            : "text-white/90 hover:text-white hover:bg-white/15 drop-shadow-xs"
+                      }`}
+                    >
+                      {link.name}
+                    </Link>
+                  </div>
+                ))}
+              </nav>
 
-              {/* Auth Button */}
-              {!loading && (
-                user ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                        <User className="h-5 w-5" />
+              {/* Actions */}
+              <div className={`flex items-center gap-1 sm:gap-2 ${isWhiteVariant ? "text-slate-800 dark:text-slate-100" : "text-white"}`}>
+                <div className="hidden md:block">
+                  <WeatherWidget />
+                </div>
+                <LanguageSelector />
+                <ThemeToggle />
+                <NotificationBell />
+                {user && <UserProgressWidget />}
+                <CartDrawer />
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className={isWhiteVariant ? "text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 h-9 w-9" : "text-white hover:text-white hover:bg-white/20 h-9 w-9"}
+                  onClick={() => setIsSearchOpen(true)}
+                  aria-label="Buscar"
+                >
+                  <Search className="h-5 w-5" />
+                </Button>
+
+                {/* Auth Button */}
+                {!loading && (
+                  user ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" aria-label="Menú de cuenta de usuario" className={isWhiteVariant ? "text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 h-9 w-9" : "text-white hover:text-white hover:bg-white/20 h-9 w-9"}>
+                          <User className="h-5 w-5" aria-hidden="true" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48 bg-card text-card-foreground border border-border shadow-2xl">
+                        <div className="px-2 py-1.5">
+                          <p className="text-sm font-medium text-foreground truncate">{user.email}</p>
+                        </div>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link to="/perfil" className="flex items-center gap-2 cursor-pointer">
+                            <User className="h-4 w-4" />
+                            {t("header.myProfile")}
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/mi-viaje" className="flex items-center gap-2 cursor-pointer">
+                            <Heart className="h-4 w-4" />
+                            {t("common.favorite")}
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/diario-viaje" className="flex items-center gap-2 cursor-pointer">
+                            <BookOpen className="h-4 w-4" />
+                            Mi Diario de Viaje
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link to="/creadores" className="flex items-center gap-2 cursor-pointer">
+                            <Camera className="h-4 w-4" />
+                            Panel Creadores
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
+                          <LogOut className="h-4 w-4 mr-2" />
+                          {t("header.signOut")}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    <Link to="/login" aria-label="Iniciar sesión">
+                      <Button variant="outline" size="sm" className="hidden sm:flex gap-2 border-white/40 text-white bg-black/20 hover:bg-white/20 hover:text-white rounded-xl h-9">
+                        <User className="h-4 w-4" aria-hidden="true" />
+                        {t("header.signIn")}
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <div className="px-2 py-1.5">
-                        <p className="text-sm font-medium text-foreground truncate">{user.email}</p>
-                      </div>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link to="/perfil" className="flex items-center gap-2 cursor-pointer">
-                          <User className="h-4 w-4" />
-                          {t("header.myProfile")}
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/mi-viaje" className="flex items-center gap-2 cursor-pointer">
-                          <Heart className="h-4 w-4" />
-                          {t("common.favorite")}
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/diario-viaje" className="flex items-center gap-2 cursor-pointer">
-                          <BookOpen className="h-4 w-4" />
-                          Mi Diario de Viaje
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/creadores" className="flex items-center gap-2 cursor-pointer">
-                          <Camera className="h-4 w-4" />
-                          Panel Creadores
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
-                        <LogOut className="h-4 w-4 mr-2" />
-                        {t("header.signOut")}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  <Link to="/login">
-                    <Button variant="outline" size="sm" className="hidden sm:flex gap-2">
-                      <User className="h-4 w-4" />
-                      {t("header.signIn")}
-                    </Button>
-                    <Button variant="ghost" size="icon" className="sm:hidden text-muted-foreground hover:text-foreground">
-                      <User className="h-5 w-5" />
-                    </Button>
-                  </Link>
-                )
-              )}
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                className="lg:hidden text-muted-foreground hover:text-foreground"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-              >
-                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
+                      <Button variant="ghost" size="icon" aria-label="Iniciar sesión" className="sm:hidden text-white hover:text-white hover:bg-white/20 h-9 w-9">
+                        <User className="h-5 w-5" aria-hidden="true" />
+                      </Button>
+                    </Link>
+                  )
+                )}
+                
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label={isMenuOpen ? "Cerrar menú de navegación" : "Abrir menú de navegación"}
+                  className="lg:hidden text-white hover:text-white hover:bg-white/20 h-9 w-9"
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                >
+                  {isMenuOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
 
         {/* Mega Menu Dropdowns */}
         <AnimatePresence>
@@ -305,14 +389,101 @@ export function Header() {
                 
                 {/* DONDE IR Mega Menu */}
                 {activeMegaMenu === "dondeIr" && (
+                  <div className="grid lg:grid-cols-12 gap-5">
+                    {/* Col 1: Destinos Principales (4 cols) */}
+                    <div className="lg:col-span-4 border-r border-border/50 pr-4">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <div className="flex items-center gap-2 text-primary">
+                          <Globe className="h-4 w-4" />
+                          <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("destinations.popular")}</h3>
+                        </div>
+                        <Link to="/destinos" onClick={() => setActiveMegaMenu(null)} className="text-[11px] text-primary hover:underline font-medium flex items-center gap-0.5">
+                          {t("destinations.viewAll")} <ChevronRight className="h-3 w-3" />
+                        </Link>
+                      </div>
+                      <nav className="space-y-1">
+                        {megaMenuDondeIr.destinos.map((item) => (
+                          <Link
+                            key={item.name}
+                            to={item.href}
+                            onClick={() => setActiveMegaMenu(null)}
+                            className="flex items-center gap-2.5 group p-1.5 rounded-lg hover:bg-secondary/60 transition-colors"
+                          >
+                            <div className="w-10 h-8 rounded-md overflow-hidden flex-shrink-0 relative">
+                              <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center justify-between gap-1">
+                                <p className="font-semibold text-foreground group-hover:text-primary transition-colors text-xs truncate">{item.name}</p>
+                                <span className="text-[9px] px-1.5 py-0.2 bg-primary/10 text-primary rounded-full font-medium">{item.tag}</span>
+                              </div>
+                              <p className="text-[10px] text-muted-foreground truncate leading-tight mt-0.5">{item.desc}</p>
+                            </div>
+                          </Link>
+                        ))}
+                      </nav>
+                    </div>
+                    
+                    {/* Col 2: Macro Regiones Dominicanas con Tarjetas (5 cols) */}
+                    <div className="lg:col-span-5 border-r border-border/50 pr-4">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <h4 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Macro-Regiones Turísticas</h4>
+                        <Link to="/provincias" onClick={() => setActiveMegaMenu(null)} className="text-[11px] text-muted-foreground hover:text-foreground">
+                          31 Provincias + D.N.
+                        </Link>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {megaMenuDondeIr.regiones.map((region) => (
+                          <Link 
+                            key={region.href} 
+                            to={region.href} 
+                            onClick={() => setActiveMegaMenu(null)} 
+                            className="group p-2 rounded-lg bg-card/80 border border-border/60 hover:border-primary/50 hover:bg-secondary/40 transition-all flex flex-col justify-between"
+                          >
+                            <div>
+                              <div className="flex items-center justify-between gap-1 mb-1">
+                                <span className="font-bold text-xs text-foreground group-hover:text-primary transition-colors truncate">
+                                  {region.name.split(' (')[0]}
+                                </span>
+                              </div>
+                              <p className="text-[10px] text-muted-foreground line-clamp-1">{region.desc}</p>
+                            </div>
+                            <span className="text-[9px] font-medium text-primary/80 mt-1.5 flex items-center gap-1">
+                              ✦ {region.tag}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Col 3: Destino del Mes Destacado (3 cols) */}
+                    <div className="lg:col-span-3">
+                      <Link to="/destino/samana" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-xl overflow-hidden h-full min-h-[140px] max-h-[170px] shadow-sm">
+                        <img src={samana} alt="Bahía de las Águilas" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-3">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[9px] font-bold mb-1 shadow">
+                            ★ {t("header.destinationOfMonth")}
+                          </span>
+                          <h4 className="font-display text-sm font-bold text-white leading-tight">Bahía de las Águilas</h4>
+                          <p className="text-white/85 text-[11px] line-clamp-1">{t("header.mostBeautifulBeach")}</p>
+                        </div>
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
+                {/* QUE HACER Mega Menu */}
+                {activeMegaMenu === "queHacer" && (
                   <div className="grid lg:grid-cols-3 gap-4">
+                    {/* Column 1: Micro cards */}
                     <div>
                       <div className="flex items-center gap-2 text-primary mb-2">
-                        <Globe className="h-4 w-4" />
-                        <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("destinations.popular")}</h3>
+                        <Compass className="h-4 w-4" />
+                        <h3 className="font-display font-bold uppercase tracking-wider text-xs">Experiencias Destacadas</h3>
                       </div>
                       <nav className="space-y-0.5">
-                        {megaMenuDondeIr.destinos.map((item) => (
+                        {megaMenuQueHacer.experienciasTop.map((item) => (
                           <Link
                             key={item.name}
                             to={item.href}
@@ -329,89 +500,45 @@ export function Header() {
                           </Link>
                         ))}
                       </nav>
-                      <Link to="/destinos" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-1 text-primary text-xs font-medium hover:underline mt-2">
-                        {t("destinations.viewAll")} <ChevronRight className="h-3 w-3" />
-                      </Link>
-                    </div>
-                    
-                    <div>
-                      <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">{t("header.byRegion")}</h4>
-                      <div className="flex flex-wrap gap-1.5">
-                        {megaMenuDondeIr.regiones.map((region) => (
-                          <Link key={region.href} to={region.href} onClick={() => setActiveMegaMenu(null)} className="text-xs text-foreground hover:text-primary px-2.5 py-1 bg-secondary/50 rounded-full hover:bg-secondary transition-colors">
-                            {region.name}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <Link to="/destino/samana" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-xl overflow-hidden h-full max-h-[28vh]">
-                        <img src={samana} alt="Bahía de las Águilas" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                        <div className="absolute bottom-0 left-0 right-0 p-3">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-medium mb-1">★ {t("header.destinationOfMonth")}</span>
-                          <h4 className="font-display text-sm font-bold text-white leading-tight">Bahía de las Águilas</h4>
-                          <p className="text-white/80 text-xs">{t("header.mostBeautifulBeach")}</p>
-                        </div>
-                      </Link>
-                    </div>
-                  </div>
-                )}
-
-                {/* QUE HACER Mega Menu */}
-                {activeMegaMenu === "queHacer" && (
-                  <div className="grid lg:grid-cols-3 gap-4">
-                    <div>
-                      <div className="flex items-center gap-2 text-primary mb-2">
-                        <Compass className="h-4 w-4" />
-                        <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("footer.experiences")}</h3>
-                      </div>
-                      <nav className="space-y-0">
-                        {megaMenuQueHacer.experiencias.map((item) => (
-                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-0.5 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
-                            <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
-                          </Link>
-                        ))}
-                      </nav>
-                      <div className="flex items-center gap-2 text-primary mb-2 mt-4">
-                        <Sparkles className="h-4 w-4" />
-                        <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("header.byInterest")}</h3>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {megaMenuQueHacer.categorias.map((item) => (
-                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="text-xs text-foreground hover:text-primary px-2.5 py-1 bg-secondary/50 rounded-full hover:bg-secondary transition-colors">
-                            {item.name}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center gap-2 text-primary mb-2">
-                        <Building2 className="h-4 w-4" />
-                        <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("header.specialized")}</h3>
-                      </div>
-                      <nav className="space-y-0">
-                        {megaMenuQueHacer.nichos.map((item) => (
-                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-0.5 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
-                            <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
-                          </Link>
-                        ))}
-                      </nav>
-                      <Link to="/experiencias" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-1 text-primary text-xs font-medium hover:underline mt-2">
+                      <Link to="/actividades" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-1 text-primary text-xs font-medium hover:underline mt-2">
                         {t("header.viewAllExperiences")} <ChevronRight className="h-3 w-3" />
                       </Link>
                     </div>
 
+                    {/* Column 2: Por Categoría / Interés */}
                     <div>
-                      <Link to="/wellness" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-lg overflow-hidden h-full max-h-[28vh]">
-                        <img src={samana} alt="Wellness" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                        <div className="absolute bottom-2 left-3">
-                          <span className="text-white font-semibold text-sm">Wellness & Spa</span>
+                      <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Por Categoría de Interés</h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {megaMenuQueHacer.categorias.map((item) => (
+                          <Link 
+                            key={item.href} 
+                            to={item.href} 
+                            onClick={() => setActiveMegaMenu(null)} 
+                            className="inline-flex items-center gap-1.5 text-xs text-foreground hover:text-primary px-2.5 py-1 bg-secondary/50 rounded-full hover:bg-secondary transition-colors"
+                          >
+                            <item.icon className="h-3 w-3 text-primary" />
+                            <span>{item.name}</span>
+                          </Link>
+                        ))}
+                      </div>
+                      <div className="mt-4 pt-3 border-t border-border/50">
+                        <Link to="/tours" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-2 text-xs font-medium text-foreground hover:text-primary p-2 bg-secondary/40 rounded-lg w-full transition-colors">
+                          <Ticket className="h-4 w-4 text-primary" />
+                          <span>Directorio de Excursiones & Tours Oficiales</span>
+                          <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground" />
+                        </Link>
+                      </div>
+                    </div>
+
+                    {/* Column 3: Contenido Patrocinado */}
+                    <div>
+                      <Link to="/tours" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-xl overflow-hidden h-full max-h-[28vh]">
+                        <img src={adAdventureImg} alt="Excursiones Extremas & Buggies en Punta Cana" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-3">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 text-[10px] font-bold mb-1">★ Patrocinado • Caribbean Buggies</span>
+                          <h4 className="font-display text-sm font-bold text-white leading-tight">Buggies & Cenote Hoyo Azul</h4>
+                          <p className="text-white/80 text-xs">Aventura 4x4 todo terreno con traslado desde tu hotel</p>
                         </div>
                       </Link>
                     </div>
@@ -424,38 +551,59 @@ export function Header() {
                     <div>
                       <div className="flex items-center gap-2 text-primary mb-2">
                         <Bed className="h-4 w-4" />
-                        <h3 className="font-display font-bold uppercase tracking-wider text-xs">{t("accommodations.title")}</h3>
+                        <h3 className="font-display font-bold uppercase tracking-wider text-xs">Tipos de Hospedaje</h3>
                       </div>
-                      <nav className="space-y-0">
-                        {megaMenuDondeQuedarse.map((item) => (
-                          <Link key={item.href} to={item.href} onClick={() => setActiveMegaMenu(null)} className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-secondary/50 transition-colors group">
-                            <item.icon className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                            <span className="text-sm text-foreground group-hover:text-primary transition-colors">{item.name}</span>
+                      <nav className="space-y-0.5">
+                        {megaMenuDondeQuedarse.tipos.map((item) => (
+                          <Link
+                            key={item.name}
+                            to={item.href}
+                            onClick={() => setActiveMegaMenu(null)}
+                            className="flex items-center gap-2 group p-1 rounded-lg hover:bg-secondary/50 transition-colors"
+                          >
+                            <div className="w-8 h-6 rounded overflow-hidden flex-shrink-0">
+                              <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                            </div>
+                            <div>
+                              <p className="font-semibold text-foreground group-hover:text-primary transition-colors text-sm leading-tight">{item.name}</p>
+                              <p className="text-[11px] text-muted-foreground leading-tight">{item.desc}</p>
+                            </div>
                           </Link>
                         ))}
                       </nav>
                       <Link to="/alojamientos" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-1 text-primary text-xs font-medium hover:underline mt-2">
-                        {t("accommodations.viewAll")} <ChevronRight className="h-3 w-3" />
+                        Ver todos los alojamientos <ChevronRight className="h-3 w-3" />
                       </Link>
                     </div>
                     
-                    <div className="lg:col-span-2">
-                      <div className="bg-card rounded-lg border border-border p-3">
-                        <h4 className="font-display font-bold text-foreground text-sm mb-1">{t("header.lookingSpecial")}</h4>
-                        <p className="text-muted-foreground text-xs mb-2">{t("header.lookingSpecialDesc")}</p>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Link to="/alojamientos?tipo=all-inclusive" onClick={() => setActiveMegaMenu(null)} className="bg-secondary/50 rounded-lg p-2.5 hover:bg-secondary transition-colors">
-                            <Sun className="h-4 w-4 text-primary mb-1" />
-                            <p className="font-semibold text-foreground text-sm">{t("header.allInclusive")}</p>
-                            <p className="text-[11px] text-muted-foreground">{t("header.allInclusiveDesc")}</p>
+                    <div>
+                      <h4 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Por Destino Turístico</h4>
+                      <div className="flex flex-wrap gap-1.5">
+                        {megaMenuDondeQuedarse.categorias.map((cat) => (
+                          <Link key={cat.href} to={cat.href} onClick={() => setActiveMegaMenu(null)} className="text-xs text-foreground hover:text-primary px-2.5 py-1 bg-secondary/50 rounded-full hover:bg-secondary transition-colors">
+                            {cat.name}
                           </Link>
-                          <Link to="/alojamientos?tipo=ecolodge" onClick={() => setActiveMegaMenu(null)} className="bg-secondary/50 rounded-lg p-2.5 hover:bg-secondary transition-colors">
-                            <Mountain className="h-4 w-4 text-primary mb-1" />
-                            <p className="font-semibold text-foreground text-sm">Eco-Lodges</p>
-                            <p className="text-[11px] text-muted-foreground">{t("header.sustainableDesc")}</p>
-                          </Link>
-                        </div>
+                        ))}
                       </div>
+                      <div className="mt-4 pt-3 border-t border-border/50">
+                        <Link to="/comparador-hoteles" onClick={() => setActiveMegaMenu(null)} className="inline-flex items-center gap-2 text-xs font-medium text-foreground hover:text-primary p-2 bg-secondary/40 rounded-lg w-full transition-colors">
+                          <Building2 className="h-4 w-4 text-primary" />
+                          <span>Comparador inteligente de hoteles</span>
+                          <ChevronRight className="h-3.5 w-3.5 ml-auto text-muted-foreground" />
+                        </Link>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Link to="/alojamientos" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-xl overflow-hidden h-full max-h-[28vh]">
+                        <img src={puntaCana} alt="Resorts de Lujo en Cap Cana" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-3">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-medium mb-1">★ Recomendación Premium</span>
+                          <h4 className="font-display text-sm font-bold text-white leading-tight">Sanctuary Cap Cana Resort</h4>
+                          <p className="text-white/80 text-xs">Villas de lujo frente al mar y mayordomo privado</p>
+                        </div>
+                      </Link>
                     </div>
                   </div>
                 )}
@@ -565,7 +713,7 @@ export function Header() {
                       <Link to="/reserva-directa" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50 font-medium">Reserva Directa</Link>
                       <Link to="/esim" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">eSIM Turística</Link>
                       <Link to="/tarjeta-prepago" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Tarjeta RD Pass</Link>
-                      <Link to="/salud-24h" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50 flex items-center gap-1">
+                      <Link to="/salud-24h" onClick={() => setIsMenuOpen(false)} className="py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50 flex items-center gap-1">
                         <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
                         Salud 24h
                       </Link>
@@ -581,7 +729,7 @@ export function Header() {
                       Experiencias y E-commerce
                     </h4>
                     <div className="grid grid-cols-2 gap-x-2 gap-y-1">
-                      <Link to="/eventos-vivo" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50 font-medium text-foreground flex items-center gap-1">
+                      <Link to="/eventos-vivo" onClick={() => setIsMenuOpen(false)} className="py-1.5 px-2 text-sm hover:text-primary rounded hover:bg-secondary/50 font-medium text-foreground flex items-center gap-1">
                         <span className="relative flex h-2 w-2">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
@@ -604,7 +752,8 @@ export function Header() {
             </motion.div>
           )}
         </AnimatePresence>
-      </header>
+        </header>
+      </div>
 
       {/* Global Search Modal */}
       <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />

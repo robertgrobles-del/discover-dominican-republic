@@ -5,8 +5,12 @@ import { Link, useParams } from "react-router-dom";
 import { MapPin, Star, Clock, Users, ChevronRight, Heart, Share2, Play, Instagram, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
-import { DetailPageSidebarAd, MobileStickyFooterAd, BetweenSectionsAd } from "@/components/ads";
+import { useState, useMemo } from "react";
+import { DetailPageSidebarAd, MobileStickyFooterAd, BetweenSectionsAd } from "@/components/promo";
+import { SectionWithSideAds } from "@/components/SectionWithSideAds";
+import { ExperienceHeroSlider } from "@/components/experience/ExperienceHeroSlider";
+import { getHotelsByDestination } from "@/data/hotels";
+import { getRestaurantsByDestination } from "@/data/restaurants";
 
 import adventure from "@/assets/adventure.jpg";
 import diving from "@/assets/diving.jpg";
@@ -368,44 +372,64 @@ export default function ExperienciaDetalle() {
 
   const experiencia = experienciasData[id || "ecoturismo"] || experienciasData.ecoturismo;
 
+  // Derive a representative destination from the first featured place, to source sponsor slots
+  const primaryDestinationId = experiencia.lugares[0]?.link?.startsWith("/destino/")
+    ? experiencia.lugares[0].link.replace("/destino/", "")
+    : undefined;
+  const primaryDestinationName = experiencia.lugares[0]?.region;
+
+  const nearbyHotels = useMemo(
+    () => (primaryDestinationId ? getHotelsByDestination(primaryDestinationId) : []),
+    [primaryDestinationId]
+  );
+  const nearbyRestaurants = useMemo(
+    () => (primaryDestinationId ? getRestaurantsByDestination(primaryDestinationId) : []),
+    [primaryDestinationId]
+  );
+
   return (
     <PageTransition>
       <div className="min-h-screen flex flex-col bg-background">
-        <Header />
-        
-        {/* Hero */}
-        <section className="relative h-[60vh] flex items-end overflow-hidden">
-          <img
-            src={experiencia.heroImage}
-            alt={experiencia.nombre}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-          
-          <div className="relative z-10 container mx-auto px-4 pb-12">
-            <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
-              EXPERIENCIA
-            </Badge>
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-4">
-              {experiencia.nombre}:<br />
-              <span className="text-gradient">{experiencia.subtitulo}</span>
-            </h1>
-            <p className="text-lg text-white/80 max-w-xl mb-6">
+        <Header hasHero />
+
+        {/* Hero Slider */}
+        <ExperienceHeroSlider
+          images={experiencia.galeria}
+          name={experiencia.nombre}
+          subtitle={experiencia.subtitulo}
+          favoriteId={experiencia.id}
+          destinationName={primaryDestinationName}
+          hotels={nearbyHotels}
+          restaurants={nearbyRestaurants}
+        />
+
+        {/* Description & Actions */}
+        <section className="py-8 bg-card/20 border-b border-border/40">
+          <div className="container mx-auto px-4">
+            <p className="text-lg text-muted-foreground max-w-2xl mb-6">
               {experiencia.descripcion}
             </p>
             <div className="flex flex-wrap gap-3">
               <Button size="lg" className="gap-2">
                 <Play className="h-4 w-4" /> Ver Video
               </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className={`gap-2 ${saved ? 'bg-primary/20 border-primary text-primary' : 'bg-white/10 border-white/30 text-white hover:bg-white/20'}`}
+              <Button
+                size="lg"
+                variant="outline"
+                className={`gap-2 ${saved ? 'bg-primary/20 border-primary text-primary' : ''}`}
                 onClick={() => setSaved(!saved)}
               >
                 <Heart className={`h-4 w-4 ${saved ? 'fill-primary' : ''}`} /> {saved ? 'Guardado' : 'Guardar'}
               </Button>
-              <Button size="lg" variant="outline" className="gap-2 bg-white/10 border-white/30 text-white hover:bg-white/20">
+              <Button
+                size="lg"
+                variant="outline"
+                className="gap-2"
+                onClick={() => {
+                  if (navigator.share) navigator.share({ title: experiencia.nombre, url: window.location.href });
+                  else navigator.clipboard.writeText(window.location.href);
+                }}
+              >
                 <Share2 className="h-4 w-4" /> Compartir
               </Button>
             </div>
@@ -460,35 +484,42 @@ export default function ExperienciaDetalle() {
           </div>
         </section>
 
-        {/* Rutas de Influencers */}
-        <section className="py-16">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center gap-2 mb-8">
-              <Instagram className="h-6 w-6 text-primary" />
-              <h2 className="font-display text-2xl font-bold text-foreground">Rutas de Influencers</h2>
-            </div>
-            <div className="grid md:grid-cols-2 gap-6">
-              {experiencia.rutasInfluencers.map((influencer) => (
-                <div key={influencer.handle} className="bg-card rounded-2xl border border-border p-6 hover:border-primary/50 transition-colors">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-14 h-14 rounded-full overflow-hidden">
-                      <img src={influencer.avatar} alt={influencer.nombre} className="w-full h-full object-cover" />
+        {/* Rutas de Influencers with Skyscraper Side Ads */}
+        <SectionWithSideAds
+          showAds
+          leftAdSize="skyscraper"
+          rightAdSize="skyscraper"
+          className="container mx-auto"
+        >
+          <section className="py-16">
+            <div className="container mx-auto px-4">
+              <div className="flex items-center gap-2 mb-8">
+                <Instagram className="h-6 w-6 text-primary" />
+                <h2 className="font-display text-2xl font-bold text-foreground">Rutas de Influencers</h2>
+              </div>
+              <div className="grid md:grid-cols-2 gap-6">
+                {experiencia.rutasInfluencers.map((influencer) => (
+                  <div key={influencer.handle} className="bg-card rounded-2xl border border-border p-6 hover:border-primary/50 transition-colors">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="w-14 h-14 rounded-full overflow-hidden">
+                        <img src={influencer.avatar} alt={influencer.nombre} className="w-full h-full object-cover" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground">{influencer.nombre}</h3>
+                        <p className="text-sm text-primary">{influencer.handle}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">{influencer.nombre}</h3>
-                      <p className="text-sm text-primary">{influencer.handle}</p>
-                    </div>
+                    <h4 className="font-display font-bold text-lg text-foreground mb-2">{influencer.ruta}</h4>
+                    <p className="text-muted-foreground">{influencer.descripcion}</p>
+                    <Button variant="outline" size="sm" className="mt-4 gap-2">
+                      Ver Ruta Completa <ChevronRight className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <h4 className="font-display font-bold text-lg text-foreground mb-2">{influencer.ruta}</h4>
-                  <p className="text-muted-foreground">{influencer.descripcion}</p>
-                  <Button variant="outline" size="sm" className="mt-4 gap-2">
-                    Ver Ruta Completa <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </SectionWithSideAds>
 
         {/* Actividades Relacionadas */}
         <section className="py-16 bg-card/30">

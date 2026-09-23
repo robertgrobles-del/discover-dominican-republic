@@ -2,7 +2,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { Link } from "react-router-dom";
-import { Map, Sparkles, Check, FileText, Coins, Heart, Phone, Car, Plane, Bus, Train, ExternalLink } from "lucide-react";
+import { Map, Sparkles, Check, FileText, Coins, Heart, Phone, Car, Plane, Bus, Train, ExternalLink, Leaf, TrafficCone, Landmark, Fuel, Wind, Waves } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -64,7 +64,7 @@ export default function Herramientas() {
         <Header />
         
         {/* Hero */}
-        <section className="relative py-24 flex items-center justify-center overflow-hidden mt-16">
+        <section className="relative py-24 flex items-center justify-center overflow-hidden">
           {!heroLoaded && <Skeleton className="absolute inset-0" />}
           <img
             src={heroBeach}
@@ -309,6 +309,40 @@ export default function Herramientas() {
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Calculadoras y Monitores en Tiempo Real */}
+        <section className="py-16">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-2 mb-8">
+              <Coins className="h-6 w-6 text-primary" />
+              <h2 className="font-display text-2xl font-bold text-foreground">Calculadoras y Monitores</h2>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                { icon: Leaf, titulo: "Calculadora de Carbono", desc: "Estima la huella de carbono de tu viaje", link: "/calculadora-carbono" },
+                { icon: TrafficCone, titulo: "Calculadora de Peajes", desc: "Costos de peajes en tus rutas por carretera", link: "/calculadora-peajes" },
+                { icon: Landmark, titulo: "Calculadora Tributaria", desc: "Impuestos y aranceles para visitantes e inversionistas", link: "/calculadora-tributaria" },
+                { icon: Fuel, titulo: "Precios de Combustible", desc: "Tarifas semanales oficiales de gasolina y gasoil", link: "/precios-combustibles" },
+                { icon: Wind, titulo: "Reporte de Olas y Viento", desc: "Condiciones en tiempo real para surf y kitesurf", link: "/reporte-olas-viento" },
+                { icon: Waves, titulo: "Observatorio de Sargazo", desc: "Monitoreo de marea de sargazo en las costas", link: "/observatorio-sargazo" },
+              ].map((item) => (
+                <Link
+                  key={item.link}
+                  to={item.link}
+                  className="group flex items-start gap-4 bg-card rounded-xl border border-border p-5 hover:border-primary/50 hover:shadow-md transition-all"
+                >
+                  <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <item.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">{item.titulo}</h4>
+                    <p className="text-sm text-muted-foreground mt-1">{item.desc}</p>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
