@@ -27,7 +27,19 @@ export interface OperatorOrg {
   created_at?: string;
 }
 
+export interface Room {
+  id: string;
+  name: string;
+  price: number; // por noche
+  guests: number; // huéspedes máximos por habitación
+  quantity: number; // unidades disponibles de este tipo
+  beds?: string;
+  amenities: string[];
+  image?: string;
+}
+
 export interface Listing {
+  rooms?: Room[]; // solo alojamientos: cada habitación tiene su propio enlace de reserva
   id: string;
   org_id: string;
   category: ListingCategory;
@@ -61,7 +73,10 @@ export interface Booking {
   contact_name: string;
   contact_email: string;
   contact_phone?: string;
-  date: string; // YYYY-MM-DD
+  date: string; // YYYY-MM-DD (en alojamientos: check-in)
+  check_out?: string; // solo alojamientos
+  room_id?: string;
+  room_name?: string;
   time?: string;
   guests: number;
   total_price: number;

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Pencil, Trash2, Eye, EyeOff, ExternalLink } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, EyeOff, ExternalLink, Copy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +8,8 @@ import { deleteListing, opKeys, saveListing, useListings, useOpMutation } from "
 import { CATEGORY_META, LISTING_STATUS_LABEL, formatMoney } from "../constants";
 import type { Listing } from "../types";
 import { useOrg } from "./OrgContext";
+
+const copyLink = (path: string) => { const url = `${window.location.origin}${path}`; navigator.clipboard?.writeText(url).then(() => toast.success("Enlace copiado"), () => toast.message(url)); };
 
 export default function Anuncios() {
   const { org } = useOrg();
@@ -46,6 +48,11 @@ export default function Anuncios() {
                   <p className="text-xs text-muted-foreground flex items-center gap-1"><Cat.icon className="h-3 w-3" /> {Cat.label} · {l.destination || "Sin destino"}</p>
                   <p className="font-semibold leading-snug">{l.title}</p>
                   <p className="text-sm text-muted-foreground">{formatMoney(l.price, l.currency)} · {l.duration || "—"} · {l.capacity} cupos</p>
+                  {l.rooms && l.rooms.length > 0 && (
+                    <div className="flex flex-wrap gap-1">{l.rooms.map((r) => (
+                      <Button key={r.id} size="sm" variant="secondary" className="h-6 text-[11px] px-2 gap-1" onClick={() => copyLink(`/operador/${org.slug}/${l.slug}?habitacion=${r.id}`)}><Copy className="h-3 w-3" /> {r.name}</Button>
+                    ))}</div>
+                  )}
                   <div className="mt-auto pt-2 flex flex-wrap gap-1">
                     <Button size="sm" variant="outline" asChild><Link to={l.id}><Pencil className="h-3.5 w-3.5 mr-1" /> Editar</Link></Button>
                     <Button
@@ -56,6 +63,7 @@ export default function Anuncios() {
                     >
                       {l.status === "published" ? <><EyeOff className="h-3.5 w-3.5 mr-1" /> Pausar</> : <><Eye className="h-3.5 w-3.5 mr-1" /> Publicar</>}
                     </Button>
+                    <Button size="sm" variant="ghost" aria-label={`Copiar enlace de ${l.title}`} title="Copiar enlace" onClick={() => copyLink(`/operador/${org.slug}/${l.slug}`)}><Copy className="h-3.5 w-3.5" /></Button>
                     {l.status === "published" && (
                       <Button size="sm" variant="ghost" asChild><Link to={`/operador/${org.slug}/${l.slug}`} target="_blank" aria-label="Ver anuncio público"><ExternalLink className="h-3.5 w-3.5" /></Link></Button>
                     )}

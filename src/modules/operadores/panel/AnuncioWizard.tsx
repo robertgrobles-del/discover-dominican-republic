@@ -14,7 +14,7 @@ import { opKeys, saveListing, useListings, useOpMutation } from "../api";
 import {
   CANCELLATION_POLICIES, CATEGORY_META, DESTINATION_OPTIONS, LANGUAGE_OPTIONS, TIME_SLOT_OPTIONS, formatMoney, slugify,
 } from "../constants";
-import type { Listing, ListingCategory } from "../types";
+import type { Listing, ListingCategory, Room } from "../types";
 import { useOrg } from "./OrgContext";
 
 const STEPS = ["Categoría", "Información", "Detalles y precio", "Fotos", "Revisión"];
@@ -54,15 +54,25 @@ export default function AnuncioWizard() {
   const errors: string[] = [];
   if (draft.title.trim().length < 5) errors.push("El título necesita al menos 5 caracteres.");
   if (!draft.destination) errors.push("Elige un destino.");
-  if (draft.price <= 0) errors.push("El precio debe ser mayor que 0.");
-  if (draft.capacity < 1) errors.push("Indica los cupos disponibles.");
-  if (draft.time_slots.length === 0) errors.push("Agrega al menos un horario.");
+  const isStay = draft.category === "alojamiento";
+  const rooms = draft.rooms || [];
+  if (isStay) {
+    if (rooms.length === 0) errors.push("Agrega al menos una habitación.");
+    if (rooms.some((r) => !r.name.trim() || r.price <= 0 || r.quantity < 1 || r.guests < 1)) errors.push("Cada habitación necesita nombre, precio, huéspedes y unidades.");
+  } else {
+    if (draft.price <= 0) errors.push("El precio debe ser mayor que 0.");
+    if (draft.capacity < 1) errors.push("Indica los cupos disponibles.");
+    if (draft.time_slots.length === 0) errors.push("Agrega al menos un horario.");
+  }
+  const setRoom = (id: string, patch: Partial<Room>) => set("rooms", rooms.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  const addRoom = () => set("rooms", [...rooms, { id: `rm-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`, name: "", price: 0, guests: 2, quantity: 1, beds: "", amenities: [] }]);
 
   const submit = (status: Draft["status"]) => {
     if (errors.length) { toast.error(errors[0]); return; }
     const finalStatus = status === "published" && !canPublish ? "draft" : status;
+    const stay = isStay ? { price: Math.min(...rooms.map((r) => r.price)), capacity: rooms.reduce((n, r) => n + r.guests * r.quantity, 0), time_slots: [] as string[] } : {};
     save.mutate(
-      { ...draft, org_id: org.id, slug: slugify(draft.title), status: finalStatus } as any,
+      { ...draft, ...stay, org_id: org.id, slug: (draft as any).slug || slugify(draft.title), status: finalStatus } as any,
       {
         onSuccess: () => {
           toast.success(finalStatus === "published" ? "Anuncio publicado" : status === "published" ? "Guardado como borrador: tu organización aún no está verificada" : "Borrador guardado");
@@ -141,18 +151,36 @@ export default function AnuncioWizard() {
         {step === 2 && (
           <>
             <h2 className="font-display text-xl font-bold">Detalles y precio</h2>
+            {isStay && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between"><Label className="text-base">Habitaciones *</Label><Button type="button" size="sm" variant="outline" onClick={addRoom}><Plus className="h-4 w-4 mr-1" /> Agregar habitación</Button></div>
+                <p className="text-xs text-muted-foreground">Cada habitación tiene su propio enlace de reserva; el viajero reserva justo esa habitación.</p>
+                {rooms.map((r, i) => (
+                  <div key={r.id} className="rounded-xl border border-border p-4 grid gap-3 sm:grid-cols-4">
+                    <div className="sm:col-span-4 flex gap-2"><Input aria-label={`Nombre de la habitación ${i + 1}`} maxLength={60} value={r.name} onChange={(e) => setRoom(r.id, { name: e.target.value })} placeholder="Ej. Suite frente al mar" />
+                      <Button type="button" variant="ghost" size="icon" aria-label={`Quitar habitación ${i + 1}`} onClick={() => set("rooms", rooms.filter((x) => x.id !== r.id))}><X className="h-4 w-4" /></Button></div>
+                    <div className="space-y-1"><Label className="text-xs">Precio por noche</Label><Input type="number" min={0} value={r.price || ""} onChange={(e) => setRoom(r.id, { price: Number(e.target.value) })} /></div>
+                    <div className="space-y-1"><Label className="text-xs">Huéspedes</Label><Input type="number" min={1} value={r.guests} onChange={(e) => setRoom(r.id, { guests: Number(e.target.value) })} /></div>
+                    <div className="space-y-1"><Label className="text-xs">Unidades</Label><Input type="number" min={1} value={r.quantity} onChange={(e) => setRoom(r.id, { quantity: Number(e.target.value) })} /></div>
+                    <div className="space-y-1"><Label className="text-xs">Camas</Label><Input maxLength={40} value={r.beds || ""} onChange={(e) => setRoom(r.id, { beds: e.target.value })} placeholder="1 king" /></div>
+                    <div className="sm:col-span-2 space-y-1"><Label className="text-xs">Comodidades (separadas por coma)</Label><Input maxLength={160} value={r.amenities.join(", ")} onChange={(e) => setRoom(r.id, { amenities: e.target.value.split(",").map((x) => x.trim()).filter(Boolean) })} placeholder="Aire acondicionado, Wi-Fi, Balcón" /></div>
+                    <div className="sm:col-span-2 space-y-1"><Label className="text-xs">Foto (URL)</Label><Input value={r.image || ""} onChange={(e) => setRoom(r.id, { image: e.target.value })} placeholder="https://…" /></div>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="grid gap-4 sm:grid-cols-3">
-              <div className="space-y-2"><Label htmlFor="w-price">Precio por persona *</Label>
-                <Input id="w-price" type="number" min={0} value={draft.price || ""} onChange={(e) => set("price", Number(e.target.value))} /></div>
+              {!isStay && <div className="space-y-2"><Label htmlFor="w-price">Precio por persona *</Label>
+                <Input id="w-price" type="number" min={0} value={draft.price || ""} onChange={(e) => set("price", Number(e.target.value))} /></div>}
               <div className="space-y-2"><Label>Moneda</Label>
                 <Select value={draft.currency} onValueChange={(v) => set("currency", v as any)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent><SelectItem value="USD">US$ (dólares)</SelectItem><SelectItem value="DOP">RD$ (pesos)</SelectItem></SelectContent>
                 </Select></div>
-              <div className="space-y-2"><Label htmlFor="w-cap">Cupos por salida *</Label>
-                <Input id="w-cap" type="number" min={1} value={draft.capacity} onChange={(e) => set("capacity", Number(e.target.value))} /></div>
-              <div className="space-y-2"><Label htmlFor="w-dur">Duración</Label>
-                <Input id="w-dur" maxLength={40} value={draft.duration} onChange={(e) => set("duration", e.target.value)} placeholder="3 horas" /></div>
+              {!isStay && <div className="space-y-2"><Label htmlFor="w-cap">Cupos por salida *</Label>
+                <Input id="w-cap" type="number" min={1} value={draft.capacity} onChange={(e) => set("capacity", Number(e.target.value))} /></div>}
+              {!isStay && <div className="space-y-2"><Label htmlFor="w-dur">Duración</Label>
+                <Input id="w-dur" maxLength={40} value={draft.duration} onChange={(e) => set("duration", e.target.value)} placeholder="3 horas" /></div>}
               <div className="space-y-2"><Label htmlFor="w-age">Edad mínima</Label>
                 <Input id="w-age" type="number" min={0} value={draft.min_age ?? 0} onChange={(e) => set("min_age", Number(e.target.value))} /></div>
               <div className="space-y-2"><Label>Política de cancelación</Label>
@@ -163,10 +191,10 @@ export default function AnuncioWizard() {
             </div>
             <div className="space-y-2"><Label htmlFor="w-meet">Punto de encuentro</Label>
               <Input id="w-meet" maxLength={140} value={draft.meeting_point || ""} onChange={(e) => set("meeting_point", e.target.value)} /></div>
-            <div className="space-y-2"><Label>Horarios de salida *</Label>
+            {!isStay && <div className="space-y-2"><Label>Horarios de salida *</Label>
               <div className="flex flex-wrap gap-2">{TIME_SLOT_OPTIONS.map((t) => (
                 <Button key={t} type="button" size="sm" variant={draft.time_slots.includes(t) ? "default" : "outline"} onClick={() => toggleIn("time_slots", t)}>{t}</Button>
-              ))}</div></div>
+              ))}</div></div>}
             <div className="space-y-2"><Label htmlFor="w-inc">Qué incluye</Label>
               <div className="flex gap-2">
                 <Input id="w-inc" maxLength={80} value={include} onChange={(e) => setInclude(e.target.value)} placeholder="Ej. Guía local" onKeyDown={(e) => { if (e.key === "Enter" && include.trim()) { e.preventDefault(); set("includes", [...draft.includes, include.trim()]); setInclude(""); } }} />
@@ -204,7 +232,8 @@ export default function AnuncioWizard() {
             <div className="rounded-xl border border-border p-4 space-y-1 text-sm">
               <p className="font-semibold text-base">{draft.title || "Sin título"}</p>
               <p className="text-muted-foreground">{CATEGORY_META[draft.category].label} · {draft.destination || "Sin destino"} · {draft.duration || "—"}</p>
-              <p>{formatMoney(draft.price, draft.currency)} por persona · {draft.capacity} cupos · Horarios: {draft.time_slots.join(", ") || "—"}</p>
+              {isStay ? <p>{rooms.length} habitación(es){rooms.length ? ` · desde ${formatMoney(Math.min(...rooms.map((r) => r.price)), draft.currency)} por noche` : ""}</p>
+                : <p>{formatMoney(draft.price, draft.currency)} por persona · {draft.capacity} cupos · Horarios: {draft.time_slots.join(", ") || "—"}</p>}
               <p className="text-muted-foreground">{draft.images.length} foto(s) · {draft.includes.length} inclusiones · {draft.languages.join(", ")}</p>
             </div>
             {errors.length > 0 && <ul className="text-sm text-destructive list-disc pl-5">{errors.map((e) => <li key={e}>{e}</li>)}</ul>}

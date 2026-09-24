@@ -118,6 +118,7 @@ function toBooking(r: any): Booking {
     time: r.time, guests: Number(r.guests ?? 1), total_price: Number(r.total_price ?? 0),
     currency: r.currency || "USD", status: (["pending", "confirmed", "in_progress", "completed", "cancelled"].includes(r.status) ? r.status : "pending") as BookingStatus,
     payment_status: r.payment_status || "unpaid", promo_code: r.promo_code, notes: r.notes,
+    room_id: r.room_id, room_name: r.room_name, check_out: r.room_id && r.check_out ? String(r.check_out).split("T")[0] : undefined,
     source: r.source || "web", review_pending: r.review_pending, created_at: r.created_at || iso(),
   };
 }
@@ -139,7 +140,7 @@ export async function createBooking(input: Omit<Booking, "id" | "created_at" | "
     status: input.status || "pending",
     payment_status: input.payment_status || "unpaid",
     check_in: input.date, // compatibilidad con PartnerDashboard existente
-    check_out: input.date,
+    check_out: input.check_out || input.date,
     created_at: iso(),
   };
   const { error } = await from("reservations").insert(row);
@@ -157,6 +158,16 @@ export function availableSpots(listing: Listing, bookings: Booking[], date: stri
     .filter((b) => b.listing_id === listing.id && b.date === date && b.status !== "cancelled" && (!time || b.time === time))
     .reduce((n, b) => n + b.guests, 0);
   return Math.max(0, listing.capacity - taken);
+}
+
+export const nightsBetween = (from: string, to: string) => Math.max(0, Math.round((Date.parse(to) - Date.parse(from)) / 86400000));
+
+// Unidades libres de una habitación en [checkIn, checkOut): descuenta reservas que se solapan.
+export function availableRooms(listing: Listing, roomId: string, bookings: Booking[], checkIn: string, checkOut: string) {
+  const room = listing.rooms?.find((r) => r.id === roomId);
+  if (!room) return 0;
+  const taken = bookings.filter((b) => b.listing_id === listing.id && b.room_id === roomId && b.status !== "cancelled" && b.date < checkOut && (b.check_out || b.date) > checkIn).length;
+  return Math.max(0, room.quantity - taken);
 }
 
 // ---------- Mensajes ----------

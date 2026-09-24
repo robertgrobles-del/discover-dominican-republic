@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Clock, Languages, MapPin, ShieldCheck, Star, Users } from "lucide-react";
 import { Header } from "@/components/Header";
@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { isValidEmail } from "@/lib/security";
 import {
-  availableSpots, bumpPromotionUse, createBooking, fetchAllBookings, fetchListingBySlug, fetchOrgBySlug, findPromotion, sendMessage,
+  availableRooms, availableSpots, bumpPromotionUse, nightsBetween, createBooking, fetchAllBookings, fetchListingBySlug, fetchOrgBySlug, findPromotion, sendMessage,
 } from "../api";
 import { CANCELLATION_POLICIES, CATEGORY_META, formatMoney } from "../constants";
 import type { Promotion } from "../types";
@@ -25,6 +25,7 @@ import type { Promotion } from "../types";
 export default function OperadorServicio() {
   const { slug = "", listing: listingSlug = "" } = useParams();
   const { user } = useAuth();
+  const [search, setSearch] = useSearchParams();
   const qc = useQueryClient();
   const orgQ = useQuery({ queryKey: ["op", "org-slug", slug], queryFn: () => fetchOrgBySlug(slug) });
   const org = orgQ.data;
@@ -40,12 +41,20 @@ export default function OperadorServicio() {
   const [promo, setPromo] = useState<Promotion | null>(null);
   const [f, setF] = useState({ name: "", email: "", phone: "", notes: "" });
   const [image, setImage] = useState(0);
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+  const [checkOut, setCheckOut] = useState(tomorrow);
   const [done, setDone] = useState<{ id: string; paid: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
 
   const isOwner = !!org && user?.id === org.id;
   const selectedTime = time || listing?.time_slots?.[0] || "";
   const spots = useMemo(() => (listing ? availableSpots(listing, bookingsQ.data || [], date, selectedTime) : 0), [listing, bookingsQ.data, date, selectedTime]);
+
+  const isStay = listing?.category === "alojamiento" && !!listing.rooms?.length;
+  const roomId = search.get("habitacion") || "";
+  const room = isStay ? listing!.rooms!.find((r) => r.id === roomId) || (roomId ? undefined : undefined) : undefined;
+  const nights = nightsBetween(date, checkOut);
+  const roomsFree = useMemo(() => (listing && room ? availableRooms(listing, room.id, bookingsQ.data || [], date, checkOut) : 0), [listing, room, bookingsQ.data, date, checkOut]);
 
   if (orgQ.isLoading || (org && listingQ.isLoading)) return <div className="min-h-screen" />;
   if (!org || !listing || (listing.status !== "published" && !isOwner)) {
@@ -63,7 +72,9 @@ export default function OperadorServicio() {
   }
 
   const cat = CATEGORY_META[listing.category];
-  const subtotal = listing.price * guests;
+  const unitPrice = room ? room.price : listing.price;
+  const units = isStay ? nights : guests;
+  const subtotal = unitPrice * units;
   const discount = promo ? (promo.type === "percent" ? (subtotal * promo.value) / 100 : Math.min(promo.value, subtotal)) : 0;
   const total = Math.max(0, subtotal - discount);
   const policy = CANCELLATION_POLICIES.find((p) => p.value === listing.cancellation_policy);
@@ -78,15 +89,20 @@ export default function OperadorServicio() {
     if (f.name.trim().length < 2) return toast.error("Escribe tu nombre.");
     if (!isValidEmail(f.email)) return toast.error("Ingresa un correo válido.");
     if (date < today) return toast.error("Elige una fecha futura.");
-    if (guests < 1 || guests > spots) return toast.error(spots === 0 ? "No hay cupos para esa fecha y horario." : `Solo quedan ${spots} cupos.`);
+    if (isStay) {
+      if (!room) return toast.error("Elige una habitación.");
+      if (nights < 1) return toast.error("La salida debe ser posterior a la llegada.");
+      if (guests > room.guests) return toast.error(`Esta habitación admite hasta ${room.guests} huéspedes.`);
+      if (roomsFree < 1) return toast.error("Esta habitación no está disponible en esas fechas.");
+    } else if (guests < 1 || guests > spots) return toast.error(spots === 0 ? "No hay cupos para esa fecha y horario." : `Solo quedan ${spots} cupos.`);
     setBusy(true);
     try {
       const id = await createBooking({
-        org_id: org.id, listing_id: listing.id, listing_title: listing.title, contact_name: f.name.trim(), contact_email: f.email.trim(),
-        contact_phone: f.phone.trim() || undefined, date, time: selectedTime, guests, total_price: total, currency: listing.currency,
+        org_id: org.id, listing_id: listing.id, listing_title: room ? `${listing.title} — ${room.name}` : listing.title, room_id: room?.id, room_name: room?.name, check_out: isStay ? checkOut : undefined, contact_name: f.name.trim(), contact_email: f.email.trim(),
+        contact_phone: f.phone.trim() || undefined, date, time: isStay ? undefined : selectedTime, guests, total_price: total, currency: listing.currency,
         status: payNow ? "confirmed" : "pending", payment_status: payNow ? "paid" : "unpaid", promo_code: promo?.code, notes: f.notes.trim() || undefined, source: "web",
       });
-      await sendMessage({ org_id: org.id, thread_id: `web-${id}`, traveler_name: f.name.trim(), sender: "traveler", channel: "web", booking_id: id, read: false, body: `Nueva reserva de ${guests} persona(s) para ${listing.title} el ${date} a las ${selectedTime}.${f.notes.trim() ? ` Nota: ${f.notes.trim()}` : ""}` });
+      await sendMessage({ org_id: org.id, thread_id: `web-${id}`, traveler_name: f.name.trim(), sender: "traveler", channel: "web", booking_id: id, read: false, body: isStay ? `Nueva reserva de ${room!.name} en ${listing.title}: ${date} → ${checkOut} (${nights} noche(s)), ${guests} huésped(es).${f.notes.trim() ? ` Nota: ${f.notes.trim()}` : ""}` : `Nueva reserva de ${guests} persona(s) para ${listing.title} el ${date} a las ${selectedTime}.${f.notes.trim() ? ` Nota: ${f.notes.trim()}` : ""}` });
       if (promo) await bumpPromotionUse(promo.id, promo.uses);
       qc.invalidateQueries({ queryKey: ["op"] });
       setDone({ id, paid: payNow });
@@ -145,6 +161,26 @@ export default function OperadorServicio() {
                 </div>
               )}
 
+              {isStay && (
+                <section id="habitaciones"><h2 className="font-display text-xl font-bold mb-3">Habitaciones</h2>
+                  <div className="space-y-3">{listing.rooms!.map((r) => {
+                    const sel = room?.id === r.id;
+                    return (
+                      <Card key={r.id} className={sel ? "border-primary ring-1 ring-primary" : ""}><CardContent className="p-4 flex flex-wrap gap-4 items-center">
+                        {r.image && <img src={r.image} alt={r.name} className="h-20 w-28 rounded-lg object-cover" />}
+                        <div className="flex-1 min-w-[12rem]">
+                          <p className="font-semibold">{r.name}</p>
+                          <p className="text-xs text-muted-foreground">Hasta {r.guests} huéspedes{r.beds ? ` · ${r.beds}` : ""}</p>
+                          {r.amenities.length > 0 && <p className="text-xs text-muted-foreground mt-1">{r.amenities.join(" · ")}</p>}
+                        </div>
+                        <div className="text-right"><p className="font-display font-bold">{formatMoney(r.price, listing.currency)}</p><p className="text-xs text-muted-foreground">por noche</p></div>
+                        <Button size="sm" variant={sel ? "default" : "outline"} onClick={() => setSearch({ habitacion: r.id }, { replace: true })}>{sel ? "Seleccionada" : "Reservar esta"}</Button>
+                      </CardContent></Card>
+                    );
+                  })}</div>
+                  {room && <p className="mt-3 text-xs text-muted-foreground">Enlace directo a esta habitación: <span className="font-mono break-all">{`${window.location.origin}/operador/${org.slug}/${listing.slug}?habitacion=${room.id}`}</span></p>}
+                </section>
+              )}
               <section><h2 className="font-display text-xl font-bold mb-2">Descripción</h2><p className="text-muted-foreground whitespace-pre-line">{listing.description}</p></section>
               {listing.includes.length > 0 && (
                 <section><h2 className="font-display text-xl font-bold mb-2">Qué incluye</h2>
@@ -159,16 +195,30 @@ export default function OperadorServicio() {
 
             <aside className="lg:sticky lg:top-24 self-start">
               <Card><CardContent className="p-5 space-y-4">
-                <p className="text-sm text-muted-foreground">Desde</p>
-                <p className="font-display text-3xl font-extrabold">{formatMoney(listing.price, listing.currency)} <span className="text-sm font-normal text-muted-foreground">/ persona</span></p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1"><Label htmlFor="b-date">Fecha</Label><Input id="b-date" type="date" min={today} value={date} onChange={(e) => setDate(e.target.value)} /></div>
-                  <div className="space-y-1"><Label>Horario</Label>
-                    <Select value={selectedTime} onValueChange={setTime}><SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>{listing.time_slots.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
-                </div>
-                <div className="space-y-1"><Label htmlFor="b-guests">Personas <span className="text-xs text-muted-foreground">({spots} cupos disponibles)</span></Label>
-                  <Input id="b-guests" type="number" min={1} max={Math.max(1, spots)} value={guests} onChange={(e) => setGuests(Math.max(1, Number(e.target.value)))} /></div>
+                <p className="text-sm text-muted-foreground">{room ? room.name : "Desde"}</p>
+                <p className="font-display text-3xl font-extrabold">{formatMoney(unitPrice, listing.currency)} <span className="text-sm font-normal text-muted-foreground">/ {isStay ? "noche" : "persona"}</span></p>
+                {isStay ? (
+                  <>
+                    {!room && <p className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-3 text-sm">Elige una habitación en la lista para reservar.</p>}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1"><Label htmlFor="b-date">Llegada</Label><Input id="b-date" type="date" min={today} value={date} onChange={(e) => { setDate(e.target.value); if (e.target.value >= checkOut) setCheckOut(new Date(Date.parse(e.target.value) + 86400000).toISOString().slice(0, 10)); }} /></div>
+                      <div className="space-y-1"><Label htmlFor="b-out">Salida</Label><Input id="b-out" type="date" min={date} value={checkOut} onChange={(e) => setCheckOut(e.target.value)} /></div>
+                    </div>
+                    <div className="space-y-1"><Label htmlFor="b-guests">Huéspedes {room && <span className="text-xs text-muted-foreground">(máx. {room.guests} · {roomsFree} disponible(s))</span>}</Label>
+                      <Input id="b-guests" type="number" min={1} max={room?.guests} value={guests} onChange={(e) => setGuests(Math.max(1, Number(e.target.value)))} /></div>
+                  </>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1"><Label htmlFor="b-date">Fecha</Label><Input id="b-date" type="date" min={today} value={date} onChange={(e) => setDate(e.target.value)} /></div>
+                      <div className="space-y-1"><Label>Horario</Label>
+                        <Select value={selectedTime} onValueChange={setTime}><SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>{listing.time_slots.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
+                    </div>
+                    <div className="space-y-1"><Label htmlFor="b-guests">Personas <span className="text-xs text-muted-foreground">({spots} cupos disponibles)</span></Label>
+                      <Input id="b-guests" type="number" min={1} max={Math.max(1, spots)} value={guests} onChange={(e) => setGuests(Math.max(1, Number(e.target.value)))} /></div>
+                  </>
+                )}
                 <div className="space-y-1"><Label htmlFor="b-code">Código promocional</Label>
                   <div className="flex gap-2"><Input id="b-code" maxLength={20} value={code} onChange={(e) => setCode(e.target.value)} placeholder="BIENVENIDO10" /><Button type="button" variant="outline" onClick={applyCode}>Aplicar</Button></div></div>
                 <div className="border-t border-border pt-3 space-y-2">
@@ -178,12 +228,12 @@ export default function OperadorServicio() {
                   <div className="space-y-1"><Label htmlFor="b-notes">Notas (opcional)</Label><Textarea id="b-notes" rows={2} maxLength={300} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} /></div>
                 </div>
                 <div className="rounded-lg bg-muted p-3 text-sm space-y-1">
-                  <div className="flex justify-between"><span>{formatMoney(listing.price, listing.currency)} × {guests}</span><span>{formatMoney(subtotal, listing.currency)}</span></div>
+                  <div className="flex justify-between"><span>{formatMoney(unitPrice, listing.currency)} × {units} {isStay ? "noche(s)" : ""}</span><span>{formatMoney(subtotal, listing.currency)}</span></div>
                   {discount > 0 && <div className="flex justify-between text-emerald-600"><span>Descuento {promo?.code}</span><span>− {formatMoney(discount, listing.currency)}</span></div>}
                   <div className="flex justify-between font-bold text-base pt-1 border-t border-border"><span>Total</span><span>{formatMoney(total, listing.currency)}</span></div>
                 </div>
-                <Button className="w-full" size="lg" disabled={busy || spots === 0} onClick={() => submit(true)}>Reservar y pagar ahora</Button>
-                <Button className="w-full" variant="outline" disabled={busy || spots === 0} onClick={() => submit(false)}>Solicitar reserva (pagar después)</Button>
+                <Button className="w-full" size="lg" disabled={busy || (isStay ? !room || roomsFree < 1 || nights < 1 : spots === 0)} onClick={() => submit(true)}>Reservar y pagar ahora</Button>
+                <Button className="w-full" variant="outline" disabled={busy || (isStay ? !room || roomsFree < 1 || nights < 1 : spots === 0)} onClick={() => submit(false)}>Solicitar reserva (pagar después)</Button>
                 <p className="text-[11px] text-muted-foreground text-center">Pago simulado en este entorno de demostración. {org.business_name} recibe tu reserva de forma directa.</p>
               </CardContent></Card>
             </aside>
