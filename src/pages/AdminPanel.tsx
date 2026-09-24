@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Navigate } from "react-router-dom";
-import { Users, Building2, Shield, Loader2, History, Megaphone } from "lucide-react";
+import { Users, Building2, Shield, Loader2, History, Megaphone, Coins, Sparkles } from "lucide-react";
+import { AdminFinanceLotteryManager } from "@/components/admin/AdminFinanceLotteryManager";
 import { EntityImportManager } from "@/components/admin/EntityImportManager";
 import { UGCModerationPanel } from "@/components/admin/UGCModerationPanel";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
@@ -23,6 +24,7 @@ import { AdminRouteBuilder } from "@/components/admin/AdminRouteBuilder";
 import { AdminAiGenerator } from "@/components/admin/AdminAiGenerator";
 import { AdminAuditLogs } from "@/components/admin/AdminAuditLogs";
 import { AdminMockupBanners } from "@/components/admin/AdminMockupBanners";
+import { AdminReservasDirectas } from "@/components/admin/AdminReservasDirectas";
 
 const AdminPanel = () => {
   const { user, loading: authLoading } = useAuth();
@@ -130,6 +132,7 @@ const AdminPanel = () => {
               <TabsTrigger value="operadores" className="gap-1.5">
                 <Building2 className="h-3.5 w-3.5" /> Operadores
               </TabsTrigger>
+              <TabsTrigger value="reservas-directas" className="gap-1.5">Reservas Directas</TabsTrigger>
               <TabsTrigger value="gamificacion">Gamificación</TabsTrigger>
               <TabsTrigger value="import">Importar</TabsTrigger>
               <TabsTrigger value="moderacion">Moderación UGC</TabsTrigger>
@@ -140,6 +143,9 @@ const AdminPanel = () => {
               <TabsTrigger value="nps">Analíticas NPS</TabsTrigger>
               <TabsTrigger value="stock">Control de Stock</TabsTrigger>
               <TabsTrigger value="aigenerator">Generador IA</TabsTrigger>
+              <TabsTrigger value="finance_lottery" className="gap-1.5">
+                <Coins className="h-3.5 w-3.5 text-amber-500" /> Loterías & Tasas
+              </TabsTrigger>
               <TabsTrigger value="audit" className="gap-1.5">
                 <History className="h-3.5 w-3.5" /> Historial
               </TabsTrigger>
@@ -150,6 +156,9 @@ const AdminPanel = () => {
             <TabsContent value="analytics">
               <AdminAnalytics />
             </TabsContent>
+            <TabsContent value="finance_lottery" className="mt-6">
+              <AdminFinanceLotteryManager />
+            </TabsContent>
             <TabsContent value="banners" className="mt-6">
               <AdminMockupBanners />
             </TabsContent>
@@ -158,6 +167,9 @@ const AdminPanel = () => {
             </TabsContent>
             <TabsContent value="operadores" className="mt-6">
               <AdminOperadores />
+            </TabsContent>
+            <TabsContent value="reservas-directas" className="mt-6">
+              <AdminReservasDirectas />
             </TabsContent>
             <TabsContent value="gamificacion">
               <AdminGamification />

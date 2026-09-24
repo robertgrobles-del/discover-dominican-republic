@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { FavoritesProvider } from "@/hooks/useFavorites";
 import { AuthProvider } from "@/hooks/useAuth";
 import { I18nProvider } from "@/hooks/useI18n";
@@ -49,6 +50,17 @@ const Estadisticas = lazy(() => import("./pages/Estadisticas"));
 const Partners = lazy(() => import("./pages/Partners"));
 const SobreNosotros = lazy(() => import("./pages/SobreNosotros"));
 const DestinoDetalle = lazy(() => import("./pages/DestinoDetalle"));
+// Operadores RD (reservas directas) y Tienda oficial
+const OperadoresLanding = lazy(() => import("./modules/operadores/pages/OperadoresLanding"));
+const OperadoresFuncion = lazy(() => import("./modules/operadores/pages/OperadoresFuncion"));
+const OperadoresDirectorio = lazy(() => import("./modules/operadores/pages/OperadoresDirectorio"));
+const OperadorStorefront = lazy(() => import("./modules/operadores/pages/OperadorStorefront"));
+const OperadorServicio = lazy(() => import("./modules/operadores/pages/OperadorServicio"));
+const OperatorPanel = lazy(() => import("./modules/operadores/panel/OperatorPanel"));
+const TiendaHome = lazy(() => import("./modules/tienda/pages/TiendaHome"));
+const TiendaProducto = lazy(() => import("./modules/tienda/pages/TiendaProducto"));
+const TiendaCheckout = lazy(() => import("./modules/tienda/pages/TiendaCheckout"));
+
 const DestinosRegiones = lazy(() => import("./pages/DestinosRegiones"));
 const Eventos = lazy(() => import("./pages/Eventos"));
 const EventoDetalle = lazy(() => import("./pages/EventoDetalle"));
@@ -255,8 +267,12 @@ const TarjetaPrepago = lazy(() => import("./pages/TarjetaPrepago"));
 const ESimTurista = lazy(() => import("./pages/ESimTurista"));
 const EventosVivo = lazy(() => import("./pages/EventosVivo"));
 const LIDOM = lazy(() => import("./pages/LIDOM"));
+const TasasCambio = lazy(() => import("./pages/TasasCambio"));
+const Loterias = lazy(() => import("./pages/Loterias"));
+const LoteriaDetalle = lazy(() => import("./pages/LoteriaDetalle"));
 const BebidasRD = lazy(() => import("./pages/BebidasRD"));
 const Salud24h = lazy(() => import("./pages/Salud24h"));
+const CentroSaludDetalle = lazy(() => import("./pages/CentroSaludDetalle"));
 const MICEBodas = lazy(() => import("./pages/MICEBodas"));
 const EventosGrupo = lazy(() => import("./pages/EventosGrupo"));
 const ViveLocal = lazy(() => import("./pages/ViveLocal"));
@@ -323,12 +339,14 @@ function AnimatedRoutes() {
   return (
     <AnimatePresence mode="wait">
       <Suspense fallback={<PageLoader />}>
-        <Routes location={location} key={location.pathname}>
+      <RouteErrorBoundary key={location.pathname}>
+        <Routes location={location}>
           <Route path="/" element={<Index />} />
           <Route path="/destinos" element={<Destinos />} />
           <Route path="/actividades" element={<Actividades />} />
           <Route path="/planifica" element={<Planifica />} />
           <Route path="/cultura" element={<Cultura />} />
+          <Route path="/playa" element={<Playas />} />
           <Route path="/playas" element={<Playas />} />
           <Route path="/playa/:slug" element={<PlayaDetalle />} />
           <Route path="/rios" element={<Rios />} />
@@ -356,8 +374,9 @@ function AnimatedRoutes() {
           <Route path="/partners" element={<Partners />} />
           <Route path="/sobre-nosotros" element={<SobreNosotros />} />
           <Route path="/sitemap" element={<Sitemap />} />
-          <Route path="/destino/:slug" element={<DestinoDetalle />} />
           <Route path="/destinos-regiones" element={<DestinosRegiones />} />
+          <Route path="/destino/:slug" element={<DestinoDetalle />} />
+          <Route path="/destinos/:slug" element={<DestinoDetalle />} />
           <Route path="/eventos" element={<Eventos />} />
           <Route path="/evento/:slug" element={<EventoDetalle />} />
           <Route path="/evento/:id" element={<EventoDetalle />} />
@@ -646,14 +665,31 @@ function AnimatedRoutes() {
           <Route path="/esim" element={<ESimTurista />} />
           <Route path="/eventos-vivo" element={<EventosVivo />} />
           <Route path="/lidom" element={<LIDOM />} />
+          <Route path="/tasas-cambio" element={<TasasCambio />} />
+          <Route path="/loterias" element={<Loterias />} />
+          <Route path="/loteria/:slug" element={<LoteriaDetalle />} />
+          <Route path="/loterias/:slug" element={<LoteriaDetalle />} />
           <Route path="/bebidas-rd" element={<BebidasRD />} />
           <Route path="/vive-local" element={<ViveLocal />} />
           <Route path="/salud-24h" element={<Salud24h />} />
+          <Route path="/salud-24h/:id" element={<CentroSaludDetalle />} />
+          <Route path="/centro-salud/:id" element={<CentroSaludDetalle />} />
           <Route path="/mice-bodas" element={<MICEBodas />} />
           <Route path="/eventos-grupo" element={<EventosGrupo />} />
+          <Route path="/operadores" element={<OperadoresLanding />} />
+          <Route path="/operadores/directorio" element={<OperadoresDirectorio />} />
+          <Route path="/operadores/funciones/:feature" element={<OperadoresFuncion />} />
+          <Route path="/operadores/panel/*" element={<OperatorPanel />} />
+          <Route path="/operador/:slug" element={<OperadorStorefront />} />
+          <Route path="/operador/:slug/:listing" element={<OperadorServicio />} />
+          <Route path="/tienda" element={<TiendaHome />} />
+          <Route path="/tienda/checkout" element={<TiendaCheckout />} />
+          <Route path="/tienda/:slug" element={<TiendaProducto />} />
+          <Route path="/checkout" element={<TiendaCheckout />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+      </RouteErrorBoundary>
       </Suspense>
     </AnimatePresence>
   );

@@ -1475,7 +1475,59 @@
   "newsletter_subscribers": [],
   "offers": [],
   "offset_projects": [],
-  "partner_profiles": [],
+  "partner_profiles": [
+    {
+      "verification": "verified",
+      "commission_rate": 8,
+      "website_enabled": true,
+      "logo_url": "",
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "id": "org-seed-samana",
+      "business_name": "Samaná Aventuras",
+      "slug": "samana-aventuras",
+      "description": "Excursiones a caballo, kayak y senderismo en la península de Samaná con guías locales certificados.",
+      "phone": "+1 809 555 0101",
+      "email": "reservas@samanaaventuras.example",
+      "business_type": "tour_operator",
+      "province": "Samaná",
+      "cover_url": "https://images.unsplash.com/photo-1602298674761-700e96568f5f?w=1200&h=800&fit=crop&q=80",
+      "payout_method": "Transferencia bancaria"
+    },
+    {
+      "verification": "verified",
+      "commission_rate": 8,
+      "website_enabled": true,
+      "logo_url": "",
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "id": "org-seed-jarabacoa",
+      "business_name": "Jarabacoa Río y Montaña",
+      "slug": "jarabacoa-rio-y-montana",
+      "description": "Rafting, cascadas y voluntariados de conservación en la Cordillera Central.",
+      "phone": "+1 809 555 0102",
+      "email": "hola@jarabacoarm.example",
+      "business_type": "tour_operator",
+      "province": "La Vega",
+      "cover_url": "https://images.unsplash.com/photo-1629248457649-b082812aea6c?w=1200&h=800&fit=crop&q=80",
+      "payout_method": "Transferencia bancaria"
+    },
+    {
+      "verification": "verified",
+      "commission_rate": 8,
+      "website_enabled": true,
+      "logo_url": "",
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "id": "org-seed-colonial",
+      "business_name": "Ruta Colonial Santo Domingo",
+      "slug": "ruta-colonial-santo-domingo",
+      "description": "Caminatas históricas, traslados privados y alojamiento boutique en la Ciudad Colonial.",
+      "phone": "+1 809 555 0103",
+      "email": "info@rutacolonial.example",
+      "business_type": "agency",
+      "province": "Distrito Nacional",
+      "cover_url": "https://images.unsplash.com/photo-1650171111438-ea9bc8c675fe?w=1200&h=800&fit=crop&q=80",
+      "payout_method": "PayPal"
+    }
+  ],
   "passport_stamps": [],
   "photo_challenges": [],
   "photo_submissions": [],
@@ -2188,5 +2240,593 @@
       "coin_reward": 75,
       "description": "Alcanzaste 2,500 XP"
     }
-  ]
+  ],
+  "operator_listings": [
+    {
+      "currency": "USD",
+      "languages": [
+        "Español",
+        "Inglés"
+      ],
+      "includes": [
+        "Guía local",
+        "Caballo y equipo",
+        "Agua y fruta",
+        "Seguro de viaje"
+      ],
+      "cancellation_policy": "flexible",
+      "status": "published",
+      "rating": 4.9,
+      "reviews_count": 112,
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "min_age": 0,
+      "time_slots": [
+        "08:00",
+        "10:00",
+        "13:00"
+      ],
+      "id": "lst-seed-1",
+      "org_id": "org-seed-samana",
+      "category": "experiencia",
+      "title": "Cascada El Limón a caballo",
+      "slug": "cascada-el-limon-a-caballo",
+      "summary": "Cabalgata por la selva hasta una de las cascadas más altas del Caribe.",
+      "description": "Salimos de El Limón a caballo con guía local, cruzamos ríos y senderos hasta la cascada de 50 metros. Incluye tiempo para bañarte y un refrigerio criollo ligero.",
+      "destination": "Samaná",
+      "price": 45,
+      "duration": "3 horas",
+      "capacity": 16,
+      "meeting_point": "Plaza de El Limón, Samaná",
+      "images": [
+        "https://images.unsplash.com/photo-1602298674761-700e96568f5f?w=1200&h=800&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1682965740861-fdd2065bdd2e?w=1200&h=800&fit=crop&q=80"
+      ]
+    },
+    {
+      "currency": "USD",
+      "languages": [
+        "Español",
+        "Inglés"
+      ],
+      "includes": [
+        "Kayak y remos",
+        "Máscara y snorkel",
+        "Guía",
+        "Snack y agua"
+      ],
+      "cancellation_policy": "flexible",
+      "status": "published",
+      "rating": 4.7,
+      "reviews_count": 64,
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "min_age": 0,
+      "time_slots": [
+        "09:00",
+        "14:00"
+      ],
+      "id": "lst-seed-2",
+      "org_id": "org-seed-samana",
+      "category": "experiencia",
+      "title": "Kayak y snorkel en Las Galeras",
+      "slug": "kayak-y-snorkel-las-galeras",
+      "summary": "Remada tranquila y snorkel en aguas cristalinas de la costa este de Samaná.",
+      "description": "Recorremos la bahía en kayak hasta una playa aislada donde practicamos snorkel. Apto para principiantes.",
+      "destination": "Samaná",
+      "price": 55,
+      "duration": "4 horas",
+      "capacity": 12,
+      "meeting_point": "Playa Las Galeras",
+      "images": [
+        "https://images.unsplash.com/photo-1672841828478-2fad29c8fa25?w=1200&h=800&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1635450695849-bde4bea19b5f?w=1200&h=800&fit=crop&q=80"
+      ]
+    },
+    {
+      "currency": "USD",
+      "languages": [
+        "Español",
+        "Inglés"
+      ],
+      "includes": [
+        "Equipo completo",
+        "Guía certificado",
+        "Almuerzo",
+        "Fotos"
+      ],
+      "cancellation_policy": "flexible",
+      "status": "published",
+      "rating": 4.9,
+      "reviews_count": 203,
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "min_age": 10,
+      "time_slots": [
+        "08:30",
+        "13:30"
+      ],
+      "id": "lst-seed-3",
+      "org_id": "org-seed-jarabacoa",
+      "category": "experiencia",
+      "title": "Rafting en el río Yaque del Norte",
+      "slug": "rafting-yaque-del-norte",
+      "summary": "Descenso de rápidos clase II–III con equipo completo y guías expertos.",
+      "description": "Aventura de medio día por los rápidos del Yaque del Norte, con instrucciones de seguridad, equipo y almuerzo al final.",
+      "destination": "Jarabacoa",
+      "price": 60,
+      "duration": "3.5 horas",
+      "capacity": 24,
+      "meeting_point": "Oficina Jarabacoa Río y Montaña",
+      "images": [
+        "https://images.unsplash.com/photo-1629248457649-b082812aea6c?w=1200&h=800&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1784495291915-555bc424c453?w=1200&h=800&fit=crop&q=80"
+      ]
+    },
+    {
+      "currency": "USD",
+      "languages": [
+        "Español",
+        "Inglés"
+      ],
+      "includes": [
+        "Guía local",
+        "Agua",
+        "Entrada al salto"
+      ],
+      "cancellation_policy": "flexible",
+      "status": "published",
+      "rating": 4.8,
+      "reviews_count": 88,
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "min_age": 0,
+      "time_slots": [
+        "09:00",
+        "14:00"
+      ],
+      "id": "lst-seed-4",
+      "org_id": "org-seed-jarabacoa",
+      "category": "experiencia",
+      "title": "Senderismo al Salto de Baiguate",
+      "slug": "senderismo-salto-de-baiguate",
+      "summary": "Caminata guiada por bosque nublado hasta la cascada y baño en pozas naturales.",
+      "description": "Ruta de dificultad media con guías locales, paradas para fotos y explicación de la flora endémica.",
+      "destination": "Jarabacoa",
+      "price": 30,
+      "duration": "2.5 horas",
+      "capacity": 20,
+      "meeting_point": "Parqueo del Salto de Baiguate",
+      "images": [
+        "https://images.unsplash.com/photo-1682965740861-fdd2065bdd2e?w=1200&h=800&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1715094313256-31859c8ef92e?w=1200&h=800&fit=crop&q=80"
+      ]
+    },
+    {
+      "currency": "USD",
+      "languages": [
+        "Español",
+        "Inglés"
+      ],
+      "includes": [
+        "Herramientas y plántulas",
+        "Almuerzo comunitario",
+        "Transporte desde Jarabacoa",
+        "Certificado de participación"
+      ],
+      "cancellation_policy": "flexible",
+      "status": "published",
+      "rating": 5,
+      "reviews_count": 31,
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "min_age": 12,
+      "time_slots": [
+        "08:00"
+      ],
+      "id": "lst-seed-5",
+      "org_id": "org-seed-jarabacoa",
+      "category": "voluntariado",
+      "title": "Voluntariado: reforestación en la Cordillera Central",
+      "slug": "voluntariado-reforestacion-cordillera-central",
+      "summary": "Un día sembrando árboles nativos junto a una comunidad local.",
+      "description": "Participa en jornadas de reforestación con pinos criollos y especies endémicas. Incluye almuerzo comunitario y charla sobre conservación.",
+      "destination": "Constanza",
+      "price": 20,
+      "duration": "Día completo",
+      "capacity": 30,
+      "meeting_point": "Parque central de Jarabacoa",
+      "images": [
+        "https://images.unsplash.com/photo-1605270160644-d52c6515c141?w=1200&h=800&fit=crop&q=80"
+      ]
+    },
+    {
+      "currency": "USD",
+      "languages": [
+        "Español",
+        "Inglés",
+        "Francés"
+      ],
+      "includes": [
+        "Guía historiador",
+        "Entradas al Alcázar",
+        "Agua"
+      ],
+      "cancellation_policy": "flexible",
+      "status": "published",
+      "rating": 4.9,
+      "reviews_count": 340,
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "min_age": 0,
+      "time_slots": [
+        "09:00",
+        "16:00"
+      ],
+      "id": "lst-seed-6",
+      "org_id": "org-seed-colonial",
+      "category": "experiencia",
+      "title": "Tour a pie por la Zona Colonial",
+      "slug": "tour-a-pie-zona-colonial",
+      "summary": "La primera ciudad del Nuevo Mundo con un guía historiador.",
+      "description": "Alcázar de Colón, Calle Las Damas, Catedral Primada y Fortaleza Ozama, con historias que no salen en las guías.",
+      "destination": "Santo Domingo",
+      "price": 25,
+      "duration": "2.5 horas",
+      "capacity": 20,
+      "meeting_point": "Parque Colón",
+      "images": [
+        "https://images.unsplash.com/photo-1650171111438-ea9bc8c675fe?w=1200&h=800&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1771980590225-26af59a07802?w=1200&h=800&fit=crop&q=80"
+      ]
+    },
+    {
+      "currency": "USD",
+      "languages": [
+        "Español",
+        "Inglés"
+      ],
+      "includes": [
+        "Seguimiento de vuelo",
+        "Conductor bilingüe",
+        "Agua embotellada"
+      ],
+      "cancellation_policy": "flexible",
+      "status": "published",
+      "rating": 4.8,
+      "reviews_count": 57,
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "min_age": 0,
+      "time_slots": [
+        "07:00",
+        "10:00",
+        "13:00",
+        "17:00",
+        "19:00"
+      ],
+      "id": "lst-seed-7",
+      "org_id": "org-seed-colonial",
+      "category": "transporte",
+      "title": "Traslado privado Aeropuerto SDQ – Zona Colonial",
+      "slug": "traslado-privado-sdq-zona-colonial",
+      "summary": "Recogida en el aeropuerto con conductor bilingüe y vehículo climatizado.",
+      "description": "Traslado puerta a puerta con seguimiento de vuelo. Tarifa por vehículo (hasta 4 pasajeros).",
+      "destination": "Santo Domingo",
+      "price": 40,
+      "duration": "40 minutos",
+      "capacity": 4,
+      "meeting_point": "Terminal de llegadas SDQ",
+      "images": [
+        "https://images.unsplash.com/photo-1729898956652-456451a75e43?w=1200&h=800&fit=crop&q=80"
+      ]
+    },
+    {
+      "currency": "USD",
+      "languages": [
+        "Español",
+        "Inglés"
+      ],
+      "includes": [
+        "Desayuno criollo",
+        "Wi-Fi",
+        "Aire acondicionado"
+      ],
+      "cancellation_policy": "flexible",
+      "status": "published",
+      "rating": 4.7,
+      "reviews_count": 42,
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "min_age": 0,
+      "time_slots": [
+        "15:00"
+      ],
+      "id": "lst-seed-8",
+      "org_id": "org-seed-colonial",
+      "category": "alojamiento",
+      "title": "Habitación boutique en casa colonial",
+      "slug": "habitacion-boutique-casa-colonial",
+      "summary": "Habitación con patio interior en una casa del siglo XVI restaurada.",
+      "description": "Dormirás a pasos de la Catedral Primada. Incluye desayuno criollo y aire acondicionado.",
+      "destination": "Santo Domingo",
+      "price": 95,
+      "duration": "Por noche",
+      "capacity": 2,
+      "meeting_point": "Calle Las Damas, Zona Colonial",
+      "images": [
+        "https://images.unsplash.com/photo-1549294413-26f195200c16?w=1200&h=800&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1650171111438-ea9bc8c675fe?w=1200&h=800&fit=crop&q=80"
+      ]
+    }
+  ],
+  "store_products": [
+    {
+      "currency": "DOP",
+      "stock": 25,
+      "active": true,
+      "featured": true,
+      "sizes": [],
+      "colors": [],
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "id": "prd-1",
+      "slug": "poster-rayable-top-100-destinos",
+      "name": "Póster rayable • Top 100 destinos de Dominicana",
+      "category": "poster",
+      "price": 1490,
+      "emoji": "🗺️",
+      "tone": "sand",
+      "tagline": "Recorre Dominicana y raya cada destino conquistado.",
+      "description": "Póster de 60×90 cm con los 100 destinos imperdibles de República Dominicana. Rasca cada casilla al visitarlo y descubre la ilustración escondida. Un reto para toda la vida viajera.",
+      "includes": [
+        "Póster 60×90 cm en tubo de cartón",
+        "Moneda rasca-casillas",
+        "Guía de los 100 destinos"
+      ]
+    },
+    {
+      "currency": "DOP",
+      "stock": 25,
+      "active": true,
+      "featured": true,
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        "Beige",
+        "Azul"
+      ],
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "id": "prd-2",
+      "slug": "hoodie-mapa-ilustrado",
+      "name": "Hoodie • Mapa ilustrado",
+      "category": "ropa",
+      "price": 1900,
+      "emoji": "🧥",
+      "tone": "cream",
+      "tagline": "Lleva contigo a donde vayas la esencia de Dominicana.",
+      "description": "Hoodie unisex con capucha y un mapa ilustrado de la isla estampado al frente. Mezcla premium de algodón y poliéster, suave y resistente.",
+      "includes": [
+        "Hoodie unisex con capucha",
+        "Estampado de mapa ilustrado",
+        "Disponible en tallas S–XL"
+      ]
+    },
+    {
+      "currency": "DOP",
+      "stock": 25,
+      "active": true,
+      "featured": false,
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        "Beige"
+      ],
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "id": "prd-3",
+      "slug": "hoodie-descubre-rd",
+      "name": "Hoodie • Descubre RD",
+      "category": "ropa",
+      "price": 1499,
+      "emoji": "🧥",
+      "tone": "cream",
+      "tagline": "Comodidad y diseño para tus rutas.",
+      "description": "Hoodie unisex con el logo de Descubre RD. Ideal para madrugones de excursión y noches frescas en la montaña.",
+      "includes": [
+        "Hoodie unisex",
+        "Logo bordado",
+        "Tallas S–XL"
+      ]
+    },
+    {
+      "currency": "DOP",
+      "stock": 25,
+      "active": true,
+      "featured": false,
+      "sizes": [
+        "Única"
+      ],
+      "colors": [
+        "Crema y azul"
+      ],
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "id": "prd-4",
+      "slug": "gorra-snapback-logo",
+      "name": "Gorra • Snapback Logo",
+      "category": "accesorios",
+      "price": 590,
+      "emoji": "🧢",
+      "tone": "sea",
+      "tagline": "El sol es fuerte, tu estilo también.",
+      "description": "Gorra snapback con visera plana y ajuste posterior.",
+      "includes": [
+        "Gorra snapback",
+        "Logo bordado"
+      ]
+    },
+    {
+      "currency": "DOP",
+      "stock": 25,
+      "active": true,
+      "featured": false,
+      "sizes": [
+        "Única"
+      ],
+      "colors": [
+        "Azul",
+        "Beige"
+      ],
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "id": "prd-5",
+      "slug": "gorra-snapback-mapa",
+      "name": "Gorra • Snapback Mapa RD",
+      "category": "accesorios",
+      "price": 790,
+      "emoji": "🧢",
+      "tone": "forest",
+      "tagline": "La isla en tu cabeza.",
+      "description": "Gorra con el mapa de la isla bordado al frente.",
+      "includes": [
+        "Gorra snapback",
+        "Bordado de mapa"
+      ]
+    },
+    {
+      "currency": "DOP",
+      "stock": 25,
+      "active": true,
+      "featured": false,
+      "sizes": [
+        "Única"
+      ],
+      "colors": [
+        "Beige y azul"
+      ],
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "id": "prd-6",
+      "slug": "sombrero-de-pescador-mapa",
+      "name": "Sombrero de pescador • Mapa",
+      "category": "accesorios",
+      "price": 695,
+      "emoji": "👒",
+      "tone": "sea",
+      "tagline": "Sombra para cada playa.",
+      "description": "Sombrero de pescador reversible con mapa ilustrado.",
+      "includes": [
+        "Sombrero reversible"
+      ]
+    },
+    {
+      "currency": "DOP",
+      "stock": 25,
+      "active": true,
+      "featured": false,
+      "sizes": [],
+      "colors": [],
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "id": "prd-7",
+      "slug": "taza-de-metal-mapa",
+      "name": "Taza de metal • Mapa",
+      "category": "hogar",
+      "price": 690,
+      "emoji": "☕",
+      "tone": "forest",
+      "tagline": "Tu café de campamento.",
+      "description": "Taza esmaltada de metal con el mapa de Dominicana. Ligera y resistente.",
+      "includes": [
+        "Taza esmaltada 350 ml"
+      ]
+    },
+    {
+      "currency": "DOP",
+      "stock": 25,
+      "active": true,
+      "featured": false,
+      "sizes": [],
+      "colors": [],
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "id": "prd-8",
+      "slug": "termo-hidratado",
+      "name": "Termo • Hidratado",
+      "category": "hogar",
+      "price": 890,
+      "emoji": "🥤",
+      "tone": "cream",
+      "tagline": "Agua fría todo el día.",
+      "description": "Termo de acero inoxidable de 500 ml que mantiene el frío 24 horas.",
+      "includes": [
+        "Termo 500 ml",
+        "Tapa hermética"
+      ]
+    },
+    {
+      "currency": "DOP",
+      "stock": 25,
+      "active": true,
+      "featured": false,
+      "sizes": [],
+      "colors": [],
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "id": "prd-9",
+      "slug": "tote-bag-mapa",
+      "name": "Tote bag • Mapa",
+      "category": "bolsos",
+      "price": 690,
+      "emoji": "👜",
+      "tone": "sand",
+      "tagline": "Llévate la isla al mercado.",
+      "description": "Bolsa de tela resistente con el mapa ilustrado de la isla.",
+      "includes": [
+        "Tote bag de algodón"
+      ]
+    },
+    {
+      "currency": "DOP",
+      "stock": 25,
+      "active": true,
+      "featured": false,
+      "sizes": [],
+      "colors": [],
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "id": "prd-10",
+      "slug": "tote-bag-deja-solo-huellas",
+      "name": "Tote bag • Viaja responsable",
+      "category": "bolsos",
+      "price": 690,
+      "emoji": "🌿",
+      "tone": "forest",
+      "tagline": "Deja solo huellas.",
+      "description": "Bolsa con el mensaje del turismo responsable. Una parte de cada venta apoya proyectos de conservación.",
+      "includes": [
+        "Tote bag de algodón"
+      ]
+    },
+    {
+      "currency": "DOP",
+      "stock": 25,
+      "active": true,
+      "featured": false,
+      "sizes": [],
+      "colors": [],
+      "created_at": "2026-09-01T12:00:00.000Z",
+      "id": "prd-11",
+      "slug": "duffel-bag",
+      "name": "Duffel bag • Descubre RD",
+      "category": "bolsos",
+      "price": 1900,
+      "emoji": "🎒",
+      "tone": "cream",
+      "tagline": "Para la escapada de fin de semana.",
+      "description": "Bolso duffel de lona con correa para el hombro.",
+      "includes": [
+        "Duffel bag de lona"
+      ]
+    }
+  ],
+  "operator_messages": [],
+  "operator_promotions": [],
+  "operator_reviews": [],
+  "store_orders": [],
+  "traveler_spots": [],
+  "traveler_wishlist": [],
+  "traveler_trips": []
 }

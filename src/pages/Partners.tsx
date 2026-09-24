@@ -84,6 +84,9 @@ export default function Partners() {
                 <Button size="lg" variant="outline" onClick={() => window.location.href = "/partner/login"}>
                   Acceso a Partners
                 </Button>
+                <Button size="lg" variant="outline" onClick={() => window.location.href = "/operadores"}>
+                  Operadores RD: reservas directas
+                </Button>
               </div>
             </div>
           </section>

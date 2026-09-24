@@ -37,14 +37,14 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
     destinos: {
       title: t("footer.destinations"),
       links: [
-        { name: "Punta Cana", href: "/destinos/punta-cana" },
-        { name: "Santo Domingo", href: "/destinos/santo-domingo" },
-        { name: "Samaná", href: "/destinos/samana" },
-        { name: "Puerto Plata", href: "/destinos/puerto-plata" },
-        { name: "La Romana", href: "/destinos/la-romana" },
-        { name: "Jarabacoa", href: "/destinos/jarabacoa" },
-        { name: "Barahona", href: "/destinos/barahona" },
-        { name: "Montecristi", href: "/destinos/montecristi" },
+        { name: "Punta Cana", href: "/destino/punta-cana" },
+        { name: "Santo Domingo", href: "/destino/santo-domingo" },
+        { name: "Samaná", href: "/destino/samana" },
+        { name: "Puerto Plata", href: "/destino/puerto-plata" },
+        { name: "La Romana", href: "/destino/la-romana" },
+        { name: "Jarabacoa", href: "/destino/jarabacoa" },
+        { name: "Barahona", href: "/destino/barahona" },
+        { name: "Bahía de las Águilas", href: "/destino/bahia-de-las-aguilas" },
       ],
     },
     experiencias: {
@@ -55,14 +55,16 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
         { name: t("interest.gastronomy"), href: "/guia-gastronomica" },
         { name: t("interest.culture"), href: "/cultura" },
         { name: t("interest.ecotourism"), href: "/ecoturismo" },
-        { name: t("interest.wellness"), href: "/wellness" },
-        { name: t("header.allInclusive"), href: "/alojamientos?tipo=all-inclusive" },
+        { name: t("interest.wellness"), href: "/spas-wellness" },
+        { name: t("header.allInclusive"), href: "/alojamientos?categoria=Resort" },
         { name: "Pelota Invernal LIDOM", href: "/lidom" },
       ],
     },
     planifica: {
       title: t("nav.plan"),
       links: [
+        { name: "Tasas de Cambio Bancarias", href: "/tasas-cambio" },
+        { name: "Resultados de Loterías", href: "/loterias" },
         { name: "Reserva Directa", href: "/reserva-directa" },
         { name: "Itinerario con IA", href: "/itinerario-ia" },
         { name: "Tarjeta RD Pass", href: "/tarjeta-prepago" },
@@ -80,6 +82,8 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
       links: [
         { name: t("footer.aboutUs"), href: "/sobre-nosotros" },
         { name: "Portal de Partners B2B", href: "/partners" },
+        { name: "Operadores RD (reservas directas)", href: "/operadores" },
+        { name: "Tienda oficial", href: "/tienda" },
         { name: "Programa de Creadores", href: "/creadores" },
         { name: "Gamificación & Premios", href: "/gamificacion-turistica" },
         { name: t("footer.press"), href: "/prensa" },
@@ -98,9 +102,9 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
       {!hidePreFooterBanner && <PreFooterPresidenteBanner />}
 
       <footer className="bg-card border-t border-border" role="contentinfo">
-      <div className="container mx-auto px-4 lg:px-8 py-12 lg:py-16">
+      <div className="container mx-auto px-4 lg:px-8 pt-12 pb-8 lg:pt-14 lg:pb-8">
         {/* Desktop: 5 Columns Grid */}
-        <div className="hidden lg:grid grid-cols-5 gap-8 mb-12">
+        <div className="hidden lg:grid grid-cols-5 gap-8 mb-8">
           {Object.entries(footerSections).map(([key, section]) => (
             <div key={key}>
               <h3 className="font-display font-bold text-foreground mb-4 text-base">
@@ -254,9 +258,9 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 mt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
+        <div className="pt-6 mt-6 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <p>© {new Date().getFullYear()} Descubre República Dominicana. {t("footer.allRightsReserved")}</p>
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center gap-6">
             <Link to="/terminos" className="hover:text-primary transition-colors">{t("footer.privacy")}</Link>
             <Link to="/terminos" className="hover:text-primary transition-colors">{t("footer.terms")}</Link>
             <Link to="/sitemap" className="hover:text-primary transition-colors">Mapa del Sitio</Link>

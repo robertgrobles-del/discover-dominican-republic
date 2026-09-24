@@ -21,6 +21,34 @@ for (const table of Object.keys(mockData)) {
   mockData[table] = mockData[table].filter((r) => r && r.id !== "");
 }
 
+// Tablas cuyos cambios sobreviven a recargas (localStorage). Solo las del
+// módulo de operadores, tienda y reservas: el resto del mock sigue siendo
+// efímero por diseño (ver MOCK_MIGRATION_NOTES.md).
+const PERSISTED_TABLES = new Set([
+  "partner_profiles", "reservations", "reviews", "cart_items",
+  "operator_listings", "operator_messages", "operator_promotions", "operator_reviews",
+  "store_products", "store_orders", "traveler_spots", "traveler_wishlist", "traveler_trips",
+]);
+const PERSIST_PREFIX = "mockdb:v1:";
+
+function persistTable(table: string) {
+  if (!PERSISTED_TABLES.has(table)) return;
+  try {
+    localStorage.setItem(PERSIST_PREFIX + table, JSON.stringify(mockData[table] || []));
+  } catch {
+    // almacenamiento no disponible o lleno: el mock sigue funcionando en memoria
+  }
+}
+
+for (const table of PERSISTED_TABLES) {
+  try {
+    const raw = localStorage.getItem(PERSIST_PREFIX + table);
+    if (raw) mockData[table] = JSON.parse(raw);
+  } catch {
+    // ignorar datos corruptos
+  }
+}
+
 function genId() {
   return typeof crypto !== "undefined" && crypto.randomUUID
     ? crypto.randomUUID()
@@ -326,6 +354,7 @@ class QueryBuilder implements PromiseLike<any> {
           mockData[sanitizedTable].push(withId);
           return withId;
         });
+        persistTable(sanitizedTable);
         return { data: this.isSingle ? inserted[0] : inserted, error: null };
       }
 
@@ -333,12 +362,14 @@ class QueryBuilder implements PromiseLike<any> {
         const rows = mockData[sanitizedTable] || [];
         const matched = rows.filter((r) => this.filters.every((f) => matchesFilter(r, f)));
         matched.forEach((r) => Object.assign(r, this.requestData));
+        persistTable(sanitizedTable);
         return { data: this.isSingle ? matched[0] ?? null : matched, error: null };
       }
 
       if (this.action === "delete") {
         const rows = mockData[sanitizedTable] || [];
         mockData[sanitizedTable] = rows.filter((r) => !this.filters.every((f) => matchesFilter(r, f)));
+        persistTable(sanitizedTable);
         return { data: null, error: null };
       }
 
@@ -425,18 +456,21 @@ function handleAdminEntities(body: any): { data: any; error: any } {
       case "create": {
         const withId = { id: genId(), created_at: new Date().toISOString(), ...data };
         table.push(withId);
+        persistTable(entity);
         return { data: { data: withId, message: "Creado exitosamente" }, error: null };
       }
       case "update": {
         const row = table.find((r) => r.id === id);
         if (!row) return { data: null, error: { message: "Elemento no encontrado" } };
         Object.assign(row, data);
+        persistTable(entity);
         return { data: { data: row, message: "Actualizado exitosamente" }, error: null };
       }
       case "delete": {
         const idx = table.findIndex((r) => r.id === id);
         if (idx === -1) return { data: null, error: { message: "Elemento no encontrado" } };
         table.splice(idx, 1);
+        persistTable(entity);
         return { data: { message: "Eliminado exitosamente" }, error: null };
       }
       default:

@@ -113,17 +113,17 @@ export function Header({ hasHero, variant, className }: HeaderProps = {}) {
       { name: "Puerto Plata", desc: t("header.puertoPlataDesc"), image: puertoPlata, href: "/destino/puerto-plata", tag: "Costa del Ámbar & Surf" },
     ],
     regiones: [
-      { name: "Región Norte (Cibao & Costa Atlántica)", desc: "Santiago, Puerto Plata, Jarabacoa, Montecristi", href: "/provincias?region=norte", tag: "Montaña & Ecoturismo", image: puertoPlata },
-      { name: "Región Este (Playas & Golf)", desc: "Punta Cana, La Romana, Bayahíbe, Miches", href: "/provincias?region=este", tag: "All-Inclusive & Arrecifes", image: puntaCana },
-      { name: "Región Sur Profundo (Naturaleza Virgen)", desc: "Barahona, Pedernales, Bahía de las Águilas, Baní", href: "/provincias?region=sur", tag: "Reserva de Biósfera", image: samana },
-      { name: "Gran Santo Domingo (Cultura & Negocios)", desc: "Zona Colonial, Malecón, Gastronomía de Autor", href: "/provincias?region=santo-domingo", tag: "Patrimonio UNESCO", image: santoDomingo },
+      { name: "Región Norte (Cibao & Costa Atlántica)", desc: "Santiago, Puerto Plata, Jarabacoa, Montecristi", href: "/destinos/region/norte", tag: "Montaña & Ecoturismo", image: puertoPlata },
+      { name: "Región Este (Playas & Golf)", desc: "Punta Cana, La Romana, Bayahíbe, Miches", href: "/destinos/region/este", tag: "All-Inclusive & Arrecifes", image: puntaCana },
+      { name: "Región Sur Profundo (Naturaleza Virgen)", desc: "Barahona, Pedernales, Bahía de las Águilas, Baní", href: "/destinos/region/sur", tag: "Reserva de Biósfera", image: samana },
+      { name: "Gran Santo Domingo (Cultura & Negocios)", desc: "Zona Colonial, Malecón, Gastronomía de Autor", href: "/destinos/region/santo-domingo", tag: "Patrimonio UNESCO", image: santoDomingo },
     ]
   };
 
   const megaMenuQueHacer = {
     experienciasTop: [
-      { name: "Aventura, Cascadas & Zipline", desc: "27 Charcos, Samaná y Jarabacoa", image: adventure, href: "/actividades" },
-      { name: "Ruta Gastronómica & Alta Cocina", desc: "Sabores criollos, mariscos y catas de ron", image: gastronomy, href: "/guia-gastronomica" },
+      { name: "Aventura, Cascadas & Zipline", desc: "27 Charcos, Samaná y Jarabacoa", image: adventure, href: "/experiencia/27-charcos-de-damajagua" },
+      { name: "Ruta Gastronómica & Alta Cocina", desc: "Sabores criollos, mariscos y catas de ron", image: gastronomy, href: "/rutas-sabor" },
       { name: "Buceo en Arrecifes & Snorkel", desc: "Aguas cristalinas en Bayahíbe y Sosúa", image: diving, href: "/buceo-snorkel" },
       { name: "Playas Paradisíacas & Catamarán", desc: "Bávaro, Cayo Levantado y Bahía de las Águilas", image: relaxBeach, href: "/playas" },
     ],
@@ -131,9 +131,9 @@ export function Header({ hasHero, variant, className }: HeaderProps = {}) {
       { name: "Turismo Sostenible", href: "/sostenible", icon: Leaf },
       { name: "Rutas del Sabor", href: "/rutas-sabor", icon: Utensils },
       { name: "Vida Nocturna & Bares", href: "/vida-nocturna", icon: Music },
-      { name: "Patrimonio & Museos", href: "/patrimonio", icon: Building2 },
+      { name: "Patrimonio & Museos", href: "/museos-monumentos", icon: Building2 },
       { name: "Eventos & Fiestas", href: "/eventos", icon: Calendar },
-      { name: "Wellness & Spas", href: "/wellness", icon: HeartPulse },
+      { name: "Wellness & Spas", href: "/spas-wellness", icon: HeartPulse },
       { name: "Pelota LIDOM", href: "/lidom", icon: Activity },
       { name: "Bodas en el Caribe", href: "/bodas", icon: Heart },
     ]
@@ -141,10 +141,10 @@ export function Header({ hasHero, variant, className }: HeaderProps = {}) {
 
   const megaMenuDondeQuedarse = {
     tipos: [
-      { name: "Resorts All-Inclusive", desc: "Lujo, piscinas infinitas y todo incluido en la playa", image: puntaCana, href: "/alojamientos?tipo=all-inclusive" },
-      { name: "Hoteles Boutique & Coloniales", desc: "Encanto histórico, arquitectura y trato exclusivo", image: santoDomingo, href: "/alojamientos?tipo=boutique" },
-      { name: "Eco-Lodges de Montaña", desc: "Desconexión en Jarabacoa, Constanza y Samaná", image: samana, href: "/alojamientos?tipo=ecolodge" },
-      { name: "Villas & Penthouses de Playa", desc: "Privacidad frente al mar para grupos y familias", image: puertoPlata, href: "/alojamientos?tipo=villa" },
+      { name: "Resorts All-Inclusive", desc: "Lujo, piscinas infinitas y todo incluido en la playa", image: puntaCana, href: "/alojamientos?categoria=Resort" },
+      { name: "Hoteles Boutique & Coloniales", desc: "Encanto histórico, arquitectura y trato exclusivo", image: santoDomingo, href: "/alojamientos?categoria=Boutique" },
+      { name: "Eco-Lodges de Montaña", desc: "Desconexión en Jarabacoa, Constanza y Samaná", image: samana, href: "/alojamientos?categoria=Ecolodge" },
+      { name: "Villas & Penthouses de Playa", desc: "Privacidad frente al mar para grupos y familias", image: puertoPlata, href: "/alojamientos?categoria=Villa" },
     ],
     categorias: [
       { name: "Punta Cana & Cap Cana", href: "/alojamientos?destino=punta-cana" },
@@ -164,8 +164,8 @@ export function Header({ hasHero, variant, className }: HeaderProps = {}) {
     { name: "Tarjeta RD Pass", href: "/tarjeta-prepago", icon: ShoppingBag, desc: "Descuentos y pagos locales" },
     { name: "Salud y Farmacias 24h", href: "/salud-24h", icon: Activity, desc: "Hospitales y farmacias de turno" },
     { name: t("plan.howToGetThere"), href: "/como-llegar", icon: Plane, desc: t("header.flightsDesc") },
-    { name: t("plan.entryReq"), href: "/planifica", icon: FileText, desc: t("header.visasDesc") },
-    { name: t("plan.transport"), href: "/info/transporte", icon: Car, desc: t("header.transportDesc") },
+    { name: t("plan.entryReq"), href: "/e-ticket", icon: FileText, desc: t("header.visasDesc") },
+    { name: t("plan.transport"), href: "/transporte-urbano", icon: Car, desc: t("header.transportDesc") },
     { name: t("plan.practicalGuide"), href: "/guia-practica", icon: Info, desc: t("header.practicalDesc") },
     { name: t("plan.insurance"), href: "/seguro-viaje", icon: Heart, desc: t("header.insuranceDesc") },
     { name: t("plan.itineraries"), href: "/itinerarios", icon: Route, desc: t("header.itinerariesDesc") },
@@ -174,14 +174,16 @@ export function Header({ hasHero, variant, className }: HeaderProps = {}) {
 
   const megaMenuSobreElPais = [
     { name: t("header.cultureTraditions"), href: "/cultura", icon: Heart, desc: t("header.cultureDesc") },
-    { name: t("header.heritage"), href: "/patrimonio", icon: Building2, desc: t("header.heritageDesc") },
+    { name: t("header.heritage"), href: "/museos-monumentos", icon: Building2, desc: t("header.heritageDesc") },
     { name: "Historia de RD", href: "/historia", icon: BookOpen, desc: "Personajes y eventos históricos" },
-    { name: t("header.typicalCuisine"), href: "/cultura#gastronomia", icon: Utensils, desc: t("header.cuisineDesc") },
+    { name: "Recetas Criollas & Platos", href: "/recetas-criollas", icon: Utensils, desc: "Gastronomía autóctona paso a paso" },
     { name: t("header.mediaGallery"), href: "/galeria", icon: Camera, desc: t("header.galleryDesc") },
     { name: "Marketplace RD", href: "/marketplace", icon: ShoppingBag, desc: "Comprar souvenirs locales" },
+    { name: "Operadores RD", href: "/operadores", icon: Briefcase, desc: "Reserva directo con operadores verificados" },
+    { name: "Tienda Descubre RD", href: "/tienda", icon: ShoppingBag, desc: "Merchandising oficial y pósters rayables" },
     { name: "Suscripción Sabores RD", href: "/suscripciones-sabores", icon: Gift, desc: "Cajas de productos dominicanos" },
     { name: t("header.embassies"), href: "/embajadas", icon: Globe, desc: t("header.embassiesDesc") },
-    { name: t("header.practicalInfo"), href: "/info/seguridad", icon: Info, desc: t("header.safetyDesc") },
+    { name: "Leyes del Turista & Seguridad", href: "/leyes-turista", icon: Info, desc: "Derechos, normas y seguridad" },
   ];
 
   const handleMouseEnter = (megaMenu: MegaMenuType) => {
@@ -460,7 +462,7 @@ export function Header({ hasHero, variant, className }: HeaderProps = {}) {
 
                     {/* Col 3: Destino del Mes Destacado (3 cols) */}
                     <div className="lg:col-span-3">
-                      <Link to="/destino/samana" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-xl overflow-hidden h-full min-h-[140px] max-h-[170px] shadow-sm">
+                      <Link to="/destino/bahia-de-las-aguilas" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-xl overflow-hidden h-full min-h-[140px] max-h-[170px] shadow-sm">
                         <img src={samana} alt="Bahía de las Águilas" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
                         <div className="absolute bottom-0 left-0 right-0 p-3">
@@ -534,7 +536,7 @@ export function Header({ hasHero, variant, className }: HeaderProps = {}) {
 
                     {/* Column 3: Contenido Patrocinado */}
                     <div>
-                      <Link to="/tours" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-xl overflow-hidden h-full max-h-[28vh]">
+                      <Link to="/tour/buggies-cenote-hoyo-azul" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-xl overflow-hidden h-full max-h-[28vh]">
                         <img src={adAdventureImg} alt="Excursiones Extremas & Buggies en Punta Cana" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                         <div className="absolute bottom-0 left-0 right-0 p-3">
@@ -597,7 +599,7 @@ export function Header({ hasHero, variant, className }: HeaderProps = {}) {
                     </div>
 
                     <div>
-                      <Link to="/alojamientos" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-xl overflow-hidden h-full max-h-[28vh]">
+                      <Link to="/alojamiento/sanctuary-cap-cana" onClick={() => setActiveMegaMenu(null)} className="block group relative rounded-xl overflow-hidden h-full max-h-[28vh]">
                         <img src={puntaCana} alt="Resorts de Lujo en Cap Cana" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                         <div className="absolute bottom-0 left-0 right-0 p-3">
@@ -743,6 +745,8 @@ export function Header({ hasHero, variant, className }: HeaderProps = {}) {
                       <Link to="/bebidas-rd" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Bebidas RD</Link>
                       <Link to="/sostenible" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Sostenibilidad</Link>
                       <Link to="/marketplace" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Marketplace</Link>
+                      <Link to="/operadores" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Operadores RD</Link>
+                      <Link to="/tienda" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Tienda</Link>
                       <Link to="/suscripciones-sabores" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Suscripción Sabores</Link>
                       <Link to="/eventos-grupo" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Excursión Grupal</Link>
                       <Link to="/creadores" onClick={() => setIsMenuOpen(false)} className="block py-1.5 px-2 text-sm text-muted-foreground hover:text-primary rounded hover:bg-secondary/50">Creadores</Link>

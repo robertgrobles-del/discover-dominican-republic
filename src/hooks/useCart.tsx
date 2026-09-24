@@ -45,7 +45,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (!user) { toast({ title: "Inicia sesión para agregar al carrito", variant: "destructive" }); return; }
     const existing = items.find((i) => i.product_id === item.product_id);
     if (existing) {
-      await updateQuantity(existing.id, existing.quantity + 1);
+      await updateQuantity(existing.id, existing.quantity + Math.max(1, item.quantity || 1));
       return;
     }
     const { error } = await db.from("cart_items").insert({ user_id: user.id, ...item });
