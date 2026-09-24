@@ -36,6 +36,10 @@ export interface Room {
   beds?: string;
   amenities: string[];
   image?: string;
+  weekend_price?: number; // noches de viernes y sábado
+  min_nights?: number;
+  seasons?: { id: string; name: string; from: string; to: string; price: number }[];
+  blocked?: { id: string; from: string; to: string; reason?: string }[];
 }
 
 export interface Listing {

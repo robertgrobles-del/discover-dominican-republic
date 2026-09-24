@@ -20,6 +20,7 @@ import {
   availableRooms, availableSpots, bumpPromotionUse, nightsBetween, createBooking, fetchAllBookings, fetchListingBySlug, fetchOrgBySlug, findPromotion, sendMessage,
 } from "../api";
 import { CANCELLATION_POLICIES, CATEGORY_META, formatMoney } from "../constants";
+import { quoteStay } from "../pricing";
 import type { Promotion } from "../types";
 
 export default function OperadorServicio() {
@@ -72,9 +73,10 @@ export default function OperadorServicio() {
   }
 
   const cat = CATEGORY_META[listing.category];
-  const unitPrice = room ? room.price : listing.price;
+  const quote = room ? quoteStay(room, date, checkOut) : null;
+  const unitPrice = room ? (quote && quote.nights ? quote.average : room.price) : listing.price;
   const units = isStay ? nights : guests;
-  const subtotal = unitPrice * units;
+  const subtotal = quote ? quote.total : listing.price * guests;
   const discount = promo ? (promo.type === "percent" ? (subtotal * promo.value) / 100 : Math.min(promo.value, subtotal)) : 0;
   const total = Math.max(0, subtotal - discount);
   const policy = CANCELLATION_POLICIES.find((p) => p.value === listing.cancellation_policy);
@@ -92,6 +94,7 @@ export default function OperadorServicio() {
     if (isStay) {
       if (!room) return toast.error("Elige una habitación.");
       if (nights < 1) return toast.error("La salida debe ser posterior a la llegada.");
+      if (quote?.issue) return toast.error(quote.issue);
       if (guests > room.guests) return toast.error(`Esta habitación admite hasta ${room.guests} huéspedes.`);
       if (roomsFree < 1) return toast.error("Esta habitación no está disponible en esas fechas.");
     } else if (guests < 1 || guests > spots) return toast.error(spots === 0 ? "No hay cupos para esa fecha y horario." : `Solo quedan ${spots} cupos.`);
@@ -228,12 +231,14 @@ export default function OperadorServicio() {
                   <div className="space-y-1"><Label htmlFor="b-notes">Notas (opcional)</Label><Textarea id="b-notes" rows={2} maxLength={300} value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} /></div>
                 </div>
                 <div className="rounded-lg bg-muted p-3 text-sm space-y-1">
-                  <div className="flex justify-between"><span>{formatMoney(unitPrice, listing.currency)} × {units} {isStay ? "noche(s)" : ""}</span><span>{formatMoney(subtotal, listing.currency)}</span></div>
+                  {quote && quote.nights > 0 ? quote.lines.map((l) => <div key={l.label + l.price} className="flex justify-between"><span>{l.label}: {formatMoney(l.price, listing.currency)} × {l.nights} noche(s)</span><span>{formatMoney(l.price * l.nights, listing.currency)}</span></div>)
+                    : <div className="flex justify-between"><span>{formatMoney(unitPrice, listing.currency)} × {units}</span><span>{formatMoney(subtotal, listing.currency)}</span></div>}
+                  {quote?.issue && <p className="text-xs text-destructive">{quote.issue}</p>}
                   {discount > 0 && <div className="flex justify-between text-emerald-600"><span>Descuento {promo?.code}</span><span>− {formatMoney(discount, listing.currency)}</span></div>}
                   <div className="flex justify-between font-bold text-base pt-1 border-t border-border"><span>Total</span><span>{formatMoney(total, listing.currency)}</span></div>
                 </div>
-                <Button className="w-full" size="lg" disabled={busy || (isStay ? !room || roomsFree < 1 || nights < 1 : spots === 0)} onClick={() => submit(true)}>Reservar y pagar ahora</Button>
-                <Button className="w-full" variant="outline" disabled={busy || (isStay ? !room || roomsFree < 1 || nights < 1 : spots === 0)} onClick={() => submit(false)}>Solicitar reserva (pagar después)</Button>
+                <Button className="w-full" size="lg" disabled={busy || (isStay ? !room || roomsFree < 1 || nights < 1 || !!quote?.issue : spots === 0)} onClick={() => submit(true)}>Reservar y pagar ahora</Button>
+                <Button className="w-full" variant="outline" disabled={busy || (isStay ? !room || roomsFree < 1 || nights < 1 || !!quote?.issue : spots === 0)} onClick={() => submit(false)}>Solicitar reserva (pagar después)</Button>
                 <p className="text-[11px] text-muted-foreground text-center">Pago simulado en este entorno de demostración. {org.business_name} recibe tu reserva de forma directa.</p>
               </CardContent></Card>
             </aside>

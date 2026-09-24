@@ -2576,7 +2576,26 @@
             "Wi-Fi",
             "Minibar"
           ],
-          "image": "https://images.unsplash.com/photo-1650171111438-ea9bc8c675fe?w=1200&h=800&fit=crop&q=80"
+          "image": "https://images.unsplash.com/photo-1650171111438-ea9bc8c675fe?w=1200&h=800&fit=crop&q=80",
+          "weekend_price": 165,
+          "min_nights": 2,
+          "seasons": [
+            {
+              "id": "sn-navidad",
+              "name": "Navidad y Año Nuevo",
+              "from": "2026-12-20",
+              "to": "2027-01-05",
+              "price": 210
+            }
+          ],
+          "blocked": [
+            {
+              "id": "bl-mant",
+              "from": "2026-11-10",
+              "to": "2026-11-12",
+              "reason": "Mantenimiento"
+            }
+          ]
         },
         {
           "id": "rm-colonial-fam",

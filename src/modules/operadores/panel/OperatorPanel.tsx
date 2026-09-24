@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, CalendarDays, Store, MessageSquare, ClipboardList, Coins, Megaphone, Tag,
+  LayoutDashboard, CalendarDays, Store, MessageSquare, ClipboardList, Coins, BadgeDollarSign, Megaphone, Tag,
   HandHelping, Users, BarChart3, Building2, ExternalLink, ArrowLeft, Loader2, BadgeCheck, Clock, type LucideIcon,
 } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
@@ -20,6 +20,7 @@ import PanelHome from "./PanelHome";
 import Anuncios from "./Anuncios";
 import AnuncioWizard from "./AnuncioWizard";
 import Calendario from "./Calendario";
+import Tarifas from "./Tarifas";
 import Mensajes from "./Mensajes";
 import Reservas from "./Reservas";
 import Ingresos from "./Ingresos";
@@ -31,6 +32,7 @@ import Perfil from "./Perfil";
 const NAV: { to: string; label: string; icon: LucideIcon; end?: boolean; badge?: "messages" | "requests" }[] = [
   { to: "", label: "Panel", icon: LayoutDashboard, end: true },
   { to: "calendario", label: "Calendario", icon: CalendarDays },
+  { to: "tarifas", label: "Tarifas", icon: BadgeDollarSign },
   { to: "anuncios", label: "Anuncios", icon: Store },
   { to: "mensajes", label: "Mensajes", icon: MessageSquare, badge: "messages" },
   { to: "reservas", label: "Reservas", icon: ClipboardList },
@@ -156,6 +158,7 @@ function Shell() {
           <Routes>
             <Route index element={<PanelHome />} />
             <Route path="calendario" element={<Calendario />} />
+            <Route path="tarifas" element={<Tarifas />} />
             <Route path="anuncios" element={<Anuncios />} />
             <Route path="anuncios/nuevo" element={<AnuncioWizard />} />
             <Route path="anuncios/:id" element={<AnuncioWizard />} />
