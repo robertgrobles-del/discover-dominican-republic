@@ -43,6 +43,7 @@ export interface Room {
 }
 
 export interface Listing {
+  deposit_percent?: number; // 0/undefined = pago completo; 10-90 = se puede reservar con depósito
   rooms?: Room[]; // solo alojamientos: cada habitación tiene su propio enlace de reserva
   id: string;
   org_id: string;
@@ -87,6 +88,7 @@ export interface Booking {
   currency: "USD" | "DOP";
   status: BookingStatus;
   payment_status: PaymentStatus;
+  amount_paid?: number; // cobrado hasta ahora (pago parcial); si payment_status = paid equivale al total
   promo_code?: string;
   notes?: string;
   source: "web" | "manual" | "marketplace";

@@ -2,16 +2,17 @@ import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { useBookings } from "../api";
+import { paidAmount, useBookings } from "../api";
 import { formatMoney } from "../constants";
 import { useOrg } from "./OrgContext";
 
 export function summarizeIncome(bookings: ReturnType<typeof useBookings>["data"], commissionRate: number) {
-  const paid = (bookings || []).filter((b) => b.payment_status === "paid" && b.status !== "cancelled");
-  const gross = paid.reduce((n, b) => n + b.total_price, 0);
+  // Se cuenta lo realmente cobrado (incluye depósitos de reservas con pago parcial).
+  const paid = (bookings || []).filter((b) => paidAmount(b) > 0 && b.status !== "cancelled");
+  const gross = paid.reduce((n, b) => n + paidAmount(b), 0);
   // Solo las reservas hechas en la web del operador generan comisión.
-  const commission = paid.filter((b) => b.source === "web").reduce((n, b) => n + (b.total_price * commissionRate) / 100, 0);
-  const settled = paid.filter((b) => b.status === "completed").reduce((n, b) => n + (b.source === "web" ? b.total_price * (1 - commissionRate / 100) : b.total_price), 0);
+  const commission = paid.filter((b) => b.source === "web").reduce((n, b) => n + (paidAmount(b) * commissionRate) / 100, 0);
+  const settled = paid.filter((b) => b.status === "completed").reduce((n, b) => n + (b.source === "web" ? paidAmount(b) * (1 - commissionRate / 100) : paidAmount(b)), 0);
   return { paid, gross, commission, net: gross - commission, settled, pending: gross - commission - settled };
 }
 
@@ -21,7 +22,7 @@ export default function Ingresos() {
   const s = useMemo(() => summarizeIncome(bookings, org.commission_rate), [bookings, org.commission_rate]);
   const byMonth = useMemo(() => {
     const map: Record<string, number> = {};
-    s.paid.forEach((b) => { const k = b.date.slice(0, 7); map[k] = (map[k] || 0) + b.total_price; });
+    s.paid.forEach((b) => { const k = b.date.slice(0, 7); map[k] = (map[k] || 0) + paidAmount(b); });
     return Object.entries(map).sort().map(([mes, total]) => ({ mes, total }));
   }, [s.paid]);
 

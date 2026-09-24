@@ -44,7 +44,7 @@ export default function OperadorServicio() {
   const [image, setImage] = useState(0);
   const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
   const [checkOut, setCheckOut] = useState(tomorrow);
-  const [done, setDone] = useState<{ id: string; paid: boolean } | null>(null);
+  const [done, setDone] = useState<{ id: string; paid: boolean; deposit: number; balance: number } | null>(null);
   const [busy, setBusy] = useState(false);
 
   const isOwner = !!org && user?.id === org.id;
@@ -87,7 +87,10 @@ export default function OperadorServicio() {
     toast[p ? "success" : "error"](p ? `Código aplicado: ${p.code}` : "Código no válido o vencido");
   };
 
-  const submit = async (payNow: boolean) => {
+  const depositPct = listing.deposit_percent && listing.deposit_percent > 0 && listing.deposit_percent < 100 ? listing.deposit_percent : 0;
+  const depositAmount = depositPct ? Math.round(total * depositPct) / 100 : 0;
+
+  const submit = async (payNow: boolean, deposit = false) => {
     if (f.name.trim().length < 2) return toast.error("Escribe tu nombre.");
     if (!isValidEmail(f.email)) return toast.error("Ingresa un correo válido.");
     if (date < today) return toast.error("Elige una fecha futura.");
@@ -103,12 +106,12 @@ export default function OperadorServicio() {
       const id = await createBooking({
         org_id: org.id, listing_id: listing.id, listing_title: room ? `${listing.title} — ${room.name}` : listing.title, room_id: room?.id, room_name: room?.name, check_out: isStay ? checkOut : undefined, contact_name: f.name.trim(), contact_email: f.email.trim(),
         contact_phone: f.phone.trim() || undefined, date, time: isStay ? undefined : selectedTime, guests, total_price: total, currency: listing.currency,
-        status: payNow ? "confirmed" : "pending", payment_status: payNow ? "paid" : "unpaid", promo_code: promo?.code, notes: f.notes.trim() || undefined, source: "web",
+        status: payNow ? "confirmed" : "pending", payment_status: deposit ? "partial" : payNow ? "paid" : "unpaid", amount_paid: deposit ? depositAmount : payNow ? total : 0, promo_code: promo?.code, notes: f.notes.trim() || undefined, source: "web",
       });
       await sendMessage({ org_id: org.id, thread_id: `web-${id}`, traveler_name: f.name.trim(), sender: "traveler", channel: "web", booking_id: id, read: false, body: isStay ? `Nueva reserva de ${room!.name} en ${listing.title}: ${date} → ${checkOut} (${nights} noche(s)), ${guests} huésped(es).${f.notes.trim() ? ` Nota: ${f.notes.trim()}` : ""}` : `Nueva reserva de ${guests} persona(s) para ${listing.title} el ${date} a las ${selectedTime}.${f.notes.trim() ? ` Nota: ${f.notes.trim()}` : ""}` });
       if (promo) await bumpPromotionUse(promo.id, promo.uses);
       qc.invalidateQueries({ queryKey: ["op"] });
-      setDone({ id, paid: payNow });
+      setDone({ id, paid: payNow, deposit: deposit ? depositAmount : 0, balance: deposit ? total - depositAmount : 0 });
     } catch (e: any) {
       toast.error(e.message || "No se pudo completar la reserva");
     } finally {
@@ -126,6 +129,7 @@ export default function OperadorServicio() {
           <h1 className="font-display text-3xl font-bold">{done.paid ? "¡Reserva confirmada!" : "¡Solicitud enviada!"}</h1>
           <p className="text-muted-foreground">{done.paid ? "Recibirás la confirmación en tu correo." : `${org.business_name} confirmará tu reserva y te contactará pronto.`}</p>
           <p className="rounded-lg bg-muted p-3 font-mono text-sm">Referencia: {done.id}</p>
+          {done.deposit > 0 && <p className="rounded-lg border border-border p-3 text-sm">Depósito pagado: <b>{formatMoney(done.deposit, listing.currency)}</b> · Saldo a pagar al llegar: <b>{formatMoney(done.balance, listing.currency)}</b></p>}
           <div className="flex justify-center gap-3"><Button asChild><Link to={`/operador/${org.slug}`}>Ver más de {org.business_name}</Link></Button><Button variant="outline" asChild><Link to="/">Volver al inicio</Link></Button></div>
         </main>
         <Footer />
@@ -238,6 +242,7 @@ export default function OperadorServicio() {
                   <div className="flex justify-between font-bold text-base pt-1 border-t border-border"><span>Total</span><span>{formatMoney(total, listing.currency)}</span></div>
                 </div>
                 <Button className="w-full" size="lg" disabled={busy || (isStay ? !room || roomsFree < 1 || nights < 1 || !!quote?.issue : spots === 0)} onClick={() => submit(true)}>Reservar y pagar ahora</Button>
+                {depositPct > 0 && <Button className="w-full" variant="secondary" disabled={busy || (isStay ? !room || roomsFree < 1 || nights < 1 || !!quote?.issue : spots === 0)} onClick={() => submit(true, true)}>Reservar con depósito de {formatMoney(depositAmount, listing.currency)} ({depositPct} %)</Button>}
                 <Button className="w-full" variant="outline" disabled={busy || (isStay ? !room || roomsFree < 1 || nights < 1 || !!quote?.issue : spots === 0)} onClick={() => submit(false)}>Solicitar reserva (pagar después)</Button>
                 <p className="text-[11px] text-muted-foreground text-center">Pago simulado en este entorno de demostración. {org.business_name} recibe tu reserva de forma directa.</p>
               </CardContent></Card>

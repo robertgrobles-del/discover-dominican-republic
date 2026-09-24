@@ -189,6 +189,9 @@ export default function AnuncioWizard() {
                   <SelectContent>{CANCELLATION_POLICIES.map((p) => <SelectItem key={p.value} value={p.value}>{p.label} — {p.desc}</SelectItem>)}</SelectContent>
                 </Select></div>
             </div>
+            <div className="space-y-2"><Label htmlFor="w-dep">Depósito para reservar (%)</Label>
+              <div className="flex items-center gap-3"><Input id="w-dep" className="w-28" type="number" min={0} max={90} step={5} value={draft.deposit_percent || 0} onChange={(e) => set("deposit_percent", Math.min(90, Math.max(0, Number(e.target.value) || 0)))} />
+                <p className="text-xs text-muted-foreground">0 = el viajero paga el total. Con un valor (por ejemplo 30) podrá reservar pagando solo ese porcentaje y el resto al llegar.</p></div></div>
             <div className="space-y-2"><Label htmlFor="w-meet">Punto de encuentro</Label>
               <Input id="w-meet" maxLength={140} value={draft.meeting_point || ""} onChange={(e) => set("meeting_point", e.target.value)} /></div>
             {!isStay && <div className="space-y-2"><Label>Horarios de salida *</Label>

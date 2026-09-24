@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { deleteListing, fetchAllBookings, fetchOrgs, saveListing, updateOrg, useOpMutation } from "@/modules/operadores/api";
+import { deleteListing, fetchAllBookings, fetchOrgs, paidAmount, saveListing, updateOrg, useOpMutation } from "@/modules/operadores/api";
 import { BOOKING_STATUS_LABEL, CATEGORY_META, LISTING_STATUS_LABEL, VERIFICATION_LABEL, formatMoney } from "@/modules/operadores/constants";
 import type { Listing, OperatorOrg, OrgVerification } from "@/modules/operadores/types";
 import { supabase } from "@/integrations/supabase/client";
@@ -90,9 +90,9 @@ function Bookings() {
   const { data: orgs = [] } = useQuery({ queryKey: ORG_KEY, queryFn: fetchOrgs });
   const rate = useMemo(() => new Map(orgs.map((o) => [o.id, o.commission_rate])), [orgs]);
   const names = useMemo(() => new Map(orgs.map((o) => [o.id, o.business_name])), [orgs]);
-  const paid = rows.filter((b) => b.payment_status === "paid" && b.status !== "cancelled");
-  const gross = paid.reduce((n, b) => n + b.total_price, 0);
-  const commission = paid.filter((b) => b.source === "web").reduce((n, b) => n + (b.total_price * (rate.get(b.org_id) ?? 8)) / 100, 0);
+  const paid = rows.filter((b) => paidAmount(b) > 0 && b.status !== "cancelled");
+  const gross = paid.reduce((n, b) => n + paidAmount(b), 0);
+  const commission = paid.filter((b) => b.source === "web").reduce((n, b) => n + (paidAmount(b) * (rate.get(b.org_id) ?? 8)) / 100, 0);
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-3">
