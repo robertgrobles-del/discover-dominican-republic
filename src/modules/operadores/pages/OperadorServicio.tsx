@@ -9,6 +9,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,7 +20,7 @@ import { isValidEmail } from "@/lib/security";
 import {
   availableRooms, availableSpots, bumpPromotionUse, nightsBetween, createBooking, fetchAllBookings, fetchListingBySlug, fetchOrgBySlug, findPromotion, sendMessage,
 } from "../api";
-import { CANCELLATION_POLICIES, CATEGORY_META, formatMoney } from "../constants";
+import { CANCELLATION_POLICIES, CATEGORY_META, EXTRA_UNIT_LABEL, formatMoney } from "../constants";
 import { quoteStay } from "../pricing";
 import type { Promotion } from "../types";
 
@@ -46,6 +47,7 @@ export default function OperadorServicio() {
   const [checkOut, setCheckOut] = useState(tomorrow);
   const [done, setDone] = useState<{ id: string; paid: boolean; deposit: number; balance: number } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [picked, setPicked] = useState<string[]>([]);
 
   const isOwner = !!org && user?.id === org.id;
   const selectedTime = time || listing?.time_slots?.[0] || "";
@@ -76,7 +78,13 @@ export default function OperadorServicio() {
   const quote = room ? quoteStay(room, date, checkOut) : null;
   const unitPrice = room ? (quote && quote.nights ? quote.average : room.price) : listing.price;
   const units = isStay ? nights : guests;
-  const subtotal = quote ? quote.total : listing.price * guests;
+  const base = quote ? quote.total : listing.price * guests;
+  const extraLines = (listing.extras || []).filter((x) => picked.includes(x.id)).map((x) => {
+    const qty = x.unit === "person" ? guests : x.unit === "night" ? Math.max(1, nights) : 1;
+    return { id: x.id, name: x.name, qty, price: x.price };
+  });
+  const extrasTotal = extraLines.reduce((n, x) => n + x.qty * x.price, 0);
+  const subtotal = base + extrasTotal;
   const discount = promo ? (promo.type === "percent" ? (subtotal * promo.value) / 100 : Math.min(promo.value, subtotal)) : 0;
   const total = Math.max(0, subtotal - discount);
   const policy = CANCELLATION_POLICIES.find((p) => p.value === listing.cancellation_policy);
@@ -104,11 +112,11 @@ export default function OperadorServicio() {
     setBusy(true);
     try {
       const id = await createBooking({
-        org_id: org.id, listing_id: listing.id, listing_title: room ? `${listing.title} — ${room.name}` : listing.title, room_id: room?.id, room_name: room?.name, check_out: isStay ? checkOut : undefined, contact_name: f.name.trim(), contact_email: f.email.trim(),
+        org_id: org.id, listing_id: listing.id, listing_title: room ? `${listing.title} — ${room.name}` : listing.title, room_id: room?.id, room_name: room?.name, check_out: isStay ? checkOut : undefined, extras: extraLines.length ? extraLines : undefined, contact_name: f.name.trim(), contact_email: f.email.trim(),
         contact_phone: f.phone.trim() || undefined, date, time: isStay ? undefined : selectedTime, guests, total_price: total, currency: listing.currency,
         status: payNow ? "confirmed" : "pending", payment_status: deposit ? "partial" : payNow ? "paid" : "unpaid", amount_paid: deposit ? depositAmount : payNow ? total : 0, promo_code: promo?.code, notes: f.notes.trim() || undefined, source: "web",
       });
-      await sendMessage({ org_id: org.id, thread_id: `web-${id}`, traveler_name: f.name.trim(), sender: "traveler", channel: "web", booking_id: id, read: false, body: isStay ? `Nueva reserva de ${room!.name} en ${listing.title}: ${date} → ${checkOut} (${nights} noche(s)), ${guests} huésped(es).${f.notes.trim() ? ` Nota: ${f.notes.trim()}` : ""}` : `Nueva reserva de ${guests} persona(s) para ${listing.title} el ${date} a las ${selectedTime}.${f.notes.trim() ? ` Nota: ${f.notes.trim()}` : ""}` });
+      await sendMessage({ org_id: org.id, thread_id: `web-${id}`, traveler_name: f.name.trim(), sender: "traveler", channel: "web", booking_id: id, read: false, body: isStay ? `Nueva reserva de ${room!.name} en ${listing.title}: ${date} → ${checkOut} (${nights} noche(s)), ${guests} huésped(es).${extraLines.length ? ` Extras: ${extraLines.map((x) => `${x.name} ×${x.qty}`).join(", ")}.` : ""}${f.notes.trim() ? ` Nota: ${f.notes.trim()}` : ""}` : `Nueva reserva de ${guests} persona(s) para ${listing.title} el ${date} a las ${selectedTime}.${f.notes.trim() ? ` Nota: ${f.notes.trim()}` : ""}` });
       if (promo) await bumpPromotionUse(promo.id, promo.uses);
       qc.invalidateQueries({ queryKey: ["op"] });
       setDone({ id, paid: payNow, deposit: deposit ? depositAmount : 0, balance: deposit ? total - depositAmount : 0 });
@@ -226,6 +234,17 @@ export default function OperadorServicio() {
                       <Input id="b-guests" type="number" min={1} max={Math.max(1, spots)} value={guests} onChange={(e) => setGuests(Math.max(1, Number(e.target.value)))} /></div>
                   </>
                 )}
+                {(listing.extras?.length ?? 0) > 0 && (
+                  <fieldset className="space-y-2"><legend className="text-sm font-medium mb-1">Extras opcionales</legend>
+                    {listing.extras!.map((x) => (
+                      <label key={x.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <Checkbox checked={picked.includes(x.id)} onCheckedChange={(c) => setPicked((p) => (c ? [...p, x.id] : p.filter((i) => i !== x.id)))} />
+                        <span className="flex-1">{x.name}</span>
+                        <span className="text-muted-foreground text-xs">{formatMoney(x.price, listing.currency)} {EXTRA_UNIT_LABEL[x.unit]}</span>
+                      </label>
+                    ))}
+                  </fieldset>
+                )}
                 <div className="space-y-1"><Label htmlFor="b-code">Código promocional</Label>
                   <div className="flex gap-2"><Input id="b-code" maxLength={20} value={code} onChange={(e) => setCode(e.target.value)} placeholder="BIENVENIDO10" /><Button type="button" variant="outline" onClick={applyCode}>Aplicar</Button></div></div>
                 <div className="border-t border-border pt-3 space-y-2">
@@ -236,7 +255,8 @@ export default function OperadorServicio() {
                 </div>
                 <div className="rounded-lg bg-muted p-3 text-sm space-y-1">
                   {quote && quote.nights > 0 ? quote.lines.map((l) => <div key={l.label + l.price} className="flex justify-between"><span>{l.label}: {formatMoney(l.price, listing.currency)} × {l.nights} noche(s)</span><span>{formatMoney(l.price * l.nights, listing.currency)}</span></div>)
-                    : <div className="flex justify-between"><span>{formatMoney(unitPrice, listing.currency)} × {units}</span><span>{formatMoney(subtotal, listing.currency)}</span></div>}
+                    : <div className="flex justify-between"><span>{formatMoney(unitPrice, listing.currency)} × {units}</span><span>{formatMoney(base, listing.currency)}</span></div>}
+                  {extraLines.map((x) => <div key={x.id} className="flex justify-between"><span>{x.name} × {x.qty}</span><span>{formatMoney(x.price * x.qty, listing.currency)}</span></div>)}
                   {quote?.issue && <p className="text-xs text-destructive">{quote.issue}</p>}
                   {discount > 0 && <div className="flex justify-between text-emerald-600"><span>Descuento {promo?.code}</span><span>− {formatMoney(discount, listing.currency)}</span></div>}
                   <div className="flex justify-between font-bold text-base pt-1 border-t border-border"><span>Total</span><span>{formatMoney(total, listing.currency)}</span></div>

@@ -29,6 +29,8 @@ export const BOOKING_STATUS_LABEL: Record<BookingStatus, string> = {
   cancelled: "Cancelada",
 };
 
+export const EXTRA_UNIT_LABEL = { person: "por persona", booking: "por reserva", night: "por noche" } as const;
+
 export const PAYMENT_STATUS_LABEL: Record<PaymentStatus, string> = {
   unpaid: "Sin pagar",
   partial: "Pago parcial",

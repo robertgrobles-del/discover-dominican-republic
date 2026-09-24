@@ -42,7 +42,18 @@ export interface Room {
   blocked?: { id: string; from: string; to: string; reason?: string }[];
 }
 
+export type ExtraUnit = "person" | "booking" | "night";
+export interface Extra {
+  id: string;
+  name: string;
+  price: number;
+  unit: ExtraUnit; // se cobra por persona, por reserva o por noche (alojamientos)
+  description?: string;
+}
+export interface BookingExtra { id: string; name: string; qty: number; price: number; }
+
 export interface Listing {
+  extras?: Extra[];
   deposit_percent?: number; // 0/undefined = pago completo; 10-90 = se puede reservar con depósito
   rooms?: Room[]; // solo alojamientos: cada habitación tiene su propio enlace de reserva
   id: string;
@@ -88,6 +99,7 @@ export interface Booking {
   currency: "USD" | "DOP";
   status: BookingStatus;
   payment_status: PaymentStatus;
+  extras?: BookingExtra[];
   amount_paid?: number; // cobrado hasta ahora (pago parcial); si payment_status = paid equivale al total
   promo_code?: string;
   notes?: string;

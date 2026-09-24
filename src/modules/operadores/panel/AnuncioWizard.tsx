@@ -14,7 +14,7 @@ import { opKeys, saveListing, useListings, useOpMutation } from "../api";
 import {
   CANCELLATION_POLICIES, CATEGORY_META, DESTINATION_OPTIONS, LANGUAGE_OPTIONS, TIME_SLOT_OPTIONS, formatMoney, slugify,
 } from "../constants";
-import type { Listing, ListingCategory, Room } from "../types";
+import type { Extra, ExtraUnit, Listing, ListingCategory, Room } from "../types";
 import { useOrg } from "./OrgContext";
 
 const STEPS = ["Categoría", "Información", "Detalles y precio", "Fotos", "Revisión"];
@@ -54,8 +54,10 @@ export default function AnuncioWizard() {
   const errors: string[] = [];
   if (draft.title.trim().length < 5) errors.push("El título necesita al menos 5 caracteres.");
   if (!draft.destination) errors.push("Elige un destino.");
+  const extras = draft.extras || [];
   const isStay = draft.category === "alojamiento";
   const rooms = draft.rooms || [];
+  if (extras.some((x) => !x.name.trim() || x.price <= 0)) errors.push("Cada extra necesita nombre y un precio mayor que 0.");
   if (isStay) {
     if (rooms.length === 0) errors.push("Agrega al menos una habitación.");
     if (rooms.some((r) => !r.name.trim() || r.price <= 0 || r.quantity < 1 || r.guests < 1)) errors.push("Cada habitación necesita nombre, precio, huéspedes y unidades.");
@@ -64,6 +66,8 @@ export default function AnuncioWizard() {
     if (draft.capacity < 1) errors.push("Indica los cupos disponibles.");
     if (draft.time_slots.length === 0) errors.push("Agrega al menos un horario.");
   }
+  const setExtra = (id: string, patch: Partial<Extra>) => set("extras", extras.map((x) => (x.id === id ? { ...x, ...patch } : x)));
+  const addExtra = () => set("extras", [...extras, { id: `ex-${Math.random().toString(36).slice(2, 8)}`, name: "", price: 0, unit: isStay ? "night" : "person" }]);
   const setRoom = (id: string, patch: Partial<Room>) => set("rooms", rooms.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   const addRoom = () => set("rooms", [...rooms, { id: `rm-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`, name: "", price: 0, guests: 2, quantity: 1, beds: "", amenities: [] }]);
 
@@ -188,6 +192,20 @@ export default function AnuncioWizard() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{CANCELLATION_POLICIES.map((p) => <SelectItem key={p.value} value={p.value}>{p.label} — {p.desc}</SelectItem>)}</SelectContent>
                 </Select></div>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between"><Label className="text-base">Extras opcionales</Label><Button type="button" size="sm" variant="outline" onClick={addExtra}><Plus className="h-4 w-4 mr-1" /> Agregar extra</Button></div>
+              <p className="text-xs text-muted-foreground">Traslado, almuerzo, seguro, fotos… el viajero los añade al reservar.</p>
+              {extras.map((x, i) => (
+                <div key={x.id} className="grid gap-2 sm:grid-cols-[1fr_7rem_9rem_auto] items-center">
+                  <Input aria-label={`Nombre del extra ${i + 1}`} maxLength={60} value={x.name} onChange={(e) => setExtra(x.id, { name: e.target.value })} placeholder="Ej. Traslado desde el hotel" />
+                  <Input aria-label={`Precio del extra ${i + 1}`} type="number" min={0} value={x.price || ""} onChange={(e) => setExtra(x.id, { price: Number(e.target.value) })} placeholder="Precio" />
+                  <select aria-label={`Unidad del extra ${i + 1}`} className="h-10 rounded-md border border-input bg-background px-2 text-sm" value={x.unit} onChange={(e) => setExtra(x.id, { unit: e.target.value as ExtraUnit })}>
+                    <option value="person">por persona</option><option value="booking">por reserva</option>{isStay && <option value="night">por noche</option>}
+                  </select>
+                  <Button type="button" variant="ghost" size="icon" aria-label={`Quitar extra ${i + 1}`} onClick={() => set("extras", extras.filter((y) => y.id !== x.id))}><X className="h-4 w-4" /></Button>
+                </div>
+              ))}
             </div>
             <div className="space-y-2"><Label htmlFor="w-dep">Depósito para reservar (%)</Label>
               <div className="flex items-center gap-3"><Input id="w-dep" className="w-28" type="number" min={0} max={90} step={5} value={draft.deposit_percent || 0} onChange={(e) => set("deposit_percent", Math.min(90, Math.max(0, Number(e.target.value) || 0)))} />

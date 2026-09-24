@@ -117,7 +117,7 @@ function toBooking(r: any): Booking {
     contact_phone: r.contact_phone, date: r.date || (r.check_in ? String(r.check_in).split("T")[0] : ""),
     time: r.time, guests: Number(r.guests ?? 1), total_price: Number(r.total_price ?? 0),
     currency: r.currency || "USD", status: (["pending", "confirmed", "in_progress", "completed", "cancelled"].includes(r.status) ? r.status : "pending") as BookingStatus,
-    payment_status: r.payment_status || "unpaid", amount_paid: r.amount_paid != null ? Number(r.amount_paid) : undefined, promo_code: r.promo_code, notes: r.notes,
+    extras: Array.isArray(r.extras) ? r.extras : undefined, payment_status: r.payment_status || "unpaid", amount_paid: r.amount_paid != null ? Number(r.amount_paid) : undefined, promo_code: r.promo_code, notes: r.notes,
     room_id: r.room_id, room_name: r.room_name, check_out: r.room_id && r.check_out ? String(r.check_out).split("T")[0] : undefined,
     source: r.source || "web", review_pending: r.review_pending, created_at: r.created_at || iso(),
   };
