@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { translations, loadTranslation, type Locale } from "@/i18n";
+import { setAutoTranslateLocale } from "@/i18n/autoTranslate";
 
 export type { Locale };
 
@@ -17,17 +18,45 @@ const I18nContext = createContext<I18nContextType>({
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocale] = useState<Locale>(() => {
+    // 1. Check URL search param e.g. ?lang=en
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlLang = urlParams.get("lang");
+      if (urlLang && ["es", "en", "fr", "de", "pt", "it"].includes(urlLang)) {
+        return urlLang as Locale;
+      }
+    } catch {}
+
+    // 2. Check localStorage
     const saved = localStorage.getItem("app-locale");
-    return (saved as Locale) || "es";
+    if (saved && ["es", "en", "fr", "de", "pt", "it"].includes(saved)) {
+      return saved as Locale;
+    }
+
+    // 3. Fallback to browser language
+    try {
+      const navLang = navigator.language?.slice(0, 2);
+      if (navLang && ["es", "en", "fr", "de", "pt", "it"].includes(navLang)) {
+        return navLang as Locale;
+      }
+    } catch {}
+
+    return "es";
   });
   const [, setLoadedVersion] = useState(0);
 
   useEffect(() => {
+    document.documentElement.lang = locale;
     if (locale !== "es") {
       loadTranslation(locale).then(() => {
         setLoadedVersion((v) => v + 1);
       });
     }
+  }, [locale]);
+
+  // Translate page content that is still hardcoded in Spanish (see autoTranslate.ts).
+  useEffect(() => {
+    setAutoTranslateLocale(locale);
   }, [locale]);
 
   const handleSetLocale = useCallback(async (newLocale: Locale) => {
