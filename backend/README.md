@@ -177,6 +177,14 @@ Trabajos: `bookings.reminders`, `bookings.review_requests`, `ical.sync`, `bookin
 
 Liquidaciones: sólo lo cobrado en línea (no los cobros manuales) de reservas `completed`, menos reembolsos y comisión; cada reserva entra en un solo lote. Operador (owner): `GET /org/payouts`, `/org/payouts/{id}/items`. Admin: `GET/POST /admin/payouts`, `GET /admin/payouts/{id}/items`, `POST /admin/payouts/{id}/mark-paid` (comprobante obligatorio, auditado, avisa al operador).
 
+### Pasarela de pago: Stripe y conciliación
+
+`PAYMENT_PROVIDER=stripe` (con `STRIPE_SECRET_KEY` y `STRIPE_WEBHOOK_SECRET`) cobra con PaymentIntents por REST, sin SDK: el navegador crea un `PaymentMethod` (`pm_…`) con Stripe.js y lo manda como `payment_method_token`. Toda llamada lleva `Idempotency-Key` y el intento lleva `booking_id` en los metadatos. Si el banco exige 3-D Secure (`requires_action`) el intento se cancela y se rechaza; soportarlo necesita el flujo de `client_secret` en el frontend.
+
+`POST /api/v1/webhooks/payments/stripe` verifica `Stripe-Signature` (HMAC-SHA256, tolerancia de 5 min, tiempo constante) sobre el cuerpo crudo y procesa cada evento una sola vez (`payment_events`). Concilia: cobros cuya respuesta se perdió (reserva pendiente → pagada), cobros huérfanos de reservas ya canceladas (se reembolsan solos y queda auditado), reembolsos hechos en el panel de Stripe y disputas (auditadas). Un pago o reembolso no puede registrarse dos veces (índice único por proveedor y referencia). `payment_status` se calcula con lo cobrado menos lo reembolsado.
+
+Azul/CardNET (tarjetas locales) se agregan como otra clase que implemente `PaymentGateway`; la decisión de proveedor sigue abierta con Finanzas (docs §11.5).
+
 ## Correo
 
 `app.mailer.send({ to, template, data, locale })` **encola** en la tabla `email_log` y vuelve; un trabajador (en el mismo proceso, `MAIL_WORKER_ENABLED`, o en otro) toma los pendientes con `FOR UPDATE SKIP LOCKED`, así que varias instancias nunca envían dos veces. Reintenta con espera creciente (1 min, 5 min, 30 min, 2 h, 12 h) hasta `MAIL_MAX_ATTEMPTS` y luego marca `failed`; los mensajes que quedaron `sending` por un proceso caído se recuperan. Si se pasa la conexión de una transacción (`send(input, client)`) el correo forma parte de ella (outbox transaccional: el registro y su correo se guardan juntos o no se guarda ninguno).

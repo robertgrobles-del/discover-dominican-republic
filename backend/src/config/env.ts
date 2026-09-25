@@ -45,7 +45,9 @@ const schema = z.object({
   /** Destinos permitidos tras el login social (además de WEB_BASE_URL y CORS_ORIGINS), separados por comas. */
   OAUTH_REDIRECT_ALLOWLIST: z.string().default(""),
   /** Pasarela de pago: fake (simulador, sólo desarrollo/pruebas) | none (sin cobros en línea). Las reales se agregan como implementaciones de PaymentGateway. */
-  PAYMENT_PROVIDER: z.enum(["fake", "none"]).optional(),
+  PAYMENT_PROVIDER: z.enum(["fake", "none", "stripe"]).optional(),
+  STRIPE_SECRET_KEY: z.string().min(10).optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().min(10).optional(),
   JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().min(30).default(900),
   REFRESH_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
   LOGIN_MAX_FAILURES: z.coerce.number().int().min(1).default(5),
@@ -90,6 +92,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   env.REQUIRE_2FA_FOR_STAFF ??= env.NODE_ENV === "production";
   env.PAYMENT_PROVIDER ??= env.NODE_ENV === "production" ? "none" : "fake";
   if (env.NODE_ENV === "production" && env.PAYMENT_PROVIDER === "fake") throw new Error("Configuración inválida: PAYMENT_PROVIDER=fake no está permitido en producción");
+  if (env.PAYMENT_PROVIDER === "stripe" && (!env.STRIPE_SECRET_KEY || !env.STRIPE_WEBHOOK_SECRET)) throw new Error("Configuración inválida: PAYMENT_PROVIDER=stripe requiere STRIPE_SECRET_KEY y STRIPE_WEBHOOK_SECRET");
   if (env.TOTP_ENCRYPTION_KEY && Buffer.from(env.TOTP_ENCRYPTION_KEY, "base64").length !== 32) throw new Error("Configuración inválida: TOTP_ENCRYPTION_KEY debe ser de 32 bytes en base64");
   if (!!env.OAUTH_GOOGLE_CLIENT_ID !== !!env.OAUTH_GOOGLE_CLIENT_SECRET) throw new Error("Configuración inválida: OAUTH_GOOGLE_CLIENT_ID y OAUTH_GOOGLE_CLIENT_SECRET van juntos");
   if (env.RATE_LIMIT_STORE === "redis" && !env.REDIS_URL) throw new Error("Configuración inválida: RATE_LIMIT_STORE=redis requiere REDIS_URL");

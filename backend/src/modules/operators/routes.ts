@@ -57,17 +57,11 @@ const promoBody = z.object({
 
 /** Portal de operadores: catálogo, motor de reservas, promociones e ingresos (docs §5.8 y §5.10). */
 export async function operatorRoutes(app: FastifyInstance) {
-  const catalog = new CatalogService(app.db, app.env, app.log);
-  const promotions = new PromotionService(app.db);
-  const gateway = app.gateway;
-  const bookings = new BookingService(app.db, app.env, promotions, gateway, app.mailer, app.log);
+  const { catalog, promotions, bookings } = app; // se crean en la raíz (routes.ts) para compartirlos con otros módulos
   const team = new TeamService(app.db, app.env, app.mailer);
   const engagement = new EngagementService(app.db, bookings);
   const icalSvc = app.ical;
   const reports = new ReportService(app.db);
-  app.decorate("catalog", catalog);
-  app.decorate("promotions", promotions);
-  app.decorate("bookings", bookings);
   const r = app.withTypeProvider<ZodTypeProvider>();
   // Mismo criterio que auth: las pruebas desactivan estos topes con AUTH_RATE_LIMIT_ENABLED=false.
   const rl = (max: number, timeWindow: string) => ({ rateLimit: app.env.AUTH_RATE_LIMIT_ENABLED ? { max, timeWindow } : { max: 1_000_000, timeWindow: "1 minute" } });

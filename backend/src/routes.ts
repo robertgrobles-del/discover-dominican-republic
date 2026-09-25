@@ -3,6 +3,10 @@ import { authRoutes } from "./modules/auth/routes.js";
 import { wellKnownRoutes } from "./modules/auth/well-known.js";
 import { configRoutes } from "./modules/config/routes.js";
 import { healthRoutes } from "./modules/health/routes.js";
+import { paymentWebhookRoutes } from "./modules/payments/webhooks.js";
+import { BookingService } from "./modules/operators/bookings.js";
+import { CatalogService } from "./modules/operators/catalog.js";
+import { PromotionService } from "./modules/operators/promotions.js";
 import { JobRunner } from "./modules/jobs/runner.js";
 import { registerOperatorJobs } from "./modules/operators/jobs.js";
 import { PayoutService } from "./modules/operators/payouts.js";
@@ -17,6 +21,10 @@ import { contentRoutes } from "./modules/content/routes.js";
 export async function registerRoutes(app: FastifyInstance, version: string) {
   // La pasarela se decora en la raíz para que pruebas y otros módulos accedan a ella.
   app.decorate("gateway", createGateway(app.env));
+  const promotions = new PromotionService(app.db);
+  app.decorate("catalog", new CatalogService(app.db, app.env, app.log));
+  app.decorate("promotions", promotions);
+  app.decorate("bookings", new BookingService(app.db, app.env, promotions, app.gateway, app.mailer, app.log));
   const ical = new IcalService(app.db, app.log);
   const automations = new AutomationService(app.db, app.env, app.mailer, ical, app.log);
   app.decorate("ical", ical);
@@ -37,6 +45,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(contentRoutes);
       await v1.register(operatorRoutes);
       await v1.register(adminRoutes);
+      await v1.register(paymentWebhookRoutes);
     },
     { prefix: "/api/v1" },
   );

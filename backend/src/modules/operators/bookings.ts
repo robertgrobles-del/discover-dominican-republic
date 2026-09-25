@@ -222,7 +222,8 @@ export class BookingService {
       const amount = input.payment_mode === "deposit" ? quote.deposit_amount! : quote.total;
       let result;
       try {
-        result = await this.gateway.charge({ amount, currency: quote.currency, token: input.payment_token!, reference: (await this.reference(bookingId)) });
+        const kind = input.payment_mode === "deposit" ? "deposit" : "full";
+        result = await this.gateway.charge({ amount, currency: quote.currency, token: input.payment_token!, reference: (await this.reference(bookingId)), idempotencyKey: `${bookingId}:${kind}:${hashToken(input.payment_token!).slice(0, 12)}`, metadata: { booking_id: bookingId, kind } });
       } catch (err) {
         await this.abandon(bookingId, promoId, "payment_provider_error");
         this.log.error({ err, bookingId }, "Falló la pasarela de pago");
@@ -233,11 +234,7 @@ export class BookingService {
         throw new AppError("PAYMENT_FAILED", "El pago fue rechazado. No se realizó ningún cobro.", { reason: result.reason });
       }
       charged = amount;
-      await this.tx(async (c) => {
-        await c.query("INSERT INTO booking_payments (booking_id, kind, amount, currency, provider, provider_ref) VALUES ($1, $2, $3, $4, $5, $6)", [bookingId, input.payment_mode === "deposit" ? "deposit" : "full", amount, quote.currency, this.gateway.name, result.providerRef]);
-        await this.applyPaymentTotals(c, bookingId);
-        await c.query("UPDATE bookings SET status = 'confirmed' WHERE id = $1 AND status = 'pending'", [bookingId]);
-      });
+      await this.recordOnlinePayment(bookingId, { kind: input.payment_mode === "deposit" ? "deposit" : "full", amount, currency: quote.currency, provider: this.gateway.name, ref: result.providerRef });
     } else if (quote.total === 0 && !manual) {
       await this.db.query("UPDATE bookings SET status = 'confirmed', payment_status = 'paid' WHERE id = $1", [bookingId]);
     }
@@ -245,6 +242,38 @@ export class BookingService {
     const booking = (await this.get(bookingId))!;
     await this.notifyCreated(booking, loaded, input, charged).catch((err) => this.log.error({ err, bookingId }, "No se pudieron enviar las notificaciones de la reserva"));
     return { booking, accessToken, replayed: false };
+  }
+
+  /**
+   * Registra un cobro en línea ya confirmado por el proveedor. Es idempotente por (proveedor, referencia): si el webhook llegó primero
+   * que la respuesta del cobro (o al revés), el segundo intento no duplica el pago.
+   */
+  async recordOnlinePayment(bookingId: string, p: { kind: "full" | "deposit" | "balance"; amount: number; currency: string; provider: string; ref: string }): Promise<"recorded" | "duplicate"> {
+    try {
+      await this.tx(async (c) => {
+        await c.query("INSERT INTO booking_payments (booking_id, kind, amount, currency, provider, provider_ref) VALUES ($1, $2, $3, $4, $5, $6)", [bookingId, p.kind, p.amount, p.currency, p.provider, p.ref]);
+        await this.applyPaymentTotals(c, bookingId);
+        await c.query("UPDATE bookings SET status = 'confirmed' WHERE id = $1 AND status = 'pending'", [bookingId]);
+      });
+      return "recorded";
+    } catch (e) {
+      if ((e as { code?: string }).code === "23505") return "duplicate";
+      throw e;
+    }
+  }
+
+  /** Reembolso hecho fuera de este flujo (panel del proveedor, disputa): se refleja en los libros sin volver a llamar al proveedor. */
+  async recordExternalRefund(bookingId: string, p: { amount: number; currency: string; provider: string; ref: string }): Promise<"recorded" | "duplicate"> {
+    try {
+      await this.tx(async (c) => {
+        await c.query("INSERT INTO booking_payments (booking_id, kind, amount, currency, provider, provider_ref) VALUES ($1, 'refund', $2, $3, $4, $5)", [bookingId, p.amount, p.currency, p.provider, p.ref]);
+        await this.applyPaymentTotals(c, bookingId);
+      });
+      return "recorded";
+    } catch (e) {
+      if ((e as { code?: string }).code === "23505") return "duplicate";
+      throw e;
+    }
   }
 
   private async reference(id: string) { return (await this.db.query<{ reference: string }>("SELECT reference FROM bookings WHERE id = $1", [id])).rows[0]!.reference; }
@@ -264,7 +293,7 @@ export class BookingService {
          SELECT coalesce(sum(amount) FILTER (WHERE kind <> 'refund' AND status = 'succeeded'), 0) AS paid, coalesce(sum(amount) FILTER (WHERE kind = 'refund' AND status = 'succeeded'), 0) AS refunded
            FROM booking_payments WHERE booking_id = $1)
        UPDATE bookings b SET amount_paid = s.paid,
-              payment_status = CASE WHEN s.paid > 0 AND s.refunded >= s.paid THEN 'refunded' WHEN s.paid >= b.total_price AND b.total_price > 0 THEN 'paid' WHEN s.paid > 0 THEN 'partial' ELSE 'unpaid' END
+              payment_status = CASE WHEN s.paid > 0 AND s.refunded >= s.paid THEN 'refunded' WHEN s.paid - s.refunded >= b.total_price AND b.total_price > 0 THEN 'paid' WHEN s.paid > 0 THEN 'partial' ELSE 'unpaid' END
          FROM s WHERE b.id = $1`, [bookingId],
     );
   }
@@ -378,14 +407,10 @@ export class BookingService {
     if (b.balance_due <= 0) throw new AppError("BUSINESS_RULE", "La reserva no tiene saldo pendiente", { code: "NO_BALANCE" });
     if (this.gateway.name === "none") throw new AppError("SERVICE_UNAVAILABLE", "Los pagos en línea no están habilitados todavía");
     let result;
-    try { result = await this.gateway.charge({ amount: b.balance_due, currency: b.currency, token: paymentToken, reference: b.reference }); }
+    try { result = await this.gateway.charge({ amount: b.balance_due, currency: b.currency, token: paymentToken, reference: b.reference, idempotencyKey: `${id}:balance:${toCents(b.balance_due)}:${hashToken(paymentToken).slice(0, 12)}`, metadata: { booking_id: id, kind: "balance" } }); }
     catch (err) { this.log.error({ err, id }, "Falló la pasarela de pago"); throw new AppError("UPSTREAM_ERROR", "No se pudo procesar el pago. No se realizó ningún cobro."); }
     if (!result.ok) throw new AppError("PAYMENT_FAILED", "El pago fue rechazado. No se realizó ningún cobro.", { reason: result.reason });
-    await this.tx(async (c) => {
-      await c.query("INSERT INTO booking_payments (booking_id, kind, amount, currency, provider, provider_ref) VALUES ($1, 'balance', $2, $3, $4, $5)", [id, b.balance_due, b.currency, this.gateway.name, result.providerRef]);
-      await this.applyPaymentTotals(c, id);
-      await c.query("UPDATE bookings SET status = 'confirmed' WHERE id = $1 AND status = 'pending'", [id]);
-    });
+    await this.recordOnlinePayment(id, { kind: "balance", amount: b.balance_due, currency: b.currency, provider: this.gateway.name, ref: result.providerRef });
     return (await this.get(id))!;
   }
 
@@ -400,7 +425,7 @@ export class BookingService {
       const manualOnly = !last.rows[0];
       if (!manualOnly) {
         let res;
-        try { res = await this.gateway.refund({ providerRef: last.rows[0]!.provider_ref, amount: refund, currency: b.currency, reference: b.reference }); }
+        try { res = await this.gateway.refund({ providerRef: last.rows[0]!.provider_ref, amount: refund, currency: b.currency, reference: b.reference, idempotencyKey: `${id}:refund:${toCents(refund)}` }); }
         catch (err) { this.log.error({ err, id }, "Falló el reembolso"); throw new AppError("UPSTREAM_ERROR", "No se pudo procesar el reembolso; la reserva no se canceló. Intenta de nuevo."); }
         if (!res.ok) throw new AppError("UPSTREAM_ERROR", "El proveedor rechazó el reembolso; la reserva no se canceló.", { reason: res.reason });
         providerRef = res.providerRef;
