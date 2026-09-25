@@ -82,16 +82,19 @@ const CONTENT_FIXTURES = `
 
   INSERT INTO users (id, email, password_hash) VALUES
     ('a0000000-0000-4000-8000-000000000001', 'ana@resenas.test', 'x'),
-    ('a0000000-0000-4000-8000-000000000002', 'sin-nombre@resenas.test', 'x');
+    ('a0000000-0000-4000-8000-000000000002', 'sin-nombre@resenas.test', 'x'),
+    ('a0000000-0000-4000-8000-000000000003', 'tres@resenas.test', 'x'),
+    ('a0000000-0000-4000-8000-000000000004', 'cuatro@resenas.test', 'x'),
+    ('a0000000-0000-4000-8000-000000000005', 'cinco@resenas.test', 'x');
   INSERT INTO profiles (id, display_name) VALUES
     ('a0000000-0000-4000-8000-000000000001', 'Ana Pérez Gómez'),
     ('a0000000-0000-4000-8000-000000000002', NULL);
   INSERT INTO reviews (user_id, entity_type, entity_id, rating, comment, is_approved, created_at) VALUES
     ('a0000000-0000-4000-8000-000000000001', 'beach', 'b1000000-0000-4000-8000-000000000001', 5, 'Espectacular', true, now() - interval '3 days'),
     ('a0000000-0000-4000-8000-000000000002', 'beach', 'b1000000-0000-4000-8000-000000000001', 5, 'Increíble', true, now() - interval '2 days'),
-    ('a0000000-0000-4000-8000-000000000001', 'beach', 'b1000000-0000-4000-8000-000000000001', 4, 'Muy buena', true, now() - interval '1 day'),
-    ('a0000000-0000-4000-8000-000000000002', 'beach', 'b1000000-0000-4000-8000-000000000001', 3, 'Regular', true, now()),
-    ('a0000000-0000-4000-8000-000000000001', 'beach', 'b1000000-0000-4000-8000-000000000001', 1, 'Pendiente de moderación', false, now()),
+    ('a0000000-0000-4000-8000-000000000003', 'beach', 'b1000000-0000-4000-8000-000000000001', 4, 'Muy buena', true, now() - interval '1 day'),
+    ('a0000000-0000-4000-8000-000000000004', 'beach', 'b1000000-0000-4000-8000-000000000001', 3, 'Regular', true, now()),
+    ('a0000000-0000-4000-8000-000000000005', 'beach', 'b1000000-0000-4000-8000-000000000001', 1, 'Pendiente de moderación', false, now()),
     ('a0000000-0000-4000-8000-000000000001', 'hotel', 'b1000000-0000-4000-8000-000000000001', 1, 'Otro tipo de entidad', true, now());
 
   INSERT INTO entity_translations (entity_type, entity_id, language, field_name, translation_text) VALUES

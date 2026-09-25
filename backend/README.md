@@ -192,6 +192,12 @@ Azul/CardNET (tarjetas locales) se agregan como otra clase que implemente `Payme
 - **Newsletter**: `POST /newsletter/subscribe` (doble opt-in; la respuesta no revela si el correo ya existe), confirmación y baja con un clic (`GET|POST /newsletter/confirm|unsubscribe`). El token de baja es un HMAC con `APP_SECRET` (obligatorio en producción, mínimo 32 caracteres), apto para enlaces en campañas.
 - **Contacto y soporte**: `POST /contact` (ticket + acuse por correo), tickets del usuario (`/support/tickets`, sólo visibles para su dueño), `POST /leads` (exige consentimiento) y `POST /establishments/register` + `GET /establishments/registrations/{id}/status?token=` (alta pendiente de revisión). Los formularios públicos tienen campo trampa contra bots y límites por IP.
 
+### Reseñas del portal
+
+`POST /reviews` (una por persona y lugar; `entity_type` de cualquier colección con reseñas), `PATCH/DELETE /reviews/{id}`, `POST /reviews/{id}/helpful` (una vez, no la propia), `POST /reviews/{id}/report` (a los 3 reportes distintos se oculta hasta revisarla), `GET /me/reviews` y `POST /reviews/{id}/reply` (equipo del sitio). La lectura pública sigue en `/{colección}/{id}/reviews`.
+
+Moderación automática: enlaces, datos de contacto, MAYÚSCULAS, caracteres repetidos, groserías o cuenta sin verificar → `pending`; lo demás se publica. Editar vuelve a moderar. Cola en `GET /admin/reviews` y `PATCH /admin/reviews/{id}` (admin/moderator, auditado). Al cambiar el estado se recalcula `rating` y `review_count` de la entidad cuando su tabla los tiene.
+
 ## Correo
 
 `app.mailer.send({ to, template, data, locale })` **encola** en la tabla `email_log` y vuelve; un trabajador (en el mismo proceso, `MAIL_WORKER_ENABLED`, o en otro) toma los pendientes con `FOR UPDATE SKIP LOCKED`, así que varias instancias nunca envían dos veces. Reintenta con espera creciente (1 min, 5 min, 30 min, 2 h, 12 h) hasta `MAIL_MAX_ATTEMPTS` y luego marca `failed`; los mensajes que quedaron `sending` por un proceso caído se recuperan. Si se pasa la conexión de una transacción (`send(input, client)`) el correo forma parte de ella (outbox transaccional: el registro y su correo se guardan juntos o no se guarda ninguno).

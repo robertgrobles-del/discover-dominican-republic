@@ -4483,6 +4483,42 @@
   "created_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "title": {
+   "type": "text",
+   "nullable": true
+  },
+  "visit_date": {
+   "type": "date",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "helpful_count": {
+   "type": "integer",
+   "nullable": false
+  },
+  "report_count": {
+   "type": "integer",
+   "nullable": false
+  },
+  "moderation_note": {
+   "type": "text",
+   "nullable": true
+  },
+  "reply": {
+   "type": "text",
+   "nullable": true
+  },
+  "replied_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
   }
  },
  "rivers": {
