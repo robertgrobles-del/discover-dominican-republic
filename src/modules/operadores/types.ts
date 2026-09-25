@@ -24,6 +24,7 @@ export interface OperatorOrg {
   commission_rate: number; // porcentaje sobre reservas pagadas en la web del operador
   payout_method?: string;
   website_enabled: boolean;
+  automation?: import("./automation").AutomationConfig;
   created_at?: string;
 }
 
@@ -109,6 +110,7 @@ export interface Booking {
   status: BookingStatus;
   payment_status: PaymentStatus;
   extras?: BookingExtra[];
+  notified?: { confirmation?: string; reminder?: string; review?: string }; // automatizaciones ya enviadas
   guest_mix?: { adults: number; children: number; infants: number };
   amount_paid?: number; // cobrado hasta ahora (pago parcial); si payment_status = paid equivale al total
   promo_code?: string;

@@ -21,6 +21,7 @@ import {
   availableRooms, availableSpots, bumpPromotionUse, fetchListings, nightsBetween, createBooking, fetchAllBookings, fetchListingBySlug, fetchOrgBySlug, findPromotion, sendMessage,
 } from "../api";
 import { CANCELLATION_POLICIES, CATEGORY_META, EXTRA_UNIT_LABEL, formatMoney } from "../constants";
+import { runAutomation } from "../automation";
 import { addDays, quoteStay } from "../pricing";
 import type { Listing, Promotion } from "../types";
 
@@ -129,6 +130,7 @@ export default function OperadorServicio() {
       });
       await sendMessage({ org_id: org.id, thread_id: `web-${id}`, traveler_name: f.name.trim(), sender: "traveler", channel: "web", booking_id: id, read: false, body: isStay ? `Nueva reserva de ${room!.name} en ${listing.title}: ${date} → ${checkOut} (${nights} noche(s)), ${guests} huésped(es).${extraLines.length ? ` Extras: ${extraLines.map((x) => `${x.name} ×${x.qty}`).join(", ")}.` : ""}${f.notes.trim() ? ` Nota: ${f.notes.trim()}` : ""}` : `Nueva reserva de ${seats} persona(s)${kids || babies ? ` (${guests} adulto(s), ${kids} niño(s), ${babies} bebé(s))` : ""} para ${listing.title} el ${date} a las ${selectedTime}.${f.notes.trim() ? ` Nota: ${f.notes.trim()}` : ""}` });
       if (promo) await bumpPromotionUse(promo.id, promo.uses);
+      await runAutomation("confirmation", org, id).catch(() => false);
       qc.invalidateQueries({ queryKey: ["op"] });
       setDone({ id, paid: payNow, deposit: deposit ? depositAmount : 0, balance: deposit ? total - depositAmount : 0 });
     } catch (e: any) {

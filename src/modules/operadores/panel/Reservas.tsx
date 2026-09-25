@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { runAutomation } from "../automation";
 import { balanceDue, createBooking, opKeys, paidAmount, updateBooking, useBookings, useListings, useOpMutation } from "../api";
 import { BOOKING_STATUS_LABEL, PAYMENT_STATUS_LABEL, formatMoney } from "../constants";
 import type { Booking, BookingStatus } from "../types";
@@ -31,6 +33,7 @@ function downloadCsv(rows: Booking[]) {
 
 export default function Reservas({ onlyPending = false }: { onlyPending?: boolean }) {
   const { org } = useOrg();
+  const qc = useQueryClient();
   const { data: bookings = [] } = useBookings(org.id);
   const { data: listings = [] } = useListings(org.id);
   const [filter, setFilter] = useState<Filter>("all");
@@ -54,7 +57,7 @@ export default function Reservas({ onlyPending = false }: { onlyPending?: boolea
   }, [bookings, filter, q, onlyPending, today]);
 
   const setStatus = (b: Booking, status: BookingStatus) =>
-    update.mutate({ id: b.id, patch: { status, ...(status === "completed" ? { review_pending: true } : {}) } }, { onSuccess: () => toast.success(`Reserva ${BOOKING_STATUS_LABEL[status].toLowerCase()}`) });
+    update.mutate({ id: b.id, patch: { status, ...(status === "completed" ? { review_pending: true } : {}) } }, { onSuccess: () => { toast.success(`Reserva ${BOOKING_STATUS_LABEL[status].toLowerCase()}`); if (status === "completed") runAutomation("review", org, b.id).then((sent) => { if (sent) { toast.message("Solicitud de reseña enviada al viajero"); qc.invalidateQueries({ queryKey: ["op"] }); } }).catch(() => undefined); } });
 
   const [form, setForm] = useState({ listing_id: "", name: "", email: "", date: today, time: "09:00", guests: 2 });
   const submitManual = () => {

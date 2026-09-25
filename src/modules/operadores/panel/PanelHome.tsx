@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { sendDueReminders } from "../automation";
 import { Link } from "react-router-dom";
 import { AlertTriangle, Store, Globe, Wallet, ArrowRight, Sparkles, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -12,6 +14,8 @@ import { useOrg } from "./OrgContext";
 
 export default function PanelHome() {
   const { org } = useOrg();
+  const qc = useQueryClient();
+  useEffect(() => { sendDueReminders(org).then((n) => { if (n) qc.invalidateQueries({ queryKey: ["op"] }); }).catch(() => undefined); }, [org.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const { data: listings = [] } = useListings(org.id);
   const { data: bookings = [] } = useBookings(org.id);
   const [tab, setTab] = useState<"all" | "today" | "upcoming">("all");
