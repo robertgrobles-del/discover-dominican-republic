@@ -198,6 +198,14 @@ Azul/CardNET (tarjetas locales) se agregan como otra clase que implemente `Payme
 
 Moderación automática: enlaces, datos de contacto, MAYÚSCULAS, caracteres repetidos, groserías o cuenta sin verificar → `pending`; lo demás se publica. Editar vuelve a moderar. Cola en `GET /admin/reviews` y `PATCH /admin/reviews/{id}` (admin/moderator, auditado). Al cambiar el estado se recalcula `rating` y `review_count` de la entidad cuando su tabla los tiene.
 
+### RD Social, encuestas, concursos y vacaciones
+
+- **RD Social**: `GET /social/feed` (`latest|following|trending|province`, paginación por cursor), `POST/DELETE /social/posts`, likes idempotentes con contadores, comentarios (3–500 caracteres) y `GET /social/me/comment-stats`. Publicar y comentar exige correo verificado, máximo 10 publicaciones al día y rechaza enlaces, datos de contacto y groserías (la misma detección que las reseñas). `xp_awarded` vale 0 hasta que exista la gamificación.
+- **Reportes y medios de usuarios**: `POST /ugc/reports` (uno por persona; a los 3 una publicación se oculta hasta que un moderador la restaure), `POST /ugc/media` (queda pendiente) y `GET /ugc/media` (sólo aprobados). Moderación en `/admin/ugc/*` y `PATCH /admin/social/posts/{id}`, todo auditado.
+- **Encuestas**: `GET /surveys/{slug}`, `POST /surveys/{slug}/responses` (validadas contra la estructura: rating, nps, texto, opción y múltiple; con cuenta se responde una vez). Admin: crear, activar y `GET /admin/surveys/{slug}/results` (NPS, medias y distribución).
+- **Concursos**: `GET /contests[/{slug}]`, `POST /contests/{slug}/register` (abierto, una vez, correo verificado, edad mínima, cupo máximo), `GET /contests/{slug}/winners` (nombre abreviado). Admin: crear, ver inscritos y `POST /admin/contests/{slug}/draw` (sorteo al azar al terminar).
+- **Vacaciones**: `POST /vacation-registrations` (visitantes con contacto o usuarios con cuenta).
+
 ## Correo
 
 `app.mailer.send({ to, template, data, locale })` **encola** en la tabla `email_log` y vuelve; un trabajador (en el mismo proceso, `MAIL_WORKER_ENABLED`, o en otro) toma los pendientes con `FOR UPDATE SKIP LOCKED`, así que varias instancias nunca envían dos veces. Reintenta con espera creciente (1 min, 5 min, 30 min, 2 h, 12 h) hasta `MAIL_MAX_ATTEMPTS` y luego marca `failed`; los mensajes que quedaron `sending` por un proceso caído se recuperan. Si se pasa la conexión de una transacción (`send(input, client)`) el correo forma parte de ella (outbox transaccional: el registro y su correo se guardan juntos o no se guarda ninguno).
