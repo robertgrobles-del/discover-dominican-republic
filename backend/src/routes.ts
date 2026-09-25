@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { authRoutes } from "./modules/auth/routes.js";
 import { configRoutes } from "./modules/config/routes.js";
 import { healthRoutes } from "./modules/health/routes.js";
-import { provincesRoutes } from "./modules/provinces/routes.js";
+import { contentRoutes } from "./modules/content/routes.js";
 
 /** Todas las rutas de la API cuelgan de /api/v1 (docs §3.1). `/health` también existe en la raíz para balanceadores. */
 export async function registerRoutes(app: FastifyInstance, version: string) {
@@ -12,7 +12,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(healthRoutes, { version });
       await v1.register(configRoutes);
       await v1.register(authRoutes);
-      await v1.register(provincesRoutes);
+      await v1.register(contentRoutes);
     },
     { prefix: "/api/v1" },
   );

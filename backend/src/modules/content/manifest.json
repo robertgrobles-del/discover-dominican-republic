@@ -1,0 +1,5984 @@
+{
+ "airbnb_listings": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "property_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "guests": {
+   "type": "integer",
+   "nullable": true
+  },
+  "bedrooms": {
+   "type": "integer",
+   "nullable": true
+  },
+  "beds": {
+   "type": "integer",
+   "nullable": true
+  },
+  "bathrooms": {
+   "type": "integer",
+   "nullable": true
+  },
+  "price_per_night": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "cleaning_fee": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "service_fee": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "amenities": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "house_rules": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "check_in_time": {
+   "type": "text",
+   "nullable": true
+  },
+  "check_out_time": {
+   "type": "text",
+   "nullable": true
+  },
+  "cancellation_policy": {
+   "type": "text",
+   "nullable": true
+  },
+  "host_name": {
+   "type": "text",
+   "nullable": true
+  },
+  "host_image": {
+   "type": "text",
+   "nullable": true
+  },
+  "host_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "is_superhost": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "min_nights": {
+   "type": "integer",
+   "nullable": true
+  },
+  "max_nights": {
+   "type": "integer",
+   "nullable": true
+  },
+  "instant_book": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "is_sponsored": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "review_count": {
+   "type": "integer",
+   "nullable": true
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "articles": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "title": {
+   "type": "text",
+   "nullable": false
+  },
+  "excerpt": {
+   "type": "text",
+   "nullable": true
+  },
+  "content": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "array",
+   "nullable": true
+  },
+  "category": {
+   "type": "text",
+   "nullable": true
+  },
+  "tags": {
+   "type": "array",
+   "nullable": true
+  },
+  "author_name": {
+   "type": "text",
+   "nullable": true
+  },
+  "author_image": {
+   "type": "text",
+   "nullable": true
+  },
+  "is_published": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "artisanal_workshops": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "workshop_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "email": {
+   "type": "text",
+   "nullable": true
+  },
+  "website": {
+   "type": "text",
+   "nullable": true
+  },
+  "craft_types": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "duration": {
+   "type": "text",
+   "nullable": true
+  },
+  "price_range": {
+   "type": "text",
+   "nullable": true
+  },
+  "includes": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "skill_level": {
+   "type": "text",
+   "nullable": true
+  },
+  "languages": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "max_participants": {
+   "type": "integer",
+   "nullable": true
+  },
+  "opening_hours": {
+   "type": "text",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "review_count": {
+   "type": "integer",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "audio_guides": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "title": {
+   "type": "text",
+   "nullable": false
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "audio_url": {
+   "type": "text",
+   "nullable": false
+  },
+  "language": {
+   "type": "text",
+   "nullable": true
+  },
+  "associated_entity_type": {
+   "type": "text",
+   "nullable": false
+  },
+  "associated_entity_id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "duration_seconds": {
+   "type": "integer",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "bars": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "bar_type": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "price_range": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "opening_hours": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "is_sponsored": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "ambiance": {
+   "type": "text",
+   "nullable": true
+  },
+  "dress_code": {
+   "type": "text",
+   "nullable": true
+  },
+  "email": {
+   "type": "text",
+   "nullable": true
+  },
+  "minimum_age": {
+   "type": "integer",
+   "nullable": true
+  },
+  "music_style": {
+   "type": "text",
+   "nullable": true
+  },
+  "review_count": {
+   "type": "integer",
+   "nullable": true
+  },
+  "services": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "website": {
+   "type": "text",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "beaches": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "province_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "beach_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "activities": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "amenities": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "water_color": {
+   "type": "text",
+   "nullable": true
+  },
+  "sand_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "wave_intensity": {
+   "type": "text",
+   "nullable": true
+  },
+  "crowd_level": {
+   "type": "text",
+   "nullable": true
+  },
+  "access_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "parking_available": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "lifeguard_on_duty": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "how_to_get_there": {
+   "type": "text",
+   "nullable": true
+  },
+  "best_time_to_visit": {
+   "type": "text",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "review_count": {
+   "type": "integer",
+   "nullable": true
+  },
+  "is_popular": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "bird_species": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "scientific_name": {
+   "type": "text",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "conservation": {
+   "type": "text",
+   "nullable": false
+  },
+  "description": {
+   "type": "text",
+   "nullable": false
+  },
+  "best_locations": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "avatar": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "caves": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "cave_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "email": {
+   "type": "text",
+   "nullable": true
+  },
+  "website": {
+   "type": "text",
+   "nullable": true
+  },
+  "difficulty": {
+   "type": "text",
+   "nullable": true
+  },
+  "tour_duration": {
+   "type": "text",
+   "nullable": true
+  },
+  "opening_hours": {
+   "type": "text",
+   "nullable": true
+  },
+  "highlights": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "flora_fauna": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "historical_info": {
+   "type": "text",
+   "nullable": true
+  },
+  "price_adult": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "price_child": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "clinics": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "email": {
+   "type": "text",
+   "nullable": true
+  },
+  "website": {
+   "type": "text",
+   "nullable": true
+  },
+  "specialties": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "coffee_experiences": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "experience_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "email": {
+   "type": "text",
+   "nullable": true
+  },
+  "website": {
+   "type": "text",
+   "nullable": true
+  },
+  "coffee_varieties": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "altitude": {
+   "type": "text",
+   "nullable": true
+  },
+  "tour_duration": {
+   "type": "text",
+   "nullable": true
+  },
+  "price_range": {
+   "type": "text",
+   "nullable": true
+  },
+  "includes": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "production_process": {
+   "type": "text",
+   "nullable": true
+  },
+  "tasting_notes": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "opening_hours": {
+   "type": "text",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "destinations": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "province_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "highlights": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "typical_dishes": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "weather_info": {
+   "type": "text",
+   "nullable": true
+  },
+  "best_time_to_visit": {
+   "type": "text",
+   "nullable": true
+  },
+  "how_to_get_there": {
+   "type": "text",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  }
+ },
+ "emergency_contacts": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "province_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "institution": {
+   "type": "text",
+   "nullable": false
+  },
+  "phone_number": {
+   "type": "text",
+   "nullable": false
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "establecimientos": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "subsector": {
+   "type": "text",
+   "nullable": false
+  },
+  "actividad": {
+   "type": "text",
+   "nullable": true
+  },
+  "rut": {
+   "type": "text",
+   "nullable": true
+  },
+  "numero_identificacion": {
+   "type": "text",
+   "nullable": true
+  },
+  "nombre": {
+   "type": "text",
+   "nullable": false
+  },
+  "sector_zona": {
+   "type": "text",
+   "nullable": true
+  },
+  "provincia": {
+   "type": "text",
+   "nullable": true
+  },
+  "estatus_proceso": {
+   "type": "text",
+   "nullable": true
+  },
+  "estatus_licencia": {
+   "type": "text",
+   "nullable": true
+  },
+  "estatus_establecimiento": {
+   "type": "text",
+   "nullable": true
+  },
+  "fecha_vencimiento": {
+   "type": "date",
+   "nullable": true
+  },
+  "telefono": {
+   "type": "text",
+   "nullable": true
+  },
+  "correo": {
+   "type": "text",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "events": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "title": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "start_date": {
+   "type": "date",
+   "nullable": false
+  },
+  "end_date": {
+   "type": "date",
+   "nullable": true
+  },
+  "location": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "category": {
+   "type": "text",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "experiences": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "title": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "category": {
+   "type": "text",
+   "nullable": false
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "duration": {
+   "type": "text",
+   "nullable": true
+  },
+  "price": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "is_sponsored": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "best_season": {
+   "type": "text",
+   "nullable": true
+  },
+  "difficulty": {
+   "type": "text",
+   "nullable": true
+  },
+  "experience_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "highlights": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "included": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "integer",
+   "nullable": true
+  },
+  "name": {
+   "type": "text",
+   "nullable": true
+  },
+  "price_range": {
+   "type": "text",
+   "nullable": true
+  },
+  "rating": {
+   "type": "text",
+   "nullable": true
+  },
+  "requirements": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "review_count": {
+   "type": "integer",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "golf_courses": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "holes": {
+   "type": "integer",
+   "nullable": false
+  },
+  "par": {
+   "type": "integer",
+   "nullable": false
+  },
+  "designer": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "historical_events": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "event_date": {
+   "type": "date",
+   "nullable": true
+  },
+  "end_date": {
+   "type": "date",
+   "nullable": true
+  },
+  "year": {
+   "type": "integer",
+   "nullable": true
+  },
+  "era": {
+   "type": "text",
+   "nullable": true
+  },
+  "category": {
+   "type": "text",
+   "nullable": true
+  },
+  "location": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "significance": {
+   "type": "text",
+   "nullable": true
+  },
+  "key_figures": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "consequences": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "sources": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "historical_figures": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "title": {
+   "type": "text",
+   "nullable": true
+  },
+  "birth_date": {
+   "type": "date",
+   "nullable": true
+  },
+  "death_date": {
+   "type": "date",
+   "nullable": true
+  },
+  "birth_place": {
+   "type": "text",
+   "nullable": true
+  },
+  "era": {
+   "type": "text",
+   "nullable": true
+  },
+  "category": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "biography": {
+   "type": "text",
+   "nullable": true
+  },
+  "achievements": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "quotes": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "hot_springs": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "location": {
+   "type": "text",
+   "nullable": false
+  },
+  "province": {
+   "type": "text",
+   "nullable": false
+  },
+  "temp_celsius": {
+   "type": "numeric",
+   "nullable": false
+  },
+  "properties": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "description": {
+   "type": "text",
+   "nullable": false
+  },
+  "access": {
+   "type": "text",
+   "nullable": false
+  },
+  "price": {
+   "type": "text",
+   "nullable": false
+  },
+  "avatar": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "hotels": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "category": {
+   "type": "text",
+   "nullable": true
+  },
+  "stars": {
+   "type": "integer",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "email": {
+   "type": "text",
+   "nullable": true
+  },
+  "website": {
+   "type": "text",
+   "nullable": true
+  },
+  "price_range": {
+   "type": "text",
+   "nullable": true
+  },
+  "amenities": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "is_sponsored": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "review_count": {
+   "type": "integer",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  }
+ },
+ "job_vacancies": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "title": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "company_name": {
+   "type": "text",
+   "nullable": false
+  },
+  "company_logo": {
+   "type": "text",
+   "nullable": true
+  },
+  "company_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "location": {
+   "type": "text",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "province": {
+   "type": "text",
+   "nullable": true
+  },
+  "salary_range": {
+   "type": "text",
+   "nullable": true
+  },
+  "salary_min": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "salary_max": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "job_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "experience_level": {
+   "type": "text",
+   "nullable": true
+  },
+  "education": {
+   "type": "text",
+   "nullable": true
+  },
+  "category": {
+   "type": "text",
+   "nullable": true
+  },
+  "department": {
+   "type": "text",
+   "nullable": true
+  },
+  "languages": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "responsibilities": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "requirements": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "benefits": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "skills": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "application_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "application_email": {
+   "type": "text",
+   "nullable": true
+  },
+  "deadline": {
+   "type": "date",
+   "nullable": true
+  },
+  "is_urgent": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "is_remote": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "monuments": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "monument_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "historical_period": {
+   "type": "text",
+   "nullable": true
+  },
+  "year_built": {
+   "type": "text",
+   "nullable": true
+  },
+  "architect": {
+   "type": "text",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "province_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "array",
+   "nullable": true
+  },
+  "opening_hours": {
+   "type": "text",
+   "nullable": true
+  },
+  "entry_fee": {
+   "type": "text",
+   "nullable": true
+  },
+  "phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "website": {
+   "type": "text",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "review_count": {
+   "type": "integer",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "highlights": {
+   "type": "array",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "mountains": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "altitude_m": {
+   "type": "integer",
+   "nullable": true
+  },
+  "mountain_range": {
+   "type": "text",
+   "nullable": true
+  },
+  "range_name": {
+   "type": "text",
+   "nullable": true
+  },
+  "province_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "activities": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "difficulty": {
+   "type": "text",
+   "nullable": true
+  },
+  "duration": {
+   "type": "text",
+   "nullable": true
+  },
+  "best_season": {
+   "type": "text",
+   "nullable": true
+  },
+  "flora": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "fauna": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "highlights": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "how_to_get_there": {
+   "type": "text",
+   "nullable": true
+  },
+  "safety_tips": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "guides_required": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "price_range": {
+   "type": "text",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "review_count": {
+   "type": "integer",
+   "nullable": false
+  },
+  "is_popular": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "municipalities": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "province_id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "municipality_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "highlights": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "population": {
+   "type": "integer",
+   "nullable": true
+  },
+  "area_km2": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "is_tourist_destination": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "offers": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "title": {
+   "type": "text",
+   "nullable": false
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "discount_code": {
+   "type": "text",
+   "nullable": true
+  },
+  "discount_percentage": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "original_price": {
+   "type": "numeric",
+   "nullable": false
+  },
+  "price": {
+   "type": "numeric",
+   "nullable": false
+  },
+  "start_time": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "end_time": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "radius_meters": {
+   "type": "integer",
+   "nullable": true
+  },
+  "is_flash": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "offset_projects": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "title": {
+   "type": "text",
+   "nullable": false
+  },
+  "location": {
+   "type": "text",
+   "nullable": false
+  },
+  "category": {
+   "type": "text",
+   "nullable": false
+  },
+  "description": {
+   "type": "text",
+   "nullable": false
+  },
+  "cost_info": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "parks": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "park_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "area_km2": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "established_year": {
+   "type": "integer",
+   "nullable": true
+  },
+  "ecosystems": {
+   "type": "array",
+   "nullable": true
+  },
+  "flora_fauna": {
+   "type": "array",
+   "nullable": true
+  },
+  "activities": {
+   "type": "array",
+   "nullable": true
+  },
+  "trails": {
+   "type": "array",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "province_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "array",
+   "nullable": true
+  },
+  "opening_hours": {
+   "type": "text",
+   "nullable": true
+  },
+  "entry_fee": {
+   "type": "text",
+   "nullable": true
+  },
+  "phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "website": {
+   "type": "text",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "review_count": {
+   "type": "integer",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "highlights": {
+   "type": "array",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "ports_marinas": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "port_type": {
+   "type": "text",
+   "nullable": false
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "capacity_slips": {
+   "type": "integer",
+   "nullable": true
+  },
+  "max_draft_feet": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "services": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "profiles": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "display_name": {
+   "type": "text",
+   "nullable": true
+  },
+  "avatar_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "bio": {
+   "type": "text",
+   "nullable": true
+  },
+  "role": {
+   "type": "text",
+   "nullable": true
+  },
+  "is_suspended": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "suspension_reason": {
+   "type": "text",
+   "nullable": true
+  },
+  "travel_interests": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "protected_areas": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "category": {
+   "type": "text",
+   "nullable": false
+  },
+  "location": {
+   "type": "text",
+   "nullable": false
+  },
+  "size": {
+   "type": "text",
+   "nullable": false
+  },
+  "fee": {
+   "type": "text",
+   "nullable": false
+  },
+  "hours": {
+   "type": "text",
+   "nullable": false
+  },
+  "attractions": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "rules": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "description": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "provinces": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "region": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "restaurants": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "cuisine_type": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "price_range": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "website": {
+   "type": "text",
+   "nullable": true
+  },
+  "opening_hours": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "is_sponsored": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "category": {
+   "type": "text",
+   "nullable": true
+  },
+  "email": {
+   "type": "text",
+   "nullable": true
+  },
+  "services": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "signature_dishes": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "review_count": {
+   "type": "integer",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  }
+ },
+ "reviews": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "user_id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "entity_type": {
+   "type": "text",
+   "nullable": false
+  },
+  "entity_id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "rating": {
+   "type": "integer",
+   "nullable": false
+  },
+  "comment": {
+   "type": "text",
+   "nullable": true
+  },
+  "is_approved": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "rivers": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "difficulty": {
+   "type": "text",
+   "nullable": true
+  },
+  "activities": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "best_season": {
+   "type": "text",
+   "nullable": true
+  },
+  "duration": {
+   "type": "text",
+   "nullable": true
+  },
+  "price_range": {
+   "type": "text",
+   "nullable": true
+  },
+  "safety_tips": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "adrenaline_level": {
+   "type": "integer",
+   "nullable": true
+  },
+  "certified_guides": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "routes": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "title": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "duration_hours": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "distance_km": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "difficulty": {
+   "type": "text",
+   "nullable": true
+  },
+  "gpx_track_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "shopping_centers": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "website": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "souvenirs": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "typical_price": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "spas_wellness": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "website": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "is_sponsored": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "stadiums": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "stadium_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "sport_types": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "email": {
+   "type": "text",
+   "nullable": true
+  },
+  "website": {
+   "type": "text",
+   "nullable": true
+  },
+  "capacity": {
+   "type": "integer",
+   "nullable": true
+  },
+  "home_teams": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "facilities": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "services": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "theme_parks": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "park_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "email": {
+   "type": "text",
+   "nullable": true
+  },
+  "website": {
+   "type": "text",
+   "nullable": true
+  },
+  "price_adult": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "price_child": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "price_range": {
+   "type": "text",
+   "nullable": true
+  },
+  "opening_hours": {
+   "type": "text",
+   "nullable": true
+  },
+  "attractions": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "services": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "includes": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "age_restrictions": {
+   "type": "text",
+   "nullable": true
+  },
+  "duration_recommended": {
+   "type": "text",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "toll_routes": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "description": {
+   "type": "text",
+   "nullable": false
+  },
+  "tolls_data": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "tour_guides": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "languages": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "bio": {
+   "type": "text",
+   "nullable": true
+  },
+  "avatar_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "price_per_day": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "email": {
+   "type": "text",
+   "nullable": true
+  },
+  "specialties": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "is_eco_guide": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "eco_license": {
+   "type": "text",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "tour_operators": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "logo_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "email": {
+   "type": "text",
+   "nullable": true
+  },
+  "website": {
+   "type": "text",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "is_verified": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "verification_status": {
+   "type": "text",
+   "nullable": true
+  },
+  "verified_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "verification_notes": {
+   "type": "text",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "tour_packages": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "destination_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "duration": {
+   "type": "text",
+   "nullable": true
+  },
+  "difficulty": {
+   "type": "text",
+   "nullable": true
+  },
+  "price_from": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "price_range": {
+   "type": "text",
+   "nullable": true
+  },
+  "max_group_size": {
+   "type": "integer",
+   "nullable": true
+  },
+  "min_age": {
+   "type": "integer",
+   "nullable": true
+  },
+  "included": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "not_included": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "highlights": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "requirements": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "languages": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "departure_point": {
+   "type": "text",
+   "nullable": true
+  },
+  "best_season": {
+   "type": "text",
+   "nullable": true
+  },
+  "category": {
+   "type": "text",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "is_sponsored": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "travel_agencies": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "logo_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "address": {
+   "type": "text",
+   "nullable": true
+  },
+  "phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "email": {
+   "type": "text",
+   "nullable": true
+  },
+  "website": {
+   "type": "text",
+   "nullable": true
+  },
+  "services": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "is_active": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "is_verified": {
+   "type": "boolean",
+   "nullable": true
+  },
+  "verification_status": {
+   "type": "text",
+   "nullable": true
+  },
+  "verified_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "verification_notes": {
+   "type": "text",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ }
+}
