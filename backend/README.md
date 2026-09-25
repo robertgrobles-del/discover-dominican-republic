@@ -169,6 +169,14 @@ Pagos: el backend nunca recibe tarjetas; el navegador manda un `payment_method_t
 - **Reportes**: `GET /org/reports/summary?from&to` (totales, cancelación, por servicio, canal, mes y promoción).
 - **Admin**: `POST /admin/users/{id}/2fa/reset` (motivo obligatorio, cierra sesiones, avisa por correo, no aplica a uno mismo) y `GET /admin/audit`. Se auditan verificaciones de operadores, invitaciones, cambios de equipo y resets de 2FA (tabla `audit_log`).
 
+### Trabajos programados y liquidaciones
+
+`JobRunner` (`src/modules/jobs`) guarda el estado en `system_cron_jobs` y reclama cada trabajo con un UPDATE atómico, así que varias instancias no lo duplican; uno "running" por más de 1 h se considera huérfano. Con `JOBS_ENABLED=true` revisa cada 30 s. Admin: `GET /admin/jobs`, `POST /admin/jobs/{name}/run`, `PATCH /admin/jobs/{name}` (activar/frecuencia).
+
+Trabajos: `bookings.reminders`, `bookings.review_requests`, `ical.sync`, `bookings.expire_pending` (pago en línea sin cobrar tras 30 min → cancela y libera cupo/código), `bookings.balance_due` (saldo a 3 días), `bookings.min_guests_check` (avisa al operador, una vez por salida), `promotions.expire`, `payouts.generate` (semanal).
+
+Liquidaciones: sólo lo cobrado en línea (no los cobros manuales) de reservas `completed`, menos reembolsos y comisión; cada reserva entra en un solo lote. Operador (owner): `GET /org/payouts`, `/org/payouts/{id}/items`. Admin: `GET/POST /admin/payouts`, `GET /admin/payouts/{id}/items`, `POST /admin/payouts/{id}/mark-paid` (comprobante obligatorio, auditado, avisa al operador).
+
 ## Correo
 
 `app.mailer.send({ to, template, data, locale })` **encola** en la tabla `email_log` y vuelve; un trabajador (en el mismo proceso, `MAIL_WORKER_ENABLED`, o en otro) toma los pendientes con `FOR UPDATE SKIP LOCKED`, así que varias instancias nunca envían dos veces. Reintenta con espera creciente (1 min, 5 min, 30 min, 2 h, 12 h) hasta `MAIL_MAX_ATTEMPTS` y luego marca `failed`; los mensajes que quedaron `sending` por un proceso caído se recuperan. Si se pasa la conexión de una transacción (`send(input, client)`) el correo forma parte de ella (outbox transaccional: el registro y su correo se guardan juntos o no se guarda ninguno).

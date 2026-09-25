@@ -11,6 +11,9 @@ export interface TemplateData {
   "booking.confirmation": BookingMail & { paid: string; balance: string };
   "booking.request_received": BookingMail;
   "booking.cancelled": { name: string; reference: string; service: string; refund: string; operator: string };
+  "booking.balance_due": { name: string; reference: string; service: string; operator: string; date: string; balance: string; url: string };
+  "operator.min_guests": { operator: string; service: string; date: string; booked: number; min: number; url: string };
+  "operator.payout_sent": { operator: string; amount: string; reference: string };
   "org.invitation": { operator: string; inviter: string; role: string; url: string; days: number };
   "booking.reminder": BookingMail;
   "booking.review_request": { name: string; service: string; operator: string; url: string };
@@ -209,6 +212,43 @@ Un administrador desactivó tu verificación en dos pasos y cerró tus sesiones.
 
 An administrator disabled your two-factor authentication and signed you out. Re-enable it when you sign in. If unexpected, contact support.`,
     html: layout("Two-factor authentication reset", p(`Hi ${esc(d.name)},`) + p("An administrator disabled your two-factor authentication and signed you out. Re-enable it when you sign in.") + p("If unexpected, contact support.")),
+  }),
+};
+
+T["booking.balance_due"] = {
+  es: (d) => ({
+    subject: `Saldo pendiente de tu reserva ${d.reference}`,
+    text: `Hola ${d.name},\n\nTu salida ${d.service} con ${d.operator} es el ${d.date} y tienes un saldo pendiente de ${d.balance}.\n\nPágalo o coordina con el operador: ${d.url}`,
+    html: layout("Saldo pendiente", p(`Hola ${esc(d.name)}, tu salida <b>${esc(d.service)}</b> con ${esc(d.operator)} es el <b>${esc(d.date)}</b> y tienes un saldo pendiente de <b>${esc(d.balance)}</b>.`), { label: "Ver mi reserva", url: d.url }),
+  }),
+  en: (d) => ({
+    subject: `Balance due for booking ${d.reference}`,
+    text: `Hi ${d.name},\n\nYour ${d.service} with ${d.operator} is on ${d.date} and you have a balance of ${d.balance}.\n\n${d.url}`,
+    html: layout("Balance due", p(`Hi ${esc(d.name)}, your <b>${esc(d.service)}</b> with ${esc(d.operator)} is on <b>${esc(d.date)}</b> and you have a balance of <b>${esc(d.balance)}</b>.`), { label: "View my booking", url: d.url }),
+  }),
+};
+T["operator.min_guests"] = {
+  es: (d) => ({
+    subject: `Salida sin el mínimo de personas: ${d.service} (${d.date})`,
+    text: `${d.operator}: la salida de ${d.service} del ${d.date} lleva ${d.booked} de ${d.min} personas mínimas. Decide si la mantienes, la cambias de fecha o reembolsas.\n\n${d.url}`,
+    html: layout("Salida bajo el mínimo", p(`La salida de <b>${esc(d.service)}</b> del <b>${esc(d.date)}</b> lleva <b>${d.booked}</b> de ${d.min} personas mínimas.`) + p("Decide si la mantienes, la cambias de fecha o reembolsas."), { label: "Ir a mis reservas", url: d.url }),
+  }),
+  en: (d) => ({
+    subject: `Departure below minimum: ${d.service} (${d.date})`,
+    text: `${d.operator}: the ${d.service} departure on ${d.date} has ${d.booked} of ${d.min} minimum guests.\n\n${d.url}`,
+    html: layout("Departure below minimum", p(`The <b>${esc(d.service)}</b> departure on <b>${esc(d.date)}</b> has <b>${d.booked}</b> of ${d.min} minimum guests.`), { label: "Go to my bookings", url: d.url }),
+  }),
+};
+T["operator.payout_sent"] = {
+  es: (d) => ({
+    subject: `Liquidación enviada: ${d.amount}`,
+    text: `${d.operator}: te enviamos una liquidación de ${d.amount}. Comprobante: ${d.reference}.`,
+    html: layout("Liquidación enviada", p(`<b>${esc(d.operator)}</b>, te enviamos una liquidación de <b>${esc(d.amount)}</b>.`) + p(`Comprobante: ${esc(d.reference)}`)),
+  }),
+  en: (d) => ({
+    subject: `Payout sent: ${d.amount}`,
+    text: `${d.operator}: we sent you a payout of ${d.amount}. Reference: ${d.reference}.`,
+    html: layout("Payout sent", p(`<b>${esc(d.operator)}</b>, we sent you a payout of <b>${esc(d.amount)}</b>.`) + p(`Reference: ${esc(d.reference)}`)),
   }),
 };
 

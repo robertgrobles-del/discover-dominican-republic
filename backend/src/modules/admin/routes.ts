@@ -38,4 +38,40 @@ export async function adminRoutes(app: FastifyInstance) {
     const { rows } = await app.db.query(`SELECT id, actor_id, action, entity_type, entity_id, org_id, meta, ip, created_at FROM audit_log WHERE ${w.join(" AND ")} ORDER BY id DESC LIMIT ${req.query.per_page} OFFSET ${(req.query.page - 1) * req.query.per_page}`, p);
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
   });
+
+  const any = z.any();
+  const uuid = z.object({ id: z.string().uuid() });
+  const page = { page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(100).default(50) };
+
+  // ---- Trabajos programados (docs 5.17/9) ----
+  r.get("/admin/jobs", { preHandler: admin, schema: { tags: ["admin"], summary: "Trabajos programados y su último resultado", security: bearer, response: { 200: z.object({ data: any }) } } }, async () => ({ data: await app.jobs.list() }));
+  r.post("/admin/jobs/:name/run", { preHandler: admin, schema: { tags: ["admin"], summary: "Ejecuta un trabajo ahora", security: bearer, params: z.object({ name: z.string().max(60) }), response: { 200: z.object({ data: any }) } } }, async (req) => {
+    const data = await app.jobs.runNow(req.params.name);
+    await audit(app.db, { actor: req.user!.id, action: "job.run", entity: "job", id: req.params.name, ip: req.ip });
+    return { data };
+  });
+  r.patch("/admin/jobs/:name", { preHandler: admin, schema: { tags: ["admin"], summary: "Activa/desactiva un trabajo o cambia su frecuencia", security: bearer, params: z.object({ name: z.string().max(60) }), body: z.object({ enabled: z.boolean().optional(), interval_seconds: z.number().int().min(30).max(30 * 86_400).optional() }), response: { 204: z.null() } } }, async (req, reply) => {
+    await app.jobs.update(req.params.name, req.body);
+    await audit(app.db, { actor: req.user!.id, action: "job.update", entity: "job", id: req.params.name, meta: req.body, ip: req.ip });
+    reply.code(204);
+    return null;
+  });
+
+  // ---- Liquidaciones a operadores ----
+  r.get("/admin/payouts", { preHandler: admin, schema: { tags: ["admin"], summary: "Liquidaciones a operadores", security: bearer, querystring: z.object({ ...page, status: z.enum(["pending", "paid", "failed"]).optional(), org_id: z.string().uuid().optional() }), response: { 200: z.object({ data: any, meta: any }) } } }, async (req) => {
+    const { rows, total } = await app.payouts.listAll(req.query);
+    return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
+  });
+  r.post("/admin/payouts", { preHandler: admin, schema: { tags: ["admin"], summary: "Genera ahora el lote de liquidaciones (opcionalmente de una organización)", security: bearer, body: z.object({ org_id: z.string().uuid().optional() }).nullish(), response: { 201: z.object({ data: any }) } } }, async (req, reply) => {
+    const data = await app.payouts.generate({ orgId: req.body?.org_id });
+    await audit(app.db, { actor: req.user!.id, action: "payout.generate", entity: "payout", meta: data, ip: req.ip });
+    reply.code(201);
+    return { data };
+  });
+  r.get("/admin/payouts/:id/items", { preHandler: admin, schema: { tags: ["admin"], summary: "Reservas de una liquidación", security: bearer, params: uuid, response: { 200: z.object({ data: any }) } } }, async (req) => ({ data: await app.payouts.items(req.params.id) }));
+  r.post("/admin/payouts/:id/mark-paid", { preHandler: admin, schema: { tags: ["admin"], summary: "Marca una liquidación como pagada (comprobante obligatorio) y avisa al operador", security: bearer, params: uuid, body: z.object({ reference: z.string().trim().min(3).max(120) }), response: { 204: z.null() } } }, async (req, reply) => {
+    await app.payouts.markPaid(req.params.id, req.user!.id, req.body, req.ip);
+    reply.code(204);
+    return null;
+  });
 }

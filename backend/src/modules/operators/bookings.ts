@@ -198,12 +198,12 @@ export class BookingService {
         bookingId = randomUUID();
         await c.query(
           `INSERT INTO bookings (id, reference, org_id, listing_id, room_id, user_id, contact_name, contact_email, contact_phone, access_hash, listing_title, room_name, category, date, check_out, time, guests, adults, children, infants,
-             currency, subtotal, discount, total_price, deposit_amount, promo_code, quote, extras, status, payment_status, amount_paid, source, cancellation_policy, notes, idempotency_key)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,'unpaid',0,$30,$31,$32,$33)`,
+             currency, subtotal, discount, total_price, deposit_amount, promo_code, quote, extras, status, payment_status, amount_paid, source, cancellation_policy, notes, idempotency_key, payment_mode)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,'unpaid',0,$30,$31,$32,$33,$34)`,
           [bookingId, reference, loaded.org.id, loaded.listing.id, loaded.room?.id ?? null, actor.userId ?? null, input.contact.name.trim(), input.contact.email.trim().toLowerCase(), input.contact.phone?.trim() ?? null, hashToken(accessToken),
             loaded.listing.title, loaded.room?.name ?? null, loaded.listing.category, request.date, quote.end_date, quote.time, guests, request.adults, request.children ?? 0, request.infants ?? 0,
             quote.currency, quote.subtotal, quote.discount, quote.total, input.payment_mode === "deposit" ? quote.deposit_amount : null, quote.promo?.applied ? quote.promo.code : null,
-            JSON.stringify({ lines: quote.lines, promo: quote.promo, departure: quote.departure }), JSON.stringify(quote.extras), manual ? "confirmed" : "pending", actor.source, loaded.listing.cancellation_policy, input.notes?.trim() || null, input.idempotency_key ?? null],
+            JSON.stringify({ lines: quote.lines, promo: quote.promo, departure: quote.departure }), JSON.stringify(quote.extras), manual ? "confirmed" : "pending", actor.source, loaded.listing.cancellation_policy, input.notes?.trim() || null, input.idempotency_key ?? null, manual ? "manual" : input.payment_mode],
         );
       });
     } catch (e) {

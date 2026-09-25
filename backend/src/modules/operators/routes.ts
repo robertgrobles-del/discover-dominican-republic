@@ -10,12 +10,14 @@ import type { PaymentGateway } from "./gateway.js";
 import { AutomationService } from "./automations.js";
 import { EngagementService } from "./engagement.js";
 import { IcalService } from "./ical.js";
+import type { JobRunner } from "../jobs/runner.js";
+import type { PayoutService } from "./payouts.js";
 import { PromotionService } from "./promotions.js";
 import { ReportService } from "./reports.js";
 import { audit, TeamService } from "./team.js";
 
 declare module "fastify" {
-  interface FastifyInstance { automations: AutomationService; ical: IcalService; catalog: CatalogService; bookings: BookingService; promotions: PromotionService; gateway: PaymentGateway }
+  interface FastifyInstance { jobs: JobRunner; payouts: PayoutService; automations: AutomationService; ical: IcalService; catalog: CatalogService; bookings: BookingService; promotions: PromotionService; gateway: PaymentGateway }
   interface FastifyRequest { member?: Membership }
 }
 
@@ -249,6 +251,13 @@ export async function operatorRoutes(app: FastifyInstance) {
 
   // ---- Reportes ----
   r.get("/org/reports/summary", { preHandler: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Resumen: reservas, ingresos, servicios, canales, cancelaciones y promociones", security: bearer, querystring: z.object({ from: date, to: date }), response: { 200: ok } } }, async (req) => ({ data: await reports.summary(req.member!.org_id, { from: req.query.from, to: req.query.to }) }));
+
+  // ---- Liquidaciones ----
+  r.get("/org/payouts", { preHandler: org("owner"), schema: { tags: ["operadores"], summary: "Mis liquidaciones y lo pendiente de pago", security: bearer, querystring: z.object({ ...pageQ, status: z.enum(["pending", "paid", "failed"]).optional() }), response: { 200: z.object({ data: any, meta: z.any() }) } } }, async (req) => {
+    const { rows, total, pending } = await app.payouts.listForOrg(req.member!.org_id, req.query);
+    return { data: rows, meta: { ...pageMeta(req.query.page, req.query.per_page, total), pending } };
+  });
+  r.get("/org/payouts/:id/items", { preHandler: org("owner"), schema: { tags: ["operadores"], summary: "Reservas incluidas en una liquidación", security: bearer, params: memberId, response: { 200: ok } } }, async (req) => ({ data: await app.payouts.items(req.params.id, req.member!.org_id) }));
 
   // ================= Administración =================
   r.get("/admin/orgs", { preHandler: staff, schema: { tags: ["admin"], summary: "Operadores registrados", security: bearer, querystring: z.object({ ...pageQ, verification: z.enum(["unverified", "pending", "verified", "rejected"]).optional(), q: z.string().max(100).optional() }), response: { 200: paged } } }, async (req) => {

@@ -3,6 +3,9 @@ import { authRoutes } from "./modules/auth/routes.js";
 import { wellKnownRoutes } from "./modules/auth/well-known.js";
 import { configRoutes } from "./modules/config/routes.js";
 import { healthRoutes } from "./modules/health/routes.js";
+import { JobRunner } from "./modules/jobs/runner.js";
+import { registerOperatorJobs } from "./modules/operators/jobs.js";
+import { PayoutService } from "./modules/operators/payouts.js";
 import { AutomationService } from "./modules/operators/automations.js";
 import { IcalService } from "./modules/operators/ical.js";
 import { createGateway } from "./modules/operators/gateway.js";
@@ -18,7 +21,12 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   const automations = new AutomationService(app.db, app.env, app.mailer, ical, app.log);
   app.decorate("ical", ical);
   app.decorate("automations", automations);
-  if (app.env.JOBS_ENABLED) { automations.start(); app.addHook("onClose", async () => automations.stop()); }
+  const payouts = new PayoutService(app.db, app.mailer);
+  const runner = new JobRunner(app.db, app.log);
+  app.decorate("payouts", payouts);
+  app.decorate("jobs", runner);
+  registerOperatorJobs({ db: app.db, env: app.env, mailer: app.mailer, runner, automations, ical, payouts });
+  if (app.env.JOBS_ENABLED) { runner.start(); app.addHook("onClose", async () => { await runner.stop(); }); }
   await app.register(healthRoutes, { version });
   await app.register(wellKnownRoutes);
   await app.register(
