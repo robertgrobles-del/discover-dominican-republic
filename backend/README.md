@@ -163,6 +163,17 @@ El equipo editorial trabaja en Strapi (`../cms`, tipos en `cms/src/api/*` y `str
 - Adopta filas existentes con el mismo slug (contenido anterior al CMS) en vez de duplicarlas; un atributo que Strapi aún no maneja no borra la columna; un evento atrasado no pisa a uno más nuevo; eliminar es borrado lógico; si cambia el slug el anterior sigue resolviendo (`slug_history`).
 - `GET /admin/cms/sync-log` y `/admin/cms/mappings` para operar y depurar.
 
+**Desarrollo vs. producción:** en el repositorio Strapi vive en `cms/` con su propio `package.json`, `.env` y base local, y la API **no importa nada de esa carpeta**: sólo habla con él por HTTP. Por eso en producción son dos servicios independientes; lo único que los une es configuración:
+
+| Variable (en la API) | Producción |
+|---|---|
+| `CMS_URL` | URL del Strapi desplegado (mejor por red privada; sólo se usa desde el servidor) |
+| `CMS_API_TOKEN` | Token de sólo lectura creado en ese Strapi |
+| `CMS_WEBHOOK_SECRET` | Mismo valor que la cabecera del webhook configurado en Strapi |
+| `CMS_PUBLIC_URL` | Dirección **pública** de Strapi o de su CDN, para las URL de imágenes |
+
+Y en Strapi: el webhook apunta a `https://<api>/api/v1/webhooks/cms`, y para los medios hay que usar almacenamiento externo (S3/R2/Cloudinary) porque el disco local del contenedor no persiste. Strapi debe poder llegar a la API (webhook) y la API a Strapi (backfill y entradas completas); el portal sólo habla con la API. Al cambiar de entorno basta re-ejecutar `npm run cms:sync` apuntando al Strapi nuevo.
+
 Medios: las URL relativas de Strapi (`/uploads/…`) se convierten con `CMS_PUBLIC_URL` (por defecto `CMS_URL`); las imágenes siguen alojadas en el CMS.
 
 ## Sobre el esquema generado
