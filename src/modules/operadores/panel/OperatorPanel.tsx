@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, CalendarDays, Store, MessageSquare, ClipboardList, Coins, BadgeDollarSign, Zap, Megaphone, Tag,
+  LayoutDashboard, CalendarDays, Store, MessageSquare, ClipboardList, Coins, BadgeDollarSign, UserCog, Zap, Megaphone, Tag,
   HandHelping, Users, BarChart3, Building2, ExternalLink, ArrowLeft, Loader2, BadgeCheck, Clock, type LucideIcon,
 } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
@@ -22,6 +22,8 @@ import AnuncioWizard from "./AnuncioWizard";
 import Calendario from "./Calendario";
 import Tarifas from "./Tarifas";
 import Automatizaciones from "./Automatizaciones";
+import Equipo from "./Equipo";
+import { ALLOWED, ROLE_LABEL, findMember } from "../permissions";
 import Mensajes from "./Mensajes";
 import Reservas from "./Reservas";
 import Ingresos from "./Ingresos";
@@ -45,6 +47,7 @@ const NAV: { to: string; label: string; icon: LucideIcon; end?: boolean; badge?:
   { to: "comunidades", label: "Comunidades", icon: Users },
   { to: "reportes", label: "Reportes", icon: BarChart3 },
   { to: "perfil", label: "Org/Perfil", icon: Building2 },
+  { to: "equipo", label: "Equipo", icon: UserCog },
 ];
 
 function OrgOnboarding({ userId, defaultName, email }: { userId: string; defaultName: string; email?: string }) {
@@ -101,8 +104,11 @@ function OrgOnboarding({ userId, defaultName, email }: { userId: string; default
 }
 
 function Shell() {
-  const { org } = useOrg();
+  const { org, role } = useOrg();
   const location = useLocation();
+  const allowed = ALLOWED[role];
+  const nav = NAV.filter((n) => allowed.includes(n.to));
+  const g = (key: string, el: JSX.Element) => (allowed.includes(key) ? el : <Navigate to="/operadores/panel" replace />);
   const { data: messages = [] } = useMessages(org.id);
   const { data: bookings = [] } = useBookings(org.id);
   const unread = new Set(messages.filter((m) => m.sender === "traveler" && !m.read).map((m) => m.thread_id)).size;
@@ -119,6 +125,7 @@ function Shell() {
               <Link to="/" aria-label="Volver al portal"><ArrowLeft className="h-4 w-4 mr-1" /> Portal</Link>
             </Button>
             <span className="font-display font-bold truncate">{org.business_name}</span>
+            {role !== "owner" && <Badge variant="outline" className="shrink-0">{ROLE_LABEL[role]}</Badge>}
             <Badge variant={org.verification === "verified" ? "default" : "secondary"} className="gap-1 shrink-0">
               <VerifIcon className="h-3 w-3" /> {VERIFICATION_LABEL[org.verification]}
             </Badge>
@@ -128,7 +135,7 @@ function Shell() {
           </Button>
         </div>
         <nav aria-label="Panel de operador" className="md:hidden flex gap-1 overflow-x-auto px-2 pb-2 no-scrollbar">
-          {NAV.map((n) => (
+          {nav.map((n) => (
             <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => `whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium ${isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
               {n.label}
             </NavLink>
@@ -139,7 +146,7 @@ function Shell() {
       <div className="flex">
         <aside className="hidden md:block w-60 shrink-0 border-r border-border bg-background min-h-[calc(100vh-3.5rem)] p-3 sticky top-14 self-start">
           <nav aria-label="Panel de operador" className="space-y-1">
-            {NAV.map((n) => {
+            {nav.map((n) => {
               const count = n.badge ? badges[n.badge] : 0;
               return (
                 <NavLink
@@ -159,21 +166,22 @@ function Shell() {
         <main key={location.pathname} className="flex-1 min-w-0 p-4 md:p-8 max-w-6xl">
           <Routes>
             <Route index element={<PanelHome />} />
-            <Route path="calendario" element={<Calendario />} />
-            <Route path="tarifas" element={<Tarifas />} />
-            <Route path="automatizaciones" element={<Automatizaciones />} />
-            <Route path="anuncios" element={<Anuncios />} />
-            <Route path="anuncios/nuevo" element={<AnuncioWizard />} />
-            <Route path="anuncios/:id" element={<AnuncioWizard />} />
-            <Route path="mensajes" element={<Mensajes />} />
-            <Route path="reservas" element={<Reservas />} />
-            <Route path="solicitudes" element={<Reservas onlyPending />} />
-            <Route path="ingresos" element={<Ingresos />} />
-            <Route path="informacion" element={<Informacion />} />
-            <Route path="promocion" element={<Promocion />} />
-            <Route path="comunidades" element={<Comunidades />} />
-            <Route path="reportes" element={<Reportes />} />
-            <Route path="perfil" element={<Perfil />} />
+            <Route path="calendario" element={g("calendario", <Calendario />)} />
+            <Route path="tarifas" element={g("tarifas", <Tarifas />)} />
+            <Route path="automatizaciones" element={g("automatizaciones", <Automatizaciones />)} />
+            <Route path="anuncios" element={g("anuncios", <Anuncios />)} />
+            <Route path="anuncios/nuevo" element={g("anuncios", <AnuncioWizard />)} />
+            <Route path="anuncios/:id" element={g("anuncios", <AnuncioWizard />)} />
+            <Route path="mensajes" element={g("mensajes", <Mensajes />)} />
+            <Route path="reservas" element={g("reservas", <Reservas />)} />
+            <Route path="solicitudes" element={g("solicitudes", <Reservas onlyPending />)} />
+            <Route path="ingresos" element={g("ingresos", <Ingresos />)} />
+            <Route path="informacion" element={g("informacion", <Informacion />)} />
+            <Route path="promocion" element={g("promocion", <Promocion />)} />
+            <Route path="comunidades" element={g("comunidades", <Comunidades />)} />
+            <Route path="reportes" element={g("reportes", <Reportes />)} />
+            <Route path="perfil" element={g("perfil", <Perfil />)} />
+            <Route path="equipo" element={g("equipo", <Equipo />)} />
             <Route path="*" element={<Navigate to="" replace />} />
           </Routes>
         </main>
@@ -199,7 +207,7 @@ function Comunidades() {
 
 export default function OperatorPanel() {
   const { user, loading: authLoading } = useAuth();
-  const orgQuery = useMyOrg(user?.id);
+  const orgQuery = useMyOrg(user?.id, user?.email);
 
   if (authLoading || (user && orgQuery.isLoading)) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
@@ -209,8 +217,12 @@ export default function OperatorPanel() {
     const fallbackName = (user.user_metadata as any)?.display_name || user.email?.split("@")[0] || "Mi organización";
     return <OrgOnboarding userId={user.id} defaultName={fallbackName} email={user.email || undefined} />;
   }
+  const org = orgQuery.data;
+  const member = org.id === user.id ? undefined : findMember(org, user.email);
+  const role = org.id === user.id ? "owner" as const : member?.role || "recepcion" as const;
+  const ctx = { org, refetchOrg: () => orgQuery.refetch(), role, readOnly: role === "guia", scopeListingIds: role === "guia" ? member?.listing_ids || [] : undefined };
   return (
-    <OrgContext.Provider value={{ org: orgQuery.data, refetchOrg: () => orgQuery.refetch() }}>
+    <OrgContext.Provider value={ctx}>
       <SEOHead title="Panel de operador — Operadores RD" description="Gestiona tus servicios, reservas, calendario, mensajes e ingresos en Descubre RD." />
       <Shell />
     </OrgContext.Provider>

@@ -9,7 +9,17 @@ export type PaymentStatus = "unpaid" | "partial" | "paid" | "refunded";
 export type OrgVerification = "unverified" | "pending" | "verified" | "rejected";
 export type MessageChannel = "web" | "whatsapp" | "instagram" | "email";
 
+export interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: "admin" | "recepcion" | "guia";
+  listing_ids?: string[]; // guías: excursiones que pueden ver
+  added_at?: string;
+}
+
 export interface OperatorOrg {
+  team?: TeamMember[];
   id: string; // = auth user id para organizaciones propias, o id semilla
   business_name: string;
   slug: string;

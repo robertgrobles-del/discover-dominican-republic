@@ -10,14 +10,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { opKeys, seedDemoData, useBookings, useListings, useOpMutation } from "../api";
 import { BOOKING_STATUS_LABEL, PLATFORM_ANNOUNCEMENTS, formatMoney } from "../constants";
-import { useOrg } from "./OrgContext";
+import { useOrg, useScopedBookings } from "./OrgContext";
 
 export default function PanelHome() {
   const { org } = useOrg();
   const qc = useQueryClient();
   useEffect(() => { sendDueReminders(org).then((n) => { if (n) qc.invalidateQueries({ queryKey: ["op"] }); }).catch(() => undefined); }, [org.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const { data: listings = [] } = useListings(org.id);
-  const { data: bookings = [] } = useBookings(org.id);
+  const { data: bookings = [] } = useScopedBookings();
   const [tab, setTab] = useState<"all" | "today" | "upcoming">("all");
   const today = new Date().toISOString().slice(0, 10);
   const active = bookings.filter((b) => b.status !== "cancelled");

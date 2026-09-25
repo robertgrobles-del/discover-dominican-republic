@@ -19,9 +19,15 @@ async function rows<T>(q: PromiseLike<{ data: any; error: any }>): Promise<T[]> 
 }
 
 // ---------- Organizaciones (partner_profiles) ----------
-export async function fetchOrgByUser(userId: string): Promise<OperatorOrg | null> {
+export async function fetchOrgByUser(userId: string, email?: string | null): Promise<OperatorOrg | null> {
   const list = await rows<any>(from("partner_profiles").select("*").eq("id", userId));
-  return list[0] ? normalizeOrg(list[0]) : null;
+  if (list[0]) return normalizeOrg(list[0]);
+  // Miembro de equipo: la organización que lo invitó por correo.
+  const e = (email || "").trim().toLowerCase();
+  if (!e) return null;
+  const all = await rows<any>(from("partner_profiles").select("*"));
+  const hit = all.find((o) => Array.isArray(o.team) && o.team.some((m: any) => (m.email || "").toLowerCase() === e));
+  return hit ? normalizeOrg(hit) : null;
 }
 
 export async function fetchOrgBySlug(slug: string): Promise<OperatorOrg | null> {
@@ -288,8 +294,8 @@ export const opKeys = {
   reviews: (orgId?: string) => ["op", "reviews", orgId] as const,
 };
 
-export const useMyOrg = (userId?: string) =>
-  useQuery({ queryKey: opKeys.org(userId), queryFn: () => fetchOrgByUser(userId!), enabled: !!userId });
+export const useMyOrg = (userId?: string, email?: string | null) =>
+  useQuery({ queryKey: [...opKeys.org(userId), email || ""], queryFn: () => fetchOrgByUser(userId!, email), enabled: !!userId });
 export const useListings = (orgId?: string) =>
   useQuery({ queryKey: opKeys.listings(orgId), queryFn: () => fetchListings(orgId!), enabled: !!orgId });
 export const useBookings = (orgId?: string) =>

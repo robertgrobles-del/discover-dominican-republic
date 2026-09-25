@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { availableSpots, useBookings, useListings } from "../api";
 import { BOOKING_STATUS_LABEL, formatMoney } from "../constants";
-import { useOrg } from "./OrgContext";
+import { useOrg, useScopedBookings } from "./OrgContext";
 
 const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 const WEEKDAYS = ["D", "L", "M", "X", "J", "V", "S"];
@@ -13,7 +13,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
 
 export default function Calendario() {
   const { org } = useOrg();
-  const { data: bookings = [] } = useBookings(org.id);
+  const { data: bookings = [] } = useScopedBookings();
   const { data: listings = [] } = useListings(org.id);
   const now = new Date();
   const [cursor, setCursor] = useState({ y: now.getFullYear(), m: now.getMonth() });

@@ -14,7 +14,7 @@ import { balanceDue, createBooking, opKeys, paidAmount, updateBooking, useBookin
 import { BOOKING_STATUS_LABEL, PAYMENT_STATUS_LABEL, formatMoney } from "../constants";
 import type { Booking, BookingStatus } from "../types";
 import { isValidEmail } from "@/lib/security";
-import { useOrg } from "./OrgContext";
+import { useOrg, useScopedBookings } from "./OrgContext";
 
 type Filter = "all" | "in_progress" | "upcoming" | "completed" | "cancelled" | "reviews";
 const FILTERS: [Filter, string][] = [["all", "Todos"], ["in_progress", "En curso"], ["upcoming", "Próximamente"], ["completed", "Completados"], ["cancelled", "Cancelados"], ["reviews", "Reseñas pendientes"]];
@@ -32,9 +32,9 @@ function downloadCsv(rows: Booking[]) {
 }
 
 export default function Reservas({ onlyPending = false }: { onlyPending?: boolean }) {
-  const { org } = useOrg();
+  const { org, readOnly } = useOrg();
   const qc = useQueryClient();
-  const { data: bookings = [] } = useBookings(org.id);
+  const { data: bookings = [] } = useScopedBookings();
   const { data: listings = [] } = useListings(org.id);
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
@@ -77,7 +77,7 @@ export default function Reservas({ onlyPending = false }: { onlyPending?: boolea
         <h1 className="font-display text-3xl font-bold">{onlyPending ? "Solicitudes" : "Reservas"}</h1>
         <div className="flex gap-2">
           <Button variant="outline" size="icon" aria-label="Exportar CSV" onClick={() => downloadCsv(list)}><Download className="h-4 w-4" /></Button>
-          <Button size="icon" aria-label="Registrar reserva manual" onClick={() => setOpen(true)}><Plus className="h-4 w-4" /></Button>
+          {!readOnly && <Button size="icon" aria-label="Registrar reserva manual" onClick={() => setOpen(true)}><Plus className="h-4 w-4" /></Button>}
         </div>
       </div>
 
@@ -110,12 +110,12 @@ export default function Reservas({ onlyPending = false }: { onlyPending?: boolea
                 <span className="font-mono text-sm">{formatMoney(b.total_price, b.currency)}</span>
                 <Badge variant="outline">{PAYMENT_STATUS_LABEL[b.payment_status]}</Badge>
                 {b.payment_status === "partial" && <span className="text-xs text-muted-foreground">Cobrado {formatMoney(paidAmount(b), b.currency)} · Saldo {formatMoney(balanceDue(b), b.currency)}</span>}
-                <Select value={b.status} onValueChange={(v) => setStatus(b, v as BookingStatus)}>
+                {readOnly ? <Badge variant="secondary">{BOOKING_STATUS_LABEL[b.status]}</Badge> : <Select value={b.status} onValueChange={(v) => setStatus(b, v as BookingStatus)}>
                   <SelectTrigger className="h-8 w-36 text-xs" aria-label="Estado de la reserva"><SelectValue /></SelectTrigger>
                   <SelectContent>{(Object.keys(BOOKING_STATUS_LABEL) as BookingStatus[]).map((s) => <SelectItem key={s} value={s}>{BOOKING_STATUS_LABEL[s]}</SelectItem>)}</SelectContent>
-                </Select>
-                {b.status === "pending" && <Button size="sm" onClick={() => setStatus(b, "confirmed")}>Confirmar</Button>}
-                {b.payment_status !== "paid" && b.status !== "cancelled" && (
+                </Select>}
+                {!readOnly && b.status === "pending" && <Button size="sm" onClick={() => setStatus(b, "confirmed")}>Confirmar</Button>}
+                {!readOnly && b.payment_status !== "paid" && b.status !== "cancelled" && (
                   <Button size="sm" variant="outline" onClick={() => update.mutate({ id: b.id, patch: { payment_status: "paid", amount_paid: b.total_price } }, { onSuccess: () => toast.success("Cobro registrado") })}>{b.payment_status === "partial" ? "Cobrar saldo" : "Marcar pagada"}</Button>
                 )}
               </div>
