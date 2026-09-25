@@ -17,6 +17,8 @@ export interface TemplateData {
   "newsletter.confirm": { url: string };
   "support.received": { name: string; reference: string; subject: string };
   "establishment.received": { name: string; establishment: string; url: string };
+  "store.order_confirmation": { name: string; reference: string; total: string; items: string; url: string };
+  "store.order_update": { name: string; reference: string; title: string; message: string; url: string };
   "org.invitation": { operator: string; inviter: string; role: string; url: string; days: number };
   "booking.reminder": BookingMail;
   "booking.review_request": { name: string; service: string; operator: string; url: string };
@@ -289,6 +291,49 @@ T["establishment.received"] = {
     subject: `We received the request for ${d.establishment}`,
     text: `Hi ${d.name},\n\nWe received the listing request for ${d.establishment}. We will review it and let you know. Check the status: ${d.url}`,
     html: layout("Request received", p(`Hi ${esc(d.name)}, we received the listing request for <b>${esc(d.establishment)}</b>. We will review it and let you know.`), { label: "Check the status", url: d.url }),
+  }),
+};
+
+T["store.order_confirmation"] = {
+  es: (d) => ({
+    subject: `Pedido ${d.reference} confirmado`,
+    text: `Hola ${d.name},
+
+Recibimos tu pedido ${d.reference}: ${d.items}.
+Total pagado: ${d.total}.
+
+Síguelo aquí: ${d.url}`,
+    html: layout("¡Gracias por tu compra!", p(`Hola ${esc(d.name)}, recibimos tu pedido <b>${esc(d.reference)}</b>.`) + table([["Artículos", d.items], ["Total pagado", d.total], ["Pedido", d.reference]]), { label: "Ver mi pedido", url: d.url }),
+  }),
+  en: (d) => ({
+    subject: `Order ${d.reference} confirmed`,
+    text: `Hi ${d.name},
+
+We received your order ${d.reference}: ${d.items}.
+Total paid: ${d.total}.
+
+Track it here: ${d.url}`,
+    html: layout("Thanks for your purchase!", p(`Hi ${esc(d.name)}, we received your order <b>${esc(d.reference)}</b>.`) + table([["Items", d.items], ["Total paid", d.total], ["Order", d.reference]]), { label: "View my order", url: d.url }),
+  }),
+};
+T["store.order_update"] = {
+  es: (d) => ({
+    subject: `${d.title} · ${d.reference}`,
+    text: `Hola ${d.name},
+
+${d.title}. ${d.message}
+
+${d.url}`,
+    html: layout(d.title, p(`Hola ${esc(d.name)}, ${esc(d.message)}`), { label: "Ver mi pedido", url: d.url }),
+  }),
+  en: (d) => ({
+    subject: `${d.title} · ${d.reference}`,
+    text: `Hi ${d.name},
+
+${d.title}. ${d.message}
+
+${d.url}`,
+    html: layout(d.title, p(`Hi ${esc(d.name)}, ${esc(d.message)}`), { label: "View my order", url: d.url }),
   }),
 };
 

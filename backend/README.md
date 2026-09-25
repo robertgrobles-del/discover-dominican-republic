@@ -233,6 +233,17 @@ Una sola puerta de escritura: `GameService.grant()` (transaccional, con el jugad
 
 Pendiente del §5.11: pasaporte con sellos por GPS/QR, rutas gamificadas con checkpoints, coleccionables, retos de foto, gremios y embajadores.
 
+## Tienda oficial
+
+- **Catálogo** (`/store/products`, `/store/products/{slug}`, `/store/categories`): precios en DOP con equivalente en USD (tasa vigente de `exchange_rates`, o `DEFAULT_USD_DOP`); lo inactivo o borrado no se ve.
+- **Carrito** (`/cart`, `/cart/items`, `/cart/coupon`): de la cuenta, o de invitado con el encabezado `X-Cart-Token` (el token se entrega una sola vez al crear el carrito y sólo se guarda su hash). `POST /cart/merge` fusiona el de invitado con el de la cuenta al iniciar sesión. Se validan tallas, colores, stock y el máximo de 20 por producto.
+- **Cotización** (`POST /checkout/quote`): subtotal, cupón, envío (gratis desde RD$ 2 500, si no RD$ 250), ITBIS incluido y total en DOP y USD. Cupones por porcentaje o monto, con mínimo, vencimiento, usos máximos y límite por persona (`POST /coupons/validate`).
+- **Pedidos** (`POST /orders`, `Idempotency-Key` obligatorio): dentro de una transacción bloquea los productos (en orden de id), recomprueba stock y precios, descuenta stock, cuenta el cupón y guarda una instantánea de cada línea; luego cobra con la pasarela. Un cobro rechazado o caído cancela el pedido y devuelve stock y cupón, y el cliente conserva su carrito. Con Stripe se cobra el equivalente en USD con la tasa guardada en el pedido (Stripe no procesa DOP); los cobros, reembolsos y cobros huérfanos también se concilian por el webhook.
+- **Seguimiento**: `GET /orders/{id}?token=` (invitado) o con sesión, `GET /me/orders`, cancelación antes del envío con reembolso total y devolución dentro de 72 h de la entrega. Estados: `pending → paid → processing → shipped → delivered` (+ `cancelled`, `refunded`, `return_requested`); cada cambio avisa por correo.
+- **Admin** (`/admin/store/orders`, `/admin/store/products`, `/admin/discount_coupons`): estados con guía de envío obligatoria, reembolso total o parcial (con o sin devolver stock), catálogo y cupones; todo auditado. El trabajo `orders.auto_cancel` libera los pedidos sin cobrar tras 60 min.
+
+Pendiente del §5.9: Marketplace de vendedores (productos y liquidaciones a vendedores), `/ambassadors/track` y `track-sale`.
+
 ## Correo
 
 `app.mailer.send({ to, template, data, locale })` **encola** en la tabla `email_log` y vuelve; un trabajador (en el mismo proceso, `MAIL_WORKER_ENABLED`, o en otro) toma los pendientes con `FOR UPDATE SKIP LOCKED`, así que varias instancias nunca envían dos veces. Reintenta con espera creciente (1 min, 5 min, 30 min, 2 h, 12 h) hasta `MAIL_MAX_ATTEMPTS` y luego marca `failed`; los mensajes que quedaron `sending` por un proceso caído se recuperan. Si se pasa la conexión de una transacción (`send(input, client)`) el correo forma parte de ella (outbox transaccional: el registro y su correo se guardan juntos o no se guarda ninguno).
