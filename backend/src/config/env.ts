@@ -28,6 +28,10 @@ const schema = z.object({
   MAIL_FROM: z.string().default("Descubre RD <no-reply@descubre.local>"),
   /** log: imprime el correo en el log (desarrollo) · smtp: envía por SMTP (Mailpit/SES) · memory: pruebas. */
   MAIL_TRANSPORT: z.enum(["log", "smtp", "memory"]).default("log"),
+  /** Trabajador que vacía la cola de correo dentro de este proceso (se puede apagar y correr aparte). */
+  MAIL_WORKER_ENABLED: bool.default(true),
+  MAIL_POLL_MS: z.coerce.number().int().min(200).default(2000),
+  MAIL_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(20).default(5),
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().int().default(1025),
   SMTP_USER: z.string().optional(),
@@ -55,6 +59,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     if (env.MAIL_TRANSPORT === "memory") throw new Error("Configuración inválida: MAIL_TRANSPORT=memory no está permitido en producción");
   }
   if (env.NODE_ENV === "test" && !source.MAIL_TRANSPORT) env.MAIL_TRANSPORT = "memory";
+  if (env.NODE_ENV === "test" && source.MAIL_WORKER_ENABLED === undefined) env.MAIL_WORKER_ENABLED = false; // las pruebas vacían la cola con drain()
   if (env.NODE_ENV === "production" && env.DOCS_ENABLED && !source.DOCS_ENABLED) env.DOCS_ENABLED = false; // en producción la documentación es explícita
   return env;
 }

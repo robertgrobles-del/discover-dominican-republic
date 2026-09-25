@@ -25,7 +25,8 @@ export async function registerAuth(app: FastifyInstance) {
   app.decorate("tokens", tokens);
   app.decorate("mailer", mailer);
   app.decorate("auth", new AuthService(app.env, app.db, tokens, mailer, app.log));
-  app.addHook("onClose", async () => { await mailer.drain(); });
+  if (app.env.MAIL_WORKER_ENABLED) mailer.start();
+  app.addHook("onClose", async () => { await mailer.stop(); });
 
   const authenticate = async (req: FastifyRequest) => {
     const header = req.headers.authorization;

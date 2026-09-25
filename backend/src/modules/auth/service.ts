@@ -102,12 +102,13 @@ export class AuthService {
       await c.query("INSERT INTO profiles (id, display_name, role) VALUES ($1, $2, 'user')", [id, name]);
       await c.query("INSERT INTO user_roles (user_id, role) VALUES ($1, 'user')", [id]);
       await c.query("INSERT INTO auth_tokens (user_id, purpose, token_hash, expires_at) VALUES ($1, 'verify_email', $2, now() + make_interval(hours => $3))", [id, hashToken(verifyToken), VERIFY_HOURS]);
+      // Outbox transaccional: el correo de verificación se encola en la misma transacción que la cuenta.
+      await this.mailer.send({ to: email, template: "auth.verify_email", locale, userId: id, data: { name, url: this.link("/verificar-correo", verifyToken), hours: VERIFY_HOURS } }, c);
       const session = await this.startSession(c, { id, locale }, ctx);
       const { rows } = await c.query<UserRow>(`${USER_SQL} WHERE u.id = $1`, [id]);
       return { user: rows[0]!, session };
     });
 
-    void this.mailer.send({ to: email, template: "auth.verify_email", locale, userId: user.id, data: { name, url: this.link("/verificar-correo", verifyToken), hours: VERIFY_HOURS } });
     return { user: this.toDto(user, ["user"]), session };
   }
 
@@ -227,7 +228,7 @@ export class AuthService {
     );
     const u = rows[0];
     if (u && !u.was_verified) {
-      void this.mailer.send({ to: u.email, template: "auth.welcome", locale: this.locale(u.locale), userId, data: { name: u.display_name ?? u.email, url: this.env.WEB_BASE_URL } });
+      await this.mailer.send({ to: u.email, template: "auth.welcome", locale: this.locale(u.locale), userId, data: { name: u.display_name ?? u.email, url: this.env.WEB_BASE_URL } });
     }
     return { verified: true as const };
   }
@@ -240,7 +241,7 @@ export class AuthService {
     const sent = (await this.db.query<{ n: number }>("SELECT count(*)::int AS n FROM auth_tokens WHERE user_id = $1 AND purpose = 'verify_email' AND created_at > now() - interval '1 hour'", [userId])).rows[0]!.n;
     if (sent >= RESEND_MAX_PER_HOUR) throw new AppError("RATE_LIMITED", "Ya solicitaste varios correos. Intenta de nuevo en una hora.");
     const token = await this.issueToken("verify_email", userId, { hours: VERIFY_HOURS });
-    void this.mailer.send({ to: u.email, template: "auth.verify_email", locale: this.locale(u.locale), userId, data: { name: u.display_name ?? u.email, url: this.link("/verificar-correo", token), hours: VERIFY_HOURS } });
+    await this.mailer.send({ to: u.email, template: "auth.verify_email", locale: this.locale(u.locale), userId, data: { name: u.display_name ?? u.email, url: this.link("/verificar-correo", token), hours: VERIFY_HOURS } });
   }
 
   // ---------- Contraseñas ----------
@@ -250,7 +251,7 @@ export class AuthService {
     const u = rows[0];
     if (!u) return; // la respuesta es idéntica exista o no la cuenta (no se revela qué correos están registrados)
     const token = await this.issueToken("reset_password", u.id, { minutes: RESET_MINUTES });
-    void this.mailer.send({ to: u.email, template: "auth.reset_password", locale: this.locale(u.locale), userId: u.id, data: { name: u.display_name ?? u.email, url: this.link("/reset-password", token), minutes: RESET_MINUTES } });
+    await this.mailer.send({ to: u.email, template: "auth.reset_password", locale: this.locale(u.locale), userId: u.id, data: { name: u.display_name ?? u.email, url: this.link("/reset-password", token), minutes: RESET_MINUTES } });
   }
 
   async resetPassword(input: { token: string; password: string }) {
@@ -288,7 +289,7 @@ export class AuthService {
   private async notifyPasswordChanged(userId: string) {
     const { rows } = await this.db.query<UserRow>(`${USER_SQL} WHERE u.id = $1`, [userId]);
     const u = rows[0];
-    if (u) void this.mailer.send({ to: u.email, template: "auth.password_changed", locale: this.locale(u.locale), userId, data: { name: u.display_name ?? u.email } });
+    if (u) await this.mailer.send({ to: u.email, template: "auth.password_changed", locale: this.locale(u.locale), userId, data: { name: u.display_name ?? u.email } });
   }
 
   // ---------- Dispositivos ----------

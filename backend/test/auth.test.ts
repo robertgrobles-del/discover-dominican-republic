@@ -243,6 +243,7 @@ describe("autenticación", () => {
       const limited = await app.inject({ method: "POST", url: "/api/v1/auth/resend-verification", headers: h });
       expect(limited.statusCode).toBe(429);
 
+      await app.mailer.drain();
       const fresh = tokenFrom(email, "auth.verify_email");
       await post("/auth/verify-email", { token: fresh });
       const done = await app.inject({ method: "POST", url: "/api/v1/auth/resend-verification", headers: h });

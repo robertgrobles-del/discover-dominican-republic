@@ -46,8 +46,9 @@ describe("correo por SMTP (mismo camino que Mailpit/SES)", () => {
     expect(res.statusCode).toBe(201);
     expect(json(res).data.tokens.access_token).toBeTruthy();
     await app.mailer.drain();
-    const log = (await pool.query("SELECT status, error FROM email_log WHERE to_email = $1", [email])).rows[0];
-    expect(log.status).toBe("failed");
+    // El primer fallo no descarta el correo: queda en cola con un reintento programado.
+    const log = (await pool.query("SELECT status, error, attempts, next_attempt_at > now() + interval '30 seconds' AS later FROM email_log WHERE to_email = $1", [email])).rows[0];
+    expect(log).toMatchObject({ status: "queued", attempts: 1, later: true });
     expect(log.error).toBeTruthy();
     await app.close();
   });
