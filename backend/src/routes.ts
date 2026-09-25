@@ -11,6 +11,9 @@ import { registerGameJobs } from "./modules/game/jobs.js";
 import { PlayService } from "./modules/game/play.js";
 import { StoreService } from "./modules/store/service.js";
 import { storeRoutes } from "./modules/store/routes.js";
+import { LiveService } from "./modules/live/service.js";
+import { liveRoutes, registerLiveJobs } from "./modules/live/routes.js";
+import { discoverRoutes } from "./modules/discover/routes.js";
 import { gameAdminRoutes } from "./modules/game/admin.js";
 import { gameRoutes } from "./modules/game/routes.js";
 import { GameService } from "./modules/game/service.js";
@@ -42,6 +45,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   app.decorate("bookings", new BookingService(app.db, app.env, promotions, app.gateway, app.mailer, app.log));
   const store = new StoreService(app.db, app.env, app.gateway, app.mailer, app.log);
   app.decorate("store", store);
+  app.decorate("live", new LiveService(app.db, app.env, app.log));
   const game = new GameService(app.db);
   app.decorate("game", game);
   app.decorate("play", new PlayService(app.db, game));
@@ -54,6 +58,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   app.decorate("payouts", payouts);
   app.decorate("jobs", runner);
   registerGameJobs(app, runner);
+  registerLiveJobs(app, runner);
   runner.register({ name: "orders.auto_cancel", description: "Cancela pedidos de la tienda sin cobrar tras 60 min y devuelve stock y cupón", everySeconds: 900, run: async () => ({ cancelled: await store.cancelUnpaid(60) }) });
   registerOperatorJobs({ db: app.db, env: app.env, mailer: app.mailer, runner, automations, ical, payouts });
   if (app.env.JOBS_ENABLED) { runner.start(); app.addHook("onClose", async () => { await runner.stop(); }); }
@@ -77,6 +82,8 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(campaignRoutes);
       await v1.register(gameRoutes);
       await v1.register(storeRoutes);
+      await v1.register(discoverRoutes);
+      await v1.register(liveRoutes);
       await v1.register(gameAdminRoutes);
       await v1.register(paymentWebhookRoutes);
     },

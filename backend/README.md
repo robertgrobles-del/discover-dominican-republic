@@ -244,6 +244,15 @@ Pendiente del §5.11: pasaporte con sellos por GPS/QR, rutas gamificadas con che
 
 Pendiente del §5.9: Marketplace de vendedores (productos y liquidaciones a vendedores), `/ambassadors/track` y `track-sale`.
 
+## Búsqueda, mapa y datos vivos
+
+- **Búsqueda** (`GET /search`, `/search/suggest`, `/search/popular`): global sobre las colecciones con título, sin acentos ni mayúsculas y tolerante a errores leves (trigramas); ordena por relevancia (exacta > prefijo > contiene > similar), respeta la visibilidad pública y admite `types=`. Las consultas se registran sin datos personales como eventos `search` para las "búsquedas frecuentes".
+- **Mapa y ubicación**: `GET /map/layers`, `GET /map/features?layer=&bbox=` (GeoJSON de una o varias capas), `GET /geo/nearby` (varias colecciones, del más cercano al más lejano), `GET /geo/reverse` (provincia, municipio y destino a menos de 60 km) y `GET /recommendations/home` (secciones de portada; con sesión se priorizan los tipos que el usuario guarda y se omite lo que ya marcó).
+- **Datos vivos** (`/live/*`, `/lotteries`, `/utils/convert`): tasas con historial y conversor (punto medio compra/venta, pasando por DOP; sin tasa cargada sólo el dólar usa `DEFAULT_USD_DOP`), combustibles con variación semanal, loterías con sorteos y resultados, clima y pronóstico por ciudad (con marca `stale` si tiene más de 3 h), alertas vigentes por gravedad, estado del mar, reportes marinos, webcams, eventos de hoy y zonas horarias.
+- **Proveedores externos**, apagados por defecto (`*_PROVIDER=none`): `FX_PROVIDER=open_er_api` (tasas cada 30 min con margen `FX_SPREAD_PCT`) y `WEATHER_PROVIDER=openweather` con `OPENWEATHER_API_KEY` (clima y pronóstico de 8 ciudades). Se validan los datos recibidos (una tasa absurda no se guarda) y un fallo conserva lo último conocido. Combustibles y loterías no tienen API pública fiable: los carga el equipo (`/admin/fuel_prices`, `/admin/lotteries`, `/admin/lottery_results`, …, roles admin y editor, con el CRUD genérico de tablas). `POST /admin/live/refresh?source=fx|weather` fuerza la actualización.
+
+Pendiente del §5.4/§5.5: asistente y generadores con IA (`/ai/*`), calculadoras y herramientas (`/calculators/*`, `/tools/*`), vuelos y traducción de resultados de búsqueda.
+
 ## Correo
 
 `app.mailer.send({ to, template, data, locale })` **encola** en la tabla `email_log` y vuelve; un trabajador (en el mismo proceso, `MAIL_WORKER_ENABLED`, o en otro) toma los pendientes con `FOR UPDATE SKIP LOCKED`, así que varias instancias nunca envían dos veces. Reintenta con espera creciente (1 min, 5 min, 30 min, 2 h, 12 h) hasta `MAIL_MAX_ATTEMPTS` y luego marca `failed`; los mensajes que quedaron `sending` por un proceso caído se recuperan. Si se pasa la conexión de una transacción (`send(input, client)`) el correo forma parte de ella (outbox transaccional: el registro y su correo se guardan juntos o no se guarda ninguno).
