@@ -182,7 +182,12 @@ export async function operatorRoutes(app: FastifyInstance) {
   r.put("/org/bookings/:id/status", { preHandler: org(), schema: { tags: ["operadores"], summary: "Cambia el estado (cancelar reembolsa todo)", security: bearer, params: id.extend({ id: z.string().uuid() }), body: z.object({ status: z.enum(["confirmed", "in_progress", "completed", "cancelled"]), reason: z.string().max(300).optional() }), response: { 200: ok } } }, async (req) => {
     await bookings.getForOrg(req.member!.org_id, req.params.id, only(req.member!));
     if (req.member!.role === "guia" && req.body.status !== "in_progress" && req.body.status !== "completed") throw new AppError("FORBIDDEN", "Tu rol no permite esta acción");
-    return { data: await bookings.setStatus(req.member!.org_id, req.params.id, req.body.status, { reason: req.body.reason }) };
+    const updated = await bookings.setStatus(req.member!.org_id, req.params.id, req.body.status, { reason: req.body.reason });
+    if (updated.status === "completed") {
+      const uid = (await app.db.query<{ user_id: string | null }>("SELECT user_id FROM bookings WHERE id = $1", [req.params.id])).rows[0]?.user_id;
+      if (uid) await app.game.safeGrant({ userId: uid, action: "booking_completed", ref: req.params.id, description: "Reserva completada" }, req.log);
+    }
+    return { data: updated };
   });
   r.patch("/org/bookings/:id", { preHandler: org("owner", "admin", "recepcion"), schema: { tags: ["operadores"], summary: "Notas internas", security: bearer, params: id.extend({ id: z.string().uuid() }), body: z.object({ notes: z.string().max(1000).nullable() }), response: { 200: ok } } }, async (req) => ({ data: await bookings.updateNotes(req.member!.org_id, req.params.id, req.body.notes) }));
   r.post("/org/bookings/:id/payments", { preHandler: org("owner", "admin", "recepcion"), schema: { tags: ["operadores"], summary: "Registra un cobro manual (efectivo, transferencia)", security: bearer, params: id.extend({ id: z.string().uuid() }), body: z.object({ amount: z.number().gt(0), method: z.enum(["cash", "transfer", "card_present", "other"]).optional() }), response: { 200: ok } } }, async (req) => ({ data: await bookings.addManualPayment(req.member!.org_id, req.params.id, req.body, req.user!.id) }));

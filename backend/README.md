@@ -218,6 +218,21 @@ Cada colección pública tiene su administración bajo `/admin/{colección}` (p.
 - **Sitio**: `GET/PUT/DELETE /admin/settings/{clave}` y `GET /site/settings` (sólo los marcados públicos), `/admin/seo_redirections` con detección de bucles y `GET /redirects`, `GET /admin/dashboard`, `GET /admin/system/health` y `GET /admin/audit-logs` (con `?format=csv`).
 - **Sesiones**: un token de acceso deja de servir en cuanto su sesión se revoca (cierre de sesión, suspensión, cambio de roles o de contraseña, reset de 2FA); se comprueba con una caché de 5 s.
 
+## Gamificación
+
+Una sola puerta de escritura: `GameService.grant()` (transaccional, con el jugador bloqueado). Los puntos los fija la tabla `gamification_rules` (XP, monedas, tope diario, enfriamiento y unicidad por referencia); **el cliente sólo informa qué hizo, nunca cifras**. Cada concesión queda en `gamification_transactions`.
+
+- **Acciones**: los módulos otorgan por su cuenta lo que pueden verificar (reseña aprobada, favorito, publicación y comentario en RD Social, reserva completada). `POST /gamification/actions` sólo admite acciones marcadas `client_allowed` (visitar página, compartir, lugar visitado) y las insistencias contra el tope suman una bandera antifraude (`user_flags`).
+- **Perfil**: `GET /gamification/me` (XP, monedas, nivel y progreso, racha, insignias, liga y puesto), `/me/transactions` (cursor), `/levels`, `/rules`, `/leaderboard?scope=season|week|all`, `/seasons/current`, `/leagues`.
+- **Retención**: `check-in` diario en hora de RD (la racha multiplica el XP: 3 días ×1,2 · 7 ×1,5 · 14 ×2 · 30 ×2,5), `early-bird` (antes de las 8:00), `streak-bonus` (7/14/30/60/100 días, una vez por hito) e hitos de XP.
+- **Misiones** (diarias/semanales/especiales) avanzan solas con las acciones reales y pagan una vez por período. **Logros** con condición evaluada en el servidor (`xp>=N`, `level>=N`, `streak>=N`, `missions>=N`, `referrals>=N`, `action:<acción>>=N`); los secretos se ocultan hasta desbloquearse.
+- **Premios**: `POST /gamification/prizes/{id}/redeem` descuenta monedas y stock en una transacción (nunca se vende más que el stock), genera el código y, si es físico, crea el envío; el admin lo avanza `pending → packed → shipped → delivered`.
+- **Trivia**: las preguntas se entregan sin la respuesta, se corrigen en el servidor y el XP sale de los aciertos (con tope por partida). **Referidos**: un código por persona, se aplica una vez, en cuentas nuevas con correo verificado.
+- **Trabajos**: `gamification.streaks` (rachas rotas), `gamification.leagues` (liga y premio semanal) y `gamification.season_rollover` (reparte `top_rewards` y abre la siguiente temporada).
+- **Admin**: `POST /gamification/xp/award` (con motivo, auditado), `/admin/gamification/stats`, `/admin/gamification/shipments`, cierre de temporada, y CRUD de `achievements`, `gamification_levels|missions|prizes|rules|seasons|leagues`, `trivia_questions` y `xp_milestones` bajo `/admin/{tabla}`.
+
+Pendiente del §5.11: pasaporte con sellos por GPS/QR, rutas gamificadas con checkpoints, coleccionables, retos de foto, gremios y embajadores.
+
 ## Correo
 
 `app.mailer.send({ to, template, data, locale })` **encola** en la tabla `email_log` y vuelve; un trabajador (en el mismo proceso, `MAIL_WORKER_ENABLED`, o en otro) toma los pendientes con `FOR UPDATE SKIP LOCKED`, así que varias instancias nunca envían dos veces. Reintenta con espera creciente (1 min, 5 min, 30 min, 2 h, 12 h) hasta `MAIL_MAX_ATTEMPTS` y luego marca `failed`; los mensajes que quedaron `sending` por un proceso caído se recuperan. Si se pasa la conexión de una transacción (`send(input, client)`) el correo forma parte de ella (outbox transaccional: el registro y su correo se guardan juntos o no se guarda ninguno).

@@ -103,6 +103,7 @@ export async function socialRoutes(app: FastifyInstance) {
       "INSERT INTO social_posts (user_id, content, image_url, gallery, location, destination_id, entity_ref) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id",
       [me, b.content, image ?? null, gallery.length ? JSON.stringify(gallery) : null, b.location ?? null, b.destination_id ?? null, b.entity_ref ? JSON.stringify(b.entity_ref) : null],
     )).rows[0]!;
+    await app.game.safeGrant({ userId: me, action: "social_post", ref: row.id, description: "Publicación en RD Social" }, req.log);
     reply.code(201);
     return { data: { id: row.id } };
   });
@@ -159,8 +160,8 @@ export async function socialRoutes(app: FastifyInstance) {
     const c = (await db.query<{ id: string; created_at: Date }>("INSERT INTO social_comments (user_id, post_id, content) VALUES ($1,$2,$3) RETURNING id, created_at", [req.user!.id, req.params.id, req.body.content])).rows[0]!;
     await db.query("UPDATE social_posts SET comments_count = comments_count + 1 WHERE id = $1", [req.params.id]);
     reply.code(201);
-    // xp_awarded lo calculará el módulo de gamificación (docs §5.11); hasta entonces siempre es 0.
-    return { data: { comment: { id: c.id, content: req.body.content, created_at: c.created_at.toISOString() }, xp_awarded: 0 } };
+    const g = await app.game.safeGrant({ userId: req.user!.id, action: "social_comment", ref: c.id, description: "Comentario en RD Social" }, req.log);
+    return { data: { comment: { id: c.id, content: req.body.content, created_at: c.created_at.toISOString() }, xp_awarded: g?.granted.xp ?? 0, level_up: g?.level_up ?? null } };
   });
 
   r.delete("/social/comments/:id", { preHandler: app.authenticate, schema: { tags: ["social"], summary: "Borra un comentario (dueño o moderador)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {

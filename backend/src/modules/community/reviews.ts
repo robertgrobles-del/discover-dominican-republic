@@ -76,7 +76,7 @@ export async function reviewRoutes(app: FastifyInstance) {
         `INSERT INTO reviews (user_id, entity_type, entity_id, rating, title, comment, visit_date, status, is_approved, moderation_note) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
         [req.user!.id, b.entity_type, b.entity_id, b.rating, b.title ?? null, b.comment ?? null, b.visit_date ?? null, status, status === "approved", reasons.join(",") || null],
       )).rows[0]!;
-      if (status === "approved") await refresh(b.entity_type, b.entity_id);
+      if (status === "approved") { await refresh(b.entity_type, b.entity_id); await app.game.safeGrant({ userId: req.user!.id, action: "review_created", ref: row.id, description: "Reseña publicada" }, req.log); }
       reply.code(201);
       return { data: { id: row.id, status, ...(status === "pending" ? { message: "Tu reseña está en revisión y se publicará pronto." } : {}) } };
     } catch (e) {
@@ -177,12 +177,13 @@ export async function reviewRoutes(app: FastifyInstance) {
     preHandler: mod,
     schema: { tags: ["admin"], summary: "Aprueba o rechaza una reseña", security: bearer, params: uuid, body: z.object({ status: z.enum(["approved", "rejected"]), note: z.string().trim().max(300).optional() }), response: { 204: z.null() } },
   }, async (req, reply) => {
-    const rev = (await db.query<{ entity_type: string; entity_id: string }>(
-      "UPDATE reviews SET status = $2, is_approved = ($2 = 'approved'), moderation_note = coalesce($3, moderation_note), report_count = CASE WHEN $2 = 'approved' THEN 0 ELSE report_count END WHERE id = $1 RETURNING entity_type, entity_id", [req.params.id, req.body.status, req.body.note ?? null],
+    const rev = (await db.query<{ entity_type: string; entity_id: string; user_id: string }>(
+      "UPDATE reviews SET status = $2, is_approved = ($2 = 'approved'), moderation_note = coalesce($3, moderation_note), report_count = CASE WHEN $2 = 'approved' THEN 0 ELSE report_count END WHERE id = $1 RETURNING entity_type, entity_id, user_id", [req.params.id, req.body.status, req.body.note ?? null],
     )).rows[0];
     if (!rev) throw AppError.notFound("Reseña");
     if (req.body.status === "approved") await db.query("DELETE FROM review_reports WHERE review_id = $1", [req.params.id]);
     await refresh(rev.entity_type, rev.entity_id);
+    if (req.body.status === "approved") await app.game.safeGrant({ userId: rev.user_id, action: "review_created", ref: req.params.id, description: "Reseña aprobada" }, req.log);
     await audit(db, { actor: req.user!.id, action: `review.${req.body.status}`, entity: "review", id: req.params.id, meta: { note: req.body.note }, ip: req.ip });
     reply.code(204);
     return null;

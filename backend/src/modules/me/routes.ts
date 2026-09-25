@@ -106,7 +106,8 @@ export async function meRoutes(app: FastifyInstance) {
   r.put("/me/favorites/:entity_type/:entity_id", { preHandler: auth, config: { rateLimit: { max: 120, timeWindow: "1 minute" } }, schema: { tags: ["perfil"], summary: "Marca un favorito (idempotente)", security: bearer, params: favParams, response: { 204: z.null() } } }, async (req, reply) => {
     const n = (await db.query<{ n: number }>("SELECT count(*)::int AS n FROM favorites WHERE user_id = $1", [req.user!.id])).rows[0]!.n;
     if (n >= 2000) throw new AppError("BUSINESS_RULE", "Llegaste al máximo de favoritos", { code: "FAVORITES_LIMIT" });
-    await db.query("INSERT INTO favorites (user_id, entity_type, entity_id) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING", [req.user!.id, req.params.entity_type, req.params.entity_id]);
+    const ins = await db.query("INSERT INTO favorites (user_id, entity_type, entity_id) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING", [req.user!.id, req.params.entity_type, req.params.entity_id]);
+    if (ins.rowCount) await app.game.safeGrant({ userId: req.user!.id, action: "favorite_added", ref: `${req.params.entity_type}:${req.params.entity_id}` }, req.log);
     reply.code(204);
     return null;
   });

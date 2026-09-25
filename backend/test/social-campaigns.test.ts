@@ -116,7 +116,7 @@ describe("RD Social, encuestas, concursos y vacaciones", () => {
       expect((await call("POST", `/social/posts/${id}/comments`, { token: b.token, payload: { content: "Visita www.spam.com ya" } })).statusCode).toBe(422);
       const c = await call("POST", `/social/posts/${id}/comments`, { token: b.token, payload: { content: "¡Qué lugar tan lindo!" } });
       expect(c.statusCode).toBe(201);
-      expect(json(c).data.xp_awarded).toBe(0);
+      expect(json(c).data.xp_awarded).toBe(2); // regla social_comment de la gamificación
       expect((await call("POST", `/social/posts/${id}/comments`, { token: b.token, payload: { content: "¡Qué lugar tan lindo!" } })).statusCode).toBe(409);
       expect((await likes()).comments_count).toBe(1);
       const list = json(await call("GET", `/social/posts/${id}/comments`));

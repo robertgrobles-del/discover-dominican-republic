@@ -7,6 +7,11 @@ import { paymentWebhookRoutes } from "./modules/payments/webhooks.js";
 import { BookingService } from "./modules/operators/bookings.js";
 import { CatalogService } from "./modules/operators/catalog.js";
 import { PromotionService } from "./modules/operators/promotions.js";
+import { registerGameJobs } from "./modules/game/jobs.js";
+import { PlayService } from "./modules/game/play.js";
+import { gameAdminRoutes } from "./modules/game/admin.js";
+import { gameRoutes } from "./modules/game/routes.js";
+import { GameService } from "./modules/game/service.js";
 import { JobRunner } from "./modules/jobs/runner.js";
 import { registerOperatorJobs } from "./modules/operators/jobs.js";
 import { PayoutService } from "./modules/operators/payouts.js";
@@ -33,6 +38,9 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   app.decorate("catalog", new CatalogService(app.db, app.env, app.log));
   app.decorate("promotions", promotions);
   app.decorate("bookings", new BookingService(app.db, app.env, promotions, app.gateway, app.mailer, app.log));
+  const game = new GameService(app.db);
+  app.decorate("game", game);
+  app.decorate("play", new PlayService(app.db, game));
   const ical = new IcalService(app.db, app.log);
   const automations = new AutomationService(app.db, app.env, app.mailer, ical, app.log);
   app.decorate("ical", ical);
@@ -41,6 +49,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   const runner = new JobRunner(app.db, app.log);
   app.decorate("payouts", payouts);
   app.decorate("jobs", runner);
+  registerGameJobs(app, runner);
   registerOperatorJobs({ db: app.db, env: app.env, mailer: app.mailer, runner, automations, ical, payouts });
   if (app.env.JOBS_ENABLED) { runner.start(); app.addHook("onClose", async () => { await runner.stop(); }); }
   await app.register(healthRoutes, { version });
@@ -61,6 +70,8 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(reviewRoutes);
       await v1.register(socialRoutes);
       await v1.register(campaignRoutes);
+      await v1.register(gameRoutes);
+      await v1.register(gameAdminRoutes);
       await v1.register(paymentWebhookRoutes);
     },
     { prefix: "/api/v1" },
