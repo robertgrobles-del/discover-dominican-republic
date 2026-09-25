@@ -32,7 +32,7 @@ export default function CalendarSync({ room, listingTitle, bookings, onChange }:
     const ics = buildIcs(`${listingTitle} — ${room.name}`, mine);
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
-    a.download = `${room.name.normalize("NFD").replace(/[0300-036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-") || "habitacion"}.ics`;
+    a.download = `${room.name.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-") || "habitacion"}.ics`;
     a.click();
     URL.revokeObjectURL(a.href);
     toast.success(`Calendario exportado (${mine.filter((b) => b.status !== "cancelled").length} reservas)`);
