@@ -253,6 +253,12 @@ Pendiente del §5.9: Marketplace de vendedores (productos y liquidaciones a vend
 
 Pendiente del §5.4/§5.5: asistente y generadores con IA (`/ai/*`), calculadoras y herramientas (`/calculators/*`, `/tools/*`), vuelos y traducción de resultados de búsqueda.
 
+### Calculadoras y herramientas
+
+`POST /calculators/{budget|tax|confotur|carbon|tolls|packing-list}` son funciones puras (`src/modules/tools/calculators.ts`) con las reglas que hoy viven en el frontend: presupuesto por rubro y estilo (vuelos una sola vez), cuenta con ITBIS 18 % + propina de ley 10 %, beneficios CONFOTUR (transferencia 3 %, IPI 1 %, ISR 20 % de rentas, activos 1 % de empresas, hasta 15 años), huella de carbono (vuelo 0,115 kg/km por pasajero, guagua, lancha, vehículo compartido; árboles a 22 kg/año) con proyectos de compensación del CMS, peajes de las rutas publicadas y lista de empaque según días, clima y actividades. Las cifras se ajustan en `site_settings` (`calculators.budget|tax|confotur|carbon`): sólo se aceptan números no negativos de campos que ya existen (`GET /admin/calculators/defaults` muestra lo vigente).
+
+Herramientas: `GET /tools/dictionary` (sin acentos), `/tools/phrases?lang=`, `/tools/requirements?country=`, ofertas de afiliados `/tools/{esim|insurance|prepaid-card}` con `POST …/lead` (consentimiento obligatorio, campo trampa, guarda en `marketing_leads`). Glosario, frases, requisitos, distancias de vuelo y ofertas se editan en `/admin/{dictionary_terms|travel_phrases|entry_requirements|flight_routes|affiliate_offers}` (admin y editor).
+
 ## Correo
 
 `app.mailer.send({ to, template, data, locale })` **encola** en la tabla `email_log` y vuelve; un trabajador (en el mismo proceso, `MAIL_WORKER_ENABLED`, o en otro) toma los pendientes con `FOR UPDATE SKIP LOCKED`, así que varias instancias nunca envían dos veces. Reintenta con espera creciente (1 min, 5 min, 30 min, 2 h, 12 h) hasta `MAIL_MAX_ATTEMPTS` y luego marca `failed`; los mensajes que quedaron `sending` por un proceso caído se recuperan. Si se pasa la conexión de una transacción (`send(input, client)`) el correo forma parte de ella (outbox transaccional: el registro y su correo se guardan juntos o no se guarda ninguno).
