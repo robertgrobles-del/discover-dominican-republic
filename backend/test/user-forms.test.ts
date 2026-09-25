@@ -111,10 +111,12 @@ describe("usuario y formularios", () => {
       expect(del.statusCode).toBe(200);
       expect(json(del).data.grace_days).toBe(30);
       expect((await pool.query("SELECT 1 FROM refresh_tokens WHERE user_id = $1 AND revoked_at IS NULL", [u.id])).rowCount).toBe(0);
-      expect((await call("POST", "/me/deletion/cancel", { token: u.token })).statusCode).toBe(204);
-      expect(json(await call("GET", "/me/profile", { token: u.token })).data.deletion_requested_at).toBeNull();
+      expect((await call("POST", "/me/deletion/cancel", { token: u.token })).statusCode).toBe(401); // la sesión anterior ya no sirve
+      const back = json(await call("POST", "/auth/login", { payload: { email: u.email, password: PW } })).data.tokens.access_token as string;
+      expect((await call("POST", "/me/deletion/cancel", { token: back })).statusCode).toBe(204);
+      expect(json(await call("GET", "/me/profile", { token: back })).data.deletion_requested_at).toBeNull();
 
-      await call("DELETE", "/me", { token: u.token, payload: { password: PW } });
+      await call("DELETE", "/me", { token: back, payload: { password: PW } });
       await app.jobs.runNow("gdpr.process"); // aún dentro de la gracia: no toca nada
       expect((await pool.query("SELECT status FROM users WHERE id = $1", [u.id])).rows[0].status).toBe("active");
       await pool.query("UPDATE profiles SET deletion_requested_at = now() - interval '31 days' WHERE id = $1", [u.id]);

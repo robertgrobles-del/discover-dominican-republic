@@ -206,6 +206,18 @@ Moderación automática: enlaces, datos de contacto, MAYÚSCULAS, caracteres rep
 - **Concursos**: `GET /contests[/{slug}]`, `POST /contests/{slug}/register` (abierto, una vez, correo verificado, edad mínima, cupo máximo), `GET /contests/{slug}/winners` (nombre abreviado). Admin: crear, ver inscritos y `POST /admin/contests/{slug}/draw` (sorteo al azar al terminar).
 - **Vacaciones**: `POST /vacation-registrations` (visitantes con contacto o usuarios con cuenta).
 
+## Administración del portal (CMS integrado)
+
+Cada colección pública tiene su administración bajo `/admin/{colección}` (p. ej. `/admin/beaches`), generada a partir de `manifest.json`; roles `editor` y `admin`. Los endpoints no se listan uno por uno en `/docs`: `GET /admin/{colección}/schema` describe los campos (tipo, editable, buscable, filtrable) para construir formularios.
+
+- **CRUD**: `GET` (todos los estados; `q`, `status`, `filter[col]`, `sort`, `deleted=true`), `POST` (siempre crea un **borrador**; genera un slug único), `PATCH` (**exige `version`**: si otra persona editó antes, responde 409 `VERSION_CONFLICT` con la versión actual), `DELETE` (lógico; `?hard=true` sólo admin). El esquema de entrada es estricto: una columna desconocida o gestionada por el sistema (`status`, `version`, `created_by`…) es un 400.
+- **Flujo editorial**: `submit-review` (editor) → `publish` / `unpublish` / `archive` (sólo admin). Publicar valida slug y título, acepta `publish_at` futuro y mantiene `is_active` coherente con el estado. Cambiar el slug conserva el anterior en `slug_history`.
+- **Revisiones**: cada cambio guarda una versión (`content_revisions`); `GET …/{id}/revisions` y `POST …/{id}/restore/{version}`. Editar contenido publicado tiene efecto inmediato (no hay "copia de trabajo"); el historial permite volver atrás.
+- **Masivo, importación y exportación**: `POST …/bulk` (publicar, archivar, borrar o `set_field`; informa `ok` y `failed`), `POST …/import` (filas JSON, upsert por slug, `dry_run` por defecto, todo o nada) y `GET …/export?format=csv|json` (el CSV neutraliza fórmulas).
+- **Usuarios** (`/admin/users`): listado con filtros, detalle, `PUT …/roles` (no los propios ni el último admin), `suspend`/`unsuspend`, `reset-password`; todo auditado y cierra las sesiones afectadas.
+- **Sitio**: `GET/PUT/DELETE /admin/settings/{clave}` y `GET /site/settings` (sólo los marcados públicos), `/admin/seo_redirections` con detección de bucles y `GET /redirects`, `GET /admin/dashboard`, `GET /admin/system/health` y `GET /admin/audit-logs` (con `?format=csv`).
+- **Sesiones**: un token de acceso deja de servir en cuanto su sesión se revoca (cierre de sesión, suspensión, cambio de roles o de contraseña, reset de 2FA); se comprueba con una caché de 5 s.
+
 ## Correo
 
 `app.mailer.send({ to, template, data, locale })` **encola** en la tabla `email_log` y vuelve; un trabajador (en el mismo proceso, `MAIL_WORKER_ENABLED`, o en otro) toma los pendientes con `FOR UPDATE SKIP LOCKED`, así que varias instancias nunca envían dos veces. Reintenta con espera creciente (1 min, 5 min, 30 min, 2 h, 12 h) hasta `MAIL_MAX_ATTEMPTS` y luego marca `failed`; los mensajes que quedaron `sending` por un proceso caído se recuperan. Si se pasa la conexión de una transacción (`send(input, client)`) el correo forma parte de ella (outbox transaccional: el registro y su correo se guardan juntos o no se guarda ninguno).

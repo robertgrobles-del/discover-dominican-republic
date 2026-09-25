@@ -219,6 +219,6 @@ describe("Operadores RD fase B", () => {
     expect(app.mailer.last(victim.email, "auth.two_factor_reset")).toBeTruthy();
     const log = json(await call("GET", `/admin/audit?action=user.2fa_reset&entity_id=${victim.id}`, { token: adminToken })).data;
     expect(log[0]).toMatchObject({ actor_id: admin.id, meta: { reason: "Perdió su teléfono" } });
-    expect((await call("GET", "/admin/audit", { token: victim.token })).statusCode).toBe(403);
+    expect((await call("GET", "/admin/audit", { token: victim.token })).statusCode).toBe(401); // sus sesiones se cerraron con el reset
   });
 });

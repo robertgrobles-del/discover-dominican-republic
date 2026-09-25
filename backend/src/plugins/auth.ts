@@ -32,10 +32,23 @@ export async function registerAuth(app: FastifyInstance) {
   if (app.env.MAIL_WORKER_ENABLED) mailer.start();
   app.addHook("onClose", async () => { await mailer.stop(); });
 
+  const SESSION_CACHE_MS = app.env.NODE_ENV === "test" ? 0 : 5000; // la revocación se nota en, como mucho, 5 s
+  const sessions = new Map<string, { ok: boolean; at: number }>();
+  const sessionActive = async (sid: string, userId: string): Promise<boolean> => {
+    const k = `${sid}:${userId}`, hit = sessions.get(k);
+    if (hit && Date.now() - hit.at < SESSION_CACHE_MS) return hit.ok;
+    const ok = !!(await app.db.query("SELECT 1 FROM refresh_tokens WHERE family_id = $1 AND user_id = $2 AND revoked_at IS NULL AND expires_at > now() LIMIT 1", [sid, userId])).rowCount;
+    if (SESSION_CACHE_MS) { if (sessions.size > 10_000) sessions.clear(); sessions.set(k, { ok, at: Date.now() }); }
+    return ok;
+  };
+
   const authenticate = async (req: FastifyRequest) => {
     const header = req.headers.authorization;
     if (!header?.startsWith("Bearer ")) throw new AppError("UNAUTHENTICATED", "Falta el token de acceso");
     const c = await tokens.verifyAccess(header.slice(7).trim());
+    // Un token firmado sigue siendo válido hasta que vence, pero si su sesión se cerró (cierre de sesión, suspensión, cambio de roles o
+    // de contraseña, reset de 2FA) debe dejar de servir ya: se comprueba que la sesión siga viva, con una caché corta para no golpear la base en cada petición.
+    if (!(await sessionActive(c.sid, c.sub))) throw new AppError("UNAUTHENTICATED", "La sesión ya no es válida");
     req.user = { id: c.sub, roles: c.roles, locale: c.locale, sid: c.sid, mfa: c.mfa };
   };
   app.decorate("authenticate", authenticate);
