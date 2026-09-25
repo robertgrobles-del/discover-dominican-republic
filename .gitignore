@@ -25,11 +25,3 @@ server/.env
 *.njsproj
 *.sln
 *.sw?
-
-# Strapi (cms/): base SQLite local, caché del panel, archivos subidos y tipos generados. En producción Strapi se despliega aparte.
-cms/.tmp/
-cms/.strapi/
-cms/.strapi-updater.json
-cms/build/
-cms/public/uploads/
-cms/types/generated/
