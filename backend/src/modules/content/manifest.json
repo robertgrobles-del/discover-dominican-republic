@@ -213,6 +213,128 @@
    "nullable": true
   }
  },
+ "airports": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": true
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "iata_code": {
+   "type": "text",
+   "nullable": true
+  },
+  "airport_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "city": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "airlines": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "services": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "transport": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
  "articles": {
   "id": {
    "type": "uuid",
@@ -1651,6 +1773,18 @@
   "version": {
    "type": "integer",
    "nullable": false
+  },
+  "region": {
+   "type": "text",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "average_temperature": {
+   "type": "text",
+   "nullable": true
   }
  },
  "emergency_contacts": {
@@ -2817,6 +2951,14 @@
   "version": {
    "type": "integer",
    "nullable": false
+  },
+  "price_from_usd": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "booking_url": {
+   "type": "text",
+   "nullable": true
   }
  },
  "job_vacancies": {

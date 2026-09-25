@@ -9,13 +9,14 @@ Diseño completo, endpoints previstos y roadmap: [`../docs/BACKEND_API.md`](../d
 |---|---|
 | Servidor | Fastify 5, validación con Zod, envoltorio de errores único, `X-Request-Id`, helmet, CORS, ETag/304 |
 | Contrato | OpenAPI 3.1 en `/openapi.json` y UI en `/docs` (230 operaciones descritas con su esquema real) |
-| Esquema | 138 tablas en PostgreSQL (migraciones `0001`–`0012`), gobierno CMS, roles, auditoría, slugs, búsqueda |
+| Esquema | 138 tablas en PostgreSQL (migraciones `0001`–`0013`), gobierno CMS, roles, auditoría, slugs, búsqueda |
 | Contenido público | **43 colecciones** (`/beaches`, `/hotels`, `/restaurants`, `/events`…) con filtros, búsqueda, facetas, cercanía, relacionados, reseñas y traducciones |
 | Autenticación | Registro, login, refresh con rotación, verificación de correo, contraseñas, dispositivos, **2FA (TOTP)**, **login social (Google/OIDC)**, roles |
 | Correo | Cola **durable en PostgreSQL** (reintentos, outbox transaccional), plantillas es/en, SMTP/Mailpit/SES |
 | Límites de tasa | Memoria, **PostgreSQL** (varias instancias, sin infraestructura extra) o Redis |
 | Claves JWT | Generador, `kid`, JWKS público y rotación sin cortar sesiones |
-| Pruebas | 159 pruebas de integración contra PostgreSQL real, un SMTP real y un proveedor OIDC local |
+| CMS | Sincronización con **Strapi** por webhook y carga completa, con idiomas, relaciones y borrado lógico |
+| Pruebas | 186 pruebas de integración contra PostgreSQL real, un SMTP real, un proveedor OIDC local y un Strapi simulado |
 
 ## Requisitos
 
@@ -53,6 +54,7 @@ npm run dev                     # http://localhost:3000  ·  docs en /docs
 | `npm run db:gen-baseline` | Regenera `0001`/`0002` desde las fuentes SQL (sólo antes del primer despliegue) |
 | `npm run db:gen-manifest` | Regenera `src/modules/content/manifest.json` (columnas de las colecciones) tras cambiar el esquema |
 | `npm run keys:generate` | Genera un par de claves RS256 para firmar JWT |
+| `npm run cms:sync` | Carga completa desde Strapi (`-- destino playa` para modelos concretos) |
 
 ## Estructura
 
@@ -148,6 +150,20 @@ Transportes: `MAIL_TRANSPORT=log` (desarrollo: el mensaje con sus enlaces sale e
 ## Límites de tasa
 
 `RATE_LIMIT_STORE=memory` (por defecto, una sola instancia) · `postgres` (tabla `rate_limits`, atómica, compartida entre instancias, sin infraestructura extra) · `redis` (`REDIS_URL`). Cada ruta con límite propio (registro, login, olvidé mi contraseña, 2FA, OAuth) tiene su contador. Si el almacén falla la API sigue respondiendo (falla abierta): los intentos de contraseña y de segundo factor siguen protegidos por el bloqueo de cuenta, que vive en la base de datos. En producción con `memory` se registra una advertencia.
+
+## CMS headless (Strapi)
+
+El equipo editorial trabaja en Strapi (`../cms`, tipos en `cms/src/api/*` y `strapi-schema-manifest.md`); esta API **refleja lo publicado** y es la que consume el portal. La sincronización vive en `src/modules/cms/`:
+
+- `mappings.ts` — correspondencia tipo de Strapi → tabla y campo por campo (`destino→destinations`, `playa→beaches`, `alojamiento→hotels`, más `experiencia` y `aeropuerto` que se activan solos en cuanto existan en el CMS). Un tipo nuevo es una entrada más.
+- `POST /api/v1/webhooks/cms` — en Strapi: *Settings → Webhooks*, URL de este endpoint, cabecera `X-Webhook-Secret` = `CMS_WEBHOOK_SECRET` (mín. 16 caracteres; sin él responde 503) y eventos *Entry* create/update/delete/publish/unpublish. Con Draft & Publish sólo `publish`, `unpublish` y `delete` cambian lo público; editar un borrador nunca toca lo publicado.
+- Con `CMS_URL` y `CMS_API_TOKEN` (token de sólo lectura) se pide a Strapi la entrada completa con sus relaciones y medios; sin ellos se usa el cuerpo del webhook.
+- `npm run cms:sync` o `POST /admin/cms/backfill` — carga completa (todos los idiomas, con paginación, destinos primero). Es idempotente.
+- Idiomas: `es` va a las columnas; los demás a `entity_translations` (que ya alimenta `?lang=`). Una traducción que llega antes que el idioma base lo pide al CMS.
+- Adopta filas existentes con el mismo slug (contenido anterior al CMS) en vez de duplicarlas; un atributo que Strapi aún no maneja no borra la columna; un evento atrasado no pisa a uno más nuevo; eliminar es borrado lógico; si cambia el slug el anterior sigue resolviendo (`slug_history`).
+- `GET /admin/cms/sync-log` y `/admin/cms/mappings` para operar y depurar.
+
+Medios: las URL relativas de Strapi (`/uploads/…`) se convierten con `CMS_PUBLIC_URL` (por defecto `CMS_URL`); las imágenes siguen alojadas en el CMS.
 
 ## Sobre el esquema generado
 

@@ -74,7 +74,7 @@ export const COLLECTIONS: CollectionDef[] = [
   // ---- Territorio ----
   def("provinces", "provinces", "province", "Provincias", "territorio", { filters: { region: "eq" }, sort: ["name", "region", "created_at"], search: ["name", "description"], translatable: ["name", "description"], listExclude: [] }),
   def("municipalities", "municipalities", "municipality", "Municipios", "territorio", { filters: { province_id: "eq", municipality_type: "eq", is_tourist_destination: "eq" }, geo, relations: province, related: ["province_id"] }),
-  def("destinations", "destinations", "destination", "Destinos", "territorio", { filters: { province_id: "eq", best_time_to_visit: "eq" }, geo, relations: province, related: ["province_id"], reviewable: true, nearbyDefault: false }),
+  def("destinations", "destinations", "destination", "Destinos", "territorio", { filters: { province_id: "eq", region: "eq", best_time_to_visit: "eq", rating: "range" }, sort: ["name", "rating", "created_at"], geo, relations: province, related: ["province_id", "region"], reviewable: true, nearbyDefault: false }),
   def("beaches", "beaches", "beach", "Playas", "territorio", {
     filters: { destination_id: "eq", province_id: "eq", beach_type: "eq", water_color: "eq", sand_type: "eq", wave_intensity: "eq", crowd_level: "eq", access_type: "eq", parking_available: "eq", lifeguard_on_duty: "eq", is_popular: "eq", is_featured: "eq", rating: "range" },
     sort: ["name", "rating", "review_count", "created_at"], defaultSort: [{ column: "is_featured", dir: "DESC" }, { column: "name", dir: "ASC" }], geo, relations: { ...destination, ...province }, related: ["destination_id", "province_id", "beach_type"], reviewable: true, nearbyDefault: true,
@@ -92,8 +92,8 @@ export const COLLECTIONS: CollectionDef[] = [
 
   // ---- Alojamiento, gastronomía y servicios ----
   def("hotels", "hotels", "hotel", "Hoteles", "alojamiento", {
-    filters: { destination_id: "eq", category: "eq", stars: "range", price_range: "eq", is_featured: "eq", is_sponsored: "eq", amenities: "contains", rating: "range" },
-    sort: ["name", "rating", "stars", "review_count", "created_at"], defaultSort: [{ column: "is_sponsored", dir: "DESC" }, { column: "is_featured", dir: "DESC" }, { column: "name", dir: "ASC" }],
+    filters: { destination_id: "eq", category: "eq", stars: "range", price_from_usd: "range", price_range: "eq", is_featured: "eq", is_sponsored: "eq", amenities: "contains", rating: "range" },
+    sort: ["name", "rating", "stars", "price_from_usd", "review_count", "created_at"], defaultSort: [{ column: "is_sponsored", dir: "DESC" }, { column: "is_featured", dir: "DESC" }, { column: "name", dir: "ASC" }],
     geo, relations: destination, related: ["destination_id", "category"], reviewable: true, nearbyDefault: true,
   }),
   def("airbnb-listings", "airbnb_listings", "airbnb", "Alojamientos tipo Airbnb", "alojamiento", { filters: { destination_id: "eq", property_type: "eq", guests: "range", bedrooms: "range", price_per_night: "range", is_superhost: "eq", instant_book: "eq", is_featured: "eq", rating: "range" }, sort: ["name", "rating", "price_per_night", "created_at"], geo, relations: destination, related: ["destination_id", "property_type"], reviewable: true }),
@@ -105,6 +105,7 @@ export const COLLECTIONS: CollectionDef[] = [
   def("events", "events", "event", "Eventos", "eventos", { title: "title", search: ["title", "description", "location"], filters: { destination_id: "eq", category: "eq", start_date: "range", end_date: "range" }, sort: ["start_date", "title", "created_at"], defaultSort: [{ column: "start_date", dir: "ASC" }], relations: destination, related: ["destination_id", "category"], reviewable: true }),
   def("clinics", "clinics", "clinic", "Clínicas y centros de salud", "servicios", { filters: { destination_id: "eq", specialties: "contains" }, search: ["name", "address"], relations: destination, related: ["destination_id"] }),
   def("ports", "ports_marinas", "port", "Puertos y marinas", "servicios", { search: ["name", "description"], filters: { destination_id: "eq", port_type: "eq" }, geo, relations: destination, related: ["destination_id", "port_type"] }),
+  def("airports", "airports", "airport", "Aeropuertos", "servicios", { search: ["name", "iata_code", "city", "description"], filters: { airport_type: "eq", city: "eq", iata_code: "eq" }, geo, translatable: ["name", "description"], related: ["airport_type"] }),
   def("stadiums", "stadiums", "stadium", "Estadios", "servicios", { filters: { destination_id: "eq", stadium_type: "eq", sport_types: "contains", capacity: "range" }, sort: ["name", "capacity", "created_at"], geo, relations: destination, related: ["destination_id"] }),
   def("theme-parks", "theme_parks", "theme_park", "Parques temáticos", "servicios", { filters: { destination_id: "eq", park_type: "eq", is_featured: "eq", rating: "range" }, sort: ["name", "rating", "created_at"], geo, relations: destination, related: ["destination_id"], reviewable: true }),
   def("golf-courses", "golf_courses", "golf_course", "Campos de golf", "servicios", { search: ["name", "description"], filters: { destination_id: "eq", holes: "range" }, relations: destination, related: ["destination_id"] }),

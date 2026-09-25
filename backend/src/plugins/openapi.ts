@@ -13,6 +13,7 @@ export async function registerOpenApi(app: FastifyInstance, env: Env, version: s
       tags: [
         { name: "sistema", description: "Salud, versión y configuración pública" },
         { name: "auth", description: "Registro, sesiones, verificación de correo y contraseñas" },
+        { name: "cms", description: "Sincronización con el CMS headless (Strapi)" },
         { name: "territorio", description: "Provincias, destinos y contenido del territorio (CMS)" },
       ],
       components: { securitySchemes: { bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" } } },
