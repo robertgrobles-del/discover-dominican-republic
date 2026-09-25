@@ -23,6 +23,16 @@ const schema = z.object({
   /** Claves PEM (RS256) para firmar/verificar JWT. En desarrollo y pruebas se generan al arrancar si faltan; en producción son obligatorias. */
   JWT_PRIVATE_KEY: z.string().optional(),
   JWT_PUBLIC_KEY: z.string().optional(),
+  /** Claves públicas anteriores (arreglo JSON de PEM) que siguen validando tokens ya emitidos durante una rotación. */
+  JWT_PREVIOUS_PUBLIC_KEYS: z.string().optional().transform((v, ctx) => {
+    if (!v?.trim()) return [] as string[];
+    try {
+      const parsed: unknown = JSON.parse(v);
+      if (Array.isArray(parsed) && parsed.every((x) => typeof x === "string")) return parsed as string[];
+    } catch { /* cae al error de abajo */ }
+    ctx.addIssue({ code: "custom", message: "debe ser un arreglo JSON de claves públicas PEM" });
+    return z.NEVER;
+  }),
   JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().min(30).default(900),
   REFRESH_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
   LOGIN_MAX_FAILURES: z.coerce.number().int().min(1).default(5),

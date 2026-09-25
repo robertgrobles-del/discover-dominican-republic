@@ -135,14 +135,14 @@ describe("autenticación", () => {
 
     it("distingue token vencido de token inválido y rechaza firmas ajenas", async () => {
       const { body } = await register();
-      const short = await app.tokens.signAccess({ sub: body.data.user.id, roles: ["user"], locale: "es", sid: "00000000-0000-4000-8000-000000000000" }, 1);
+      const short = await app.tokens.signAccess({ sub: body.data.user.id, roles: ["user"], locale: "es", sid: "00000000-0000-4000-8000-000000000000", mfa: false }, 1);
       await new Promise((r) => setTimeout(r, 1500));
       const expired = await app.inject({ url: "/api/v1/auth/me", headers: bearer(short) });
       expect(expired.statusCode).toBe(401);
       expect(json(expired).error.code).toBe("TOKEN_EXPIRED");
 
       const other = await buildApp({ env: testEnv() }); // otra instancia = otro par de claves efímero
-      const forged = await other.tokens.signAccess({ sub: body.data.user.id, roles: ["admin"], locale: "es", sid: "x" });
+      const forged = await other.tokens.signAccess({ sub: body.data.user.id, roles: ["admin"], locale: "es", sid: "x", mfa: false });
       const res = await app.inject({ url: "/api/v1/auth/me", headers: bearer(forged) });
       expect(res.statusCode).toBe(401);
       expect(json(res).error.code).toBe("UNAUTHENTICATED");

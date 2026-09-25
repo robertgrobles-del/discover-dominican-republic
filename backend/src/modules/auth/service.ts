@@ -60,7 +60,7 @@ export class AuthService {
       "INSERT INTO refresh_tokens (user_id, family_id, token_hash, user_agent, ip, expires_at) VALUES ($1, $2, $3, $4, $5, $6)",
       [u.id, familyId, hashToken(refresh), ctx.userAgent?.slice(0, 250) ?? null, ctx.ip ?? null, expires],
     );
-    const access_token = await this.tokens.signAccess({ sub: u.id, roles, locale: u.locale, sid: familyId });
+    const access_token = await this.tokens.signAccess({ sub: u.id, roles, locale: u.locale, sid: familyId, mfa: false });
     return { access_token, token_type: "Bearer", expires_in: this.tokens.accessTtl, refresh_token: refresh };
   }
 

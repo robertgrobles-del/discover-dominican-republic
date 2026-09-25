@@ -4,7 +4,7 @@ import { AuthService } from "../modules/auth/service.js";
 import { createTokenService, type TokenService } from "../modules/auth/tokens.js";
 import { Mailer } from "../modules/mailer/mailer.js";
 
-export interface AuthUser { id: string; roles: string[]; locale: string; sid: string }
+export interface AuthUser { id: string; roles: string[]; locale: string; sid: string; mfa: boolean }
 
 declare module "fastify" {
   interface FastifyRequest { user?: AuthUser }
@@ -32,7 +32,7 @@ export async function registerAuth(app: FastifyInstance) {
     const header = req.headers.authorization;
     if (!header?.startsWith("Bearer ")) throw new AppError("UNAUTHENTICATED", "Falta el token de acceso");
     const c = await tokens.verifyAccess(header.slice(7).trim());
-    req.user = { id: c.sub, roles: c.roles, locale: c.locale, sid: c.sid };
+    req.user = { id: c.sub, roles: c.roles, locale: c.locale, sid: c.sid, mfa: c.mfa };
   };
   app.decorate("authenticate", authenticate);
   app.decorate("requireRole", (...roles: string[]) => async (req: FastifyRequest) => {
