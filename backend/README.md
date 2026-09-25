@@ -3,7 +3,7 @@
 API REST v1 del portal. Fastify + TypeScript + PostgreSQL. Es un proyecto **independiente del frontend**: no se importa desde `src/` ni lo modifica.
 Diseño completo, endpoints previstos y roadmap: [`../docs/BACKEND_API.md`](../docs/BACKEND_API.md).
 
-**Estado (Fase 0):** base técnica + esquema + primeros endpoints.
+**Estado (Fase 0, pasos 1–3):** base técnica, esquema, primeros endpoints, **autenticación y correo**.
 
 | Hecho | Detalle |
 |---|---|
@@ -11,10 +11,26 @@ Diseño completo, endpoints previstos y roadmap: [`../docs/BACKEND_API.md`](../d
 | Contrato | OpenAPI 3.1 en `/openapi.json` y UI en `/docs` |
 | Esquema | 138 tablas en PostgreSQL (migraciones `0001`–`0006`), gobierno CMS, roles ampliados, auditoría, slugs |
 | Datos de desarrollo | Carga desde `src/integrations/supabase/mockDb.json` (no toca `src/data/*.ts`) |
-| Endpoints | `GET /health`, `/health/ready`, `/version`, `/config`, `/provinces`, `/provinces/{idOrSlug}` (bajo `/api/v1`) |
-| Pruebas | 29 pruebas de integración contra PostgreSQL real |
+| Endpoints | `/health`, `/health/ready`, `/version`, `/config`, `/provinces`, `/provinces/{idOrSlug}` y `/auth/*` (bajo `/api/v1`) |
+| Autenticación | Registro, login, refresh con rotación, logout, verificación de correo, olvidé/restablecer/cambiar contraseña, dispositivos, roles (`requireRole`) |
+| Correo | Servicio único (`app.mailer`) con plantillas es/en, bitácora `email_log`, transporte log · SMTP (Mailpit/SES) · memoria |
+| Pruebas | 54 pruebas de integración contra PostgreSQL real y un servidor SMTP real |
 
-Siguiente (Fase 0, paso 3): autenticación y correo. Ver roadmap en el documento de diseño.
+Siguiente: lectura pública genérica de colecciones (paso 4), luego CMS y administración. Ver roadmap en el documento de diseño.
+
+### Autenticación en 60 segundos
+
+```bash
+# Usuario de desarrollo (lo crea `npm run db:seed`): admin@descubre.local / Admin-Descubre-2026!
+curl -s -X POST localhost:3000/api/v1/auth/login -H 'content-type: application/json'   -d '{"email":"admin@descubre.local","password":"Admin-Descubre-2026!"}'
+curl -s localhost:3000/api/v1/auth/me -H "authorization: Bearer <access_token>"
+```
+
+- **Tokens:** acceso JWT RS256 de 15 min; refresco opaco de 30 días, de un solo uso y rotatorio (el hash es lo único que se guarda). Reutilizar uno ya rotado revoca toda la sesión.
+- **Web (cookie):** con la cabecera `X-Refresh-Transport: cookie` el refresco viaja en cookie `HttpOnly` y no en el JSON; esa misma cabecera obliga a un preflight CORS y bloquea CSRF.
+- **Contraseñas:** Argon2id, política de 10–128 caracteres, sin el correo ni claves comunes. Tras 5 fallos la cuenta se bloquea 15 min; el mensaje de error es el mismo exista o no el correo.
+- **Correos:** con `MAIL_TRANSPORT=log` (por defecto en desarrollo) el mensaje y sus enlaces salen en el log del servidor; con `smtp` y `docker compose up -d` se ven en http://localhost:8025 (Mailpit).
+- **Proteger una ruta:** `preHandler: app.authenticate` o `app.requireRole("admin", "editor")`.
 
 ## Requisitos
 

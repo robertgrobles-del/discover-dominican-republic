@@ -13,8 +13,9 @@ export async function registerSecurity(app: FastifyInstance, env: Env) {
   const origins = env.CORS_ORIGINS.split(",").map((s) => s.trim()).filter(Boolean);
   await app.register(cors, {
     origin: origins,
+    credentials: true, // cookie de refresco en modo web (sólo con la lista blanca de orígenes)
     methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Authorization", "Content-Type", "Accept-Language", "Idempotency-Key", "X-Request-Id", "If-None-Match"],
+    allowedHeaders: ["Authorization", "Content-Type", "Accept-Language", "Idempotency-Key", "X-Request-Id", "If-None-Match", "X-Refresh-Transport"],
     exposedHeaders: ["X-Request-Id", "ETag", "X-RateLimit-Limit", "X-RateLimit-Remaining", "Retry-After"],
     maxAge: 86400,
   });

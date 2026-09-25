@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { v5 as uuidv5, validate as isUuid } from "uuid";
+import { hashPassword } from "../src/modules/auth/password.js";
 
 const MOCK = fileURLToPath(new URL("../../src/integrations/supabase/mockDb.json", import.meta.url));
 const NS = "6ba7b810-9dad-11d1-80b4-00c04fd430c8"; // namespace fijo → mapeo determinista de ids no-UUID
@@ -93,6 +94,18 @@ try {
     SELECT p.id, p.id || '@seed.invalid', '!' FROM profiles p
     WHERE NOT EXISTS (SELECT 1 FROM users u WHERE u.id = p.id)
     ON CONFLICT DO NOTHING`);
+  // Administrador de desarrollo (sólo fuera de producción) para probar el panel y los endpoints protegidos.
+  if (process.env.NODE_ENV !== "production") {
+    const adminEmail = process.env.SEED_ADMIN_EMAIL ?? "admin@descubre.local";
+    const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? "Admin-Descubre-2026!";
+    const adminId = uuidv5("admin@descubre.local", NS);
+    await client.query(
+      `INSERT INTO users (id, email, password_hash, email_verified_at, terms_accepted_at) VALUES ($1, $2, $3, now(), now())
+       ON CONFLICT (id) DO UPDATE SET password_hash = EXCLUDED.password_hash`, [adminId, adminEmail, await hashPassword(adminPassword)]);
+    await client.query("INSERT INTO profiles (id, display_name, role) VALUES ($1, 'Administrador', 'admin') ON CONFLICT (id) DO NOTHING", [adminId]);
+    for (const role of ["admin", "editor", "user"]) await client.query("INSERT INTO user_roles (user_id, role) VALUES ($1, $2::app_role) ON CONFLICT DO NOTHING", [adminId, role]);
+    console.log(`  administrador de desarrollo: ${adminEmail} (contraseña en SEED_ADMIN_PASSWORD o la de ejemplo del README)`);
+  }
   await client.query("COMMIT");
   await client.query("SET session_replication_role = DEFAULT");
 

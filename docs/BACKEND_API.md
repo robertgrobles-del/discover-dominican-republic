@@ -159,6 +159,7 @@ Este documento define el **backend definitivo**: una API REST versionada (`/api/
 | HTTP | `code` | Cuándo |
 |---|---|---|
 | 400 | `VALIDATION_ERROR` | Cuerpo/parámetros inválidos |
+| 400 | `INVALID_TOKEN` | Enlace de verificación/restablecimiento inválido, vencido o ya usado |
 | 401 | `UNAUTHENTICATED` / `TOKEN_EXPIRED` | Falta o expiró el token |
 | 403 | `FORBIDDEN` / `ACCOUNT_SUSPENDED` | Sin permiso o cuenta suspendida |
 | 404 | `NOT_FOUND` | Recurso inexistente o no publicado |
@@ -275,6 +276,8 @@ Reemplaza a `supabase.auth.*` (`useAuth.tsx`), a `/api/auth/*` del prototipo y a
 | GET | `/auth/sessions` · DELETE `/auth/sessions/{id}` | Auth | Lista y revoca dispositivos |
 | POST | `/auth/partner/register` | Público | Alta de proveedor (equivale a `/partner/login` + `/registro`): crea usuario y `partner_profiles` en estado `unverified` |
 | GET | `/auth/team-invitation/{token}` · POST `/auth/team-invitation/{token}/accept` | Público | Invitaciones de equipo de Operadores RD (5.10) |
+
+**Implementado (Fase 0, paso 3):** todos los endpoints de esta tabla salvo OAuth, `/auth/partner/register` e invitaciones de equipo. El refresco viaja en el cuerpo JSON (móvil/API) o en cookie `HttpOnly` cuando el cliente envía `X-Refresh-Transport: cookie` (esa cabecera también es la defensa CSRF). Un refresh token es de un solo uso: presentar uno ya rotado revoca toda la sesión. Tras 5 fallos de login la cuenta se bloquea 15 min. Ver `backend/README.md`.
 
 Reglas: contraseñas con `argon2id`; verificación de correo obligatoria antes de reservar/pagar (no antes de navegar); bloqueo progresivo de intentos; `has_role` y `is_admin_user` pasan a ser comprobaciones en el middleware.
 

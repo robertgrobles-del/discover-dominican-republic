@@ -12,6 +12,7 @@ export async function registerOpenApi(app: FastifyInstance, env: Env, version: s
       servers: [{ url: env.PUBLIC_BASE_URL, description: "Servidor actual" }],
       tags: [
         { name: "sistema", description: "Salud, versión y configuración pública" },
+        { name: "auth", description: "Registro, sesiones, verificación de correo y contraseñas" },
         { name: "territorio", description: "Provincias, destinos y contenido del territorio (CMS)" },
       ],
       components: { securitySchemes: { bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" } } },

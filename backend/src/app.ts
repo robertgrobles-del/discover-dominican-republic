@@ -4,6 +4,7 @@ import Fastify from "fastify";
 import { serializerCompiler, validatorCompiler, type ZodTypeProvider } from "fastify-type-provider-zod";
 import { loadEnv, type Env } from "./config/env.js";
 import { createPool, type Db } from "./db/pool.js";
+import { registerAuth } from "./plugins/auth.js";
 import { registerErrorHandling } from "./plugins/errors.js";
 import { registerEtag } from "./plugins/etag.js";
 import { registerOpenApi } from "./plugins/openapi.js";
@@ -39,6 +40,7 @@ export async function buildApp(opts: BuildOptions = {}) {
   app.addHook("onSend", async (req, reply) => { reply.header("x-request-id", req.id); });
 
   registerErrorHandling(app);
+  await registerAuth(app);
   await registerSecurity(app, env);
   registerEtag(app);
   await registerOpenApi(app, env, pkg.version);

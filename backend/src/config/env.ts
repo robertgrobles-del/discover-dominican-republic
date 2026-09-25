@@ -17,6 +17,24 @@ const schema = z.object({
   /** Tasa de respaldo USD→DOP cuando aún no hay `exchange_rates` cargadas. */
   DEFAULT_USD_DOP: z.coerce.number().positive().default(59.8),
   PUBLIC_BASE_URL: z.string().url().default("http://localhost:3000"),
+  /** Claves PEM (RS256) para firmar/verificar JWT. En desarrollo y pruebas se generan al arrancar si faltan; en producción son obligatorias. */
+  JWT_PRIVATE_KEY: z.string().optional(),
+  JWT_PUBLIC_KEY: z.string().optional(),
+  JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().min(30).default(900),
+  REFRESH_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
+  LOGIN_MAX_FAILURES: z.coerce.number().int().min(1).default(5),
+  LOGIN_LOCK_MINUTES: z.coerce.number().int().min(1).default(15),
+  WEB_BASE_URL: z.string().url().default("http://localhost:8080"),
+  MAIL_FROM: z.string().default("Descubre RD <no-reply@descubre.local>"),
+  /** log: imprime el correo en el log (desarrollo) · smtp: envía por SMTP (Mailpit/SES) · memory: pruebas. */
+  MAIL_TRANSPORT: z.enum(["log", "smtp", "memory"]).default("log"),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().default(1025),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_SECURE: bool.default(false),
+  /** Límites por ruta de autenticación (registro, login, olvidé mi contraseña). Se desactivan en pruebas. */
+  AUTH_RATE_LIMIT_ENABLED: bool.default(true),
   FEATURE_CHECKOUT: bool.default(false),
   FEATURE_AI_CHAT: bool.default(false),
   FEATURE_OPERATORS: bool.default(true),
@@ -32,6 +50,11 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     throw new Error(`Configuración inválida: ${detail}`);
   }
   const env = parsed.data;
+  if (env.NODE_ENV === "production") {
+    if (!env.JWT_PRIVATE_KEY || !env.JWT_PUBLIC_KEY) throw new Error("Configuración inválida: JWT_PRIVATE_KEY y JWT_PUBLIC_KEY son obligatorias en producción");
+    if (env.MAIL_TRANSPORT === "memory") throw new Error("Configuración inválida: MAIL_TRANSPORT=memory no está permitido en producción");
+  }
+  if (env.NODE_ENV === "test" && !source.MAIL_TRANSPORT) env.MAIL_TRANSPORT = "memory";
   if (env.NODE_ENV === "production" && env.DOCS_ENABLED && !source.DOCS_ENABLED) env.DOCS_ENABLED = false; // en producción la documentación es explícita
   return env;
 }
