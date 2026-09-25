@@ -259,6 +259,14 @@ Pendiente del §5.4/§5.5: asistente y generadores con IA (`/ai/*`), calculadora
 
 Herramientas: `GET /tools/dictionary` (sin acentos), `/tools/phrases?lang=`, `/tools/requirements?country=`, ofertas de afiliados `/tools/{esim|insurance|prepaid-card}` con `POST …/lead` (consentimiento obligatorio, campo trampa, guarda en `marketing_leads`). Glosario, frases, requisitos, distancias de vuelo y ofertas se editan en `/admin/{dictionary_terms|travel_phrases|entry_requirements|flight_routes|affiliate_offers}` (admin y editor).
 
+## Publicidad y marketing
+
+- **Servidor de anuncios**: `GET /ads?placement=&page=&section=&limit=` sirve banners publicados, activos y dentro de fechas (hora de RD), con rotación ponderada por `priority` y sin exponer el destino (`click_url` pasa por el servidor). `GET /ads/slots` da las dimensiones de cada espacio. Vistas (`POST /ads/impressions`, `/ads/{id}/impression`) y clics (`GET /ads/{id}/click`, redirige sólo a https o rutas propias) se cuentan una vez por sesión, banner y hora en `ad_stats`; no se guarda IP ni sesión, sólo un hash truncado (`ad_seen`, limpiado por `ads.cleanup`). `GET /admin/ads/reports` da vistas, clics y CTR por banner y anunciante.
+- **Solicitudes de publicidad** (`POST /advertisers/requests`): lead + ticket + acuse por correo, con consentimiento y campo trampa.
+- **Ofertas**: `POST /offers/{id}/redeem` (una vez por persona, sólo vigentes) devuelve el código de descuento; el listado y la geolocalización siguen en `/offers`.
+- **Campañas de correo** (`/admin/marketing/campaigns`): borrador → prueba a tu correo → programar → cancelar. El trabajo `newsletter.send` (cada 5 min) envía las vencidas sólo a suscriptores confirmados y activos, filtra por intereses del segmento, registra cada entrega para no duplicar y añade el enlace de baja firmado. Leads con estado en `/admin/marketing/leads`.
+- **Administración**: `/admin/ad_banners` y `/admin/ad_slots` (admin y editor).
+
 ## Correo
 
 `app.mailer.send({ to, template, data, locale })` **encola** en la tabla `email_log` y vuelve; un trabajador (en el mismo proceso, `MAIL_WORKER_ENABLED`, o en otro) toma los pendientes con `FOR UPDATE SKIP LOCKED`, así que varias instancias nunca envían dos veces. Reintenta con espera creciente (1 min, 5 min, 30 min, 2 h, 12 h) hasta `MAIL_MAX_ATTEMPTS` y luego marca `failed`; los mensajes que quedaron `sending` por un proceso caído se recuperan. Si se pasa la conexión de una transacción (`send(input, client)`) el correo forma parte de ella (outbox transaccional: el registro y su correo se guardan juntos o no se guarda ninguno).

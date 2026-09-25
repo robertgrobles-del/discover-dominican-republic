@@ -19,6 +19,7 @@ export interface TemplateData {
   "establishment.received": { name: string; establishment: string; url: string };
   "store.order_confirmation": { name: string; reference: string; total: string; items: string; url: string };
   "store.order_update": { name: string; reference: string; title: string; message: string; url: string };
+  "marketing.campaign": { subject: string; body: string; unsubscribe_url: string };
   "org.invitation": { operator: string; inviter: string; role: string; url: string; days: number };
   "booking.reminder": BookingMail;
   "booking.review_request": { name: string; service: string; operator: string; url: string };
@@ -335,6 +336,13 @@ ${d.title}. ${d.message}
 ${d.url}`,
     html: layout(d.title, p(`Hi ${esc(d.name)}, ${esc(d.message)}`), { label: "View my order", url: d.url }),
   }),
+};
+
+const campaignHtml = (d: { subject: string; body: string; unsubscribe_url: string }, lang: "es" | "en") =>
+  layout(d.subject, d.body.split(/\n{2,}/).map((x) => p(esc(x).replace(/\n/g, "<br>"))).join(""), undefined, `Descubre RD · ${lang === "en" ? "Unsubscribe" : "Darte de baja"}: ${d.unsubscribe_url}`);
+T["marketing.campaign"] = {
+  es: (d) => ({ subject: d.subject, text: `${d.body}\n\n---\nDarte de baja: ${d.unsubscribe_url}`, html: campaignHtml(d, "es") }),
+  en: (d) => ({ subject: d.subject, text: `${d.body}\n\n---\nUnsubscribe: ${d.unsubscribe_url}`, html: campaignHtml(d, "en") }),
 };
 
 export function renderTemplate<K extends TemplateKey>(key: K, locale: Locale, data: TemplateData[K]): Rendered & { locale: "es" | "en" } {
