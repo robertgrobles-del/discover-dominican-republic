@@ -13,6 +13,9 @@ const schema = z.object({
   CORS_ORIGINS: z.string().default("http://localhost:8080,http://localhost:5173"),
   RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(120),
   RATE_LIMIT_WINDOW: z.string().default("1 minute"),
+  /** Dónde viven los contadores: memory (una instancia) · postgres (varias instancias, sin infraestructura extra) · redis (varias instancias, más rápido). */
+  RATE_LIMIT_STORE: z.enum(["memory", "postgres", "redis"]).default("memory"),
+  REDIS_URL: z.string().optional(),
   DOCS_ENABLED: bool.default(true),
   /** Tasa de respaldo USD→DOP cuando aún no hay `exchange_rates` cargadas. */
   DEFAULT_USD_DOP: z.coerce.number().positive().default(59.8),
@@ -58,6 +61,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     if (!env.JWT_PRIVATE_KEY || !env.JWT_PUBLIC_KEY) throw new Error("Configuración inválida: JWT_PRIVATE_KEY y JWT_PUBLIC_KEY son obligatorias en producción");
     if (env.MAIL_TRANSPORT === "memory") throw new Error("Configuración inválida: MAIL_TRANSPORT=memory no está permitido en producción");
   }
+  if (env.RATE_LIMIT_STORE === "redis" && !env.REDIS_URL) throw new Error("Configuración inválida: RATE_LIMIT_STORE=redis requiere REDIS_URL");
   if (env.NODE_ENV === "test" && !source.MAIL_TRANSPORT) env.MAIL_TRANSPORT = "memory";
   if (env.NODE_ENV === "test" && source.MAIL_WORKER_ENABLED === undefined) env.MAIL_WORKER_ENABLED = false; // las pruebas vacían la cola con drain()
   if (env.NODE_ENV === "production" && env.DOCS_ENABLED && !source.DOCS_ENABLED) env.DOCS_ENABLED = false; // en producción la documentación es explícita

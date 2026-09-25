@@ -250,6 +250,9 @@ export class AuthService {
     const { rows } = await this.db.query<UserRow>(`${USER_SQL} WHERE lower(u.email) = $1 AND u.status <> 'deleted'`, [email]);
     const u = rows[0];
     if (!u) return; // la respuesta es idéntica exista o no la cuenta (no se revela qué correos están registrados)
+    // Antibombardeo: máximo 3 correos de restablecimiento por hora a una misma cuenta (sea quien sea el que lo pida).
+    const recent = (await this.db.query<{ n: number }>("SELECT count(*)::int AS n FROM auth_tokens WHERE user_id = $1 AND purpose = 'reset_password' AND created_at > now() - interval '1 hour'", [u.id])).rows[0]!.n;
+    if (recent >= 3) { this.log.warn({ userId: u.id }, "Límite de correos de restablecimiento alcanzado"); return; }
     const token = await this.issueToken("reset_password", u.id, { minutes: RESET_MINUTES });
     await this.mailer.send({ to: u.email, template: "auth.reset_password", locale: this.locale(u.locale), userId: u.id, data: { name: u.display_name ?? u.email, url: this.link("/reset-password", token), minutes: RESET_MINUTES } });
   }
