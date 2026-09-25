@@ -1651,18 +1651,6 @@
   "version": {
    "type": "integer",
    "nullable": false
-  },
-  "region": {
-   "type": "text",
-   "nullable": true
-  },
-  "rating": {
-   "type": "numeric",
-   "nullable": true
-  },
-  "average_temperature": {
-   "type": "text",
-   "nullable": true
   }
  },
  "emergency_contacts": {
@@ -2829,14 +2817,6 @@
   "version": {
    "type": "integer",
    "nullable": false
-  },
-  "price_from_usd": {
-   "type": "numeric",
-   "nullable": true
-  },
-  "booking_url": {
-   "type": "text",
-   "nullable": true
   }
  },
  "job_vacancies": {
@@ -4065,6 +4045,30 @@
    "nullable": true
   },
   "updated_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "country": {
+   "type": "text",
+   "nullable": true
+  },
+  "birth_year": {
+   "type": "integer",
+   "nullable": true
+  },
+  "currency": {
+   "type": "text",
+   "nullable": false
+  },
+  "analytics_consent": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "notification_prefs": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "deletion_requested_at": {
    "type": "timestamp",
    "nullable": true
   }
