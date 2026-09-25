@@ -162,9 +162,7 @@ function registerCollection(app: FastifyInstance, d: CollectionDef) {
   async function fetchOne(key: string, sel: { select: string }): Promise<Row | undefined> {
     const byId = UUID.test(key);
     if (!byId && !hasCol(d.table, "slug")) return undefined;
-    // Un slug anterior (renombrado en el CMS) sigue resolviendo a la misma ficha, que ya devuelve su slug vigente.
-    const match = byId ? "id = $1" : hasCol(d.table, "slug_history") ? "(slug = $1 OR $1 = ANY(slug_history))" : "slug = $1";
-    const res = await app.db.query<Row>(`SELECT ${sel.select} FROM ${T} WHERE ${match} AND ${visibility(d)} LIMIT 1`, [key]);
+    const res = await app.db.query<Row>(`SELECT ${sel.select} FROM ${T} WHERE ${byId ? "id" : "slug"} = $1 AND ${visibility(d)} LIMIT 1`, [key]);
     return res.rows[0];
   }
 

@@ -238,8 +238,6 @@ Los campos que hoy el frontend llama `is_active` se mantienen por compatibilidad
 | **A. CMS integrado** (recomendada para arrancar) | El panel `/admin` ya tiene gestión genérica de 76 entidades (`AdminEntityConfigs`, formulario, importador CSV). Se apoya en `/admin/{coleccion}` (sección 5.17) con el flujo de estados anterior | Equipo editorial pequeño, cero dependencias extra |
 | **B. CMS headless** (Strapi / Directus / Payload / Contentful) | El CMS es el editor; sincroniza hacia la base de la API mediante webhook `POST /webhooks/cms` (5.19) o se lee directamente vía adaptador. La API pública **no cambia** | Equipos editoriales grandes, flujos de aprobación complejos |
 
-**Estado:** se eligió la opción B con **Strapi 5** (`cms/`). La API implementa la sincronización (`POST /webhooks/cms`, `npm run cms:sync`, `/admin/cms/*`) para `destino`, `playa`, `alojamiento`, `experiencia` y `aeropuerto`; detalle en `backend/README.md`. Con esta opción el panel `/admin/{entidad}` de la sección 5.17 queda como respaldo y no es la vía editorial principal.
-
 En ambos casos: (1) las **relaciones** (provincia → destinos → hoteles) usan los mismos `id`/`slug`; (2) los **medios** viven en el almacenamiento de la sección 5.16; (3) los contenidos **no CMS** (reservas, usuarios…) nunca pasan por el CMS.
 
 ### 4.4 Invalidación de cache

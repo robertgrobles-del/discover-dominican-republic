@@ -44,13 +44,6 @@ const schema = z.object({
   OAUTH_GOOGLE_ISSUER: z.string().url().default("https://accounts.google.com"),
   /** Destinos permitidos tras el login social (además de WEB_BASE_URL y CORS_ORIGINS), separados por comas. */
   OAUTH_REDIRECT_ALLOWLIST: z.string().default(""),
-  /** CMS headless (Strapi). CMS_URL + CMS_API_TOKEN permiten traer entradas completas y hacer la carga inicial; CMS_WEBHOOK_SECRET protege POST /webhooks/cms. */
-  CMS_URL: z.string().url().optional(),
-  CMS_API_TOKEN: z.string().optional(),
-  CMS_WEBHOOK_SECRET: z.string().min(16, "CMS_WEBHOOK_SECRET debe tener al menos 16 caracteres").optional(),
-  /** Dirección pública con la que se resuelven las URL relativas de medios (/uploads/…); por defecto CMS_URL. */
-  CMS_PUBLIC_URL: z.string().url().optional(),
-  CMS_DEFAULT_LOCALE: z.enum(["es", "en", "fr", "de", "pt", "it"]).default("es"),
   JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().min(30).default(900),
   REFRESH_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
   LOGIN_MAX_FAILURES: z.coerce.number().int().min(1).default(5),
