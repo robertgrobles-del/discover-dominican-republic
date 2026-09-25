@@ -19,6 +19,9 @@ const user = z.object({
 });
 const tokens = z.object({ access_token: z.string(), token_type: z.literal("Bearer"), expires_in: z.number(), refresh_token: z.string().optional() });
 const sessionResponse = z.object({ data: z.object({ user, tokens }) });
+const challengeResponse = z.object({ data: z.object({ two_factor_required: z.literal(true), challenge_token: z.string() }) });
+const otp = z.string().trim().regex(/^\d{3}\s?\d{3}$/, "El código son 6 dígitos");
+const recovery = z.string().trim().min(8).max(32);
 const noContent = { 204: z.null() } as const;
 const bearer = [{ bearerAuth: [] }];
 
@@ -66,11 +69,16 @@ export async function authRoutes(app: FastifyInstance) {
   });
 
   r.post("/auth/login", {
-    schema: { tags: ["auth"], summary: "Iniciar sesión", body: z.object({ email, password }), response: { 200: sessionResponse } },
+    schema: {
+      tags: ["auth"], summary: "Iniciar sesión",
+      description: "Si la cuenta tiene verificación en dos pasos devuelve `two_factor_required` y un `challenge_token` de 5 minutos que se canjea en `POST /auth/2fa/verify`.",
+      body: z.object({ email, password }), response: { 200: z.union([sessionResponse, challengeResponse]) },
+    },
     config: limit(10, "15 minutes"),
   }, async (req, reply) => {
-    const { user: u, session } = await app.auth.login(req.body, ctx(req));
-    return { data: { user: u, tokens: tokensOut(req, reply, session) } };
+    const result = await app.auth.login(req.body, ctx(req));
+    if ("twoFactor" in result) return { data: { two_factor_required: true as const, challenge_token: result.twoFactor.challenge_token } };
+    return { data: { user: result.user, tokens: tokensOut(req, reply, result.session) } };
   });
 
   r.post("/auth/refresh", {
@@ -106,7 +114,10 @@ export async function authRoutes(app: FastifyInstance) {
   r.get("/auth/me", {
     schema: {
       tags: ["auth"], summary: "Usuario de la sesión actual", security: bearer,
-      response: { 200: z.object({ data: user.extend({ counts: z.object({ favorites: z.number(), unread_notifications: z.number() }) }) }) },
+      response: { 200: z.object({ data: user.extend({
+        counts: z.object({ favorites: z.number(), unread_notifications: z.number() }),
+        two_factor: z.object({ enabled: z.boolean(), recovery_codes_left: z.number(), required: z.boolean() }),
+      }) }) },
     },
     preHandler: app.authenticate,
   }, async (req, reply) => {
@@ -174,5 +185,67 @@ export async function authRoutes(app: FastifyInstance) {
   }, async (req, reply) => {
     await app.auth.revokeSession(req.user!.id, req.params.id);
     return reply.code(204).send(null);
+  });
+
+  // ---------- Verificación en dos pasos ----------
+  r.post("/auth/2fa/setup", {
+    schema: {
+      tags: ["auth"], summary: "Paso 1 del 2FA: obtener el secreto para la app de autenticación", security: bearer,
+      description: "Devuelve el secreto (base32) y la URI `otpauth://` para generar el QR. No queda activo hasta confirmarlo en `/auth/2fa/enable`.",
+      response: { 200: z.object({ data: z.object({ secret: z.string(), otpauth_uri: z.string(), issuer: z.string(), account: z.string() }) }) },
+    },
+    preHandler: app.authenticate, config: limit(10, "1 hour"),
+  }, async (req, reply) => {
+    reply.header("cache-control", "private, no-store");
+    return { data: await app.auth.twoFactorSetup(req.user!.id) };
+  });
+
+  r.post("/auth/2fa/enable", {
+    schema: {
+      tags: ["auth"], summary: "Paso 2 del 2FA: confirmar con un código y recibir los códigos de recuperación", security: bearer,
+      description: "Los códigos de recuperación se muestran **una sola vez**. Devuelve un nuevo `access_token` con el segundo factor ya cumplido.",
+      body: z.object({ code: otp }),
+      response: { 200: z.object({ data: z.object({ recovery_codes: z.array(z.string()), access_token: z.string(), expires_in: z.number() }) }) },
+    },
+    preHandler: app.authenticate, config: limit(10, "15 minutes"),
+  }, async (req, reply) => {
+    reply.header("cache-control", "private, no-store");
+    return { data: await app.auth.twoFactorEnable(req.user!.id, req.user!.sid, req.body.code, ctx(req)) };
+  });
+
+  r.post("/auth/2fa/verify", {
+    schema: {
+      tags: ["auth"], summary: "Completar el inicio de sesión con el código de la app o un código de recuperación",
+      body: z.object({ challenge_token: z.string().min(20).max(2000), code: otp.optional(), recovery_code: recovery.optional() })
+        .refine((b) => !!b.code !== !!b.recovery_code, { message: "Envía `code` o `recovery_code` (uno solo)" }),
+      response: { 200: z.object({ data: z.object({ user, tokens, used_recovery_code: z.boolean() }) }) },
+    },
+    config: limit(10, "15 minutes"),
+  }, async (req, reply) => {
+    const { user: u, session, usedRecoveryCode } = await app.auth.verifyTwoFactorChallenge(req.body, ctx(req));
+    return { data: { user: u, tokens: tokensOut(req, reply, session), used_recovery_code: usedRecoveryCode } };
+  });
+
+  r.post("/auth/2fa/disable", {
+    schema: {
+      tags: ["auth"], summary: "Desactivar el 2FA (contraseña + código); cierra las demás sesiones", security: bearer,
+      body: z.object({ password, code: otp.optional(), recovery_code: recovery.optional() }).refine((b) => !!b.code !== !!b.recovery_code, { message: "Envía `code` o `recovery_code` (uno solo)" }),
+      response: noContent,
+    },
+    preHandler: app.authenticate, config: limit(10, "15 minutes"),
+  }, async (req, reply) => {
+    await app.auth.twoFactorDisable(req.user!.id, req.user!.sid, req.body, ctx(req));
+    return reply.code(204).send(null);
+  });
+
+  r.post("/auth/2fa/recovery-codes", {
+    schema: {
+      tags: ["auth"], summary: "Generar códigos de recuperación nuevos (invalida los anteriores)", security: bearer,
+      body: z.object({ code: otp }), response: { 200: z.object({ data: z.object({ recovery_codes: z.array(z.string()) }) }) },
+    },
+    preHandler: app.authenticate, config: limit(10, "15 minutes"),
+  }, async (req, reply) => {
+    reply.header("cache-control", "private, no-store");
+    return { data: await app.auth.twoFactorRegenerateRecovery(req.user!.id, req.body.code, ctx(req)) };
   });
 }

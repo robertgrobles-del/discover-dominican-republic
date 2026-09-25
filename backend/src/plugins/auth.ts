@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { AppError } from "../lib/errors.js";
-import { AuthService } from "../modules/auth/service.js";
+import { AuthService, STAFF_ROLES } from "../modules/auth/service.js";
 import { createTokenService, type TokenService } from "../modules/auth/tokens.js";
 import { Mailer } from "../modules/mailer/mailer.js";
 
@@ -38,5 +38,9 @@ export async function registerAuth(app: FastifyInstance) {
   app.decorate("requireRole", (...roles: string[]) => async (req: FastifyRequest) => {
     await authenticate(req);
     if (!req.user!.roles.some((r) => roles.includes(r))) throw new AppError("FORBIDDEN", "No tienes permiso para esta acción");
+    // Rutas de personal (admin/editor/moderator): con la política activa exigen haber completado el segundo factor en esta sesión.
+    if (app.env.REQUIRE_2FA_FOR_STAFF && roles.some((r) => STAFF_ROLES.includes(r)) && !req.user!.mfa) {
+      throw new AppError("MFA_REQUIRED", "Esta acción requiere verificación en dos pasos", { setup: "/api/v1/auth/2fa/setup", verify: "/api/v1/auth/2fa/verify" });
+    }
   });
 }

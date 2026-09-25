@@ -33,6 +33,11 @@ const schema = z.object({
     ctx.addIssue({ code: "custom", message: "debe ser un arreglo JSON de claves públicas PEM" });
     return z.NEVER;
   }),
+  /** Clave AES-256 (32 bytes en base64) que cifra los secretos TOTP en reposo. Obligatoria en producción. */
+  TOTP_ENCRYPTION_KEY: z.string().optional(),
+  TOTP_ISSUER: z.string().default("Descubre RD"),
+  /** Exige 2FA a admin/editor/moderator para usar rutas de personal. Por defecto: sí en producción, no en desarrollo. */
+  REQUIRE_2FA_FOR_STAFF: bool.optional(),
   JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().min(30).default(900),
   REFRESH_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
   LOGIN_MAX_FAILURES: z.coerce.number().int().min(1).default(5),
@@ -69,8 +74,11 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   const env = parsed.data;
   if (env.NODE_ENV === "production") {
     if (!env.JWT_PRIVATE_KEY || !env.JWT_PUBLIC_KEY) throw new Error("Configuración inválida: JWT_PRIVATE_KEY y JWT_PUBLIC_KEY son obligatorias en producción");
+    if (!env.TOTP_ENCRYPTION_KEY) throw new Error("Configuración inválida: TOTP_ENCRYPTION_KEY es obligatoria en producción");
     if (env.MAIL_TRANSPORT === "memory") throw new Error("Configuración inválida: MAIL_TRANSPORT=memory no está permitido en producción");
   }
+  env.REQUIRE_2FA_FOR_STAFF ??= env.NODE_ENV === "production";
+  if (env.TOTP_ENCRYPTION_KEY && Buffer.from(env.TOTP_ENCRYPTION_KEY, "base64").length !== 32) throw new Error("Configuración inválida: TOTP_ENCRYPTION_KEY debe ser de 32 bytes en base64");
   if (env.RATE_LIMIT_STORE === "redis" && !env.REDIS_URL) throw new Error("Configuración inválida: RATE_LIMIT_STORE=redis requiere REDIS_URL");
   if (env.NODE_ENV === "test" && !source.MAIL_TRANSPORT) env.MAIL_TRANSPORT = "memory";
   if (env.NODE_ENV === "test" && source.MAIL_WORKER_ENABLED === undefined) env.MAIL_WORKER_ENABLED = false; // las pruebas vacían la cola con drain()
