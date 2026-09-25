@@ -139,6 +139,26 @@ El secreto se guarda cifrado (AES-256-GCM, clave `TOTP_ENCRYPTION_KEY`), cada c�
 
 Actívalo con `OAUTH_GOOGLE_CLIENT_ID` y `OAUTH_GOOGLE_CLIENT_SECRET`; la URI de redirección autorizada en Google es `{PUBLIC_BASE_URL}/api/v1/auth/oauth/google/callback`. Flujo: `POST /auth/oauth/google/start` → `authorize_url` → el navegador va a Google → vuelve a `redirect_to?oauth_code=…` → `POST /auth/oauth/exchange {code}` → sesión. Usa PKCE S256, `state` de un solo uso atado por cookie, `nonce` y verificación del id_token; `redirect_to` sólo puede ser un origen de la lista blanca (`WEB_BASE_URL`, `CORS_ORIGINS`, `OAUTH_REDIRECT_ALLOWLIST`). Un correo no verificado por el proveedor no crea ni vincula cuentas, y si el correo coincide con una cuenta **sin verificar**, se anula su contraseña y sesiones (anti pre-secuestro). También hay vincular/desvincular (`/auth/identities`). Para añadir otro proveedor OIDC basta una entrada en `providers()` (`src/modules/auth/oauth.ts`); **Apple** (necesita un secreto JWT ES256) y **Facebook** (OAuth2 no OIDC) quedan pendientes.
 
+## Motor de reservas de Operadores RD
+
+El servidor decide precio, disponibilidad, cobros y comisión; el cliente sólo muestra. Reglas portadas del frontend (etapas 1–8) en `src/modules/operators/domain/` (funciones puras, con pruebas unitarias):
+
+- **Precio por noche**: temporada > fin de semana (noches vie/sáb) > tarifa base; noches mínimas y fechas bloqueadas por habitación.
+- **Tours/experiencias**: cupos por fecha y horario; niños con `child_price`; bebés gratis sólo si `infants_free` y no ocupan cupo; extras por persona/reserva/noche.
+- **Promoción** sobre el subtotal (con extras); **depósito** = % del total. Paquetes: `days` fija la fecha final.
+- **Cancelación**: flexible (100 % ≥24 h), moderada (100 % ≥5 días), estricta (50 % ≥7 días); si cancela el operador se devuelve todo.
+- **Comisión** (8 % por defecto): sólo sobre lo cobrado en reservas web, neto de reembolsos; las manuales no pagan.
+
+Anti-sobreventa: cada reserva corre en una transacción que bloquea (`FOR UPDATE`) el anuncio o la habitación, recuenta la ocupación y luego inserta. `POST /bookings` exige `Idempotency-Key`: reintentar devuelve la misma reserva (200, `replayed: true`).
+
+| Zona | Endpoints |
+|---|---|
+| Público | `GET /operators`, `/operators/{slug}`, `/operators/{slug}/listings/{listing}`, `/listings/{id}/availability`, `POST /bookings/quote`, `POST /promotions/validate`, `POST /bookings`, `GET /bookings/{id}?token=`, `POST /bookings/{id}/cancel`, `POST /bookings/{id}/pay-balance`, `GET /me/bookings` |
+| Operador (`org_members`: owner/admin/recepcion/guia; guía limitado a sus anuncios; cabecera opcional `X-Org-Id`) | `POST /orgs`, `/orgs/me`, `/org/listings` (+ rooms, rates, blocks, status), `/org/bookings` (+ status, notas, pagos), `/org/calendar`, `/org/income`, `/org/promotions` |
+| Admin | `GET /admin/orgs`, `PUT /admin/orgs/{id}/verification` (publicar exige operador verificado) |
+
+Pagos: el backend nunca recibe tarjetas; el navegador manda un `payment_method_token` del proveedor. `PAYMENT_PROVIDER=fake` (dev/pruebas: `tok_test_ok`, `tok_test_declined`, `tok_test_error`) o `none` (por defecto en producción hasta integrar Azul/CardNET/Stripe: sólo "pagar después"). Un pago rechazado anula la reserva y libera cupo y código promocional. El invitado accede a su reserva con el `access_token` devuelto al crearla (sólo se guarda su hash).
+
 ## Correo
 
 `app.mailer.send({ to, template, data, locale })` **encola** en la tabla `email_log` y vuelve; un trabajador (en el mismo proceso, `MAIL_WORKER_ENABLED`, o en otro) toma los pendientes con `FOR UPDATE SKIP LOCKED`, así que varias instancias nunca envían dos veces. Reintenta con espera creciente (1 min, 5 min, 30 min, 2 h, 12 h) hasta `MAIL_MAX_ATTEMPTS` y luego marca `failed`; los mensajes que quedaron `sending` por un proceso caído se recuperan. Si se pasa la conexión de una transacción (`send(input, client)`) el correo forma parte de ella (outbox transaccional: el registro y su correo se guardan juntos o no se guarda ninguno).
