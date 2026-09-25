@@ -10,6 +10,7 @@ import { opKeys, saveListing, useBookings, useListings, useOpMutation } from "..
 import { formatMoney } from "../constants";
 import { addDays, blockedReason, nightRate } from "../pricing";
 import type { Room } from "../types";
+import CalendarSync from "./CalendarSync";
 import { useOrg } from "./OrgContext";
 
 const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
@@ -144,6 +145,7 @@ export default function Tarifas() {
             </CardContent></Card>
         </div>
       </div>
+      <CalendarSync room={room} listingTitle={listing.title} bookings={bookings} onChange={update} />
     </div>
   );
 }
