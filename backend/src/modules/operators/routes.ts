@@ -7,10 +7,15 @@ import { PUBLIC_CACHE } from "../../plugins/etag.js";
 import { BookingService } from "./bookings.js";
 import { CatalogService, CATEGORIES, type Membership, type OrgRole } from "./catalog.js";
 import type { PaymentGateway } from "./gateway.js";
+import { AutomationService } from "./automations.js";
+import { EngagementService } from "./engagement.js";
+import { IcalService } from "./ical.js";
 import { PromotionService } from "./promotions.js";
+import { ReportService } from "./reports.js";
+import { audit, TeamService } from "./team.js";
 
 declare module "fastify" {
-  interface FastifyInstance { catalog: CatalogService; bookings: BookingService; promotions: PromotionService; gateway: PaymentGateway }
+  interface FastifyInstance { automations: AutomationService; ical: IcalService; catalog: CatalogService; bookings: BookingService; promotions: PromotionService; gateway: PaymentGateway }
   interface FastifyRequest { member?: Membership }
 }
 
@@ -54,6 +59,10 @@ export async function operatorRoutes(app: FastifyInstance) {
   const promotions = new PromotionService(app.db);
   const gateway = app.gateway;
   const bookings = new BookingService(app.db, app.env, promotions, gateway, app.mailer, app.log);
+  const team = new TeamService(app.db, app.env, app.mailer);
+  const engagement = new EngagementService(app.db, bookings);
+  const icalSvc = app.ical;
+  const reports = new ReportService(app.db);
   app.decorate("catalog", catalog);
   app.decorate("promotions", promotions);
   app.decorate("bookings", bookings);
@@ -190,10 +199,65 @@ export async function operatorRoutes(app: FastifyInstance) {
   r.patch("/org/promotions/:id", { preHandler: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Edita un código", security: bearer, params: id, body: promoBody.partial(), response: { 200: ok } } }, async (req) => ({ data: await promotions.update(req.member!.org_id, req.params.id, req.body) }));
   r.delete("/org/promotions/:id", { preHandler: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Elimina un código", security: bearer, params: id, response: { 204: z.null() } } }, async (req, reply) => { await promotions.remove(req.member!.org_id, req.params.id); reply.code(204); return null; });
 
+  // ================= Fase B: equipo, mensajes, reseñas, calendarios y reportes =================
+  const listingScope = (req: FastifyRequest) => only(req.member!);
+  const memberId = id.extend({ id: z.string().uuid() });
+
+  // ---- Equipo ----
+  r.get("/org/team", { preHandler: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Miembros e invitaciones abiertas", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await team.list(req.member!.org_id) }));
+  r.post("/org/team/invitations", { preHandler: org("owner", "admin"), config: rl(20, "1 hour"), schema: { tags: ["operadores"], summary: "Invita a alguien al equipo por correo", security: bearer, body: z.object({ email: z.string().trim().toLowerCase().pipe(z.email().max(254)), role: z.enum(["admin", "recepcion", "guia"]), listing_ids: z.array(z.string().max(80)).max(50).optional() }), response: { 201: ok } } }, async (req, reply) => {
+    reply.code(201);
+    return { data: await team.invite(req.member!, req.user!.id, req.body) };
+  });
+  r.delete("/org/team/invitations/:id", { preHandler: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Revoca una invitación", security: bearer, params: memberId, response: { 204: z.null() } } }, async (req, reply) => { await team.revoke(req.member!.org_id, req.member!.role, req.params.id); reply.code(204); return null; });
+  r.patch("/org/team/members/:id", { preHandler: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Cambia el rol o los servicios de un miembro", security: bearer, params: memberId, body: z.object({ role: z.enum(["admin", "recepcion", "guia"]).optional(), listing_ids: z.array(z.string().max(80)).max(50).optional() }), response: { 204: z.null() } } }, async (req, reply) => { await team.updateMember(req.member!.org_id, { id: req.user!.id, role: req.member!.role }, req.params.id, req.body); reply.code(204); return null; });
+  r.delete("/org/team/members/:id", { preHandler: org(), schema: { tags: ["operadores"], summary: "Quita a un miembro (o sal tú del equipo)", security: bearer, params: memberId, response: { 204: z.null() } } }, async (req, reply) => { await team.remove(req.member!.org_id, { id: req.user!.id, role: req.member!.role }, req.params.id); reply.code(204); return null; });
+  r.get("/team-invitations/:token", { config: rl(30, "1 minute"), schema: { tags: ["operadores"], summary: "Vista previa de una invitación", params: z.object({ token: z.string().max(100) }), response: { 200: ok } } }, async (req) => ({ data: await team.preview(req.params.token) }));
+  r.post("/team-invitations/:token/accept", { preHandler: app.authenticate, config: rl(10, "1 minute"), schema: { tags: ["operadores"], summary: "Acepta una invitación con la cuenta invitada", security: bearer, params: z.object({ token: z.string().max(100) }), response: { 200: ok } } }, async (req) => ({ data: await team.accept(req.user!.id, req.params.token) }));
+
+  // ---- Mensajes ----
+  r.get("/org/messages", { preHandler: org("owner", "admin", "recepcion"), schema: { tags: ["operadores"], summary: "Conversaciones", security: bearer, querystring: z.object({ ...pageQ, unread: z.enum(["true", "false"]).optional() }), response: { 200: paged } } }, async (req) => {
+    const { rows, total } = await engagement.threads(req.member!.org_id, { unread: req.query.unread === "true", page: req.query.page, per_page: req.query.per_page });
+    return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
+  });
+  r.get("/org/messages/:thread", { preHandler: org("owner", "admin", "recepcion"), schema: { tags: ["operadores"], summary: "Mensajes de una conversación (la marca como leída)", security: bearer, params: z.object({ thread: z.string().max(120) }), response: { 200: ok } } }, async (req) => ({ data: await engagement.thread(req.member!.org_id, req.params.thread) }));
+  r.post("/org/messages/:thread", { preHandler: org("owner", "admin", "recepcion"), schema: { tags: ["operadores"], summary: "Responde una conversación", security: bearer, params: z.object({ thread: z.string().max(120) }), body: z.object({ body: z.string().trim().min(1).max(2000) }), response: { 201: ok } } }, async (req, reply) => { reply.code(201); return { data: await engagement.reply(req.member!.org_id, req.params.thread, req.body.body) }; });
+  r.post("/bookings/:id/messages", { preHandler: optionalUser, config: rl(20, "1 minute"), schema: { tags: ["reservas"], summary: "El viajero escribe al operador desde su reserva", params: id.extend({ id: z.string().uuid() }), querystring: tokenQ, body: z.object({ body: z.string().trim().min(1).max(2000) }), response: { 201: ok } } }, async (req, reply) => { reply.code(201); return { data: await engagement.travelerMessage(req.params.id, access(req), req.body.body) }; });
+
+  // ---- Reseñas ----
+  r.post("/bookings/:id/review", { preHandler: optionalUser, config: rl(10, "1 minute"), schema: { tags: ["reservas"], summary: "Reseña verificada de una reserva completada (una por reserva)", params: id.extend({ id: z.string().uuid() }), querystring: tokenQ, body: z.object({ rating: z.number().int().min(1).max(5), comment: z.string().trim().max(2000).optional() }), response: { 201: ok } } }, async (req, reply) => { reply.code(201); return { data: await engagement.review(req.params.id, access(req), req.body) }; });
+  r.get("/listings/:id/reviews", { schema: { tags: ["operadores"], summary: "Reseñas públicas de un servicio", params: id, querystring: z.object(pageQ), response: { 200: paged } } }, async (req, reply) => {
+    const { rows, total } = await engagement.publicReviews(req.params.id, req.query.page, req.query.per_page);
+    reply.header("cache-control", PUBLIC_CACHE);
+    return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
+  });
+  r.get("/org/reviews", { preHandler: org(), schema: { tags: ["operadores"], summary: "Reseñas de mis servicios", security: bearer, querystring: z.object({ ...pageQ, unanswered: z.enum(["true", "false"]).optional() }), response: { 200: paged } } }, async (req) => {
+    const { rows, total } = await engagement.orgReviews(req.member!.org_id, { unanswered: req.query.unanswered === "true", only: listingScope(req), page: req.query.page, per_page: req.query.per_page });
+    return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
+  });
+  r.put("/org/reviews/:id/reply", { preHandler: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Responde una reseña", security: bearer, params: id, body: z.object({ reply: z.string().trim().min(1).max(1000) }), response: { 204: z.null() } } }, async (req, reply) => { await engagement.replyReview(req.member!.org_id, req.params.id, req.body.reply); reply.code(204); return null; });
+
+  // ---- Calendarios iCal ----
+  r.get("/ical/:file", { config: rl(60, "1 minute"), schema: { tags: ["operadores"], summary: "Feed iCal de una habitación (URL secreta para Airbnb, Booking, Google…)", params: z.object({ file: z.string().regex(/^[a-f0-9]{20,64}\.ics$/) }) } }, async (req, reply) => {
+    reply.header("content-type", "text/calendar; charset=utf-8").header("cache-control", "private, max-age=300");
+    return icalSvc.exportFeed(req.params.file.slice(0, -4));
+  });
+  r.get("/org/rooms/:id/calendar", { preHandler: org("owner", "admin"), schema: { tags: ["operadores"], summary: "URL de exportación y calendarios importados", security: bearer, params: memberId, response: { 200: ok } } }, async (req) => ({ data: await icalSvc.feedInfo(req.member!.org_id, req.params.id) }));
+  r.post("/org/rooms/:id/calendar-links", { preHandler: org("owner", "admin"), config: rl(20, "1 hour"), schema: { tags: ["operadores"], summary: "Importa un calendario iCal externo (https) y bloquea sus fechas", security: bearer, params: memberId, body: z.object({ name: z.string().trim().min(1).max(60), url: z.string().url().max(500) }), response: { 201: ok } } }, async (req, reply) => { reply.code(201); return { data: await icalSvc.addLink(req.member!.org_id, req.params.id, req.body) }; });
+  r.post("/org/calendar-links/:id/sync", { preHandler: org("owner", "admin"), config: rl(30, "1 hour"), schema: { tags: ["operadores"], summary: "Sincroniza ahora un calendario importado", security: bearer, params: memberId, response: { 200: ok } } }, async (req) => ({ data: await icalSvc.sync(req.member!.org_id, req.params.id) }));
+  r.delete("/org/calendar-links/:id", { preHandler: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Quita un calendario importado y sus bloqueos", security: bearer, params: memberId, response: { 204: z.null() } } }, async (req, reply) => { await icalSvc.removeLink(req.member!.org_id, req.params.id); reply.code(204); return null; });
+
+  // ---- Reportes ----
+  r.get("/org/reports/summary", { preHandler: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Resumen: reservas, ingresos, servicios, canales, cancelaciones y promociones", security: bearer, querystring: z.object({ from: date, to: date }), response: { 200: ok } } }, async (req) => ({ data: await reports.summary(req.member!.org_id, { from: req.query.from, to: req.query.to }) }));
+
   // ================= Administración =================
   r.get("/admin/orgs", { preHandler: staff, schema: { tags: ["admin"], summary: "Operadores registrados", security: bearer, querystring: z.object({ ...pageQ, verification: z.enum(["unverified", "pending", "verified", "rejected"]).optional(), q: z.string().max(100).optional() }), response: { 200: paged } } }, async (req) => {
     const { rows, total } = await catalog.adminListOrgs(req.query);
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
   });
-  r.put("/admin/orgs/:id/verification", { preHandler: staff, schema: { tags: ["admin"], summary: "Verifica o rechaza un operador", security: bearer, params: id.extend({ id: z.string().uuid() }), body: z.object({ verification: z.enum(["unverified", "pending", "verified", "rejected"]) }), response: { 200: ok } } }, async (req) => ({ data: await catalog.setVerification(req.params.id, req.body.verification) }));
+  r.put("/admin/orgs/:id/verification", { preHandler: staff, schema: { tags: ["admin"], summary: "Verifica o rechaza un operador", security: bearer, params: id.extend({ id: z.string().uuid() }), body: z.object({ verification: z.enum(["unverified", "pending", "verified", "rejected"]) }), response: { 200: ok } } }, async (req) => {
+    const data = await catalog.setVerification(req.params.id, req.body.verification);
+    await audit(app.db, { actor: req.user!.id, action: "org.verification", entity: "org", id: req.params.id, org: req.params.id, meta: { verification: req.body.verification }, ip: req.ip });
+    return { data };
+  });
 }

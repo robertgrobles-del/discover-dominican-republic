@@ -159,6 +159,16 @@ Anti-sobreventa: cada reserva corre en una transacción que bloquea (`FOR UPDATE
 
 Pagos: el backend nunca recibe tarjetas; el navegador manda un `payment_method_token` del proveedor. `PAYMENT_PROVIDER=fake` (dev/pruebas: `tok_test_ok`, `tok_test_declined`, `tok_test_error`) o `none` (por defecto en producción hasta integrar Azul/CardNET/Stripe: sólo "pagar después"). Un pago rechazado anula la reserva y libera cupo y código promocional. El invitado accede a su reserva con el `access_token` devuelto al crearla (sólo se guarda su hash).
 
+### Fase B: equipo, mensajes, reseñas, calendarios, reportes y auditoría
+
+- **Equipo**: `GET /org/team`, `POST/DELETE /org/team/invitations`, `PATCH/DELETE /org/team/members/{id}`, y públicos `GET /team-invitations/{token}` + `POST /team-invitations/{token}/accept` (exige la cuenta con el correo invitado). Sólo se gestiona a roles inferiores (el propietario a todos; un admin sólo recepción y guía); un guía debe tener servicios asignados y sólo ve sus reservas, calendario y reseñas. El token se guarda como hash y vence a los 7 días.
+- **Mensajes**: cada reserva abre la conversación `web-{booking_id}`; `GET/POST /org/messages[/{thread}]` para el operador y `POST /bookings/{id}/messages?token=` para el viajero.
+- **Reseñas verificadas**: `POST /bookings/{id}/review` sólo con la reserva `completed`, una por reserva; recalcula `rating` y `reviews_count` del servicio. `GET /listings/{id}/reviews` (público), `GET /org/reviews`, `PUT /org/reviews/{id}/reply`.
+- **iCal**: `GET /ical/{token}.ics` (URL secreta por habitación, sin datos personales ni bloqueos importados) e importación de hasta 5 calendarios externos por habitación (`POST /org/rooms/{id}/calendar-links`, `POST /org/calendar-links/{id}/sync`, `DELETE`). La importación exige https, resuelve el DNS y rechaza redes privadas (SSRF); si una sincronización falla se conserva lo importado.
+- **Automatizaciones** (`JOBS_ENABLED`, cada 5 min, con candado consultivo entre instancias): recordatorio ~24 h antes, solicitud de reseña al completar (emite un token nuevo de acceso para el enlace) y sincronización de calendarios con más de 1 h.
+- **Reportes**: `GET /org/reports/summary?from&to` (totales, cancelación, por servicio, canal, mes y promoción).
+- **Admin**: `POST /admin/users/{id}/2fa/reset` (motivo obligatorio, cierra sesiones, avisa por correo, no aplica a uno mismo) y `GET /admin/audit`. Se auditan verificaciones de operadores, invitaciones, cambios de equipo y resets de 2FA (tabla `audit_log`).
+
 ## Correo
 
 `app.mailer.send({ to, template, data, locale })` **encola** en la tabla `email_log` y vuelve; un trabajador (en el mismo proceso, `MAIL_WORKER_ENABLED`, o en otro) toma los pendientes con `FOR UPDATE SKIP LOCKED`, así que varias instancias nunca envían dos veces. Reintenta con espera creciente (1 min, 5 min, 30 min, 2 h, 12 h) hasta `MAIL_MAX_ATTEMPTS` y luego marca `failed`; los mensajes que quedaron `sending` por un proceso caído se recuperan. Si se pasa la conexión de una transacción (`send(input, client)`) el correo forma parte de ella (outbox transaccional: el registro y su correo se guardan juntos o no se guarda ninguno).

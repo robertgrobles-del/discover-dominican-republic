@@ -11,6 +11,10 @@ export interface TemplateData {
   "booking.confirmation": BookingMail & { paid: string; balance: string };
   "booking.request_received": BookingMail;
   "booking.cancelled": { name: string; reference: string; service: string; refund: string; operator: string };
+  "org.invitation": { operator: string; inviter: string; role: string; url: string; days: number };
+  "booking.reminder": BookingMail;
+  "booking.review_request": { name: string; service: string; operator: string; url: string };
+  "auth.two_factor_reset": { name: string };
   "operator.new_booking": { operator: string; traveler: string; reference: string; service: string; dates: string; guests: string; total: string; url: string };
 }
 interface BookingMail { name: string; reference: string; service: string; operator: string; dates: string; guests: string; total: string; url: string }
@@ -130,6 +134,81 @@ T["operator.new_booking"] = {
     subject: `New booking ${d.reference}: ${d.service}`,
     text: `${d.operator}: ${d.traveler} booked ${d.service}.\nDates: ${d.dates}\nGuests: ${d.guests}\nTotal: ${d.total}\nReference: ${d.reference}\n\nManage: ${d.url}`,
     html: layout("New booking", p(`<b>${esc(d.traveler)}</b> booked with ${esc(d.operator)}.`) + table([["Service", d.service], ["Dates", d.dates], ["Guests", d.guests], ["Total", d.total], ["Reference", d.reference]]), { label: "Manage in my panel", url: d.url }),
+  }),
+};
+
+T["org.invitation"] = {
+  es: (d) => ({
+    subject: `${d.inviter} te invitó a ${d.operator}`,
+    text: `${d.inviter} te invitó a unirte al equipo de ${d.operator} como ${d.role}.
+
+Acepta la invitación (vence en ${d.days} días): ${d.url}`,
+    html: layout("Te invitaron a un equipo", p(`<b>${esc(d.inviter)}</b> te invitó a unirte al equipo de <b>${esc(d.operator)}</b> como <b>${esc(d.role)}</b>.`) + p(`La invitación vence en ${d.days} días.`), { label: "Aceptar invitación", url: d.url }),
+  }),
+  en: (d) => ({
+    subject: `${d.inviter} invited you to ${d.operator}`,
+    text: `${d.inviter} invited you to join ${d.operator} as ${d.role}.
+
+Accept (expires in ${d.days} days): ${d.url}`,
+    html: layout("You were invited to a team", p(`<b>${esc(d.inviter)}</b> invited you to join <b>${esc(d.operator)}</b> as <b>${esc(d.role)}</b>.`) + p(`The invitation expires in ${d.days} days.`), { label: "Accept invitation", url: d.url }),
+  }),
+};
+T["booking.reminder"] = {
+  es: (d) => ({
+    subject: `Recordatorio: ${d.service} — ${d.dates}`,
+    text: `Hola ${d.name},
+
+Te recordamos tu reserva ${d.reference} con ${d.operator}.
+${d.service}
+Fechas: ${d.dates}
+Personas: ${d.guests}
+
+${d.url}`,
+    html: layout("Tu reserva se acerca", p(`Hola ${esc(d.name)}, te recordamos tu reserva con <b>${esc(d.operator)}</b>.`) + table([["Servicio", d.service], ["Fechas", d.dates], ["Personas", d.guests], ["Referencia", d.reference]]), { label: "Ver mi reserva", url: d.url }),
+  }),
+  en: (d) => ({
+    subject: `Reminder: ${d.service} — ${d.dates}`,
+    text: `Hi ${d.name},
+
+A reminder of your booking ${d.reference} with ${d.operator}.
+${d.service}
+Dates: ${d.dates}
+Guests: ${d.guests}
+
+${d.url}`,
+    html: layout("Your booking is coming up", p(`Hi ${esc(d.name)}, a reminder of your booking with <b>${esc(d.operator)}</b>.`) + table([["Service", d.service], ["Dates", d.dates], ["Guests", d.guests], ["Reference", d.reference]]), { label: "View my booking", url: d.url }),
+  }),
+};
+T["booking.review_request"] = {
+  es: (d) => ({
+    subject: `¿Cómo estuvo ${d.service}?`,
+    text: `Hola ${d.name},
+
+Gracias por viajar con ${d.operator}. Cuéntanos cómo te fue: ${d.url}`,
+    html: layout("¿Cómo te fue?", p(`Hola ${esc(d.name)}, gracias por viajar con <b>${esc(d.operator)}</b>. Tu opinión sobre <b>${esc(d.service)}</b> ayuda a otros viajeros.`), { label: "Dejar mi reseña", url: d.url }),
+  }),
+  en: (d) => ({
+    subject: `How was ${d.service}?`,
+    text: `Hi ${d.name},
+
+Thanks for traveling with ${d.operator}. Tell us how it went: ${d.url}`,
+    html: layout("How was it?", p(`Hi ${esc(d.name)}, thanks for traveling with <b>${esc(d.operator)}</b>. Your review of <b>${esc(d.service)}</b> helps other travelers.`), { label: "Leave my review", url: d.url }),
+  }),
+};
+T["auth.two_factor_reset"] = {
+  es: (d) => ({
+    subject: "Se restableció tu verificación en dos pasos",
+    text: `Hola ${d.name},
+
+Un administrador desactivó tu verificación en dos pasos y cerró tus sesiones. Vuelve a activarla al iniciar sesión. Si no lo esperabas, contacta a soporte.`,
+    html: layout("Verificación en dos pasos restablecida", p(`Hola ${esc(d.name)},`) + p("Un administrador desactivó tu verificación en dos pasos y cerró tus sesiones. Vuelve a activarla al iniciar sesión.") + p("Si no lo esperabas, contacta a soporte.")),
+  }),
+  en: (d) => ({
+    subject: "Your two-factor authentication was reset",
+    text: `Hi ${d.name},
+
+An administrator disabled your two-factor authentication and signed you out. Re-enable it when you sign in. If unexpected, contact support.`,
+    html: layout("Two-factor authentication reset", p(`Hi ${esc(d.name)},`) + p("An administrator disabled your two-factor authentication and signed you out. Re-enable it when you sign in.") + p("If unexpected, contact support.")),
   }),
 };
 

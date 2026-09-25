@@ -56,6 +56,8 @@ const schema = z.object({
   MAIL_TRANSPORT: z.enum(["log", "smtp", "memory"]).default("log"),
   /** Trabajador que vacía la cola de correo dentro de este proceso (se puede apagar y correr aparte). */
   MAIL_WORKER_ENABLED: bool.default(true),
+  /** Trabajos programados de Operadores RD (recordatorios, solicitudes de reseña, sincronización de calendarios). */
+  JOBS_ENABLED: bool.default(true),
   MAIL_POLL_MS: z.coerce.number().int().min(200).default(2000),
   MAIL_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(20).default(5),
   SMTP_HOST: z.string().optional(),
@@ -92,6 +94,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   if (!!env.OAUTH_GOOGLE_CLIENT_ID !== !!env.OAUTH_GOOGLE_CLIENT_SECRET) throw new Error("Configuración inválida: OAUTH_GOOGLE_CLIENT_ID y OAUTH_GOOGLE_CLIENT_SECRET van juntos");
   if (env.RATE_LIMIT_STORE === "redis" && !env.REDIS_URL) throw new Error("Configuración inválida: RATE_LIMIT_STORE=redis requiere REDIS_URL");
   if (env.NODE_ENV === "test" && !source.MAIL_TRANSPORT) env.MAIL_TRANSPORT = "memory";
+  if (env.NODE_ENV === "test" && source.JOBS_ENABLED === undefined) env.JOBS_ENABLED = false; // las pruebas ejecutan automations.run() a mano
   if (env.NODE_ENV === "test" && source.MAIL_WORKER_ENABLED === undefined) env.MAIL_WORKER_ENABLED = false; // las pruebas vacían la cola con drain()
   if (env.NODE_ENV === "production" && env.DOCS_ENABLED && !source.DOCS_ENABLED) env.DOCS_ENABLED = false; // en producción la documentación es explícita
   return env;
