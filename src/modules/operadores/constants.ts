@@ -1,6 +1,6 @@
 import {
   Compass, HeartHandshake, BedDouble, Car, CalendarDays, MessageSquare, BarChart3,
-  Globe, Zap, ShieldCheck, Wallet, Languages, Users, FileText, LifeBuoy,
+  Globe, Package, Zap, ShieldCheck, Wallet, Languages, Users, FileText, LifeBuoy,
   type LucideIcon,
 } from "lucide-react";
 import type { BookingStatus, ListingCategory, ListingStatus, OrgVerification, PaymentStatus } from "./types";
@@ -12,6 +12,7 @@ export const CATEGORY_META: Record<ListingCategory, { label: string; desc: strin
   experiencia: { label: "Experiencias", desc: "Excursiones, tours, actividades y talleres.", icon: Compass },
   voluntariado: { label: "Voluntariados", desc: "Proyectos sociales, comunitarios, de fauna y flora.", icon: HeartHandshake },
   alojamiento: { label: "Alojamientos", desc: "Hoteles, hostales, apartamentos, villas y habitaciones.", icon: BedDouble },
+  paquete: { label: "Paquetes", desc: "Tours de varios días que combinan hotel, excursiones y traslados.", icon: Package },
   transporte: { label: "Transportes", desc: "Renta de vehículos, traslados y carpooling.", icon: Car },
 };
 

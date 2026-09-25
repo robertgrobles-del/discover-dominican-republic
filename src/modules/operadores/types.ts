@@ -2,7 +2,7 @@
 // La organización del operador vive en `partner_profiles` y sus reservas en
 // `reservations`, para integrarse con el PartnerDashboard y el admin existentes.
 
-export type ListingCategory = "experiencia" | "voluntariado" | "alojamiento" | "transporte";
+export type ListingCategory = "experiencia" | "voluntariado" | "alojamiento" | "transporte" | "paquete";
 export type ListingStatus = "draft" | "published" | "paused";
 export type BookingStatus = "pending" | "confirmed" | "in_progress" | "completed" | "cancelled";
 export type PaymentStatus = "unpaid" | "partial" | "paid" | "refunded";
@@ -52,7 +52,12 @@ export interface Extra {
 }
 export interface BookingExtra { id: string; name: string; qty: number; price: number; }
 
+export interface ItineraryDay { day: number; title: string; description: string; }
+
 export interface Listing {
+  days?: number; // paquetes / tours de varios días
+  itinerary?: ItineraryDay[];
+  components?: string[]; // ids de servicios propios incluidos en el paquete (hotel, tour, traslado…)
   child_price?: number; // niños de 3 a 11 años; sin valor = pagan como adultos
   infants_free?: boolean; // bebés de 0 a 2 años gratis (no ocupan cupo)
   min_guests?: number; // personas mínimas para que salga la excursión

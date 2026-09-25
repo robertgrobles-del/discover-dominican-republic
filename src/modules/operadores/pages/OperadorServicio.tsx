@@ -18,11 +18,11 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { isValidEmail } from "@/lib/security";
 import {
-  availableRooms, availableSpots, bumpPromotionUse, nightsBetween, createBooking, fetchAllBookings, fetchListingBySlug, fetchOrgBySlug, findPromotion, sendMessage,
+  availableRooms, availableSpots, bumpPromotionUse, fetchListings, nightsBetween, createBooking, fetchAllBookings, fetchListingBySlug, fetchOrgBySlug, findPromotion, sendMessage,
 } from "../api";
 import { CANCELLATION_POLICIES, CATEGORY_META, EXTRA_UNIT_LABEL, formatMoney } from "../constants";
-import { quoteStay } from "../pricing";
-import type { Promotion } from "../types";
+import { addDays, quoteStay } from "../pricing";
+import type { Listing, Promotion } from "../types";
 
 export default function OperadorServicio() {
   const { slug = "", listing: listingSlug = "" } = useParams();
@@ -33,6 +33,8 @@ export default function OperadorServicio() {
   const org = orgQ.data;
   const listingQ = useQuery({ queryKey: ["op", "listing", org?.id, listingSlug], queryFn: () => fetchListingBySlug(org!.id, listingSlug), enabled: !!org });
   const listing = listingQ.data;
+  const allListingsQ = useQuery({ queryKey: ["op", "listings-of", org?.id], queryFn: () => fetchListings(org!.id), enabled: !!org });
+  const allListings = allListingsQ.data || [];
   const bookingsQ = useQuery({ queryKey: ["op", "all-bookings"], queryFn: fetchAllBookings });
 
   const today = new Date().toISOString().slice(0, 10);
@@ -77,6 +79,9 @@ export default function OperadorServicio() {
   }
 
   const cat = CATEGORY_META[listing.category];
+  const packDays = listing.category === "paquete" ? Math.max(1, listing.days || 1) : 1;
+  const endDate = packDays > 1 ? addDays(date, packDays - 1) : undefined;
+  const included = (listing.components || []).map((id) => allListings.find((l) => l.id === id)).filter(Boolean) as Listing[];
   const quote = room ? quoteStay(room, date, checkOut) : null;
   const unitPrice = room ? (quote && quote.nights ? quote.average : room.price) : listing.price;
   const units = isStay ? nights : guests;
@@ -118,7 +123,7 @@ export default function OperadorServicio() {
     setBusy(true);
     try {
       const id = await createBooking({
-        org_id: org.id, listing_id: listing.id, listing_title: room ? `${listing.title} — ${room.name}` : listing.title, room_id: room?.id, room_name: room?.name, check_out: isStay ? checkOut : undefined, extras: extraLines.length ? extraLines : undefined, contact_name: f.name.trim(), contact_email: f.email.trim(),
+        org_id: org.id, listing_id: listing.id, listing_title: room ? `${listing.title} — ${room.name}` : listing.title, room_id: room?.id, room_name: room?.name, check_out: isStay ? checkOut : endDate, extras: extraLines.length ? extraLines : undefined, contact_name: f.name.trim(), contact_email: f.email.trim(),
         contact_phone: f.phone.trim() || undefined, date, time: isStay ? undefined : selectedTime, guests: isStay ? guests : seats, guest_mix: !isStay && (kids || babies) ? { adults: guests, children: kids, infants: babies } : undefined, total_price: total, currency: listing.currency,
         status: payNow ? "confirmed" : "pending", payment_status: deposit ? "partial" : payNow ? "paid" : "unpaid", amount_paid: deposit ? depositAmount : payNow ? total : 0, promo_code: promo?.code, notes: f.notes.trim() || undefined, source: "web",
       });
@@ -202,6 +207,16 @@ export default function OperadorServicio() {
                   {room && <p className="mt-3 text-xs text-muted-foreground">Enlace directo a esta habitación: <span className="font-mono break-all">{`${window.location.origin}/operador/${org.slug}/${listing.slug}?habitacion=${room.id}`}</span></p>}
                 </section>
               )}
+              {listing.category === "paquete" && (listing.itinerary?.length ?? 0) > 0 && (
+                <section id="itinerario"><h2 className="font-display text-xl font-bold mb-3">Itinerario · {packDays} días</h2>
+                  <ol className="space-y-3">{listing.itinerary!.map((d) => (
+                    <li key={d.day} className="flex gap-3"><span className="h-8 w-8 shrink-0 rounded-full bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center">{d.day}</span>
+                      <div><p className="font-semibold">{d.title}</p>{d.description && <p className="text-sm text-muted-foreground">{d.description}</p>}</div></li>
+                  ))}</ol>
+                  {included.length > 0 && <div className="mt-4"><p className="text-sm font-medium mb-2">Servicios incluidos</p>
+                    <div className="flex flex-wrap gap-2">{included.map((l) => <Link key={l.id} to={`/operador/${org.slug}/${l.slug}`} className="rounded-full bg-secondary px-3 py-1 text-xs hover:bg-secondary/80">{l.title}</Link>)}</div></div>}
+                </section>
+              )}
               <section><h2 className="font-display text-xl font-bold mb-2">Descripción</h2><p className="text-muted-foreground whitespace-pre-line">{listing.description}</p></section>
               {listing.includes.length > 0 && (
                 <section><h2 className="font-display text-xl font-bold mb-2">Qué incluye</h2>
@@ -231,7 +246,7 @@ export default function OperadorServicio() {
                 ) : (
                   <>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1"><Label htmlFor="b-date">Fecha</Label><Input id="b-date" type="date" min={today} value={date} onChange={(e) => setDate(e.target.value)} /></div>
+                      <div className="space-y-1"><Label htmlFor="b-date">{packDays > 1 ? "Fecha de inicio" : "Fecha"}</Label><Input id="b-date" type="date" min={today} value={date} onChange={(e) => setDate(e.target.value)} />{endDate && <p className="text-[11px] text-muted-foreground">Termina el {endDate}</p>}</div>
                       <div className="space-y-1"><Label>Horario</Label>
                         <Select value={selectedTime} onValueChange={setTime}><SelectTrigger><SelectValue /></SelectTrigger>
                           <SelectContent>{listing.time_slots.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>

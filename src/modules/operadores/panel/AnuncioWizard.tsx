@@ -14,7 +14,7 @@ import { opKeys, saveListing, useListings, useOpMutation } from "../api";
 import {
   CANCELLATION_POLICIES, CATEGORY_META, DESTINATION_OPTIONS, LANGUAGE_OPTIONS, TIME_SLOT_OPTIONS, formatMoney, slugify,
 } from "../constants";
-import type { Extra, ExtraUnit, Listing, ListingCategory, Room } from "../types";
+import type { Extra, ExtraUnit, ItineraryDay, Listing, ListingCategory, Room } from "../types";
 import { useOrg } from "./OrgContext";
 
 const STEPS = ["Categoría", "Información", "Detalles y precio", "Fotos", "Revisión"];
@@ -54,9 +54,21 @@ export default function AnuncioWizard() {
   const errors: string[] = [];
   if (draft.title.trim().length < 5) errors.push("El título necesita al menos 5 caracteres.");
   if (!draft.destination) errors.push("Elige un destino.");
+  const isPackage = draft.category === "paquete";
+  const days = draft.days || 0;
+  const itinerary = draft.itinerary || [];
+  const setDays = (n: number) => {
+    const d = Math.min(30, Math.max(1, Math.round(n) || 1));
+    const next: ItineraryDay[] = Array.from({ length: d }, (_, i) => itinerary[i] || { day: i + 1, title: "", description: "" });
+    setDraft((x) => ({ ...x, days: d, itinerary: next, duration: `${d} días${d > 1 ? ` / ${d - 1} noche(s)` : ""}` }));
+  };
+  const setDay = (i: number, patch: Partial<ItineraryDay>) => set("itinerary", itinerary.map((x, j) => (j === i ? { ...x, ...patch } : x)));
+  const components = draft.components || [];
+  const others = listings.filter((l) => l.id !== draft.id && l.category !== "paquete");
   const extras = draft.extras || [];
   const isStay = draft.category === "alojamiento";
   const rooms = draft.rooms || [];
+  if (isPackage && (days < 2 || itinerary.some((x) => !x.title.trim()))) errors.push("El paquete necesita al menos 2 días, cada uno con título.");
   if (extras.some((x) => !x.name.trim() || x.price <= 0)) errors.push("Cada extra necesita nombre y un precio mayor que 0.");
   if (isStay) {
     if (rooms.length === 0) errors.push("Agrega al menos una habitación.");
@@ -184,7 +196,7 @@ export default function AnuncioWizard() {
               {!isStay && <div className="space-y-2"><Label htmlFor="w-cap">Cupos por salida *</Label>
                 <Input id="w-cap" type="number" min={1} value={draft.capacity} onChange={(e) => set("capacity", Number(e.target.value))} /></div>}
               {!isStay && <div className="space-y-2"><Label htmlFor="w-dur">Duración</Label>
-                <Input id="w-dur" maxLength={40} value={draft.duration} onChange={(e) => set("duration", e.target.value)} placeholder="3 horas" /></div>}
+                <Input id="w-dur" maxLength={40} value={draft.duration} onChange={(e) => set("duration", e.target.value)} placeholder="3 horas" disabled={isPackage} /></div>}
               <div className="space-y-2"><Label htmlFor="w-age">Edad mínima</Label>
                 <Input id="w-age" type="number" min={0} value={draft.min_age ?? 0} onChange={(e) => set("min_age", Number(e.target.value))} /></div>
               <div className="space-y-2"><Label>Política de cancelación</Label>
@@ -207,6 +219,24 @@ export default function AnuncioWizard() {
                 </div>
               ))}
             </div>
+            {isPackage && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3"><Label htmlFor="w-days" className="text-base">Días del paquete *</Label><Input id="w-days" className="w-24" type="number" min={2} max={30} value={days || ""} onChange={(e) => setDays(Number(e.target.value))} /></div>
+                {itinerary.map((it, i) => (
+                  <div key={it.day} className="rounded-xl border border-border p-3 space-y-2">
+                    <Label className="text-xs text-muted-foreground">Día {it.day}</Label>
+                    <Input aria-label={`Título del día ${it.day}`} maxLength={80} value={it.title} onChange={(e) => setDay(i, { title: e.target.value })} placeholder="Ej. Llegada y Zona Colonial" />
+                    <Textarea aria-label={`Descripción del día ${it.day}`} rows={2} maxLength={400} value={it.description} onChange={(e) => setDay(i, { description: e.target.value })} placeholder="Qué se hace ese día" />
+                  </div>
+                ))}
+                {others.length > 0 && (
+                  <div className="space-y-2"><Label>Servicios tuyos incluidos en el paquete</Label>
+                    <div className="grid gap-2 sm:grid-cols-2">{others.map((l) => (
+                      <label key={l.id} className="flex items-center gap-2 text-sm"><Checkbox checked={components.includes(l.id)} onCheckedChange={(c) => set("components", c ? [...components, l.id] : components.filter((x) => x !== l.id))} /> {l.title}</label>
+                    ))}</div></div>
+                )}
+              </div>
+            )}
             {!isStay && (
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2"><Label htmlFor="w-child">Precio niños (3–11 años)</Label>

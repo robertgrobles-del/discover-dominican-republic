@@ -2738,6 +2738,72 @@
       ],
       "child_price": 40,
       "infants_free": true
+    },
+    {
+      "currency": "USD",
+      "languages": [
+        "Español",
+        "Inglés"
+      ],
+      "cancellation_policy": "moderada",
+      "status": "published",
+      "created_at": "2026-09-12T12:00:00.000Z",
+      "min_age": 0,
+      "org_id": "org-seed-colonial",
+      "category": "paquete",
+      "id": "lst-seed-11",
+      "title": "Escapada 3 días: Zona Colonial e Isla Saona",
+      "slug": "escapada-3-dias-colonial-saona",
+      "destination": "Santo Domingo",
+      "summary": "Hotel boutique, tour histórico y un día completo en Isla Saona.",
+      "description": "Tres días para conocer lo mejor del sur y el este: duermes en el corazón de la Zona Colonial, recorres su historia y cierras con un día de catamarán en Isla Saona. Traslados incluidos.",
+      "price": 320,
+      "capacity": 16,
+      "time_slots": [
+        "08:00"
+      ],
+      "duration": "3 días / 2 noche(s)",
+      "days": 3,
+      "deposit_percent": 30,
+      "child_price": 220,
+      "infants_free": true,
+      "min_guests": 4,
+      "rating": 4.9,
+      "reviews_count": 57,
+      "images": [
+        "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&h=800&fit=crop&q=80"
+      ],
+      "includes": [
+        "2 noches de hotel boutique",
+        "Tour a pie por la Zona Colonial",
+        "Excursión a Isla Saona",
+        "Traslados",
+        "Desayunos"
+      ],
+      "meeting_point": "Hotel boutique, Zona Colonial",
+      "itinerary": [
+        {
+          "day": 1,
+          "title": "Llegada y Zona Colonial",
+          "description": "Check-in en el hotel boutique y tour a pie por la primera ciudad de América."
+        },
+        {
+          "day": 2,
+          "title": "Isla Saona",
+          "description": "Traslado a Bayahibe y día completo en catamarán, piscina natural y almuerzo."
+        },
+        {
+          "day": 3,
+          "title": "Mañana libre y regreso",
+          "description": "Desayuno, tiempo libre para compras y traslado al aeropuerto."
+        }
+      ],
+      "components": [
+        "lst-seed-8",
+        "lst-seed-9",
+        "lst-seed-6",
+        "lst-seed-7"
+      ]
     }
   ],
   "store_products": [
