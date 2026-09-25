@@ -14,6 +14,9 @@ export interface TemplateData {
   "booking.balance_due": { name: string; reference: string; service: string; operator: string; date: string; balance: string; url: string };
   "operator.min_guests": { operator: string; service: string; date: string; booked: number; min: number; url: string };
   "operator.payout_sent": { operator: string; amount: string; reference: string };
+  "newsletter.confirm": { url: string };
+  "support.received": { name: string; reference: string; subject: string };
+  "establishment.received": { name: string; establishment: string; url: string };
   "org.invitation": { operator: string; inviter: string; role: string; url: string; days: number };
   "booking.reminder": BookingMail;
   "booking.review_request": { name: string; service: string; operator: string; url: string };
@@ -249,6 +252,43 @@ T["operator.payout_sent"] = {
     subject: `Payout sent: ${d.amount}`,
     text: `${d.operator}: we sent you a payout of ${d.amount}. Reference: ${d.reference}.`,
     html: layout("Payout sent", p(`<b>${esc(d.operator)}</b>, we sent you a payout of <b>${esc(d.amount)}</b>.`) + p(`Reference: ${esc(d.reference)}`)),
+  }),
+};
+
+T["newsletter.confirm"] = {
+  es: (d) => ({
+    subject: "Confirma tu suscripción a Descubre RD",
+    text: `Confirma tu suscripción al boletín de Descubre RD: ${d.url}\n\nSi no fuiste tú, ignora este correo.`,
+    html: layout("Confirma tu suscripción", p("Un paso más para recibir novedades de Descubre RD.") + p("Si no fuiste tú, ignora este correo."), { label: "Confirmar suscripción", url: d.url }),
+  }),
+  en: (d) => ({
+    subject: "Confirm your Descubre RD subscription",
+    text: `Confirm your Descubre RD newsletter subscription: ${d.url}\n\nIf this was not you, ignore this email.`,
+    html: layout("Confirm your subscription", p("One more step to get Descubre RD news.") + p("If this was not you, ignore this email."), { label: "Confirm subscription", url: d.url }),
+  }),
+};
+T["support.received"] = {
+  es: (d) => ({
+    subject: `Recibimos tu mensaje (${d.reference})`,
+    text: `Hola ${d.name},\n\nRecibimos tu mensaje "${d.subject}". Tu referencia es ${d.reference}. Te responderemos lo antes posible.`,
+    html: layout("Recibimos tu mensaje", p(`Hola ${esc(d.name)}, recibimos tu mensaje <b>${esc(d.subject)}</b>.`) + p(`Referencia: <b>${esc(d.reference)}</b>. Te responderemos lo antes posible.`)),
+  }),
+  en: (d) => ({
+    subject: `We received your message (${d.reference})`,
+    text: `Hi ${d.name},\n\nWe received your message "${d.subject}". Your reference is ${d.reference}. We will reply as soon as possible.`,
+    html: layout("We received your message", p(`Hi ${esc(d.name)}, we received your message <b>${esc(d.subject)}</b>.`) + p(`Reference: <b>${esc(d.reference)}</b>. We will reply as soon as possible.`)),
+  }),
+};
+T["establishment.received"] = {
+  es: (d) => ({
+    subject: `Recibimos la solicitud de ${d.establishment}`,
+    text: `Hola ${d.name},\n\nRecibimos la solicitud de alta de ${d.establishment}. La revisaremos y te avisaremos. Consulta el estado aquí: ${d.url}`,
+    html: layout("Solicitud recibida", p(`Hola ${esc(d.name)}, recibimos la solicitud de alta de <b>${esc(d.establishment)}</b>. La revisaremos y te avisaremos.`), { label: "Ver el estado", url: d.url }),
+  }),
+  en: (d) => ({
+    subject: `We received the request for ${d.establishment}`,
+    text: `Hi ${d.name},\n\nWe received the listing request for ${d.establishment}. We will review it and let you know. Check the status: ${d.url}`,
+    html: layout("Request received", p(`Hi ${esc(d.name)}, we received the listing request for <b>${esc(d.establishment)}</b>. We will review it and let you know.`), { label: "Check the status", url: d.url }),
   }),
 };
 

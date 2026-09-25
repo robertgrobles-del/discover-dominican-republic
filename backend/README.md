@@ -185,6 +185,13 @@ Liquidaciones: sólo lo cobrado en línea (no los cobros manuales) de reservas `
 
 Azul/CardNET (tarjetas locales) se agregan como otra clase que implemente `PaymentGateway`; la decisión de proveedor sigue abierta con Finanzas (docs §11.5).
 
+## Usuario, captación y soporte
+
+- **Perfil (`/me/*`)**: `GET/PATCH /me/profile`, `GET/PUT /me/preferences` (idioma, moneda, consentimientos de marketing/analítica —auditados— y notificaciones por canal y tipo; lo transaccional va activado por defecto y las promociones no), favoritos (`PUT/DELETE /me/favorites/{tipo}/{id}`, idempotentes; ids de texto para servicios de operadores), bandeja (`/me/notifications`), exportación JSON (`GET /me/export`) y perfil público con seguidores (`/users/{id}/public`, `/users/{id}/follow`).
+- **Eliminar cuenta (Ley 172-13)**: `DELETE /me` pide la contraseña, cierra sesiones y abre 30 días de gracia (`POST /me/deletion/cancel` la revierte; un propietario de organización debe transferirla primero). El trabajo `gdpr.process` anonimiza la cuenta pasada la gracia: borra favoritos, notificaciones y membresías, y conserva las reservas sin ligarlas al usuario.
+- **Newsletter**: `POST /newsletter/subscribe` (doble opt-in; la respuesta no revela si el correo ya existe), confirmación y baja con un clic (`GET|POST /newsletter/confirm|unsubscribe`). El token de baja es un HMAC con `APP_SECRET` (obligatorio en producción, mínimo 32 caracteres), apto para enlaces en campañas.
+- **Contacto y soporte**: `POST /contact` (ticket + acuse por correo), tickets del usuario (`/support/tickets`, sólo visibles para su dueño), `POST /leads` (exige consentimiento) y `POST /establishments/register` + `GET /establishments/registrations/{id}/status?token=` (alta pendiente de revisión). Los formularios públicos tienen campo trampa contra bots y límites por IP.
+
 ## Correo
 
 `app.mailer.send({ to, template, data, locale })` **encola** en la tabla `email_log` y vuelve; un trabajador (en el mismo proceso, `MAIL_WORKER_ENABLED`, o en otro) toma los pendientes con `FOR UPDATE SKIP LOCKED`, así que varias instancias nunca envían dos veces. Reintenta con espera creciente (1 min, 5 min, 30 min, 2 h, 12 h) hasta `MAIL_MAX_ATTEMPTS` y luego marca `failed`; los mensajes que quedaron `sending` por un proceso caído se recuperan. Si se pasa la conexión de una transacción (`send(input, client)`) el correo forma parte de ella (outbox transaccional: el registro y su correo se guardan juntos o no se guarda ninguno).

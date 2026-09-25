@@ -13,6 +13,8 @@ import { PayoutService } from "./modules/operators/payouts.js";
 import { AutomationService } from "./modules/operators/automations.js";
 import { IcalService } from "./modules/operators/ical.js";
 import { createGateway } from "./modules/operators/gateway.js";
+import { formsRoutes } from "./modules/forms/routes.js";
+import { meRoutes } from "./modules/me/routes.js";
 import { adminRoutes } from "./modules/admin/routes.js";
 import { operatorRoutes } from "./modules/operators/routes.js";
 import { contentRoutes } from "./modules/content/routes.js";
@@ -45,6 +47,8 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(contentRoutes);
       await v1.register(operatorRoutes);
       await v1.register(adminRoutes);
+      await v1.register(meRoutes);
+      await v1.register(formsRoutes);
       await v1.register(paymentWebhookRoutes);
     },
     { prefix: "/api/v1" },

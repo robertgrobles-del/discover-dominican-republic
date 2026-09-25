@@ -1651,6 +1651,18 @@
   "version": {
    "type": "integer",
    "nullable": false
+  },
+  "region": {
+   "type": "text",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "average_temperature": {
+   "type": "text",
+   "nullable": true
   }
  },
  "emergency_contacts": {
@@ -2817,6 +2829,14 @@
   "version": {
    "type": "integer",
    "nullable": false
+  },
+  "price_from_usd": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "booking_url": {
+   "type": "text",
+   "nullable": true
   }
  },
  "job_vacancies": {

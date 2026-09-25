@@ -35,6 +35,8 @@ const schema = z.object({
   }),
   /** Clave AES-256 (32 bytes en base64) que cifra los secretos TOTP en reposo. Obligatoria en producción. */
   TOTP_ENCRYPTION_KEY: z.string().optional(),
+  /** Secreto para firmar enlaces sin estado (baja de newsletter). Obligatorio en producción. */
+  APP_SECRET: z.string().min(32).optional(),
   TOTP_ISSUER: z.string().default("Descubre RD"),
   /** Exige 2FA a admin/editor/moderator para usar rutas de personal. Por defecto: sí en producción, no en desarrollo. */
   REQUIRE_2FA_FOR_STAFF: bool.optional(),
@@ -86,9 +88,11 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   const env = parsed.data;
   if (env.NODE_ENV === "production") {
     if (!env.JWT_PRIVATE_KEY || !env.JWT_PUBLIC_KEY) throw new Error("Configuración inválida: JWT_PRIVATE_KEY y JWT_PUBLIC_KEY son obligatorias en producción");
+    if (!env.APP_SECRET) throw new Error("Configuración inválida: APP_SECRET (mínimo 32 caracteres) es obligatoria en producción");
     if (!env.TOTP_ENCRYPTION_KEY) throw new Error("Configuración inválida: TOTP_ENCRYPTION_KEY es obligatoria en producción");
     if (env.MAIL_TRANSPORT === "memory") throw new Error("Configuración inválida: MAIL_TRANSPORT=memory no está permitido en producción");
   }
+  env.APP_SECRET ??= "dev-only-app-secret-change-me-0123456789"; // sólo llega aquí sin valor fuera de producción
   env.REQUIRE_2FA_FOR_STAFF ??= env.NODE_ENV === "production";
   env.PAYMENT_PROVIDER ??= env.NODE_ENV === "production" ? "none" : "fake";
   if (env.NODE_ENV === "production" && env.PAYMENT_PROVIDER === "fake") throw new Error("Configuración inválida: PAYMENT_PROVIDER=fake no está permitido en producción");
