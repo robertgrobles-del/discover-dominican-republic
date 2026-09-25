@@ -127,6 +127,52 @@ export class AuthService {
     return { user: this.toDto(user, ["user"]), session };
   }
 
+  // ---------- Cuentas creadas o vinculadas por un proveedor externo (OIDC) ----------
+  /** Crea una cuenta desde un proveedor: correo ya verificado por él, sin contraseña utilizable. */
+  async createOAuthUser(input: { email: string; display_name?: string; picture?: string; locale?: string }): Promise<string> {
+    const email = input.email.trim().toLowerCase();
+    const locale = this.locale((input.locale ?? "es").slice(0, 2));
+    const name = (input.display_name?.trim() || email.split("@")[0]!).slice(0, 80);
+    return this.tx(async (c) => {
+      const id = randomUUID();
+      await c.query(
+        "INSERT INTO users (id, email, password_hash, locale, email_verified_at, password_set) VALUES ($1, $2, $3, $4, now(), false)",
+        [id, email, `!oauth:${newOpaqueToken()}`, locale], // el hash nunca es válido para argon2: no se puede iniciar con contraseña
+      );
+      await c.query("INSERT INTO profiles (id, display_name, avatar_url, role) VALUES ($1, $2, $3, 'user')", [id, name, input.picture?.startsWith("https://") ? input.picture.slice(0, 500) : null]);
+      await c.query("INSERT INTO user_roles (user_id, role) VALUES ($1, 'user')", [id]);
+      await this.mailer.send({ to: email, template: "auth.welcome", locale, userId: id, data: { name, url: this.env.WEB_BASE_URL } }, c);
+      return id;
+    });
+  }
+
+  /**
+   * Una cuenta con correo sin verificar no prueba que su creador sea el dueño del correo. Antes de vincularla a un proveedor
+   * (que sí lo verificó) se le anula la contraseña y se cierran sus sesiones, para que quien la creó no conserve acceso.
+   */
+  async neutralizeUnverifiedAccount(userId: string) {
+    await this.tx(async (c) => {
+      await c.query("UPDATE users SET password_hash = $2, password_set = false, email_verified_at = now(), failed_login_count = 0, locked_until = NULL WHERE id = $1", [userId, `!neutralized:${newOpaqueToken()}`]);
+      await c.query("UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL", [userId]);
+      await c.query("UPDATE auth_tokens SET used_at = now() WHERE user_id = $1 AND used_at IS NULL", [userId]);
+    });
+    this.log.warn({ userId }, "Cuenta sin verificar vinculada a un proveedor: contraseña anulada");
+  }
+
+  /** null si puede iniciar sesión; si no, el motivo (para el redireccionamiento del login social). */
+  async assertCanLogin(userId: string): Promise<"account_suspended" | null> {
+    const u = await this.loadUser(userId);
+    return u.status === "suspended" || u.is_suspended ? "account_suspended" : null;
+  }
+
+  /** Abre sesión a un usuario ya autenticado por otro medio (proveedor social): respeta suspensión y 2FA. */
+  async loginAs(userId: string, ctx: RequestContext): Promise<LoginResult> {
+    const u = await this.loadUser(userId);
+    if (u.status === "suspended" || u.is_suspended) throw new AppError("ACCOUNT_SUSPENDED", "Tu cuenta está suspendida. Contacta a soporte.");
+    if (u.totp_enabled_at) return { twoFactor: { challenge_token: await this.tokens.signPurpose("mfa", u.id, 300) } };
+    return { user: this.toDto(u, await this.rolesOf(u.id)), session: await this.finishLogin(u, ctx, false) };
+  }
+
   // ---------- Inicio de sesión ----------
   async login(input: { email: string; password: string }, ctx: RequestContext): Promise<LoginResult> {
     const email = input.email.trim().toLowerCase();
@@ -294,7 +340,7 @@ export class AuthService {
     const password_hash = await hashPassword(input.password);
     const userId = await this.tx(async (c) => {
       const id = await this.consumeToken("reset_password", input.token, c);
-      await c.query("UPDATE users SET password_hash = $2, failed_login_count = 0, locked_until = NULL WHERE id = $1", [id, password_hash]);
+      await c.query("UPDATE users SET password_hash = $2, password_set = true, failed_login_count = 0, locked_until = NULL WHERE id = $1", [id, password_hash]);
       await c.query("UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL", [id]);
       return id;
     });

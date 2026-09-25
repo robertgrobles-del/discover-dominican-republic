@@ -1,5 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { AppError } from "../lib/errors.js";
+import { OAuthService } from "../modules/auth/oauth.js";
 import { AuthService, STAFF_ROLES } from "../modules/auth/service.js";
 import { createTokenService, type TokenService } from "../modules/auth/tokens.js";
 import { Mailer } from "../modules/mailer/mailer.js";
@@ -12,6 +13,7 @@ declare module "fastify" {
     tokens: TokenService;
     mailer: Mailer;
     auth: AuthService;
+    oauth: OAuthService;
     /** preHandler: exige `Authorization: Bearer <jwt>` válido y deja `req.user`. */
     authenticate: (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
     /** preHandler: como `authenticate`, pero además exige alguno de los roles indicados (docs §7.3). */
@@ -24,7 +26,9 @@ export async function registerAuth(app: FastifyInstance) {
   const mailer = new Mailer(app.env, app.db, app.log);
   app.decorate("tokens", tokens);
   app.decorate("mailer", mailer);
-  app.decorate("auth", new AuthService(app.env, app.db, tokens, mailer, app.log));
+  const auth = new AuthService(app.env, app.db, tokens, mailer, app.log);
+  app.decorate("auth", auth);
+  app.decorate("oauth", new OAuthService(app.env, app.db, auth, app.log));
   if (app.env.MAIL_WORKER_ENABLED) mailer.start();
   app.addHook("onClose", async () => { await mailer.stop(); });
 

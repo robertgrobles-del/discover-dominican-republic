@@ -248,4 +248,91 @@ export async function authRoutes(app: FastifyInstance) {
     reply.header("cache-control", "private, no-store");
     return { data: await app.auth.twoFactorRegenerateRecovery(req.user!.id, req.body.code, ctx(req)) };
   });
+
+  // ---------- Inicio de sesión social (OIDC) ----------
+  const STATE_COOKIE = "oauth_state";
+  const OAUTH_COOKIE_PATH = "/api/v1/auth/oauth";
+  const provider = z.object({ provider: z.string().regex(/^[a-z]{2,20}$/) });
+  const setState = (reply: FastifyReply, state: string) =>
+    reply.setCookie(STATE_COOKIE, state, { httpOnly: true, secure: app.env.NODE_ENV === "production", sameSite: "lax", path: OAUTH_COOKIE_PATH, maxAge: 600 });
+
+  r.get("/auth/oauth/providers", {
+    schema: { tags: ["auth"], summary: "Proveedores de inicio de sesión social disponibles", response: { 200: z.object({ data: z.array(z.object({ id: z.string(), name: z.string() })) }) } },
+  }, async (_req, reply) => {
+    reply.header("cache-control", "public, max-age=300");
+    return { data: app.oauth.available() };
+  });
+
+  r.post("/auth/oauth/:provider/start", {
+    schema: {
+      tags: ["auth"], summary: "Iniciar el flujo social: devuelve la URL del proveedor",
+      description: "`mode: login` (por defecto) inicia sesión o crea la cuenta; `mode: link` vincula el proveedor a la cuenta autenticada (requiere Bearer). El navegador debe navegar a `authorize_url`; al volver, el proveedor pasa por `/callback` y el usuario llega a `redirect_to?oauth_code=…`, que se canjea en `POST /auth/oauth/exchange`.",
+      params: provider, body: z.object({ redirect_to: z.string().max(500).optional(), mode: z.enum(["login", "link"]).optional() }).nullish(),
+      response: { 200: z.object({ data: z.object({ authorize_url: z.string() }) }) },
+    },
+    config: limit(20, "15 minutes"),
+  }, async (req, reply) => {
+    const mode = req.body?.mode ?? "login";
+    if (mode === "link") await app.authenticate(req, reply);
+    const { authorize_url, state } = await app.oauth.start({ provider: req.params.provider, mode, redirectTo: req.body?.redirect_to, userId: mode === "link" ? req.user!.id : undefined });
+    setState(reply, state);
+    reply.header("cache-control", "no-store");
+    return { data: { authorize_url } };
+  });
+
+  r.get("/auth/oauth/:provider", {
+    schema: { tags: ["auth"], summary: "Variante por redirección (302) para enlaces simples de \"Continuar con …\"", params: provider, querystring: z.object({ redirect_to: z.string().max(500).optional() }), response: { 302: z.null() } },
+    config: limit(20, "15 minutes"),
+  }, async (req, reply) => {
+    const { authorize_url, state } = await app.oauth.start({ provider: req.params.provider, mode: "login", redirectTo: req.query.redirect_to });
+    setState(reply, state);
+    return reply.redirect(authorize_url);
+  });
+
+  r.get("/auth/oauth/:provider/callback", {
+    schema: {
+      tags: ["auth"], summary: "Retorno del proveedor (lo llama el navegador; redirige al frontend)", params: provider,
+      querystring: z.object({ code: z.string().max(2000).optional(), state: z.string().max(200).optional(), error: z.string().max(100).optional() }).catchall(z.string()),
+      response: { 302: z.null() },
+    },
+    config: limit(30, "15 minutes"),
+  }, async (req, reply) => {
+    const result = await app.oauth.callback({ provider: req.params.provider, code: req.query.code, state: req.query.state, cookieState: req.cookies[STATE_COOKIE], providerError: req.query.error });
+    reply.clearCookie(STATE_COOKIE, { path: OAUTH_COOKIE_PATH });
+    const url = new URL(result.redirectTo);
+    for (const [k, v] of Object.entries(result.query)) url.searchParams.set(k, v);
+    reply.header("cache-control", "no-store").header("referrer-policy", "no-referrer");
+    return reply.redirect(url.toString());
+  });
+
+  r.post("/auth/oauth/exchange", {
+    schema: {
+      tags: ["auth"], summary: "Canjear el `oauth_code` (60 s, un solo uso) por la sesión",
+      body: z.object({ code: z.string().min(20).max(200) }), response: { 200: z.union([sessionResponse, challengeResponse]) },
+    },
+    config: limit(20, "15 minutes"),
+  }, async (req, reply) => {
+    const result = await app.oauth.exchange(req.body.code, ctx(req));
+    if ("twoFactor" in result) return { data: { two_factor_required: true as const, challenge_token: result.twoFactor.challenge_token } };
+    return { data: { user: result.user, tokens: tokensOut(req, reply, result.session) } };
+  });
+
+  r.get("/auth/identities", {
+    schema: {
+      tags: ["auth"], summary: "Proveedores vinculados a mi cuenta", security: bearer,
+      response: { 200: z.object({ data: z.object({ password_set: z.boolean(), identities: z.array(z.object({ provider: z.string(), email: z.string().nullable(), linked_at: z.string(), last_login_at: z.string().nullable() })) }) }) },
+    },
+    preHandler: app.authenticate,
+  }, async (req, reply) => {
+    reply.header("cache-control", "private, no-store");
+    return { data: await app.oauth.identities(req.user!.id) };
+  });
+
+  r.delete("/auth/identities/:provider", {
+    schema: { tags: ["auth"], summary: "Desvincular un proveedor (debe quedar otro método de acceso)", security: bearer, params: provider, response: noContent },
+    preHandler: app.authenticate,
+  }, async (req, reply) => {
+    await app.oauth.unlink(req.user!.id, req.params.provider);
+    return reply.code(204).send(null);
+  });
 }

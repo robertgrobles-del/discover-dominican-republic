@@ -38,6 +38,12 @@ const schema = z.object({
   TOTP_ISSUER: z.string().default("Descubre RD"),
   /** Exige 2FA a admin/editor/moderator para usar rutas de personal. Por defecto: sí en producción, no en desarrollo. */
   REQUIRE_2FA_FOR_STAFF: bool.optional(),
+  /** Inicio de sesión con Google (OIDC). Sin CLIENT_ID/SECRET el proveedor queda desactivado. ISSUER sólo se cambia en pruebas. */
+  OAUTH_GOOGLE_CLIENT_ID: z.string().optional(),
+  OAUTH_GOOGLE_CLIENT_SECRET: z.string().optional(),
+  OAUTH_GOOGLE_ISSUER: z.string().url().default("https://accounts.google.com"),
+  /** Destinos permitidos tras el login social (además de WEB_BASE_URL y CORS_ORIGINS), separados por comas. */
+  OAUTH_REDIRECT_ALLOWLIST: z.string().default(""),
   JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().min(30).default(900),
   REFRESH_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
   LOGIN_MAX_FAILURES: z.coerce.number().int().min(1).default(5),
@@ -79,6 +85,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   }
   env.REQUIRE_2FA_FOR_STAFF ??= env.NODE_ENV === "production";
   if (env.TOTP_ENCRYPTION_KEY && Buffer.from(env.TOTP_ENCRYPTION_KEY, "base64").length !== 32) throw new Error("Configuración inválida: TOTP_ENCRYPTION_KEY debe ser de 32 bytes en base64");
+  if (!!env.OAUTH_GOOGLE_CLIENT_ID !== !!env.OAUTH_GOOGLE_CLIENT_SECRET) throw new Error("Configuración inválida: OAUTH_GOOGLE_CLIENT_ID y OAUTH_GOOGLE_CLIENT_SECRET van juntos");
   if (env.RATE_LIMIT_STORE === "redis" && !env.REDIS_URL) throw new Error("Configuración inválida: RATE_LIMIT_STORE=redis requiere REDIS_URL");
   if (env.NODE_ENV === "test" && !source.MAIL_TRANSPORT) env.MAIL_TRANSPORT = "memory";
   if (env.NODE_ENV === "test" && source.MAIL_WORKER_ENABLED === undefined) env.MAIL_WORKER_ENABLED = false; // las pruebas vacían la cola con drain()
