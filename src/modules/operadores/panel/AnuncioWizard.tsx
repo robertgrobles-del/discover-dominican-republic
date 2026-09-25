@@ -207,6 +207,15 @@ export default function AnuncioWizard() {
                 </div>
               ))}
             </div>
+            {!isStay && (
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="space-y-2"><Label htmlFor="w-child">Precio niños (3–11 años)</Label>
+                  <Input id="w-child" type="number" min={0} value={draft.child_price ?? ""} placeholder="igual que adultos" onChange={(e) => set("child_price", e.target.value === "" ? undefined : Math.max(0, Number(e.target.value)))} /></div>
+                <div className="space-y-2"><Label htmlFor="w-min">Mínimo de personas para salir</Label>
+                  <Input id="w-min" type="number" min={0} value={draft.min_guests || ""} placeholder="sin mínimo" onChange={(e) => set("min_guests", Math.max(0, Number(e.target.value)) || undefined)} /></div>
+                <label className="flex items-end gap-2 text-sm pb-2"><Checkbox checked={!!draft.infants_free} onCheckedChange={(c) => set("infants_free", !!c)} /> Bebés (0–2 años) gratis, sin ocupar cupo</label>
+              </div>
+            )}
             <div className="space-y-2"><Label htmlFor="w-dep">Depósito para reservar (%)</Label>
               <div className="flex items-center gap-3"><Input id="w-dep" className="w-28" type="number" min={0} max={90} step={5} value={draft.deposit_percent || 0} onChange={(e) => set("deposit_percent", Math.min(90, Math.max(0, Number(e.target.value) || 0)))} />
                 <p className="text-xs text-muted-foreground">0 = el viajero paga el total. Con un valor (por ejemplo 30) podrá reservar pagando solo ese porcentaje y el resto al llegar.</p></div></div>

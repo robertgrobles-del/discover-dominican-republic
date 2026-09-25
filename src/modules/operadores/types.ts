@@ -53,6 +53,9 @@ export interface Extra {
 export interface BookingExtra { id: string; name: string; qty: number; price: number; }
 
 export interface Listing {
+  child_price?: number; // niños de 3 a 11 años; sin valor = pagan como adultos
+  infants_free?: boolean; // bebés de 0 a 2 años gratis (no ocupan cupo)
+  min_guests?: number; // personas mínimas para que salga la excursión
   extras?: Extra[];
   deposit_percent?: number; // 0/undefined = pago completo; 10-90 = se puede reservar con depósito
   rooms?: Room[]; // solo alojamientos: cada habitación tiene su propio enlace de reserva
@@ -100,6 +103,7 @@ export interface Booking {
   status: BookingStatus;
   payment_status: PaymentStatus;
   extras?: BookingExtra[];
+  guest_mix?: { adults: number; children: number; infants: number };
   amount_paid?: number; // cobrado hasta ahora (pago parcial); si payment_status = paid equivale al total
   promo_code?: string;
   notes?: string;

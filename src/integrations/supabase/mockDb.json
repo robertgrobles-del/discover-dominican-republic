@@ -2686,7 +2686,10 @@
           "price": 5,
           "unit": "person"
         }
-      ]
+      ],
+      "child_price": 45,
+      "infants_free": true,
+      "min_guests": 12
     },
     {
       "currency": "USD",
@@ -2732,7 +2735,9 @@
           "price": 18,
           "unit": "person"
         }
-      ]
+      ],
+      "child_price": 40,
+      "infants_free": true
     }
   ],
   "store_products": [

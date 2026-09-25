@@ -39,6 +39,8 @@ export default function OperadorServicio() {
   const [date, setDate] = useState(today);
   const [time, setTime] = useState<string>("");
   const [guests, setGuests] = useState(2);
+  const [children, setChildren] = useState(0);
+  const [infants, setInfants] = useState(0);
   const [code, setCode] = useState("");
   const [promo, setPromo] = useState<Promotion | null>(null);
   const [f, setF] = useState({ name: "", email: "", phone: "", notes: "" });
@@ -78,9 +80,13 @@ export default function OperadorServicio() {
   const quote = room ? quoteStay(room, date, checkOut) : null;
   const unitPrice = room ? (quote && quote.nights ? quote.average : room.price) : listing.price;
   const units = isStay ? nights : guests;
-  const base = quote ? quote.total : listing.price * guests;
+  const hasChild = !isStay && listing.child_price != null;
+  const kids = hasChild ? children : 0;
+  const babies = !isStay && listing.infants_free ? infants : 0;
+  const seats = guests + kids; // los bebés no ocupan cupo
+  const base = quote ? quote.total : listing.price * guests + (listing.child_price ?? listing.price) * kids;
   const extraLines = (listing.extras || []).filter((x) => picked.includes(x.id)).map((x) => {
-    const qty = x.unit === "person" ? guests : x.unit === "night" ? Math.max(1, nights) : 1;
+    const qty = x.unit === "person" ? seats : x.unit === "night" ? Math.max(1, nights) : 1;
     return { id: x.id, name: x.name, qty, price: x.price };
   });
   const extrasTotal = extraLines.reduce((n, x) => n + x.qty * x.price, 0);
@@ -108,15 +114,15 @@ export default function OperadorServicio() {
       if (quote?.issue) return toast.error(quote.issue);
       if (guests > room.guests) return toast.error(`Esta habitación admite hasta ${room.guests} huéspedes.`);
       if (roomsFree < 1) return toast.error("Esta habitación no está disponible en esas fechas.");
-    } else if (guests < 1 || guests > spots) return toast.error(spots === 0 ? "No hay cupos para esa fecha y horario." : `Solo quedan ${spots} cupos.`);
+    } else if (seats < 1 || seats > spots) return toast.error(spots === 0 ? "No hay cupos para esa fecha y horario." : `Solo quedan ${spots} cupos.`);
     setBusy(true);
     try {
       const id = await createBooking({
         org_id: org.id, listing_id: listing.id, listing_title: room ? `${listing.title} — ${room.name}` : listing.title, room_id: room?.id, room_name: room?.name, check_out: isStay ? checkOut : undefined, extras: extraLines.length ? extraLines : undefined, contact_name: f.name.trim(), contact_email: f.email.trim(),
-        contact_phone: f.phone.trim() || undefined, date, time: isStay ? undefined : selectedTime, guests, total_price: total, currency: listing.currency,
+        contact_phone: f.phone.trim() || undefined, date, time: isStay ? undefined : selectedTime, guests: isStay ? guests : seats, guest_mix: !isStay && (kids || babies) ? { adults: guests, children: kids, infants: babies } : undefined, total_price: total, currency: listing.currency,
         status: payNow ? "confirmed" : "pending", payment_status: deposit ? "partial" : payNow ? "paid" : "unpaid", amount_paid: deposit ? depositAmount : payNow ? total : 0, promo_code: promo?.code, notes: f.notes.trim() || undefined, source: "web",
       });
-      await sendMessage({ org_id: org.id, thread_id: `web-${id}`, traveler_name: f.name.trim(), sender: "traveler", channel: "web", booking_id: id, read: false, body: isStay ? `Nueva reserva de ${room!.name} en ${listing.title}: ${date} → ${checkOut} (${nights} noche(s)), ${guests} huésped(es).${extraLines.length ? ` Extras: ${extraLines.map((x) => `${x.name} ×${x.qty}`).join(", ")}.` : ""}${f.notes.trim() ? ` Nota: ${f.notes.trim()}` : ""}` : `Nueva reserva de ${guests} persona(s) para ${listing.title} el ${date} a las ${selectedTime}.${f.notes.trim() ? ` Nota: ${f.notes.trim()}` : ""}` });
+      await sendMessage({ org_id: org.id, thread_id: `web-${id}`, traveler_name: f.name.trim(), sender: "traveler", channel: "web", booking_id: id, read: false, body: isStay ? `Nueva reserva de ${room!.name} en ${listing.title}: ${date} → ${checkOut} (${nights} noche(s)), ${guests} huésped(es).${extraLines.length ? ` Extras: ${extraLines.map((x) => `${x.name} ×${x.qty}`).join(", ")}.` : ""}${f.notes.trim() ? ` Nota: ${f.notes.trim()}` : ""}` : `Nueva reserva de ${seats} persona(s)${kids || babies ? ` (${guests} adulto(s), ${kids} niño(s), ${babies} bebé(s))` : ""} para ${listing.title} el ${date} a las ${selectedTime}.${f.notes.trim() ? ` Nota: ${f.notes.trim()}` : ""}` });
       if (promo) await bumpPromotionUse(promo.id, promo.uses);
       qc.invalidateQueries({ queryKey: ["op"] });
       setDone({ id, paid: payNow, deposit: deposit ? depositAmount : 0, balance: deposit ? total - depositAmount : 0 });
@@ -230,8 +236,17 @@ export default function OperadorServicio() {
                         <Select value={selectedTime} onValueChange={setTime}><SelectTrigger><SelectValue /></SelectTrigger>
                           <SelectContent>{listing.time_slots.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
                     </div>
-                    <div className="space-y-1"><Label htmlFor="b-guests">Personas <span className="text-xs text-muted-foreground">({spots} cupos disponibles)</span></Label>
+                    <div className="space-y-1"><Label htmlFor="b-guests">{hasChild || listing.infants_free ? "Adultos" : "Personas"} <span className="text-xs text-muted-foreground">({spots} cupos disponibles)</span></Label>
                       <Input id="b-guests" type="number" min={1} max={Math.max(1, spots)} value={guests} onChange={(e) => setGuests(Math.max(1, Number(e.target.value)))} /></div>
+                    {(hasChild || listing.infants_free) && (
+                      <div className="grid grid-cols-2 gap-3">
+                        {hasChild && <div className="space-y-1"><Label htmlFor="b-kids">Niños 3–11 <span className="text-xs text-muted-foreground">({formatMoney(listing.child_price!, listing.currency)})</span></Label><Input id="b-kids" type="number" min={0} value={children} onChange={(e) => setChildren(Math.max(0, Number(e.target.value)))} /></div>}
+                        {listing.infants_free && <div className="space-y-1"><Label htmlFor="b-babies">Bebés 0–2 <span className="text-xs text-muted-foreground">(gratis)</span></Label><Input id="b-babies" type="number" min={0} value={infants} onChange={(e) => setInfants(Math.max(0, Number(e.target.value)))} /></div>}
+                      </div>
+                    )}
+                    {(listing.min_guests ?? 0) > 1 && (() => { const booked = listing.capacity - spots; const need = listing.min_guests! - booked; return (
+                      <p className={`rounded-lg p-2 text-xs ${need <= 0 ? "bg-emerald-500/10 text-emerald-700" : "bg-amber-500/10 text-amber-700"}`}>{need <= 0 ? "Salida confirmada: ya se alcanzó el mínimo de personas." : `Faltan ${need} persona(s) para confirmar esta salida (mínimo ${listing.min_guests}). Si no se alcanza, te ofrecemos otra fecha o el reembolso.`}</p>
+                    ); })()}
                   </>
                 )}
                 {(listing.extras?.length ?? 0) > 0 && (
@@ -255,7 +270,11 @@ export default function OperadorServicio() {
                 </div>
                 <div className="rounded-lg bg-muted p-3 text-sm space-y-1">
                   {quote && quote.nights > 0 ? quote.lines.map((l) => <div key={l.label + l.price} className="flex justify-between"><span>{l.label}: {formatMoney(l.price, listing.currency)} × {l.nights} noche(s)</span><span>{formatMoney(l.price * l.nights, listing.currency)}</span></div>)
-                    : <div className="flex justify-between"><span>{formatMoney(unitPrice, listing.currency)} × {units}</span><span>{formatMoney(base, listing.currency)}</span></div>}
+                    : <>
+                      <div className="flex justify-between"><span>{kids || babies ? "Adultos: " : ""}{formatMoney(unitPrice, listing.currency)} × {units}</span><span>{formatMoney(unitPrice * units, listing.currency)}</span></div>
+                      {kids > 0 && <div className="flex justify-between"><span>Niños: {formatMoney(listing.child_price!, listing.currency)} × {kids}</span><span>{formatMoney(listing.child_price! * kids, listing.currency)}</span></div>}
+                      {babies > 0 && <div className="flex justify-between text-emerald-600"><span>Bebés × {babies}</span><span>Gratis</span></div>}
+                    </>}
                   {extraLines.map((x) => <div key={x.id} className="flex justify-between"><span>{x.name} × {x.qty}</span><span>{formatMoney(x.price * x.qty, listing.currency)}</span></div>)}
                   {quote?.issue && <p className="text-xs text-destructive">{quote.issue}</p>}
                   {discount > 0 && <div className="flex justify-between text-emerald-600"><span>Descuento {promo?.code}</span><span>− {formatMoney(discount, listing.currency)}</span></div>}

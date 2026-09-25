@@ -101,7 +101,7 @@ export default function Reservas({ onlyPending = false }: { onlyPending?: boolea
             <Card key={b.id}><CardContent className="p-4 flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="font-semibold truncate">{b.contact_name} <span className="text-xs text-muted-foreground font-normal">· {b.contact_email}</span></p>
-                <p className="text-sm text-muted-foreground">{b.listing_title} · {b.date}{b.time ? ` ${b.time}` : ""} · {b.guests} pers.{b.extras?.length ? ` · Extras: ${b.extras.map((x) => `${x.name} ×${x.qty}`).join(", ")}` : ""} · {b.source === "web" ? "Sitio web" : b.source === "manual" ? "Manual" : "Marketplace"}</p>
+                <p className="text-sm text-muted-foreground">{b.listing_title} · {b.date}{b.time ? ` ${b.time}` : ""} · {b.guests} pers.{b.guest_mix?.infants ? ` (+${b.guest_mix.infants} bebé(s))` : ""}{b.extras?.length ? ` · Extras: ${b.extras.map((x) => `${x.name} ×${x.qty}`).join(", ")}` : ""} · {b.source === "web" ? "Sitio web" : b.source === "manual" ? "Manual" : "Marketplace"}</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-mono text-sm">{formatMoney(b.total_price, b.currency)}</span>
