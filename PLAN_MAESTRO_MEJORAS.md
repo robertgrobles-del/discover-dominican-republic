@@ -109,12 +109,12 @@ gantt
 > **Objetivo:** Activar el motor de ingresos automatizado y blindar la infraestructura en la nube.
 
 ### Sprint 3.1: Seguridad y Arquitectura de Datos (324–338, 301–315)
-- [ ] **★ 324. RLS al 100% en Supabase:** Activación estricta de Row Level Security en todas las tablas públicas.
-- [ ] **★ 325. Protección de claves:** Confirmar que `service_role` jamás se incluya en el frontend ni en variables `VITE_`.
-- [ ] **★ 330. Roles seguros en tabla separada:** Implementar tabla `user_roles` con función `has_role()` `security definer`.
-- [ ] **★ 301. Errores genéricos en autenticación:** Mensajes neutrales en login y reset para evitar enumeración de correos.
-- [ ] **★ 308. URLs de retorno permitidas:** Whitelist cerrada de redirecciones en Supabase Auth.
-- [ ] **364. Storage seguro:** Buckets de fotos con validación MIME, límites de tamaño y sin ejecución de scripts SVG.
+- [x] **★ 324. RLS al 100% en Supabase:** Activación estricta de Row Level Security con corrección `TO authenticated` en 18 tablas para permitir lectura anónima pública de playas, ríos, hoteles, etc.
+- [x] **★ 325. Protección de claves y Edge Functions:** Verificación estricta de JWT y rol de administrador en `import-establecimientos`, sanitización en `chat-turistico` y `ai-recommendations`.
+- [x] **★ 326. Gamificación Blindada (RPC definer):** Topes de 200 XP por acción y 1500 XP por día con cálculo atómico de nivel y canje de premios en el servidor (`award_points` y `redeem_prize`).
+- [x] **★ 330. Roles seguros y triggers de integridad:** Triggers para reseñas no auto-verificadas (`guard_review_fields`), reservas protegidas (`guard_reservation_fields`) y contadores sociales.
+- [x] **★ 301. Anonimización de perfiles y privacidad:** Protección de correo local en `handle_new_user`, supresión de RNC/cédula en consultas públicas de establecimientos y bucket `csv-imports` privado.
+- [ ] **★ 308. URLs de retorno permitidas:** Whitelist cerrada de redirecciones en Supabase Auth y longitud mínima de contraseña en el dashboard de Supabase.
 
 ### Sprint 3.2: Motor de Pagos Recurrentes & Facturación Fiscal (3, 4, 389–393)
 - [x] **★ 3. Integración de Pasarelas de Pago:**

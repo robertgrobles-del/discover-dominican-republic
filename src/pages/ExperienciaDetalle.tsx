@@ -480,6 +480,35 @@ export default function ExperienciaDetalle() {
           </div>
         </section>
 
+        {/* Galería Fotográfica al final de la experiencia */}
+        {experiencia.galeria && experiencia.galeria.length > 1 && (
+          <section className="py-12 border-t border-border/60">
+            <div className="container mx-auto px-4 max-w-6xl">
+              <div className="mb-6">
+                <h3 className="font-display text-2xl font-bold text-foreground">
+                  Galería de Momentos: {experiencia.nombre}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Capturas reales de las rutas, aventuras y paisajes de esta experiencia.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {experiencia.galeria.map((img, i) => (
+                  <div key={i} className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-border/80 shadow-xs bg-muted group">
+                    <img 
+                      src={img} 
+                      alt={`${experiencia.nombre} foto ${i + 1}`} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Lugares donde vivirla */}
         <section className="py-16 bg-card/40 border-y border-border">
           <div className="container mx-auto px-4 max-w-6xl">

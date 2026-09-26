@@ -219,28 +219,6 @@ export default function PlayaDetalle() {
           onShare={handleShare}
         />
 
-        {/* Bento Gallery Grid */}
-        {allImages.length > 1 && (
-          <section className="container mx-auto px-4 max-w-7xl pt-8">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 rounded-3xl overflow-hidden">
-              {allImages.slice(0, 4).map((img, i) => (
-                <div
-                  key={i}
-                  className="relative aspect-[4/3] cursor-pointer overflow-hidden bg-muted group rounded-2xl"
-                  onClick={() => openLightbox(i)}
-                >
-                  <img
-                    src={img}
-                    alt={`${beach.name} ${i + 1}`}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
 
         {/* Main Content Layout */}
         <main className="container mx-auto px-4 max-w-7xl py-10">
@@ -349,6 +327,40 @@ export default function PlayaDetalle() {
               />
             </div>
           </div>
+
+          {/* Galería Fotográfica al final del contenido principal */}
+          {allImages.length > 1 && (
+            <section className="mt-14 space-y-6 pt-10 border-t border-border/60">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-display text-2xl font-black text-foreground">
+                    Galería Fotográfica de {beach.name}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Postales en alta definición del oleaje, arena y vistas panorámicas. Haz clic para ampliar.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {allImages.map((img, i) => (
+                  <div
+                    key={i}
+                    className="relative aspect-[4/3] cursor-pointer overflow-hidden bg-muted group rounded-2xl border border-border/70 shadow-xs"
+                    onClick={() => openLightbox(i)}
+                  >
+                    <img
+                      src={img}
+                      alt={`${beach.name} ${i + 1}`}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Related Beaches in same region */}
           {relatedBeaches.length > 0 && (
