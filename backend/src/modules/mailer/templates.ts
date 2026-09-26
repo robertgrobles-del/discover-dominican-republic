@@ -1,4 +1,5 @@
 import type { Locale } from "../../lib/i18n.js";
+import { EXTRA_LOCALES, renderExtra, type ExtraLocale } from "./templates-extra.js";
 
 // Plantillas del catálogo de correos (docs §5.13). Por ahora es/en; los demás idiomas caen a español
 // hasta que se carguen en la tabla de plantillas del admin (Fase 3).
@@ -36,8 +37,8 @@ export interface Rendered { subject: string; text: string; html: string }
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
-const layout = (title: string, body: string, cta?: { label: string; url: string }, footer = "Descubre RD · República Dominicana") => `<!doctype html>
-<html lang="es"><body style="margin:0;background:#f4f6f8;font-family:Arial,Helvetica,sans-serif;color:#1f2937">
+const layout = (title: string, body: string, cta?: { label: string; url: string }, footer = "Descubre RD · República Dominicana", lang = "es") => `<!doctype html>
+<html lang="${lang}"><body style="margin:0;background:#f4f6f8;font-family:Arial,Helvetica,sans-serif;color:#1f2937">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px">
 <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;max-width:100%">
 <tr><td style="background:#0b5cab;padding:20px 28px;color:#fff;font-size:20px;font-weight:bold">Descubre RD</td></tr>
@@ -366,7 +367,12 @@ T["marketing.campaign"] = {
   en: (d) => ({ subject: d.subject, text: `${d.body}\n\n---\nUnsubscribe: ${d.unsubscribe_url}`, html: campaignHtml(d, "en") }),
 };
 
-export function renderTemplate<K extends TemplateKey>(key: K, locale: Locale, data: TemplateData[K]): Rendered & { locale: "es" | "en" } {
-  const l = locale === "en" ? "en" : "es"; // los demás idiomas usan español hasta tener plantilla propia
+export function renderTemplate<K extends TemplateKey>(key: K, locale: Locale, data: TemplateData[K]): Rendered & { locale: Locale } {
+  // fr/de/pt/it existen para los correos al viajero; el resto (operadores, vendedores, embajadores) y lo que falte cae al español.
+  if ((EXTRA_LOCALES as readonly string[]).includes(locale)) {
+    const r = renderExtra(key, locale as ExtraLocale, data, { layout, p, table, esc });
+    if (r) return r;
+  }
+  const l = locale === "en" ? "en" : "es";
   return { ...(T[key][l] as Builder<K>)(data), locale: l };
 }

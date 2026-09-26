@@ -360,3 +360,6 @@ Entrada validada con Zod, SQL parametrizado con listas blancas, cabeceras de seg
 
 ### Traducción automática de contenido
 `POST /admin/translations/:entity_type/:entity_id/auto` y `POST /admin/translations/auto-batch` traducen con la IA (misma cuota, caché y tope de gasto). Nunca pisan traducciones `human` o `reviewed`; lo nuevo queda como `machine` hasta que un editor lo revise.
+
+### Correos en fr, de, pt e it
+Los correos al viajero (cuenta, reservas, boletín, soporte, tienda, campañas) existen en francés, alemán, portugués e italiano (`src/modules/mailer/templates-extra.ts`); operadores, vendedores y embajadores siguen en es/en. Lo que no esté traducido cae al español. Los textos dinámicos que arma el servidor (p. ej. el mensaje de una actualización de pedido) siguen en español.
