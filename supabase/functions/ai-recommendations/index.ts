@@ -10,7 +10,15 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { userId, interests, visitedDestinations } = await req.json();
+    const body = await req.json();
+    // Limpiar entradas: evita inyección de instrucciones y prompts gigantes
+    const clean = (arr: unknown) =>
+      (Array.isArray(arr) ? arr : [])
+        .filter((v): v is string => typeof v === "string")
+        .slice(0, 15)
+        .map((v) => v.replace(/[\r\n`{}<>]/g, " ").slice(0, 60));
+    const interests = clean(body?.interests);
+    const visitedDestinations = clean(body?.visitedDestinations);
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
@@ -107,7 +115,7 @@ Eventos próximos: ${JSON.stringify(events?.map(e => ({ name: e.name, slug: e.sl
     });
   } catch (e) {
     console.error("Error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ error: "Error generando recomendaciones" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
   }

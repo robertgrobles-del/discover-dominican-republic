@@ -51,7 +51,34 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
+    // --- Solo administradores ---------------------------------------
+    // Antes esta función no verificaba identidad: cualquiera con la clave
+    // pública anon podía insertar filas en establecimientos usando la
+    // service role.
+    const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "No autorizado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: "Se requiere rol de administrador" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { csv_text } = await req.json();
+    const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+    if (typeof csv_text !== "string" || csv_text.length > MAX_BYTES) {
+      return new Response(JSON.stringify({ error: "csv_text inválido o mayor de 10 MB" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     if (!csv_text) {
       return new Response(JSON.stringify({ error: "csv_text is required" }), {
         status: 400,
@@ -123,7 +150,7 @@ Deno.serve(async (req) => {
   } catch (err) {
     console.error("Error:", err);
     return new Response(
-      JSON.stringify({ error: err.message }),
+      JSON.stringify({ error: "Error procesando el archivo" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

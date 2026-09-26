@@ -365,10 +365,12 @@ export default function Opiniones() {
 
     setSubmitting(true);
 
+    const authorDisplayName = (user.user_metadata?.display_name as string | undefined)?.slice(0, 60) || "Viajero";
+
     const insertPayload: any = {
       user_id: user.id,
-      author_name: user.email?.split("@")[0] || "Usuario",
-      verified: true,
+      author_name: authorDisplayName,
+      verified: false,
       rating: formData.rating,
       traveler_type: formData.traveler_type,
       location: formData.location,
@@ -399,8 +401,8 @@ export default function Opiniones() {
       // Add locally so video preview plays instantly on screen
       const localReview: Review = {
         id: "loc-" + Math.random().toString(36).substring(2, 9),
-        author_name: user.email?.split("@")[0] || "Usuario",
-        verified: true,
+        author_name: authorDisplayName,
+        verified: false,
         rating: formData.rating,
         traveler_type: formData.traveler_type as any,
         location: formData.location,

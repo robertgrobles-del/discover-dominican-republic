@@ -219,7 +219,7 @@ export default function Alojamientos() {
         </section>
 
         {/* Filters Bar */}
-        <section className="sticky top-16 z-40 bg-background border-b border-border py-4">
+        <section className="bg-background border-b border-border py-4">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
               <div className="flex flex-col sm:flex-row gap-4 flex-1 w-full md:w-auto">

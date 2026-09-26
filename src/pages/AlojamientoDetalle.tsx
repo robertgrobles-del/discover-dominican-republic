@@ -207,10 +207,6 @@ export default function AlojamientoDetalle() {
         </div>
       </section>
 
-      {/* Full Photo Grid Gallery */}
-      <section className="container mx-auto px-4 lg:px-8 pb-8">
-        <AccommodationGallery images={hotelImages} name={hotelName} />
-      </section>
 
       {/* Highlights Bar Strip */}
       <section className="container mx-auto px-4 lg:px-8 pb-10">
@@ -387,6 +383,21 @@ export default function AlojamientoDetalle() {
 
         </div>
       </main>
+
+      {/* Full Photo Grid Gallery al final de la ficha */}
+      {hotelImages.length > 1 && (
+        <section className="container mx-auto px-4 lg:px-8 py-12 border-t border-border/60">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-foreground">
+              Galería Fotográfica de {hotelName}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Explora las instalaciones, habitaciones, piscinas y áreas comunes.
+            </p>
+          </div>
+          <AccommodationGallery images={hotelImages} name={hotelName} />
+        </section>
+      )}
 
       {/* Mobile Floating Bar */}
       <DetailFloatingBar 

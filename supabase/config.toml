@@ -1,4 +1,4 @@
 project_id = "jhwfhhajvmcdmtwslgbb"
 
-[functions.ai-recommendations]
-verify_jwt = false
+# ai-recommendations vuelve a exigir JWT (la clave anon basta; el
+# widget la envía con functions.invoke). Antes estaba desactivado.
