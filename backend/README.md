@@ -274,6 +274,12 @@ Herramientas: `GET /tools/dictionary` (sin acentos), `/tools/phrases?lang=`, `/t
 - **Retención**: `analytics.rollup` agrega por día lo que supera 13 meses y borra los eventos crudos; `traffic` lee lo antiguo del agregado.
 - **Público**: `GET /statistics/public` combina las cifras oficiales del equipo (`site_settings` `statistics.public`) con conteos del portal.
 
+## Traducciones
+
+- **Interfaz**: `GET /i18n/dictionary/{locale}?ns=&fallback=` (con ETag; lo que falta cae al español), `GET /i18n/locales` (6 idiomas con cobertura) y `PUT /admin/i18n/dictionary/{locale}` (admin: hasta 2 000 cadenas por llamada, atómico, sólo texto plano: se rechaza `<script>`, `<iframe>`, `javascript:` y manejadores `on…=`). Corregir un texto no requiere redeploy.
+- **Contenido**: `PUT /admin/translations/{tabla}/{id}/{idioma}` (admin/editor) valida que el campo sea traducible y que la entidad exista; un texto vacío borra la traducción; las traducciones escritas por una persona quedan `human` y se ven de inmediato con `?lang=` en la API pública. `GET /admin/translations` filtra por entidad, idioma y estado; `POST …/review` marca como `reviewed` las automáticas; `GET /admin/translations/coverage` da el porcentaje traducido por colección e idioma.
+- **Traducción automática**: `POST /admin/translations/{tabla}/{id}/auto` responde 503 `NO_TRANSLATION_PROVIDER` hasta que se conecte un proveedor (IA/DeepL); el estado `machine` ya está previsto en la base.
+
 ## Correo
 
 `app.mailer.send({ to, template, data, locale })` **encola** en la tabla `email_log` y vuelve; un trabajador (en el mismo proceso, `MAIL_WORKER_ENABLED`, o en otro) toma los pendientes con `FOR UPDATE SKIP LOCKED`, así que varias instancias nunca envían dos veces. Reintenta con espera creciente (1 min, 5 min, 30 min, 2 h, 12 h) hasta `MAIL_MAX_ATTEMPTS` y luego marca `failed`; los mensajes que quedaron `sending` por un proceso caído se recuperan. Si se pasa la conexión de una transacción (`send(input, client)`) el correo forma parte de ella (outbox transaccional: el registro y su correo se guardan juntos o no se guarda ninguno).

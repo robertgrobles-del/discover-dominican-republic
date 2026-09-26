@@ -12,6 +12,7 @@ import { PlayService } from "./modules/game/play.js";
 import { StoreService } from "./modules/store/service.js";
 import { storeRoutes } from "./modules/store/routes.js";
 import { LiveService } from "./modules/live/service.js";
+import { i18nRoutes } from "./modules/i18n/routes.js";
 import { analyticsRoutes, registerAnalyticsJobs } from "./modules/analytics/routes.js";
 import { marketingRoutes, registerMarketingJobs } from "./modules/marketing/routes.js";
 import { toolsRoutes } from "./modules/tools/routes.js";
@@ -92,6 +93,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(toolsRoutes);
       await v1.register(marketingRoutes);
       await v1.register(analyticsRoutes);
+      await v1.register(i18nRoutes);
       await v1.register(gameAdminRoutes);
       await v1.register(paymentWebhookRoutes);
     },
