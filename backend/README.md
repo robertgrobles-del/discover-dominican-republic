@@ -343,3 +343,11 @@ Entrada validada con Zod, SQL parametrizado con listas blancas, cabeceras de seg
 - **Pedidos** (`POST /marketplace/orders`, `Idempotency-Key` obligatorio): un pedido puede mezclar vendedores; stock bloqueado, comisión y neto del vendedor guardados por artículo, cobro con la pasarela (y conciliación por webhook, `metadata.mp_order_id`). Envío/entrega por artículo (`/partner/marketplace/order-items/:id`), cancelación del cliente mientras nada haya salido y cancelación por artículo del vendedor, con reembolso y devolución de stock.
 - **Liquidaciones** (`marketplace.payouts`, diario): lo entregado, cobrado y sin devolución tras 3 días, por vendedor; el equipo las marca pagadas o fallidas. Lo ya liquidado no se puede reembolsar.
 - **Embajadores** (`/ambassadors/*`): solicitud, aprobación, código `EMB-XXXXXX`, niveles (bronce 5 %, plata 7 % desde 10 ventas, oro 10 % desde 30) o comisión especial. La comisión se calcula en el servidor sobre lo cobrado (`ref_code` en pedidos de tienda y marketplace; autocompra e códigos inválidos se ignoran), queda 7 días en espera, se revierte con los reembolsos y se paga por solicitud (mínimo RD$ 1 000).
+
+## Mi viaje, e-tickets y Top 100 (docs §5.7)
+
+- **Viajes** (`/me/trips*`): actividades por día con lugares del catálogo (se guarda una instantánea de nombre, foto y coordenadas) o texto libre, reordenar entre días, `from-itinerary` (para el itinerario de la IA), resumen de costos frente al presupuesto con mapa GeoJSON y reservas del periodo.
+- **Compartir**: enlace público de sólo lectura sin costos ni notas (`POST/DELETE /me/trips/:id/share`, `GET /trips/shared/:token`; sólo se guarda el hash). **Planificador grupal** por enlace de invitación con rol viewer/editor (`/me/trips/:id/members`, `/trips/join`) y votos +1/−1 por actividad.
+- **Diario**, **lista de empaque** y **check-in** de una reserva propia (ventana de fechas, XP una sola vez).
+- **E-tickets** (`/me/tickets`) de eventos y reservas; `POST /tickets/verify` (POST, no GET, porque marca el ticket como usado) para personal y operadores.
+- **Top 100** (`/me/spots`, `/me/wishlist`): premios en 10/25/50/100 lugares, una vez por hito.
