@@ -10,6 +10,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { SEOHead } from "@/components/SEOHead";
 import { getMountainBySlug, Mountain as MountainType, rangeLabels } from "@/data/mountains";
 
 const difficultyLabels: Record<MountainType['difficulty'], { label: string; color: string }> = {
@@ -26,6 +27,10 @@ export default function MontanaDetalle() {
   if (!mountain) {
     return (
       <PageTransition>
+        <SEOHead
+          title="Montaña no encontrada"
+          description="La montaña que buscas no existe o ha sido movida. Explora todas las montañas de República Dominicana."
+        />
         <div className="min-h-screen bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32 text-center">
@@ -45,9 +50,15 @@ export default function MontanaDetalle() {
 
   return (
     <PageTransition>
+      <SEOHead
+        title={`${mountain.name} - Montañas de República Dominicana`}
+        description={mountain.description}
+        image={mountain.imageUrl}
+        keywords={`${mountain.name}, montañas república dominicana, ${rangeLabels[mountain.range]}, senderismo, ${diff.label}`}
+      />
       <div className="min-h-screen bg-background">
         <Header />
-        
+
         {/* Hero */}
         <section className="relative h-[50vh] md:h-[60vh] overflow-hidden">
           <img src={mountain.imageUrl} alt={mountain.name} className="w-full h-full object-cover" />

@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { PageTransition } from "@/components/PageTransition";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { useLightbox } from "@/hooks/useLightbox";
+import { SEOHead } from "@/components/SEOHead";
 
 // Fallback data for demo
 const fallbackAirbnb = {
@@ -144,6 +145,10 @@ const AirbnbDetalle = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
+        <SEOHead
+          title="Alojamiento en República Dominicana"
+          description="Consulta este alojamiento tipo Airbnb en República Dominicana: villas, apartamentos y casas con piscina, vista al mar y todas las comodidades."
+        />
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
@@ -151,8 +156,14 @@ const AirbnbDetalle = () => {
 
   return (
     <PageTransition>
+      <SEOHead
+        title={`${property.name} - Alojamiento en ${property.address}`}
+        description={property.short_description || property.description}
+        image={property.image_url}
+        keywords={`${property.name}, ${property.property_type}, ${property.address}, airbnb república dominicana, alojamiento vacacional`}
+      />
       <Header />
-      
+
       <main className="pt-20">
         {/* Gallery Section */}
         <section className="relative">

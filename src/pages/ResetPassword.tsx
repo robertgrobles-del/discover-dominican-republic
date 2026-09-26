@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Lock, Loader2, CheckCircle } from "lucide-react";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { useNavigate, Link } from "react-router-dom";
+import { Lock, Loader2, CheckCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -58,10 +57,32 @@ export default function ResetPassword() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background flex flex-col">
-        <Header />
-        <main className="flex-1 flex items-center justify-center py-12 px-4">
-          <Card className="w-full max-w-md">
+      <SEOHead
+        title="Restablecer Contraseña"
+        description="Crea una nueva contraseña para tu cuenta de Descubre RD y recupera el acceso de forma segura."
+      />
+      <div className="min-h-screen bg-background flex flex-col justify-between">
+        {/* Minimal Auth Header */}
+        <header className="p-4 sm:p-6 flex items-center justify-between border-b border-border/40">
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 bg-primary rounded flex items-center justify-center shadow-md">
+              <span className="font-display font-black text-slate-950 text-sm">RD</span>
+            </div>
+            <span className="font-display font-bold text-base text-foreground group-hover:text-primary transition-colors">
+              Descubre RD
+            </span>
+          </Link>
+          <Link
+            to="/login"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Volver a iniciar sesión</span>
+          </Link>
+        </header>
+
+        <main className="flex-1 flex items-center justify-center py-8 sm:py-12 px-4">
+          <Card className="w-full max-w-md border-border shadow-lg">
             <CardContent className="p-8">
               {success ? (
                 <div className="text-center space-y-4">
@@ -117,7 +138,11 @@ export default function ResetPassword() {
             </CardContent>
           </Card>
         </main>
-        <Footer />
+
+        {/* Minimal Auth Footer */}
+        <footer className="py-4 px-6 border-t border-border/40 text-center text-xs text-muted-foreground">
+          <p>© {new Date().getFullYear()} Descubre República Dominicana · Todos los derechos reservados</p>
+        </footer>
       </div>
     </PageTransition>
   );

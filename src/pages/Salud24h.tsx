@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -335,91 +336,121 @@ export default function Salud24h() {
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ duration: 0.25 }}
                     >
-                      <Card className="h-full border border-border bg-card hover:border-primary/40 hover:shadow-lg transition-all group flex flex-col justify-between overflow-hidden">
-                        <div className="p-5">
-                          <div className="flex items-center justify-between gap-2 mb-3">
-                            <Badge className={`${badgeBg} border gap-1.5 py-0.5 px-2.5 font-semibold text-xs`}>
-                              <TypeIcon className="h-3.5 w-3.5" />
-                              {typeLabel}
-                            </Badge>
-
-                            {centro.is24h ? (
-                              <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400 font-semibold bg-emerald-500/10 text-[11px] gap-1">
-                                <Clock className="h-3 w-3" /> Abierto 24h
+                      <Card className="h-full border border-border/70 bg-card hover:border-primary/50 hover:shadow-xl transition-all duration-300 group flex flex-col justify-between overflow-hidden rounded-2xl">
+                        <div>
+                          {/* Image Container with Badges */}
+                          <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted">
+                            <img
+                              src={centro.imageUrl || "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&auto=format&fit=crop&q=80"}
+                              alt={centro.name}
+                              loading="lazy"
+                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-black/30" />
+                            
+                            {/* Badges on Image */}
+                            <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
+                              <Badge className={`${badgeBg} backdrop-blur-md shadow-sm border gap-1.5 py-1 px-2.5 font-semibold text-xs`}>
+                                <TypeIcon className="h-3.5 w-3.5" />
+                                {typeLabel}
                               </Badge>
-                            ) : centro.schedule ? (
-                              <Badge variant="outline" className="border-border text-muted-foreground text-[10px]">
-                                {centro.schedule.split("(")[0]}
-                              </Badge>
-                            ) : null}
-                          </div>
-
-                          <h3 className="font-display font-bold text-base text-foreground leading-snug group-hover:text-primary transition-colors">
-                            {centro.name}
-                          </h3>
-
-                          <p className="text-xs text-muted-foreground mt-2 flex items-start gap-1.5 leading-relaxed">
-                            <MapPin className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
-                            <span>{centro.address}</span>
-                          </p>
-
-                          {centro.languages && (
-                            <div className="mt-2.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                              <Globe className="h-3 w-3 text-primary shrink-0" />
-                              <span>Idiomas: <strong className="text-foreground">{centro.languages.join(", ")}</strong></span>
                             </div>
-                          )}
 
-                          <div className="mt-3.5 flex flex-wrap gap-1.5">
-                            {centro.services.map((serv: string) => (
-                              <span 
-                                key={serv} 
-                                className="text-[10px] bg-secondary/80 text-foreground/80 font-medium px-2 py-0.5 rounded-md border border-border/50"
-                              >
-                                {serv}
+                            <div className="absolute top-3 right-3 z-10">
+                              {centro.is24h ? (
+                                <Badge className="bg-emerald-600/90 hover:bg-emerald-600 text-white font-semibold backdrop-blur-md text-[11px] gap-1 shadow-sm border border-emerald-400/30">
+                                  <Clock className="h-3 w-3 animate-pulse" /> 24 Horas
+                                </Badge>
+                              ) : centro.schedule ? (
+                                <Badge className="bg-black/60 text-white/90 font-medium backdrop-blur-md text-[10px] border border-white/20">
+                                  {centro.schedule.split("(")[0]}
+                                </Badge>
+                              ) : null}
+                            </div>
+
+                            {/* Distance Tag bottom right */}
+                            <div className="absolute bottom-2.5 right-3 z-10">
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-white/95 bg-black/50 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/10">
+                                <MapPin className="h-3 w-3 text-primary" />
+                                {centro.distance !== undefined ? `${centro.distance} km` : "GPS RD"}
                               </span>
-                            ))}
+                            </div>
                           </div>
 
-                          {centro.insuranceAccepted && centro.insuranceAccepted.length > 0 && (
-                            <div className="mt-3 pt-3 border-t border-border/40">
-                              <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wider mb-1">
-                                Seguros / ARS Aceptadas:
-                              </p>
-                              <p className="text-[11px] text-foreground/75 line-clamp-1">
-                                {centro.insuranceAccepted.join(" • ")}
-                              </p>
+                          <div className="p-5">
+                            <Link to={`/salud-24h/${centro.id}`}>
+                              <h3 className="font-display font-bold text-lg text-foreground leading-snug group-hover:text-primary transition-colors hover:underline cursor-pointer">
+                                {centro.name}
+                              </h3>
+                            </Link>
+
+                            <p className="text-xs text-muted-foreground mt-2 flex items-start gap-1.5 leading-relaxed">
+                              <MapPin className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                              <span className="line-clamp-2">{centro.address}</span>
+                            </p>
+
+                            {centro.languages && (
+                              <div className="mt-2.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                                <Globe className="h-3.5 w-3.5 text-primary shrink-0" />
+                                <span>Idiomas: <strong className="text-foreground font-medium">{centro.languages.join(", ")}</strong></span>
+                              </div>
+                            )}
+
+                            <div className="mt-3.5 flex flex-wrap gap-1.5">
+                              {centro.services.slice(0, 4).map((serv: string) => (
+                                <span 
+                                  key={serv} 
+                                  className="text-[10px] bg-secondary/80 text-foreground/80 font-medium px-2 py-0.5 rounded-md border border-border/50"
+                                >
+                                  {serv}
+                                </span>
+                              ))}
+                              {centro.services.length > 4 && (
+                                <span className="text-[10px] bg-muted text-muted-foreground font-medium px-2 py-0.5 rounded-md">
+                                  +{centro.services.length - 4} más
+                                </span>
+                              )}
                             </div>
-                          )}
+
+                            {centro.insuranceAccepted && centro.insuranceAccepted.length > 0 && (
+                              <div className="mt-3.5 pt-3 border-t border-border/40">
+                                <p className="text-[10px] uppercase font-semibold text-muted-foreground tracking-wider mb-1">
+                                  Seguros / ARS Aceptadas:
+                                </p>
+                                <p className="text-[11px] text-foreground/75 line-clamp-1">
+                                  {centro.insuranceAccepted.join(" • ")}
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
-                        <div className="p-4 bg-secondary/20 border-t border-border/50 flex items-center justify-between gap-3">
-                          <div>
-                            <p className="text-[10px] text-muted-foreground uppercase font-medium">Distancia estimada</p>
-                            <p className="font-bold text-foreground text-sm">
-                              {centro.distance !== undefined ? `${centro.distance} km` : "Calcular GPS"}
-                            </p>
-                          </div>
-
-                          <div className="flex gap-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="text-xs h-8 px-2.5 border-border"
-                              onClick={() => {
-                                const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(centro.name + " " + centro.address)}`;
-                                window.open(url, "_blank");
-                              }}
-                              aria-label={`Ver ruta hacia ${centro.name}`}
-                            >
-                              <Navigation className="h-3.5 w-3.5" />
+                        <div className="p-4 bg-muted/40 border-t border-border/50 flex items-center justify-between gap-2">
+                          <Link to={`/salud-24h/${centro.id}`} className="flex-1">
+                            <Button size="sm" variant="outline" className="w-full text-xs h-9 px-3 rounded-xl border-border hover:border-primary/50 font-medium">
+                              Ver Ficha
                             </Button>
-                            <a href={`tel:${centro.emergencyPhone || centro.phone}`}>
-                              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 text-xs h-8 shadow-sm">
-                                <Phone className="h-3.5 w-3.5" /> {centro.phone}
-                              </Button>
-                            </a>
-                          </div>
+                          </Link>
+                          
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-xs h-9 w-9 p-0 border-border rounded-xl shrink-0"
+                            onClick={() => {
+                              const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(centro.name + " " + centro.address)}`;
+                              window.open(url, "_blank");
+                            }}
+                            title={`Ver ruta hacia ${centro.name}`}
+                            aria-label={`Ver ruta hacia ${centro.name}`}
+                          >
+                            <Navigation className="h-3.5 w-3.5" />
+                          </Button>
+
+                          <a href={`tel:${centro.emergencyPhone || centro.phone}`} className="shrink-0">
+                            <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 text-xs h-9 px-3.5 shadow-sm rounded-xl font-medium">
+                              <Phone className="h-3.5 w-3.5" /> Llamar
+                            </Button>
+                          </a>
                         </div>
                       </Card>
                     </motion.div>

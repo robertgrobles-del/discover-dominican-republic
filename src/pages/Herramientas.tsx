@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
+import { SEOHead } from "@/components/SEOHead";
 
 import heroBeach from "@/assets/hero-beach.jpg";
 
@@ -60,9 +61,13 @@ export default function Herramientas() {
 
   return (
     <PageTransition>
+      <SEOHead
+        title="Herramientas y Logística de Viaje"
+        description="Genera itinerarios personalizados con IA, gestiona tu checklist de viaje y consulta opciones de transporte, calculadoras y monitores en tiempo real para tu visita a República Dominicana."
+      />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
-        
+
         {/* Hero */}
         <section className="relative py-24 flex items-center justify-center overflow-hidden">
           {!heroLoaded && <Skeleton className="absolute inset-0" />}

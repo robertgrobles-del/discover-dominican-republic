@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
+import { useTranslation } from "@/i18n";
 
 const steps = [
   {
@@ -95,11 +96,13 @@ const faqs = [
 ];
 
 export default function ETicket() {
+  const { t } = useTranslation();
+
   return (
     <PageTransition>
       <SEOHead
-        title="Guía del e-Ticket de Entrada | Turismo RD"
-        description="Todo sobre el e-Ticket de República Dominicana: cómo obtenerlo gratis, evitar fraudes y servicios de asesoría."
+        title={t("logistica.eTicket") || "Guía del e-Ticket de Entrada | Turismo RD"}
+        description={t("logistica.eTicketDesc") || "Todo sobre el e-Ticket de República Dominicana: cómo obtenerlo gratis, evitar fraudes y servicios de asesoría."}
         keywords="e-ticket, República Dominicana, migración, entrada, formulario, turismo"
       />
       <div className="min-h-screen bg-background">
@@ -115,19 +118,18 @@ export default function ETicket() {
             >
               <div className="inline-flex items-center gap-2 bg-primary/20 text-primary px-4 py-2 rounded-full mb-6">
                 <Ticket className="h-5 w-5" />
-                <span className="font-medium">Requisito de Entrada</span>
+                <span className="font-medium">{t("logistica.badge") || "Requisito de Entrada"}</span>
               </div>
               <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
-                Guía del <span className="text-primary">e-Ticket</span>
+                {t("logistica.eTicket") || "Guía del e-Ticket Oficial"}
               </h1>
               <p className="text-muted-foreground text-lg mb-8">
-                El e-Ticket es un formulario digital obligatorio para entrar y salir 
-                de República Dominicana. Es completamente gratuito.
+                {t("logistica.eTicketDesc") || "El e-Ticket es un formulario digital obligatorio y gratuito para entrar y salir de República Dominicana."}
               </p>
               <Button size="lg" className="gap-2" asChild>
                 <a href="https://eticket.migracion.gob.do" target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="h-5 w-5" />
-                  Ir al sitio oficial
+                  {t("common.website") || "Ir al sitio oficial"}
                 </a>
               </Button>
             </motion.div>

@@ -121,46 +121,60 @@ const AdminPanel = () => {
             </p>
           </div>
 
-          {/* Dashboard Overview */}
-          <Tabs defaultValue="dashboard" className="mb-8">
-            <TabsList className="flex flex-wrap gap-2 bg-muted/50 p-1 rounded-xl h-auto">
-              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-              <TabsTrigger value="analytics">Analíticas</TabsTrigger>
-              <TabsTrigger value="usuarios" className="gap-1.5">
-                <Users className="h-3.5 w-3.5" /> Usuarios
-              </TabsTrigger>
-              <TabsTrigger value="operadores" className="gap-1.5">
-                <Building2 className="h-3.5 w-3.5" /> Operadores
-              </TabsTrigger>
-              <TabsTrigger value="reservas-directas" className="gap-1.5">Reservas Directas</TabsTrigger>
-              <TabsTrigger value="gamificacion">Gamificación</TabsTrigger>
-              <TabsTrigger value="import">Importar</TabsTrigger>
-              <TabsTrigger value="moderacion">Moderación UGC</TabsTrigger>
-              <TabsTrigger value="banners" className="gap-1.5">
-                <Megaphone className="h-3.5 w-3.5" /> Banners & Mockups
-              </TabsTrigger>
-              <TabsTrigger value="routebuilder">Creador de Rutas</TabsTrigger>
-              <TabsTrigger value="nps">Analíticas NPS</TabsTrigger>
-              <TabsTrigger value="stock">Control de Stock</TabsTrigger>
-              <TabsTrigger value="aigenerator">Generador IA</TabsTrigger>
-              <TabsTrigger value="finance_lottery" className="gap-1.5">
-                <Coins className="h-3.5 w-3.5 text-amber-500" /> Loterías & Tasas
-              </TabsTrigger>
-              <TabsTrigger value="audit" className="gap-1.5">
-                <History className="h-3.5 w-3.5" /> Historial
-              </TabsTrigger>
-            </TabsList>
+          {/* Dashboard Overview con Tabs Jerárquicos y Categorías */}
+          <Tabs defaultValue="dashboard" className="mb-8 space-y-6">
+            <div className="bg-card border border-border/70 rounded-2xl p-3 shadow-xs space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Shield className="h-3.5 w-3.5 text-primary" /> Módulos de Gestión
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  Plataforma Centralizada Descubre RD
+                </span>
+              </div>
+
+              <TabsList className="flex flex-wrap gap-1.5 bg-muted/40 p-1.5 rounded-xl h-auto w-full justify-start">
+                <TabsTrigger value="dashboard" className="text-xs">Dashboard</TabsTrigger>
+                <TabsTrigger value="analytics" className="text-xs">Analíticas</TabsTrigger>
+                <TabsTrigger value="banners" className="text-xs gap-1.5 font-medium">
+                  <Megaphone className="h-3.5 w-3.5 text-primary" /> Banners & Anuncios
+                </TabsTrigger>
+                <TabsTrigger value="reservas-directas" className="text-xs gap-1.5">Reservas Directas</TabsTrigger>
+                <TabsTrigger value="usuarios" className="text-xs gap-1.5">
+                  <Users className="h-3.5 w-3.5" /> Usuarios
+                </TabsTrigger>
+                <TabsTrigger value="operadores" className="text-xs gap-1.5">
+                  <Building2 className="h-3.5 w-3.5" /> Operadores
+                </TabsTrigger>
+                <TabsTrigger value="gamificacion" className="text-xs">Gamificación</TabsTrigger>
+                <TabsTrigger value="routebuilder" className="text-xs">Creador de Rutas</TabsTrigger>
+                <TabsTrigger value="import" className="text-xs">Importar CSV</TabsTrigger>
+                <TabsTrigger value="moderacion" className="text-xs">Moderación UGC</TabsTrigger>
+                <TabsTrigger value="nps" className="text-xs">NPS Analytics</TabsTrigger>
+                <TabsTrigger value="stock" className="text-xs">Control de Stock</TabsTrigger>
+                <TabsTrigger value="aigenerator" className="text-xs gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Generador IA
+                </TabsTrigger>
+                <TabsTrigger value="finance_lottery" className="text-xs gap-1.5">
+                  <Coins className="h-3.5 w-3.5 text-amber-500" /> Loterías & Tasas
+                </TabsTrigger>
+                <TabsTrigger value="audit" className="text-xs gap-1.5">
+                  <History className="h-3.5 w-3.5" /> Historial
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
             <TabsContent value="dashboard">
               <AdminDashboard />
             </TabsContent>
             <TabsContent value="analytics">
               <AdminAnalytics />
             </TabsContent>
-            <TabsContent value="finance_lottery" className="mt-6">
-              <AdminFinanceLotteryManager />
-            </TabsContent>
             <TabsContent value="banners" className="mt-6">
               <AdminMockupBanners />
+            </TabsContent>
+            <TabsContent value="finance_lottery" className="mt-6">
+              <AdminFinanceLotteryManager />
             </TabsContent>
             <TabsContent value="usuarios" className="mt-6">
               <AdminUsuarios />

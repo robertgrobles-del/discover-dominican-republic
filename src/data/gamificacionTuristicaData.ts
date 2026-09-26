@@ -47,3 +47,90 @@ export const REGION_COLORS: Record<string, string> = {
   "Este":   "bg-amber-500/10 text-amber-600 border-amber-200",
   "Cibao":  "bg-purple-500/10 text-purple-600 border-purple-200",
 };
+
+export const REGIONS = ["all", "Norte", "Sur", "Este", "Cibao"];
+
+export interface GamificationHubSubroute {
+  title: string;
+  desc: string;
+  iconName: "Target" | "Video" | "Brain" | "MapPin" | "Crown" | "Gift" | "Sparkles" | "Trophy";
+  link: string;
+  tag: string;
+  color: string;
+  bg: string;
+}
+
+export const gamificationHubSubroutes: GamificationHubSubroute[] = [
+  {
+    title: "Retos & Misiones",
+    desc: "Misiones diarias y expediciones por las 32 provincias",
+    iconName: "Target",
+    link: "/gamificacion-turistica/retos",
+    tag: "Misiones Activas",
+    color: "text-emerald-500",
+    bg: "bg-emerald-500/10 border-emerald-500/20"
+  },
+  {
+    title: "Programa de Creadores",
+    desc: "Matchmaking con hoteles (estancias 100% gratis) y afiliados",
+    iconName: "Video",
+    link: "/gamificacion-turistica/creadores",
+    tag: "Patrocinios POP & Samaná",
+    color: "text-amber-500",
+    bg: "bg-amber-500/10 border-amber-500/20"
+  },
+  {
+    title: "Trivia Dominicana",
+    desc: "Demuestra tu conocimiento en geografía, historia y cultura",
+    iconName: "Brain",
+    link: "/gamificacion-turistica/trivia",
+    tag: "+50 XP por ronda",
+    color: "text-purple-500",
+    bg: "bg-purple-500/10 border-purple-500/20"
+  },
+  {
+    title: "Mapa 3D de Misiones",
+    desc: "Ubica geográficamente todos los retos en el mapa satelital",
+    iconName: "MapPin",
+    link: "/gamificacion-turistica/mapa",
+    tag: "Interactivo",
+    color: "text-blue-500",
+    bg: "bg-blue-500/10 border-blue-500/20"
+  },
+  {
+    title: "Perfil de Jugador",
+    desc: "Consulta tu tarjeta de explorador, insignias e historial",
+    iconName: "Crown",
+    link: "/gamificacion-turistica/perfil",
+    tag: "Nivel & Racha",
+    color: "text-primary",
+    bg: "bg-primary/10 border-primary/20"
+  },
+  {
+    title: "Club de Recompensas",
+    desc: "Canjea puntos XP por pases y descuentos exclusivos",
+    iconName: "Gift",
+    link: "/gamificacion-turistica/recompensas",
+    tag: "Beneficios VIP",
+    color: "text-rose-500",
+    bg: "bg-rose-500/10 border-rose-500/20"
+  },
+  {
+    title: "14 Formas de Ganar Puntos",
+    desc: "Registro, referidos, boletín, check-ins GPS, blog, fotos y ecoturismo",
+    iconName: "Sparkles",
+    link: "/gamificacion-turistica?tab=formas",
+    tag: "+2,500 XP Potenciales",
+    color: "text-amber-500",
+    bg: "bg-amber-500/10 border-amber-500/20"
+  },
+  {
+    title: "Reglamento & Normas",
+    desc: "Lineamientos de acreditación GPS, RNC empresarial y políticas anti-fraude",
+    iconName: "Trophy",
+    link: "/gamificacion-turistica/reglas",
+    tag: "Normativa Oficial",
+    color: "text-teal-500",
+    bg: "bg-teal-500/10 border-teal-500/20"
+  }
+];

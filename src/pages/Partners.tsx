@@ -1,7 +1,8 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
-import { TrendingUp, Globe, Mail, Users, Phone, MapPin, Download, ArrowRight, Check, Monitor, FileText, Megaphone } from "lucide-react";
+import { TrendingUp, Globe, Mail, Users, Phone, MapPin, Download, ArrowRight, Check, Monitor, FileText, Megaphone, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -78,7 +79,12 @@ export default function Partners() {
                 Impulse su negocio con nuestras soluciones publicitarias estratégicas basadas en datos.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2" onClick={() => window.location.href = "/para-empresas"}>
+                  <Sparkles className="w-5 h-5" /> Ver Planes para Empresas
+                </Button>
+                <Button size="lg" variant="outline" className="gap-2" onClick={() => {
+                  toast.info("Descargando Media Kit Oficial Q3 2024...");
+                }}>
                   <Download className="w-5 h-5" /> Descargar Media Kit
                 </Button>
                 <Button size="lg" variant="outline" onClick={() => window.location.href = "/partner/login"}>

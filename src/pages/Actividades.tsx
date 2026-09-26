@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ChevronRight, ChevronLeft, Mountain, Waves, Landmark, Ship, Anchor, Compass } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { CTARegistroEstablecimiento } from "@/components/forms/CTARegistroEstablecimiento";
 import { SectionWithSideAds } from "@/components/SectionWithSideAds";
@@ -29,8 +30,12 @@ const seaActivities = [
 export default function Actividades() {
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Actividades y Experiencias en República Dominicana"
+        description="Explora aventuras de montaña, buceo y avistamiento de ballenas, y experiencias culturales en la Zona Colonial para vivir la isla más allá de sus playas."
+      />
       <Header />
-      
+
 
       {/* Hero Section */}
       <section className="relative h-[70vh] w-full flex flex-col justify-center items-center overflow-hidden">

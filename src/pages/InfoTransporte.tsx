@@ -1,270 +1,31 @@
 import { motion } from "framer-motion";
 import { 
-  Car, Bus, Plane, Ship, MapPin, Clock, DollarSign, 
-  ChevronRight, AlertCircle, CheckCircle2, Phone, Wifi, 
-  Coffee, Tv, Snowflake, Search, Download, Train, Navigation,
-  CreditCard, ShieldCheck, Zap, Info, ArrowRight, ExternalLink
+  Car, Bus, MapPin, Clock, 
+  ChevronRight, AlertCircle, CheckCircle2, Phone, Download, Navigation,
+  CreditCard, ShieldCheck, Search, ArrowRight
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { BetweenSectionsAd } from "@/components/promo";
-
-const operadoresPremium = [
-  {
-    nombre: "Caribe Tours",
-    logo: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=200&auto=format&fit=crop&q=80",
-    descripcion: "La red de transporte interurbano más grande y moderna del país. Salidas cada 30-60 min hacia el Cibao, Costa Norte y Región Sur.",
-    tarifaPromedio: "RD$ 400 - 650 (US$7-11)",
-    servicios: ["WiFi 5G", "A/C Frío", "Baño a bordo", "Tomas USB", "Rastreo GPS"],
-    rutas: [
-      { tramo: "Santo Domingo ↔ Santiago", tiempo: "2h 15m", salidas: "Cada 30 min" },
-      { tramo: "Santo Domingo ↔ Puerto Plata", tiempo: "3h 45m", salidas: "Cada 1h" },
-      { tramo: "Santo Domingo ↔ Samaná / Las Terrenas", tiempo: "2h 45m", salidas: "4 diarias" },
-      { tramo: "Santo Domingo ↔ Barahona", tiempo: "3h 30m", salidas: "Cada 2h" },
-    ],
-    telefono: "(809) 221-4422",
-    terminalPrincipal: "Av. 27 de Febrero esq. Leopoldo Navarro, D.N."
-  },
-  {
-    nombre: "Metro Servicios Turísticos",
-    logo: "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?w=200&auto=format&fit=crop&q=80",
-    descripcion: "Servicio ejecutivo de primera clase con terminales tipo VIP lounge, asientos reclinables de piel y café de cortesía.",
-    tarifaPromedio: "RD$ 500 - 750 (US$9-13)",
-    servicios: ["Lounge VIP", "Asientos de Piel", "Café Gratis", "WiFi Ultra", "Puntualidad 100%"],
-    rutas: [
-      { tramo: "Santo Domingo ↔ Santiago (Ejecutivo)", tiempo: "2h 00m", salidas: "Cada 1h" },
-      { tramo: "Santo Domingo ↔ Puerto Plata", tiempo: "3h 30m", salidas: "3 diarias" },
-      { tramo: "Santiago ↔ Puerto Plata", tiempo: "1h 15m", salidas: "Cada 2h" },
-    ],
-    telefono: "(809) 583-9111",
-    terminalPrincipal: "Av. Winston Churchill esq. Hatuey, Santo Domingo"
-  },
-  {
-    nombre: "Expreso Bávaro",
-    logo: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&auto=format&fit=crop&q=80",
-    descripcion: "La conexión oficial directa y sin paradas intermedias entre la capital Santo Domingo y la zona hotelera de Punta Cana / Bávaro.",
-    tarifaPromedio: "RD$ 550 (US$9.50)",
-    servicios: ["Directo sin paradas", "A/C", "TV Entretenimiento", "Bodega Amplia"],
-    rutas: [
-      { tramo: "Santo Domingo ↔ Punta Cana / Bávaro", tiempo: "2h 30m", salidas: "Cada hora (6am - 6pm)" },
-      { tramo: "Santo Domingo ↔ Friusa / Verón", tiempo: "2h 45m", salidas: "Cada hora" }
-    ],
-    telefono: "(809) 552-1678",
-    terminalPrincipal: "Calle Juan Sánchez Ramírez 31, Gazcue, Santo Domingo"
-  },
-  {
-    nombre: "Transporte Asotrapusa (Las Terrenas)",
-    logo: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&auto=format&fit=crop&q=80",
-    descripcion: "Conexión exprés directa por la moderna Autopista del Nordeste hacia las playas de Las Terrenas y la Península de Samaná.",
-    tarifaPromedio: "RD$ 500 (US$8.50)",
-    servicios: ["Directo Autopista Nordeste", "A/C", "Música ambiental"],
-    rutas: [
-      { tramo: "Santo Domingo (Parada Samaná) ↔ Las Terrenas", tiempo: "2h 15m", salidas: "6 diarias" },
-      { tramo: "Santo Domingo ↔ Santa Bárbara de Samaná", tiempo: "2h 30m", salidas: "5 diarias" }
-    ],
-    telefono: "(809) 687-1470",
-    terminalPrincipal: "C/ Barahona esq. C/ Eusebio Manzueta, Villa Consuelo"
-  }
-];
-
-const sistemasMasivos = [
-  {
-    sistema: "Metro de Santo Domingo",
-    icono: Train,
-    estado: "Operativo (Línea 1, 2 y Extensión Los Alcarrizos)",
-    tarifa: "RD$ 20 por viaje + RD$ 60 Tarjeta Metro recargable",
-    horario: "Lun-Vie: 6:00 AM - 10:30 PM | Sáb-Dom-Feriados: 6:00 AM - 10:00 PM",
-    cobertura: "Conecta Santo Domingo Norte, Centro, Este y Oeste sin tráfico vehicular.",
-    consejo: "Usa la estación central Juan Pablo Duarte (Av. Kennedy / Máximo Gómez) para transbordar gratis entre Línea 1 y Línea 2.",
-    link: "/metro-santo-domingo"
-  },
-  {
-    sistema: "Teleférico de Santo Domingo",
-    icono: Zap,
-    estado: "Operativo (Línea 1 Gualey/Sabana Perdida + Línea 2 Los Alcarrizos)",
-    tarifa: "Integrado al Metro (Sin costo adicional con la misma tarjeta)",
-    horario: "Lun-Vie: 6:00 AM - 10:30 PM | Sáb: 6:00 AM - 9:00 PM | Dom: 8:00 AM - 9:00 PM",
-    cobertura: "Sobrevuela el Río Ozama y conecta sectores elevados con las terminales del metro.",
-    consejo: "Excelente opción escénica y libre de congestionamiento para cruzar el Gran Santo Domingo.",
-    link: "/teleferico-santo-domingo"
-  },
-  {
-    sistema: "Monorriel de Santiago",
-    icono: Train,
-    estado: "Fase 1 Inauguración 2026 (En Pruebas)",
-    tarifa: "Tarifa integrada Sistema SIT Santiago",
-    horario: "6:00 AM - 10:00 PM (Estimado operativo)",
-    cobertura: "Primer monorriel del Caribe: Conecta Cienfuegos con el Monumento de Santiago y PUCMM.",
-    consejo: "Reducirá el trayecto norte-sur en Santiago de 60 min en hora pico a solo 18 min.",
-    link: "/monoriel-santiago"
-  }
-];
-
-const peajesPasoRapido = [
-  { autopista: "Autopista Duarte (SD ↔ Cibao / Santiago)", estacion: "Peaje Duarte Km 25", precioCat1: "RD$ 60" },
-  { autopista: "Autopista Las Américas (SD ↔ Boca Chica / Este)", estacion: "Peaje Las Américas", precioCat1: "RD$ 60" },
-  { autopista: "Autovía del Este (SD ↔ Punta Cana)", estacion: "Peaje Coral I & II", precioCat1: "RD$ 100 / RD$ 100" },
-  { autopista: "Autopista del Nordeste (SD ↔ Samaná)", estacion: "Peaje Marbella / Naranjal", precioCat1: "RD$ 63 / RD$ 201" },
-  { autopista: "Circunvalación Santo Domingo", estacion: "Peaje Tramo I & II", precioCat1: "RD$ 100" },
-];
-
-const terminales = [
-  {
-    nombre: "Terminal Central Caribe Tours",
-    direccion: "Av. 27 de Febrero esq. Leopoldo Navarro, Santo Domingo",
-    telefono: "(809) 221-4422",
-    tipo: "Premium",
-    servicios: "Cafetería, encomiendas, parqueo vigilado, cajeros ATM"
-  },
-  {
-    nombre: "Estación Metro Servicios Turísticos",
-    direccion: "Av. Winston Churchill esq. Calle Hatuey, Santo Domingo",
-    telefono: "(809) 544-4580",
-    tipo: "Premium",
-    servicios: "Sala VIP climatizada, Wi-Fi libre, café barista, atención ejecutiva"
-  },
-  {
-    nombre: "Terminal Expreso Bávaro Friusa",
-    direccion: "Av. Estados Unidos, Plaza Friusa, Bávaro / Punta Cana",
-    telefono: "(809) 552-1678",
-    tipo: "Premium",
-    servicios: "Punto central de conexiones hoteleras en Punta Cana"
-  },
-  {
-    nombre: "Terminal Metro Santiago",
-    direccion: "Av. Juan Pablo Duarte esq. Maimón, Santiago",
-    telefono: "(809) 583-9111",
-    tipo: "Premium",
-    servicios: "Acceso directo a zona monumental y comercial"
-  },
-  {
-    nombre: "Parada del Sur (Pintura)",
-    direccion: "Prolongación Av. 27 de Febrero esq. Isabel Aguiar, SDO",
-    nota: "Conexiones a San Cristóbal, Baní, Azua, Barahona, San Juan y Pedernales",
-    tipo: "Local",
-    servicios: "Minibuses y guaguas interprovinciales del Sur"
-  },
-  {
-    nombre: "Parada Samaná (Parada de las Guaguas de Samaná)",
-    direccion: "C/ Barahona esq. Eusebio Manzueta, Villa Consuelo, SD",
-    nota: "Salidas directas a Las Terrenas, Sánchez, Las Galeras y Samaná",
-    tipo: "Local",
-    servicios: "Transporte directo por Autopista del Nordeste"
-  }
-];
-
-const rutasGuaguas = [
-  { ruta: "Higüey ↔ Punta Cana / Bávaro", tiempo: "45 min", precio: "RD$ 150 (US$2.50)", frecuencia: "Cada 15 min" },
-  { ruta: "Santo Domingo ↔ Boca Chica", tiempo: "40 min", precio: "RD$ 100 (US$1.70)", frecuencia: "Cada 10 min" },
-  { ruta: "Puerto Plata ↔ Sosúa ↔ Cabarete", tiempo: "35 min", precio: "RD$ 80 (US$1.40)", frecuencia: "Continuo" },
-  { ruta: "Santiago ↔ Jarabacoa", tiempo: "55 min", precio: "RD$ 150 (US$2.50)", frecuencia: "Cada 20 min" },
-  { ruta: "Las Terrenas ↔ El Limón / Las Galeras", tiempo: "45 min", precio: "RD$ 120 (US$2.00)", frecuencia: "Cada 30 min" },
-  { ruta: "Santo Domingo ↔ San Cristóbal", tiempo: "30 min", precio: "RD$ 80 (US$1.40)", frecuencia: "Cada 5 min" }
-];
-
-const consejosViaje = [
-  {
-    titulo: "Paso Rápido en Peajes",
-    descripcion: "Si alquilas un vehículo, solicita el tag de 'Paso Rápido'. Ahorra hasta 30 minutos de cola en las autopistas hacia Punta Cana, Samaná y Santiago.",
-    icono: Zap
-  },
-  {
-    titulo: "Efectivo vs. Apps",
-    descripcion: "En Uber y DiDi puedes pagar con tarjeta de crédito en Santo Domingo y Santiago. En guaguas, motoconchos y peajes manuales lleva siempre efectivo en RD$.",
-    icono: DollarSign
-  },
-  {
-    titulo: "Aire Acondicionado Potente",
-    descripcion: "Los autobuses de larga distancia (Caribe Tours, Metro, Expreso Bávaro) mantienen el aire a temperaturas muy frescas (18°C). Lleva siempre un suéter ligero.",
-    icono: Snowflake
-  },
-  {
-    titulo: "Conducción Defensiva",
-    descripcion: "En carretera respeta los límites de velocidad (80-100 km/h en autopistas). Evita conducir de noche en carreteras secundarias o caminos de montaña.",
-    icono: ShieldCheck
-  }
-];
-
-const transportOptions = [
-  {
-    type: "Apps de Transporte (Uber / DiDi / inDrive)",
-    icon: Car,
-    description: "La forma más segura, cómoda y con tarifa transparente para moverte en Santo Domingo, Santiago, Puerto Plata y zonas urbanas.",
-    pros: ["Tarifa fijada antes de abordar", "Pago seguro con tarjeta o efectivo", "Trazabilidad GPS y soporte 24/7"],
-    cons: ["Disponibilidad limitada en zonas rurales o playas remotas"],
-    priceRange: "RD$ 180 - 600 (US$3 - 10 por viaje)",
-    tips: [
-      "Verifica la placa del vehículo antes de subirte",
-      "Uber opera con alta disponibilidad en SD, Santiago y Punta Cana",
-      "DiDi e inDrive son muy populares en las áreas metropolitanas"
-    ],
-    apps: ["Uber", "DiDi", "inDrive", "Apolo Taxi"],
-  },
-  {
-    type: "Rent-a-Car (Alquiler de Vehículo)",
-    icon: Car,
-    description: "Recomendado para recorrer el país con libertad: playas vírgenes de Samaná, cascadas de Jarabacoa o la costa virgen de Pedernales.",
-    pros: ["Libertad absoluta de itinerario", "Espacio para todo el equipaje", "Excelente red de autopistas principales"],
-    cons: ["Tráfico denso en horas pico en SD", "Peajes obligatorios (Paso Rápido recomendado)"],
-    priceRange: "US$ 35 - 85 / día",
-    tips: [
-      "Licencia de conducir de tu país de origen es 100% válida para turistas",
-      "Contrata seguro con cobertura total (CDW / LDW)",
-      "Usa Google Maps o Waze con eSIM local para navegación en tiempo real",
-    ],
-    companies: ["Avis", "Budget", "Hertz", "National", "Alamo", "Europcar"],
-  },
-  {
-    type: "Traslados Privados & Aeropuerto",
-    icon: Plane,
-    description: "Vans y transfers ejecutivos reservados previamente con chofer bilingüe directo desde el aeropuerto a tu hotel o resort.",
-    pros: ["Recepción en sala de llegadas", "Sin esperas ni regateo", "Vehículos amplios con aire acondicionado"],
-    cons: ["Costo superior al autobús público"],
-    priceRange: "US$ 30 - 90 por trayecto",
-    tips: [
-      "Aeropuertos clave: Punta Cana (PUJ), Las Américas (SDQ), Cibao (STI), Puerto Plata (POP)",
-      "Reserva con antelación si viajas con familia o grupos grandes",
-    ],
-  },
-];
-
-const routes = [
-  { from: "Santo Domingo", to: "Punta Cana", distance: "195 km", time: "2h 15 min", transport: "Autovía del Este", tolls: "3 peajes" },
-  { from: "Santo Domingo", to: "Samaná / Las Terrenas", distance: "160 km", time: "2h 15 min", transport: "Autopista Nordeste", tolls: "4 peajes" },
-  { from: "Santo Domingo", to: "Santiago de los Caballeros", distance: "155 km", time: "2h 00 min", transport: "Autopista Duarte", tolls: "1 peaje" },
-  { from: "Santo Domingo", to: "Puerto Plata", distance: "215 km", time: "3h 30 min", transport: "Autopista Duarte / Navarrete", tolls: "1 peaje" },
-  { from: "Punta Cana", to: "Bayahíbe / La Romana", distance: "70 km", time: "50 min", transport: "Autovía del Coral", tolls: "1 peaje" },
-  { from: "Santiago", to: "Jarabacoa (Montaña)", distance: "52 km", time: "50 min", transport: "Carretera Federico Basilis", tolls: "Sin peajes" },
-  { from: "Puerto Plata", to: "Cabarete / Sosúa", distance: "38 km", time: "40 min", transport: "Carretera Troncal Costa Norte", tolls: "Sin peajes" },
-  { from: "Santo Domingo", to: "Barahona / Bahía de las Águilas", distance: "205 km", time: "3h 15 min", transport: "Autopista Sánchez / 6 de Nov.", tolls: "1 peaje" },
-];
-
-const tips = [
-  {
-    title: "Guaguas (Minibuses)",
-    desc: "Transporte público local muy económico. Experiencia auténtica pero no siempre cómoda.",
-    icon: Bus,
-  },
-  {
-    title: "Motoconchos",
-    desc: "Motos-taxi populares para distancias cortas. Económicos pero solo para aventureros.",
-    icon: Car,
-  },
-  {
-    title: "Botes y Ferries",
-    desc: "Para llegar a cayos e islas como Saona, Catalina o Cayo Levantado.",
-    icon: Ship,
-  },
-];
+import { SEOHead } from "@/components/SEOHead";
+import { 
+  operadoresPremium, 
+  sistemasMasivos, 
+  peajesPasoRapido, 
+  rutasGuaguas, 
+  consejosViaje, 
+  transportOptions, 
+  routes, 
+  localTips 
+} from "@/data/transporteData";
 
 export default function InfoTransporte() {
   const [origen, setOrigen] = useState("");
@@ -272,6 +33,10 @@ export default function InfoTransporte() {
 
   return (
     <PageTransition>
+      <SEOHead
+        title="Transporte en República Dominicana: Autobuses, Metro y Rutas"
+        description="Guía completa de movilidad en RD: autobuses interurbanos premium, metro y teleférico de Santo Domingo, guaguas locales, peajes de Paso Rápido y calculadora de rutas."
+      />
       <div className="min-h-screen bg-background">
         <Header />
 
@@ -500,7 +265,7 @@ export default function InfoTransporte() {
                         <span className="text-xs text-muted-foreground">Pago únicamente en efectivo en pesos</span>
                       </div>
                       <div className="flex items-start gap-2">
-                        <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                        <AlertCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                         <span className="text-xs text-muted-foreground">Avisa al 'cobrador' antes de tu bajada</span>
                       </div>
                     </div>
@@ -687,7 +452,7 @@ export default function InfoTransporte() {
             <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">
               Consejos de Viaje
             </h2>
-            <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
               {consejosViaje.map((consejo, index) => (
                 <motion.div
                   key={consejo.titulo}
@@ -702,7 +467,7 @@ export default function InfoTransporte() {
                         <consejo.icono className="h-5 w-5 text-primary" />
                       </div>
                       <h3 className="font-semibold text-foreground mb-2">{consejo.titulo}</h3>
-                      <p className="text-sm text-muted-foreground">{consejo.descripcion}</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{consejo.descripcion}</p>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -763,7 +528,7 @@ export default function InfoTransporte() {
               Transporte Local
             </h2>
             <div className="grid md:grid-cols-3 gap-6">
-              {tips.map((tip) => (
+              {localTips.map((tip) => (
                 <Card key={tip.title} className="bg-background border-border">
                   <CardContent className="p-6">
                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">

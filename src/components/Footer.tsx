@@ -81,6 +81,7 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
       title: t("footer.corporate"),
       links: [
         { name: t("footer.aboutUs"), href: "/sobre-nosotros" },
+        { name: "Planes para Empresas", href: "/para-empresas" },
         { name: "Portal de Partners B2B", href: "/partners" },
         { name: "Operadores RD (reservas directas)", href: "/operadores" },
         { name: "Tienda oficial", href: "/tienda" },

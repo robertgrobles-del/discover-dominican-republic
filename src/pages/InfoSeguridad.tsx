@@ -8,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { SEOHead } from "@/components/SEOHead";
 
 const emergencyNumbers = [
   { service: "Emergencias Generales", number: "911", icon: Phone },
@@ -100,6 +101,10 @@ const faqs = [
 export default function InfoSeguridad() {
   return (
     <PageTransition>
+      <SEOHead
+        title="Seguridad y Consejos de Viaje en República Dominicana"
+        description="Números de emergencia, consejos de salud, información práctica sobre moneda y electricidad, y respuestas a preguntas frecuentes para viajar seguro por República Dominicana."
+      />
       <div className="min-h-screen bg-background">
         <Header />
 

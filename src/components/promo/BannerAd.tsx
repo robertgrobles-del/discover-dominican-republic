@@ -17,23 +17,28 @@ import adSpaSquare from "@/assets/promo/promo-spa-square.jpg";
 import adGolfSkyscraper from "@/assets/promo/promo-golf-skyscraper.jpg";
 import adCasinoSkyscraper from "@/assets/promo/promo-casino-skyscraper.jpg";
 import adDivingWide from "@/assets/promo/promo-diving-wide.jpg";
+import { OFFICIAL_BANNER_MAP } from "@/data/officialBanners";
 
 export type AdSize = 
-  | "leaderboard"       // 728x90
-  | "billboard"         // 970x135
-  | "skyscraper"        // 160x600
-  | "wide-skyscraper"   // 300x600
-  | "half-page"         // 300x600
-  | "medium-rect"       // 300x250
-  | "large-rect"        // 336x280
-  | "square-small"      // 250x250
-  | "square-large"      // 300x300
-  | "mobile-banner"     // 320x50
-  | "mobile-large"      // 320x100
-  | "mobile-medium"     // 320x250
-  | "portrait"          // 300x1050
-  | "panorama"          // 980x120
-  | "full-width-hero";  // 1280x240 Full-Width High-Impact
+  | "leaderboard"           // 728x90
+  | "super-leaderboard"     // 970x90
+  | "billboard"             // 970x250
+  | "skyscraper"            // 160x600
+  | "skyscraper-traditional"// 120x600
+  | "wide-skyscraper"       // 300x600
+  | "half-page"             // 300x600
+  | "medium-rect"           // 300x250 (MPU / Robapáginas)
+  | "large-rect"            // 336x280
+  | "square-small"          // 200x200 (Cuadrado Pequeño)
+  | "square-large"          // 250x250 (Cuadrado Estándar)
+  | "mobile-banner"         // 320x50 (Estándar móvil)
+  | "mobile-large"          // 320x100 (Banner grande móvil)
+  | "mobile-medium"         // 320x250 (Móvil integrado)
+  | "interstitial-mobile"   // 320x480 (Intersticial móvil)
+  | "panorama"              // 980x120
+  | "full-width-hero"       // 1280x240 Full-Width High-Impact
+  | "full-width-screen"     // 1920x250 Full-Width Screen (100vw)
+  | "full-width-screen-2x"; // 1920x250 2x Retina Full-Width Screen
 
 export type AdPlacement = 
   | "header" 
@@ -121,21 +126,26 @@ const defaultPromo: Record<string, { headline: string; subtext: string; cta: str
 };
 
 const sizeConfig: Record<AdSize, { width: string; height: string; placeholderHeight: string; label: string }> = {
-  "full-width-hero": { width: "100%", height: "230px", placeholderHeight: "180px", label: "1280 × 240 (Full Width)" },
-  "leaderboard": { width: "728px", height: "90px", placeholderHeight: "60px", label: "728 × 90" },
-  "billboard": { width: "970px", height: "140px", placeholderHeight: "90px", label: "970 × 140" },
-  "skyscraper": { width: "160px", height: "600px", placeholderHeight: "250px", label: "160 × 600" },
-  "wide-skyscraper": { width: "300px", height: "600px", placeholderHeight: "280px", label: "300 × 600" },
-  "half-page": { width: "300px", height: "600px", placeholderHeight: "280px", label: "300 × 600" },
-  "medium-rect": { width: "300px", height: "250px", placeholderHeight: "120px", label: "300 × 250" },
-  "large-rect": { width: "336px", height: "280px", placeholderHeight: "130px", label: "336 × 280" },
-  "square-small": { width: "250px", height: "250px", placeholderHeight: "110px", label: "250 × 250" },
-  "square-large": { width: "300px", height: "300px", placeholderHeight: "130px", label: "300 × 300" },
-  "mobile-banner": { width: "320px", height: "60px", placeholderHeight: "45px", label: "320 × 60" },
-  "mobile-large": { width: "320px", height: "90px", placeholderHeight: "60px", label: "320 × 90" },
-  "mobile-medium": { width: "320px", height: "250px", placeholderHeight: "120px", label: "320 × 250" },
-  "portrait": { width: "300px", height: "1050px", placeholderHeight: "400px", label: "300 × 1050" },
-  "panorama": { width: "980px", height: "120px", placeholderHeight: "70px", label: "980 × 120" },
+  "full-width-hero": { width: "100%", height: "240px", placeholderHeight: "180px", label: "1280 × 240 (Full Width)" },
+  "leaderboard": { width: "728px", height: "90px", placeholderHeight: "60px", label: "728 × 90 (Leaderboard Estándar)" },
+  "super-leaderboard": { width: "970px", height: "90px", placeholderHeight: "60px", label: "970 × 90 (Super Leaderboard)" },
+  "billboard": { width: "980px", height: "120px", placeholderHeight: "70px", label: "980 × 120 (Panorama / Billboard)" },
+  "skyscraper": { width: "160px", height: "600px", placeholderHeight: "250px", label: "160 × 600 (Skyscraper Ancho)" },
+  "skyscraper-traditional": { width: "120px", height: "600px", placeholderHeight: "250px", label: "120 × 600 (Skyscraper Tradicional)" },
+  "wide-skyscraper": { width: "300px", height: "600px", placeholderHeight: "280px", label: "300 × 600 (Wide Skyscraper)" },
+  "half-page": { width: "300px", height: "600px", placeholderHeight: "280px", label: "300 × 600 (Media Página / Half Page)" },
+  "medium-rect": { width: "300px", height: "250px", placeholderHeight: "120px", label: "300 × 250 (Medium Rectangle / MPU)" },
+  "large-rect": { width: "336px", height: "280px", placeholderHeight: "130px", label: "336 × 280 (Large Rectangle)" },
+  "square-small": { width: "200px", height: "200px", placeholderHeight: "100px", label: "200 × 200 (Cuadrado Pequeño)" },
+  "square-large": { width: "250px", height: "250px", placeholderHeight: "110px", label: "250 × 250 (Cuadrado Estándar)" },
+  "mobile-banner": { width: "320px", height: "50px", placeholderHeight: "40px", label: "320 × 50 (Mobile Banner Estándar)" },
+  "mobile-large": { width: "320px", height: "100px", placeholderHeight: "60px", label: "320 × 100 (Mobile Large)" },
+  "mobile-medium": { width: "320px", height: "250px", placeholderHeight: "120px", label: "320 × 250 (Mobile Medium Rectangle)" },
+  "interstitial-mobile": { width: "320px", height: "480px", placeholderHeight: "240px", label: "320 × 480 (Intersticial Móvil)" },
+  "portrait": { width: "300px", height: "1050px", placeholderHeight: "400px", label: "300 × 1050 (Portrait / Retrato)" },
+  "panorama": { width: "980px", height: "120px", placeholderHeight: "70px", label: "980 × 120 (Panorama)" },
+  "full-width-screen": { width: "100%", height: "250px", placeholderHeight: "180px", label: "1920 × 250 (Full-Width Screen)" },
+  "full-width-screen-2x": { width: "100%", height: "250px", placeholderHeight: "180px", label: "1920 × 250 (Full-Width 2x Ultra HD)" },
 };
 
 // Demo fallback images & dynamic target landing pages
@@ -263,9 +273,11 @@ export function BannerAd({
     ? INDUSTRY_BANNERS_DEMO.find((d) => d.industry === industry)
     : null;
 
-  // Resolve values: bannerData > props > industryAd > demo > defaults
-  const resolvedImageUrl = activeBanner?.image_url || imageUrl || industryAd?.imageUrl || demoAd?.image;
-  const resolvedAltText = activeBanner?.alt_text || altText || industryAd?.sponsor || demoAd?.alt || "Publicidad turística";
+  // Resolve values: bannerData > props > industryAd > official banner PNG > demo > defaults
+  const officialBannerSrc = OFFICIAL_BANNER_MAP[size];
+  const resolvedImageUrl = activeBanner?.image_url || imageUrl || industryAd?.imageUrl || officialBannerSrc || demoAd?.image;
+  const isOfficialGraphic = resolvedImageUrl?.startsWith("/banners/");
+  const resolvedAltText = activeBanner?.alt_text || altText || industryAd?.sponsor || demoAd?.alt || `Banner Oficial RD ${config.label}`;
   const resolvedTargetUrl = activeBanner?.target_url || (industryAd?.targetUrl ?? targetUrl);
   const resolvedSponsor = activeBanner?.sponsor || sponsor || industryAd?.sponsor || demoAd?.sponsor;
   const resolvedHeadline = activeBanner?.headline || industryAd?.headline || (defaultPromo[size] || defaultPromo["default"]).headline;
@@ -353,7 +365,8 @@ export function BannerAd({
   const bannerInnerContent = (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl border border-white/10 shadow-md group-hover:shadow-xl transition-all duration-300 transform-gpu w-full cursor-pointer",
+        "relative overflow-hidden rounded-2xl transition-all duration-300 transform-gpu w-full cursor-pointer",
+        isOfficialGraphic ? "bg-transparent border-0 shadow-none hover:shadow-md" : "border border-white/10 shadow-md group-hover:shadow-xl",
         placement === "between-sections" && "!rounded-2xl mx-auto container px-0",
         className
       )}
@@ -375,75 +388,77 @@ export function BannerAd({
         height={config.height}
       />
       
-      {/* Proportional Dynamic Overlay matching the exact format */}
-      <div className={cn(
-        "absolute inset-0 z-10 flex",
-        isVertical 
-          ? "bg-gradient-to-t from-slate-950/95 via-slate-950/70 to-slate-950/30 flex-col justify-end p-5 text-center items-center" 
-          : isRectangle
-          ? "bg-gradient-to-t from-slate-950/90 via-slate-950/50 to-transparent flex-col justify-end p-4 text-left"
-          : "bg-gradient-to-r from-slate-950/90 via-slate-950/60 to-transparent flex-row items-center px-4 md:px-6"
-      )}>
+      {/* Proportional Dynamic Overlay - Only show if not using an official pre-designed banner graphic, OR if custom DB headlines exist */}
+      {(!isOfficialGraphic || Boolean(activeBanner?.headline)) && (
         <div className={cn(
-          "text-white w-full",
-          isHorizontal && "flex items-center justify-between gap-4 w-full py-2"
+          "absolute inset-0 z-10 flex",
+          isVertical 
+            ? "bg-gradient-to-t from-slate-950/95 via-slate-950/70 to-slate-950/30 flex-col justify-end px-3 py-5 text-center items-center" 
+            : isRectangle
+            ? "bg-gradient-to-t from-slate-950/90 via-slate-950/50 to-transparent flex-col justify-end p-4 text-left"
+            : "bg-gradient-to-r from-slate-950/90 via-slate-950/60 to-transparent flex-row items-center px-4 md:px-6"
         )}>
-          <div className="min-w-0 flex-1 pr-2">
-            {resolvedSponsor && !isCompact && (
-              <span className="inline-block text-[10px] font-semibold uppercase tracking-wider text-amber-300/90 mb-1">
-                {resolvedSponsor}
-              </span>
-            )}
-            <h3 className={cn(
-              "font-display font-bold leading-snug text-white drop-shadow-sm", 
-              isCompact 
-                ? "text-xs truncate" 
-                : isVertical
-                ? "text-base md:text-lg mb-2 line-clamp-2"
-                : isRectangle
-                ? "text-base font-bold mb-1 line-clamp-2"
-                : isHorizontal 
-                ? "text-sm md:text-base lg:text-lg truncate" 
-                : "text-sm truncate"
-            )}>
-              {resolvedHeadline}
-            </h3>
-            {!isCompact && (
-              <p className={cn(
-                "text-slate-200/90 leading-tight font-normal", 
-                isVertical 
-                  ? "text-xs mb-4 line-clamp-3" 
+          <div className={cn(
+            "text-white w-full",
+            isHorizontal && "flex items-center justify-between gap-4 w-full py-2"
+          )}>
+            <div className="min-w-0 flex-1 px-1">
+              {resolvedSponsor && !isCompact && (
+                <span className="inline-block text-[10px] font-semibold uppercase tracking-wider text-amber-300/90 mb-1">
+                  {resolvedSponsor}
+                </span>
+              )}
+              <h3 className={cn(
+                "font-display font-bold leading-snug text-white drop-shadow-sm", 
+                isCompact 
+                  ? "text-xs truncate" 
+                  : isVertical
+                  ? "text-xs sm:text-sm font-bold mb-1.5 line-clamp-2"
                   : isRectangle
-                  ? "text-xs mb-3 line-clamp-2"
+                  ? "text-base font-bold mb-1 line-clamp-2"
                   : isHorizontal 
-                  ? "text-xs md:text-sm mt-0.5 truncate hidden sm:block" 
-                  : "text-xs truncate"
+                  ? "text-sm md:text-base lg:text-lg truncate" 
+                  : "text-sm truncate"
               )}>
-                {resolvedSubtext}
-              </p>
-            )}
-          </div>
+                {resolvedHeadline}
+              </h3>
+              {!isCompact && (
+                <p className={cn(
+                  "text-slate-200/90 leading-tight font-normal", 
+                  isVertical 
+                    ? "text-[11px] sm:text-xs mb-3 line-clamp-3" 
+                    : isRectangle
+                    ? "text-xs mb-3 line-clamp-2"
+                    : isHorizontal 
+                    ? "text-xs md:text-sm mt-0.5 truncate hidden sm:block" 
+                    : "text-xs truncate"
+                )}>
+                  {resolvedSubtext}
+                </p>
+              )}
+            </div>
 
-          <div className={cn("shrink-0", isVertical && "w-full mt-2", isRectangle && "mt-1")}>
-            <span className={cn(
-              "inline-flex items-center justify-center gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl shadow-md shadow-primary/20 transition-transform group-hover:scale-105",
-              isCompact 
-                ? "text-[10px] px-2.5 py-1" 
-                : isVertical
-                ? "w-full text-xs px-4 py-2.5"
-                : isRectangle
-                ? "text-xs px-3.5 py-1.5"
-                : "text-xs px-4 py-2 shrink-0"
-            )}>
-              <span>{resolvedCta}</span>
-              <ExternalLink className="h-3 w-3" aria-hidden="true" />
-            </span>
+            <div className={cn("shrink-0", isVertical && "w-full mt-1.5", isRectangle && "mt-1")}>
+              <span className={cn(
+                "inline-flex items-center justify-center gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl shadow-md shadow-primary/20 transition-transform group-hover:scale-105",
+                isCompact 
+                  ? "text-[10px] px-2.5 py-1" 
+                  : isVertical
+                  ? "w-full text-xs px-3 py-2"
+                  : isRectangle
+                  ? "text-xs px-3.5 py-1.5"
+                  : "text-xs px-4 py-2 shrink-0"
+              )}>
+                <span>{resolvedCta}</span>
+                <ExternalLink className="h-3 w-3" aria-hidden="true" />
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Central Dimension Indicator & Ad Space Status - Red, Larger, Centered in the Banner */}
-      {showDimensionsBadge && (
+      {/* Central Dimension Indicator & Ad Space Status - Hide when official graphic already contains dimensions text */}
+      {showDimensionsBadge && !isOfficialGraphic && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none w-auto max-w-[94%] flex items-center justify-center text-center">
           <div className="bg-red-600/95 hover:bg-red-600 text-white font-mono font-black text-xs sm:text-sm md:text-base px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border-2 border-white shadow-2xl shadow-red-950/90 backdrop-blur-md flex items-center gap-2 tracking-wider uppercase animate-pulse">
             <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping shrink-0" />
@@ -500,10 +515,93 @@ export function HeaderAd({ className, showDemo = false, section }: { className?:
   );
 }
 
+export function LeaderboardAd({ className, showDemo = false, section }: { className?: string; showDemo?: boolean; section?: string }) {
+  return (
+    <div className={cn("w-full py-4 flex justify-center container mx-auto px-4", className)}>
+      <div className="hidden md:block">
+        <BannerAd size="leaderboard" placement="inline" showDemo={showDemo} section={section} />
+      </div>
+      <div className="block md:hidden">
+        <BannerAd size="mobile-banner" placement="inline" showDemo={showDemo} section={section} />
+      </div>
+    </div>
+  );
+}
+
+export function SuperLeaderboardAd({ className, showDemo = false, section }: { className?: string; showDemo?: boolean; section?: string }) {
+  return (
+    <div className={cn("w-full py-4 flex justify-center container mx-auto px-4", className)}>
+      <div className="hidden xl:block">
+        <BannerAd size="super-leaderboard" placement="inline" showDemo={showDemo} section={section} />
+      </div>
+      <div className="hidden md:block xl:hidden">
+        <BannerAd size="leaderboard" placement="inline" showDemo={showDemo} section={section} />
+      </div>
+      <div className="block md:hidden">
+        <BannerAd size="mobile-large" placement="inline" showDemo={showDemo} section={section} />
+      </div>
+    </div>
+  );
+}
+
+export function BillboardAd({ className, showDemo = false, section }: { className?: string; showDemo?: boolean; section?: string }) {
+  return (
+    <div className={cn("w-full py-6 container mx-auto px-4 lg:px-8", className)}>
+      <div className="hidden md:block w-full">
+        <BannerAd size="billboard" placement="between-sections" showDemo={showDemo} className="w-full !max-w-none shadow-sm" section={section} />
+      </div>
+      <div className="block md:hidden w-full">
+        <BannerAd size="mobile-large" placement="between-sections" showDemo={showDemo} className="w-full !max-w-none shadow-sm" section={section} />
+      </div>
+    </div>
+  );
+}
+
+export function MediumRectAd({ className, showDemo = false, section }: { className?: string; showDemo?: boolean; section?: string }) {
+  return (
+    <div className={cn("flex justify-center py-4", className)}>
+      <BannerAd size="medium-rect" placement="inline" showDemo={showDemo} section={section} />
+    </div>
+  );
+}
+
+export function LargeRectAd({ className, showDemo = false, section }: { className?: string; showDemo?: boolean; section?: string }) {
+  return (
+    <div className={cn("flex justify-center py-4", className)}>
+      <BannerAd size="large-rect" placement="inline" showDemo={showDemo} section={section} />
+    </div>
+  );
+}
+
+export function SkyscraperAd({ className, showDemo = false, variant = "standard", section }: { className?: string; showDemo?: boolean; variant?: "standard" | "traditional" | "wide"; section?: string }) {
+  const size: AdSize = variant === "traditional" ? "skyscraper-traditional" : variant === "wide" ? "wide-skyscraper" : "skyscraper";
+  return (
+    <div className={cn("hidden xl:flex justify-center w-full sticky top-24 mb-6", className)}>
+      <BannerAd size={size} placement="sidebar" showDemo={showDemo} section={section} />
+    </div>
+  );
+}
+
+export function PortraitAd({ className, showDemo = false, section }: { className?: string; showDemo?: boolean; section?: string }) {
+  return (
+    <div className={cn("hidden xl:flex justify-center w-full sticky top-24 mb-6", className)}>
+      <BannerAd size="portrait" placement="sidebar" showDemo={showDemo} section={section} />
+    </div>
+  );
+}
+
+export function MobileBannerAd({ className, showDemo = false, size = "mobile-banner", section }: { className?: string; showDemo?: boolean; size?: "mobile-banner" | "mobile-large" | "mobile-medium"; section?: string }) {
+  return (
+    <div className={cn("lg:hidden flex justify-center py-2 px-4 mb-4", className)}>
+      <BannerAd size={size} placement="header" showDemo={showDemo} section={section} />
+    </div>
+  );
+}
+
 export function SidebarAd({ className, showDemo = false, variant = "standard", section }: { className?: string; showDemo?: boolean; variant?: "standard" | "wide" | "square"; section?: string }) {
   const size = variant === "wide" ? "wide-skyscraper" : variant === "square" ? "square-large" : "skyscraper";
   return (
-    <div className={cn("hidden xl:block sticky top-24", className)}>
+    <div className={cn("hidden xl:flex justify-center w-full sticky top-24 mb-6", className)}>
       <BannerAd size={size} placement="sidebar" showDemo={showDemo} section={section} />
     </div>
   );
@@ -518,14 +616,14 @@ export function InlineAd({ className, showDemo = false, variant = "medium", sect
   );
 }
 
-export function BetweenSectionsAd({ className, showDemo = false, section }: { className?: string; showDemo?: boolean; section?: string }) {
+export function BetweenSectionsAd({ className, showDemo = false, section, industry }: { className?: string; showDemo?: boolean; section?: string; industry?: IndustryCategory }) {
   return (
     <div className={cn("w-full py-6 container mx-auto px-4 lg:px-8", className)}>
       <div className="hidden md:block w-full">
-        <BannerAd size="billboard" placement="between-sections" showDemo={showDemo} className="w-full !max-w-none" section={section} />
+        <BannerAd size="billboard" placement="between-sections" showDemo={showDemo} className="w-full !max-w-none" section={section} industry={industry} />
       </div>
       <div className="block md:hidden w-full">
-        <BannerAd size="mobile-large" placement="between-sections" showDemo={showDemo} className="w-full !max-w-none" section={section} />
+        <BannerAd size="mobile-large" placement="between-sections" showDemo={showDemo} className="w-full !max-w-none" section={section} industry={industry} />
       </div>
     </div>
   );
@@ -570,7 +668,7 @@ export function HalfPageAd({ className, showDemo = false, section }: { className
 
 export function PanoramaAd({ className, showDemo = false, section }: { className?: string; showDemo?: boolean; section?: string }) {
   return (
-    <div className={cn("hidden lg:flex justify-center py-3 bg-muted/10", className)}>
+    <div className={cn("hidden lg:flex justify-center py-3 bg-transparent", className)}>
       <BannerAd size="panorama" placement="between-sections" showDemo={showDemo} section={section} />
     </div>
   );
@@ -583,4 +681,32 @@ export function FullWidthHeroAd({ className, showDemo = false, section }: { clas
     </div>
   );
 }
+
+/**
+ * Banner de Ancho Completo (1920x250): se extiende de borde a borde de la pantalla (100% viewport)
+ */
+export function FullWidthScreenAd({ className, showDemo = false, section, isRetina = false }: { className?: string; showDemo?: boolean; section?: string; isRetina?: boolean }) {
+  return (
+    <div className={cn("w-full relative overflow-hidden py-4 my-6 bg-transparent", className)}>
+      <div className="w-full">
+        <BannerAd 
+          size={isRetina ? "full-width-screen-2x" : "full-width-screen"} 
+          placement="between-sections" 
+          showDemo={showDemo} 
+          className="w-full !max-w-none rounded-none md:rounded-2xl" 
+          section={section} 
+        />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Banner de Ancho Completo Retina Ultra HD 2x (1920x250 @2x)
+ */
+export function FullWidthScreenAd2x({ className, showDemo = false, section }: { className?: string; showDemo?: boolean; section?: string }) {
+  return <FullWidthScreenAd className={className} showDemo={showDemo} section={section} isRetina={true} />;
+}
+
+
 

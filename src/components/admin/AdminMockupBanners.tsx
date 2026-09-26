@@ -15,6 +15,7 @@ import { BannerAd, type AdSize, type AdPlacement } from "@/components/promo/Bann
 import { getTopBarConfig, saveTopBarConfig, type TopBarPromoConfig } from "@/components/promo/TopBarPromo";
 import { getExitPopupConfig, saveExitPopupConfig, type ExitPopupConfig } from "@/components/promo/ExitIntentModal";
 import { useAdBanners, trackBannerClick, trackBannerImpression, type AdBanner } from "@/hooks/useAdBanners";
+import { OFFICIAL_BANNERS, type OfficialBannerDefinition } from "@/data/officialBanners";
 import { toast } from "sonner";
 
 interface MockupBannerConfig {
@@ -54,20 +55,25 @@ const PAGE_OPTIONS = [
 
 const AD_FORMAT_SPECS: Record<AdSize, { name: string; dims: string; bestFor: string; typeGroup: "horizontal" | "vertical" | "rect" | "mobile" }> = {
   "full-width-hero": { name: "Full-Width Hero Panorama", dims: "1280 × 240", bestFor: "Máxima altura y ancho total entre secciones", typeGroup: "horizontal" },
-  "leaderboard": { name: "Leaderboard", dims: "728 × 90", bestFor: "Cabeceras y separador superior de listados", typeGroup: "horizontal" },
-  "billboard": { name: "Billboard", dims: "970 × 140", bestFor: "Separadores full-width entre módulos", typeGroup: "horizontal" },
+  "full-width-screen": { name: "Full-Width Screen Banner", dims: "1920 × 250", bestFor: "Cubre el 100% del ancho de la pantalla", typeGroup: "horizontal" },
+  "full-width-screen-2x": { name: "Full-Width Screen 2x Retina", dims: "1920 × 250 (2x)", bestFor: "Ultra resolución para pantallas panorámicas y Retina", typeGroup: "horizontal" },
+  "leaderboard": { name: "Leaderboard Estándar", dims: "728 × 90", bestFor: "Cabeceras y separador superior de listados", typeGroup: "horizontal" },
+  "super-leaderboard": { name: "Super Leaderboard", dims: "970 × 90", bestFor: "Pantallas panorámicas y cabeceras anchas", typeGroup: "horizontal" },
+  "billboard": { name: "Billboard / Cartelera", dims: "980 × 120", bestFor: "Impacto visual masivo de cabecera / branding", typeGroup: "horizontal" },
   "panorama": { name: "Panorama High-Impact", dims: "980 × 120", bestFor: "Banners panorámicos de alta visibilidad", typeGroup: "horizontal" },
-  "medium-rect": { name: "Medium Rectangle", dims: "300 × 250", bestFor: "Sidebars y grillas de contenido", typeGroup: "rect" },
+  "medium-rect": { name: "Medium Rectangle (MPU)", dims: "300 × 250", bestFor: "El más usado globalmente, sidebars y texto", typeGroup: "rect" },
   "large-rect": { name: "Large Rectangle", dims: "336 × 280", bestFor: "Bloques destacados entre artículos", typeGroup: "rect" },
-  "square-small": { name: "Square Small", dims: "250 × 250", bestFor: "Widgets compactos y módulos B2B", typeGroup: "rect" },
-  "square-large": { name: "Square Large", dims: "300 × 300", bestFor: "Columnas y cards de promociones", typeGroup: "rect" },
-  "skyscraper": { name: "Skyscraper", dims: "160 × 600", bestFor: "Barra lateral estándar", typeGroup: "vertical" },
+  "square-small": { name: "Cuadrado Pequeño", dims: "200 × 200", bestFor: "Columnas muy estrechas y widgets compactos", typeGroup: "rect" },
+  "square-large": { name: "Cuadrado Estándar", dims: "250 × 250", bestFor: "Widgets compactos y módulos laterales", typeGroup: "rect" },
+  "skyscraper": { name: "Skyscraper Ancho", dims: "160 × 600", bestFor: "Barra lateral estándar fija con scroll", typeGroup: "vertical" },
+  "skyscraper-traditional": { name: "Skyscraper Tradicional", dims: "120 × 600", bestFor: "Sidebars estrechas clásicas", typeGroup: "vertical" },
   "wide-skyscraper": { name: "Wide Skyscraper", dims: "300 × 600", bestFor: "Barra lateral amplia con llamada fija", typeGroup: "vertical" },
-  "half-page": { name: "Half Page", dims: "300 × 600", bestFor: "Máximo impacto en desktop sidebars", typeGroup: "vertical" },
-  "portrait": { name: "Portrait", dims: "300 × 1050", bestFor: "Formatos editoriales especiales", typeGroup: "vertical" },
-  "mobile-large": { name: "Mobile Large", dims: "320 × 90", bestFor: "Smartphones (encabezado o intermedio)", typeGroup: "mobile" },
-  "mobile-banner": { name: "Mobile Banner", dims: "320 × 60", bestFor: "Smartphones compacto", typeGroup: "mobile" },
-  "mobile-medium": { name: "Mobile Inline Medium", dims: "320 × 250", bestFor: "Smartphones entre artículos", typeGroup: "mobile" },
+  "half-page": { name: "Media Página (Half Page)", dims: "300 × 600", bestFor: "Uno de los formatos con mayor CTR de escritorio", typeGroup: "vertical" },
+  "portrait": { name: "Portrait / Retrato", dims: "300 × 1050", bestFor: "Formatos editoriales premium y venta directa", typeGroup: "vertical" },
+  "mobile-banner": { name: "Mobile Banner Estándar", dims: "320 × 50", bestFor: "Smartphones fijo abajo o arriba", typeGroup: "mobile" },
+  "mobile-large": { name: "Mobile Large Banner", dims: "320 × 100", bestFor: "Smartphones con doble altura y mejor CTA", typeGroup: "mobile" },
+  "mobile-medium": { name: "Mobile Inline Medium", dims: "320 × 250", bestFor: "Smartphones integrado dentro de notas", typeGroup: "mobile" },
+  "interstitial-mobile": { name: "Intersticial Móvil", dims: "320 × 480", bestFor: "Pantalla completa en transiciones", typeGroup: "mobile" },
 };
 
 export function AdminMockupBanners() {
@@ -228,6 +234,9 @@ export function AdminMockupBanners() {
           <TabsTrigger value="builder" className="gap-2 text-xs">
             <Layers className="h-3.5 w-3.5" /> Creador & Mockup de Banners
           </TabsTrigger>
+          <TabsTrigger value="official-gallery" className="gap-2 text-xs">
+            <ImageIcon className="h-3.5 w-3.5 text-primary" /> Galería de Banners Oficiales (30 PNG)
+          </TabsTrigger>
           <TabsTrigger value="flash-promos" className="gap-2 text-xs">
             <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Cinta Flash TopBar & Exit Popup
           </TabsTrigger>
@@ -355,14 +364,47 @@ export function AdminMockupBanners() {
                     </div>
                   </div>
 
-                  {/* Media URL Inputs */}
+                  {/* Media URL Inputs & Official Asset Selector */}
                   <div className="space-y-3 pt-2 border-t border-border">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <Label className="text-xs">Banners Oficiales RD (30 Formatos PNG)</Label>
+                        <span className="text-[10px] text-primary font-medium">public/banners</span>
+                      </div>
+                      <Select 
+                        onValueChange={(val) => {
+                          const found = OFFICIAL_BANNERS.find(b => b.src === val);
+                          if (found) {
+                            setImageUrl(found.src);
+                            if (found.matchingAdSize && Object.keys(AD_FORMAT_SPECS).includes(found.matchingAdSize)) {
+                              setSelectedFormat(found.matchingAdSize as AdSize);
+                            }
+                            setHeadline(found.name);
+                            setSubtext(found.description);
+                            setSponsor(`Espacio Oficial ${found.label}`);
+                            toast.success(`Cargado banner oficial: ${found.label}`);
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-8 text-xs bg-muted/40">
+                          <SelectValue placeholder="Seleccionar imagen oficial de public/banners..." />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-60">
+                          {OFFICIAL_BANNERS.map((b) => (
+                            <SelectItem key={b.id} value={b.src} className="text-xs">
+                              {b.label} — {b.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     <div>
                       <Label className="text-xs">URL de la Imagen / Poster</Label>
                       <Input 
                         value={imageUrl} 
                         onChange={(e) => setImageUrl(e.target.value)} 
-                        placeholder="https://images.unsplash.com/..." 
+                        placeholder="https://images.unsplash.com/... o /banners/..." 
                         className="h-8 text-xs mt-1"
                       />
                     </div>
@@ -558,6 +600,115 @@ export function AdminMockupBanners() {
             </div>
 
           </div>
+        </TabsContent>
+
+        {/* Tab Oficial: Galería y Catálogo de 30 Banners Oficiales */}
+        <TabsContent value="official-gallery" className="space-y-6">
+          <Card className="border-border bg-card">
+            <CardHeader className="pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <CardTitle className="text-base font-bold flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-primary" /> Inventario de Banners Oficiales de Descubre RD (30 Formatos)
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Imágenes pre-renderizadas ubicadas en <code className="text-primary font-mono text-[11px]">public/banners/</code> listas para vinculación publicitaria
+                  </CardDescription>
+                </div>
+                <Badge variant="outline" className="text-xs py-1 border-primary/30 text-primary w-fit">
+                  30 PNGs Disponibles
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-8">
+              
+              {/* Categorías */}
+              {(["desktop-horizontal", "desktop-vertical", "desktop-rect", "mobile"] as const).map((cat) => {
+                const bannersInCat = OFFICIAL_BANNERS.filter(b => b.category === cat);
+                const catTitle = 
+                  cat === "desktop-horizontal" ? "Banners Horizontales & Cabeceras (Desktop)" :
+                  cat === "desktop-vertical" ? "Skyscrapers & Sidebars Verticales (Desktop)" :
+                  cat === "desktop-rect" ? "Rectángulos & Cuadrados de Contenido" :
+                  "Formatos Móviles & Smartphones";
+
+                return (
+                  <div key={cat} className="space-y-3">
+                    <h3 className="font-semibold text-sm text-foreground flex items-center gap-2 border-b border-border pb-1.5">
+                      <span className="h-2 w-2 rounded-full bg-primary" />
+                      {catTitle} ({bannersInCat.length})
+                    </h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {bannersInCat.map((banner) => (
+                        <div 
+                          key={banner.id}
+                          className="bg-card border border-border/80 hover:border-primary/50 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+                        >
+                          <div className="p-3 bg-muted/20 border-b border-border/50">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-mono text-[11px] font-bold text-primary">
+                                {banner.width} × {banner.height}
+                              </span>
+                              <Badge variant="secondary" className="text-[10px] py-0 px-1.5">
+                                {banner.name}
+                              </Badge>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1">
+                              {banner.description}
+                            </p>
+                          </div>
+
+                          {/* Preview container */}
+                          <div className="p-3 flex items-center justify-center bg-transparent min-h-[140px] max-h-[180px] overflow-hidden">
+                            <img
+                              src={banner.src}
+                              alt={banner.name}
+                              loading="lazy"
+                              className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                            />
+                          </div>
+
+                          {/* Card Footer Actions */}
+                          <div className="p-2.5 bg-card flex items-center justify-between gap-2 border-t border-border/60">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-[11px] px-2 flex-1 rounded-lg"
+                              onClick={() => {
+                                navigator.clipboard.writeText(banner.src);
+                                toast.success(`Ruta copiada: ${banner.src}`);
+                              }}
+                            >
+                              Copiar Ruta
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="h-7 text-[11px] px-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
+                              onClick={() => {
+                                setImageUrl(banner.src);
+                                if (banner.matchingAdSize && Object.keys(AD_FORMAT_SPECS).includes(banner.matchingAdSize)) {
+                                  setSelectedFormat(banner.matchingAdSize as AdSize);
+                                }
+                                setHeadline(banner.name);
+                                setSubtext(banner.description);
+                                setSponsor(`Espacio Oficial ${banner.label}`);
+                                toast.success(`Banner ${banner.label} cargado en el simulador.`);
+                              }}
+                            >
+                              Simular
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Tab 2: Campañas Activas & Métricas */}

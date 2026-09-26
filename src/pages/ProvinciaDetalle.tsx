@@ -1,12 +1,16 @@
 import { useParams, Link } from "react-router-dom";
-import { Home, ChevronRight, Building2, Utensils, Calendar, MapPin, Play } from "lucide-react";
+import { 
+  Building2, Utensils, Calendar, MapPin, Compass, Landmark, TreePine, 
+  Music, Plane, Info, Camera, Route, ChevronRight
+} from "lucide-react";
 import { getSafeCoverImage } from "@/lib/imageCovers";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 import { ProvinceHero } from "@/components/province/ProvinceHero";
 import { ProvinceTechCard } from "@/components/province/ProvinceTechCard";
@@ -26,6 +30,7 @@ import { CommentSection } from "@/components/comments/CommentSection";
 
 import { destinations, getDestinationBySlug } from "@/data/destinations";
 import { destinosData, provinceToDestinationMap } from "@/data/destinosData";
+import { getProvinceEnrichedData } from "@/data/provinceEnrichment";
 import { hotels } from "@/data/hotels";
 import { restaurants } from "@/data/restaurants";
 import { bars } from "@/data/bars";
@@ -39,11 +44,21 @@ export default function ProvinciaDetalle() {
   // Match corresponding static rich destination data if available (e.g., samana, puerto-plata)
   const staticDestino = destinosData[slug || ""] || (slug ? destinosData[provinceToDestinationMap[slug] || ""] : null);
 
+  // Guarantee 100% complete enriched dataset for all 32 provinces
+  const enrichedData = useMemo(() => {
+    if (!province) return null;
+    return getProvinceEnrichedData(province.slug, province.name, province.region);
+  }, [province]);
+
   // Fetch province DB ID for monument/park queries
   const { data: dbProvince } = useQuery({
     queryKey: ['province-db-id', slug],
     queryFn: async () => {
-      const { data } = await supabase.from('provinces').select('id, name, slug, capital, population, area_km2').eq('slug', slug!).maybeSingle();
+      const { data } = await supabase
+        .from('provinces')
+        .select('id, name, slug, capital, population, area_km2')
+        .eq('slug', slug!)
+        .maybeSingle();
       return data;
     },
     enabled: !!slug && !!province,
@@ -96,10 +111,32 @@ export default function ProvinciaDetalle() {
           shortDescription: h.short_description || '', rating: Number(h.rating) || 0,
           priceRange: h.price_range || '$$', category: h.category || 'Hotel', address: h.address || '',
         } as any);
+        slugs.add(h.slug);
       }
     });
+
+    // Complete with authentic regional fallback items so every province has a full catalog
+    if (enrichedData?.hotels && staticItems.length < 4) {
+      enrichedData.hotels.forEach(eh => {
+        if (!slugs.has(eh.slug)) {
+          staticItems.push({
+            id: eh.id,
+            slug: eh.slug,
+            name: eh.name,
+            imageUrl: getSafeCoverImage(eh.imageUrl, "hotel", eh.slug),
+            shortDescription: eh.shortDescription,
+            rating: eh.rating,
+            priceRange: eh.priceRange,
+            category: eh.category,
+            address: eh.address,
+          });
+          slugs.add(eh.slug);
+        }
+      });
+    }
+
     return staticItems;
-  }, [province, dbHotels]);
+  }, [province, dbHotels, enrichedData]);
 
   const provinceRestaurants = useMemo(() => {
     if (!province || province.type !== "provincia") return [];
@@ -120,10 +157,32 @@ export default function ProvinciaDetalle() {
           priceRange: r.price_range || '$$', category: r.cuisine_type || r.category || 'Restaurante',
           address: r.address || '',
         } as any);
+        slugs.add(r.slug);
       }
     });
+
+    // Complete with authentic regional fallback items
+    if (enrichedData?.restaurants && staticItems.length < 4) {
+      enrichedData.restaurants.forEach(er => {
+        if (!slugs.has(er.slug)) {
+          staticItems.push({
+            id: er.id,
+            slug: er.slug,
+            name: er.name,
+            imageUrl: getSafeCoverImage(er.imageUrl, "restaurant", er.slug),
+            shortDescription: er.shortDescription,
+            rating: er.rating,
+            priceRange: er.priceRange,
+            category: er.category,
+            address: er.address,
+          });
+          slugs.add(er.slug);
+        }
+      });
+    }
+
     return staticItems;
-  }, [province, dbRestaurants]);
+  }, [province, dbRestaurants, enrichedData]);
 
   const provinceBars = useMemo(() => {
     if (!province || province.type !== "provincia") return [];
@@ -143,10 +202,33 @@ export default function ProvinciaDetalle() {
           priceRange: b.price_range || '$$', rating: Number(b.rating) || 0,
           address: b.address || '', openingHours: b.opening_hours || '',
         } as any);
+        slugs.add(b.slug);
       }
     });
+
+    // Complete with authentic nightlife items
+    if (enrichedData?.bars && staticItems.length < 4) {
+      enrichedData.bars.forEach(eb => {
+        if (!slugs.has(eb.slug)) {
+          staticItems.push({
+            id: eb.id,
+            slug: eb.slug,
+            name: eb.name,
+            imageUrl: getSafeCoverImage(eb.imageUrl, "bar", eb.slug),
+            barType: eb.barType,
+            musicStyle: eb.musicStyle,
+            priceRange: eb.priceRange,
+            rating: eb.rating,
+            address: eb.address,
+            openingHours: eb.openingHours,
+          });
+          slugs.add(eb.slug);
+        }
+      });
+    }
+
     return staticItems;
-  }, [province, dbBars]);
+  }, [province, dbBars, enrichedData]);
 
   const provinceDestinations = useMemo(() => {
     if (!province) return [];
@@ -161,6 +243,30 @@ export default function ProvinciaDetalle() {
     : province?.gallery?.length
     ? province.gallery.map(img => getSafeCoverImage(img, "province", province.slug))
     : [getSafeCoverImage(province?.imageUrl, "province", province?.slug)];
+
+  // Suggested itinerary fallback
+  const displayItinerary = staticDestino?.rutaSugerida?.length
+    ? staticDestino.rutaSugerida
+    : enrichedData?.itinerary || [];
+
+  // Transport & Airport fallback
+  const displayAirport = staticDestino?.aeropuerto || enrichedData?.airport;
+  const displayTransport = staticDestino?.transporte || enrichedData?.transport || [];
+
+  // Gallery items fallback
+  const displayGallery = staticDestino?.galeria?.length
+    ? staticDestino.galeria
+    : (province?.gallery && province.gallery.length > 0)
+    ? province.gallery.map((img, i) => ({
+        src: getSafeCoverImage(img, "province", `${province.slug}-${i}`),
+        alt: `${province.name} - Vista ${i + 1}`,
+        caption: `Paisajes y rincones de ${province.name}`,
+      }))
+    : heroImages.map((src, i) => ({
+        src,
+        alt: `${province.name} - Imagen ${i + 1}`,
+        caption: `Explorando ${province.name}`,
+      }));
 
   if (!province || province.type !== "provincia") {
     return (
@@ -182,28 +288,14 @@ export default function ProvinciaDetalle() {
   return (
     <PageTransition>
       <SEOHead
-        title={`${province.name} - Turismo República Dominicana`}
+        title={`${province.name} - Guía Turística Completa de la República Dominicana`}
         description={province.description || province.shortDescription}
-        keywords={`${province.name}, turismo, República Dominicana, ${province.categories?.join(", ")}`}
+        keywords={`${province.name}, turismo, República Dominicana, qué hacer en ${province.name}, hoteles, restaurantes, monumentos, parques`}
       />
 
       <Header />
 
       <main className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 pt-4">
-          <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Link to="/" className="hover:text-primary flex items-center gap-1">
-              <Home className="h-4 w-4" /> Inicio
-            </Link>
-            <ChevronRight className="h-4 w-4" />
-            <Link to="/destinos" className="hover:text-primary">Destinos</Link>
-            <ChevronRight className="h-4 w-4" />
-            <Link to="/provincias" className="hover:text-primary">Provincias</Link>
-            <ChevronRight className="h-4 w-4" />
-            <span className="text-foreground font-medium">{province.name}</span>
-          </nav>
-        </div>
-
         <ProvinceHero
           name={province.name}
           region={province.region}
@@ -213,10 +305,18 @@ export default function ProvinciaDetalle() {
           description={province.description}
           images={heroImages}
           highlights={province.highlights}
+          provinceSlug={slug}
+          destinations={provinceDestinations}
+          hotels={provinceHotels}
         />
 
+
+        {/* Bento Grid Technical Card */}
         <ProvinceTechCard
           name={province.name}
+          capital={dbProvince?.capital}
+          population={dbProvince?.population}
+          areaKm2={dbProvince?.area_km2}
           region={province.region}
           bestTimeToVisit={province.bestTimeToVisit}
           weatherInfo={province.weatherInfo}
@@ -227,15 +327,6 @@ export default function ProvinciaDetalle() {
           categories={province.categories}
         />
 
-        {/* Gallery if static destination or rich images available */}
-        {staticDestino && staticDestino.galeria && (
-          <section className="py-12">
-            <div className="container mx-auto px-4">
-              <DestinationGallery images={staticDestino.galeria} />
-            </div>
-          </section>
-        )}
-
         <DistancesFromCities
           latitude={province.latitude}
           longitude={province.longitude}
@@ -244,118 +335,126 @@ export default function ProvinciaDetalle() {
 
         <BetweenSectionsAd />
 
-        {/* About Tabs - History, Geography, Culture, etc. */}
+        {/* About Tabs - History, Geography, Culture */}
         {province.about && (
           <DestinationAboutTabs name={province.name} data={province.about} />
         )}
 
-        <ProvinceActivities
-          provinceName={province.name}
-          provinceSlug={province.slug}
-          categories={province.categories}
-        />
+        <div id="actividades" className="scroll-mt-20">
+          <ProvinceActivities
+            provinceName={province.name}
+            provinceSlug={province.slug}
+            categories={province.categories}
+          />
+        </div>
 
-        <ProvinceDestinations
-          provinceName={province.name}
-          provinceSlug={province.slug}
-          destinations={provinceDestinations}
-        />
+        {provinceDestinations.length > 0 && (
+          <div id="destinos" className="scroll-mt-20">
+            <ProvinceDestinations
+              provinceName={province.name}
+              provinceSlug={province.slug}
+              destinations={provinceDestinations}
+            />
+          </div>
+        )}
 
-        {/* Suggested Route / Itinerary if available */}
-        {staticDestino && staticDestino.rutaSugerida && staticDestino.rutaSugerida.length > 0 && (
-          <section className="py-16 bg-card/30">
+        {/* Suggested Route / 3-Day Itinerary (Guaranteed for all provinces) */}
+        {displayItinerary && displayItinerary.length > 0 && (
+          <section id="itinerario" className="py-16 bg-muted/25 border-y border-border/60 scroll-mt-20">
             <div className="container mx-auto px-4">
-              <h2 className="font-display text-2xl font-bold text-foreground mb-8">
-                Ruta Sugerida: {staticDestino.rutaSugerida.length} Días en {province.name}
+              <div className="flex items-center gap-2 text-primary font-semibold text-xs tracking-widest uppercase mb-2">
+                <Route className="h-4 w-4" />
+                <span>Itinerario Recomendado</span>
+              </div>
+              <h2 className="font-display text-2xl md:text-4xl font-bold text-foreground mb-2">
+                Ruta Sugerida: {displayItinerary.length} Días Inolvidables en {province.name}
               </h2>
+              <p className="text-sm md:text-base text-muted-foreground mb-8 max-w-3xl">
+                Diseñado por expertos locales para aprovechar al máximo los atractivos históricos, ecológicos y gastronómicos de la provincia.
+              </p>
               
-              <div className="grid lg:grid-cols-2 gap-8">
-                <div className="space-y-0">
-                  {staticDestino.rutaSugerida.map((dia, index) => (
-                    <div key={dia.dia} className="relative pl-8 pb-8 last:pb-0">
-                      {index < staticDestino.rutaSugerida.length - 1 && (
-                        <div className="absolute left-[11px] top-8 w-0.5 h-[calc(100%-24px)] bg-border" />
-                      )}
-                      <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
-                        {dia.dia}
-                      </div>
-                      <div className="bg-card rounded-xl p-5 border border-border">
-                        <Badge variant="outline" className="mb-2 text-xs">
-                          {dia.titulo}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+                {displayItinerary.map((dia: any, index: number) => (
+                  <div key={dia.dia || index} className="relative bg-card rounded-2xl p-6 border border-border/70 hover:border-primary/40 transition-all shadow-xs flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <Badge variant="outline" className="text-xs bg-primary/5 text-primary border-primary/20 font-semibold">
+                          Día {dia.dia}: {dia.titulo}
                         </Badge>
-                        <h4 className="font-semibold text-foreground mb-1">{dia.lugar}</h4>
-                        <p className="text-sm text-muted-foreground">{dia.desc}</p>
+                        <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shadow-xs">
+                          {dia.dia}
+                        </div>
                       </div>
+                      <h4 className="font-display font-bold text-foreground text-lg mb-2">{dia.lugar}</h4>
+                      <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">{dia.desc}</p>
                     </div>
-                  ))}
-                </div>
-
-                {staticDestino.aeropuerto && staticDestino.transporte && (
-                  <div>
-                    <HowToGetThere 
-                      aeropuertoCercano={staticDestino.aeropuerto}
-                      opciones={staticDestino.transporte}
-                    />
                   </div>
-                )}
+                ))}
               </div>
             </div>
           </section>
         )}
 
-        {/* How to Get There fallback if no itinerary layout displayed it */}
-        {staticDestino && (!staticDestino.rutaSugerida || staticDestino.rutaSugerida.length === 0) && staticDestino.aeropuerto && (
-          <HowToGetThere 
-            aeropuertoCercano={staticDestino.aeropuerto}
-            opciones={staticDestino.transporte}
-          />
+        {/* How to Get There (Independent clean section) */}
+        {displayAirport && (
+          <div id="como-llegar" className="scroll-mt-20 border-b border-border/40">
+            <HowToGetThere 
+              aeropuertoCercano={displayAirport}
+              opciones={displayTransport}
+            />
+          </div>
         )}
 
-        {/* Monuments */}
-        {dbProvince && (
-          <ProvinceMonuments
-            provinceId={dbProvince.id}
-            provinceName={province.name}
-          />
-        )}
+        {/* Monuments (With authentic regional fallback) */}
+        <ProvinceMonuments
+          provinceId={dbProvince?.id || ''}
+          provinceName={province.name}
+          fallbackItems={enrichedData?.monuments}
+        />
 
         <BetweenSectionsAd />
 
-        {/* Parks */}
-        {dbProvince && (
-          <ProvinceParks
-            provinceId={dbProvince.id}
-            provinceName={province.name}
-          />
-        )}
-
-        <ProvinceFeaturedSection
-          title={`Hoteles en ${province.name}`}
-          subtitle="Alojamiento"
-          icon={<Building2 className="h-5 w-5" />}
-          items={provinceHotels}
-          linkPrefix="/alojamiento"
-          viewAllLink={`/alojamientos?provincia=${province.slug}`}
-          emptyMessage="Próximamente hoteles destacados"
+        {/* Parks & Protected Areas (With authentic regional fallback) */}
+        <ProvinceParks
+          provinceId={dbProvince?.id || ''}
+          provinceName={province.name}
+          fallbackItems={enrichedData?.parks}
         />
 
-        <div className="bg-muted/30">
+        {/* Hotels Section */}
+        <div id="hoteles" className="scroll-mt-20">
           <ProvinceFeaturedSection
-            title={`Restaurantes en ${province.name}`}
-            subtitle="Gastronomía"
+            title={`Dónde Alojarte en ${province.name}`}
+            subtitle="Hoteles & Alojamientos Selectos"
+            icon={<Building2 className="h-5 w-5" />}
+            items={provinceHotels}
+            linkPrefix="/alojamiento"
+            viewAllLink={`/alojamientos?provincia=${province.slug}`}
+            emptyMessage="Hoteles destacados en proceso de curaduría"
+          />
+        </div>
+
+        {/* Gastronomy Section */}
+        <div id="gastronomia" className="bg-muted/30 scroll-mt-20">
+          <ProvinceFeaturedSection
+            title={`Gastronomía & Sabores en ${province.name}`}
+            subtitle="Restaurantes Recomendados"
             icon={<Utensils className="h-5 w-5" />}
             items={provinceRestaurants}
             linkPrefix="/restaurante"
             viewAllLink={`/guia-gastronomica?provincia=${province.slug}`}
-            emptyMessage="Próximamente restaurantes destacados"
+            emptyMessage="Restaurantes destacados en proceso de curaduría"
           />
         </div>
 
-        <ProvinceNightlife
-          provinceName={province.name}
-          provinceSlug={province.slug}
-          venues={provinceBars}
-        />
+        {/* Nightlife Section */}
+        <div id="vida-nocturna" className="scroll-mt-20">
+          <ProvinceNightlife
+            provinceName={province.name}
+            provinceSlug={province.slug}
+            venues={provinceBars}
+          />
+        </div>
 
         {/* Panorama Banner Ad */}
         <section className="py-6">
@@ -366,6 +465,22 @@ export default function ProvinciaDetalle() {
 
         {/* Related Blog Posts */}
         <RelatedBlogPosts destinationName={province.name} destinationSlug={province.slug} />
+
+        {/* Gallery Section - Fotografía & Paisajes */}
+        {displayGallery && displayGallery.length > 0 && (
+          <section className="py-12 bg-card/20 border-t border-border/40">
+            <div className="container mx-auto px-4">
+              <div className="flex items-center gap-2 text-primary font-semibold text-xs tracking-widest uppercase mb-2">
+                <Camera className="h-4 w-4" />
+                <span>Fotografía & Paisajes</span>
+              </div>
+              <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-6">
+                Galería Visual de {province.name}
+              </h2>
+              <DestinationGallery images={displayGallery} />
+            </div>
+          </section>
+        )}
 
         {/* Comments & UGC */}
         <section className="py-8">

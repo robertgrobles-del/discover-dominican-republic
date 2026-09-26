@@ -1,304 +1,331 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { 
   ChefHat, BookOpen, Clock, Heart, Users, Sparkles, 
-  ChevronRight, UtensilsCrossed, Award, Flame
+  ChevronRight, UtensilsCrossed, Award, Flame, Check,
+  Wine, Droplets, MapPin, Share2
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+import { BetweenSectionsAd, CompactInlineAd, PanoramaAd } from "@/components/promo";
 
-interface Ingredient {
-  name: string;
-  amountPerServing: number;
-  unit: string;
-}
-
-interface Recipe {
-  id: string;
-  name: string;
-  category: "fuerte" | "postre" | "bebida";
-  prepTime: string;
-  cookTime: string;
-  difficulty: "Fácil" | "Medio" | "Complejo";
-  description: string;
-  ingredients: Ingredient[];
-  instructions: string[];
-}
-
-const recipes: Recipe[] = [
-  {
-    id: "1",
-    name: "Mangú Dominicano (con los Tres Golpes)",
-    category: "fuerte",
-    prepTime: "15 min",
-    cookTime: "20 min",
-    difficulty: "Fácil",
-    description: "El desayuno nacional oficial por excelencia. Plátanos verdes hervidos y machacados hasta lograr una textura suave, acompañados de salami frito, queso frito y huevos, coronado con cebollas rojas al vinagre.",
-    ingredients: [
-      { name: "Plátanos verdes medianos", amountPerServing: 1, unit: "unidad(es)" },
-      { name: "Mantequilla", amountPerServing: 0.25, unit: "cucharada(s)" },
-      { name: "Agua fría (para suavizar)", amountPerServing: 0.1, unit: "taza(s)" },
-      { name: "Cebolla roja grande", amountPerServing: 0.25, unit: "unidad(es)" },
-      { name: "Vinagre blanco", amountPerServing: 1, unit: "cucharadita(s)" },
-      { name: "Queso de freír dominicano", amountPerServing: 2, unit: "rodaja(s)" },
-      { name: "Salami dominicano", amountPerServing: 2, unit: "rodaja(s)" },
-      { name: "Huevo", amountPerServing: 1, unit: "unidad(es)" }
-    ],
-    instructions: [
-      "Pela los plátanos, córtalos por la mitad y ponlos a hervir en abundante agua con sal hasta que estén completamente suaves.",
-      "Mientras tanto, corta la cebolla en aros y colócalas en vinagre con una pizca de sal durante 10 minutos. Luego sofríelas en una sartén con un poco de aceite.",
-      "Fríe de forma independiente las rodajas de salami, el queso de freír y prepara el huevo al gusto (típicamente frito).",
-      "Una vez los plátanos estén listos, retíralos del agua y machácalos agregando la mantequilla y agua fría gradualmente para lograr un puré extremadamente suave y libre de grumos.",
-      "Sirve caliente, coloca las rodajas de salami, queso y huevo alrededor del mangú y corona con las cebollas salteadas por encima."
-    ]
-  },
-  {
-    id: "2",
-    name: "Sancocho Dominicano de Siete Carnes",
-    category: "fuerte",
-    prepTime: "30 min",
-    cookTime: "90 min",
-    difficulty: "Complejo",
-    description: "El rey de la gastronomía dominicana. Un espeso guisado de tubérculos locales (víveres) y carnes variadas sazonadas con cilantro y naranja agria.",
-    ingredients: [
-      { name: "Carne de res para guisar", amountPerServing: 80, unit: "g" },
-      { name: "Carne de pollo", amountPerServing: 80, unit: "g" },
-      { name: "Chuletas de cerdo", amountPerServing: 60, unit: "g" },
-      { name: "Yuca en trozos", amountPerServing: 0.2, unit: "unidad(es)" },
-      { name: "Plátano verde en trozos", amountPerServing: 0.2, unit: "unidad(es)" },
-      { name: "Auyama (calabaza)", amountPerServing: 50, unit: "g" },
-      { name: "Cilantro ancho (recaito)", amountPerServing: 0.25, unit: "atado(s)" },
-      { name: "Zumo de naranja agria", amountPerServing: 1, unit: "cucharada(s)" }
-    ],
-    instructions: [
-      "Sazona las carnes cortadas en trozos pequeños con ajo machacado, orégano, sal y un poco de zumo de naranja agria.",
-      "En una olla grande, calienta aceite de oliva, agrega azúcar para caramelizar y sella las carnes hasta que doren.",
-      "Agrega agua, tapa y deja cocer a fuego medio hasta que las carnes estén tiernas.",
-      "Añade los víveres (yuca, plátano, auyama) y más agua caliente. Deja hervir a fuego medio-bajo hasta que se ablanden.",
-      "Saca unos trozos de auyama y plátano, licúalos o machácalos y devuélvelos a la olla para espesar el caldo.",
-      "Sazona al final con cilantro fresco picado y naranja agria al gusto. Sirve con arroz blanco y aguacate."
-    ]
-  },
-  {
-    id: "3",
-    name: "Habichuelas con Dulce",
-    category: "postre",
-    prepTime: "20 min",
-    cookTime: "40 min",
-    difficulty: "Medio",
-    description: "Postre único tradicional consumido durante la Cuaresma y Semana Santa. Crema de habichuelas rojas licuadas con leche, azúcar, batata dulce y especias.",
-    ingredients: [
-      { name: "Habichuelas rojas hervidas", amountPerServing: 0.5, unit: "taza(s)" },
-      { name: "Leche evaporada", amountPerServing: 0.5, unit: "lata(s)" },
-      { name: "Leche de coco", amountPerServing: 0.25, unit: "lata(s)" },
-      { name: "Azúcar", amountPerServing: 0.25, unit: "taza(s)" },
-      { name: "Batata (camote) hervida en cubos", amountPerServing: 50, unit: "g" },
-      { name: "Pasas", amountPerServing: 10, unit: "g" },
-      { name: "Galletitas de leche dominicanas", amountPerServing: 4, unit: "unidad(es)" },
-      { name: "Astilla de canela", amountPerServing: 0.25, unit: "unidad(es)" }
-    ],
-    instructions: [
-      "Licúa las habichuelas hervidas con su líquido de cocción y cuélalas para retirar las pieles.",
-      "Vierte la crema de habichuelas en una olla grande e incorpora la leche evaporada, la leche de coco y el azúcar.",
-      "Agrega la canela, los clavos de olor y los cubitos de batata previamente cocidos.",
-      "Cocina a fuego medio-bajo removiendo constantemente para evitar que se pegue al fondo, hasta que la mezcla espese ligeramente.",
-      "Añade las pasas y deja cocer 5 minutos más. Retira del fuego y retira las astillas de canela.",
-      "Sirve tibia o fría, decorada por encima con galletitas de leche típicas con su cruz grabada."
-    ]
-  }
-];
+import { criolloRecipes, type CriolloRecipe, type Ingredient } from "@/data/criolloRecipesData";
 
 export default function RecetasCriollas() {
-  const [selectedRecipeIndex, setSelectedRecipeIndex] = useState<number>(0);
+  const [selectedRecipe, setSelectedRecipe] = useState<CriolloRecipe>(criolloRecipes[0]);
   const [servings, setServings] = useState<number>(4);
-  const [activeCategory, setActiveCategory] = useState<"all" | "fuerte" | "postre" | "bebida">("all");
+  const [activeCategory, setActiveCategory] = useState<string>("todas");
+  const [checkedIngredients, setCheckedIngredients] = useState<Record<string, boolean>>({});
 
-  const filteredRecipes = recipes.filter(r => activeCategory === "all" || r.category === activeCategory);
-  
-  const currentRecipe = recipes[selectedRecipeIndex];
+  const filteredRecipes = criolloRecipes.filter(r => 
+    activeCategory === "todas" ? true : r.category === activeCategory
+  );
+
+  const toggleIngredient = (name: string) => {
+    setCheckedIngredients(prev => ({ ...prev, [name]: !prev[name] }));
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: `Receta de ${selectedRecipe.name}`,
+        text: selectedRecipe.description,
+        url: window.location.href,
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Enlace copiado al portapapeles");
+    }
+  };
 
   return (
     <PageTransition>
       <SEOHead
-        title="Recetario Dominicano Interactivo - Cocina Criolla"
-        description="Aprende a cocinar Mangú, Sancocho y Habichuelas con Dulce con nuestro recetario tradicional interactivo. Ajusta porciones dinámicamente."
+        title="Recetas Criollas Dominicanas - Paso a Paso con Calculadora de Porciones"
+        description="Aprende a cocinar los platos más emblemáticos de la gastronomía dominicana: Mangú, Sancocho de 7 Carnes, Pescado al Coco de Samaná, Habichuelas con Dulce y Morir Soñando."
+        keywords="recetas dominicanas, como hacer mangu, sancocho dominicano receta, habichuelas con dulce, pescado al coco samana, gastronomia dominicana"
       />
+
       <div className="min-h-screen bg-background">
         <Header />
 
-        <main className="pt-20">
-          {/* Hero */}
-          <section className="relative py-16 bg-gradient-to-br from-orange-500/10 via-amber-500/5 to-transparent border-b border-border">
-            <div className="container mx-auto px-4 text-center">
-              <Badge variant="secondary" className="mb-4 bg-orange-500/10 text-orange-600 border-orange-500/20 gap-1">
-                <ChefHat className="h-3.5 w-3.5" /> Sabores de Quisqueya
-              </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display">
-                Recetario Dominicano
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Explora el sabor auténtico del Caribe en tu cocina. Ajusta el número de porciones y obtén las cantidades exactas de ingredientes de forma interactiva.
-              </p>
+        {/* Hero Section */}
+        <section className="relative py-16 bg-gradient-to-b from-primary/15 via-background to-background border-b border-border/60">
+          <div className="container mx-auto px-4 text-center max-w-3xl">
+            <Badge className="mb-3 bg-primary/20 text-primary border-primary/40 text-xs uppercase tracking-wider font-semibold">
+              <ChefHat className="h-3.5 w-3.5 mr-1.5" /> Sabor Autóctono & Tradición Culinaria
+            </Badge>
+            <h1 className="font-display text-4xl sm:text-5xl font-black text-foreground tracking-tight mb-4">
+              Recetario Maestro de la Cocina Dominicana
+            </h1>
+            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+              Descubre los secretos culinarios de nuestras abuelas, calcula porciones interactivas y cocina paso a paso los platos más reconocidos del Caribe.
+            </p>
+          </div>
+        </section>
+
+        {/* Category Tabs */}
+        <section className="py-4 border-b border-border/80 bg-card/40 sticky top-16 z-20 backdrop-blur-md">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-center gap-2 overflow-x-auto no-scrollbar">
+              {[
+                { id: "todas", label: "Todas las Recetas" },
+                { id: "desayuno", label: "Desayunos Típicos" },
+                { id: "fuerte", label: "Platos Fuertes" },
+                { id: "postre", label: "Postres Criollos" },
+                { id: "bebida", label: "Bebidas & Jugos" },
+              ].map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                    activeCategory === cat.id
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "bg-muted/70 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* Body */}
-          <section className="py-12">
-            <div className="container mx-auto px-4 max-w-6xl">
+        {/* Main Interactive Cooking Studio */}
+        <div className="container mx-auto px-4 py-10">
+          <div className="grid lg:grid-cols-12 gap-8 items-start">
+            
+            {/* Left Column: Recipe Selector (4 cols) */}
+            <div className="lg:col-span-4 space-y-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">
+                Selecciona una Receta ({filteredRecipes.length})
+              </span>
               
-              {/* Recipe Selector Panel */}
-              <div className="grid lg:grid-cols-12 gap-8">
-                
-                {/* Left: Recipe List (Col 4) */}
-                <div className="lg:col-span-4 space-y-4">
-                  <div className="flex gap-1.5 border-b border-border pb-3 overflow-x-auto">
-                    <Button 
-                      variant={activeCategory === "all" ? "default" : "outline"} 
-                      size="sm"
-                      onClick={() => setActiveCategory("all")}
-                    >
-                      Todos
-                    </Button>
-                    <Button 
-                      variant={activeCategory === "fuerte" ? "default" : "outline"} 
-                      size="sm"
-                      onClick={() => setActiveCategory("fuerte")}
-                    >
-                      Platos
-                    </Button>
-                    <Button 
-                      variant={activeCategory === "postre" ? "default" : "outline"} 
-                      size="sm"
-                      onClick={() => setActiveCategory("postre")}
-                    >
-                      Postres
-                    </Button>
+              <div className="space-y-2.5">
+                {filteredRecipes.map(recipe => (
+                  <button
+                    key={recipe.id}
+                    onClick={() => { setSelectedRecipe(recipe); setCheckedIngredients({}); }}
+                    className={`w-full text-left p-4 rounded-2xl border transition-all flex flex-col justify-between ${
+                      selectedRecipe.id === recipe.id
+                        ? "bg-primary/10 border-primary shadow-sm"
+                        : "bg-card border-border/70 hover:border-primary/40 hover:bg-secondary/40"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <span className="font-display font-bold text-sm text-foreground">
+                        {recipe.name}
+                      </span>
+                      <Badge variant="outline" className="text-[10px] uppercase font-semibold">
+                        {recipe.difficulty}
+                      </Badge>
+                    </div>
+                    
+                    <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                      {recipe.description}
+                    </p>
+
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-2 border-t border-border/40">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3 text-primary" /> {recipe.cookTime}
+                      </span>
+                      <span className="text-primary font-medium flex items-center gap-0.5">
+                        Ver preparación <ChevronRight className="h-3 w-3" />
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Column: Interactive Recipe View (8 cols) */}
+            <div className="lg:col-span-8 space-y-8">
+              
+              {/* Recipe Header Card */}
+              <div className="bg-card border border-border/70 rounded-3xl p-6 sm:p-8 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <Badge className="bg-primary/20 text-primary border-primary/30 text-xs font-semibold">
+                        {selectedRecipe.region}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs font-medium">
+                        Calorías: {selectedRecipe.calories}
+                      </Badge>
+                    </div>
+                    <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+                      {selectedRecipe.name}
+                    </h2>
                   </div>
 
-                  <div className="space-y-2">
-                    {filteredRecipes.map((recipe, index) => {
-                      const globalIndex = recipes.findIndex(r => r.id === recipe.id);
-                      return (
-                        <button
-                          key={recipe.id}
-                          onClick={() => {
-                            setSelectedRecipeIndex(globalIndex);
-                            setServings(4); // reset to default
-                          }}
-                          className={`w-full p-3 text-left rounded-xl border text-xs transition-all flex items-center justify-between ${
-                            selectedRecipeIndex === globalIndex 
-                              ? "border-primary bg-primary/5 shadow-sm font-bold" 
-                              : "border-border bg-card hover:bg-muted/50"
-                          }`}
-                        >
-                          <div>
-                            <span className="block font-medium">{recipe.name}</span>
-                            <span className="text-[10px] text-muted-foreground block mt-1">Dificultad: {recipe.difficulty}</span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Link to={`/receta/${selectedRecipe.id}`}>
+                      <Button 
+                        size="sm" 
+                        className="rounded-xl text-xs gap-1.5 font-semibold"
+                      >
+                        <UtensilsCrossed className="h-3.5 w-3.5" /> Ficha de Receta
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleShare}
+                      className="rounded-xl text-xs gap-1.5"
+                    >
+                      <Share2 className="h-3.5 w-3.5" /> Compartir
+                    </Button>
+                  </div>
+                </div>
+
+                <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                  {selectedRecipe.description}
+                </p>
+
+                {/* Technical Metric Chips */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-border/50">
+                  <div className="bg-muted/30 p-3 rounded-xl text-center border border-border/40">
+                    <Clock className="h-4 w-4 text-primary mx-auto mb-1" />
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Preparación</span>
+                    <p className="text-xs font-bold text-foreground">{selectedRecipe.prepTime}</p>
+                  </div>
+
+                  <div className="bg-muted/30 p-3 rounded-xl text-center border border-border/40">
+                    <Flame className="h-4 w-4 text-amber-500 mx-auto mb-1" />
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Cocción</span>
+                    <p className="text-xs font-bold text-foreground">{selectedRecipe.cookTime}</p>
+                  </div>
+
+                  <div className="bg-muted/30 p-3 rounded-xl text-center border border-border/40">
+                    <Award className="h-4 w-4 text-emerald-500 mx-auto mb-1" />
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Dificultad</span>
+                    <p className="text-xs font-bold text-foreground">{selectedRecipe.difficulty}</p>
+                  </div>
+
+                  <div className="bg-muted/30 p-3 rounded-xl text-center border border-border/40">
+                    <UtensilsCrossed className="h-4 w-4 text-blue-500 mx-auto mb-1" />
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Porciones</span>
+                    <p className="text-xs font-bold text-primary">{servings} personas</p>
+                  </div>
+                </div>
+
+                {/* Wine & Drink Pairing */}
+                {selectedRecipe.maridaje && (
+                  <div className="mt-4 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3">
+                    <Wine className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                    <div className="text-xs">
+                      <span className="font-bold text-amber-800 dark:text-amber-300">Maridaje Típico Sugerido:</span>{" "}
+                      <span className="text-muted-foreground">{selectedRecipe.maridaje}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Dynamic Portions Calculator & Ingredients Checklist */}
+              <div className="bg-card border border-border/70 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/60">
+                  <div>
+                    <h3 className="font-display font-bold text-lg text-foreground flex items-center gap-2">
+                      <BookOpen className="h-5 w-5 text-primary" /> Ingredientes Requeridos
+                    </h3>
+                    <p className="text-xs text-muted-foreground">Marca los ingredientes que ya tienes en tu cocina</p>
+                  </div>
+
+                  {/* Servings slider */}
+                  <div className="flex items-center gap-3 bg-muted/40 px-4 py-2 rounded-2xl border border-border/50">
+                    <Users className="h-4 w-4 text-primary" />
+                    <span className="text-xs font-bold text-foreground whitespace-nowrap">{servings} comensales</span>
+                    <div className="w-24">
+                      <Slider
+                        value={[servings]}
+                        onValueChange={(val) => setServings(val[0])}
+                        min={1}
+                        max={12}
+                        step={1}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {selectedRecipe.ingredients.map((ing, idx) => {
+                    const totalQty = (ing.amountPerServing * servings);
+                    const formattedQty = totalQty % 1 === 0 ? totalQty.toString() : totalQty.toFixed(1).replace('.0', '');
+                    const isChecked = !!checkedIngredients[ing.name];
+
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => toggleIngredient(ing.name)}
+                        className={`p-3 rounded-xl border text-left flex items-center justify-between transition-all ${
+                          isChecked 
+                            ? "bg-emerald-500/10 border-emerald-500/30 text-muted-foreground"
+                            : "bg-muted/20 border-border/50 hover:bg-muted/40 text-foreground"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className={`w-4 h-4 rounded-md border flex items-center justify-center transition-colors ${
+                            isChecked ? "bg-emerald-500 border-emerald-500 text-white" : "border-muted-foreground"
+                          }`}>
+                            {isChecked && <Check className="h-3 w-3 stroke-[3]" />}
                           </div>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                        </button>
-                      );
-                    })}
-                  </div>
+                          <span className={`text-xs font-medium ${isChecked ? "line-through opacity-70" : ""}`}>
+                            {ing.name}
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold text-primary ml-2 whitespace-nowrap">
+                          {formattedQty} {ing.unit}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Step by Step Instructions */}
+              <div className="bg-card border border-border/70 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+                <div>
+                  <h3 className="font-display font-bold text-lg text-foreground flex items-center gap-2 mb-1">
+                    <ChefHat className="h-5 w-5 text-primary" /> Instrucciones de Preparación Paso a Paso
+                  </h3>
+                  <p className="text-xs text-muted-foreground">Sigue el método tradicional para un sabor 100% auténtico</p>
                 </div>
 
-                {/* Right: Recipe details and serving slider (Col 8) */}
-                <div className="lg:col-span-8 space-y-6">
-                  <Card className="border-2 border-primary/20">
-                    <CardHeader className="bg-primary/5">
-                      <div className="flex flex-wrap justify-between items-start gap-2">
-                        <div>
-                          <Badge variant="outline" className="mb-2 text-[10px] uppercase tracking-wider border-primary/30 text-primary">
-                            {currentRecipe.category === "fuerte" ? "Plato Fuerte" : "Postre / Dulce"}
-                          </Badge>
-                          <CardTitle className="text-2xl font-display">{currentRecipe.name}</CardTitle>
-                        </div>
-                        <div className="flex gap-2 text-xs text-muted-foreground shrink-0">
-                          <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> Prep: {currentRecipe.prepTime}</span>
-                          <span className="flex items-center gap-1"><Flame className="h-3.5 w-3.5" /> Cocción: {currentRecipe.cookTime}</span>
-                        </div>
+                <div className="space-y-4">
+                  {selectedRecipe.instructions.map((step, idx) => (
+                    <div key={idx} className="flex items-start gap-3.5 p-4 rounded-2xl bg-muted/20 border border-border/40">
+                      <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground font-bold text-xs flex items-center justify-center flex-shrink-0 shadow-sm mt-0.5">
+                        {idx + 1}
                       </div>
-                      <CardDescription className="text-sm pt-2">{currentRecipe.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-6">
-                      
-                      {/* Portion slider */}
-                      <div className="p-4 bg-muted/40 rounded-xl border border-border space-y-3">
-                        <div className="flex justify-between items-center text-sm">
-                          <label className="font-semibold flex items-center gap-2">
-                            <Users className="h-4 w-4 text-primary" />
-                            Ajustar Porciones (Personas)
-                          </label>
-                          <span className="font-bold text-primary font-mono text-base">{servings} Porciones</span>
-                        </div>
-                        <Slider 
-                          value={[servings]}
-                          onValueChange={(val) => setServings(val[0])}
-                          min={1}
-                          max={12}
-                          step={1}
-                          className="py-2"
-                        />
-                      </div>
-
-                      {/* Ingredients List */}
-                      <div className="space-y-3">
-                        <h4 className="font-bold text-base flex items-center gap-2">
-                          <UtensilsCrossed className="h-4 w-4 text-primary" />
-                          Ingredientes Necesarios
-                        </h4>
-                        <div className="grid sm:grid-cols-2 gap-2 text-xs">
-                          {currentRecipe.ingredients.map((ing, i) => {
-                            const calculatedAmount = ing.amountPerServing * servings;
-                            // Format fraction display nicely if applicable
-                            const formatAmount = (num: number) => {
-                              return num % 1 === 0 ? num.toString() : num.toFixed(2);
-                            };
-                            return (
-                              <div key={i} className="flex justify-between p-2.5 bg-muted/30 rounded-lg border border-border/40">
-                                <span className="text-muted-foreground">{ing.name}</span>
-                                <span className="font-bold text-foreground font-mono">
-                                  {formatAmount(calculatedAmount)} {ing.unit}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Step by step Instructions */}
-                      <div className="space-y-3 pt-4 border-t border-border">
-                        <h4 className="font-bold text-base flex items-center gap-2">
-                          <BookOpen className="h-4 w-4 text-primary" />
-                          Preparación Paso a Paso
-                        </h4>
-                        <div className="space-y-3">
-                          {currentRecipe.instructions.map((step, i) => (
-                            <div key={i} className="flex gap-3 text-xs leading-relaxed">
-                              <span className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 font-bold mt-0.5">
-                                {i + 1}
-                              </span>
-                              <p className="text-muted-foreground">{step}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                    </CardContent>
-                  </Card>
+                      <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed">
+                        {step}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-
               </div>
 
             </div>
-          </section>
-        </main>
 
+          </div>
+        </div>
+
+        {/* Panorama Banner Ad */}
+        <section className="py-6">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <PanoramaAd showDemo />
+          </div>
+        </section>
+
+        <BetweenSectionsAd showDemo />
         <Footer />
       </div>
     </PageTransition>

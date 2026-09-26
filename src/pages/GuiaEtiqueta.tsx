@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SEOHead } from "@/components/SEOHead";
 import {
   HandCoins,
   Utensils,
@@ -115,6 +116,10 @@ const commonPhrases = [
 export default function GuiaEtiqueta() {
   return (
     <PageTransition>
+      <SEOHead
+        title="Guía de Etiqueta y Propinas en República Dominicana"
+        description="Aprende las costumbres sociales, montos de propina recomendados por servicio y normas de etiqueta dominicana para saludos, mesa, vestimenta y negocios."
+      />
       <div className="min-h-screen bg-background">
         <Header />
 

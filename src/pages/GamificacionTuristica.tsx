@@ -21,94 +21,18 @@ import { useGamification } from "@/hooks/useGamification";
 import { useAuth } from "@/hooks/useAuth";
 import { BadgeAlbum, BadgeItem, BadgeRarity } from "@/components/gamification/BadgeAlbum";
 import { ExplorerGuilds } from "@/components/gamification/ExplorerGuilds";
-import { BannerAd, PanoramaAd, BetweenSectionsAd, MobileStickyFooterAd } from "@/components/promo";
-import { PROVINCE_MILESTONES, PROVINCES } from "@/data/gamificacionTuristicaData";
+import { BannerAd, PanoramaAd } from "@/components/promo";
+import { PROVINCE_MILESTONES, PROVINCES, REGIONS } from "@/data/gamificacionTuristicaData";
 import { PasaporteTab } from "@/components/gamificacion-turistica/PasaporteTab";
 import { ProvinciasTab } from "@/components/gamificacion-turistica/ProvinciasTab";
 import { RankingTab } from "@/components/gamificacion-turistica/RankingTab";
 import { RecompensasTab } from "@/components/gamificacion-turistica/RecompensasTab";
+import { GamificacionHubSubroutesGrid } from "@/components/gamificacion-turistica/GamificacionHubSubroutesGrid";
 import { GamificationSoundEngine, MACROREGIONES_RD } from "@/services/gamificationEngine";
 import { CertificateModal } from "@/components/gamification/CertificateModal";
 import { CommunityMissionsWidget } from "@/components/gamification/CommunityMissionsWidget";
 import { ComoGanarPuntosModal } from "@/components/gamificacion/ComoGanarPuntosModal";
 import { ComoGanarPuntosSection } from "@/components/gamificacion/ComoGanarPuntosSection";
-
-const REGIONS = ["all", "Norte", "Sur", "Este", "Cibao"];
-
-const gamificationHubSubroutes = [
-  {
-    title: "Retos & Misiones",
-    desc: "Misiones diarias y expediciones por las 32 provincias",
-    icon: Target,
-    link: "/gamificacion-turistica/retos",
-    tag: "Misiones Activas",
-    color: "text-emerald-500",
-    bg: "bg-emerald-500/10 border-emerald-500/20"
-  },
-  {
-    title: "Programa de Creadores",
-    desc: "Matchmaking con hoteles (estancias 100% gratis) y afiliados",
-    icon: Video,
-    link: "/gamificacion-turistica/creadores",
-    tag: "Patrocinios POP & Samaná",
-    color: "text-amber-500",
-    bg: "bg-amber-500/10 border-amber-500/20"
-  },
-  {
-    title: "Trivia Dominicana",
-    desc: "Demuestra tu conocimiento en geografía, historia y cultura",
-    icon: Brain,
-    link: "/gamificacion-turistica/trivia",
-    tag: "+50 XP por ronda",
-    color: "text-purple-500",
-    bg: "bg-purple-500/10 border-purple-500/20"
-  },
-  {
-    title: "Mapa 3D de Misiones",
-    desc: "Ubica geográficamente todos los retos en el mapa satelital",
-    icon: MapPin,
-    link: "/gamificacion-turistica/mapa",
-    tag: "Interactivo",
-    color: "text-blue-500",
-    bg: "bg-blue-500/10 border-blue-500/20"
-  },
-  {
-    title: "Perfil de Jugador",
-    desc: "Consulta tu tarjeta de explorador, insignias e historial",
-    icon: Crown,
-    link: "/gamificacion-turistica/perfil",
-    tag: "Nivel & Racha",
-    color: "text-primary",
-    bg: "bg-primary/10 border-primary/20"
-  },
-  {
-    title: "Club de Recompensas",
-    desc: "Canjea puntos XP por pases y descuentos exclusivos",
-    icon: Gift,
-    link: "/gamificacion-turistica/recompensas",
-    tag: "Beneficios VIP",
-    color: "text-rose-500",
-    bg: "bg-rose-500/10 border-rose-500/20"
-  },
-  {
-    title: "14 Formas de Ganar Puntos",
-    desc: "Registro, referidos, boletín, check-ins GPS, blog, fotos y ecoturismo",
-    icon: Sparkles,
-    link: "/gamificacion-turistica?tab=formas",
-    tag: "+2,500 XP Potenciales",
-    color: "text-amber-500",
-    bg: "bg-amber-500/10 border-amber-500/20"
-  },
-  {
-    title: "Reglamento & Normas",
-    desc: "Lineamientos de acreditación GPS, RNC empresarial y políticas anti-fraude",
-    icon: Trophy,
-    link: "/gamificacion-turistica/reglas",
-    tag: "Normativa Oficial",
-    color: "text-teal-500",
-    bg: "bg-teal-500/10 border-teal-500/20"
-  }
-];
 
 export default function GamificacionTuristica() {
   const { user } = useAuth();
@@ -490,53 +414,7 @@ export default function GamificacionTuristica() {
         </section>
 
         {/* Gamification Subroutes Grid Hub */}
-        <section className="py-10 bg-card/30 border-b border-border">
-          <div className="container mx-auto px-4 max-w-6xl">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="font-display font-bold text-xl text-foreground">
-                  Módulos y Actividades de Gamificación
-                </h3>
-                <p className="text-xs text-muted-foreground">Accede directamente a todos los subsistemas turísticos interactivos.</p>
-              </div>
-            </div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {gamificationHubSubroutes.map((sub, i) => {
-                const IconComponent = sub.icon;
-                return (
-                  <Link
-                    key={i}
-                    to={sub.link}
-                    className="p-5 rounded-2xl bg-card border border-border hover:border-primary/40 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between group"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${sub.bg} ${sub.color}`}>
-                          <IconComponent className="h-5 w-5" />
-                        </div>
-                        <Badge variant="outline" className="text-[10px] font-semibold">
-                          {sub.tag}
-                        </Badge>
-                      </div>
-                      <h4 className="font-display font-bold text-base text-foreground group-hover:text-primary transition-colors">
-                        {sub.title}
-                      </h4>
-                      <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                        {sub.desc}
-                      </p>
-                    </div>
-
-                    <div className="pt-4 mt-3 border-t border-border/50 flex items-center justify-between text-xs font-bold text-primary">
-                      <span>Ingresar al módulo</span>
-                      <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </section>
+        <GamificacionHubSubroutesGrid />
 
         {/* Main Tabs Area */}
         <main className="container mx-auto px-4 max-w-6xl py-10 flex-1 space-y-10">

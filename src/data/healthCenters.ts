@@ -14,6 +14,7 @@ export interface CentroSalud {
   insuranceAccepted?: string[];
   languages?: string[];
   verified?: boolean;
+  imageUrl?: string;
 }
 
 export const centrosSalud: CentroSalud[] = [
@@ -33,6 +34,7 @@ export const centrosSalud: CentroSalud[] = [
     insuranceAccepted: ["ARS Universal", "ARS Humano", "Mapfre Salud", "Seguros Internacionales"],
     languages: ["Español", "Inglés", "Francés"],
     verified: true,
+    imageUrl: "https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: "h2",
@@ -49,6 +51,7 @@ export const centrosSalud: CentroSalud[] = [
     insuranceAccepted: ["Travel Guard", "Allianz Global", "ARS Humano", "Mapfre", "Seguros Médicos Extranjeros"],
     languages: ["Español", "Inglés", "Alemán", "Ruso"],
     verified: true,
+    imageUrl: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: "h3",
@@ -65,6 +68,7 @@ export const centrosSalud: CentroSalud[] = [
     insuranceAccepted: ["Seguros Internacionales de Viaje", "ARS Universal", "ARS Monumental"],
     languages: ["Español", "Inglés", "Francés", "Alemán"],
     verified: true,
+    imageUrl: "https://images.unsplash.com/photo-1512678080530-7760d81faba6?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: "h4",
@@ -81,6 +85,7 @@ export const centrosSalud: CentroSalud[] = [
     insuranceAccepted: ["Todas las ARS Principales", "Seguros Internacionales"],
     languages: ["Español", "Inglés"],
     verified: true,
+    imageUrl: "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=800&auto=format&fit=crop&q=80",
   },
 
   // Farmacias de Turno y 24 Horas
@@ -97,6 +102,7 @@ export const centrosSalud: CentroSalud[] = [
     services: ["Medicamentos con Receta", "Delivery 24h a Domicilio", "Inyectables", "Cuidado Personal", "ATM Banreservas"],
     insuranceAccepted: ["ARS Humano", "ARS Universal", "Mapfre", "ARS Senasa"],
     verified: true,
+    imageUrl: "https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: "f2",
@@ -111,6 +117,7 @@ export const centrosSalud: CentroSalud[] = [
     services: ["Medicamentos Nacionales e Importados", "Vacunación", "Toma de Presión Arterial", "Delivery Exprés"],
     insuranceAccepted: ["Todas las ARS Dominicanas"],
     verified: true,
+    imageUrl: "https://images.unsplash.com/photo-1586015554060-8db6631248a1?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: "f3",
@@ -125,6 +132,7 @@ export const centrosSalud: CentroSalud[] = [
     services: ["Medicamentos de Urgencia", "Protección Solar & Dermatología", "Entrega a Resorts y Hoteles"],
     insuranceAccepted: ["ARS Principales", "Tarjetas de Crédito Internacionales"],
     verified: true,
+    imageUrl: "https://images.unsplash.com/photo-1576602976047-174e57a47881?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: "f4",
@@ -140,6 +148,7 @@ export const centrosSalud: CentroSalud[] = [
     services: ["Primeros Auxilios", "Medicamentos Deportivos", "Repelentes & Cuidado Tropical", "Atención en Inglés"],
     insuranceAccepted: ["ARS Dominicanas", "Pagos Contactless / Apple Pay"],
     verified: true,
+    imageUrl: "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=800&auto=format&fit=crop&q=80",
   },
 
   // Laboratorios Clínicos Certificados
@@ -157,6 +166,7 @@ export const centrosSalud: CentroSalud[] = [
     insuranceAccepted: ["Todas las ARS", "Seguros Internacionales"],
     languages: ["Español", "Inglés"],
     verified: true,
+    imageUrl: "https://images.unsplash.com/photo-1579154204601-01588f351e67?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: "l2",
@@ -173,6 +183,7 @@ export const centrosSalud: CentroSalud[] = [
     insuranceAccepted: ["ARS Humano", "ARS Universal", "Mapfre Salud", "Seguros de Asistencia al Viajero"],
     languages: ["Español", "Inglés"],
     verified: true,
+    imageUrl: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: "l3",
@@ -187,6 +198,7 @@ export const centrosSalud: CentroSalud[] = [
     services: ["Atención 24 Horas", "Pruebas Genéticas y Especiales", "Check-up Integral"],
     insuranceAccepted: ["Todas las ARS"],
     verified: true,
+    imageUrl: "https://images.unsplash.com/photo-1516549655169-df83a0774514?w=800&auto=format&fit=crop&q=80",
   },
 
   // Clínicas Dentales y Odontología de Urgencia
@@ -206,6 +218,7 @@ export const centrosSalud: CentroSalud[] = [
     insuranceAccepted: ["Planes Dentales ARS", "Seguros Dentales Internacionales (USA/Canadá)"],
     languages: ["Español", "Inglés"],
     verified: true,
+    imageUrl: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: "d2",
@@ -223,6 +236,7 @@ export const centrosSalud: CentroSalud[] = [
     insuranceAccepted: ["MetLife Dental", "Cigna Global Dental", "ARS Universal Dental"],
     languages: ["Español", "Inglés", "Francés"],
     verified: true,
+    imageUrl: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: "d3",
@@ -239,6 +253,7 @@ export const centrosSalud: CentroSalud[] = [
     insuranceAccepted: ["ARS Monumental", "ARS Humano", "ARS Senasa"],
     languages: ["Español", "Inglés"],
     verified: true,
+    imageUrl: "https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=800&auto=format&fit=crop&q=80",
   }
 ];
 

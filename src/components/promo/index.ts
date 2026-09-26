@@ -1,6 +1,14 @@
 export { 
   BannerAd, 
   HeaderAd, 
+  LeaderboardAd,
+  SuperLeaderboardAd,
+  BillboardAd,
+  MediumRectAd,
+  LargeRectAd,
+  SkyscraperAd,
+  PortraitAd,
+  MobileBannerAd,
   SidebarAd, 
   InlineAd, 
   BetweenSectionsAd, 
@@ -9,7 +17,9 @@ export {
   SquareAd,
   HalfPageAd,
   PanoramaAd,
-  FullWidthHeroAd
+  FullWidthHeroAd,
+  FullWidthScreenAd,
+  FullWidthScreenAd2x
 } from "./BannerAd";
 export type { AdSize, AdPlacement } from "./BannerAd";
 export { TopBarPromo, getTopBarConfig, saveTopBarConfig } from "./TopBarPromo";
@@ -26,4 +36,6 @@ export { BannerContentAnimation } from "./BannerContentAnimation";
 export { BannerContentSlider } from "./BannerContentSlider";
 export type { SliderItem } from "./BannerContentSlider";
 export { PreFooterPresidenteBanner } from "./PreFooterPresidenteBanner";
+export { OFFICIAL_BANNERS, OFFICIAL_BANNER_MAP } from "@/data/officialBanners";
+export type { OfficialBannerDefinition } from "@/data/officialBanners";
 

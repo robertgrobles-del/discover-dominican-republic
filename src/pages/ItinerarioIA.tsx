@@ -20,6 +20,7 @@ import { format, addDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useTranslation } from "@/i18n";
 
 const intereses = [
   { id: "playa", label: "Playas", emoji: "🏖️" },
@@ -40,6 +41,7 @@ const presupuestos = [
 ];
 
 export default function ItinerarioIA() {
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [itinerary, setItinerary] = useState<any>(null);
@@ -131,8 +133,8 @@ export default function ItinerarioIA() {
   return (
     <PageTransition>
       <SEOHead
-        title="Generador de Itinerarios con IA - República Dominicana"
-        description="Crea tu itinerario perfecto para República Dominicana con inteligencia artificial. Personalizado según tus intereses y presupuesto."
+        title={t("planifica.itineraryAI") || "Generador de Itinerarios con IA - República Dominicana"}
+        description={t("planifica.itineraryAIDesc") || "Crea tu itinerario perfecto para República Dominicana con inteligencia artificial. Personalizado según tus intereses y presupuesto."}
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -143,13 +145,13 @@ export default function ItinerarioIA() {
             <div className="container mx-auto px-4 text-center">
               <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-6">
                 <Sparkles className="h-4 w-4" />
-                <span className="text-sm font-medium">Potenciado por IA</span>
+                <span className="text-sm font-medium">{t("planifica.badge") || "Potenciado por IA"}</span>
               </div>
               <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                Crea tu Itinerario Perfecto
+                {t("planifica.itineraryAI") || "Crea tu Itinerario Perfecto"}
               </h1>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Nuestra IA diseña el viaje ideal para ti en segundos
+                {t("planifica.itineraryAIDesc") || "Nuestra IA diseña el viaje ideal para ti en segundos"}
               </p>
             </div>
           </section>

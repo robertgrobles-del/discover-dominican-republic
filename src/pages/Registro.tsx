@@ -1,14 +1,13 @@
 import { useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, Loader2, User, ShieldCheck, AlertCircle } from "lucide-react";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { Mail, Lock, Eye, EyeOff, Loader2, User, ShieldCheck, AlertCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -126,10 +125,31 @@ export default function Registro() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen bg-background flex flex-col">
-        <Header />
+      <SEOHead
+        title="Crear Cuenta Gratis"
+        description="Regístrate gratis en Descubre RD para guardar tus destinos favoritos, recibir el boletín con ofertas turísticas exclusivas y planificar tu viaje a República Dominicana."
+      />
+      <div className="min-h-screen bg-background flex flex-col justify-between">
+        {/* Minimal Auth Header */}
+        <header className="p-4 sm:p-6 flex items-center justify-between border-b border-border/40">
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 bg-primary rounded flex items-center justify-center shadow-md">
+              <span className="font-display font-black text-slate-950 text-sm">RD</span>
+            </div>
+            <span className="font-display font-bold text-base text-foreground group-hover:text-primary transition-colors">
+              Descubre RD
+            </span>
+          </Link>
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Volver al inicio</span>
+          </Link>
+        </header>
 
-        <main className="flex-1 flex items-center justify-center py-12 px-4">
+        <main className="flex-1 flex items-center justify-center py-8 sm:py-12 px-4">
           <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-8 items-center">
             {/* Image */}
             <motion.div
@@ -330,7 +350,10 @@ export default function Registro() {
           </div>
         </main>
 
-        <Footer />
+        {/* Minimal Auth Footer */}
+        <footer className="py-4 px-6 border-t border-border/40 text-center text-xs text-muted-foreground">
+          <p>© {new Date().getFullYear()} Descubre República Dominicana · Todos los derechos reservados</p>
+        </footer>
       </div>
     </PageTransition>
   );

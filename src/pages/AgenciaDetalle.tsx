@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
 
 const agencia = {
   id: "tropical-caribbean",
@@ -71,6 +72,12 @@ export default function AgenciaDetalle() {
 
   return (
     <PageTransition>
+      <SEOHead
+        title={`${agencia.name} - Agencia de Turismo en ${agencia.location}`}
+        description={agencia.description}
+        image={agencia.coverImage}
+        keywords={`${agencia.name}, ${agencia.type}, ${agencia.location}, tours república dominicana, ${agencia.specialties.join(", ")}`}
+      />
       <div className="min-h-screen bg-background">
         <Header />
 

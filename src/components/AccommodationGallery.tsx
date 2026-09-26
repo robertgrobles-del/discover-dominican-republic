@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight, Expand, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/hooks/useI18n";
 
 interface AccommodationGalleryProps {
   images: string[];
@@ -9,6 +10,7 @@ interface AccommodationGalleryProps {
 }
 
 export function AccommodationGallery({ images, name }: AccommodationGalleryProps) {
+  const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -36,26 +38,30 @@ export function AccommodationGallery({ images, name }: AccommodationGalleryProps
           <Button
             size="icon"
             variant="outline"
+            aria-label={t("common.previous") || "Anterior"}
             className="absolute left-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full bg-background/80"
             onClick={(e) => { e.stopPropagation(); prev(); }}
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-5 w-5" aria-hidden="true" />
           </Button>
           <Button
             size="icon"
             variant="outline"
+            aria-label={t("common.next") || "Siguiente"}
             className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity rounded-full bg-background/80"
             onClick={(e) => { e.stopPropagation(); next(); }}
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-5 w-5" aria-hidden="true" />
           </Button>
         </div>
 
         {/* Secondary Images */}
         {images.slice(1, 5).map((img, index) => (
-          <div 
+          <button 
             key={index}
-            className={`relative overflow-hidden cursor-pointer group ${
+            type="button"
+            aria-label={`Ver foto ${index + 2} de ${name}`}
+            className={`relative overflow-hidden cursor-pointer group p-0 border-0 bg-transparent text-left w-full h-full ${
               index === 1 ? "rounded-tr-2xl" : index === 3 ? "rounded-br-2xl" : ""
             }`}
             onClick={() => {
@@ -73,7 +79,7 @@ export function AccommodationGallery({ images, name }: AccommodationGalleryProps
                 <span className="text-white font-bold text-xl">+{images.length - 5}</span>
               </div>
             )}
-          </div>
+          </button>
         ))}
       </div>
 
@@ -89,19 +95,21 @@ export function AccommodationGallery({ images, name }: AccommodationGalleryProps
             <Button
               variant="ghost"
               size="icon"
+              aria-label={t("common.close") || "Cerrar"}
               className="absolute top-4 right-4 text-white hover:bg-white/20 z-10"
               onClick={() => setIsFullscreen(false)}
             >
-              <X className="h-6 w-6" />
+              <X className="h-6 w-6" aria-hidden="true" />
             </Button>
 
             <Button
               variant="ghost"
               size="icon"
+              aria-label={t("common.previous") || "Foto anterior"}
               className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20"
               onClick={prev}
             >
-              <ChevronLeft className="h-8 w-8" />
+              <ChevronLeft className="h-8 w-8" aria-hidden="true" />
             </Button>
 
             <div className="max-w-5xl max-h-[80vh] relative px-16">
@@ -123,10 +131,11 @@ export function AccommodationGallery({ images, name }: AccommodationGalleryProps
             <Button
               variant="ghost"
               size="icon"
+              aria-label={t("common.next") || "Foto siguiente"}
               className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20"
               onClick={next}
             >
-              <ChevronRight className="h-8 w-8" />
+              <ChevronRight className="h-8 w-8" aria-hidden="true" />
             </Button>
 
             {/* Thumbnails */}
@@ -134,8 +143,10 @@ export function AccommodationGallery({ images, name }: AccommodationGalleryProps
               {images.map((img, index) => (
                 <button
                   key={index}
+                  type="button"
+                  aria-label={`Ver foto ${index + 1} de ${images.length}`}
                   onClick={() => setCurrentIndex(index)}
-                  className={`w-16 h-12 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-colors ${
+                  className={`w-16 h-12 rounded-lg overflow-hidden shrink-0 border-2 transition-colors cursor-pointer ${
                     currentIndex === index ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"
                   }`}
                 >

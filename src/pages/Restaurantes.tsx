@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FavoriteButton } from "@/components/FavoriteButton";
-import { BetweenSectionsAd, CompactInlineAd, PanoramaAd } from "@/components/promo";
+import { BetweenSectionsAd, CompactInlineAd, PanoramaAd, SuperLeaderboardAd, BillboardAd, MediumRectAd } from "@/components/promo";
 import { restaurants as staticRestaurants, type Restaurant } from "@/data/restaurants";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/hooks/useI18n";
@@ -172,11 +172,14 @@ export default function Restaurantes() {
         </div>
       </div>
 
-
+      {/* Standard IAB Super Leaderboard */}
+      <div className="pb-4">
+        <SuperLeaderboardAd showDemo section="guia-gastronomica" />
+      </div>
 
       <div className="container mx-auto px-4 pb-12">
         <div className="grid lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-4 space-y-6">
             <div className="bg-card rounded-xl border border-border p-6 sticky top-24">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="font-display font-bold text-foreground">{t("restaurantes.filters")}</h3>
@@ -217,6 +220,11 @@ export default function Restaurantes() {
                   ))}
                 </div>
               </div>
+            </div>
+
+            {/* Standard IAB Medium Rectangle in Sidebar */}
+            <div className="hidden lg:block">
+              <MediumRectAd showDemo section="guia-gastronomica" />
             </div>
           </div>
 

@@ -1,12 +1,8 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   Anchor, Ship, MapPin, Star, ChevronRight,
-  Fuel, Waves, FileText, Download, Navigation,
-  Wifi, CreditCard, Car, Pill, Info, ShipWheel, Plus,
-  Clock, Users, AlertTriangle, CheckCircle2, ShieldAlert
+  Fuel, FileText, Download, Navigation, Plus
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -15,183 +11,19 @@ import { PageTransition } from "@/components/PageTransition";
 import { CTARegistroEstablecimiento } from "@/components/forms/CTARegistroEstablecimiento";
 import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { CruiserTimeEstimator } from "@/components/nautica/CruiserTimeEstimator";
+import { 
+  marinas, 
+  puertos, 
+  itinerario, 
+  serviciosTerminal, 
+  excursiones, 
+  nauticalServices, 
+  regulations 
+} from "@/data/nauticaData";
 import heroBeachImg from "@/assets/hero-beach.jpg";
-import puntaCanaImg from "@/assets/punta-cana.jpg";
-import laRomanaImg from "@/assets/la-romana.jpg";
-import puertoPlataImg from "@/assets/puerto-plata.jpg";
-import santoDomingoImg from "@/assets/santo-domingo.jpg";
-import adventureImg from "@/assets/adventure.jpg";
-
-const destinationData: Record<string, Record<string, { label: string; dist: number; timeMinutes: number }>> = {
-  "Amber Cove": {
-    "Damajagua": { label: "27 Charcos de Damajagua", dist: 24, timeMinutes: 35 },
-    "PlayaDorada": { label: "Playa Dorada (Puerto Plata)", dist: 16, timeMinutes: 25 },
-    "Cabarete": { label: "Cabarete (Windsurf / Surf)", dist: 45, timeMinutes: 65 },
-    "CayoArena": { label: "Cayo Arena (Punta Rucia)", dist: 78, timeMinutes: 110 },
-  },
-  "Taino Bay": {
-    "Damajagua": { label: "27 Charcos de Damajagua", dist: 18, timeMinutes: 30 },
-    "PlayaDorada": { label: "Playa Dorada (Puerto Plata)", dist: 8, timeMinutes: 15 },
-    "Cabarete": { label: "Cabarete (Windsurf / Surf)", dist: 38, timeMinutes: 50 },
-    "CayoArena": { label: "Cayo Arena (Punta Rucia)", dist: 75, timeMinutes: 105 },
-  },
-  "Sans Soucí": {
-    "ZonaColonial": { label: "Zona Colonial (Histórico)", dist: 2, timeMinutes: 10 },
-    "BocaChica": { label: "Playa Boca Chica", dist: 32, timeMinutes: 40 },
-    "TresOjos": { label: "Los Tres Ojos", dist: 6, timeMinutes: 15 },
-    "Samaná": { label: "Samaná (Terrestre)", dist: 175, timeMinutes: 160 },
-  }
-};
-
-const marinas = [
-  {
-    id: "cap-cana",
-    name: "Marina Cap Cana",
-    location: "Punta Cana",
-    rating: 5,
-    description: "Ubicada en el punto de encuentro del Caribe y el Atlántico, ofrece servicios de clase mundial y es reconocida como uno de los mejores destinos para la pesca deportiva de aguja blanca y azul.",
-    slips: "150+",
-    maxLength: "8ft",
-    services: ["Fuel"],
-    image: puntaCanaImg,
-  },
-  {
-    id: "casa-de-campo",
-    name: "Marina Casa de Campo",
-    location: "La Romana",
-    rating: 4.5,
-    description: "Un elegante puerto deportivo inspirado en el Mediterráneo, donde el río Chavón se encuentra con el Mar Caribe. Cuenta con tiendas exclusivas, cine y restaurantes gourmet.",
-    slips: "370",
-    maxLength: "12ft",
-    services: ["Service"],
-    image: laRomanaImg,
-  },
-  {
-    id: "ocean-world",
-    name: "Ocean World Marina",
-    location: "Puerto Plata",
-    rating: 4,
-    description: "La única marina con servicio completo en la costa norte. Integra un parque de aventuras con delfines, restaurantes, casino y vida nocturna vibrante.",
-    slips: "100+",
-    maxLength: "Casino",
-    services: ["Customs"],
-    image: puertoPlataImg,
-  },
-];
-
-const puertos = [
-  {
-    nombre: "Amber Cove",
-    ubicacion: "Puerto Plata",
-    descripcion: "Terminal moderna de Carnival con parque acuático y cabañas.",
-    imagen: puertoPlataImg,
-    tags: ["Piscinas", "Zip Line"]
-  },
-  {
-    nombre: "Taino Bay",
-    ubicacion: "Puerto Plata",
-    descripcion: "Terminal vibrante con río lento, avario y restaurantes.",
-    imagen: adventureImg,
-    tags: ["Río Lento", "Motos"]
-  },
-  {
-    nombre: "Sans Soucí",
-    ubicacion: "Santo Domingo",
-    descripcion: "Acceso directo a la Zona Colonial, Primera de América.",
-    imagen: santoDomingoImg,
-    tags: ["Historia", "Cultura"]
-  }
-];
-
-const itinerario = [
-  { hora: "9:00 AM", titulo: "Desembarque y Bienvenida", desc: "Disfruta de la música típica y tómate fotos en el letrero del puerto." },
-  { hora: "10:00 AM", titulo: "Transporte al Centro", desc: "Toma un taxi autorizado o shuttle hacia el centro histórico o playa." },
-  { hora: "11:00 AM - 1:00 PM", titulo: "Exploración y Cultura", desc: "Visita museos, camina por calles coloniales y compra artesanías locales." },
-  { hora: "1:30 PM", titulo: "Almuerzo Dominicano", desc: 'Prueba el "Mofongo" o la "Bandera" en un restaurante certificado.' },
-  { hora: "4:00 PM", titulo: "Regreso al Barco", desc: "Tiempo de sobra para abordar con seguridad antes de zarpar." },
-];
-
-const serviciosTerminal = [
-  { nombre: "Wi-Fi Gratis", icon: Wifi },
-  { nombre: "ATM / Cajeros", icon: CreditCard },
-  { nombre: "Parada Taxis", icon: Car },
-  { nombre: "Farmacia", icon: Pill },
-  { nombre: "Duty Free", icon: ShipWheel },
-  { nombre: "Info Point", icon: Info },
-];
-
-const excursiones = [
-  {
-    nombre: "27 Charcos de Damajagua",
-    descripcion: "Aventura de saltos y toboganes naturales en...",
-    precio: 55,
-    duracion: "4 Horas",
-    imagen: adventureImg,
-  },
-  {
-    nombre: "City Tour Colonial",
-    descripcion: "Recorrido histórico por la primera ciudad de América.",
-    precio: 45,
-    duracion: "3 Horas",
-    imagen: santoDomingoImg,
-  },
-  {
-    nombre: "Ron & Tabaco",
-    descripcion: "Experiencia sensorial probando los mejores...",
-    precio: 35,
-    duracion: "2 Horas",
-    imagen: heroBeachImg,
-  },
-  {
-    nombre: "Día de Playa VIP",
-    descripcion: "Relajación total con almuerzo y bebidas incluid.",
-    precio: 65,
-    duracion: "5 Horas",
-    imagen: puertoPlataImg,
-  },
-];
-
-const nauticalServices = [
-  {
-    title: "Pesca Deportiva",
-    description: "República Dominicana es un destino premier para la pesca del marlín. Organizamos torneos y charters privados con tripulación experta.",
-    action: "Reservar Charter",
-    icon: Anchor,
-  },
-  {
-    title: "Alquiler de Yates",
-    description: "Desde catamaranes para fiestas hasta megayates de lujo. Explore las costas de Samaná o Isla Saona con estilo y confort total.",
-    action: "Ver Flota",
-    icon: Ship,
-  },
-  {
-    title: "Mantenimiento y Amarre",
-    description: "Servicios técnicos especializados, limpieza de cascos, reabastecimiento de combustible y seguridad 24/7 para su embarcación.",
-    action: "Solicitar Servicio",
-    icon: Waves,
-  },
-];
-
-const regulations = [
-  { title: "Permisos de Entrada", description: "Requisitos para embarcaciones extranjeras." },
-  { title: "Protocolos de Seguridad", description: "Normas de la Armada Dominicana." },
-  { title: "Áreas Protegidas", description: "Mapas de santuarios marinos." },
-];
-
-const transporte = [
-  { tipo: "Taxis Turísticos", desc: "Tarifas fijas reguladas por el sindicato. Seguros y disponibles en la salida.", precio: "$20 - $35" },
-  { tipo: "Shuttle de Excursión", desc: "Ideal para grupos. Incluye guía y regreso garantizado a tiempo.", precio: "$15 / persona" },
-  { tipo: "Rent-a-Car", desc: "Para los aventureros. Se requiere licencia válida y tarjeta de crédito.", precio: "$50 / día" },
-];
 
 export default function NauticaCruceros() {
-  const [selectedPuerto, setSelectedPuerto] = useState("Amber Cove");
-  const [boardingTime, setBoardingTime] = useState("16:30");
-  const [selectedDestino, setSelectedDestino] = useState("Damajagua");
-
   return (
     <PageTransition>
       <div className="min-h-screen bg-background">
@@ -358,160 +190,8 @@ export default function NauticaCruceros() {
                   </div>
                 </div>
 
-                {/* Cruiser Return-to-Port Estimator */}
-                <div className="mb-12">
-                  <Card className="border border-primary/20 bg-card/60">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-primary" /> Estimador de Tiempo de Retorno a Puerto
-                      </CardTitle>
-                      <CardDescription>
-                        Calcula si tienes suficiente tiempo para realizar tu actividad y regresar al barco antes de zarpar.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <div className="grid md:grid-cols-3 gap-6">
-                        <div className="space-y-2">
-                          <Label htmlFor="puerto-select">Puerto de Atraque</Label>
-                          <select
-                            id="puerto-select"
-                            aria-label="Puerto de atraque"
-                            value={selectedPuerto}
-                            onChange={(e) => {
-                              setSelectedPuerto(e.target.value);
-                              // Auto set first destination of that port
-                              const keys = Object.keys(destinationData[e.target.value]);
-                              setSelectedDestino(keys[0]);
-                            }}
-                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                          >
-                            <option value="Amber Cove">Amber Cove (Puerto Plata)</option>
-                            <option value="Taino Bay">Taino Bay (Puerto Plata)</option>
-                            <option value="Sans Soucí">Sans Soucí (Santo Domingo)</option>
-                          </select>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="destino-select">Actividad / Destino</Label>
-                          <select
-                            id="destino-select"
-                            aria-label="Actividad o destino de la excursión"
-                            value={selectedDestino}
-                            onChange={(e) => setSelectedDestino(e.target.value)}
-                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-                          >
-                            {Object.entries(destinationData[selectedPuerto] || {}).map(([key, data]) => (
-                              <option key={key} value={key}>{data.label}</option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="boarding-input">Hora Límite de Abordaje</Label>
-                          <Input
-                            id="boarding-input"
-                            type="time"
-                            value={boardingTime}
-                            onChange={(e) => setBoardingTime(e.target.value)}
-                            className="bg-background"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Calculations & Results */}
-                      {(() => {
-                        const dest = destinationData[selectedPuerto]?.[selectedDestino];
-                        if (!dest) return null;
-
-                        const travelTimeOneWay = dest.timeMinutes;
-                        const travelTimeRoundTrip = travelTimeOneWay * 2;
-                        
-                        // Parse boarding time
-                        const [bHour, bMin] = boardingTime.split(":").map(Number);
-                        const boardingMinutesFromMidnight = bHour * 60 + bMin;
-                        
-                        // Excursion starts at 09:00 AM
-                        const startMinutesFromMidnight = 9 * 60; // 09:00
-                        
-                        const totalAvailableMinutes = boardingMinutesFromMidnight - startMinutesFromMidnight;
-                        
-                        // Let's assume standard excursion duration is 3.5 hours (210 minutes)
-                        const excursionDuration = 210;
-                        
-                        const totalTimeNeeded = travelTimeRoundTrip + excursionDuration;
-                        const bufferMinutes = totalAvailableMinutes - totalTimeNeeded;
-                        
-                        let status = "safe";
-                        if (bufferMinutes < 60) status = "danger";
-                        else if (bufferMinutes < 120) status = "warning";
-
-                        const bufferHours = Math.floor(Math.abs(bufferMinutes) / 60);
-                        const bufferRemainingMins = Math.abs(bufferMinutes) % 60;
-
-                        return (
-                          <div className="grid md:grid-cols-2 gap-6 pt-4 border-t border-border/60">
-                            <div className="space-y-4">
-                              <h4 className="text-sm font-bold text-foreground">Detalles del Trayecto</h4>
-                              <div className="space-y-2 text-xs text-muted-foreground">
-                                <div className="flex justify-between">
-                                  <span>Distancia total (ida y vuelta):</span>
-                                  <span className="font-semibold text-foreground">{dest.dist * 2} km</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Tiempo estimado de carretera:</span>
-                                  <span className="font-semibold text-foreground">{travelTimeRoundTrip} mins (~{(travelTimeRoundTrip/60).toFixed(1)}h)</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Duración de actividad:</span>
-                                  <span className="font-semibold text-foreground">3.5 horas (210 mins)</span>
-                                </div>
-                                <div className="flex justify-between border-t pt-2 mt-2 font-bold text-foreground">
-                                  <span>Tiempo total requerido:</span>
-                                  <span>~{Math.floor(totalTimeNeeded / 60)}h {totalTimeNeeded % 60}m</span>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="flex flex-col justify-between p-5 rounded-2xl border bg-muted/20">
-                              <div className="space-y-2">
-                                <div className="flex items-center gap-2">
-                                  {status === "safe" && <CheckCircle2 className="h-5 w-5 text-emerald-500" />}
-                                  {status === "warning" && <AlertTriangle className="h-5 w-5 text-amber-500 animate-pulse" />}
-                                  {status === "danger" && <ShieldAlert className="h-5 w-5 text-red-500" />}
-                                  <span className="font-bold text-sm text-foreground">
-                                    {status === "safe" && "Retorno Seguro"}
-                                    {status === "warning" && "Tiempo Ajustado"}
-                                    {status === "danger" && "Riesgo de Pérdida de Embarque"}
-                                  </span>
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                  {status === "safe" && `Regresarás con aproximadamente ${bufferHours} horas y ${bufferRemainingMins} minutos de margen de seguridad antes del cierre de puertas.`}
-                                  {status === "warning" && `Tiempo de holgura de solo ${bufferHours}h ${bufferRemainingMins}m. Recomendamos adelantar el regreso o tomar una excursión oficial de la naviera.`}
-                                  {status === "danger" && `¡Alerta! Faltan ${bufferHours}h ${bufferRemainingMins}m para cubrir el tiempo. Es altamente probable que pierdas el barco.`}
-                                </p>
-                              </div>
-
-                              <div className="pt-4">
-                                {status === "danger" ? (
-                                  <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold text-xs" onClick={() => {
-                                    const exSec = document.getElementById("excursiones-express");
-                                    exSec?.scrollIntoView({ behavior: "smooth" });
-                                  }}>
-                                    Cambiar a Excursión Express Garantizada
-                                  </Button>
-                                ) : (
-                                  <div className="p-3 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg text-center text-xs font-bold border border-emerald-500/20">
-                                    Margen de seguridad aprobado: +{bufferHours}h {bufferRemainingMins}m
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </CardContent>
-                  </Card>
-                </div>
+                {/* Return-to-port calculator */}
+                <CruiserTimeEstimator />
 
                 {/* Itinerario + Servicios */}
                 <div className="grid md:grid-cols-2 gap-12 mb-12">
@@ -651,7 +331,6 @@ export default function NauticaCruceros() {
 
                 {/* Map and Regulations */}
                 <div className="grid md:grid-cols-2 gap-8">
-                  {/* Map */}
                   <div>
                     <h2 className="font-display text-2xl font-bold text-foreground mb-6">
                       Mapa de Navegación Costera
@@ -669,7 +348,6 @@ export default function NauticaCruceros() {
                     </div>
                   </div>
 
-                  {/* Regulations */}
                   <div>
                     <div className="flex items-center justify-between mb-6">
                       <h2 className="font-display text-2xl font-bold text-foreground">
@@ -714,7 +392,7 @@ export default function NauticaCruceros() {
               </TabsContent>
             </Tabs>
 
-            {/* Banners de Conversión: Sorteo de Lectores + Registro de Marinas y Tours Náuticos */}
+            {/* Banners de Conversión */}
             <div className="mt-16 space-y-8">
               <SorteoLectorBanner origenCategoria="Turismo Náutico, Cruceros y Catamaranes" />
 

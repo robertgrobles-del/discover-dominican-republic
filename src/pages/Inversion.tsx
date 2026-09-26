@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import heroBeach from "@/assets/hero-beach.jpg";
 import puntaCana from "@/assets/punta-cana.jpg";
 import adventure from "@/assets/adventure.jpg";
+import { SEOHead } from "@/components/SEOHead";
 
 const indicadores = [
   { label: "VISITANTES ANUALES", valor: "10.3M+", cambio: "+20%", positivo: true },
@@ -62,6 +63,10 @@ const testimonios = [
 export default function Inversion() {
   return (
     <PageTransition>
+      <SEOHead
+        title="Invertir en República Dominicana: Incentivos y Oportunidades"
+        description="Explora los incentivos fiscales de la Ley 158-01, indicadores clave del turismo dominicano y las principales zonas de desarrollo como Punta Cana, Miches y Pedernales para inversionistas."
+      />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
 

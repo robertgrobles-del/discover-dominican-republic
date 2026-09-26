@@ -1,6 +1,7 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Download, Search, ChevronRight, Star, BookOpen, Map, FileText, Eye, Calendar, Globe } from "lucide-react";
@@ -52,6 +53,10 @@ export default function Biblioteca() {
 
   return (
     <PageTransition>
+      <SEOHead
+        title="Biblioteca Digital - Mapas y Guías Turísticas Descargables"
+        description="Descarga mapas oficiales, guías regionales y la revista MITUR en alta resolución para planificar tu viaje por República Dominicana desde casa."
+      />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
 

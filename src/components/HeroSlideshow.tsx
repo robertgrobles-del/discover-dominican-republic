@@ -370,7 +370,7 @@ export function HeroSlideshow() {
           height="1080"
           className="h-full w-full object-cover"
           // @ts-ignore
-          fetchPriority="high"
+          fetchpriority="high"
           loading="eager"
           decoding="sync"
         />

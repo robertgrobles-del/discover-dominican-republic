@@ -2,192 +2,31 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SEOHead } from "@/components/SEOHead";
 import { Link } from "react-router-dom";
-import { Plane, Ship, Bus, Clock, MapPin, Car, ArrowRight, Maximize2, Navigation, Star, Globe, Users } from "lucide-react";
+import { Plane, Ship, Bus, Clock, MapPin, Car, ArrowRight, Maximize2, Navigation, Star, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useMemo } from "react";
+import { useTranslation } from "@/i18n";
 import { airports } from "@/data/airports";
-
+import { 
+  tiemposVuelo, 
+  opcionesTransporte, 
+  operadoresAereos, 
+  rutasPopulares, 
+  viasMaritimas, 
+  rutasFerry, 
+  routePoints, 
+  calcRoute 
+} from "@/data/comoLlegarData";
 import heroBeach from "@/assets/hero-beach.jpg";
 
-// ==================== TIEMPOS DE VUELO EXPANDIDOS ====================
-const tiemposVuelo = [
-  { ciudad: "New York", aeropuertoOrigen: "JFK", aeropuertoDestino: "PUJ", tiempo: "3h 50m", aerolineas: "JetBlue, Delta, United" },
-  { ciudad: "New York", aeropuertoOrigen: "EWR", aeropuertoDestino: "SDQ", tiempo: "3h 45m", aerolineas: "United, Spirit" },
-  { ciudad: "Miami", aeropuertoOrigen: "MIA", aeropuertoDestino: "SDQ", tiempo: "2h 10m", aerolineas: "American, Arajet" },
-  { ciudad: "Miami", aeropuertoOrigen: "MIA", aeropuertoDestino: "PUJ", tiempo: "2h 30m", aerolineas: "American, JetBlue" },
-  { ciudad: "Madrid", aeropuertoOrigen: "MAD", aeropuertoDestino: "SDQ", tiempo: "8h 15m", aerolineas: "Iberia, Air Europa" },
-  { ciudad: "Madrid", aeropuertoOrigen: "MAD", aeropuertoDestino: "PUJ", tiempo: "8h 45m", aerolineas: "Iberia, Evelop" },
-  { ciudad: "Toronto", aeropuertoOrigen: "YYZ", aeropuertoDestino: "PUJ", tiempo: "4h 20m", aerolineas: "Air Canada, WestJet" },
-  { ciudad: "Toronto", aeropuertoOrigen: "YYZ", aeropuertoDestino: "POP", tiempo: "4h 10m", aerolineas: "WestJet, Sunwing" },
-  { ciudad: "Bogotá", aeropuertoOrigen: "BOG", aeropuertoDestino: "SDQ", tiempo: "2h 30m", aerolineas: "Avianca, Arajet" },
-  { ciudad: "Panamá", aeropuertoOrigen: "PTY", aeropuertoDestino: "SDQ", tiempo: "2h 45m", aerolineas: "Copa Airlines" },
-  { ciudad: "Frankfurt", aeropuertoOrigen: "FRA", aeropuertoDestino: "PUJ", tiempo: "9h 30m", aerolineas: "Condor, Eurowings" },
-  { ciudad: "París", aeropuertoOrigen: "CDG", aeropuertoDestino: "PUJ", tiempo: "9h 00m", aerolineas: "Air France, Corsair" },
-  { ciudad: "Fort Lauderdale", aeropuertoOrigen: "FLL", aeropuertoDestino: "SDQ", tiempo: "2h 15m", aerolineas: "Spirit, JetBlue" },
-  { ciudad: "Boston", aeropuertoOrigen: "BOS", aeropuertoDestino: "PUJ", tiempo: "4h 05m", aerolineas: "JetBlue" },
-  { ciudad: "Atlanta", aeropuertoOrigen: "ATL", aeropuertoDestino: "PUJ", tiempo: "3h 40m", aerolineas: "Delta" },
-  { ciudad: "Charlotte", aeropuertoOrigen: "CLT", aeropuertoDestino: "PUJ", tiempo: "3h 30m", aerolineas: "American Airlines" },
-  { ciudad: "Houston", aeropuertoOrigen: "IAH", aeropuertoDestino: "PUJ", tiempo: "4h 15m", aerolineas: "United" },
-  { ciudad: "Montreal", aeropuertoOrigen: "YUL", aeropuertoDestino: "PUJ", tiempo: "4h 30m", aerolineas: "Air Canada, Air Transat" },
-  { ciudad: "San Juan PR", aeropuertoOrigen: "SJU", aeropuertoDestino: "SDQ", tiempo: "0h 45m", aerolineas: "JetBlue, Cape Air" },
-  { ciudad: "Lima", aeropuertoOrigen: "LIM", aeropuertoDestino: "SDQ", tiempo: "5h 30m", aerolineas: "LATAM, Arajet" },
-  { ciudad: "México DF", aeropuertoOrigen: "MEX", aeropuertoDestino: "SDQ", tiempo: "4h 00m", aerolineas: "Arajet, Volaris" },
-  { ciudad: "Londres", aeropuertoOrigen: "LGW", aeropuertoDestino: "PUJ", tiempo: "9h 15m", aerolineas: "TUI, Virgin Atlantic" },
-];
-
-const opcionesTransporte = [
-  { titulo: "Alquiler de Auto", subtitulo: "Ruta Autopista del Nordeste (Juan Pablo II)", etiqueta: "Recomendado", desc: "Flexibilidad total" },
-  { titulo: "Bus Premium", subtitulo: "Caribe Tours / Metro", precio: "$10 - $15 USD", tiempo: "4h 00m" },
-];
-
-// ==================== CONECTIVIDAD AÉREA INTERNA ====================
-const operadoresAereos = [
-  {
-    id: "air-century",
-    nombre: "Air Century",
-    tipo: "Aerolínea Comercial",
-    hub: "JBQ (Santo Domingo)",
-    destinos: ["PUJ", "STI", "BRX"],
-    descripcion: "Vuelos regulares entre las principales ciudades."
-  },
-  {
-    id: "helidosa",
-    nombre: "Helidosa",
-    tipo: "Air Taxi & Ambulancia",
-    flota: "Helicópteros y Aviones",
-    servicio: "VIP 24/7",
-    descripcion: "Servicio privado de helicópteros y aviones ejecutivos."
-  },
-  {
-    id: "reef-jet",
-    nombre: "Reef Jet",
-    tipo: "Vuelos Turísticos",
-    destinos: ["Samaná", "Bahía de las Águilas"],
-    descripcion: "Excursiones privadas a destinos exclusivos."
-  }
-];
-
-const rutasPopulares = [
-  { ruta: "Santo Domingo → Samaná", precio: "Desde $85", tipo: "Vuelo directo", duracion: "45 min" },
-  { ruta: "Punta Cana → Santo Domingo", precio: "Desde $110", tipo: "Vuelo directo", duracion: "35 min" },
-  { ruta: "Santo Domingo → Pedernales", precio: "Cotizar", tipo: "Charter Privado", duracion: "55 min" }
-];
-
-// ==================== VÍAS MARÍTIMAS ====================
-const viasMaritimas = [
-  {
-    id: "ferry-del-caribe",
-    nombre: "Ferries del Caribe",
-    tipo: "Ferry Internacional",
-    ruta: "San Juan (PR) ↔ Santo Domingo",
-    frecuencia: "3 viajes semanales",
-    duracion: "12-13 horas",
-    precio: "Desde $99 USD",
-    servicios: ["Camarotes", "Restaurante", "WiFi", "Vehículos"],
-    descripcion: "Conexión marítima entre Puerto Rico y República Dominicana. Ideal para viajeros con vehículo propio.",
-    telefono: "+1 787-494-3000"
-  },
-  {
-    id: "cruceros-amber-cove",
-    nombre: "Puerto Amber Cove",
-    tipo: "Terminal de Cruceros",
-    ruta: "Puertos internacionales → Puerto Plata",
-    frecuencia: "Varios cruceros semanales",
-    duracion: "Según itinerario",
-    precio: "Incluido en crucero",
-    servicios: ["Duty Free", "Excursiones", "Transporte", "Restaurantes"],
-    descripcion: "Terminal de cruceros de clase mundial en la costa norte. Recibe las principales líneas de cruceros.",
-    telefono: "+1 809-970-3373"
-  },
-  {
-    id: "taino-bay",
-    nombre: "Puerto Taino Bay",
-    tipo: "Terminal de Cruceros",
-    ruta: "Puertos internacionales → Puerto Plata",
-    frecuencia: "Cruceros regulares",
-    duracion: "Según itinerario",
-    precio: "Incluido en crucero",
-    servicios: ["Centro comercial", "Restaurantes", "Tours", "Teleférico"],
-    descripcion: "Puerto turístico con acceso directo al teleférico y centro de Puerto Plata.",
-    telefono: "+1 809-586-1500"
-  },
-  {
-    id: "la-romana-port",
-    nombre: "Puerto de La Romana",
-    tipo: "Terminal de Cruceros",
-    ruta: "Caribe Este → Casa de Campo",
-    frecuencia: "Cruceros estacionales",
-    duracion: "Según itinerario",
-    precio: "Incluido en crucero",
-    servicios: ["Marina", "Resort", "Golf", "Excursiones"],
-    descripcion: "Acceso al exclusivo resort Casa de Campo y Altos de Chavón.",
-    telefono: "+1 809-523-3333"
-  }
-];
-
-const rutasFerry = [
-  { ruta: "San Juan → Santo Domingo", precio: "Desde $99", frecuencia: "Lu, Mi, Vi", duracion: "12h" },
-  { ruta: "Santo Domingo → San Juan", precio: "Desde $99", frecuencia: "Ma, Ju, Sa", duracion: "12h" },
-  { ruta: "Mayagüez → Santo Domingo", precio: "Desde $89", frecuencia: "Bajo demanda", duracion: "8h" }
-];
-
-// ==================== CALCULADORA DE RUTAS ====================
-interface RoutePoint {
-  value: string;
-  label: string;
-  lat: number;
-  lng: number;
-}
-
-const routePoints: RoutePoint[] = [
-  { value: "sdq", label: "Santo Domingo (SDQ)", lat: 18.4861, lng: -69.9312 },
-  { value: "puj", label: "Punta Cana (PUJ)", lat: 18.5601, lng: -68.3725 },
-  { value: "samana", label: "Samaná (Las Terrenas)", lat: 19.2058, lng: -69.3322 },
-  { value: "santiago", label: "Santiago de los Caballeros", lat: 19.4517, lng: -70.6970 },
-  { value: "puerto-plata", label: "Puerto Plata", lat: 19.7934, lng: -70.6884 },
-  { value: "la-romana", label: "La Romana", lat: 18.4274, lng: -68.9728 },
-  { value: "barahona", label: "Barahona", lat: 18.2085, lng: -71.1005 },
-  { value: "jarabacoa", label: "Jarabacoa", lat: 19.1200, lng: -70.6363 },
-  { value: "constanza", label: "Constanza", lat: 18.9100, lng: -70.7500 },
-  { value: "bayahibe", label: "Bayahíbe", lat: 18.3672, lng: -68.8370 },
-  { value: "cabarete", label: "Cabarete", lat: 19.7500, lng: -70.4167 },
-  { value: "sosua", label: "Sosúa", lat: 19.7570, lng: -70.5150 },
-  { value: "boca-chica", label: "Boca Chica", lat: 18.4500, lng: -69.6060 },
-  { value: "higuey", label: "Higüey", lat: 18.6152, lng: -68.7078 },
-  { value: "pedernales", label: "Pedernales", lat: 18.0370, lng: -71.7440 },
-  { value: "las-galeras", label: "Las Galeras", lat: 19.2833, lng: -69.0500 },
-  { value: "cap-cana", label: "Cap Cana", lat: 18.5000, lng: -68.3800 },
-  { value: "juan-dolio", label: "Juan Dolio", lat: 18.4333, lng: -69.4333 },
-  { value: "la-vega", label: "La Vega", lat: 19.2220, lng: -70.5295 },
-  { value: "san-cristobal", label: "San Cristóbal", lat: 18.4167, lng: -70.1000 },
-];
-
-function haversine(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLng = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-function calcRoute(origin: RoutePoint, dest: RoutePoint) {
-  const straightKm = haversine(origin.lat, origin.lng, dest.lat, dest.lng);
-  const roadKm = Math.round(straightKm * 1.35);
-  const hours = roadKm / 60;
-  const h = Math.floor(hours);
-  const m = Math.round((hours - h) * 60);
-  const time = h > 0 ? (m > 0 ? `${h}h ${m}m` : `${h}h`) : `${m} min`;
-  return { distance: roadKm, time };
-}
-
 export default function ComoLlegar() {
+  const { t } = useTranslation();
   const [heroLoaded, setHeroLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState("internacional");
   const [origin, setOrigin] = useState("sdq");
@@ -202,15 +41,19 @@ export default function ComoLlegar() {
 
   return (
     <PageTransition>
+      <SEOHead
+        title={t("logistica.title") || "Cómo Llegar a República Dominicana y Moverse por el País"}
+        description={t("logistica.subtitle") || "Consulta conexiones aéreas internacionales, rutas de ferries y cruceros, vuelos internos y una calculadora de distancias para planificar tu transporte por toda la isla."}
+      />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
-        
+
         {/* Hero */}
         <section className="relative py-24 flex items-center justify-center overflow-hidden">
           {!heroLoaded && <Skeleton className="absolute inset-0" />}
           <img
             src={heroBeach}
-            alt="Cómo Llegar a RD"
+            alt={t("logistica.title") || "Cómo Llegar a RD"}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
               heroLoaded ? "opacity-30" : "opacity-0"
             }`}
@@ -219,23 +62,26 @@ export default function ComoLlegar() {
           <div className="absolute inset-0 bg-gradient-to-b from-background/60 to-background" />
           
           <div className="relative z-10 text-center px-4">
+            <span className="inline-block px-3 py-1 mb-3 text-xs font-semibold uppercase tracking-wider rounded-full bg-primary/10 text-primary border border-primary/20">
+              {t("logistica.badge") || "Información Práctica para el Viajero"}
+            </span>
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4 italic">
-              Cómo Llegar a RD y Moverse
+              {t("logistica.title") || "Cómo Llegar a RD y Moverse"}
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Tu guía logística completa para explorar la República Dominicana. Encuentra conexiones aéreas, marítimas y calcula tus rutas internas.
+              {t("logistica.subtitle") || "Tu guía logística completa para explorar la República Dominicana. Encuentra conexiones aéreas, marítimas y calcula tus rutas internas."}
             </p>
             
-            <div className="max-w-xl mx-auto flex items-center gap-2 bg-card rounded-xl p-2 border border-border">
+            <div className="max-w-xl mx-auto flex items-center gap-2 bg-card rounded-xl p-2 border border-border shadow-md">
               <div className="flex items-center gap-2 flex-1 px-3">
                 <MapPin className="h-5 w-5 text-muted-foreground" />
                 <Input 
-                  placeholder="¿A dónde quieres ir hoy?" 
+                  placeholder={t("common.search") || "¿A dónde quieres ir hoy?"} 
                   className="border-0 bg-transparent focus-visible:ring-0"
                 />
               </div>
               <Button className="gap-2">
-                Buscar Ruta
+                {t("hero.explore") || "Buscar Ruta"}
               </Button>
             </div>
           </div>
@@ -251,21 +97,21 @@ export default function ComoLlegar() {
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
                 >
                   <Plane className="h-4 w-4" />
-                  Aérea
+                  {t("logistica.airports") || "Aérea"}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="maritima" 
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
                 >
                   <Ship className="h-4 w-4" />
-                  Marítima
+                  {t("logistica.cruisePorts") || "Marítima"}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="interna" 
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
                 >
                   <Navigation className="h-4 w-4" />
-                  Interna
+                  {t("logistica.publicTransport") || "Interna"}
                 </TabsTrigger>
               </TabsList>
 

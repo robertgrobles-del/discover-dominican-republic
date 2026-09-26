@@ -7,69 +7,11 @@ import { Button } from "@/components/ui/button";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Restaurant } from "@/data/restaurants";
 import { Experience } from "@/data/experiences";
-import promoGastronomyImg from "@/assets/promo/promo-gastronomy-mobile.jpg";
-import promoAdventureImg from "@/assets/promo/promo-adventure.jpg";
 
 interface HeroSlide {
   image: string;
   title: string;
   subtitle: string;
-  description?: string;
-  isSponsored?: boolean;
-  sponsorBadge?: string;
-  ctaText?: string;
-  ctaLink?: string;
-}
-
-function buildSponsorSlides(destinationName: string, restaurants: Restaurant[], experiences: Experience[]): HeroSlide[] {
-  const topRestaurant = [...restaurants].sort((a, b) => b.rating - a.rating)[0];
-  const topExperience = [...experiences].sort((a, b) => b.rating - a.rating)[0];
-
-  const restaurantSlide: HeroSlide = topRestaurant
-    ? {
-        image: topRestaurant.imageUrl,
-        title: topRestaurant.name,
-        subtitle: `Cena cerca de tu hotel en ${destinationName}`,
-        description: topRestaurant.shortDescription,
-        isSponsored: true,
-        sponsorBadge: "Restaurante Patrocinado",
-        ctaText: "Ver Restaurante",
-        ctaLink: `/restaurante/${topRestaurant.slug}`,
-      }
-    : {
-        image: promoGastronomyImg,
-        title: "Anuncia tu Restaurante Aquí",
-        subtitle: destinationName,
-        description: `Llega a los huéspedes que se hospedan en ${destinationName}.`,
-        isSponsored: true,
-        sponsorBadge: "Espacio Disponible",
-        ctaText: "Conviértete en Patrocinador",
-        ctaLink: "/partners",
-      };
-
-  const experienceSlide: HeroSlide = topExperience
-    ? {
-        image: topExperience.imageUrl,
-        title: topExperience.name,
-        subtitle: `Vive una experiencia en ${destinationName}`,
-        description: topExperience.shortDescription,
-        isSponsored: true,
-        sponsorBadge: "Experiencia Patrocinada",
-        ctaText: "Ver Experiencia",
-        ctaLink: `/experiencia/${topExperience.slug}`,
-      }
-    : {
-        image: promoAdventureImg,
-        title: "Anuncia tu Experiencia Aquí",
-        subtitle: destinationName,
-        description: `Da a conocer tus tours y actividades a los huéspedes de ${destinationName}.`,
-        isSponsored: true,
-        sponsorBadge: "Espacio Disponible",
-        ctaText: "Conviértete en Patrocinador",
-        ctaLink: "/partners",
-      };
-
-  return [restaurantSlide, experienceSlide];
 }
 
 interface HotelHeroSliderProps {
@@ -82,8 +24,8 @@ interface HotelHeroSliderProps {
   stars: number;
   categoryLabel: string;
   favoriteId: string;
-  restaurants: Restaurant[];
-  experiences: Experience[];
+  restaurants?: Restaurant[];
+  experiences?: Experience[];
 }
 
 export function HotelHeroSlider({
@@ -96,19 +38,18 @@ export function HotelHeroSlider({
   stars,
   categoryLabel,
   favoriteId,
-  restaurants,
-  experiences,
 }: HotelHeroSliderProps) {
+  // Only use the establishment's own images
   const ownImages = Array.from(new Set(images.filter(Boolean)));
+  const finalImages = ownImages.length > 0 
+    ? ownImages 
+    : ["https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1920&h=1080&fit=crop"];
 
-  const slides: HeroSlide[] = [
-    ...ownImages.slice(0, 4).map((image) => ({
-      image,
-      title: name,
-      subtitle: location,
-    })),
-    ...buildSponsorSlides(destinationName || location, restaurants, experiences),
-  ];
+  const slides: HeroSlide[] = finalImages.map((image) => ({
+    image,
+    title: name,
+    subtitle: location,
+  }));
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
@@ -151,7 +92,7 @@ export function HotelHeroSlider({
 
   return (
     <section
-      className="relative h-screen w-full overflow-hidden touch-pan-y"
+      className="relative h-[65vh] min-h-[500px] md:h-[80vh] w-full overflow-hidden touch-pan-y"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
       onTouchStart={handleTouchStart}
@@ -169,20 +110,20 @@ export function HotelHeroSlider({
         >
           <motion.img
             src={slide.image}
-            alt={slide.title}
+            alt={`${slide.title} - Foto ${currentSlide + 1}`}
             className="h-full w-full object-cover"
             initial={{ scale: 1.05 }}
             animate={{ scale: 1 }}
             transition={{ duration: 7, ease: "linear" }}
             loading={currentSlide === 0 ? "eager" : "lazy"}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
         </motion.div>
       </AnimatePresence>
 
       {/* Content */}
       <div className="relative z-10 h-full flex flex-col justify-end">
-        <div className="container mx-auto px-4 pb-20">
+        <div className="container mx-auto px-4 pb-16 md:pb-20">
           <AnimatePresence mode="wait">
             <motion.div
               key={`content-${currentSlide}`}
@@ -191,108 +132,92 @@ export function HotelHeroSlider({
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             >
-              <div className="flex items-center gap-2 mb-4 flex-wrap">
-                {slide.isSponsored ? (
-                  <Badge className="bg-amber-500 text-slate-950 font-bold border-none text-[11px] uppercase tracking-wider px-2.5 py-0.5 shadow-sm">
-                    {slide.sponsorBadge}
-                  </Badge>
-                ) : (
-                  <>
-                    <Badge variant="secondary" className="bg-primary/90 text-primary-foreground">
-                      {categoryLabel}
-                    </Badge>
-                    <div className="flex items-center gap-1 bg-white/10 backdrop-blur-md border border-white/20 px-2.5 py-0.5 rounded-full text-xs font-semibold text-white">
-                      <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                      {rating}
-                    </div>
-                  </>
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                <Badge variant="secondary" className="bg-primary text-primary-foreground font-semibold px-3 py-1">
+                  {categoryLabel}
+                </Badge>
+                {rating > 0 && (
+                  <div className="flex items-center gap-1 bg-white/10 backdrop-blur-md border border-white/20 px-2.5 py-0.5 rounded-full text-xs font-semibold text-white">
+                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                    {rating}
+                  </div>
+                )}
+                {slides.length > 1 && (
+                  <div className="bg-black/40 backdrop-blur-md border border-white/10 px-2.5 py-0.5 rounded-full text-xs text-white/80">
+                    Foto {currentSlide + 1} de {slides.length}
+                  </div>
                 )}
               </div>
 
               <div className="flex items-start justify-between gap-6">
-                <div className="max-w-2xl">
-                  <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 leading-tight">
-                    {slide.title}
+                <div className="max-w-3xl">
+                  <h1 className="font-display text-3xl sm:text-5xl md:text-6xl font-bold text-white mb-3 leading-tight drop-shadow-md">
+                    {name}
                   </h1>
-                  {slide.isSponsored ? (
-                    <>
-                      <p className="text-white/90 text-lg mb-2">{slide.subtitle}</p>
-                      {slide.description && (
-                        <p className="text-white/75 max-w-xl mb-6 line-clamp-2">{slide.description}</p>
-                      )}
-                      <Button size="lg" className="gap-2 font-display font-semibold shadow-lg" asChild>
-                        <Link to={slide.ctaLink || "/partners"}>
-                          {slide.ctaText}
-                          <ChevronRight className="h-4 w-4" />
-                        </Link>
-                      </Button>
-                    </>
-                  ) : (
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {destinationSlug ? (
-                        <Link
-                          to={`/destino/${destinationSlug}`}
-                          className="flex items-center gap-2 text-white/90 text-lg hover:text-white transition-colors"
-                        >
-                          <MapPin className="h-5 w-5" />
-                          {location}
-                        </Link>
-                      ) : (
-                        <span className="flex items-center gap-2 text-white/90 text-lg">
-                          <MapPin className="h-5 w-5" />
-                          {location}
-                        </span>
-                      )}
-                      {stars > 0 && (
-                        <span className="flex items-center gap-0.5 ml-2">
-                          {[...Array(stars)].map((_, i) => (
-                            <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                          ))}
-                        </span>
-                      )}
-                    </div>
-                  )}
+
+                  <div className="flex items-center gap-2 flex-wrap text-white/90 text-sm sm:text-base">
+                    {destinationSlug ? (
+                      <Link
+                        to={`/destino/${destinationSlug}`}
+                        className="flex items-center gap-1.5 text-white/90 hover:text-white transition-colors"
+                      >
+                        <MapPin className="h-4 w-4 text-primary" />
+                        {location}
+                      </Link>
+                    ) : (
+                      <span className="flex items-center gap-1.5 text-white/90">
+                        <MapPin className="h-4 w-4 text-primary" />
+                        {location}
+                      </span>
+                    )}
+                    {stars > 0 && (
+                      <span className="flex items-center gap-0.5 ml-2">
+                        {[...Array(stars)].map((_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                        ))}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                {!slide.isSponsored && (
-                  <FavoriteButton
-                    id={favoriteId}
-                    type="hotel"
-                    name={name}
-                    image={ownImages[0]}
-                    location={location}
-                    className="text-white shrink-0"
-                  />
-                )}
+
+                <FavoriteButton
+                  id={favoriteId}
+                  type="hotel"
+                  name={name}
+                  image={finalImages[0]}
+                  location={location}
+                  className="text-white shrink-0"
+                />
               </div>
             </motion.div>
           </AnimatePresence>
 
-          {/* Slider controls */}
+          {/* Slider controls (only when there are multiple photos of the hotel) */}
           {slides.length > 1 && (
-            <div className="flex items-center gap-4 mt-10" role="group" aria-label="Controles del carrusel">
+            <div className="flex items-center gap-4 mt-8" role="group" aria-label="Controles de fotos">
               <Button
                 size="icon"
                 variant="outline"
-                aria-label="Slide anterior"
-                className="rounded-full w-10 h-10 bg-white/10 backdrop-blur-md border-white/30 text-white hover:bg-white/20"
+                aria-label="Foto anterior"
+                className="rounded-full w-9 h-9 bg-white/10 backdrop-blur-md border-white/30 text-white hover:bg-white/20"
                 onClick={() => {
                   setIsAutoPlaying(false);
                   prevSlide();
                 }}
               >
-                <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
               </Button>
 
-              <div className="flex gap-2" role="tablist" aria-label="Paginación de slides">
+              <div className="flex gap-1.5" role="tablist" aria-label="Paginación de fotos">
                 {slides.map((s, index) => (
                   <button
                     key={index}
                     role="tab"
-                    aria-label={`Slide ${index + 1}: ${s.title}`}
+                    aria-label={`Foto ${index + 1} de ${name}`}
                     aria-current={index === currentSlide ? "true" : undefined}
                     onClick={() => goToSlide(index)}
-                    className={`h-2 rounded-full transition-all duration-500 ease-out ${
-                      index === currentSlide ? "w-8 bg-white" : "w-2 bg-white/40 hover:bg-white/60"
+                    className={`h-1.5 rounded-full transition-all duration-500 ease-out ${
+                      index === currentSlide ? "w-7 bg-white" : "w-1.5 bg-white/40 hover:bg-white/60"
                     }`}
                   />
                 ))}
@@ -301,22 +226,22 @@ export function HotelHeroSlider({
               <Button
                 size="icon"
                 variant="outline"
-                aria-label="Slide siguiente"
-                className="rounded-full w-10 h-10 bg-white/10 backdrop-blur-md border-white/30 text-white hover:bg-white/20"
+                aria-label="Foto siguiente"
+                className="rounded-full w-9 h-9 bg-white/10 backdrop-blur-md border-white/30 text-white hover:bg-white/20"
                 onClick={() => {
                   setIsAutoPlaying(false);
                   nextSlide();
                 }}
               >
-                <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                <ChevronRight className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
           )}
         </div>
 
         {/* Scroll cue */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 animate-bounce">
-          <ChevronDown className="h-6 w-6 text-white/70" aria-hidden="true" />
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 animate-bounce hidden sm:block">
+          <ChevronDown className="h-5 w-5 text-white/60" aria-hidden="true" />
         </div>
       </div>
     </section>

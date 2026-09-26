@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Punta Cana - Guía Oficial de Turismo | República Dominicana</title>
+<!-- Tailwind CSS v3 with Plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Font Awesome Icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            caribbean: {
+              50: '#f0faff',
+              100: '#e0f4fe',
+              200: '#b9e9fe',
+              300: '#7cd4fd',
+              400: '#36bffa',
+              500: '#00B4D8', // Core Turquoise
+              600: '#0077B6', // Deep Caribbean Blue
+              700: '#023e8a',
+              800: '#032d64',
+              900: '#062047',
+            },
+            coral: {
+              50: '#fff1f1',
+              100: '#ffe1e1',
+              400: '#ff8585',
+              500: '#FF6B6B', // Warm Caribbean Coral
+              600: '#ee4e4e',
+            },
+            sand: '#FFFDF9',
+          }
+        }
+      }
+    }
+  </script>
+<!-- Custom Styles for Effects & Enhancements -->
+<style data-purpose="custom-styling">
+    .glass-card {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .text-glow {
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-sand text-slate-800 antialiased selection:bg-caribbean-500 selection:text-white">
+<!-- BEGIN: Notification & Quick Utility Bar -->
+<div class="bg-slate-900 text-slate-300 text-xs py-2 px-4 border-b border-slate-800" data-purpose="announcement-bar">
+<div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+<div class="flex items-center gap-3">
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+<i class="fa-solid fa-plane-arrival mr-1.5"></i> Aeropuerto PUJ 28°C
+        </span>
+<span class="hidden md:inline text-slate-400">|</span>
+<p class="hidden md:inline">E-Ticket Digital obligatorio para entrar a República Dominicana. ¡Completa gratis tu formulario oficial!</p>
+</div>
+<div class="flex items-center gap-4 text-slate-300">
+<!-- Currency Selector -->
+<div class="flex items-center gap-1 cursor-pointer hover:text-white transition">
+<i class="fa-solid fa-coins text-caribbean-400"></i>
+<select class="bg-transparent border-0 py-0 pl-1 pr-5 text-xs text-slate-300 focus:ring-0 cursor-pointer">
+<option class="bg-slate-900 text-white" value="USD">USD ($)</option>
+<option class="bg-slate-900 text-white" value="DOP">DOP (RD$)</option>
+<option class="bg-slate-900 text-white" value="EUR">EUR (€)</option>
+</select>
+</div>
+<!-- Language Selector -->
+<div class="flex items-center gap-1 cursor-pointer hover:text-white transition">
+<i class="fa-solid fa-globe text-caribbean-400"></i>
+<select class="bg-transparent border-0 py-0 pl-1 pr-5 text-xs text-slate-300 focus:ring-0 cursor-pointer">
+<option class="bg-slate-900 text-white" value="es">Español (ES)</option>
+<option class="bg-slate-900 text-white" value="en">English (US)</option>
+<option class="bg-slate-900 text-white" value="fr">Français (FR)</option>
+<option class="bg-slate-900 text-white" value="de">Deutsch (DE)</option>
+</select>
+</div>
+</div>
+</div>
+</div>
+<!-- END: Notification & Quick Utility Bar -->
+<!-- BEGIN: MainHeader -->
+<header class="sticky top-0 z-50 glass-nav border-b border-slate-200/80 shadow-sm transition-all duration-300">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between h-20 gap-4">
+<!-- Logo Dominican Republic -->
+<a class="flex items-center gap-3 shrink-0 group" href="#">
+<div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-caribbean-600 via-caribbean-500 to-coral-500 flex items-center justify-center text-white shadow-md shadow-caribbean-500/25 group-hover:scale-105 transition-transform duration-300">
+<i class="fa-solid fa-umbrella-beach text-xl"></i>
+</div>
+<div>
+<span class="block text-xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-caribbean-700 to-caribbean-600 bg-clip-text text-transparent">
+              República Dominicana
+            </span>
+<span class="block text-[10px] tracking-[0.25em] uppercase font-bold text-coral-500 -mt-1">
+              Lo tiene todo · Punta Cana
+            </span>
+</div>
+</a>
+<!-- Search Bar with Predictive Intent -->
+<div class="hidden xl:flex items-center flex-1 max-w-md mx-6">
+<div class="relative w-full">
+<i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+<input class="w-full pl-10 pr-4 py-2.5 rounded-full bg-slate-100/80 border-transparent text-sm focus:bg-white focus:border-caribbean-500 focus:ring-2 focus:ring-caribbean-500/20 transition-all placeholder:text-slate-400 font-normal" placeholder="¿Qué te gustaría hacer hoy en Punta Cana? Ej: Saona VIP, Surf Macao..." type="text"/>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="hidden lg:flex items-center gap-6 text-sm font-semibold text-slate-700">
+<a class="hover:text-caribbean-600 transition" href="#zonas">Zonas</a>
+<a class="hover:text-caribbean-600 transition" href="#experiencias">Experiencias</a>
+<a class="hover:text-caribbean-600 transition" href="#hoteles">Hoteles &amp; Resorts</a>
+<a class="hover:text-caribbean-600 transition" href="#gastronomia">Gastronomía</a>
+<a class="hover:text-caribbean-600 transition" href="#logistica">Cómo Llegar</a>
+</nav>
+<!-- CTA & AI Planner -->
+<div class="flex items-center gap-3">
+<button class="hidden sm:inline-flex items-center gap-2 bg-gradient-to-r from-coral-500 to-rose-500 hover:from-coral-600 hover:to-rose-600 text-white px-4 py-2.5 rounded-full text-xs md:text-sm font-bold shadow-md shadow-coral-500/25 transition-all hover:shadow-lg hover:-translate-y-0.5">
+<i class="fa-solid fa-wand-magic-sparkles animate-pulse"></i>
+<span>Itinerario con IA</span>
+</button>
+<button aria-label="Abrir Menú" class="p-2.5 text-slate-600 hover:text-caribbean-600 hover:bg-slate-100 rounded-full transition lg:hidden">
+<i class="fa-solid fa-bars text-xl"></i>
+</button>
+</div>
+</div>
+</div>
+</header>
+<!-- END: MainHeader -->
+<!-- BEGIN: HeroSection -->
+<section class="relative min-h-[640px] lg:h-[750px] flex items-center justify-center overflow-hidden">
+<!-- Visual Background: Resort & Coast Snapshot -->
+<div class="absolute inset-0 z-0">
+<img alt="Punta Cana Costa Caribeña y Resorts de Lujo" class="w-full h-full object-cover object-center scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkrEb7OlYs08ciO69g5PuKyCXjbl49i090EF18pTG1E14ssj_e_9PEOyAxm14_anWf2bgg9r1HmrrfdnqgCSpgP1GKlWuu7OFvsVQqNfZdnixglGdGRba3e_QMe-MU79XNiMZhuYvdIwhC1bkXfMvURKVeHGfuGHWLCitEozhxu_jO-1BVFmsGFTPv1-aLsNa3seUeNgic6TvKnN9ZuWQnKjIjD5rQDejEHjG9_LhhKr-l-umF-nNGhmpIFzZnyXoa8w"/>
+<!-- Multi-layer dramatic Caribbean Overlay -->
+<div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-slate-900/30"></div>
+<div class="absolute inset-0 bg-radial from-transparent via-transparent to-black/50"></div>
+</div>
+<!-- Hero Content & Search Engine -->
+<div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full text-center flex flex-col items-center">
+<!-- Badges -->
+<div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-semibold tracking-wide uppercase mb-6 shadow-sm">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        Destino #1 del Caribe · La Altagracia
+      </div>
+<!-- Main Headline -->
+<h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-tight text-glow max-w-4xl">
+        Descubre el paraíso turquesa en <span class="bg-gradient-to-r from-caribbean-300 via-sky-200 to-white bg-clip-text text-transparent">Punta Cana</span>
+</h1>
+<p class="mt-4 text-base sm:text-xl text-slate-200 max-w-2xl font-normal text-glow">
+        48 km de arenas de seda blanca, arrecifes vivos, alta gastronomía criolla y los resorts todo incluido más premiados del planeta.
+      </p>
+<!-- Booking / Exploration Search Widget -->
+<div class="mt-10 w-full max-w-5xl bg-white/95 backdrop-blur-xl rounded-3xl p-4 sm:p-6 shadow-2xl shadow-black/30 border border-white/40 text-left">
+<!-- Interactive Category Switcher -->
+<div class="flex items-center gap-2 border-b border-slate-200 pb-3 mb-4 overflow-x-auto hide-scrollbar">
+<button class="flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-bold bg-caribbean-600 text-white transition shadow-sm shrink-0">
+<i class="fa-solid fa-hotel"></i> Alojamiento &amp; Resorts
+          </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold text-slate-600 hover:text-caribbean-600 hover:bg-slate-100 transition shrink-0">
+<i class="fa-solid fa-compass"></i> Tours &amp; Excursiones
+          </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold text-slate-600 hover:text-caribbean-600 hover:bg-slate-100 transition shrink-0">
+<i class="fa-solid fa-utensils"></i> Gastronomía Local
+          </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold text-slate-600 hover:text-caribbean-600 hover:bg-slate-100 transition shrink-0">
+<i class="fa-solid fa-umbrella-beach"></i> Playas Vírgenes
+          </button>
+</div>
+<!-- Search Fields Form -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+<!-- Zone Selector -->
+<div class="relative">
+<label class="block text-[11px] font-bold tracking-wider uppercase text-slate-500 mb-1">Zona en Punta Cana</label>
+<div class="flex items-center gap-2 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus-within:border-caribbean-500 focus-within:bg-white transition">
+<i class="fa-solid fa-location-dot text-caribbean-500"></i>
+<select class="bg-transparent border-0 p-0 text-sm font-medium text-slate-800 focus:ring-0 w-full cursor-pointer">
+<option value="all">Todas las zonas (Cap Cana, Bávaro...)</option>
+<option value="bavaro">Playa Bávaro (Centro &amp; Fiesta)</option>
+<option value="capcana">Cap Cana (Lujo Privado &amp; Golf)</option>
+<option value="macao">Macao (Surf &amp; Aventura)</option>
+<option value="uvero">Uvero Alto (Boutique &amp; Paz)</option>
+</select>
+</div>
+</div>
+<!-- Date Selector -->
+<div class="relative">
+<label class="block text-[11px] font-bold tracking-wider uppercase text-slate-500 mb-1">Fechas de Viaje</label>
+<div class="flex items-center gap-2 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus-within:border-caribbean-500 focus-within:bg-white transition">
+<i class="fa-regular fa-calendar-days text-caribbean-500"></i>
+<input class="bg-transparent border-0 p-0 text-sm font-medium text-slate-800 focus:ring-0 w-full cursor-pointer" type="text" value="Cualquier fecha (Temporada Alta)"/>
+</div>
+</div>
+<!-- Traveler Type -->
+<div class="relative">
+<label class="block text-[11px] font-bold tracking-wider uppercase text-slate-500 mb-1">Tipo de Viajero</label>
+<div class="flex items-center gap-2 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus-within:border-caribbean-500 focus-within:bg-white transition">
+<i class="fa-solid fa-user-group text-caribbean-500"></i>
+<select class="bg-transparent border-0 p-0 text-sm font-medium text-slate-800 focus:ring-0 w-full cursor-pointer">
+<option value="couple">En Pareja (Romántico / Solo Adultos)</option>
+<option value="family">En Familia (Kids Club &amp; Parque)</option>
+<option value="friends">Grupo de Amigos (Vida Nocturna)</option>
+<option value="solo">Viajero Solitario / Nómada</option>
+</select>
+</div>
+</div>
+<!-- Submit Button -->
+<div class="pt-1 sm:pt-4 lg:pt-0">
+<button class="w-full bg-gradient-to-r from-caribbean-500 to-caribbean-600 hover:from-caribbean-600 hover:to-caribbean-700 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-caribbean-500/30 flex items-center justify-center gap-2 transition transform active:scale-95">
+<i class="fa-solid fa-magnifying-glass"></i>
+<span>Explorar Ahora</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: HeroSection -->
+<!-- BEGIN: HighlightMetrics -->
+<section class="relative -mt-6 z-20 max-w-6xl mx-auto px-4 sm:px-6">
+<div class="bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 p-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+<div class="border-r last:border-0 border-slate-100">
+<p class="text-3xl font-extrabold text-caribbean-600">48 km</p>
+<p class="text-xs font-medium text-slate-500 mt-1 uppercase tracking-wider">Playas de Arena Blanca</p>
+</div>
+<div class="border-r last:border-0 border-slate-100">
+<p class="text-3xl font-extrabold text-coral-500">27°C</p>
+<p class="text-xs font-medium text-slate-500 mt-1 uppercase tracking-wider">Temperatura Media Anual</p>
+</div>
+<div class="border-r last:border-0 border-slate-100">
+<p class="text-3xl font-extrabold text-caribbean-600">+100</p>
+<p class="text-xs font-medium text-slate-500 mt-1 uppercase tracking-wider">Resorts de Primer Nivel</p>
+</div>
+<div>
+<p class="text-3xl font-extrabold text-coral-500">70+</p>
+<p class="text-xs font-medium text-slate-500 mt-1 uppercase tracking-wider">Conexiones Aéreas Directas</p>
+</div>
+</div>
+</section>
+<!-- END: HighlightMetrics -->
+<!-- BEGIN: ExplorationByZones -->
+<section class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" id="zonas">
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-12">
+<div>
+<div class="inline-flex items-center gap-2 text-caribbean-600 text-xs font-bold uppercase tracking-wider mb-2">
+<i class="fa-solid fa-map-location-dot"></i> Micro-Destinos Destacados
+        </div>
+<h2 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Explora Punta Cana por Zonas</h2>
+</div>
+<p class="text-slate-600 text-sm max-w-md mt-3 md:mt-0 font-normal">
+        Cada rincón posee su propia atmósfera: desde campos de golf de clase mundial y santuarios de lujo hasta playas rústicas de olas cristalinas.
+      </p>
+</div>
+<!-- Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Zone 1: Cap Cana -->
+<article class="group relative rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition duration-500 bg-slate-900 flex flex-col justify-end min-h-[380px]">
+<img alt="Cap Cana Marina y Golf" class="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-110 transition duration-700 opacity-75" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_ArspA1H5lFBTl7aldtGNxJDJDO4_1Ck2TaBkvGwRa6M74THqare-73x48kZ1jJiG55an2jL4F_7Sabuf9GW2q5a0CbG_xJvTa6Y78wn723BzNOOiAAwEo9hcaKxaSSmIYjBNBXZf9ZBg4rgTLYsIxlAoY19by2M3ZX_PJjhLKNEkfNJGeHr3jP6D-kl-5cdsW7IDpbr5QAWBUGmueRgmseE1XVWMkjtjX5vwrFyVjNefntCAiAai3-tiTxnbyu4GhQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+<div class="relative p-6">
+<span class="inline-block px-3 py-1 rounded-full bg-coral-500/90 text-white text-[11px] font-bold tracking-wide uppercase mb-2">
+            Lujo Privado &amp; Golf
+          </span>
+<h3 class="text-2xl font-bold text-white mb-1 group-hover:text-caribbean-300 transition">Cap Cana</h3>
+<p class="text-xs text-slate-300 line-clamp-2 mb-4">
+            Marina de megayates, el galardonado campo Punta Espada Golf Club y parques ecológicos de aventura.
+          </p>
+<div class="flex items-center justify-between text-xs text-white/90 pt-3 border-t border-white/20">
+<span><i class="fa-solid fa-martini-glass text-coral-400 mr-1"></i> Beach Clubs VIP</span>
+<span class="font-bold flex items-center gap-1 group-hover:translate-x-1 transition">Descubrir <i class="fa-solid fa-arrow-right"></i></span>
+</div>
+</div>
+</article>
+<!-- Zone 2: Playa Bávaro -->
+<article class="group relative rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition duration-500 bg-slate-900 flex flex-col justify-end min-h-[380px]">
+<img alt="Playa Bávaro Resorts y Palmeras" class="absolute inset-0 w-full h-full object-cover object-top group-hover:scale-110 transition duration-700 opacity-75" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7t5-hlqce8p7-zPEvDy1GRwDriGn5afJbwZAw0v0NuL36KmkhOeb6gcwKW5hZ7ZfPSsmYtxwAgtbxk19UfdizYAmI1fkTfUeotAFqyArwD200TVCMVhFSzjm2BdTjWsn0lfG4AhH8nFmPJAKo5Zne-jqnMgQeN_Upys4RxEF6Mwh0XEvrbFwBw1-q1h8ahVxg968yClOQxdxfw_yIJ5Xm2JTYnLmZrISnRkSCxwz3m9y3FSyyzUZcBHTBqRrzKXuvbQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+<div class="relative p-6">
+<span class="inline-block px-3 py-1 rounded-full bg-caribbean-500 text-white text-[11px] font-bold tracking-wide uppercase mb-2">
+            El Corazón del Caribe
+          </span>
+<h3 class="text-2xl font-bold text-white mb-1 group-hover:text-caribbean-300 transition">Playa Bávaro</h3>
+<p class="text-xs text-slate-300 line-clamp-2 mb-4">
+            Declarada por la UNESCO como una de las mejores playas del mundo. Cocoteros infinitos, ocio y vida nocturna.
+          </p>
+<div class="flex items-center justify-between text-xs text-white/90 pt-3 border-t border-white/20">
+<span><i class="fa-solid fa-water text-caribbean-400 mr-1"></i> Aguas calmas</span>
+<span class="font-bold flex items-center gap-1 group-hover:translate-x-1 transition">Descubrir <i class="fa-solid fa-arrow-right"></i></span>
+</div>
+</div>
+</article>
+<!-- Zone 3: Macao -->
+<article class="group relative rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition duration-500 bg-slate-900 flex flex-col justify-end min-h-[380px]">
+<img alt="Macao Beach Surf and Dune Buggies" class="absolute inset-0 w-full h-full object-cover object-bottom group-hover:scale-110 transition duration-700 opacity-75" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9EC0uNSnBdk7WTIldZyUdnmHzvyuCHwIDuVsfNZBsrgIPLQbH3vIb7TouM02_WMTsstPdRVoJskv2f7R7gdP8Z9zN9ZssX-xqGy5jyBVXh9unXpCr9Y-VgBClv3_Px3AuVRuTxlZvIDHcnwNbcOsUnoz92qmhiiGsiOQ6OBxzrmX6rfnkPZW_0T5GXLNeLaPjC9wPjX1d_t0wiCZK3YKHbg2-gonsLEjVvM0Kfk40MUCBehmsFz5PrXl_8aYeu33s0Q"/>
+<div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+<div class="relative p-6">
+<span class="inline-block px-3 py-1 rounded-full bg-amber-500 text-white text-[11px] font-bold tracking-wide uppercase mb-2">
+            Surf &amp; Buggies 4x4
+          </span>
+<h3 class="text-2xl font-bold text-white mb-1 group-hover:text-caribbean-300 transition">Playa Macao</h3>
+<p class="text-xs text-slate-300 line-clamp-2 mb-4">
+            Playa virgen de oleaje perfecto para surfing, chiringuitos de pescado frito tradicional y rutas en todoterreno.
+          </p>
+<div class="flex items-center justify-between text-xs text-white/90 pt-3 border-t border-white/20">
+<span><i class="fa-solid fa-fish text-amber-400 mr-1"></i> Cocina auténtica</span>
+<span class="font-bold flex items-center gap-1 group-hover:translate-x-1 transition">Descubrir <i class="fa-solid fa-arrow-right"></i></span>
+</div>
+</div>
+</article>
+<!-- Zone 4: Uvero Alto -->
+<article class="group relative rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition duration-500 bg-slate-900 flex flex-col justify-end min-h-[380px]">
+<img alt="Uvero Alto Relajación y Playas Doradas" class="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-110 transition duration-700 opacity-75" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWcmrTdTPXcFj-LtedRDCERk99uB6eThtkg3AOdMujFJV-TElfBuCt9Ap2vKF1reNwqRovh8bHL4BiGVNU1biVwRLSGauno-1jpTc_50187LsttiOZ0fjHpFuKHTStZjuTVV0xo1rCfkPHQKfjRwc9PL-RFxUsBBgS9Pe05cOv0dkFfqaWZhs3DLa1QKmJNjqkK4JRMREu8WQVrHuBBSbRdp0J3NYAu86k6eikCrxA4BAk6mVQAuuaYNZhOVL1Nl7f0w"/>
+<div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+<div class="relative p-6">
+<span class="inline-block px-3 py-1 rounded-full bg-emerald-600 text-white text-[11px] font-bold tracking-wide uppercase mb-2">
+            Serenidad &amp; Bienestar
+          </span>
+<h3 class="text-2xl font-bold text-white mb-1 group-hover:text-caribbean-300 transition">Uvero Alto</h3>
+<p class="text-xs text-slate-300 line-clamp-2 mb-4">
+            Aguas de color turquesa intenso con arenas tostadas, hoteles boutique de bienestar y retiros románticos.
+          </p>
+<div class="flex items-center justify-between text-xs text-white/90 pt-3 border-t border-white/20">
+<span><i class="fa-solid fa-spa text-emerald-400 mr-1"></i> Resorts Wellness</span>
+<span class="font-bold flex items-center gap-1 group-hover:translate-x-1 transition">Descubrir <i class="fa-solid fa-arrow-right"></i></span>
+</div>
+</div>
+</article>
+</div>
+</section>
+<!-- END: ExplorationByZones -->
+<!-- BEGIN: SignatureAdventures -->
+<section class="py-16 bg-slate-100/70 border-y border-slate-200" id="experiencias">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center max-w-3xl mx-auto mb-14">
+<span class="text-xs font-bold uppercase tracking-widest text-caribbean-600 bg-caribbean-100/80 px-3.5 py-1 rounded-full">
+          Experiencias Imprescindibles
+        </span>
+<h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3 tracking-tight">
+          Aventuras que solo vivirás en República Dominicana
+        </h2>
+<p class="text-slate-600 text-sm mt-3">
+          Reserva experiencias certificadas por guías oficiales con traslados directos desde tu lobby.
+        </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Experience Card 1 -->
+<div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 flex flex-col">
+<div class="relative h-48 overflow-hidden">
+<img alt="Isla Saona Catamarán VIP" class="w-full h-full object-cover group-hover:scale-105 transition" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMSp_PerTkSN-6ne5Ihxu-vm4cRA05A2ILSxzXhtMtMV4Hy3z9jR_pLgWHCXiogDyFaOn5UYPXKqUdj-7HoDWWuVyfWvya1utZ2RMNWJxZsTXVT1_np8z1PPhzFdTDCse8uCDAV4b_NR_xY_GCbOvCJYho0Iz16nsG6zNhWf-ebFuqpFCzMW0T_1biJ916wTAiJ3B7QDjqNV1jV3YiRS0MJpcjZ2myPiyeOchqzcTNwBRSsiQUTczE1y-FqJDcmQ175w"/>
+<span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-slate-900 font-extrabold text-[11px] px-2.5 py-1 rounded-lg shadow-sm">
+<i class="fa-solid fa-star text-amber-400"></i> 4.9 (4,820)
+            </span>
+<span class="absolute bottom-3 right-3 bg-slate-950/80 text-white text-[11px] font-semibold px-2 py-0.5 rounded-md">
+              Día Completo
+            </span>
+</div>
+<div class="p-5 flex-1 flex flex-col justify-between">
+<div>
+<p class="text-xs font-bold uppercase text-caribbean-600 mb-1">Catamarán Premium</p>
+<h3 class="font-bold text-slate-900 text-base leading-snug">Isla Saona VIP &amp; Piscina Natural de Estrellas</h3>
+<p class="text-xs text-slate-500 mt-2">Navegación en catamarán de vela, buffet libre caribeño y parada en banco de arena en medio del océano.</p>
+</div>
+<div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+<div>
+<span class="text-[10px] uppercase text-slate-400 font-semibold block">Desde</span>
+<span class="text-base font-extrabold text-slate-900">$89 USD</span>
+</div>
+<button class="bg-caribbean-50 text-caribbean-600 hover:bg-caribbean-600 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition">
+                Reservar
+              </button>
+</div>
+</div>
+</div>
+<!-- Experience Card 2 -->
+<div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 flex flex-col">
+<div class="relative h-48 overflow-hidden">
+<img alt="Cenote Hoyo Azul Scape Park" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCw_yv-BrbKBGnrLOLZzkqDVDf7dihqsv3X2ILBFTeRyMv_5HIVFN4-pFRh9vJBLOxt5aNDzH0xUcEbcV_1mFG-uHgtJ0ZLVKOrUFe_xmA2NDMt1z2vV6l58XOrnP1zrbBtkL27Q8D0OR8_exlqv1ZicTgiOs4MoIE46JY371weqkzYK7Mauwn2r-eszESBHqx_vMKZZ1C98NAytq8pI3b-B2Q3JYuqvdeQOmbas5SH2hVHWGQLLszvu9-POLLe6tN9Ng"/>
+<span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-slate-900 font-extrabold text-[11px] px-2.5 py-1 rounded-lg shadow-sm">
+<i class="fa-solid fa-star text-amber-400"></i> 4.8 (3,150)
+            </span>
+<span class="absolute bottom-3 right-3 bg-slate-950/80 text-white text-[11px] font-semibold px-2 py-0.5 rounded-md">
+              Medio Día
+            </span>
+</div>
+<div class="p-5 flex-1 flex flex-col justify-between">
+<div>
+<p class="text-xs font-bold uppercase text-emerald-600 mb-1">Ecoturismo &amp; Tirolesa</p>
+<h3 class="font-bold text-slate-900 text-base leading-snug">Cenote Hoyo Azul &amp; Cavernas en Scape Park</h3>
+<p class="text-xs text-slate-500 mt-2">Báñate en aguas subterráneas color turquesa nacidas en un acantilado de roca caliza de 75 metros.</p>
+</div>
+<div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+<div>
+<span class="text-[10px] uppercase text-slate-400 font-semibold block">Desde</span>
+<span class="text-base font-extrabold text-slate-900">$129 USD</span>
+</div>
+<button class="bg-caribbean-50 text-caribbean-600 hover:bg-caribbean-600 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition">
+                Reservar
+              </button>
+</div>
+</div>
+</div>
+<!-- Experience Card 3 -->
+<div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 flex flex-col">
+<div class="relative h-48 overflow-hidden">
+<img alt="Reserva Ojos Indígenas" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVpigjTZ-hoSJNGZ0JMhLvuCzDBXKMZu65mcJwPJLPRUPNOZ2fZvkFzh9VG1AYBCnkuacGaO6WD0lb3ldyBfllEoKxVdR0rNfzxtI1Uwa3quXSvBfb761NBfErFrW7_4ZF7fAKztGP_0VYW4vwti8b7f97pz1OXbKh7W--lnkBqasMFK56NeEITQbakOowwsonKtGkjHYxA6T72bYIOKc-uJy2Sd250bXgR0e7Xz5Gl_ReAz4IAK5t_g2ctxcG_mHChA"/>
+<span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-slate-900 font-extrabold text-[11px] px-2.5 py-1 rounded-lg shadow-sm">
+<i class="fa-solid fa-star text-amber-400"></i> 4.9 (1,920)
+            </span>
+<span class="absolute bottom-3 right-3 bg-slate-950/80 text-white text-[11px] font-semibold px-2 py-0.5 rounded-md">
+              4 Horas
+            </span>
+</div>
+<div class="p-5 flex-1 flex flex-col justify-between">
+<div>
+<p class="text-xs font-bold uppercase text-caribbean-600 mb-1">Sendero Natural</p>
+<h3 class="font-bold text-slate-900 text-base leading-snug">Reserva Ecológica Ojos Indígenas</h3>
+<p class="text-xs text-slate-500 mt-2">Bosque subtropical protegido con 12 lagunas de agua dulce cristalina y avistamiento de aves endémicas.</p>
+</div>
+<div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+<div>
+<span class="text-[10px] uppercase text-slate-400 font-semibold block">Desde</span>
+<span class="text-base font-extrabold text-slate-900">$50 USD</span>
+</div>
+<button class="bg-caribbean-50 text-caribbean-600 hover:bg-caribbean-600 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition">
+                Reservar
+              </button>
+</div>
+</div>
+</div>
+<!-- Experience Card 4 -->
+<div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 flex flex-col">
+<div class="relative h-48 overflow-hidden">
+<img alt="Snorkel &amp; Party Boat" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDe50MQQTrzOMzuaxNI4l6cx-z6BeMMZj_wbXtqkXe3NLbve4c7wsMPtn2n_quxHg-xB2RF5kzZt4xRLUBcFlZSFbRzkUlwljq6ENauky2dgSjV3evmfj8oi-kKGgUnHA57tgpDUOW85zsBgyjiMb-u6Hc5IGnPDPS41u9Sr5RfxtHHd8YVp3Jz9UNqnMXRF0TmLqa_smXZ_tp8ghsrGIde8TUMxEynnGlXp9O74ctiznunLwk7pBFecQNitwcWpiXoZw"/>
+<span class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm text-slate-900 font-extrabold text-[11px] px-2.5 py-1 rounded-lg shadow-sm">
+<i class="fa-solid fa-star text-amber-400"></i> 4.7 (2,430)
+            </span>
+<span class="absolute bottom-3 right-3 bg-slate-950/80 text-white text-[11px] font-semibold px-2 py-0.5 rounded-md">
+              3.5 Horas
+            </span>
+</div>
+<div class="p-5 flex-1 flex flex-col justify-between">
+<div>
+<p class="text-xs font-bold uppercase text-coral-500 mb-1">Acuático &amp; Diversión</p>
+<h3 class="font-bold text-slate-900 text-base leading-snug">Snorkel en Arrecife de Coral &amp; Party Boat</h3>
+<p class="text-xs text-slate-500 mt-2">Explora peces tropicales y corales en el Cabeza de Toro Reef con barra libre de ron criollo.</p>
+</div>
+<div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+<div>
+<span class="text-[10px] uppercase text-slate-400 font-semibold block">Desde</span>
+<span class="text-base font-extrabold text-slate-900">$65 USD</span>
+</div>
+<button class="bg-caribbean-50 text-caribbean-600 hover:bg-caribbean-600 hover:text-white px-3.5 py-2 rounded-xl text-xs font-bold transition">
+                Reservar
+              </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Banner / Call to Action -->
+<div class="mt-12 bg-gradient-to-r from-caribbean-600 to-caribbean-800 rounded-3xl p-8 sm:p-10 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+<div>
+<span class="bg-white/20 text-white text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full mb-3 inline-block">
+            Garantía Oficial de Calidad
+          </span>
+<h3 class="text-2xl sm:text-3xl font-bold">¿Tienes dudas o buscas un plan a medida?</h3>
+<p class="text-caribbean-100 text-sm max-w-xl mt-1">Conecta con los consultores certificados del Ministerio de Turismo para recomendaciones sin comisiones.</p>
+</div>
+<button class="shrink-0 bg-coral-500 hover:bg-coral-600 text-white px-6 py-3.5 rounded-full font-bold text-sm shadow-lg shadow-coral-500/30 transition">
+          Hablar con un Experto Local
+        </button>
+</div>
+</div>
+</section>
+<!-- END: SignatureAdventures -->
+<!-- BEGIN: HotelsSection -->
+<section class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" id="hoteles">
+<div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-10 gap-4">
+<div>
+<span class="text-xs font-bold uppercase tracking-widest text-caribbean-600">Alojamientos Icónicos</span>
+<h2 class="text-3xl sm:text-4xl font-black text-slate-900 mt-1">Hoteles &amp; Resorts Recomendados</h2>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white shadow-sm">Todos</button>
+<button class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Solo Adultos</button>
+<button class="px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Familiar Todo Incluido</button>
+</div>
+</div>
+<!-- Hotel Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Hotel 1 -->
+<article class="bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-md hover:shadow-xl transition-all duration-300 group">
+<div class="relative h-64 overflow-hidden">
+<img alt="Hard Rock Hotel &amp; Casino Punta Cana" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCD0SSPXnvVKdicJXjRUWd6AlJrVwqwoPimt2cGCPupa5oaSmHNf9dqXjSEwhkK0eY-yd7AOhab36YDVR4coebcN-diHwO_Ny2UZklk-ju4qX-IfzJI0Oc5j_5S4rGPKTyJcjwDdlVej2w3ds_k7hq_FTnUiOFYHytUYf29wgZE_dX1yjwc7HGaTPOczPnBeyBYMTLDC3i0earC7mN_G4BGHKHZiSF9iRTh5wOZoQX6Y5d5gHQ92Mf9BOpcZuvtUpbUVA"/>
+<span class="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-slate-800 shadow-sm">
+<i class="fa-solid fa-star text-amber-400 mr-1"></i> 4.7 (12.5k reviews)
+          </span>
+<span class="absolute bottom-3 left-3 bg-coral-500 text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg">
+            Todo Incluido Legendario
+          </span>
+</div>
+<div class="p-6">
+<div class="flex items-center gap-2 text-xs text-slate-500 mb-2">
+<i class="fa-solid fa-location-dot text-caribbean-500"></i>
+<span>Playa Macao / Bávaro, Punta Cana</span>
+</div>
+<h3 class="text-xl font-bold text-slate-900 group-hover:text-caribbean-600 transition">Hard Rock Hotel &amp; Casino</h3>
+<p class="text-xs text-slate-600 mt-2 leading-relaxed">
+            13 piscinas expansivas, el casino más grande del Caribe, 9 restaurantes de alta cocina y campo de golf Nicklaus Design.
+          </p>
+<div class="mt-4 flex flex-wrap gap-2">
+<span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-1 rounded-md"><i class="fa-solid fa-water-ladder text-caribbean-500 mr-1"></i> 13 Piscinas</span>
+<span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-1 rounded-md"><i class="fa-solid fa-utensils text-caribbean-500 mr-1"></i> 9 Restaurantes</span>
+<span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-1 rounded-md"><i class="fa-solid fa-music text-caribbean-500 mr-1"></i> Shows en vivo</span>
+</div>
+<div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+<div>
+<span class="text-[10px] uppercase text-slate-400 block font-semibold">Noche desde</span>
+<span class="text-lg font-black text-slate-900">$340 <span class="text-xs font-normal text-slate-500">/ hab.</span></span>
+</div>
+<button class="bg-caribbean-600 hover:bg-caribbean-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm">
+              Ver Disponibilidad
+            </button>
+</div>
+</div>
+</article>
+<!-- Hotel 2 -->
+<article class="bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-md hover:shadow-xl transition-all duration-300 group">
+<div class="relative h-64 overflow-hidden">
+<img alt="Excellence Punta Cana Resort" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEDEDU9XZfO4p3Cno5TLUQWVX1krSZvbflWGrFPQw27ZKGSuQ3rjsjD4penFmsUp4CbQ9T2pRmppjezRZs2Nc7ZIJ_3iXsKrbT4Pc2ZWa4RFgZX8QHuqdQkHtaXoHqKSOf4uf0aWeya-5mMw8Zib9J99QXlLDAPE22Z2BtcssN-3RD986Z5RLzHksDn6qZ1rw-yvRBfyrMGDKJtZPcyNHKPuJAtxdiTf5sTsND_VJqCuhuPqMKIB6besACalAZn_S2KA"/>
+<span class="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-slate-800 shadow-sm">
+<i class="fa-solid fa-star text-amber-400 mr-1"></i> 4.8 (4,200 reviews)
+          </span>
+<span class="absolute bottom-3 left-3 bg-slate-900 text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg">
+            Solo Adultos VIP
+          </span>
+</div>
+<div class="p-6">
+<div class="flex items-center gap-2 text-xs text-slate-500 mb-2">
+<i class="fa-solid fa-location-dot text-caribbean-500"></i>
+<span>Uvero Alto, Punta Cana</span>
+</div>
+<h3 class="text-xl font-bold text-slate-900 group-hover:text-caribbean-600 transition">Excellence Punta Cana</h3>
+<p class="text-xs text-slate-600 mt-2 leading-relaxed">
+            Santuario romántico frente al mar rodeado de cocoteros, suites con acceso a piscina swim-up y spa de hidroterapia.
+          </p>
+<div class="mt-4 flex flex-wrap gap-2">
+<span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-1 rounded-md"><i class="fa-solid fa-heart text-coral-500 mr-1"></i> Solo Parejas</span>
+<span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-1 rounded-md"><i class="fa-solid fa-champagne-glasses text-coral-500 mr-1"></i> Licores Premium</span>
+<span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-1 rounded-md"><i class="fa-solid fa-spa text-coral-500 mr-1"></i> Miilé Spa</span>
+</div>
+<div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+<div>
+<span class="text-[10px] uppercase text-slate-400 block font-semibold">Noche desde</span>
+<span class="text-lg font-black text-slate-900">$410 <span class="text-xs font-normal text-slate-500">/ hab.</span></span>
+</div>
+<button class="bg-caribbean-600 hover:bg-caribbean-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm">
+              Ver Disponibilidad
+            </button>
+</div>
+</div>
+</article>
+<!-- Hotel 3 -->
+<article class="bg-white rounded-3xl overflow-hidden border border-slate-200/80 shadow-md hover:shadow-xl transition-all duration-300 group">
+<div class="relative h-64 overflow-hidden">
+<img alt="Eden Roc Cap Cana" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3zYJY9jepk0j-wxmkcuYIoiDwhH0Aa0kZAhiOwyih8B5uLBWtUpFM1lev_YugaMo5WWRkZx8lbf3kAX0tGSoZL-pwPUg0LKoCZpg7glsaMY9NlqI1KVMTe_fcpGlmxPIaxupXWNkwp4iylHYQXmmk9OGgNYrgZhSVoZYDog4nkoLhQ-FDZYYr9RP32mOYNaq6JU-f8LJjrEism_2haxwnAEMyTxhk7RU4PWc3iIKrvSwawLtxEEW6jpEyAs2TGLumaA"/>
+<span class="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-slate-800 shadow-sm">
+<i class="fa-solid fa-star text-amber-400 mr-1"></i> 5.0 (1,850 reviews)
+          </span>
+<span class="absolute bottom-3 left-3 bg-amber-600 text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg">
+            Relais &amp; Châteaux Lujo
+          </span>
+</div>
+<div class="p-6">
+<div class="flex items-center gap-2 text-xs text-slate-500 mb-2">
+<i class="fa-solid fa-location-dot text-caribbean-500"></i>
+<span>Cap Cana, Punta Cana</span>
+</div>
+<h3 class="text-xl font-bold text-slate-900 group-hover:text-caribbean-600 transition">Eden Roc Cap Cana</h3>
+<p class="text-xs text-slate-600 mt-2 leading-relaxed">
+            Villas ultralujosas con piscina privada, acceso exclusivo a Caletón Beach Club y gastronomía de autor mediterránea-caribeña.
+          </p>
+<div class="mt-4 flex flex-wrap gap-2">
+<span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-1 rounded-md"><i class="fa-solid fa-golf-ball-tee text-emerald-500 mr-1"></i> Acceso Golf</span>
+<span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-1 rounded-md"><i class="fa-solid fa-ship text-emerald-500 mr-1"></i> Beach Club Privado</span>
+<span class="text-[11px] bg-slate-100 text-slate-600 px-2 py-1 rounded-md"><i class="fa-solid fa-person-shelter text-emerald-500 mr-1"></i> Villas Privadas</span>
+</div>
+<div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+<div>
+<span class="text-[10px] uppercase text-slate-400 block font-semibold">Noche desde</span>
+<span class="text-lg font-black text-slate-900">$780 <span class="text-xs font-normal text-slate-500">/ hab.</span></span>
+</div>
+<button class="bg-caribbean-600 hover:bg-caribbean-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm">
+              Ver Disponibilidad
+            </button>
+</div>
+</div>
+</article>
+</div>
+</section>
+<!-- END: HotelsSection -->
+<!-- BEGIN: GastronomyRoute -->
+<section class="py-20 bg-slate-900 text-white relative overflow-hidden" id="gastronomia">
+<!-- Ambient Light Accent -->
+<div class="absolute -top-32 -left-32 w-96 h-96 bg-coral-500/20 rounded-full blur-3xl"></div>
+<div class="absolute -bottom-32 -right-32 w-96 h-96 bg-caribbean-500/20 rounded-full blur-3xl"></div>
+<div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="max-w-2xl">
+<span class="text-xs font-bold uppercase tracking-widest text-coral-400 bg-coral-500/10 px-3 py-1 rounded-full border border-coral-500/20">
+          Sabores con Alma Quisqueyana
+        </span>
+<h2 class="text-3xl sm:text-4xl font-black mt-3 tracking-tight">Ruta Gastronómica Dominicana</h2>
+<p class="text-slate-300 text-sm mt-3 leading-relaxed">
+          Descubre la fusión taína, española y afrocaribeña. Pescados frescos traídos por pescadores artesanales al amanecer y recetas centenarias marinadas con cítricos nativos.
+        </p>
+</div>
+<!-- Culinary Dishes Grid -->
+<div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Dish 1 -->
+<div class="bg-slate-800/80 rounded-3xl p-6 border border-slate-700 backdrop-blur hover:border-slate-600 transition flex flex-col justify-between">
+<div>
+<div class="h-44 rounded-2xl overflow-hidden mb-5">
+<img alt="Chivo Guisado Liniero" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDb-TvSLMvQnz9X_joIKDksCN4XJ7yxpNIhlLJGtIzzil5kvphVoE0K_yxKoWDZHHdd3F4-kiCJKCMGkkpETMXx2CnxHGiBXTPpPfYKQzlXiof4ywns_izI2jmIqcI6juyNK7vkJv-c9ewDZVf0ZrZA8sYE2L3LU7yfWUGWP_ixG_He4YbkHHgz3ltmyw_UEleOw2_v31ObDgFhkdIgshcEN_3z7aog8rp4oE-0Rp2XcHEQtZJGzXOi8nhxbYZIltGALA"/>
+</div>
+<div class="flex items-center gap-2 mb-2">
+<span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">Plato Fuerte Criollo</span>
+<span class="text-xs text-slate-400"><i class="fa-regular fa-clock mr-1"></i> Fuego Lento</span>
+</div>
+<h3 class="text-xl font-bold">Chivo Guisado Liniero</h3>
+<p class="text-xs text-slate-300 mt-2 leading-relaxed">
+              Carne tierna y jugosa marinada con orégano silvestre, ajo criollo y naranja agria, reducida lentamente con toque de ají picante caribeño.
+            </p>
+</div>
+<div class="pt-4 mt-6 border-t border-slate-700/80 flex items-center justify-between">
+<span class="text-xs text-coral-400 font-semibold">Maridaje: Ron Añejo Dominicano</span>
+<button class="text-xs font-bold text-caribbean-400 hover:text-caribbean-300 flex items-center gap-1">
+              Ver Receta <i class="fa-solid fa-chevron-right text-[10px]"></i>
+</button>
+</div>
+</div>
+<!-- Dish 2 -->
+<div class="bg-slate-800/80 rounded-3xl p-6 border border-slate-700 backdrop-blur hover:border-slate-600 transition flex flex-col justify-between">
+<div>
+<div class="h-44 rounded-2xl overflow-hidden mb-5">
+<img alt="Pescado Frito Costero" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqy0WlisLQjrAVGEb4yxenK9z8G3Z6AjeitXlhSDYzNf1ihQN8Y0iVW-uvt9giGI0kUtWHw2B1grfzQ6SQqP6TfEwAaso121jEzCeAdnLmBgNyiCjRypHz2hDA8sMdmKL-vlue-rOV2-l3d6VV3djS2yccutmjxzH26YCcGw6EqoZ_JS4a78MGp9ucOKQFaEdYzC-6x7sVbk1FFgL-I2ksk7m7eG5bVJcbH7OOHN98GZJN5D2kUGkF7hVvCgJjeswGYg"/>
+</div>
+<div class="flex items-center gap-2 mb-2">
+<span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-caribbean-500/20 text-caribbean-300">Especialidad Costera</span>
+<span class="text-xs text-slate-400"><i class="fa-regular fa-clock mr-1"></i> 30 Minutos</span>
+</div>
+<h3 class="text-xl font-bold">Pescado Frito Playero</h3>
+<p class="text-xs text-slate-300 mt-2 leading-relaxed">
+              Chillo o mero fresco entero sazonado a la minuta, frito al punto crocante perfecto. Servido tradicionalmente con tostones de plátano verde y limón criollo.
+            </p>
+</div>
+<div class="pt-4 mt-6 border-t border-slate-700/80 flex items-center justify-between">
+<span class="text-xs text-coral-400 font-semibold">Maridaje: Cerveza Presidente Helada</span>
+<button class="text-xs font-bold text-caribbean-400 hover:text-caribbean-300 flex items-center gap-1">
+              Ver Receta <i class="fa-solid fa-chevron-right text-[10px]"></i>
+</button>
+</div>
+</div>
+<!-- Dish 3 -->
+<div class="bg-slate-800/80 rounded-3xl p-6 border border-slate-700 backdrop-blur hover:border-slate-600 transition flex flex-col justify-between">
+<div>
+<div class="h-44 rounded-2xl overflow-hidden mb-5">
+<img alt="Casabe Torta Taína" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2N8gXUODNkJx1ivzJrpm0y8hbpom-_l-GcFwF-M4xmz7GLb5jG6QmBdbmOsY2u1q5sWs7dJVBHLCyhNnUcAOxcdO8ROnmIf-WpI0K3iq1tXxiFcsDkKqbBxPoplUqbdaZjXIRj2BfKPnYu7LcCa2B3JVRfZKHFJOQU-bS7TWpFeQDXZAPTUxJQO2goYfgVpqJY2puSDvrhY4-V66hGbATZakRB20iopl34YQE0pCmUGm1nLyYrPKGBw6waStEM5mZHQ"/>
+</div>
+<div class="flex items-center gap-2 mb-2">
+<span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-coral-500/20 text-coral-300">Herencia Precolombina</span>
+<span class="text-xs text-slate-400"><i class="fa-solid fa-award mr-1"></i> Patrimonio Cultural</span>
+</div>
+<h3 class="text-xl font-bold">Casabe &amp; Mofongo Típico</h3>
+<p class="text-xs text-slate-300 mt-2 leading-relaxed">
+              Torta crujiente milenaria 100% de yuca prensada en burén, acompañada de mofongo de chicharrón con caldo de mariscos servido en pilón de madera.
+            </p>
+</div>
+<div class="pt-4 mt-6 border-t border-slate-700/80 flex items-center justify-between">
+<span class="text-xs text-coral-400 font-semibold">Maridaje: Mamajuana Digestiva</span>
+<button class="text-xs font-bold text-caribbean-400 hover:text-caribbean-300 flex items-center gap-1">
+              Ver Receta <i class="fa-solid fa-chevron-right text-[10px]"></i>
+</button>
+</div>
+</div>
+</div>
+<!-- Discovery strip -->
+<div class="mt-12 bg-white/10 border border-white/10 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-coral-500 flex items-center justify-center text-white shrink-0 text-xl">
+<i class="fa-solid fa-utensils"></i>
+</div>
+<div>
+<h4 class="font-bold text-base">¿Prefieres degustar estos platos en un restaurante certificado?</h4>
+<p class="text-xs text-slate-300">Explora comedores típicos con pescadores de Boca de Yuma y galardonados bistrós en Punta Cana Village.</p>
+</div>
+</div>
+<button class="shrink-0 bg-caribbean-500 hover:bg-caribbean-600 text-white font-bold text-xs px-6 py-3 rounded-xl transition">
+          Ver Restaurantes Certificados
+        </button>
+</div>
+</div>
+</section>
+<!-- END: GastronomyRoute -->
+<!-- BEGIN: TravelLogistics -->
+<section class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" id="logistica">
+<div class="text-center max-w-2xl mx-auto mb-14">
+<span class="text-xs font-bold uppercase tracking-widest text-caribbean-600">Conectividad &amp; Ruta</span>
+<h2 class="text-3xl sm:text-4xl font-black text-slate-900 mt-2 tracking-tight">Planifica tu Llegada a Punta Cana</h2>
+<p class="text-slate-600 text-sm mt-3">
+        La Autovía del Coral conecta con las principales capitales culturales y turísticas del país por autopistas modernas y vigiladas.
+      </p>
+</div>
+<!-- Distance & Travel Time Cards -->
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+<!-- Route 1: Higüey -->
+<div class="bg-white p-4 rounded-2xl border border-slate-200 text-center shadow-sm hover:border-caribbean-400 transition">
+<div class="w-10 h-10 mx-auto rounded-full bg-caribbean-50 text-caribbean-600 flex items-center justify-center mb-2">
+<i class="fa-solid fa-car"></i>
+</div>
+<h4 class="font-bold text-xs text-slate-800">Desde Higüey</h4>
+<p class="text-lg font-black text-caribbean-600 mt-1">48 km</p>
+<span class="text-[11px] text-slate-500 font-medium"><i class="fa-regular fa-clock mr-1"></i> 48 min</span>
+</div>
+<!-- Route 2: La Romana -->
+<div class="bg-white p-4 rounded-2xl border border-slate-200 text-center shadow-sm hover:border-caribbean-400 transition">
+<div class="w-10 h-10 mx-auto rounded-full bg-caribbean-50 text-caribbean-600 flex items-center justify-center mb-2">
+<i class="fa-solid fa-car"></i>
+</div>
+<h4 class="font-bold text-xs text-slate-800">Desde La Romana</h4>
+<p class="text-lg font-black text-caribbean-600 mt-1">88 km</p>
+<span class="text-[11px] text-slate-500 font-medium"><i class="fa-regular fa-clock mr-1"></i> 1h 15 min</span>
+</div>
+<!-- Route 3: Santo Domingo -->
+<div class="bg-white p-4 rounded-2xl border border-slate-200 text-center shadow-sm hover:border-caribbean-400 transition">
+<div class="w-10 h-10 mx-auto rounded-full bg-caribbean-50 text-caribbean-600 flex items-center justify-center mb-2">
+<i class="fa-solid fa-car"></i>
+</div>
+<h4 class="font-bold text-xs text-slate-800">Desde Sto. Domingo</h4>
+<p class="text-lg font-black text-caribbean-600 mt-1">205 km</p>
+<span class="text-[11px] text-slate-500 font-medium"><i class="fa-regular fa-clock mr-1"></i> 2h 20 min</span>
+</div>
+<!-- Route 4: Samaná -->
+<div class="bg-white p-4 rounded-2xl border border-slate-200 text-center shadow-sm hover:border-caribbean-400 transition">
+<div class="w-10 h-10 mx-auto rounded-full bg-caribbean-50 text-caribbean-600 flex items-center justify-center mb-2">
+<i class="fa-solid fa-car"></i>
+</div>
+<h4 class="font-bold text-xs text-slate-800">Desde Samaná</h4>
+<p class="text-lg font-black text-caribbean-600 mt-1">167 km</p>
+<span class="text-[11px] text-slate-500 font-medium"><i class="fa-regular fa-clock mr-1"></i> 2h 45 min</span>
+</div>
+<!-- Route 5: Santiago -->
+<div class="bg-white p-4 rounded-2xl border border-slate-200 text-center shadow-sm hover:border-caribbean-400 transition">
+<div class="w-10 h-10 mx-auto rounded-full bg-caribbean-50 text-caribbean-600 flex items-center justify-center mb-2">
+<i class="fa-solid fa-car"></i>
+</div>
+<h4 class="font-bold text-xs text-slate-800">Desde Santiago</h4>
+<p class="text-lg font-black text-caribbean-600 mt-1">356 km</p>
+<span class="text-[11px] text-slate-500 font-medium"><i class="fa-regular fa-clock mr-1"></i> 4h 30 min</span>
+</div>
+<!-- Route 6: Puerto Plata -->
+<div class="bg-white p-4 rounded-2xl border border-slate-200 text-center shadow-sm hover:border-caribbean-400 transition">
+<div class="w-10 h-10 mx-auto rounded-full bg-caribbean-50 text-caribbean-600 flex items-center justify-center mb-2">
+<i class="fa-solid fa-car"></i>
+</div>
+<h4 class="font-bold text-xs text-slate-800">Desde Puerto Plata</h4>
+<p class="text-lg font-black text-caribbean-600 mt-1">377 km</p>
+<span class="text-[11px] text-slate-500 font-medium"><i class="fa-regular fa-clock mr-1"></i> 5h 00 min</span>
+</div>
+</div>
+<!-- Practical Tips Row -->
+<div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-sky-50/70 p-6 rounded-2xl border border-sky-100 flex items-start gap-4">
+<div class="w-10 h-10 rounded-xl bg-sky-500 text-white flex items-center justify-center shrink-0">
+<i class="fa-solid fa-passport"></i>
+</div>
+<div>
+<h4 class="font-bold text-sm text-slate-900">Formulario E-Ticket Obligatorio</h4>
+<p class="text-xs text-slate-600 mt-1">Recuerda completar el e-ticket aduanal gratuito antes de abordar hacia o desde el Aeropuerto de Punta Cana.</p>
+</div>
+</div>
+<div class="bg-emerald-50/70 p-6 rounded-2xl border border-emerald-100 flex items-start gap-4">
+<div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">
+<i class="fa-solid fa-taxi"></i>
+</div>
+<div>
+<h4 class="font-bold text-sm text-slate-900">Traslados Oficiales y Verificados</h4>
+<p class="text-xs text-slate-600 mt-1">Utiliza taxis autorizados con tarifas fijas visibles o traslados concertados previamente con tu resort.</p>
+</div>
+</div>
+<div class="bg-amber-50/70 p-6 rounded-2xl border border-amber-100 flex items-start gap-4">
+<div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0">
+<i class="fa-solid fa-shield-heart"></i>
+</div>
+<div>
+<h4 class="font-bold text-sm text-slate-900">Asistencia al Turista (POLITUR)</h4>
+<p class="text-xs text-slate-600 mt-1">Cuerpo especializado de seguridad turística bilingüe disponible las 24 horas en todas las playas y áreas públicas.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- END: TravelLogistics -->
+<!-- BEGIN: InteractiveItineraryCTA -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-20">
+<div class="relative rounded-3xl overflow-hidden bg-gradient-to-r from-caribbean-700 via-caribbean-600 to-caribbean-500 p-8 sm:p-12 text-white shadow-2xl">
+<!-- Background pattern -->
+<div class="absolute -right-10 -bottom-10 w-80 h-80 bg-white/10 rounded-full blur-2xl"></div>
+<div class="relative z-10 max-w-2xl">
+<span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-xs font-bold uppercase tracking-wider backdrop-blur">
+<i class="fa-solid fa-robot"></i> Inteligencia Artificial Turística
+        </span>
+<h2 class="text-3xl sm:text-5xl font-extrabold mt-4 tracking-tight leading-tight">
+          Crea tu itinerario ideal en 30 segundos
+        </h2>
+<p class="text-caribbean-100 text-sm sm:text-base mt-3 font-normal">
+          Dinos cuántos días estarás, con quién viajas y qué te apasiona (playa, aventura, fiesta o relax). Nuestro planificador oficial armará tu ruta personalizada hora por hora.
+        </p>
+<div class="mt-8 flex flex-col sm:flex-row gap-3">
+<button class="bg-coral-500 hover:bg-coral-600 text-white font-bold px-8 py-4 rounded-2xl text-sm shadow-xl shadow-coral-500/30 flex items-center justify-center gap-2 transition hover:-translate-y-0.5">
+<i class="fa-solid fa-sparkles"></i>
+<span>Generar mi Plan con IA</span>
+</button>
+<button class="bg-white/10 hover:bg-white/20 text-white font-semibold px-6 py-4 rounded-2xl text-sm border border-white/20 backdrop-blur transition flex items-center justify-center gap-2">
+<i class="fa-regular fa-file-pdf"></i>
+<span>Descargar Guía Oficial en PDF</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- END: InteractiveItineraryCTA -->
+<!-- BEGIN: MainFooter -->
+<footer class="bg-slate-950 text-slate-400 text-sm border-t border-slate-900">
+<!-- Top Footer: App Download & Newsletter -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-b border-slate-800">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+<div>
+<div class="flex items-center gap-3 mb-4">
+<div class="w-10 h-10 rounded-xl bg-caribbean-500 text-white flex items-center justify-center font-bold text-lg">
+<i class="fa-solid fa-island-tropical"></i>
+</div>
+<span class="text-xl font-bold text-white tracking-tight">Descubre República Dominicana</span>
+</div>
+<p class="text-slate-400 text-sm max-w-lg mb-6 leading-relaxed">
+            Portal oficial de información turística avalado por el Ministerio de Turismo de la República Dominicana. Descarga nuestra app oficial para soporte offline con mapas y audioguías.
+          </p>
+<div class="flex flex-wrap items-center gap-3">
+<button class="bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition">
+<i class="fa-brands fa-apple text-base"></i>
+<div class="text-left">
+<span class="block text-[9px] text-slate-400 leading-tight">Consíguelo en el</span>
+<span class="block font-bold">App Store</span>
+</div>
+</button>
+<button class="bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition">
+<i class="fa-brands fa-google-play text-base"></i>
+<div class="text-left">
+<span class="block text-[9px] text-slate-400 leading-tight">Disponible en</span>
+<span class="block font-bold">Google Play</span>
+</div>
+</button>
+</div>
+</div>
+<!-- Newsletter Subscription -->
+<div class="bg-slate-900/90 p-8 rounded-3xl border border-slate-800">
+<h3 class="text-white font-bold text-lg mb-1">Recibe las mejores ofertas y eventos de Punta Cana</h3>
+<p class="text-slate-400 text-xs mb-5">Promociones directas de resorts, festivales de música caribeña y guías de viaje.</p>
+<form class="flex flex-col sm:flex-row gap-2">
+<input class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-caribbean-500 focus:ring-1 focus:ring-caribbean-500" placeholder="tu@correo.com" type="email"/>
+<button class="bg-caribbean-500 hover:bg-caribbean-600 text-white font-bold px-6 py-3 rounded-xl text-sm transition shrink-0" type="button">
+              Suscribirme
+            </button>
+</form>
+<p class="text-[11px] text-slate-500 mt-3">Sin spam. Puedes cancelar tu suscripción en cualquier momento.</p>
+</div>
+</div>
+</div>
+<!-- Middle Footer: Sitemap Links -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+<div>
+<h4 class="text-white font-bold text-xs uppercase tracking-wider mb-4">Destinos de RD</h4>
+<ul class="space-y-2.5 text-xs">
+<li><a class="hover:text-white transition" href="#">Punta Cana &amp; Bávaro</a></li>
+<li><a class="hover:text-white transition" href="#">Santo Domingo Histórico</a></li>
+<li><a class="hover:text-white transition" href="#">Samaná &amp; Las Terrenas</a></li>
+<li><a class="hover:text-white transition" href="#">Puerto Plata &amp; Cabarete</a></li>
+<li><a class="hover:text-white transition" href="#">La Romana &amp; Bayahíbe</a></li>
+<li><a class="hover:text-white transition" href="#">Bahía de las Águilas (Sur)</a></li>
+</ul>
+</div>
+<div>
+<h4 class="text-white font-bold text-xs uppercase tracking-wider mb-4">Experiencias</h4>
+<ul class="space-y-2.5 text-xs">
+<li><a class="hover:text-white transition" href="#">Playas de Arena Blanca</a></li>
+<li><a class="hover:text-white transition" href="#">Golf de Campeonato</a></li>
+<li><a class="hover:text-white transition" href="#">Ecoturismo &amp; Cenotes</a></li>
+<li><a class="hover:text-white transition" href="#">Gastronomía y Ron Dominicano</a></li>
+<li><a class="hover:text-white transition" href="#">Buceo y Vida Marina</a></li>
+<li><a class="hover:text-white transition" href="#">Pelota Invernal LIDOM</a></li>
+</ul>
+</div>
+<div>
+<h4 class="text-white font-bold text-xs uppercase tracking-wider mb-4">Herramientas</h4>
+<ul class="space-y-2.5 text-xs">
+<li><a class="hover:text-white transition" href="#">Planificador IA de Itinerario</a></li>
+<li><a class="hover:text-white transition" href="#">Formulario E-Ticket Oficial</a></li>
+<li><a class="hover:text-white transition" href="#">Calculadora de Cambio (DOP/USD)</a></li>
+<li><a class="hover:text-white transition" href="#">Clima y Oleaje en Vivo</a></li>
+<li><a class="hover:text-white transition" href="#">Seguridad y Salud 24h</a></li>
+<li><a class="hover:text-white transition" href="#">Preguntas Frecuentes</a></li>
+</ul>
+</div>
+<div>
+<h4 class="text-white font-bold text-xs uppercase tracking-wider mb-4">Institucional</h4>
+<ul class="space-y-2.5 text-xs">
+<li><a class="hover:text-white transition" href="#">Sobre Descubre RD</a></li>
+<li><a class="hover:text-white transition" href="#">Portal de Proveedores B2B</a></li>
+<li><a class="hover:text-white transition" href="#">Sala de Prensa y Medios</a></li>
+<li><a class="hover:text-white transition" href="#">Turismo Sostenible</a></li>
+<li><a class="hover:text-white transition" href="#">Inversión Turística</a></li>
+<li><a class="hover:text-white transition" href="#">Contacto Oficial</a></li>
+</ul>
+</div>
+</div>
+</div>
+<!-- Bottom Copyright & Socials -->
+<div class="border-t border-slate-900 bg-black/60 py-6">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+<p class="text-slate-500 text-center sm:text-left">
+          © 2026 Descubre República Dominicana. Todos los derechos reservados.
+        </p>
+<div class="flex items-center gap-6">
+<a class="text-slate-500 hover:text-white transition" href="#">Privacidad</a>
+<a class="text-slate-500 hover:text-white transition" href="#">Términos Legales</a>
+<a class="text-slate-500 hover:text-white transition" href="#">Accesibilidad Web</a>
+</div>
+<div class="flex items-center gap-4 text-slate-400">
+<a aria-label="Instagram" class="w-8 h-8 rounded-full bg-slate-900 hover:bg-caribbean-500 hover:text-white flex items-center justify-center transition" href="#">
+<i class="fa-brands fa-instagram"></i>
+</a>
+<a aria-label="Facebook" class="w-8 h-8 rounded-full bg-slate-900 hover:bg-caribbean-500 hover:text-white flex items-center justify-center transition" href="#">
+<i class="fa-brands fa-facebook-f"></i>
+</a>
+<a aria-label="YouTube" class="w-8 h-8 rounded-full bg-slate-900 hover:bg-caribbean-500 hover:text-white flex items-center justify-center transition" href="#">
+<i class="fa-brands fa-youtube"></i>
+</a>
+<a aria-label="TikTok" class="w-8 h-8 rounded-full bg-slate-900 hover:bg-caribbean-500 hover:text-white flex items-center justify-center transition" href="#">
+<i class="fa-brands fa-tiktok"></i>
+</a>
+</div>
+</div>
+</div>
+</footer>
+<!-- END: MainFooter -->
+<!-- BEGIN: InteractiveFloatingWidget -->
+<aside class="fixed bottom-6 right-6 z-40 flex items-center gap-2" data-purpose="floating-assistant">
+<button aria-label="Asistente Virtual" class="bg-gradient-to-tr from-caribbean-600 to-caribbean-400 text-white w-14 h-14 rounded-full shadow-2xl flex items-center justify-center text-xl hover:scale-110 active:scale-95 transition-all group">
+<i class="fa-solid fa-comment-dots group-hover:hidden"></i>
+<i class="fa-solid fa-wand-magic-sparkles hidden group-hover:block animate-spin"></i>
+</button>
+</aside>
+<!-- END: InteractiveFloatingWidget -->
+</body></html>

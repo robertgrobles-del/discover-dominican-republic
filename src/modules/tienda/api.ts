@@ -6,7 +6,7 @@ export interface StoreProduct {
   id: string;
   slug: string;
   name: string;
-  category: "poster" | "ropa" | "accesorios" | "hogar" | "bolsos";
+  category: "poster" | "ropa" | "accesorios" | "hogar" | "bolsos" | "playa";
   price: number; // DOP
   currency: "DOP";
   stock: number;
@@ -19,6 +19,7 @@ export interface StoreProduct {
   tagline: string;
   description: string;
   includes: string[];
+  imageUrl?: string;
   created_at: string;
 }
 
@@ -43,7 +44,7 @@ export const DOP_PER_USD = 59.8;
 export const FREE_SHIPPING_FROM = 2500; // RD$
 export const SHIPPING_FLAT = 250; // RD$
 export const CATEGORY_LABEL: Record<StoreProduct["category"], string> = {
-  poster: "Pósters", ropa: "Ropa", accesorios: "Accesorios", hogar: "Hogar", bolsos: "Bolsos",
+  poster: "Pósters", ropa: "Ropa", accesorios: "Accesorios", hogar: "Hogar", bolsos: "Bolsos", playa: "Playa & Aventura",
 };
 export const ORDER_STATUS_LABEL: Record<StoreOrder["status"], string> = {
   pending: "Pendiente", paid: "Pagado", shipped: "Enviado", delivered: "Entregado", cancelled: "Cancelado",
@@ -52,18 +53,44 @@ export const ORDER_STATUS_LABEL: Record<StoreOrder["status"], string> = {
 export const formatDop = (n: number) => `RD$ ${n.toLocaleString("es-DO", { maximumFractionDigits: 0 })}`;
 export const dopToUsd = (n: number) => Math.round((n / DOP_PER_USD) * 100) / 100;
 
+export const DEFAULT_PRODUCT_IMAGES: Record<string, string> = {
+  "poster": "/tienda/poster-rayable.jpg",
+  "ropa": "/tienda/camiseta-rd.jpg",
+  "gorra": "/tienda/gorra-palma.jpg",
+  "bolsos": "/tienda/bolso-canvas.jpg",
+  "accesorios": "/tienda/pulseras-larimar.jpg",
+  "hogar": "/tienda/mug-tropical.jpg",
+};
+
+export function resolveProductImage(p: Partial<StoreProduct>): string {
+  if (p.imageUrl) return p.imageUrl;
+  if (p.slug && p.slug.includes("gorra")) return DEFAULT_PRODUCT_IMAGES["gorra"];
+  if (p.slug && p.slug.includes("poster")) return DEFAULT_PRODUCT_IMAGES["poster"];
+  if (p.slug && p.slug.includes("bolso") || p.category === "bolsos") return DEFAULT_PRODUCT_IMAGES["bolsos"];
+  if (p.category && DEFAULT_PRODUCT_IMAGES[p.category]) return DEFAULT_PRODUCT_IMAGES[p.category];
+  return DEFAULT_PRODUCT_IMAGES["poster"];
+}
+
 const from = (t: string) => (supabase as any).from(t);
 
 export async function fetchProducts(): Promise<StoreProduct[]> {
   const { data, error } = await from("store_products").select("*");
   if (error) throw new Error(error.message);
-  return ((data || []) as StoreProduct[]).filter((p) => p.active);
+  return (((data || []) as StoreProduct[]).filter((p) => p.active)).map((p) => ({
+    ...p,
+    imageUrl: p.imageUrl || resolveProductImage(p),
+  }));
 }
 
 export async function fetchProduct(slug: string): Promise<StoreProduct | null> {
   const { data, error } = await from("store_products").select("*").eq("slug", slug);
   if (error) throw new Error(error.message);
-  return (data || [])[0] || null;
+  const prod = (data || [])[0];
+  if (!prod) return null;
+  return {
+    ...prod,
+    imageUrl: prod.imageUrl || resolveProductImage(prod),
+  };
 }
 
 export async function fetchOrders(): Promise<StoreOrder[]> {

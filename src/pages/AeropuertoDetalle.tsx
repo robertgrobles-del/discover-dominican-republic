@@ -10,9 +10,11 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
+import { useTranslation } from "@/i18n";
 import { getAirportBySlug } from "@/data/airports";
 
 export default function AeropuertoDetalle() {
+  const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
   const airport = slug ? getAirportBySlug(slug) : undefined;
 
@@ -23,9 +25,9 @@ export default function AeropuertoDetalle() {
           <Header />
           <div className="container mx-auto px-4 py-32 text-center">
             <Plane className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h1 className="text-3xl font-bold mb-4">Aeropuerto no encontrado</h1>
-            <p className="text-muted-foreground mb-8">El aeropuerto que buscas no existe.</p>
-            <Link to="/como-llegar"><Button>Ver cómo llegar</Button></Link>
+            <h1 className="text-3xl font-bold mb-4">{t("common.noResults") || "Aeropuerto no encontrado"}</h1>
+            <p className="text-muted-foreground mb-8">El aeropuerto que buscas no existe o está en actualización.</p>
+            <Link to="/como-llegar"><Button>{t("common.viewAll") || "Ver cómo llegar"}</Button></Link>
           </div>
           <Footer />
         </div>
@@ -49,15 +51,15 @@ export default function AeropuertoDetalle() {
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12">
             <div className="container mx-auto">
               <nav className="flex items-center gap-2 text-sm text-white/70 mb-4">
-                <Link to="/" className="hover:text-white">Inicio</Link>
+                <Link to="/" className="hover:text-white">{t("common.back") || "Inicio"}</Link>
                 <ChevronRight className="h-4 w-4" />
-                <Link to="/como-llegar" className="hover:text-white">Cómo Llegar</Link>
+                <Link to="/como-llegar" className="hover:text-white">{t("logistica.title") || "Cómo Llegar"}</Link>
                 <ChevronRight className="h-4 w-4" />
                 <span className="text-white">{airport.code}</span>
               </nav>
               <Badge className="mb-3 bg-white/20 text-white border-none">
                 <PlaneTakeoff className="h-3 w-3 mr-1" />
-                {airport.type === 'internacional' ? 'Internacional' : 'Doméstico'}
+                {airport.type === 'internacional' ? t("logistica.airports") || 'Internacional' : 'Doméstico'}
               </Badge>
               <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-2">{airport.name}</h1>
               <div className="flex flex-wrap items-center gap-4 text-white/80 text-sm">

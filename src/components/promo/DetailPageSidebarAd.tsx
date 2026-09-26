@@ -1,10 +1,12 @@
 import { cn } from "@/lib/utils";
 import { BannerAd, type AdSize, type IndustryCategory } from "./BannerAd";
 
+export type SidebarAdVariant = "standard" | "square" | "large" | "compact" | "half" | "skyscraper" | "wide-skyscraper";
+
 interface DetailPageSidebarAdProps {
   className?: string;
   showDemo?: boolean;
-  variant?: "standard" | "square" | "skyscraper" | "wide-skyscraper";
+  variant?: SidebarAdVariant;
   industry?: IndustryCategory;
 }
 
@@ -21,6 +23,10 @@ export function DetailPageSidebarAd({
       ? "wide-skyscraper" 
       : variant === "square" 
       ? "square-large" 
+      : variant === "large"
+      ? "large-rect"
+      : variant === "compact" || variant === "half"
+      ? "mobile-large"
       : "medium-rect";
 
   return (

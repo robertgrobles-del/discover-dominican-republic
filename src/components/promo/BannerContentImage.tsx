@@ -6,11 +6,12 @@ interface BannerContentImageProps {
 }
 
 export function BannerContentImage({ src, alt, width = 728, height = 90 }: BannerContentImageProps) {
+  const isOfficialBanner = src.startsWith("/banners/");
   return (
     <img
       src={src}
       alt={alt}
-      className="w-full h-full object-cover"
+      className={isOfficialBanner ? "w-full h-full object-contain bg-transparent" : "w-full h-full object-cover"}
       loading="lazy"
       decoding="async"
       width={width}

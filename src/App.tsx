@@ -19,9 +19,9 @@ const GamificationToastOverlay = lazy(() => import("@/components/gamification/Ga
 const ExitIntentModal = lazy(() => import("@/components/promo/ExitIntentModal").then(m => ({ default: m.ExitIntentModal })));
 const CookieConsentBanner = lazy(() => import("@/components/privacy/CookieConsentBanner").then(m => ({ default: m.CookieConsentBanner })));
 
-// All pages lazy loaded
 const Index = lazy(() => import("./pages/Index"));
 import NotFound from "./pages/NotFound";
+import DestinoDetalle from "./pages/DestinoDetalle";
 
 // Lazy loaded pages for better performance
 const Destinos = lazy(() => import("./pages/Destinos"));
@@ -49,7 +49,6 @@ const Alojamientos = lazy(() => import("./pages/Alojamientos"));
 const Estadisticas = lazy(() => import("./pages/Estadisticas"));
 const Partners = lazy(() => import("./pages/Partners"));
 const SobreNosotros = lazy(() => import("./pages/SobreNosotros"));
-const DestinoDetalle = lazy(() => import("./pages/DestinoDetalle"));
 // Operadores RD (reservas directas) y Tienda oficial
 const Top100 = lazy(() => import("./modules/viajero/RetoTop100"));
 const OperadoresLanding = lazy(() => import("./modules/operadores/pages/OperadoresLanding"));
@@ -279,32 +278,8 @@ const EventosGrupo = lazy(() => import("./pages/EventosGrupo"));
 const ViveLocal = lazy(() => import("./pages/ViveLocal"));
 const HistoriaIndex = lazy(() => import("./pages/HistoriaIndex"));
 const HistoriaDetalle = lazy(() => import("./pages/HistoriaDetalle"));
-// Static destination pages
-const PuntaCana = lazy(() => import("./pages/destinos/PuntaCana"));
-const Bavaro = lazy(() => import("./pages/destinos/Bavaro"));
-const CapCana = lazy(() => import("./pages/destinos/CapCana"));
-const Samana = lazy(() => import("./pages/destinos/Samana"));
-const LasTerrenas = lazy(() => import("./pages/destinos/LasTerrenas"));
-const PuertoPlata = lazy(() => import("./pages/destinos/PuertoPlata"));
-const Cabarete = lazy(() => import("./pages/destinos/Cabarete"));
-const Sosua = lazy(() => import("./pages/destinos/Sosua"));
-const SantoDomingo = lazy(() => import("./pages/destinos/SantoDomingo"));
-const ZonaColonial = lazy(() => import("./pages/destinos/ZonaColonial"));
-const Jarabacoa = lazy(() => import("./pages/destinos/Jarabacoa"));
-const LaRomana = lazy(() => import("./pages/destinos/LaRomana"));
-const Bayahibe = lazy(() => import("./pages/destinos/Bayahibe"));
-const LaAltagracia = lazy(() => import("./pages/destinos/LaAltagracia"));
-const Pedernales = lazy(() => import("./pages/destinos/Pedernales"));
-const BahiaDeLasAguilas = lazy(() => import("./pages/destinos/BahiaDeLasAguilas"));
-const Constanza = lazy(() => import("./pages/destinos/Constanza"));
-const LasGaleras = lazy(() => import("./pages/destinos/LasGaleras"));
-const BocaChica = lazy(() => import("./pages/destinos/BocaChica"));
-const JuanDolio = lazy(() => import("./pages/destinos/JuanDolio"));
-const PlayaRincon = lazy(() => import("./pages/destinos/PlayaRincon"));
-const Higuey = lazy(() => import("./pages/destinos/Higuey"));
-const Santiago = lazy(() => import("./pages/destinos/Santiago"));
-const LaVega = lazy(() => import("./pages/destinos/LaVega"));
-const Barahona = lazy(() => import("./pages/destinos/Barahona"));
+const PricingPlan = lazy(() => import("./pages/PricingPlan"));
+// End of page imports
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -373,6 +348,9 @@ function AnimatedRoutes() {
           <Route path="/terminos" element={<Terminos />} />
           <Route path="/estadisticas" element={<Estadisticas />} />
           <Route path="/partners" element={<Partners />} />
+          <Route path="/para-empresas" element={<PricingPlan />} />
+          <Route path="/planes" element={<PricingPlan />} />
+          <Route path="/anunciate" element={<PricingPlan />} />
           <Route path="/sobre-nosotros" element={<SobreNosotros />} />
           <Route path="/sitemap" element={<Sitemap />} />
           <Route path="/destinos-regiones" element={<DestinosRegiones />} />
@@ -478,6 +456,8 @@ function AnimatedRoutes() {
           <Route path="/bar/:slug" element={<BarDetalle />} />
           <Route path="/agencia/:slug" element={<AgenciaDetalle />} />
           <Route path="/estadio/:slug" element={<EstadioDetalle />} />
+          <Route path="/recinto/:slug" element={<EstadioDetalle />} />
+          <Route path="/teatro/:slug" element={<EstadioDetalle />} />
           <Route path="/clinica/:slug" element={<ClinicaDetalle />} />
           <Route path="/parques-tematicos" element={<ParquesTematicos />} />
           <Route path="/parque/:slug" element={<ParqueDetalle />} />
@@ -577,6 +557,7 @@ function AnimatedRoutes() {
           <Route path="/pico-duarte" element={<PicoDuarte />} />
           <Route path="/ruta-ron-tabaco" element={<RutaRonTabaco />} />
           <Route path="/golf-rd" element={<GolfRD />} />
+          <Route path="/golf" element={<GolfRD />} />
           <Route path="/buceo-snorkel" element={<TurismoBuceo />} />
           <Route path="/retirados-nomadas" element={<NomadasDigitales />} />
           <Route path="/recetas-criollas" element={<RecetasCriollas />} />
@@ -595,59 +576,7 @@ function AnimatedRoutes() {
           <Route path="/calculadora-carbono" element={<CalculadoraCarbono />} />
           <Route path="/calculadora-peajes" element={<CalculadoraPeajes />} />
 
-          {/* Static destination pages - /destino/slug */}
-          <Route path="/destino/punta-cana" element={<PuntaCana />} />
-          <Route path="/destino/bavaro" element={<Bavaro />} />
-          <Route path="/destino/cap-cana" element={<CapCana />} />
-          <Route path="/destino/samana" element={<Samana />} />
-          <Route path="/destino/las-terrenas" element={<LasTerrenas />} />
-          <Route path="/destino/puerto-plata" element={<PuertoPlata />} />
-          <Route path="/destino/cabarete" element={<Cabarete />} />
-          <Route path="/destino/sosua" element={<Sosua />} />
-          <Route path="/destino/santo-domingo" element={<SantoDomingo />} />
-          <Route path="/destino/zona-colonial" element={<ZonaColonial />} />
-          <Route path="/destino/jarabacoa" element={<Jarabacoa />} />
-          <Route path="/destino/la-romana" element={<LaRomana />} />
-          <Route path="/destino/bayahibe" element={<Bayahibe />} />
-          <Route path="/destino/la-altagracia" element={<LaAltagracia />} />
-          <Route path="/destino/pedernales" element={<Pedernales />} />
-          <Route path="/destino/bahia-de-las-aguilas" element={<BahiaDeLasAguilas />} />
-          <Route path="/destino/constanza" element={<Constanza />} />
-          <Route path="/destino/las-galeras" element={<LasGaleras />} />
-          <Route path="/destino/boca-chica" element={<BocaChica />} />
-          <Route path="/destino/juan-dolio" element={<JuanDolio />} />
-          <Route path="/destino/playa-rincon" element={<PlayaRincon />} />
-          <Route path="/destino/higuey" element={<Higuey />} />
-          <Route path="/destino/santiago" element={<Santiago />} />
-          <Route path="/destino/la-vega" element={<LaVega />} />
-          <Route path="/destino/barahona" element={<Barahona />} />
-          
-          {/* Compatibility redirects for old routes */}
-          <Route path="/destinos/punta-cana" element={<PuntaCana />} />
-          <Route path="/destinos/bavaro" element={<Bavaro />} />
-          <Route path="/destinos/cap-cana" element={<CapCana />} />
-          <Route path="/destinos/samana" element={<Samana />} />
-          <Route path="/destinos/las-terrenas" element={<LasTerrenas />} />
-          <Route path="/destinos/puerto-plata" element={<PuertoPlata />} />
-          <Route path="/destinos/cabarete" element={<Cabarete />} />
-          <Route path="/destinos/sosua" element={<Sosua />} />
-          <Route path="/destinos/santo-domingo" element={<SantoDomingo />} />
-          <Route path="/destinos/zona-colonial" element={<ZonaColonial />} />
-          <Route path="/destinos/jarabacoa" element={<Jarabacoa />} />
-          <Route path="/destinos/la-romana" element={<LaRomana />} />
-          <Route path="/destinos/bayahibe" element={<Bayahibe />} />
-          <Route path="/destinos/la-altagracia" element={<LaAltagracia />} />
-          <Route path="/destinos/pedernales" element={<Pedernales />} />
-          <Route path="/destinos/bahia-de-las-aguilas" element={<BahiaDeLasAguilas />} />
-          <Route path="/destinos/constanza" element={<Constanza />} />
-          <Route path="/destinos/las-galeras" element={<LasGaleras />} />
-          <Route path="/destinos/boca-chica" element={<BocaChica />} />
-          <Route path="/destinos/juan-dolio" element={<JuanDolio />} />
-          <Route path="/destinos/playa-rincon" element={<PlayaRincon />} />
-          <Route path="/destinos/higuey" element={<Higuey />} />
-          <Route path="/destinos/santiago" element={<Santiago />} />
-          <Route path="/destinos/la-vega" element={<LaVega />} />
-          <Route path="/destinos/barahona" element={<Barahona />} />
+
           
           <Route path="/blog" element={<Blog />} />
           <Route path="/feed" element={<FeedSocial />} />

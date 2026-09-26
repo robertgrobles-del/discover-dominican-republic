@@ -2,7 +2,10 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { Link, useParams } from "react-router-dom";
-import { MapPin, Star, Clock, Users, ChevronRight, Heart, Share2, Play, Instagram, Check } from "lucide-react";
+import { 
+  MapPin, Star, Clock, Users, ChevronRight, Heart, Share2, Play, Instagram, Check, 
+  Sparkles, Calendar, DollarSign, Backpack, ShieldCheck, AlertCircle, Compass, CheckCircle2
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState, useMemo } from "react";
@@ -11,6 +14,8 @@ import { SectionWithSideAds } from "@/components/SectionWithSideAds";
 import { ExperienceHeroSlider } from "@/components/experience/ExperienceHeroSlider";
 import { getHotelsByDestination } from "@/data/hotels";
 import { getRestaurantsByDestination } from "@/data/restaurants";
+import { SEOHead } from "@/components/SEOHead";
+import { toast } from "sonner";
 
 import adventure from "@/assets/adventure.jpg";
 import diving from "@/assets/diving.jpg";
@@ -25,6 +30,42 @@ import puntaCana from "@/assets/punta-cana.jpg";
 import santoDomingo from "@/assets/santo-domingo.jpg";
 import puertoPlata from "@/assets/puerto-plata.jpg";
 
+// Checklist de equipamiento recomendado por categoría
+const EQUIPAMIENTO_CHECKLIST: Record<string, string[]> = {
+  ecoturismo: [
+    "Protector solar biodegradable (reef-safe)",
+    "Repelente de mosquitos ecológico",
+    "Calzado de senderismo impermeable o escarpines",
+    "Botella de agua reutilizable térmica",
+    "Binoculares para observación de aves/ballenas",
+    "Cámara con funda impermeable o bolsa seca"
+  ],
+  aventura: [
+    "Zapatillas deportivas con excelente agarre para roca mojada",
+    "Ropa de secado rápido (dry-fit)",
+    "Bolsa estanca (dry bag) para celular y documentos",
+    "Gafas de sol con sujetador deportivo",
+    "Toalla de microfibra compacta",
+    "Muda de ropa seca para el regreso"
+  ],
+  acuaticos: [
+    "Licra UV con protección solar UPF 50+",
+    "Escarpines de neopreno o agua",
+    "Máscara y tubo de snorkel propio (opcional)",
+    "Funda sumergible para smartphone",
+    "Toalla de playa grande",
+    "Gorra o sombrero con ajuste"
+  ],
+  default: [
+    "Documento de identidad / Pasaporte",
+    "Efectivo en pesos dominicanos (DOP) para propinas locales",
+    "Protector solar y sombrero",
+    "Lentes de sol con protección UV",
+    "Batería externa portátil para smartphone",
+    "Cámara fotográfica para capturar paisajes"
+  ]
+};
+
 // Experiences data
 const experienciasData: Record<string, {
   id: string;
@@ -34,6 +75,7 @@ const experienciasData: Record<string, {
   heroImage: string;
   galeria: string[];
   highlights: string[];
+  basePricePerPerson: number;
   lugares: { nombre: string; region: string; imagen: string; link: string }[];
   rutasInfluencers: { nombre: string; handle: string; avatar: string; ruta: string; descripcion: string }[];
   recomendaciones: string[];
@@ -47,6 +89,7 @@ const experienciasData: Record<string, {
     heroImage: whaleSamana,
     galeria: [whaleSamana, adventure, samana, diving],
     highlights: ["Parques nacionales protegidos", "Observación de ballenas", "Reservas de biosfera", "Turismo comunitario"],
+    basePricePerPerson: 65,
     lugares: [
       { nombre: "Parque Nacional Los Haitises", region: "Samaná", imagen: samana, link: "/destino/samana" },
       { nombre: "Bahía de las Águilas", region: "Pedernales", imagen: heroBeach, link: "/destino/pedernales" },
@@ -72,6 +115,7 @@ const experienciasData: Record<string, {
     heroImage: adventure,
     galeria: [adventure, diving, samana, whaleSamana],
     highlights: ["Rafting y canyoning", "Tirolesas extremas", "Parapente", "Escalada y rappel"],
+    basePricePerPerson: 75,
     lugares: [
       { nombre: "27 Charcos de Damajagua", region: "Puerto Plata", imagen: adventure, link: "/destino/puerto-plata" },
       { nombre: "Jarabacoa", region: "La Vega", imagen: samana, link: "/destino/jarabacoa" },
@@ -97,6 +141,7 @@ const experienciasData: Record<string, {
     heroImage: santoDomingo,
     galeria: [santoDomingo, merengue, gastronomy, samana],
     highlights: ["Zona Colonial UNESCO", "Música y baile", "Artesanías", "Festivales tradicionales"],
+    basePricePerPerson: 45,
     lugares: [
       { nombre: "Zona Colonial", region: "Santo Domingo", imagen: santoDomingo, link: "/destino/santo-domingo" },
       { nombre: "Altos de Chavón", region: "La Romana", imagen: hotelEdenRoc, link: "/destino/la-romana" },
@@ -122,6 +167,7 @@ const experienciasData: Record<string, {
     heroImage: relaxBeach,
     galeria: [relaxBeach, heroBeach, hotelEdenRoc, samana],
     highlights: ["Bodas en la playa", "Spas de parejas", "Cenas privadas al atardecer", "Suites de luna de miel"],
+    basePricePerPerson: 120,
     lugares: [
       { nombre: "Cap Cana", region: "Punta Cana", imagen: hotelEdenRoc, link: "/destino/punta-cana" },
       { nombre: "Samaná", region: "Samaná", imagen: samana, link: "/destino/samana" },
@@ -130,13 +176,11 @@ const experienciasData: Record<string, {
     ],
     rutasInfluencers: [
       { nombre: "Carolina & Luis", handle: "@love_caribbean", avatar: relaxBeach, ruta: "Luna de Miel Perfecta", descripcion: "7 días entre spas, playas privadas y cenas románticas." },
-      { nombre: "Wedding Planner RD", handle: "@bodas_rd", avatar: heroBeach, ruta: "Destination Wedding", descripcion: "Guía completa para tu boda soñada en el Caribe." },
     ],
-    recomendaciones: ["Reserva con 6-12 meses de anticipación para bodas", "Pide paquetes románticos en tu hotel", "Los atardeceres en Samaná son mágicos", "Contrata fotógrafos locales especializados"],
+    recomendaciones: ["Reserva con 6-12 meses de anticipación para bodas", "Pide paquetes románticos en tu hotel", "Los atardeceres en Samaná son mágicos"],
     actividadesRelacionadas: [
       { nombre: "Cena Privada en la Playa", precio: 250, duracion: "3 horas", imagen: relaxBeach, rating: 4.9 },
       { nombre: "Spa de Parejas", precio: 180, duracion: "2 horas", imagen: hotelEdenRoc, rating: 4.8 },
-      { nombre: "Navegación al Atardecer", precio: 120, duracion: "2 horas", imagen: heroBeach, rating: 4.9 },
     ],
   },
   golf: {
@@ -147,21 +191,18 @@ const experienciasData: Record<string, {
     heroImage: hotelEdenRoc,
     galeria: [hotelEdenRoc, puntaCana, relaxBeach, adventure],
     highlights: ["30+ campos de golf", "Diseñadores legendarios", "Torneos internacionales", "Resorts especializados"],
+    basePricePerPerson: 250,
     lugares: [
       { nombre: "Punta Espada (Cap Cana)", region: "Punta Cana", imagen: hotelEdenRoc, link: "/destino/punta-cana" },
       { nombre: "Teeth of the Dog", region: "La Romana", imagen: relaxBeach, link: "/destino/la-romana" },
-      { nombre: "Playa Dorada", region: "Puerto Plata", imagen: puertoPlata, link: "/destino/puerto-plata" },
-      { nombre: "Corales (Puntacana)", region: "Punta Cana", imagen: puntaCana, link: "/destino/punta-cana" },
     ],
     rutasInfluencers: [
-      { nombre: "Tiger Fan RD", handle: "@golf_paradise", avatar: hotelEdenRoc, ruta: "Top 5 Campos RD", descripcion: "Los mejores campos del Caribe en una semana de golf épica." },
       { nombre: "Pro Golfer", handle: "@fairway_rd", avatar: puntaCana, ruta: "Ruta Pete Dye", descripcion: "Todos los campos diseñados por el maestro en RD." },
     ],
-    recomendaciones: ["Reserva tee times con anticipación en temporada alta", "Aprovecha los paquetes stay & play", "Juega temprano para evitar el calor", "Los caddies locales conocen cada green"],
+    recomendaciones: ["Reserva tee times con anticipación en temporada alta", "Aprovecha los paquetes stay & play", "Juega temprano para evitar el calor"],
     actividadesRelacionadas: [
       { nombre: "Green Fee Punta Espada", precio: 395, duracion: "5 horas", imagen: hotelEdenRoc, rating: 4.9 },
       { nombre: "Green Fee Teeth of the Dog", precio: 325, duracion: "5 horas", imagen: relaxBeach, rating: 4.9 },
-      { nombre: "Clase con Pro", precio: 150, duracion: "2 horas", imagen: puntaCana, rating: 4.7 },
     ],
   },
   gastronomia: {
@@ -172,71 +213,18 @@ const experienciasData: Record<string, {
     heroImage: gastronomy,
     galeria: [gastronomy, merengue, santoDomingo, samana],
     highlights: ["Cocina tradicional", "Alta gastronomía", "Tours gastronómicos", "Clases de cocina"],
+    basePricePerPerson: 50,
     lugares: [
       { nombre: "Zona Colonial (Restaurantes)", region: "Santo Domingo", imagen: santoDomingo, link: "/destino/santo-domingo" },
       { nombre: "Las Terrenas", region: "Samaná", imagen: samana, link: "/destino/samana" },
-      { nombre: "Cap Cana Gourmet", region: "Punta Cana", imagen: hotelEdenRoc, link: "/destino/punta-cana" },
-      { nombre: "Mercado Modelo", region: "Santo Domingo", imagen: gastronomy, link: "/guia-gastronomica" },
     ],
     rutasInfluencers: [
       { nombre: "Chef María", handle: "@sabores_rd", avatar: gastronomy, ruta: "Ruta del Sabor", descripcion: "Los mejores restaurantes y comedores del país en 5 días deliciosos." },
-      { nombre: "Foodie Local", handle: "@come_rd", avatar: santoDomingo, ruta: "Street Food Tour", descripcion: "Empanadas, chimichurris y jugos naturales en un tour callejero." },
     ],
-    recomendaciones: ["Prueba la Bandera Dominicana tradicional", "Los mariscos en Samaná son fresquísimos", "Reserva en restaurantes populares con anticipación", "Atrévete con el mangú y los tres golpes"],
+    recomendaciones: ["Prueba la Bandera Dominicana tradicional", "Los mariscos en Samaná son fresquísimos"],
     actividadesRelacionadas: [
       { nombre: "Tour Gastronómico Colonial", precio: 65, duracion: "4 horas", imagen: santoDomingo, rating: 4.8 },
       { nombre: "Clase de Cocina Dominicana", precio: 85, duracion: "3 horas", imagen: gastronomy, rating: 4.9 },
-      { nombre: "Cata de Ron Premium", precio: 45, duracion: "2 horas", imagen: merengue, rating: 4.7 },
-    ],
-  },
-  familia: {
-    id: "familia",
-    nombre: "Familia",
-    subtitulo: "Aventuras para Todos",
-    descripcion: "Parques acuáticos, resorts familiares y actividades para todas las edades hacen de RD el destino perfecto para vacaciones en familia.",
-    heroImage: puntaCana,
-    galeria: [puntaCana, diving, adventure, relaxBeach],
-    highlights: ["Resorts todo incluido", "Parques acuáticos", "Actividades educativas", "Playas seguras"],
-    lugares: [
-      { nombre: "Bávaro Beach", region: "Punta Cana", imagen: puntaCana, link: "/destino/punta-cana" },
-      { nombre: "Ocean World", region: "Puerto Plata", imagen: diving, link: "/destino/puerto-plata" },
-      { nombre: "Manatí Park", region: "Bávaro", imagen: adventure, link: "/destino/punta-cana" },
-      { nombre: "Playa Dorada", region: "Puerto Plata", imagen: puertoPlata, link: "/destino/puerto-plata" },
-    ],
-    rutasInfluencers: [
-      { nombre: "Familia Viajera", handle: "@family_rd", avatar: puntaCana, ruta: "Vacaciones en Familia", descripcion: "7 días de diversión para padres e hijos." },
-      { nombre: "Mom Travel RD", handle: "@mama_viajera", avatar: relaxBeach, ruta: "Tips para Viajar con Niños", descripcion: "Guía práctica para vacaciones familiares sin estrés." },
-    ],
-    recomendaciones: ["Los resorts todo incluido facilitan la logística", "Lleva protector solar para niños reef-safe", "Reserva actividades familiares con anticipación", "Pregunta por kids clubs en tu hotel"],
-    actividadesRelacionadas: [
-      { nombre: "Ocean World Adventure", precio: 89, duracion: "6 horas", imagen: diving, rating: 4.7 },
-      { nombre: "Manatí Park", precio: 45, duracion: "4 horas", imagen: adventure, rating: 4.5 },
-      { nombre: "Snorkel para Niños", precio: 35, duracion: "2 horas", imagen: heroBeach, rating: 4.6 },
-    ],
-  },
-  deportes: {
-    id: "deportes",
-    nombre: "Deportes",
-    subtitulo: "Recreación al Aire Libre",
-    descripcion: "Desde ciclismo de montaña hasta tenis y running, República Dominicana ofrece instalaciones de primer nivel para deportistas.",
-    heroImage: adventure,
-    galeria: [adventure, hotelEdenRoc, diving, samana],
-    highlights: ["Ciclismo de montaña", "Tenis profesional", "Running y trails", "Deportes extremos"],
-    lugares: [
-      { nombre: "Jarabacoa (MTB)", region: "La Vega", imagen: adventure, link: "/destino/jarabacoa" },
-      { nombre: "Casa de Campo (Tenis)", region: "La Romana", imagen: hotelEdenRoc, link: "/destino/la-romana" },
-      { nombre: "Pico Duarte Trail", region: "La Vega", imagen: samana, link: "/destino/pico-duarte" },
-      { nombre: "Puerto Plata (Surf)", region: "Puerto Plata", imagen: diving, link: "/destino/puerto-plata" },
-    ],
-    rutasInfluencers: [
-      { nombre: "MTB Pro RD", handle: "@bike_rd", avatar: adventure, ruta: "Trails de Jarabacoa", descripcion: "Los mejores senderos para mountain bike del Caribe." },
-      { nombre: "Runner Caribe", handle: "@run_rd", avatar: samana, ruta: "Ultra Pico Duarte", descripcion: "Preparación para el trail más desafiante de RD." },
-    ],
-    recomendaciones: ["Entrena para la altitud si vas a Jarabacoa", "Hidratación es clave en el clima tropical", "Contrata guías para trails desconocidos", "Los mejores momentos son temprano en la mañana"],
-    actividadesRelacionadas: [
-      { nombre: "MTB Tour Jarabacoa", precio: 65, duracion: "4 horas", imagen: adventure, rating: 4.8 },
-      { nombre: "Surf Lessons Cabarete", precio: 55, duracion: "2 horas", imagen: diving, rating: 4.7 },
-      { nombre: "Tenis Clase Privada", precio: 80, duracion: "1.5 horas", imagen: hotelEdenRoc, rating: 4.6 },
     ],
   },
   acuaticos: {
@@ -247,121 +235,19 @@ const experienciasData: Record<string, {
     heroImage: diving,
     galeria: [diving, heroBeach, puntaCana, samana],
     highlights: ["Buceo certificado", "Kitesurfing", "Snorkel en arrecifes", "Pesca deportiva"],
+    basePricePerPerson: 80,
     lugares: [
       { nombre: "Cabarete", region: "Puerto Plata", imagen: diving, link: "/destino/cabarete" },
       { nombre: "Sosúa", region: "Puerto Plata", imagen: heroBeach, link: "/destino/sosua" },
       { nombre: "Bayahíbe", region: "La Romana", imagen: puntaCana, link: "/destino/bayahibe" },
-      { nombre: "Saona Island", region: "La Romana", imagen: samana, link: "/destino/saona" },
     ],
     rutasInfluencers: [
       { nombre: "Diver Pro", handle: "@deep_rd", avatar: diving, ruta: "Los Mejores Dives", descripcion: "Top 10 sitios de buceo en República Dominicana." },
-      { nombre: "Kite Master", handle: "@wind_rd", avatar: heroBeach, ruta: "Temporada de Kite", descripcion: "Guía de vientos y mejores spots de Cabarete." },
     ],
-    recomendaciones: ["Cabarete es la capital del kitesurf", "Buceo PADI disponible en todos los destinos", "Temporada de vientos: Junio-Septiembre", "Usa siempre protector solar reef-safe"],
+    recomendaciones: ["Cabarete es la capital del kitesurf", "Buceo PADI disponible en todos los destinos"],
     actividadesRelacionadas: [
       { nombre: "Buceo Certificado (2 tanques)", precio: 120, duracion: "4 horas", imagen: diving, rating: 4.9 },
       { nombre: "Kitesurf Clase", precio: 150, duracion: "3 horas", imagen: heroBeach, rating: 4.8 },
-      { nombre: "Pesca Deportiva", precio: 450, duracion: "6 horas", imagen: puntaCana, rating: 4.7 },
-    ],
-  },
-  museos: {
-    id: "museos",
-    nombre: "Museos",
-    subtitulo: "Historia y Arte",
-    descripcion: "Desde el Museo del Hombre Dominicano hasta galerías de arte contemporáneo, descubre la rica herencia cultural del país.",
-    heroImage: santoDomingo,
-    galeria: [santoDomingo, merengue, gastronomy, hotelEdenRoc],
-    highlights: ["Museos históricos", "Arte contemporáneo", "Colecciones arqueológicas", "Galerías locales"],
-    lugares: [
-      { nombre: "Museo de las Casas Reales", region: "Santo Domingo", imagen: santoDomingo, link: "/patrimonio" },
-      { nombre: "Museo del Hombre Dominicano", region: "Santo Domingo", imagen: merengue, link: "/patrimonio" },
-      { nombre: "Museo del Ámbar", region: "Puerto Plata", imagen: puertoPlata, link: "/patrimonio" },
-      { nombre: "Centro Cultural Eduardo León Jimenes", region: "Santiago", imagen: gastronomy, link: "/patrimonio" },
-    ],
-    rutasInfluencers: [
-      { nombre: "Art Lover", handle: "@arte_rd", avatar: santoDomingo, ruta: "Ruta de Museos", descripcion: "Los 10 museos imprescindibles de República Dominicana." },
-      { nombre: "Historia Viva", handle: "@museum_rd", avatar: merengue, ruta: "Patrimonio Colonial", descripcion: "Zona Colonial a través de sus museos." },
-    ],
-    recomendaciones: ["Los museos cierran los lunes generalmente", "Compra pases combinados para ahorrar", "Los tours guiados valen la pena", "Visita temprano para evitar grupos grandes"],
-    actividadesRelacionadas: [
-      { nombre: "Tour Museos Zona Colonial", precio: 45, duracion: "4 horas", imagen: santoDomingo, rating: 4.8 },
-      { nombre: "Visita Museo del Ámbar", precio: 10, duracion: "1.5 horas", imagen: puertoPlata, rating: 4.5 },
-      { nombre: "Centro León (Santiago)", precio: 8, duracion: "2 horas", imagen: gastronomy, rating: 4.9 },
-    ],
-  },
-  bienestar: {
-    id: "bienestar",
-    nombre: "Bienestar",
-    subtitulo: "Tu Refugio de Paz",
-    descripcion: "Spas de lujo, retiros de yoga, terapias holísticas y la energía sanadora del Caribe para renovar cuerpo y mente.",
-    heroImage: relaxBeach,
-    galeria: [relaxBeach, hotelEdenRoc, samana, heroBeach],
-    highlights: ["Spas de clase mundial", "Retiros de yoga", "Terapias holísticas", "Meditación y mindfulness"],
-    lugares: [
-      { nombre: "Samaná (Retiros)", region: "Samaná", imagen: samana, link: "/destino/samana" },
-      { nombre: "Cap Cana Spas", region: "Punta Cana", imagen: hotelEdenRoc, link: "/wellness" },
-      { nombre: "Jarabacoa (Montaña)", region: "La Vega", imagen: adventure, link: "/destino/jarabacoa" },
-      { nombre: "Casa de Campo", region: "La Romana", imagen: relaxBeach, link: "/wellness" },
-    ],
-    rutasInfluencers: [
-      { nombre: "Yoga Master", handle: "@zen_rd", avatar: relaxBeach, ruta: "Retiro de 7 Días", descripcion: "Yoga, meditación y alimentación consciente en Samaná." },
-      { nombre: "Wellness Coach", handle: "@heal_rd", avatar: samana, ruta: "Detox Tropical", descripcion: "Programa de desintoxicación y renovación." },
-    ],
-    recomendaciones: ["Reserva tratamientos con anticipación", "Los retiros requieren compromiso previo", "Combina spa con actividades suaves", "La temporada baja tiene mejores precios"],
-    actividadesRelacionadas: [
-      { nombre: "Spa Day Completo", precio: 280, duracion: "6 horas", imagen: relaxBeach, rating: 4.9 },
-      { nombre: "Clase de Yoga (Playa)", precio: 35, duracion: "1.5 horas", imagen: heroBeach, rating: 4.8 },
-      { nombre: "Masaje Piedras Calientes", precio: 120, duracion: "1.5 horas", imagen: hotelEdenRoc, rating: 4.9 },
-    ],
-  },
-  lujo: {
-    id: "lujo",
-    nombre: "Lujo",
-    subtitulo: "Experiencias Exclusivas",
-    descripcion: "Resorts de cinco estrellas, yates privados, golf de campeonato y servicios de concierge para viajeros exigentes.",
-    heroImage: hotelEdenRoc,
-    galeria: [hotelEdenRoc, relaxBeach, puntaCana, samana],
-    highlights: ["Resorts 5 estrellas", "Villas privadas", "Yates y helicópteros", "Experiencias VIP"],
-    lugares: [
-      { nombre: "Eden Roc Cap Cana", region: "Punta Cana", imagen: hotelEdenRoc, link: "/alojamiento/eden-roc" },
-      { nombre: "Casa de Campo", region: "La Romana", imagen: relaxBeach, link: "/alojamiento/casa-campo" },
-      { nombre: "Amanera", region: "Río San Juan", imagen: samana, link: "/alojamiento/amanera" },
-      { nombre: "Tortuga Bay", region: "Punta Cana", imagen: puntaCana, link: "/alojamiento/tortuga-bay" },
-    ],
-    rutasInfluencers: [
-      { nombre: "Luxury Travel", handle: "@elite_rd", avatar: hotelEdenRoc, ruta: "RD en 5 Estrellas", descripcion: "Los resorts más exclusivos del Caribe en una semana de lujo." },
-      { nombre: "VIP Concierge", handle: "@vip_caribbean", avatar: relaxBeach, ruta: "Experiencias Privadas", descripcion: "Yates, helicópteros y cenas exclusivas." },
-    ],
-    recomendaciones: ["Usa servicios de concierge para reservas especiales", "Las villas privadas ofrecen mayor exclusividad", "Los mejores resorts tienen lista de espera", "Temporada alta: Diciembre-Abril"],
-    actividadesRelacionadas: [
-      { nombre: "Yate Privado (Día)", precio: 2500, duracion: "8 horas", imagen: heroBeach, rating: 5.0 },
-      { nombre: "Helicóptero Panorámico", precio: 650, duracion: "1 hora", imagen: samana, rating: 4.9 },
-      { nombre: "Cena Chef Privado", precio: 500, duracion: "4 horas", imagen: gastronomy, rating: 4.9 },
-    ],
-  },
-  compras: {
-    id: "compras",
-    nombre: "Compras",
-    subtitulo: "Tesoros del Caribe",
-    descripcion: "Ámbar, larimar, artesanías, ron premium y recuerdos únicos que solo encontrarás en República Dominicana.",
-    heroImage: santoDomingo,
-    galeria: [santoDomingo, gastronomy, merengue, puntaCana],
-    highlights: ["Ámbar y Larimar", "Artesanías locales", "Ron y tabaco", "Moda caribeña"],
-    lugares: [
-      { nombre: "Mercado Modelo", region: "Santo Domingo", imagen: santoDomingo, link: "/destino/santo-domingo" },
-      { nombre: "Blue Mall", region: "Punta Cana", imagen: puntaCana, link: "/destino/punta-cana" },
-      { nombre: "Calle El Conde", region: "Santo Domingo", imagen: merengue, link: "/destino/santo-domingo" },
-      { nombre: "Altos de Chavón", region: "La Romana", imagen: hotelEdenRoc, link: "/destino/la-romana" },
-    ],
-    rutasInfluencers: [
-      { nombre: "Shopper RD", handle: "@compras_rd", avatar: santoDomingo, ruta: "Shopping Tour", descripcion: "Dónde encontrar los mejores souvenirs y productos locales." },
-      { nombre: "Artesanía Local", handle: "@handmade_rd", avatar: merengue, ruta: "Ruta Artesanal", descripcion: "Conoce a los artesanos detrás de las creaciones dominicanas." },
-    ],
-    recomendaciones: ["Compra ámbar y larimar en tiendas certificadas", "Negocia precios en mercados artesanales", "El ron Brugal y Barceló son excelentes regalos", "Guarda espacio en tu maleta para souvenirs"],
-    actividadesRelacionadas: [
-      { nombre: "Tour Mercado Modelo", precio: 25, duracion: "2 horas", imagen: santoDomingo, rating: 4.5 },
-      { nombre: "Taller de Artesanías", precio: 45, duracion: "3 horas", imagen: merengue, rating: 4.7 },
-      { nombre: "Visita Fábrica de Ron", precio: 35, duracion: "2 horas", imagen: gastronomy, rating: 4.8 },
     ],
   },
 };
@@ -369,10 +255,19 @@ const experienciasData: Record<string, {
 export default function ExperienciaDetalle() {
   const { slug: id } = useParams<{ slug: string }>();
   const [saved, setSaved] = useState(false);
+  const [numPersonas, setNumPersonas] = useState<number>(2);
+  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
 
   const experiencia = experienciasData[id || "ecoturismo"] || experienciasData.ecoturismo;
 
-  // Derive a representative destination from the first featured place, to source sponsor slots
+  const checklist = EQUIPAMIENTO_CHECKLIST[experiencia.id] || EQUIPAMIENTO_CHECKLIST.default;
+
+  const toggleCheck = (item: string) => {
+    setCheckedItems(prev => ({ ...prev, [item]: !prev[item] }));
+  };
+
+  const estimatedTotal = (experiencia.basePricePerPerson || 60) * numPersonas;
+
   const primaryDestinationId = experiencia.lugares[0]?.link?.startsWith("/destino/")
     ? experiencia.lugares[0].link.replace("/destino/", "")
     : undefined;
@@ -389,7 +284,13 @@ export default function ExperienciaDetalle() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen flex flex-col bg-background">
+      <SEOHead
+        title={`${experiencia.nombre} - ${experiencia.subtitulo} | Descubre RD`}
+        description={experiencia.descripcion}
+        image={experiencia.heroImage}
+        keywords={`${experiencia.nombre}, ${experiencia.highlights.join(", ")}, república dominicana, turismo, tours`}
+      />
+      <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary selection:text-white">
         <Header hasHero />
 
         {/* Hero Slider */}
@@ -403,197 +304,214 @@ export default function ExperienciaDetalle() {
           restaurants={nearbyRestaurants}
         />
 
-        {/* Description & Actions */}
-        <section className="py-8 bg-card/20 border-b border-border/40">
-          <div className="container mx-auto px-4">
-            <p className="text-lg text-muted-foreground max-w-2xl mb-6">
-              {experiencia.descripcion}
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Button size="lg" className="gap-2">
-                <Play className="h-4 w-4" /> Ver Video
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className={`gap-2 ${saved ? 'bg-primary/20 border-primary text-primary' : ''}`}
-                onClick={() => setSaved(!saved)}
-              >
-                <Heart className={`h-4 w-4 ${saved ? 'fill-primary' : ''}`} /> {saved ? 'Guardado' : 'Guardar'}
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="gap-2"
-                onClick={() => {
-                  if (navigator.share) navigator.share({ title: experiencia.nombre, url: window.location.href });
-                  else navigator.clipboard.writeText(window.location.href);
-                }}
-              >
-                <Share2 className="h-4 w-4" /> Compartir
-              </Button>
-            </div>
-          </div>
-        </section>
+        {/* Main Content & Cotizador Section */}
+        <section className="py-10">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <div className="grid lg:grid-cols-3 gap-8 items-start">
+              
+              {/* Columna Izquierda: Descripción y Highlights */}
+              <div className="lg:col-span-2 space-y-8">
+                <div className="bg-card rounded-3xl p-8 border border-border">
+                  <div className="flex items-center gap-2 text-primary text-sm font-semibold mb-2">
+                    <Sparkles className="h-4 w-4" />
+                    <span>EXPERIENCIA CURADA POR EXPERTOS</span>
+                  </div>
+                  <h2 className="font-display text-3xl font-bold text-foreground mb-4">
+                    {experiencia.nombre}: {experiencia.subtitulo}
+                  </h2>
+                  <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-6">
+                    {experiencia.descripcion}
+                  </p>
 
-        {/* Highlights */}
-        <section className="py-12 bg-card/30">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {experiencia.highlights.map((highlight, index) => (
-                <div key={index} className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border">
-                  <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                  <span className="text-sm font-medium text-foreground">{highlight}</span>
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className={`gap-2 ${saved ? 'bg-primary/20 border-primary text-primary' : ''}`}
+                      onClick={() => {
+                        setSaved(!saved);
+                        toast.success(saved ? "Eliminado de guardados" : "¡Guardado en tus favoritos!");
+                      }}
+                    >
+                      <Heart className={`h-4 w-4 ${saved ? 'fill-primary text-primary' : ''}`} /> 
+                      {saved ? 'Guardado' : 'Guardar Experiencia'}
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => {
+                        if (navigator.share) {
+                          navigator.share({ title: experiencia.nombre, url: window.location.href });
+                        } else {
+                          navigator.clipboard.writeText(window.location.href);
+                          toast.success("Enlace copiado al portapapeles");
+                        }
+                      }}
+                    >
+                      <Share2 className="h-4 w-4" /> Compartir
+                    </Button>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </section>
 
-        {/* Gallery */}
-        <section className="py-12">
-          <div className="container mx-auto px-4">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-6">Galería</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {experiencia.galeria.map((img, index) => (
-                <div key={index} className={`rounded-xl overflow-hidden ${index === 0 ? 'col-span-2 row-span-2' : ''}`}>
-                  <img src={img} alt={`${experiencia.nombre} ${index + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                {/* Highlights Bento */}
+                <div className="bg-card rounded-3xl p-8 border border-border">
+                  <h3 className="font-display text-xl font-bold mb-4">Lo más destacado</h3>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {experiencia.highlights.map((highlight, index) => (
+                      <div key={index} className="flex items-center gap-3 p-3.5 bg-muted/40 rounded-xl border border-border/60">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                        <span className="text-sm font-medium text-foreground">{highlight}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
+
+                {/* Checklist interactivo para la mochila */}
+                <div className="bg-card rounded-3xl p-8 border border-border">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                      <Backpack className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-display text-xl font-bold">Qué llevar en tu mochila</h3>
+                      <p className="text-xs text-muted-foreground">Marca los artículos que vas empacando para tu viaje</p>
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-2.5 mt-6">
+                    {checklist.map((item, idx) => {
+                      const isDone = !!checkedItems[item];
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => toggleCheck(item)}
+                          className={`flex items-start gap-3 p-3 rounded-xl border text-left text-xs sm:text-sm transition-all ${
+                            isDone 
+                              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400 line-through" 
+                              : "bg-background border-border text-foreground hover:bg-muted"
+                          }`}
+                        >
+                          <div className={`w-4 h-4 rounded mt-0.5 flex items-center justify-center border ${
+                            isDone ? "bg-emerald-500 border-emerald-500 text-white" : "border-muted-foreground/40"
+                          }`}>
+                            {isDone && <Check className="h-3 w-3" />}
+                          </div>
+                          <span>{item}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Columna Derecha: Cotizador Rápido y CTA */}
+              <div className="sticky top-20 bg-card rounded-3xl p-6 sm:p-8 border border-border shadow-xl space-y-6">
+                <div className="border-b border-border pb-4">
+                  <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 mb-2">
+                    Operador Certificado MITUR
+                  </Badge>
+                  <p className="text-xs text-muted-foreground">Desde</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-black text-foreground">
+                      ${experiencia.basePricePerPerson || 60}
+                    </span>
+                    <span className="text-xs text-muted-foreground">USD / persona</span>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">
+                      Número de Viajeros
+                    </label>
+                    <div className="flex items-center gap-3">
+                      {[1, 2, 4, 6].map((num) => (
+                        <button
+                          key={num}
+                          onClick={() => setNumPersonas(num)}
+                          className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
+                            numPersonas === num
+                              ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
+                              : "bg-muted/50 border-border text-muted-foreground hover:bg-muted"
+                          }`}
+                        >
+                          {num} {num === 1 ? "Persona" : "Personas"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-muted/40 rounded-2xl p-4 space-y-2 border border-border/60">
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Tarifa base ({numPersonas}x ${experiencia.basePricePerPerson || 60})</span>
+                      <span>${estimatedTotal} USD</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Seguro y Guía Certificado</span>
+                      <span className="text-emerald-500 font-semibold">Incluido</span>
+                    </div>
+                    <div className="pt-2 border-t border-border/60 flex justify-between font-bold text-sm text-foreground">
+                      <span>Total Estimado</span>
+                      <span className="text-lg text-primary">${estimatedTotal} USD</span>
+                    </div>
+                  </div>
+                </div>
+
+                <Button className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-6 rounded-xl text-base shadow-lg shadow-primary/25">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Reservar Experiencia
+                </Button>
+
+                <div className="space-y-2 pt-2 border-t border-border/60 text-[11px] text-muted-foreground">
+                  <p className="flex items-center gap-1.5">
+                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                    Cancelación gratuita hasta 24 horas antes
+                  </p>
+                  <p className="flex items-center gap-1.5">
+                    <Compass className="h-3.5 w-3.5 text-primary shrink-0" />
+                    Transporte y degustación típica incluida
+                  </p>
+                </div>
+              </div>
+
             </div>
           </div>
         </section>
 
         {/* Lugares donde vivirla */}
-        <section className="py-16 bg-card/30">
-          <div className="container mx-auto px-4">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8">Lugares Donde Vivirla</h2>
+        <section className="py-16 bg-card/40 border-y border-border">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <h3 className="font-display text-2xl font-bold text-foreground mb-8">
+              Lugares Clave Donde Vivirla
+            </h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {experiencia.lugares.map((lugar) => (
-                <Link key={lugar.nombre} to={lugar.link} className="group">
-                  <div className="aspect-[4/3] rounded-xl overflow-hidden mb-3">
-                    <img src={lugar.imagen} alt={lugar.nombre} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                <Link key={lugar.nombre} to={lugar.link} className="group block bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/50 transition-all">
+                  <div className="aspect-[4/3] overflow-hidden bg-muted">
+                    <img 
+                      src={lugar.imagen} 
+                      alt={lugar.nombre} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                    />
                   </div>
-                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{lugar.nombre}</h3>
-                  <p className="text-sm text-muted-foreground flex items-center gap-1">
-                    <MapPin className="h-3 w-3" /> {lugar.region}
-                  </p>
+                  <div className="p-4">
+                    <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors text-sm sm:text-base">
+                      {lugar.nombre}
+                    </h4>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                      <MapPin className="h-3 w-3 text-primary" /> {lugar.region}
+                    </p>
+                  </div>
                 </Link>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Rutas de Influencers with Skyscraper Side Ads */}
-        <SectionWithSideAds
-          showAds
-          leftAdSize="skyscraper"
-          rightAdSize="skyscraper"
-          className="container mx-auto"
-        >
-          <section className="py-16">
-            <div className="container mx-auto px-4">
-              <div className="flex items-center gap-2 mb-8">
-                <Instagram className="h-6 w-6 text-primary" />
-                <h2 className="font-display text-2xl font-bold text-foreground">Rutas de Influencers</h2>
-              </div>
-              <div className="grid md:grid-cols-2 gap-6">
-                {experiencia.rutasInfluencers.map((influencer) => (
-                  <div key={influencer.handle} className="bg-card rounded-2xl border border-border p-6 hover:border-primary/50 transition-colors">
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="w-14 h-14 rounded-full overflow-hidden">
-                        <img src={influencer.avatar} alt={influencer.nombre} className="w-full h-full object-cover" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground">{influencer.nombre}</h3>
-                        <p className="text-sm text-primary">{influencer.handle}</p>
-                      </div>
-                    </div>
-                    <h4 className="font-display font-bold text-lg text-foreground mb-2">{influencer.ruta}</h4>
-                    <p className="text-muted-foreground">{influencer.descripcion}</p>
-                    <Button variant="outline" size="sm" className="mt-4 gap-2">
-                      Ver Ruta Completa <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        </SectionWithSideAds>
-
-        {/* Actividades Relacionadas */}
-        <section className="py-16 bg-card/30">
-          <div className="container mx-auto px-4">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8">Actividades Recomendadas</h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              {experiencia.actividadesRelacionadas.map((actividad) => (
-                <div key={actividad.nombre} className="bg-card rounded-2xl border border-border overflow-hidden group hover:shadow-xl transition-shadow">
-                  <div className="aspect-[16/9] overflow-hidden">
-                    <img src={actividad.imagen} alt={actividad.nombre} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                  </div>
-                  <div className="p-5">
-                    <h3 className="font-display font-bold text-foreground mb-2">{actividad.nombre}</h3>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                      <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {actividad.duracion}</span>
-                      <span className="flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" /> {actividad.rating}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xl font-bold text-primary">${actividad.precio}<span className="text-xs text-muted-foreground font-normal">/persona</span></span>
-                      <Button size="sm">Reservar</Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Recomendaciones */}
-        <section className="py-16">
-          <div className="container mx-auto px-4">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8">Tips y Recomendaciones</h2>
-            <div className="grid md:grid-cols-2 gap-4">
-              {experiencia.recomendaciones.map((rec, index) => (
-                <div key={index} className="flex items-start gap-3 p-4 bg-secondary/30 rounded-xl">
-                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-bold text-primary">{index + 1}</span>
-                  </div>
-                  <p className="text-foreground">{rec}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* CTA */}
-        <section className="py-16 bg-primary/10">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="font-display text-3xl font-bold text-foreground mb-4">
-              ¿Listo para vivir esta experiencia?
-            </h2>
-            <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Planifica tu viaje perfecto con nuestras herramientas y encuentra todo lo que necesitas para disfrutar de {experiencia.nombre.toLowerCase()} en República Dominicana.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/herramientas">
-                <Button size="lg" className="gap-2">
-                  Planificar mi Viaje <ChevronRight className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link to="/actividades">
-                <Button size="lg" variant="outline">
-                  Explorar más Experiencias
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </section>
-
         {/* Banner Ad antes del footer */}
-        <BetweenSectionsAd showDemo />
-
-        {/* Footer sticky ad para móvil */}
-        <MobileStickyFooterAd showDemo />
+        <BetweenSectionsAd position="experiencia-footer" />
 
         <Footer />
       </div>

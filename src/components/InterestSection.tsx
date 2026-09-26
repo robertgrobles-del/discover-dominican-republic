@@ -114,7 +114,7 @@ export function InterestSection() {
           className="flex gap-5 overflow-x-auto no-scrollbar px-4 lg:px-8 py-4 scroll-smooth snap-x snap-mandatory will-change-scroll [scrollbar-width:none] [-ms-overflow-style:none]"
         >
           {interests.map((interest, index) => (
-            <>
+            <div key={`interest-wrapper-${interest.link || index}`} className="flex gap-5">
               {/* Insert Sponsored Slider Banner Ad at index 2 */}
               {index === 2 && (
                 <div
@@ -207,7 +207,7 @@ export function InterestSection() {
                   </div>
                 </Link>
               </div>
-            </>
+            </div>
           ))}
         </div>
 

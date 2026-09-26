@@ -10,24 +10,51 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MapPin, Calendar, Thermometer, Utensils, Star, ChevronRight, Hotel, UtensilsCrossed, Wine, Compass, Users } from "lucide-react";
 import { DistancesFromCities } from "@/components/destination/DistancesFromCities";
 import { DestinationAboutTabs } from "@/components/destination/DestinationAboutTabs";
+import { DestinationLocalGastronomy } from "@/components/destination/DestinationLocalGastronomy";
 import { DestinationHeroSlider } from "@/components/destination/DestinationHeroSlider";
+import { DestinationArrivalGuide } from "@/components/destination/DestinationArrivalGuide";
+import { DestinationConsultantBanner } from "@/components/destination/DestinationConsultantBanner";
+import { DestinationHighlightCards } from "@/components/destination/DestinationHighlightCards";
+import { DestinationEssentials } from "@/components/destination/DestinationEssentials";
+import { DestinationMustSee } from "@/components/destination/DestinationMustSee";
+import { DestinationZonesGrid } from "@/components/destination/DestinationZonesGrid";
+import { DestinationEditorialSections } from "@/components/destination/DestinationEditorialSections";
 import { RelatedBlogPosts } from "@/components/destination/RelatedBlogPosts";
 import { Link } from "react-router-dom";
+import { DetailPageSidebarAd } from "@/components/promo/DetailPageSidebarAd";
+import { BetweenSectionsAd } from "@/components/promo/BannerAd";
 import { Destination, getDestinationsByProvince } from "@/data/destinations";
-import { getHotelsByDestination } from "@/data/hotels";
-import { getRestaurantsByDestination } from "@/data/restaurants";
-import { getBarsByDestination } from "@/data/bars";
-import { getExperiencesByDestination } from "@/data/experiences";
+import { hotels as allHotels, getHotelsByDestination, getHotelsByProvince } from "@/data/hotels";
+import { restaurants as allRestaurants, getRestaurantsByDestination, getRestaurantsByProvince } from "@/data/restaurants";
+import { bars as allBars, getBarsByDestination, getBarsByProvince } from "@/data/bars";
+import { experiences as allExperiences, getExperiencesByDestination, getExperiencesByProvince } from "@/data/experiences";
 
 interface StaticDestinationPageProps {
   destination: Destination;
 }
 
 export function StaticDestinationPage({ destination }: StaticDestinationPageProps) {
-  const hotels = getHotelsByDestination(destination.id);
-  const restaurants = getRestaurantsByDestination(destination.id);
-  const bars = getBarsByDestination(destination.id);
-  const experiences = getExperiencesByDestination(destination.id);
+  // Query by destination first, enrich with province or top-rated if less than 3
+  const destHotels = getHotelsByDestination(destination.id);
+  const provHotels = destination.province ? getHotelsByProvince(destination.province) : [];
+  const combinedHotels = Array.from(new Set([...destHotels, ...provHotels]));
+  const hotels = combinedHotels.length >= 3 ? combinedHotels : Array.from(new Set([...combinedHotels, ...allHotels.slice(0, 4)]));
+
+  const destRestaurants = getRestaurantsByDestination(destination.id);
+  const provRestaurants = destination.province ? getRestaurantsByProvince(destination.province) : [];
+  const combinedRestaurants = Array.from(new Set([...destRestaurants, ...provRestaurants]));
+  const restaurants = combinedRestaurants.length >= 3 ? combinedRestaurants : Array.from(new Set([...combinedRestaurants, ...allRestaurants.slice(0, 4)]));
+
+  const destBars = getBarsByDestination(destination.id);
+  const provBars = destination.province ? getBarsByProvince(destination.province) : [];
+  const combinedBars = Array.from(new Set([...destBars, ...provBars]));
+  const bars = combinedBars.length >= 3 ? combinedBars : Array.from(new Set([...combinedBars, ...allBars.slice(0, 4)]));
+
+  const destExperiences = getExperiencesByDestination(destination.id);
+  const provExperiences = destination.province ? getExperiencesByProvince(destination.province) : [];
+  const combinedExperiences = Array.from(new Set([...destExperiences, ...provExperiences]));
+  const experiences = combinedExperiences.length >= 3 ? combinedExperiences : Array.from(new Set([...combinedExperiences, ...allExperiences.slice(0, 4)]));
+
   const subDestinations = destination.type === 'provincia' ? getDestinationsByProvince(destination.slug) : [];
 
   return (
@@ -41,372 +68,216 @@ export function StaticDestinationPage({ destination }: StaticDestinationPageProp
       {/* Hero Section */}
       <DestinationHeroSlider destination={destination} hotels={hotels} restaurants={restaurants} />
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-12">
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Left Column - Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Description */}
-            <section>
-              <h2 className="font-display text-2xl font-bold text-foreground mb-4">
-                Sobre {destination.name}
+      {/* 1. SOBRE EL DESTINO & LO MÁS DESTACADO (PRIMERA SECCIÓN VISIBLE TRAS EL HERO) */}
+      <section className="py-14 bg-background border-b border-border/60">
+        <div className="container mx-auto px-4">
+          <div className="grid lg:grid-cols-3 gap-10 items-start">
+            {/* Main Editorial Description */}
+            <div className="lg:col-span-2 space-y-6">
+              <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider">
+                Destino Estrella del Caribe
+              </div>
+              <h2 className="font-display text-3xl md:text-5xl font-black text-foreground tracking-tight leading-tight">
+                Donde la arena de coral nunca quema y el mar es un santuario turquesa.
               </h2>
-              <p className="text-muted-foreground leading-relaxed text-lg">
+              <p className="text-muted-foreground leading-relaxed text-lg md:text-xl font-normal">
                 {destination.description}
               </p>
-            </section>
 
-            {/* Highlights */}
-            {destination.highlights && destination.highlights.length > 0 && (
-              <section>
-                <h3 className="font-display text-xl font-bold text-foreground mb-4">
-                  Lo más destacado
-                </h3>
-                <div className="grid sm:grid-cols-2 gap-3">
-                  {destination.highlights.map((highlight, idx) => (
-                    <div key={idx} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                      <span className="text-foreground">{highlight}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
+              {/* Lo más destacado Grid con Cards Clickleables */}
+              {destination.highlights && destination.highlights.length > 0 && (
+                <DestinationHighlightCards
+                  destinationSlug={destination.slug}
+                  destinationName={destination.name}
+                  highlights={destination.highlights}
+                />
+              )}
+            </div>
 
-            {/* Sub-destinations for provinces */}
-            {subDestinations.length > 0 && (
-              <section>
-                <h3 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  Destinos en {destination.name}
-                </h3>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {subDestinations.map(sub => (
-                    <Link 
-                      key={sub.id}
-                      to={`/destino/${sub.slug}`}
-                      className="group relative overflow-hidden rounded-xl aspect-[4/3]"
-                    >
-                      <img 
-                        src={sub.imageUrl}
-                        alt={sub.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <h4 className="font-semibold text-white">{sub.name}</h4>
-                        <p className="text-white/80 text-sm line-clamp-1">{sub.shortDescription}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Tabs for Hotels, Restaurants, Bars, Experiences */}
-            <Tabs defaultValue="hotels" className="w-full">
-              <TabsList className="grid grid-cols-4 w-full">
-                <TabsTrigger value="hotels" className="flex items-center gap-2">
-                  <Hotel className="h-4 w-4" />
-                  <span className="hidden sm:inline">Hoteles</span>
-                  <Badge variant="secondary" className="ml-1">{hotels.length}</Badge>
-                </TabsTrigger>
-                <TabsTrigger value="restaurants" className="flex items-center gap-2">
-                  <UtensilsCrossed className="h-4 w-4" />
-                  <span className="hidden sm:inline">Restaurantes</span>
-                  <Badge variant="secondary" className="ml-1">{restaurants.length}</Badge>
-                </TabsTrigger>
-                <TabsTrigger value="bars" className="flex items-center gap-2">
-                  <Wine className="h-4 w-4" />
-                  <span className="hidden sm:inline">Bares</span>
-                  <Badge variant="secondary" className="ml-1">{bars.length}</Badge>
-                </TabsTrigger>
-                <TabsTrigger value="experiences" className="flex items-center gap-2">
-                  <Compass className="h-4 w-4" />
-                  <span className="hidden sm:inline">Experiencias</span>
-                  <Badge variant="secondary" className="ml-1">{experiences.length}</Badge>
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="hotels" className="mt-6">
-                {hotels.length > 0 ? (
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {hotels.map(hotel => (
-                      <Link 
-                        key={hotel.id}
-                        to={`/alojamiento/${hotel.slug}`}
-                        className="group"
-                      >
-                        <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-                          <div className="relative aspect-[16/10]">
-                            <img 
-                              src={hotel.imageUrl}
-                              alt={hotel.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                            <Badge className="absolute top-3 right-3 bg-card/90">
-                              {hotel.priceRange}
-                            </Badge>
-                          </div>
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-1 text-primary mb-2">
-                              {Array.from({ length: hotel.stars }).map((_, i) => (
-                                <Star key={i} className="h-4 w-4 fill-current" />
-                              ))}
-                              <span className="text-sm text-muted-foreground ml-2">
-                                {hotel.rating} ({hotel.reviewCount})
-                              </span>
-                            </div>
-                            <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                              {hotel.name}
-                            </h4>
-                            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                              {hotel.shortDescription}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-8">
-                    No hay hoteles registrados para este destino.
-                  </p>
-                )}
-              </TabsContent>
-
-              <TabsContent value="restaurants" className="mt-6">
-                {restaurants.length > 0 ? (
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {restaurants.map(restaurant => (
-                      <Link 
-                        key={restaurant.id}
-                        to={`/restaurante/${restaurant.slug}`}
-                        className="group"
-                      >
-                        <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-                          <div className="relative aspect-[16/10]">
-                            <img 
-                              src={restaurant.imageUrl}
-                              alt={restaurant.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                            <Badge className="absolute top-3 right-3 bg-card/90">
-                              {restaurant.priceRange}
-                            </Badge>
-                          </div>
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-1 mb-2">
-                              <Star className="h-4 w-4 fill-primary text-primary" />
-                              <span className="text-sm font-medium">{restaurant.rating}</span>
-                              <span className="text-xs text-muted-foreground">
-                                • {restaurant.cuisineType.join(', ')}
-                              </span>
-                            </div>
-                            <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                              {restaurant.name}
-                            </h4>
-                            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                              {restaurant.shortDescription}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-8">
-                    No hay restaurantes registrados para este destino.
-                  </p>
-                )}
-              </TabsContent>
-
-              <TabsContent value="bars" className="mt-6">
-                {bars.length > 0 ? (
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {bars.map(bar => (
-                      <Link 
-                        key={bar.id}
-                        to={`/bar/${bar.slug}`}
-                        className="group"
-                      >
-                        <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-                          <div className="relative aspect-[16/10]">
-                            <img 
-                              src={bar.imageUrl}
-                              alt={bar.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                            <Badge className="absolute top-3 right-3 bg-card/90">
-                              {bar.priceRange}
-                            </Badge>
-                          </div>
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-1 mb-2">
-                              <Star className="h-4 w-4 fill-primary text-primary" />
-                              <span className="text-sm font-medium">{bar.rating}</span>
-                              <span className="text-xs text-muted-foreground">
-                                • {bar.musicStyle.slice(0, 2).join(', ')}
-                              </span>
-                            </div>
-                            <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                              {bar.name}
-                            </h4>
-                            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                              {bar.shortDescription}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-8">
-                    No hay bares registrados para este destino.
-                  </p>
-                )}
-              </TabsContent>
-
-              <TabsContent value="experiences" className="mt-6">
-                {experiences.length > 0 ? (
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    {experiences.map(exp => (
-                      <Link 
-                        key={exp.id}
-                        to={`/experiencia/${exp.slug}`}
-                        className="group"
-                      >
-                        <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-                          <div className="relative aspect-[16/10]">
-                            <img 
-                              src={exp.imageUrl}
-                              alt={exp.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                            <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground">
-                              {exp.category}
-                            </Badge>
-                            <Badge className="absolute top-3 right-3 bg-card/90">
-                              {exp.priceRange}
-                            </Badge>
-                          </div>
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
-                              <span>{exp.duration}</span>
-                              {exp.difficulty && (
-                                <>
-                                  <span>•</span>
-                                  <span className="capitalize">{exp.difficulty}</span>
-                                </>
-                              )}
-                            </div>
-                            <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                              {exp.name}
-                            </h4>
-                            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                              {exp.shortDescription}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-8">
-                    No hay experiencias registradas para este destino.
-                  </p>
-                )}
-              </TabsContent>
-            </Tabs>
-
-            {/* About Tabs */}
-            {destination.about && (
-              <DestinationAboutTabs name={destination.name} data={destination.about} />
-            )}
-
-            {/* Distances from major cities */}
-            <DistancesFromCities
-              latitude={destination.latitude}
-              longitude={destination.longitude}
-              destinationName={destination.name}
-            />
-
-            {/* Related Blog Posts */}
-            <RelatedBlogPosts destinationName={destination.name} destinationSlug={destination.slug} />
-          </div>
-
-          {/* Right Column - Sidebar */}
-          <div className="space-y-6">
-            {/* Quick Info Card */}
-            <Card>
-              <CardContent className="p-6 space-y-4">
-                <h3 className="font-display text-lg font-semibold">Información Práctica</h3>
-                
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <Calendar className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">Mejor época para visitar</p>
-                      <p className="text-muted-foreground text-sm">{destination.bestTimeToVisit}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <Thermometer className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">Clima</p>
-                      <p className="text-muted-foreground text-sm">{destination.weatherInfo}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-primary mt-0.5" />
-                    <div>
-                      <p className="font-medium text-sm">Cómo llegar</p>
-                      <p className="text-muted-foreground text-sm">{destination.howToGetThere}</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Typical Dishes */}
-            {destination.typicalDishes && destination.typicalDishes.length > 0 && (
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-display text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Utensils className="h-5 w-5 text-primary" />
-                    Gastronomía Local
+            {/* Right Column: Practical Info Card + Sidebar Promo Ad */}
+            <div className="space-y-6">
+              {/* Quick Practical Info Card */}
+              <div className="bg-card rounded-3xl p-6 border border-border shadow-md space-y-5">
+                <div>
+                  <h3 className="font-display text-lg font-bold text-foreground">
+                    Información Práctica
                   </h3>
-                  <div className="space-y-2">
-                    {destination.typicalDishes.map((dish, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                        <span>{dish}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Recomendaciones oficiales para tu estancia
+                  </p>
+                </div>
 
-            {/* CTA */}
-            <Card className="bg-primary text-primary-foreground">
-              <CardContent className="p-6 text-center">
-                <h3 className="font-display text-lg font-semibold mb-2">
-                  ¿Listo para explorar?
-                </h3>
-                <p className="text-primary-foreground/80 text-sm mb-4">
-                  Planifica tu viaje a {destination.name}
-                </p>
-                <Button variant="secondary" className="w-full" asChild>
-                  <Link to="/planifica">
-                    Comenzar a planificar
-                    <ChevronRight className="h-4 w-4 ml-2" />
+                <div className="space-y-4 text-sm">
+                  <div className="flex items-start gap-3">
+                    <Calendar className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                    <div>
+                      <p className="font-semibold text-foreground text-xs uppercase tracking-wider">Mejor época para visitar</p>
+                      <p className="text-muted-foreground text-xs mt-0.5">{destination.bestTimeToVisit}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Thermometer className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                    <div>
+                      <p className="font-semibold text-foreground text-xs uppercase tracking-wider">Clima y Temperatura</p>
+                      <p className="text-muted-foreground text-xs mt-0.5">{destination.weatherInfo}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                    <div>
+                      <p className="font-semibold text-foreground text-xs uppercase tracking-wider">Aeropuerto Internacional &amp; Acceso</p>
+                      <p className="text-muted-foreground text-xs mt-0.5">{destination.howToGetThere}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {destination.typicalDishes && destination.typicalDishes.length > 0 && (
+                  <div className="pt-4 border-t border-border">
+                    <p className="font-semibold text-foreground text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <Utensils className="h-4 w-4 text-primary" /> Platos Recomendados
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {destination.typicalDishes.map((dish, idx) => (
+                        <span key={idx} className="text-xs bg-muted px-2.5 py-1 rounded-md text-foreground font-medium">
+                          {dish}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Banner Publicitario Oficial 1 (Hoteles & Resorts de Lujo) */}
+              <div className="rounded-3xl overflow-hidden shadow-sm border border-border/60">
+                <DetailPageSidebarAd showDemo={true} variant="standard" industry="hotels" />
+              </div>
+
+              {/* Banner Publicitario Oficial 2 (Vuelos & Aerolíneas Internacionales) */}
+              <div className="rounded-3xl overflow-hidden shadow-sm border border-border/60">
+                <DetailPageSidebarAd showDemo={true} variant="standard" industry="airlines" />
+              </div>
+
+              {/* Banner Publicitario Oficial 3 (Transporte, Rent a Car & Movilidad - Mitad de altura / Compacto) */}
+              <div className="rounded-2xl overflow-hidden shadow-sm border border-border/60">
+                <DetailPageSidebarAd showDemo={true} variant="compact" industry="rentcar" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 2. LO ESENCIAL PARA EL VIAJERO */}
+      <DestinationEssentials
+        destinoNombre={destination.name}
+        region={destination.province || destination.region || "República Dominicana"}
+        aeropuertoCercano={destination.howToGetThere}
+      />
+
+      {/* 3. LO QUE NO TE PUEDES PERDER */}
+      <DestinationMustSee destinoNombre={destination.name} />
+
+      {/* 4. PLANIFICA TU LLEGADA & RUTAS TERRESTRES */}
+      <DestinationArrivalGuide
+        destinationName={destination.name}
+        provinceName={destination.province}
+        airportInfo={destination.howToGetThere}
+      />
+
+      {/* 5. EXPLORA POR ZONAS Y MICRO-DESTINOS */}
+      <DestinationZonesGrid slug={destination.slug} destinoNombre={destination.name} />
+
+      {/* BANNER PUBLICITARIO HORIZONTAL 1 (Entre Secciones - Patrocinador Oficial) */}
+      <div className="my-6">
+        <BetweenSectionsAd showDemo={true} section="destination-mid-1" industry="hotels" />
+      </div>
+
+      {/* 6. SECCIONES EDITORIALES COMPLETAS: HOTELES, RESTAURANTES Y BARES */}
+      <div className="container mx-auto px-4">
+        <DestinationEditorialSections
+          destinoNombre={destination.name}
+          hotels={hotels}
+          restaurants={restaurants}
+          bars={bars}
+          experiences={experiences}
+        />
+      </div>
+
+      {/* 7. BANNER DE CONSULTOR LOCAL & GARANTÍA OFICIAL */}
+      <DestinationConsultantBanner destinoNombre={destination.name} />
+
+      {/* BANNER PUBLICITARIO HORIZONTAL 2 (Entre Secciones - Gastronomía & Experiencias) */}
+      <div className="my-6">
+        <BetweenSectionsAd showDemo={true} section="destination-mid-2" industry="restaurants" />
+      </div>
+
+      {/* Main Content Extra Sections */}
+      <main className="container mx-auto px-4 py-8">
+        <div className="space-y-16">
+          {/* Sub-destinations for provinces */}
+          {subDestinations.length > 0 && (
+            <section className="bg-card rounded-3xl p-8 border border-border">
+              <h3 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
+                <Users className="h-6 w-6 text-primary" />
+                Destinos y Municipios en {destination.name}
+              </h3>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {subDestinations.map(sub => (
+                  <Link 
+                    key={sub.id}
+                    to={`/destino/${sub.slug}`}
+                    className="group relative overflow-hidden rounded-2xl aspect-[4/3] shadow-md"
+                  >
+                    <img 
+                      src={sub.imageUrl}
+                      alt={sub.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-5">
+                      <h4 className="font-bold text-lg text-white group-hover:text-primary transition-colors">{sub.name}</h4>
+                      <p className="text-white/80 text-xs line-clamp-2 mt-1">{sub.shortDescription}</p>
+                    </div>
                   </Link>
-                </Button>
-              </CardContent>
-            </Card>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Gastronomía Local: Chivo guisado, Pescado frito, Casabe con enlace a recetas */}
+          <DestinationLocalGastronomy destinoNombre={destination.name} />
+
+          {/* About Tabs */}
+          {destination.about && (
+            <DestinationAboutTabs name={destination.name} data={destination.about} />
+          )}
+
+          {/* Related Blog Posts */}
+          <RelatedBlogPosts destinationName={destination.name} destinationSlug={destination.slug} />
+
+          {/* Call to Action Bar */}
+          <div className="bg-gradient-to-r from-primary to-primary/80 rounded-3xl p-8 md:p-12 text-primary-foreground flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+            <div>
+              <h3 className="font-display text-2xl md:text-3xl font-black">
+                ¿Listo para explorar {destination.name}?
+              </h3>
+              <p className="text-primary-foreground/90 text-sm md:text-base mt-2 max-w-xl">
+                Crea tu itinerario inteligente con IA hora por hora o descarga la guía oficial de viaje.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Button size="lg" variant="secondary" className="rounded-xl font-bold" asChild>
+                <Link to="/itinerario-ia">
+                  Itinerario con IA <ChevronRight className="h-4 w-4 ml-1" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" className="rounded-xl font-bold bg-white/10 hover:bg-white/20 border-white/30 text-white" asChild>
+                <Link to="/planifica">
+                  Planificador Manual
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </main>

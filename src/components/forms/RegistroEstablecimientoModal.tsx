@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { isValidEmail } from "@/lib/security";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -616,7 +617,7 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
   const isStep1Valid =
     basicData.nombre.trim() &&
     basicData.responsable.trim() &&
-    basicData.email.trim() &&
+    isValidEmail(basicData.email) &&
     basicData.telefono.trim() &&
     basicData.direccion.trim() &&
     basicData.provincia;
@@ -744,13 +745,13 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
                       <FormField label="Nombre del Establecimiento" required>
                         <div className="relative">
                           <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input className="pl-9" placeholder={`Nombre del ${config.label.toLowerCase()}`} value={basicData.nombre} onChange={e => updateBasic("nombre", e.target.value)} />
+                          <Input className="pl-9" maxLength={120} placeholder={`Nombre del ${config.label.toLowerCase()}`} value={basicData.nombre} onChange={e => updateBasic("nombre", e.target.value)} />
                         </div>
                       </FormField>
                       <FormField label="Nombre del Responsable" required>
                         <div className="relative">
                           <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input className="pl-9" placeholder="Nombre completo" value={basicData.responsable} onChange={e => updateBasic("responsable", e.target.value)} />
+                          <Input className="pl-9" maxLength={120} placeholder="Nombre completo" value={basicData.responsable} onChange={e => updateBasic("responsable", e.target.value)} />
                         </div>
                       </FormField>
                     </FieldRow>
@@ -758,13 +759,13 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
                       <FormField label="Email de Contacto" required>
                         <div className="relative">
                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input className="pl-9" type="email" placeholder="negocio@ejemplo.com" value={basicData.email} onChange={e => updateBasic("email", e.target.value)} />
+                          <Input className="pl-9" type="email" maxLength={254} placeholder="negocio@ejemplo.com" value={basicData.email} onChange={e => updateBasic("email", e.target.value)} />
                         </div>
                       </FormField>
                       <FormField label="Teléfono / WhatsApp" required>
                         <div className="relative">
                           <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input className="pl-9" placeholder="+1 (809) 000-0000" value={basicData.telefono} onChange={e => updateBasic("telefono", e.target.value)} />
+                          <Input className="pl-9" maxLength={25} placeholder="+1 (809) 000-0000" value={basicData.telefono} onChange={e => updateBasic("telefono", e.target.value)} />
                         </div>
                       </FormField>
                     </FieldRow>
@@ -772,7 +773,7 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
                       <FormField label="Dirección Física" required>
                         <div className="relative">
                           <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input className="pl-9" placeholder="Calle, sector, número..." value={basicData.direccion} onChange={e => updateBasic("direccion", e.target.value)} />
+                          <Input className="pl-9" maxLength={200} placeholder="Calle, sector, número..." value={basicData.direccion} onChange={e => updateBasic("direccion", e.target.value)} />
                         </div>
                       </FormField>
                       <FormField label="Provincia" required>

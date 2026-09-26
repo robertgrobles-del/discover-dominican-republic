@@ -1,0 +1,132 @@
+{
+  "kind": "collectionType",
+  "collectionName": "experiencias",
+  "info": {
+    "singularName": "experiencia",
+    "pluralName": "experiencias",
+    "displayName": "Experiencia & Excursión",
+    "description": "Tours oficiales, excursiones ecológicas y deportes en RD"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "titulo": {
+      "type": "string",
+      "required": true,
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "subtitulo": {
+      "type": "string",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "titulo",
+      "required": true
+    },
+    "categoria": {
+      "type": "enumeration",
+      "enum": [
+        "aventura-extrema",
+        "ecoturismo-parques",
+        "patrimonio-historico",
+        "deportes-acuaticos",
+        "avistamiento-ballenas-fauna",
+        "ruta-cacao-tabaco",
+        "golf-profesional",
+        "gastronomia-ron",
+        "bienestar-spa"
+      ],
+      "required": true
+    },
+    "nivelDificultad": {
+      "type": "enumeration",
+      "enum": ["facil-familiar", "moderado", "avanzado-exigente", "extremo"],
+      "default": "facil-familiar"
+    },
+    "edadMinimaRecomendada": {
+      "type": "integer",
+      "default": 0
+    },
+    "duracionHoras": {
+      "type": "decimal"
+    },
+    "precioUSD": {
+      "type": "decimal"
+    },
+    "precioNinosUSD": {
+      "type": "decimal"
+    },
+    "descripcion": {
+      "type": "text",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "itinerarioDetallado": {
+      "type": "richtext",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "queIncluye": {
+      "type": "json",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "queLlevar": {
+      "type": "json",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "guiaCertificado": {
+      "type": "boolean",
+      "default": true
+    },
+    "idiomasGuia": {
+      "type": "json",
+      "description": "['Español', 'English', 'Français', 'Deutsch', 'Italiano', 'Português']"
+    },
+    "operadorTuristico": {
+      "type": "string"
+    },
+    "licenciaMitur": {
+      "type": "string"
+    },
+    "imagenes": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": ["images"]
+    },
+    "destino": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::destino.destino",
+      "inversedBy": "experiencias"
+    }
+  }
+}

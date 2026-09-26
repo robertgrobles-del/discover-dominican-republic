@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -77,6 +78,10 @@ const constellations = [
 export default function Astroturismo() {
   return (
     <PageTransition>
+      <SEOHead
+        title="Astroturismo en República Dominicana - Observatorios y Cielos Estrellados"
+        description="Descubre los mejores observatorios y miradores de montaña y playa en Constanza, Jarabacoa y Bayahíbe, y consulta el calendario de eventos astronómicos del Caribe."
+      />
       <div className="min-h-screen bg-background">
         <Header />
 

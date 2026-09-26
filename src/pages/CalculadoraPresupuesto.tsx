@@ -18,6 +18,7 @@ import { exportItineraryToPDF } from "@/components/ui/export-pdf";
 import { shareViaWhatsApp, shareViaEmail } from "@/lib/share-utils";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { toast } from "sonner";
+import { useTranslation } from "@/i18n";
 
 type TravelStyle = "mochilero" | "estandar" | "lujo";
 
@@ -58,6 +59,7 @@ const expenseCategories: ExpenseCategory[] = [
 ];
 
 export default function CalculadoraPresupuesto() {
+  const { t } = useTranslation();
   const [style, setStyle] = useState<TravelStyle>("estandar");
   const [days, setDays] = useState(7);
   const [travelers, setTravelers] = useState(2);
@@ -172,8 +174,8 @@ export default function CalculadoraPresupuesto() {
   return (
     <PageTransition>
       <SEOHead
-        title="Calculadora de Presupuesto - Planifica tu Viaje a RD"
-        description="Calcula el presupuesto detallado para tu viaje a República Dominicana. Personaliza categorías, estilo de viaje y obtén estimados precisos."
+        title={t("planifica.budgetCalc") || "Calculadora de Presupuesto - Planifica tu Viaje a RD"}
+        description={t("planifica.budgetCalcDesc") || "Calcula el presupuesto detallado para tu viaje a República Dominicana. Personaliza categorías, estilo de viaje y obtén estimados precisos."}
         keywords="presupuesto viaje, calculadora, República Dominicana, costo vacaciones, planificar viaje, gastos turismo"
       />
       <div className="min-h-screen bg-background">
@@ -184,13 +186,13 @@ export default function CalculadoraPresupuesto() {
           <div className="mb-10">
             <div className="flex items-center gap-2 text-primary font-medium text-sm mb-2">
               <Calculator className="h-4 w-4" />
-              <span>Herramienta de Planificación</span>
+              <span>{t("planifica.badge") || "Herramienta de Planificación"}</span>
             </div>
             <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
-              Calculadora de Presupuesto
+              {t("planifica.budgetCalc") || "Calculadora de Presupuesto"}
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl">
-              Planifica tu aventura con un presupuesto personalizado. Ajusta cada categoría según tus necesidades.
+              {t("planifica.budgetCalcDesc") || "Planifica tu aventura con un presupuesto personalizado. Ajusta cada categoría según tus necesidades."}
             </p>
           </div>
 

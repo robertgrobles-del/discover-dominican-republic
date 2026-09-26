@@ -1,0 +1,88 @@
+{
+  "kind": "collectionType",
+  "collectionName": "restaurantes",
+  "info": {
+    "singularName": "restaurante",
+    "pluralName": "restaurantes",
+    "displayName": "Restaurante & Gastronomía",
+    "description": "Restaurantes, gastronomía típica y vida nocturna en RD"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "nombre": {
+      "type": "string",
+      "required": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "nombre",
+      "required": true
+    },
+    "tipoCocina": {
+      "type": "enumeration",
+      "enum": [
+        "dominicana-criolla",
+        "mariscos-pescados",
+        "internacional-fusión",
+        "italiana",
+        "gourmet-autor",
+        "cocteleria-rooftop"
+      ],
+      "required": true
+    },
+    "rangoPrecio": {
+      "type": "enumeration",
+      "enum": ["$", "$$", "$$$", "$$$$"],
+      "default": "$$"
+    },
+    "platosEmblematicos": {
+      "type": "string",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "descripcion": {
+      "type": "text",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "horario": {
+      "type": "string"
+    },
+    "telefono": {
+      "type": "string"
+    },
+    "direccion": {
+      "type": "string"
+    },
+    "latitud": {
+      "type": "float"
+    },
+    "longitud": {
+      "type": "float"
+    },
+    "imagenes": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": ["images"]
+    },
+    "destino": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::destino.destino",
+      "inversedBy": "restaurantes"
+    }
+  }
+}

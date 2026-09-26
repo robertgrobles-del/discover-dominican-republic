@@ -1,0 +1,71 @@
+{
+  "kind": "collectionType",
+  "collectionName": "aeropuertos",
+  "info": {
+    "singularName": "aeropuerto",
+    "pluralName": "aeropuertos",
+    "displayName": "Aeropuerto",
+    "description": "Aeropuertos internacionales y domésticos de RD"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "nombre": {
+      "type": "string",
+      "required": true
+    },
+    "codigoIATA": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "nombre",
+      "required": true
+    },
+    "tipo": {
+      "type": "enumeration",
+      "enum": ["internacional", "domestico"],
+      "default": "internacional"
+    },
+    "ciudad": {
+      "type": "string",
+      "required": true
+    },
+    "provincia": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "text",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "aerolineas": {
+      "type": "json"
+    },
+    "servicios": {
+      "type": "json"
+    },
+    "transporte": {
+      "type": "json"
+    },
+    "imagenUrl": {
+      "type": "string"
+    },
+    "galeria": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": ["images"]
+    }
+  }
+}

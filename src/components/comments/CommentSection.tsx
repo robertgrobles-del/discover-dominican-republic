@@ -166,6 +166,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
               value={authorName}
               onChange={(e) => setAuthorName(e.target.value)}
               placeholder="Tu nombre o alias..."
+              maxLength={60}
               className="bg-background text-xs"
             />
           )}
@@ -174,6 +175,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Comparte tus consejos, experiencia, horario recomendado o advertencias útiles..."
+            maxLength={1000}
             className="bg-background min-h-[85px] text-xs resize-none"
           />
 

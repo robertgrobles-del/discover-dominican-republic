@@ -1,6 +1,7 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Accessibility, Search, ChevronRight, Star, MapPin, Play, Bus, Phone, Eye, Volume2, Type, CheckCircle } from "lucide-react";
@@ -69,6 +70,10 @@ export default function Accesibilidad() {
 
   return (
     <PageTransition>
+      <SEOHead
+        title="Turismo Accesible en República Dominicana"
+        description="Encuentra hoteles, playas y museos con rampas, sillas anfibias y otras facilidades certificadas, además de transporte adaptado para viajar con total accesibilidad."
+      />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
 

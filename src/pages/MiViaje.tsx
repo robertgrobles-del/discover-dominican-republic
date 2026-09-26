@@ -9,6 +9,7 @@ import { Bookmark, MapPin, Star, ChevronRight, Calendar, Settings, Award, Sparkl
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SEOHead } from "@/components/SEOHead";
 
 import puntaCana from "@/assets/punta-cana.jpg";
 
@@ -29,6 +30,10 @@ export default function MiViaje() {
 
   return (
     <PageTransition>
+      <SEOHead
+        title="Mi Viaje: Planificador e Itinerario Personal"
+        description="Organiza tu viaje a República Dominicana: planifica tu itinerario, guarda tus destinos, hoteles y experiencias favoritas, y recibe recomendaciones personalizadas."
+      />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
 

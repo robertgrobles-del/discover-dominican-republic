@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { CheckoutModal } from "@/components/CheckoutModal";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/i18n";
 
 const plans = [
   {
@@ -72,6 +73,7 @@ const compatibilityList = {
 };
 
 export default function ESimTurista() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   
   // Checkout Modal State
@@ -119,8 +121,8 @@ export default function ESimTurista() {
   return (
     <PageTransition>
       <SEOHead
-        title="eSIM Dominicana para Turistas | Descubre RD"
-        description="Adquiere tu eSIM prepago antes de viajar a República Dominicana. Datos móviles en red 5G con Claro o Altice sin cambiar tu tarjeta SIM física."
+        title={t("logistica.simCard") || "eSIM Dominicana para Turistas | Descubre RD"}
+        description={t("logistica.subtitle") || "Adquiere tu eSIM prepago antes de viajar a República Dominicana. Datos móviles en red 5G con Claro o Altice sin cambiar tu tarjeta SIM física."}
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
@@ -131,7 +133,7 @@ export default function ESimTurista() {
             {/* Hero Section */}
             <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
               <Badge className="bg-primary/20 text-primary border-primary/30 py-1 px-3 text-xs gap-1.5 uppercase font-bold tracking-wider">
-                <Wifi className="h-4 w-4" /> eSIM Turística Virtual
+                <Wifi className="h-4 w-4" /> {t("logistica.simCard") || "eSIM Turística Virtual"}
               </Badge>
               <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground">
                 Internet 5G al Instante, <span className="text-primary">Sin Esperas</span>

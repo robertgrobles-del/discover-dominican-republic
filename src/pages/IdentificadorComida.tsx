@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SEOHead } from "@/components/SEOHead";
 import {
   Camera,
   Search,
@@ -67,6 +68,10 @@ const recentScans = [
 export default function IdentificadorComida() {
   return (
     <PageTransition>
+      <SEOHead
+        title="Identificador de Comida Dominicana con IA"
+        description="Escanea platos dominicanos con tu cámara para descubrir ingredientes, información nutricional y dónde encontrar comidas típicas como la bandera, mangú, sancocho y mofongo."
+      />
       <div className="min-h-screen bg-background">
         <Header />
 

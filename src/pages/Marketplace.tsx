@@ -156,9 +156,39 @@ export default function Marketplace() {
           </div>
         </section>
 
-        {/* Tabs */}
-        <section className="py-16">
-          <div className="container mx-auto px-4">
+        {/* Tabs & Certified Sellers Guarantee */}
+        <section className="py-12">
+          <div className="container mx-auto px-4 space-y-8">
+            
+            {/* ESCROW & CERTIFIED SELLERS GUARANTEE BANNER */}
+            <div className="rounded-3xl p-5 sm:p-6 bg-gradient-to-r from-emerald-500/10 via-card to-primary/10 border border-emerald-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+              <div className="flex items-start gap-3.5">
+                <div className="h-11 w-11 rounded-2xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <Shield className="h-6 w-6" />
+                </div>
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-sm sm:text-base text-foreground">
+                      Compra 100% Protegida: Vendedores Certificados con Pago en Custodia
+                    </h3>
+                    <Badge className="bg-emerald-500 text-slate-950 font-black text-[9px] uppercase hidden sm:inline-flex">
+                      Garantía Descubre RD
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed max-w-3xl">
+                    Descubre RD procesa tu pago de forma segura y <strong>retiene los fondos en custodia</strong>. El artesano o vendedor recibe el desembolso únicamente cuando se comprueba el envío mediante guía oficial de transporte.
+                  </p>
+                </div>
+              </div>
+
+              <a href="/partner/login" className="shrink-0 self-end md:self-auto">
+                <Button size="sm" variant="outline" className="rounded-xl text-xs gap-1.5 font-bold border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10">
+                  <Building2 className="h-3.5 w-3.5" />
+                  <span>¿Eres Vendedor? Certifícate Aquí</span>
+                </Button>
+              </a>
+            </div>
+
             <Tabs defaultValue="productos" className="w-full">
               <TabsList className="grid w-full max-w-xl mx-auto grid-cols-4 mb-8">
                 <TabsTrigger value="productos" className="gap-1.5 text-xs sm:text-sm">

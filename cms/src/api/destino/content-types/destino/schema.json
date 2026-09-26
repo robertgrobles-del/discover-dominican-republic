@@ -1,0 +1,190 @@
+{
+  "kind": "collectionType",
+  "collectionName": "destinos",
+  "info": {
+    "singularName": "destino",
+    "pluralName": "destinos",
+    "displayName": "Destino Turístico",
+    "description": "Destinos turísticos, polos y provincias de República Dominicana"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {
+    "i18n": {
+      "localized": true
+    }
+  },
+  "attributes": {
+    "nombre": {
+      "type": "string",
+      "required": true,
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "lema": {
+      "type": "string",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "nombre",
+      "required": true
+    },
+    "region": {
+      "type": "enumeration",
+      "enum": [
+        "norte",
+        "sur",
+        "este",
+        "santo-domingo",
+        "cibao-central",
+        "noroccidental",
+        "suroeste",
+        "nordeste"
+      ],
+      "required": true
+    },
+    "descripcionCorta": {
+      "type": "text",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "descripcionLarga": {
+      "type": "richtext",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "historiaCultura": {
+      "type": "richtext",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "temperaturaPromedio": {
+      "type": "string"
+    },
+    "climaDescripcion": {
+      "type": "string",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "mejorEpoca": {
+      "type": "string",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "rating": {
+      "type": "decimal",
+      "default": 4.8
+    },
+    "totalResenas": {
+      "type": "integer",
+      "default": 120
+    },
+    "latitud": {
+      "type": "float"
+    },
+    "longitud": {
+      "type": "float"
+    },
+    "comoLlegarResumen": {
+      "type": "text",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "consejosViajero": {
+      "type": "json",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "imperdiblesTop5": {
+      "type": "json",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "metaTitle": {
+      "type": "string",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "metaDescription": {
+      "type": "text",
+      "pluginOptions": {
+        "i18n": {
+          "localized": true
+        }
+      }
+    },
+    "imagenHero": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": ["images"]
+    },
+    "galeria": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": ["images"]
+    },
+    "videoHeroUrl": {
+      "type": "string"
+    },
+    "playas": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::playa.playa",
+      "mappedBy": "destino"
+    },
+    "alojamientos": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::alojamiento.alojamiento",
+      "mappedBy": "destino"
+    },
+    "experiencias": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::experiencia.experiencia",
+      "mappedBy": "destino"
+    },
+    "restaurantes": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::restaurante.restaurante",
+      "mappedBy": "destino"
+    }
+  }
+}

@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
@@ -11,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Mail, Lock, Phone, ShieldCheck, Briefcase } from "lucide-react";
+import { Building2, Mail, Lock, Phone, ShieldCheck, Briefcase, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -120,9 +118,26 @@ export default function PartnerLogin() {
         description="Inicia sesión o regístrate en el panel administrativo de partners turísticos en República Dominicana."
       />
       <div className="min-h-screen bg-background flex flex-col justify-between">
-        <Header />
+        {/* Minimal Auth Header */}
+        <header className="p-4 sm:p-6 flex items-center justify-between border-b border-border/40">
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 bg-primary rounded flex items-center justify-center shadow-md">
+              <span className="font-display font-black text-slate-950 text-sm">RD</span>
+            </div>
+            <span className="font-display font-bold text-base text-foreground group-hover:text-primary transition-colors">
+              Descubre RD <span className="text-xs text-primary font-normal">Partners</span>
+            </span>
+          </Link>
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Volver al portal</span>
+          </Link>
+        </header>
 
-        <main className="flex-1 flex items-center justify-center pt-28 pb-16 px-4 bg-gradient-to-br from-primary/5 via-background to-accent/5">
+        <main className="flex-1 flex items-center justify-center py-8 sm:py-12 px-4 bg-gradient-to-br from-primary/5 via-background to-accent/5">
           <Card className="w-full max-w-[460px] border-border shadow-xl backdrop-blur-md bg-card/85">
             <CardHeader className="text-center space-y-2 pb-4">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto text-primary">
@@ -315,7 +330,10 @@ export default function PartnerLogin() {
           </Card>
         </main>
 
-        <Footer />
+        {/* Minimal Auth Footer */}
+        <footer className="py-4 px-6 border-t border-border/40 text-center text-xs text-muted-foreground">
+          <p>© {new Date().getFullYear()} Descubre República Dominicana · Portal B2B para Negocios</p>
+        </footer>
       </div>
     </PageTransition>
   );

@@ -1,33 +1,29 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import {
-  Star, MapPin, Clock, Phone, Globe, Mail, Users, ChevronRight,
-  Utensils, DollarSign, Home, Camera, Share2, Compass, Info,
-  Wine, ShieldCheck, CheckCircle2, Heart, Award, UtensilsCrossed,
-  Flame, Leaf, Calendar, ExternalLink, HelpCircle, ChevronDown, ChevronUp
+  Star, MapPin, Clock, DollarSign, Share2,
+  Utensils, CheckCircle2, UtensilsCrossed, HelpCircle, ChevronDown, ChevronUp
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
-import { FavoriteButton } from "@/components/FavoriteButton";
 import { SEOHead } from "@/components/SEOHead";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Lightbox } from "@/components/ui/lightbox";
-import { useLightbox } from "@/hooks/useLightbox";
 import { getRestaurantBySlug, type Restaurant } from "@/data/restaurants";
-import { getDestinationById } from "@/data/destinations";
-import { getHotelsByDestination } from "@/data/hotels";
-import { getExperiencesByDestination } from "@/data/experiences";
+import { getEnrichedRestaurantBySlug } from "@/data/provinceEnrichment";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { DetailPageSidebarAd, InlineAd, MobileStickyFooterAd } from "@/components/promo";
 import { RestaurantHeroSlider } from "@/components/restaurant/RestaurantHeroSlider";
+import { RestaurantDishesGrid, SignatureDishDetail } from "@/components/restaurant/RestaurantDishesGrid";
+import { RestaurantReservationCard } from "@/components/restaurant/RestaurantReservationCard";
+import { RestaurantAmbienceCard } from "@/components/restaurant/RestaurantAmbienceCard";
+import { DetailFloatingBar } from "@/components/detail/DetailFloatingBar";
+import { CommentSection } from "@/components/comments/CommentSection";
+import { ClaimBusinessModal } from "@/components/business/ClaimBusinessModal";
 
 const categoryLabels: Record<string, string> = {
   'fine-dining': 'Alta Cocina & Autor',
@@ -40,6 +36,58 @@ const categoryLabels: Record<string, string> = {
 
 function useRestaurantData(slug: string | undefined) {
   const staticRestaurant = slug ? getRestaurantBySlug(slug) : null;
+  const enrichedRestaurant = (!staticRestaurant && slug) ? getEnrichedRestaurantBySlug(slug) : null;
+
+  const enrichedFallback: Restaurant | null = enrichedRestaurant ? {
+    id: enrichedRestaurant.id,
+    slug: enrichedRestaurant.slug,
+    name: enrichedRestaurant.name,
+    destinationId: "republica-dominicana",
+    destinationName: enrichedRestaurant.address.split(",").pop()?.trim() || "República Dominicana",
+    province: enrichedRestaurant.address.split(",").pop()?.trim() || "República Dominicana",
+    cuisineType: [enrichedRestaurant.category || "Dominicana", "Criolla", "Mariscos & Parrilla"],
+    category: "local",
+    shortDescription: enrichedRestaurant.shortDescription,
+    description: `${enrichedRestaurant.shortDescription} Ubicado en ${enrichedRestaurant.address}, este reconocido restaurante deleita a locales y viajeros con las recetas más emblemáticas de la cocina dominicana, ingredientes frescos de productores regionales y una cálida atención criolla.`,
+    imageUrl: enrichedRestaurant.imageUrl,
+    gallery: [
+      enrichedRestaurant.imageUrl,
+      "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80",
+      "https://images.unsplash.com/photo-1544025162-d76694265947?w=1200&q=80",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&q=80"
+    ],
+    signatureDishes: [
+      {
+        name: "Plato Especial de la Casa",
+        description: "Elaborado con sazón tradicional, hierbas frescas del huerto y guarnición de tostones dorados.",
+        price: "RD$ 650",
+        imageUrl: enrichedRestaurant.imageUrl
+      },
+      {
+        name: "Chivo Liniero al Ron Dominicano",
+        description: "Guisado lentamente con orégano silvestre, ajíes gustosos y toque de ron añejo de la isla.",
+        price: "RD$ 850",
+        imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=80"
+      },
+      {
+        name: "Pescado Fresco al Coco Samaná",
+        description: "Filete del día bañado en suave salsa de leche de coco natural y cilantro fresco.",
+        price: "RD$ 790",
+        imageUrl: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80"
+      }
+    ],
+    priceRange: (enrichedRestaurant.priceRange as Restaurant['priceRange']) || '$$',
+    rating: enrichedRestaurant.rating || 4.8,
+    reviewCount: 94,
+    address: enrichedRestaurant.address,
+    phone: "+1 809-555-0198",
+    email: "reservas@descubrerd.com",
+    website: "https://descubrerd.com",
+    openingHours: "Lunes a Domingo: 11:30 AM - 11:00 PM",
+    services: ["Aire Acondicionado", "Terraza al Aire Libre", "Estacionamiento Privado", "Wi-Fi Gratuito", "Menú Infantil", "Música Dominicana"],
+    isFeatured: true,
+  } : null;
+
   const { data: dbRestaurant, isLoading } = useQuery({
     queryKey: ['restaurant', slug],
     queryFn: async () => {
@@ -68,37 +116,19 @@ function useRestaurantData(slug: string | undefined) {
         isFeatured: data.is_featured || false,
       } as Restaurant;
     },
-    enabled: !staticRestaurant && !!slug,
+    enabled: !staticRestaurant && !enrichedFallback && !!slug,
   });
-  return { restaurant: staticRestaurant || dbRestaurant, isLoading: !staticRestaurant && isLoading };
+  return { restaurant: staticRestaurant || enrichedFallback || dbRestaurant, isLoading: !staticRestaurant && !enrichedFallback && isLoading };
 }
 
 export default function RestauranteDetalle() {
   const { slug } = useParams<{ slug: string }>();
   const { restaurant, isLoading } = useRestaurantData(slug);
-  const nearbyHotels = useMemo(
-    () => (restaurant?.destinationId ? getHotelsByDestination(restaurant.destinationId) : []),
-    [restaurant?.destinationId]
-  );
-  const nearbyExperiences = useMemo(
-    () => (restaurant?.destinationId ? getExperiencesByDestination(restaurant.destinationId) : []),
-    [restaurant?.destinationId]
-  );
-  const {
-    isOpen: lightboxOpen,
-    currentIndex: lightboxIndex,
-    close: closeLightbox,
-  } = useLightbox();
-
-  // Reservation Form State
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const [selectedDate, setSelectedDate] = useState(tomorrow.toISOString().split('T')[0]);
-  const [selectedTime, setSelectedTime] = useState("20:00");
-  const [selectedGuests, setSelectedGuests] = useState("2");
-  const [reservationName, setReservationName] = useState("");
-  const [specialRequest, setSpecialRequest] = useState("Sin preferencias");
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [slug]);
 
   if (isLoading) {
     return (
@@ -113,8 +143,6 @@ export default function RestauranteDetalle() {
               <Skeleton className="h-24 rounded-2xl" />
               <Skeleton className="h-24 rounded-2xl" />
             </div>
-            <Skeleton className="h-8 w-1/2" />
-            <Skeleton className="h-20 w-full" />
           </div>
           <Footer />
         </div>
@@ -143,7 +171,7 @@ export default function RestauranteDetalle() {
 
   const allImages = [restaurant.imageUrl, ...restaurant.gallery].filter(Boolean);
 
-  const signatureDishesDetailed = restaurant.signatureDishes.map((dish, i) => {
+  const signatureDishesDetailed: SignatureDishDetail[] = (restaurant.signatureDishes.length > 0 ? restaurant.signatureDishes : ["Chillo Boca Chica al Coco", "Filete Mignon Criollo", "Risotto de Yautía con Mariscos", "Cacao Bombón Dominicano"]).map((dish, i) => {
     const descriptions = [
       "Preparado con pesca artesanal fresca, reducción de coco criollo y toques cítricos de naranja agria de monte.",
       "Corte premium a la parrilla de leña con chimichurri dominicano de hierbas silvestres y puré rústico de yautía.",
@@ -193,17 +221,6 @@ export default function RestauranteDetalle() {
     }
   ];
 
-  const handleReservation = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!reservationName.trim()) {
-      toast.error("Por favor ingresa tu nombre para la reserva");
-      return;
-    }
-    toast.success("¡Mesa Reservada con Éxito!", {
-      description: `Confirmación enviada a nombre de ${reservationName} para ${selectedGuests} personas el ${selectedDate} a las ${selectedTime}. ¡Buen provecho!`
-    });
-  };
-
   return (
     <PageTransition>
       <SEOHead
@@ -215,7 +232,7 @@ export default function RestauranteDetalle() {
       <div className="min-h-screen bg-background text-foreground">
         <Header hasHero />
 
-        {/* Hero Slider */}
+        {/* Hero Slider with ONLY restaurant images */}
         <RestaurantHeroSlider
           images={allImages}
           name={restaurant.name}
@@ -226,8 +243,6 @@ export default function RestauranteDetalle() {
           categoryLabel={categoryLabels[restaurant.category] || restaurant.category}
           isFeatured={restaurant.isFeatured}
           favoriteId={restaurant.id}
-          hotels={nearbyHotels}
-          experiences={nearbyExperiences}
         />
 
         {/* Action / Meta Bar */}
@@ -245,11 +260,16 @@ export default function RestauranteDetalle() {
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <ClaimBusinessModal
+                businessName={restaurant.name}
+                businessType="restaurante"
+                businessId={restaurant.id}
+              />
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 rounded-xl"
+                className="gap-2 rounded-xl w-fit"
                 onClick={() => {
                   if (navigator.share) navigator.share({ title: restaurant.name, url: window.location.href });
                   else {
@@ -265,43 +285,43 @@ export default function RestauranteDetalle() {
         </section>
 
         {/* Main Content Layout */}
-        <div className="container mx-auto px-4 lg:px-8 py-10">
-          <div className="grid lg:grid-cols-3 gap-10">
+        <main className="container mx-auto px-4 lg:px-8 py-10">
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
             
-            {/* Left Column (Story, Signature Dishes, Menu Highlights, Experience, FAQ) */}
-            <div className="lg:col-span-2 space-y-10">
+            {/* Left Column (8 cols) */}
+            <div className="lg:col-span-8 space-y-10">
               
               {/* Quick Stat Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="bg-card rounded-2xl p-4 border border-border text-center shadow-xs">
-                  <Utensils className="h-6 w-6 text-primary mx-auto mb-1.5" />
-                  <p className="text-[11px] text-muted-foreground uppercase font-bold">Tipo de Cocina</p>
+                  <Utensils className="h-5 w-5 text-primary mx-auto mb-1.5" />
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold">Tipo de Cocina</p>
                   <p className="text-sm font-bold text-foreground truncate">{restaurant.cuisineType[0] || 'Gourmet'}</p>
                 </div>
                 <div className="bg-card rounded-2xl p-4 border border-border text-center shadow-xs">
-                  <DollarSign className="h-6 w-6 text-primary mx-auto mb-1.5" />
-                  <p className="text-[11px] text-muted-foreground uppercase font-bold">Rango de Precio</p>
+                  <DollarSign className="h-5 w-5 text-primary mx-auto mb-1.5" />
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold">Rango de Precio</p>
                   <p className="text-sm font-bold text-foreground">{restaurant.priceRange} Premium</p>
                 </div>
                 <div className="bg-card rounded-2xl p-4 border border-border text-center shadow-xs">
-                  <Clock className="h-6 w-6 text-primary mx-auto mb-1.5" />
-                  <p className="text-[11px] text-muted-foreground uppercase font-bold">Horario de Servicio</p>
+                  <Clock className="h-5 w-5 text-primary mx-auto mb-1.5" />
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold">Horario</p>
                   <p className="text-sm font-bold text-foreground truncate">{restaurant.openingHours || '12:00 - 23:00'}</p>
                 </div>
                 <div className="bg-card rounded-2xl p-4 border border-border text-center shadow-xs">
-                  <Star className="h-6 w-6 text-amber-400 fill-amber-400 mx-auto mb-1.5" />
-                  <p className="text-[11px] text-muted-foreground uppercase font-bold">Calificación</p>
+                  <Star className="h-5 w-5 text-amber-400 fill-amber-400 mx-auto mb-1.5" />
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold">Calificación</p>
                   <p className="text-sm font-bold text-foreground">{restaurant.rating} / 5.0</p>
                 </div>
               </div>
 
               {/* Description & Culinary Philosophy */}
-              <div className="bg-card rounded-3xl p-6 md:p-8 border border-border shadow-sm">
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4 flex items-center gap-2.5">
+              <div className="bg-card rounded-3xl p-6 md:p-8 border border-border shadow-sm space-y-4">
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground flex items-center gap-2.5">
                   <UtensilsCrossed className="h-6 w-6 text-primary" />
                   Experiencia y Filosofía Culinaria
                 </h2>
-                <p className="text-muted-foreground leading-relaxed text-base md:text-lg mb-6 whitespace-pre-line">
+                <p className="text-muted-foreground leading-relaxed text-base md:text-lg whitespace-pre-line">
                   {restaurant.description || "Una propuesta gastronómica excepcional que resalta lo mejor de la cocina dominicana e internacional con ingredientes frescos de la más alta calidad y un servicio impecable."}
                 </p>
                 
@@ -319,88 +339,17 @@ export default function RestauranteDetalle() {
                 )}
               </div>
 
-              {/* Signature Dishes Cards */}
-              <div className="space-y-6">
-                <div>
-                  <h3 className="font-display text-2xl font-bold text-foreground flex items-center gap-2.5">
-                    <Flame className="h-6 w-6 text-primary" />
-                    Platos Estrella y Creaciones del Chef
-                  </h3>
-                  <p className="text-sm text-muted-foreground">Especialidades icónicas recomendadas para tu visita</p>
-                </div>
+              {/* Signature Dishes Grid */}
+              <RestaurantDishesGrid dishes={signatureDishesDetailed} />
 
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {signatureDishesDetailed.map((dish, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, y: 15 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      viewport={{ once: true }}
-                      className="bg-card rounded-3xl p-6 border border-border hover:border-primary/40 transition-all duration-300 flex flex-col justify-between shadow-xs"
-                    >
-                      <div>
-                        <div className="flex items-start justify-between gap-3 mb-2">
-                          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                            <Utensils className="h-5 w-5" />
-                          </div>
-                          <span className="font-black text-foreground text-sm bg-muted/60 px-2.5 py-1 rounded-lg">
-                            {dish.priceEst}
-                          </span>
-                        </div>
-                        
-                        <h4 className="font-display text-lg font-bold text-foreground mb-1.5">{dish.title}</h4>
-                        <p className="text-xs text-muted-foreground leading-relaxed mb-4">{dish.desc}</p>
-                      </div>
-
-                      <div className="space-y-3 pt-3 border-t border-border/50">
-                        <div className="flex flex-wrap gap-1.5">
-                          {dish.tags.map((t, ti) => (
-                            <span key={ti} className="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-md">
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-                        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/90 italic">
-                          <Wine className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                          <span className="truncate">{dish.pairing}</span>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Atmosphere & Ambience Info */}
-              <div className="bg-card rounded-3xl p-6 md:p-8 border border-border shadow-sm">
-                <h3 className="font-display text-2xl font-bold text-foreground mb-4 flex items-center gap-2.5">
-                  <Wine className="h-6 w-6 text-primary" />
-                  Ambiente, Coctelería & Cava
-                </h3>
-                <div className="grid sm:grid-cols-3 gap-4">
-                  <div className="p-4 bg-muted/30 rounded-2xl border border-border/60">
-                    <p className="text-xs font-bold text-primary uppercase mb-1">Música & Clima</p>
-                    <p className="text-sm font-bold text-foreground">Ambiente Lounge & Acústico</p>
-                    <p className="text-xs text-muted-foreground mt-1">Música suave seleccionada para veladas gastronómicas íntimas.</p>
-                  </div>
-                  <div className="p-4 bg-muted/30 rounded-2xl border border-border/60">
-                    <p className="text-xs font-bold text-primary uppercase mb-1">Cava de Vinos</p>
-                    <p className="text-sm font-bold text-foreground">Selección Internacional</p>
-                    <p className="text-xs text-muted-foreground mt-1">Etiquetas del Viejo y Nuevo Mundo con sommelier en sala.</p>
-                  </div>
-                  <div className="p-4 bg-muted/30 rounded-2xl border border-border/60">
-                    <p className="text-xs font-bold text-primary uppercase mb-1">Mixología</p>
-                    <p className="text-sm font-bold text-foreground">Cócteles Botánicos</p>
-                    <p className="text-xs text-muted-foreground mt-1">Tragos de autor con rones añejos dominicanos y botánicos frescos.</p>
-                  </div>
-                </div>
-              </div>
+              {/* Ambience, Wine & Cocktails */}
+              <RestaurantAmbienceCard />
 
               {/* FAQs Accordion */}
               <div className="bg-card rounded-3xl p-6 md:p-8 border border-border shadow-sm">
                 <h3 className="font-display text-2xl font-bold text-foreground mb-4 flex items-center gap-2.5">
                   <HelpCircle className="h-6 w-6 text-primary" />
-                  Preguntas Frecuentes sobre el Restaurante
+                  Preguntas Frecuentes
                 </h3>
                 
                 <div className="space-y-3">
@@ -434,189 +383,48 @@ export default function RestauranteDetalle() {
                 </div>
               </div>
 
+              {/* User Reviews & Comments */}
+              <div className="pt-4">
+                <CommentSection
+                  contentId={restaurant.id}
+                  contentType="restaurant"
+                  title={`Opiniones sobre ${restaurant.name}`}
+                />
+              </div>
+
             </div>
 
-            {/* Right Column (Reservation Card & Details Sidebar) */}
-            <div className="lg:col-span-1 space-y-6">
-              <div className="sticky top-28 space-y-6">
-                
-                {/* Interactive Table Booking Card */}
-                <div className="bg-card rounded-3xl border border-border p-6 shadow-xl ring-1 ring-border/50">
-                  <div className="flex items-center justify-between pb-4 border-b border-border/70 mb-5">
-                    <div>
-                      <h3 className="font-display text-xl font-bold text-foreground">Reservar Mesa</h3>
-                      <p className="text-xs text-muted-foreground">Confirmación instantánea sin cargos</p>
-                    </div>
-                    <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                      <Calendar className="h-5 w-5" />
-                    </div>
-                  </div>
-
-                  <form onSubmit={handleReservation} className="space-y-4">
-                    <div>
-                      <label className="block text-[11px] font-bold text-muted-foreground uppercase mb-1">Nombre Completo</label>
-                      <Input 
-                        placeholder="Ej. Roberto Guzmán"
-                        value={reservationName}
-                        onChange={(e) => setReservationName(e.target.value)}
-                        className="bg-background rounded-xl text-xs font-medium"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-muted-foreground uppercase mb-1">Fecha</label>
-                      <Input 
-                        type="date" 
-                        value={selectedDate} 
-                        onChange={(e) => setSelectedDate(e.target.value)} 
-                        className="bg-background rounded-xl text-xs font-medium" 
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-[11px] font-bold text-muted-foreground uppercase mb-1">Turno / Hora</label>
-                        <Select value={selectedTime} onValueChange={setSelectedTime}>
-                          <SelectTrigger className="bg-background rounded-xl text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="12:30">12:30 PM (Almuerzo)</SelectItem>
-                            <SelectItem value="13:30">01:30 PM (Almuerzo)</SelectItem>
-                            <SelectItem value="19:00">07:00 PM (Cena)</SelectItem>
-                            <SelectItem value="20:00">08:00 PM (Cena)</SelectItem>
-                            <SelectItem value="21:00">09:00 PM (Cena)</SelectItem>
-                            <SelectItem value="22:00">10:00 PM (Cena)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <label className="block text-[11px] font-bold text-muted-foreground uppercase mb-1">Comensales</label>
-                        <Select value={selectedGuests} onValueChange={setSelectedGuests}>
-                          <SelectTrigger className="bg-background rounded-xl text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">1 Persona</SelectItem>
-                            <SelectItem value="2">2 Personas (Pareja)</SelectItem>
-                            <SelectItem value="3">3 Personas</SelectItem>
-                            <SelectItem value="4">4 Personas</SelectItem>
-                            <SelectItem value="5">5 Personas</SelectItem>
-                            <SelectItem value="6">6+ Personas (Grupo)</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-muted-foreground uppercase mb-1">Ubicación Preferida</label>
-                      <Select value={specialRequest} onValueChange={setSpecialRequest}>
-                        <SelectTrigger className="bg-background rounded-xl text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Sin preferencias">Sin preferencia</SelectItem>
-                          <SelectItem value="Terraza al aire libre">Terraza al aire libre</SelectItem>
-                          <SelectItem value="Salón Climatizado">Salón Climatizado</SelectItem>
-                          <SelectItem value="Celebración de Cumpleaños">Celebración de Cumpleaños</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <Button type="submit" className="w-full py-5 text-sm font-bold rounded-xl shadow-md">
-                      <Users className="h-4 w-4 mr-2" /> Confirmar Reserva de Mesa
-                    </Button>
-                  </form>
-                </div>
-
-                {/* Practical Contact Info Card */}
-                <div className="bg-card rounded-3xl border border-border p-6 shadow-sm">
-                  <h4 className="font-display font-bold text-foreground mb-4 text-sm uppercase tracking-wider">
-                    Contacto Directo
-                  </h4>
-                  <div className="space-y-3.5 text-xs">
-                    <div className="flex items-start gap-3">
-                      <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-semibold text-foreground">Dirección</p>
-                        <p className="text-muted-foreground">{restaurant.address || "República Dominicana"}</p>
-                      </div>
-                    </div>
-
-                    {restaurant.openingHours && (
-                      <div className="flex items-start gap-3">
-                        <Clock className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                        <div>
-                          <p className="font-semibold text-foreground">Horario</p>
-                          <p className="text-muted-foreground">{restaurant.openingHours}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {restaurant.phone && (
-                      <div className="flex items-start gap-3">
-                        <Phone className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                        <div>
-                          <p className="font-semibold text-foreground">Teléfono de Reservas</p>
-                          <a href={`tel:${restaurant.phone}`} className="text-primary font-bold hover:underline">
-                            {restaurant.phone}
-                          </a>
-                        </div>
-                      </div>
-                    )}
-
-                    {restaurant.website && (
-                      <div className="flex items-start gap-3">
-                        <Globe className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                        <div>
-                          <p className="font-semibold text-foreground">Sitio Web & Carta</p>
-                          <a href={restaurant.website} target="_blank" rel="noopener noreferrer" className="text-primary font-bold hover:underline flex items-center gap-1">
-                            Ver Menú Completo <ExternalLink className="h-3 w-3" />
-                          </a>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Map Action */}
-                <div className="bg-card rounded-3xl border border-border p-5 text-center shadow-sm">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto mb-2">
-                    <Compass className="h-6 w-6 animate-pulse" />
-                  </div>
-                  <p className="text-xs font-bold text-foreground mb-1">¿Cómo llegar?</p>
-                  <p className="text-[11px] text-muted-foreground mb-3">{restaurant.address}</p>
-                  
-                  <Button asChild variant="outline" size="sm" className="w-full rounded-xl gap-1.5 text-xs font-semibold">
-                    <a 
-                      href={`https://maps.google.com/?q=${encodeURIComponent(restaurant.name + " " + restaurant.address)}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                    >
-                      Abrir en Google Maps <ExternalLink className="h-3.5 w-3.5 ml-1" />
-                    </a>
-                  </Button>
-                </div>
-
-                {/* Ad Banner */}
-                <DetailPageSidebarAd showDemo />
-              </div>
+            {/* Right Column (4 cols - Reservation Card) */}
+            <div className="lg:col-span-4">
+              <RestaurantReservationCard 
+                restaurantName={restaurant.name}
+                phone={restaurant.phone}
+                website={restaurant.website}
+                email={restaurant.email}
+                address={restaurant.address}
+                openingHours={restaurant.openingHours}
+              />
             </div>
 
           </div>
-        </div>
+        </main>
 
-        {/* Lightbox for gallery images */}
-        <Lightbox
-          images={allImages}
-          initialIndex={lightboxIndex}
-          isOpen={lightboxOpen}
-          onClose={closeLightbox}
+        {/* Mobile Sticky Floating Bar */}
+        <DetailFloatingBar 
+          title={restaurant.name}
+          price={restaurant.priceRange}
+          pricePeriod="consumo prom."
+          rating={restaurant.rating}
+          ctaText="Reservar Mesa"
+          onCtaClick={() => {
+            const resElement = document.getElementById("res-name");
+            if (resElement) {
+              resElement.scrollIntoView({ behavior: "smooth", block: "center" });
+              resElement.focus();
+            }
+          }}
         />
 
-        <InlineAd showDemo variant="large" />
-        <MobileStickyFooterAd showDemo />
         <Footer />
       </div>
     </PageTransition>

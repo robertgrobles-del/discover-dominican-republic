@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Punta Cana | Ultra-Modern Architectural &amp; Nightlife Chic - Guía Oficial de Autor</title>
+<!-- Google Fonts: Syne & Plus Jakarta Sans & Playfair Display -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Syne:wght@500;600;700;800;900&amp;family=Playfair+Display:ital,wght@0,600;1,400&amp;display=swap" rel="stylesheet"/>
+<!-- Font Awesome Icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<!-- Tailwind CSS with Forms and Container Queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            noir: {
+              950: '#07090e',
+              900: '#0a0d14',
+              850: '#0f1420',
+              800: '#121722',
+              750: '#151c29',
+              700: '#181f2e',
+              600: '#222b3e',
+            },
+            neon: {
+              cyan: '#06b6d4',
+              bright: '#22d3ee',
+              teal: '#14b8a6',
+              glow: 'rgba(6, 182, 212, 0.45)',
+            },
+            champagne: {
+              400: '#fde047',
+              500: '#f59e0b',
+              600: '#d97706',
+              gold: '#eab308',
+              muted: '#dfc08f',
+            }
+          },
+          fontFamily: {
+            display: ['"Syne"', 'sans-serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+          },
+          boxShadow: {
+            'neon-glow': '0 0 35px -5px rgba(6, 182, 212, 0.3)',
+            'gold-glow': '0 0 35px -5px rgba(245, 158, 11, 0.25)',
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      background-color: #07090e;
+      color: #cbd5e1;
+    }
+    .neon-border-hover:hover {
+      box-shadow: 0 0 25px -4px rgba(6, 182, 212, 0.4);
+      border-color: rgba(34, 211, 238, 0.6);
+    }
+    .gold-border-hover:hover {
+      box-shadow: 0 0 25px -4px rgba(245, 158, 11, 0.35);
+      border-color: rgba(245, 158, 11, 0.6);
+    }
+    .frosted-glass {
+      background: rgba(15, 20, 32, 0.72);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .glass-card {
+      background: linear-gradient(135deg, rgba(24, 31, 46, 0.7) 0%, rgba(15, 20, 32, 0.85) 100%);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .hero-mask {
+      background: radial-gradient(circle at 70% 30%, rgba(6, 182, 212, 0.15) 0%, transparent 60%),
+                  linear-gradient(180deg, rgba(7, 9, 14, 0.3) 0%, rgba(7, 9, 14, 0.8) 70%, #07090e 100%);
+    }
+    .grid-lines {
+      background-size: 60px 60px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+  </style>
+</head>
+<body class="font-sans antialiased selection:bg-neon-cyan selection:text-noir-950 overflow-x-hidden">
+<!-- BEGIN: MainHeader -->
+<header class="fixed top-0 left-0 right-0 z-50 transition-all duration-500 frosted-glass border-b border-white/10" id="site-header">
+<!-- Top VIP Live Status Ticker -->
+<div class="border-b border-white/5 py-1.5 px-6 text-[11px] tracking-widest uppercase font-semibold text-slate-400">
+<div class="max-w-7xl mx-auto flex items-center justify-between">
+<div class="flex items-center gap-5">
+<span class="inline-flex items-center gap-2 text-neon-bright">
+<span class="w-1.5 h-1.5 rounded-full bg-neon-bright animate-ping"></span>
+            Punta Cana Tonight: 26°C • Sunset Set at Blue Marlin 18:30
+          </span>
+<span class="hidden md:inline text-white/20">|</span>
+<span class="hidden md:flex items-center gap-1.5 text-champagne-400 font-medium">
+<i class="fa-solid fa-gem text-[10px]"></i> Curaduría Arquitectónica &amp; Nightlife Haute-Gamme
+          </span>
+</div>
+<div class="flex items-center gap-4">
+<!-- Currency selector -->
+<div class="flex items-center gap-1.5 cursor-pointer text-slate-300 hover:text-white transition">
+<i class="fa-solid fa-coins text-champagne-500 text-[10px]"></i>
+<span class="font-bold text-[10px]">USD ($)</span>
+<i class="fa-solid fa-chevron-down text-[8px] opacity-70"></i>
+</div>
+<span class="text-white/20">|</span>
+<a class="text-slate-300 hover:text-neon-bright transition flex items-center gap-1" href="#concierge">
+<i class="fa-solid fa-headset text-xs"></i>
+<span class="font-bold tracking-wider">Concierge VIP 24/7</span>
+</a>
+</div>
+</div>
+</div>
+<!-- Main Navigation Bar -->
+<nav class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+<!-- Brand Logo -->
+<a class="flex items-center gap-3.5 group" href="#">
+<div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-noir-800 to-noir-900 border border-neon-cyan/40 flex items-center justify-center font-display font-extrabold text-neon-bright text-xl shadow-neon-glow group-hover:scale-105 transition-transform duration-300">
+          PC
+        </div>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="text-base sm:text-lg font-display font-black tracking-tight text-white group-hover:text-neon-bright transition-colors uppercase">
+              Punta Cana
+            </span>
+<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-champagne-500/20 text-champagne-400 font-bold border border-champagne-500/30">AFTER DARK</span>
+</div>
+<span class="text-[9px] uppercase font-bold tracking-[0.22em] text-slate-400">The Night &amp; Day Architectural Edit</span>
+</div>
+</a>
+<!-- Navigation Links -->
+<div class="hidden xl:flex items-center gap-8 text-[12px] uppercase font-bold tracking-widest text-slate-300">
+<a class="hover:text-neon-bright transition-colors relative py-1 hover:border-b-2 hover:border-neon-bright" href="#beach-clubs">Beach Clubs &amp; Clubs</a>
+<a class="hover:text-neon-bright transition-colors relative py-1 hover:border-b-2 hover:border-neon-bright" href="#resorts-autor">Resorts de Autor</a>
+<a class="hover:text-neon-bright transition-colors relative py-1 hover:border-b-2 hover:border-neon-bright" href="#mixologia">Mixología &amp; Dining</a>
+<a class="hover:text-neon-bright transition-colors relative py-1 hover:border-b-2 hover:border-neon-bright" href="#agenda-vip">Agenda VIP</a>
+<a class="hover:text-champagne-400 transition-colors relative py-1" href="#yates-villas">Yates &amp; Villas</a>
+</div>
+<!-- Action Utilities -->
+<div class="flex items-center gap-3.5">
+<button aria-label="Buscar experiencias de autor" class="w-10 h-10 rounded-xl bg-noir-800 border border-white/10 hover:border-neon-cyan/60 text-slate-200 hover:text-neon-bright flex items-center justify-center transition">
+<i class="fa-solid fa-magnifying-glass text-xs"></i>
+</button>
+<a class="hidden sm:inline-flex items-center gap-2 bg-gradient-to-r from-neon-cyan to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-noir-950 font-display font-extrabold text-xs tracking-wider uppercase px-5 py-2.5 rounded-xl shadow-neon-glow transition-all transform hover:-translate-y-0.5" href="#reservas">
+<i class="fa-solid fa-bell-concierge"></i>
+<span>Mesa VIP / Suite</span>
+</a>
+</div>
+</nav>
+</header>
+<!-- END: MainHeader -->
+<!-- BEGIN: HeroSection -->
+<section class="relative min-h-[96vh] flex items-end pt-36 pb-20 px-6 overflow-hidden grid-lines" data-purpose="hero-nightlife-architectural">
+<!-- Visual Dark/Neon Atmosphere Layer -->
+<div class="absolute inset-0 z-0">
+<img alt="Arquitectura vanguardista y vida nocturna chic en resort de Punta Cana con luces de diseño turquesa y piscina infinita nocturna" class="w-full h-full object-cover object-center filter brightness-90 contrast-125 scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGDP-0rESf1LTe-D4ve5kt2_P8-_E4afA4a-sOAYh5qYHo5U1eTecCKZz2cKhRWYT6I0LMdk71ZSrx5wzgwXYTS-o6AfWGYbQh_e4NGkgiOHzCZTIOjHZQyxVib76yMu5Ldo9ecdr5H_5uZYlIwQ2tOP9IiraEuiL36clGoanjBp2Xr7ZAhZIa3zLoy-q9-5m8EC8qnVdhpXhXwxWJvJ0jjl7mFqG3mCDxk4AV-y9_hH--cOX8HyHnoYoP73Tso1tOcA"/>
+<div class="absolute inset-0 hero-mask"></div>
+</div>
+<!-- Floating Neon Orb Accents -->
+<div class="absolute top-1/4 right-1/4 w-96 h-96 bg-neon-cyan/15 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute bottom-20 left-10 w-80 h-80 bg-champagne-500/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="relative z-10 max-w-7xl mx-auto w-full">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-end">
+<!-- Left Hero Content -->
+<div class="lg:col-span-8 text-white space-y-6">
+<div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-noir-800/90 border border-neon-cyan/40 text-xs font-semibold text-neon-bright backdrop-blur-md">
+<span class="w-2 h-2 rounded-full bg-neon-bright animate-ping"></span>
+<span class="tracking-widest uppercase font-mono text-[10px]">EDICIÓN EXCLUSIVA 2025 • LIFESTYLE NOCTURNO</span>
+</div>
+<h1 class="text-4xl sm:text-6xl lg:text-7xl font-display font-black tracking-tight leading-[1.03] text-white">
+            Punta Cana <br/>
+<span class="text-transparent bg-clip-text bg-gradient-to-r from-neon-bright via-cyan-200 to-champagne-400">
+              After Dark &amp; Architectural Living
+            </span>
+</h1>
+<p class="text-base sm:text-lg text-slate-300 max-w-2xl font-normal leading-relaxed">
+            El epicentro caribeño donde convergen el brutalismo tropical, pabellones de autor al filo del acantilado y la vibración nocturna más electrizante de Latinoamérica.
+          </p>
+<!-- Search / Quick Book VIP Experiences Bar -->
+<div class="glass-card p-2.5 sm:p-3 rounded-2xl border border-white/10 shadow-2xl max-w-3xl">
+<div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+<div class="bg-noir-900/90 px-3.5 py-2.5 rounded-xl border border-white/5">
+<span class="block text-[9px] uppercase tracking-widest text-slate-400 font-bold">Experiencia</span>
+<select class="w-full bg-transparent text-white text-xs font-semibold border-none p-0 focus:ring-0 cursor-pointer">
+<option class="bg-noir-900 text-white" value="mesas-vip">Mesa VIP en Beach Club</option>
+<option class="bg-noir-900 text-white" value="cenote-dj">Secret Cave &amp; Cenote Sets</option>
+<option class="bg-noir-900 text-white" value="yate-sunset">Sunset Yacht Charter</option>
+<option class="bg-noir-900 text-white" value="suites-diseno">Villa de Arquitecto</option>
+</select>
+</div>
+<div class="bg-noir-900/90 px-3.5 py-2.5 rounded-xl border border-white/5">
+<span class="block text-[9px] uppercase tracking-widest text-slate-400 font-bold">Zona / Enclave</span>
+<select class="w-full bg-transparent text-white text-xs font-semibold border-none p-0 focus:ring-0 cursor-pointer">
+<option class="bg-noir-900 text-white" value="cap-cana">Cap Cana Marina &amp; Clifftops</option>
+<option class="bg-noir-900 text-white" value="bavaro">Bávaro VIP District</option>
+<option class="bg-noir-900 text-white" value="macao">Macao Surf &amp; Sunset Dunes</option>
+<option class="bg-noir-900 text-white" value="uvero-alto">Uvero Alto Hideaways</option>
+</select>
+</div>
+<div class="bg-noir-900/90 px-3.5 py-2.5 rounded-xl border border-white/5">
+<span class="block text-[9px] uppercase tracking-widest text-slate-400 font-bold">Fecha / Noche</span>
+<input class="w-full bg-transparent text-white text-xs font-semibold border-none p-0 focus:ring-0" type="text" value="Este Fin de Semana"/>
+</div>
+<button class="bg-gradient-to-r from-neon-cyan to-teal-400 hover:from-cyan-300 hover:to-teal-300 text-noir-950 font-display font-extrabold text-xs uppercase tracking-wider rounded-xl py-3 px-4 flex items-center justify-center gap-2 shadow-neon-glow transition">
+<i class="fa-solid fa-sparkles"></i>
+<span>Explorar VIP</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Right Quick Card Preview -->
+<div class="lg:col-span-4" data-purpose="now-trending-sound">
+<div class="glass-card rounded-3xl p-6 border border-white/10 shadow-2xl relative overflow-hidden group">
+<div class="absolute -top-10 -right-10 w-32 h-32 bg-neon-cyan/20 rounded-full blur-2xl"></div>
+<div class="flex items-center justify-between pb-4 border-b border-white/10">
+<div class="flex items-center gap-2.5">
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+<span class="text-xs font-mono tracking-wider uppercase text-slate-300 font-semibold">Soundscape En Vivo</span>
+</div>
+<span class="text-[10px] font-bold text-champagne-400 px-2 py-0.5 rounded-md bg-champagne-500/10 border border-champagne-500/20">LIVE SET</span>
+</div>
+<div class="mt-4 flex items-center gap-4">
+<div class="w-14 h-14 rounded-2xl bg-noir-800 border border-neon-cyan/40 overflow-hidden relative flex-shrink-0">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAi0hzqFnqUNaU1RA-eiLydVWU54LjDp3IIyb7ZvchjlB6FnEpJMxyRg2NI0K72sO2DPC7QE5wmNSBjBvqCrYRNOibSa8dH-Ebhdi2VuFavfSCWePT541NmWdF76mdYVhC-CFidYcry5Ih6CHVRxE0-SS7_DtoQvHhXf8FVDyAgfAhkAdM2J-JGJ32pFc7TuWNxzP0LMvtJmvspF88LABRhnM2sleaTLvpu1oRF3JcjnxR824RHnlAmBpamBBFNuwSZNw"/>
+<div class="absolute inset-0 bg-noir-950/40 flex items-center justify-center">
+<i class="fa-solid fa-play text-white text-xs"></i>
+</div>
+</div>
+<div class="flex-1 min-w-0">
+<h4 class="text-white font-display font-bold text-sm truncate">Solomun / Deep Sunset Mix</h4>
+<p class="text-[11px] text-slate-400 truncate">Sesión en Ojos Indígenas Cenote Stage</p>
+<div class="flex items-center gap-3 mt-1.5 text-[10px] text-neon-bright font-mono">
+<span><i class="fa-solid fa-headphones mr-1"></i> 128 BPM</span>
+<span><i class="fa-solid fa-fire mr-1"></i> Sold Out VIP</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-[11px]">
+<span class="text-slate-400">Próximo line-up principal:</span>
+<a class="text-neon-bright hover:underline font-semibold" href="#agenda-vip">Ver Cartelera →</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: HeroSection -->
+<!-- BEGIN: BeachClubsAndNightlife -->
+<section class="py-24 px-6 max-w-7xl mx-auto" data-purpose="beach-clubs-nightlife" id="beach-clubs">
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-6">
+<div>
+<div class="inline-flex items-center gap-2 text-neon-bright font-mono text-xs uppercase tracking-widest mb-2.5">
+<span class="w-6 h-px bg-neon-bright"></span>
+          Escenas Nocturnas &amp; Claves de Autor
+        </div>
+<h2 class="text-3xl sm:text-5xl font-display font-black text-white tracking-tight">
+          Beach Clubs &amp; Vida Nocturna de Culto
+        </h2>
+<p class="text-slate-400 text-sm mt-2.5 max-w-2xl">
+          Templos de ocio cosmopolita, desde cenotes milenarios intervenidos con iluminación bioluminiscente hasta beach clubs de arena fina con acústica Funktion-One.
+        </p>
+</div>
+<!-- Filter Chips -->
+<div class="flex flex-wrap items-center gap-2 text-xs font-bold font-mono">
+<button class="px-4 py-2 rounded-xl bg-neon-cyan text-noir-950 shadow-neon-glow">TODOS (08)</button>
+<button class="px-4 py-2 rounded-xl bg-noir-800 text-slate-300 hover:text-white border border-white/5 hover:border-white/20 transition">BEACH CLUBS</button>
+<button class="px-4 py-2 rounded-xl bg-noir-800 text-slate-300 hover:text-white border border-white/5 hover:border-white/20 transition">CLUBS SUBTERRÁNEOS</button>
+<button class="px-4 py-2 rounded-xl bg-noir-800 text-slate-300 hover:text-white border border-white/5 hover:border-white/20 transition">ROOFTOPS</button>
+</div>
+</div>
+<!-- Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Night Venue 1: Maroca Cenote -->
+<article class="glass-card rounded-2xl overflow-hidden border border-white/10 group flex flex-col justify-between neon-border-hover transition-all duration-300">
+<div>
+<div class="relative h-56 overflow-hidden">
+<img alt="Maroca Club Cenote subterraneo con luces neon" class="w-full h-full object-cover object-center group-hover:scale-110 transition duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAevm8-NY68xkH4FJ5ukQMf75WEm9_Y-ImDTPO-uq7l8lE1v9oa7CnOkuQU3W7KspOTw7suzYtzkw2Wn-lXjhcg7Xnmra-IfPnKOBwA8TabJHdyoN97Q2Ep-BalZjKECzqnTRx5iX9O_NzdBbfP9I8kiWVVnw0JmILZplMXgt7-dFYRPlRmVOTzBarNoORYLdbjraPA-JmmhxVW_Y6C99csTKE2v8KHkPaJpt5cPvApdykrYpq2h0-obXHHKhVMFYkWqA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-noir-950 via-noir-950/20 to-transparent"></div>
+<span class="absolute top-3 left-3 bg-noir-900/90 border border-neon-cyan/50 text-neon-bright text-[10px] font-mono font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-md">
+              Cenote &amp; Cave
+            </span>
+<div class="absolute bottom-3 left-3 flex items-center gap-1.5 text-xs font-semibold text-white">
+<i class="fa-solid fa-location-dot text-neon-cyan"></i> Cap Cana Underground
+            </div>
+</div>
+<div class="p-5">
+<h3 class="font-display font-extrabold text-xl text-white group-hover:text-neon-bright transition-colors">
+              Maroca Club Cenote
+            </h3>
+<p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              Caverna natural con piscina de agua turquesa iluminada por láseres paramétricos. Sonido envolvente e inmersión subterránea con DJs de Tulum e Ibiza.
+            </p>
+<div class="mt-4 pt-3 border-t border-white/5 space-y-1.5 text-[11px] font-mono text-slate-300">
+<div class="flex justify-between">
+<span class="text-slate-500">Horario:</span>
+<span class="text-white font-medium">22:00 — 05:00 AM</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-500">Dress Code:</span>
+<span class="text-neon-bright font-medium">Boho Chic / Avant-Garde</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-500">Resonancia:</span>
+<span class="text-champagne-400 font-medium">Melodic Techno &amp; Afro House</span>
+</div>
+</div>
+</div>
+</div>
+<div class="p-5 pt-0">
+<a class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-noir-800 hover:bg-neon-cyan hover:text-noir-950 text-white font-mono font-bold text-xs uppercase tracking-wider border border-white/10 transition-all" href="#">
+<span>Reservar Mesa VIP</span>
+<i class="fa-solid fa-arrow-right text-[10px]"></i>
+</a>
+</div>
+</article>
+<!-- Night Venue 2: Coco Bongo VIP -->
+<article class="glass-card rounded-2xl overflow-hidden border border-white/10 group flex flex-col justify-between neon-border-hover transition-all duration-300">
+<div>
+<div class="relative h-56 overflow-hidden">
+<img alt="Coco Bongo Punta Cana espectáculo de acrobacias y luces" class="w-full h-full object-cover object-center group-hover:scale-110 transition duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIExtyuByPAnvwG4ZOLc9iLhbaGwCDJ50USve6gCxakaMRaVgSWSsZZTzIy_z3YFPFH18XaYH_p7bSwJvyojsTbrpxPQKcLhYJNbP356JsRaNgPlrjYU1up4O6C6JG116K6F9Nyzz9xRbL_GoT4u78LIoh2BbPrKHFeBFizZlUKLt-NxwrI6Ye_cRsyPesfWAXC0Kr3zauiMnCFJITj-tvnemTW32XrDaCAIHcxxWedCn_ksIK3NKbVE9Aaa6f7IDD_Q"/>
+<div class="absolute inset-0 bg-gradient-to-t from-noir-950 via-noir-950/20 to-transparent"></div>
+<span class="absolute top-3 left-3 bg-noir-900/90 border border-purple-500/50 text-purple-300 text-[10px] font-mono font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-md">
+              Show &amp; Club Ultra
+            </span>
+<div class="absolute bottom-3 left-3 flex items-center gap-1.5 text-xs font-semibold text-white">
+<i class="fa-solid fa-location-dot text-neon-cyan"></i> Downtown Punta Cana
+            </div>
+</div>
+<div class="p-5">
+<h3 class="font-display font-extrabold text-xl text-white group-hover:text-neon-bright transition-colors">
+              Coco Bongo VIP Sky Lounge
+            </h3>
+<p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              Espectáculos acrobáticos de alto impacto con producción cinematográfica, barra libre prémium en palcos elevados y atmósfera de celebración global.
+            </p>
+<div class="mt-4 pt-3 border-t border-white/5 space-y-1.5 text-[11px] font-mono text-slate-300">
+<div class="flex justify-between">
+<span class="text-slate-500">Horario:</span>
+<span class="text-white font-medium">20:30 — 03:30 AM</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-500">Dress Code:</span>
+<span class="text-neon-bright font-medium">Smart Glam / Upscale</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-500">Acceso:</span>
+<span class="text-champagne-400 font-medium">Gold Member &amp; Front Row</span>
+</div>
+</div>
+</div>
+</div>
+<div class="p-5 pt-0">
+<a class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-noir-800 hover:bg-neon-cyan hover:text-noir-950 text-white font-mono font-bold text-xs uppercase tracking-wider border border-white/10 transition-all" href="#">
+<span>Pass VIP &amp; Palco</span>
+<i class="fa-solid fa-arrow-right text-[10px]"></i>
+</a>
+</div>
+</article>
+<!-- Night Venue 3: Pearl Beach Club -->
+<article class="glass-card rounded-2xl overflow-hidden border border-white/10 group flex flex-col justify-between neon-border-hover transition-all duration-300">
+<div>
+<div class="relative h-56 overflow-hidden">
+<img alt="Pearl Beach Club infinity pool y camas balinesas frente al mar caribe" class="w-full h-full object-cover object-center group-hover:scale-110 transition duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZQiP-YvflgVF-JIR5ZlkMrVv8nSFcc38b8bdN-ilmzReU_WPjyC6A2EHyePLvtDBtHQBoos7N7cc4AdAf_O8w-akbspCc88IEV2kL9F-U0gQk-A2Wzz2h6DpKaOQO7pwaHBB-kpAbNq-K2qhG0t1kWu7uaVFbs1ZeKGqvH_AoCx0WT0gWyN87YyYIxTc-yOpb0YUIIJw7InVYgF6dgGyPe1SdaFsqw193RmN8Jihhk_gfrlhC10JnhcgAXIuZ8s3A9g"/>
+<div class="absolute inset-0 bg-gradient-to-t from-noir-950 via-noir-950/20 to-transparent"></div>
+<span class="absolute top-3 left-3 bg-noir-900/90 border border-champagne-500/50 text-champagne-400 text-[10px] font-mono font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-md">
+              Day-to-Night Sanctuary
+            </span>
+<div class="absolute bottom-3 left-3 flex items-center gap-1.5 text-xs font-semibold text-white">
+<i class="fa-solid fa-location-dot text-neon-cyan"></i> Cabeza de Toro Beach
+            </div>
+</div>
+<div class="p-5">
+<h3 class="font-display font-extrabold text-xl text-white group-hover:text-neon-bright transition-colors">
+              Pearl Beach Club
+            </h3>
+<p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              Camas balinesas privadas sobre la arena fina, piscina infinity con coctelería molecular, brunch al atardecer y transición a sets nocturnos bajo las estrellas.
+            </p>
+<div class="mt-4 pt-3 border-t border-white/5 space-y-1.5 text-[11px] font-mono text-slate-300">
+<div class="flex justify-between">
+<span class="text-slate-500">Horario:</span>
+<span class="text-white font-medium">11:00 AM — 01:00 AM</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-500">Dress Code:</span>
+<span class="text-neon-bright font-medium">Resort Haute Beachwear</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-500">Residencia:</span>
+<span class="text-champagne-400 font-medium">Ibiza Sunset Sound</span>
+</div>
+</div>
+</div>
+</div>
+<div class="p-5 pt-0">
+<a class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-noir-800 hover:bg-neon-cyan hover:text-noir-950 text-white font-mono font-bold text-xs uppercase tracking-wider border border-white/10 transition-all" href="#">
+<span>Cama Balinesa VIP</span>
+<i class="fa-solid fa-arrow-right text-[10px]"></i>
+</a>
+</div>
+</article>
+<!-- Night Venue 4: ORO Nightclub -->
+<article class="glass-card rounded-2xl overflow-hidden border border-white/10 group flex flex-col justify-between neon-border-hover transition-all duration-300">
+<div>
+<div class="relative h-56 overflow-hidden">
+<img alt="ORO Nightclub Hard Rock iluminación negra y cabina DJ" class="w-full h-full object-cover object-center group-hover:scale-110 transition duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3W-vZ7YX5rvJLdKrUhm7Dqy4CFOh0WrZTnEaukc0hQtzB7Nl5AxQfUoD130m2LN4ygyfu033J0M_aU-2LtpNFgDBZagOs6SpxwcUYzXlkytmEw0n2qqO03SFnC4Myl_XSpITiRhbp2oOC2N_gtURbJ7cCup-5CNe_H5lyv1plHELw4fclOU8DLDkpS6X41r7E_eJOA8sRx1TGm5xOREVPuF8A4sI5TZAYOhUfgkWA17N8qFHcRSeVSP_KNMj4r73cUQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-noir-950 via-noir-950/20 to-transparent"></div>
+<span class="absolute top-3 left-3 bg-noir-900/90 border border-neon-cyan/50 text-neon-cyan text-[10px] font-mono font-bold px-2.5 py-1 rounded-full uppercase tracking-wider backdrop-blur-md">
+              High-Energy Megaclub
+            </span>
+<div class="absolute bottom-3 left-3 flex items-center gap-1.5 text-xs font-semibold text-white">
+<i class="fa-solid fa-location-dot text-neon-cyan"></i> Hard Rock Complex
+            </div>
+</div>
+<div class="p-5">
+<h3 class="font-display font-extrabold text-xl text-white group-hover:text-neon-bright transition-colors">
+              ORO Nightclub
+            </h3>
+<p class="text-xs text-slate-400 mt-2 leading-relaxed">
+              Inspirado en los clubes más prestigiosos de Las Vegas y Miami. Pantallas LED envolventes de dos niveles, botellas de edición magnum y servicio de botella ultra exclusivo.
+            </p>
+<div class="mt-4 pt-3 border-t border-white/5 space-y-1.5 text-[11px] font-mono text-slate-300">
+<div class="flex justify-between">
+<span class="text-slate-500">Horario:</span>
+<span class="text-white font-medium">23:00 — 06:00 AM</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-500">Dress Code:</span>
+<span class="text-neon-bright font-medium">Nightclub Glamour Chic</span>
+</div>
+<div class="flex justify-between">
+<span class="text-slate-500">Sonido:</span>
+<span class="text-champagne-400 font-medium">EDM &amp; Latin Urban Élite</span>
+</div>
+</div>
+</div>
+</div>
+<div class="p-5 pt-0">
+<a class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-noir-800 hover:bg-neon-cyan hover:text-noir-950 text-white font-mono font-bold text-xs uppercase tracking-wider border border-white/10 transition-all" href="#">
+<span>Bottle Service VIP</span>
+<i class="fa-solid fa-arrow-right text-[10px]"></i>
+</a>
+</div>
+</article>
+</div>
+</section>
+<!-- END: BeachClubsAndNightlife -->
+<!-- BEGIN: ArchitecturalIconicStays -->
+<section class="py-24 bg-noir-900 border-y border-white/5 relative" data-purpose="architectural-stays" id="resorts-autor">
+<div class="max-w-7xl mx-auto px-6">
+<div class="max-w-3xl mb-16">
+<span class="inline-flex items-center gap-2 text-champagne-400 font-mono text-xs uppercase tracking-widest mb-2">
+<i class="fa-solid fa-cube text-[10px]"></i>
+          Diseño Brutalista Tropical &amp; Estética Dezeen
+        </span>
+<h2 class="text-3xl sm:text-5xl font-display font-black text-white tracking-tight">
+          Arquitectura de Vanguardia &amp; Iconic Stays
+        </h2>
+<p class="text-slate-400 text-sm mt-3 leading-relaxed">
+          Obras maestras estructurales donde el hormigón visto, la madera de teca autóctona y el vidrio templado se funden con los acantilados y el mar turquesa infinito.
+        </p>
+</div>
+<!-- Architectural Stays 3-Col Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Stay 1: Eden Roc Cap Cana Cliff Villas -->
+<article class="glass-card rounded-3xl overflow-hidden border border-white/10 group flex flex-col justify-between gold-border-hover transition-all duration-300">
+<div>
+<div class="relative h-72 overflow-hidden">
+<img alt="Eden Roc Cap Cana villas sobre el acantilado y océano caribeño" class="w-full h-full object-cover object-center group-hover:scale-105 transition duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAF9au1oM-2yoXG2B7AtKuPfSm_18QVR-072lr3hfO7MwJZcKChOpYZ7RWtA2pLVB9FdwUyjC1vZ3D8-ia07YtMehfiP-hx2skvo2CndrBzvn6NJ0gDpMH91Z8gSBJiguk7gcR29HZuelsvoJyDQijWVjMMZbfMGWowCft__IhojT1Qnz_Yv69ZmJSPGoNu_ItId38sVwtymWRs6rKJUUTfgklff4qhtCgDKSp8bhakU55VLQc3_xyGf-p0q8oU76bwWg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-noir-950 via-noir-950/30 to-transparent"></div>
+<div class="absolute top-4 left-4 bg-noir-900/90 border border-champagne-500/40 text-champagne-400 font-mono text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider backdrop-blur-md">
+                Relais &amp; Châteaux
+              </div>
+<div class="absolute bottom-4 left-4 text-xs font-semibold text-white">
+<i class="fa-solid fa-compass text-champagne-400 mr-1"></i> Acantilados de Cap Cana
+              </div>
+</div>
+<div class="p-6">
+<div class="flex items-center justify-between text-xs mb-2">
+<span class="text-champagne-400 font-bold"><i class="fa-solid fa-star"></i> 4.98 (Arquitectura Seleccionada)</span>
+<span class="text-slate-400 font-mono">Villa Privada</span>
+</div>
+<h3 class="font-display font-extrabold text-2xl text-white group-hover:text-champagne-400 transition-colors">
+                The Cliffside Pavilions at Eden Roc
+              </h3>
+<p class="text-xs text-slate-400 mt-2.5 leading-relaxed">
+                Voladizos escultóricos suspendidos sobre el Caribe, piscinas privadas de borde infinito iluminadas en fibra óptica, spa en cueva natural y helipuerto privado.
+              </p>
+<!-- Design Highlights -->
+<div class="grid grid-cols-2 gap-2 mt-5 pt-4 border-t border-white/5 text-[11px] font-mono text-slate-300">
+<div class="flex items-center gap-1.5">
+<i class="fa-solid fa-palette text-champagne-400 text-xs"></i>
+<span>Interiorismo Milanés</span>
+</div>
+<div class="flex items-center gap-1.5">
+<i class="fa-solid fa-water text-neon-cyan text-xs"></i>
+<span>Plunge Pool Salina</span>
+</div>
+<div class="flex items-center gap-1.5">
+<i class="fa-solid fa-bell text-champagne-400 text-xs"></i>
+<span>Mayordomo de Autor</span>
+</div>
+<div class="flex items-center gap-1.5">
+<i class="fa-solid fa-wine-glass text-neon-cyan text-xs"></i>
+<span>Cava con +1,000 Botellas</span>
+</div>
+</div>
+</div>
+</div>
+<div class="p-6 pt-0 border-t border-white/5 mt-4 flex items-center justify-between">
+<div>
+<span class="text-[9px] uppercase font-mono tracking-widest text-slate-500 block">Estancia de Autor desde</span>
+<span class="text-xl font-display font-extrabold text-white">$1,150 <span class="text-xs text-slate-400 font-normal">/ noche</span></span>
+</div>
+<a class="px-5 py-2.5 bg-gradient-to-r from-champagne-500 to-amber-600 hover:from-champagne-400 hover:to-amber-500 text-noir-950 font-display font-extrabold text-xs uppercase tracking-wider rounded-xl transition shadow-gold-glow" href="#">
+              Consultar Suite
+            </a>
+</div>
+</article>
+<!-- Stay 2: Live Aqua Beach Resort & Brutalist Lagoon -->
+<article class="glass-card rounded-3xl overflow-hidden border border-white/10 group flex flex-col justify-between gold-border-hover transition-all duration-300">
+<div>
+<div class="relative h-72 overflow-hidden">
+<img alt="Live Aqua Punta Cana arquitectura contemporánea y líneas zen" class="w-full h-full object-cover object-center group-hover:scale-105 transition duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAi0hzqFnqUNaU1RA-eiLydVWU54LjDp3IIyb7ZvchjlB6FnEpJMxyRg2NI0K72sO2DPC7QE5wmNSBjBvqCrYRNOibSa8dH-Ebhdi2VuFavfSCWePT541NmWdF76mdYVhC-CFidYcry5Ih6CHVRxE0-SS7_DtoQvHhXf8FVDyAgfAhkAdM2J-JGJ32pFc7TuWNxzP0LMvtJmvspF88LABRhnM2sleaTLvpu1oRF3JcjnxR824RHnlAmBpamBBFNuwSZNw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-noir-950 via-noir-950/30 to-transparent"></div>
+<div class="absolute top-4 left-4 bg-noir-900/90 border border-neon-cyan/40 text-neon-cyan font-mono text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider backdrop-blur-md">
+                Adults Only Minimalist
+              </div>
+<div class="absolute bottom-4 left-4 text-xs font-semibold text-white">
+<i class="fa-solid fa-compass text-neon-cyan mr-1"></i> Uvero Alto Design Hub
+              </div>
+</div>
+<div class="p-6">
+<div class="flex items-center justify-between text-xs mb-2">
+<span class="text-champagne-400 font-bold"><i class="fa-solid fa-star"></i> 4.95 (Vanguardia Visual)</span>
+<span class="text-slate-400 font-mono">Swim-Up Suites</span>
+</div>
+<h3 class="font-display font-extrabold text-2xl text-white group-hover:text-champagne-400 transition-colors">
+                Live Aqua Sensorial Suites
+              </h3>
+<p class="text-xs text-slate-400 mt-2.5 leading-relaxed">
+                Linealidad geométrica y juegos de espejos de agua que fluyen directamente al interior de las suites. Iluminación nocturna regulable en tonos ámbar y azul cobalto.
+              </p>
+<!-- Design Highlights -->
+<div class="grid grid-cols-2 gap-2 mt-5 pt-4 border-t border-white/5 text-[11px] font-mono text-slate-300">
+<div class="flex items-center gap-1.5">
+<i class="fa-solid fa-layer-group text-neon-cyan text-xs"></i>
+<span>Hormigón Visto &amp; Mármol</span>
+</div>
+<div class="flex items-center gap-1.5">
+<i class="fa-solid fa-sliders text-champagne-400 text-xs"></i>
+<span>Domótica Lutron®</span>
+</div>
+<div class="flex items-center gap-1.5">
+<i class="fa-solid fa-spa text-neon-cyan text-xs"></i>
+<span>Hidroterapia Zen</span>
+</div>
+<div class="flex items-center gap-1.5">
+<i class="fa-solid fa-martini-glass text-champagne-400 text-xs"></i>
+<span>Mixology Lounge Privado</span>
+</div>
+</div>
+</div>
+</div>
+<div class="p-6 pt-0 border-t border-white/5 mt-4 flex items-center justify-between">
+<div>
+<span class="text-[9px] uppercase font-mono tracking-widest text-slate-500 block">Estancia de Autor desde</span>
+<span class="text-xl font-display font-extrabold text-white">$580 <span class="text-xs text-slate-400 font-normal">/ noche</span></span>
+</div>
+<a class="px-5 py-2.5 bg-gradient-to-r from-neon-cyan to-teal-400 hover:from-cyan-300 hover:to-teal-300 text-noir-950 font-display font-extrabold text-xs uppercase tracking-wider rounded-xl transition shadow-neon-glow" href="#">
+              Consultar Suite
+            </a>
+</div>
+</article>
+<!-- Stay 3: Sanctuary Cap Cana Castle Clifftop -->
+<article class="glass-card rounded-3xl overflow-hidden border border-white/10 group flex flex-col justify-between gold-border-hover transition-all duration-300">
+<div>
+<div class="relative h-72 overflow-hidden">
+<img alt="Sanctuary Cap Cana suite castillo con vista al acantilado y mar nocturno" class="w-full h-full object-cover object-center group-hover:scale-105 transition duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGDP-0rESf1LTe-D4ve5kt2_P8-_E4afA4a-sOAYh5qYHo5U1eTecCKZz2cKhRWYT6I0LMdk71ZSrx5wzgwXYTS-o6AfWGYbQh_e4NGkgiOHzCZTIOjHZQyxVib76yMu5Ldo9ecdr5H_5uZYlIwQ2tOP9IiraEuiL36clGoanjBp2Xr7ZAhZIa3zLoy-q9-5m8EC8qnVdhpXhXwxWJvJ0jjl7mFqG3mCDxk4AV-y9_hH--cOX8HyHnoYoP73Tso1tOcA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-noir-950 via-noir-950/30 to-transparent"></div>
+<div class="absolute top-4 left-4 bg-noir-900/90 border border-purple-500/40 text-purple-300 font-mono text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider backdrop-blur-md">
+                Iconic Fortified Luxury
+              </div>
+<div class="absolute bottom-4 left-4 text-xs font-semibold text-white">
+<i class="fa-solid fa-compass text-champagne-400 mr-1"></i> The Castle at Sanctuary
+              </div>
+</div>
+<div class="p-6">
+<div class="flex items-center justify-between text-xs mb-2">
+<span class="text-champagne-400 font-bold"><i class="fa-solid fa-star"></i> 4.97 (Arquitectura Emblemática)</span>
+<span class="text-slate-400 font-mono">Castle Island Villa</span>
+</div>
+<h3 class="font-display font-extrabold text-2xl text-white group-hover:text-champagne-400 transition-colors">
+                The Castle Clifftop Suites
+              </h3>
+<p class="text-xs text-slate-400 mt-2.5 leading-relaxed">
+                Fortaleza española contemporánea esculpida sobre la roca viva. Pasarelas sobre agua salada, vistas 360° al horizonte caribeño y acceso a caletas privadas exclusivas.
+              </p>
+<!-- Design Highlights -->
+<div class="grid grid-cols-2 gap-2 mt-5 pt-4 border-t border-white/5 text-[11px] font-mono text-slate-300">
+<div class="flex items-center gap-1.5">
+<i class="fa-solid fa-archway text-champagne-400 text-xs"></i>
+<span>Piedra Coralina Tallada</span>
+</div>
+<div class="flex items-center gap-1.5">
+<i class="fa-solid fa-ship text-neon-cyan text-xs"></i>
+<span>Amarre para Yates Privados</span>
+</div>
+<div class="flex items-center gap-1.5">
+<i class="fa-solid fa-utensils text-champagne-400 text-xs"></i>
+<span>5 Restaurantes de Firma</span>
+</div>
+<div class="flex items-center gap-1.5">
+<i class="fa-solid fa-infinity text-neon-cyan text-xs"></i>
+<span>6 Piscinas Esculpidas</span>
+</div>
+</div>
+</div>
+</div>
+<div class="p-6 pt-0 border-t border-white/5 mt-4 flex items-center justify-between">
+<div>
+<span class="text-[9px] uppercase font-mono tracking-widest text-slate-500 block">Estancia de Autor desde</span>
+<span class="text-xl font-display font-extrabold text-white">$740 <span class="text-xs text-slate-400 font-normal">/ noche</span></span>
+</div>
+<a class="px-5 py-2.5 bg-gradient-to-r from-champagne-500 to-amber-600 hover:from-champagne-400 hover:to-amber-500 text-noir-950 font-display font-extrabold text-xs uppercase tracking-wider rounded-xl transition shadow-gold-glow" href="#">
+              Consultar Suite
+            </a>
+</div>
+</article>
+</div>
+</div>
+</section>
+<!-- END: ArchitecturalIconicStays -->
+<!-- BEGIN: MixologyAndDining -->
+<section class="py-24 px-6 max-w-7xl mx-auto" data-purpose="author-mixology-dining" id="mixologia">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+<!-- Left Editorial Copy -->
+<div class="lg:col-span-5 space-y-6">
+<span class="inline-flex items-center gap-2 text-neon-bright font-mono text-xs uppercase tracking-widest">
+<i class="fa-solid fa-martini-glass-citrus"></i>
+          Mixología de Autor &amp; Fine Dining
+        </span>
+<h2 class="text-3xl sm:text-5xl font-display font-black text-white tracking-tight leading-tight">
+          El Arte Líquido del Ron Añejo &amp; Gastronomía Sensorial
+        </h2>
+<p class="text-slate-300 text-sm leading-relaxed">
+          Punta Cana redefine el paladar caribeño: cocinas de autor lideradas por chefs galardonados, rones dominicanos de reserva privada añejados en barricas de oporto y terrazas panorámicas que desafían la gravedad sobre el mar.
+        </p>
+<!-- Signature Cocktails List -->
+<div class="space-y-4 pt-2">
+<div class="p-4 rounded-2xl bg-noir-800/80 border border-white/5 flex items-start gap-4">
+<div class="w-12 h-12 rounded-xl bg-champagne-500/10 text-champagne-400 border border-champagne-500/30 flex items-center justify-center text-lg flex-shrink-0">
+<i class="fa-solid fa-whiskey-glass"></i>
+</div>
+<div>
+<div class="flex items-center justify-between">
+<h4 class="font-display font-bold text-white text-sm">Brugal Colección Visionaria Smoked Old Fashioned</h4>
+<span class="font-mono text-champagne-400 text-xs font-bold">$28</span>
+</div>
+<p class="text-xs text-slate-400 mt-1">Ron añejado en barricas de cacao tostado dominicano, bitter artesanal de naranja agria y ahumado en campana con madera de caoba.</p>
+</div>
+</div>
+<div class="p-4 rounded-2xl bg-noir-800/80 border border-white/5 flex items-start gap-4">
+<div class="w-12 h-12 rounded-xl bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/30 flex items-center justify-center text-lg flex-shrink-0">
+<i class="fa-solid fa-glass-water-droplet"></i>
+</div>
+<div>
+<div class="flex items-center justify-between">
+<h4 class="font-display font-bold text-white text-sm">Cenote Bioluminescent Clarity</h4>
+<span class="font-mono text-neon-bright text-xs font-bold">$26</span>
+</div>
+<p class="text-xs text-slate-400 mt-1">Clarificado de lima criolla, infusión de ginebra botánica de Samaná, espirulina azul caribeña y perfume de flor de sauco.</p>
+</div>
+</div>
+<div class="p-4 rounded-2xl bg-noir-800/80 border border-white/5 flex items-start gap-4">
+<div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center justify-center text-lg flex-shrink-0">
+<i class="fa-solid fa-fire-burner"></i>
+</div>
+<div>
+<div class="flex items-center justify-between">
+<h4 class="font-display font-bold text-white text-sm">Langosta Espinada &amp; Reducción de Coco-Jengibre</h4>
+<span class="font-mono text-champagne-400 text-xs font-bold">$68</span>
+</div>
+<p class="text-xs text-slate-400 mt-1">Captura salvaje de la costa de Macao glaseada con melaza de caña, emulsión tibia de leche de coco de Samaná y chips de yuca trufada.</p>
+</div>
+</div>
+</div>
+<div class="pt-2">
+<a class="inline-flex items-center gap-2 text-neon-bright hover:text-white font-mono font-bold text-xs uppercase tracking-widest transition" href="#reservas">
+<span>Ver Guía Completa de Restaurantes Michelin &amp; Roofs</span>
+<i class="fa-solid fa-arrow-right"></i>
+</a>
+</div>
+</div>
+<!-- Right Visual Grid Showcase -->
+<div class="lg:col-span-7 grid grid-cols-2 gap-4">
+<div class="space-y-4">
+<div class="relative h-64 rounded-3xl overflow-hidden border border-white/10 group">
+<img class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIExtyuByPAnvwG4ZOLc9iLhbaGwCDJ50USve6gCxakaMRaVgSWSsZZTzIy_z3YFPFH18XaYH_p7bSwJvyojsTbrpxPQKcLhYJNbP356JsRaNgPlrjYU1up4O6C6JG116K6F9Nyzz9xRbL_GoT4u78LIoh2BbPrKHFeBFizZlUKLt-NxwrI6Ye_cRsyPesfWAXC0Kr3zauiMnCFJITj-tvnemTW32XrDaCAIHcxxWedCn_ksIK3NKbVE9Aaa6f7IDD_Q"/>
+<div class="absolute inset-0 bg-gradient-to-t from-noir-950 via-transparent to-transparent"></div>
+<div class="absolute bottom-3 left-3 text-xs font-bold text-white font-display">
+              La Palapa by Eden Roc
+              <span class="block text-[10px] text-slate-400 font-normal">Pescados de roca &amp; Vistas 180°</span>
+</div>
+</div>
+<div class="relative h-80 rounded-3xl overflow-hidden border border-white/10 group">
+<img class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBZQiP-YvflgVF-JIR5ZlkMrVv8nSFcc38b8bdN-ilmzReU_WPjyC6A2EHyePLvtDBtHQBoos7N7cc4AdAf_O8w-akbspCc88IEV2kL9F-U0gQk-A2Wzz2h6DpKaOQO7pwaHBB-kpAbNq-K2qhG0t1kWu7uaVFbs1ZeKGqvH_AoCx0WT0gWyN87YyYIxTc-yOpb0YUIIJw7InVYgF6dgGyPe1SdaFsqw193RmN8Jihhk_gfrlhC10JnhcgAXIuZ8s3A9g"/>
+<div class="absolute inset-0 bg-gradient-to-t from-noir-950 via-transparent to-transparent"></div>
+<div class="absolute bottom-3 left-3 text-xs font-bold text-white font-display">
+              SBG Punta Cana Marina
+              <span class="block text-[10px] text-slate-400 font-normal">Haute Cuisine Mediterránea frente a megayates</span>
+</div>
+</div>
+</div>
+<div class="space-y-4 pt-8">
+<div class="relative h-80 rounded-3xl overflow-hidden border border-white/10 group">
+<img class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3W-vZ7YX5rvJLdKrUhm7Dqy4CFOh0WrZTnEaukc0hQtzB7Nl5AxQfUoD130m2LN4ygyfu033J0M_aU-2LtpNFgDBZagOs6SpxwcUYzXlkytmEw0n2qqO03SFnC4Myl_XSpITiRhbp2oOC2N_gtURbJ7cCup-5CNe_H5lyv1plHELw4fclOU8DLDkpS6X41r7E_eJOA8sRx1TGm5xOREVPuF8A4sI5TZAYOhUfgkWA17N8qFHcRSeVSP_KNMj4r73cUQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-noir-950 via-transparent to-transparent"></div>
+<div class="absolute bottom-3 left-3 text-xs font-bold text-white font-display">
+              Brugal 1888 Bar Speakeasy
+              <span class="block text-[10px] text-slate-400 font-normal">Cata clandestina &amp; Puros Arturo Fuente</span>
+</div>
+</div>
+<div class="relative h-64 rounded-3xl overflow-hidden border border-white/10 group">
+<img class="w-full h-full object-cover group-hover:scale-105 transition duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAevm8-NY68xkH4FJ5ukQMf75WEm9_Y-ImDTPO-uq7l8lE1v9oa7CnOkuQU3W7KspOTw7suzYtzkw2Wn-lXjhcg7Xnmra-IfPnKOBwA8TabJHdyoN97Q2Ep-BalZjKECzqnTRx5iX9O_NzdBbfP9I8kiWVVnw0JmILZplMXgt7-dFYRPlRmVOTzBarNoORYLdbjraPA-JmmhxVW_Y6C99csTKE2v8KHkPaJpt5cPvApdykrYpq2h0-obXHHKhVMFYkWqA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-noir-950 via-transparent to-transparent"></div>
+<div class="absolute bottom-3 left-3 text-xs font-bold text-white font-display">
+              Blue Marlin Cliff Lounge
+              <span class="block text-[10px] text-slate-400 font-normal">Cócteles sobre pasarela marina</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: MixologyAndDining -->
+<!-- BEGIN: AgendaVIPAndEvents -->
+<section class="py-24 bg-noir-850 border-t border-white/5 relative" data-purpose="exclusive-events-calendar" id="agenda-vip">
+<div class="max-w-7xl mx-auto px-6">
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+<div>
+<span class="text-xs font-mono font-bold tracking-widest text-neon-bright uppercase block mb-1">
+<i class="fa-regular fa-calendar-star mr-1"></i> Calendario Curado 2025
+          </span>
+<h2 class="text-3xl sm:text-5xl font-display font-black text-white tracking-tight">
+            Agenda de Festivales &amp; Eventos Exclusivos
+          </h2>
+<p class="text-slate-400 text-sm mt-2 max-w-xl">
+            Acceso prioritario a festivales de música electrónica internacional, torneos de polo bajo la luna y cenas pop-up con chefs con estrella Michelin.
+          </p>
+</div>
+<a class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-noir-800 border border-white/10 hover:border-neon-cyan/50 text-white font-mono text-xs font-bold uppercase tracking-wider transition" href="#concierge">
+<i class="fa-solid fa-ticket text-neon-bright"></i>
+<span>Solicitar VIP Concierge Pass</span>
+</a>
+</div>
+<!-- Events Interactive Calendar Table -->
+<div class="glass-card rounded-3xl border border-white/10 overflow-hidden divide-y divide-white/5">
+<!-- Event Item 1 -->
+<div class="p-6 sm:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:bg-white/[0.02] transition-colors">
+<div class="flex items-start sm:items-center gap-6">
+<!-- Date Badge -->
+<div class="w-16 h-16 rounded-2xl bg-noir-900 border border-neon-cyan/40 text-center flex flex-col justify-center flex-shrink-0">
+<span class="text-[10px] font-mono uppercase text-neon-bright font-bold">ABR</span>
+<span class="text-2xl font-display font-extrabold text-white leading-none">18</span>
+</div>
+<!-- Event Info -->
+<div class="space-y-1">
+<div class="flex flex-wrap items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-neon-cyan/10 border border-neon-cyan/30 text-neon-bright font-mono text-[10px] font-bold uppercase">
+                  Música Electrónica
+                </span>
+<span class="text-xs text-slate-400 font-mono"><i class="fa-solid fa-location-dot text-slate-500 mr-1"></i> Juanillo Beach Stage</span>
+</div>
+<h3 class="text-xl font-display font-bold text-white">Paradise Lost Electronic Festival: Solomun &amp; Tale of Us</h3>
+<p class="text-xs text-slate-400">Escenario monumental de arquitectura paramétrica en la playa virgen de Cap Cana. 12 horas non-stop.</p>
+</div>
+</div>
+<!-- Action Status -->
+<div class="flex items-center justify-between lg:justify-end gap-5">
+<div class="text-right">
+<span class="text-[10px] uppercase font-mono text-champagne-400 block font-bold">Backstage VIP Pass</span>
+<span class="text-lg font-display font-extrabold text-white">$450</span>
+</div>
+<a class="px-5 py-2.5 rounded-xl bg-neon-cyan hover:bg-cyan-300 text-noir-950 font-mono font-bold text-xs uppercase tracking-wider transition shadow-neon-glow" href="#">
+              Reservar Mesa
+            </a>
+</div>
+</div>
+<!-- Event Item 2 -->
+<div class="p-6 sm:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:bg-white/[0.02] transition-colors">
+<div class="flex items-start sm:items-center gap-6">
+<div class="w-16 h-16 rounded-2xl bg-noir-900 border border-champagne-500/40 text-center flex flex-col justify-center flex-shrink-0">
+<span class="text-[10px] font-mono uppercase text-champagne-400 font-bold">MAY</span>
+<span class="text-2xl font-display font-extrabold text-white leading-none">03</span>
+</div>
+<div class="space-y-1">
+<div class="flex flex-wrap items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-champagne-500/10 border border-champagne-500/30 text-champagne-400 font-mono text-[10px] font-bold uppercase">
+                  Alta Gastronomía Pop-Up
+                </span>
+<span class="text-xs text-slate-400 font-mono"><i class="fa-solid fa-location-dot text-slate-500 mr-1"></i> Tortuga Bay Private Clifftop</span>
+</div>
+<h3 class="text-xl font-display font-bold text-white">Four-Hands Dinner: Quique Dacosta &amp; Chef Tita</h3>
+<p class="text-xs text-slate-400">Maridaje de 9 tiempos con rones de barrica centenaria y pesca fresca dominicana. Solo 40 comensales.</p>
+</div>
+</div>
+<div class="flex items-center justify-between lg:justify-end gap-5">
+<div class="text-right">
+<span class="text-[10px] uppercase font-mono text-champagne-400 block font-bold">Cubierto Exclusivo</span>
+<span class="text-lg font-display font-extrabold text-white">$380</span>
+</div>
+<a class="px-5 py-2.5 rounded-xl bg-champagne-500 hover:bg-champagne-400 text-noir-950 font-mono font-bold text-xs uppercase tracking-wider transition shadow-gold-glow" href="#">
+              Comprar Plaza
+            </a>
+</div>
+</div>
+<!-- Event Item 3 -->
+<div class="p-6 sm:p-7 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:bg-white/[0.02] transition-colors">
+<div class="flex items-start sm:items-center gap-6">
+<div class="w-16 h-16 rounded-2xl bg-noir-900 border border-teal-500/40 text-center flex flex-col justify-center flex-shrink-0">
+<span class="text-[10px] font-mono uppercase text-teal-400 font-bold">JUN</span>
+<span class="text-2xl font-display font-extrabold text-white leading-none">14</span>
+</div>
+<div class="space-y-1">
+<div class="flex flex-wrap items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-teal-500/10 border border-teal-500/30 text-teal-400 font-mono text-[10px] font-bold uppercase">
+                  Regata Nocturna &amp; Deporte Élite
+                </span>
+<span class="text-xs text-slate-400 font-mono"><i class="fa-solid fa-location-dot text-slate-500 mr-1"></i> Marina Cap Cana Yatch Club</span>
+</div>
+<h3 class="text-xl font-display font-bold text-white">Moonlight Superyacht Regatta &amp; White Party</h3>
+<p class="text-xs text-slate-400">Competición de veleros de alta eslora bordeando la costa iluminada, rematada con cóctel de etiqueta blanca.</p>
+</div>
+</div>
+<div class="flex items-center justify-between lg:justify-end gap-5">
+<div class="text-right">
+<span class="text-[10px] uppercase font-mono text-neon-bright block font-bold">Invitación / Yate</span>
+<span class="text-lg font-display font-extrabold text-white">VIP List</span>
+</div>
+<a class="px-5 py-2.5 rounded-xl bg-noir-800 hover:bg-white hover:text-noir-950 text-white border border-white/20 font-mono font-bold text-xs uppercase tracking-wider transition" href="#">
+              Solicitar Invitación
+            </a>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: AgendaVIPAndEvents -->
+<!-- BEGIN: CommercialVIPBrandBanner -->
+<section class="max-w-7xl mx-auto px-6 py-14" id="yates-villas">
+<div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-noir-950 via-noir-900 to-noir-850 p-8 sm:p-12 text-white border border-neon-cyan/30 shadow-neon-glow">
+<!-- Glow effect -->
+<div class="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-neon-cyan/20 blur-3xl pointer-events-none"></div>
+<div class="absolute -left-20 -bottom-20 w-80 h-80 rounded-full bg-champagne-500/15 blur-3xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+<div class="space-y-3 text-center md:text-left">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon-cyan/10 border border-neon-cyan/30 text-neon-bright text-xs font-mono font-bold uppercase tracking-widest">
+<i class="fa-solid fa-crown text-champagne-400"></i> Servicio Flota &amp; Concierge Privado
+          </div>
+<h3 class="text-3xl sm:text-4xl font-display font-black tracking-tight text-white">
+            Yates Privados al Atardecer &amp; Vuelos Charter
+          </h3>
+<p class="text-sm text-slate-300 max-w-xl leading-relaxed">
+            Navega las aguas transparentes de Isla Saona y Palmilla a bordo de catamaranes Sunseeker y catamarán de autor. Chef privado a bordo, cava refrigerada y sonido de concierto.
+          </p>
+</div>
+<div class="flex flex-col sm:flex-row items-center gap-4">
+<a class="px-8 py-4 rounded-xl bg-neon-cyan hover:bg-cyan-300 text-noir-950 font-display font-extrabold text-xs uppercase tracking-widest transition shadow-neon-glow transform hover:-translate-y-0.5" href="#concierge">
+            Cotizar Charter Privado <i class="fa-solid fa-arrow-right ml-1"></i>
+</a>
+</div>
+</div>
+<div class="mt-8 pt-4 border-t border-white/10 text-[11px] font-mono text-slate-400 text-center md:text-left flex flex-col sm:flex-row justify-between gap-2">
+<span>Flota certificada con atraque en Cap Cana Marina y Puntacana Resort &amp; Club.</span>
+<span>Atención directa: +1 (809) VIP-NIGHT</span>
+</div>
+</div>
+</section>
+<!-- END: CommercialVIPBrandBanner -->
+<!-- BEGIN: MainFooter -->
+<footer class="bg-noir-950 text-slate-400 pt-20 pb-12 border-t border-white/10" id="concierge">
+<div class="max-w-7xl mx-auto px-6">
+<!-- Top VIP Newsletter Box -->
+<div class="glass-card rounded-3xl p-8 sm:p-10 border border-white/10 mb-16 relative overflow-hidden" id="reservas">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+<div class="lg:col-span-7 space-y-2">
+<span class="text-xs font-mono font-bold uppercase tracking-widest text-champagne-400">
+              Membresía Exclusiva Concierge
+            </span>
+<h3 class="text-2xl sm:text-3xl font-display font-black text-white">
+              Recibe las claves secretas y line-ups VIP antes de su anuncio público
+            </h3>
+<p class="text-xs text-slate-400 max-w-xl leading-relaxed">
+              Invitaciones a inauguraciones privadas de hoteles de diseño, pases de mesa reservados y drops de fiestas clandestinas en cenotes de Punta Cana.
+            </p>
+</div>
+<div class="lg:col-span-5">
+<form class="flex flex-col sm:flex-row gap-2.5" onsubmit="event.preventDefault();">
+<input class="w-full bg-noir-900 border border-white/10 rounded-xl px-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-neon-cyan font-mono" placeholder="vip@tudominio.com" type="email"/>
+<button class="px-6 py-3 bg-neon-cyan hover:bg-cyan-300 text-noir-950 font-display font-extrabold text-xs uppercase tracking-wider rounded-xl transition flex-shrink-0 shadow-neon-glow" type="submit">
+<span>Acceder</span>
+</button>
+</form>
+<span class="block text-[10px] text-slate-500 mt-2 font-mono">Privacidad absoluta garantizada. Cancelación en cualquier momento.</span>
+</div>
+</div>
+</div>
+<!-- Footer Columns -->
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 pb-14 border-b border-white/5 text-xs">
+<div class="space-y-3">
+<h4 class="font-display font-bold uppercase tracking-wider text-white">Nightlife &amp; Clubs</h4>
+<ul class="space-y-2 text-slate-400 font-medium">
+<li><a class="hover:text-neon-bright transition" href="#">Maroca Cave Cenote</a></li>
+<li><a class="hover:text-neon-bright transition" href="#">Coco Bongo VIP Sky Lounge</a></li>
+<li><a class="hover:text-neon-bright transition" href="#">Pearl Beach Club</a></li>
+<li><a class="hover:text-neon-bright transition" href="#">ORO Nightclub</a></li>
+<li><a class="hover:text-neon-bright transition" href="#">Blue Marlin Clifftop Bar</a></li>
+<li><a class="hover:text-neon-bright transition" href="#">Imagine Cave Disco</a></li>
+</ul>
+</div>
+<div class="space-y-3">
+<h4 class="font-display font-bold uppercase tracking-wider text-white">Iconic Stays</h4>
+<ul class="space-y-2 text-slate-400 font-medium">
+<li><a class="hover:text-neon-bright transition" href="#">Eden Roc Cap Cana Villas</a></li>
+<li><a class="hover:text-neon-bright transition" href="#">Live Aqua Sensorial Suites</a></li>
+<li><a class="hover:text-neon-bright transition" href="#">Sanctuary Castle Clifftop</a></li>
+<li><a class="hover:text-neon-bright transition" href="#">Tortuga Bay by Oscar de la Renta</a></li>
+<li><a class="hover:text-neon-bright transition" href="#">Hyatt Zilara Secret Enclaves</a></li>
+</ul>
+</div>
+<div class="space-y-3">
+<h4 class="font-display font-bold uppercase tracking-wider text-white">Gourmet &amp; Mixology</h4>
+<ul class="space-y-2 text-slate-400 font-medium">
+<li><a class="hover:text-neon-bright transition" href="#">Brugal 1888 Cava Privada</a></li>
+<li><a class="hover:text-neon-bright transition" href="#">La Palapa de Autor</a></li>
+<li><a class="hover:text-neon-bright transition" href="#">SBG Marina Grill</a></li>
+<li><a class="hover:text-neon-bright transition" href="#">Cava Subterránea Hoyo Azul</a></li>
+<li><a class="hover:text-neon-bright transition" href="#">Rooftops de Alta Vista</a></li>
+</ul>
+</div>
+<div class="space-y-3">
+<h4 class="font-display font-bold uppercase tracking-wider text-white">Servicios Concierge</h4>
+<ul class="space-y-2 text-slate-400 font-medium">
+<li><a class="hover:text-neon-bright transition" href="#">Mesas VIP &amp; Bottle Service</a></li>
+<li><a class="hover:text-neon-bright transition" href="#">Helicópteros &amp; Jets Privados</a></li>
+<li><a class="hover:text-neon-bright transition" href="#">Alquiler de Megayates</a></li>
+<li><a class="hover:text-neon-bright transition" href="#">Seguridad &amp; Chófer Blindado</a></li>
+<li><a class="hover:text-neon-bright transition" href="#">Protocolo Aeropuerto PUJ VIP</a></li>
+</ul>
+</div>
+<div class="col-span-2 md:col-span-4 lg:col-span-1 space-y-4">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-xl bg-neon-cyan/20 border border-neon-cyan text-neon-bright flex items-center justify-center font-display font-extrabold text-xs">
+              PC
+            </div>
+<span class="font-display font-bold text-white tracking-wider uppercase text-sm">Punta Cana Chic</span>
+</div>
+<p class="text-slate-400 text-xs leading-relaxed">
+            Plataforma editorial de lifestyle de alta gama y diseño arquitectónico para el viajero contemporáneo más exigente.
+          </p>
+<div class="flex items-center gap-3 pt-1">
+<a class="w-8 h-8 rounded-lg bg-noir-850 hover:bg-neon-cyan hover:text-noir-950 text-slate-400 flex items-center justify-center text-xs transition" href="#"><i class="fa-brands fa-instagram"></i></a>
+<a class="w-8 h-8 rounded-lg bg-noir-850 hover:bg-neon-cyan hover:text-noir-950 text-slate-400 flex items-center justify-center text-xs transition" href="#"><i class="fa-brands fa-spotify"></i></a>
+<a class="w-8 h-8 rounded-lg bg-noir-850 hover:bg-neon-cyan hover:text-noir-950 text-slate-400 flex items-center justify-center text-xs transition" href="#"><i class="fa-brands fa-youtube"></i></a>
+<a class="w-8 h-8 rounded-lg bg-noir-850 hover:bg-neon-cyan hover:text-noir-950 text-slate-400 flex items-center justify-center text-xs transition" href="#"><i class="fa-brands fa-tiktok"></i></a>
+</div>
+</div>
+</div>
+<!-- Bottom Bar -->
+<div class="pt-8 flex flex-col md:flex-row items-center justify-between text-[11px] font-mono text-slate-400 gap-4">
+<div>
+          © 2026 Punta Cana The Night &amp; Day Edit. Curaduría arquitectónica y nocturna. Todos los derechos reservados.
+        </div>
+<div class="flex items-center gap-6">
+<a class="hover:text-neon-bright transition" href="#">Privacidad VIP</a>
+<a class="hover:text-neon-bright transition" href="#">Términos Concierge</a>
+<a class="hover:text-neon-bright transition" href="#">Guía de Prensa &amp; Medios</a>
+</div>
+</div>
+</div>
+</footer>
+<!-- END: MainFooter -->
+<!-- BEGIN: InteractiveScripts -->
+<script>
+    window.addEventListener('scroll', () => {
+      const header = document.getElementById('site-header');
+      if (window.scrollY > 30) {
+        header.classList.add('bg-noir-950/95', 'shadow-2xl');
+      } else {
+        header.classList.remove('bg-noir-950/95', 'shadow-2xl');
+      }
+    });
+  </script>
+<!-- END: InteractiveScripts -->
+</body></html>

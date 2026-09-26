@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -93,6 +94,10 @@ export default function AcademiaTuristica() {
 
   return (
     <PageTransition>
+      <SEOHead
+        title="Academia Turística - Cursos y Certificaciones para el Sector"
+        description="Capacítate con cursos en línea de inglés técnico, hotelería, protocolo y patrimonio cultural, y obtén certificaciones para trabajar en el turismo dominicano."
+      />
       <div className="min-h-screen bg-background">
         <Header />
 

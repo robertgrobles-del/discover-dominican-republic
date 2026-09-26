@@ -8,6 +8,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useLightbox } from "@/hooks/useLightbox";
+import { SEOHead } from "@/components/SEOHead";
 import heroBeachImg from "@/assets/hero-beach.jpg";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
@@ -172,6 +173,10 @@ export default function Galeria() {
 
   return (
     <PageTransition>
+      <SEOHead
+        title="Galería Multimedia de República Dominicana"
+        description="Explora fotos y videos curados de playas, naturaleza, gastronomía, arquitectura colonial y cultura dominicana, organizados por categoría."
+      />
       <div className="min-h-screen bg-background">
         <Header />
 

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
 import {
   Accordion,
   AccordionContent,
@@ -117,6 +118,10 @@ export default function CentroAyuda() {
 
   return (
     <PageTransition>
+      <SEOHead
+        title="Centro de Ayuda - Asistencia y Emergencias para el Visitante"
+        description="Encuentra contactos de emergencia como POLITUR y el 911, preguntas frecuentes sobre visa y salud, y canales de soporte para resolver cualquier inconveniente durante tu viaje."
+      />
       <div className="min-h-screen bg-background">
         <Header />
 

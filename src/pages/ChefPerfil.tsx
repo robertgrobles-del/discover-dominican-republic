@@ -6,6 +6,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { SEOHead } from "@/components/SEOHead";
 
 const chef = {
   name: "Inés Páez Nin",
@@ -59,8 +60,13 @@ const galleryImages = [
 export default function ChefPerfil() {
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title={`${chef.name} ${chef.alias.replace(/"/g, "")} - Chef Dominicana`}
+        description={`${chef.title} ${chef.description}`}
+        keywords={`${chef.name}, chef dominicana, ${chef.restaurant}, gastronomía república dominicana, cocina dominicana`}
+      />
       <Header />
-      
+
       {/* Hero Section */}
       <section className="relative min-h-[60vh] flex items-end">
         <div className="absolute inset-0">

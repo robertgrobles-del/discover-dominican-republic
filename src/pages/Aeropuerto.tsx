@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { SEOHead } from "@/components/SEOHead";
 
 const airportInfo = {
   name: "Aeropuerto Intl. Punta Cana",
@@ -78,8 +79,12 @@ export default function Aeropuerto() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Aeropuerto Internacional de Punta Cana - Vuelos y Servicios"
+        description="Consulta llegadas y salidas en tiempo real, servicios de terminal como salones VIP y duty free, y opciones de transporte desde el Aeropuerto de Punta Cana."
+      />
       <Header />
-      
+
       {/* Hero Section */}
       <section className="relative h-[45vh] min-h-[350px]">
         <div className="absolute inset-0">

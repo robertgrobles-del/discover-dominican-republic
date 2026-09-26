@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
@@ -8,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { 
   Trophy, MapPin, Calendar, Flag, Award, ExternalLink, 
-  Sparkles, CheckCircle, Compass, Sun, ShieldCheck
+  Sparkles, CheckCircle, Compass, Sun, ShieldCheck, ChevronRight
 } from "lucide-react";
 import { PanoramaAd } from "@/components/promo";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
@@ -17,6 +18,7 @@ import puertoPlataImg from "@/assets/puerto-plata.jpg";
 
 interface GolfCourse {
   id: string;
+  slug?: string;
   name: string;
   location: string;
   region: "este" | "norte" | "santo-domingo";
@@ -32,6 +34,7 @@ interface GolfCourse {
 const golfCourses: GolfCourse[] = [
   {
     id: "1",
+    slug: "teeth-of-the-dog",
     name: "Teeth of the Dog (Casa de Campo)",
     location: "La Romana",
     region: "este",
@@ -45,6 +48,7 @@ const golfCourses: GolfCourse[] = [
   },
   {
     id: "2",
+    slug: "corales-golf-club",
     name: "Corales Golf Club (Puntacana Resort)",
     location: "Punta Cana",
     region: "este",
@@ -58,6 +62,7 @@ const golfCourses: GolfCourse[] = [
   },
   {
     id: "3",
+    slug: "punta-espada-golf-club",
     name: "Punta Espada Golf Club (Cap Cana)",
     location: "Cap Cana",
     region: "este",
