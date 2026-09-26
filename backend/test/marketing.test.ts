@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { unsubscribeToken } from "../src/modules/forms/routes.js";
+import { addDays, todayInSantoDomingo } from "../src/modules/operators/domain/dates.js";
 import { json, makeApp } from "./helpers.js";
 
 const PW = "Correcta-Clave-2026!";
@@ -9,7 +10,7 @@ const tag = Date.now().toString(36);
 const slot = `t_${tag}`;
 let n = 0;
 const uniq = () => `mk${Date.now().toString(36)}${n++}@test.local`;
-const day = (k: number) => new Date(Date.now() + k * 86_400_000).toISOString().slice(0, 10);
+const day = (k: number) => addDays(todayInSantoDomingo(), k); // la fecha de referencia es la de RD (UTC-4), como en el servidor
 
 describe("publicidad, ofertas y campañas", () => {
   let app: FastifyInstance;
@@ -54,7 +55,7 @@ describe("publicidad, ofertas y campañas", () => {
       const list = await ads("&limit=10");
       const ids = list.map((b) => b.id);
       expect(ids).toEqual(expect.arrayContaining([live.id, inWindow.id]));
-      for (const hidden of [drafted, off, expired, future, onlyHome]) expect(ids).not.toContain(hidden.id);
+      for (const [name, hidden] of Object.entries({ drafted, off, expired, future, onlyHome })) expect(ids, name).not.toContain(hidden.id);
       expect(json(await call("GET", `/ads?placement=${slot}&page=/home&limit=10`)).data.map((b: { id: string }) => b.id)).toContain(onlyHome.id);
       expect((await call("GET", "/ads?placement=no_existe")).statusCode).toBe(404);
       expect((await call("GET", "/ads")).statusCode).toBe(400);

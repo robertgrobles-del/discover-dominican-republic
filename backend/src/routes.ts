@@ -12,6 +12,7 @@ import { PlayService } from "./modules/game/play.js";
 import { StoreService } from "./modules/store/service.js";
 import { storeRoutes } from "./modules/store/routes.js";
 import { LiveService } from "./modules/live/service.js";
+import { analyticsRoutes, registerAnalyticsJobs } from "./modules/analytics/routes.js";
 import { marketingRoutes, registerMarketingJobs } from "./modules/marketing/routes.js";
 import { toolsRoutes } from "./modules/tools/routes.js";
 import { liveRoutes, registerLiveJobs } from "./modules/live/routes.js";
@@ -62,6 +63,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   registerGameJobs(app, runner);
   registerLiveJobs(app, runner);
   registerMarketingJobs(app, runner);
+  registerAnalyticsJobs(app, runner);
   runner.register({ name: "orders.auto_cancel", description: "Cancela pedidos de la tienda sin cobrar tras 60 min y devuelve stock y cupón", everySeconds: 900, run: async () => ({ cancelled: await store.cancelUnpaid(60) }) });
   registerOperatorJobs({ db: app.db, env: app.env, mailer: app.mailer, runner, automations, ical, payouts });
   if (app.env.JOBS_ENABLED) { runner.start(); app.addHook("onClose", async () => { await runner.stop(); }); }
@@ -89,6 +91,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(liveRoutes);
       await v1.register(toolsRoutes);
       await v1.register(marketingRoutes);
+      await v1.register(analyticsRoutes);
       await v1.register(gameAdminRoutes);
       await v1.register(paymentWebhookRoutes);
     },

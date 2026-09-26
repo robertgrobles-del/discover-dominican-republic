@@ -267,6 +267,13 @@ Herramientas: `GET /tools/dictionary` (sin acentos), `/tools/phrases?lang=`, `/t
 - **Campañas de correo** (`/admin/marketing/campaigns`): borrador → prueba a tu correo → programar → cancelar. El trabajo `newsletter.send` (cada 5 min) envía las vencidas sólo a suscriptores confirmados y activos, filtra por intereses del segmento, registra cada entrega para no duplicar y añade el enlace de baja firmado. Leads con estado en `/admin/marketing/leads`.
 - **Administración**: `/admin/ad_banners` y `/admin/ad_slots` (admin y editor).
 
+## Analítica
+
+- **Ingesta** (`POST /analytics/events`, lotes de hasta 50): anónima y respetuosa. No guarda nunca la IP: sólo país (cabecera del proxy), host de origen y ruta sin parámetros ni fragmento; las propiedades se limpian (se descartan campos que parecen correo, teléfono, nombre, token o tarjeta). Con `Do-Not-Track`, `Sec-GPC` o `consent: false` responde 204 sin guardar nada. Una hora de cliente absurda se reemplaza por la del servidor.
+- **Paneles** (`/admin/analytics/*`, admin): `overview` (usuarios, reseñas, favoritos, publicaciones, reservas, ingresos, vistas y sesiones con serie diaria), `traffic` (por página, origen, país o día), `top-content` (más visto o más guardado, con el nombre de la entidad), `funnels/{reserva|registro|tienda}` (calculados con datos reales de la misma población, con porcentajes), `nps` (con comentarios), `search-terms` (búsquedas sin resultados) y `export.csv` (neutraliza fórmulas y queda auditado). Los rangos se interpretan en hora de RD.
+- **Retención**: `analytics.rollup` agrega por día lo que supera 13 meses y borra los eventos crudos; `traffic` lee lo antiguo del agregado.
+- **Público**: `GET /statistics/public` combina las cifras oficiales del equipo (`site_settings` `statistics.public`) con conteos del portal.
+
 ## Correo
 
 `app.mailer.send({ to, template, data, locale })` **encola** en la tabla `email_log` y vuelve; un trabajador (en el mismo proceso, `MAIL_WORKER_ENABLED`, o en otro) toma los pendientes con `FOR UPDATE SKIP LOCKED`, así que varias instancias nunca envían dos veces. Reintenta con espera creciente (1 min, 5 min, 30 min, 2 h, 12 h) hasta `MAIL_MAX_ATTEMPTS` y luego marca `failed`; los mensajes que quedaron `sending` por un proceso caído se recuperan. Si se pasa la conexión de una transacción (`send(input, client)`) el correo forma parte de ella (outbox transaccional: el registro y su correo se guardan juntos o no se guarda ninguno).

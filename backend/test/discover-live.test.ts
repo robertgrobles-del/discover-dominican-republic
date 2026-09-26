@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { addDays, todayInSantoDomingo } from "../src/modules/operators/domain/dates.js";
 import { json, makeApp } from "./helpers.js";
 
 const PW = "Correcta-Clave-2026!";
@@ -9,7 +10,7 @@ let n = 0;
 const uniq = () => `dl${Date.now().toString(36)}${n++}@test.local`;
 const PUNTA_CANA = { lat: 18.582, lng: -68.4055 };
 const BAVARO_ID = "b1000000-0000-4000-8000-000000000001";
-const day = (k: number) => new Date(Date.now() + k * 86_400_000).toISOString().slice(0, 10);
+const day = (k: number) => addDays(todayInSantoDomingo(), k); // la fecha de referencia es la de RD (UTC-4), como en el servidor
 
 describe("búsqueda, mapa y recomendaciones", () => {
   let app: FastifyInstance;
