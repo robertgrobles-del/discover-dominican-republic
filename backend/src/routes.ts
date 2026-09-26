@@ -11,6 +11,10 @@ import { registerGameJobs } from "./modules/game/jobs.js";
 import { PlayService } from "./modules/game/play.js";
 import { StoreService } from "./modules/store/service.js";
 import { storeRoutes } from "./modules/store/routes.js";
+import { AmbassadorService } from "./modules/ambassadors/service.js";
+import { ambassadorRoutes } from "./modules/ambassadors/routes.js";
+import { MarketplaceService } from "./modules/marketplace/service.js";
+import { marketplaceRoutes } from "./modules/marketplace/routes.js";
 import { LiveService } from "./modules/live/service.js";
 import path from "node:path";
 import { LocalStorage, defaultFetcher, mediaRoutes, registerMediaJobs } from "./modules/media/routes.js";
@@ -54,6 +58,12 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   app.decorate("bookings", new BookingService(app.db, app.env, promotions, app.gateway, app.mailer, app.log));
   const store = new StoreService(app.db, app.env, app.gateway, app.mailer, app.log);
   app.decorate("store", store);
+  const ambassadors = new AmbassadorService(app.db, app.env, app.mailer, app.log);
+  app.decorate("ambassadors", ambassadors);
+  store.onMoneyChange = (id) => ambassadors.syncOrder("store", id);
+  const marketplace = new MarketplaceService(app.db, app.env, app.gateway, app.mailer, app.log);
+  app.decorate("marketplace", marketplace);
+  marketplace.onMoneyChange = (id) => ambassadors.syncOrder("marketplace", id);
   app.decorate("live", new LiveService(app.db, app.env, app.log));
   app.decorate("mediaStorage", new LocalStorage(path.resolve(app.env.MEDIA_DIR)));
   app.decorate("mediaFetcher", { fn: defaultFetcher });
@@ -93,6 +103,9 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
     },
   });
   runner.register({ name: "orders.auto_cancel", description: "Cancela pedidos de la tienda sin cobrar tras 60 min y devuelve stock y cupón", everySeconds: 900, run: async () => ({ cancelled: await store.cancelUnpaid(60) }) });
+  runner.register({ name: "marketplace.auto_cancel", description: "Cancela pedidos del marketplace sin cobrar tras 60 min y devuelve el stock", everySeconds: 900, run: async () => ({ cancelled: await marketplace.cancelUnpaid(60) }) });
+  runner.register({ name: "marketplace.payouts", description: "Genera las liquidaciones a vendedores de lo entregado y sin devolución", everySeconds: 86_400, run: async () => marketplace.generatePayouts() });
+  runner.register({ name: "ambassadors.settle", description: "Libera las comisiones de embajadores cuyo periodo de espera terminó", everySeconds: 3600, run: async () => ambassadors.settle() });
   registerOperatorJobs({ db: app.db, env: app.env, mailer: app.mailer, runner, automations, ical, payouts });
   if (app.env.JOBS_ENABLED) { runner.start(); app.addHook("onClose", async () => { await runner.stop(); }); }
   await app.register(healthRoutes, { version });
@@ -124,6 +137,8 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(mediaRoutes);
       await v1.register(gameAdminRoutes);
       await v1.register(exploreRoutes);
+      await v1.register(marketplaceRoutes);
+      await v1.register(ambassadorRoutes);
       await v1.register(paymentWebhookRoutes);
     },
     { prefix: "/api/v1" },

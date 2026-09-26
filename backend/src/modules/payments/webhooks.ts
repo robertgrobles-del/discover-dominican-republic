@@ -3,6 +3,7 @@ import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
 import type { BookingService } from "../operators/bookings.js";
 import type { StoreService } from "../store/service.js";
+import type { MarketplaceService } from "../marketplace/service.js";
 import { verifyStripeSignature, type PaymentGateway } from "../operators/gateway.js";
 import { audit } from "../operators/team.js";
 
@@ -15,7 +16,7 @@ const cents = (n: unknown) => Math.round(Number(n ?? 0)) / 100;
  * reembolsó desde el panel del proveedor. Cada evento se procesa una sola vez (`payment_events`) y el registro es idempotente.
  */
 export class PaymentReconciler {
-  constructor(private readonly db: Db, private readonly bookings: BookingService, private readonly gateway: PaymentGateway, private readonly store: StoreService) {}
+  constructor(private readonly db: Db, private readonly bookings: BookingService, private readonly gateway: PaymentGateway, private readonly store: StoreService, private readonly marketplace: MarketplaceService) {}
 
   /** Devuelve el resultado del procesamiento; lanza si falla para que el proveedor reintente. */
   async handle(provider: string, event: StripeEvent): Promise<string> {
@@ -50,6 +51,7 @@ export class PaymentReconciler {
 
   private async paymentSucceeded(provider: string, pi: Record<string, any>): Promise<string> {
     if (pi.metadata?.order_id) return this.storePaymentSucceeded(provider, pi);
+    if (pi.metadata?.mp_order_id) return this.marketplacePaymentSucceeded(provider, pi);
     const bookingId: string | undefined = pi.metadata?.booking_id;
     const kind = ["full", "deposit", "balance"].includes(pi.metadata?.kind) ? pi.metadata.kind : "full";
     if (!bookingId) return "ignored_no_booking";
@@ -91,6 +93,25 @@ export class PaymentReconciler {
     return (await this.store.recordPayment(orderId, { amount, chargedAmount: charged, chargedCurrency: currency, provider, ref: pi.id })) === "recorded" ? "reconciled" : "already_recorded";
   }
 
+  /** Cobros de pedidos del marketplace: se anota lo que falte y se devuelve lo huérfano. */
+  private async marketplacePaymentSucceeded(provider: string, pi: Record<string, any>): Promise<string> {
+    const orderId: string = pi.metadata.mp_order_id;
+    if ((await this.db.query("SELECT 1 FROM marketplace_payments WHERE provider = $1 AND provider_ref = $2", [provider, pi.id])).rowCount) return "already_recorded";
+    const o = await this.marketplace.orderStatus(orderId);
+    if (!o) return "ignored_unknown_order";
+    const charged = cents(pi.amount_received ?? pi.amount), currency = String(pi.currency ?? "usd").toUpperCase();
+    const amount = Number(o.total);
+    if (o.status === "cancelled") {
+      await this.marketplace.recordPayment(orderId, { amount, chargedAmount: charged, chargedCurrency: currency, provider, ref: pi.id });
+      const refund = await this.gateway.refund({ providerRef: pi.id, amount: charged, currency, reference: `orphan:${orderId}`, idempotencyKey: `${orderId}:orphan:${pi.id}` });
+      if (!refund.ok) throw new AppError("UPSTREAM_ERROR", `No se pudo reembolsar el cobro huérfano ${pi.id}: ${refund.reason}`);
+      await this.marketplace.recordExternalRefund(orderId, { amount, provider, ref: refund.providerRef });
+      await audit(this.db, { action: "payment.orphan_refunded", entity: "marketplace_order", id: orderId, meta: { provider, payment_intent: pi.id, amount: charged } });
+      return "orphan_refunded";
+    }
+    return (await this.marketplace.recordPayment(orderId, { amount, chargedAmount: charged, chargedCurrency: currency, provider, ref: pi.id })) === "recorded" ? "reconciled" : "already_recorded";
+  }
+
   /** Reembolsos hechos en el panel del proveedor: se registra sólo la diferencia con lo que ya tenemos anotado. */
   private async chargeRefunded(provider: string, ch: Record<string, any>): Promise<string> {
     const pay = (await this.db.query<{ booking_id: string; currency: string }>("SELECT booking_id, currency FROM booking_payments WHERE provider = $1 AND provider_ref = $2 AND kind <> 'refund'", [provider, ch.payment_intent])).rows[0];
@@ -106,7 +127,7 @@ export class PaymentReconciler {
 
 /** Webhook de Stripe (docs §5.8): cuerpo crudo para verificar la firma; responde 200 sólo si el evento quedó procesado. */
 export async function paymentWebhookRoutes(app: FastifyInstance) {
-  const reconciler = new PaymentReconciler(app.db, app.bookings, app.gateway, app.store);
+  const reconciler = new PaymentReconciler(app.db, app.bookings, app.gateway, app.store, app.marketplace);
   // Este plugin está encapsulado: su parser de JSON entrega el texto crudo y no afecta al resto de la API.
   app.addContentTypeParser("application/json", { parseAs: "string" }, (_req, body, done) => done(null, body));
 

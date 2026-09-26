@@ -335,3 +335,11 @@ Entrada validada con Zod, SQL parametrizado con listas blancas, cabeceras de seg
 - **Coleccionables** (`/collectibles*`): reclamo con condición evaluada en el servidor y suministro limitado atómico.
 - **Retos de foto** (`/gamification/photo-challenges*`, `/admin/photo-submissions/:id/moderate`, `/admin/photo-challenges/:id/close`): envío con foto propia, moderación, votos únicos y cierre con ganador.
 - **Gremios** (`/gamification/guilds*`, `leaderboard?scope=guild`): nivel ≥ 3 para crear, XP acumulado de los miembros, traspaso de liderazgo o disolución al salir.
+
+## Marketplace de vendedores y embajadores
+
+- **Vendedores** (`/marketplace/vendors/*`): solicitud con correo verificado, aprobación del equipo (`PATCH /admin/marketplace/vendors/:id`, comisión por vendedor, 15 % por defecto) y suspensión.
+- **Catálogo** (`/marketplace/products`, `/partner/marketplace/products`): productos y experiencias con revisión previa; precio y existencias cambian al instante, el contenido vuelve a revisión.
+- **Pedidos** (`POST /marketplace/orders`, `Idempotency-Key` obligatorio): un pedido puede mezclar vendedores; stock bloqueado, comisión y neto del vendedor guardados por artículo, cobro con la pasarela (y conciliación por webhook, `metadata.mp_order_id`). Envío/entrega por artículo (`/partner/marketplace/order-items/:id`), cancelación del cliente mientras nada haya salido y cancelación por artículo del vendedor, con reembolso y devolución de stock.
+- **Liquidaciones** (`marketplace.payouts`, diario): lo entregado, cobrado y sin devolución tras 3 días, por vendedor; el equipo las marca pagadas o fallidas. Lo ya liquidado no se puede reembolsar.
+- **Embajadores** (`/ambassadors/*`): solicitud, aprobación, código `EMB-XXXXXX`, niveles (bronce 5 %, plata 7 % desde 10 ventas, oro 10 % desde 30) o comisión especial. La comisión se calcula en el servidor sobre lo cobrado (`ref_code` en pedidos de tienda y marketplace; autocompra e códigos inválidos se ignoran), queda 7 días en espera, se revierte con los reembolsos y se paga por solicitud (mínimo RD$ 1 000).

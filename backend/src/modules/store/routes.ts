@@ -69,7 +69,7 @@ export async function storeRoutes(app: FastifyInstance) {
       body: z.object({
         contact: z.object({ name: z.string().trim().min(2).max(100), email, phone: z.string().trim().min(7).max(30).optional() }),
         shipping: z.object({ address: z.string().trim().min(8).max(300), city: z.string().trim().min(2).max(80), province: z.string().trim().max(60).optional(), notes: z.string().trim().max(500).optional() }),
-        coupon_code: z.string().trim().max(40).optional(), payment_method_token: z.string().max(200), locale: z.enum(["es", "en"]).optional(),
+        coupon_code: z.string().trim().max(40).optional(), ref_code: z.string().trim().max(30).optional(), payment_method_token: z.string().max(200), locale: z.enum(["es", "en"]).optional(),
       }),
       response: { 200: ok, 201: ok },
     },
@@ -77,7 +77,7 @@ export async function storeRoutes(app: FastifyInstance) {
     const key = req.headers["idempotency-key"];
     if (typeof key !== "string" || key.length < 8 || key.length > 100) throw AppError.validation("Falta el encabezado Idempotency-Key (8–100 caracteres, único por intento de compra)");
     const b = req.body;
-    const res = await store.createOrder({ actor: actor(req), contact: b.contact, shipping: b.shipping, couponCode: b.coupon_code, paymentToken: b.payment_method_token, idempotencyKey: key, locale: b.locale });
+    const res = await store.createOrder({ actor: actor(req), contact: b.contact, shipping: b.shipping, couponCode: b.coupon_code, paymentToken: b.payment_method_token, idempotencyKey: key, locale: b.locale, refCode: await app.ambassadors.resolve(b.ref_code, { userId: req.user?.id, email: b.contact.email }) });
     reply.code(res.replayed ? 200 : 201);
     return { data: { order: res.order, access_token: res.accessToken, replayed: res.replayed } };
   });

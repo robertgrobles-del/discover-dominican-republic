@@ -19,6 +19,10 @@ export interface TemplateData {
   "establishment.received": { name: string; establishment: string; url: string };
   "store.order_confirmation": { name: string; reference: string; total: string; items: string; url: string };
   "store.order_update": { name: string; reference: string; title: string; message: string; url: string };
+  "vendor.approved": { shop: string; url: string };
+  "vendor.new_order": { shop: string; reference: string; items: string; total: string; url: string };
+  "ambassador.approved": { name: string; code: string; url: string };
+  "ambassador.payout": { name: string; amount: string; reference: string };
   "marketing.campaign": { subject: string; body: string; unsubscribe_url: string };
   "org.invitation": { operator: string; inviter: string; role: string; url: string; days: number };
   "booking.reminder": BookingMail;
@@ -336,6 +340,23 @@ ${d.title}. ${d.message}
 ${d.url}`,
     html: layout(d.title, p(`Hi ${esc(d.name)}, ${esc(d.message)}`), { label: "View my order", url: d.url }),
   }),
+};
+
+T["vendor.approved"] = {
+  es: (d) => ({ subject: `Tu tienda ${d.shop} fue aprobada`, text: `Tu tienda ${d.shop} ya está activa en el marketplace de Descubre RD. Publica tus productos: ${d.url}`, html: layout("¡Tu tienda fue aprobada!", p(`Tu tienda <b>${esc(d.shop)}</b> ya está activa en el marketplace. Ya puedes publicar tus productos (se revisan antes de mostrarse).`), { label: "Ver mi tienda", url: d.url }) }),
+  en: (d) => ({ subject: `Your shop ${d.shop} was approved`, text: `Your shop ${d.shop} is now live on the Descubre RD marketplace: ${d.url}`, html: layout("Your shop was approved!", p(`Your shop <b>${esc(d.shop)}</b> is now live on the marketplace. You can publish your products (they are reviewed before showing).`), { label: "View my shop", url: d.url }) }),
+};
+T["vendor.new_order"] = {
+  es: (d) => ({ subject: `Nuevo pedido ${d.reference} en ${d.shop}`, text: `Tienes un pedido pagado (${d.reference}): ${d.items}. Tu venta: ${d.total}. Prepáralo y registra el envío: ${d.url}`, html: layout("Nuevo pedido pagado", p(`Tienes un pedido pagado en <b>${esc(d.shop)}</b>.`) + table([["Pedido", d.reference], ["Artículos", d.items], ["Tu venta", d.total]]), { label: "Ver pedidos", url: d.url }) }),
+  en: (d) => ({ subject: `New order ${d.reference} at ${d.shop}`, text: `You have a paid order (${d.reference}): ${d.items}. Your sale: ${d.total}. Prepare it and register the shipment: ${d.url}`, html: layout("New paid order", p(`You have a paid order at <b>${esc(d.shop)}</b>.`) + table([["Order", d.reference], ["Items", d.items], ["Your sale", d.total]]), { label: "View orders", url: d.url }) }),
+};
+T["ambassador.approved"] = {
+  es: (d) => ({ subject: "Ya eres embajador de Descubre RD", text: `Hola ${d.name}, tu código es ${d.code}. Compártelo y gana comisión por cada compra: ${d.url}`, html: layout("¡Bienvenido al programa de embajadores!", p(`Hola ${esc(d.name)}, tu solicitud fue aprobada.`) + table([["Tu código", d.code]]), { label: "Ir a mi panel", url: d.url }) }),
+  en: (d) => ({ subject: "You are now a Descubre RD ambassador", text: `Hi ${d.name}, your code is ${d.code}. Share it and earn commission on every purchase: ${d.url}`, html: layout("Welcome to the ambassador program!", p(`Hi ${esc(d.name)}, your application was approved.`) + table([["Your code", d.code]]), { label: "Go to my dashboard", url: d.url }) }),
+};
+T["ambassador.payout"] = {
+  es: (d) => ({ subject: `Te enviamos tu pago de ${d.amount}`, text: `Hola ${d.name}, enviamos tu pago de comisiones por ${d.amount}. Referencia: ${d.reference}.`, html: layout("Pago de comisiones enviado", p(`Hola ${esc(d.name)}, enviamos tu pago de comisiones.`) + table([["Monto", d.amount], ["Referencia", d.reference]])) }),
+  en: (d) => ({ subject: `We sent your ${d.amount} payout`, text: `Hi ${d.name}, we sent your commission payout of ${d.amount}. Reference: ${d.reference}.`, html: layout("Commission payout sent", p(`Hi ${esc(d.name)}, we sent your commission payout.`) + table([["Amount", d.amount], ["Reference", d.reference]])) }),
 };
 
 const campaignHtml = (d: { subject: string; body: string; unsubscribe_url: string }, lang: "es" | "en") =>

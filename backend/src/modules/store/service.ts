@@ -36,6 +36,9 @@ const toProduct = (r: Record<string, unknown>): Product => ({ ...(r as unknown a
 export class StoreService {
   constructor(private readonly db: Db, private readonly env: Env, private readonly gateway: PaymentGateway, private readonly mailer: Mailer, private readonly log: FastifyBaseLogger) {}
 
+  /** Aviso de que un pedido cambió su dinero (cobro, reembolso, cancelación); lo usa el programa de embajadores. */
+  onMoneyChange?: (orderId: string) => Promise<void>;
+
   private async tx<T>(fn: (c: PoolClient) => Promise<T>): Promise<T> {
     const c = await this.db.connect();
     try { await c.query("BEGIN"); const out = await fn(c); await c.query("COMMIT"); return out; }
@@ -247,7 +250,7 @@ export class StoreService {
     return { ...rest, subtotal: n(o.subtotal), discount: n(o.discount), shipping: n(o.shipping), tax: n(o.tax), total: n(o.total), amount_paid: n(o.amount_paid), refund_amount: n(o.refund_amount), fx_rate: o.fx_rate === null ? null : n(o.fx_rate), items, return_window_open: o.status === "delivered" && !!o.delivered_at && Date.now() - new Date(o.delivered_at).getTime() < RETURN_WINDOW_HOURS * 3_600_000 };
   }
 
-  async createOrder(input: { actor: Actor; contact: { name: string; email: string; phone?: string }; shipping: { address: string; city: string; province?: string; notes?: string }; couponCode?: string; paymentToken?: string; idempotencyKey: string; locale?: "es" | "en" }) {
+  async createOrder(input: { actor: Actor; contact: { name: string; email: string; phone?: string }; shipping: { address: string; city: string; province?: string; notes?: string }; couponCode?: string; paymentToken?: string; idempotencyKey: string; locale?: "es" | "en"; refCode?: string | null }) {
     const email = input.contact.email.trim().toLowerCase();
     const idemScope = input.actor.userId ?? email;
     const prev = (await this.db.query<{ id: string; customer_email: string }>("SELECT id, customer_email FROM store_orders WHERE coalesce(user_id::text, lower(customer_email)) = $1 AND idempotency_key = $2", [idemScope, input.idempotencyKey])).rows[0];
@@ -257,6 +260,7 @@ export class StoreService {
 
     const accessToken = randomBytes(24).toString("base64url");
     const orderId = newOrderId();
+    const refCode = input.refCode ?? null;
     let priced!: Awaited<ReturnType<StoreService["price"]>>;
     try {
       await this.tx(async (c) => {
@@ -273,10 +277,10 @@ export class StoreService {
         priced = await this.price(c, lines, input.couponCode ?? cart.coupon_code, input.actor.userId ?? email, true);
         if (input.couponCode && !priced.coupon?.applied) throw new AppError("BUSINESS_RULE", priced.coupon?.reason ?? "El cupón no aplica", { code: "COUPON_INVALID" });
         await c.query(
-          `INSERT INTO store_orders (id, user_id, customer_name, customer_email, phone, address, city, province, notes, subtotal, discount, shipping, tax, total, coupon_code, status, payment_status, fx_rate, access_hash, idempotency_key, items)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'pending','unpaid',$16,$17,$18,'[]')`,
+          `INSERT INTO store_orders (id, user_id, customer_name, customer_email, phone, address, city, province, notes, subtotal, discount, shipping, tax, total, coupon_code, status, payment_status, fx_rate, access_hash, idempotency_key, items, ref_code)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'pending','unpaid',$16,$17,$18,'[]',$19)`,
           [orderId, input.actor.userId ?? null, input.contact.name.trim(), email, input.contact.phone?.trim() ?? null, input.shipping.address.trim(), input.shipping.city.trim(), input.shipping.province?.trim() ?? null, input.shipping.notes?.trim() ?? null,
-            priced.subtotal, priced.discount, priced.shipping, priced.tax_included, priced.total, priced._coupon ? priced._coupon.code : null, priced.usd_rate, sha(accessToken), input.idempotencyKey],
+            priced.subtotal, priced.discount, priced.shipping, priced.tax_included, priced.total, priced._coupon ? priced._coupon.code : null, priced.usd_rate, sha(accessToken), input.idempotencyKey, refCode],
         );
         for (const l of priced.lines) {
           await c.query("INSERT INTO store_order_items (order_id, product_id, name, size, color, unit_price, quantity, line_total) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)", [orderId, l.product_id, l.name, l.size || null, l.color || null, l.unit_price, l.quantity, l.line_total]);
@@ -316,6 +320,7 @@ export class StoreService {
     } else {
       await this.db.query("UPDATE store_orders SET status = 'paid', payment_status = 'paid', updated_at = now() WHERE id = $1", [orderId]);
     }
+    await this.onMoneyChange?.(orderId);
     // Con el pago confirmado se vacía el carrito (si el cobro falla, el cliente conserva su carrito para reintentar).
     const cart = await this.cartFor(input.actor, false);
     if (cart) { await this.db.query("DELETE FROM store_cart_items WHERE cart_id = $1", [cart.id]); await this.db.query("UPDATE store_carts SET coupon_code = NULL, updated_at = now() WHERE id = $1", [cart.id]); }
@@ -337,6 +342,7 @@ export class StoreService {
         await this.syncPaid(c, orderId);
         await c.query("UPDATE store_orders SET status = 'paid' WHERE id = $1 AND status = 'pending'", [orderId]);
       });
+      await this.onMoneyChange?.(orderId);
       return "recorded";
     } catch (e) { if ((e as { code?: string }).code === "23505") return "duplicate"; throw e; }
   }
@@ -346,6 +352,7 @@ export class StoreService {
         await c.query("INSERT INTO store_payments (order_id, kind, amount, provider, provider_ref) VALUES ($1,'refund',$2,$3,$4)", [orderId, p.amount, p.provider, p.ref]);
         await this.syncPaid(c, orderId);
       });
+      await this.onMoneyChange?.(orderId);
       return "recorded";
     } catch (e) { if ((e as { code?: string }).code === "23505") return "duplicate"; throw e; }
   }
@@ -402,6 +409,7 @@ export class StoreService {
   private async cancelAndRefund(id: string, reason: string) {
     await this.refundPayments(id, null);
     await this.tx(async (c) => { await this.release(c, id, reason); await this.syncPaid(c, id); });
+    await this.onMoneyChange?.(id);
     const o = (await this.orderDto(id))!;
     await this.notify(o, "El pedido fue cancelado", o.refund_amount > 0 ? `Te devolvimos ${money(o.refund_amount)}.` : "No se realizó ningún cobro.");
     return o;
@@ -477,6 +485,7 @@ export class StoreService {
       if (input.restock) for (const i of (await c.query<{ product_id: string | null; quantity: number }>("SELECT product_id, quantity FROM store_order_items WHERE order_id = $1", [id])).rows) if (i.product_id) await c.query("UPDATE store_products SET stock = stock + $2, updated_at = now() WHERE id = $1", [i.product_id, i.quantity]);
       await c.query("UPDATE store_orders SET status = CASE WHEN payment_status = 'refunded' THEN 'refunded' ELSE status END, updated_at = now() WHERE id = $1", [id]);
     });
+    await this.onMoneyChange?.(id);
     const after = (await this.orderDto(id))!;
     if (refunded > 0) await this.notify(after, "Reembolso realizado", `Te devolvimos ${money(refunded)}.`);
     return after;
