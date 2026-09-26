@@ -363,3 +363,6 @@ Entrada validada con Zod, SQL parametrizado con listas blancas, cabeceras de seg
 
 ### Correos en fr, de, pt e it
 Los correos al viajero (cuenta, reservas, boletín, soporte, tienda, campañas) existen en francés, alemán, portugués e italiano (`src/modules/mailer/templates-extra.ts`); operadores, vendedores y embajadores siguen en es/en. Lo que no esté traducido cae al español. Los textos dinámicos que arma el servidor (p. ej. el mensaje de una actualización de pedido) siguen en español.
+
+### Imágenes: saneado y variantes
+Al completar una subida (o importar una URL), la imagen se decodifica y se recodifica con `sharp`: se descartan los metadatos (EXIF con GPS, comentarios), se aplica la orientación y se rechaza (`IMAGE_CORRUPT`) lo que tiene cabecera válida pero cuerpo dañado. Se generan `thumb` (320 px), `medium` (800 px) y `large` (1 600 px) en webp, sin agrandar nunca; `GET /media/files/:id?variant=thumb|medium|large` sirve la variante (o el original si no existe) y `variants` en los metadatos apunta siempre a una URL válida. Los gif se conservan tal cual. Pendiente: antivirus (ClamAV) y almacenamiento S3, que requieren infraestructura externa.
