@@ -93,7 +93,8 @@ export async function gameRoutes(app: FastifyInstance) {
     return pub(reply, { data: s });
   });
   r.get("/gamification/leagues", { schema: { tags: ["gamificación"], summary: "Ligas semanales", response: { 200: ok } } }, async (_q, reply) => pub(reply, { data: (await db.query("SELECT name, slug, icon, min_xp_week, max_xp_week, coin_reward, color FROM gamification_leagues ORDER BY display_order")).rows }));
-  r.get("/gamification/leaderboard", { onRequest: optionalUser, schema: { tags: ["gamificación"], summary: "Ranking por temporada, semana o histórico (con mi posición si hay sesión)", security: [{}, ...bearer], querystring: z.object({ scope: z.enum(["season", "week", "all"]).default("season"), limit: z.coerce.number().int().min(1).max(100).default(20) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
+  r.get("/gamification/leaderboard", { onRequest: optionalUser, schema: { tags: ["gamificación"], summary: "Ranking por temporada, semana o histórico (con mi posición si hay sesión)", security: [{}, ...bearer], querystring: z.object({ scope: z.enum(["season", "week", "all", "guild"]).default("season"), limit: z.coerce.number().int().min(1).max(100).default(20) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
+    if (req.query.scope === "guild") { const g = await game.guildLeaderboard(req.query.limit, req.user?.id ?? null); return { data: g.rows, meta: { scope: "guild", me: g.me } }; }
     const b = await game.leaderboard(req.query.scope, req.query.limit, req.user?.id ?? null);
     return { data: b.rows, meta: { scope: req.query.scope, me: b.me } };
   });

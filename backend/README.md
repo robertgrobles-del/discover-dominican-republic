@@ -326,3 +326,12 @@ Si cambian las fuentes **antes del primer despliegue**, se regenera; después de
 Entrada validada con Zod, SQL parametrizado con listas blancas, cabeceras de seguridad, CORS por lista blanca, límites de tasa compartidos, errores sin trazas, registros sin `Authorization`/cookies, contraseñas Argon2id, JWT RS256 con rotación, refresco de un solo uso, 2FA, login social con PKCE, cola de correo durable.
 
 **Pendiente antes de producción:** RLS en PostgreSQL como segunda barrera, WAF/CAPTCHA, reinicio de 2FA por un administrador (perdió el dispositivo y los códigos), Apple/Facebook, alta de proveedores e invitaciones de equipo (van con Operadores RD), auditoría de acciones de administración (van con el CMS) y una prueba de intrusión.
+
+## Explorar: pasaporte, rutas, provincias, coleccionables, retos de foto y gremios
+
+- **Pasaporte** (`POST /passport/stamps`, `GET /passport/me`): un sello por persona y lugar. La visita se verifica en el servidor: código QR del lugar (solo se guarda su hash; `POST /admin/place-qr`) o GPS (precisión ≤ 150 m, dentro del radio del tipo de lugar). Los desplazamientos imposibles (> 300 km/h) se rechazan y marcan `gps_suspect`. El primer sello en una provincia registra la visita.
+- **Provincias** (`GET /gamification/provinces`, `POST /gamification/provinces/:slug/visit`).
+- **Rutas** (`/gamification/routes*`): iniciar, completar puntos en orden por GPS/QR/foto propia, bono y medalla al terminar. Administración con `/admin/gamified_routes`, `/admin/route_checkpoints` y `/admin/route-checkpoints/:id/qr`.
+- **Coleccionables** (`/collectibles*`): reclamo con condición evaluada en el servidor y suministro limitado atómico.
+- **Retos de foto** (`/gamification/photo-challenges*`, `/admin/photo-submissions/:id/moderate`, `/admin/photo-challenges/:id/close`): envío con foto propia, moderación, votos únicos y cierre con ganador.
+- **Gremios** (`/gamification/guilds*`, `leaderboard?scope=guild`): nivel ≥ 3 para crear, XP acumulado de los miembros, traspaso de liderazgo o disolución al salir.

@@ -119,6 +119,7 @@ export class GameService {
     const lvl = await this.levelFor(c, totalXp);
     await c.query("UPDATE user_gamification SET total_xp = $2, coins = coins + $3, current_level = $4, last_activity_date = $5::date, updated_at = now() WHERE user_id = $1", [input.userId, totalXp, coins, lvl.level_number, todayInSantoDomingo()]);
     if (xp > 0) {
+      await c.query("UPDATE explorer_guilds SET total_xp = total_xp + $2 WHERE id = (SELECT guild_id FROM guild_members WHERE user_id = $1)", [input.userId, xp]);
       await c.query(
         `INSERT INTO user_league_stats (user_id, season_id, xp_this_week, xp_this_season) SELECT $1, id, $2, $2 FROM gamification_seasons WHERE is_active
          ON CONFLICT (user_id, season_id) DO UPDATE SET xp_this_week = user_league_stats.xp_this_week + $2, xp_this_season = user_league_stats.xp_this_season + $2, last_updated = now()`, [input.userId, xp],
@@ -217,6 +218,13 @@ export class GameService {
       if (!any) break;
     }
     return unlocked;
+  }
+
+  /** ¿Cumple el jugador esta condición (`xp>=N`, `level>=N`, `action:x>=N`…)? Se evalúa siempre en el servidor. */
+  async meets(userId: string, condition: string, c: PoolClient | Db = this.db): Promise<boolean> {
+    const p = (await c.query("SELECT total_xp, current_level AS level, streak_days AS streak, total_missions_completed AS missions, total_referrals AS referrals, total_purchases AS purchases FROM user_gamification WHERE user_id = $1", [userId])).rows[0]
+      ?? { total_xp: 0, level: 1, streak: 0, missions: 0, referrals: 0, purchases: 0 };
+    return this.conditionMet(c as PoolClient, userId, condition, p);
   }
 
   /** Desbloqueo pedido por el usuario: sólo procede si el servidor comprueba la condición. */
@@ -341,6 +349,12 @@ export class GameService {
     );
     // Los logros secretos no revelan su nombre ni su condición hasta desbloquearse.
     return rows.map((a) => (a.is_secret && !a.unlocked_at ? { id: a.id, name: "???", icon: "❓", category: a.category, rarity: a.rarity, is_secret: true, unlocked: false } : { ...a, unlocked: !!a.unlocked_at }));
+  }
+
+  async guildLeaderboard(limit: number, viewer: string | null) {
+    const rows = (await this.db.query("SELECT id, name, slug, icon, region, member_count, total_xp, is_official, rank() OVER (ORDER BY total_xp DESC)::int AS rank FROM explorer_guilds WHERE member_count > 0 ORDER BY total_xp DESC, name LIMIT $1", [limit])).rows;
+    const mine = viewer ? (await this.db.query("SELECT g.id, g.name, g.total_xp, (SELECT count(*) + 1 FROM explorer_guilds o WHERE o.total_xp > g.total_xp)::int AS rank FROM guild_members m JOIN explorer_guilds g ON g.id = m.guild_id WHERE m.user_id = $1", [viewer])).rows[0] ?? null : null;
+    return { rows, me: mine };
   }
 
   async leaderboard(scope: "season" | "week" | "all", limit: number, viewer: string | null) {

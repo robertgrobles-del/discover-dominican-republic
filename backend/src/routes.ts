@@ -20,6 +20,9 @@ import { marketingRoutes, registerMarketingJobs } from "./modules/marketing/rout
 import { toolsRoutes } from "./modules/tools/routes.js";
 import { liveRoutes, registerLiveJobs } from "./modules/live/routes.js";
 import { discoverRoutes } from "./modules/discover/routes.js";
+import { CommunityGame } from "./modules/game/community.js";
+import { ExploreService } from "./modules/game/explore.js";
+import { exploreRoutes } from "./modules/game/explore-routes.js";
 import { gameAdminRoutes } from "./modules/game/admin.js";
 import { gameRoutes } from "./modules/game/routes.js";
 import { GameService } from "./modules/game/service.js";
@@ -57,6 +60,8 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   const game = new GameService(app.db);
   app.decorate("game", game);
   app.decorate("play", new PlayService(app.db, game));
+  app.decorate("explore", new ExploreService(app.db, game));
+  app.decorate("community", new CommunityGame(app.db, game));
   const ical = new IcalService(app.db, app.log);
   const automations = new AutomationService(app.db, app.env, app.mailer, ical, app.log);
   app.decorate("ical", ical);
@@ -82,6 +87,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
         payment_events: await q("DELETE FROM payment_events WHERE processed_at IS NOT NULL AND received_at < now() - interval '1 year'"),
         job_marks: await q("DELETE FROM job_marks WHERE created_at < now() - interval '1 year'"),
         notifications: await q("DELETE FROM notifications WHERE is_read AND created_at < now() - interval '180 days'"),
+        user_geo_events: await q("DELETE FROM user_geo_events WHERE at < now() - interval '30 days'"),
         store_carts: await q("DELETE FROM store_carts WHERE user_id IS NULL AND updated_at < now() - interval '30 days'"),
       };
     },
@@ -117,6 +123,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(i18nRoutes);
       await v1.register(mediaRoutes);
       await v1.register(gameAdminRoutes);
+      await v1.register(exploreRoutes);
       await v1.register(paymentWebhookRoutes);
     },
     { prefix: "/api/v1" },
