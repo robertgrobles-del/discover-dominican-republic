@@ -119,7 +119,7 @@ export async function authRoutes(app: FastifyInstance) {
         two_factor: z.object({ enabled: z.boolean(), recovery_codes_left: z.number(), required: z.boolean() }),
       }) }) },
     },
-    preHandler: app.authenticate,
+    onRequest: app.authenticate,
   }, async (req, reply) => {
     reply.header("cache-control", "private, no-store");
     return { data: await app.auth.me(req.user!.id) };
@@ -132,7 +132,7 @@ export async function authRoutes(app: FastifyInstance) {
 
   r.post("/auth/resend-verification", {
     schema: { tags: ["auth"], summary: "Reenviar correo de verificación (máx. 3 por hora)", security: bearer, response: { 202: z.object({ data: z.object({ sent: z.literal(true) }) }) } },
-    preHandler: app.authenticate,
+    onRequest: app.authenticate,
   }, async (req, reply) => {
     await app.auth.resendVerification(req.user!.id);
     return reply.code(202).send({ data: { sent: true } });
@@ -162,7 +162,7 @@ export async function authRoutes(app: FastifyInstance) {
       tags: ["auth"], summary: "Cambiar la contraseña (cierra las demás sesiones)", security: bearer,
       body: z.object({ current_password: password, new_password: password }), response: { 200: z.object({ data: z.object({ tokens }) }) },
     },
-    preHandler: app.authenticate, config: limit(10, "15 minutes"),
+    onRequest: app.authenticate, config: limit(10, "15 minutes"),
   }, async (req, reply) => {
     const session = await app.auth.updatePassword(req.user!.id, req.body, ctx(req));
     return { data: { tokens: tokensOut(req, reply, session) } };
@@ -173,7 +173,7 @@ export async function authRoutes(app: FastifyInstance) {
       tags: ["auth"], summary: "Dispositivos con sesión abierta", security: bearer,
       response: { 200: z.object({ data: z.array(z.object({ id: z.string(), current: z.boolean(), user_agent: z.string().nullable(), ip: z.string().nullable(), started_at: z.string(), last_seen_at: z.string() })) }) },
     },
-    preHandler: app.authenticate,
+    onRequest: app.authenticate,
   }, async (req, reply) => {
     reply.header("cache-control", "private, no-store");
     return { data: await app.auth.sessions(req.user!.id, req.user!.sid) };
@@ -181,7 +181,7 @@ export async function authRoutes(app: FastifyInstance) {
 
   r.delete("/auth/sessions/:id", {
     schema: { tags: ["auth"], summary: "Cerrar la sesión de un dispositivo", security: bearer, params: z.object({ id: z.string().uuid() }), response: noContent },
-    preHandler: app.authenticate,
+    onRequest: app.authenticate,
   }, async (req, reply) => {
     await app.auth.revokeSession(req.user!.id, req.params.id);
     return reply.code(204).send(null);
@@ -194,7 +194,7 @@ export async function authRoutes(app: FastifyInstance) {
       description: "Devuelve el secreto (base32) y la URI `otpauth://` para generar el QR. No queda activo hasta confirmarlo en `/auth/2fa/enable`.",
       response: { 200: z.object({ data: z.object({ secret: z.string(), otpauth_uri: z.string(), issuer: z.string(), account: z.string() }) }) },
     },
-    preHandler: app.authenticate, config: limit(10, "1 hour"),
+    onRequest: app.authenticate, config: limit(10, "1 hour"),
   }, async (req, reply) => {
     reply.header("cache-control", "private, no-store");
     return { data: await app.auth.twoFactorSetup(req.user!.id) };
@@ -207,7 +207,7 @@ export async function authRoutes(app: FastifyInstance) {
       body: z.object({ code: otp }),
       response: { 200: z.object({ data: z.object({ recovery_codes: z.array(z.string()), access_token: z.string(), expires_in: z.number() }) }) },
     },
-    preHandler: app.authenticate, config: limit(10, "15 minutes"),
+    onRequest: app.authenticate, config: limit(10, "15 minutes"),
   }, async (req, reply) => {
     reply.header("cache-control", "private, no-store");
     return { data: await app.auth.twoFactorEnable(req.user!.id, req.user!.sid, req.body.code, ctx(req)) };
@@ -232,7 +232,7 @@ export async function authRoutes(app: FastifyInstance) {
       body: z.object({ password, code: otp.optional(), recovery_code: recovery.optional() }).refine((b) => !!b.code !== !!b.recovery_code, { message: "Envía `code` o `recovery_code` (uno solo)" }),
       response: noContent,
     },
-    preHandler: app.authenticate, config: limit(10, "15 minutes"),
+    onRequest: app.authenticate, config: limit(10, "15 minutes"),
   }, async (req, reply) => {
     await app.auth.twoFactorDisable(req.user!.id, req.user!.sid, req.body, ctx(req));
     return reply.code(204).send(null);
@@ -243,7 +243,7 @@ export async function authRoutes(app: FastifyInstance) {
       tags: ["auth"], summary: "Generar códigos de recuperación nuevos (invalida los anteriores)", security: bearer,
       body: z.object({ code: otp }), response: { 200: z.object({ data: z.object({ recovery_codes: z.array(z.string()) }) }) },
     },
-    preHandler: app.authenticate, config: limit(10, "15 minutes"),
+    onRequest: app.authenticate, config: limit(10, "15 minutes"),
   }, async (req, reply) => {
     reply.header("cache-control", "private, no-store");
     return { data: await app.auth.twoFactorRegenerateRecovery(req.user!.id, req.body.code, ctx(req)) };
@@ -322,7 +322,7 @@ export async function authRoutes(app: FastifyInstance) {
       tags: ["auth"], summary: "Proveedores vinculados a mi cuenta", security: bearer,
       response: { 200: z.object({ data: z.object({ password_set: z.boolean(), identities: z.array(z.object({ provider: z.string(), email: z.string().nullable(), linked_at: z.string(), last_login_at: z.string().nullable() })) }) }) },
     },
-    preHandler: app.authenticate,
+    onRequest: app.authenticate,
   }, async (req, reply) => {
     reply.header("cache-control", "private, no-store");
     return { data: await app.oauth.identities(req.user!.id) };
@@ -330,7 +330,7 @@ export async function authRoutes(app: FastifyInstance) {
 
   r.delete("/auth/identities/:provider", {
     schema: { tags: ["auth"], summary: "Desvincular un proveedor (debe quedar otro método de acceso)", security: bearer, params: provider, response: noContent },
-    preHandler: app.authenticate,
+    onRequest: app.authenticate,
   }, async (req, reply) => {
     await app.oauth.unlink(req.user!.id, req.params.provider);
     return reply.code(204).send(null);

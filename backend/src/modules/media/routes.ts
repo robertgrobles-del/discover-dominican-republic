@@ -77,7 +77,7 @@ export async function mediaRoutes(app: FastifyInstance) {
   const sign = (id: string, exp: number, mime: string, size: number) => createHmac("sha256", secret).update(`media:${id}:${exp}:${mime}:${size}`).digest("base64url");
 
   r.post("/media/upload-url", {
-    preHandler: app.authenticate, config: rl(60, "1 hour"),
+    onRequest: app.authenticate, config: rl(60, "1 hour"),
     schema: { tags: tag, summary: "Pide una URL firmada para subir una imagen (PUT directo con el binario)", security: bearer, body: z.object({ mime: z.enum(MIMES), size: z.number().int().min(1).max(12 * MB), purpose: z.enum(Object.keys(PURPOSES) as [Purpose, ...Purpose[]]), alt: z.string().trim().max(200).optional(), credit: z.string().trim().max(200).optional() }), response: { 201: ok } },
   }, async (req, reply) => {
     const b = req.body;
@@ -116,7 +116,7 @@ export async function mediaRoutes(app: FastifyInstance) {
     throw new AppError("BUSINESS_RULE", why, { code });
   };
 
-  r.post("/media/:id/complete", { preHandler: app.authenticate, config: rl(120, "1 hour"), schema: { tags: tag, summary: "Confirma la subida: se valida el archivo real (formato, tamaño y dimensiones)", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => {
+  r.post("/media/:id/complete", { onRequest: app.authenticate, config: rl(120, "1 hour"), schema: { tags: tag, summary: "Confirma la subida: se valida el archivo real (formato, tamaño y dimensiones)", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => {
     const a = (await db.query<{ owner_id: string | null; purpose: Purpose; mime: ImageMime; status: string; declared_size: number }>("SELECT owner_id, purpose, mime, status, declared_size FROM media_assets WHERE id = $1", [req.params.id])).rows[0];
     if (!a || (a.owner_id !== req.user!.id && !isStaff(req))) throw AppError.notFound("Archivo");
     if (a.status === "ready" || a.status === "in_review") return { data: asset((await db.query("SELECT * FROM media_assets WHERE id = $1", [req.params.id])).rows[0], base) };
@@ -140,7 +140,7 @@ export async function mediaRoutes(app: FastifyInstance) {
     return null;
   };
 
-  r.get("/media/files/:id", { preHandler: optionalUser, schema: { tags: tag, summary: "El archivo (inmutable y cacheable una vez aprobado)", params: uuid } }, async (req, reply) => {
+  r.get("/media/files/:id", { onRequest: optionalUser, schema: { tags: tag, summary: "El archivo (inmutable y cacheable una vez aprobado)", params: uuid } }, async (req, reply) => {
     const a = await visible(req.params.id, req);
     const buf = a && a.storage_key ? await storage.get(a.storage_key) : null;
     if (!a || !buf) throw AppError.notFound("Archivo");
@@ -149,13 +149,13 @@ export async function mediaRoutes(app: FastifyInstance) {
     return reply.send(buf);
   });
 
-  r.get("/media/:id", { preHandler: optionalUser, schema: { tags: tag, summary: "Metadatos y URLs (público si está aprobado; si no, sólo el dueño o el equipo)", security: [{}, ...bearer], params: uuid, response: { 200: ok } } }, async (req) => {
+  r.get("/media/:id", { onRequest: optionalUser, schema: { tags: tag, summary: "Metadatos y URLs (público si está aprobado; si no, sólo el dueño o el equipo)", security: [{}, ...bearer], params: uuid, response: { 200: ok } } }, async (req) => {
     const a = await visible(req.params.id, req);
     if (!a) throw AppError.notFound("Archivo");
     return { data: asset(a, base) };
   });
 
-  r.delete("/media/:id", { preHandler: app.authenticate, schema: { tags: tag, summary: "Elimina un archivo (dueño o admin)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
+  r.delete("/media/:id", { onRequest: app.authenticate, schema: { tags: tag, summary: "Elimina un archivo (dueño o admin)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
     const a = (await db.query<{ owner_id: string | null; storage_key: string | null }>("SELECT owner_id, storage_key FROM media_assets WHERE id = $1", [req.params.id])).rows[0];
     if (!a || (a.owner_id !== req.user!.id && !req.user!.roles.includes("admin"))) throw AppError.notFound("Archivo");
     if (a.storage_key) await storage.delete(a.storage_key);
@@ -168,7 +168,7 @@ export async function mediaRoutes(app: FastifyInstance) {
   // ---------- Administración ----------
   const editor = app.requireRole("admin", "editor");
   const mod = app.requireRole("admin", "moderator");
-  r.get("/admin/media", { preHandler: editor, schema: { tags: ["admin"], summary: "Biblioteca de medios", security: bearer, querystring: z.object({ q: z.string().trim().max(100).optional(), purpose: z.enum(Object.keys(PURPOSES) as [Purpose, ...Purpose[]]).optional(), status: z.enum(["pending", "uploaded", "ready", "in_review", "rejected"]).optional(), page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(100).default(48) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
+  r.get("/admin/media", { onRequest: editor, schema: { tags: ["admin"], summary: "Biblioteca de medios", security: bearer, querystring: z.object({ q: z.string().trim().max(100).optional(), purpose: z.enum(Object.keys(PURPOSES) as [Purpose, ...Purpose[]]).optional(), status: z.enum(["pending", "uploaded", "ready", "in_review", "rejected"]).optional(), page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(100).default(48) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
     const q = req.query;
     const p = [q.q ? `%${q.q.replace(/[\\%_]/g, "\\$&")}%` : null, q.purpose ?? null, q.status ?? null];
     const w = "($1::text IS NULL OR alt ILIKE $1 OR credit ILIKE $1 OR source_url ILIKE $1) AND ($2::text IS NULL OR purpose = $2) AND ($3::text IS NULL OR status = $3)";
@@ -177,7 +177,7 @@ export async function mediaRoutes(app: FastifyInstance) {
     return { data: rows.map((x) => ({ ...asset(x, base), owner_id: x.owner_id, source_url: x.source_url, moderation_note: x.moderation_note })), meta: pageMeta(q.page, q.per_page, total) };
   });
 
-  r.post("/admin/media/:id/moderate", { preHandler: mod, schema: { tags: ["admin"], summary: "Aprueba o rechaza una imagen de usuario", security: bearer, params: uuid, body: z.object({ action: z.enum(["approve", "reject"]), reason: z.string().trim().max(300).optional() }), response: { 200: ok } } }, async (req) => {
+  r.post("/admin/media/:id/moderate", { onRequest: mod, schema: { tags: ["admin"], summary: "Aprueba o rechaza una imagen de usuario", security: bearer, params: uuid, body: z.object({ action: z.enum(["approve", "reject"]), reason: z.string().trim().max(300).optional() }), response: { 200: ok } } }, async (req) => {
     const a = (await db.query<{ status: string; storage_key: string | null }>("SELECT status, storage_key FROM media_assets WHERE id = $1", [req.params.id])).rows[0];
     if (!a) throw AppError.notFound("Archivo");
     if (a.status !== "in_review") throw new AppError("BUSINESS_RULE", "Sólo se moderan las imágenes en revisión", { code: "INVALID_STATE" });
@@ -189,7 +189,7 @@ export async function mediaRoutes(app: FastifyInstance) {
   });
 
   r.post("/admin/media/import-url", {
-    preHandler: editor, config: rl(30, "1 hour"),
+    onRequest: editor, config: rl(30, "1 hour"),
     schema: { tags: ["admin"], summary: "Descarga una imagen de una URL https pública a nuestro almacenamiento", security: bearer, body: z.object({ url: z.string().url().max(1000), alt: z.string().trim().max(200).optional(), credit: z.string().trim().max(200).optional() }), response: { 201: ok } },
   }, async (req, reply) => {
     let res;

@@ -59,12 +59,12 @@ export async function tableAdminRoutes(app: FastifyInstance, configs: TableCfg[]
     const ser = (cols: Record<string, { type: ColType }>, k: string, v: unknown) => (cols[k]!.type === "jsonb" && v !== null && v !== undefined ? JSON.stringify(v) : v);
     const check = cfg.check ?? (() => undefined);
 
-    r.get(base, { preHandler: admin, schema: { ...hide, summary: `${cfg.label}: lista`, querystring: z.object({ page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(200).default(50) }) } }, async (req) => {
+    r.get(base, { onRequest: admin, schema: { ...hide, summary: `${cfg.label}: lista`, querystring: z.object({ page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(200).default(50) }) } }, async (req) => {
       const total = (await db.query<{ n: number }>(`SELECT count(*)::int AS n FROM ${cfg.table}`)).rows[0]!.n;
       const list = await db.query(`SELECT * FROM ${cfg.table} ORDER BY ${cfg.order} LIMIT ${req.query.per_page} OFFSET ${(req.query.page - 1) * req.query.per_page}`);
       return { data: list.rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
     });
-    r.post(base, { preHandler: admin, schema: { ...hide, summary: `${cfg.label}: crear`, body } }, async (req, reply) => {
+    r.post(base, { onRequest: admin, schema: { ...hide, summary: `${cfg.label}: crear`, body } }, async (req, reply) => {
       const data = await parse(req.body);
       const { cols } = await meta();
       check(data);
@@ -77,7 +77,7 @@ export async function tableAdminRoutes(app: FastifyInstance, configs: TableCfg[]
         return { data: row };
       } catch (e) { pgError(e); }
     });
-    r.patch(`${base}/:id`, { preHandler: admin, schema: { ...hide, summary: `${cfg.label}: editar`, params: idp, body } }, async (req) => {
+    r.patch(`${base}/:id`, { onRequest: admin, schema: { ...hide, summary: `${cfg.label}: editar`, params: idp, body } }, async (req) => {
       const data = await parse(req.body);
       const { cols } = await meta();
       const keys = Object.keys(data).filter((k) => data[k] !== undefined);
@@ -91,7 +91,7 @@ export async function tableAdminRoutes(app: FastifyInstance, configs: TableCfg[]
         return { data: row };
       } catch (e) { pgError(e); }
     });
-    r.delete(`${base}/:id`, { preHandler: admin, schema: { ...hide, summary: `${cfg.label}: borrar`, params: idp } }, async (req, reply) => {
+    r.delete(`${base}/:id`, { onRequest: admin, schema: { ...hide, summary: `${cfg.label}: borrar`, params: idp } }, async (req, reply) => {
       try {
         if (!(await db.query(`DELETE FROM ${cfg.table} WHERE ${cfg.pk} = $1`, [req.params.id])).rowCount) throw AppError.notFound(cfg.label);
       } catch (e) { if (e instanceof AppError) throw e; pgError(e); }

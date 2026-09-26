@@ -290,6 +290,13 @@ Flujo: `POST /media/upload-url` (sesión; tipo, tamaño y finalidad) → `PUT` d
 - **Almacenamiento**: disco local en `MEDIA_DIR` (`storage/media`, fuera de git) detrás de la interfaz `MediaStorage`; para varios servidores se implementa la misma interfaz con S3. `media.cleanup` borra subidas sin completar de más de 24 h.
 - **Pendiente**: variantes (`thumb`, `card`, `hero`, webp/avif) y antivirus necesitan una librería de imágenes y un servicio externo; hoy sólo existe la variante `original`.
 
+## Operación y seguridad
+
+- **Salida a producción, respaldos, monitoreo, retención y respuesta a incidentes**: [`docs/BACKEND_OPERACION.md`](../docs/BACKEND_OPERACION.md).
+- **Controles, hallazgos de la revisión y riesgos residuales**: [`docs/BACKEND_SEGURIDAD.md`](../docs/BACKEND_SEGURIDAD.md).
+- `npm run db:backup -- --verify` (respaldo + prueba de restauración), `npm run audit`, `GET /metrics` (con `METRICS_TOKEN`), variable `TRUST_PROXY` (por defecto no se acepta `X-Forwarded-For`) y trabajo `maintenance.purge`.
+- La autenticación se ejecuta en `onRequest` (antes de leer y validar el cuerpo) y `test/security.test.ts` verifica sobre el inventario real de rutas que todo lo administrativo, del operador y de la cuenta exige sesión.
+
 ## Correo
 
 `app.mailer.send({ to, template, data, locale })` **encola** en la tabla `email_log` y vuelve; un trabajador (en el mismo proceso, `MAIL_WORKER_ENABLED`, o en otro) toma los pendientes con `FOR UPDATE SKIP LOCKED`, así que varias instancias nunca envían dos veces. Reintenta con espera creciente (1 min, 5 min, 30 min, 2 h, 12 h) hasta `MAIL_MAX_ATTEMPTS` y luego marca `failed`; los mensajes que quedaron `sending` por un proceso caído se recuperan. Si se pasa la conexión de una transacción (`send(input, client)`) el correo forma parte de ella (outbox transaccional: el registro y su correo se guardan juntos o no se guarda ninguno).

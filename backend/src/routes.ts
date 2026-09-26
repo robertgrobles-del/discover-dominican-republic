@@ -70,6 +70,22 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   registerMarketingJobs(app, runner);
   registerAnalyticsJobs(app, runner);
   registerMediaJobs(app, runner);
+  // Higiene de datos y retención: lo que ya no sirve se borra (los datos personales no se guardan más de lo necesario, Ley 172-13).
+  runner.register({
+    name: "maintenance.purge", description: "Borra sesiones, tokens, correos, eventos de pago y avisos vencidos según su retención", everySeconds: 86_400,
+    run: async () => {
+      const q = (sql: string) => app.db.query(sql).then((r) => r.rowCount ?? 0);
+      return {
+        refresh_tokens: await q("DELETE FROM refresh_tokens WHERE expires_at < now() - interval '30 days'"),
+        auth_tokens: await q("DELETE FROM auth_tokens WHERE (used_at IS NOT NULL AND used_at < now() - interval '7 days') OR expires_at < now() - interval '7 days'"),
+        email_log: await q("DELETE FROM email_log WHERE status IN ('sent', 'delivered', 'failed', 'bounced', 'complained') AND created_at < now() - interval '90 days'"),
+        payment_events: await q("DELETE FROM payment_events WHERE processed_at IS NOT NULL AND received_at < now() - interval '1 year'"),
+        job_marks: await q("DELETE FROM job_marks WHERE created_at < now() - interval '1 year'"),
+        notifications: await q("DELETE FROM notifications WHERE is_read AND created_at < now() - interval '180 days'"),
+        store_carts: await q("DELETE FROM store_carts WHERE user_id IS NULL AND updated_at < now() - interval '30 days'"),
+      };
+    },
+  });
   runner.register({ name: "orders.auto_cancel", description: "Cancela pedidos de la tienda sin cobrar tras 60 min y devuelve stock y cupón", everySeconds: 900, run: async () => ({ cancelled: await store.cancelUnpaid(60) }) });
   registerOperatorJobs({ db: app.db, env: app.env, mailer: app.mailer, runner, automations, ical, payouts });
   if (app.env.JOBS_ENABLED) { runner.start(); app.addHook("onClose", async () => { await runner.stop(); }); }

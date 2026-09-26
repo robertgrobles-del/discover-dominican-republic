@@ -75,7 +75,7 @@ export async function formsRoutes(app: FastifyInstance) {
     app.mailer.send({ to, template: "support.received", locale: mailLocale(loc), data: { name: name.split(" ")[0]!, reference: ticketId.slice(0, 8).toUpperCase(), subject } });
 
   r.post("/contact", {
-    preHandler: optionalUser, config: rl(5, "1 hour"),
+    onRequest: optionalUser, config: rl(5, "1 hour"),
     schema: { tags: ["formularios"], summary: "Formulario de contacto, sugerencias, prensa y creadores", body: z.object({ name: z.string().trim().min(2).max(100), email, category: z.enum(CATEGORIES).default("contact"), subject: z.string().trim().min(3).max(150), message: z.string().trim().min(10).max(4000), locale: locale.optional(), website: z.string().max(200).optional() }), response: { 202: ok } },
   }, async (req, reply) => {
     const b = req.body;
@@ -87,7 +87,7 @@ export async function formsRoutes(app: FastifyInstance) {
   });
 
   const ticketBody = z.object({ subject: z.string().trim().min(3).max(150), description: z.string().trim().min(10).max(4000), priority: z.enum(["low", "medium", "high"]).default("medium"), category: z.enum(CATEGORIES).default("support") });
-  r.post("/support/tickets", { preHandler: app.authenticate, config: rl(10, "1 hour"), schema: { tags: ["soporte"], summary: "Abre un ticket", security: bearer, body: ticketBody, response: { 201: ok } } }, async (req, reply) => {
+  r.post("/support/tickets", { onRequest: app.authenticate, config: rl(10, "1 hour"), schema: { tags: ["soporte"], summary: "Abre un ticket", security: bearer, body: ticketBody, response: { 201: ok } } }, async (req, reply) => {
     const u = (await db.query<{ email: string; name: string | null; locale: string }>("SELECT u.email, p.display_name AS name, u.locale FROM users u LEFT JOIN profiles p ON p.id = u.id WHERE u.id = $1", [req.user!.id])).rows[0]!;
     const b = req.body;
     const t = (await db.query<{ id: string }>("INSERT INTO support_tickets (user_id, subject, description, priority, category, contact_name, contact_email) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id", [req.user!.id, b.subject, b.description, b.priority, b.category, u.name ?? u.email, u.email])).rows[0]!;
@@ -95,7 +95,7 @@ export async function formsRoutes(app: FastifyInstance) {
     reply.code(201);
     return { data: { id: t.id } };
   });
-  r.get("/support/tickets", { preHandler: app.authenticate, schema: { tags: ["soporte"], summary: "Mis tickets", security: bearer, querystring: z.object({ page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(50).default(20) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
+  r.get("/support/tickets", { onRequest: app.authenticate, schema: { tags: ["soporte"], summary: "Mis tickets", security: bearer, querystring: z.object({ page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(50).default(20) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
     const total = (await db.query<{ n: number }>("SELECT count(*)::int AS n FROM support_tickets WHERE user_id = $1", [req.user!.id])).rows[0]!.n;
     const { rows } = await db.query(`SELECT id, subject, status, priority, category, created_at, updated_at FROM support_tickets WHERE user_id = $1 ORDER BY updated_at DESC LIMIT ${req.query.per_page} OFFSET ${(req.query.page - 1) * req.query.per_page}`, [req.user!.id]);
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
@@ -105,12 +105,12 @@ export async function formsRoutes(app: FastifyInstance) {
     if (!t) throw AppError.notFound("Ticket"); // no se distingue "no existe" de "no es tuyo"
     return t;
   };
-  r.get("/support/tickets/:id", { preHandler: app.authenticate, schema: { tags: ["soporte"], summary: "Conversación de un ticket", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => {
+  r.get("/support/tickets/:id", { onRequest: app.authenticate, schema: { tags: ["soporte"], summary: "Conversación de un ticket", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => {
     const t = await ownTicket(req.user!.id, req.params.id);
     const messages = (await db.query("SELECT id, message, is_admin_reply, created_at FROM support_messages WHERE ticket_id = $1 ORDER BY created_at", [t.id])).rows;
     return { data: { ...t, messages } };
   });
-  r.post("/support/tickets/:id/messages", { preHandler: app.authenticate, config: rl(30, "1 hour"), schema: { tags: ["soporte"], summary: "Responde en mi ticket", security: bearer, params: uuid, body: z.object({ message: z.string().trim().min(1).max(4000) }), response: { 201: ok } } }, async (req, reply) => {
+  r.post("/support/tickets/:id/messages", { onRequest: app.authenticate, config: rl(30, "1 hour"), schema: { tags: ["soporte"], summary: "Responde en mi ticket", security: bearer, params: uuid, body: z.object({ message: z.string().trim().min(1).max(4000) }), response: { 201: ok } } }, async (req, reply) => {
     const t = await ownTicket(req.user!.id, req.params.id);
     if (t.status === "closed") throw new AppError("BUSINESS_RULE", "El ticket está cerrado; abre uno nuevo", { code: "TICKET_CLOSED" });
     const m = (await db.query<{ id: string }>("INSERT INTO support_messages (ticket_id, sender_id, message, is_admin_reply) VALUES ($1,$2,$3,false) RETURNING id", [t.id, req.user!.id, req.body.message])).rows[0]!;
@@ -132,7 +132,7 @@ export async function formsRoutes(app: FastifyInstance) {
 
   // ---------- Alta de establecimientos ----------
   r.post("/establishments/register", {
-    preHandler: optionalUser, config: rl(5, "1 hour"),
+    onRequest: optionalUser, config: rl(5, "1 hour"),
     schema: {
       tags: ["formularios"], summary: "Solicita el alta de un establecimiento (queda pendiente de revisión)",
       body: z.object({

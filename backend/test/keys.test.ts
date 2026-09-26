@@ -82,7 +82,7 @@ describe("claves JWT y rotación", () => {
   });
 
   it("valida la configuración: producción exige claves y las anteriores deben ser un arreglo JSON", () => {
-    const prod = { NODE_ENV: "production", DATABASE_URL: "postgres://x:y@localhost:5432/z" } as NodeJS.ProcessEnv;
+    const prod = { NODE_ENV: "production", DATABASE_URL: "postgres://x:y@localhost:5432/z", CORS_ORIGINS: "https://portal.example.com" } as NodeJS.ProcessEnv;
     expect(() => loadEnv(prod)).toThrow(/JWT_PRIVATE_KEY y JWT_PUBLIC_KEY son obligatorias/);
     expect(() => loadEnv({ ...prod, JWT_PRIVATE_KEY: "a", JWT_PUBLIC_KEY: "b", JWT_PREVIOUS_PUBLIC_KEYS: "no-es-json" })).toThrow(/arreglo JSON/);
     expect(loadEnv({ NODE_ENV: "test" } as NodeJS.ProcessEnv).JWT_PREVIOUS_PUBLIC_KEYS).toEqual([]);

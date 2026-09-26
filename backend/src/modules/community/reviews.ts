@@ -62,7 +62,7 @@ export async function reviewRoutes(app: FastifyInstance) {
   };
 
   r.post("/reviews", {
-    preHandler: app.authenticate, config: rl(20, "1 hour"),
+    onRequest: app.authenticate, config: rl(20, "1 hour"),
     schema: { tags: ["reseñas"], summary: "Deja una reseña (una por entidad; pasa por moderación automática)", security: bearer, body: reviewBody.extend({ entity_type: z.enum(TYPES), entity_id: z.string().uuid() }), response: { 201: ok } },
   }, async (req, reply) => {
     const b = req.body;
@@ -86,7 +86,7 @@ export async function reviewRoutes(app: FastifyInstance) {
   });
 
   r.patch("/reviews/:id", {
-    preHandler: app.authenticate, config: rl(30, "1 hour"),
+    onRequest: app.authenticate, config: rl(30, "1 hour"),
     schema: { tags: ["reseñas"], summary: "Edita mi reseña (vuelve a moderarse)", security: bearer, params: uuid, body: reviewBody.partial(), response: { 200: ok } },
   }, async (req) => {
     const cur = await own(req.user!.id, req.params.id);
@@ -102,7 +102,7 @@ export async function reviewRoutes(app: FastifyInstance) {
     return { data: { id: cur.id, status } };
   });
 
-  r.delete("/reviews/:id", { preHandler: app.authenticate, schema: { tags: ["reseñas"], summary: "Elimina mi reseña", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
+  r.delete("/reviews/:id", { onRequest: app.authenticate, schema: { tags: ["reseñas"], summary: "Elimina mi reseña", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
     const cur = await own(req.user!.id, req.params.id);
     await db.query("DELETE FROM reviews WHERE id = $1", [cur.id]);
     await refresh(cur.entity_type, cur.entity_id);
@@ -110,7 +110,7 @@ export async function reviewRoutes(app: FastifyInstance) {
     return null;
   });
 
-  r.post("/reviews/:id/helpful", { preHandler: app.authenticate, config: rl(120, "1 hour"), schema: { tags: ["reseñas"], summary: "Marca una reseña como útil (una vez; no la propia)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
+  r.post("/reviews/:id/helpful", { onRequest: app.authenticate, config: rl(120, "1 hour"), schema: { tags: ["reseñas"], summary: "Marca una reseña como útil (una vez; no la propia)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
     const rev = (await db.query<{ user_id: string }>("SELECT user_id FROM reviews WHERE id = $1 AND is_approved", [req.params.id])).rows[0];
     if (!rev) throw AppError.notFound("Reseña");
     if (rev.user_id === req.user!.id) throw AppError.validation("No puedes votar tu propia reseña");
@@ -121,7 +121,7 @@ export async function reviewRoutes(app: FastifyInstance) {
   });
 
   r.post("/reviews/:id/report", {
-    preHandler: app.authenticate, config: rl(30, "1 hour"),
+    onRequest: app.authenticate, config: rl(30, "1 hour"),
     schema: { tags: ["reseñas"], summary: "Reporta una reseña (a los 3 reportes distintos se oculta hasta revisarla)", security: bearer, params: uuid, body: z.object({ reason: z.enum(["spam", "offensive", "fake", "irrelevant", "other"]), detail: z.string().trim().max(500).optional() }), response: { 204: z.null() } },
   }, async (req, reply) => {
     const rev = (await db.query<{ entity_type: string; entity_id: string }>("SELECT entity_type, entity_id FROM reviews WHERE id = $1 AND is_approved", [req.params.id])).rows[0];
@@ -138,7 +138,7 @@ export async function reviewRoutes(app: FastifyInstance) {
     return null;
   });
 
-  r.get("/me/reviews", { preHandler: app.authenticate, schema: { tags: ["reseñas"], summary: "Mis reseñas (incluye las pendientes)", security: bearer, querystring: z.object({ page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(50).default(20) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
+  r.get("/me/reviews", { onRequest: app.authenticate, schema: { tags: ["reseñas"], summary: "Mis reseñas (incluye las pendientes)", security: bearer, querystring: z.object({ page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(50).default(20) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
     const total = (await db.query<{ n: number }>("SELECT count(*)::int AS n FROM reviews WHERE user_id = $1", [req.user!.id])).rows[0]!.n;
     const { rows } = await db.query(`SELECT id, entity_type, entity_id, rating, title, comment, visit_date, status, helpful_count, reply, created_at FROM reviews WHERE user_id = $1 ORDER BY created_at DESC LIMIT ${req.query.per_page} OFFSET ${(req.query.page - 1) * req.query.per_page}`, [req.user!.id]);
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
@@ -146,7 +146,7 @@ export async function reviewRoutes(app: FastifyInstance) {
 
   // ---- Respuesta oficial del establecimiento ----
   r.post("/reviews/:id/reply", {
-    preHandler: app.authenticate,
+    onRequest: app.authenticate,
     schema: { tags: ["reseñas"], summary: "Respuesta oficial (editor/admin, o el operador dueño del servicio)", security: bearer, params: uuid, body: z.object({ reply: z.string().trim().min(1).max(1000) }), response: { 204: z.null() } },
   }, async (req, reply) => {
     const rev = (await db.query<{ entity_type: string; entity_id: string }>("SELECT entity_type, entity_id FROM reviews WHERE id = $1 AND is_approved", [req.params.id])).rows[0];
@@ -162,7 +162,7 @@ export async function reviewRoutes(app: FastifyInstance) {
   // ---- Moderación (docs §5.17) ----
   const mod = app.requireRole("admin", "moderator");
   r.get("/admin/reviews", {
-    preHandler: mod,
+    onRequest: mod,
     schema: { tags: ["admin"], summary: "Cola de moderación de reseñas", security: bearer, querystring: z.object({ status: z.enum(["pending", "approved", "rejected"]).default("pending"), reported: z.enum(["true", "false"]).optional(), page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(100).default(50) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } },
   }, async (req) => {
     const w = `r.status = $1${req.query.reported === "true" ? " AND r.report_count > 0" : ""}`;
@@ -174,7 +174,7 @@ export async function reviewRoutes(app: FastifyInstance) {
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
   });
   r.patch("/admin/reviews/:id", {
-    preHandler: mod,
+    onRequest: mod,
     schema: { tags: ["admin"], summary: "Aprueba o rechaza una reseña", security: bearer, params: uuid, body: z.object({ status: z.enum(["approved", "rejected"]), note: z.string().trim().max(300).optional() }), response: { 204: z.null() } },
   }, async (req, reply) => {
     const rev = (await db.query<{ entity_type: string; entity_id: string; user_id: string }>(

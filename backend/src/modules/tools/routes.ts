@@ -134,7 +134,7 @@ export async function toolsRoutes(app: FastifyInstance) {
   }
 
   await tableAdminRoutes(app, TOOL_TABLES, ["admin", "editor"]);
-  r.get("/admin/calculators/defaults", { preHandler: app.requireRole("admin"), schema: { tags: ["admin"], summary: "Cifras por defecto y vigentes de las calculadoras (se ajustan con site_settings `calculators.<nombre>`)", security: bearer, response: { 200: ok } } }, async () => ({
+  r.get("/admin/calculators/defaults", { onRequest: app.requireRole("admin"), schema: { tags: ["admin"], summary: "Cifras por defecto y vigentes de las calculadoras (se ajustan con site_settings `calculators.<nombre>`)", security: bearer, response: { 200: ok } } }, async () => ({
     data: { budget: { defaults: BUDGET_DEFAULTS, current: await config("budget", BUDGET_DEFAULTS) }, tax: { defaults: TAX_DEFAULTS, current: await config("tax", TAX_DEFAULTS) }, confotur: { defaults: CONFOTUR_DEFAULTS, current: await config("confotur", CONFOTUR_DEFAULTS) }, carbon: { defaults: CARBON_DEFAULTS, current: await config("carbon", CARBON_DEFAULTS) } },
   }));
 }

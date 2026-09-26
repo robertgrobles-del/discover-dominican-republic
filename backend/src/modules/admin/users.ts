@@ -21,7 +21,7 @@ export async function adminUserRoutes(app: FastifyInstance) {
   const exists = async (id: string) => { if (!(await db.query("SELECT 1 FROM users WHERE id = $1", [id])).rowCount) throw AppError.notFound("Usuario"); };
 
   r.get("/admin/users", {
-    preHandler: admin,
+    onRequest: admin,
     schema: { tags: ["admin"], summary: "Usuarios (filtros por texto, rol y estado)", security: bearer, querystring: z.object({ q: z.string().trim().max(100).optional(), role: z.enum(ROLES).optional(), status: z.enum(["active", "suspended", "deleted"]).optional(), page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(100).default(25) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } },
   }, async (req) => {
     const p: unknown[] = [], w = ["true"];
@@ -39,7 +39,7 @@ export async function adminUserRoutes(app: FastifyInstance) {
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
   });
 
-  r.get("/admin/users/:id", { preHandler: admin, schema: { tags: ["admin"], summary: "Detalle de un usuario", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => {
+  r.get("/admin/users/:id", { onRequest: admin, schema: { tags: ["admin"], summary: "Detalle de un usuario", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => {
     const u = (await db.query(
       `SELECT u.id, u.email, u.status, u.locale, u.created_at, u.last_login_at, u.email_verified_at, u.totp_enabled_at IS NOT NULL AS two_factor, u.marketing_opt_in,
               pr.display_name, pr.avatar_url, pr.is_suspended, pr.suspension_reason, pr.country, pr.deletion_requested_at,
@@ -54,7 +54,7 @@ export async function adminUserRoutes(app: FastifyInstance) {
   });
 
   r.put("/admin/users/:id/roles", {
-    preHandler: admin,
+    onRequest: admin,
     schema: { tags: ["admin"], summary: "Reemplaza los roles de un usuario (no puedes cambiar los tuyos ni quitar al último admin)", security: bearer, params: uuid, body: z.object({ roles: z.array(z.enum(ROLES)).max(6) }), response: { 200: ok } },
   }, async (req) => {
     const id = req.params.id;
@@ -79,7 +79,7 @@ export async function adminUserRoutes(app: FastifyInstance) {
   });
 
   r.post("/admin/users/:id/suspend", {
-    preHandler: admin,
+    onRequest: admin,
     schema: { tags: ["admin"], summary: "Suspende una cuenta y cierra sus sesiones", security: bearer, params: uuid, body: z.object({ reason: z.string().trim().min(5).max(300), expires_at: z.string().datetime({ offset: true }).optional() }), response: { 204: z.null() } },
   }, async (req, reply) => {
     const id = req.params.id;
@@ -96,7 +96,7 @@ export async function adminUserRoutes(app: FastifyInstance) {
     return null;
   });
 
-  r.post("/admin/users/:id/unsuspend", { preHandler: admin, schema: { tags: ["admin"], summary: "Reactiva una cuenta suspendida", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
+  r.post("/admin/users/:id/unsuspend", { onRequest: admin, schema: { tags: ["admin"], summary: "Reactiva una cuenta suspendida", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
     await exists(req.params.id);
     await db.query("UPDATE profiles SET is_suspended = false, suspension_reason = NULL WHERE id = $1", [req.params.id]);
     await db.query("UPDATE user_suspensions SET is_active = false WHERE user_id = $1 AND is_active", [req.params.id]);
@@ -106,7 +106,7 @@ export async function adminUserRoutes(app: FastifyInstance) {
     return null;
   });
 
-  r.post("/admin/users/:id/reset-password", { preHandler: admin, schema: { tags: ["admin"], summary: "Envía al usuario un enlace de restablecimiento de contraseña", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
+  r.post("/admin/users/:id/reset-password", { onRequest: admin, schema: { tags: ["admin"], summary: "Envía al usuario un enlace de restablecimiento de contraseña", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
     const u = (await db.query<{ email: string }>("SELECT email FROM users WHERE id = $1 AND status <> 'deleted'", [req.params.id])).rows[0];
     if (!u) throw AppError.notFound("Usuario");
     await app.auth.forgotPassword(u.email);

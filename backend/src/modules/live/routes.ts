@@ -59,7 +59,7 @@ export async function liveRoutes(app: FastifyInstance) {
   r.get("/live/marine-reports", { schema: { tags: tag, summary: "Reportes marinos recientes", querystring: z.object({ location: z.string().max(100).optional(), limit: z.coerce.number().int().min(1).max(100).default(30) }), response: { 200: ok } } }, async (req, reply) =>
     pub(reply, { data: (await db.query("SELECT id, location, wind_speed, wind_direction, wave_height, wave_period, water_temp, condition_rating, recommendation, created_at FROM marine_reports WHERE ($1::text IS NULL OR location = $1) ORDER BY created_at DESC LIMIT $2", [req.query.location ?? null, req.query.limit])).rows }, "public, max-age=60"));
   r.post("/live/marine-reports", {
-    preHandler: app.requireRole("admin", "editor"),
+    onRequest: app.requireRole("admin", "editor"),
     schema: { tags: tag, summary: "Registra un reporte marino (editor)", security: bearer, body: z.object({ location: z.string().trim().min(2).max(100), wind_speed: z.number().min(0).max(300), wind_direction: z.string().trim().min(1).max(10), wave_height: z.number().min(0).max(20), wave_period: z.number().int().min(0).max(60), water_temp: z.number().min(10).max(40), condition_rating: z.enum(["Excelente", "Buena", "Regular", "Mala", "Peligrosa"]), recommendation: z.string().trim().min(3).max(500) }), response: { 201: ok } },
   }, async (req, reply) => {
     const b = req.body;
@@ -77,7 +77,7 @@ export async function liveRoutes(app: FastifyInstance) {
 
   // ---------- Administración ----------
   await tableAdminRoutes(app, LIVE_TABLES, ["admin", "editor"]);
-  r.post("/admin/live/refresh", { preHandler: app.requireRole("admin"), schema: { tags: ["admin"], summary: "Actualiza ahora tasas o clima desde el proveedor configurado", security: bearer, querystring: z.object({ source: z.enum(["fx", "weather"]) }), response: { 200: ok } } }, async (req) => {
+  r.post("/admin/live/refresh", { onRequest: app.requireRole("admin"), schema: { tags: ["admin"], summary: "Actualiza ahora tasas o clima desde el proveedor configurado", security: bearer, querystring: z.object({ source: z.enum(["fx", "weather"]) }), response: { 200: ok } } }, async (req) => {
     const res = await app.jobs.runNow(req.query.source === "fx" ? "fx.refresh" : "weather.refresh");
     await audit(db, { actor: req.user!.id, action: "live.refresh", entity: "live", id: req.query.source, ip: req.ip });
     return { data: res };

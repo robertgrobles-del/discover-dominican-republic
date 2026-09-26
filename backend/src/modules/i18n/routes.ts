@@ -53,7 +53,7 @@ export async function i18nRoutes(app: FastifyInstance) {
   });
 
   r.put("/admin/i18n/dictionary/:locale", {
-    preHandler: admin,
+    onRequest: admin,
     schema: {
       tags: ["admin"], summary: `Crea o reemplaza cadenas de la interfaz (máx. ${MAX_KEYS_PER_CALL} por llamada)`, security: bearer, params: z.object({ locale }),
       body: z.object({ strings: z.record(z.string().regex(/^[a-z][a-zA-Z0-9_-]{0,39}$/), z.record(z.string().min(1).max(200), z.string().max(2000))), delete: z.array(z.object({ ns: z.string().max(40), key: z.string().max(200) })).max(500).optional() }),
@@ -83,7 +83,7 @@ export async function i18nRoutes(app: FastifyInstance) {
   };
 
   r.get("/admin/translations", {
-    preHandler: editor,
+    onRequest: editor,
     schema: { tags: ["admin"], summary: "Traducciones de contenido por entidad, idioma y estado", security: bearer, querystring: z.object({ entity_type: z.string().max(60).optional(), entity_id: z.string().uuid().optional(), locale: targetLocale.optional(), status: z.enum(["machine", "human", "reviewed"]).optional(), page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(200).default(50) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } },
   }, async (req) => {
     const q = req.query;
@@ -95,7 +95,7 @@ export async function i18nRoutes(app: FastifyInstance) {
   });
 
   r.put("/admin/translations/:entity_type/:entity_id/:locale", {
-    preHandler: editor,
+    onRequest: editor,
     schema: {
       tags: ["admin"], summary: "Guarda campos traducidos de una entidad (quedan como `human`)", security: bearer, params: z.object({ entity_type: z.string().max(60), entity_id: z.string().uuid(), locale: targetLocale }),
       body: z.object({ fields: z.record(z.string().max(60), z.string().max(20_000).nullable()), reviewed: z.boolean().default(false) }),
@@ -122,7 +122,7 @@ export async function i18nRoutes(app: FastifyInstance) {
   });
 
   r.post("/admin/translations/:entity_type/:entity_id/:locale/review", {
-    preHandler: editor,
+    onRequest: editor,
     schema: { tags: ["admin"], summary: "Marca como revisadas las traducciones automáticas de una entidad e idioma", security: bearer, params: z.object({ entity_type: z.string().max(60), entity_id: z.string().uuid(), locale: targetLocale }), response: { 200: ok } },
   }, async (req) => {
     const d = collectionOf(req.params.entity_type);
@@ -130,13 +130,13 @@ export async function i18nRoutes(app: FastifyInstance) {
     return { data: { reviewed: res.rowCount } };
   });
 
-  r.post("/admin/translations/:entity_type/:entity_id/auto", { preHandler: editor, schema: { tags: ["admin"], summary: "Traducción automática (requiere un proveedor de traducción; hoy no hay ninguno configurado)", security: bearer, params: z.object({ entity_type: z.string().max(60), entity_id: z.string().uuid() }) } }, async () => {
+  r.post("/admin/translations/:entity_type/:entity_id/auto", { onRequest: editor, schema: { tags: ["admin"], summary: "Traducción automática (requiere un proveedor de traducción; hoy no hay ninguno configurado)", security: bearer, params: z.object({ entity_type: z.string().max(60), entity_id: z.string().uuid() }) } }, async () => {
     throw new AppError("SERVICE_UNAVAILABLE", "No hay un proveedor de traducción automática configurado; guarda las traducciones con PUT", { code: "NO_TRANSLATION_PROVIDER" });
   });
 
   /** Cobertura: por colección e idioma, qué parte de los campos traducibles de los registros publicados tiene traducción. */
   r.get("/admin/translations/coverage", {
-    preHandler: editor,
+    onRequest: editor,
     schema: { tags: ["admin"], summary: "Porcentaje traducido por colección e idioma (guía el plan de traducción)", security: bearer, response: { 200: ok } },
   }, async () => {
     const out = [];

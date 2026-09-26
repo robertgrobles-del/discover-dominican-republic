@@ -115,7 +115,7 @@ export async function marketingRoutes(app: FastifyInstance) {
   });
 
   r.get("/admin/ads/reports", {
-    preHandler: admin,
+    onRequest: admin,
     schema: { tags: ["admin"], summary: "Vistas, clics y CTR por banner y por anunciante", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } },
   }, async (req) => {
     const to = req.query.to ?? todayInSantoDomingo(), from = req.query.from ?? new Date(Date.parse(`${to}T00:00:00Z`) - 29 * 86_400_000).toISOString().slice(0, 10);
@@ -131,7 +131,7 @@ export async function marketingRoutes(app: FastifyInstance) {
 
   // ---------- Ofertas ----------
   r.post("/offers/:id/redeem", {
-    preHandler: app.authenticate, config: rl(20, "1 hour"),
+    onRequest: app.authenticate, config: rl(20, "1 hour"),
     schema: { tags: tag, summary: "Canjea una oferta vigente (una vez por persona) y devuelve su código de descuento", security: bearer, params: uuid, response: { 200: ok } },
   }, async (req) => {
     const o = (await db.query<{ id: string; title: string; discount_code: string | null; discount_percentage: string | null }>(
@@ -145,13 +145,13 @@ export async function marketingRoutes(app: FastifyInstance) {
   void optionalUser;
 
   // ---------- Leads y campañas ----------
-  r.get("/admin/marketing/leads", { preHandler: admin, schema: { tags: ["admin"], summary: "Leads por estado y origen", security: bearer, querystring: z.object({ status: z.enum(["nuevo", "contactado", "calificado", "perdido"]).optional(), source: z.string().max(60).optional(), page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(100).default(50) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
+  r.get("/admin/marketing/leads", { onRequest: admin, schema: { tags: ["admin"], summary: "Leads por estado y origen", security: bearer, querystring: z.object({ status: z.enum(["nuevo", "contactado", "calificado", "perdido"]).optional(), source: z.string().max(60).optional(), page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(100).default(50) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
     const p = [req.query.status ?? null, req.query.source ?? null];
     const total = (await db.query<{ n: number }>("SELECT count(*)::int AS n FROM marketing_leads WHERE ($1::text IS NULL OR status = $1) AND ($2::text IS NULL OR source = $2)", p)).rows[0]!.n;
     const { rows } = await db.query(`SELECT id, nombre AS name, email, telefono AS phone, empresa AS company, mensaje AS message, source, interest, status, consent, created_at FROM marketing_leads WHERE ($1::text IS NULL OR status = $1) AND ($2::text IS NULL OR source = $2) ORDER BY created_at DESC LIMIT ${req.query.per_page} OFFSET ${(req.query.page - 1) * req.query.per_page}`, p);
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
   });
-  r.patch("/admin/marketing/leads/:id", { preHandler: admin, schema: { tags: ["admin"], summary: "Cambia el estado de un lead", security: bearer, params: uuid, body: z.object({ status: z.enum(["nuevo", "contactado", "calificado", "perdido"]) }), response: { 204: z.null() } } }, async (req, reply) => {
+  r.patch("/admin/marketing/leads/:id", { onRequest: admin, schema: { tags: ["admin"], summary: "Cambia el estado de un lead", security: bearer, params: uuid, body: z.object({ status: z.enum(["nuevo", "contactado", "calificado", "perdido"]) }), response: { 204: z.null() } } }, async (req, reply) => {
     if (!(await db.query("UPDATE marketing_leads SET status = $2 WHERE id = $1", [req.params.id, req.body.status])).rowCount) throw AppError.notFound("Lead");
     await audit(db, { actor: req.user!.id, action: "marketing.lead_status", entity: "lead", id: req.params.id, meta: { status: req.body.status }, ip: req.ip });
     reply.code(204);
@@ -160,30 +160,30 @@ export async function marketingRoutes(app: FastifyInstance) {
 
   const campaign = z.object({ title: z.string().trim().min(3).max(150), subject: z.string().trim().min(3).max(150), body_template: z.string().trim().min(10).max(20_000), segment_interests: z.array(z.string().max(40)).max(20).nullable() });
   const cget = async (id: string) => { const c = (await db.query("SELECT id, title, subject, body_template, segment_interests, sent_count, status, scheduled_for, sent_at, created_at FROM marketing_campaigns WHERE id = $1", [id])).rows[0]; if (!c) throw AppError.notFound("Campaña"); return c; };
-  r.get("/admin/marketing/campaigns", { preHandler: admin, schema: { tags: ["admin"], summary: "Campañas de correo", security: bearer, response: { 200: ok } } }, async () => ({ data: (await db.query("SELECT id, title, subject, segment_interests, sent_count, status, scheduled_for, sent_at, created_at FROM marketing_campaigns ORDER BY created_at DESC LIMIT 200")).rows }));
-  r.get("/admin/marketing/campaigns/:id", { preHandler: admin, schema: { tags: ["admin"], summary: "Detalle de una campaña", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => ({ data: await cget(req.params.id) }));
-  r.post("/admin/marketing/campaigns", { preHandler: admin, schema: { tags: ["admin"], summary: "Crea una campaña (borrador). Variables: {{name}}", security: bearer, body: campaign.partial({ segment_interests: true }), response: { 201: ok } } }, async (req, reply) => {
+  r.get("/admin/marketing/campaigns", { onRequest: admin, schema: { tags: ["admin"], summary: "Campañas de correo", security: bearer, response: { 200: ok } } }, async () => ({ data: (await db.query("SELECT id, title, subject, segment_interests, sent_count, status, scheduled_for, sent_at, created_at FROM marketing_campaigns ORDER BY created_at DESC LIMIT 200")).rows }));
+  r.get("/admin/marketing/campaigns/:id", { onRequest: admin, schema: { tags: ["admin"], summary: "Detalle de una campaña", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => ({ data: await cget(req.params.id) }));
+  r.post("/admin/marketing/campaigns", { onRequest: admin, schema: { tags: ["admin"], summary: "Crea una campaña (borrador). Variables: {{name}}", security: bearer, body: campaign.partial({ segment_interests: true }), response: { 201: ok } } }, async (req, reply) => {
     const b = req.body;
     const row = (await db.query("INSERT INTO marketing_campaigns (title, subject, body_template, segment_interests) VALUES ($1,$2,$3,$4) RETURNING id", [b.title, b.subject, b.body_template, b.segment_interests ? JSON.stringify(b.segment_interests) : null])).rows[0];
     await audit(db, { actor: req.user!.id, action: "marketing.campaign_created", entity: "campaign", id: row.id, ip: req.ip });
     reply.code(201);
     return { data: row };
   });
-  r.patch("/admin/marketing/campaigns/:id", { preHandler: admin, schema: { tags: ["admin"], summary: "Edita una campaña que aún no se envió", security: bearer, params: uuid, body: campaign.partial().strict(), response: { 200: ok } } }, async (req) => {
+  r.patch("/admin/marketing/campaigns/:id", { onRequest: admin, schema: { tags: ["admin"], summary: "Edita una campaña que aún no se envió", security: bearer, params: uuid, body: campaign.partial().strict(), response: { 200: ok } } }, async (req) => {
     const c = await cget(req.params.id);
     if (!["draft", "scheduled"].includes(c.status)) throw new AppError("BUSINESS_RULE", "Sólo se editan campañas en borrador o programadas", { code: "INVALID_STATE" });
     const b = req.body;
     await db.query("UPDATE marketing_campaigns SET title = coalesce($2, title), subject = coalesce($3, subject), body_template = coalesce($4, body_template), segment_interests = CASE WHEN $5::boolean THEN $6::jsonb ELSE segment_interests END, updated_at = now() WHERE id = $1", [req.params.id, b.title ?? null, b.subject ?? null, b.body_template ?? null, "segment_interests" in b, b.segment_interests ? JSON.stringify(b.segment_interests) : null]);
     return { data: await cget(req.params.id) };
   });
-  r.post("/admin/marketing/campaigns/:id/send-test", { preHandler: admin, config: rl(10, "1 hour"), schema: { tags: ["admin"], summary: "Envía la campaña a tu propio correo", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
+  r.post("/admin/marketing/campaigns/:id/send-test", { onRequest: admin, config: rl(10, "1 hour"), schema: { tags: ["admin"], summary: "Envía la campaña a tu propio correo", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
     const c = await cget(req.params.id);
     const me = (await db.query<{ email: string }>("SELECT email FROM users WHERE id = $1", [req.user!.id])).rows[0]!;
     await sendCampaignMail(app, me.email, c, "Prueba", "es");
     reply.code(204);
     return null;
   });
-  r.post("/admin/marketing/campaigns/:id/schedule", { preHandler: admin, schema: { tags: ["admin"], summary: "Programa el envío (a partir de esa fecha lo toma el trabajo newsletter.send)", security: bearer, params: uuid, body: z.object({ scheduled_for: z.string().datetime({ offset: true }) }), response: { 200: ok } } }, async (req) => {
+  r.post("/admin/marketing/campaigns/:id/schedule", { onRequest: admin, schema: { tags: ["admin"], summary: "Programa el envío (a partir de esa fecha lo toma el trabajo newsletter.send)", security: bearer, params: uuid, body: z.object({ scheduled_for: z.string().datetime({ offset: true }) }), response: { 200: ok } } }, async (req) => {
     const c = await cget(req.params.id);
     if (!["draft", "scheduled"].includes(c.status)) throw new AppError("BUSINESS_RULE", "La campaña ya no se puede programar", { code: "INVALID_STATE" });
     if (new Date(req.body.scheduled_for).getTime() < Date.now() - 60_000) throw AppError.validation("La fecha ya pasó");
@@ -191,7 +191,7 @@ export async function marketingRoutes(app: FastifyInstance) {
     await audit(db, { actor: req.user!.id, action: "marketing.campaign_scheduled", entity: "campaign", id: req.params.id, meta: { at: req.body.scheduled_for }, ip: req.ip });
     return { data: await cget(req.params.id) };
   });
-  r.post("/admin/marketing/campaigns/:id/cancel", { preHandler: admin, schema: { tags: ["admin"], summary: "Cancela una campaña programada", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => {
+  r.post("/admin/marketing/campaigns/:id/cancel", { onRequest: admin, schema: { tags: ["admin"], summary: "Cancela una campaña programada", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => {
     const res = await db.query("UPDATE marketing_campaigns SET status = 'draft', scheduled_for = NULL, updated_at = now() WHERE id = $1 AND status = 'scheduled'", [req.params.id]);
     if (!res.rowCount) { await cget(req.params.id); throw new AppError("BUSINESS_RULE", "Sólo se cancelan campañas programadas", { code: "INVALID_STATE" }); }
     return { data: await cget(req.params.id) };

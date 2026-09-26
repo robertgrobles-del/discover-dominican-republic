@@ -173,7 +173,7 @@ export async function adminCmsRoutes(app: FastifyInstance) {
     const actorOf = (req: { user?: { id: string } }) => req.user!.id;
     const done = (req: { user?: { id: string }; ip: string }, action: string, id: string, extra?: Record<string, unknown>) => audit(db, { actor: actorOf(req), action: `cms.${action}`, entity: t, id, meta: extra, ip: req.ip });
 
-    r.get(`${base}/schema`, { preHandler: editor, schema: { ...hide, summary: `Definición de campos de ${d.label}` } }, async () => ({
+    r.get(`${base}/schema`, { onRequest: editor, schema: { ...hide, summary: `Definición de campos de ${d.label}` } }, async () => ({
       data: {
         entity: d.path, table: t, label: d.label, title_field: d.title, states: ["draft", "in_review", "published", "archived"], has_workflow: hasCol(t, "status"),
         fields: Object.entries(cols(t)).map(([name, m]) => ({ name, type: m.type, nullable: m.nullable, writable: writableColumns(d).includes(name), searchable: d.search.includes(name), filterable: name in d.filters, sortable: d.sort.includes(name) })),
@@ -182,7 +182,7 @@ export async function adminCmsRoutes(app: FastifyInstance) {
     }));
 
     r.get(base, {
-      preHandler: editor,
+      onRequest: editor,
       schema: { ...hide, summary: `Lista ${d.label} (todos los estados)`, querystring: z.object({ page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(100).default(25), q: z.string().trim().max(100).optional(), status: z.enum(["draft", "in_review", "published", "archived"]).optional(), deleted: z.enum(["true", "false"]).default("false"), sort: z.string().max(100).optional() }).catchall(z.string().max(200)) },
     }, async (req) => {
       const qs = req.query as Record<string, string> & { page: number; per_page: number };
@@ -205,7 +205,7 @@ export async function adminCmsRoutes(app: FastifyInstance) {
       return { data: rows, meta: pageMeta(qs.page, qs.per_page, total) };
     });
 
-    r.get(`${base}/export`, { preHandler: editor, schema: { ...hide, summary: `Exporta ${d.label}`, querystring: z.object({ format: z.enum(["csv", "json"]).default("json"), status: z.enum(["draft", "in_review", "published", "archived"]).optional() }) } }, async (req, reply) => {
+    r.get(`${base}/export`, { onRequest: editor, schema: { ...hide, summary: `Exporta ${d.label}`, querystring: z.object({ format: z.enum(["csv", "json"]).default("json"), status: z.enum(["draft", "in_review", "published", "archived"]).optional() }) } }, async (req, reply) => {
       const params: unknown[] = [];
       const where = [...(hasCol(t, "deleted_at") ? ["deleted_at IS NULL"] : []), ...(req.query.status && hasCol(t, "status") ? [(params.push(req.query.status), `status = $1`)] : [])];
       const { rows } = await db.query(`SELECT * FROM ${Q(t)} ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY id LIMIT 10000`, params);
@@ -216,27 +216,27 @@ export async function adminCmsRoutes(app: FastifyInstance) {
       return [names.join(","), ...rows.map((row) => names.map((n) => csvCell(row[n])).join(","))].join("\r\n");
     });
 
-    r.get(`${base}/:id`, { preHandler: editor, schema: { ...hide, summary: `Detalle de ${d.label}`, params: idp } }, async (req) => {
+    r.get(`${base}/:id`, { onRequest: editor, schema: { ...hide, summary: `Detalle de ${d.label}`, params: idp } }, async (req) => {
       const row = (await db.query(`SELECT * FROM ${Q(t)} WHERE id = $1`, [req.params.id])).rows[0];
       if (!row) throw AppError.notFound("Registro");
       return { data: row };
     });
 
-    r.post(base, { preHandler: editor, schema: { ...hide, summary: `Crea (borrador) en ${d.label}`, body } }, async (req, reply) => {
+    r.post(base, { onRequest: editor, schema: { ...hide, summary: `Crea (borrador) en ${d.label}`, body } }, async (req, reply) => {
       const row = await tx((c) => create(d, req.body as Record<string, unknown>, actorOf(req), c));
       await done(req, "create", row.id);
       reply.code(201);
       return { data: row };
     });
 
-    r.patch(`${base}/:id`, { preHandler: editor, schema: { ...hide, summary: `Edita ${d.label} (con version)`, params: idp, body: (hasCol(t, "version") ? body.extend({ version: z.number().int().min(1) }) : body) } }, async (req) => {
+    r.patch(`${base}/:id`, { onRequest: editor, schema: { ...hide, summary: `Edita ${d.label} (con version)`, params: idp, body: (hasCol(t, "version") ? body.extend({ version: z.number().int().min(1) }) : body) } }, async (req) => {
       const { version, ...data } = req.body as Record<string, unknown> & { version?: number };
       const row = await tx((c) => update(d, req.params.id, data, version, actorOf(req), c));
       await done(req, "update", req.params.id, { version: row.version });
       return { data: row };
     });
 
-    r.delete(`${base}/:id`, { preHandler: editor, schema: { ...hide, summary: `Borra ${d.label} (lógico; ?hard=true sólo admin)`, params: idp, querystring: z.object({ hard: z.enum(["true", "false"]).default("false") }) } }, async (req, reply) => {
+    r.delete(`${base}/:id`, { onRequest: editor, schema: { ...hide, summary: `Borra ${d.label} (lógico; ?hard=true sólo admin)`, params: idp, querystring: z.object({ hard: z.enum(["true", "false"]).default("false") }) } }, async (req, reply) => {
       const hard = req.query.hard === "true";
       if (hard && !req.user!.roles.includes("admin")) throw new AppError("FORBIDDEN", "El borrado definitivo es sólo para administradores");
       await tx((c) => softDelete(d, req.params.id, actorOf(req), c, hard));
@@ -247,7 +247,7 @@ export async function adminCmsRoutes(app: FastifyInstance) {
 
     for (const kind of ["submit-review", "publish", "unpublish", "archive"] as const) {
       r.post(`${base}/:id/${kind}`, {
-        preHandler: kind === "submit-review" ? editor : admin,
+        onRequest: kind === "submit-review" ? editor : admin,
         schema: { ...hide, summary: `${kind} en ${d.label}`, params: idp, body: z.object({ publish_at: z.string().datetime({ offset: true }).optional() }).nullish() },
       }, async (req) => {
         const row = await tx((c) => transition(d, req.params.id, kind, actorOf(req), c, kind === "publish" ? req.body?.publish_at : undefined));
@@ -256,10 +256,10 @@ export async function adminCmsRoutes(app: FastifyInstance) {
       });
     }
 
-    r.get(`${base}/:id/revisions`, { preHandler: editor, schema: { ...hide, summary: `Historial de ${d.label}`, params: idp } }, async (req) => ({
+    r.get(`${base}/:id/revisions`, { onRequest: editor, schema: { ...hide, summary: `Historial de ${d.label}`, params: idp } }, async (req) => ({
       data: (await db.query("SELECT r.version, r.action, r.author_id, r.created_at, p.display_name AS author FROM content_revisions r LEFT JOIN profiles p ON p.id = r.author_id WHERE r.entity_type = $1 AND r.entity_id = $2 ORDER BY r.version DESC LIMIT 200", [t, req.params.id])).rows,
     }));
-    r.post(`${base}/:id/restore/:version`, { preHandler: editor, schema: { ...hide, summary: `Restaura una versión de ${d.label}`, params: z.object({ id: uuid, version: z.coerce.number().int().min(1) }) } }, async (req) => {
+    r.post(`${base}/:id/restore/:version`, { onRequest: editor, schema: { ...hide, summary: `Restaura una versión de ${d.label}`, params: z.object({ id: uuid, version: z.coerce.number().int().min(1) }) } }, async (req) => {
       const rev = (await db.query("SELECT snapshot FROM content_revisions WHERE entity_type = $1 AND entity_id = $2 AND version = $3", [t, req.params.id, req.params.version])).rows[0];
       if (!rev) throw AppError.notFound("Versión");
       const snap = rev.snapshot as Record<string, unknown>;
@@ -272,7 +272,7 @@ export async function adminCmsRoutes(app: FastifyInstance) {
     });
 
     r.post(`${base}/bulk`, {
-      preHandler: editor,
+      onRequest: editor,
       schema: { ...hide, summary: `Acciones masivas en ${d.label}`, body: z.object({ ids: z.array(uuid).min(1).max(100), action: z.enum(["publish", "unpublish", "archive", "submit-review", "delete", "set_field"]), field: z.string().max(60).optional(), value: z.any().optional() }) },
     }, async (req) => {
       const b = req.body;
@@ -297,7 +297,7 @@ export async function adminCmsRoutes(app: FastifyInstance) {
     });
 
     r.post(`${base}/import`, {
-      preHandler: editor,
+      onRequest: editor,
       schema: { ...hide, summary: `Importa filas JSON a ${d.label} (upsert por slug; dry_run por defecto)`, querystring: z.object({ dry_run: z.enum(["true", "false"]).default("true") }), body: z.object({ rows: z.array(z.record(z.string(), z.any())).min(1).max(500) }) },
     }, async (req, reply) => {
       const errors: { row: number; issues: unknown }[] = [];

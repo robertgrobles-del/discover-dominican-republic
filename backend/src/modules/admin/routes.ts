@@ -12,7 +12,7 @@ export async function adminRoutes(app: FastifyInstance) {
   const bearer = [{ bearerAuth: [] }];
 
   r.post("/admin/users/:id/2fa/reset", {
-    preHandler: admin,
+    onRequest: admin,
     schema: { tags: ["admin"], summary: "Desactiva la verificación en dos pasos de una cuenta (pérdida de dispositivo y de códigos)", security: bearer, params: z.object({ id: z.string().uuid() }), body: z.object({ reason: z.string().trim().min(5).max(300) }), response: { 204: z.null() } },
   }, async (req, reply) => {
     if (req.params.id === req.user!.id) throw new AppError("FORBIDDEN", "No puedes restablecer tu propio 2FA; usa tus códigos de recuperación");
@@ -28,7 +28,7 @@ export async function adminRoutes(app: FastifyInstance) {
   });
 
   r.get("/admin/audit", {
-    preHandler: admin,
+    onRequest: admin,
     schema: { tags: ["admin"], summary: "Bitácora de auditoría", security: bearer, querystring: z.object({ page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(100).default(50), action: z.string().max(60).optional(), entity_type: z.string().max(40).optional(), entity_id: z.string().max(80).optional() }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } },
   }, async (req) => {
     const p: unknown[] = [];
@@ -44,13 +44,13 @@ export async function adminRoutes(app: FastifyInstance) {
   const page = { page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(100).default(50) };
 
   // ---- Trabajos programados (docs 5.17/9) ----
-  r.get("/admin/jobs", { preHandler: admin, schema: { tags: ["admin"], summary: "Trabajos programados y su último resultado", security: bearer, response: { 200: z.object({ data: any }) } } }, async () => ({ data: await app.jobs.list() }));
-  r.post("/admin/jobs/:name/run", { preHandler: admin, schema: { tags: ["admin"], summary: "Ejecuta un trabajo ahora", security: bearer, params: z.object({ name: z.string().max(60) }), response: { 200: z.object({ data: any }) } } }, async (req) => {
+  r.get("/admin/jobs", { onRequest: admin, schema: { tags: ["admin"], summary: "Trabajos programados y su último resultado", security: bearer, response: { 200: z.object({ data: any }) } } }, async () => ({ data: await app.jobs.list() }));
+  r.post("/admin/jobs/:name/run", { onRequest: admin, schema: { tags: ["admin"], summary: "Ejecuta un trabajo ahora", security: bearer, params: z.object({ name: z.string().max(60) }), response: { 200: z.object({ data: any }) } } }, async (req) => {
     const data = await app.jobs.runNow(req.params.name);
     await audit(app.db, { actor: req.user!.id, action: "job.run", entity: "job", id: req.params.name, ip: req.ip });
     return { data };
   });
-  r.patch("/admin/jobs/:name", { preHandler: admin, schema: { tags: ["admin"], summary: "Activa/desactiva un trabajo o cambia su frecuencia", security: bearer, params: z.object({ name: z.string().max(60) }), body: z.object({ enabled: z.boolean().optional(), interval_seconds: z.number().int().min(30).max(30 * 86_400).optional() }), response: { 204: z.null() } } }, async (req, reply) => {
+  r.patch("/admin/jobs/:name", { onRequest: admin, schema: { tags: ["admin"], summary: "Activa/desactiva un trabajo o cambia su frecuencia", security: bearer, params: z.object({ name: z.string().max(60) }), body: z.object({ enabled: z.boolean().optional(), interval_seconds: z.number().int().min(30).max(30 * 86_400).optional() }), response: { 204: z.null() } } }, async (req, reply) => {
     await app.jobs.update(req.params.name, req.body);
     await audit(app.db, { actor: req.user!.id, action: "job.update", entity: "job", id: req.params.name, meta: req.body, ip: req.ip });
     reply.code(204);
@@ -58,18 +58,18 @@ export async function adminRoutes(app: FastifyInstance) {
   });
 
   // ---- Liquidaciones a operadores ----
-  r.get("/admin/payouts", { preHandler: admin, schema: { tags: ["admin"], summary: "Liquidaciones a operadores", security: bearer, querystring: z.object({ ...page, status: z.enum(["pending", "paid", "failed"]).optional(), org_id: z.string().uuid().optional() }), response: { 200: z.object({ data: any, meta: any }) } } }, async (req) => {
+  r.get("/admin/payouts", { onRequest: admin, schema: { tags: ["admin"], summary: "Liquidaciones a operadores", security: bearer, querystring: z.object({ ...page, status: z.enum(["pending", "paid", "failed"]).optional(), org_id: z.string().uuid().optional() }), response: { 200: z.object({ data: any, meta: any }) } } }, async (req) => {
     const { rows, total } = await app.payouts.listAll(req.query);
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
   });
-  r.post("/admin/payouts", { preHandler: admin, schema: { tags: ["admin"], summary: "Genera ahora el lote de liquidaciones (opcionalmente de una organización)", security: bearer, body: z.object({ org_id: z.string().uuid().optional() }).nullish(), response: { 201: z.object({ data: any }) } } }, async (req, reply) => {
+  r.post("/admin/payouts", { onRequest: admin, schema: { tags: ["admin"], summary: "Genera ahora el lote de liquidaciones (opcionalmente de una organización)", security: bearer, body: z.object({ org_id: z.string().uuid().optional() }).nullish(), response: { 201: z.object({ data: any }) } } }, async (req, reply) => {
     const data = await app.payouts.generate({ orgId: req.body?.org_id });
     await audit(app.db, { actor: req.user!.id, action: "payout.generate", entity: "payout", meta: data, ip: req.ip });
     reply.code(201);
     return { data };
   });
-  r.get("/admin/payouts/:id/items", { preHandler: admin, schema: { tags: ["admin"], summary: "Reservas de una liquidación", security: bearer, params: uuid, response: { 200: z.object({ data: any }) } } }, async (req) => ({ data: await app.payouts.items(req.params.id) }));
-  r.post("/admin/payouts/:id/mark-paid", { preHandler: admin, schema: { tags: ["admin"], summary: "Marca una liquidación como pagada (comprobante obligatorio) y avisa al operador", security: bearer, params: uuid, body: z.object({ reference: z.string().trim().min(3).max(120) }), response: { 204: z.null() } } }, async (req, reply) => {
+  r.get("/admin/payouts/:id/items", { onRequest: admin, schema: { tags: ["admin"], summary: "Reservas de una liquidación", security: bearer, params: uuid, response: { 200: z.object({ data: any }) } } }, async (req) => ({ data: await app.payouts.items(req.params.id) }));
+  r.post("/admin/payouts/:id/mark-paid", { onRequest: admin, schema: { tags: ["admin"], summary: "Marca una liquidación como pagada (comprobante obligatorio) y avisa al operador", security: bearer, params: uuid, body: z.object({ reference: z.string().trim().min(3).max(120) }), response: { 204: z.null() } } }, async (req, reply) => {
     await app.payouts.markPaid(req.params.id, req.user!.id, req.body, req.ip);
     reply.code(204);
     return null;

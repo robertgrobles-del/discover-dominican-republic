@@ -13,6 +13,9 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY package.json ./
 COPY migrations ./migrations
+# Las imágenes subidas se guardan en MEDIA_DIR: móntalo como volumen persistente (o usa almacenamiento S3).
+RUN mkdir -p /app/storage/media && chown -R node:node /app/storage
+VOLUME /app/storage/media
 USER node
 EXPOSE 3000
 HEALTHCHECK --interval=15s --timeout=3s --retries=5 CMD wget -qO- http://127.0.0.1:3000/health || exit 1

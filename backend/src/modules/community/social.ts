@@ -51,7 +51,7 @@ export async function socialRoutes(app: FastifyInstance) {
   const VISIBLE = "p.is_active AND p.deleted_at IS NULL AND coalesce(pr.is_suspended, false) = false";
 
   r.get("/social/feed", {
-    preHandler: optionalUser,
+    onRequest: optionalUser,
     schema: {
       tags: ["social"], summary: "Feed de RD Social", security: [{}, ...bearer],
       querystring: z.object({ filter: z.enum(["latest", "following", "trending", "province"]).default("latest"), province_id: z.string().uuid().optional(), cursor: z.string().max(200).optional(), limit: z.coerce.number().int().min(1).max(50).default(20) }),
@@ -85,7 +85,7 @@ export async function socialRoutes(app: FastifyInstance) {
   });
 
   r.post("/social/posts", {
-    preHandler: app.authenticate, config: rl(20, "1 hour"),
+    onRequest: app.authenticate, config: rl(20, "1 hour"),
     schema: {
       tags: ["social"], summary: `Publica (máx. ${POSTS_PER_DAY} al día; correo verificado)`, security: bearer,
       body: z.object({ content: z.string().trim().min(1).max(1000), media: z.array(httpsUrl).max(6).optional(), location: z.string().trim().max(120).optional(), destination_id: z.string().uuid().optional(), entity_ref: z.object({ type: z.enum(ENTITY_TYPES), id: z.string().uuid() }).optional() }),
@@ -108,7 +108,7 @@ export async function socialRoutes(app: FastifyInstance) {
     return { data: { id: row.id } };
   });
 
-  r.delete("/social/posts/:id", { preHandler: app.authenticate, schema: { tags: ["social"], summary: "Borra una publicación (dueño o moderador; borrado lógico)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
+  r.delete("/social/posts/:id", { onRequest: app.authenticate, schema: { tags: ["social"], summary: "Borra una publicación (dueño o moderador; borrado lógico)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
     const p = (await db.query<{ user_id: string }>("SELECT user_id FROM social_posts WHERE id = $1 AND deleted_at IS NULL", [req.params.id])).rows[0];
     if (!p) throw AppError.notFound("Publicación");
     const staff = req.user!.roles.some((x) => ["admin", "moderator"].includes(x));
@@ -124,14 +124,14 @@ export async function socialRoutes(app: FastifyInstance) {
     if (!p) throw AppError.notFound("Publicación");
   };
 
-  r.put("/social/posts/:id/like", { preHandler: app.authenticate, config: rl(200, "1 hour"), schema: { tags: ["social"], summary: "Like (idempotente)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
+  r.put("/social/posts/:id/like", { onRequest: app.authenticate, config: rl(200, "1 hour"), schema: { tags: ["social"], summary: "Like (idempotente)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
     await visiblePost(req.params.id);
     const ins = await db.query("INSERT INTO social_likes (user_id, post_id) VALUES ($1,$2) ON CONFLICT DO NOTHING", [req.user!.id, req.params.id]);
     if (ins.rowCount) await db.query("UPDATE social_posts SET likes_count = likes_count + 1 WHERE id = $1", [req.params.id]);
     reply.code(204);
     return null;
   });
-  r.delete("/social/posts/:id/like", { preHandler: app.authenticate, schema: { tags: ["social"], summary: "Quita el like", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
+  r.delete("/social/posts/:id/like", { onRequest: app.authenticate, schema: { tags: ["social"], summary: "Quita el like", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
     const del = await db.query("DELETE FROM social_likes WHERE user_id = $1 AND post_id = $2", [req.user!.id, req.params.id]);
     if (del.rowCount) await db.query("UPDATE social_posts SET likes_count = GREATEST(0, likes_count - 1) WHERE id = $1", [req.params.id]);
     reply.code(204);
@@ -149,7 +149,7 @@ export async function socialRoutes(app: FastifyInstance) {
   });
 
   r.post("/social/posts/:id/comments", {
-    preHandler: app.authenticate, config: rl(30, "1 hour"),
+    onRequest: app.authenticate, config: rl(30, "1 hour"),
     schema: { tags: ["social"], summary: "Comenta (3–500 caracteres)", security: bearer, params: uuid, body: z.object({ content: z.string().trim().min(3).max(500) }), response: { 201: ok } },
   }, async (req, reply) => {
     await requireVerified(req.user!.id);
@@ -164,7 +164,7 @@ export async function socialRoutes(app: FastifyInstance) {
     return { data: { comment: { id: c.id, content: req.body.content, created_at: c.created_at.toISOString() }, xp_awarded: g?.granted.xp ?? 0, level_up: g?.level_up ?? null } };
   });
 
-  r.delete("/social/comments/:id", { preHandler: app.authenticate, schema: { tags: ["social"], summary: "Borra un comentario (dueño o moderador)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
+  r.delete("/social/comments/:id", { onRequest: app.authenticate, schema: { tags: ["social"], summary: "Borra un comentario (dueño o moderador)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
     const c = (await db.query<{ user_id: string; post_id: string }>("SELECT user_id, post_id FROM social_comments WHERE id = $1 AND is_active", [req.params.id])).rows[0];
     const staff = req.user!.roles.some((x) => ["admin", "moderator"].includes(x));
     if (!c || (c.user_id !== req.user!.id && !staff)) throw AppError.notFound("Comentario");
@@ -174,7 +174,7 @@ export async function socialRoutes(app: FastifyInstance) {
     return null;
   });
 
-  r.get("/social/me/comment-stats", { preHandler: app.authenticate, schema: { tags: ["social"], summary: "Mis estadísticas de participación", security: bearer, response: { 200: ok } } }, async (req) => {
+  r.get("/social/me/comment-stats", { onRequest: app.authenticate, schema: { tags: ["social"], summary: "Mis estadísticas de participación", security: bearer, response: { 200: ok } } }, async (req) => {
     const row = (await db.query<{ posts_today: number; total_comments: number }>(
       "SELECT (SELECT count(*)::int FROM social_posts WHERE user_id = $1 AND created_at > now() - interval '24 hours') AS posts_today, (SELECT count(*)::int FROM social_comments WHERE user_id = $1 AND is_active) AS total_comments", [req.user!.id],
     )).rows[0]!;
@@ -184,7 +184,7 @@ export async function socialRoutes(app: FastifyInstance) {
   // ---------- Reportes y medios de usuarios ----------
   const REPORT_TARGETS = ["post", "comment", "review", "ugc_media", "user"] as const;
   r.post("/ugc/reports", {
-    preHandler: app.authenticate, config: rl(30, "1 hour"),
+    onRequest: app.authenticate, config: rl(30, "1 hour"),
     schema: { tags: ["social"], summary: "Reporta contenido (a los 3 reportes distintos una publicación se oculta hasta revisarla)", security: bearer, body: z.object({ target_type: z.enum(REPORT_TARGETS), target_id: z.string().uuid(), reason: z.enum(["spam", "offensive", "fake", "inappropriate", "other"]), detail: z.string().trim().max(500).optional() }), response: { 204: z.null() } },
   }, async (req, reply) => {
     const b = req.body;
@@ -200,7 +200,7 @@ export async function socialRoutes(app: FastifyInstance) {
   });
 
   r.post("/ugc/media", {
-    preHandler: app.authenticate, config: rl(20, "1 hour"),
+    onRequest: app.authenticate, config: rl(20, "1 hour"),
     schema: { tags: ["social"], summary: "Sube una foto o video de un lugar (queda pendiente de aprobación)", security: bearer, body: z.object({ media_url: httpsUrl, media_type: z.enum(["photo", "video"]), entity_type: z.enum(ENTITY_TYPES), entity_id: z.string().uuid() }), response: { 201: ok } },
   }, async (req, reply) => {
     await requireVerified(req.user!.id);
@@ -217,31 +217,31 @@ export async function socialRoutes(app: FastifyInstance) {
 
   // ---------- Moderación (docs §5.17) ----------
   const page = { page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(100).default(50) };
-  r.get("/admin/ugc/reports", { preHandler: mod, schema: { tags: ["admin"], summary: "Cola de reportes de usuarios", security: bearer, querystring: z.object({ ...page, status: z.enum(["pendiente", "revisado", "ignorado"]).default("pendiente") }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
+  r.get("/admin/ugc/reports", { onRequest: mod, schema: { tags: ["admin"], summary: "Cola de reportes de usuarios", security: bearer, querystring: z.object({ ...page, status: z.enum(["pendiente", "revisado", "ignorado"]).default("pendiente") }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
     const total = (await db.query<{ n: number }>("SELECT count(*)::int AS n FROM ugc_reports WHERE status = $1", [req.query.status])).rows[0]!.n;
     const { rows } = await db.query(`SELECT id, user_id, target_type, target_id, reason, detail, status, created_at FROM ugc_reports WHERE status = $1 ORDER BY created_at LIMIT ${req.query.per_page} OFFSET ${(req.query.page - 1) * req.query.per_page}`, [req.query.status]);
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
   });
-  r.patch("/admin/ugc/reports/:id", { preHandler: mod, schema: { tags: ["admin"], summary: "Resuelve un reporte", security: bearer, params: uuid, body: z.object({ status: z.enum(["revisado", "ignorado"]) }), response: { 204: z.null() } } }, async (req, reply) => {
+  r.patch("/admin/ugc/reports/:id", { onRequest: mod, schema: { tags: ["admin"], summary: "Resuelve un reporte", security: bearer, params: uuid, body: z.object({ status: z.enum(["revisado", "ignorado"]) }), response: { 204: z.null() } } }, async (req, reply) => {
     const res = await db.query("UPDATE ugc_reports SET status = $2 WHERE id = $1", [req.params.id, req.body.status]);
     if (!res.rowCount) throw AppError.notFound("Reporte");
     await audit(db, { actor: req.user!.id, action: "ugc.report_resolved", entity: "ugc_report", id: req.params.id, meta: { status: req.body.status }, ip: req.ip });
     reply.code(204);
     return null;
   });
-  r.patch("/admin/social/posts/:id", { preHandler: mod, schema: { tags: ["admin"], summary: "Oculta o restaura una publicación", security: bearer, params: uuid, body: z.object({ is_active: z.boolean() }), response: { 204: z.null() } } }, async (req, reply) => {
+  r.patch("/admin/social/posts/:id", { onRequest: mod, schema: { tags: ["admin"], summary: "Oculta o restaura una publicación", security: bearer, params: uuid, body: z.object({ is_active: z.boolean() }), response: { 204: z.null() } } }, async (req, reply) => {
     const res = await db.query("UPDATE social_posts SET is_active = $2, report_count = CASE WHEN $2 THEN 0 ELSE report_count END WHERE id = $1 AND deleted_at IS NULL", [req.params.id, req.body.is_active]);
     if (!res.rowCount) throw AppError.notFound("Publicación");
     await audit(db, { actor: req.user!.id, action: req.body.is_active ? "social.post_restored" : "social.post_hidden", entity: "social_post", id: req.params.id, ip: req.ip });
     reply.code(204);
     return null;
   });
-  r.get("/admin/ugc/media", { preHandler: mod, schema: { tags: ["admin"], summary: "Medios de usuarios por aprobar", security: bearer, querystring: z.object({ ...page, status: z.enum(["pending", "approved", "rejected"]).default("pending") }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
+  r.get("/admin/ugc/media", { onRequest: mod, schema: { tags: ["admin"], summary: "Medios de usuarios por aprobar", security: bearer, querystring: z.object({ ...page, status: z.enum(["pending", "approved", "rejected"]).default("pending") }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
     const total = (await db.query<{ n: number }>("SELECT count(*)::int AS n FROM ugc_media WHERE status = $1", [req.query.status])).rows[0]!.n;
     const { rows } = await db.query(`SELECT id, user_id, media_url, media_type, associated_entity_type AS entity_type, associated_entity_id AS entity_id, status, created_at FROM ugc_media WHERE status = $1 ORDER BY created_at LIMIT ${req.query.per_page} OFFSET ${(req.query.page - 1) * req.query.per_page}`, [req.query.status]);
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
   });
-  r.patch("/admin/ugc/media/:id", { preHandler: mod, schema: { tags: ["admin"], summary: "Aprueba o rechaza un medio", security: bearer, params: uuid, body: z.object({ status: z.enum(["approved", "rejected"]) }), response: { 204: z.null() } } }, async (req, reply) => {
+  r.patch("/admin/ugc/media/:id", { onRequest: mod, schema: { tags: ["admin"], summary: "Aprueba o rechaza un medio", security: bearer, params: uuid, body: z.object({ status: z.enum(["approved", "rejected"]) }), response: { 204: z.null() } } }, async (req, reply) => {
     const res = await db.query("UPDATE ugc_media SET status = $2 WHERE id = $1", [req.params.id, req.body.status]);
     if (!res.rowCount) throw AppError.notFound("Medio");
     await audit(db, { actor: req.user!.id, action: `ugc.media_${req.body.status}`, entity: "ugc_media", id: req.params.id, ip: req.ip });

@@ -33,10 +33,10 @@ export async function meRoutes(app: FastifyInstance) {
     return { ...x, travel_interests: x.travel_interests ?? [], created_at: new Date(x.created_at).toISOString(), deletion_requested_at: x.deletion_requested_at ? new Date(x.deletion_requested_at).toISOString() : null };
   };
 
-  r.get("/me/profile", { preHandler: auth, schema: { tags: ["perfil"], summary: "Mi perfil", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await profile(req.user!.id) }));
+  r.get("/me/profile", { onRequest: auth, schema: { tags: ["perfil"], summary: "Mi perfil", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await profile(req.user!.id) }));
 
   r.patch("/me/profile", {
-    preHandler: auth,
+    onRequest: auth,
     schema: {
       tags: ["perfil"], summary: "Edita mi perfil", security: bearer,
       body: z.object({
@@ -65,9 +65,9 @@ export async function meRoutes(app: FastifyInstance) {
     const notifications = Object.fromEntries(CHANNELS.map((c) => [c, Object.fromEntries(NOTIFICATION_TYPES.map((t) => [t, saved[c]?.[t] ?? (t !== "promo")]))]));
     return { locale: p.locale, currency: p.currency, consents: { marketing: !!p.marketing_opt_in, analytics: !!p.analytics_consent }, notifications };
   };
-  r.get("/me/preferences", { preHandler: auth, schema: { tags: ["perfil"], summary: "Idioma, moneda, consentimientos y notificaciones", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await prefs(req.user!.id) }));
+  r.get("/me/preferences", { onRequest: auth, schema: { tags: ["perfil"], summary: "Idioma, moneda, consentimientos y notificaciones", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await prefs(req.user!.id) }));
   r.put("/me/preferences", {
-    preHandler: auth,
+    onRequest: auth,
     schema: {
       tags: ["perfil"], summary: "Actualiza preferencias (sólo lo enviado)", security: bearer,
       body: z.object({
@@ -95,7 +95,7 @@ export async function meRoutes(app: FastifyInstance) {
 
   // ---- Favoritos ----
   const favParams = z.object({ entity_type: z.enum(FAVORITE_TYPES), entity_id: z.string().trim().min(1).max(80) });
-  r.get("/me/favorites", { preHandler: auth, schema: { tags: ["perfil"], summary: "Mis favoritos", security: bearer, querystring: z.object({ ...pageQ, type: z.enum(FAVORITE_TYPES).optional() }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
+  r.get("/me/favorites", { onRequest: auth, schema: { tags: ["perfil"], summary: "Mis favoritos", security: bearer, querystring: z.object({ ...pageQ, type: z.enum(FAVORITE_TYPES).optional() }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
     const p: unknown[] = [req.user!.id];
     let w = "user_id = $1";
     if (req.query.type) { p.push(req.query.type); w += ` AND entity_type = $${p.length}`; }
@@ -103,7 +103,7 @@ export async function meRoutes(app: FastifyInstance) {
     const { rows } = await db.query(`SELECT entity_type, entity_id, created_at FROM favorites WHERE ${w} ORDER BY created_at DESC LIMIT ${req.query.per_page} OFFSET ${(req.query.page - 1) * req.query.per_page}`, p);
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
   });
-  r.put("/me/favorites/:entity_type/:entity_id", { preHandler: auth, config: { rateLimit: { max: 120, timeWindow: "1 minute" } }, schema: { tags: ["perfil"], summary: "Marca un favorito (idempotente)", security: bearer, params: favParams, response: { 204: z.null() } } }, async (req, reply) => {
+  r.put("/me/favorites/:entity_type/:entity_id", { onRequest: auth, config: { rateLimit: { max: 120, timeWindow: "1 minute" } }, schema: { tags: ["perfil"], summary: "Marca un favorito (idempotente)", security: bearer, params: favParams, response: { 204: z.null() } } }, async (req, reply) => {
     const n = (await db.query<{ n: number }>("SELECT count(*)::int AS n FROM favorites WHERE user_id = $1", [req.user!.id])).rows[0]!.n;
     if (n >= 2000) throw new AppError("BUSINESS_RULE", "Llegaste al máximo de favoritos", { code: "FAVORITES_LIMIT" });
     const ins = await db.query("INSERT INTO favorites (user_id, entity_type, entity_id) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING", [req.user!.id, req.params.entity_type, req.params.entity_id]);
@@ -111,34 +111,34 @@ export async function meRoutes(app: FastifyInstance) {
     reply.code(204);
     return null;
   });
-  r.delete("/me/favorites/:entity_type/:entity_id", { preHandler: auth, schema: { tags: ["perfil"], summary: "Quita un favorito", security: bearer, params: favParams, response: { 204: z.null() } } }, async (req, reply) => {
+  r.delete("/me/favorites/:entity_type/:entity_id", { onRequest: auth, schema: { tags: ["perfil"], summary: "Quita un favorito", security: bearer, params: favParams, response: { 204: z.null() } } }, async (req, reply) => {
     await db.query("DELETE FROM favorites WHERE user_id = $1 AND entity_type = $2 AND entity_id = $3", [req.user!.id, req.params.entity_type, req.params.entity_id]);
     reply.code(204);
     return null;
   });
 
   // ---- Notificaciones ----
-  r.get("/me/notifications", { preHandler: auth, schema: { tags: ["perfil"], summary: "Mi bandeja", security: bearer, querystring: z.object({ ...pageQ, unread: z.enum(["true", "false"]).optional() }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
+  r.get("/me/notifications", { onRequest: auth, schema: { tags: ["perfil"], summary: "Mi bandeja", security: bearer, querystring: z.object({ ...pageQ, unread: z.enum(["true", "false"]).optional() }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
     const w = `user_id = $1${req.query.unread === "true" ? " AND NOT is_read" : ""}`;
     const total = (await db.query<{ n: number }>(`SELECT count(*)::int AS n FROM notifications WHERE ${w}`, [req.user!.id])).rows[0]!.n;
     const unread = (await db.query<{ n: number }>("SELECT count(*)::int AS n FROM notifications WHERE user_id = $1 AND NOT is_read", [req.user!.id])).rows[0]!.n;
     const { rows } = await db.query(`SELECT id, title, message, type, link, is_read, created_at FROM notifications WHERE ${w} ORDER BY created_at DESC LIMIT ${req.query.per_page} OFFSET ${(req.query.page - 1) * req.query.per_page}`, [req.user!.id]);
     return { data: rows, meta: { ...pageMeta(req.query.page, req.query.per_page, total), unread } };
   });
-  r.patch("/me/notifications/:id", { preHandler: auth, schema: { tags: ["perfil"], summary: "Marca una notificación como leída o no leída", security: bearer, params: uuid, body: z.object({ is_read: z.boolean() }), response: { 204: z.null() } } }, async (req, reply) => {
+  r.patch("/me/notifications/:id", { onRequest: auth, schema: { tags: ["perfil"], summary: "Marca una notificación como leída o no leída", security: bearer, params: uuid, body: z.object({ is_read: z.boolean() }), response: { 204: z.null() } } }, async (req, reply) => {
     const res = await db.query("UPDATE notifications SET is_read = $3 WHERE id = $1 AND user_id = $2", [req.params.id, req.user!.id, req.body.is_read]);
     if (!res.rowCount) throw AppError.notFound("Notificación");
     reply.code(204);
     return null;
   });
-  r.post("/me/notifications/read-all", { preHandler: auth, schema: { tags: ["perfil"], summary: "Marca todas como leídas", security: bearer, response: { 204: z.null() } } }, async (req, reply) => {
+  r.post("/me/notifications/read-all", { onRequest: auth, schema: { tags: ["perfil"], summary: "Marca todas como leídas", security: bearer, response: { 204: z.null() } } }, async (req, reply) => {
     await db.query("UPDATE notifications SET is_read = true WHERE user_id = $1 AND NOT is_read", [req.user!.id]);
     reply.code(204);
     return null;
   });
 
   // ---- Exportación y borrado (Ley 172-13) ----
-  r.get("/me/export", { preHandler: auth, config: { rateLimit: { max: 5, timeWindow: "1 hour" } }, schema: { tags: ["perfil"], summary: "Descarga todos mis datos personales (JSON)", security: bearer, response: { 200: z.any() } } }, async (req, reply) => {
+  r.get("/me/export", { onRequest: auth, config: { rateLimit: { max: 5, timeWindow: "1 hour" } }, schema: { tags: ["perfil"], summary: "Descarga todos mis datos personales (JSON)", security: bearer, response: { 200: z.any() } } }, async (req, reply) => {
     const id = req.user!.id;
     const q = async (sql: string) => (await db.query(sql, [id])).rows;
     const data = {
@@ -158,7 +158,7 @@ export async function meRoutes(app: FastifyInstance) {
   });
 
   r.delete("/me", {
-    preHandler: auth, config: { rateLimit: { max: 5, timeWindow: "1 hour" } },
+    onRequest: auth, config: { rateLimit: { max: 5, timeWindow: "1 hour" } },
     schema: { tags: ["perfil"], summary: `Solicita eliminar mi cuenta (${DELETION_GRACE_DAYS} días de gracia)`, security: bearer, body: z.object({ password: z.string().min(1).max(200) }), response: { 200: ok } },
   }, async (req) => {
     const id = req.user!.id;
@@ -172,7 +172,7 @@ export async function meRoutes(app: FastifyInstance) {
     await audit(db, { actor: id, action: "user.deletion_requested", entity: "user", id, ip: req.ip });
     return { data: { deletion_requested_at: (await profile(id)).deletion_requested_at, grace_days: DELETION_GRACE_DAYS } };
   });
-  r.post("/me/deletion/cancel", { preHandler: auth, schema: { tags: ["perfil"], summary: "Cancela la solicitud de eliminación durante el período de gracia", security: bearer, response: { 204: z.null() } } }, async (req, reply) => {
+  r.post("/me/deletion/cancel", { onRequest: auth, schema: { tags: ["perfil"], summary: "Cancela la solicitud de eliminación durante el período de gracia", security: bearer, response: { 204: z.null() } } }, async (req, reply) => {
     await db.query("UPDATE profiles SET deletion_requested_at = NULL WHERE id = $1", [req.user!.id]);
     await audit(db, { actor: req.user!.id, action: "user.deletion_cancelled", entity: "user", id: req.user!.id, ip: req.ip });
     reply.code(204);
@@ -189,14 +189,14 @@ export async function meRoutes(app: FastifyInstance) {
     if (!rows[0]) throw AppError.notFound("Explorador");
     return { data: { ...rows[0], display_name: rows[0].display_name ?? "Explorador", travel_interests: rows[0].travel_interests ?? [], created_at: new Date(rows[0].created_at).toISOString() } };
   });
-  r.post("/users/:id/follow", { preHandler: auth, config: { rateLimit: { max: 60, timeWindow: "1 minute" } }, schema: { tags: ["perfil"], summary: "Seguir a un explorador", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
+  r.post("/users/:id/follow", { onRequest: auth, config: { rateLimit: { max: 60, timeWindow: "1 minute" } }, schema: { tags: ["perfil"], summary: "Seguir a un explorador", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
     if (req.params.id === req.user!.id) throw AppError.validation("No puedes seguirte a ti mismo");
     if (!(await db.query("SELECT 1 FROM users WHERE id = $1 AND status = 'active'", [req.params.id])).rowCount) throw AppError.notFound("Explorador");
     await db.query("INSERT INTO explorer_follows (follower_id, following_id) VALUES ($1,$2) ON CONFLICT DO NOTHING", [req.user!.id, req.params.id]);
     reply.code(204);
     return null;
   });
-  r.delete("/users/:id/follow", { preHandler: auth, schema: { tags: ["perfil"], summary: "Dejar de seguir", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
+  r.delete("/users/:id/follow", { onRequest: auth, schema: { tags: ["perfil"], summary: "Dejar de seguir", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
     await db.query("DELETE FROM explorer_follows WHERE follower_id = $1 AND following_id = $2", [req.user!.id, req.params.id]);
     reply.code(204);
     return null;

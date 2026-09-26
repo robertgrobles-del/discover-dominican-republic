@@ -14,9 +14,9 @@ declare module "fastify" {
     mailer: Mailer;
     auth: AuthService;
     oauth: OAuthService;
-    /** preHandler: exige `Authorization: Bearer <jwt>` válido y deja `req.user`. */
+    /** onRequest: exige `Authorization: Bearer <jwt>` válido y deja `req.user`. */
     authenticate: (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
-    /** preHandler: como `authenticate`, pero además exige alguno de los roles indicados (docs §7.3). */
+    /** onRequest: como `authenticate`, pero además exige alguno de los roles indicados (docs §7.3). */
     requireRole: (...roles: string[]) => (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 }

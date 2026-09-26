@@ -165,7 +165,7 @@ export async function discoverRoutes(app: FastifyInstance) {
 
   // ---------- Recomendaciones de portada ----------
   r.get("/recommendations/home", {
-    preHandler: optionalUser,
+    onRequest: optionalUser,
     schema: { tags: ["búsqueda"], summary: "Secciones de la portada (personalizadas si hay sesión)", security: [{}, { bearerAuth: [] }], querystring: z.object({ limit: z.coerce.number().int().min(1).max(20).default(8) }), response: { 200: ok } },
   }, async (req, reply) => {
     const limit = req.query.limit;

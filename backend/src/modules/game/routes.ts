@@ -26,8 +26,8 @@ export async function gameRoutes(app: FastifyInstance) {
   const pub = <T>(reply: { header: (k: string, v: string) => unknown }, v: T) => { reply.header("cache-control", PUBLIC_CACHE); return v; };
 
   // ---------- Perfil de juego ----------
-  r.get("/gamification/me", { preHandler: auth, schema: { tags: ["gamificación"], summary: "Mi perfil de juego: XP, monedas, nivel, racha, insignias y liga", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await game.me(req.user!.id) }));
-  r.get("/gamification/me/transactions", { preHandler: auth, schema: { tags: ["gamificación"], summary: "Historial de XP y monedas (cursor)", security: bearer, querystring: z.object({ cursor: z.string().max(200).optional(), limit: z.coerce.number().int().min(1).max(100).default(30) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
+  r.get("/gamification/me", { onRequest: auth, schema: { tags: ["gamificación"], summary: "Mi perfil de juego: XP, monedas, nivel, racha, insignias y liga", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await game.me(req.user!.id) }));
+  r.get("/gamification/me/transactions", { onRequest: auth, schema: { tags: ["gamificación"], summary: "Historial de XP y monedas (cursor)", security: bearer, querystring: z.object({ cursor: z.string().max(200).optional(), limit: z.coerce.number().int().min(1).max(100).default(30) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
     const t = await game.transactions(req.user!.id, req.query);
     return { data: t.rows, meta: { limit: req.query.limit, next_cursor: t.next_cursor } };
   });
@@ -35,7 +35,7 @@ export async function gameRoutes(app: FastifyInstance) {
   r.get("/gamification/rules", { schema: { tags: ["gamificación"], summary: "Reglas de puntos (cómo ganar XP y monedas)", response: { 200: ok } } }, async (_q, reply) => pub(reply, { data: (await db.query("SELECT action, description, xp, coins, daily_cap, cooldown_seconds, unique_per_ref, client_allowed FROM gamification_rules WHERE is_active AND (xp > 0 OR coins > 0) ORDER BY xp DESC, action")).rows }));
 
   r.post("/gamification/actions", {
-    preHandler: auth, config: rl(60, "1 minute"),
+    onRequest: auth, config: rl(60, "1 minute"),
     schema: { tags: ["gamificación"], summary: "Informa una acción del usuario; el servidor decide si otorga puntos", security: bearer, body: z.object({ action: z.string().regex(/^[a-z][a-z0-9_]{1,40}$/), ref_type: z.string().max(40).optional(), ref_id: z.string().max(80).optional() }), response: { 200: ok } },
   }, async (req) => {
     const rule = (await db.query<{ client_allowed: boolean }>("SELECT client_allowed FROM gamification_rules WHERE action = $1 AND is_active", [req.body.action])).rows[0];
@@ -55,36 +55,36 @@ export async function gameRoutes(app: FastifyInstance) {
   });
 
   // ---------- Retención ----------
-  r.post("/gamification/check-in", { preHandler: auth, schema: { tags: ["gamificación"], summary: "Check-in diario (una vez por día en hora de RD); actualiza la racha", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await game.checkIn(req.user!.id) }));
-  r.post("/gamification/early-bird", { preHandler: auth, schema: { tags: ["gamificación"], summary: "Bono madrugador (antes de las 8:00 hora de RD)", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await game.earlyBird(req.user!.id) }));
-  r.post("/gamification/streak-bonus", { preHandler: auth, schema: { tags: ["gamificación"], summary: "Bono por hitos de racha (7, 14, 30, 60 y 100 días)", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await game.streakBonus(req.user!.id) }));
-  r.post("/gamification/milestones/check", { preHandler: auth, schema: { tags: ["gamificación"], summary: "Entrega los hitos de XP pendientes", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await game.checkMilestones(req.user!.id) }));
+  r.post("/gamification/check-in", { onRequest: auth, schema: { tags: ["gamificación"], summary: "Check-in diario (una vez por día en hora de RD); actualiza la racha", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await game.checkIn(req.user!.id) }));
+  r.post("/gamification/early-bird", { onRequest: auth, schema: { tags: ["gamificación"], summary: "Bono madrugador (antes de las 8:00 hora de RD)", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await game.earlyBird(req.user!.id) }));
+  r.post("/gamification/streak-bonus", { onRequest: auth, schema: { tags: ["gamificación"], summary: "Bono por hitos de racha (7, 14, 30, 60 y 100 días)", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await game.streakBonus(req.user!.id) }));
+  r.post("/gamification/milestones/check", { onRequest: auth, schema: { tags: ["gamificación"], summary: "Entrega los hitos de XP pendientes", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await game.checkMilestones(req.user!.id) }));
 
   // ---------- Misiones y logros ----------
-  r.get("/gamification/missions", { preHandler: optionalUser, schema: { tags: ["gamificación"], summary: "Misiones activas (con mi progreso si hay sesión)", security: [{}, ...bearer], response: { 200: ok } } }, async (req) => ({ data: await game.missions(req.user?.id ?? null) }));
-  r.get("/gamification/missions/me", { preHandler: auth, schema: { tags: ["gamificación"], summary: "Mis misiones con progreso", security: bearer, response: { 200: ok } } }, async (req) => ({ data: (await game.missions(req.user!.id)).filter((m) => m.progress > 0 || m.completed) }));
-  r.post("/gamification/missions/:id/progress", { preHandler: auth, schema: { tags: ["gamificación"], summary: "Estado de una misión. El progreso lo suma el servidor con las acciones reales; aquí no se envían cifras", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => {
+  r.get("/gamification/missions", { onRequest: optionalUser, schema: { tags: ["gamificación"], summary: "Misiones activas (con mi progreso si hay sesión)", security: [{}, ...bearer], response: { 200: ok } } }, async (req) => ({ data: await game.missions(req.user?.id ?? null) }));
+  r.get("/gamification/missions/me", { onRequest: auth, schema: { tags: ["gamificación"], summary: "Mis misiones con progreso", security: bearer, response: { 200: ok } } }, async (req) => ({ data: (await game.missions(req.user!.id)).filter((m) => m.progress > 0 || m.completed) }));
+  r.post("/gamification/missions/:id/progress", { onRequest: auth, schema: { tags: ["gamificación"], summary: "Estado de una misión. El progreso lo suma el servidor con las acciones reales; aquí no se envían cifras", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => {
     const m = (await game.missions(req.user!.id)).find((x) => x.id === req.params.id);
     if (!m) throw AppError.notFound("Misión");
     return { data: m };
   });
-  r.get("/gamification/achievements", { preHandler: optionalUser, schema: { tags: ["gamificación"], summary: "Catálogo de logros (los secretos se ocultan hasta desbloquearse)", security: [{}, ...bearer], response: { 200: ok } } }, async (req) => ({ data: await game.achievements(req.user?.id ?? null) }));
-  r.get("/gamification/achievements/me", { preHandler: auth, schema: { tags: ["gamificación"], summary: "Mis insignias", security: bearer, response: { 200: ok } } }, async (req) => ({ data: (await game.achievements(req.user!.id)).filter((a) => a.unlocked) }));
-  r.post("/gamification/achievements/:id/unlock", { preHandler: auth, config: rl(30, "1 minute"), schema: { tags: ["gamificación"], summary: "Pide desbloquear un logro; el servidor comprueba la condición", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => ({ data: await game.unlockAchievement(req.user!.id, req.params.id) }));
+  r.get("/gamification/achievements", { onRequest: optionalUser, schema: { tags: ["gamificación"], summary: "Catálogo de logros (los secretos se ocultan hasta desbloquearse)", security: [{}, ...bearer], response: { 200: ok } } }, async (req) => ({ data: await game.achievements(req.user?.id ?? null) }));
+  r.get("/gamification/achievements/me", { onRequest: auth, schema: { tags: ["gamificación"], summary: "Mis insignias", security: bearer, response: { 200: ok } } }, async (req) => ({ data: (await game.achievements(req.user!.id)).filter((a) => a.unlocked) }));
+  r.post("/gamification/achievements/:id/unlock", { onRequest: auth, config: rl(30, "1 minute"), schema: { tags: ["gamificación"], summary: "Pide desbloquear un logro; el servidor comprueba la condición", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => ({ data: await game.unlockAchievement(req.user!.id, req.params.id) }));
 
   // ---------- Premios ----------
   r.get("/gamification/prizes", { schema: { tags: ["gamificación"], summary: "Premios canjeables", response: { 200: ok } } }, async (_q, reply) => pub(reply, { data: await play.prizes() }));
   r.post("/gamification/prizes/:id/redeem", {
-    preHandler: auth, config: rl(10, "1 minute"),
+    onRequest: auth, config: rl(10, "1 minute"),
     schema: { tags: ["gamificación"], summary: "Canjea un premio con monedas (stock y monedas en una sola transacción)", security: bearer, params: uuid, body: z.object({ recipient_name: z.string().trim().min(2).max(100), recipient_phone: z.string().trim().min(7).max(30), shipping_address: z.string().trim().min(8).max(300) }).nullish(), response: { 201: ok } },
   }, async (req, reply) => { reply.code(201); return { data: await play.redeem(req.user!.id, req.params.id, req.body ?? undefined) }; });
-  r.get("/gamification/redemptions/me", { preHandler: auth, schema: { tags: ["gamificación"], summary: "Mis canjes", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await play.redemptions(req.user!.id) }));
-  r.get("/gamification/shipments/me", { preHandler: auth, schema: { tags: ["gamificación"], summary: "Mis envíos de premios", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await play.shipments(req.user!.id) }));
+  r.get("/gamification/redemptions/me", { onRequest: auth, schema: { tags: ["gamificación"], summary: "Mis canjes", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await play.redemptions(req.user!.id) }));
+  r.get("/gamification/shipments/me", { onRequest: auth, schema: { tags: ["gamificación"], summary: "Mis envíos de premios", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await play.shipments(req.user!.id) }));
 
   // ---------- Trivia ----------
-  r.get("/trivia/session", { preHandler: auth, config: rl(20, "1 hour"), schema: { tags: ["gamificación"], summary: "Inicia (o retoma) una partida; las preguntas llegan sin la respuesta correcta", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await play.startTrivia(req.user!.id) }));
-  r.post("/trivia/session/:id/answer", { preHandler: auth, config: rl(120, "1 minute"), schema: { tags: ["gamificación"], summary: "Responde una pregunta (se corrige en el servidor)", security: bearer, params: uuid, body: z.object({ question_id: z.string().uuid(), choice: z.number().int().min(0).max(9) }), response: { 200: ok } } }, async (req) => ({ data: await play.answerTrivia(req.user!.id, req.params.id, req.body) }));
-  r.post("/trivia/session/:id/finish", { preHandler: auth, schema: { tags: ["gamificación"], summary: "Termina la partida; el XP se calcula con los aciertos registrados (tope por partida)", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => ({ data: await play.finishTrivia(req.user!.id, req.params.id) }));
+  r.get("/trivia/session", { onRequest: auth, config: rl(20, "1 hour"), schema: { tags: ["gamificación"], summary: "Inicia (o retoma) una partida; las preguntas llegan sin la respuesta correcta", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await play.startTrivia(req.user!.id) }));
+  r.post("/trivia/session/:id/answer", { onRequest: auth, config: rl(120, "1 minute"), schema: { tags: ["gamificación"], summary: "Responde una pregunta (se corrige en el servidor)", security: bearer, params: uuid, body: z.object({ question_id: z.string().uuid(), choice: z.number().int().min(0).max(9) }), response: { 200: ok } } }, async (req) => ({ data: await play.answerTrivia(req.user!.id, req.params.id, req.body) }));
+  r.post("/trivia/session/:id/finish", { onRequest: auth, schema: { tags: ["gamificación"], summary: "Termina la partida; el XP se calcula con los aciertos registrados (tope por partida)", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => ({ data: await play.finishTrivia(req.user!.id, req.params.id) }));
   r.get("/trivia/leaderboard", { schema: { tags: ["gamificación"], summary: "Ranking de trivia (últimos 7 días)", querystring: z.object({ limit: z.coerce.number().int().min(1).max(100).default(20) }), response: { 200: ok } } }, async (req, reply) => pub(reply, { data: await play.triviaLeaderboard(req.query.limit) }));
 
   // ---------- Temporada y ranking ----------
@@ -93,18 +93,18 @@ export async function gameRoutes(app: FastifyInstance) {
     return pub(reply, { data: s });
   });
   r.get("/gamification/leagues", { schema: { tags: ["gamificación"], summary: "Ligas semanales", response: { 200: ok } } }, async (_q, reply) => pub(reply, { data: (await db.query("SELECT name, slug, icon, min_xp_week, max_xp_week, coin_reward, color FROM gamification_leagues ORDER BY display_order")).rows }));
-  r.get("/gamification/leaderboard", { preHandler: optionalUser, schema: { tags: ["gamificación"], summary: "Ranking por temporada, semana o histórico (con mi posición si hay sesión)", security: [{}, ...bearer], querystring: z.object({ scope: z.enum(["season", "week", "all"]).default("season"), limit: z.coerce.number().int().min(1).max(100).default(20) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
+  r.get("/gamification/leaderboard", { onRequest: optionalUser, schema: { tags: ["gamificación"], summary: "Ranking por temporada, semana o histórico (con mi posición si hay sesión)", security: [{}, ...bearer], querystring: z.object({ scope: z.enum(["season", "week", "all"]).default("season"), limit: z.coerce.number().int().min(1).max(100).default(20) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
     const b = await game.leaderboard(req.query.scope, req.query.limit, req.user?.id ?? null);
     return { data: b.rows, meta: { scope: req.query.scope, me: b.me } };
   });
 
   // ---------- Referidos ----------
-  r.get("/referrals/me", { preHandler: auth, schema: { tags: ["gamificación"], summary: "Mi código de referido y estadísticas (se crea al primer uso)", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await play.myReferral(req.user!.id) }));
-  r.post("/referrals/apply", { preHandler: auth, config: rl(10, "1 hour"), schema: { tags: ["gamificación"], summary: "Aplica el código de otra persona (una vez; cuentas nuevas con correo verificado)", security: bearer, body: z.object({ code: z.string().trim().min(4).max(20) }), response: { 200: ok } } }, async (req) => ({ data: await play.applyReferral(req.user!.id, req.body.code) }));
+  r.get("/referrals/me", { onRequest: auth, schema: { tags: ["gamificación"], summary: "Mi código de referido y estadísticas (se crea al primer uso)", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await play.myReferral(req.user!.id) }));
+  r.post("/referrals/apply", { onRequest: auth, config: rl(10, "1 hour"), schema: { tags: ["gamificación"], summary: "Aplica el código de otra persona (una vez; cuentas nuevas con correo verificado)", security: bearer, body: z.object({ code: z.string().trim().min(4).max(20) }), response: { 200: ok } } }, async (req) => ({ data: await play.applyReferral(req.user!.id, req.body.code) }));
 
   // ================= Administración =================
   r.post("/gamification/xp/award", {
-    preHandler: admin,
+    onRequest: admin,
     schema: { tags: ["admin"], summary: "Ajuste manual de XP/monedas con motivo (auditado)", security: bearer, body: z.object({ user_id: z.string().uuid(), xp: z.number().int().min(0).max(100_000).default(0), coins: z.number().int().min(-100_000).max(100_000).default(0), reason: z.string().trim().min(5).max(300) }), response: { 200: ok } },
   }, async (req) => {
     const b = req.body;
@@ -114,7 +114,7 @@ export async function gameRoutes(app: FastifyInstance) {
     return { data: summary(res) };
   });
 
-  r.get("/admin/gamification/stats", { preHandler: admin, schema: { tags: ["admin"], summary: "XP emitido, jugadores activos, canjes y distribución por nivel", security: bearer, response: { 200: ok } } }, async () => {
+  r.get("/admin/gamification/stats", { onRequest: admin, schema: { tags: ["admin"], summary: "XP emitido, jugadores activos, canjes y distribución por nivel", security: bearer, response: { 200: ok } } }, async () => {
     const one = async (sql: string) => Number((await db.query<{ n: string }>(sql)).rows[0]!.n);
     return {
       data: {
@@ -127,11 +127,11 @@ export async function gameRoutes(app: FastifyInstance) {
     };
   });
 
-  r.get("/admin/gamification/shipments", { preHandler: admin, schema: { tags: ["admin"], summary: "Consola de envíos", security: bearer, querystring: z.object({ status: z.enum(["pending", "packed", "shipped", "delivered"]).optional() }), response: { 200: ok } } }, async (req) => ({
+  r.get("/admin/gamification/shipments", { onRequest: admin, schema: { tags: ["admin"], summary: "Consola de envíos", security: bearer, querystring: z.object({ status: z.enum(["pending", "packed", "shipped", "delivered"]).optional() }), response: { 200: ok } } }, async (req) => ({
     data: (await db.query("SELECT s.id, s.user_id, s.status, s.recipient_name, s.recipient_phone, s.shipping_address, s.courier_name, s.tracking_number, s.shipped_at, s.created_at, p.name AS prize FROM reward_shipments s LEFT JOIN user_prize_redemptions r ON r.id = s.redemption_id LEFT JOIN gamification_prizes p ON p.id = r.prize_id WHERE ($1::text IS NULL OR s.status = $1) ORDER BY s.created_at LIMIT 200", [req.query.status ?? null])).rows,
   }));
   const NEXT: Record<string, string[]> = { pending: ["packed", "shipped"], packed: ["shipped"], shipped: ["delivered"], delivered: [] };
-  r.patch("/admin/gamification/shipments/:id", { preHandler: admin, schema: { tags: ["admin"], summary: "Avanza un envío (pending → packed → shipped → delivered)", security: bearer, params: uuid, body: z.object({ status: z.enum(["packed", "shipped", "delivered"]), courier_name: z.string().trim().max(80).optional(), tracking_number: z.string().trim().max(80).optional() }), response: { 204: z.null() } } }, async (req, reply) => {
+  r.patch("/admin/gamification/shipments/:id", { onRequest: admin, schema: { tags: ["admin"], summary: "Avanza un envío (pending → packed → shipped → delivered)", security: bearer, params: uuid, body: z.object({ status: z.enum(["packed", "shipped", "delivered"]), courier_name: z.string().trim().max(80).optional(), tracking_number: z.string().trim().max(80).optional() }), response: { 204: z.null() } } }, async (req, reply) => {
     const cur = (await db.query<{ status: string; redemption_id: string | null }>("SELECT status, redemption_id FROM reward_shipments WHERE id = $1", [req.params.id])).rows[0];
     if (!cur) throw AppError.notFound("Envío");
     if (!(NEXT[cur.status] ?? []).includes(req.body.status)) throw new AppError("BUSINESS_RULE", `No se puede pasar de "${cur.status}" a "${req.body.status}"`, { code: "INVALID_TRANSITION" });
@@ -143,7 +143,7 @@ export async function gameRoutes(app: FastifyInstance) {
     return null;
   });
 
-  r.post("/admin/gamification/seasons/:id/close", { preHandler: admin, schema: { tags: ["admin"], summary: "Cierra la temporada: reparte premios al top, y abre la siguiente", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => {
+  r.post("/admin/gamification/seasons/:id/close", { onRequest: admin, schema: { tags: ["admin"], summary: "Cierra la temporada: reparte premios al top, y abre la siguiente", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => {
     const res = await closeSeason(app, req.params.id);
     await audit(db, { actor: req.user!.id, action: "gamification.season_closed", entity: "season", id: req.params.id, meta: res, ip: req.ip });
     return { data: res };

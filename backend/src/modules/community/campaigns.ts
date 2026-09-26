@@ -63,7 +63,7 @@ export async function campaignRoutes(app: FastifyInstance) {
     return { data: { slug: t.slug, title: t.title, kind: t.kind, questions: t.questions } };
   });
   r.post("/surveys/:slug/responses", {
-    preHandler: optionalUser, config: rl(10, "1 hour"),
+    onRequest: optionalUser, config: rl(10, "1 hour"),
     schema: { tags: ["encuestas"], summary: "Responde una encuesta (validada contra su estructura)", security: [{}, ...bearer], params: z.object({ slug }), body: z.object({ answers: z.record(z.string(), z.unknown()) }), response: { 201: ok } },
   }, async (req, reply) => {
     const t = await survey(req.params.slug);
@@ -79,7 +79,7 @@ export async function campaignRoutes(app: FastifyInstance) {
     return { data: { received: true } };
   });
 
-  r.post("/admin/surveys", { preHandler: admin, schema: { tags: ["admin"], summary: "Crea una encuesta", security: bearer, body: z.object({ slug, title: z.string().trim().min(3).max(150), kind: z.enum(["general", "post_trip", "nps"]).default("general"), questions: z.array(question).min(1).max(40), is_active: z.boolean().default(true) }), response: { 201: ok } } }, async (req, reply) => {
+  r.post("/admin/surveys", { onRequest: admin, schema: { tags: ["admin"], summary: "Crea una encuesta", security: bearer, body: z.object({ slug, title: z.string().trim().min(3).max(150), kind: z.enum(["general", "post_trip", "nps"]).default("general"), questions: z.array(question).min(1).max(40), is_active: z.boolean().default(true) }), response: { 201: ok } } }, async (req, reply) => {
     const ids = req.body.questions.map((q) => q.id);
     if (new Set(ids).size !== ids.length) throw AppError.validation("Hay ids de pregunta repetidos");
     try {
@@ -92,13 +92,13 @@ export async function campaignRoutes(app: FastifyInstance) {
       throw e;
     }
   });
-  r.patch("/admin/surveys/:slug", { preHandler: admin, schema: { tags: ["admin"], summary: "Activa/desactiva o retitula una encuesta (las preguntas no cambian una vez publicada)", security: bearer, params: z.object({ slug }), body: z.object({ title: z.string().trim().min(3).max(150), is_active: z.boolean() }).partial(), response: { 204: z.null() } } }, async (req, reply) => {
+  r.patch("/admin/surveys/:slug", { onRequest: admin, schema: { tags: ["admin"], summary: "Activa/desactiva o retitula una encuesta (las preguntas no cambian una vez publicada)", security: bearer, params: z.object({ slug }), body: z.object({ title: z.string().trim().min(3).max(150), is_active: z.boolean() }).partial(), response: { 204: z.null() } } }, async (req, reply) => {
     const res = await db.query("UPDATE survey_templates SET title = coalesce($2, title), is_active = coalesce($3, is_active) WHERE slug = $1", [req.params.slug, req.body.title ?? null, req.body.is_active ?? null]);
     if (!res.rowCount) throw AppError.notFound("Encuesta");
     reply.code(204);
     return null;
   });
-  r.get("/admin/surveys/:slug/results", { preHandler: admin, schema: { tags: ["admin"], summary: "Resultados agregados (NPS, medias y distribución)", security: bearer, params: z.object({ slug }), response: { 200: ok } } }, async (req) => {
+  r.get("/admin/surveys/:slug/results", { onRequest: admin, schema: { tags: ["admin"], summary: "Resultados agregados (NPS, medias y distribución)", security: bearer, params: z.object({ slug }), response: { 200: ok } } }, async (req) => {
     const t = await survey(req.params.slug, false);
     const rows = (await db.query<{ responses: Record<string, unknown>; nps_score: number | null }>("SELECT responses, nps_score FROM survey_responses WHERE template_id = $1", [t.id])).rows;
     const nps = rows.map((x) => x.nps_score).filter((x): x is number => x !== null);
@@ -124,7 +124,7 @@ export async function campaignRoutes(app: FastifyInstance) {
     return { data: c };
   });
   r.post("/contests/:slug/register", {
-    preHandler: app.authenticate, config: rl(10, "1 hour"),
+    onRequest: app.authenticate, config: rl(10, "1 hour"),
     schema: { tags: ["concursos"], summary: "Inscribirse (una vez por persona; correo verificado)", security: bearer, params: z.object({ slug }), body: z.object({ name: z.string().trim().min(2).max(100), phone: z.string().trim().max(30).optional(), country: z.string().trim().max(60).optional(), age: z.number().int().min(1).max(120).optional(), accept_rules: z.literal(true, { error: "Debes aceptar las bases" }) }), response: { 201: ok } },
   }, async (req, reply) => {
     const c = (await db.query<{ id: string; min_age: number | null; max_entries: number | null }>("SELECT id, min_age, max_entries FROM contests WHERE slug = $1 AND status = 'published' AND starts_at <= now() AND ends_at > now()", [req.params.slug])).rows[0];
@@ -153,7 +153,7 @@ export async function campaignRoutes(app: FastifyInstance) {
   });
 
   const contestBody = z.object({ slug, title: z.string().trim().min(3).max(150), description: z.string().max(4000).optional(), rules: z.string().max(8000).optional(), prize: z.string().max(300).optional(), image_url: z.string().url().max(500).optional(), starts_at: z.string().datetime(), ends_at: z.string().datetime(), status: z.enum(["draft", "published"]).default("draft"), max_entries: z.number().int().min(1).optional(), min_age: z.number().int().min(1).max(99).optional() });
-  r.post("/admin/contests", { preHandler: admin, schema: { tags: ["admin"], summary: "Crea un concurso", security: bearer, body: contestBody, response: { 201: ok } } }, async (req, reply) => {
+  r.post("/admin/contests", { onRequest: admin, schema: { tags: ["admin"], summary: "Crea un concurso", security: bearer, body: contestBody, response: { 201: ok } } }, async (req, reply) => {
     const b = req.body;
     if (b.ends_at <= b.starts_at) throw AppError.validation("La fecha final debe ser posterior a la inicial");
     try {
@@ -166,7 +166,7 @@ export async function campaignRoutes(app: FastifyInstance) {
     reply.code(201);
     return { data: { slug: b.slug } };
   });
-  r.get("/admin/contests/:slug/registrations", { preHandler: admin, schema: { tags: ["admin"], summary: "Inscritos", security: bearer, params: z.object({ slug }), querystring: z.object(page), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
+  r.get("/admin/contests/:slug/registrations", { onRequest: admin, schema: { tags: ["admin"], summary: "Inscritos", security: bearer, params: z.object({ slug }), querystring: z.object(page), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
     const c = (await db.query<{ id: string }>("SELECT id FROM contests WHERE slug = $1", [req.params.slug])).rows[0];
     if (!c) throw AppError.notFound("Concurso");
     const total = (await db.query<{ n: number }>("SELECT count(*)::int AS n FROM contest_registrations WHERE contest_id = $1", [c.id])).rows[0]!.n;
@@ -174,7 +174,7 @@ export async function campaignRoutes(app: FastifyInstance) {
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
   });
   r.post("/admin/contests/:slug/draw", {
-    preHandler: admin,
+    onRequest: admin,
     schema: { tags: ["admin"], summary: "Sortea ganadores al azar entre los inscritos y cierra el concurso", security: bearer, params: z.object({ slug }), body: z.object({ winners: z.number().int().min(1).max(50).default(1) }), response: { 200: ok } },
   }, async (req) => {
     const c = (await db.query<{ id: string; status: string; ends_at: Date }>("SELECT id, status, ends_at FROM contests WHERE slug = $1", [req.params.slug])).rows[0];
@@ -190,7 +190,7 @@ export async function campaignRoutes(app: FastifyInstance) {
 
   // ---------- Vacaciones / "Vuelve a casa" ----------
   r.post("/vacation-registrations", {
-    preHandler: optionalUser, config: rl(10, "1 hour"),
+    onRequest: optionalUser, config: rl(10, "1 hour"),
     schema: {
       tags: ["formularios"], summary: "Registra el interés de vacaciones (con o sin cuenta)",
       body: z.object({ destination_id: z.string().uuid(), start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), travelers: z.number().int().min(1).max(50).default(1), notes: z.string().trim().max(1000).optional(), name: z.string().trim().min(2).max(100).optional(), email: email.optional(), phone: z.string().trim().max(30).optional(), website: z.string().max(200).optional() }),

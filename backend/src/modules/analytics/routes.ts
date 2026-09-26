@@ -71,7 +71,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
     return null;
   });
 
-  r.get("/admin/analytics/overview", { preHandler: admin, schema: { tags: ["admin"], summary: "KPIs de la plataforma en un rango", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } } }, async (req) => {
+  r.get("/admin/analytics/overview", { onRequest: admin, schema: { tags: ["admin"], summary: "KPIs de la plataforma en un rango", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } } }, async (req) => {
     const { from, to } = range(req.query);
     const p = [from, to];
     const inRange = (col: string) => `${col} >= ($1::date::timestamp AT TIME ZONE 'America/Santo_Domingo') AND ${col} < (($2::date + 1)::timestamp AT TIME ZONE 'America/Santo_Domingo')`;
@@ -104,7 +104,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
     return { range: { from, to }, group: q.group, rows: rows.map((x) => ({ key: x.k, views: x.views, sessions: x.sessions })) };
   };
   const trafficQ = z.object({ from: date.optional(), to: date.optional(), group: z.enum(["page", "source", "country", "day"]).default("page") });
-  r.get("/admin/analytics/traffic", { preHandler: admin, schema: { tags: ["admin"], summary: "Vistas y sesiones por página, origen, país o día", security: bearer, querystring: trafficQ, response: { 200: ok } } }, async (req) => ({ data: await traffic(req.query) }));
+  r.get("/admin/analytics/traffic", { onRequest: admin, schema: { tags: ["admin"], summary: "Vistas y sesiones por página, origen, país o día", security: bearer, querystring: trafficQ, response: { 200: ok } } }, async (req) => ({ data: await traffic(req.query) }));
 
   const topContent = async (q: { metric: "views" | "favorites"; type?: string; limit: number; from?: string; to?: string }) => {
     if (q.metric === "views") {
@@ -123,9 +123,9 @@ export async function analyticsRoutes(app: FastifyInstance) {
     return out;
   };
   const topQ = z.object({ metric: z.enum(["views", "favorites"]).default("views"), type: z.string().max(40).optional(), limit: z.coerce.number().int().min(1).max(100).default(20), from: date.optional(), to: date.optional() });
-  r.get("/admin/analytics/top-content", { preHandler: admin, schema: { tags: ["admin"], summary: "Contenido más visto o más guardado", security: bearer, querystring: topQ, response: { 200: ok } } }, async (req) => ({ data: await topContent(req.query) }));
+  r.get("/admin/analytics/top-content", { onRequest: admin, schema: { tags: ["admin"], summary: "Contenido más visto o más guardado", security: bearer, querystring: topQ, response: { 200: ok } } }, async (req) => ({ data: await topContent(req.query) }));
 
-  r.get("/admin/analytics/funnels/:name", { preHandler: admin, schema: { tags: ["admin"], summary: "Embudos calculados con datos reales (reserva, registro, tienda)", security: bearer, params: z.object({ name: z.enum(["reserva", "registro", "tienda"]) }), querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } } }, async (req) => {
+  r.get("/admin/analytics/funnels/:name", { onRequest: admin, schema: { tags: ["admin"], summary: "Embudos calculados con datos reales (reserva, registro, tienda)", security: bearer, params: z.object({ name: z.enum(["reserva", "registro", "tienda"]) }), querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } } }, async (req) => {
     const { from, to } = range(req.query);
     const p = [from, to];
     const inR = (col: string) => `${col} >= ($1::date::timestamp AT TIME ZONE 'America/Santo_Domingo') AND ${col} < (($2::date + 1)::timestamp AT TIME ZONE 'America/Santo_Domingo')`;
@@ -146,15 +146,15 @@ export async function analyticsRoutes(app: FastifyInstance) {
     const comments = (await db.query("SELECT r.nps_score AS score, t.title AS survey, (SELECT string_agg(value, ' · ') FROM jsonb_each_text(r.responses) WHERE key IN (SELECT q->>'id' FROM jsonb_array_elements(t.questions) q WHERE q->>'type' = 'text')) AS comment, r.created_at FROM survey_responses r JOIN survey_templates t ON t.id = r.template_id WHERE r.nps_score IS NOT NULL AND r.created_at >= ($1::date::timestamp AT TIME ZONE 'America/Santo_Domingo') AND r.created_at < (($2::date + 1)::timestamp AT TIME ZONE 'America/Santo_Domingo') ORDER BY r.created_at DESC LIMIT 50", [from, to])).rows.filter((x) => x.comment);
     return { range: { from, to }, count: scores.length, score: scores.length ? Math.round(((promoters - detractors) / scores.length) * 100) : null, promoters, detractors, passives: scores.length - promoters - detractors, comments };
   };
-  r.get("/admin/analytics/nps", { preHandler: admin, schema: { tags: ["admin"], summary: "NPS y comentarios de las encuestas", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } } }, async (req) => ({ data: await nps(req.query) }));
+  r.get("/admin/analytics/nps", { onRequest: admin, schema: { tags: ["admin"], summary: "NPS y comentarios de las encuestas", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } } }, async (req) => ({ data: await nps(req.query) }));
 
   const searchTerms = async (q: { from?: string; to?: string; limit: number }) => {
     const { from, to } = range(q);
     return (await db.query("SELECT metadata->>'q' AS term, count(*)::int AS searches FROM analytics_events WHERE event_type = 'search' AND coalesce((metadata->>'results')::int, 0) = 0 AND created_at >= ($1::date::timestamp AT TIME ZONE 'America/Santo_Domingo') AND created_at < (($2::date + 1)::timestamp AT TIME ZONE 'America/Santo_Domingo') GROUP BY 1 ORDER BY searches DESC, term LIMIT $3", [from, to, q.limit])).rows;
   };
-  r.get("/admin/analytics/search-terms", { preHandler: admin, schema: { tags: ["admin"], summary: "Términos buscados sin resultados", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional(), limit: z.coerce.number().int().min(1).max(200).default(50) }), response: { 200: ok } } }, async (req) => ({ data: await searchTerms(req.query) }));
+  r.get("/admin/analytics/search-terms", { onRequest: admin, schema: { tags: ["admin"], summary: "Términos buscados sin resultados", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional(), limit: z.coerce.number().int().min(1).max(200).default(50) }), response: { 200: ok } } }, async (req) => ({ data: await searchTerms(req.query) }));
 
-  r.get("/admin/analytics/export.csv", { preHandler: admin, schema: { tags: ["admin"], summary: "Exporta un reporte en CSV", security: bearer, querystring: z.object({ report: z.enum(["traffic", "top-content", "search-terms", "nps"]), from: date.optional(), to: date.optional(), group: z.enum(["page", "source", "country", "day"]).default("page"), metric: z.enum(["views", "favorites"]).default("views"), limit: z.coerce.number().int().min(1).max(200).default(100) }) } }, async (req, reply) => {
+  r.get("/admin/analytics/export.csv", { onRequest: admin, schema: { tags: ["admin"], summary: "Exporta un reporte en CSV", security: bearer, querystring: z.object({ report: z.enum(["traffic", "top-content", "search-terms", "nps"]), from: date.optional(), to: date.optional(), group: z.enum(["page", "source", "country", "day"]).default("page"), metric: z.enum(["views", "favorites"]).default("views"), limit: z.coerce.number().int().min(1).max(200).default(100) }) } }, async (req, reply) => {
     const q = req.query;
     const rows: Record<string, unknown>[] = q.report === "traffic" ? (await traffic(q)).rows : q.report === "top-content" ? await topContent(q) : q.report === "search-terms" ? await searchTerms(q) : (await nps(q)).comments;
     await audit(db, { actor: req.user!.id, action: "analytics.export", entity: "report", id: q.report, ip: req.ip });

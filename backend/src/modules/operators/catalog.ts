@@ -298,7 +298,7 @@ export class CatalogService {
   /** Ficha pública de un anuncio publicado de una organización verificada. */
   async publicListing(orgSlug: string, listingSlug: string) {
     const { rows } = await this.db.query(
-      `SELECT ${LISTING_COLUMNS.replace(/\b(id|org_id|slug)\b/g, "l.$1").replace(/l\.l\./g, "l.")} FROM operator_listings l JOIN partner_profiles p ON p.id = l.org_id
+      `SELECT ${LISTING_COLS.map((c) => `l.${c}`).join(", ")} FROM operator_listings l JOIN partner_profiles p ON p.id = l.org_id
         WHERE p.slug = $1 AND l.slug = $2 AND l.status = 'published' AND p.verification = 'verified'`, [orgSlug, listingSlug],
     );
     if (!rows[0]) throw AppError.notFound("Servicio");

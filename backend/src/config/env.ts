@@ -6,6 +6,10 @@ const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   HOST: z.string().default("0.0.0.0"),
+  /** Proxies de confianza para X-Forwarded-For: false | true | nº de saltos | lista de IP/CIDR. Por defecto ninguno (no se acepta la cabecera). */
+  TRUST_PROXY: z.string().default("false"),
+  /** Si se define, habilita GET /metrics (Prometheus) con `Authorization: Bearer <token>`. */
+  METRICS_TOKEN: z.string().min(16).optional(),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
   DATABASE_URL: z.string().url().default("postgres://postgres:postgres@localhost:5434/descubre_rd"),
   DB_POOL_MAX: z.coerce.number().int().min(1).max(100).default(10),
@@ -95,6 +99,9 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   const env = parsed.data;
   if (env.NODE_ENV === "production") {
     if (!env.JWT_PRIVATE_KEY || !env.JWT_PUBLIC_KEY) throw new Error("Configuración inválida: JWT_PRIVATE_KEY y JWT_PUBLIC_KEY son obligatorias en producción");
+    const origins = env.CORS_ORIGINS.split(",").map((x) => x.trim()).filter(Boolean);
+    if (!origins.length || origins.includes("*") || origins.some((o) => !/^https:\/\//.test(o))) throw new Error("Configuración inválida: en producción CORS_ORIGINS debe listar orígenes https concretos (sin \"*\" ni http)");
+    if (/\/\/postgres:postgres@/.test(env.DATABASE_URL)) throw new Error("Configuración inválida: DATABASE_URL usa las credenciales por defecto de desarrollo");
     if (!env.APP_SECRET) throw new Error("Configuración inválida: APP_SECRET (mínimo 32 caracteres) es obligatoria en producción");
     if (!env.TOTP_ENCRYPTION_KEY) throw new Error("Configuración inválida: TOTP_ENCRYPTION_KEY es obligatoria en producción");
     if (env.MAIL_TRANSPORT === "memory") throw new Error("Configuración inválida: MAIL_TRANSPORT=memory no está permitido en producción");

@@ -20,7 +20,9 @@
     "db:seed": "tsx --env-file-if-exists=.env scripts/seed-from-mock.ts",
     "db:reset": "tsx --env-file-if-exists=.env scripts/migrate.ts --reset && tsx --env-file-if-exists=.env scripts/seed-from-mock.ts",
     "db:gen-manifest": "tsx --env-file-if-exists=.env scripts/gen-manifest.ts",
-    "keys:generate": "tsx scripts/generate-keys.ts"
+    "keys:generate": "tsx scripts/generate-keys.ts",
+    "db:backup": "tsx --env-file-if-exists=.env scripts/backup.ts",
+    "audit": "npm audit --omit=dev --audit-level=high"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.2",

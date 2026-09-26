@@ -193,6 +193,17 @@ describe("motor de reservas de operadores", () => {
     expect((await call("PUT", `/org/bookings/${mine.id}/status`, { token: stranger.token, payload: { status: "cancelled" } })).statusCode).toBe(404);
   });
 
+  it("la ficha pública de un servicio publicado se lee sin sesión y no expone datos internos", async () => {
+    const slug = (await pool.query("SELECT p.slug AS org, l.slug AS listing FROM operator_listings l JOIN partner_profiles p ON p.id = l.org_id WHERE l.id = $1", [tour])).rows[0];
+    const res = await call("GET", `/operators/${slug.org}/listings/${slug.listing}`);
+    expect(res.statusCode).toBe(200);
+    const d = json(res).data;
+    expect(d.listing).toMatchObject({ id: tour, title: "Tour de ballenas", status: "published" });
+    expect(d.listing.org_id).toBeUndefined();
+    expect(d.operator).toMatchObject({ slug: slug.org });
+    expect((await call("GET", `/operators/${slug.org}/listings/no-existe`)).statusCode).toBe(404);
+  });
+
   describe("alojamientos", () => {
     let stay: string;
     let room: string;
