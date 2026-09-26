@@ -1,3 +1,4 @@
+import { TtlCache } from "../../lib/cache.js";
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
@@ -46,6 +47,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
     if (from > to) throw AppError.validation("El rango de fechas es inválido");
     return { from, to };
   };
+  const overviewCache = new TtlCache<unknown>(20_000, 50);
   const RD = "AT TIME ZONE 'America/Santo_Domingo'";
 
   r.post("/analytics/events", {
@@ -73,20 +75,27 @@ export async function analyticsRoutes(app: FastifyInstance) {
 
   r.get("/admin/analytics/overview", { onRequest: admin, schema: { tags: ["admin"], summary: "KPIs de la plataforma en un rango", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } } }, async (req) => {
     const { from, to } = range(req.query);
+    // Contar sesiones distintas sobre cientos de miles de eventos cuesta ~150 ms: se comparte el resultado 20 s (y una sola consulta si varios paneles lo piden a la vez).
+    return { data: await overviewCache.wrap(`${from}|${to}`, () => overview(from, to)) };
+  });
+  const overview = async (from: string, to: string) => {
     const p = [from, to];
     const inRange = (col: string) => `${col} >= ($1::date::timestamp AT TIME ZONE 'America/Santo_Domingo') AND ${col} < (($2::date + 1)::timestamp AT TIME ZONE 'America/Santo_Domingo')`;
     const one = async (sql: string, params: unknown[] = p) => Number((await db.query<{ n: string }>(sql, params)).rows[0]!.n);
-    const [users, reviews, favorites, posts, registrations, bookings, revenue, orders, views, sessions] = await Promise.all([
+    // Vistas, sesiones y serie diaria salen de UNA pasada por los eventos del rango (antes eran tres).
+    const eventsQ = db.query<{ day: string; views: number; sessions: number }>(`SELECT (created_at ${RD})::date::text AS day, count(*) FILTER (WHERE event_type = 'page_view')::int AS views, count(DISTINCT session_id)::int AS sessions FROM analytics_events WHERE ${inRange("created_at")} GROUP BY 1 ORDER BY 1`, p);
+    const totalsQ = db.query<{ views: string; sessions: string }>(`SELECT count(*) FILTER (WHERE event_type = 'page_view') AS views, count(DISTINCT session_id) AS sessions FROM analytics_events WHERE ${inRange("created_at")}`, p);
+    const [users, reviews, favorites, posts, registrations, bookings, revenue, orders] = await Promise.all([
       one(`SELECT count(*) AS n FROM users WHERE ${inRange("created_at")}`), one(`SELECT count(*) AS n FROM reviews WHERE ${inRange("created_at")}`), one(`SELECT count(*) AS n FROM favorites WHERE ${inRange("created_at")}`),
       one(`SELECT count(*) AS n FROM social_posts WHERE ${inRange("created_at")} AND deleted_at IS NULL`), one(`SELECT count(*) AS n FROM establishment_registrations WHERE ${inRange("created_at")}`),
       one(`SELECT count(*) AS n FROM bookings WHERE ${inRange("created_at")} AND status <> 'cancelled'`),
       one(`SELECT coalesce(sum(CASE WHEN kind = 'refund' THEN -amount ELSE amount END), 0) AS n FROM booking_payments WHERE status = 'succeeded' AND currency = 'USD' AND ${inRange("created_at")}`),
       one(`SELECT count(*) AS n FROM store_orders WHERE ${inRange("created_at")} AND status NOT IN ('pending', 'cancelled')`),
-      one(`SELECT count(*) AS n FROM analytics_events WHERE event_type = 'page_view' AND ${inRange("created_at")}`), one(`SELECT count(DISTINCT session_id) AS n FROM analytics_events WHERE ${inRange("created_at")}`),
     ]);
-    const daily = (await db.query<{ day: string; views: number; sessions: number }>(`SELECT (created_at ${RD})::date::text AS day, count(*) FILTER (WHERE event_type = 'page_view')::int AS views, count(DISTINCT session_id)::int AS sessions FROM analytics_events WHERE ${inRange("created_at")} GROUP BY 1 ORDER BY 1`, p)).rows;
-    return { data: { range: { from, to }, users_new: users, reviews, favorites, social_posts: posts, establishment_requests: registrations, bookings, booking_revenue_usd: revenue, store_orders: orders, page_views: views, sessions, daily } };
-  });
+    const [totals, dailyRes] = await Promise.all([totalsQ, eventsQ]);
+    const views = Number(totals.rows[0]!.views), sessions = Number(totals.rows[0]!.sessions), daily = dailyRes.rows;
+    return { range: { from, to }, users_new: users, reviews, favorites, social_posts: posts, establishment_requests: registrations, bookings, booking_revenue_usd: revenue, store_orders: orders, page_views: views, sessions, daily };
+  };
 
   const traffic = async (q: { from?: string; to?: string; group: "page" | "source" | "country" | "day" }) => {
     const { from, to } = range(q);

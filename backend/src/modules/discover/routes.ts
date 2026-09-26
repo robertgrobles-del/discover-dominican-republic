@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
+import { TtlCache } from "../../lib/cache.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
 import { COLLECTIONS, type CollectionDef } from "../content/collections.js";
 import { cols, hasCol, visibility } from "../content/query.js";
@@ -34,20 +35,36 @@ export async function discoverRoutes(app: FastifyInstance) {
 
   // ---------- Búsqueda ----------
   interface Hit { type: string; collection: string; id: string; slug: string | null; title: string; subtitle: string | null; image: string | null; score: number }
-  const searchOne = async (d: CollectionDef, q: string, limit: number, titleOnly = false): Promise<Hit[]> => {
+  /** SQL de una colección (con sus parámetros $1 consulta normalizada, $2 %consulta%, $3 consulta%). */
+  const searchSql = (d: CollectionDef, limit: number, titleOnly: boolean) => {
     const t = d.table, title = Q(d.title);
     const t0 = `lower(f_unaccent(${title}::text))`;
     const extra = titleOnly ? [] : d.search.filter((c) => c !== d.title && cols(t)[c]?.type === "text").slice(0, 3);
     const match = [`${t0} LIKE $2 ESCAPE '\\'`, `similarity(${t0}, $1) > 0.3`, ...extra.map((c) => `lower(f_unaccent(${Q(c)}::text)) LIKE $2 ESCAPE '\\'`)].join(" OR ");
     const score = `CASE WHEN ${t0} = $1 THEN 1.0 WHEN ${t0} LIKE $3 ESCAPE '\\' THEN 0.85 WHEN ${t0} LIKE $2 ESCAPE '\\' THEN 0.6 ELSE greatest(similarity(${t0}, $1), 0.25) END`;
-    const { rows } = await db.query(
-      `SELECT id, ${hasCol(t, "slug") ? "slug" : "NULL::text AS slug"}, ${title}::text AS title, ${hasCol(t, "short_description") ? "short_description::text" : "NULL::text"} AS subtitle,
-              ${hasCol(t, "image_url") ? "image_url::text" : "NULL::text"} AS image, ${score} AS score
-         FROM ${Q(t)} WHERE ${visibility(d)} AND (${match}) ORDER BY score DESC${hasCol(t, "rating") ? ", rating DESC NULLS LAST" : ""}, ${title} LIMIT ${limit}`,
-      [q, like(q), `${q.replace(/[\\%_]/g, "\\$&")}%`],
-    );
-    return rows.map((x) => ({ type: d.entityType, collection: d.path, id: x.id, slug: x.slug, title: x.title, subtitle: x.subtitle, image: x.image, score: Math.round(Number(x.score) * 100) / 100 }));
+    return `SELECT '${d.entityType}'::text AS type, '${d.path}'::text AS collection, id::text AS id, ${hasCol(t, "slug") ? "slug::text" : "NULL::text"} AS slug, ${title}::text AS title, ${hasCol(t, "short_description") ? "short_description::text" : "NULL::text"} AS subtitle,
+              ${hasCol(t, "image_url") ? "image_url::text" : "NULL::text"} AS image, (${score})::float8 AS score
+         FROM ${Q(t)} WHERE ${visibility(d)} AND (${match}) ORDER BY score DESC${hasCol(t, "rating") ? ", rating DESC NULLS LAST" : ""}, ${title} LIMIT ${limit}`;
   };
+  const searchParams = (q: string) => [q, like(q), `${q.replace(/[\\%_]/g, "\\$&")}%`];
+  const toHit = (x: Record<string, unknown>): Hit => ({ type: x.type as string, collection: x.collection as string, id: x.id as string, slug: x.slug as string | null, title: x.title as string, subtitle: x.subtitle as string | null, image: x.image as string | null, score: Math.round(Number(x.score) * 100) / 100 });
+  /**
+   * Todas las colecciones en UNA consulta (UNION ALL) y una sola conexión del pool: antes eran ~40 consultas por búsqueda, y con
+   * tráfico simultáneo agotaban el pool. Si alguna colección fallara, se recurre a consultar una por una y se omite la que falla.
+   */
+  const searchMany = async (defs: CollectionDef[], q: string, limit: number, titleOnly: boolean, log: FastifyRequest["log"]): Promise<Hit[]> => {
+    if (!defs.length) return [];
+    try {
+      const { rows } = await db.query(defs.map((d) => `(${searchSql(d, limit, titleOnly)})`).join(" UNION ALL "), searchParams(q));
+      return rows.map(toHit);
+    } catch (err) {
+      log.warn({ err }, "Falló la búsqueda unificada; se consulta colección por colección");
+      return (await Promise.all(defs.map((d) => db.query(searchSql(d, limit, titleOnly), searchParams(q)).then((r) => r.rows.map(toHit)).catch((e) => { log.warn({ err: e, collection: d.path }, "Falló la búsqueda en una colección"); return [] as Hit[]; })))).flat();
+    }
+  };
+  // Respuestas iguales para todos: 30 s de caché y una sola consulta si llegan muchas idénticas a la vez.
+  const searchCache = new TtlCache<{ data: Hit[]; collections: number }>(30_000, 500);
+  const suggestCache = new TtlCache<unknown[]>(30_000, 500);
 
   r.get("/search", {
     config: rl(120, "1 minute"),
@@ -56,9 +73,11 @@ export async function discoverRoutes(app: FastifyInstance) {
     const q = norm(req.query.q);
     const defs = pick(SEARCHABLE, wanted(req.query.types));
     const per = Math.min(req.query.limit, 10);
-    const all = (await Promise.all(defs.map((d) => searchOne(d, q, per).catch((err) => { req.log.warn({ err, collection: d.path }, "Falló la búsqueda en una colección"); return [] as Hit[]; })))).flat();
-    all.sort((a, b) => b.score - a.score || a.title.localeCompare(b.title));
-    const data = all.slice(0, req.query.limit);
+    const { data } = await searchCache.wrap(`${q}|${req.query.types ?? ""}|${req.query.limit}`, async () => {
+      const all = await searchMany(defs, q, per, false, req.log);
+      all.sort((a, b) => b.score - a.score || a.title.localeCompare(b.title));
+      return { data: all.slice(0, req.query.limit), collections: defs.length };
+    });
     // Se registra la consulta (sin datos personales) para las "búsquedas frecuentes".
     if (q.length >= 3) void db.query("INSERT INTO analytics_events (event_type, page, metadata) VALUES ('search', '/search', $1)", [JSON.stringify({ q, results: data.length })]).catch(() => undefined);
     reply.header("cache-control", "public, max-age=30");
@@ -71,9 +90,11 @@ export async function discoverRoutes(app: FastifyInstance) {
   }, async (req, reply) => {
     const q = norm(req.query.q);
     const defs = pick(SEARCHABLE, wanted(req.query.types));
-    const hits = (await Promise.all(defs.map((d) => searchOne(d, q, 4, true).catch(() => [] as Hit[])))).flat().sort((a, b) => b.score - a.score || a.title.localeCompare(b.title));
-    const seen = new Set<string>();
-    const data = hits.filter((h) => { const k = `${h.type}:${norm(h.title)}`; if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 8).map((h) => ({ type: h.type, id: h.id, slug: h.slug, title: h.title, image: h.image }));
+    const data = await suggestCache.wrap(`${q}|${req.query.types ?? ""}`, async () => {
+      const hits = (await searchMany(defs, q, 4, true, req.log)).sort((a, b) => b.score - a.score || a.title.localeCompare(b.title));
+      const seen = new Set<string>();
+      return hits.filter((h) => { const k = `${h.type}:${norm(h.title)}`; if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 8).map((h) => ({ type: h.type, id: h.id, slug: h.slug, title: h.title, image: h.image }));
+    });
     reply.header("cache-control", PUBLIC_CACHE);
     return { data };
   });

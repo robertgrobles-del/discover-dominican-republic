@@ -22,6 +22,7 @@
     "db:gen-manifest": "tsx --env-file-if-exists=.env scripts/gen-manifest.ts",
     "keys:generate": "tsx scripts/generate-keys.ts",
     "db:backup": "tsx --env-file-if-exists=.env scripts/backup.ts",
+    "loadtest": "tsx --env-file-if-exists=.env scripts/loadtest.ts",
     "audit": "npm audit --omit=dev --audit-level=high"
   },
   "dependencies": {

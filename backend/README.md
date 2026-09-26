@@ -366,3 +366,8 @@ Los correos al viajero (cuenta, reservas, boletín, soporte, tienda, campañas) 
 
 ### Imágenes: saneado y variantes
 Al completar una subida (o importar una URL), la imagen se decodifica y se recodifica con `sharp`: se descartan los metadatos (EXIF con GPS, comentarios), se aplica la orientación y se rechaza (`IMAGE_CORRUPT`) lo que tiene cabecera válida pero cuerpo dañado. Se generan `thumb` (320 px), `medium` (800 px) y `large` (1 600 px) en webp, sin agrandar nunca; `GET /media/files/:id?variant=thumb|medium|large` sirve la variante (o el original si no existe) y `variants` en los metadatos apunta siempre a una URL válida. Los gif se conservan tal cual. Pendiente: antivirus (ClamAV) y almacenamiento S3, que requieren infraestructura externa.
+
+## Pruebas de carga
+`npm run loadtest` levanta la API en el mismo proceso sobre su propia base (`descubre_rd_load`, en el PostgreSQL embebido), la llena con los datos del mock más volumen sintético (300 000 eventos de analítica, 3 000 usuarios, 300 000 movimientos de XP) y mide con autocannon 17 escenarios (portada, detalle, filtros, búsqueda, mapa, tienda, marketplace, ranking, login, analítica…). Opciones: `--duration 20 --connections 100 --skip-setup --assert` (con `--assert` falla si un p99 supera su umbral; sirve para CI o antes de desplegar). El informe queda en `loadtest-report.json`.
+
+Hallazgos de la primera corrida (40 conexiones): la búsqueda global hacía ~40 consultas por petición y agotaba el pool (89 req/s, p99 757 ms) → ahora una sola consulta `UNION ALL` más caché de 30 s con vuelo único (1 700 req/s, p99 38 ms); el panel de analítica tardaba 1,7 s bajo carga → una pasada menos por los eventos y caché de 20 s. Ver `src/lib/cache.ts`.

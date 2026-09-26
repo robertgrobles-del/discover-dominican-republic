@@ -8,3 +8,4 @@ coverage
 
 # Imágenes subidas (almacenamiento local)
 storage/
+loadtest-report.json
