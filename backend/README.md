@@ -351,3 +351,9 @@ Entrada validada con Zod, SQL parametrizado con listas blancas, cabeceras de seg
 - **Diario**, **lista de empaque** y **check-in** de una reserva propia (ventana de fechas, XP una sola vez).
 - **E-tickets** (`/me/tickets`) de eventos y reservas; `POST /tickets/verify` (POST, no GET, porque marca el ticket como usado) para personal y operadores.
 - **Top 100** (`/me/spots`, `/me/wishlist`): premios en 10/25/50/100 lugares, una vez por hito.
+
+## Asistente de IA (docs §5.4 y §5.17)
+
+- **Proveedor** intercambiable: `AI_PROVIDER=none` (apagado; por defecto en producción) | `fake` (simulador, sólo desarrollo/pruebas) | `anthropic` (`ANTHROPIC_API_KEY`; `AI_MODEL` para itinerarios y borradores, `AI_MODEL_LIGHT` para chat, recomendaciones y traducciones).
+- **Chat** `POST /ai/chat` (SSE): contexto con lugares reales del catálogo; anónimo 10 msg/min, con sesión cuenta en la cuota. **Itinerario** `POST /ai/itinerary`: los `ref` que el modelo invente se descartan y el resultado entra tal cual en `POST /me/trips/:id/from-itinerary`. **Recomendaciones** `POST /ai/recommendations` (sin IA, se ordena por calificación). **Traducción** `POST /ai/translate` (editor, con caché) y **borradores** `POST /admin/ai/generate` (editor; nunca publica).
+- **Controles**: cuota diaria por usuario (`AI_DAILY_LIMIT_USER`, 10× para personal; se reserva antes de llamar, así las consultas simultáneas no la superan), tope de gasto diario global (`AI_DAILY_BUDGET_USD`), datos personales (correos, teléfonos, tarjetas) quitados antes de enviar, prompts editables en `site_settings` (`ai.prompt.chat|itinerary|recommendations|translate|generate`) y consumo/costo por usuario en `GET /admin/ai/usage`.
