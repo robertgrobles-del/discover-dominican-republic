@@ -214,7 +214,12 @@ export default function FotografosLocales() {
 
                     <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
                       <span className="font-bold text-primary">{photographer.price}</span>
-                      <Button size="sm">Contactar</Button>
+                      <Button 
+                        size="sm"
+                        onClick={() => setSelectedPhotographer(photographer)}
+                      >
+                        Ver Perfil y Cotizar
+                      </Button>
                     </div>
                   </div>
                 </motion.div>

@@ -240,9 +240,9 @@ export default function HechoEnRD() {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       {product.certified && (
-                        <Badge className="absolute top-4 left-4 bg-green-500">
+                        <Badge className="absolute top-4 left-4 bg-amber-600/90 text-white border-0 shadow">
                           <Award className="h-3 w-3 mr-1" />
-                          Certificado
+                          Artesanía Auténtica
                         </Badge>
                       )}
                       <Button
@@ -268,10 +268,16 @@ export default function HechoEnRD() {
                         <span className="text-xl font-bold text-amber-600 dark:text-amber-400">
                           {product.price}
                         </span>
-                        <Button size="sm" className="gap-2">
-                          <ShoppingBag className="h-4 w-4" />
-                          Comprar
-                        </Button>
+                        <a
+                          href={`https://wa.me/18092214660?text=${encodeURIComponent(`Hola, me interesa comprar la pieza artesanal "${product.name}" (${product.price}) de ${product.artisan} en ${product.location}. ¿Cómo puedo coordinar entrega en mi hotel o aeropuerto?`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Button size="sm" className="gap-2">
+                            <ShoppingBag className="h-4 w-4" />
+                            Comprar / Pedir
+                          </Button>
+                        </a>
                       </div>
                     </CardContent>
                   </Card>

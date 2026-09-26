@@ -341,6 +341,7 @@ function AnimatedRoutes() {
           <Route path="/wellness" element={<Navigate to="/spas-wellness" replace />} />
           <Route path="/historia-rd" element={<Navigate to="/historia" replace />} />
           <Route path="/vida-nocturna" element={<VidaNocturna />} />
+          <Route path="/agencias" element={<Navigate to="/directorio-agencias" replace />} />
           <Route path="/directorio-agencias" element={<DirectorioAgencias />} />
           <Route path="/guia-gastronomica" element={<GuiaGastronomica />} />
           <Route path="/chef/:slug" element={<ChefPerfil />} />

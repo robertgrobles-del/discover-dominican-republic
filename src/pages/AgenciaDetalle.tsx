@@ -15,23 +15,24 @@ const agencia = {
   id: "tropical-caribbean",
   name: "Tropical Caribbean Tours",
   type: "Tour Operador",
-  rnt: "RNT: 20439-OP",
-  verified: true,
+  rnt: "RNT: En trámite de validación",
+  verified: false,
+  isDemo: true,
   location: "Punta Cana, La Altagracia",
-  description: "Somos especialistas en excursiones náuticas y safaris terrestres en la zona este de República Dominicana. Con más de 15 años de experiencia, ofrecemos experiencias auténticas con los más altos estándares de seguridad y calidad. Proveedor líder de experiencias B2B con flota propia de embarcaciones y vehículos.",
+  description: "Especialistas en excursiones náuticas y safaris terrestres en la zona este de República Dominicana. (Ficha de demostración para operadores turísticos en proceso de homologación).",
   logo: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=200&h=200&fit=crop",
   coverImage: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1920&h=600&fit=crop",
   rating: 4.9,
-  reviewCount: 1847,
-  yearFounded: 2008,
-  languages: ["Español", "Inglés", "Francés", "Alemán"],
-  certifications: ["ASONAHORES", "MITUR Certificado", "TripAdvisor Excellence"],
+  reviewCount: 24,
+  yearFounded: 2021,
+  languages: ["Español", "Inglés", "Francés"],
+  certifications: ["Perfil en Homologación", "Protocolo de Seguridad Náutica"],
   specialties: ["Excursiones Náuticas", "Safari", "Aventura", "Tours Privados"],
   contact: {
-    phone: "+1 809 555 1234",
-    email: "info@tropicalcaribbean.com",
-    website: "www.tropicalcaribbean.com",
-    whatsapp: "+1 809 555 1234",
+    phone: "+1 809 221 4660",
+    email: "contacto@descubrerd.do",
+    website: "https://descubrerd.do",
+    whatsapp: "+18092214660",
   },
   tours: [
     { 
@@ -57,12 +58,12 @@ const agencia = {
     },
   ],
   stats: {
-    toursRealizados: "12,500+",
-    clientesSatisfechos: "98%",
-    guiasExperimentados: 25,
+    toursRealizados: "250+",
+    clientesSatisfechos: "99%",
+    guiasExperimentados: 8,
   },
   reviews: [
-    { name: "John D.", country: "USA", rating: 5, date: "Hace 1 semana", comment: "Amazing experience! Professional guides and beautiful locations." },
+    { name: "John D.", country: "USA", rating: 5, date: "Hace 1 semana", comment: "Excelente atención y coordinación para el grupo." },
     { name: "Sophie L.", country: "Francia", rating: 5, date: "Hace 2 semanas", comment: "Excellente organisation et guides très professionnels." },
   ],
 };
@@ -100,11 +101,15 @@ export default function AgenciaDetalle() {
               <div className="flex-1">
                 <div className="flex flex-wrap items-center gap-3 mb-2">
                   <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">{agencia.name}</h1>
-                  {agencia.verified && (
+                  {agencia.isDemo ? (
+                    <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30">
+                      Ficha Demostrativa B2B
+                    </Badge>
+                  ) : agencia.verified ? (
                     <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
                       <Check className="h-3 w-3 mr-1" /> Verificado
                     </Badge>
-                  )}
+                  ) : null}
                 </div>
                 
                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
@@ -133,12 +138,24 @@ export default function AgenciaDetalle() {
               </div>
 
               <div className="flex flex-col gap-2">
-                <Button className="gap-2">
-                  <MessageSquare className="h-4 w-4" /> Contactar
-                </Button>
-                <Button variant="outline" className="gap-2">
-                  <Globe className="h-4 w-4" /> Sitio Web
-                </Button>
+                <a
+                  href={`https://wa.me/${agencia.contact.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola, me interesa conocer más sobre los servicios de ${agencia.name} en Descubre RD.`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button className="w-full gap-2">
+                    <MessageSquare className="h-4 w-4" /> Contactar Operador
+                  </Button>
+                </a>
+                <a
+                  href={agencia.contact.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button variant="outline" className="w-full gap-2">
+                    <Globe className="h-4 w-4" /> Sitio Web
+                  </Button>
+                </a>
               </div>
             </div>
           </div>
@@ -253,12 +270,24 @@ export default function AgenciaDetalle() {
                   </div>
                 </div>
                 <div className="mt-4 pt-4 border-t border-border space-y-2">
-                  <Button className="w-full gap-2">
-                    <MessageSquare className="h-4 w-4" /> WhatsApp
-                  </Button>
-                  <Button variant="outline" className="w-full gap-2">
-                    <Mail className="h-4 w-4" /> Enviar Email
-                  </Button>
+                  <a
+                    href={`https://wa.me/${agencia.contact.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola ${agencia.name}, solicito información sobre disponibilidad de excursiones y tarifas B2B.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <Button className="w-full gap-2">
+                      <MessageSquare className="h-4 w-4" /> WhatsApp Operador
+                    </Button>
+                  </a>
+                  <a
+                    href={`mailto:${agencia.contact.email}?subject=${encodeURIComponent(`Consulta Turística - ${agencia.name}`)}`}
+                    className="block"
+                  >
+                    <Button variant="outline" className="w-full gap-2">
+                      <Mail className="h-4 w-4" /> Enviar Email
+                    </Button>
+                  </a>
                 </div>
               </div>
 
