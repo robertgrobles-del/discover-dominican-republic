@@ -19,44 +19,53 @@ const agencies = [
   {
     id: "tropical-caribbean",
     name: "Tropical Caribbean Tours",
-    verified: true,
+    verified: false,
+    isDemo: true,
     location: "Punta Cana",
-    rnt: "RNT: 20439-OP",
-    description: "Especialistas en excursiones náuticas y safaris terrestres en la zona este. Proveedor líder de experiencias B2B con flota propia.",
+    rnt: "RNT: En validación",
+    description: "Especialistas en excursiones náuticas y safaris terrestres en la zona este. (Ficha demostrativa para operadores en proceso de registro).",
     type: "Tour Operador",
-    status: "Activo",
+    status: "En Validación",
     logo: "TC",
     hasEmail: true,
     hasPhone: true,
-    hasWeb: true
+    hasWeb: true,
+    phone: "+18092214660",
+    email: "contacto@descubrerd.do"
   },
   {
     id: "econature-republic",
     name: "EcoNature Republic",
-    verified: true,
+    verified: false,
+    isDemo: true,
     location: "Samaná",
-    rnt: "RNT: 11029-AG",
-    description: "Pioneros en turismo sostenible y avistamiento de ballenas. Operamos bajo estrictos estándares de conservación ambiental.",
+    rnt: "RNT: En validación",
+    description: "Pioneros en turismo sostenible y avistamiento de ballenas. Operación bajo estándares de conservación ambiental en proceso de homologación.",
     type: "Ecoturismo",
-    status: "Activo",
+    status: "En Validación",
     logo: "EN",
     hasEmail: true,
     hasPhone: true,
-    hasWeb: false
+    hasWeb: false,
+    phone: "+18092214660",
+    email: "contacto@descubrerd.do"
   },
   {
     id: "santo-domingo-experts",
     name: "Santo Domingo City Experts",
     verified: false,
+    isDemo: true,
     location: "Santo Domingo",
-    rnt: "RNT: Pendiente",
-    description: "Recorridos históricos por la Zona Colonial y experiencias gastronómicas urbanas. Conectando visitantes con la historia.",
+    rnt: "RNT: En trámite",
+    description: "Recorridos históricos por la Zona Colonial y experiencias gastronómicas urbanas.",
     type: "Cultural",
     status: "En Revisión",
     logo: "SD",
     hasEmail: true,
     hasPhone: false,
-    hasWeb: false
+    hasWeb: false,
+    phone: "+18092214660",
+    email: "contacto@descubrerd.do"
   }
 ];
 
@@ -316,19 +325,25 @@ export default function DirectorioAgencias() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           {agency.hasEmail && (
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <Mail className="h-4 w-4" />
-                            </Button>
+                            <a href={`mailto:${agency.email}?subject=${encodeURIComponent(`Contacto desde Descubre RD - ${agency.name}`)}`} title="Enviar correo">
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Mail className="h-4 w-4" />
+                              </Button>
+                            </a>
                           )}
                           {agency.hasPhone && (
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <Phone className="h-4 w-4" />
-                            </Button>
+                            <a href={`tel:${agency.phone.replace(/\D/g, "")}`} title="Llamar">
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Phone className="h-4 w-4" />
+                              </Button>
+                            </a>
                           )}
                           {agency.hasWeb && (
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <Globe className="h-4 w-4" />
-                            </Button>
+                            <Link to={`/agencia/${agency.id}`} title="Ver ficha">
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Globe className="h-4 w-4" />
+                              </Button>
+                            </Link>
                           )}
                         </div>
                         <Link to={`/agencia/${agency.id}`}>

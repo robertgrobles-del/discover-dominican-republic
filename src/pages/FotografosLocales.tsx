@@ -294,18 +294,26 @@ export default function FotografosLocales() {
                 </div>
 
                 <div className="flex flex-wrap gap-3">
-                  <Button className="gap-2">
-                    <Mail className="h-4 w-4" />
-                    Enviar mensaje
-                  </Button>
-                  <Button variant="outline" className="gap-2">
-                    <Instagram className="h-4 w-4" />
-                    Instagram
-                  </Button>
-                  <Button variant="outline" className="gap-2">
-                    <Globe className="h-4 w-4" />
-                    Portafolio
-                  </Button>
+                  <a
+                    href={`https://wa.me/18092214660?text=${encodeURIComponent(`Hola, deseo cotizar una sesión fotográfica con ${selectedPhotographer.name} (${selectedPhotographer.specialty} en ${selectedPhotographer.location}). Tarifa de referencia: ${selectedPhotographer.price}.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Button className="gap-2">
+                      <Mail className="h-4 w-4" />
+                      Solicitar Disponibilidad
+                    </Button>
+                  </a>
+                  <a
+                    href="https://instagram.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Button variant="outline" className="gap-2">
+                      <Instagram className="h-4 w-4" />
+                      Instagram
+                    </Button>
+                  </a>
                 </div>
               </div>
             </motion.div>

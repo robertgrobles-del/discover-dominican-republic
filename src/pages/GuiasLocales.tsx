@@ -45,15 +45,15 @@ const mockGuides: Guide[] = [
     photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
     coverPhoto: samanaImg,
     rating: 4.9,
-    reviews: 124,
+    reviews: 24,
     certified: true,
     languages: ["Español", "Inglés"],
     specialties: ["Ecoturismo", "Aves"],
     bio: "Apasionado por la naturaleza de Los Haitises. Especialista en avistamiento de aves y flora endémica.",
     pricePerHour: 35,
     isEco: true,
-    license: "MA-ECO-2024-048",
-    phone: "+1 (809) 555-0192"
+    license: "MA-ECO-PROV-048",
+    phone: "+1 (809) 221-4660"
   },
   {
     id: "carmen",
@@ -62,14 +62,14 @@ const mockGuides: Guide[] = [
     photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face",
     coverPhoto: santoDomingoImg,
     rating: 4.8,
-    reviews: 89,
+    reviews: 19,
     certified: true,
     languages: ["Español", "Inglés", "Francés"],
     specialties: ["Historia", "Arquitectura"],
-    bio: "Historiadora certificada especializada en la Zona Colonial y el patrimonio cultural dominicano.",
+    bio: "Historiadora especializada en la Zona Colonial y el patrimonio cultural dominicano.",
     pricePerHour: 40,
     isEco: false,
-    phone: "+1 (809) 555-0100"
+    phone: "+1 (809) 221-4660"
   },
   {
     id: "pedro",
@@ -78,14 +78,14 @@ const mockGuides: Guide[] = [
     photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face",
     coverPhoto: puertoPlataImg,
     rating: 4.7,
-    reviews: 67,
+    reviews: 17,
     certified: true,
     languages: ["Español", "Inglés", "Alemán"],
     specialties: ["Aventura", "Gastronomía"],
-    bio: "Experto en los 27 Charcos de Damajagua y rutas gastronómicas por el Cibao.",
+    bio: "Experto en los 27 Charcos de Damajagua y rutas por el Cibao.",
     pricePerHour: 30,
     isEco: false,
-    phone: "+1 (809) 555-0243"
+    phone: "+1 (809) 221-4660"
   },
   {
     id: "lucia",
@@ -94,15 +94,15 @@ const mockGuides: Guide[] = [
     photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face",
     coverPhoto: samanaImg,
     rating: 5.0,
-    reviews: 156,
+    reviews: 26,
     certified: true,
     languages: ["Español", "Inglés", "Italiano"],
     specialties: ["Playas", "Snorkel"],
-    bio: "Guía marina certificada. Tours de snorkel y descubrimiento de arrecifes en la costa este.",
+    bio: "Guía marina. Tours de snorkel y descubrimiento de arrecifes en la costa este.",
     pricePerHour: 45,
     isEco: true,
-    license: "MA-ECO-2023-112",
-    phone: "+1 (809) 555-0371"
+    license: "MA-ECO-PROV-112",
+    phone: "+1 (809) 221-4660"
   },
 ];
 
@@ -179,14 +179,15 @@ function GuideCard({ guide }: { guide: Guide }) {
               <Phone className="h-3.5 w-3.5" />
             </Button>
           </a>
-          <Button 
-            size="sm"
-            onClick={() => {
-              toast.success(`¡Solicitud de contacto enviada a ${guide.name}!`);
-            }}
+          <a
+            href={`https://wa.me/${guide.phone.replace(/\D/g, "")}?text=${encodeURIComponent(`Hola ${guide.name}, te contacto desde Descubre RD para consultar tu disponibilidad para una ruta guiada en ${guide.location}.`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            Reservar
-          </Button>
+            <Button size="sm">
+              Reservar
+            </Button>
+          </a>
         </div>
       </div>
     </motion.div>
