@@ -15,72 +15,84 @@ const meses = [
   {
     nombre: "Enero", emoji: "❄️☀️", clima: "Seco y agradable (24-30°C)",
     eventos: ["Avistamiento de ballenas jorobadas en Samaná (hasta marzo)", "Día de Reyes (6 de enero)", "Temporada alta turística"],
+    fiestaPatronal: "Virgen de la Altagracia (21 de enero, Higüey - La Altagracia) & San Antonio (Guerra)",
     ideal: ["Playa", "Ballenas", "Romance"], color: "text-sky-500",
     tip: "Mejor mes para ver ballenas. Reserva tours con anticipación."
   },
   {
     nombre: "Febrero", emoji: "💕☀️", clima: "Seco y agradable (24-30°C)",
     eventos: ["Carnaval dominicano (todo el mes)", "Día de San Valentín", "Independencia Nacional (27 feb)"],
+    fiestaPatronal: "Nuestra Señora de la Candelaria (2 de feb, San Jerónimo y San Carlos)",
     ideal: ["Carnaval", "Romance", "Cultura"], color: "text-rose-500",
     tip: "Los carnavales de La Vega y Santiago son los más espectaculares."
   },
   {
     nombre: "Marzo", emoji: "☀️🐋", clima: "Seco, calentando (25-31°C)",
     eventos: ["Últimas ballenas en Samaná", "Semana Santa (varía)", "Festival del Merengue en Cabarete"],
+    fiestaPatronal: "San José (19 de marzo, San José de Ocoa, Matanzas y San José de las Matas)",
     ideal: ["Playa", "Ballenas", "Semana Santa"], color: "text-amber-500",
     tip: "Semana Santa es temporada altísima. Reserva con meses de anticipación."
   },
   {
     nombre: "Abril", emoji: "🌤️🌺", clima: "Transición (26-31°C), lluvias ocasionales",
     eventos: ["Semana Santa (si cae aquí)", "Inicio de temporada baja", "Festival de Jazz de Cabarete"],
+    fiestaPatronal: "San Jorge & Santa Lucía (Las Terrenas y Hondo Valle)",
     ideal: ["Ofertas", "Jazz", "Playa"], color: "text-emerald-500",
     tip: "Excelente relación precio-calidad. Hoteles con descuentos de hasta 40%."
   },
   {
     nombre: "Mayo", emoji: "🌧️🌴", clima: "Inicio de lluvias (27-32°C)",
     eventos: ["Día del Trabajo (1 mayo)", "Temporada baja — mejores precios", "Festival gastronómico DR Taste"],
+    fiestaPatronal: "San Fernando (30 de mayo, Montecristi) & Santa Cruz (El Seibo)",
     ideal: ["Presupuesto", "Gastronomía", "Aventura"], color: "text-teal-500",
     tip: "Las lluvias suelen ser cortas y por la tarde. Mañanas soleadas."
   },
   {
     nombre: "Junio", emoji: "🌧️🏖️", clima: "Lluvioso (27-33°C)",
     eventos: ["Inicio temporada de huracanes", "Festival del Merengue (Santo Domingo)", "Precios bajos"],
+    fiestaPatronal: "San Juan Bautista (24 de junio, San Juan de la Maguana y Baní)",
     ideal: ["Presupuesto", "Merengue", "Cultura"], color: "text-blue-500",
     tip: "Resorts ofrecen los mejores precios del año. Lluvias intermitentes."
   },
   {
     nombre: "Julio", emoji: "☀️🎶", clima: "Caliente y húmedo (28-33°C)",
     eventos: ["Festival del Merengue en el Malecón", "Temporada de mangos", "Vacaciones escolares EE.UU."],
+    fiestaPatronal: "Virgen del Carmen (16 de julio, Jarabacoa, Barahona y Boca Chica) & Santiago Apóstol (25 de julio, Santiago de los Caballeros)",
     ideal: ["Merengue", "Playa", "Familia"], color: "text-orange-500",
     tip: "Julio es popular entre familias norteamericanas. Resorts animados."
   },
   {
     nombre: "Agosto", emoji: "🌡️⛈️", clima: "Más caliente (28-34°C), lluvias",
     eventos: ["Día de la Restauración (16 ago)", "Pico de temporada de huracanes", "Precios bajos"],
+    fiestaPatronal: "Santa Rosa de Lima (30 de agosto, La Romana) & San Bartolomé (Neyba)",
     ideal: ["Presupuesto", "Aventura"], color: "text-red-500",
     tip: "Mayor riesgo de huracanes. Contrata seguro de viaje con cobertura de cancelación."
   },
   {
     nombre: "Septiembre", emoji: "🌧️💰", clima: "Húmedo (27-33°C)",
     eventos: ["Temporada de huracanes (pico)", "Precios más bajos del año", "Festival de bachata en Santo Domingo"],
+    fiestaPatronal: "Virgen de las Mercedes (24 de septiembre, Santo Cerro - La Vega y Constanza)",
     ideal: ["Presupuesto extremo", "Bachata"], color: "text-violet-500",
     tip: "Si el clima coopera, es el mes más económico para viajar."
   },
   {
     nombre: "Octubre", emoji: "🌤️🎃", clima: "Transición (26-32°C)",
     eventos: ["Fin de temporada de huracanes", "Festival de Cine de Santo Domingo", "Precios todavía bajos"],
+    fiestaPatronal: "San Rafael Arcángel (24 de octubre, Tamboril y San Rafael del Yuma) & San Judas Tadeo",
     ideal: ["Cine", "Cultura", "Ofertas"], color: "text-purple-500",
     tip: "Octubre es sorprendentemente bueno. Menos turistas, buen clima."
   },
   {
     nombre: "Noviembre", emoji: "☀️🦃", clima: "Mejorando (25-31°C)",
     eventos: ["Inicio temporada alta", "Festival del Ron y Cacao", "Thanksgiving (turistas EE.UU.)"],
+    fiestaPatronal: "Santa Cecilia (22 de noviembre) & San Andrés (Boca Chica)",
     ideal: ["Ron", "Gastronomía", "Transición"], color: "text-cyan-500",
     tip: "Últimas oportunidades de precios bajos antes de la temporada alta."
   },
   {
     nombre: "Diciembre", emoji: "🎄☀️", clima: "Seco y fresco (24-30°C)",
     eventos: ["Navidad dominicana", "Año Nuevo en la playa", "Diáspora regresa — ambiente festivo"],
+    fiestaPatronal: "Santa Bárbara (4 de diciembre, Samaná) & La Inmaculada Concepción (Cotúi)",
     ideal: ["Navidad", "Fiesta", "Playa"], color: "text-red-500",
     tip: "Temporada más alta. Reserva con 3+ meses de anticipación. Precios premium."
   },
@@ -148,6 +160,15 @@ export default function CalendarioMensual() {
                         ))}
                       </ul>
                     </div>
+
+                    {m.fiestaPatronal && (
+                      <div className="mb-3 p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                        <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide mb-0.5 flex items-center gap-1">
+                          🎉 Fiesta Patronal
+                        </p>
+                        <p className="text-xs text-foreground font-medium">{m.fiestaPatronal}</p>
+                      </div>
+                    )}
 
                     <div className="flex flex-wrap gap-1 mb-3">
                       {m.ideal.map(i => (

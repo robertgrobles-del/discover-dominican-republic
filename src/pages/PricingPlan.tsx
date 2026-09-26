@@ -9,7 +9,7 @@ import {
   Check, ShieldCheck, Sparkles, TrendingUp, Users, 
   MessageSquare, Star, ArrowRight, Zap, Building2, 
   Store, UtensilsCrossed, Hotel, Compass, Award, PhoneCall,
-  Eye, HelpCircle, ChevronRight
+  Eye, HelpCircle, ChevronRight, CreditCard, Receipt
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ClaimBusinessModal } from "@/components/business/ClaimBusinessModal";
@@ -294,6 +294,34 @@ export default function PricingPlan() {
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     Conoce exactamente cuántos visitantes llamaron a tu negocio, abrieron la ruta en GPS y consultaron tu carta o habitaciones cada mes.
                   </p>
+                </div>
+              </div>
+
+              {/* Payment Methods & Fiscal Assurance (★ Items 3 y 4) */}
+              <div className="mt-8 pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-3 text-left">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                    <Receipt className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-foreground">Facturación Fiscal Dominicana (NCF)</h4>
+                    <p className="text-xs text-muted-foreground">Comprobantes válidos para crédito fiscal (B01) y consumidor final autorizados por la DGII.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 flex-wrap justify-center">
+                  <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                    <CreditCard className="w-4 h-4 text-primary" /> Pasarelas soportadas:
+                  </span>
+                  <Badge variant="outline" className="font-bold text-xs py-1 px-2.5 bg-background">
+                    🇩🇴 Azul (Banco Popular)
+                  </Badge>
+                  <Badge variant="outline" className="font-bold text-xs py-1 px-2.5 bg-background">
+                    🇩🇴 CardNet
+                  </Badge>
+                  <Badge variant="outline" className="font-bold text-xs py-1 px-2.5 bg-background">
+                    🌐 Stripe Billing (USD)
+                  </Badge>
                 </div>
               </div>
             </div>

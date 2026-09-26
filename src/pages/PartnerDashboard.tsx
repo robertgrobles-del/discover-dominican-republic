@@ -15,7 +15,10 @@ import {
   Settings, Loader2, LogOut,
   Briefcase, Ticket, Trophy, ShieldCheck
 } from "lucide-react";
-import { GuideToolsModule, AgencyToolsModule, OperatorToolsModule } from "@/components/partner/PartnerToolsModules";
+import { 
+  GuideToolsModule, AgencyToolsModule, OperatorToolsModule,
+  HotelToolsModule, RestaurantToolsModule
+} from "@/components/partner/PartnerToolsModules";
 import { OrganizerEventsManager } from "@/components/partner/OrganizerEventsManager";
 import { AdminDeportesManager } from "@/components/sports/AdminDeportesManager";
 import { MarketplaceEscrowManager } from "@/components/marketplace/MarketplaceEscrowManager";
@@ -314,11 +317,15 @@ export default function PartnerDashboard() {
             </TabsContent>
 
             {/* TAB CONTENT: B2B TOOLS */}
-            <TabsContent value="b2b">
+            <TabsContent value="b2b" className="space-y-6">
               {businessType === "guia" && <GuideToolsModule userId={user?.id} businessName={businessName} />}
               {businessType === "agencia" && <AgencyToolsModule />}
               {businessType === "operador" && <OperatorToolsModule />}
-              {businessType !== "guia" && businessType !== "agencia" && businessType !== "operador" && (
+              {(businessType === "hotel" || businessType === "alojamiento" || businessType === "villa") && <HotelToolsModule />}
+              {(businessType === "restaurante" || businessType === "bar" || businessType === "gastronomia") && <RestaurantToolsModule />}
+              {businessType !== "guia" && businessType !== "agencia" && businessType !== "operador" && 
+               businessType !== "hotel" && businessType !== "alojamiento" && businessType !== "villa" &&
+               businessType !== "restaurante" && businessType !== "bar" && businessType !== "gastronomia" && (
                 <Card className="border-border shadow-sm">
                   <CardContent className="p-8 text-center space-y-4">
                     <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto">
@@ -327,7 +334,7 @@ export default function PartnerDashboard() {
                     <div>
                       <h3 className="font-bold text-lg text-foreground">Consola de Herramientas B2B Profesionales</h3>
                       <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
-                        Para ver las herramientas personalizadas de tu profesión, por favor cambia tu tipo de negocio en la pestaña <strong>Mi Ficha</strong> a: Guía Turístico, Agencia de Viajes o Tour Operador.
+                        Para ver las herramientas personalizadas de tu profesión, por favor cambia tu tipo de negocio en la pestaña <strong>Mi Ficha</strong> a: Hotel, Restaurante, Guía Turístico, Agencia de Viajes o Tour Operador.
                       </p>
                     </div>
                   </CardContent>

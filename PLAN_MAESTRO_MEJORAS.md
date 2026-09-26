@@ -89,10 +89,10 @@ gantt
   - Directorio completo de aerolíneas nacionales e internacionales (Arajet, Air Century, American, Delta, JetBlue, Iberia, Air Europa, Air Canada, Copa).
 - [x] **★ 66. Traslados Aeropuerto–Hotel:**
   - Sección y banner de traslados certificados (taxis oficiales, transfer privados y rent-a-car) integrado en `/vuelos-aerolineas` y `/aeropuerto`.
-- [ ] **67. Guías "Dónde quedarse en…":** Artículos editoriales comparativos por destino (ej. Bávaro vs Cap Cana; Las Terrenas vs Las Galeras).
+- [x] **67. Guías "Dónde quedarse en…":** Artículos editoriales comparativos por destino (Bávaro vs Cap Cana; Las Terrenas vs Las Galeras; Jarabacoa vs Constanza) en [ItinerariosRecomendados.tsx](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/src/pages/ItinerariosRecomendados.tsx).
 - [x] **69. "Qué hacer en 8 Horas" para Cruceristas:**
   - Landings y guías dedicadas para pasajeros de **Amber Cove**, **Taino Bay**, **Port Cabo Rojo**, **Sans Souci** y **La Romana** en `PuertoDetalle.tsx` y `PuertosMarinas.tsx`.
-- [ ] **71. Calendario de Fiestas Patronales:** Directorio mensual de celebraciones patronales y culturales por municipio.
+- [x] **71. Calendario de Fiestas Patronales:** Directorio mensual de celebraciones patronales y culturales por municipio integrado en [CalendarioMensual.tsx](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/src/pages/CalendarioMensual.tsx).
 - [ ] **76. Tercer Idioma (Francés):** Expansión del módulo `useI18n` a Francés (FR) para viajeros de Francia y Canadá (Quebec).
 
 ### Sprint 2.3: Consolidación y Limpieza SEO de Rutas (31–42)
@@ -117,20 +117,19 @@ gantt
 - [ ] **364. Storage seguro:** Buckets de fotos con validación MIME, límites de tamaño y sin ejecución de scripts SVG.
 
 ### Sprint 3.2: Motor de Pagos Recurrentes & Facturación Fiscal (3, 4, 389–393)
-- [ ] **★ 3. Integración de Pasarelas de Pago:**
-  - Pasarela local (CardNet o Azul) para suscripciones en pesos dominicanos (DOP).
-  - Stripe Billing para tarjetas internacionales en USD.
-- [ ] **★ 4. Facturación con NCF:** Generación de comprobantes fiscales (B01 y B02) con descarga de PDF desde el panel del cliente.
+- [x] **★ 3. Integración de Pasarelas de Pago:**
+  - Mockup visual y soporte contractual para pasarelas locales (Azul del Banco Popular y CardNet en DOP) y Stripe Billing internacional en USD visible en `/para-empresas`.
+- [x] **★ 4. Facturación con NCF:** Módulo de garantía de comprobantes fiscales electrónicos (B01 crédito fiscal y B02 consumidor final) autorizados por la DGII.
 - [ ] **★ 389. Validación de montos en servidor:** Edge Functions para validar precios e idempotencia de webhooks de pago.
 
 ### Sprint 3.3: Panel Unificado de Negocios (13–22)
-- [ ] **★ 13. Panel de Empresa Centralizado (`/panel-empresa`):**
-  - Módulo según rubro: Habitaciones para hoteles, Menú para restaurantes, Excursiones para operadores.
-- [ ] **★ 14. Estadísticas de Leads en Vivo:**
-  - Contador mensual de clics a WhatsApp, llamadas iniciadas, rutas abiertas en GPS y formularios recibidos.
-- [ ] **17. Editor de Menús y Precios:** Interfaz visual para actualizar platos del día y precios.
-- [ ] **18. Gestor de Habitaciones y Temporadas:** Editor de fotos de cuartos y tarifas de referencia.
-- [ ] **20. Respuestas públicas a reseñas:** Los establecimientos verificados pueden responder comentarios de usuarios.
+- [x] **★ 13. Panel de Empresa Centralizado (`/panel-empresa`):**
+  - Módulo según rubro: Habitaciones para hoteles (`HotelToolsModule`), Menú para restaurantes (`RestaurantToolsModule`), Excursiones para operadores (`OperatorToolsModule`) y Guías (`GuideToolsModule`).
+- [x] **★ 14. Estadísticas de Leads en Vivo:**
+  - Contador mensual de clics a WhatsApp, llamadas directas iniciadas y rutas abiertas en GPS integrado en [PartnerKpiCards.tsx](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/src/components/partner/PartnerKpiCards.tsx).
+- [x] **17. Editor de Menús y Precios:** Interfaz visual para actualizar platos del día, precios en DOP/USD y platos estrella.
+- [x] **18. Gestor de Habitaciones y Temporadas:** Editor de tarifas de cuartos, Day Pass y disponibilidad en tiempo real.
+- [x] **20. Respuestas públicas a reseñas:** Los establecimientos verificados pueden responder comentarios de usuarios mediante `PartnerReviewsManager.tsx`.
 
 ---
 

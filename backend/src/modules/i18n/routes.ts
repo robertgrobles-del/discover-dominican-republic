@@ -130,8 +130,73 @@ export async function i18nRoutes(app: FastifyInstance) {
     return { data: { reviewed: res.rowCount } };
   });
 
-  r.post("/admin/translations/:entity_type/:entity_id/auto", { onRequest: editor, schema: { tags: ["admin"], summary: "Traducción automática (requiere un proveedor de traducción; hoy no hay ninguno configurado)", security: bearer, params: z.object({ entity_type: z.string().max(60), entity_id: z.string().uuid() }) } }, async () => {
-    throw new AppError("SERVICE_UNAVAILABLE", "No hay un proveedor de traducción automática configurado; guarda las traducciones con PUT", { code: "NO_TRANSLATION_PROVIDER" });
+  /**
+   * Traduce con la IA los campos en español de una entidad. Nunca pisa lo escrito o revisado por una persona (`human`/`reviewed`);
+   * lo automático queda como `machine` hasta que alguien lo revise. Si se acaba la cuota de IA se detiene y devuelve lo hecho.
+   */
+  const autoTranslate = async (d: (typeof COLLECTIONS)[number], id: string, locales: readonly string[], only: string[] | undefined, overwrite: boolean, user: { id: string; roles: string[] }) => {
+    const fields = d.translatable.filter((f) => hasCol(d.table, f) && (!only || only.includes(f)));
+    const row = (await db.query<Record<string, unknown>>(`SELECT ${fields.map((f) => `"${f}"`).join(", ") || "id"} FROM "${d.table}" WHERE id = $1${hasCol(d.table, "deleted_at") ? " AND deleted_at IS NULL" : ""}`, [id])).rows[0];
+    if (!row) throw AppError.notFound("Registro");
+    const source = fields.filter((f) => typeof row[f] === "string" && (row[f] as string).trim());
+    const existing = (await db.query<{ language: string; field_name: string; status: string }>("SELECT language, field_name, status FROM entity_translations WHERE entity_type = $1 AND entity_id = $2", [d.table, id])).rows;
+    const have = new Map(existing.map((e) => [`${e.language}|${e.field_name}`, e.status]));
+    const out = { translated: 0, skipped_human: 0, skipped_existing: 0, cached: 0, stopped_reason: null as string | null };
+    const ctx = { userId: user.id, staff: true };
+    outer: for (const loc of locales) {
+      for (const f of source) {
+        const cur = have.get(`${loc}|${f}`);
+        if (cur === "human" || cur === "reviewed") { out.skipped_human++; continue; }
+        if (cur === "machine" && !overwrite) { out.skipped_existing++; continue; }
+        try {
+          const t = await app.ai.translate(ctx, { text: (row[f] as string).trim().slice(0, 6000), to: loc, from: "es" });
+          if (t.cached) out.cached++;
+          await db.query(
+            `INSERT INTO entity_translations (entity_type, entity_id, language, field_name, translation_text, status, updated_by) VALUES ($1,$2,$3,$4,$5,'machine',$6)
+             ON CONFLICT (entity_type, entity_id, language, field_name) DO UPDATE SET translation_text = EXCLUDED.translation_text, status = 'machine', updated_by = EXCLUDED.updated_by, updated_at = now()`,
+            [d.table, id, loc, f, t.text, user.id],
+          );
+          out.translated++;
+        } catch (e) {
+          if (e instanceof AppError && ["AI_QUOTA", "AI_BUDGET"].includes(String((e.details as { code?: string } | undefined)?.code))) { out.stopped_reason = String((e.details as { code?: string }).code); break outer; }
+          throw e;
+        }
+      }
+    }
+    return out;
+  };
+  const autoBody = z.object({ locales: z.array(targetLocale).min(1).max(5).default(["en", "fr", "de", "pt", "it"]), fields: z.array(z.string().max(60)).max(20).optional(), overwrite: z.boolean().default(false) });
+
+  r.post("/admin/translations/:entity_type/:entity_id/auto", {
+    onRequest: editor,
+    schema: { tags: ["admin"], summary: "Traduce con la IA los campos de una entidad (quedan como `machine`; nunca pisa lo escrito o revisado por una persona)", security: bearer, params: z.object({ entity_type: z.string().max(60), entity_id: z.string().uuid() }), body: autoBody.nullish(), response: { 200: ok } },
+  }, async (req) => {
+    const d = collectionOf(req.params.entity_type);
+    const b = autoBody.parse(req.body ?? {});
+    const data = await autoTranslate(d, req.params.entity_id, b.locales, b.fields, b.overwrite, req.user!);
+    await audit(db, { actor: req.user!.id, action: "i18n.auto_translated", entity: d.table, id: req.params.entity_id, meta: { locales: b.locales, ...data }, ip: req.ip });
+    return { data };
+  });
+
+  r.post("/admin/translations/auto-batch", {
+    onRequest: editor,
+    schema: { tags: ["admin"], summary: "Traduce con la IA los registros publicados de una colección que aún no tienen traducción a un idioma (hasta 20 por llamada)", security: bearer, body: z.object({ collection: z.string().max(60), locale: targetLocale, limit: z.number().int().min(1).max(20).default(10) }), response: { 200: ok } },
+  }, async (req) => {
+    const d = collectionOf(req.body.collection);
+    const fields = d.translatable.filter((f) => hasCol(d.table, f));
+    if (!fields.length) throw AppError.validation("La colección no tiene campos traducibles");
+    const { rows } = await db.query<{ id: string }>(
+      `SELECT t.id FROM "${d.table}" t WHERE ${hasCol(d.table, "status") ? "t.status = 'published' AND t.deleted_at IS NULL AND" : ""} NOT EXISTS (SELECT 1 FROM entity_translations et WHERE et.entity_type = $1 AND et.entity_id = t.id AND et.language = $2) ORDER BY t.id LIMIT ${req.body.limit}`,
+      [d.table, req.body.locale],
+    );
+    const total = { records: 0, translated: 0, cached: 0, stopped_reason: null as string | null };
+    for (const x of rows) {
+      const r1 = await autoTranslate(d, x.id, [req.body.locale], undefined, false, req.user!);
+      total.records++; total.translated += r1.translated; total.cached += r1.cached;
+      if (r1.stopped_reason) { total.stopped_reason = r1.stopped_reason; break; }
+    }
+    await audit(db, { actor: req.user!.id, action: "i18n.auto_batch", entity: d.table, id: null, meta: { locale: req.body.locale, ...total }, ip: req.ip });
+    return { data: { ...total, remaining_hint: rows.length === req.body.limit ? "Hay más registros pendientes: vuelve a llamar" : "Sin más pendientes" } };
   });
 
   /** Cobertura: por colección e idioma, qué parte de los campos traducibles de los registros publicados tiene traducción. */

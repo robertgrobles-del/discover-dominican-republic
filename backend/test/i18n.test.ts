@@ -12,11 +12,12 @@ const uniq = () => `i1${Date.now().toString(36)}${n++}@test.local`;
 describe("traducciones", () => {
   let app: FastifyInstance;
   let pool: pg.Pool;
-  let admin: string, editor: string;
+  let admin: string, editor: string, editorEmail: string;
   const call = (method: "GET" | "POST" | "PUT", url: string, opts: { token?: string; payload?: unknown; headers?: Record<string, string> } = {}) =>
     app.inject({ method, url: `/api/v1${url}`, payload: opts.payload as object, headers: { ...(opts.token ? { authorization: `Bearer ${opts.token}` } : {}), ...opts.headers } });
   const account = async (role: string) => {
     const email = uniq();
+    if (role === "editor") editorEmail = email;
     const reg = json(await call("POST", "/auth/register", { payload: { email, password: PW, accept_terms: true } }));
     await pool.query("INSERT INTO user_roles (user_id, role) VALUES ($1, $2::app_role)", [reg.data.user.id, role]);
     return json(await call("POST", "/auth/login", { payload: { email, password: PW } })).data.tokens.access_token as string;
@@ -130,9 +131,40 @@ describe("traducciones", () => {
       expect(pending).toHaveLength(2);
       expect(json(await call("POST", `/admin/translations/caves/${cave.id}/pt/review`, { token: editor })).data.reviewed).toBe(2);
       expect((await pool.query("SELECT DISTINCT status FROM entity_translations WHERE entity_id = $1 AND language = 'pt'", [cave.id])).rows.map((r) => r.status)).toEqual(["reviewed"]);
-      const auto = await call("POST", `/admin/translations/caves/${cave.id}/auto`, { token: editor });
-      expect(auto.statusCode).toBe(503);
-      expect(json(auto).error.details.code).toBe("NO_TRANSLATION_PROVIDER");
+    });
+
+    it("la traducción automática con IA nunca pisa lo humano, deja lo nuevo como `machine` y usa la caché", async () => {
+      await call("PUT", `/admin/translations/caves/${cave.id}/de`, { token: editor, payload: { fields: { name: "Große Höhle" } } });
+      const auto = json(await call("POST", `/admin/translations/caves/${cave.id}/auto`, { token: editor, payload: { locales: ["fr", "de", "pt"], fields: ["name"] } })).data;
+      expect(auto).toMatchObject({ translated: 1, skipped_human: 2, skipped_existing: 0, stopped_reason: null });   // sólo fr; de (humana) y pt (revisada) intactas
+      const fr = (await pool.query("SELECT translation_text, status FROM entity_translations WHERE entity_id = $1 AND language = 'fr' AND field_name = 'name'", [cave.id])).rows[0];
+      expect(fr).toEqual({ translation_text: `[fr] Cueva ${tag}`, status: "machine" });
+      expect(json(await call("GET", `/caves/${cave.slug}?lang=de`)).data.name).toBe("Große Höhle");
+      const again = json(await call("POST", `/admin/translations/caves/${cave.id}/auto`, { token: editor, payload: { locales: ["fr"], fields: ["name"] } })).data;
+      expect(again).toMatchObject({ translated: 0, skipped_existing: 1 });
+      const forced = json(await call("POST", `/admin/translations/caves/${cave.id}/auto`, { token: editor, payload: { locales: ["fr"], fields: ["name"], overwrite: true } })).data;
+      expect(forced).toMatchObject({ translated: 1, cached: 1 });   // el texto no cambió: sale de la caché de IA, sin costo
+      expect(json(await call("GET", "/admin/translations?status=machine&locale=fr&entity_type=caves&per_page=200", { token: editor })).data.some((x: { entity_id: string }) => x.entity_id === cave.id)).toBe(true);
+      expect((await call("POST", `/admin/translations/caves/${cave.id}/auto`, { payload: {} })).statusCode).toBe(401);
+      expect((await call("POST", `/admin/translations/caves/${cave.id}/auto`, { token: editor, payload: { locales: ["es"] } })).statusCode).toBe(400);
+      expect((await call("POST", `/admin/translations/planetas/${cave.id}/auto`, { token: editor })).statusCode).toBeGreaterThanOrEqual(400);
+    });
+
+    it("el lote traduce los registros publicados que aún no tienen el idioma", async () => {
+      const done = json(await call("POST", "/admin/translations/auto-batch", { token: editor, payload: { collection: "caves", locale: "it", limit: 5 } })).data;
+      expect(done.records).toBeGreaterThanOrEqual(1);
+      expect(done.translated).toBeGreaterThanOrEqual(1);
+      expect((await pool.query("SELECT 1 FROM entity_translations WHERE entity_id = $1 AND language = 'it' AND status = 'machine'", [cave.id])).rowCount).toBeGreaterThan(0);
+      // Sin proveedor de IA el lote no puede trabajar.
+      const none = await makeApp({ AI_PROVIDER: "none" });
+      try {
+        const tok = json(await none.inject({ method: "POST", url: "/api/v1/auth/login", payload: { email: editorEmail, password: PW } })).data.tokens.access_token;
+        const res = await none.inject({ method: "POST", url: "/api/v1/admin/translations/auto-batch", payload: { collection: "caves", locale: "en", limit: 1 }, headers: { authorization: `Bearer ${tok}` } });
+        expect([503, 200]).toContain(res.statusCode);
+        const single = await none.inject({ method: "POST", url: `/api/v1/admin/translations/caves/${cave.id}/auto`, payload: { locales: ["en"], fields: ["short_description"], overwrite: true }, headers: { authorization: `Bearer ${tok}` } });
+        expect(single.statusCode).toBe(503);
+        expect(json(single).error.details.code).toBe("AI_DISABLED");
+      } finally { await none.close(); }
     });
 
     it("la cobertura por colección e idioma guía el plan de traducción", async () => {

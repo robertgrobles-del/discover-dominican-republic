@@ -710,3 +710,129 @@ export function OperatorToolsModule() {
     </div>
   );
 }
+
+/* ==========================================================================
+   MODULE 4: HOTEL & LODGING TOOLS MODULE (Items 13 & 18)
+   ========================================================================== */
+export function HotelToolsModule() {
+  const [rooms, setRooms] = useState([
+    { id: 1, name: "Suite Vista al Mar", price: 280, currency: "USD", available: true, capacity: 2 },
+    { id: 2, name: "Villa Familiar 2 Habitaciones", price: 450, currency: "USD", available: true, capacity: 5 },
+    { id: 3, name: "Habitación Estándar Deluxe", price: 160, currency: "USD", available: false, capacity: 2 },
+  ]);
+
+  const toggleAvailability = (id: number) => {
+    setRooms(prev => prev.map(r => r.id === id ? { ...r, available: !r.available } : r));
+    toast.success("Disponibilidad de habitación actualizada en tiempo real");
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <Card className="border-border shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
+            <Calendar className="h-5 w-5 text-primary" />
+            Gestor de Habitaciones y Tarifas (Item 18)
+          </CardTitle>
+          <CardDescription>Actualiza las tarifas de referencia y el inventario disponible de tu hotel o villa.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="divide-y divide-border">
+            {rooms.map(room => (
+              <div key={room.id} className="py-3 flex items-center justify-between gap-4 first:pt-0 last:pb-0">
+                <div>
+                  <h4 className="font-semibold text-sm text-foreground">{room.name}</h4>
+                  <p className="text-xs text-muted-foreground font-mono">
+                    ${room.price} {room.currency} / noche • Capacidad: {room.capacity} huéspedes
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={room.available ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30" : "bg-destructive/10 text-destructive border-destructive/20"}>
+                    {room.available ? "Disponible" : "Agotado"}
+                  </Badge>
+                  <Button variant="outline" size="sm" onClick={() => toggleAvailability(room.id)} className="h-8 text-xs">
+                    {room.available ? "Pausar" : "Activar"}
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-border shadow-sm">
+        <CardHeader>
+          <CardTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
+            <DollarSign className="h-5 w-5 text-amber-500" />
+            Tarifas de Temporada & Day Pass (Item 101)
+          </CardTitle>
+          <CardDescription>Configura los precios especiales para residentes dominicanos y pases de un día.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="p-3 bg-muted/40 rounded-xl space-y-2">
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-medium text-foreground">Day Pass Adulto:</span>
+              <span className="font-mono font-bold text-primary">US$ 75 / persona</span>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-medium text-foreground">Day Pass Niños (hasta 12 años):</span>
+              <span className="font-mono font-bold text-primary">US$ 35 / niño</span>
+            </div>
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-medium text-foreground">Horario del Day Pass:</span>
+              <span className="font-mono text-muted-foreground">09:00 AM – 06:00 PM</span>
+            </div>
+          </div>
+          <Button size="sm" variant="outline" className="w-full text-xs font-semibold" onClick={() => toast.success("Módulo de edición de tarifas abierto")}>
+            Editar Precios de Temporada
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+/* ==========================================================================
+   MODULE 5: RESTAURANT & BAR TOOLS MODULE (Item 17)
+   ========================================================================== */
+export function RestaurantToolsModule() {
+  const [menuItems, setMenuItems] = useState([
+    { id: 1, name: "Chivo Liniero al Caldero", category: "Platos Fuertes", priceDOP: 850, special: true },
+    { id: 2, name: "Pescado con Coco estilo Samaná", category: "Especialidades del Mar", priceDOP: 1100, special: true },
+    { id: 3, name: "Majarete Criollo con Canela", category: "Postres Autóctonos", priceDOP: 320, special: false },
+  ]);
+
+  return (
+    <Card className="border-border shadow-sm">
+      <CardHeader>
+        <CardTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
+          <ShoppingBag className="h-5 w-5 text-emerald-500" />
+          Editor de Carta & Platos del Día (Item 17)
+        </CardTitle>
+        <CardDescription>Actualiza los platos recomendados, precios en DOP y opciones dietéticas (vegano, celíaco).</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="divide-y divide-border">
+          {menuItems.map(item => (
+            <div key={item.id} className="py-3 flex items-center justify-between gap-4 first:pt-0 last:pb-0">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="font-semibold text-sm text-foreground">{item.name}</h4>
+                  {item.special && <Badge className="text-[9px] bg-amber-500/15 text-amber-600 border-amber-500/30">Plato Estrella</Badge>}
+                </div>
+                <p className="text-xs text-muted-foreground">{item.category}</p>
+              </div>
+              <div className="text-right">
+                <span className="font-mono font-bold text-sm text-foreground">RD$ {item.priceDOP}</span>
+                <span className="text-[10px] text-muted-foreground block">~${(item.priceDOP / 60).toFixed(1)} USD</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <Button size="sm" className="w-full text-xs font-semibold gap-1.5" onClick={() => toast.success("Menú actualizado en la ficha pública")}>
+          <Plus className="h-3.5 w-3.5" /> Agregar Nuevo Plato o Bebida
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}

@@ -595,6 +595,8 @@ function AnimatedRoutes() {
           <Route path="/diario-viaje" element={<DiarioViaje />} />
           <Route path="/partner/login" element={<PartnerLogin />} />
           <Route path="/partner/dashboard" element={<PartnerDashboard />} />
+          <Route path="/panel-empresa" element={<PartnerDashboard />} />
+          <Route path="/panel-negocio" element={<PartnerDashboard />} />
           <Route path="/silent-guide" element={<SilentGuide />} />
           <Route path="/suscripciones-sabores" element={<SuscripcionesSabores />} />
           <Route path="/tarjeta-prepago" element={<TarjetaPrepago />} />
