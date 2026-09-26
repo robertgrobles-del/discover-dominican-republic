@@ -5,3 +5,6 @@ dist
 coverage
 *.log
 !.env.example
+
+# Imágenes subidas (almacenamiento local)
+storage/

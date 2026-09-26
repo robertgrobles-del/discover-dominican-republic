@@ -55,6 +55,8 @@ const schema = z.object({
   FX_SPREAD_PCT: z.coerce.number().min(0).max(10).default(1),
   WEATHER_PROVIDER: z.enum(["none", "openweather"]).default("none"),
   OPENWEATHER_API_KEY: z.string().min(10).optional(),
+  /** Carpeta de las imágenes subidas (almacenamiento local). Con varios servidores se usa un almacenamiento compartido (S3). */
+  MEDIA_DIR: z.string().default("storage/media"),
   JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().min(30).default(900),
   REFRESH_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
   LOGIN_MAX_FAILURES: z.coerce.number().int().min(1).default(5),

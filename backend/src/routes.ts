@@ -12,6 +12,8 @@ import { PlayService } from "./modules/game/play.js";
 import { StoreService } from "./modules/store/service.js";
 import { storeRoutes } from "./modules/store/routes.js";
 import { LiveService } from "./modules/live/service.js";
+import path from "node:path";
+import { LocalStorage, defaultFetcher, mediaRoutes, registerMediaJobs } from "./modules/media/routes.js";
 import { i18nRoutes } from "./modules/i18n/routes.js";
 import { analyticsRoutes, registerAnalyticsJobs } from "./modules/analytics/routes.js";
 import { marketingRoutes, registerMarketingJobs } from "./modules/marketing/routes.js";
@@ -50,6 +52,8 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   const store = new StoreService(app.db, app.env, app.gateway, app.mailer, app.log);
   app.decorate("store", store);
   app.decorate("live", new LiveService(app.db, app.env, app.log));
+  app.decorate("mediaStorage", new LocalStorage(path.resolve(app.env.MEDIA_DIR)));
+  app.decorate("mediaFetcher", { fn: defaultFetcher });
   const game = new GameService(app.db);
   app.decorate("game", game);
   app.decorate("play", new PlayService(app.db, game));
@@ -65,6 +69,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   registerLiveJobs(app, runner);
   registerMarketingJobs(app, runner);
   registerAnalyticsJobs(app, runner);
+  registerMediaJobs(app, runner);
   runner.register({ name: "orders.auto_cancel", description: "Cancela pedidos de la tienda sin cobrar tras 60 min y devuelve stock y cupón", everySeconds: 900, run: async () => ({ cancelled: await store.cancelUnpaid(60) }) });
   registerOperatorJobs({ db: app.db, env: app.env, mailer: app.mailer, runner, automations, ical, payouts });
   if (app.env.JOBS_ENABLED) { runner.start(); app.addHook("onClose", async () => { await runner.stop(); }); }
@@ -94,6 +99,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(marketingRoutes);
       await v1.register(analyticsRoutes);
       await v1.register(i18nRoutes);
+      await v1.register(mediaRoutes);
       await v1.register(gameAdminRoutes);
       await v1.register(paymentWebhookRoutes);
     },

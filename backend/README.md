@@ -280,6 +280,16 @@ Herramientas: `GET /tools/dictionary` (sin acentos), `/tools/phrases?lang=`, `/t
 - **Contenido**: `PUT /admin/translations/{tabla}/{id}/{idioma}` (admin/editor) valida que el campo sea traducible y que la entidad exista; un texto vacío borra la traducción; las traducciones escritas por una persona quedan `human` y se ven de inmediato con `?lang=` en la API pública. `GET /admin/translations` filtra por entidad, idioma y estado; `POST …/review` marca como `reviewed` las automáticas; `GET /admin/translations/coverage` da el porcentaje traducido por colección e idioma.
 - **Traducción automática**: `POST /admin/translations/{tabla}/{id}/auto` responde 503 `NO_TRANSLATION_PROVIDER` hasta que se conecte un proveedor (IA/DeepL); el estado `machine` ya está previsto en la base.
 
+## Archivos y medios
+
+Flujo: `POST /media/upload-url` (sesión; tipo, tamaño y finalidad) → `PUT` del binario a la URL firmada (HMAC con `APP_SECRET`, vence a los 15 min, ligada al tipo y tamaño declarados, de un solo uso) → `POST /media/{id}/complete`, que valida el **archivo real**: formato por sus primeros bytes (no por lo que diga el cliente), coincidencia con lo declarado, mínimo 16 px, máximo 12 000 px y 60 Mpx. Lo que finge ser una imagen se rechaza y se borra.
+
+- **Límites por finalidad**: avatar 2 MB, foto de reseña 5 MB, UGC 8 MB, imagen de anuncio 8 MB, CMS 10 MB; sólo jpeg, png, webp y gif (nunca SVG). Las imágenes de anuncio y de CMS las suben el equipo o miembros de una organización.
+- **Moderación**: las fotos de reseñas y UGC quedan `in_review` (sólo las ve su dueño y el equipo) hasta que un moderador las aprueba (`POST /admin/media/{id}/moderate`, el rechazo exige motivo y borra el binario); lo que sube el equipo se publica directo.
+- **Servido**: `GET /media/files/{id}` con `nosniff`, `Content-Security-Policy: sandbox` y caché inmutable de un año una vez aprobado. `GET /media/{id}` da metadatos y URL; `DELETE /media/{id}` (dueño o admin). `GET /admin/media` es la biblioteca con filtros; `POST /admin/media/import-url` descarga una URL https pública (sin acceso a redes internas), valida el archivo y lo guarda como propio.
+- **Almacenamiento**: disco local en `MEDIA_DIR` (`storage/media`, fuera de git) detrás de la interfaz `MediaStorage`; para varios servidores se implementa la misma interfaz con S3. `media.cleanup` borra subidas sin completar de más de 24 h.
+- **Pendiente**: variantes (`thumb`, `card`, `hero`, webp/avif) y antivirus necesitan una librería de imágenes y un servicio externo; hoy sólo existe la variante `original`.
+
 ## Correo
 
 `app.mailer.send({ to, template, data, locale })` **encola** en la tabla `email_log` y vuelve; un trabajador (en el mismo proceso, `MAIL_WORKER_ENABLED`, o en otro) toma los pendientes con `FOR UPDATE SKIP LOCKED`, así que varias instancias nunca envían dos veces. Reintenta con espera creciente (1 min, 5 min, 30 min, 2 h, 12 h) hasta `MAIL_MAX_ATTEMPTS` y luego marca `failed`; los mensajes que quedaron `sending` por un proceso caído se recuperan. Si se pasa la conexión de una transacción (`send(input, client)`) el correo forma parte de ella (outbox transaccional: el registro y su correo se guardan juntos o no se guarda ninguno).
