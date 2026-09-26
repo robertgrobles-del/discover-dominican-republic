@@ -161,7 +161,7 @@ describe("traducciones", () => {
         const tok = json(await none.inject({ method: "POST", url: "/api/v1/auth/login", payload: { email: editorEmail, password: PW } })).data.tokens.access_token;
         const res = await none.inject({ method: "POST", url: "/api/v1/admin/translations/auto-batch", payload: { collection: "caves", locale: "en", limit: 1 }, headers: { authorization: `Bearer ${tok}` } });
         expect([503, 200]).toContain(res.statusCode);
-        const single = await none.inject({ method: "POST", url: `/api/v1/admin/translations/caves/${cave.id}/auto`, payload: { locales: ["en"], fields: ["short_description"], overwrite: true }, headers: { authorization: `Bearer ${tok}` } });
+        const single = await none.inject({ method: "POST", url: `/api/v1/admin/translations/caves/${cave.id}/auto`, payload: { locales: ["fr"], fields: ["description"] }, headers: { authorization: `Bearer ${tok}` } });
         expect(single.statusCode).toBe(503);
         expect(json(single).error.details.code).toBe("AI_DISABLED");
       } finally { await none.close(); }
