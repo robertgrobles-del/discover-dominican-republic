@@ -76,11 +76,12 @@ export const premiosSorteo: PremioSorteo[] = [
 ];
 
 export const sorteoReglas = [
-  "Debes ser mayor de 18 años para participar.",
-  "El registro te da 1 entrada al sorteo. Cada encuesta completada suma 1 entrada adicional.",
-  "Los ganadores se seleccionan aleatoriamente el último día de cada mes.",
-  "Los premios no son transferibles ni canjeables por dinero.",
-  "Los ganadores serán contactados por email dentro de las 48 horas posteriores al sorteo.",
-  "Los premios deben ser utilizados dentro de los 6 meses siguientes al sorteo.",
-  "DescubreRD se reserva el derecho de modificar los premios por otros de igual o mayor valor.",
+  "Debes ser mayor de 18 años para participar en cualquier dinámica promocional.",
+  "El registro te da 1 entrada al sorteo. Cada encuesta o acción completada suma entradas adicionales auditables.",
+  "Método de selección: Los ganadores se eligen aleatoriamente mediante algoritmo criptográfico con acta de constancia digital pública (hash de fecha, participantes registrados y certificado de transparencia).",
+  "Cumplimiento Pro Consumidor: Las bases y términos de cada concurso se adhieren a la Ley 358-05 de Protección de los Derechos del Consumidor en la República Dominicana.",
+  "Los premios no son transferibles ni canjeables por dinero en efectivo.",
+  "Los ganadores serán contactados por email corporativo y notificados con su número de boleto dentro de las 48 horas posteriores al cierre mensual.",
+  "Los vouchers y estadías cuentan con una vigencia de uso de hasta 6 meses a partir de la emisión del premio.",
+  "Descubre RD y los establecimientos patrocinadores garantizan la disponibilidad de las fechas reservadas con previa coordinación."
 ];

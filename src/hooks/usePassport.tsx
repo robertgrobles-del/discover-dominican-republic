@@ -184,9 +184,21 @@ export function usePassport() {
     if (data) setUserCollectibles(data as unknown as UserCollectible[]);
   }, [user]);
 
-  // Add a new stamp
+  // Add a new stamp (con verificación de unicidad por lugar y día)
   const addStamp = useCallback(async (stampData: Omit<PassportStamp, 'id' | 'user_id' | 'created_at'>) => {
     if (!user) return false;
+
+    // Verificar si el usuario ya selló este mismo destino hoy
+    const today = new Date().toISOString().split('T')[0];
+    const alreadyStamped = stamps.some(
+      s => (s.stamp_name === stampData.stamp_name || (s.location_id && s.location_id === stampData.location_id)) &&
+           s.visited_at && s.visited_at.startsWith(today)
+    );
+
+    if (alreadyStamped) {
+      toast.info(`Ya registraste tu sello en ${stampData.stamp_name} el día de hoy.`);
+      return false;
+    }
 
     const { error } = await supabase.from("passport_stamps").insert([{
       user_id: user.id,
@@ -201,7 +213,7 @@ export function usePassport() {
     toast.success(`✅ Sello agregado: ${stampData.stamp_name}`);
     await fetchStamps();
     return true;
-  }, [user, fetchStamps]);
+  }, [user, stamps, fetchStamps]);
 
   // Start a route
   const startRoute = useCallback(async (routeId: string) => {

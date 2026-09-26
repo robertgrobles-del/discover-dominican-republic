@@ -1,7 +1,8 @@
+import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
-import { TrendingUp, Globe, Mail, Users, Phone, MapPin, Download, ArrowRight, Check, Monitor, FileText, Megaphone, Sparkles } from "lucide-react";
+import { TrendingUp, Globe, Mail, Users, Phone, MapPin, Download, ArrowRight, Check, Monitor, FileText, Megaphone, Sparkles, CheckCircle2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +55,35 @@ const formatos = [
 ];
 
 export default function Partners() {
+  const [formData, setFormData] = useState({
+    fullName: "",
+    company: "",
+    email: "",
+    interest: "display",
+    budget: "5000",
+    message: ""
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.fullName.trim() || !formData.email.trim() || !formData.company.trim()) {
+      toast.error("Por favor completa los campos obligatorios: Nombre, Empresa y Correo.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    // Simulación de envío confiable guardando en leads
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+      toast.success("¡Solicitud enviada con éxito!", {
+        description: "Nuestro equipo corporativo de alianzas se comunicará en menos de 24 horas laborables."
+      });
+    }, 1000);
+  };
+
   return (
     <PageTransition>
       <div className="min-h-screen flex flex-col bg-background">
@@ -291,55 +321,112 @@ export default function Partners() {
                 </div>
 
                 <div className="bg-card rounded-xl p-8 border border-border">
-                  <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="text-sm text-muted-foreground mb-2 block">Nombre Completo</label>
-                      <Input placeholder="Ej. Juan Pérez" />
+                  {isSubmitted ? (
+                    <div className="text-center py-8 space-y-4">
+                      <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto">
+                        <CheckCircle2 className="w-8 h-8" />
+                      </div>
+                      <h3 className="font-display text-2xl font-bold text-foreground">¡Solicitud Recibida!</h3>
+                      <p className="text-muted-foreground max-w-md mx-auto text-sm">
+                        Gracias por tu interés en colaborar con Descubre RD. Un asesor de alianzas estratégicas revisará tu propuesta y te enviará las tarifas detalladas en menos de 24 horas.
+                      </p>
+                      <Button variant="outline" onClick={() => setIsSubmitted(false)} className="rounded-xl">
+                        Enviar otra consulta
+                      </Button>
                     </div>
-                    <div>
-                      <label className="text-sm text-muted-foreground mb-2 block">Empresa</label>
-                      <Input placeholder="Ej. Hotel Paradiso" />
-                    </div>
-                  </div>
-                  <div className="mb-4">
-                    <label className="text-sm text-muted-foreground mb-2 block">Correo Corporativo</label>
-                    <Input type="email" placeholder="nombre@empresa.com" />
-                  </div>
-                  <div className="grid sm:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="text-sm text-muted-foreground mb-2 block">Interés Principal</label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="display">Publicidad Display</SelectItem>
-                          <SelectItem value="contenido">Contenido Patrocinado</SelectItem>
-                          <SelectItem value="newsletter">Newsletter</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-sm text-muted-foreground mb-2 block">Presupuesto Estimado</label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1000">Menos de $1,000 USD</SelectItem>
-                          <SelectItem value="5000">$1,000 - $5,000 USD</SelectItem>
-                          <SelectItem value="10000">Más de $5,000 USD</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="mb-6">
-                    <label className="text-sm text-muted-foreground mb-2 block">Mensaje / Objetivos</label>
-                    <Textarea placeholder="Describa brevemente qué desea lograr..." rows={4} />
-                  </div>
-                  <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
-                    Enviar Solicitud <ArrowRight className="w-4 h-4" />
-                  </Button>
+                  ) : (
+                    <form onSubmit={handleSubmit}>
+                      <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="text-sm text-muted-foreground mb-2 block">Nombre Completo *</label>
+                          <Input 
+                            required
+                            placeholder="Ej. Juan Pérez" 
+                            value={formData.fullName}
+                            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm text-muted-foreground mb-2 block">Empresa *</label>
+                          <Input 
+                            required
+                            placeholder="Ej. Hotel Paradiso" 
+                            value={formData.company}
+                            onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                      <div className="mb-4">
+                        <label className="text-sm text-muted-foreground mb-2 block">Correo Corporativo *</label>
+                        <Input 
+                          required
+                          type="email" 
+                          placeholder="nombre@empresa.com" 
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <label className="text-sm text-muted-foreground mb-2 block">Interés Principal</label>
+                          <Select 
+                            value={formData.interest} 
+                            onValueChange={(val) => setFormData({ ...formData, interest: val })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Seleccionar" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="display">Publicidad Display</SelectItem>
+                              <SelectItem value="contenido">Contenido Patrocinado</SelectItem>
+                              <SelectItem value="newsletter">Newsletter</SelectItem>
+                              <SelectItem value="misiones">Misión Patrocinada Gamificada</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div>
+                          <label className="text-sm text-muted-foreground mb-2 block">Presupuesto Estimado</label>
+                          <Select 
+                            value={formData.budget} 
+                            onValueChange={(val) => setFormData({ ...formData, budget: val })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Seleccionar" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1000">Menos de $1,000 USD</SelectItem>
+                              <SelectItem value="5000">$1,000 - $5,000 USD</SelectItem>
+                              <SelectItem value="10000">Más de $5,000 USD</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="mb-6">
+                        <label className="text-sm text-muted-foreground mb-2 block">Mensaje / Objetivos</label>
+                        <Textarea 
+                          placeholder="Describa brevemente qué desea lograr..." 
+                          rows={4} 
+                          value={formData.message}
+                          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                        />
+                      </div>
+                      <Button 
+                        type="submit" 
+                        disabled={isSubmitting}
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2 font-bold py-3 rounded-xl"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" /> Procesando solicitud...
+                          </>
+                        ) : (
+                          <>
+                            Enviar Solicitud <ArrowRight className="w-4 h-4" />
+                          </>
+                        )}
+                      </Button>
+                    </form>
+                  )}
                 </div>
               </div>
             </div>

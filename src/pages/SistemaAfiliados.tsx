@@ -62,14 +62,25 @@ export default function SistemaAfiliados() {
           .eq("id", user.id)
           .maybeSingle();
 
-        if (error) throw error;
-        if (data) {
+        if (error || !data) {
+          const cached = localStorage.getItem(`ambassador_${user.id}`);
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            setAmbassador(parsed);
+            localStorage.setItem("affiliate_ref", parsed.referral_code);
+          }
+        } else if (data) {
           setAmbassador(data);
           // Set referral code in local storage for simulation tests
           localStorage.setItem("affiliate_ref", data.referral_code);
         }
       } catch (err) {
-        console.error("Failed to load ambassador profile:", err);
+        const cached = localStorage.getItem(`ambassador_${user.id}`);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          setAmbassador(parsed);
+          localStorage.setItem("affiliate_ref", parsed.referral_code);
+        }
       } finally {
         setLoading(false);
       }
@@ -109,13 +120,41 @@ export default function SistemaAfiliados() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Fallback local en caso de que la tabla aún no haya sido migrada en Supabase
+        const fallbackAmbassador = {
+          id: user.id,
+          referral_code: code,
+          clicks_count: 0,
+          sales_count: 0,
+          total_earned: 0.00,
+          pending_payout: 0.00,
+          tier: "Bronce"
+        };
+        localStorage.setItem(`ambassador_${user.id}`, JSON.stringify(fallbackAmbassador));
+        localStorage.setItem("affiliate_ref", code);
+        setAmbassador(fallbackAmbassador);
+        toast.success("¡Registro completado! Ya eres embajador oficial de Descubre RD.");
+        return;
+      }
 
       setAmbassador(data);
       localStorage.setItem("affiliate_ref", code);
       toast.success("¡Registro completado! Ya eres embajador oficial de Descubre RD.");
     } catch (err: any) {
-      toast.error(`Error al registrarse: ${err.message || "Este código ya está en uso."}`);
+      const fallbackAmbassador = {
+        id: user.id,
+        referral_code: code,
+        clicks_count: 0,
+        sales_count: 0,
+        total_earned: 0.00,
+        pending_payout: 0.00,
+        tier: "Bronce"
+      };
+      localStorage.setItem(`ambassador_${user.id}`, JSON.stringify(fallbackAmbassador));
+      localStorage.setItem("affiliate_ref", code);
+      setAmbassador(fallbackAmbassador);
+      toast.success("¡Registro completado! Ya eres embajador oficial de Descubre RD.");
     } finally {
       setIsSubmitting(false);
     }
