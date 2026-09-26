@@ -63,6 +63,38 @@ const ports = [
     nearbyAttractions: ["Altos de Chavón", "Isla Catalina", "Casa de Campo"],
     coordinates: "18.4301° N, 68.9674° W",
   },
+  {
+    id: "taino-bay",
+    name: "Taino Bay",
+    location: "Puerto Plata",
+    image: puertoPlataImg,
+    type: "Puerto Urbano de Cruceros",
+    cruiseLines: ["Royal Caribbean", "Celebrity", "MSC Cruceros", "Virgin Voyages"],
+    facilities: [
+      { icon: ShoppingBag, name: "Plaza comercial Taína" },
+      { icon: Bus, name: "Acceso a pie directo al centro histórico" },
+      { icon: Compass, name: "Parque y piscinas temáticas" },
+    ],
+    schedule: "7:00 AM - 5:00 PM",
+    nearbyAttractions: ["Malecón de Puerto Plata", "Calle de las Sombrillas", "Fortaleza San Felipe"],
+    coordinates: "19.7950° N, 70.6900° W",
+  },
+  {
+    id: "cabo-rojo",
+    name: "Port Cabo Rojo",
+    location: "Pedernales",
+    image: puntaCanaImg,
+    type: "Puerto Ecoturístico Sostenible",
+    cruiseLines: ["Norwegian", "Royal Caribbean", "MSC Cruceros"],
+    facilities: [
+      { icon: ShoppingBag, name: "Mercado ecológico de artesanos" },
+      { icon: Bus, name: "Embarcadero a Bahía de las Águilas" },
+      { icon: Compass, name: "Punto de eco-expediciones del Sur" },
+    ],
+    schedule: "7:00 AM - 6:00 PM",
+    nearbyAttractions: ["Bahía de las Águilas", "Pozos de Romeo", "Parque Jaragua"],
+    coordinates: "17.9150° N, 71.6520° W",
+  },
 ];
 
 const marinas = [

@@ -138,6 +138,38 @@ const puertosData: Record<string, PortData> = {
     ],
     nearbyDestinations: ["Puerto Plata", "Sosúa", "Cabarete"],
   },
+  "cabo-rojo": {
+    id: "cabo-rojo",
+    name: "Puerto Cabo Rojo (Port Cabo Rojo)",
+    location: "Pedernales",
+    coordinates: "17.9150, -71.6520",
+    description: "Port Cabo Rojo es la nueva joya portuaria de República Dominicana, inaugurada en 2024 para abrir las maravillas ecoturísticas del sur profundo a los cruceristas globales de Norwegian, Royal Caribbean y MSC. Su arquitectura sostenible combina muelles de última generación con senderos naturales hacia Bahía de las Águilas, el Parque Nacional Jaragua y Pozos de Romeo.",
+    image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1920&h=800&fit=crop",
+    rating: 4.8,
+    reviewCount: 920,
+    type: "Nuevo Puerto Ecoturístico de Cruceros",
+    cruiseLines: [
+      { name: "Norwegian Cruise Line", logo: "NCL", routes: ["Miami", "Canaveral"] },
+      { name: "Royal Caribbean", logo: "RC", routes: ["Miami", "San Juan"] },
+      { name: "MSC Cruceros", logo: "MSC", routes: ["Miami", "Fort Lauderdale"] },
+    ],
+    facilities: [
+      { name: "Terminal Ecológica", icon: "building", description: "Diseño bioclimático y amigable con el entorno" },
+      { name: "Muelle de Pasajeros", icon: "compass", description: "Capacidad para cruceros clase Oasis y mega-buques" },
+      { name: "Mercado Artesanal del Sur", icon: "shopping", description: "Productos y gastronomía autóctona de Pedernales" },
+      { name: "Punto de Excursiones", icon: "car", description: "Lanchas rápidas a Bahía de las Águilas y transportes 4x4" },
+    ],
+    schedule: { openHours: "7:00 AM - 6:00 PM (días de atraque)", peakSeason: "Octubre - Mayo", avgShipsPerWeek: "2-4 cruceros" },
+    nearbyActivities: [
+      { name: "Bahía de las Águilas", type: "Playa Virgen", distance: "20 min en lancha", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300" },
+      { name: "Pozos de Romeo", type: "Cenotes Naturales", distance: "15 min", image: "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=300" },
+      { name: "Parque Nacional Jaragua", type: "Ecoturismo", distance: "25 min", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300" },
+    ],
+    reviews: [
+      { name: "David M.", rating: 5, date: "Hace 5 días", comment: "¡La escala en Cabo Rojo fue la sorpresa del crucero! Aguas cristalinas como nunca vi." },
+    ],
+    nearbyDestinations: ["Pedernales", "Bahía de las Águilas", "Barahona"],
+  },
   "la-romana": {
     id: "la-romana",
     name: "Puerto de Cruceros de La Romana",
@@ -336,6 +368,58 @@ export default function PuertoDetalle() {
                   </div>
                 </section>
               )}
+
+              {/* Guía Exclusiva: Qué hacer en 8 Horas de Escala (Item 69) */}
+              <section className="bg-gradient-to-br from-primary/10 via-card to-card rounded-2xl p-6 border border-primary/20">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-bold">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-xl font-bold text-foreground">
+                      Qué hacer en 8 horas de escala en {puerto.name}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Itinerario optimizado para cruceristas con retorno seguro al barco garantizado (tolerancia de 2h antes de zarpe).
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid sm:grid-cols-3 gap-4 mt-6">
+                  <div className="p-4 rounded-xl bg-background/80 border border-border/60">
+                    <div className="inline-block px-2 py-0.5 rounded bg-primary/20 text-primary text-xs font-semibold mb-2">
+                      Horas 1 a 3 (Mañana)
+                    </div>
+                    <h4 className="font-semibold text-sm mb-1">Atracción Principal & Aventura</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {puerto.id === "amber-cove" && "Salida directa a 27 Charcos de Damajagua o teleférico de la Loma Isabel de Torres."}
+                      {puerto.id === "taino-bay" && "Caminata de 10 min al centro histórico: Calle de las Sombrillas, Parque Central y Fortaleza San Felipe."}
+                      {puerto.id === "cabo-rojo" && "Excursión en lancha a Bahía de las Águilas con parada en mirador de la cueva."}
+                      {puerto.id !== "amber-cove" && puerto.id !== "taino-bay" && puerto.id !== "cabo-rojo" && "Desembarque ágil y traslado contratado hacia el polo histórico/natural más cercano."}
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-background/80 border border-border/60">
+                    <div className="inline-block px-2 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 text-xs font-semibold mb-2">
+                      Horas 4 a 6 (Mediodía)
+                    </div>
+                    <h4 className="font-semibold text-sm mb-1">Gastronomía & Relax Criollo</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Almuerzo criollo (pescado con coco o bandera dominicana) frente al mar, degustación de ron añejo y café recién colado.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-background/80 border border-border/60">
+                    <div className="inline-block px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-semibold mb-2">
+                      Horas 7 a 8 (Tarde)
+                    </div>
+                    <h4 className="font-semibold text-sm mb-1">Duty Free & Retorno Seguro</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Compras de ámbar, larimar y café en la terminal. Embarque relajado 90 minutos antes de la hora límite fijada por el capitán.
+                    </p>
+                  </div>
+                </div>
+              </section>
 
               {/* Facilities */}
               {puerto.facilities.length > 0 && (

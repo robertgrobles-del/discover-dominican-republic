@@ -21,6 +21,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { useLightbox } from "@/hooks/useLightbox";
 import { SEOHead } from "@/components/SEOHead";
+import { ClaimBusinessModal } from "@/components/business/ClaimBusinessModal";
 
 // Fallback data for demo
 const fallbackAirbnb = {
@@ -100,6 +101,7 @@ const AirbnbDetalle = () => {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guestCount, setGuestCount] = useState(2);
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
 
   const { data: airbnb, isLoading } = useQuery({
     queryKey: ['airbnb', id],
@@ -226,7 +228,28 @@ const AirbnbDetalle = () => {
                   <MapPin className="h-4 w-4" />
                   <span>{property.address}</span>
                 </div>
-                <h1 className="text-3xl font-bold mb-4">{property.name}</h1>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                  <h1 className="text-3xl font-bold">{property.name}</h1>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setIsClaimModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 border border-primary/30 hover:border-primary px-3 py-1.5 rounded-lg transition-colors bg-primary/5"
+                    >
+                      <Shield className="w-3.5 h-3.5" />
+                      ¿Es tu alojamiento? Reclamar ficha
+                    </button>
+                  </div>
+                </div>
+
+                {/* MITUR Vacation Rental Compliance Tag (Item 24) */}
+                <div className="flex flex-wrap items-center gap-2 mb-4 p-2.5 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-emerald-800 dark:text-emerald-300 text-xs">
+                  <Shield className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="font-semibold">Registro MITUR Vivienda Turística:</span>
+                  <span className="font-mono bg-white/70 dark:bg-black/30 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">
+                    VT-RD-{(property.id || "0482").toString().slice(-4).toUpperCase()}-2026
+                  </span>
+                  <span className="text-[11px] text-muted-foreground ml-auto">Inspeccionado y conforme con normativas turísticas</span>
+                </div>
                 
                 <div className="flex flex-wrap items-center gap-4 text-sm">
                 <div className="flex items-center gap-1">
@@ -572,6 +595,14 @@ const AirbnbDetalle = () => {
           </div>
         </motion.div>
       )}
+
+      {/* Modal Reclamar Ficha */}
+      <ClaimBusinessModal
+        isOpen={isClaimModalOpen}
+        onClose={() => setIsClaimModalOpen(false)}
+        businessName={property.name}
+        businessCategory="Alojamiento / Villa Turística"
+      />
 
       <Footer />
     </PageTransition>

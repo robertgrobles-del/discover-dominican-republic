@@ -11,6 +11,9 @@ import { registerGameJobs } from "./modules/game/jobs.js";
 import { PlayService } from "./modules/game/play.js";
 import { StoreService } from "./modules/store/service.js";
 import { storeRoutes } from "./modules/store/routes.js";
+import { AiService } from "./modules/ai/service.js";
+import { aiRoutes } from "./modules/ai/routes.js";
+import { createAiProvider } from "./modules/ai/provider.js";
 import { TripService } from "./modules/trips/service.js";
 import { tripRoutes } from "./modules/trips/routes.js";
 import { AmbassadorService } from "./modules/ambassadors/service.js";
@@ -74,6 +77,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   app.decorate("play", new PlayService(app.db, game));
   app.decorate("explore", new ExploreService(app.db, game));
   app.decorate("trips", new TripService(app.db, game));
+  app.decorate("ai", new AiService(app.db, app.env, createAiProvider(app.env), app.log));
   app.decorate("community", new CommunityGame(app.db, game));
   const ical = new IcalService(app.db, app.log);
   const automations = new AutomationService(app.db, app.env, app.mailer, ical, app.log);
@@ -141,6 +145,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(gameAdminRoutes);
       await v1.register(exploreRoutes);
       await v1.register(tripRoutes);
+      await v1.register(aiRoutes);
       await v1.register(marketplaceRoutes);
       await v1.register(ambassadorRoutes);
       await v1.register(paymentWebhookRoutes);

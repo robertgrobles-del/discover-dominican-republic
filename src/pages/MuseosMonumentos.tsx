@@ -310,14 +310,21 @@ export default function MuseosMonumentos() {
                             <span className={`absolute top-3 right-3 text-[10px] font-semibold px-2.5 py-1 rounded-full border backdrop-blur-sm ${museum.categoryColor}`}>
                               {museum.category}
                             </span>
-                            {/* Price badge over image bottom */}
-                            <div className="absolute bottom-3 left-3">
+                            {/* Price badge over image bottom (★ Mejora 108) */}
+                            <div className="absolute bottom-3 left-3 flex items-center gap-1.5 flex-wrap">
                               {museum.price === 0 ? (
-                                <span className="bg-emerald-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full">Gratis</span>
-                              ) : (
-                                <span className="bg-black/70 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-1 rounded-full">
-                                  {museum.currency}{museum.price}
+                                <span className="bg-emerald-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full">
+                                  Entrada Libre / Gratis
                                 </span>
+                              ) : (
+                                <>
+                                  <span className="bg-black/80 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/20">
+                                    Nac: RD$ {museum.price} • Ext: $5 USD
+                                  </span>
+                                  <span className="bg-emerald-600/90 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                                    Domingos Gratis
+                                  </span>
+                                </>
                               )}
                             </div>
                           </div>

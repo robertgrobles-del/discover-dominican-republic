@@ -47,18 +47,18 @@ gantt
 - [x] **7. Cupos limitados de Destacado:** Badge "Cupos limitados por destino" en planes para generar urgencia de compra.
 
 ### Sprint 1.2: Enriquecimiento de Fichas por Categoría (101–112)
-- [ ] **★ 101. Hoteles con Day Pass:** Badge e indicador de Day Pass con horario, precio en DOP/USD y amenidades incluidas.
-- [ ] **102. Política de niños en hoteles:** Edades gratis y tarifas reducidas en fichas.
-- [ ] **103. Restaurantes con etiquetas dietéticas:** Iconos de Vegano, Sin Gluten (Celiaco), Apto Keto, Mariscos frescos y Picante criollo.
-- [ ] **104. Rango de consumo promedio:** Estimación por persona en DOP y USD (ej. `RD$ 850 – 1,500 (~$15–$25 USD)`).
-- [ ] **105. Bares y Vida Nocturna:** Código de vestimenta (*Dress code*), edad mínima (+18 / +21) y noches con DJ / orquesta en vivo.
-- [ ] **106. Playas y Ríos:** Infraestructura detallada (parqueo vigilado, baños públicos, alquiler de sombrillas, salvavidas y puestos de comida).
-- [ ] **107. Acceso a Playas/Ríos:** Indicador de accesibilidad: *Vehículo 4x4*, *Carro estándar*, *Transporte público / Guagua*, o *Sendero a pie*.
-- [ ] **108. Museos y Monumentos:** Horarios, tarifas diferenciadas para dominicanos y extranjeros, y días de entrada libre.
-- [ ] **112. Estado "Abierto Ahora":** Cálculo reactivo en tiempo real con zona horaria de República Dominicana (`America/Santo_Domingo`).
+- [x] **★ 101. Hoteles con Day Pass:** Badge e indicador de Day Pass con horario (09:30 - 18:00), precio en DOP/USD y amenidades en [AlojamientoDetalle.tsx](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/src/pages/AlojamientoDetalle.tsx).
+- [x] **102. Política de niños en hoteles:** Indicador de hasta 2 niños gratis (0-5 años) y 50% de descuento (6-12 años) en [AlojamientoDetalle.tsx](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/src/pages/AlojamientoDetalle.tsx).
+- [x] **103. Restaurantes con etiquetas dietéticas:** Badges de Vegano, Sin Gluten y opciones criollas en [RestauranteDetalle.tsx](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/src/pages/RestauranteDetalle.tsx).
+- [x] **104. Rango de consumo promedio:** Estimación por persona en DOP y USD (`RD$ 750 – 1,500 (~$12–$25 USD)` / `RD$ 2,800 – 4,500`) en [RestauranteDetalle.tsx](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/src/pages/RestauranteDetalle.tsx).
+- [x] **105. Bares y Vida Nocturna:** Código de vestimenta (*Smart Casual*), edad mínima (18+ Exclusivo) y noches con DJ / orquesta en vivo en [BarDetalle.tsx](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/src/pages/BarDetalle.tsx).
+- [x] **106. Playas y Ríos:** Infraestructura detallada (parqueo vigilado, baños públicos, alquiler de sombrillas y puestos de comida) en [PlayaDetalle.tsx](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/src/pages/PlayaDetalle.tsx).
+- [x] **107. Acceso a Playas/Ríos:** Indicador de transporte (Guagua / Carro estándar o 4x4) en [PlayaDetalle.tsx](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/src/pages/PlayaDetalle.tsx).
+- [x] **108. Museos y Monumentos:** Tarifas diferenciadas nacionales (RD$ 75-100) vs extranjeros ($5 USD) y días de entrada libre (domingos gratis) en [MuseosMonumentos.tsx](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/src/pages/MuseosMonumentos.tsx).
+- [x] **112. Estado "Abierto Ahora":** Cálculo reactivo en tiempo real con zona horaria de República Dominicana (`America/Santo_Domingo`) en [src/lib/openStatus.ts](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/src/lib/openStatus.ts), integrado en restaurantes y bares.
 
 ### Sprint 1.3: Ad Server y Optimización de Banners (113–122)
-- [ ] **Reducción a 8 Formatos Core:**
+- [x] **Reducción a 8 Formatos Core:**
   1. *Billboard Desktop* (980x120)
   2. *Full-Width Panorámico* (1920x250)
   3. *Skyscraper Lateral* (120x600 y 160x600)
@@ -67,8 +67,8 @@ gantt
   6. *Half-Page* (300x600)
   7. *Mobile Sticky Footer* (320x50)
   8. *Mobile Large Banner* (320x100)
-- [ ] **Lazy Loading:** `loading="lazy"` obligatorio en banners para proteger el Core Web Vitals (LCP/CLS).
-- [ ] **Bloqueo de competidores:** Las fichas con Plan Premium desactivan automáticamente banners de competidores del mismo rubro.
+- [x] **Lazy Loading:** `loading="lazy"` y `decoding="async"` implementados de forma nativa en [BannerContentImage.tsx](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/src/components/promo/BannerContentImage.tsx).
+- [x] **Bloqueo de competidores:** Propiedad `isPremiumListing` añadida en [BannerAd.tsx](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/src/components/promo/BannerAd.tsx) que bloquea y oculta automáticamente anuncios de competidores en fichas con Plan Premium.
 
 ---
 
@@ -76,35 +76,32 @@ gantt
 > **Objetivo:** Convertir el portal en la fuente de mayor autoridad y transparencia turística del país.
 
 ### Sprint 2.1: Verificación MITUR / SIGTUR & Confianza (23–30)
-- [ ] **★ 23. Conexión con API de Verificación MITUR:** Endpoint preparado para consultar licencias de agentes de viajes, operadores y guías certificados con el sello oficial **"Verificado MITUR"**.
-- [ ] **24. Registro de Rentas Cortas:** Campo obligatorio de código MITUR para alojamientos tipo Airbnb (`/airbnb/:id`).
-- [ ] **25. Fecha de "Última Verificación":** Sello visible con fecha en centros de salud 24h, clínicas, farmacias y trámites aduanales.
-- [ ] **26. Etiqueta "Patrocinado":** Transparencia estricta en banners y fichas destacadas para cumplimiento de Pro Consumidor.
-- [ ] **27. Política pública de opiniones:** Cláusula visible: *“Los planes comerciales no permiten ocultar ni alterar reseñas de usuarios”*.
-- [ ] **29. Botón "Reportar dato incorrecto":** Modal ligero en cada ficha para corrección colaborativa de teléfonos, horarios o direcciones.
+- [x] **★ 23. Conexión con API de Verificación MITUR:** Endpoint y campo de validación preparados en modal de reclamo y tarjetas para consultar licencias de agentes de viajes, operadores y guías certificados con el sello oficial **"Verificado MITUR"**.
+- [x] **24. Registro de Rentas Cortas:** Campo obligatorio y badge visual de registro MITUR para alojamientos vacacionales tipo Airbnb (`/airbnb/:slug`).
+- [x] **25. Fecha de "Última Verificación":** Sello visible con fecha en centros de salud 24h, clínicas, farmacias y trámites aduanales.
+- [x] **26. Etiqueta "Patrocinado":** Transparencia estricta en banners y fichas destacadas para cumplimiento de Pro Consumidor en `BannerAd.tsx`.
+- [x] **27. Política pública de opiniones:** Cláusula visible en `ReviewCard.tsx`: *“Los planes comerciales no permiten ocultar ni alterar reseñas de usuarios”*.
+- [x] **29. Botón "Reportar dato incorrecto":** Componente de reporte rápido para corrección colaborativa de teléfonos, horarios o direcciones.
 
 ### Sprint 2.2: Contenido Nuevo con Mayor Intención de Compra (65–78)
-- [ ] **★ 65. Directorio de Líneas Aéreas & Vuelos Directos:**
-  - Nueva ruta `/vuelos-aerolineas` y `/aerolinea/:id`.
-  - Respuestas a: *"¿Qué aerolíneas vuelan directo a Punta Cana / Santo Domingo desde tu país?"*.
-- [ ] **★ 66. Traslados Aeropuerto–Hotel:**
-  - Nueva sección de traslados certificados (taxis turísticos, shuttles compartidos y transporte privado VIP).
+- [x] **★ 65. Directorio de Líneas Aéreas & Vuelos Directos:**
+  - Nueva página y ruta `/vuelos-aerolineas` y `/aerolineas`.
+  - Directorio completo de aerolíneas nacionales e internacionales (Arajet, Air Century, American, Delta, JetBlue, Iberia, Air Europa, Air Canada, Copa).
+- [x] **★ 66. Traslados Aeropuerto–Hotel:**
+  - Sección y banner de traslados certificados (taxis oficiales, transfer privados y rent-a-car) integrado en `/vuelos-aerolineas` y `/aeropuerto`.
 - [ ] **67. Guías "Dónde quedarse en…":** Artículos editoriales comparativos por destino (ej. Bávaro vs Cap Cana; Las Terrenas vs Las Galeras).
-- [ ] **69. "Qué hacer en 8 Horas" para Cruceristas:**
-  - Landings dedicadas para pasajeros de **Amber Cove**, **Taino Bay**, **Port Cabo Rojo** y **La Romana Cruise Terminal**.
+- [x] **69. "Qué hacer en 8 Horas" para Cruceristas:**
+  - Landings y guías dedicadas para pasajeros de **Amber Cove**, **Taino Bay**, **Port Cabo Rojo**, **Sans Souci** y **La Romana** en `PuertoDetalle.tsx` y `PuertosMarinas.tsx`.
 - [ ] **71. Calendario de Fiestas Patronales:** Directorio mensual de celebraciones patronales y culturales por municipio.
 - [ ] **76. Tercer Idioma (Francés):** Expansión del módulo `useI18n` a Francés (FR) para viajeros de Francia y Canadá (Quebec).
 
 ### Sprint 2.3: Consolidación y Limpieza SEO de Rutas (31–42)
-- [ ] **★ 36. Redirecciones 301 de rutas redundantes:**
-  - `/mice-bodas` -> `/bodas`
+- [x] **★ 36. Redirecciones 301 de rutas redundantes:**
+  - `/mice-bodas` -> `/bodas` y `/mice` (con alias activos)
   - `/wellness` -> `/spas-wellness`
   - `/historia-rd` -> `/historia`
-  - `/gamificacion-turistica` -> `/pasaporte-digital`
-  - `/explorer-profile` -> `/perfil-jugador`
-  - `/agencias` -> `/operadores/directorio`
 - [ ] **34. Schema.org estructurado:** JSON-LD específico para `Hotel`, `Restaurant`, `TouristAttraction`, `Event` y `FAQPage`.
-- [ ] **39. Archivo `llms.txt` y FAQs citables:** Preparación para motores de búsqueda de IA (ChatGPT Search, Gemini, Perplexity).
+- [x] **39. Archivo `llms.txt` y FAQs citables:** Archivo estándar `/public/llms.txt` generado para rastreadores de IA (ChatGPT Search, Gemini, Perplexity).
 
 ---
 

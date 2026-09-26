@@ -22,6 +22,7 @@ import { BarVipBookingCard } from "@/components/bar/BarVipBookingCard";
 import { DetailFloatingBar } from "@/components/detail/DetailFloatingBar";
 import { CommentSection } from "@/components/comments/CommentSection";
 import { ClaimBusinessModal } from "@/components/business/ClaimBusinessModal";
+import { calculateOpenStatus } from "@/lib/openStatus";
 
 const barTypeLabels: Record<Bar['barType'], string> = {
   'cocktail-bar': 'Cocktail Bar & Mixología',
@@ -161,14 +162,34 @@ export default function BarDetalle() {
         {/* Action / Meta Bar */}
         <section className="border-b border-border/60 bg-card/40 backdrop-blur-sm">
           <div className="container mx-auto px-4 lg:px-8 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">{bar.musicStyle.join(' • ')}</span>
+            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">{bar.musicStyle.join(' • ')}</span>
               <span>•</span>
               <span className="text-primary font-bold">{bar.priceRange} (Gama de Consumo)</span>
+              <span>•</span>
+              <span className="bg-purple-500/10 text-purple-600 dark:text-purple-400 font-semibold px-2 py-0.5 rounded-md border border-purple-500/20 text-xs">
+                👗 {bar.dressCode || 'Smart Casual'}
+              </span>
+              <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold px-2 py-0.5 rounded-md border border-amber-500/20 text-xs">
+                🔞 {bar.minimumAge}+ Exclusivo
+              </span>
+              <span className="bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded-md border border-primary/20 text-xs">
+                🎵 Noches con DJ & En Vivo
+              </span>
+              <span>•</span>
+              {(() => {
+                const status = calculateOpenStatus(bar.openingHours);
+                return (
+                  <Badge variant="outline" className={`text-[11px] font-bold gap-1 ${status.badgeClass}`}>
+                    <Clock className="h-3 w-3" />
+                    {status.statusLabel}
+                  </Badge>
+                );
+              })()}
               {bar.address && (
                 <>
                   <span>•</span>
-                  <span className="flex items-center gap-1"><MapPin className="h-4 w-4 text-primary" /> {bar.address}</span>
+                  <span className="flex items-center gap-1 text-xs"><MapPin className="h-3.5 w-3.5 text-primary" /> {bar.address}</span>
                 </>
               )}
             </div>

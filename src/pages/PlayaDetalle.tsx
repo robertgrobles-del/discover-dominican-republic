@@ -2,7 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import {
   MapPin, Star, Waves, Umbrella, Car, ShieldCheck, Sun,
   Droplets, Wind, Sparkles, Navigation, Heart, Share2,
-  ChevronRight, Utensils
+  ChevronRight, Utensils, Bus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -317,7 +317,17 @@ export default function PlayaDetalle() {
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-border/60">
                     <span className="text-muted-foreground">Parqueo</span>
-                    <span className="font-bold text-foreground">{beach.parkingAvailable ? "Disponible" : "Limitado"}</span>
+                    <span className="font-bold text-foreground">{beach.parkingAvailable ? "Disponible y Vigilado" : "Borde de carretera"}</span>
+                  </div>
+                  <div className="flex justify-between py-1.5 border-b border-border/60">
+                    <span className="text-muted-foreground">Acceso de Transporte</span>
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                      <Bus className="h-3 w-3" /> Guagua / Carro estándar
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-1.5 border-b border-border/60">
+                    <span className="text-muted-foreground">Servicios en Orilla</span>
+                    <span className="font-bold text-foreground">Baños, Sombrillas & Comida</span>
                   </div>
                 </div>
 

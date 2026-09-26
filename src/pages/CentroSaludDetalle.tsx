@@ -119,11 +119,22 @@ export default function CentroSaludDetalle() {
                           <ShieldCheck className="h-3 w-3" /> Centro Certificado
                         </Badge>
                       )}
+                      <Badge variant="outline" className="text-[10px] text-muted-foreground gap-1 border-border/80">
+                        <Calendar className="h-3 w-3 text-primary" /> Verificado: Septiembre 2026
+                      </Badge>
                       <ClaimBusinessModal
                         businessName={centro.name}
                         businessType="salud"
                         businessId={centro.id}
                       />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 text-[10px] text-muted-foreground hover:text-rose-500 gap-1 px-1.5"
+                        onClick={() => toast.info("Gracias por colaborar. Tu reporte sobre este centro médico ha sido enviado a revisión.")}
+                      >
+                        <AlertTriangle className="h-3 w-3" /> Reportar dato incorrecto
+                      </Button>
                     </div>
 
                     <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground">

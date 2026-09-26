@@ -54,6 +54,14 @@ const schema = z.object({
   PAYMENT_PROVIDER: z.enum(["fake", "none", "stripe"]).optional(),
   STRIPE_SECRET_KEY: z.string().min(10).optional(),
   STRIPE_WEBHOOK_SECRET: z.string().min(10).optional(),
+  /** Asistente de IA: none (apagado) | fake (simulador, sólo desarrollo/pruebas) | anthropic (requiere ANTHROPIC_API_KEY). */
+  AI_PROVIDER: z.enum(["none", "fake", "anthropic"]).optional(),
+  ANTHROPIC_API_KEY: z.string().min(10).optional(),
+  AI_MODEL: z.string().default("claude-sonnet-5"),
+  AI_MODEL_LIGHT: z.string().default("claude-haiku-4-5-20251001"),
+  /** Solicitudes de IA por usuario y día (el personal tiene 10 veces más) y tope global de gasto diario en USD. */
+  AI_DAILY_LIMIT_USER: z.coerce.number().int().min(1).default(20),
+  AI_DAILY_BUDGET_USD: z.coerce.number().min(0).default(20),
   /** Proveedores de datos vivos: none (sin llamadas externas) | open_er_api (tasas) | openweather (clima, requiere OPENWEATHER_API_KEY). */
   FX_PROVIDER: z.enum(["none", "open_er_api"]).default("none"),
   FX_SPREAD_PCT: z.coerce.number().min(0).max(10).default(1),
@@ -110,6 +118,9 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   env.REQUIRE_2FA_FOR_STAFF ??= env.NODE_ENV === "production";
   env.PAYMENT_PROVIDER ??= env.NODE_ENV === "production" ? "none" : "fake";
   if (env.NODE_ENV === "production" && env.PAYMENT_PROVIDER === "fake") throw new Error("Configuración inválida: PAYMENT_PROVIDER=fake no está permitido en producción");
+  env.AI_PROVIDER ??= env.NODE_ENV === "production" ? "none" : "fake";
+  if (env.NODE_ENV === "production" && env.AI_PROVIDER === "fake") throw new Error("Configuración inválida: AI_PROVIDER=fake no está permitido en producción");
+  if (env.AI_PROVIDER === "anthropic" && !env.ANTHROPIC_API_KEY) throw new Error("Configuración inválida: AI_PROVIDER=anthropic requiere ANTHROPIC_API_KEY");
   if (env.PAYMENT_PROVIDER === "stripe" && (!env.STRIPE_SECRET_KEY || !env.STRIPE_WEBHOOK_SECRET)) throw new Error("Configuración inválida: PAYMENT_PROVIDER=stripe requiere STRIPE_SECRET_KEY y STRIPE_WEBHOOK_SECRET");
   if (env.WEATHER_PROVIDER === "openweather" && !env.OPENWEATHER_API_KEY) throw new Error("Configuración inválida: WEATHER_PROVIDER=openweather requiere OPENWEATHER_API_KEY");
   if (env.TOTP_ENCRYPTION_KEY && Buffer.from(env.TOTP_ENCRYPTION_KEY, "base64").length !== 32) throw new Error("Configuración inválida: TOTP_ENCRYPTION_KEY debe ser de 32 bytes en base64");

@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
@@ -279,6 +279,7 @@ const ViveLocal = lazy(() => import("./pages/ViveLocal"));
 const HistoriaIndex = lazy(() => import("./pages/HistoriaIndex"));
 const HistoriaDetalle = lazy(() => import("./pages/HistoriaDetalle"));
 const PricingPlan = lazy(() => import("./pages/PricingPlan"));
+const VuelosAerolineas = lazy(() => import("./pages/VuelosAerolineas"));
 // End of page imports
 
 const queryClient = new QueryClient({
@@ -334,6 +335,11 @@ function AnimatedRoutes() {
           <Route path="/revista" element={<Revista />} />
           <Route path="/aeropuerto" element={<Aeropuerto />} />
           <Route path="/aeropuerto/:slug" element={<AeropuertoDetalle />} />
+          <Route path="/vuelos-aerolineas" element={<VuelosAerolineas />} />
+          <Route path="/aerolineas" element={<VuelosAerolineas />} />
+          <Route path="/rutas-aereas" element={<VuelosAerolineas />} />
+          <Route path="/wellness" element={<Navigate to="/spas-wellness" replace />} />
+          <Route path="/historia-rd" element={<Navigate to="/historia" replace />} />
           <Route path="/vida-nocturna" element={<VidaNocturna />} />
           <Route path="/directorio-agencias" element={<DirectorioAgencias />} />
           <Route path="/guia-gastronomica" element={<GuiaGastronomica />} />
@@ -514,7 +520,7 @@ function AnimatedRoutes() {
           <Route path="/actividad/:slug" element={<ActividadDetalle />} />
           <Route path="/historia" element={<HistoriaIndex />} />
           <Route path="/historia/:slug" element={<HistoriaDetalle />} />
-          <Route path="/historia-rd" element={<HistoriaRD />} />
+          <Route path="/historia-cronologia" element={<HistoriaRD />} />
           <Route path="/historia/personaje/:slug" element={<PersonajeHistorico />} />
           <Route path="/historia/evento/:slug" element={<EventoHistorico />} />
           <Route path="/loteria" element={<Loteria />} />
@@ -605,6 +611,8 @@ function AnimatedRoutes() {
           <Route path="/salud-24h/:id" element={<CentroSaludDetalle />} />
           <Route path="/centro-salud/:id" element={<CentroSaludDetalle />} />
           <Route path="/mice-bodas" element={<MICEBodas />} />
+          <Route path="/bodas" element={<MICEBodas />} />
+          <Route path="/mice" element={<MICEBodas />} />
           <Route path="/eventos-grupo" element={<EventosGrupo />} />
           <Route path="/top-100" element={<Top100 />} />
           <Route path="/operadores" element={<OperadoresLanding />} />

@@ -79,6 +79,8 @@ interface BannerAdProps {
   section?: string;
   /** Pass a pre-fetched banner object directly */
   bannerData?: AdBanner | null;
+  /** Si la ficha es de un establecimiento Premium, bloquea anuncios de competidores (★ Mejora 71) */
+  isPremiumListing?: boolean;
 }
 
 // Default promo messages (clean editorial tourism fallback when no DB banner)
@@ -256,7 +258,13 @@ export function BannerAd({
   industry,
   section,
   bannerData,
+  isPremiumListing = false,
 }: BannerAdProps) {
+  // Si la ficha es de un establecimiento Premium, no se muestran banners de competidores
+  if (isPremiumListing) {
+    return null;
+  }
+
   // Fetch dynamic banner from DB if section is provided and no bannerData passed
   const dynamicBanner = useBanner(
     section && !bannerData

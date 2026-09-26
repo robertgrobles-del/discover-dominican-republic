@@ -174,12 +174,19 @@ El portal está estructurado en 12 áreas principales de navegación y módulos 
 - **Cuerpo Diplomático:** `/embajadas-consulados` (directorio de embajadas y consulados extranjeros en República Dominicana).
 - **Asistencia Médica y Seguros:** `/seguro-viaje` (guía de pólizas de viaje y coberturas para repatriación o emergencias médicas).
 
-### 6. Movilidad, Transporte, Puertos y Migración
-- **Aeropuertos Internacionales:** `/aeropuerto`, `/aeropuerto/:id` (terminales de AILA, Punta Cana PUJ, Cibao STI, Puerto Plata POP, La Romana LRM, Samaná AZS, etc.).
-- **Puertos de Cruceros y Marinas Deportivas:** `/puertos-marinas`, `/puerto/:id`, `/marina/:id`, `/nautica-cruceros` (Amber Cove, Taino Bay, Port Cabo Rojo, Marina Cap Cana, Casa de Campo Marina).
-- **Transporte Masivo y Terrestre:** `/transporte-urbano`, `/metro-santo-domingo`, `/teleferico-santo-domingo`, `/monoriel-santiago`, `/info-transporte`, `/seguridad-vial`.
-- **Renta de Vehículos:** `/alquiler-vehiculos` (flota, requisitos para extranjeros, cobertura de colisión y peajes).
-- **Trámites de Entrada al País:** `/e-ticket`, `/requisitos-viaje`, `/aduanas-duty-free`, `/zonas-horarias`.
+### 6. Movilidad, Transporte, Vuelos, Puertos y Migración
+- **Directorio de Vuelos & Aerolíneas (Nuevo):** `/vuelos-aerolineas`, `/aerolineas`, `/rutas-aereas` (rutas sin escalas, aerolíneas dominicanas como Arajet y Air Century, y aerolíneas internacionales con tiempos de vuelo).
+- **Aeropuertos Internacionales:** `/aeropuerto`, `/aeropuerto/:slug` (terminales de Punta Cana PUJ, Las Américas SDQ, Cibao STI, Puerto Plata POP, vuelos en vivo y traslados oficiales).
+- **Puertos de Cruceros y Marinas:** `/puertos-marinas`, `/puerto/:slug`, `/marina/:slug` (Amber Cove, Taino Bay, Port Cabo Rojo, Sans Souci, La Romana y guías *"Qué hacer en 8 horas de escala"*).
+- **Transporte Masivo y Terrestre:** `/transporte-urbano`, `/metro-santo-domingo`, `/teleferico-santo-domingo`, `/monoriel-santiago`, `/seguridad-vial`.
+- **Renta de Vehículos & Traslados:** `/rent-a-car`, `/alquiler-vehiculos` (flota, requisitos para extranjeros, cobertura de colisión y peajes).
+- **Trámites de Entrada al País:** `/e-ticket`, `/requisitos-viaje`, `/aduanas`, `/zonas-horarias`.
+
+### 7. Monetización, Planes Comerciales & Verificación
+- **Portal para Empresas Turísticas:** `/para-empresas`, `/planes`, `/anunciate` (Planes Gratis, Premium y Destacado con facturación con NCF, soporte DGII y sin comisiones abusivas).
+- **Reclamar Ficha ("¿Es tu negocio?"):** Botón y modal interactivo en todas las fichas de establecimientos para reclamo verificado con RNC y registro de licencia MITUR.
+- **Transparencia y Reseñas Verificadas:** Política explícita anti-fraude que garantiza que ninguna suscripción puede ocultar o alterar reseñas legítimas.
+- **Preparación para IA (Agentic Ready):** Archivo público `/llms.txt` con la estructura semántica de rutas y entidades del turismo dominicano.
 
 ### 7. Herramientas Prácticas para el Viajero (Smart Travel Utilities)
 - **Asistente Inteligente e Itinerarios con IA:** `/itinerario-ia`, `/planifica`, `/itinerarios-recomendados`, `/planificador-grupal`.

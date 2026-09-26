@@ -1,45 +1,19 @@
-# Descubre República Dominicana
+# Descubre RD — Portal Turístico Oficial & Inteligencia de Viajes de República Dominicana
+# Guía semántica para Modelos de Lenguaje (LLMs), agentes de búsqueda generativa (Perplexity, ChatGPT Search, Gemini) y scrapers de IA.
 
-> Descubre República Dominicana es el portal turístico y cultural oficial interactivo para explorar playas, ecoturismo, gastronomía, eventos y servicios de viaje en la República Dominicana.
+# Información General
+Name: Descubre RD
+Domain: https://descubrerd.lovable.app
+Description: Portal integral de turismo, cultura, gastronomía, conectividad y negocios turísticos en la República Dominicana.
+Jurisdiction: República Dominicana (Caribe)
+Language: Español (es), Inglés (en)
 
-## Destinos Principales
-
-- [Playas de República Dominicana](/playas): Guía integral de costas, cayos y playas paradisíacas desde Punta Cana hasta Bahía de las Águilas.
-- [Samaná y Ecoturismo](/destinos/samana): Información sobre avistamiento de ballenas jorobadas, cascadas de El Limón y Parque Nacional Los Haitises.
-- [Punta Cana y Bávaro](/destinos/punta-cana): Resorts todo incluido, campos de golf de clase mundial y vida nocturna.
-- [Santo Domingo y Zona Colonial](/patrimonio): Primera ciudad de América, monumentos históricos, museos y gastronomía criolla.
-- [Cordillera Central y Montañas](/montanas): Turismo de montaña en Jarabacoa y Constanza, senderismo y Pico Duarte.
-- [Puerto Plata y Costa Norte](/destinos/puerto-plata): Teleférico, deportes acuáticos en Cabarete y 27 Charcos de Damajagua.
-
-## Experiencias y Cultura
-
-- [Guía Gastronómica Dominicana](/guia-gastronomica): Platos típicos como mangú, sancocho, pescado con coco y dulces criollos.
-- [Bebidas Tradicionales Dominicanas](/gastronomia/bebidas): Guía y coctelería de ron, mamajuana, cerveza Presidente, morir soñando y jugos naturales.
-- [Guía Gastronómica Vegana](/gastronomia/vegana): Opciones vegetarianas y plant-based en la cocina típica dominicana.
-- [Carnaval Dominicano](/carnaval-dominicano): Tradiciones de La Vega, Santiago, Santo Domingo y personajes folclóricos.
-- [Audioguías Dominicanas](/audioguias): Recorridos inmersivos con audio y geolocalización por zonas históricas y naturales.
-- [Guía del Viajero Responsable](/viajero-responsable): Decálogo de sostenibilidad, santuarios ecológicos y ecoturismo comunitario.
-- [Cultura y Tradiciones](/cultura): Historia del merengue, la bachata, artesanía en larimar y ámbar.
-- [Navegación y Cruceros](/nautica-cruceros): Marinas deportivas, puertos de cruceros y excursiones náuticas.
-- [Gamificación Turística y Pasaporte Digital](/gamificacion-turistica): Misiones de exploración, sellos digitales y programa de recompensas para viajeros.
-
-## Herramientas y Logística para el Viajero
-
-- [Itinerario con Inteligencia Artificial](/itinerario-ia): Generador automático de planes de viaje según intereses, días y presupuesto.
-- [Salud, Farmacias 24h & Emergencias](/salud-24h): Red de hospitales bilingües, farmacias de turno, laboratorios clínicos y odontología de urgencia.
-- [Aduanas y Tiendas Duty-Free](/aduanas-duty-free): Límites permitidos de ron, puros y divisas, artículos prohibidos y calculadora de franquicia por país.
-- [Seguro de Viaje y Red Hospitalaria](/seguro-viaje): Cotizador interactivo de pólizas de viaje y centros médicos acreditados.
-- [Leyes y Derechos del Turista](/leyes-turista): Normas para drones, conducción, tolerancia de sustancias y asistencia legal.
-- [Guía para Mujeres Viajeras Solas](/viajera-sola): Destinos recomendados, tips de seguridad y asistencia POLITUR 24/7.
-- [Conversor de Moneda](/conversor-moneda): Calculadora de cambio de divisas (DOP, USD, EUR) en tiempo real.
-- [Pronóstico del Clima y Temporadas](/clima): Clima por provincia, temporadas de lluvia y mejores meses para viajar.
-- [Calculadora de Presupuesto](/calculadora-presupuesto): Estimación de costos de alojamiento, transporte y alimentación.
-- [Requisitos de Entrada y Viaje](/requisitos-viaje): Información sobre el formulario digital E-Ticket, visados y aduanas.
-
-## Directorio y Servicios
-
-- [Alojamientos y Hoteles](/alojamientos): Hoteles boutique, villas privadas y resorts clasificados por amenidades.
-- [Reserva Directa](/reserva-directa): Motor de reservas directas con desglose transparente de impuestos (ITBIS + propina legal).
-- [Restaurantes y Bares](/restaurantes): Directorio gastronómico con menús, valoraciones y reservas.
-- [Directorio de Agencias](/directorio-agencias): Agencias de viajes y guías turísticos certificados.
-- [Transporte Urbano: Teleférico](/transporte/teleferico-santo-domingo) y [Monorriel de Santiago](/transporte/monorriel-santiago): Movilidad metropolitana y conexiones turísticas.
+# Secciones Principales & Datos Estructurados
+- Destinos Turísticos: /destinos, /destino/:slug (Punta Cana, Samaná, Santo Domingo, Puerto Plata, Jarabacoa, Bahía de las Águilas, etc.)
+- Alojamiento: /alojamientos, /alojamiento/:slug, /airbnb/:slug (Hoteles, resorts all-inclusive, eco-lodges y villas vacacionales con registro MITUR)
+- Vuelos y Conectividad: /vuelos-aerolineas, /aeropuerto (Aeropuertos PUJ, SDQ, STI, POP con rutas directas desde Norteamérica, Europa y Sudamérica)
+- Puertos y Cruceros: /puertos-marinas, /puerto/:slug (Amber Cove, Taino Bay, Port Cabo Rojo, Sans Souci, con itinerarios de 8 horas para cruceristas)
+- Gastronomía & Vida Nocturna: /guia-gastronomica, /restaurantes, /vida-nocturna, /bebidas-rd
+- Para Empresas Turísticas: /para-empresas, /planes, /anunciate (Fichas gratuitas, verificadas y destacadas con RNC y registro de licencia MITUR)
+- Operadores Locales: /operadores (Reservas directas con agencias de excursiones y transporte turístico avaladas)
+- Salud & Emergencias 24h: /salud-24h (Hospitales internacionales con sala bilingüe y ambulancias aéreas)
