@@ -213,6 +213,176 @@
    "nullable": true
   }
  },
+ "airports": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "code": {
+   "type": "text",
+   "nullable": true
+  },
+  "icao": {
+   "type": "text",
+   "nullable": true
+  },
+  "city": {
+   "type": "text",
+   "nullable": true
+  },
+  "province_id": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "airport_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "terminals": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "airlines": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "destinations": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "services": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "transportation": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "nearby_destinations": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "website": {
+   "type": "text",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "review_count": {
+   "type": "integer",
+   "nullable": false
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
  "articles": {
   "id": {
    "type": "uuid",
@@ -4234,6 +4404,168 @@
   },
   "slug": {
    "type": "text",
+   "nullable": true
+  },
+  "slug_history": {
+   "type": "array",
+   "nullable": false
+  },
+  "seo_title": {
+   "type": "text",
+   "nullable": true
+  },
+  "seo_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "og_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "canonical_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "noindex": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "locale_default": {
+   "type": "text",
+   "nullable": false
+  },
+  "created_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "updated_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "reviewed_by": {
+   "type": "uuid",
+   "nullable": true
+  },
+  "version": {
+   "type": "integer",
+   "nullable": false
+  },
+  "deleted_at": {
+   "type": "timestamp",
+   "nullable": true
+  }
+ },
+ "recipes": {
+  "id": {
+   "type": "uuid",
+   "nullable": false
+  },
+  "name": {
+   "type": "text",
+   "nullable": false
+  },
+  "slug": {
+   "type": "text",
+   "nullable": false
+  },
+  "category": {
+   "type": "text",
+   "nullable": true
+  },
+  "region": {
+   "type": "text",
+   "nullable": true
+  },
+  "difficulty": {
+   "type": "text",
+   "nullable": true
+  },
+  "prep_time": {
+   "type": "text",
+   "nullable": true
+  },
+  "cook_time": {
+   "type": "text",
+   "nullable": true
+  },
+  "total_time": {
+   "type": "text",
+   "nullable": true
+  },
+  "servings": {
+   "type": "text",
+   "nullable": true
+  },
+  "calories": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "history": {
+   "type": "text",
+   "nullable": true
+  },
+  "quote": {
+   "type": "text",
+   "nullable": true
+  },
+  "maridaje": {
+   "type": "text",
+   "nullable": true
+  },
+  "badges": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "ingredients": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "steps": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "video_image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "created_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "updated_at": {
+   "type": "timestamp",
+   "nullable": false
+  },
+  "status": {
+   "type": "text",
+   "nullable": false
+  },
+  "published_at": {
+   "type": "timestamp",
+   "nullable": true
+  },
+  "unpublished_at": {
+   "type": "timestamp",
    "nullable": true
   },
   "slug_history": {

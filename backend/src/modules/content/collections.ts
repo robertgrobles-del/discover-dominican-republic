@@ -87,6 +87,8 @@ export const COLLECTIONS: CollectionDef[] = [
   def("hot-springs", "hot_springs", "hot_spring", "Aguas termales", "territorio", { filters: { province: "eq" }, search: ["name", "description", "location"], related: ["province"] }),
   def("monuments", "monuments", "monument", "Monumentos y museos", "territorio", { filters: { province_id: "eq", destination_id: "eq", monument_type: "eq", is_featured: "eq" }, sort: ["name", "rating", "created_at"], geo, relations: { ...destination, ...province }, related: ["province_id", "monument_type"], reviewable: true, nearbyDefault: true }),
   def("bird-species", "bird_species", "bird_species", "Aves", "territorio", { filters: { conservation: "eq" }, search: ["name", "scientific_name", "description"], related: ["conservation"] }),
+  def("recipes", "recipes", "recipe", "Recetas criollas", "gastronomia", { filters: { category: "eq", region: "eq", difficulty: "eq", is_featured: "eq" }, search: ["name", "short_description", "description", "region"], translatable: ["name", "short_description", "description", "history", "maridaje", "quote"], related: ["category", "region"] }),
+  def("airports", "airports", "airport", "Aeropuertos", "servicios", { filters: { province_id: "eq", airport_type: "eq", code: "eq", is_featured: "eq" }, search: ["name", "code", "icao", "city", "short_description"], geo, relations: province, related: ["province_id"] }),
   def("offset-projects", "offset_projects", "offset_project", "Proyectos de compensación", "territorio", { title: "title", filters: { category: "eq" }, search: ["title", "description", "location"] }),
   def("toll-routes", "toll_routes", "toll_route", "Rutas con peaje", "territorio", { search: ["name", "description"] }),
 
