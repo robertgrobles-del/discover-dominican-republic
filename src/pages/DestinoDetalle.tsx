@@ -33,6 +33,9 @@ import { CommentSection } from "@/components/comments/CommentSection";
 import { DestinationHighlightCards } from "@/components/destination/DestinationHighlightCards";
 import { DestinationArrivalGuide } from "@/components/destination/DestinationArrivalGuide";
 import { DestinationConsultantBanner } from "@/components/destination/DestinationConsultantBanner";
+import { HonestGuideSection } from "@/components/detail/HonestGuideSection";
+import { DestinationAnnualCalendar } from "@/components/destination/DestinationAnnualCalendar";
+import { DestinationTimeRadiusMap } from "@/components/destination/DestinationTimeRadiusMap";
 import { destinosData, provinceToDestinationMap } from "@/data/destinosData";
 import { getDestinationBySlug } from "@/data/destinations";
 import { StaticDestinationPage } from "@/components/StaticDestinationPage";
@@ -406,11 +409,23 @@ function DestinoDetalleDynamic({ id }: { id?: string }) {
         {/* Lo que no te puedes perder (Must-See Highlights inspirado en Francia y Colombia) */}
         <DestinationMustSee destinoNombre={displayData.name} />
 
+        {/* Mejora 607: Calendario Anual (Lluvia, Precios, Multitud, Ballenas y Sargazo) */}
+        <DestinationAnnualCalendar 
+          destinationName={displayData.name} 
+          region={displayData.region} 
+        />
+
         {/* Planifica tu Llegada & Rutas Terrestres */}
         <DestinationArrivalGuide
           destinationName={displayData.name}
           provinceName={displayData.region}
           airportInfo={staticDestino?.aeropuerto ? `${staticDestino.aeropuerto.nombre} (${staticDestino.aeropuerto.codigo})` : undefined}
+        />
+
+        {/* Mejora 608: Mapa de Tiempo en Carro (30, 60 y 90 minutos) */}
+        <DestinationTimeRadiusMap 
+          destinationName={displayData.name} 
+          region={displayData.region} 
         />
 
         {/* Micro-destinos y Zonas (Inspirado en Japón, Australia y Landing Punta Cana) */}
@@ -483,6 +498,29 @@ function DestinoDetalleDynamic({ id }: { id?: string }) {
               latitude={displayData.name.includes("Punta Cana") ? 18.5601 : displayData.name.includes("Samaná") ? 19.2058 : displayData.name.includes("Puerto Plata") ? 19.7934 : 18.4861}
               longitude={displayData.name.includes("Punta Cana") ? -68.3725 : displayData.name.includes("Samaná") ? -69.3322 : displayData.name.includes("Puerto Plata") ? -70.6884 : -69.9312}
             />
+
+            {/* Transparencia Editorial: Lo que nadie te dice & Consejo de un Local */}
+            <div className="container mx-auto px-4">
+              <HonestGuideSection
+                destinationName={displayData.name}
+                loQueNadieTeDice={[
+                  "En zonas de playa abierta, negocia el precio de las excursiones y artesanías antes de subirte o adquirirlas.",
+                  "El tráfico en horas pico de salida puede sumar entre 45 y 60 minutos al traslado al aeropuerto.",
+                  "Lleva siempre efectivo en pesos dominicanos (DOP); algunos peajes y restaurantes típicos no aceptan tarjeta.",
+                  "En temporada de verano, el sol es muy intenso de 11:30 AM a 3:30 PM: protector biodegradable y sombrero son vitales."
+                ]}
+                consejoLocal={{
+                  nombre: "Don Ramón Almonte",
+                  rol: "Operador comunitario y residente",
+                  residencia: displayData.name,
+                  consejo: "Levántate temprano para ver salir el sol en la orilla del mar. Si quieres comer el pescado más fresco al mejor precio, pídelo al vapor o frito con tostones en las enramadas familiares de la playa."
+                }}
+                pronunciacion={{
+                  fonetica: displayData.name,
+                  nota: `Región ${displayData.region}`
+                }}
+              />
+            </div>
 
             {/* Suggested Route */}
             <section className="py-16 bg-card/30">

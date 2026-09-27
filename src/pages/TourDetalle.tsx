@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Clock, Users, Star, ChevronRight, Check, X, MapPin,
   Globe, Mountain, Heart, Compass, Award, CalendarDays,
-  Shield, Megaphone, Loader2
+  Shield, Megaphone, Loader2, Phone, MessageCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { TourPhysicalEffort } from "@/components/tour/TourPhysicalEffort";
 import { supabase } from "@/integrations/supabase/client";
 import heroBeach from "@/assets/hero-beach.jpg";
 
@@ -190,6 +191,15 @@ export default function TourDetalle() {
                 </section>
               )}
 
+              {/* Mejora 634: Iconos de Esfuerzo Físico (Caminata, Nado, Escalones, Altitud) */}
+              <TourPhysicalEffort
+                difficulty={tour.difficulty || "moderado"}
+                caminataKm={tour.duration?.includes("Día") ? "4 - 7" : "2.5"}
+                escalones={tour.name.toLowerCase().includes("damajagua") || tour.name.toLowerCase().includes("cascada") ? "140" : undefined}
+                nadoRequerido={tour.name.toLowerCase().includes("saona") || tour.name.toLowerCase().includes("cayo") || tour.name.toLowerCase().includes("charcos")}
+                altitudM={tour.name.toLowerCase().includes("duarte") ? 3098 : tour.name.toLowerCase().includes("constanza") ? 1200 : undefined}
+              />
+
               {/* Included / Not Included */}
               <div className="grid sm:grid-cols-2 gap-6">
                 {tour.included && tour.included.length > 0 && (
@@ -230,15 +240,35 @@ export default function TourDetalle() {
                 <div className="bg-card rounded-2xl border border-border p-6">
                   {tour.price_from ? (
                     <div className="mb-6">
-                      <span className="text-sm text-muted-foreground">Desde</span>
-                      <p className="text-4xl font-bold text-primary">${tour.price_from} <span className="text-lg font-normal text-muted-foreground">{tour.price_currency}/persona</span></p>
+                      <span className="text-xs text-muted-foreground uppercase font-semibold">Tarifa Oficial Desde</span>
+                      <p className="text-3xl sm:text-4xl font-black text-primary">
+                        US$ {tour.price_from} <span className="text-sm font-normal text-muted-foreground">/ persona</span>
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        aprox. RD$ {(tour.price_from * 60).toLocaleString("es-DO")}
+                      </p>
                     </div>
                   ) : (
-                    <p className="text-lg font-medium text-foreground mb-6">Consultar precio</p>
+                    <p className="text-lg font-medium text-foreground mb-6">Consultar precio personalizado</p>
                   )}
 
-                  <Button className="w-full mb-3 text-lg py-6">Reservar Ahora</Button>
-                  <Button variant="outline" className="w-full">Solicitar Información</Button>
+                  <a
+                    href={`https://wa.me/18092214660?text=${encodeURIComponent(`Hola, vi el paquete turístico "${tour.name}" en Descubre República Dominicana (${window.location.href}) y deseo reservar cupos para mi grupo.`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full mb-3 inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg py-5 px-4 rounded-xl transition-all shadow-md"
+                  >
+                    <MessageCircle className="h-5 w-5" />
+                    Reservar Ahora
+                  </a>
+
+                  <a
+                    href={`mailto:info@descubrerd.do?subject=${encodeURIComponent(`Consulta sobre Tour: ${tour.name}`)}&body=${encodeURIComponent(`Hola equipo de Turismo Descubre RD,\n\nDeseo solicitar más información sobre el paquete turístico "${tour.name}".\n\n- Número de viajeros:\n- Fecha aproximada:\n- Preguntas específicas:\n\nGracias.`)}`}
+                    className="w-full inline-flex items-center justify-center gap-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground font-semibold py-3 px-4 rounded-xl text-sm transition-all"
+                  >
+                    <Phone className="h-4 w-4" />
+                    Solicitar Información
+                  </a>
 
                   <div className="mt-6 pt-6 border-t border-border space-y-3 text-sm">
                     {tour.duration && (

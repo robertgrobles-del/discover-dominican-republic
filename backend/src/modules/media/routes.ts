@@ -10,6 +10,7 @@ import { assertPublicUrl } from "../operators/ical.js";
 import type { JobRunner } from "../jobs/runner.js";
 import { audit } from "../operators/team.js";
 import { readImage, sniffMime, type ImageMime } from "./images.js";
+import type { Scanner } from "./antivirus.js";
 import { processImage, VARIANTS, type Processed, type VariantName } from "./process.js";
 
 const MB = 1024 * 1024;
@@ -50,7 +51,7 @@ const defaultFetcher: Fetcher = async (url) => {
   return { status: res.status, contentType: res.headers.get("content-type"), body };
 };
 
-declare module "fastify" { interface FastifyInstance { mediaFetcher: { fn: Fetcher }; mediaStorage: MediaStorage } }
+declare module "fastify" { interface FastifyInstance { mediaFetcher: { fn: Fetcher }; mediaStorage: MediaStorage; scanner: Scanner } }
 
 const ok = z.object({ data: z.any() });
 const bearer = [{ bearerAuth: [] }];
@@ -150,6 +151,14 @@ export async function mediaRoutes(app: FastifyInstance) {
     if (a.status !== "uploaded") throw new AppError("BUSINESS_RULE", a.status === "pending" ? "Todavía no se subió el archivo" : "Este archivo fue rechazado", { code: "INVALID_STATE" });
     const buf = await storage.get(req.params.id);
     if (!buf || buf.length !== a.declared_size) return reject(req.params.id, "El archivo no se guardó completo", "INCOMPLETE_UPLOAD");
+    // Antivirus antes de interpretar nada del archivo. Si el análisis no responde lanza 503 y el archivo sigue "subido": se reintenta con el mismo `complete`.
+    const scan = await app.scanner.scan(buf);
+    if (!scan.clean) {
+      await db.query("UPDATE media_assets SET scan_status = 'infected', scanned_at = now() WHERE id = $1", [req.params.id]);
+      await audit(db, { actor: req.user!.id, action: "media.malware_detected", entity: "media", id: req.params.id, meta: { signature: scan.signature }, ip: req.ip });
+      return reject(req.params.id, "El archivo fue rechazado por seguridad", "MALWARE_DETECTED");
+    }
+    await db.query("UPDATE media_assets SET scan_status = $2, scanned_at = now() WHERE id = $1", [req.params.id, app.scanner.name === "none" ? "skipped" : "clean"]);
     const img = readImage(buf);
     if (!img) return reject(req.params.id, "El archivo no es una imagen válida", "NOT_AN_IMAGE");
     if (img.mime !== a.mime || sniffMime(buf) !== a.mime) return reject(req.params.id, "El contenido no coincide con el tipo declarado", "MIME_MISMATCH");
@@ -228,6 +237,8 @@ export async function mediaRoutes(app: FastifyInstance) {
     try { res = await app.mediaFetcher.fn(req.body.url); } catch (e) { if (e instanceof AppError) throw e; throw new AppError("UPSTREAM_ERROR", "No se pudo descargar la imagen", { reason: (e as Error).message.slice(0, 120) }); }
     if (res.status !== 200) throw new AppError("UPSTREAM_ERROR", `El sitio respondió ${res.status}`);
     if (res.body.length > PURPOSES.cms) throw AppError.validation("El archivo supera el tamaño permitido");
+    const scan = await app.scanner.scan(res.body);
+    if (!scan.clean) { await audit(db, { actor: req.user!.id, action: "media.malware_detected", entity: "media", id: null, meta: { signature: scan.signature, url: req.body.url }, ip: req.ip }); throw new AppError("BUSINESS_RULE", "El archivo fue rechazado por seguridad", { code: "MALWARE_DETECTED" }); }
     const img = readImage(res.body);
     if (!img) throw AppError.validation("La URL no apunta a una imagen válida (jpeg, png, webp o gif)");
     if (img.width < MIN_SIDE || img.height < MIN_SIDE || img.width > MAX_SIDE || img.height > MAX_SIDE || img.width * img.height > MAX_PIXELS) throw AppError.validation("Las dimensiones de la imagen no son válidas");

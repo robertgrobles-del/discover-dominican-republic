@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy } from "lucide-react";
+import { Trophy, Award, Shield } from "lucide-react";
+import { LEAGUES_TIERS } from "@/services/gamificationEngine";
 
 interface LeaderboardEntry {
   user_id: string;
@@ -152,6 +153,43 @@ export function RankingTab({
         )}
       </div>
 
+      {/* Mejora 650: Rangos con Materiales Dominicanos (Cacao, Ámbar, Larimar, Caoba, Cacicazgo, Leyenda) */}
+      <div className="mt-12 pt-8 border-t border-border/60">
+        <div className="text-center mb-6">
+          <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20 mb-2">
+            Mejora 650 · Identidad Quisqueyana
+          </Badge>
+          <h3 className="text-xl font-bold text-foreground">
+            Escalafón de Exploradores: Materiales Autóctonos
+          </h3>
+          <p className="text-xs text-muted-foreground mt-1 max-w-lg mx-auto">
+            Avanza desde el noble Cacao hasta la Leyenda Nacional acumulando puntos de experiencia (XP) por descubrir el país.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {LEAGUES_TIERS.map((tier) => (
+            <div
+              key={tier.id}
+              className={`p-3.5 rounded-2xl border ${tier.badgeColor} flex flex-col justify-between hover:scale-[1.02] transition-transform`}
+            >
+              <div>
+                <div className="flex items-center justify-between gap-1 mb-1">
+                  <span className="text-2xl">{tier.icon}</span>
+                  <span className="text-[10px] font-mono font-bold">{tier.minXp.toLocaleString()} XP</span>
+                </div>
+                <h4 className="font-bold text-sm text-foreground">{tier.name}</h4>
+                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">{tier.material}</p>
+              </div>
+
+              <div className="pt-2.5 mt-2 border-t border-border/40 text-[10px] text-muted-foreground">
+                <span className="font-semibold text-primary">+{tier.weeklyRewardCoins} monedas/sem.</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {!user && (
         <div className="mt-8 p-6 rounded-2xl bg-primary/5 border border-primary/20 text-center">
           <Trophy className="h-10 w-10 text-amber-500 mx-auto mb-3" />
@@ -160,6 +198,45 @@ export function RankingTab({
           <Button asChild><Link to="/registro">Crear Cuenta Gratis</Link></Button>
         </div>
       )}
+
+      {/* Tiers & Ligas con Materiales Dominicanos */}
+      <div className="mt-12 pt-8 border-t border-border">
+        <div className="text-center mb-6">
+          <h3 className="text-lg font-bold text-foreground flex items-center justify-center gap-2">
+            <span>🇩🇴</span> Rangos Emblemáticos de Exploradores
+          </h3>
+          <p className="text-xs text-muted-foreground">Progresión por identidad dominicana y recompensas semanales en monedas</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          {[
+            { id: "cacao", name: "Rango Cacao", material: "Cacao Orgánico Dominicano", minXp: 0, icon: "🍫", color: "border-amber-800/30 bg-amber-900/10 text-amber-800 dark:text-amber-500", perk: "Retos de 32 provincias", coins: 25 },
+            { id: "ambar", name: "Rango Ámbar", material: "Ámbar Fósil de la Cordillera", minXp: 500, icon: "🍯", color: "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400", perk: "5% en Marketplace", coins: 50 },
+            { id: "larimar", name: "Rango Larimar", material: "Larimar de Barahona", minXp: 1500, icon: "💎", color: "border-cyan-500/30 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400", perk: "Pases prioritarios en museos", coins: 100 },
+            { id: "caoba", name: "Rango Caoba", material: "Árbol Nacional de la Caoba", minXp: 3500, icon: "🌳", color: "border-orange-800/30 bg-orange-800/10 text-orange-800 dark:text-orange-400", perk: "Acceso a Duelos VIP", coins: 200 },
+            { id: "diamante-taino", name: "Gran Cacicazgo", material: "Oro de Cotuí & Arte Taíno", minXp: 7000, icon: "👑", color: "border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400", perk: "Postulación a Creador VIP", coins: 350 },
+            { id: "legend", name: "Leyenda Quisqueyana", material: "Patrimonio Nacional Vivo", minXp: 12000, icon: "🌟", color: "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400", perk: "Estancias y Diploma de Honor", coins: 600 }
+          ].map((tier) => (
+            <div key={tier.id} className={`p-3.5 rounded-2xl border ${tier.color} flex flex-col justify-between`}>
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <div className="flex items-center gap-1.5 font-bold text-sm">
+                    <span>{tier.icon}</span>
+                    <span>{tier.name}</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{tier.material}</p>
+                </div>
+                <Badge variant="outline" className="text-[10px] font-mono shrink-0">
+                  {tier.minXp} XP
+                </Badge>
+              </div>
+              <div className="pt-2 border-t border-border/50 text-[11px] flex items-center justify-between">
+                <span className="text-muted-foreground truncate">{tier.perk}</span>
+                <span className="font-bold text-amber-500 shrink-0">+{tier.coins} 🪙/sem</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

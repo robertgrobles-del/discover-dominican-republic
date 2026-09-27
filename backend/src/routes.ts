@@ -32,7 +32,9 @@ import { MarketplaceService } from "./modules/marketplace/service.js";
 import { marketplaceRoutes } from "./modules/marketplace/routes.js";
 import { LiveService } from "./modules/live/service.js";
 import path from "node:path";
-import { LocalStorage, defaultFetcher, mediaRoutes, registerMediaJobs } from "./modules/media/routes.js";
+import { LocalStorage, type MediaStorage, defaultFetcher, mediaRoutes, registerMediaJobs } from "./modules/media/routes.js";
+import { createScanner } from "./modules/media/antivirus.js";
+import { S3Storage } from "./modules/media/storage-s3.js";
 import { i18nRoutes } from "./modules/i18n/routes.js";
 import { analyticsRoutes, registerAnalyticsJobs } from "./modules/analytics/routes.js";
 import { marketingRoutes, registerMarketingJobs } from "./modules/marketing/routes.js";
@@ -96,7 +98,11 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   app.decorate("marketplace", marketplace);
   marketplace.onMoneyChange = (id) => ambassadors.syncOrder("marketplace", id);
   app.decorate("live", new LiveService(app.db, app.env, app.log));
-  app.decorate("mediaStorage", new LocalStorage(path.resolve(app.env.MEDIA_DIR)));
+  const mediaStorage: MediaStorage = app.env.MEDIA_STORAGE === "s3"
+    ? new S3Storage({ endpoint: app.env.S3_ENDPOINT ?? `https://s3.${app.env.S3_REGION}.amazonaws.com`, region: app.env.S3_REGION, bucket: app.env.S3_BUCKET!, accessKey: app.env.S3_ACCESS_KEY_ID!, secretKey: app.env.S3_SECRET_ACCESS_KEY!, prefix: app.env.S3_PREFIX, pathStyle: app.env.S3_PATH_STYLE })
+    : new LocalStorage(path.resolve(app.env.MEDIA_DIR));
+  app.decorate("mediaStorage", mediaStorage);
+  app.decorate("scanner", createScanner(app.env));
   app.decorate("mediaFetcher", { fn: defaultFetcher });
   const game = new GameService(app.db);
   app.decorate("game", game);

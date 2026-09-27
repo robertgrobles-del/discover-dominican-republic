@@ -319,7 +319,97 @@ export default function Cultura() {
           </div>
         </section>
 
-        {/* CTA CRÓNICAS HISTÓRICAS */}
+        {/* PERSONAJES DEL CARNAVAL DOMINICANO (GUÍAS VISUALES CULTURALES) */}
+        <section className="py-16 bg-muted/30 border-y border-border">
+          <div className="container mx-auto px-4 max-w-6xl space-y-8">
+            <div className="text-center max-w-2xl mx-auto">
+              <Badge className="bg-primary/20 text-primary mb-2">FOLKLORE VIVO & PERSONAJES</Badge>
+              <h2 className="font-display text-3xl sm:text-4xl font-black">
+                Personajes Icónicos del Carnaval Dominicano
+              </h2>
+              <p className="text-sm text-muted-foreground mt-2">
+                Símbolos satíricos y festivos creados por la imaginación popular que acompañan nuestras celebraciones.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-6">
+              {[
+                {
+                  nombre: "El Diablo Cojuelo",
+                  origen: "La Vega & Santiago",
+                  icono: "👺",
+                  desc: "El personaje estelar con su máscara de cuernos afilados, capa reluciente y vejiga de vaca con la que castiga jocosamente a los espectadores distraídos en el desfile.",
+                  lema: "Satírico y desobediente"
+                },
+                {
+                  nombre: "Roba la Gallina",
+                  origen: "Todo el país (Popular)",
+                  icono: "🪶",
+                  desc: "Divertida figura vestida con senos y caderas gigantescas de almohadones, sombrilla y bolso, cantando estribillos pidiendo dulces y monedas para sus 'pollitos'.",
+                  lema: "¡Ti-ti, manatí, roba la gallina!"
+                },
+                {
+                  nombre: "Califé",
+                  origen: "Santo Domingo",
+                  icono: "🎩",
+                  desc: "Poeta crítico del pueblo vestido con frac negro, sombrero de copa alta y rostro pintado. Recita versos rimados de denuncia social y política con humor incisivo.",
+                  lema: "La voz rimada de la conciencia popular"
+                },
+              ].map((p, i) => (
+                <div key={i} className="bg-card rounded-2xl border border-border p-6 space-y-3 hover:border-primary/50 transition-all shadow-sm">
+                  <div className="text-4xl">{p.icono}</div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider block">{p.origen}</span>
+                    <h3 className="font-display text-lg font-bold text-foreground mt-0.5">{p.nombre}</h3>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{p.desc}</p>
+                  <p className="text-xs font-semibold text-primary italic pt-1 border-t border-border/50">"{p.lema}"</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* MITOS Y LEYENDAS DOMINICANAS */}
+        <section className="py-16">
+          <div className="container mx-auto px-4 max-w-6xl space-y-8">
+            <div className="text-center max-w-2xl mx-auto">
+              <Badge className="bg-purple-500/20 text-purple-600 dark:text-purple-400 mb-2">ORALIDAD & MISTERIO</Badge>
+              <h2 className="font-display text-3xl sm:text-4xl font-black">
+                Mitos y Leyendas de Nuestra Tierra
+              </h2>
+              <p className="text-sm text-muted-foreground mt-2">
+                Relatos transmitidos de generación en generación en los campos y cordilleras de la República Dominicana.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-6">
+              {[
+                {
+                  titulo: "La Ciguapa",
+                  zona: "Cordillera Central & Cibao",
+                  desc: "Mujer mítica de largas cabelleras negras y pies volteados hacia atrás que confunde a quien intente seguir sus huellas por los bosques vírgenes al caer la noche."
+                },
+                {
+                  titulo: "El Galipote",
+                  zona: "San Juan & Región Sur",
+                  desc: "Ser legendario con la facultad mágica de transformarse en perro, tronco de árbol o animal de carga para despistar caminantes en senderos desolados."
+                },
+                {
+                  titulo: "El Bacá",
+                  zona: "Valles y Zonas Rurales",
+                  desc: "Ente sobrenatural creado mediante pactos para resguardar tierras, cosechas y ganado, con la advertencia moral de que la codicia desmedida cobra su precio."
+                }
+              ].map((m, idx) => (
+                <div key={idx} className="bg-card rounded-2xl border border-border p-6 space-y-2.5 hover:shadow-md transition-all">
+                  <span className="text-xs text-purple-600 dark:text-purple-400 font-semibold">{m.zona}</span>
+                  <h3 className="font-display text-lg font-bold text-foreground">{m.titulo}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{m.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
         <section className="py-16">
           <div className="container mx-auto px-4 max-w-4xl text-center">
             <div className="bg-gradient-to-br from-amber-600/15 via-card to-orange-600/15 rounded-3xl p-8 sm:p-12 border border-amber-500/25">

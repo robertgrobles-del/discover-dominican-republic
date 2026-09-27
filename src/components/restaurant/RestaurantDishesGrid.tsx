@@ -7,6 +7,8 @@ export interface SignatureDishDetail {
   tags: string[];
   pairing: string;
   priceEst: string;
+  spiceLevel?: 0 | 1 | 2 | 3; // 0=suave, 1=toque caribeño, 2=picante medio, 3=picante intenso
+  flavorIntensity?: "Suave" | "Equilibrado" | "Intenso & Especiado" | "Fuerte Criollo";
 }
 
 interface RestaurantDishesGridProps {
@@ -45,7 +47,28 @@ export function RestaurantDishesGrid({ dishes }: RestaurantDishesGridProps) {
               </div>
               
               <h4 className="font-display text-lg font-bold text-foreground mb-1.5">{dish.title}</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-4">{dish.desc}</p>
+              <p className="text-xs text-muted-foreground leading-relaxed mb-3">{dish.desc}</p>
+
+              {/* Mejora 635: Escala visual de intensidad de sabor y picante */}
+              <div className="flex items-center justify-between text-xs py-2 px-3 bg-muted/30 rounded-xl mb-3 border border-border/40">
+                <span className="text-[11px] text-muted-foreground">
+                  Sabor: <strong className="text-foreground">{dish.flavorIntensity || "Equilibrado"}</strong>
+                </span>
+                <div className="flex items-center gap-1" title={`Nivel de Picante: ${dish.spiceLevel ?? 0} de 3`}>
+                  <span className="text-[10px] text-muted-foreground mr-1">Picante:</span>
+                  {[1, 2, 3].map((lvl) => {
+                    const active = (dish.spiceLevel ?? (dish.title.toLowerCase().includes("chivo") || dish.title.toLowerCase().includes("aguachile") ? 2 : 0)) >= lvl;
+                    return (
+                      <span
+                        key={lvl}
+                        className={`text-xs ${active ? "opacity-100 scale-110" : "opacity-25 grayscale"}`}
+                      >
+                        🌶️
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             <div className="space-y-3 pt-3 border-t border-border/50">

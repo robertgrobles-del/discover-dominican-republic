@@ -54,6 +54,25 @@ const getConditionLabel = (condition: WeatherData["condition"]) => {
 export function WeatherWidget() {
   const [selectedCity, setSelectedCity] = useState(0);
   const weather = mockWeatherData[selectedCity];
+  const [rdTime, setRdTime] = useState("");
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      // Formato oficial hora RD (America/Santo_Domingo UTC-4)
+      const formatter = new Intl.DateTimeFormat("es-DO", {
+        timeZone: "America/Santo_Domingo",
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true
+      });
+      setRdTime(formatter.format(now));
+    };
+
+    updateTime();
+    const timer = setInterval(updateTime, 30000); // Cada 30 seg
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -69,13 +88,21 @@ export function WeatherWidget() {
           {getWeatherIcon(weather.condition, "h-3.5 w-3.5 text-primary")}
           <span className="font-semibold text-white">{weather.temp}°C</span>
           <span className="hidden md:inline text-white/80 text-[11px]">{weather.city}</span>
+          {rdTime && (
+            <span className="hidden lg:inline text-amber-300 font-mono text-[11px] border-l border-white/20 pl-1.5">
+              RD: {rdTime}
+            </span>
+          )}
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-4" align="end">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="font-display font-bold text-foreground">Clima en RD</h4>
-            <span className="text-xs text-muted-foreground">Actualizado ahora</span>
+            <div>
+              <h4 className="font-display font-bold text-foreground">Clima & Hora Oficial</h4>
+              {rdTime && <p className="text-xs text-amber-500 font-medium">Hora local RD: {rdTime} (GMT-4)</p>}
+            </div>
+            <span className="text-xs text-muted-foreground">En vivo</span>
           </div>
           
           <div className="grid grid-cols-2 gap-2">

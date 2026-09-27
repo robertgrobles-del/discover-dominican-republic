@@ -27,6 +27,7 @@ import { PartnerAnalyticsChart } from "@/components/partner/PartnerAnalyticsChar
 import { PartnerReservationsTable } from "@/components/partner/PartnerReservationsTable";
 import { PartnerReviewsManager } from "@/components/partner/PartnerReviewsManager";
 import { PartnerProfileForm } from "@/components/partner/PartnerProfileForm";
+import { PartnerPublicFichaEditor } from "@/components/partner/PartnerPublicFichaEditor";
 import { 
   initialReservations, 
   initialReviews, 
@@ -257,7 +258,8 @@ export default function PartnerDashboard() {
               <TabsTrigger value="eventos" className="gap-1 text-xs text-primary font-bold"><Ticket className="h-3.5 w-3.5" /> Mis Eventos</TabsTrigger>
               <TabsTrigger value="deportes" className="gap-1 text-xs text-amber-500 font-bold"><Trophy className="h-3.5 w-3.5" /> Torneos & Deportes</TabsTrigger>
               <TabsTrigger value="marketplace" className="gap-1 text-xs text-emerald-500 font-bold"><ShieldCheck className="h-3.5 w-3.5" /> Ventas & Envíos (Escrow)</TabsTrigger>
-              <TabsTrigger value="ficha" className="gap-1 text-xs"><Settings className="h-3.5 w-3.5" /> Mi Ficha</TabsTrigger>
+              <TabsTrigger value="ficha" className="gap-1 text-xs"><Settings className="h-3.5 w-3.5" /> Cuenta Partner</TabsTrigger>
+              <TabsTrigger value="ficha-publica" className="gap-1 text-xs text-emerald-600 font-bold"><ShieldCheck className="h-3.5 w-3.5" /> Ficha Pública</TabsTrigger>
               <TabsTrigger value="resenas" className="gap-1 text-xs"><MessageSquare className="h-3.5 w-3.5" /> Reseñas</TabsTrigger>
               <TabsTrigger value="b2b" className="gap-1 text-xs"><Briefcase className="h-3.5 w-3.5" /> Consola B2B</TabsTrigger>
             </TabsList>
@@ -305,6 +307,15 @@ export default function PartnerDashboard() {
                 setDescription={setDescription}
                 loading={loading}
                 onSubmit={handleUpdateProfile}
+              />
+            </TabsContent>
+
+            {/* TAB CONTENT: PUBLIC FICHA MANAGEMENT (DIRECTORIO NACIONAL / SUPABASE) */}
+            <TabsContent value="ficha-publica">
+              <PartnerPublicFichaEditor
+                userEmail={email || user?.email || ""}
+                userId={user?.id}
+                businessType={businessType}
               />
             </TabsContent>
 

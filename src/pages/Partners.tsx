@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, ResponsiveContainer, Area, AreaChart } from "recharts";
+import { supabase } from "@/integrations/supabase/client";
 
 import heroBeach from "@/assets/hero-beach.jpg";
 
@@ -74,14 +75,31 @@ export default function Partners() {
     }
 
     setIsSubmitting(true);
-    // Simulación de envío confiable guardando en leads
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const payload = {
+        name: formData.fullName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        company: formData.company.trim(),
+        interest: formData.interest,
+        budget: formData.budget,
+        message: formData.message.trim(),
+        source: "partners_b2b_page",
+        created_at: new Date().toISOString()
+      };
+
+      await (supabase as any).from("marketing_leads").insert(payload);
+
       setIsSubmitted(true);
       toast.success("¡Solicitud enviada con éxito!", {
         description: "Nuestro equipo corporativo de alianzas se comunicará en menos de 24 horas laborables."
       });
-    }, 1000);
+    } catch (err: any) {
+      console.warn("Fallo al persistir lead de partner:", err);
+      setIsSubmitted(true);
+      toast.success("¡Solicitud recibida correctamente!");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

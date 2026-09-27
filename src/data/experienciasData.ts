@@ -6,7 +6,9 @@ import {
   Music, 
   Heart, 
   Utensils, 
-  Users 
+  Users,
+  CloudRain,
+  Trees
 } from "lucide-react";
 
 import adventure from "@/assets/adventure.jpg";
@@ -36,6 +38,8 @@ export interface StaticExperienceItem {
 
 export const experienceCategories: ExperienceCategory[] = [
   { id: "todos", label: "Todos", icon: Compass },
+  { id: "sin-playa", label: "RD Sin Playa (Montaña & Café)", icon: Trees },
+  { id: "dias-lluvia", label: "Si Llueve (Bajo Techo)", icon: CloudRain },
   { id: "naturaleza", label: "Naturaleza", icon: Palmtree },
   { id: "aventura", label: "Aventura", icon: Mountain },
   { id: "cultura", label: "Cultura", icon: Music },
@@ -62,4 +66,9 @@ export const staticExperiencias: StaticExperienceItem[] = [
   { id: "nomadas", nombre: "Nómadas Digitales", imagen: puntaCana, desc: "Trabaja desde el paraíso caribeño", link: "/nomadas-digitales", cat: "bienestar" },
   { id: "lujo", nombre: "Lujo", imagen: hotelEdenRoc, desc: "Experiencias exclusivas", cat: "bienestar" },
   { id: "compras", nombre: "Compras", imagen: merengue, desc: "Tesoros del Caribe", cat: "cultura" },
+  // Mejora 622 & 623
+  { id: "ruta-del-cafe-jarabacoa", nombre: "Ruta del Café & Fincas de Montaña", imagen: adventure, desc: "Aromas, senderos entre pinos y catas en Jarabacoa y Polo Barahona", cat: "sin-playa" },
+  { id: "valle-nuevo-senderismo", nombre: "Piramides de Valle Nuevo & Constanza", imagen: whaleSamana, desc: "Clima frío de montaña, valles agrícolas y flores alpinas en el Caribe", cat: "sin-playa" },
+  { id: "cuevas-pomier-maravillas", nombre: "Espeleología & Cuevas Subterráneas", imagen: santoDomingo, desc: "Refugio ideal bajo techo: arte rupestre taíno en Cueva de las Maravillas y Pomier", cat: "dias-lluvia" },
+  { id: "museos-zona-colonial", nombre: "Circuito de Museos Coloniales y Fábricas de Chocolate", imagen: gastronomy, desc: "Alcázar de Colón, Museo de las Casas Reales y talleres de cacao artesanal", cat: "dias-lluvia" },
 ];

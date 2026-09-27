@@ -38,10 +38,11 @@ export const MACROREGIONES_RD: Record<string, { name: string; provinces: string[
   }
 };
 
-// Ligas de Exploradores
+// Ligas y Rangos de Exploradores con Materiales Emblemáticos Dominicanos (Mejora 650)
 export interface LeagueTier {
   id: string;
   name: string;
+  material: string;
   minXp: number;
   icon: string;
   badgeColor: string;
@@ -50,12 +51,66 @@ export interface LeagueTier {
 }
 
 export const LEAGUES_TIERS: LeagueTier[] = [
-  { id: "bronze", name: "Liga Bronce", minXp: 0, icon: "🥉", badgeColor: "bg-amber-700/20 text-amber-700 border-amber-700/30", weeklyRewardCoins: 25, perks: ["Acceso a retos básicos"] },
-  { id: "silver", name: "Liga Plata", minXp: 500, icon: "🥈", badgeColor: "bg-slate-400/20 text-slate-300 border-slate-400/30", weeklyRewardCoins: 50, perks: ["5% de descuento en Marketplace"] },
-  { id: "gold", name: "Liga Oro", minXp: 1500, icon: "🥇", badgeColor: "bg-amber-500/20 text-amber-500 border-amber-500/30", weeklyRewardCoins: 100, perks: ["10% en Marketplace", "Pases prioritarios"] },
-  { id: "platinum", name: "Liga Platino", minXp: 3500, icon: "💎", badgeColor: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30", weeklyRewardCoins: 200, perks: ["15% en Marketplace", "Acceso a Duelos VIP"] },
-  { id: "diamond", name: "Liga Diamante", minXp: 7000, icon: "👑", badgeColor: "bg-purple-500/20 text-purple-400 border-purple-500/30", weeklyRewardCoins: 350, perks: ["20% en Marketplace", "Postulación directa a Creadores"] },
-  { id: "legend", name: "Liga Leyenda Quisqueyana", minXp: 12000, icon: "🌟", badgeColor: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30", weeklyRewardCoins: 600, perks: ["25% en Marketplace", "Estancias VIP y Diploma de Honor"] }
+  { 
+    id: "cacao", 
+    name: "Rango Cacao", 
+    material: "Cacao Orgánico Dominicano",
+    minXp: 0, 
+    icon: "🍫", 
+    badgeColor: "bg-amber-900/20 text-amber-800 dark:text-amber-500 border-amber-800/30", 
+    weeklyRewardCoins: 25, 
+    perks: ["Acceso a retos básicos y pasaporte de 32 provincias"] 
+  },
+  { 
+    id: "ambar", 
+    name: "Rango Ámbar", 
+    material: "Ámbar Fósil de la Cordillera",
+    minXp: 500, 
+    icon: "🍯", 
+    badgeColor: "bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30", 
+    weeklyRewardCoins: 50, 
+    perks: ["5% de descuento en Marketplace y tiendas aliadas"] 
+  },
+  { 
+    id: "larimar", 
+    name: "Rango Larimar", 
+    material: "Piedra Larimar de Barahona (Pectolita Azul)",
+    minXp: 1500, 
+    icon: "💎", 
+    badgeColor: "bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border-cyan-500/30", 
+    weeklyRewardCoins: 100, 
+    perks: ["10% en Marketplace", "Pases prioritarios en museos aliados"] 
+  },
+  { 
+    id: "caoba", 
+    name: "Rango Caoba Centenaria", 
+    material: "Árbol Nacional de la Caoba",
+    minXp: 3500, 
+    icon: "🌳", 
+    badgeColor: "bg-orange-800/20 text-orange-800 dark:text-orange-400 border-orange-800/30", 
+    weeklyRewardCoins: 200, 
+    perks: ["15% en Marketplace", "Acceso a Duelos y Desafíos VIP"] 
+  },
+  { 
+    id: "diamante-taino", 
+    name: "Rango Gran Cacicazgo", 
+    material: "Oro de Cotuí & Arte Rupestre Taíno",
+    minXp: 7000, 
+    icon: "👑", 
+    badgeColor: "bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30", 
+    weeklyRewardCoins: 350, 
+    perks: ["20% en Marketplace", "Postulación directa a Creadores Verificados"] 
+  },
+  { 
+    id: "legend", 
+    name: "Leyenda Quisqueyana", 
+    material: "Patrimonio Vivo de la República",
+    minXp: 12000, 
+    icon: "🌟", 
+    badgeColor: "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30", 
+    weeklyRewardCoins: 600, 
+    perks: ["25% en Marketplace", "Estancias VIP y Diploma de Honor del Clúster"] 
+  }
 ];
 
 export class GamificationSoundEngine {

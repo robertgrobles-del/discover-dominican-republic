@@ -111,12 +111,12 @@ export function AccommodationRooms({
                 <div className="flex items-center justify-between pt-4 border-t border-border/60">
                   <div>
                     <span className="text-xs text-muted-foreground">Tarifa por noche</span>
-                    <div className="flex items-baseline gap-1">
+                    <div className="flex items-baseline gap-1.5 flex-wrap">
                       <span className="text-2xl font-black text-foreground">
-                        ${room.price}
+                        US$ {room.price}
                       </span>
                       <span className="text-xs font-medium text-muted-foreground">
-                        USD / noche
+                        / noche · aprox. RD$ {(room.price * 60).toLocaleString("es-DO")}
                       </span>
                     </div>
                   </div>

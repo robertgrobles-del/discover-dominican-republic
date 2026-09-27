@@ -23,6 +23,10 @@ import {
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { CheckoutModal } from "@/components/CheckoutModal";
+import { CarbonCalculatorSection } from "@/components/sostenible/CarbonCalculatorSection";
+import { EcoVerifiedDirectory } from "@/components/sostenible/EcoVerifiedDirectory";
+import { VolunteerCampaignsSection } from "@/components/sostenible/VolunteerCampaignsSection";
+import { SostenibleModals } from "@/components/sostenible/SostenibleModals";
 import adventureImg from "@/assets/adventure.jpg";
 import samanaImg from "@/assets/samana.jpg";
 import divingImg from "@/assets/diving.jpg";
@@ -322,228 +326,35 @@ export default function Sostenible() {
             </div>
 
             {/* Carbon Calculator Widget */}
-            <div id="calculadora" className="pt-8 border-t border-border">
-              <div className="grid lg:grid-cols-12 gap-8 items-center">
-                
-                {/* Form Side */}
-                <div className="lg:col-span-5 space-y-6">
-                  <div>
-                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] font-bold">CALCULADORA DE HUELLA</Badge>
-                    <h2 className="text-2xl font-bold text-foreground mt-2">Mide Tu Impacto Ambiental</h2>
-                    <p className="text-xs text-muted-foreground mt-1 leading-normal">
-                      Calcula las toneladas de carbono generadas por tu vuelo y estadía, y compensa financiando de forma directa la siembra de manglares en la costa de Montecristi.
-                    </p>
-                  </div>
-
-                  <form onSubmit={handleCalculateCarbon} className="space-y-4 bg-card/50 p-6 border rounded-xl">
-                    <div>
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Origen del Vuelo</label>
-                      <select
-                        value={flightOrigin}
-                        onChange={(e) => setFlightOrigin(e.target.value)}
-                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                        title="Origen del Vuelo"
-                      >
-                        <option value="New York">Estados Unidos (New York) - ~2,500 km</option>
-                        <option value="Miami">Estados Unidos (Miami) - ~1,300 km</option>
-                        <option value="Madrid">España (Madrid) - ~6,500 km</option>
-                        <option value="Paris">Francia (París) - ~7,000 km</option>
-                        <option value="Bogota">Colombia (Bogotá) - ~1,600 km</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Clase del Asiento</label>
-                      <select
-                        value={flightClass}
-                        onChange={(e) => setFlightClass(e.target.value)}
-                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                        title="Clase del Asiento"
-                      >
-                        <option value="economic">Clase Económica</option>
-                        <option value="business">Clase Ejecutiva (2x Impacto)</option>
-                        <option value="first">Primera Clase (3x Impacto)</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">Noches de Alojamiento</label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={hotelNights}
-                        onChange={(e) => setHotelNights(parseInt(e.target.value) || 1)}
-                        required
-                        className="bg-background text-xs"
-                      />
-                    </div>
-
-                    <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-5">
-                      Calcular Huella Ecológica
-                    </Button>
-                  </form>
-                </div>
-
-                {/* Report / Offset Side */}
-                <div className="lg:col-span-7 flex justify-center">
-                  <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-2xl p-8 max-w-lg w-full space-y-6 text-center">
-                    {co2Calculation ? (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="space-y-6"
-                      >
-                        <div className="space-y-2">
-                          <Leaf className="h-10 w-10 text-emerald-500 mx-auto" />
-                          <h3 className="font-display text-xl font-extrabold text-foreground">Tu Reporte de Huella CO2</h3>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-card p-4 rounded-xl border border-border">
-                            <span className="text-[10px] uppercase font-bold text-muted-foreground">Emisiones CO2</span>
-                            <p className="text-2xl font-extrabold font-mono text-foreground mt-1">
-                              {co2Calculation.tons} <span className="text-xs font-normal">Tons</span>
-                            </p>
-                          </div>
-                          <div className="bg-card p-4 rounded-xl border border-border">
-                            <span className="text-[10px] uppercase font-bold text-muted-foreground">Costo Sugerido</span>
-                            <p className="text-2xl font-extrabold font-mono text-emerald-500 mt-1">
-                              ${co2Calculation.offsetCost} <span className="text-xs font-normal">USD</span>
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="text-xs text-muted-foreground leading-relaxed text-left bg-card/60 p-4 border rounded-lg">
-                          <p className="font-bold text-foreground">🌱 ¿Cómo ayuda tu compensación?</p>
-                          <p className="mt-1">
-                            Tu aporte financia directamente la cooperativa costera en Montecristi encargada de plantar manglares rojos, capaces de capturar hasta 10 veces más carbono que un bosque tropical terrestre.
-                          </p>
-                        </div>
-
-                        <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-2" onClick={handleOffsetPurchase}>
-                          Compensar Huella en Montecristi <ArrowRight className="h-4 w-4" />
-                        </Button>
-                      </motion.div>
-                    ) : (
-                      <div className="py-12 space-y-4 text-muted-foreground">
-                        <Plane className="h-12 w-12 text-muted-foreground/35 mx-auto animate-bounce" />
-                        <div>
-                          <p className="font-bold text-sm text-foreground">Aún no has calculado tu huella</p>
-                          <p className="text-xs mt-1">Ingresa los detalles de tu vuelo a la izquierda para ver el reporte ecológico detallado.</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-              </div>
-            </div>
+            <CarbonCalculatorSection
+              flightOrigin={flightOrigin}
+              onFlightOriginChange={setFlightOrigin}
+              flightClass={flightClass}
+              onFlightClassChange={setFlightClass}
+              hotelNights={hotelNights}
+              onHotelNightsChange={setHotelNights}
+              co2Calculation={co2Calculation}
+              onCalculate={handleCalculateCarbon}
+              onOffsetPurchase={handleOffsetPurchase}
+            />
 
             {/* Eco-Verified Directory */}
-            <div className="pt-8 border-t border-border space-y-6">
-              <div>
-                <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] font-bold">AUDITORÍA VERDE</Badge>
-                <h2 className="text-2xl font-bold text-foreground mt-2">Directorio de Negocios Eco-Verified</h2>
-                <p className="text-xs text-muted-foreground mt-1">Establecimientos auditados formalmente bajo criterios rigurosos de sustentabilidad.</p>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-6">
-                {ecoBusinesses.map(bus => (
-                  <Card key={bus.id} className="border bg-card/40 hover:border-emerald-500/30 transition-all flex flex-col justify-between">
-                    <CardContent className="p-5 space-y-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <Badge className="bg-emerald-600/15 text-emerald-500 border-emerald-500/25 font-extrabold text-[10px]">
-                            {bus.category}
-                          </Badge>
-                          <h3 className="font-display font-bold text-base text-foreground mt-2">{bus.name}</h3>
-                        </div>
-                        <div className="flex items-center gap-1 font-bold text-xs text-amber-500 font-mono">
-                          ★ {bus.rating}
-                        </div>
-                      </div>
-
-                      <p className="text-xs text-muted-foreground leading-normal">{bus.description}</p>
-                      
-                      <div className="border-t border-border/60 pt-3">
-                        <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2">Criterios Auditados:</p>
-                        <div className="space-y-1">
-                          {bus.criteria.map((crit, idx) => (
-                            <div key={idx} className="flex items-center gap-1.5 text-xs">
-                              {crit.checked ? (
-                                <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                              ) : (
-                                <Info className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
-                              )}
-                              <span className={crit.checked ? "text-foreground" : "text-muted-foreground line-through"}>
-                                {crit.name}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </CardContent>
-
-                    <div className="p-5 pt-0">
-                      <Button variant="outline" size="sm" className="w-full text-xs font-bold border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/5" onClick={() => {
-                        setSelectedEcoBusiness(bus);
-                        toast.info(`Criterios de auditoría oficial de ${bus.name} desplegados.`);
-                      }}>
-                        Ver Certificado Oficial
-                      </Button>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </div>
+            <EcoVerifiedDirectory
+              businesses={ecoBusinesses}
+              onSelectBusiness={(bus) => {
+                setSelectedEcoBusiness(bus);
+                toast.info(`Criterios de auditoría oficial de ${bus.name} desplegados.`);
+              }}
+            />
 
             {/* Beach Cleanups Campaign Registry */}
-            <div id="voluntariado" className="pt-8 border-t border-border space-y-6">
-              <div>
-                <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] font-bold">VOLUNTARIADO ACTIVO</Badge>
-                <h2 className="text-2xl font-bold text-foreground mt-2">Campaña de Limpieza de Playas y Conservación</h2>
-                <p className="text-xs text-muted-foreground mt-1">Súmate a otros viajeros y locales en las jornadas presenciales. Gana XP e insignias de voluntario ecológico.</p>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-6">
-                {cleanupCampaigns.map(camp => (
-                  <Card key={camp.id} className="border bg-card/45 flex flex-col justify-between group hover:border-emerald-500/30 transition-all">
-                    <CardContent className="p-6 space-y-4">
-                      <div>
-                        <div className="flex justify-between items-start">
-                          <span className="text-xs text-emerald-500 font-bold flex items-center gap-1.5 font-mono">
-                            <Calendar className="h-3.5 w-3.5" /> {camp.date}
-                          </span>
-                          <Badge className="bg-emerald-600/10 text-emerald-500 border-emerald-500/20 text-[9px] font-bold uppercase font-mono">
-                            {camp.xp} XP
-                          </Badge>
-                        </div>
-                        <h3 className="font-display text-base font-extrabold text-foreground mt-2">{camp.title}</h3>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">{camp.location} • {camp.time}</p>
-                      </div>
-
-                      <p className="text-xs text-muted-foreground leading-normal">{camp.description}</p>
-                      
-                      <div className="bg-muted/40 p-3 rounded-lg border flex justify-between items-center text-xs">
-                        <span className="text-muted-foreground">Insignia otorgada:</span>
-                        <Badge variant="outline" className="text-[10px] font-bold text-primary flex gap-1 items-center">
-                          <Trophy className="h-3 w-3" /> {camp.badge}
-                        </Badge>
-                      </div>
-                    </CardContent>
-
-                    <div className="p-6 pt-0">
-                      <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold gap-2" onClick={() => {
-                        setSelectedCampaign(camp);
-                        setRegistrationSuccess(false);
-                      }}>
-                        Registrarse como Voluntario
-                      </Button>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </div>
+            <VolunteerCampaignsSection
+              campaigns={cleanupCampaigns}
+              onSelectCampaign={(camp) => {
+                setSelectedCampaign(camp);
+                setRegistrationSuccess(false);
+              }}
+            />
 
             {/* Conservation Projects Section */}
             <div className="pt-8 border-t border-border space-y-6">
@@ -585,131 +396,21 @@ export default function Sostenible() {
 
         <Footer />
 
-        {/* Audit Certificate Modal */}
-        <Dialog open={!!selectedEcoBusiness} onOpenChange={() => setSelectedEcoBusiness(null)}>
-          <DialogContent className="sm:max-w-[420px] text-center space-y-4">
-            <DialogHeader>
-              <DialogTitle className="text-xl font-bold text-emerald-500 flex items-center justify-center gap-1.5">
-                <CheckCircle className="h-6 w-6" /> Certificado Eco-Verified
-              </DialogTitle>
-              <DialogDescription className="text-xs">Registro Oficial de Auditoría de Sustentabilidad Ambiental</DialogDescription>
-            </DialogHeader>
-            
-            {selectedEcoBusiness && (
-              <div className="bg-muted/30 border p-6 rounded-2xl text-left space-y-4 font-sans relative overflow-hidden">
-                <div className="absolute right-2 top-2 opacity-5">
-                  <Leaf className="h-32 w-32 text-emerald-500" />
-                </div>
-                
-                <div className="pb-3 border-b border-border space-y-1">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase">Establecimiento</span>
-                  <h4 className="text-lg font-extrabold text-foreground">{selectedEcoBusiness.name}</h4>
-                  <p className="text-xs text-muted-foreground">{selectedEcoBusiness.location}, RD</p>
-                </div>
-
-                <div className="space-y-2">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase block">Resultados de Auditoría:</span>
-                  {selectedEcoBusiness.criteria.map((c: any, i: number) => (
-                    <div key={i} className="flex justify-between items-center text-xs">
-                      <span className="text-foreground">{c.name}</span>
-                      <span className={c.checked ? "text-emerald-500 font-bold" : "text-muted-foreground font-mono"}>
-                        {c.checked ? "CUMPLIDO" : "NO APLICA"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="bg-emerald-500/10 border border-emerald-500/25 p-3 rounded-lg text-[10px] text-center text-emerald-600 font-bold uppercase tracking-wider">
-                  Sello Verde Nº: EV-{selectedEcoBusiness.id.toUpperCase()}-2026
-                </div>
-              </div>
-            )}
-            
-            <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold" onClick={() => setSelectedEcoBusiness(null)}>
-              Cerrar Certificado
-            </Button>
-          </DialogContent>
-        </Dialog>
-
-        {/* Volunteer Registration Modal */}
-        <Dialog open={!!selectedCampaign} onOpenChange={() => setSelectedCampaign(null)}>
-          <DialogContent className="sm:max-w-[420px] overflow-hidden">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-bold text-foreground">Registro de Voluntariado</DialogTitle>
-              <DialogDescription className="text-xs">Únete a {selectedCampaign?.title}.</DialogDescription>
-            </DialogHeader>
-            
-            {registrationSuccess ? (
-              <div className="py-6 text-center space-y-4">
-                <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-500 mx-auto">
-                  <Trophy className="h-6 w-6" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-foreground">¡Registro Exitoso!</h4>
-                  <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
-                    Te has inscrito como voluntario. Recibiste una insignia virtual <strong>{selectedCampaign?.badge}</strong> y has acumulado <strong>+{selectedCampaign?.xp} XP</strong> en tu pasaporte digital.
-                  </p>
-                </div>
-                <Button className="w-full" onClick={() => setSelectedCampaign(null)}>
-                  Listo
-                </Button>
-              </div>
-            ) : (
-              <form onSubmit={handleRegisterVolunteer} className="space-y-4 pt-2">
-                <div className="bg-muted/40 p-4 rounded-xl text-xs space-y-1">
-                  <p className="font-bold">{selectedCampaign?.title}</p>
-                  <p className="text-muted-foreground">{selectedCampaign?.date} • {selectedCampaign?.time}</p>
-                  <p className="text-muted-foreground">{selectedCampaign?.location}</p>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Nombre Completo</label>
-                  <Input
-                    type="text"
-                    placeholder="Juan Pérez"
-                    value={volunteerName}
-                    onChange={(e) => setVolunteerName(e.target.value)}
-                    required
-                    className="text-xs bg-background"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Correo Electrónico</label>
-                  <Input
-                    type="email"
-                    placeholder="juan@ejemplo.com"
-                    value={volunteerEmail}
-                    onChange={(e) => setVolunteerEmail(e.target.value)}
-                    required
-                    className="text-xs bg-background"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Teléfono móvil</label>
-                  <Input
-                    type="tel"
-                    placeholder="+1 (809) 555-0123"
-                    value={volunteerPhone}
-                    onChange={(e) => setVolunteerPhone(e.target.value)}
-                    className="text-xs bg-background"
-                    title="Teléfono del voluntario"
-                  />
-                </div>
-
-                <div className="flex gap-2 justify-end pt-2">
-                  <Button type="button" variant="outline" size="sm" onClick={() => setSelectedCampaign(null)}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit" size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
-                    Confirmar Registro
-                  </Button>
-                </div>
-              </form>
-            )}
-          </DialogContent>
-        </Dialog>
+        {/* Modals for Audit Certificate & Volunteer Registration */}
+        <SostenibleModals
+          selectedEcoBusiness={selectedEcoBusiness}
+          onCloseEcoBusiness={() => setSelectedEcoBusiness(null)}
+          selectedCampaign={selectedCampaign}
+          onCloseCampaign={() => setSelectedCampaign(null)}
+          volunteerName={volunteerName}
+          onVolunteerNameChange={setVolunteerName}
+          volunteerEmail={volunteerEmail}
+          onVolunteerEmailChange={setVolunteerEmail}
+          volunteerPhone={volunteerPhone}
+          onVolunteerPhoneChange={setVolunteerPhone}
+          registrationSuccess={registrationSuccess}
+          onRegisterVolunteer={handleRegisterVolunteer}
+        />
 
         {/* Offset Checkout Modal */}
         <CheckoutModal 

@@ -26,6 +26,7 @@ export type TipoEstablecimiento =
   | "restaurante"
   | "bar"
   | "hotel"
+  | "airbnb"
   | "tour"
   | "spa"
   | "tienda";
@@ -63,10 +64,16 @@ const tipoConfig: Record<TipoEstablecimiento, {
     descripcion: "Registra tu bar, club o lounge y destaca en la guía de vida nocturna de República Dominicana.",
   },
   hotel: {
-    label: "Hotel / Alojamiento",
+    label: "Hotel / Resort",
     icon: Hotel,
     color: "text-blue-500",
-    descripcion: "Registra tu propiedad y aparece en los resultados de búsqueda de alojamiento para viajeros.",
+    descripcion: "Registra tu hotel, resort o complejo turístico y conecta con huéspedes que buscan hospedaje corporativo o vacacional.",
+  },
+  airbnb: {
+    label: "Airbnb / Vivienda Turística",
+    icon: Hotel,
+    color: "text-rose-500",
+    descripcion: "Registra tu villa, apartamento, casa vacacional o glamping y capta reservas directas con turistas de todo el mundo.",
   },
   tour: {
     label: "Tour / Actividad",
@@ -261,13 +268,13 @@ function CamposBar({ data, onChange }: { data: Record<string, string>; onChange:
 }
 
 function CamposHotel({ data, onChange }: { data: Record<string, string>; onChange: (k: string, v: string) => void }) {
-  const tipos = ["Hotel Boutique", "Resort", "Villa Privada", "Apartamento", "All-Inclusive", "Eco-Lodge", "Hostal", "Bed & Breakfast"];
-  const amenidades = ["Piscina", "Gym", "Spa", "Restaurante", "Bar", "Playa Privada", "Wi-Fi", "Estacionamiento", "Concierge", "Airport Shuttle", "Pet-Friendly"];
+  const tipos = ["Resort All-Inclusive", "Hotel Boutique", "Hotel Colonial", "Hotel de Negocios / Ciudad", "Eco-Lodge & Resort", "Hostal", "Aparta-Hotel"];
+  const amenidades = ["Piscina", "Gym", "Spa", "Restaurante", "Bar", "Playa Privada", "Wi-Fi", "Estacionamiento", "Concierge", "Airport Shuttle", "Salones para Eventos", "Recepción 24/7"];
 
   return (
     <div className="space-y-4">
       <FieldRow>
-        <FormField label="Tipo de Alojamiento" required>
+        <FormField label="Tipo de Alojamiento Hotelero" required>
           <Select value={data.tipo_hotel || ""} onValueChange={v => onChange("tipo_hotel", v)}>
             <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
             <SelectContent>{tipos.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
@@ -285,14 +292,30 @@ function CamposHotel({ data, onChange }: { data: Record<string, string>; onChang
         </FormField>
       </FieldRow>
       <FieldRow>
-        <FormField label="Número de Habitaciones" required>
-          <Input placeholder="Ej. 45" value={data.habitaciones || ""} onChange={e => onChange("habitaciones", e.target.value)} type="number" />
+        <FormField label="Total de Habitaciones / Unidades" required>
+          <Input placeholder="Ej. 65" value={data.habitaciones || ""} onChange={e => onChange("habitaciones", e.target.value)} type="number" />
         </FormField>
-        <FormField label="Precio Base por Noche (USD)">
-          <Input placeholder="Ej. 120" value={data.precio_noche || ""} onChange={e => onChange("precio_noche", e.target.value)} type="number" />
+        <FormField label="Tarifa Promedio por Noche (USD)">
+          <Input placeholder="Ej. 180" value={data.precio_noche || ""} onChange={e => onChange("precio_noche", e.target.value)} type="number" />
         </FormField>
       </FieldRow>
-      <FormField label="Amenidades Disponibles">
+      <FieldRow>
+        <FormField label="Régimen de Hospedaje Principal">
+          <Select value={data.regimen || ""} onValueChange={v => onChange("regimen", v)}>
+            <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all-inclusive">Todo Incluido (All-Inclusive)</SelectItem>
+              <SelectItem value="desayuno">Solo Desayuno (Bed & Breakfast)</SelectItem>
+              <SelectItem value="solo-habitacion">Solo Habitación (European Plan)</SelectItem>
+              <SelectItem value="media-pension">Media Pensión</SelectItem>
+            </SelectContent>
+          </Select>
+        </FormField>
+        <FormField label="Licencia de Operación MITUR">
+          <Input placeholder="Ej. MITUR-AL-2026-894" value={data.licencia_mitur || ""} onChange={e => onChange("licencia_mitur", e.target.value)} />
+        </FormField>
+      </FieldRow>
+      <FormField label="Amenidades e Infraestructura">
         <div className="flex flex-wrap gap-2 mt-1">
           {amenidades.map(a => (
             <button
@@ -308,6 +331,81 @@ function CamposHotel({ data, onChange }: { data: Record<string, string>; onChang
                 data.amenidades?.includes(a)
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-muted text-muted-foreground border-border hover:border-primary"
+              }`}
+            >
+              {a}
+            </button>
+          ))}
+        </div>
+      </FormField>
+    </div>
+  );
+}
+
+function CamposAirbnb({ data, onChange }: { data: Record<string, string>; onChange: (k: string, v: string) => void }) {
+  const tiposPropiedad = ["Villa Privada", "Apartamento Completo", "Penthouse Frente al Mar", "Cabaña de Montaña", "Casa de Playa", "Loft Urbano", "Glamping de Lujo", "Habitación Privada"];
+  const amenidadesAirbnb = ["Piscina Privada", "Jacuzzi", "Vista al Mar", "Cocina Completa", "Wi-Fi Alta Velocidad", "Aire Acondicionado", "Cerradura Inteligente (Self Check-in)", "Estacionamiento Privado", "Área de BBQ", "Planta Eléctrica / Inversor", "Pet-Friendly", "Lavadora / Secadora"];
+
+  return (
+    <div className="space-y-4">
+      <FieldRow>
+        <FormField label="Tipo de Propiedad" required>
+          <Select value={data.tipo_propiedad || ""} onValueChange={v => onChange("tipo_propiedad", v)}>
+            <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+            <SelectContent>{tiposPropiedad.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+          </Select>
+        </FormField>
+        <FormField label="Capacidad Máxima de Huéspedes" required>
+          <Input placeholder="Ej. 6" value={data.capacidad || ""} onChange={e => onChange("capacidad", e.target.value)} type="number" />
+        </FormField>
+      </FieldRow>
+      <FieldRow>
+        <FormField label="Habitaciones">
+          <Input placeholder="Ej. 3" value={data.habitaciones || ""} onChange={e => onChange("habitaciones", e.target.value)} type="number" />
+        </FormField>
+        <FormField label="Camas Totales">
+          <Input placeholder="Ej. 4" value={data.camas || ""} onChange={e => onChange("camas", e.target.value)} type="number" />
+        </FormField>
+      </FieldRow>
+      <FieldRow>
+        <FormField label="Baños Completos">
+          <Input placeholder="Ej. 2.5" value={data.banos || ""} onChange={e => onChange("banos", e.target.value)} />
+        </FormField>
+        <FormField label="Precio por Noche (USD)" required>
+          <Input placeholder="Ej. 145" value={data.precio_noche || ""} onChange={e => onChange("precio_noche", e.target.value)} type="number" />
+        </FormField>
+      </FieldRow>
+      <FieldRow>
+        <FormField label="Enlace de tu anuncio (Airbnb / VRBO / Booking)">
+          <Input placeholder="https://airbnb.com/rooms/..." value={data.enlace_airbnb || ""} onChange={e => onChange("enlace_airbnb", e.target.value)} />
+        </FormField>
+        <FormField label="Tipo de Check-in">
+          <Select value={data.tipo_checkin || ""} onValueChange={v => onChange("tipo_checkin", v)}>
+            <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="self">Cerradura inteligente / Caja de llaves</SelectItem>
+              <SelectItem value="personal">Recibimiento en persona por el anfitrión</SelectItem>
+              <SelectItem value="conserje">Lobby / Conserjería del edificio</SelectItem>
+            </SelectContent>
+          </Select>
+        </FormField>
+      </FieldRow>
+      <FormField label="Amenidades de la Propiedad">
+        <div className="flex flex-wrap gap-2 mt-1">
+          {amenidadesAirbnb.map(a => (
+            <button
+              key={a}
+              type="button"
+              onClick={() => {
+                const current = data.amenidades ? data.amenidades.split(",") : [];
+                const idx = current.indexOf(a);
+                if (idx >= 0) current.splice(idx, 1); else current.push(a);
+                onChange("amenidades", current.filter(Boolean).join(","));
+              }}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-all border ${
+                data.amenidades?.includes(a)
+                  ? "bg-rose-500 text-white border-rose-500"
+                  : "bg-muted text-muted-foreground border-border hover:border-rose-400"
               }`}
             >
               {a}
@@ -858,6 +956,7 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
                     {tipo === "restaurante" && <CamposRestaurante data={specificData} onChange={updateSpecific} />}
                     {tipo === "bar" && <CamposBar data={specificData} onChange={updateSpecific} />}
                     {tipo === "hotel" && <CamposHotel data={specificData} onChange={updateSpecific} />}
+                    {tipo === "airbnb" && <CamposAirbnb data={specificData} onChange={updateSpecific} />}
                     {tipo === "tour" && <CamposTour data={specificData} onChange={updateSpecific} />}
                     {tipo === "spa" && <CamposSpa data={specificData} onChange={updateSpecific} />}
                     {tipo === "tienda" && <CamposTienda data={specificData} onChange={updateSpecific} />}

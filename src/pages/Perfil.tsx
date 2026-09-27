@@ -33,6 +33,10 @@ import { ProfilePassport } from "@/components/profile/ProfilePassport";
 import { ProfileTimeline } from "@/components/profile/ProfileTimeline";
 import { ProfileWallet } from "@/components/profile/ProfileWallet";
 import { ProfileSettings } from "@/components/profile/ProfileSettings";
+import { ProfileFavoritesTab } from "@/components/profile/ProfileFavoritesTab";
+import { ProfileReviewsTab } from "@/components/profile/ProfileReviewsTab";
+import { ProfileRechargeModal } from "@/components/profile/ProfileRechargeModal";
+import { ProfileQrViewerModal } from "@/components/profile/ProfileQrViewerModal";
 
 interface Review {
   id: string;
@@ -484,108 +488,20 @@ export default function Perfil() {
 
                 {/* Favoritos Tab */}
                 <TabsContent value="favoritos">
-                  {favLoading ? (
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {[...Array(3)].map((_, i) => (
-                        <Skeleton key={i} className="h-48 rounded-xl" />
-                      ))}
-                    </div>
-                  ) : favorites.length === 0 ? (
-                    <Card>
-                      <CardContent className="py-12 text-center">
-                        <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="font-semibold text-foreground mb-2">No tienes favoritos guardados</h3>
-                        <p className="text-muted-foreground mb-4">Explora destinos, hoteles y experiencias para guardar tus favoritos.</p>
-                        <Link to="/destinos"><Button>Explorar Destinos</Button></Link>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {favorites.map((fav, index) => (
-                        <motion.div key={fav.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }}>
-                          <Card className="overflow-hidden group">
-                            <div className="relative aspect-video">
-                              <img src={fav.image || "/placeholder.svg"} alt={fav.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                              <Badge className="absolute top-3 left-3 capitalize">{fav.type}</Badge>
-                            </div>
-                            <CardContent className="p-4">
-                              <h3 className="font-semibold text-foreground mb-1">{fav.name}</h3>
-                              {fav.location && (
-                                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                  <MapPin className="h-3 w-3" /> {fav.location}
-                                </p>
-                              )}
-                              <div className="flex items-center justify-between mt-4">
-                                <Link to={
-                                  fav.type === "hotel" ? `/alojamiento/${fav.id}` :
-                                  fav.type === "guia" ? `/guias-locales` :
-                                  fav.type === "reserva-natural" ? `/reservas-naturales` :
-                                  fav.type === "parque-nacional" ? `/parque-nacional/${fav.id}` :
-                                  fav.type === "destino-religioso" ? `/destino-religioso/${fav.id}` :
-                                  `/${fav.type}/${fav.id}`
-                                }>
-                                  <Button variant="outline" size="sm" className="gap-1">Ver <ChevronRight className="h-4 w-4" /></Button>
-                                </Link>
-                                <Button variant="ghost" size="icon" className="text-destructive" onClick={() => removeFavorite(fav.id, fav.type)}>
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      ))}
-                    </div>
-                  )}
+                  <ProfileFavoritesTab
+                    favorites={favorites}
+                    favLoading={favLoading}
+                    onRemoveFavorite={removeFavorite}
+                  />
                 </TabsContent>
 
                 {/* Opiniones Tab */}
                 <TabsContent value="opiniones">
-                  {reviewsLoading ? (
-                    <div className="space-y-4">
-                      {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-32 rounded-xl" />)}
-                    </div>
-                  ) : reviews.length === 0 ? (
-                    <Card>
-                      <CardContent className="py-12 text-center">
-                        <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="font-semibold text-foreground mb-2">No has publicado opiniones</h3>
-                        <p className="text-muted-foreground mb-4">Comparte tus experiencias de viaje con otros viajeros.</p>
-                        <Link to="/opiniones"><Button>Escribir Opinión</Button></Link>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <div className="space-y-4">
-                      {reviews.map((review, index) => (
-                        <motion.div key={review.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }}>
-                          <Card>
-                            <CardContent className="p-6">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <h3 className="font-semibold text-foreground">{review.title}</h3>
-                                    <Badge variant="secondary">{review.category}</Badge>
-                                  </div>
-                                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                                    <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {review.location}</span>
-                                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(review.created_at).toLocaleDateString("es-DO")}</span>
-                                    <span className="flex items-center gap-1">
-                                      {[...Array(5)].map((_, i) => (
-                                        <Star key={i} className={`h-3 w-3 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground"}`} />
-                                      ))}
-                                    </span>
-                                  </div>
-                                  <p className="text-muted-foreground line-clamp-2">{review.content}</p>
-                                </div>
-                                <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDeleteReview(review.id)}>
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      ))}
-                    </div>
-                  )}
+                  <ProfileReviewsTab
+                    reviews={reviews}
+                    reviewsLoading={reviewsLoading}
+                    onDeleteReview={handleDeleteReview}
+                  />
                 </TabsContent>
 
                 {/* Pasaporte & Swarm Tab */}
@@ -647,106 +563,19 @@ export default function Perfil() {
         </main>
 
         {/* Custom Recharge Modal */}
-        <Dialog open={isRechargeModalOpen} onOpenChange={setIsRechargeModalOpen}>
-          <DialogContent className="sm:max-w-[420px]">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-bold text-foreground">Recarga Personalizada - RD Pass</DialogTitle>
-              <DialogDescription className="text-xs">Ingresa el monto y los datos de tu tarjeta de crédito o débito internacional.</DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleCustomRechargeSubmit} className="space-y-4 pt-2">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground uppercase">Monto a Recargar (DOP)</label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-sm text-muted-foreground">RD$</span>
-                  <Input
-                    type="number"
-                    min="100"
-                    max="50000"
-                    placeholder="1000"
-                    value={customRechargeVal}
-                    onChange={(e) => setCustomRechargeVal(e.target.value)}
-                    required
-                    className="pl-12 font-mono"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-muted-foreground uppercase">Número de Tarjeta</label>
-                <Input
-                  type="text"
-                  placeholder="4000 1234 5678 9010"
-                  pattern="[0-9 ]{12,19}"
-                  maxLength={19}
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">Vencimiento</label>
-                  <Input type="text" placeholder="MM/AA" maxLength={5} required />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-muted-foreground uppercase">CVV</label>
-                  <Input type="password" placeholder="***" maxLength={4} required />
-                </div>
-              </div>
-
-              <div className="flex gap-2 justify-end pt-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => setIsRechargeModalOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit" size="sm" className="bg-amber-600 hover:bg-amber-700 text-white font-bold">
-                  Proceder al Pago
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <ProfileRechargeModal
+          open={isRechargeModalOpen}
+          onOpenChange={setIsRechargeModalOpen}
+          customRechargeVal={customRechargeVal}
+          onCustomRechargeValChange={setCustomRechargeVal}
+          onSubmit={handleCustomRechargeSubmit}
+        />
 
         {/* QR Code Ticket Viewer Modal */}
-        <Dialog open={!!selectedTicket} onOpenChange={() => setSelectedTicket(null)}>
-          <DialogContent className="sm:max-w-[400px] text-center space-y-4">
-            <DialogHeader>
-              <DialogTitle className="text-lg font-bold text-foreground">{selectedTicket?.title}</DialogTitle>
-              <DialogDescription className="text-xs">{selectedTicket?.type}</DialogDescription>
-            </DialogHeader>
-
-            {selectedTicket && (
-              <div className="bg-white p-6 rounded-2xl border flex flex-col items-center justify-center space-y-4 shadow-inner relative overflow-hidden group">
-                {/* Laser scan animation effect */}
-                <div className="absolute left-0 right-0 h-0.5 bg-emerald-500/80 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-[bounce_3s_infinite]" />
-                
-                {/* Styled vector QR Code representation */}
-                <svg className="w-48 h-48 text-zinc-950" viewBox="0 0 100 100" fill="currentColor">
-                  {/* Outer borders */}
-                  <path d="M0,0 h30 v10 h-20 v20 h-10 z M70,0 h30 v30 h-10 v-20 h-20 z M0,70 h10 v20 h20 v10 h-30 z M90,90 h-20 v10 h30 v-30 h-10 z" />
-                  {/* Top-left position block */}
-                  <path d="M10,10 h20 v20 h-20 z M15,15 h10 v10 h-10 z" />
-                  {/* Top-right position block */}
-                  <path d="M70,10 h20 v20 h-20 z M75,15 h10 v10 h-10 z" />
-                  {/* Bottom-left position block */}
-                  <path d="M10,70 h20 v20 h-20 z M15,75 h10 v10 h-10 z" />
-                  {/* Random noise bits */}
-                  <path d="M45,10 h10 v10 h-10 z M35,25 h15 v5 h-15 z M55,30 h10 v10 h-10 z M40,40 h10 v10 h-10 z M25,45 h10 v10 h-10 z M70,45 h15 v10 h-15 z M45,60 h20 v5 h-20 z M55,75 h10 v10 h-10 z M35,80 h15 v10 h-15 z M75,75 h10 v15 h-10 z" />
-                </svg>
-
-                <div className="font-mono text-xs text-zinc-500 bg-zinc-100 px-3 py-1 rounded-md select-all">
-                  {selectedTicket.qrValue}
-                </div>
-              </div>
-            )}
-
-            <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl text-xs text-center text-emerald-600 font-bold flex items-center justify-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" /> Listo para ser Escaneado
-            </div>
-
-            <Button className="w-full" onClick={() => setSelectedTicket(null)}>
-              Cerrar Código
-            </Button>
-          </DialogContent>
-        </Dialog>
+        <ProfileQrViewerModal
+          ticket={selectedTicket}
+          onClose={() => setSelectedTicket(null)}
+        />
 
         <Footer />
       </div>

@@ -572,12 +572,32 @@ export default function Alojamientos() {
               {/* Banner de Sorteo para Lectores / Turistas */}
               <SorteoLectorBanner origenCategoria="Hoteles y Alojamientos" />
 
-              {/* Formulario de Captación B2B para Establecimientos */}
-              <CTARegistroEstablecimiento 
-                tipo="hotel" 
-                titulo="¿Administras un hotel o alojamiento?" 
-                subtitulo="Publica tu hotel, resort o villa en Descubre RD de cara al gran lanzamiento del portal. Conecta con miles de viajeros buscando hospedaje."
-              />
+              {/* Sección Diferenciada de Captación: Hoteles vs Airbnb / Viviendas Turísticas */}
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* 1. Hoteles, Resorts y Cadenas */}
+                <CTARegistroEstablecimiento 
+                  tipo="hotel" 
+                  titulo="¿Administras un Hotel o Resort?" 
+                  subtitulo="Publica tu hotel boutique, resort all-inclusive o complejo turístico. Gestiona múltiples habitaciones, salones de eventos y paquetes vacacionales."
+                  stats={[
+                    { label: "Ocupación promedio", valor: "82%" },
+                    { label: "Hoteles registrados", valor: "480+" },
+                    { label: "Visitas corporativas", valor: "65K+" }
+                  ]}
+                />
+
+                {/* 2. Anfitriones de Airbnb, Villas y Apartamentos Turísticos */}
+                <CTARegistroEstablecimiento 
+                  tipo="airbnb" 
+                  titulo="¿Tienes un Airbnb o Villa Turística?" 
+                  subtitulo="Registra tu apartamento, penthouse, villa o glamping. Conecta con turistas internacionales para reservas directas y destaca como Anfitrión Verificado."
+                  stats={[
+                    { label: "Villas y lofts activos", valor: "1,200+" },
+                    { label: "Ahorro comisiones", valor: "0% fee" },
+                    { label: "Huéspedes mensuales", valor: "95K+" }
+                  ]}
+                />
+              </div>
             </div>
           </div>
         </section>

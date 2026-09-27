@@ -1,27 +1,26 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { 
-  MapPin, Star, Users, Bed, Bath, Home, Heart, Share2, 
-  Calendar, Clock, Shield, Wifi, Car, Wind, Waves, 
-  UtensilsCrossed, Tv, Coffee, ChevronLeft, ChevronRight,
-  X, Check, AlertCircle, MessageCircle, Award, Globe
+  MapPin, Star, Users, Bed, Bath, Home,
+  Wifi, Car, Wind, Waves, UtensilsCrossed, Tv, Coffee,
+  ChevronLeft, ChevronRight, X, Check, Shield
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
 import { PageTransition } from "@/components/PageTransition";
-import { FavoriteButton } from "@/components/FavoriteButton";
 import { useLightbox } from "@/hooks/useLightbox";
 import { SEOHead } from "@/components/SEOHead";
 import { ClaimBusinessModal } from "@/components/business/ClaimBusinessModal";
+
+import { AirbnbGallery } from "@/components/airbnb/AirbnbGallery";
+import { AirbnbBookingWidget } from "@/components/airbnb/AirbnbBookingWidget";
+import { AirbnbPolicies } from "@/components/airbnb/AirbnbPolicies";
+import { AirbnbHostCard } from "@/components/airbnb/AirbnbHostCard";
 
 // Fallback data for demo
 const fallbackAirbnb = {
@@ -101,7 +100,6 @@ const AirbnbDetalle = () => {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guestCount, setGuestCount] = useState(2);
-  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
 
   const { data: airbnb, isLoading } = useQuery({
     queryKey: ['airbnb', id],
@@ -135,15 +133,6 @@ const AirbnbDetalle = () => {
 
   const totals = calculateTotal();
 
-  const getCancellationBadge = () => {
-    switch (property.cancellation_policy) {
-      case 'flexible': return { label: 'Flexible', color: 'bg-green-500' };
-      case 'moderate': return { label: 'Moderada', color: 'bg-yellow-500' };
-      case 'strict': return { label: 'Estricta', color: 'bg-red-500' };
-      default: return { label: 'Moderada', color: 'bg-yellow-500' };
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -168,54 +157,12 @@ const AirbnbDetalle = () => {
 
       <main className="pt-20">
         {/* Gallery Section */}
-        <section className="relative">
-          <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[60vh] max-w-7xl mx-auto px-4">
-            <div 
-              className="col-span-2 row-span-2 relative cursor-pointer overflow-hidden rounded-l-xl"
-              onClick={() => openLightbox(0)}
-            >
-              <img 
-                src={images[0]} 
-                alt={property.name}
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-              />
-            </div>
-            {images.slice(1, 5).map((img, idx) => (
-              <div 
-                key={idx}
-                className={`relative cursor-pointer overflow-hidden ${idx === 1 ? 'rounded-tr-xl' : ''} ${idx === 3 ? 'rounded-br-xl' : ''}`}
-                onClick={() => openLightbox(idx + 1)}
-              >
-                <img 
-                  src={img} 
-                  alt={`${property.name} ${idx + 2}`}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-            ))}
-            <Button 
-              variant="secondary" 
-              className="absolute bottom-4 right-8"
-              onClick={() => openLightbox(currentImageIndex)}
-            >
-              Mostrar todas las fotos
-            </Button>
-          </div>
-
-          {/* Action buttons */}
-          <div className="absolute top-4 right-8 flex gap-2">
-            <Button variant="ghost" size="icon" className="bg-background/80 backdrop-blur">
-              <Share2 className="h-5 w-5" />
-            </Button>
-            <FavoriteButton
-              id={property.id}
-              type="airbnb"
-              name={property.name}
-              image={property.image_url || ""}
-              location={property.address}
-            />
-          </div>
-        </section>
+        <AirbnbGallery
+          property={property}
+          images={images}
+          currentImageIndex={currentImageIndex}
+          onOpenLightbox={openLightbox}
+        />
 
         {/* Content */}
         <section className="max-w-7xl mx-auto px-4 py-8">
@@ -231,17 +178,24 @@ const AirbnbDetalle = () => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                   <h1 className="text-3xl font-bold">{property.name}</h1>
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setIsClaimModalOpen(true)}
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 border border-primary/30 hover:border-primary px-3 py-1.5 rounded-lg transition-colors bg-primary/5"
-                    >
-                      <Shield className="w-3.5 h-3.5" />
-                      ¿Es tu alojamiento? Reclamar ficha
-                    </button>
+                    <ClaimBusinessModal
+                      businessName={property.name}
+                      businessType="hotel"
+                      businessId={property.id?.toString()}
+                      triggerButton={
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 border border-primary/30 hover:border-primary px-3 py-1.5 rounded-lg transition-colors bg-primary/5"
+                        >
+                          <Shield className="w-3.5 h-3.5" />
+                          ¿Es tu alojamiento? Reclamar ficha
+                        </button>
+                      }
+                    />
                   </div>
                 </div>
 
-                {/* MITUR Vacation Rental Compliance Tag (Item 24) */}
+                {/* MITUR Compliance Tag */}
                 <div className="flex flex-wrap items-center gap-2 mb-4 p-2.5 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-emerald-800 dark:text-emerald-300 text-xs">
                   <Shield className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span className="font-semibold">Registro MITUR Vivienda Turística:</span>
@@ -252,7 +206,7 @@ const AirbnbDetalle = () => {
                 </div>
                 
                 <div className="flex flex-wrap items-center gap-4 text-sm">
-                <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-primary text-primary" />
                     <span className="font-semibold">{property.rating}</span>
                     <span className="text-muted-foreground">({property.review_count} reseñas)</span>
@@ -269,38 +223,16 @@ const AirbnbDetalle = () => {
 
               <Separator />
 
-              {/* Host Info */}
-              <div className="flex items-start gap-4">
-                <img 
-                  src={property.host_image || "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200"} 
-                  alt={property.host_name}
-                  className="w-16 h-16 rounded-full object-cover"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-lg">Anfitrión: {property.host_name}</h3>
-                    {property.is_superhost && (
-                      <Badge className="bg-primary">
-                        <Award className="h-3 w-3 mr-1" /> Superanfitrión
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mt-1">
-                    <span className="flex items-center gap-1">
-                      <MessageCircle className="h-4 w-4" /> {property.host_response_time}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Check className="h-4 w-4" /> {property.host_response_rate}% tasa de respuesta
-                    </span>
-                    {property.host_languages && (
-                      <span className="flex items-center gap-1">
-                        <Globe className="h-4 w-4" /> {property.host_languages.join(", ")}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-muted-foreground mt-2">{property.host_description}</p>
-                </div>
-              </div>
+              {/* Host Info Card */}
+              <AirbnbHostCard
+                name={property.host_name}
+                image={property.host_image}
+                isSuperhost={property.is_superhost}
+                responseTime={property.host_response_time}
+                responseRate={property.host_response_rate}
+                languages={property.host_languages}
+                description={property.host_description}
+              />
 
               <Separator />
 
@@ -335,81 +267,17 @@ const AirbnbDetalle = () => {
 
               <Separator />
 
-              {/* Tabs for Policies */}
-              <Tabs defaultValue="rules" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="rules">Reglas de la casa</TabsTrigger>
-                  <TabsTrigger value="safety">Seguridad</TabsTrigger>
-                  <TabsTrigger value="cancellation">Cancelación</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="rules" className="mt-4">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <div className="flex items-center gap-3">
-                          <Clock className="h-5 w-5 text-primary" />
-                          <div>
-                            <p className="font-medium">Check-in</p>
-                            <p className="text-sm text-muted-foreground">{property.check_in_time}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Clock className="h-5 w-5 text-primary" />
-                          <div>
-                            <p className="font-medium">Check-out</p>
-                            <p className="text-sm text-muted-foreground">{property.check_out_time}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <Separator className="my-4" />
-                      <ul className="space-y-2">
-                        {(property.house_rules || []).map((rule, idx) => (
-                          <li key={idx} className="flex items-center gap-2">
-                            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-                            <span>{rule}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="safety" className="mt-4">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <ul className="space-y-3">
-                        {(property.safety_features || []).map((feature, idx) => (
-                          <li key={idx} className="flex items-center gap-3">
-                            <Shield className="h-5 w-5 text-primary" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-
-                <TabsContent value="cancellation" className="mt-4">
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Badge className={getCancellationBadge().color}>
-                          {getCancellationBadge().label}
-                        </Badge>
-                        <span className="text-sm text-muted-foreground">Política de cancelación</span>
-                      </div>
-                      <p className="text-muted-foreground">{property.cancellation_details}</p>
-                      <div className="mt-4 p-4 bg-muted rounded-lg">
-                        <p className="text-sm">
-                          <strong>Estadía mínima:</strong> {property.min_nights} noches
-                          {property.max_nights && <> • <strong>Estadía máxima:</strong> {property.max_nights} noches</>}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </TabsContent>
-              </Tabs>
+              {/* Policies Tabs */}
+              <AirbnbPolicies
+                checkInTime={property.check_in_time}
+                checkOutTime={property.check_out_time}
+                houseRules={property.house_rules || []}
+                safetyFeatures={property.safety_features || []}
+                cancellationDetails={property.cancellation_details}
+                cancellationPolicy={property.cancellation_policy}
+                minNights={property.min_nights}
+                maxNights={property.max_nights}
+              />
 
               <Separator />
 
@@ -458,86 +326,19 @@ const AirbnbDetalle = () => {
 
             {/* Booking Widget */}
             <div className="lg:col-span-1">
-              <Card className="sticky top-24 shadow-lg">
-                <CardHeader>
-                  <div className="flex items-baseline justify-between">
-                    <div>
-                      <span className="text-2xl font-bold">${property.price_per_night || 450}</span>
-                      <span className="text-muted-foreground"> /noche</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-sm">
-                      <Star className="h-4 w-4 fill-primary text-primary" />
-                      <span className="font-medium">{property.rating}</span>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-xs font-medium text-muted-foreground">CHECK-IN</label>
-                      <Input 
-                        type="date" 
-                        value={checkIn}
-                        onChange={(e) => setCheckIn(e.target.value)}
-                        min={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-muted-foreground">CHECK-OUT</label>
-                      <Input 
-                        type="date" 
-                        value={checkOut}
-                        onChange={(e) => setCheckOut(e.target.value)}
-                        min={checkIn || new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="text-xs font-medium text-muted-foreground">HUÉSPEDES</label>
-                    <Input 
-                      type="number" 
-                      value={guestCount}
-                      onChange={(e) => setGuestCount(parseInt(e.target.value) || 1)}
-                      min={1}
-                      max={property.guests || 8}
-                    />
-                  </div>
-
-                  <Button className="w-full" size="lg">
-                    {property.instant_book ? "Reservar ahora" : "Solicitar reserva"}
-                  </Button>
-
-                  {totals && (
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="underline">${property.price_per_night} x {totals.nights} noches</span>
-                        <span>${totals.subtotal}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="underline">Tarifa de limpieza</span>
-                        <span>${totals.cleaning}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="underline">Tarifa de servicio</span>
-                        <span>${totals.service}</span>
-                      </div>
-                      <Separator />
-                      <div className="flex justify-between font-semibold">
-                        <span>Total</span>
-                        <span>${totals.total}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {property.instant_book && (
-                    <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-1">
-                      <Check className="h-4 w-4 text-primary" />
-                      Reserva instantánea disponible
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
+              <AirbnbBookingWidget
+                pricePerNight={property.price_per_night}
+                rating={property.rating}
+                checkIn={checkIn}
+                onCheckInChange={setCheckIn}
+                checkOut={checkOut}
+                onCheckOutChange={setCheckOut}
+                guestCount={guestCount}
+                onGuestCountChange={setGuestCount}
+                maxGuests={property.guests}
+                instantBook={property.instant_book}
+                totals={totals}
+              />
             </div>
           </div>
         </section>
@@ -595,14 +396,6 @@ const AirbnbDetalle = () => {
           </div>
         </motion.div>
       )}
-
-      {/* Modal Reclamar Ficha */}
-      <ClaimBusinessModal
-        isOpen={isClaimModalOpen}
-        onClose={() => setIsClaimModalOpen(false)}
-        businessName={property.name}
-        businessCategory="Alojamiento / Villa Turística"
-      />
 
       <Footer />
     </PageTransition>

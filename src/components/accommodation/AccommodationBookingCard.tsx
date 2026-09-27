@@ -7,7 +7,8 @@ import { toast } from "sonner";
 
 interface RoomSelection {
   name: string;
-  pricePerNight: number;
+  pricePerNight?: number;
+  price?: number;
 }
 
 interface AccommodationBookingCardProps {
@@ -37,8 +38,8 @@ export function AccommodationBookingCard({
   const dIn = new Date(checkIn);
   const dOut = new Date(checkOut);
   const diffTime = Math.max(1, dOut.getTime() - dIn.getTime());
-  const nights = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-  const totalPrice = selectedRoom.pricePerNight * nights;
+  const roomPrice = selectedRoom.pricePerNight ?? selectedRoom.price ?? 150;
+  const totalPrice = roomPrice * nights;
 
   const handleBooking = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,8 +69,11 @@ export function AccommodationBookingCard({
         <CardContent className="p-6 space-y-6">
           <div className="flex items-baseline justify-between">
             <div>
-              <span className="text-3xl sm:text-4xl font-black text-primary">${selectedRoom.pricePerNight}</span>
-              <span className="text-muted-foreground text-sm font-medium"> USD / noche</span>
+              <span className="text-3xl sm:text-4xl font-black text-primary">US$ {roomPrice}</span>
+              <span className="text-muted-foreground text-xs sm:text-sm font-medium"> / noche</span>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                aprox. RD$ {(roomPrice * 60).toLocaleString("es-DO")}
+              </p>
             </div>
             <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-xs border-emerald-500/20">
               Mejor Tarifa Directa
@@ -164,16 +168,21 @@ export function AccommodationBookingCard({
               {/* Cost Breakdown */}
               <div className="pt-3 pb-1 border-t border-border/60 space-y-2 text-xs">
                 <div className="flex justify-between text-muted-foreground">
-                  <span>${selectedRoom.pricePerNight} USD × {nights} noche(s)</span>
-                  <span className="font-medium text-foreground">${totalPrice} USD</span>
+                  <span>US$ {selectedRoom.pricePerNight} × {nights} noche(s)</span>
+                  <span className="font-medium text-foreground">US$ {totalPrice}</span>
                 </div>
                 <div className="flex justify-between text-muted-foreground">
                   <span>Régimen Todo Incluido (Comidas & Bebidas)</span>
                   <span className="font-medium text-emerald-600 dark:text-emerald-400">Gratis</span>
                 </div>
                 <div className="flex justify-between text-base font-bold text-foreground pt-2 border-t border-border/40">
-                  <span>Total Estimado</span>
-                  <span className="text-primary text-lg">${totalPrice} USD</span>
+                  <div>
+                    <span>Total Estimado</span>
+                    <p className="text-[11px] text-muted-foreground font-normal">
+                      aprox. RD$ {(totalPrice * 60).toLocaleString("es-DO")}
+                    </p>
+                  </div>
+                  <span className="text-primary text-lg">US$ {totalPrice}</span>
                 </div>
               </div>
 

@@ -60,6 +60,12 @@
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 195 15% 22%;
     --sidebar-ring: 193 86% 50%;
+
+    /* Colores por Región de la República Dominicana */
+    --region-este: 180 85% 42%;        /* Turquesa Caribe (Punta Cana, La Romana) */
+    --region-cibao: 145 65% 38%;       /* Verde Cordillera & Valles (Santiago, Jarabacoa) */
+    --region-sur: 32 90% 48%;          /* Ocre Dunas & Bahía de las Águilas (Barahona, Pedernales) */
+    --region-norte: 215 88% 46%;       /* Azul Atlántico Profundo (Puerto Plata, Samaná) */
   }
 
   .light {
@@ -518,3 +524,70 @@
   50% { filter: brightness(1.15); }
   100% { filter: brightness(1); }
 }
+
+/* ==========================================================================
+   MEJORAS DE DISEÑO: REGIONES DOMINICANAS & MODO "SOL DE PLAYA"
+   ========================================================================== */
+.border-region-este { border-color: hsl(var(--region-este)) !important; }
+.text-region-este { color: hsl(var(--region-este)) !important; }
+.bg-region-este { background-color: hsl(var(--region-este)) !important; }
+.badge-region-este { background: hsl(var(--region-este) / 0.15); color: hsl(var(--region-este)); border: 1px solid hsl(var(--region-este) / 0.3); }
+
+.border-region-cibao { border-color: hsl(var(--region-cibao)) !important; }
+.text-region-cibao { color: hsl(var(--region-cibao)) !important; }
+.bg-region-cibao { background-color: hsl(var(--region-cibao)) !important; }
+.badge-region-cibao { background: hsl(var(--region-cibao) / 0.15); color: hsl(var(--region-cibao)); border: 1px solid hsl(var(--region-cibao) / 0.3); }
+
+.border-region-sur { border-color: hsl(var(--region-sur)) !important; }
+.text-region-sur { color: hsl(var(--region-sur)) !important; }
+.bg-region-sur { background-color: hsl(var(--region-sur)) !important; }
+.badge-region-sur { background: hsl(var(--region-sur) / 0.15); color: hsl(var(--region-sur)); border: 1px solid hsl(var(--region-sur) / 0.3); }
+
+.border-region-norte { border-color: hsl(var(--region-norte)) !important; }
+.text-region-norte { color: hsl(var(--region-norte)) !important; }
+.bg-region-norte { background-color: hsl(var(--region-norte)) !important; }
+.badge-region-norte { background: hsl(var(--region-norte) / 0.15); color: hsl(var(--region-norte)); border: 1px solid hsl(var(--region-norte) / 0.3); }
+
+/* MODO SOL DE PLAYA (Máximo contraste para lectura directa bajo el sol) */
+body.sol-de-playa,
+.sol-de-playa {
+  --background: 0 0% 100% !important;
+  --foreground: 0 0% 0% !important;
+  --card: 0 0% 100% !important;
+  --card-foreground: 0 0% 0% !important;
+  --muted: 0 0% 90% !important;
+  --muted-foreground: 0 0% 10% !important;
+  --border: 0 0% 0% !important;
+  --primary: 215 100% 25% !important;
+  --primary-foreground: 0 0% 100% !important;
+  filter: contrast(135%) brightness(105%);
+}
+body.sol-de-playa * {
+  text-shadow: none !important;
+  box-shadow: none !important;
+  border-color: #000 !important;
+}
+
+/* ==========================================================================
+   MEJORA 616: ACCESIBILIDAD — FUENTE PARA DISLEXIA & ESPACIADO AJUSTABLE
+   ========================================================================== */
+body.font-dyslexic,
+.font-dyslexic {
+  font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif !important;
+  letter-spacing: 0.08em !important;
+  word-spacing: 0.16em !important;
+  line-height: 1.85 !important;
+}
+body.font-dyslexic h1,
+body.font-dyslexic h2,
+body.font-dyslexic h3,
+body.font-dyslexic p,
+body.font-dyslexic span,
+body.font-dyslexic button,
+body.font-dyslexic a {
+  letter-spacing: 0.08em !important;
+  word-spacing: 0.16em !important;
+  line-height: 1.85 !important;
+}
+
+

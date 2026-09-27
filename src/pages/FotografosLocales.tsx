@@ -24,7 +24,7 @@ const photographers = [
     image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400",
     portfolio: [puntaCanaImg, samanaImg, santoDomingoImg],
     tags: ["Bodas", "Parejas", "Drone"],
-    verified: true,
+    verified: false,
   },
   {
     id: "2",
@@ -37,7 +37,7 @@ const photographers = [
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
     portfolio: [samanaImg, puntaCanaImg, santoDomingoImg],
     tags: ["Naturaleza", "Aventura", "Aéreo"],
-    verified: true,
+    verified: false,
   },
   {
     id: "3",
@@ -63,7 +63,7 @@ const photographers = [
     image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400",
     portfolio: [puntaCanaImg, samanaImg, santoDomingoImg],
     tags: ["Submarino", "Vida Marina", "Deportes"],
-    verified: true,
+    verified: false,
   },
 ];
 

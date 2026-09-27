@@ -75,6 +75,20 @@ const schema = z.object({
   OPENWEATHER_API_KEY: z.string().min(10).optional(),
   /** Carpeta de las imágenes subidas (almacenamiento local). Con varios servidores se usa un almacenamiento compartido (S3). */
   MEDIA_DIR: z.string().default("storage/media"),
+  /** Dónde viven los archivos subidos: local (disco; un solo servidor) | s3 (S3, MinIO, R2, Spaces…; varios servidores). */
+  MEDIA_STORAGE: z.enum(["local", "s3"]).default("local"),
+  S3_ENDPOINT: z.string().url().optional(),
+  S3_REGION: z.string().default("us-east-1"),
+  S3_BUCKET: z.string().optional(),
+  S3_ACCESS_KEY_ID: z.string().optional(),
+  S3_SECRET_ACCESS_KEY: z.string().optional(),
+  S3_PREFIX: z.string().default("media/"),
+  /** true: el bucket va en la ruta (MinIO y la mayoría de compatibles); false: en el host (AWS S3 clásico). */
+  S3_PATH_STYLE: bool.default(true),
+  /** Antivirus de las subidas: none | clamd (ClamAV por TCP). Si el análisis no responde, el archivo no se aprueba y se puede reintentar. */
+  AV_PROVIDER: z.enum(["none", "clamd"]).default("none"),
+  CLAMAV_HOST: z.string().default("127.0.0.1"),
+  CLAMAV_PORT: z.coerce.number().int().min(1).max(65535).default(3310),
   JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().min(30).default(900),
   REFRESH_TTL_DAYS: z.coerce.number().int().min(1).max(365).default(30),
   LOGIN_MAX_FAILURES: z.coerce.number().int().min(1).default(5),
@@ -128,6 +142,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   env.AI_PROVIDER ??= env.NODE_ENV === "production" ? "none" : "fake";
   if (env.NODE_ENV === "production" && env.AI_PROVIDER === "fake") throw new Error("Configuración inválida: AI_PROVIDER=fake no está permitido en producción");
   if (env.AI_PROVIDER === "anthropic" && !env.ANTHROPIC_API_KEY) throw new Error("Configuración inválida: AI_PROVIDER=anthropic requiere ANTHROPIC_API_KEY");
+  if (env.MEDIA_STORAGE === "s3" && (!env.S3_BUCKET || !env.S3_ACCESS_KEY_ID || !env.S3_SECRET_ACCESS_KEY)) throw new Error("Configuración inválida: MEDIA_STORAGE=s3 requiere S3_BUCKET, S3_ACCESS_KEY_ID y S3_SECRET_ACCESS_KEY");
   if (env.PAYMENT_PROVIDER === "stripe" && (!env.STRIPE_SECRET_KEY || !env.STRIPE_WEBHOOK_SECRET)) throw new Error("Configuración inválida: PAYMENT_PROVIDER=stripe requiere STRIPE_SECRET_KEY y STRIPE_WEBHOOK_SECRET");
   if (env.WEATHER_PROVIDER === "openweather" && !env.OPENWEATHER_API_KEY) throw new Error("Configuración inválida: WEATHER_PROVIDER=openweather requiere OPENWEATHER_API_KEY");
   if (env.TOTP_ENCRYPTION_KEY && Buffer.from(env.TOTP_ENCRYPTION_KEY, "base64").length !== 32) throw new Error("Configuración inválida: TOTP_ENCRYPTION_KEY debe ser de 32 bytes en base64");

@@ -256,6 +256,61 @@ export default function PicoDuarte() {
                           ))}
                         </div>
                       </div>
+
+                      {/* Perfil de Altimetría y Relieve del Ascenso */}
+                      <div className="p-4 bg-muted/50 rounded-2xl border border-border/80 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                            <Mountain className="h-4 w-4 text-emerald-500" /> Perfil de Relieve y Altimetría
+                          </span>
+                          <span className="text-[10px] text-muted-foreground font-mono">0 a 3,098 msnm</span>
+                        </div>
+
+                        <div className="relative h-28 bg-gradient-to-t from-emerald-950/20 via-primary/10 to-transparent rounded-xl border border-border/40 p-3 flex items-end justify-between text-[10px]">
+                          {/* Tramo 1 */}
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="font-bold text-foreground">1,110m</span>
+                            <div className="w-8 h-8 bg-emerald-600/80 rounded-t-md" title="Inicio: La Ciénaga" />
+                            <span className="text-muted-foreground text-[9px] truncate max-w-[50px]">Partida</span>
+                          </div>
+
+                          {/* Tramo 2 */}
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="font-bold text-foreground">1,500m</span>
+                            <div className="w-8 h-12 bg-emerald-600 rounded-t-md" title="Refugio La Cotorra" />
+                            <span className="text-muted-foreground text-[9px] truncate max-w-[50px]">Cotorra</span>
+                          </div>
+
+                          {/* Tramo 3 */}
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="font-bold text-foreground">1,980m</span>
+                            <div className="w-8 h-16 bg-primary/70 rounded-t-md" title="El Cruce / Laguna" />
+                            <span className="text-muted-foreground text-[9px] truncate max-w-[50px]">Laguna</span>
+                          </div>
+
+                          {/* Tramo 4 */}
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="font-bold text-amber-500">2,450m</span>
+                            <div className="w-8 h-20 bg-amber-500/80 rounded-t-md relative" title="Campamento Base Compartición">
+                              <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px]">⛺</span>
+                            </div>
+                            <span className="text-muted-foreground text-[9px] truncate max-w-[50px]">Base</span>
+                          </div>
+
+                          {/* Cumbre */}
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="font-black text-primary">3,098m</span>
+                            <div className="w-8 h-24 bg-primary rounded-t-md relative shadow-md shadow-primary/30" title="Busto de Duarte (Cumbre)">
+                              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-[10px]">🚩</span>
+                            </div>
+                            <span className="text-primary font-bold text-[9px]">Cumbre</span>
+                          </div>
+                        </div>
+
+                        <p className="text-[11px] text-muted-foreground italic">
+                          El ascenso acumulado presenta un gradiente sostenido. El refugio de Compartición cuenta con letrinas secas y fuente de agua natural filtrable.
+                        </p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

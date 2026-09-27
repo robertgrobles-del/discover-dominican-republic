@@ -37,8 +37,8 @@ export default function ResetPassword() {
       toast({ variant: "destructive", title: "Error", description: "Las contraseñas no coinciden." });
       return;
     }
-    if (password.length < 6) {
-      toast({ variant: "destructive", title: "Error", description: "La contraseña debe tener al menos 6 caracteres." });
+    if (password.length < 8) {
+      toast({ variant: "destructive", title: "Error", description: "La contraseña debe tener al menos 8 caracteres por motivos de seguridad." });
       return;
     }
 

@@ -122,7 +122,7 @@ export function BarVipBookingCard({
 
         {/* Direct WhatsApp Contact Button (★ Mejora 79) */}
         <a
-          href={`https://wa.me/18095550198?text=${encodeURIComponent(`Hola, vi su ficha en Descubre República Dominicana y deseo consultar disponibilidad para mesa VIP / reserva en ${barName} (Fecha: ${date}, Área: ${bottleService}, Personas: ${guests}).`)}`}
+          href={`https://wa.me/18092214660?text=${encodeURIComponent(`Hola, vi su ficha en Descubre República Dominicana y deseo consultar disponibilidad para mesa VIP / reserva en ${barName} (Fecha: ${vipDate}, Área: ${vipZone}, Personas: ${guestCount}).`)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-xs transition-all shadow-md"

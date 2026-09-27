@@ -1,38 +1,72 @@
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Sunrise } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+type ThemeMode = "dark" | "light" | "sol";
 
 export function ThemeToggle() {
-  const [isDark, setIsDark] = useState(true);
+  const [mode, setMode] = useState<ThemeMode>("dark");
 
   useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const shouldBeDark = stored ? stored === "dark" : prefersDark;
-    
-    setIsDark(shouldBeDark);
-    document.documentElement.classList.toggle("light", !shouldBeDark);
+    const stored = localStorage.getItem("theme") as ThemeMode | null;
+    const initialMode: ThemeMode = stored === "light" || stored === "sol" ? stored : "dark";
+    applyMode(initialMode);
   }, []);
 
-  const toggleTheme = () => {
-    const newIsDark = !isDark;
-    setIsDark(newIsDark);
-    document.documentElement.classList.toggle("light", !newIsDark);
-    localStorage.setItem("theme", newIsDark ? "dark" : "light");
+  const applyMode = (newMode: ThemeMode) => {
+    setMode(newMode);
+    localStorage.setItem("theme", newMode);
+
+    const root = document.documentElement;
+    const body = document.body;
+
+    if (newMode === "sol") {
+      root.classList.add("light");
+      body.classList.add("sol-de-playa");
+    } else if (newMode === "light") {
+      root.classList.add("light");
+      body.classList.remove("sol-de-playa");
+    } else {
+      root.classList.remove("light");
+      body.classList.remove("sol-de-playa");
+    }
+  };
+
+  const cycleTheme = () => {
+    if (mode === "dark") {
+      applyMode("light");
+      toast("Modo Claro Activado");
+    } else if (mode === "light") {
+      applyMode("sol");
+      toast("☀️ Modo Sol de Playa Activado: Máximo contraste bajo sol directo");
+    } else {
+      applyMode("dark");
+      toast("Modo Noche Activado");
+    }
   };
 
   return (
     <Button
       variant="ghost"
       size="icon"
-      onClick={toggleTheme}
-      className="text-white hover:text-white hover:bg-white/20 h-9 w-9"
-      aria-label="Cambiar tema"
+      onClick={cycleTheme}
+      className="text-inherit hover:bg-white/20 h-9 w-9 transition-colors"
+      title={
+        mode === "dark"
+          ? "Tema Oscuro (Click para Claro)"
+          : mode === "light"
+          ? "Tema Claro (Click para Sol de Playa)"
+          : "Modo Sol de Playa (Click para Oscuro)"
+      }
+      aria-label="Cambiar tema de visualización (Oscuro, Claro o Sol de Playa)"
     >
-      {isDark ? (
-        <Sun className="h-5 w-5 transition-transform" />
+      {mode === "dark" ? (
+        <Moon className="h-5 w-5 text-amber-300 transition-transform" />
+      ) : mode === "light" ? (
+        <Sun className="h-5 w-5 text-amber-500 transition-transform" />
       ) : (
-        <Moon className="h-5 w-5 transition-transform" />
+        <Sunrise className="h-5 w-5 text-orange-600 animate-pulse transition-transform" />
       )}
     </Button>
   );

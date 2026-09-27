@@ -22,7 +22,7 @@ export interface CommentItem {
 
 interface CommentSectionProps {
   contentId: string;
-  contentType: "destination" | "article" | "route" | "general" | "province";
+  contentType: "destination" | "article" | "route" | "general" | "province" | "restaurant" | "hotel";
   title?: string;
 }
 

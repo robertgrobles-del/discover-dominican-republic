@@ -16,6 +16,7 @@ import { BetweenSectionsAd, CompactInlineAd, MobileStickyFooterAd, PanoramaAd } 
 import { getSafeCoverImage } from "@/lib/imageCovers";
 
 import { ProvincesHeroSlider } from "@/components/provinces/ProvincesHeroSlider";
+import { FreeActivitiesSection } from "@/components/provinces/FreeActivitiesSection";
 
 export default function Provincias() {
   const { t } = useTranslation();
@@ -134,6 +135,28 @@ export default function Provincias() {
                             loading="lazy"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                          <div className="absolute top-3 left-3">
+                            {province.region === "este" && (
+                              <Badge className="bg-emerald-500/90 text-white font-bold text-[10px] tracking-wide shadow-md">
+                                REGION ESTE · TURQUESA
+                              </Badge>
+                            )}
+                            {province.region === "norte" && (
+                              <Badge className="bg-blue-600/90 text-white font-bold text-[10px] tracking-wide shadow-md">
+                                CIBAO & NORTE · ATLÁNTICO
+                              </Badge>
+                            )}
+                            {province.region === "sur" && (
+                              <Badge className="bg-amber-600/90 text-white font-bold text-[10px] tracking-wide shadow-md">
+                                REGIÓN SUR · OCRE DIVERGENTE
+                              </Badge>
+                            )}
+                            {province.region === "santo-domingo" && (
+                              <Badge className="bg-primary/90 text-primary-foreground font-bold text-[10px] tracking-wide shadow-md">
+                                GRAN SANTO DOMINGO
+                              </Badge>
+                            )}
+                          </div>
                           <div className="absolute bottom-0 left-0 right-0 p-4">
                             <h3 className="font-display text-xl font-bold text-white mb-1">{province.name}</h3>
                             {province.capital && (
@@ -175,6 +198,9 @@ export default function Provincias() {
             )}
           </div>
         </section>
+
+        {/* Mejora 624: "Gratis en RD" - Actividades sin costo por provincia */}
+        <FreeActivitiesSection />
 
         {/* Panorama High Impact Regional Tourism Ad */}
         <section className="py-6">

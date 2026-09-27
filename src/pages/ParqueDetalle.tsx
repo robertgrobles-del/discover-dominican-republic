@@ -8,12 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FavoriteButton } from "@/components/FavoriteButton";
-import { CommentSection } from "@/components/CommentSection";
+import { CommentSection } from "@/components/comments/CommentSection";
 import { DetailHeroHeader } from "@/components/detail/DetailHeroHeader";
 import { DetailAmenitiesGrid } from "@/components/detail/DetailAmenitiesGrid";
 import { DetailInclusionsCard } from "@/components/detail/DetailInclusionsCard";
 import { DetailLocationMapCard } from "@/components/detail/DetailLocationMapCard";
 import { DetailFloatingBar } from "@/components/detail/DetailFloatingBar";
+import { DetailCrowdMeter } from "@/components/detail/DetailCrowdMeter";
+import { HonestGuideSection } from "@/components/detail/HonestGuideSection";
 import { ParkAttractionsList } from "@/components/parks/ParkAttractionsList";
 import { ParkTicketCard } from "@/components/parks/ParkTicketCard";
 import { parquesData } from "@/data/parquesData";
@@ -156,10 +158,37 @@ export default function ParqueDetalle() {
                       </CardContent>
                     </Card>
 
+                    {/* Termómetro de Multitud */}
+                    <DetailCrowdMeter
+                      placeName={parque.nombre}
+                      category="parque"
+                    />
+
                     {/* Amenities / Services */}
                     <DetailAmenitiesGrid 
                       title="Servicios y Comodidades del Parque"
                       amenities={parque.servicios}
+                    />
+
+                    {/* Guía Honesta y Consejo de Local */}
+                    <HonestGuideSection
+                      destinationName={parque.nombre}
+                      loQueNadieTeDice={[
+                        "Lleva repelente de mosquitos y agua suficiente; en áreas profundas no hay venta ambulante.",
+                        "El calzado cerrado con buen agarre es imprescindible por senderos rocosos o húmedos.",
+                        "La señal telefónica puede ser intermitente en las cotas más altas del parque.",
+                        "Se recomienda llevar efectivo para abonar permisos locales comunitarios si aplica."
+                      ]}
+                      consejoLocal={{
+                        nombre: "Félix Santana",
+                        rol: "Guía naturalista certificado",
+                        residencia: parque.ubicacion,
+                        consejo: "El mejor momento para avistar aves autóctonas y caminar con clima fresco es antes de las 9:00 AM. Respeta siempre los senderos señalizados para conservar el ecosistema."
+                      }}
+                      pronunciacion={{
+                        fonetica: parque.nombre,
+                        nota: `Atractivo en ${parque.ubicacion}`
+                      }}
                     />
 
                     {/* Restrictions */}

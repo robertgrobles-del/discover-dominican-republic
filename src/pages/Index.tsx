@@ -22,6 +22,7 @@ const TransportHighlightSection = lazy(() => import("@/components/TransportHighl
 const TravelerToolsStrip = lazy(() => import("@/components/TravelerToolsStrip").then(m => ({ default: m.TravelerToolsStrip })));
 const TestimonialsSection = lazy(() => import("@/components/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })));
 const NewsSection = lazy(() => import("@/components/NewsSection").then(m => ({ default: m.NewsSection })));
+const QuickThreeHoursSection = lazy(() => import("@/components/home/QuickThreeHoursSection").then(m => ({ default: m.QuickThreeHoursSection })));
 const SorteoLectorBanner = lazy(() => import("@/components/forms/SorteoLectorBanner").then(m => ({ default: m.SorteoLectorBanner })));
 const CTARegistroEstablecimiento = lazy(() => import("@/components/forms/CTARegistroEstablecimiento").then(m => ({ default: m.CTARegistroEstablecimiento })));
 
@@ -75,6 +76,13 @@ const Index = () => {
               <RestaurantsBarsSection />
             </Suspense>
           </SectionErrorBoundary>
+        </DeferredSection>
+
+        {/* Mejora 721: "Tengo 3 horas libres" - Micro-itinerarios espontáneos */}
+        <DeferredSection minHeight="380px">
+          <Suspense fallback={<SectionFallback />}>
+            <QuickThreeHoursSection />
+          </Suspense>
         </DeferredSection>
 
         <BetweenSectionsAd showDemo />

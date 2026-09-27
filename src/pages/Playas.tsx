@@ -268,6 +268,45 @@ export default function Playas() {
                 </div>
               </Link>
             </div>
+
+            {/* TABLA DE AMANECER, ATARDECER Y MAREAS POR COSTA */}
+            <div className="mt-8 p-6 bg-card rounded-3xl border border-border space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <Sun className="h-5 w-5 text-amber-500" />
+                  <h3 className="font-display text-lg font-bold text-foreground">
+                    Sol & Mareas: ¿Hacia dónde mira cada costa?
+                  </h3>
+                </div>
+                <Badge variant="outline" className="text-xs text-primary border-primary/30">
+                  Ideal para Fotografía & Surf
+                </Badge>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4 text-xs">
+                {/* Amaneceres */}
+                <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-2">
+                  <div className="flex items-center justify-between font-bold text-amber-600 dark:text-amber-400">
+                    <span>🌅 Mejores Playas para Amanecer (Costa Este)</span>
+                    <span className="font-mono text-[11px]">~06:20 AM</span>
+                  </div>
+                  <p className="text-muted-foreground">
+                    <strong>Punta Cana, Macao, Cabeza de Toro:</strong> Salida del sol directo sobre el horizonte marino con tonos rosados y dorados de ensueño.
+                  </p>
+                </div>
+
+                {/* Atardeceres */}
+                <div className="p-4 rounded-2xl bg-orange-500/5 border border-orange-500/20 space-y-2">
+                  <div className="flex items-center justify-between font-bold text-orange-600 dark:text-orange-400">
+                    <span>🌇 Mejores Playas para Atardecer (Costa Sur y Oeste)</span>
+                    <span className="font-mono text-[11px]">~06:50 PM</span>
+                  </div>
+                  <p className="text-muted-foreground">
+                    <strong>Bahía de las Águilas, Bayahíbe, Las Terrenas:</strong> Puesta de sol en el mar con cielo encendido y aguas en calma absoluta.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 

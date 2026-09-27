@@ -1,0 +1,1 @@
+Lee y sigue [AGENTS.md](AGENTS.md). Antes de construir, revisa [PRD.md](PRD.md), [ARCHITECTURE.md](ARCHITECTURE.md), [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) y los documentos de contexto en [docs/contexto/](docs/contexto/README.md).

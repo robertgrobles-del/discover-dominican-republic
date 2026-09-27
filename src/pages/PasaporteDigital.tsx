@@ -1,39 +1,23 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProgressBar, CircularProgress } from "@/components/ui/progress-bar";
-import {
-  MapPin,
-  Trophy,
-  Star,
-  Award,
-  Gift,
-  Camera,
-  Mountain,
-  Waves,
-  Utensils,
-  Landmark,
-  Lock,
-  QrCode,
-  Share2,
-  TrendingUp,
-  Ticket,
-  Map,
-  Calendar,
-  CheckCircle2,
-  Clock,
-} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Calendar } from "lucide-react";
 import { useGamification } from "@/hooks/useGamification";
 import { usePassport } from "@/hooks/usePassport";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+
+import { PassportProfileHeader } from "@/components/passport/PassportProfileHeader";
+import { PassportStatsGrid } from "@/components/passport/PassportStatsGrid";
+import { PassportOverviewTab } from "@/components/passport/PassportOverviewTab";
+import { PassportStampsTab } from "@/components/passport/PassportStampsTab";
+import { PassportRoutesTab } from "@/components/passport/PassportRoutesTab";
+import { PassportCollectiblesTab } from "@/components/passport/PassportCollectiblesTab";
+import { PassportSeasonsTab } from "@/components/passport/PassportSeasonsTab";
 
 export default function PasaporteDigital() {
   const navigate = useNavigate();
@@ -44,7 +28,6 @@ export default function PasaporteDigital() {
     getNextLevel,
     getXpProgress,
     leaderboard,
-    loading: gamificationLoading,
   } = useGamification();
 
   const {
@@ -53,10 +36,6 @@ export default function PasaporteDigital() {
     userRouteProgress,
     collectibles,
     userCollectibles,
-    getStampsByType,
-    getRouteProgress,
-    getCollectiblesByRarity,
-    loading: passportLoading,
   } = usePassport();
 
   const [activeTab, setActiveTab] = useState("overview");
@@ -80,7 +59,6 @@ export default function PasaporteDigital() {
     );
   }
 
-  const loading = gamificationLoading || passportLoading;
   const currentLevel = getCurrentLevel();
   const nextLevel = getNextLevel();
   const xpProgress = getXpProgress();
@@ -90,10 +68,7 @@ export default function PasaporteDigital() {
 
   const activeRoutes = userRouteProgress.filter(p => !p.is_completed);
   const completedRoutes = userRouteProgress.filter(p => p.is_completed);
-
   const ownedCollectibles = userCollectibles.length;
-  const legendaryCollectibles = getCollectiblesByRarity("legendary").length;
-  const epicCollectibles = getCollectiblesByRarity("epic").length;
 
   return (
     <PageTransition>
@@ -101,141 +76,22 @@ export default function PasaporteDigital() {
         <Header />
 
         {/* Profile Header */}
-        <section className="pt-24 pb-8">
-          <div className="container mx-auto px-4">
-            <Card className="border-primary/20">
-              <CardContent className="p-6 md:p-8">
-                <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-                  {/* Avatar */}
-                  <div className="relative">
-                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center">
-                      <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
-                        <Star className="h-10 w-10 text-primary" />
-                      </div>
-                    </div>
-                    <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                      <Award className="h-4 w-4 text-primary-foreground fill-current" />
-                    </div>
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1">
-                    <h1 className="font-display text-3xl font-bold mb-1">
-                      {currentLevel?.title || "Explorador"}
-                    </h1>
-                    <p className="text-muted-foreground mb-4">
-                      Nivel {userGamification?.current_level || 1} • {userGamification?.total_xp || 0} XP Total
-                    </p>
-                    
-                    {/* XP Progress */}
-                    <div className="max-w-md">
-                      <ProgressBar
-                        value={xpProgress}
-                        label="Progreso al siguiente nivel"
-                        variant="gradient"
-                        size="md"
-                      />
-                      {nextLevel && (
-                        <p className="text-sm text-primary mt-2">
-                          Siguiente: {nextLevel.title}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex flex-col gap-2">
-                    <Button className="gap-2">
-                      <QrCode className="h-4 w-4" /> Escanear Código
-                    </Button>
-                    <Button variant="outline" className="gap-2">
-                      <Share2 className="h-4 w-4" /> Compartir
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
+        <PassportProfileHeader
+          currentLevelTitle={currentLevel?.title}
+          currentLevelNumber={userGamification?.current_level || 1}
+          totalXp={userGamification?.total_xp || 0}
+          xpProgress={xpProgress}
+          nextLevelTitle={nextLevel?.title}
+        />
 
         {/* Stats Cards */}
-        <section className="py-6">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <Card>
-                  <CardContent className="p-5">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                        <MapPin className="h-5 w-5 text-blue-500" />
-                      </div>
-                      <span className="text-sm text-muted-foreground">Sellos</span>
-                    </div>
-                    <p className="text-3xl font-bold">{totalStamps}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                <Card>
-                  <CardContent className="p-5">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                        <Trophy className="h-5 w-5 text-green-500" />
-                      </div>
-                      <span className="text-sm text-muted-foreground">Rutas</span>
-                    </div>
-                    <p className="text-3xl font-bold">{completedRoutes.length}</p>
-                    <p className="text-xs text-muted-foreground">{activeRoutes.length} activas</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <Card>
-                  <CardContent className="p-5">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                        <Gift className="h-5 w-5 text-purple-500" />
-                      </div>
-                      <span className="text-sm text-muted-foreground">Coleccionables</span>
-                    </div>
-                    <p className="text-3xl font-bold">{ownedCollectibles}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <Card>
-                  <CardContent className="p-5">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
-                        <Award className="h-5 w-5 text-yellow-500" />
-                      </div>
-                      <span className="text-sm text-muted-foreground">Monedas</span>
-                    </div>
-                    <p className="text-3xl font-bold">{userGamification?.coins || 0}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </div>
-          </div>
-        </section>
+        <PassportStatsGrid
+          totalStamps={totalStamps}
+          completedRoutesCount={completedRoutes.length}
+          activeRoutesCount={activeRoutes.length}
+          ownedCollectibles={ownedCollectibles}
+          coins={userGamification?.coins || 0}
+        />
 
         {/* Tabs Section */}
         <section className="py-8">
@@ -252,403 +108,39 @@ export default function PasaporteDigital() {
               </TabsList>
 
               {/* Overview Tab */}
-              <TabsContent value="overview" className="space-y-6">
-                <div className="grid lg:grid-cols-3 gap-6">
-                  {/* Recent Stamps */}
-                  <div className="lg:col-span-2">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Clock className="h-5 w-5 text-primary" />
-                          Sellos Recientes
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {recentStamps.length === 0 ? (
-                          <p className="text-muted-foreground text-center py-8">
-                            Aún no tienes sellos. ¡Visita destinos para comenzar!
-                          </p>
-                        ) : (
-                          <div className="space-y-3">
-                            {recentStamps.map((stamp) => (
-                              <div
-                                key={stamp.id}
-                                className="flex items-center gap-4 p-3 rounded-lg border"
-                              >
-                                {stamp.stamp_image && (
-                                  <img
-                                    src={stamp.stamp_image}
-                                    alt={stamp.stamp_name}
-                                    className="w-16 h-16 rounded object-cover"
-                                  />
-                                )}
-                                <div className="flex-1">
-                                  <h4 className="font-semibold">{stamp.stamp_name}</h4>
-                                  <p className="text-sm text-muted-foreground">
-                                    {stamp.stamp_location}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {new Date(stamp.visited_at).toLocaleDateString("es-DO")}
-                                  </p>
-                                </div>
-                                {stamp.is_verified && (
-                                  <Badge className="bg-green-500/10 text-green-500">
-                                    <CheckCircle2 className="h-3 w-3 mr-1" />
-                                    Verificado
-                                  </Badge>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Leaderboard */}
-                  <div>
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Trophy className="h-5 w-5 text-yellow-500" />
-                          Top Exploradores
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          {leaderboard.slice(0, 5).map((entry, index) => (
-                            <div key={entry.user_id} className="flex items-center gap-3">
-                              <span
-                                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                                  index === 0
-                                    ? "bg-yellow-500 text-white"
-                                    : index === 1
-                                    ? "bg-gray-400 text-white"
-                                    : "bg-orange-600 text-white"
-                                }`}
-                              >
-                                {index + 1}
-                              </span>
-                              <div className="flex-1">
-                                <p className="font-medium text-sm">{entry.display_name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {entry.total_xp.toLocaleString()} XP
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
+              <TabsContent value="overview">
+                <PassportOverviewTab
+                  recentStamps={recentStamps}
+                  leaderboard={leaderboard}
+                />
               </TabsContent>
 
               {/* Stamps Tab */}
               <TabsContent value="stamps">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Colección de Sellos ({totalStamps})</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {stamps.length === 0 ? (
-                      <div className="text-center py-12">
-                        <MapPin className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                        <p className="text-muted-foreground">
-                          Comienza a explorar República Dominicana y colecciona sellos
-                        </p>
-                        <Button className="mt-4" onClick={() => navigate("/destinos")}>
-                          Ver Destinos
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {stamps.map((stamp) => (
-                          <Card key={stamp.id} className="overflow-hidden">
-                            {stamp.stamp_image && (
-                              <img
-                                src={stamp.stamp_image}
-                                alt={stamp.stamp_name}
-                                className="w-full h-32 object-cover"
-                              />
-                            )}
-                            <CardContent className="p-3">
-                              <h4 className="font-semibold text-sm mb-1">{stamp.stamp_name}</h4>
-                              <p className="text-xs text-muted-foreground mb-2">
-                                {stamp.stamp_location}
-                              </p>
-                              <Badge variant="outline" className="text-xs">
-                                {new Date(stamp.visited_at).toLocaleDateString("es-DO")}
-                              </Badge>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                <PassportStampsTab stamps={stamps} />
               </TabsContent>
 
               {/* Routes Tab */}
               <TabsContent value="routes">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Rutas Activas ({activeRoutes.length})</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {activeRoutes.length === 0 ? (
-                        <p className="text-muted-foreground text-center py-8">
-                          No tienes rutas activas
-                        </p>
-                      ) : (
-                        <div className="space-y-4">
-                          {activeRoutes.map((progress) => {
-                            const route = routes.find(r => r.id === progress.route_id);
-                            if (!route) return null;
-                            
-                            return (
-                              <div key={progress.id} className="border rounded-lg p-4">
-                                <h4 className="font-semibold mb-2">{route.name}</h4>
-                                <ProgressBar
-                                  value={progress.completion_percentage}
-                                  label="Progreso"
-                                  variant="gradient"
-                                />
-                                <div className="flex justify-between text-sm mt-2">
-                                  <span className="text-muted-foreground">
-                                    {progress.checkpoints_completed} / {progress.total_checkpoints} checkpoints
-                                  </span>
-                                  <span className="text-primary">
-                                    +{progress.total_xp_earned} XP
-                                  </span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Rutas Disponibles</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {routes.filter(r => !userRouteProgress.some(p => p.route_id === r.id)).length === 0 ? (
-                        <p className="text-muted-foreground text-center py-8">
-                          No hay rutas nuevas disponibles
-                        </p>
-                      ) : (
-                        <div className="space-y-4">
-                          {routes
-                            .filter(r => !userRouteProgress.some(p => p.route_id === r.id))
-                            .slice(0, 3)
-                            .map((route) => (
-                              <div key={route.id} className="border rounded-lg p-4">
-                                <div className="flex justify-between items-start mb-2">
-                                  <h4 className="font-semibold">{route.name}</h4>
-                                  {route.is_featured && (
-                                    <Badge className="bg-yellow-500/10 text-yellow-500">
-                                      Destacada
-                                    </Badge>
-                                  )}
-                                </div>
-                                <p className="text-sm text-muted-foreground mb-3">
-                                  {route.short_description}
-                                </p>
-                                <div className="flex items-center justify-between">
-                                  <div className="flex gap-3 text-xs">
-                                    <span className="text-primary">+{route.total_xp_reward} XP</span>
-                                    {route.difficulty && (
-                                      <Badge variant="outline">{route.difficulty}</Badge>
-                                    )}
-                                  </div>
-                                  <Button size="sm">Iniciar</Button>
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
+                <PassportRoutesTab
+                  routes={routes}
+                  activeRoutes={activeRoutes}
+                  userRouteProgress={userRouteProgress}
+                />
               </TabsContent>
 
               {/* Collectibles Tab */}
               <TabsContent value="collectibles">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Colección ({ownedCollectibles} / {collectibles.length})</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                      {collectibles.map((collectible) => {
-                        const owned = userCollectibles.some(uc => uc.collectible_id === collectible.id);
-                        
-                        const rarityColors = {
-                          common: "bg-gray-500/10 text-gray-500",
-                          uncommon: "bg-green-500/10 text-green-500",
-                          rare: "bg-blue-500/10 text-blue-500",
-                          epic: "bg-purple-500/10 text-purple-500",
-                          legendary: "bg-yellow-500/10 text-yellow-500",
-                        };
-
-                        return (
-                          <div
-                            key={collectible.id}
-                            className={`border rounded-lg p-4 text-center ${
-                              !owned && "opacity-40 grayscale"
-                            }`}
-                          >
-                            {collectible.image_url && (
-                              <img
-                                src={collectible.image_url}
-                                alt={collectible.name}
-                                className="w-full h-24 object-contain mb-2"
-                              />
-                            )}
-                            <h4 className="font-semibold text-sm mb-1">{collectible.name}</h4>
-                            <Badge className={rarityColors[collectible.rarity]}>
-                              {collectible.rarity}
-                            </Badge>
-                            {!owned && (
-                              <p className="text-xs text-muted-foreground mt-2">
-                                <Lock className="h-3 w-3 inline mr-1" />
-                                Bloqueado
-                              </p>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
+                <PassportCollectiblesTab
+                  collectibles={collectibles}
+                  userCollectibles={userCollectibles}
+                  ownedCollectiblesCount={ownedCollectibles}
+                />
               </TabsContent>
 
               {/* Seasons & Battle Pass Tab */}
-              <TabsContent value="seasons" className="space-y-6">
-                <Card className="border-amber-500/30 overflow-hidden bg-gradient-to-br from-card via-card to-amber-500/5">
-                  <CardHeader className="border-b border-border/60 pb-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div>
-                        <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/30 mb-2">
-                          Temporada Oficial 2026 • En Curso
-                        </Badge>
-                        <CardTitle className="font-display text-2xl md:text-3xl text-foreground">
-                          Temporada de Ballenas & Ecoturismo Norte
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Gana puntos de temporada visitando Samaná, Puerto Plata y Montecristi antes del 31 de mayo de 2026.
-                        </p>
-                      </div>
-                      <div className="bg-card/90 border border-border p-4 rounded-2xl text-center shrink-0">
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Finaliza en</span>
-                        <span className="text-xl font-black text-primary font-mono">65 días : 14h</span>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-6 md:p-8 space-y-8">
-                    {/* Season Level Progress */}
-                    <div className="bg-card rounded-2xl p-6 border border-border space-y-4">
-                      <div className="flex justify-between items-center text-sm font-bold">
-                        <span>Pase de Temporada Nivel 3</span>
-                        <span className="text-amber-500">450 / 800 XP de Temporada</span>
-                      </div>
-                      <ProgressBar value={56} variant="gradient" size="md" />
-                      <p className="text-xs text-muted-foreground">
-                        Siguiente recompensa: <strong className="text-foreground">Sello Coleccionable "Ballena Jorobada Mítica" + 150 Monedas RD</strong>
-                      </p>
-                    </div>
-
-                    {/* Season Rewards Track */}
-                    <div>
-                      <h4 className="font-bold text-lg mb-4 text-foreground flex items-center gap-2">
-                        <Gift className="h-5 w-5 text-amber-500" />
-                        Recompensas del Pase de Temporada
-                      </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {[
-                          { level: "Nivel 1", reward: "Insignia Costa Norte", icon: Award, unlocked: true, desc: "Desbloqueada" },
-                          { level: "Nivel 2", reward: "Bono +50 Monedas", icon: Star, unlocked: true, desc: "Desbloqueada" },
-                          { level: "Nivel 3", reward: "Coleccionable Ballena", icon: Waves, unlocked: false, desc: "Requiere 800 XP" },
-                          { level: "Nivel 4", reward: "Cupón 15% en Excursión", icon: Ticket, unlocked: false, desc: "Requiere 1,500 XP" }
-                        ].map((item, idx) => (
-                          <div 
-                            key={idx}
-                            className={`p-4 rounded-2xl border transition-all ${
-                              item.unlocked 
-                                ? "bg-amber-500/10 border-amber-500/30 text-foreground" 
-                                : "bg-card/60 border-border/80 opacity-70"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between mb-3">
-                              <Badge variant={item.unlocked ? "default" : "outline"} className="text-xs">
-                                {item.level}
-                              </Badge>
-                              {item.unlocked ? (
-                                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                              ) : (
-                                <Lock className="h-4 w-4 text-muted-foreground" />
-                              )}
-                            </div>
-                            <item.icon className="h-8 w-8 text-primary mb-2" />
-                            <h5 className="font-semibold text-sm">{item.reward}</h5>
-                            <p className="text-xs text-muted-foreground mt-1">{item.desc}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Misiones Patrocinadas de Temporada */}
-                    <div className="border-t border-border/60 pt-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h4 className="font-bold text-lg text-foreground flex items-center gap-2">
-                            <Sparkles className="h-5 w-5 text-primary" />
-                            Misiones Patrocinadas de Temporada
-                          </h4>
-                          <p className="text-xs text-muted-foreground">
-                            Completa experiencias en comercios aliados para multiplicar tus monedas y subir de nivel.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div className="p-4 rounded-2xl bg-card border border-border/80 flex items-start gap-3">
-                          <div className="p-2.5 bg-primary/10 rounded-xl text-primary shrink-0">
-                            <Utensils className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex justify-between items-start">
-                              <h5 className="font-bold text-sm">Degusta el Pescado con Coco en Las Terrenas</h5>
-                              <Badge className="bg-amber-500/15 text-amber-500 border-none text-[10px]">+60 Monedas</Badge>
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Presenta tu pasaporte digital en restaurantes de la bahía y pide al camarero que escanee tu código.
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="p-4 rounded-2xl bg-card border border-border/80 flex items-start gap-3">
-                          <div className="p-2.5 bg-primary/10 rounded-xl text-primary shrink-0">
-                            <Mountain className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex justify-between items-start">
-                              <h5 className="font-bold text-sm">Ascenso a la Cascada El Limón</h5>
-                              <Badge className="bg-amber-500/15 text-amber-500 border-none text-[10px]">+100 XP Extra</Badge>
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Registra tu llegada al rancho oficial de operadores comunitarios certificados por MITUR.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              <TabsContent value="seasons">
+                <PassportSeasonsTab />
               </TabsContent>
             </Tabs>
           </div>

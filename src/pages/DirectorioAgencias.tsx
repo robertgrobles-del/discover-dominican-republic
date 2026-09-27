@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { 
   Search, MapPin, Phone, Mail, Globe, ChevronRight, ChevronLeft,
-  Check, Building2, Compass, Bus, Download, ExternalLink, FileText, Image
+  Check, Building2, Compass, Download, FileText, Image, ShieldCheck, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,11 +11,53 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CTARegistroEstablecimiento } from "@/components/forms/CTARegistroEstablecimiento";
 import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
-const agencies = [
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { AgenciasHero } from "@/components/agencias/AgenciasHero";
+import { AgenciasFilterSidebar } from "@/components/agencias/AgenciasFilterSidebar";
+import { AgencyCard, DirectoryAgency } from "@/components/agencias/AgencyCard";
+import { ExcursionsGrid } from "@/components/agencias/ExcursionsGrid";
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+interface Agency {
+  id: string;
+  name: string;
+  verified: boolean;
+  isDemo: boolean;
+  location: string;
+  rnt: string;
+  description: string;
+  type: string;
+  status: string;
+  logo: string;
+  logoUrl?: string;
+  hasEmail: boolean;
+  hasPhone: boolean;
+  hasWeb: boolean;
+  phone: string;
+  email: string;
+  website?: string;
+  rating?: number;
+  reviewCount?: number;
+  specialties?: string[];
+}
+
+interface Excursion {
+  id: string;
+  title: string;
+  price: number;
+  duration: string;
+  location: string;
+  image: string;
+}
+
+// ── Mock fallback data ─────────────────────────────────────────────────────────
+const mockAgencies: Agency[] = [
   {
     id: "tropical-caribbean",
     name: "Tropical Caribbean Tours",
@@ -69,7 +111,7 @@ const agencies = [
   }
 ];
 
-const excursions = [
+const mockExcursions: Excursion[] = [
   {
     id: "isla-saona-vip",
     title: "Isla Saona VIP",
@@ -111,61 +153,122 @@ const b2bResources = [
   { id: 4, title: "Contrato de Colaboración", type: "DOCX", size: "156 KB", icon: FileText },
 ];
 
+const PAGE_SIZE = 10;
+
 export default function DirectorioAgencias() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [onlyVerified, setOnlyVerified] = useState(true);
+  const [onlyVerified, setOnlyVerified] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [typeFilter, setTypeFilter] = useState<string[]>([]);
+  const [regionFilter, setRegionFilter] = useState("all");
+
+  // ── Supabase: travel agencies ───────────────────────────────────────────────
+  const { data: dbAgencies, isLoading: agenciesLoading } = useQuery({
+    queryKey: ["travel-agencies-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("travel_agencies")
+        .select("*")
+        .order("is_featured", { ascending: false })
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 5 * 60 * 1000, // 5 min
+  });
+
+  // ── Supabase: tour packages (excursions catalog) ────────────────────────────
+  const { data: dbTourPackages } = useQuery({
+    queryKey: ["tour-packages-featured"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tour_packages")
+        .select("id, name, price_from, duration, destinations, image_url, slug, is_featured")
+        .eq("is_active", true)
+        .order("is_featured", { ascending: false })
+        .limit(8);
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // ── Map DB rows → UI types ───────────────────────────────────────────────────
+  const agenciesList: Agency[] = useMemo(() => {
+    if (!dbAgencies || dbAgencies.length === 0) return mockAgencies;
+    return dbAgencies.map((a) => ({
+      id: a.slug ?? a.id,
+      name: a.name,
+      verified: a.is_active ?? false,
+      isDemo: false,
+      location: a.address ?? "República Dominicana",
+      rnt: a.is_active ? "Operador Verificado" : "RNT: En validación",
+      description: a.short_description ?? a.description ?? "",
+      type: a.agency_type ?? "Tour Operador",
+      status: a.is_active ? "Activo" : "En Validación",
+      logo: a.name.slice(0, 2).toUpperCase(),
+      logoUrl: a.logo_url ?? undefined,
+      hasEmail: !!a.email,
+      hasPhone: !!a.phone,
+      hasWeb: !!a.website,
+      phone: a.phone ?? "+18092214660",
+      email: a.email ?? "contacto@descubrerd.do",
+      website: a.website ?? undefined,
+      rating: a.rating ?? undefined,
+      reviewCount: a.review_count ?? undefined,
+      specialties: a.specialties ?? undefined,
+    }));
+  }, [dbAgencies]);
+
+  const excursions: Excursion[] = useMemo(() => {
+    if (!dbTourPackages || dbTourPackages.length === 0) return mockExcursions;
+    return dbTourPackages.map((p) => ({
+      id: p.slug ?? p.id,
+      title: p.name,
+      price: p.price_from ?? 0,
+      duration: p.duration ?? "",
+      location: (p.destinations ?? [])[0] ?? "República Dominicana",
+      image: p.image_url ?? "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&h=300&fit=crop",
+    }));
+  }, [dbTourPackages]);
+
+  // ── Filtering & Pagination ───────────────────────────────────────────────────
+  const filteredAgencies = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return agenciesList.filter((a) => {
+      const matchesSearch = !q ||
+        a.name.toLowerCase().includes(q) ||
+        a.description.toLowerCase().includes(q) ||
+        a.location.toLowerCase().includes(q);
+      const matchesVerified = !onlyVerified || a.verified;
+      const matchesType = typeFilter.length === 0 || typeFilter.includes(a.type);
+      const matchesRegion = regionFilter === "all" || a.location.toLowerCase().includes(regionFilter.toLowerCase());
+      return matchesSearch && matchesVerified && matchesType && matchesRegion;
+    });
+  }, [agenciesList, searchQuery, onlyVerified, typeFilter, regionFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredAgencies.length / PAGE_SIZE));
+  const paginatedAgencies = filteredAgencies.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
+  const handleTypeToggle = (type: string, checked: boolean) => {
+    setTypeFilter((prev) =>
+      checked ? [...prev, type] : prev.filter((t) => t !== type)
+    );
+    setCurrentPage(1);
+  };
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
       
       {/* Hero Section */}
-      <section className="relative py-20">
-        <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1580541631950-7282082b53ce?w=1920&h=600&fit=crop"
-            alt="Turismo RD"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/60" />
-        </div>
-        
-        <div className="relative container mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <span className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-600 text-white text-xs font-medium rounded-full mb-4 shadow-sm">
-              <Check className="h-3 w-3" />
-              Verificado por Descubre República Dominicana
-            </span>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-2">
-              Conectando Profesionales
-            </h1>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-primary mb-6">
-              Del Turismo Dominicano
-            </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto mb-8">
-              Accede al directorio oficial de operadores verificados, catálogos de excursiones exclusivas y recursos de marketing para agencias globales.
-            </p>
-
-            {/* Search Bar */}
-            <div className="flex gap-2 max-w-xl mx-auto bg-card/80 backdrop-blur-md p-2 rounded-xl border border-border">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar agencia por nombre, RNT o región..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 bg-transparent border-0 focus-visible:ring-0"
-                />
-              </div>
-              <Button>Buscar</Button>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+      <AgenciasHero
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
 
       {/* Main Tabs */}
       <Tabs defaultValue="directorio" className="w-full">
@@ -190,292 +293,133 @@ export default function DirectorioAgencias() {
 
         {/* Tab Content: Directorio */}
         <TabsContent value="directorio" className="mt-0">
+          <div className="container mx-auto px-4 py-12">
+            <div className="grid lg:grid-cols-4 gap-8">
+              {/* Filters Sidebar */}
+              <div className="lg:col-span-1">
+                <AgenciasFilterSidebar
+                  typeFilter={typeFilter}
+                  onTypeToggle={handleTypeToggle}
+                  regionFilter={regionFilter}
+                  onRegionChange={(v) => { setRegionFilter(v); setCurrentPage(1); }}
+                  onlyVerified={onlyVerified}
+                  onOnlyVerifiedChange={(v) => { setOnlyVerified(v); setCurrentPage(1); }}
+                  onReset={() => { setTypeFilter([]); setRegionFilter("all"); setOnlyVerified(false); setSearchQuery(""); }}
+                />
+              </div>
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid lg:grid-cols-4 gap-8">
-          {/* Filters Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-card rounded-xl border border-border p-6 sticky top-24">
+              {/* Main Content */}
+              <div className="lg:col-span-3">
+                {/* Results Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <h2 className="font-display text-2xl font-bold text-foreground">Directorio de Agencias</h2>
+                    {agenciesLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    ) : (
+                      <Badge variant="secondary">{filteredAgencies.length} resultados</Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Ordenar por:</span>
+                    <Select defaultValue="relevancia">
+                      <SelectTrigger className="w-[140px] bg-card">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="relevancia">Relevancia</SelectItem>
+                        <SelectItem value="nombre">Nombre</SelectItem>
+                        <SelectItem value="ubicacion">Ubicación</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Agency Cards */}
+                <div className="space-y-4 mb-8">
+                  {agenciesLoading ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="bg-card rounded-xl border border-border p-6 animate-pulse">
+                        <div className="flex gap-6">
+                          <div className="w-28 h-28 rounded-xl bg-muted flex-shrink-0" />
+                          <div className="flex-1 space-y-3">
+                            <div className="h-5 bg-muted rounded w-1/3" />
+                            <div className="h-4 bg-muted rounded w-1/4" />
+                            <div className="h-12 bg-muted rounded w-full" />
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : paginatedAgencies.length === 0 ? (
+                    <div className="text-center py-16 text-muted-foreground">
+                      <Building2 className="h-12 w-12 mx-auto mb-4 opacity-30" />
+                      <p className="font-medium">No se encontraron agencias con estos filtros.</p>
+                      <p className="text-sm mt-1">Intenta ajustar la búsqueda o los filtros.</p>
+                    </div>
+                  ) : (
+                    paginatedAgencies.map((agency, index) => (
+                      <AgencyCard key={agency.id} agency={agency} index={index} />
+                    ))
+                  )}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2">
+                    <Button
+                      variant="ghost" size="icon"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage((p) => p - 1)}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((page) => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "ghost"}
+                        size="icon"
+                        onClick={() => setCurrentPage(page)}
+                      >
+                        {page}
+                      </Button>
+                    ))}
+                    {totalPages > 5 && <span className="text-muted-foreground px-2">...</span>}
+                    <Button
+                      variant="ghost" size="icon"
+                      disabled={currentPage === totalPages}
+                      onClick={() => setCurrentPage((p) => p + 1)}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Excursions Catalog in Directorio tab */}
+            <section className="mt-16 pt-16 border-t border-border">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-display font-bold text-foreground">Filtros</h3>
-                <Button variant="link" className="text-primary text-sm p-0">Limpiar</Button>
-              </div>
-
-              {/* Type Filter */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium text-foreground mb-3">Tipo de Empresa</h4>
-                <div className="space-y-3">
-                  {["Tour Operadores", "Agencias de Viajes", "Transporte Turístico"].map((type, i) => (
-                    <div key={type} className="flex items-center gap-2">
-                      <Checkbox id={type} defaultChecked={i === 0} />
-                      <label htmlFor={type} className="text-sm text-muted-foreground">{type}</label>
-                    </div>
-                  ))}
+                <div>
+                  <h2 className="font-display text-2xl font-bold text-foreground">Catálogo de Excursiones Destacadas</h2>
+                  <p className="text-sm text-muted-foreground">Experiencias B2B con comisiones preferenciales.</p>
                 </div>
+                <Link to="/experiencias">
+                  <Button variant="link" className="text-primary gap-1">
+                    Ver todo el catálogo <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </Link>
               </div>
 
-              {/* Region Filter */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium text-foreground mb-3">Región</h4>
-                <Select defaultValue="all">
-                  <SelectTrigger className="bg-surface">
-                    <SelectValue placeholder="Todas las regiones" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas las regiones</SelectItem>
-                    <SelectItem value="este">Zona Este</SelectItem>
-                    <SelectItem value="norte">Zona Norte</SelectItem>
-                    <SelectItem value="sur">Zona Sur</SelectItem>
-                    <SelectItem value="santo-domingo">Santo Domingo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Verified Only */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium text-foreground mb-3">Estado</h4>
-                <div className="flex items-center gap-2">
-                  <Switch checked={onlyVerified} onCheckedChange={setOnlyVerified} />
-                  <span className="text-sm text-muted-foreground">Solo Verificados</span>
-                </div>
-              </div>
-
-              {/* Marketing Kit CTA */}
-              <div className="bg-primary/10 rounded-xl p-4 border border-primary/20">
-                <h4 className="font-display font-bold text-foreground mb-2">Kit de Marketing 2024</h4>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Descarga fotos y logos oficiales para tus promociones.
-                </p>
-                <Button className="w-full">Acceder al Portal B2B</Button>
-              </div>
-            </div>
+              <ExcursionsGrid excursions={excursions} />
+            </section>
           </div>
-
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            {/* Results Header */}
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="font-display text-2xl font-bold text-foreground">Agencias Verificadas</h2>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Ordenar por:</span>
-                <Select defaultValue="relevancia">
-                  <SelectTrigger className="w-[140px] bg-card">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="relevancia">Relevancia</SelectItem>
-                    <SelectItem value="nombre">Nombre</SelectItem>
-                    <SelectItem value="ubicacion">Ubicación</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Agency Cards */}
-            <div className="space-y-4 mb-8">
-              {agencies.map((agency, index) => (
-                <motion.div
-                  key={agency.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="bg-card rounded-xl border border-border p-6 hover:border-primary/50 transition-colors"
-                >
-                  <div className="flex gap-6">
-                    {/* Logo */}
-                    <div className="w-28 h-28 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0">
-                      <span className="font-display text-3xl font-bold text-primary">{agency.logo}</span>
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-display font-bold text-foreground">{agency.name}</h3>
-                            {agency.verified && (
-                              <Check className="h-4 w-4 text-primary" />
-                            )}
-                          </div>
-                          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" />
-                              {agency.location}
-                            </span>
-                            <span className="text-primary">{agency.rnt}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            agency.status === "Activo" 
-                              ? "bg-green-500/20 text-green-400" 
-                              : "bg-yellow-500/20 text-yellow-400"
-                          }`}>
-                            {agency.status}
-                          </span>
-                          <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground">
-                            {agency.type}
-                          </span>
-                        </div>
-                      </div>
-
-                      <p className="text-sm text-muted-foreground mb-4">{agency.description}</p>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {agency.hasEmail && (
-                            <a href={`mailto:${agency.email}?subject=${encodeURIComponent(`Contacto desde Descubre RD - ${agency.name}`)}`} title="Enviar correo">
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <Mail className="h-4 w-4" />
-                              </Button>
-                            </a>
-                          )}
-                          {agency.hasPhone && (
-                            <a href={`tel:${agency.phone.replace(/\D/g, "")}`} title="Llamar">
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <Phone className="h-4 w-4" />
-                              </Button>
-                            </a>
-                          )}
-                          {agency.hasWeb && (
-                            <Link to={`/agencia/${agency.id}`} title="Ver ficha">
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <Globe className="h-4 w-4" />
-                              </Button>
-                            </Link>
-                          )}
-                        </div>
-                        <Link to={`/agencia/${agency.id}`}>
-                          <Button variant="link" className="text-primary gap-1">
-                            Ver Perfil Completo <ChevronRight className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Pagination */}
-            <div className="flex items-center justify-center gap-2">
-              <Button variant="ghost" size="icon" disabled={currentPage === 1}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              {[1, 2, 3].map(page => (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? "default" : "ghost"}
-                  size="icon"
-                  onClick={() => setCurrentPage(page)}
-                >
-                  {page}
-                </Button>
-              ))}
-              <span className="text-muted-foreground px-2">...</span>
-              <Button variant="ghost" size="icon">12</Button>
-              <Button variant="ghost" size="icon">
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Excursions Catalog in Directorio tab */}
-        <section className="mt-16 pt-16 border-t border-border">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="font-display text-2xl font-bold text-foreground">Catálogo de Excursiones Destacadas</h2>
-              <p className="text-sm text-muted-foreground">Experiencias B2B con comisiones preferenciales.</p>
-            </div>
-            <Link to="/experiencias">
-              <Button variant="link" className="text-primary gap-1">
-                Ver todo el catálogo <ChevronRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {excursions.map((exc, index) => (
-              <Link key={exc.id} to={`/experiencia/${exc.id}`}>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="group cursor-pointer"
-                >
-                  <div className="aspect-[4/3] rounded-xl overflow-hidden relative mb-3">
-                    <img 
-                      src={exc.image} 
-                      alt={exc.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
-                      Desde ${exc.price} USD
-                    </div>
-                  </div>
-                  <h3 className="font-display font-bold text-foreground group-hover:text-primary transition-colors">
-                    {exc.title}
-                  </h3>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>{exc.duration}</span>
-                    <span>•</span>
-                    <span className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      {exc.location}
-                    </span>
-                  </div>
-                </motion.div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      </div>
         </TabsContent>
 
         {/* Tab Content: Catálogo de Excursiones */}
         <TabsContent value="catalogo" className="mt-0">
           <div className="container mx-auto px-4 py-12">
             <h2 className="font-display text-3xl font-bold text-foreground mb-8">Catálogo Completo de Excursiones</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {excursions.map((exc, index) => (
-                <Link key={exc.id} to={`/experiencia/${exc.id}`}>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                    className="group cursor-pointer bg-card rounded-xl overflow-hidden border border-border hover:border-primary/50 transition-colors"
-                  >
-                    <div className="aspect-[4/3] relative overflow-hidden">
-                      <img 
-                        src={exc.image} 
-                        alt={exc.title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                      <div className="absolute top-3 right-3 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
-                        Desde ${exc.price} USD
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-display font-bold text-foreground group-hover:text-primary transition-colors mb-2">
-                        {exc.title}
-                      </h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{exc.duration}</span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          {exc.location}
-                        </span>
-                      </div>
-                    </div>
-                  </motion.div>
-                </Link>
-              ))}
-            </div>
+            <ExcursionsGrid excursions={excursions} withCardWrapper />
           </div>
         </TabsContent>
 

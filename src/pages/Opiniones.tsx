@@ -109,140 +109,10 @@ const locations = ["Samaná", "Punta Cana", "Santo Domingo", "Puerto Plata", "La
 
 const sortOptions = ["Más Recientes", "Mejor Valorados", "Con Fotos"];
 
-function StarRating({ rating, interactive = false, onRate }: { rating: number; interactive?: boolean; onRate?: (r: number) => void }) {
-  const [hovered, setHovered] = useState(0);
-  
-  return (
-    <div className="flex">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          type="button"
-          disabled={!interactive}
-          onMouseEnter={() => interactive && setHovered(star)}
-          onMouseLeave={() => interactive && setHovered(0)}
-          onClick={() => interactive && onRate?.(star)}
-          className={interactive ? "cursor-pointer" : "cursor-default"}
-          title={`Calificar con ${star} estrellas`}
-          aria-label={`Calificar con ${star} estrellas`}
-        >
-          <Star
-            className={`h-5 w-5 transition-colors ${
-              star <= (hovered || rating) ? "fill-amber-400 text-amber-400" : "text-muted"
-            }`}
-          />
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function formatDate(dateString: string) {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-  
-  if (diffDays === 0) return "Hoy";
-  if (diffDays === 1) return "Ayer";
-  if (diffDays < 7) return `Hace ${diffDays} días`;
-  if (diffDays < 30) return `Hace ${Math.floor(diffDays / 7)} semana${diffDays >= 14 ? 's' : ''}`;
-  return date.toLocaleDateString('es-DO', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
-function ReviewCard({ review, onShare, onReply }: { review: Review, onShare: () => void, onReply: () => void }) {
-  const TravelerIcon = travelerTypes.find((t) => t.id === review.traveler_type)?.icon || User;
-
-  return (
-    <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      className="bg-card p-6 rounded-2xl border border-border hover:border-primary/30 transition-all group"
-    >
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <div className="size-12 rounded-full overflow-hidden bg-muted flex items-center justify-center">
-              <User className="h-6 w-6 text-muted-foreground" />
-            </div>
-            {review.verified && (
-              <div className="absolute -bottom-1 -right-1 bg-card rounded-full p-0.5">
-                <CheckCircle className="h-4 w-4 text-primary fill-primary" />
-              </div>
-            )}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-bold text-foreground">{review.author_name}</h3>
-              {review.verified && (
-                <Badge variant="secondary" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
-                  Viajero Verificado
-                </Badge>
-              )}
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-              <span>{formatDate(review.created_at)}</span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                <TravelerIcon className="h-3 w-3" />
-                {travelerTypes.find((t) => t.id === review.traveler_type)?.label}
-              </span>
-            </div>
-          </div>
-        </div>
-        <StarRating rating={review.rating} />
-      </div>
-
-      <div className="flex items-center gap-3 mb-3">
-        <Badge variant="outline" className="gap-1">
-          <MapPin className="h-3 w-3" />
-          {review.location}
-        </Badge>
-        <Badge variant="secondary">{review.category}</Badge>
-      </div>
-
-      <h4 className="font-semibold text-foreground mb-2">{review.title}</h4>
-      <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-        {review.content}
-      </p>
-
-      {review.images && review.images.length > 0 && (
-        <div className="flex gap-2 mb-4">
-          {review.images.map((img, i) => (
-            <div key={i} className="w-24 h-24 rounded-lg overflow-hidden">
-              <img src={img} alt="" className="w-full h-full object-cover" />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {review.videoUrl && (
-        <div className="mb-4 rounded-xl overflow-hidden max-w-[320px] border border-border">
-          <video src={review.videoUrl} controls className="w-full object-cover h-[180px]" />
-        </div>
-      )}
-      {review.video_url && !review.videoUrl && (
-        <div className="mb-4 rounded-xl overflow-hidden max-w-[320px] border border-border">
-          <video src={review.video_url} controls className="w-full object-cover h-[180px]" />
-        </div>
-      )}
-
-      <div className="flex items-center gap-4 pt-4 border-t border-border">
-        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground">
-          <ThumbsUp className="h-4 w-4" />
-          Útil ({review.helpful_count})
-        </Button>
-        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={onReply}>
-          <MessageSquare className="h-4 w-4" />
-          Responder
-        </Button>
-        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground ml-auto" onClick={onShare}>
-          <Share2 className="h-4 w-4" />
-        </Button>
-      </div>
-    </motion.article>
-  );
-}
+import { ReviewCard, ReviewItem, travelerTypes } from "@/components/reviews/ReviewCard";
+import { StarRating, formatDate } from "@/components/reviews/StarRating";
+import { ReviewsSidebar, CategoryFilterItem } from "@/components/reviews/ReviewsSidebar";
+import { CreateReviewDialog } from "@/components/reviews/CreateReviewDialog";
 
 export default function Opiniones() {
   const { user } = useAuth();
@@ -473,116 +343,17 @@ export default function Opiniones() {
                 </p>
               </div>
               
-              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gap-2">
-                    <MessageSquare className="h-4 w-4" />
-                    Escribir Reseña
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-lg">
-                  <DialogHeader>
-                    <DialogTitle>Comparte tu Experiencia</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                    <div className="space-y-2">
-                      <Label>Tu calificación *</Label>
-                      <StarRating
-                        rating={formData.rating}
-                        interactive
-                        onRate={(r) => setFormData((prev) => ({ ...prev, rating: r }))}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Tipo de viaje *</Label>
-                        <Select
-                          value={formData.traveler_type}
-                          onValueChange={(v) => setFormData((prev) => ({ ...prev, traveler_type: v as any }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecciona" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {travelerTypes.map((t) => (
-                              <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Destino *</Label>
-                        <Select
-                          value={formData.location}
-                          onValueChange={(v) => setFormData((prev) => ({ ...prev, location: v }))}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecciona" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {locations.map((loc) => (
-                              <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Categoría *</Label>
-                      <Select
-                        value={formData.category}
-                        onValueChange={(v) => setFormData((prev) => ({ ...prev, category: v }))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecciona" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {categoryFilters.map((c) => (
-                            <SelectItem key={c.label} value={c.label}>{c.label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Título de tu reseña *</Label>
-                      <Input
-                        value={formData.title}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-                        placeholder="Ej: Una experiencia inolvidable en Samaná"
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Tu experiencia *</Label>
-                      <Textarea
-                        value={formData.content}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, content: e.target.value }))}
-                        placeholder="Cuéntanos los detalles de tu viaje..."
-                        rows={4}
-                        required
-                      />
-                    </div>
-
-                    <Button type="submit" className="w-full" disabled={submitting || !user}>
-                      {submitting ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Publicando...
-                        </>
-                      ) : !user ? (
-                        "Inicia sesión para publicar"
-                      ) : (
-                        "Publicar Reseña"
-                      )}
-                    </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
+              <CreateReviewDialog
+                open={dialogOpen}
+                onOpenChange={setDialogOpen}
+                formData={formData}
+                onFormDataChange={setFormData}
+                locations={locations}
+                categoryFilters={categoryFilters}
+                onSubmit={handleSubmit}
+                submitting={submitting}
+                isLoggedIn={!!user}
+              />
             </div>
           </div>
         </section>
@@ -591,79 +362,18 @@ export default function Opiniones() {
         <main className="container mx-auto px-4 lg:px-8 py-8">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Sidebar */}
-            <aside className="w-full lg:w-72 flex-shrink-0 space-y-8">
-              <div className="bg-card p-6 rounded-2xl border border-border sticky top-24">
-                <h3 className="font-bold text-lg mb-4 text-foreground">Filtrar por</h3>
-
-                <div className="mb-6">
-                  <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-                    Tipo de Viajero
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {travelerTypes.map((type) => (
-                      <button
-                        key={type.id}
-                        onClick={() => toggleTravelerType(type.id)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                          selectedTravelerTypes.includes(type.id)
-                            ? "bg-primary/10 text-primary ring-1 ring-primary/50"
-                            : "bg-muted text-muted-foreground hover:bg-muted/80"
-                        }`}
-                      >
-                        <type.icon className="h-4 w-4" />
-                        {type.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-                    Categoría
-                  </h4>
-                  <div className="space-y-2">
-                    {categoryFilters.map((cat) => (
-                      <label
-                        key={cat.label}
-                        className="flex items-center gap-3 cursor-pointer p-2 hover:bg-muted/50 rounded-lg transition-colors"
-                      >
-                        <Checkbox
-                          checked={selectedCategories.includes(cat.label)}
-                          onCheckedChange={() => toggleCategory(cat.label)}
-                        />
-                        <span className="text-sm font-medium text-foreground flex-1">{cat.label}</span>
-                        <span className="text-xs text-muted-foreground">{cat.count}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedTravelerTypes([]);
-                    setSelectedCategories([]);
-                  }}
-                >
-                  Limpiar filtros
-                </Button>
-              </div>
-
-              <div className="bg-primary/5 rounded-xl p-5 border border-primary/10">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-card rounded-full shadow-sm text-primary">
-                    <CheckCircle className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-foreground">100% Verificado</h4>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                      Solo permitimos reseñas de usuarios registrados y verificados.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </aside>
+            <ReviewsSidebar
+              travelerTypes={travelerTypes}
+              selectedTravelerTypes={selectedTravelerTypes}
+              onToggleTravelerType={toggleTravelerType}
+              categoryFilters={categoryFilters}
+              selectedCategories={selectedCategories}
+              onToggleCategory={toggleCategory}
+              onClearFilters={() => {
+                setSelectedTravelerTypes([]);
+                setSelectedCategories([]);
+              }}
+            />
 
             {/* Reviews Feed */}
             <section className="flex-1">
