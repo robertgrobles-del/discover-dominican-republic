@@ -38,6 +38,7 @@ export function AccommodationBookingCard({
   const dIn = new Date(checkIn);
   const dOut = new Date(checkOut);
   const diffTime = Math.max(1, dOut.getTime() - dIn.getTime());
+  const nights = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
   const roomPrice = selectedRoom.pricePerNight ?? selectedRoom.price ?? 150;
   const totalPrice = roomPrice * nights;
 

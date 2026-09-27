@@ -64,6 +64,58 @@ export function RestaurantActionBar({ restaurant }: RestaurantActionBarProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Botón Reservar Mesa Directo */}
+          <Button
+            size="sm"
+            className="gap-1.5 rounded-xl font-bold bg-primary text-primary-foreground shadow-sm"
+            onClick={() => {
+              const resCard = document.getElementById("res-name");
+              if (resCard) {
+                resCard.scrollIntoView({ behavior: "smooth", block: "center" });
+                resCard.focus();
+              }
+            }}
+          >
+            🍽️ Reservar Mesa
+          </Button>
+
+          {/* Botón Ver Menú */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 rounded-xl font-medium"
+            onClick={() => {
+              const menuSection = document.getElementById("restaurant-menu-section");
+              if (menuSection) {
+                menuSection.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            }}
+          >
+            📋 Ver Menú
+          </Button>
+
+          {/* Botón WhatsApp Directo */}
+          <a
+            href={`https://wa.me/18095550198?text=${encodeURIComponent(`Hola, vi su ficha en Descubre República Dominicana y deseo consultar el menú y disponibilidad para reservar mesa en ${restaurant.name}.`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-1.5 px-3 rounded-xl text-xs transition-colors shadow-xs"
+          >
+            💬 WhatsApp
+          </a>
+
+          {/* Botón Cómo Llegar / Ubicación */}
+          {restaurant.address && (
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${restaurant.name} ${restaurant.address}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 bg-muted/80 hover:bg-muted text-foreground font-medium py-1.5 px-3 rounded-xl text-xs transition-colors border border-border"
+            >
+              📍 Cómo Llegar
+            </a>
+          )}
+
           <ClaimBusinessModal
             businessName={restaurant.name}
             businessType="restaurante"

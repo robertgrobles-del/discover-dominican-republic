@@ -46,18 +46,33 @@ export function CTARegistroEstablecimiento({ tipo, titulo, subtitulo, stats }: P
           {/* Left content */}
           <div className="flex-1">
             <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-4 ${
-              tipo === "airbnb" ? "bg-rose-500/10 text-rose-600 dark:text-rose-400" : "bg-primary/10 text-primary"
+              tipo === "airbnb" ? "bg-rose-500/10 text-rose-600 dark:text-rose-400" :
+              tipo === "restaurante" ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" :
+              tipo === "bar" ? "bg-purple-500/10 text-purple-600 dark:text-purple-400" :
+              "bg-primary/10 text-primary"
             }`}>
               {tipo === "airbnb" ? <Home className="h-3.5 w-3.5" aria-hidden="true" /> : <Building2 className="h-3.5 w-3.5" aria-hidden="true" />}
-              {tipo === "airbnb" ? "Portal de Anfitriones & Rentas Cortas" : "Portal de Alojamientos & Cadenas Hoteleras"}
+              {tipo === "airbnb" ? "Portal de Anfitriones & Rentas Cortas" :
+               tipo === "restaurante" ? "Guía Gastronómica & Reservas" :
+               tipo === "bar" ? "Directorio Nightlife & Mesas VIP" :
+               "Portal de Alojamientos & Cadenas Hoteleras"}
             </div>
             <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">
-              {titulo || (tipo === "airbnb" ? "¿Tienes un Airbnb o Villa Turística?" : "¿Tienes un hotel o alojamiento?")}
+              {titulo || (
+                tipo === "airbnb" ? "¿Tienes un Airbnb o Villa Turística?" :
+                tipo === "restaurante" ? "¿Administras un Restaurante?" :
+                tipo === "bar" ? "¿Tienes un Bar, Rooftop o Discoteca?" :
+                "¿Tienes un hotel o alojamiento?"
+              )}
             </h2>
             <p className="text-muted-foreground max-w-lg">
               {subtitulo ||
                 (tipo === "airbnb"
                   ? "Publica tu apartamento, villa o casa vacacional y conecta directamente con viajeros que buscan estancias privadas auténticas."
+                  : tipo === "restaurante"
+                  ? "Muestra tu menú digital, ubicación exacta y recibe reservas de mesa directas y consultas por WhatsApp sin pagar comisiones por comensal."
+                  : tipo === "bar"
+                  ? "Publica tu horario de apertura y cierre, carta de cócteles y bebidas de autor, ubicación y gestiona reservas de mesas VIP directo por WhatsApp."
                   : "Regístralo gratis en Descubre RD y llega a miles de viajeros internacionales y corporativos que buscan confort y servicios de clase mundial.")}
             </p>
 
@@ -77,19 +92,34 @@ export function CTARegistroEstablecimiento({ tipo, titulo, subtitulo, stats }: P
             <Button
               size="lg"
               onClick={() => setOpen(true)}
-              aria-label={tipo === "airbnb" ? "Registrar mi Airbnb o Vivienda Turística" : "Registrar mi Hotel o Alojamiento"}
+              aria-label={
+                tipo === "airbnb" ? "Registrar mi Airbnb o Vivienda Turística" :
+                tipo === "restaurante" ? "Registrar mi Restaurante o Negocio Gastronómico" :
+                tipo === "bar" ? "Registrar mi Bar o Discoteca" :
+                "Registrar mi Hotel o Alojamiento"
+              }
               className={`gap-2 shadow-lg whitespace-nowrap ${
                 tipo === "airbnb" 
                   ? "bg-rose-600 hover:bg-rose-700 text-white shadow-rose-500/20" 
+                  : tipo === "restaurante"
+                  ? "bg-amber-600 hover:bg-amber-700 text-white shadow-amber-500/20"
+                  : tipo === "bar"
+                  ? "bg-purple-600 hover:bg-purple-700 text-white shadow-purple-500/20"
                   : "shadow-primary/20"
               }`}
             >
               {tipo === "airbnb" ? <Home className="h-5 w-5" aria-hidden="true" /> : <Building2 className="h-5 w-5" aria-hidden="true" />}
-              {tipo === "airbnb" ? "Registrar mi Airbnb / Villa" : "Registrar mi Hotel / Resort"}
+              {tipo === "airbnb" ? "Registrar mi Airbnb / Villa" :
+               tipo === "restaurante" ? "Registrar mi Restaurante" :
+               tipo === "bar" ? "Registrar mi Bar / Discoteca" :
+               "Registrar mi Hotel / Resort"}
               <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </Button>
             <p className="text-xs text-muted-foreground text-center md:text-right">
-              {tipo === "airbnb" ? "0% comisión directa · Anfitrión verificado" : "Gratis · Sin tarjeta · Aprobación en 2-3 días"}
+              {tipo === "airbnb" ? "0% comisión directa · Anfitrión verificado" :
+               tipo === "restaurante" ? "Menú digital · WhatsApp directo · Sin comisiones" :
+               tipo === "bar" ? "Mesas VIP · Horario & Cierre · Acceso prioritario" :
+               "Gratis · Sin tarjeta · Aprobación en 2-3 días"}
             </p>
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1"><Star className="h-3 w-3 text-amber-500" aria-hidden="true" /> {tipo === "airbnb" ? "Superhost RD" : "Premium"}</span>

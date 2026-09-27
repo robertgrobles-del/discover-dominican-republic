@@ -243,7 +243,7 @@ export default function ParqueDetalle() {
 
                 {/* Reviews and Community Comments */}
                 <div className="pt-6 border-t border-border/60">
-                  <CommentSection targetId={parque.id} targetType="parque" />
+                  <CommentSection contentId={parque.id} contentType="parque" title={`Opiniones sobre ${parque.nombre}`} />
                 </div>
               </div>
 
@@ -257,11 +257,20 @@ export default function ParqueDetalle() {
 
         {/* Floating Mobile Booking Bar */}
         <DetailFloatingBar
-          priceLabel={`Adulto: $${parque.precioAdulto} USD`}
-          buttonText="Comprar Entradas"
-          buttonIcon={<Ticket className="h-4 w-4 mr-2" />}
-          buttonUrl={parque.website}
-          isExternalUrl={true}
+          priceLabel="Entrada Adulto"
+          priceValue={`$${parque.precioAdulto} USD`}
+          primaryActionLabel="Comprar Entradas"
+          primaryActionIcon={<Ticket className="h-4 w-4" />}
+          onPrimaryAction={() => {
+            if (parque.website) {
+              window.open(parque.website, "_blank");
+            } else {
+              const ticketCard = document.querySelector(".lg\\:col-span-1");
+              if (ticketCard) {
+                ticketCard.scrollIntoView({ behavior: "smooth" });
+              }
+            }
+          }}
         />
       </main>
 

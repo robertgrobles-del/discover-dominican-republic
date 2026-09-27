@@ -195,6 +195,57 @@ export default function BarDetalle() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              {/* Botón Ver Horario y Cierre */}
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5 rounded-xl font-medium"
+                onClick={() => {
+                  const scheduleSection = document.getElementById("bar-schedule-card");
+                  if (scheduleSection) {
+                    scheduleSection.scrollIntoView({ behavior: "smooth", block: "center" });
+                  }
+                }}
+              >
+                🕒 Horario & Cierre
+              </Button>
+
+              {/* Botón Menú de Bebidas */}
+              <Button
+                size="sm"
+                className="gap-1.5 rounded-xl font-bold bg-primary text-primary-foreground shadow-sm"
+                onClick={() => {
+                  const drinksSection = document.getElementById("bar-drinks-section");
+                  if (drinksSection) {
+                    drinksSection.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }
+                }}
+              >
+                🍸 Menú de Bebidas
+              </Button>
+
+              {/* Botón WhatsApp Directo */}
+              <a
+                href={`https://wa.me/18092214660?text=${encodeURIComponent(`Hola, vi ${bar.name} en Descubre República Dominicana y deseo consultar disponibilidad, horario de cierre y lista VIP.`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-1.5 px-3 rounded-xl text-xs transition-colors shadow-xs"
+              >
+                💬 WhatsApp VIP
+              </a>
+
+              {/* Botón Ubicación / Cómo Llegar */}
+              {bar.address && (
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${bar.name} ${bar.address}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 bg-muted/80 hover:bg-muted text-foreground font-medium py-1.5 px-3 rounded-xl text-xs transition-colors border border-border"
+                >
+                  📍 Ubicación
+                </a>
+              )}
+
               <ClaimBusinessModal
                 businessName={bar.name}
                 businessType="bar"
@@ -237,9 +288,9 @@ export default function BarDetalle() {
                   <p className="text-[10px] text-muted-foreground uppercase font-bold">Edad Mínima</p>
                   <p className="text-sm font-bold text-foreground">+{bar.minimumAge} Años</p>
                 </div>
-                <div className="bg-card rounded-2xl p-4 border border-border text-center shadow-xs">
+                <div id="bar-schedule-card" className="bg-card rounded-2xl p-4 border border-border text-center shadow-xs ring-1 ring-primary/20">
                   <Clock className="h-5 w-5 text-primary mx-auto mb-1.5" />
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold">Horario</p>
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold">Horario & Cierre</p>
                   <p className="text-sm font-bold text-foreground truncate">{bar.openingHours || '20:00 - 04:00'}</p>
                 </div>
                 <div className="bg-card rounded-2xl p-4 border border-border text-center shadow-xs">
@@ -273,8 +324,10 @@ export default function BarDetalle() {
                 )}
               </div>
 
-              {/* Signature Cocktails */}
-              <BarCocktailsGrid />
+              {/* Signature Cocktails / Drinks Menu */}
+              <div id="bar-drinks-section">
+                <BarCocktailsGrid />
+              </div>
 
               {/* Weekly Lineup & Events */}
               <BarWeeklyLineup />
@@ -342,14 +395,12 @@ export default function BarDetalle() {
           </div>
         </main>
 
-        {/* Mobile Sticky Floating Bar */}
+        {/* Mobile Sticky Floating Bar (orientado al CTA principal de la discoteca) */}
         <DetailFloatingBar 
-          title={bar.name}
-          price={bar.hasCover ? `$${bar.coverPrice} USD` : "Entrada Libre"}
-          pricePeriod={bar.hasCover ? "cover" : "sin cover"}
-          rating={bar.rating}
-          ctaText="Reservar VIP"
-          onCtaClick={() => {
+          priceLabel={bar.hasCover ? "Cover estimado" : "Acceso"}
+          priceValue={bar.hasCover ? `$${bar.coverPrice} USD` : "Entrada Libre"}
+          primaryActionLabel="Reservar VIP & Botellas"
+          onPrimaryAction={() => {
             const vipElement = document.getElementById("vip-lead-name");
             if (vipElement) {
               vipElement.scrollIntoView({ behavior: "smooth", block: "center" });

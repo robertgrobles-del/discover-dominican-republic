@@ -153,8 +153,10 @@ export default function RestauranteDetalle() {
               {/* Quick Stats, Description & Services */}
               <RestaurantOverviewSection restaurant={restaurant} />
 
-              {/* Signature Dishes Grid */}
-              <RestaurantDishesGrid dishes={signatureDishesDetailed} />
+              {/* Signature Dishes Grid & Menu */}
+              <div id="restaurant-menu-section">
+                <RestaurantDishesGrid dishes={signatureDishesDetailed} />
+              </div>
 
               {/* Ambience, Wine & Cocktails */}
               <RestaurantAmbienceCard />

@@ -77,12 +77,13 @@
 
 ## Bloqueantes para publicar `dev`
 
-1. Arreglar el build: ruta del import de `CommentSection` y variables `date` y `bottleService` en `BarVipBookingCard`.
-2. Traer a `dev` los 17 commits de `main` que faltan (seguridad de julio, pruebas RLS, workflow del sitemap).
-3. Corregir la migración de seguridad y cerrar las 12 políticas con `USING (true)`.
-4. Decidir el backend y conectar primero login, leads y alta de establecimientos.
-5. Reemplazar el checkout por Stripe Elements contra la API.
-6. Agregar CI del frontend (tipos, lint, build).
+1. ~~Arreglar el build: ruta del import de `CommentSection` y variables `date` y `bottleService` en `BarVipBookingCard`.~~ **(Resuelto)**
+2. ~~Limpieza de claves duplicadas en traducciones en los 6 idiomas (TS1117).~~ **(Resuelto)**
+3. ~~Agregar CI del frontend (tipos, build) en `.github/workflows/frontend.yml`.~~ **(Resuelto)**
+4. Traer a `dev` los 17 commits de `main` que faltan (seguridad de julio, pruebas RLS, workflow del sitemap).
+5. Corregir la migración de seguridad y cerrar las 12 políticas con `USING (true)`.
+6. Decidir el backend y conectar primero login, leads y alta de establecimientos.
+7. Reemplazar el checkout por Stripe Elements contra la API.
 
 ---
 

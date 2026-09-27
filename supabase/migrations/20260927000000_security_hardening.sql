@@ -26,7 +26,15 @@ ALTER POLICY "Admins manage levels"                     ON public.gamification_l
 ALTER POLICY "Admins manage missions"                   ON public.gamification_missions  TO authenticated;
 ALTER POLICY "Admins manage prizes"                     ON public.gamification_prizes    TO authenticated;
 ALTER POLICY "Admins manage routes"                     ON public.gamified_routes        TO authenticated;
-ALTER POLICY "Admins can manage lottery results"        ON public.lottery_results        TO authenticated;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'lottery_results' AND policyname = 'Admins can manage lottery results') THEN
+    EXECUTE 'ALTER POLICY "Admins can manage lottery results" ON public.lottery_results TO authenticated';
+  ELSIF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = 'lottery_results' AND policyname = 'Allow admin manage of lottery_results') THEN
+    EXECUTE 'DROP POLICY IF EXISTS "Allow admin manage of lottery_results" ON public.lottery_results';
+    EXECUTE 'CREATE POLICY "Admins can manage lottery results" ON public.lottery_results TO authenticated USING (public.has_role(auth.uid(), ''admin'')) WITH CHECK (public.has_role(auth.uid(), ''admin''))';
+  END IF;
+END $$;
 ALTER POLICY "Admins manage stamps"                     ON public.passport_stamps        TO authenticated;
 ALTER POLICY "Admins can manage rivers"                 ON public.rivers                 TO authenticated;
 ALTER POLICY "Admins manage checkpoints"                ON public.route_checkpoints      TO authenticated;
@@ -208,6 +216,7 @@ GRANT  EXECUTE ON FUNCTION public.award_points(integer, integer, text, text, tex
 GRANT  EXECUTE ON FUNCTION public.redeem_prize(uuid) TO authenticated;
 
 -- Wrappers de compatibilidad para llamadas previas
+DROP FUNCTION IF EXISTS public.award_user_xp(integer, integer, text, text, text);
 CREATE OR REPLACE FUNCTION public.award_user_xp(
   xp_to_award integer,
   coins_to_award integer,
@@ -418,3 +427,38 @@ BEGIN
              CHECK (metadata IS NULL OR pg_column_size(metadata) < 4096) NOT VALID';
   END IF;
 END $$;
+
+-- ---------------------------------------------------------------------
+-- 10) Cerrar las 12 tablas con políticas admin abiertas con USING (true)
+--     (loterías, tasas, combustibles, traducciones, áreas protegidas,
+--      aves, aguas termales, proyectos de compensación, peajes, reportes marinos)
+-- ---------------------------------------------------------------------
+DO $$
+DECLARE
+  _tbl text;
+  _pol text;
+  _tables text[] := ARRAY[
+    'lotteries', 'lottery_draws', 'lottery_results', 'exchange_rates', 'fuel_prices',
+    'entity_translations', 'protected_areas', 'bird_species', 'hot_springs',
+    'offset_projects', 'toll_routes', 'marine_reports'
+  ];
+BEGIN
+  FOREACH _tbl IN ARRAY _tables LOOP
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = _tbl) THEN
+      FOR _pol IN (
+        SELECT policyname FROM pg_policies 
+        WHERE schemaname = 'public' 
+          AND tablename = _tbl 
+          AND policyname ILIKE '%admin%'
+      ) LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', _pol, _tbl);
+      END LOOP;
+
+      EXECUTE format(
+        'CREATE POLICY "Admins manage %I" ON public.%I TO authenticated USING (public.has_role(auth.uid(), ''admin'')) WITH CHECK (public.has_role(auth.uid(), ''admin''))',
+        _tbl, _tbl
+      );
+    END IF;
+  END LOOP;
+END $$;
+
