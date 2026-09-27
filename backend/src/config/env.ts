@@ -54,6 +54,8 @@ const schema = z.object({
   PAYMENT_PROVIDER: z.enum(["fake", "none", "stripe"]).optional(),
   STRIPE_SECRET_KEY: z.string().min(10).optional(),
   STRIPE_WEBHOOK_SECRET: z.string().min(10).optional(),
+  /** Secreto con el que el proveedor de correo firma sus eventos (entrega, rebote, queja). Sin él, /webhooks/email queda apagado. */
+  EMAIL_WEBHOOK_SECRET: z.string().min(16).optional(),
   /** Asistente de IA: none (apagado) | fake (simulador, sólo desarrollo/pruebas) | anthropic (requiere ANTHROPIC_API_KEY). */
   AI_PROVIDER: z.enum(["none", "fake", "anthropic"]).optional(),
   ANTHROPIC_API_KEY: z.string().min(10).optional(),

@@ -20,7 +20,7 @@ const PUBLIC_MUTATIONS: RegExp[] = [
   /^\/api\/v1\/auth\//, /^\/api\/v1\/bookings(\/|$)/, /^\/api\/v1\/orders(\/|$)/, /^\/api\/v1\/cart(\/|$)/, /^\/api\/v1\/checkout\/quote$/, /^\/api\/v1\/coupons\/validate$/, /^\/api\/v1\/promotions\/validate$/,
   /^\/api\/v1\/contact$/, /^\/api\/v1\/newsletter\//, /^\/api\/v1\/leads$/, /^\/api\/v1\/establishments\/register$/, /^\/api\/v1\/advertisers\/requests$/, /^\/api\/v1\/vacation-registrations$/,
   /^\/api\/v1\/analytics\/events$/, /^\/api\/v1\/ads\//, /^\/api\/v1\/surveys\//, /^\/api\/v1\/tools\//, /^\/api\/v1\/calculators\//, /^\/api\/v1\/utils\/convert$/,
-  /^\/api\/v1\/webhooks\/payments\//, /^\/api\/v1\/media\/:id\/upload$/, /^\/api\/v1\/orders\/:id\//, /^\/api\/v1\/team-invitations\//, /^\/api\/v1\/listings\//,
+  /^\/api\/v1\/webhooks\/(payments|email)\//, /^\/api\/v1\/media\/:id\/upload$/, /^\/api\/v1\/orders\/:id\//, /^\/api\/v1\/team-invitations\//, /^\/api\/v1\/listings\//,
   /^\/api\/v1\/reviews\/:id\/(helpful|report)$/, /^\/api\/v1\/marketplace\/checkout\/quote$/, /^\/api\/v1\/ai\/chat$/, /^\/api\/v1\/marketplace\/orders(\/|$)/,
 ];
 /** Prefijos que SIEMPRE exigen sesión, sea cual sea el método. */

@@ -3,8 +3,10 @@ import type { FastifyBaseLogger } from "fastify";
 import type { PoolClient } from "pg";
 import type { Env } from "../../config/env.js";
 import type { Db } from "../../db/pool.js";
+import { TtlCache } from "../../lib/cache.js";
 import type { Locale } from "../../lib/i18n.js";
-import { renderTemplate, type TemplateData, type TemplateKey } from "./templates.js";
+import { renderOverride, renderTemplate, type Rendered, type TemplateData, type TemplateKey } from "./templates.js";
+import type { TemplateOverride } from "./templates-meta.js";
 
 export interface SentMessage { to: string; subject: string; text: string; html: string; template: string; at: Date }
 
@@ -16,7 +18,7 @@ export interface SendInput<K extends TemplateKey> {
   userId?: string | null;
 }
 
-interface QueuedRow { id: string; to_email: string; template: TemplateKey; locale: Locale; payload: { data: TemplateData[TemplateKey] }; attempts: number }
+interface QueuedRow { id: string; to_email: string; template: TemplateKey; locale: Locale; payload: { data: TemplateData[TemplateKey]; test_override?: TemplateOverride; subject_prefix?: string }; attempts: number }
 
 /** Espera antes de reintentar, en segundos, según el número de intentos ya hechos (1.º fallo → 1 min …). */
 const BACKOFF_SECONDS = [60, 300, 1800, 7200, 43_200];
@@ -35,6 +37,8 @@ export class Mailer {
   private readonly transport: Transporter | null;
   private timer: NodeJS.Timeout | null = null;
   private running: Promise<number> | null = null;
+  /** Plantillas editadas desde el panel: se leen de la base y se guardan 30 s (se vacía al guardar). */
+  private readonly overrides = new TtlCache<TemplateOverride | null>(30_000, 300);
 
   constructor(private readonly env: Env, private readonly db: Db, private readonly log: FastifyBaseLogger) {
     this.transport = env.MAIL_TRANSPORT === "smtp"
@@ -45,6 +49,24 @@ export class Mailer {
       : null;
   }
 
+  clearTemplateCache() { this.overrides.clear(); }
+
+  /** Arma el correo: la plantilla editada en el panel si existe para ese idioma; si no (o si la base falla), la del código. */
+  async render<K extends TemplateKey>(key: K, locale: Locale, data: TemplateData[K]): Promise<Rendered & { locale: Locale }> {
+    try {
+      const o = await this.overrides.wrap(`${key}|${locale}`, async () => (await this.db.query<TemplateOverride>("SELECT subject, title, body_html, body_text, cta_label, cta_var FROM email_templates WHERE key = $1 AND locale = $2", [key, locale])).rows[0] ?? null);
+      if (o) return renderOverride(o, data as Record<string, unknown>, locale);
+    } catch (err) { this.log.warn({ err, key }, "No se pudo leer la plantilla editada; se usa la del código"); }
+    return renderTemplate(key, locale, data);
+  }
+
+  /** Motivo por el que no se debe escribir a esa dirección (null si se puede). El rebote duro, la queja y el bloqueo manual valen para todo; la baja, sólo para marketing. */
+  async suppressedReason(to: string, template: string, c: Pick<PoolClient, "query"> = this.db): Promise<string | null> {
+    const r = (await c.query<{ reason: string }>("SELECT reason FROM email_suppressions WHERE email = $1", [to.toLowerCase()])).rows[0];
+    if (!r) return null;
+    return r.reason === "unsubscribe" && template !== "marketing.campaign" ? null : r.reason;
+  }
+
   /**
    * Encola un correo. Con `client` se une a esa transacción (outbox transaccional: el correo existe si y sólo si el cambio
    * que lo originó se confirma) y los errores se propagan para que la transacción falle entera. Sin `client` es de mejor
@@ -52,7 +74,13 @@ export class Mailer {
    */
   async send<K extends TemplateKey>(input: SendInput<K>, client?: PoolClient): Promise<void> {
     const insert = async () => {
-      const r = renderTemplate(input.template, input.locale, input.data);
+      const r = await this.render(input.template, input.locale, input.data);
+      const why = await this.suppressedReason(input.to, input.template, client ?? this.db);
+      if (why) {
+        // Queda en la bitácora como suprimido (sin contenido) para que se vea por qué no salió.
+        await (client ?? this.db).query("INSERT INTO email_log (user_id, to_email, template, locale, subject, status, error) VALUES ($1,$2,$3,$4,$5,'suppressed',$6)", [input.userId ?? null, input.to.toLowerCase(), input.template, r.locale, r.subject, `suppressed:${why}`]);
+        return;
+      }
       await (client ?? this.db).query(
         "INSERT INTO email_log (user_id, to_email, template, locale, subject, payload, status, next_attempt_at) VALUES ($1, $2, $3, $4, $5, $6, 'queued', now())",
         [input.userId ?? null, input.to.toLowerCase(), input.template, r.locale, r.subject, JSON.stringify({ data: input.data })],
@@ -109,7 +137,14 @@ export class Mailer {
 
   private async deliver(row: QueuedRow) {
     try {
-      const r = renderTemplate(row.template, row.locale, row.payload.data as never);
+      const why = await this.suppressedReason(row.to_email, row.template);
+      if (why) {
+        await this.db.query("UPDATE email_log SET status = 'suppressed', locked_at = NULL, error = $2, payload = NULL WHERE id = $1", [row.id, `suppressed:${why}`]);
+        return;
+      }
+      // Un correo de prueba del panel lleva su borrador y su prefijo en el payload; el resto usa la plantilla vigente.
+      const r = row.payload.test_override ? renderOverride(row.payload.test_override, row.payload.data as Record<string, unknown>, row.locale) : await this.render(row.template, row.locale, row.payload.data as never);
+      if (row.payload.subject_prefix) r.subject = row.payload.subject_prefix + r.subject;
       let providerId: string | null = null;
       if (this.env.MAIL_TRANSPORT === "memory") {
         this.outbox.push({ to: row.to_email, subject: r.subject, text: r.text, html: r.html, template: row.template, at: new Date() });

@@ -1,5 +1,6 @@
 import type { Locale } from "../../lib/i18n.js";
 import { EXTRA_LOCALES, renderExtra, type ExtraLocale } from "./templates-extra.js";
+import { htmlToText, sanitizeHtml, substitute, type TemplateOverride } from "./templates-meta.js";
 
 // Plantillas del catálogo de correos (docs §5.13). Por ahora es/en; los demás idiomas caen a español
 // hasta que se carguen en la tabla de plantillas del admin (Fase 3).
@@ -366,6 +367,20 @@ T["marketing.campaign"] = {
   es: (d) => ({ subject: d.subject, text: `${d.body}\n\n---\nDarte de baja: ${d.unsubscribe_url}`, html: campaignHtml(d, "es") }),
   en: (d) => ({ subject: d.subject, text: `${d.body}\n\n---\nUnsubscribe: ${d.unsubscribe_url}`, html: campaignHtml(d, "en") }),
 };
+
+/** Correo armado con una plantilla editada desde el panel: contenido saneado, variables escapadas en el HTML y texto plano alterno. */
+export function renderOverride(o: TemplateOverride, data: Record<string, unknown>, locale: Locale): Rendered & { locale: Locale } {
+  const body = substitute(sanitizeHtml(o.body_html), data, esc);
+  const text = o.body_text ? substitute(o.body_text, data) : htmlToText(substitute(sanitizeHtml(o.body_html), data));
+  const cta = o.cta_label && o.cta_var && data[o.cta_var] ? { label: substitute(o.cta_label, data), url: String(data[o.cta_var]) } : undefined;
+  const title = substitute(o.title, data);
+  return {
+    subject: substitute(o.subject, data).replace(/\s*[\r\n]+\s*/g, " ").trim(),
+    text: cta ? `${text}\n\n${cta.label}: ${cta.url}` : text,
+    html: layout(title, body, cta, undefined, locale),
+    locale,
+  };
+}
 
 export function renderTemplate<K extends TemplateKey>(key: K, locale: Locale, data: TemplateData[K]): Rendered & { locale: Locale } {
   // fr/de/pt/it existen para los correos al viajero; el resto (operadores, vendedores, embajadores) y lo que falte cae al español.
