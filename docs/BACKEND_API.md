@@ -4,6 +4,8 @@
 > **Alcance:** todo el portal público, los paneles internos (Administración, Panel de Proveedor, Panel de Operadores RD) y las integraciones (correo, pagos, IA, CMS).
 > **Cómo se generó:** se analizó el código del frontend (`src/`, 269 rutas estáticas + rutas dinámicas), los esquemas SQL existentes (`supabase/schema.sql`, `supabase/migrations/*`, `mysql/schema.sql`), las 5 funciones edge (`supabase/functions/*`), el prototipo Express (`server/server.js`) y el snapshot de datos (`src/integrations/supabase/mockDb.json`). Los apéndices A, B y C se generan automáticamente a partir de ese código, por lo que reflejan lo que el frontend realmente consume hoy.
 
+> **Estado de la implementación (2026-09):** el backend de `backend/` ya implementa la gran mayoría de este diseño. Para saber **exactamente qué existe** (831 operaciones, su acceso y su descripción, más las diferencias deliberadas respecto a este documento y lo que falta) consulta [`BACKEND_API_IMPLEMENTADO.md`](BACKEND_API_IMPLEMENTADO.md), que se genera del código y nunca se desvía. Este documento se conserva como diseño y justificación; donde ambos difieran, manda el implementado. Reglas de cada módulo, operación y seguridad: `backend/README.md`, `docs/BACKEND_OPERACION.md` y `docs/BACKEND_SEGURIDAD.md`.
+
 ---
 
 ## Contenido

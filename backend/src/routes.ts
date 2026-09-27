@@ -16,6 +16,7 @@ import { FlagService } from "./lib/flags.js";
 import { IpRuleService, registerIpRules } from "./plugins/ip-rules.js";
 import { adminSecurityRoutes } from "./modules/admin/security.js";
 import { adminSupportRoutes } from "./modules/admin/support.js";
+import { impersonationRoutes } from "./modules/admin/impersonation.js";
 import { adminModerationRoutes } from "./modules/admin/moderation.js";
 import { adminImportRoutes, ImportService, registerImportJobs } from "./modules/admin/imports.js";
 import { NotificationService } from "./modules/notifications/service.js";
@@ -177,6 +178,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(adminSecurityRoutes);
       await v1.register(adminSupportRoutes);
       await v1.register(adminModerationRoutes);
+      await v1.register(impersonationRoutes);
       await v1.register(adminImportRoutes);
       await v1.register(emailWebhookRoutes);
       await v1.register(marketplaceRoutes);

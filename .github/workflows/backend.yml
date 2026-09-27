@@ -34,6 +34,8 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
       - run: npm run typecheck
+      - name: La referencia de la API está al día
+        run: npm run docs:api -- --check
       - run: npm test
       - run: npm run build
       - name: Vulnerabilidades en dependencias de producción

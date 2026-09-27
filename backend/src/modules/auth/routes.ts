@@ -138,12 +138,13 @@ export async function authRoutes(app: FastifyInstance) {
       response: { 200: z.object({ data: user.extend({
         counts: z.object({ favorites: z.number(), unread_notifications: z.number() }),
         two_factor: z.object({ enabled: z.boolean(), recovery_codes_left: z.number(), required: z.boolean() }),
+        impersonation: z.object({ by: z.string(), read_only: z.literal(true) }).nullable(),
       }) }) },
     },
     onRequest: app.authenticate,
   }, async (req, reply) => {
     reply.header("cache-control", "private, no-store");
-    return { data: await app.auth.me(req.user!.id) };
+    return { data: { ...(await app.auth.me(req.user!.id)), impersonation: req.user!.imp ? { by: req.user!.imp, read_only: true as const } : null } };
   });
 
   r.post("/auth/verify-email", {

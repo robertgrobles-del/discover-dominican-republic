@@ -7,7 +7,7 @@ import type { FastifyBaseLogger } from "fastify";
 import type { Env } from "../../config/env.js";
 import { AppError } from "../../lib/errors.js";
 
-export interface AccessClaims { sub: string; roles: string[]; locale: string; sid: string; mfa: boolean }
+export interface AccessClaims { sub: string; roles: string[]; locale: string; sid: string; mfa: boolean; /** Admin que abrió una sesión de soporte (sólo lectura) en esta cuenta. */ imp?: string }
 
 const ALG = "RS256";
 const ISSUER = "descubre-rd";
@@ -68,7 +68,7 @@ export async function createTokenService(env: Env, log: FastifyBaseLogger) {
     publicJwks: () => ({ keys }),
 
     async signAccess(claims: AccessClaims, ttlSeconds = env.JWT_ACCESS_TTL_SECONDS) {
-      return new SignJWT({ roles: claims.roles, locale: claims.locale, sid: claims.sid, mfa: claims.mfa })
+      return new SignJWT({ roles: claims.roles, locale: claims.locale, sid: claims.sid, mfa: claims.mfa, ...(claims.imp ? { imp: claims.imp } : {}) })
         .setProtectedHeader({ alg: ALG, typ: "JWT", kid: current.kid })
         .setSubject(claims.sub)
         .setIssuer(ISSUER)
@@ -101,7 +101,7 @@ export async function createTokenService(env: Env, log: FastifyBaseLogger) {
       try {
         const { payload } = await jwtVerify(token, jwks, { issuer: ISSUER, audience: AUDIENCE, algorithms: [ALG] });
         if (!payload.sub || typeof payload.sid !== "string") throw new AppError("UNAUTHENTICATED", "Token inválido");
-        return { sub: payload.sub, roles: (payload.roles as string[]) ?? [], locale: (payload.locale as string) ?? "es", sid: payload.sid, mfa: payload.mfa === true };
+        return { sub: payload.sub, roles: (payload.roles as string[]) ?? [], locale: (payload.locale as string) ?? "es", sid: payload.sid, mfa: payload.mfa === true, ...(typeof payload.imp === "string" ? { imp: payload.imp } : {}) };
       } catch (e) {
         if (e instanceof AppError) throw e;
         if (e instanceof joseErrors.JWTExpired) throw new AppError("TOKEN_EXPIRED", "La sesión expiró");
