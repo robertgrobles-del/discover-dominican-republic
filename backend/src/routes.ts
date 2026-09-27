@@ -17,6 +17,7 @@ import { IpRuleService, registerIpRules } from "./plugins/ip-rules.js";
 import { adminSecurityRoutes } from "./modules/admin/security.js";
 import { adminSupportRoutes } from "./modules/admin/support.js";
 import { adminModerationRoutes } from "./modules/admin/moderation.js";
+import { adminImportRoutes, ImportService, registerImportJobs } from "./modules/admin/imports.js";
 import { NotificationService } from "./modules/notifications/service.js";
 import { notificationRoutes } from "./modules/notifications/routes.js";
 import { AiService } from "./modules/ai/service.js";
@@ -66,6 +67,8 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   // La pasarela se decora en la raíz para que pruebas y otros módulos accedan a ella.
   app.decorate("gateway", createGateway(app.env));
   app.decorate("flags", new FlagService(app.db));
+  const imports = new ImportService(app.db, app.log);
+  app.decorate("imports", imports);
   const ipRules = new IpRuleService(app.db);
   app.decorate("ipRules", ipRules);
   registerIpRules(app, ipRules);
@@ -135,6 +138,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   runner.register({ name: "marketplace.auto_cancel", description: "Cancela pedidos del marketplace sin cobrar tras 60 min y devuelve el stock", everySeconds: 900, run: async () => ({ cancelled: await marketplace.cancelUnpaid(60) }) });
   runner.register({ name: "marketplace.payouts", description: "Genera las liquidaciones a vendedores de lo entregado y sin devolución", everySeconds: 86_400, run: async () => marketplace.generatePayouts() });
   runner.register({ name: "ambassadors.settle", description: "Libera las comisiones de embajadores cuyo periodo de espera terminó", everySeconds: 3600, run: async () => ambassadors.settle() });
+  registerImportJobs(runner, imports);
   registerOperatorJobs({ db: app.db, env: app.env, mailer: app.mailer, runner, automations, ical, payouts });
   if (app.env.JOBS_ENABLED) { runner.start(); app.addHook("onClose", async () => { await runner.stop(); }); }
   await app.register(healthRoutes, { version });
@@ -173,6 +177,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(adminSecurityRoutes);
       await v1.register(adminSupportRoutes);
       await v1.register(adminModerationRoutes);
+      await v1.register(adminImportRoutes);
       await v1.register(emailWebhookRoutes);
       await v1.register(marketplaceRoutes);
       await v1.register(ambassadorRoutes);

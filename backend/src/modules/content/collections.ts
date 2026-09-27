@@ -117,7 +117,7 @@ export const COLLECTIONS: CollectionDef[] = [
   def("tour-operators", "tour_operators", "tour_operator", "Operadores de turismo", "servicios", { filters: { is_verified: "eq" }, search: ["name", "description"], exclude: ["verification_status"] }),
   def("establecimientos", "establecimientos", "establecimiento", "Directorio oficial de establecimientos", "servicios", {
     title: "nombre", search: ["nombre", "actividad", "subsector", "sector_zona"], filters: { provincia: "eq", subsector: "eq", actividad: "eq", estatus_licencia: "eq", estatus_establecimiento: "eq" }, sort: ["nombre", "provincia", "created_at"],
-    exclude: ["rut", "numero_identificacion", "telefono", "correo", "estatus_proceso"], listExclude: [], translatable: [],
+    exclude: ["rut", "numero_identificacion", "telefono", "correo", "estatus_proceso", "import_key"], listExclude: [], translatable: [],
   }),
 
   // ---- Historia, cultura y editorial ----

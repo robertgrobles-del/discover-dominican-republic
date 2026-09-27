@@ -1883,6 +1883,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "import_key": {
+   "type": "text",
+   "nullable": true
   }
  },
  "events": {
