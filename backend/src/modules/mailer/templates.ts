@@ -12,6 +12,7 @@ export interface TemplateData {
   "auth.password_changed": { name: string };
   "booking.confirmation": BookingMail & { paid: string; balance: string };
   "booking.request_received": BookingMail;
+  "booking.date_changed": BookingMail;
   "booking.cancelled": { name: string; reference: string; service: string; refund: string; operator: string };
   "booking.balance_due": { name: string; reference: string; service: string; operator: string; date: string; balance: string; url: string };
   "operator.min_guests": { operator: string; service: string; date: string; booked: number; min: number; url: string };
@@ -126,6 +127,18 @@ T["booking.request_received"] = {
     subject: `Request received ${d.reference} — ${d.service}`,
     text: `Hi ${d.name},\n\nWe received your request for ${d.service} with ${d.operator}. They will confirm soon.\nDates: ${d.dates}\nGuests: ${d.guests}\nTotal: ${d.total}\nReference: ${d.reference}\n\n${d.url}`,
     html: layout("Request received", p(`Hi ${esc(d.name)}, <b>${esc(d.operator)}</b> will confirm your booking and contact you soon.`) + table([["Service", d.service], ["Dates", d.dates], ["Guests", d.guests], ["Total due", d.total], ["Reference", d.reference]]), { label: "View my request", url: d.url }),
+  }),
+};
+T["booking.date_changed"] = {
+  es: (d) => ({
+    subject: `Nueva fecha de tu reserva ${d.reference} — ${d.service}`,
+    text: `Hola ${d.name},\n\nLa fecha de tu reserva con ${d.operator} cambió.\n\n${d.service}\nNueva fecha: ${d.dates}\nPersonas: ${d.guests}\nTotal: ${d.total}\nReferencia: ${d.reference}\n\nVer o gestionar tu reserva: ${d.url}`,
+    html: layout("La fecha de tu reserva cambió", p(`Hola ${esc(d.name)}, la reserva con <b>${esc(d.operator)}</b> quedó en una nueva fecha.`) + table([["Servicio", d.service], ["Nueva fecha", d.dates], ["Personas", d.guests], ["Total", d.total], ["Referencia", d.reference]]), { label: "Ver mi reserva", url: d.url }),
+  }),
+  en: (d) => ({
+    subject: `New date for your booking ${d.reference} — ${d.service}`,
+    text: `Hi ${d.name},\n\nThe date of your booking with ${d.operator} changed.\n\n${d.service}\nNew date: ${d.dates}\nGuests: ${d.guests}\nTotal: ${d.total}\nReference: ${d.reference}\n\nView or manage your booking: ${d.url}`,
+    html: layout("Your booking date changed", p(`Hi ${esc(d.name)}, your booking with <b>${esc(d.operator)}</b> has a new date.`) + table([["Service", d.service], ["New date", d.dates], ["Guests", d.guests], ["Total", d.total], ["Reference", d.reference]]), { label: "View my booking", url: d.url }),
   }),
 };
 T["booking.cancelled"] = {

@@ -8,7 +8,7 @@ import type { Locale } from "../../lib/i18n.js";
 import type { Mailer } from "../mailer/mailer.js";
 import type { NotifyFn } from "../notifications/insert.js";
 import { POLICIES, refundFor, type CancellationPolicy } from "./domain/cancellation.js";
-import { addDays, isIsoDate, nightsBetween, todayInSantoDomingo } from "./domain/dates.js";
+import { addDays, isIsoDate, nightsBetween, startsAt, todayInSantoDomingo } from "./domain/dates.js";
 import { fromCents, toCents } from "./domain/money.js";
 import type { RoomSnap } from "./domain/pricing.js";
 import { computeQuote, type ListingSnap, type Quote, type QuoteRequest } from "./domain/quote.js";
@@ -16,6 +16,9 @@ import type { PaymentGateway } from "./gateway.js";
 import type { PromotionService } from "./promotions.js";
 
 export type PaymentMode = "pay_now" | "deposit" | "pay_later";
+const MAX_DATE_CHANGES = 2;
+const MIN_CHANGE_NOTICE_HOURS = 48;
+
 export interface BookingRequest {
   listing_id: string; room_id?: string; date: string; check_out?: string; time?: string;
   adults: number; children?: number; infants?: number; extras?: string[]; promo_code?: string;
@@ -119,17 +122,17 @@ export class BookingService {
     return { listing, room, org: { id: r.org_id, business_name: r.business_name, slug: r.org_slug, verification: r.verification, email: r.email, commission_rate: Number(r.commission_rate) } };
   }
 
-  private async occupied(c: Db | PoolClient, l: Loaded, req: QuoteRequest, time: string | null): Promise<number> {
+  private async occupied(c: Db | PoolClient, l: Loaded, req: QuoteRequest, time: string | null, excludeId: string | null = null): Promise<number> {
     if (l.listing.category === "alojamiento") {
       if (!l.room || !req.check_out || !isIsoDate(req.date) || !isIsoDate(req.check_out)) return 0;
       const { rows } = await c.query<{ n: number }>(
-        "SELECT count(*)::int AS n FROM bookings WHERE room_id = $1 AND status <> 'cancelled' AND date < $3::date AND check_out > $2::date", [l.room.id, req.date, req.check_out],
+        "SELECT count(*)::int AS n FROM bookings WHERE room_id = $1 AND status <> 'cancelled' AND date < $3::date AND check_out > $2::date AND ($4::uuid IS NULL OR id <> $4)", [l.room.id, req.date, req.check_out, excludeId],
       );
       return rows[0]!.n;
     }
     if (!isIsoDate(req.date)) return 0;
     const { rows } = await c.query<{ n: number }>(
-      "SELECT coalesce(sum(guests), 0)::int AS n FROM bookings WHERE listing_id = $1 AND date = $2::date AND coalesce(time, '') = coalesce($3::text, '') AND status <> 'cancelled'", [l.listing.id, req.date, time],
+      "SELECT coalesce(sum(guests), 0)::int AS n FROM bookings WHERE listing_id = $1 AND date = $2::date AND coalesce(time, '') = coalesce($3::text, '') AND status <> 'cancelled' AND ($4::uuid IS NULL OR id <> $4)", [l.listing.id, req.date, time, excludeId],
     );
     return rows[0]!.n;
   }
@@ -450,6 +453,78 @@ export class BookingService {
     const cuid = (await this.db.query<{ user_id: string | null }>("SELECT user_id FROM bookings WHERE id = $1", [id])).rows[0]?.user_id;
     await this.notifyUser?.(cuid, { type: "booking", title: "Reserva cancelada", message: `${after.listing.title} (${after.reference})${refund > 0 ? ` · reembolso ${money(refund, after.currency)}` : ""}`, link: `/reservas/${after.reference}`, data: { booking_id: id } });
     return after;
+  }
+
+  // ---------- Cambio de fecha ----------
+  /**
+   * Mueve la reserva a otra fecha (docs §5.8). Se vuelve a cotizar con los mismos servicios, personas, extras y código, y se valida
+   * el cupo de la nueva fecha SIN contar esta misma reserva. Regla de precio: el total nunca baja (no hay crédito ni reembolso por
+   * mover a una fecha más barata); si la nueva fecha cuesta más, la diferencia queda como saldo por pagar. El viajero puede cambiar
+   * hasta 2 veces y hasta 48 h antes; el operador, sin esos límites. Con `dry_run` sólo muestra cómo quedaría.
+   */
+  async changeDate(id: string, who: { by: "traveler" | "operator"; token?: string; userId?: string; orgId?: string; now?: Date }, input: { date: string; check_out?: string; time?: string; dry_run?: boolean }) {
+    const b = who.by === "operator" ? await this.getForOrg(who.orgId!, id) : await this.getForTraveler(id, { token: who.token, userId: who.userId });
+    if (!["pending", "confirmed"].includes(b.status)) throw new AppError("BUSINESS_RULE", `No se puede cambiar la fecha de una reserva en estado "${b.status}"`, { code: "INVALID_STATE" });
+    const now = who.now ?? new Date();
+    const raw = (await this.db.query<{ room_id: string | null; listing_id: string; adults: number; children: number; infants: number; extras: { id: string }[]; promo_code: string | null; total_price: string; date_changes: number }>("SELECT room_id, listing_id, adults, children, infants, extras, promo_code, total_price, date_changes FROM bookings WHERE id = $1", [id])).rows[0]!;
+    if (who.by === "traveler") {
+      if (raw.date_changes >= MAX_DATE_CHANGES) throw new AppError("BUSINESS_RULE", `Sólo se puede cambiar la fecha ${MAX_DATE_CHANGES} veces; contacta al operador`, { code: "CHANGE_LIMIT", max: MAX_DATE_CHANGES });
+      if (startsAt(b.date, b.time).getTime() - now.getTime() < MIN_CHANGE_NOTICE_HOURS * 3_600_000) throw new AppError("BUSINESS_RULE", `Sólo se puede cambiar hasta ${MIN_CHANGE_NOTICE_HOURS} horas antes; contacta al operador`, { code: "CHANGE_TOO_LATE", hours: MIN_CHANGE_NOTICE_HOURS });
+    }
+    const today = todayInSantoDomingo(now);
+    if (!isIsoDate(input.date) || input.date <= today) throw AppError.validation("Elige una fecha futura", { field: "date" });
+    if (nightsBetween(today, input.date) > 365) throw AppError.validation("La fecha no puede ser a más de un año", { field: "date" });
+    const lodging = b.listing.category === "alojamiento";
+    if (lodging && (!input.check_out || input.check_out <= input.date)) throw AppError.validation("Indica la fecha de salida", { field: "check_out" });
+    if (!lodging && input.check_out) throw AppError.validation("Este servicio no tiene fecha de salida", { field: "check_out" });
+    if (input.date === b.date && (input.check_out ?? null) === (b.check_out ?? null) && (input.time ?? b.time ?? null) === (b.time ?? null)) throw AppError.validation("La nueva fecha es la misma que la actual");
+
+    const request: BookingRequest = { listing_id: raw.listing_id, room_id: raw.room_id ?? undefined, date: input.date, check_out: input.check_out, time: input.time ?? b.time ?? undefined, adults: raw.adults, children: raw.children, infants: raw.infants, extras: (raw.extras ?? []).map((e) => e.id), promo_code: raw.promo_code ?? undefined };
+    const oldTotal = Number(raw.total_price);
+    const compute = async (c: Db | PoolClient, lock: boolean) => {
+      const loaded = await this.load(c, request.listing_id, request.room_id, { lock });
+      const qr = this.toQuoteRequest(request);
+      const time = loaded.listing.category === "alojamiento" ? null : (qr.time ?? loaded.listing.time_slots[0] ?? null);
+      const promo = qr.promo_code ? await this.promos.findValid(c, loaded.org.id, loaded.listing.id, qr.promo_code).catch(() => null) : null;
+      const quote = computeQuote({ listing: loaded.listing, room: loaded.room, request: qr, occupied: await this.occupied(c, loaded, qr, time, id), promo });
+      const issue = quote.issues[0];
+      if (issue) throw new AppError("BUSINESS_RULE", issue.message, { code: issue.code, issues: quote.issues });
+      return quote;
+    };
+    const summarize = (quote: Quote) => {
+      const total = Math.max(oldTotal, quote.total);
+      return { old_total: oldTotal, quoted_total: quote.total, new_total: total, price_difference: fromCents(toCents(total) - toCents(oldTotal)), new_balance_due: fromCents(Math.max(0, toCents(total) - toCents(b.amount_paid))), currency: quote.currency };
+    };
+
+    if (input.dry_run) {
+      const quote = await compute(this.db, false);
+      return { dry_run: true as const, allowed: true, date: request.date, check_out: quote.end_date, time: quote.time, ...summarize(quote), changes_left: who.by === "traveler" ? MAX_DATE_CHANGES - raw.date_changes : null };
+    }
+
+    let summary!: ReturnType<typeof summarize>;
+    await this.tx(async (c) => {
+      const cur = (await c.query<{ status: string; date_changes: number }>("SELECT status, date_changes FROM bookings WHERE id = $1 FOR UPDATE", [id])).rows[0]!;
+      if (!["pending", "confirmed"].includes(cur.status)) throw new AppError("BUSINESS_RULE", "La reserva cambió de estado; intenta de nuevo", { code: "INVALID_STATE" });
+      const quote = await compute(c, true);          // con el anuncio y la habitación bloqueados: el cupo no se puede ocupar entre la revisión y el guardado
+      summary = summarize(quote);
+      await c.query(
+        `UPDATE bookings SET date = $2, check_out = $3, time = $4, subtotal = $5, discount = $6, total_price = $7, quote = $8, extras = $9, guests = $10,
+                original_date = coalesce(original_date, date), date_changes = date_changes + 1, notified = '{}', updated_at = now() WHERE id = $1`,
+        [id, request.date, quote.end_date, quote.time, quote.subtotal, quote.discount, summary.new_total, JSON.stringify({ lines: quote.lines, promo: quote.promo, departure: quote.departure, changed_from: { date: b.date, check_out: b.check_out, total: oldTotal } }), JSON.stringify(quote.extras), quote.seats],
+      );
+      await this.applyPaymentTotals(c, id);
+    });
+    const after = (await this.get(id))!;
+    const uid = (await this.db.query<{ user_id: string | null }>("SELECT user_id FROM bookings WHERE id = $1", [id])).rows[0]?.user_id;
+    const dates = after.check_out && after.check_out !== after.date ? `${after.date} → ${after.check_out}` : `${after.date}${after.time ? ` ${after.time}` : ""}`;
+    await this.db.query(
+      "INSERT INTO operator_messages (id, org_id, thread_id, traveler_name, sender, channel, booking_id, read, body) VALUES ($1, (SELECT org_id FROM bookings WHERE id = $2), $3, $4, 'traveler', 'web', $2, false, $5)",
+      [`msg_${randomUUID()}`, id, `web-${id}`, after.contact.name, `${who.by === "operator" ? "El operador movió" : "El viajero movió"} la reserva ${after.reference} de ${b.date}${b.check_out ? ` → ${b.check_out}` : ""} a ${dates}.`],
+    ).catch((err) => this.log.error({ err, id }, "No se pudo avisar al operador del cambio de fecha"));
+    const url = `${this.env.WEB_BASE_URL}/reservas/${after.reference}`;
+    await this.mailer.send({ to: after.contact.email, template: "booking.date_changed", locale: "es", data: { name: after.contact.name.split(" ")[0]!, reference: after.reference, service: after.listing.title, operator: after.operator.name, dates, guests: `${after.adults + after.children}`, total: money(after.total_price, after.currency), url } }).catch((err) => this.log.error({ err, id }, "No se pudo enviar el aviso de cambio de fecha"));
+    await this.notifyUser?.(uid, { type: "booking", title: "Cambiamos la fecha de tu reserva", message: `${after.listing.title} · ${dates}${summary.price_difference > 0 ? ` · diferencia ${money(summary.price_difference, after.currency)}` : ""}`, link: `/reservas/${after.reference}`, data: { booking_id: id } });
+    return { dry_run: false as const, booking: after, ...summary };
   }
 
   // ---------- Disponibilidad ----------

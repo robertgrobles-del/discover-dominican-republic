@@ -1,10 +1,10 @@
-import type { FastifyInstance, FastifyRequest } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
-import { BookingService } from "./bookings.js";
+import { BookingService, type BookingDto } from "./bookings.js";
 import { CatalogService, CATEGORIES, type Membership, type OrgRole } from "./catalog.js";
 import type { PaymentGateway } from "./gateway.js";
 import { AutomationService } from "./automations.js";
@@ -14,6 +14,7 @@ import type { JobRunner } from "../jobs/runner.js";
 import type { PayoutService } from "./payouts.js";
 import { PromotionService } from "./promotions.js";
 import { ReportService } from "./reports.js";
+import { renderVoucher } from "./voucher.js";
 import { audit, TeamService } from "./team.js";
 
 declare module "fastify" {
@@ -130,10 +131,19 @@ export async function operatorRoutes(app: FastifyInstance) {
     return { data: { booking: res.booking, access_token: res.accessToken, replayed: res.replayed } };
   });
 
+  const sendVoucher = async (reply: FastifyReply, b: BookingDto) => {
+    if (!["confirmed", "in_progress", "completed"].includes(b.status)) throw new AppError("BUSINESS_RULE", "El voucher está disponible cuando la reserva está confirmada", { code: "VOUCHER_NOT_AVAILABLE", status: b.status });
+    const pdf = await renderVoucher(b, { webBaseUrl: app.env.WEB_BASE_URL });
+    reply.header("content-type", "application/pdf").header("content-disposition", `inline; filename="voucher-${b.reference}.pdf"`).header("cache-control", "private, no-store").header("x-content-type-options", "nosniff");
+    return reply.send(pdf);
+  };
   const access = (req: FastifyRequest) => ({ token: (req.query as { token?: string }).token, userId: req.user?.id });
   const tokenQ = z.object({ token: z.string().max(100).optional() });
   r.get("/bookings/:id", { onRequest: optionalUser, schema: { tags: ["reservas"], summary: "Detalle de una reserva (token de invitado o sesión del titular)", params: id.extend({ id: z.string().uuid() }), querystring: tokenQ, response: { 200: ok } } }, async (req) => ({ data: await bookings.getForTraveler(req.params.id, access(req)) }));
   r.post("/bookings/:id/cancel", { onRequest: optionalUser, schema: { tags: ["reservas"], summary: "Cancela con reembolso según la política", params: id.extend({ id: z.string().uuid() }), querystring: tokenQ, body: z.object({ reason: z.string().max(300).optional() }).nullish(), response: { 200: ok } } }, async (req) => ({ data: await bookings.cancel(req.params.id, { by: "traveler", ...access(req), reason: req.body?.reason }) }));
+  const changeBody = z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), check_out: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(), dry_run: z.boolean().default(false) });
+  r.post("/bookings/:id/change-date", { onRequest: optionalUser, config: rl(20, "1 minute"), schema: { tags: ["reservas"], summary: "Cambia la fecha (misma cotización: el total nunca baja; si sube, la diferencia queda como saldo). Hasta 2 veces y 48 h antes. `dry_run` sólo muestra cómo quedaría", params: id.extend({ id: z.string().uuid() }), querystring: tokenQ, body: changeBody, response: { 200: ok } } }, async (req) => ({ data: await bookings.changeDate(req.params.id, { by: "traveler", ...access(req) }, req.body) }));
+  r.get("/bookings/:id/voucher.pdf", { onRequest: optionalUser, config: rl(30, "1 minute"), schema: { tags: ["reservas"], summary: "Voucher en PDF con el QR de la referencia (reservas confirmadas o realizadas)", params: id.extend({ id: z.string().uuid() }), querystring: tokenQ } }, async (req, reply) => sendVoucher(reply, await bookings.getForTraveler(req.params.id, access(req))));
   r.post("/bookings/:id/pay-balance", { onRequest: optionalUser, config: rl(10, "1 minute"), schema: { tags: ["reservas"], summary: "Paga el saldo pendiente", params: id.extend({ id: z.string().uuid() }), querystring: tokenQ, body: z.object({ payment_method_token: z.string().max(200) }), response: { 200: ok } } }, async (req) => ({ data: await bookings.payBalance(req.params.id, access(req), req.body.payment_method_token) }));
   r.get("/me/bookings", { onRequest: app.authenticate, schema: { tags: ["reservas"], summary: "Mis reservas", security: bearer, querystring: z.object({ ...pageQ, status: z.enum(["pending", "confirmed", "in_progress", "completed", "cancelled"]).optional() }), response: { 200: paged } } }, async (req) => {
     const { rows, total } = await bookings.listForUser(req.user!.id, req.query);
@@ -179,6 +189,13 @@ export async function operatorRoutes(app: FastifyInstance) {
     return { data: res.booking };
   });
   r.get("/org/bookings/:id", { onRequest: org(), schema: { tags: ["operadores"], summary: "Detalle de una reserva", security: bearer, params: id.extend({ id: z.string().uuid() }), response: { 200: ok } } }, async (req) => ({ data: await bookings.getForOrg(req.member!.org_id, req.params.id, only(req.member!)) }));
+  r.post("/org/bookings/:id/change-date", { onRequest: org("owner", "admin", "recepcion"), schema: { tags: ["operadores"], summary: "Mueve una reserva a otra fecha (sin los límites del viajero); se le avisa", security: bearer, params: id.extend({ id: z.string().uuid() }), body: changeBody, response: { 200: ok } } }, async (req) => {
+    await bookings.getForOrg(req.member!.org_id, req.params.id, only(req.member!));
+    const data = await bookings.changeDate(req.params.id, { by: "operator", orgId: req.member!.org_id }, req.body);
+    if (!req.body.dry_run) await audit(app.db, { actor: req.user!.id, action: "booking.date_changed", entity: "booking", id: req.params.id, org: req.member!.org_id, meta: { date: req.body.date }, ip: req.ip });
+    return { data };
+  });
+  r.get("/org/bookings/:id/voucher.pdf", { onRequest: org(), schema: { tags: ["operadores"], summary: "Voucher en PDF de una reserva de mi organización", security: bearer, params: id.extend({ id: z.string().uuid() }) } }, async (req, reply) => sendVoucher(reply, await bookings.getForOrg(req.member!.org_id, req.params.id, only(req.member!))));
   r.put("/org/bookings/:id/status", { onRequest: org(), schema: { tags: ["operadores"], summary: "Cambia el estado (cancelar reembolsa todo)", security: bearer, params: id.extend({ id: z.string().uuid() }), body: z.object({ status: z.enum(["confirmed", "in_progress", "completed", "cancelled"]), reason: z.string().max(300).optional() }), response: { 200: ok } } }, async (req) => {
     await bookings.getForOrg(req.member!.org_id, req.params.id, only(req.member!));
     if (req.member!.role === "guia" && req.body.status !== "in_progress" && req.body.status !== "completed") throw new AppError("FORBIDDEN", "Tu rol no permite esta acción");

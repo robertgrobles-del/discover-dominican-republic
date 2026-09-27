@@ -69,6 +69,26 @@ export async function authRoutes(app: FastifyInstance) {
     return reply.code(201).send({ data: { user: u, tokens: tokensOut(req, reply, session) } });
   });
 
+  r.post("/auth/partner/register", {
+    onRequest: app.flags.gate("registration_enabled", "El registro de cuentas nuevas está en pausa"),
+    schema: {
+      tags: ["auth"], summary: "Alta de proveedor: crea la cuenta y su organización (queda pendiente de verificación) e inicia sesión",
+      body: z.object({
+        email, password, display_name: z.string().trim().min(1).max(80).optional(), locale: locale.optional(), marketing_opt_in: z.boolean().optional(),
+        accept_terms: z.literal(true, { error: "Debes aceptar los términos y la política de privacidad" }),
+        business_name: z.string().trim().min(2).max(120), business_type: z.string().max(60).optional(), phone: z.string().max(30).optional(), province: z.string().max(60).optional(), description: z.string().max(2000).optional(),
+      }),
+      response: { 201: z.object({ data: z.object({ user: z.any(), tokens: z.any(), organization: z.any() }) }) },
+    },
+    config: limit(5, "1 hour"),
+  }, async (req, reply) => {
+    const { accept_terms: _t, business_name, business_type, phone, province, description, ...input } = req.body;
+    const { user: u, session } = await app.auth.register(input, ctx(req));
+    // Si la organización falla (p. ej. un nombre inválido para el catálogo) la cuenta ya existe: puede completarla en POST /orgs.
+    const organization = await app.catalog.createOrg(u.id, u.email, { business_name, business_type, phone, province, description });
+    return reply.code(201).send({ data: { user: u, tokens: tokensOut(req, reply, session), organization } });
+  });
+
   r.post("/auth/login", {
     schema: {
       tags: ["auth"], summary: "Iniciar sesión",
