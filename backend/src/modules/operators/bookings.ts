@@ -6,6 +6,7 @@ import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
 import type { Locale } from "../../lib/i18n.js";
 import type { Mailer } from "../mailer/mailer.js";
+import type { NotifyFn } from "../notifications/insert.js";
 import { POLICIES, refundFor, type CancellationPolicy } from "./domain/cancellation.js";
 import { addDays, isIsoDate, nightsBetween, todayInSantoDomingo } from "./domain/dates.js";
 import { fromCents, toCents } from "./domain/money.js";
@@ -75,6 +76,9 @@ export class BookingService {
     private readonly db: Db, private readonly env: Env, private readonly promos: PromotionService, private readonly gateway: PaymentGateway,
     private readonly mailer: Mailer, private readonly log: FastifyBaseLogger,
   ) {}
+
+  /** Aviso en la bandeja de la persona (lo asigna el arranque de la app). */
+  notifyUser?: NotifyFn;
 
   private async tx<T>(fn: (c: PoolClient) => Promise<T>): Promise<T> {
     const c = await this.db.connect();
@@ -318,6 +322,8 @@ export class BookingService {
     if (b.status === "confirmed") await this.mailer.send({ to: b.contact.email, template: "booking.confirmation", locale, data: { ...common, paid: money(b.amount_paid, b.currency), balance: money(b.balance_due, b.currency) } });
     else await this.mailer.send({ to: b.contact.email, template: "booking.request_received", locale, data: common });
     await this.mailer.send({ to: l.org.email, template: "operator.new_booking", locale: "es", data: { operator: b.operator.name, traveler: b.contact.name, reference: b.reference, service: b.listing.title, dates, guests, total: money(b.total_price, b.currency), url: `${this.env.WEB_BASE_URL}/operadores/panel/reservas` } });
+    const uid = (await this.db.query<{ user_id: string | null }>("SELECT user_id FROM bookings WHERE id = $1", [b.id])).rows[0]?.user_id;
+    await this.notifyUser?.(uid, { type: "booking", title: b.status === "confirmed" ? "Reserva confirmada" : "Solicitud recibida", message: `${b.listing.title} · ${dates}`, link: `/reservas/${b.reference}`, data: { booking_id: b.id } });
     void charged;
   }
 
@@ -441,6 +447,8 @@ export class BookingService {
     });
     const after = (await this.get(id))!;
     await this.mailer.send({ to: after.contact.email, template: "booking.cancelled", locale: "es", data: { name: after.contact.name.split(" ")[0]!, reference: after.reference, service: after.listing.title, operator: after.operator.name, refund: refund > 0 ? `${money(refund, after.currency)} (${percent} %)` : "sin reembolso según la política" } });
+    const cuid = (await this.db.query<{ user_id: string | null }>("SELECT user_id FROM bookings WHERE id = $1", [id])).rows[0]?.user_id;
+    await this.notifyUser?.(cuid, { type: "booking", title: "Reserva cancelada", message: `${after.listing.title} (${after.reference})${refund > 0 ? ` · reembolso ${money(refund, after.currency)}` : ""}`, link: `/reservas/${after.reference}`, data: { booking_id: id } });
     return after;
   }
 

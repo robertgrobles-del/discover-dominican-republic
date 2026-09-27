@@ -5,6 +5,7 @@ import type { Env } from "../../config/env.js";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
 import type { Mailer } from "../mailer/mailer.js";
+import type { NotifyFn } from "../notifications/insert.js";
 import { fromCents, pctOf, toCents } from "../operators/domain/money.js";
 import type { PaymentGateway } from "../operators/gateway.js";
 
@@ -442,7 +443,12 @@ export class StoreService {
     return (await this.orderDto(id))!;
   }
 
+  /** Aviso en la bandeja del comprador (lo asigna el arranque de la app). */
+  notifyUser?: NotifyFn;
+
   private async notify(o: { customer_email: string; customer_name: string; id: string }, title: string, message: string) {
+    const uid = (await this.db.query<{ user_id: string | null }>("SELECT user_id FROM store_orders WHERE id = $1", [o.id])).rows[0]?.user_id;
+    await this.notifyUser?.(uid, { type: "booking", title, message, link: `/tienda/pedido/${o.id}`, data: { order_id: o.id } });
     await this.mailer.send({ to: o.customer_email, template: "store.order_update", locale: "es", data: { name: o.customer_name.split(" ")[0]!, reference: o.id, title, message, url: `${this.env.WEB_BASE_URL}/tienda/pedido/${o.id}` } }).catch((err) => this.log.error({ err }, "No se pudo enviar el aviso del pedido"));
   }
 

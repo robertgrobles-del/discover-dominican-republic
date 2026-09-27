@@ -5,6 +5,7 @@ import { AppError } from "../../lib/errors.js";
 import { COLLECTIONS } from "../content/collections.js";
 import { hasCol, visibility } from "../content/query.js";
 import type { GameService } from "../game/service.js";
+import { insertNotification } from "../notifications/insert.js";
 import { addDays, nightsBetween, todayInSantoDomingo } from "../operators/domain/dates.js";
 
 const Q = (c: string) => `"${c}"`;
@@ -226,6 +227,9 @@ export class TripService {
       const ins = await c.query("INSERT INTO trip_members (trip_id, user_id, role) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING", [inv.trip_id, userId, inv.role]);
       if (!ins.rowCount) throw new AppError("CONFLICT", "Ya eres miembro de este viaje", { reason: "ALREADY_MEMBER" });
       await c.query("UPDATE trip_invites SET uses = uses + 1 WHERE id = $1", [inv.id]);
+      const who = (await c.query<{ display_name: string | null }>("SELECT display_name FROM profiles WHERE id = $1", [userId])).rows[0]?.display_name ?? "Alguien";
+      const title = (await c.query<{ title: string }>("SELECT title FROM trips WHERE id = $1", [inv.trip_id])).rows[0]?.title ?? "tu viaje";
+      await insertNotification(c, trip.owner_id, { type: "social", title: `${who} se unió a tu viaje`, message: title, link: `/mi-viaje/${inv.trip_id}`, data: { trip_id: inv.trip_id } });
       return { trip_id: inv.trip_id, role: inv.role };
     });
   }

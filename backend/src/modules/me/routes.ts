@@ -122,7 +122,7 @@ export async function meRoutes(app: FastifyInstance) {
     const w = `user_id = $1${req.query.unread === "true" ? " AND NOT is_read" : ""}`;
     const total = (await db.query<{ n: number }>(`SELECT count(*)::int AS n FROM notifications WHERE ${w}`, [req.user!.id])).rows[0]!.n;
     const unread = (await db.query<{ n: number }>("SELECT count(*)::int AS n FROM notifications WHERE user_id = $1 AND NOT is_read", [req.user!.id])).rows[0]!.n;
-    const { rows } = await db.query(`SELECT id, title, message, type, link, is_read, created_at FROM notifications WHERE ${w} ORDER BY created_at DESC LIMIT ${req.query.per_page} OFFSET ${(req.query.page - 1) * req.query.per_page}`, [req.user!.id]);
+    const { rows } = await db.query(`SELECT id, title, message, type, link, data, is_read, created_at FROM notifications WHERE ${w} ORDER BY created_at DESC LIMIT ${req.query.per_page} OFFSET ${(req.query.page - 1) * req.query.per_page}`, [req.user!.id]);
     return { data: rows, meta: { ...pageMeta(req.query.page, req.query.per_page, total), unread } };
   });
   r.patch("/me/notifications/:id", { onRequest: auth, schema: { tags: ["perfil"], summary: "Marca una notificación como leída o no leída", security: bearer, params: uuid, body: z.object({ is_read: z.boolean() }), response: { 204: z.null() } } }, async (req, reply) => {

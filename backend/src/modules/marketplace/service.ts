@@ -5,6 +5,7 @@ import type { Env } from "../../config/env.js";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
 import type { Mailer } from "../mailer/mailer.js";
+import type { NotifyFn } from "../notifications/insert.js";
 import { fromCents, toCents } from "../operators/domain/money.js";
 import type { PaymentGateway } from "../operators/gateway.js";
 
@@ -29,6 +30,13 @@ export class MarketplaceService {
 
   /** Aviso de que un pedido cambió su dinero (cobro, reembolso, cancelación); lo usa el programa de embajadores. */
   onMoneyChange?: (orderId: string) => Promise<void>;
+  /** Aviso en la bandeja de compradores y vendedores (lo asigna el arranque de la app). */
+  notifyUser?: NotifyFn;
+
+  private async notifyBuyer(orderId: string, title: string, message: string) {
+    const uid = (await this.db.query<{ user_id: string | null }>("SELECT user_id FROM marketplace_orders WHERE id = $1", [orderId])).rows[0]?.user_id;
+    await this.notifyUser?.(uid, { type: "booking", title, message, link: `/marketplace/pedido/${orderId}`, data: { order_id: orderId } });
+  }
 
   private async tx<T>(fn: (c: PoolClient) => Promise<T>): Promise<T> {
     const c = await this.db.connect();
@@ -114,6 +122,7 @@ export class MarketplaceService {
     if (input.commission_rate !== undefined) sets.push(`commission_rate = ${bind(input.commission_rate)}`);
     if (input.note !== undefined) sets.push(`status_note = ${bind(input.note)}`);
     await this.db.query(`UPDATE marketplace_vendors SET ${sets.join(", ")} WHERE id = $1`, p);
+    if (input.status === "active" && cur.status !== "active") await this.notifyUser?.(id, { type: "system", title: "Tu tienda fue aprobada", message: `${cur.name} ya está activa en el marketplace`, link: "/vendedor" });
     if (input.status === "active" && cur.status !== "active") await this.mailer.send({ to: cur.email, template: "vendor.approved", locale: "es", data: { shop: cur.name, url: `${this.env.WEB_BASE_URL}/marketplace/vendedores/${cur.slug}` } }).catch((err) => this.log.error({ err }, "No se pudo avisar la aprobación del vendedor"));
     return this.myVendor(id);
   }
@@ -352,6 +361,7 @@ export class MarketplaceService {
       for (const v of rows) {
         const mine = o.items.filter((i) => i.vendor_name === v.shop);
         const sum = mine.reduce((s, i) => s + i.line_total, 0);
+        await this.notifyUser?.(v.vendor_id, { type: "booking", title: "Nuevo pedido pagado", message: `${mine.map((i) => `${i.quantity} × ${i.name}`).join(", ")} · ${money(sum)}`, link: "/vendedor/pedidos", data: { order_id: orderId } });
         await this.mailer.send({ to: v.email, template: "vendor.new_order", locale: "es", data: { shop: v.shop, reference: orderId.slice(0, 8).toUpperCase(), items: mine.map((i) => `${i.quantity} × ${i.name}`).join(", "), total: money(sum), url: `${this.env.WEB_BASE_URL}/vendedor/pedidos` } });
       }
     } catch (err) { this.log.error({ err, orderId }, "No se pudo avisar a los vendedores del pedido"); }
@@ -468,6 +478,7 @@ export class MarketplaceService {
     });
     const o = (await this.orderDto(it.order_id))!;
     const item = o.items.find((i) => i.id === itemId)!;
+    await this.notifyBuyer(it.order_id, status === "shipped" ? "Tu pedido va en camino" : "Tu pedido fue entregado", status === "shipped" ? `${item.name}: guía ${opts.tracking_number ?? "—"}` : `${item.name} fue entregado`);
     await this.mailer.send({ to: o.customer_email, template: "store.order_update", locale: "es", data: { name: o.customer_name.split(" ")[0]!, reference: it.order_id.slice(0, 8).toUpperCase(), title: status === "shipped" ? "Tu pedido va en camino" : "Tu pedido fue entregado", message: status === "shipped" ? `${item.name}: guía ${opts.tracking_number ?? "—"}${opts.courier_name ? ` (${opts.courier_name})` : ""}.` : `${item.name} fue entregado.`, url: `${this.env.WEB_BASE_URL}/marketplace/pedido/${it.order_id}` } }).catch(() => undefined);
     return item;
   }

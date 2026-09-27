@@ -56,6 +56,10 @@ const schema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().min(10).optional(),
   /** Secreto con el que el proveedor de correo firma sus eventos (entrega, rebote, queja). Sin él, /webhooks/email queda apagado. */
   EMAIL_WEBHOOK_SECRET: z.string().min(16).optional(),
+  /** Web Push (VAPID). Con ambas claves se envían push a los dispositivos registrados; genera el par con `npx web-push generate-vapid-keys`. */
+  VAPID_PUBLIC_KEY: z.string().min(20).optional(),
+  VAPID_PRIVATE_KEY: z.string().min(20).optional(),
+  VAPID_SUBJECT: z.string().default("mailto:soporte@descubre.local"),
   /** Asistente de IA: none (apagado) | fake (simulador, sólo desarrollo/pruebas) | anthropic (requiere ANTHROPIC_API_KEY). */
   AI_PROVIDER: z.enum(["none", "fake", "anthropic"]).optional(),
   ANTHROPIC_API_KEY: z.string().min(10).optional(),
@@ -120,6 +124,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   env.REQUIRE_2FA_FOR_STAFF ??= env.NODE_ENV === "production";
   env.PAYMENT_PROVIDER ??= env.NODE_ENV === "production" ? "none" : "fake";
   if (env.NODE_ENV === "production" && env.PAYMENT_PROVIDER === "fake") throw new Error("Configuración inválida: PAYMENT_PROVIDER=fake no está permitido en producción");
+  if (!!env.VAPID_PUBLIC_KEY !== !!env.VAPID_PRIVATE_KEY) throw new Error("Configuración inválida: VAPID_PUBLIC_KEY y VAPID_PRIVATE_KEY van juntas");
   env.AI_PROVIDER ??= env.NODE_ENV === "production" ? "none" : "fake";
   if (env.NODE_ENV === "production" && env.AI_PROVIDER === "fake") throw new Error("Configuración inválida: AI_PROVIDER=fake no está permitido en producción");
   if (env.AI_PROVIDER === "anthropic" && !env.ANTHROPIC_API_KEY) throw new Error("Configuración inválida: AI_PROVIDER=anthropic requiere ANTHROPIC_API_KEY");

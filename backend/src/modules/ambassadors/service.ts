@@ -5,6 +5,7 @@ import type { Env } from "../../config/env.js";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
 import type { Mailer } from "../mailer/mailer.js";
+import type { NotifyFn } from "../notifications/insert.js";
 import { fromCents, toCents } from "../operators/domain/money.js";
 
 export const HOLD_DAYS = 7;                 // la comisión queda en espera por si hay devolución
@@ -30,6 +31,9 @@ type Db_ = Db | PoolClient;
  */
 export class AmbassadorService {
   constructor(private readonly db: Db, private readonly env: Env, private readonly mailer: Mailer, private readonly log: FastifyBaseLogger) {}
+
+  /** Aviso en la bandeja del embajador (lo asigna el arranque de la app). */
+  notifyUser?: NotifyFn;
 
   private async tx<T>(fn: (c: PoolClient) => Promise<T>): Promise<T> {
     const c = await this.db.connect();
@@ -225,6 +229,7 @@ export class AmbassadorService {
     if (input.note !== undefined) sets.push(`status_note = ${bind(input.note)}`);
     await this.db.query(`UPDATE ambassadors SET ${sets.join(", ")} WHERE id = $1`, p);
     if (input.status === "approved" && cur.status !== "approved") {
+      await this.notifyUser?.(id, { type: "system", title: "¡Ya eres embajador!", message: `Tu código es ${cur.referral_code}`, link: "/embajadores" });
       await this.db.query("INSERT INTO user_roles (user_id, role) VALUES ($1, 'ambassador') ON CONFLICT DO NOTHING", [id]);
       await this.mailer.send({ to: cur.email, template: "ambassador.approved", locale: "es", data: { name: (cur.display_name ?? "").split(" ")[0] || "amigo", code: cur.referral_code, url: `${this.env.WEB_BASE_URL}/embajadores` } }).catch((err) => this.log.error({ err }, "No se pudo avisar la aprobación del embajador"));
     }
@@ -254,6 +259,7 @@ export class AmbassadorService {
       return { ambassador_id: p.ambassador_id, amount: Number(p.amount) };
     });
     if (input.status === "paid") {
+      await this.notifyUser?.(done.ambassador_id, { type: "system", title: "Te enviamos tu pago de comisiones", message: `${money(done.amount)} · ref. ${input.reference}`, link: "/embajadores" });
       const u = (await this.db.query<{ email: string; display_name: string | null }>("SELECT u.email, p.display_name FROM users u LEFT JOIN profiles p ON p.id = u.id WHERE u.id = $1", [done.ambassador_id])).rows[0];
       if (u) await this.mailer.send({ to: u.email, template: "ambassador.payout", locale: "es", data: { name: (u.display_name ?? "").split(" ")[0] || "amigo", amount: money(done.amount), reference: input.reference! } }).catch((err) => this.log.error({ err }, "No se pudo avisar el pago al embajador"));
     }

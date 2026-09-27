@@ -90,7 +90,7 @@ describe("seguridad", () => {
 
     it("ninguna ruta responde 500 ante entradas basura (con y sin sesión)", async () => {
       const bad: string[] = [];
-      const all = app.routeTable.filter((r) => r.url.startsWith("/api/v1/") && !["HEAD", "OPTIONS"].includes(r.method) && !/webhooks|\/upload$|\/ical\//.test(r.url));
+      const all = app.routeTable.filter((r) => r.url.startsWith("/api/v1/") && !["HEAD", "OPTIONS"].includes(r.method) && !/webhooks|\/upload$|\/ical\/|\/notifications\/stream$/.test(r.url));
       for (const r of all) {
         const res = await call(r.method, fill(r.url), { token: plain, payload: r.method === "GET" || r.method === "DELETE" ? undefined : { "__proto__": { admin: true }, x: "'; DROP TABLE users; --", n: 1e309 } });
         if (res.statusCode >= 500) bad.push(`${r.method} ${r.url} → ${res.statusCode}`);

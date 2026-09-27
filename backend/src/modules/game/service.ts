@@ -1,3 +1,4 @@
+import { insertNotification } from "../notifications/insert.js";
 import type { PoolClient } from "pg";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
@@ -128,6 +129,7 @@ export class GameService {
 
     const out: GrantResult = { granted: { xp, coins }, total_xp: totalXp, coins: player.coins + coins, level: lvl.level_number, level_up: lvl.level_number > player.current_level ? { from: player.current_level, to: lvl.level_number, title: lvl.title } : null, missions_completed: [], achievements_unlocked: [], milestones_reached: [] };
 
+    if (out.level_up) await insertNotification(c, input.userId, { type: "gamification", title: `¡Subiste al nivel ${out.level_up.to}: ${out.level_up.title}!`, message: "Sigue explorando para desbloquear más.", link: "/perfil/juego", data: { level: out.level_up.to } });
     if (xp > 0) out.milestones_reached = await this.milestones(c, input.userId, out);
     if (!input.noMissions && input.action !== "mission_completed") out.missions_completed = await this.advanceMissions(c, input.userId, input.action, out);
     if (!input.noAchievements) out.achievements_unlocked = await this.evaluateAchievements(c, input.userId, out);
@@ -213,6 +215,7 @@ export class GameService {
         out.total_xp = r.total_xp; out.coins = r.coins; out.level = r.level; out.level_up ??= r.level_up;
         out.milestones_reached.push(...r.milestones_reached);
         unlocked.push({ id: a.id, name: a.name, icon: a.icon });
+        await insertNotification(c, userId, { type: "gamification", title: `Logro desbloqueado: ${a.name}`, link: "/perfil/logros", data: { achievement_id: a.id } });
         any = true;
       }
       if (!any) break;
