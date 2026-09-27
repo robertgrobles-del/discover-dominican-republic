@@ -53,6 +53,7 @@ export async function authRoutes(app: FastifyInstance) {
   };
 
   r.post("/auth/register", {
+    onRequest: app.flags.gate("registration_enabled", "El registro de cuentas nuevas está en pausa"),
     schema: {
       tags: ["auth"], summary: "Crear cuenta", description: "Crea usuario, perfil y rol `user`, envía el correo de verificación e inicia sesión. La verificación se exige para reservar/pagar, no para navegar.",
       body: z.object({

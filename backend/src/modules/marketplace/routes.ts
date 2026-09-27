@@ -76,7 +76,7 @@ export async function marketplaceRoutes(app: FastifyInstance) {
   // ---------- Compra ----------
   r.post("/marketplace/checkout/quote", { schema: { tags: ["marketplace"], summary: "Cotiza un carrito de productos del marketplace", body: z.object({ items }), response: { 200: ok } } }, async (req) => ({ data: await mp.quote(req.body.items) }));
   r.post("/marketplace/orders", {
-    onRequest: optionalUser, config: rl(15, "1 minute"),
+    onRequest: [app.flags.gate("checkout_enabled", "Las compras están en pausa por unos minutos"), app.flags.gate("marketplace_orders_enabled", "Los pedidos del marketplace están en pausa"), optionalUser], config: rl(15, "1 minute"),
     schema: {
       tags: ["marketplace"], summary: "Crea y cobra un pedido (Idempotency-Key obligatorio; puede mezclar vendedores; `ref_code` atribuye a un embajador)", ...soft,
       body: z.object({

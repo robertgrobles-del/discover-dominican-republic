@@ -12,6 +12,11 @@ import { PlayService } from "./modules/game/play.js";
 import { StoreService } from "./modules/store/service.js";
 import { storeRoutes } from "./modules/store/routes.js";
 import { emailAdminRoutes, emailWebhookRoutes } from "./modules/mailer/routes.js";
+import { FlagService } from "./lib/flags.js";
+import { IpRuleService, registerIpRules } from "./plugins/ip-rules.js";
+import { adminSecurityRoutes } from "./modules/admin/security.js";
+import { adminSupportRoutes } from "./modules/admin/support.js";
+import { adminModerationRoutes } from "./modules/admin/moderation.js";
 import { NotificationService } from "./modules/notifications/service.js";
 import { notificationRoutes } from "./modules/notifications/routes.js";
 import { AiService } from "./modules/ai/service.js";
@@ -60,6 +65,10 @@ import { contentRoutes } from "./modules/content/routes.js";
 export async function registerRoutes(app: FastifyInstance, version: string) {
   // La pasarela se decora en la raíz para que pruebas y otros módulos accedan a ella.
   app.decorate("gateway", createGateway(app.env));
+  app.decorate("flags", new FlagService(app.db));
+  const ipRules = new IpRuleService(app.db);
+  app.decorate("ipRules", ipRules);
+  registerIpRules(app, ipRules);
   const promotions = new PromotionService(app.db);
   app.decorate("catalog", new CatalogService(app.db, app.env, app.log));
   app.decorate("promotions", promotions);
@@ -161,6 +170,9 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(aiRoutes);
       await v1.register(emailAdminRoutes);
       await v1.register(notificationRoutes);
+      await v1.register(adminSecurityRoutes);
+      await v1.register(adminSupportRoutes);
+      await v1.register(adminModerationRoutes);
       await v1.register(emailWebhookRoutes);
       await v1.register(marketplaceRoutes);
       await v1.register(ambassadorRoutes);

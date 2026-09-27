@@ -114,7 +114,7 @@ export async function operatorRoutes(app: FastifyInstance) {
   });
 
   r.post("/bookings", {
-    onRequest: optionalUser, config: rl(20, "1 minute"),
+    onRequest: [app.flags.gate("checkout_enabled", "Las reservas están en pausa por unos minutos"), optionalUser], config: rl(20, "1 minute"),
     schema: {
       tags: ["reservas"], summary: "Crea una reserva (el servidor recalcula el precio; requiere Idempotency-Key)", security: [{}, ...bearer],
       body: z.object({ request: bookingRequest, contact, notes: z.string().trim().max(1000).optional(), payment_mode: z.enum(["pay_now", "deposit", "pay_later"]), payment_method_token: z.string().max(200).optional(), locale: z.enum(["es", "en"]).optional() }),

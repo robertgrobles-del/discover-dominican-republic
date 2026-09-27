@@ -115,6 +115,16 @@ export async function gameRoutes(app: FastifyInstance) {
     return { data: summary(res) };
   });
 
+  const adjustBody = z.object({ xp: z.number().int().min(-100_000).max(100_000).default(0), coins: z.number().int().min(-100_000).max(100_000).default(0), reason: z.string().trim().min(5).max(200) }).refine((b) => b.xp !== 0 || b.coins !== 0, "Indica XP o monedas");
+  const adjust = async (req: { params: { id: string }; body: z.infer<typeof adjustBody>; user?: { id: string }; ip: string }, action: string) => {
+    if (!(await db.query("SELECT 1 FROM users WHERE id = $1", [req.params.id])).rowCount) throw AppError.notFound("Usuario");
+    const res = await game.adjust(req.params.id, req.body);
+    await audit(db, { actor: req.user!.id, action, entity: "user", id: req.params.id, meta: { xp: req.body.xp, coins: req.body.coins, reason: req.body.reason }, ip: req.ip });
+    return { data: res };
+  };
+  r.post("/admin/users/:id/award-xp", { onRequest: admin, schema: { tags: ["admin"], summary: "Otorga XP o monedas con motivo (auditado)", security: bearer, params: z.object({ id: z.string().uuid() }), body: adjustBody.refine((b) => b.xp >= 0, "Para descontar usa /admin/gamification/users/{id}/adjust"), response: { 200: ok } } }, async (req) => adjust(req as never, "gamification.awarded"));
+  r.post("/admin/gamification/users/:id/adjust", { onRequest: admin, schema: { tags: ["admin"], summary: "Ajuste manual de XP y monedas, también negativo (sin bajar de cero), con motivo; queda en la bitácora del juego", security: bearer, params: z.object({ id: z.string().uuid() }), body: adjustBody, response: { 200: ok } } }, async (req) => adjust(req as never, "gamification.adjusted"));
+
   r.get("/admin/gamification/stats", { onRequest: admin, schema: { tags: ["admin"], summary: "XP emitido, jugadores activos, canjes y distribución por nivel", security: bearer, response: { 200: ok } } }, async () => {
     const one = async (sql: string) => Number((await db.query<{ n: string }>(sql)).rows[0]!.n);
     return {

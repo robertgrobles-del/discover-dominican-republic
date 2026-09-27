@@ -27,7 +27,7 @@ export async function aiRoutes(app: FastifyInstance) {
 
   // ---------- Chat (SSE) ----------
   r.post("/ai/chat", {
-    onRequest: optionalUser, config: rl(10, "1 minute"),
+    onRequest: [app.flags.gate("ai_chat_enabled", "El asistente está en pausa por unos minutos"), optionalUser], config: rl(10, "1 minute"),
     schema: {
       tags: tag, summary: "Asistente «Guía RD» en streaming (SSE): eventos `{places}`, `{delta}`, `{done, usage}` o `{error}`. 10 mensajes/min anónimo; con sesión cuenta en la cuota diaria", security: [{}, ...bearer],
       body: z.object({ messages: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().trim().min(1).max(2000) })).min(1).max(20), locale: locale.optional(), context: z.string().max(300).optional() }),
@@ -51,7 +51,7 @@ export async function aiRoutes(app: FastifyInstance) {
 
   // ---------- Itinerario y recomendaciones ----------
   r.post("/ai/itinerary", {
-    onRequest: auth, config: rl(10, "1 minute"),
+    onRequest: [app.flags.gate("ai_planner_enabled", "El planificador con IA está en pausa"), auth], config: rl(10, "1 minute"),
     schema: {
       tags: tag, summary: "Genera un itinerario con lugares reales del catálogo (los `ref` inventados se descartan). Se guarda con POST /me/trips/{id}/from-itinerary", security: bearer,
       body: z.object({ days: z.number().int().min(1).max(14), budget: z.number().min(0).max(1_000_000).optional(), currency: z.enum(["USD", "DOP"]).optional(), interests: z.array(z.string().trim().min(2).max(40)).max(10).default([]), party: z.string().trim().max(100).optional(), start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), locale: locale.optional() }),
@@ -60,7 +60,7 @@ export async function aiRoutes(app: FastifyInstance) {
   }, async (req) => ({ data: await ai.itinerary(ctx(req), req.body) }));
 
   r.post("/ai/recommendations", {
-    onRequest: auth, config: rl(20, "1 minute"),
+    onRequest: [app.flags.gate("ai_planner_enabled", "El planificador con IA está en pausa"), auth], config: rl(20, "1 minute"),
     schema: { tags: tag, summary: "Recomendaciones según intereses, favoritos y lugares visitados (sin IA disponible, se ordena por calificación)", security: bearer, body: z.object({ interests: z.array(z.string().trim().min(2).max(40)).max(10).default([]), limit: z.number().int().min(1).max(20).default(6), locale: locale.optional() }).default({ interests: [], limit: 6 }), response: { 200: ok } },
   }, async (req) => ({ data: await ai.recommendations(ctx(req), req.user!.id, req.body) }));
 

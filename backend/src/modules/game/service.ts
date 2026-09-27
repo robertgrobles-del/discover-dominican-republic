@@ -79,6 +79,30 @@ export class GameService {
     try { return await this.grant(input); } catch (err) { log.warn({ err, action: input.action }, "No se pudo otorgar la recompensa"); return null; }
   }
 
+  /**
+   * Ajuste manual del equipo (docs §5.17). Positivo: pasa por `grant` (nivel, hitos y logros). Negativo: descuenta sin bajar de cero,
+   * recalcula el nivel y deja el movimiento en la bitácora con el motivo.
+   */
+  async adjust(userId: string, d: { xp: number; coins: number; reason: string }): Promise<{ total_xp: number; coins: number; level: number }> {
+    if (d.xp >= 0 && d.coins >= 0) {
+      const g = await this.grant({ userId, action: "admin_adjustment", xp: d.xp, coins: d.coins, description: `Ajuste: ${d.reason}`, skipLimits: true });
+      return { total_xp: g.total_xp, coins: g.coins, level: g.level };
+    }
+    return this.tx(async (c) => {
+      const p = await this.lockPlayer(c, userId);
+      const total = Math.max(0, p.total_xp + d.xp), coins = Math.max(0, p.coins + d.coins);
+      const lvl = await this.levelFor(c, total);
+      await c.query("UPDATE user_gamification SET total_xp = $2, coins = $3, current_level = $4, updated_at = now() WHERE user_id = $1", [userId, total, coins, lvl.level_number]);
+      if (d.xp < 0) {
+        const lost = p.total_xp - total;
+        await c.query("UPDATE explorer_guilds SET total_xp = GREATEST(0, total_xp - $2) WHERE id = (SELECT guild_id FROM guild_members WHERE user_id = $1)", [userId, lost]);
+        await c.query("UPDATE user_league_stats SET xp_this_week = GREATEST(0, xp_this_week - $2), xp_this_season = GREATEST(0, xp_this_season - $2) WHERE user_id = $1 AND season_id IN (SELECT id FROM gamification_seasons WHERE is_active)", [userId, lost]);
+      }
+      await c.query("INSERT INTO gamification_transactions (id, user_id, transaction_type, xp_amount, coin_amount, description, source_type, action) VALUES (gen_random_uuid(), $1, 'admin_adjust', $2, $3, $4, 'admin', 'admin_adjustment')", [userId, total - p.total_xp, coins - p.coins, `Ajuste: ${d.reason}`]);
+      return { total_xp: total, coins, level: lvl.level_number };
+    });
+  }
+
   // ---------- Concesión ----------
   async grant(input: GrantInput, client?: PoolClient): Promise<GrantResult> {
     if (client) return this.grantIn(client, input);

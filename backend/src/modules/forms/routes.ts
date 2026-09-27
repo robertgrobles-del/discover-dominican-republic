@@ -107,7 +107,7 @@ export async function formsRoutes(app: FastifyInstance) {
   };
   r.get("/support/tickets/:id", { onRequest: app.authenticate, schema: { tags: ["soporte"], summary: "Conversación de un ticket", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => {
     const t = await ownTicket(req.user!.id, req.params.id);
-    const messages = (await db.query("SELECT id, message, is_admin_reply, created_at FROM support_messages WHERE ticket_id = $1 ORDER BY created_at", [t.id])).rows;
+    const messages = (await db.query("SELECT id, message, is_admin_reply, created_at FROM support_messages WHERE ticket_id = $1 AND NOT internal ORDER BY created_at", [t.id])).rows;
     return { data: { ...t, messages } };
   });
   r.post("/support/tickets/:id/messages", { onRequest: app.authenticate, config: rl(30, "1 hour"), schema: { tags: ["soporte"], summary: "Responde en mi ticket", security: bearer, params: uuid, body: z.object({ message: z.string().trim().min(1).max(4000) }), response: { 201: ok } } }, async (req, reply) => {

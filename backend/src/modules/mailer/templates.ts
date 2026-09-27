@@ -19,6 +19,7 @@ export interface TemplateData {
   "newsletter.confirm": { url: string };
   "support.received": { name: string; reference: string; subject: string };
   "establishment.received": { name: string; establishment: string; url: string };
+  "support.reply": { name: string; reference: string; message: string; url: string };
   "store.order_confirmation": { name: string; reference: string; total: string; items: string; url: string };
   "store.order_update": { name: string; reference: string; title: string; message: string; url: string };
   "vendor.approved": { shop: string; url: string };
@@ -301,6 +302,18 @@ T["establishment.received"] = {
   }),
 };
 
+T["support.reply"] = {
+  es: (d) => ({
+    subject: `Respuesta a tu ticket ${d.reference}`,
+    text: `Hola ${d.name},\n\nTe respondimos en tu ticket ${d.reference}:\n\n${d.message}\n\nVer la conversación: ${d.url}`,
+    html: layout("Respondimos a tu ticket", p(`Hola ${esc(d.name)}, esto es lo que nos escribió el equipo de soporte (ticket <b>${esc(d.reference)}</b>):`) + p(esc(d.message).replace(/\n/g, "<br>")), { label: "Ver la conversación", url: d.url }),
+  }),
+  en: (d) => ({
+    subject: `Reply to your ticket ${d.reference}`,
+    text: `Hi ${d.name},\n\nWe replied to your ticket ${d.reference}:\n\n${d.message}\n\nView the conversation: ${d.url}`,
+    html: layout("We replied to your ticket", p(`Hi ${esc(d.name)}, here is what our support team wrote (ticket <b>${esc(d.reference)}</b>):`) + p(esc(d.message).replace(/\n/g, "<br>")), { label: "View the conversation", url: d.url }),
+  }),
+};
 T["store.order_confirmation"] = {
   es: (d) => ({
     subject: `Pedido ${d.reference} confirmado`,

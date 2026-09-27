@@ -81,7 +81,7 @@ async function storeProcessed(storage: MediaStorage, id: string, p: Processed) {
   }
   return variants;
 }
-const deleteFiles = async (storage: MediaStorage, key: string | null, variants: unknown) => {
+export const deleteFiles = async (storage: MediaStorage, key: string | null, variants: unknown) => {
   if (key) await storage.delete(key).catch(() => undefined);
   for (const v of Object.values((variants ?? {}) as Record<string, StoredVariant>)) await storage.delete(v.key).catch(() => undefined);
 };

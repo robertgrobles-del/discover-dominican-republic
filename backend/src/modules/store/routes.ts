@@ -63,7 +63,7 @@ export async function storeRoutes(app: FastifyInstance) {
   r.post("/coupons/validate", { config: rl(30, "1 minute"), onRequest: optionalUser, schema: { tags: ["tienda"], summary: "Valida un cupón contra un subtotal", ...soft, body: z.object({ code: z.string().trim().min(2).max(40), subtotal: z.number().min(0).max(10_000_000) }), response: { 200: ok } } }, async (req) => ({ data: await store.validateCoupon(req.body.code, req.body.subtotal, req.user?.id) }));
 
   r.post("/orders", {
-    onRequest: optionalUser, config: rl(15, "1 minute"),
+    onRequest: [app.flags.gate("checkout_enabled", "Las compras están en pausa por unos minutos"), optionalUser], config: rl(15, "1 minute"),
     schema: {
       tags: ["tienda"], summary: "Crea el pedido desde el carrito (Idempotency-Key obligatorio; descuenta stock con bloqueo; cobra con la pasarela)", ...soft,
       body: z.object({

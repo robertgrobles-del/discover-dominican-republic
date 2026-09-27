@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
+import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
 import { BY_TABLE, COLLECTIONS } from "../content/collections.js";
@@ -31,22 +32,24 @@ const reviewBody = z.object({
   visit_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
+/** Mantiene `rating` y `review_count` de la entidad (si su tabla los tiene) con las reseñas aprobadas. */
+export async function refreshEntityRating(db: Db, entityType: string, entityId: string) {
+  const def = REVIEWABLE.get(entityType);
+  const cols = def ? manifest[def.table] : undefined;
+  if (!def || (!cols?.rating && !cols?.review_count)) return;
+  const sets: string[] = [];
+  if (cols.rating) sets.push("rating = coalesce((SELECT round(avg(rating)::numeric, 1) FROM reviews WHERE entity_type = $1 AND entity_id = $2 AND is_approved), rating)");
+  if (cols.review_count) sets.push("review_count = (SELECT count(*) FROM reviews WHERE entity_type = $1 AND entity_id = $2 AND is_approved)");
+  await db.query(`UPDATE "${def.table}" SET ${sets.join(", ")} WHERE id = $2`, [entityType, entityId]);
+}
+
 /** Reseñas del portal: escritura, moderación y respuesta oficial. La lectura pública vive en cada colección (`/{colección}/{id}/reviews`). */
 export async function reviewRoutes(app: FastifyInstance) {
   const r = app.withTypeProvider<ZodTypeProvider>();
   const db = app.db;
   const rl = (max: number, timeWindow: string) => ({ rateLimit: app.env.AUTH_RATE_LIMIT_ENABLED ? { max, timeWindow } : { max: 1_000_000, timeWindow: "1 minute" } });
 
-  /** Mantiene `rating` y `review_count` de la entidad (si su tabla los tiene) con las reseñas aprobadas. */
-  const refresh = async (entityType: string, entityId: string) => {
-    const def = REVIEWABLE.get(entityType);
-    const cols = def ? manifest[def.table] : undefined;
-    if (!def || (!cols?.rating && !cols?.review_count)) return;
-    const sets: string[] = [];
-    if (cols.rating) sets.push("rating = coalesce((SELECT round(avg(rating)::numeric, 1) FROM reviews WHERE entity_type = $1 AND entity_id = $2 AND is_approved), rating)");
-    if (cols.review_count) sets.push("review_count = (SELECT count(*) FROM reviews WHERE entity_type = $1 AND entity_id = $2 AND is_approved)");
-    await db.query(`UPDATE "${def.table}" SET ${sets.join(", ")} WHERE id = $2`, [entityType, entityId]);
-  };
+  const refresh = (entityType: string, entityId: string) => refreshEntityRating(db, entityType, entityId);
 
   const entityExists = async (type: string, id: string) => {
     const def = REVIEWABLE.get(type)!;
@@ -184,6 +187,7 @@ export async function reviewRoutes(app: FastifyInstance) {
     if (req.body.status === "approved") await db.query("DELETE FROM review_reports WHERE review_id = $1", [req.params.id]);
     await refresh(rev.entity_type, rev.entity_id);
     if (req.body.status === "approved") await app.game.safeGrant({ userId: rev.user_id, action: "review_created", ref: req.params.id, description: "Reseña aprobada" }, req.log);
+    await app.notifications.notify(rev.user_id, { type: "social", title: req.body.status === "approved" ? "Aprobamos tu reseña" : "No pudimos aprobar tu reseña", message: req.body.status === "approved" ? null : req.body.note ?? null, data: { review_id: req.params.id } });
     await audit(db, { actor: req.user!.id, action: `review.${req.body.status}`, entity: "review", id: req.params.id, meta: { note: req.body.note }, ip: req.ip });
     reply.code(204);
     return null;
