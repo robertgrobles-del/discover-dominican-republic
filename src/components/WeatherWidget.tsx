@@ -55,6 +55,7 @@ export function WeatherWidget() {
   const [selectedCity, setSelectedCity] = useState(0);
   const weather = mockWeatherData[selectedCity];
   const [rdTime, setRdTime] = useState("");
+  const [showTimeMode, setShowTimeMode] = useState(false);
 
   useEffect(() => {
     const updateTime = () => {
@@ -74,24 +75,43 @@ export function WeatherWidget() {
     return () => clearInterval(timer);
   }, []);
 
+  // Alternar: Clima de la ciudad actual -> Hora oficial RD -> Siguiente ciudad Clima -> Hora oficial RD...
   useEffect(() => {
     const interval = setInterval(() => {
-      setSelectedCity((prev) => (prev + 1) % mockWeatherData.length);
-    }, 5000);
+      setShowTimeMode((prev) => {
+        if (!prev) {
+          // Si estaba mostrando clima, ahora muestra la hora
+          return true;
+        } else {
+          // Si estaba mostrando la hora, avanza a la siguiente ciudad y muestra su clima
+          setSelectedCity((c) => (c + 1) % mockWeatherData.length);
+          return false;
+        }
+      });
+    }, 4000); // 4 segundos cada estado para lectura cómoda
+
     return () => clearInterval(interval);
   }, []);
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/25 border border-white/20 hover:bg-white/20 transition-colors text-xs text-white">
-          {getWeatherIcon(weather.condition, "h-3.5 w-3.5 text-primary")}
-          <span className="font-semibold text-white">{weather.temp}°C</span>
-          <span className="hidden md:inline text-white/80 text-[11px]">{weather.city}</span>
-          {rdTime && (
-            <span className="hidden lg:inline text-amber-300 font-mono text-[11px] border-l border-white/20 pl-1.5">
-              RD: {rdTime}
-            </span>
+        <button 
+          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/35 hover:bg-black/50 border border-white/20 transition-all text-xs text-white shadow-xs backdrop-blur-sm cursor-pointer select-none min-w-[130px] justify-center"
+          title="Ver pronóstico del clima y hora oficial de RD"
+        >
+          {showTimeMode ? (
+            <div className="flex items-center gap-1.5 animate-fadeIn">
+              <span className="text-amber-400 text-xs">🕒</span>
+              <span className="font-semibold text-white tracking-wide">RD:</span>
+              <span className="text-amber-300 font-mono text-xs font-bold">{rdTime || "--:--"}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 animate-fadeIn">
+              {getWeatherIcon(weather.condition, "h-3.5 w-3.5 text-amber-400 shrink-0")}
+              <span className="font-bold text-white">{weather.temp}°C</span>
+              <span className="text-white/90 text-[11px] font-medium truncate max-w-[85px]">{weather.city}</span>
+            </div>
           )}
         </button>
       </PopoverTrigger>

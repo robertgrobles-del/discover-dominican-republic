@@ -58,6 +58,16 @@ import { campaignRoutes } from "./modules/community/campaigns.js";
 import { socialRoutes } from "./modules/community/social.js";
 import { reviewRoutes } from "./modules/community/reviews.js";
 import { adminCmsRoutes } from "./modules/admin/cms.js";
+import { SponsorshipService } from "./modules/sponsorship/service.js";
+import { sponsorshipRoutes } from "./modules/sponsorship/routes.js";
+import { CreatorService } from "./modules/creators/service.js";
+import { creatorRoutes } from "./modules/creators/routes.js";
+import { TransactionalProductsService } from "./modules/products/service.js";
+import { transactionalProductsRoutes } from "./modules/products/routes.js";
+import { MembershipsAndTicketingService } from "./modules/memberships/service.js";
+import { membershipsRoutes } from "./modules/memberships/routes.js";
+import { FiscalInvoicingService } from "./modules/billing/invoicing.js";
+import { fiscalInvoiceRoutes } from "./modules/billing/routes.js";
 import { adminSiteRoutes } from "./modules/admin/site.js";
 import { adminUserRoutes } from "./modules/admin/users.js";
 import { meRoutes } from "./modules/me/routes.js";
@@ -111,6 +121,16 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   app.decorate("trips", new TripService(app.db, game));
   app.decorate("ai", new AiService(app.db, app.env, createAiProvider(app.env), app.log));
   app.decorate("community", new CommunityGame(app.db, game));
+  const sponsorship = new SponsorshipService(app.db);
+  app.decorate("sponsorship", sponsorship);
+  const creators = new CreatorService(app.db);
+  app.decorate("creators", creators);
+  const products = new TransactionalProductsService(app.db);
+  app.decorate("products", products);
+  const memberships = new MembershipsAndTicketingService(app.db);
+  app.decorate("membershipsService", memberships);
+  const invoicing = new FiscalInvoicingService(app.db);
+  app.decorate("invoicingService", invoicing);
   const ical = new IcalService(app.db, app.log);
   const automations = new AutomationService(app.db, app.env, app.mailer, ical, app.log);
   app.decorate("ical", ical);
@@ -190,7 +210,17 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(marketplaceRoutes);
       await v1.register(ambassadorRoutes);
       await v1.register(paymentWebhookRoutes);
+      await v1.register(sponsorshipRoutes);
+      await v1.register(creatorRoutes);
+      await v1.register(transactionalProductsRoutes);
+      await v1.register(membershipsRoutes);
+      await v1.register(fiscalInvoiceRoutes);
     },
     { prefix: "/api/v1" },
   );
+  await app.register(sponsorshipRoutes);
+  await app.register(creatorRoutes);
+  await app.register(transactionalProductsRoutes);
+  await app.register(membershipsRoutes);
+  await app.register(fiscalInvoiceRoutes);
 }

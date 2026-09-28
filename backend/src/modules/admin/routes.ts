@@ -40,6 +40,7 @@ export async function adminRoutes(app: FastifyInstance) {
   });
 
   const any = z.any();
+  const ok = z.object({ data: any });
   const uuid = z.object({ id: z.string().uuid() });
   const page = { page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(100).default(50) };
 
@@ -73,5 +74,102 @@ export async function adminRoutes(app: FastifyInstance) {
     await app.payouts.markPaid(req.params.id, req.user!.id, req.body, req.ip);
     reply.code(204);
     return null;
+  });
+
+  // ---- Sello Verificado y Auditorías Institucionales (#15) ----
+  r.get("/admin/verifications", {
+    onRequest: admin,
+    schema: {
+      tags: ["admin"],
+      summary: "Solicitudes y auditorías de Sello Verificado (#15)",
+      security: bearer,
+      querystring: z.object({
+        ...page,
+        status: z.enum(["pending", "approved", "rejected", "expired"]).optional(),
+        business_type: z.enum(["hotel", "restaurante", "bar", "operador", "agencia", "guia", "otro"]).optional(),
+      }),
+      response: { 200: z.object({ data: any, meta: any }) },
+    },
+  }, async (req) => {
+    const p: unknown[] = [];
+    const w = ["true"];
+    if (req.query.status) { p.push(req.query.status); w.push(`status = $${p.length}`); }
+    if (req.query.business_type) { p.push(req.query.business_type); w.push(`business_type = $${p.length}`); }
+    const total = (await app.db.query<{ n: number }>(`SELECT count(*)::int AS n FROM business_verification_audits WHERE ${w.join(" AND ")}`, p)).rows[0]!.n;
+    const { rows } = await app.db.query(
+      `SELECT id, business_id, business_type, business_name, applicant_user_id, rnc, mitur_license, documents,
+              status, audited_by, audit_notes, badge_expires_at, created_at, updated_at
+         FROM business_verification_audits
+        WHERE ${w.join(" AND ")}
+        ORDER BY created_at DESC
+        LIMIT ${req.query.per_page} OFFSET ${(req.query.page - 1) * req.query.per_page}`, p,
+    );
+    return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
+  });
+
+  r.post("/admin/verifications/:id/approve", {
+    onRequest: admin,
+    schema: {
+      tags: ["admin"],
+      summary: "Aprueba el sello verificado para un negocio/operador",
+      security: bearer,
+      params: uuid,
+      body: z.object({
+        notes: z.string().max(500).optional(),
+        expires_in_months: z.number().int().min(1).max(36).default(12),
+      }),
+      response: { 200: ok },
+    },
+  }, async (req) => {
+    const auditRow = (await app.db.query<{ id: string; business_id: string; business_type: string }>("SELECT id, business_id, business_type FROM business_verification_audits WHERE id = $1", [req.params.id])).rows[0];
+    if (!auditRow) throw AppError.notFound("Auditoría de verificación");
+
+    const expiresAt = new Date();
+    expiresAt.setMonth(expiresAt.getMonth() + req.body.expires_in_months);
+
+    await app.db.query(
+      `UPDATE business_verification_audits
+          SET status = 'approved', audited_by = $1, audit_notes = $2, badge_expires_at = $3, updated_at = now()
+        WHERE id = $4`,
+      [req.user!.id, req.body.notes ?? "Aprobado por administración", expiresAt.toISOString(), req.params.id],
+    );
+
+    // Si es un operador en partner_profiles, activar badge directamente
+    if (auditRow.business_type === "operador" || auditRow.business_type === "agencia" || auditRow.business_type === "guia") {
+      await app.db.query(
+        `UPDATE partner_profiles
+            SET verified_badge = true, verified_badge_issued_at = now(), verified_badge_notes = $1, verification = 'verified', updated_at = now()
+          WHERE id = $2`,
+        [req.body.notes ?? "Sello Verificado Oficial emitido", auditRow.business_id],
+      );
+    }
+
+    await audit(app.db, { actor: req.user!.id, action: "verification.approve", entity: "verification_audit", id: req.params.id, meta: { business_id: auditRow.business_id }, ip: req.ip });
+    return { data: { success: true, message: "Sello verificado otorgado satisfactoriamente" } };
+  });
+
+  r.post("/admin/verifications/:id/reject", {
+    onRequest: admin,
+    schema: {
+      tags: ["admin"],
+      summary: "Rechaza la solicitud de verificación con motivo justificado",
+      security: bearer,
+      params: uuid,
+      body: z.object({ reason: z.string().trim().min(3).max(500) }),
+      response: { 200: ok },
+    },
+  }, async (req) => {
+    const auditRow = (await app.db.query<{ id: string; business_id: string }>("SELECT id, business_id FROM business_verification_audits WHERE id = $1", [req.params.id])).rows[0];
+    if (!auditRow) throw AppError.notFound("Auditoría de verificación");
+
+    await app.db.query(
+      `UPDATE business_verification_audits
+          SET status = 'rejected', audited_by = $1, audit_notes = $2, updated_at = now()
+        WHERE id = $3`,
+      [req.user!.id, req.body.reason, req.params.id],
+    );
+
+    await audit(app.db, { actor: req.user!.id, action: "verification.reject", entity: "verification_audit", id: req.params.id, meta: { reason: req.body.reason }, ip: req.ip });
+    return { data: { success: true, message: "Verificación rechazada" } };
   });
 }

@@ -359,8 +359,17 @@ export class GameService {
   async missions(userId: string | null) {
     const today = todayInSantoDomingo();
     const level = userId ? Number((await this.db.query<{ l: number }>("SELECT coalesce((SELECT current_level FROM user_gamification WHERE user_id = $1), 1) AS l", [userId])).rows[0]!.l) : 1;
-    const { rows } = await this.db.query<{ id: string; name: string; description: string | null; target_action: string; target_count: number; xp_reward: number; coin_reward: number; mission_type: string; is_featured: boolean; icon: string | null; min_level: number }>(
-      "SELECT id, name, description, target_action, target_count, xp_reward, coin_reward, mission_type, is_featured, icon, coalesce(min_level, 1) AS min_level FROM gamification_missions WHERE is_active AND coalesce(min_level, 1) <= $1 ORDER BY is_featured DESC, mission_type, name", [level],
+    const { rows } = await this.db.query<{
+      id: string; name: string; description: string | null; target_action: string; target_count: number;
+      xp_reward: number; coin_reward: number; mission_type: string; is_featured: boolean; icon: string | null;
+      min_level: number; sponsor_id: string | null; sponsor_name: string | null; sponsor_logo_url: string | null;
+      sponsor_reward_text: string | null; is_sponsored: boolean;
+    }>(
+      `SELECT id, name, description, target_action, target_count, xp_reward, coin_reward, mission_type, is_featured, icon,
+              coalesce(min_level, 1) AS min_level, sponsor_id, sponsor_name, sponsor_logo_url, sponsor_reward_text, is_sponsored
+         FROM gamification_missions
+        WHERE is_active AND coalesce(min_level, 1) <= $1
+        ORDER BY is_featured DESC, is_sponsored DESC, mission_type, name`, [level],
     );
     const mine = userId ? (await this.db.query<{ mission_id: string; period_key: string; progress: number; is_completed: boolean }>("SELECT mission_id, period_key, progress, is_completed FROM user_missions WHERE user_id = $1", [userId])).rows : [];
     return rows.map((m) => {

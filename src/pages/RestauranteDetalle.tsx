@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
-import { SEOHead } from "@/components/SEOHead";
+import { SEOHead, generateRestaurantSchema } from "@/components/SEOHead";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RestaurantHeroSlider } from "@/components/restaurant/RestaurantHeroSlider";
 import { RestaurantDishesGrid, SignatureDishDetail } from "@/components/restaurant/RestaurantDishesGrid";
@@ -124,6 +124,16 @@ export default function RestauranteDetalle() {
         keywords={`restaurante, ${restaurant.name}, ${restaurant.cuisineType.join(
           ", "
         )}, gastronomía dominicana`}
+        image={restaurant.imageUrl}
+        jsonLd={generateRestaurantSchema({
+          name: restaurant.name,
+          description: restaurant.shortDescription || restaurant.description,
+          image: restaurant.imageUrl,
+          priceRange: restaurant.priceRange,
+          rating: restaurant.rating,
+          address: restaurant.address,
+          cuisine: restaurant.cuisineType.join(", "),
+        })}
       />
 
       <div className="min-h-screen bg-background text-foreground">

@@ -103,8 +103,8 @@ const AdminPanel = () => {
   return (
     <PageTransition>
       <SEOHead
-        title="Panel Administrativo | Descubre RD"
-        description="Panel de administración para gestionar contenido turístico"
+        title="Panel Administrativo | Descubre República Dominicana"
+        description="Panel de administración para gestionar contenido turístico, moderación, leads y catálogo"
       />
       <Header />
 
@@ -144,7 +144,7 @@ const AdminPanel = () => {
                   <Users className="h-3.5 w-3.5" /> Usuarios
                 </TabsTrigger>
                 <TabsTrigger value="operadores" className="text-xs gap-1.5">
-                  <Building2 className="h-3.5 w-3.5" /> Operadores
+                  <Building2 className="h-3.5 w-3.5" /> Negocios & Operadores
                 </TabsTrigger>
                 <TabsTrigger value="gamificacion" className="text-xs">Gamificación</TabsTrigger>
                 <TabsTrigger value="routebuilder" className="text-xs">Creador de Rutas</TabsTrigger>

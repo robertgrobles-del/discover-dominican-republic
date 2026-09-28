@@ -243,6 +243,41 @@ export function generateRestaurantSchema(restaurant: {
   };
 }
 
+export function generateTouristAttractionSchema(attraction: {
+  name: string;
+  description: string;
+  image?: string;
+  url?: string;
+  touristType?: string[];
+  geo?: { latitude: number; longitude: number };
+  address?: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "TouristAttraction",
+    name: attraction.name,
+    description: attraction.description,
+    image: attraction.image,
+    url: attraction.url,
+    touristType: attraction.touristType || ["Eco-turismo", "Cultural", "Aventura"],
+    geo: attraction.geo ? {
+      "@type": "GeoCoordinates",
+      latitude: attraction.geo.latitude,
+      longitude: attraction.geo.longitude,
+    } : undefined,
+    address: attraction.address ? {
+      "@type": "PostalAddress",
+      addressLocality: attraction.address,
+      addressCountry: "DO",
+    } : {
+      "@type": "PostalAddress",
+      addressCountry: "DO",
+    },
+    isAccessibleForFree: false,
+    publicAccess: true,
+  };
+}
+
 export function generateEventSchema(event: {
   name: string;
   description: string;

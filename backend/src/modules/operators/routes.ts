@@ -275,6 +275,63 @@ export async function operatorRoutes(app: FastifyInstance) {
   });
   r.get("/org/payouts/:id/items", { onRequest: org("owner"), schema: { tags: ["operadores"], summary: "Reservas incluidas en una liquidación", security: bearer, params: memberId, response: { 200: ok } } }, async (req) => ({ data: await app.payouts.items(req.params.id, req.member!.org_id) }));
 
+  // ---- Suscripciones y Planes de Operador (#3) ----
+  r.get("/org/subscription", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Estado y plan de suscripción del operador", security: bearer, response: { 200: ok } } }, async (req) => {
+    const orgRow = (await app.db.query("SELECT subscription_tier, subscription_status, subscription_expires_at, priority_score, verified_badge FROM partner_profiles WHERE id = $1", [req.member!.org_id])).rows[0];
+    const history = (await app.db.query("SELECT id, plan_tier, billing_cycle, price, currency, status, current_period_start, current_period_end, auto_renew, created_at FROM operator_subscriptions WHERE org_id = $1 ORDER BY created_at DESC LIMIT 10", [req.member!.org_id])).rows;
+    return { data: { current: orgRow, history } };
+  });
+
+  r.post("/org/subscription/upgrade", {
+    onRequest: org("owner"),
+    schema: {
+      tags: ["operadores"], summary: "Cambia o activa el plan de suscripción (destacado, premium_partner, corporativo)",
+      security: bearer,
+      body: z.object({
+        plan_tier: z.enum(["destacado", "premium_partner", "corporativo"]),
+        billing_cycle: z.enum(["monthly", "yearly"]).default("monthly"),
+        price: z.number().min(0),
+        currency: z.enum(["DOP", "USD"]).default("DOP"),
+      }),
+      response: { 201: ok },
+    },
+  }, async (req, reply) => {
+    const { plan_tier, billing_cycle, price, currency } = req.body;
+    const priority = plan_tier === "corporativo" ? 300 : plan_tier === "premium_partner" ? 200 : 100;
+    const months = billing_cycle === "yearly" ? 12 : 1;
+    const expiresAt = new Date();
+    expiresAt.setMonth(expiresAt.getMonth() + months);
+
+    await app.db.query("BEGIN");
+    try {
+      await app.db.query(
+        `UPDATE partner_profiles
+            SET subscription_tier = $1, subscription_status = 'active', subscription_expires_at = $2, priority_score = $3, updated_at = now()
+          WHERE id = $4`,
+        [plan_tier, expiresAt.toISOString(), priority, req.member!.org_id],
+      );
+      const subIns = await app.db.query(
+        `INSERT INTO operator_subscriptions (org_id, plan_tier, billing_cycle, price, currency, status, current_period_start, current_period_end, auto_renew)
+         VALUES ($1, $2, $3, $4, $5, 'active', now(), $6, true)
+         RETURNING *`,
+        [req.member!.org_id, plan_tier, billing_cycle, price, currency, expiresAt.toISOString()],
+      );
+      await app.db.query("COMMIT");
+      await audit(app.db, { actor: req.user!.id, action: "org.subscription_upgrade", entity: "org", id: req.member!.org_id, meta: { plan_tier, billing_cycle, price }, ip: req.ip });
+      reply.code(201);
+      return { data: subIns.rows[0] };
+    } catch (e) {
+      await app.db.query("ROLLBACK");
+      throw e;
+    }
+  });
+
+  r.post("/org/subscription/cancel", { onRequest: org("owner"), schema: { tags: ["operadores"], summary: "Cancela la renovación automática de la suscripción", security: bearer, response: { 200: ok } } }, async (req) => {
+    await app.db.query("UPDATE operator_subscriptions SET auto_renew = false WHERE org_id = $1 AND status = 'active'", [req.member!.org_id]);
+    await audit(app.db, { actor: req.user!.id, action: "org.subscription_cancel", entity: "org", id: req.member!.org_id, ip: req.ip });
+    return { data: { success: true, message: "Renovación automática desactivada" } };
+  });
+
   // ================= Administración =================
   r.get("/admin/orgs", { onRequest: staff, schema: { tags: ["admin"], summary: "Operadores registrados", security: bearer, querystring: z.object({ ...pageQ, verification: z.enum(["unverified", "pending", "verified", "rejected"]).optional(), q: z.string().max(100).optional() }), response: { 200: paged } } }, async (req) => {
     const { rows, total } = await catalog.adminListOrgs(req.query);

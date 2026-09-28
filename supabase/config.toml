@@ -2,3 +2,15 @@ project_id = "jhwfhhajvmcdmtwslgbb"
 
 # ai-recommendations vuelve a exigir JWT (la clave anon basta; el
 # widget la envía con functions.invoke). Antes estaba desactivado.
+
+[auth]
+site_url = "https://descubrerd.do"
+additional_redirect_urls = [
+  "https://descubrerd.do/**",
+  "https://*.descubrerd.do/**",
+  "http://localhost:5173/**",
+  "http://localhost:8080/**"
+]
+jwt_expiry = 3600
+enable_signup = true
+minimum_password_length = 8

@@ -76,7 +76,15 @@ export function Header({ hasHero, variant, className }: HeaderProps = {}) {
   // Check if current route has a hero (e.g. /destino/* or /evento/*)
   const isDynamicHeroRoute = 
     location.pathname.startsWith("/destino/") || 
-    location.pathname.startsWith("/evento/");
+    location.pathname.startsWith("/evento/") ||
+    location.pathname.startsWith("/alojamiento/") ||
+    location.pathname.startsWith("/restaurante/") ||
+    location.pathname.startsWith("/bar/") ||
+    location.pathname.startsWith("/provincia/") ||
+    location.pathname.startsWith("/playa/") ||
+    location.pathname.startsWith("/parque/") ||
+    location.pathname.startsWith("/estadio/") ||
+    location.pathname.startsWith("/experiencia/");
 
   // Only transparent if page has a hero banner / slider and not explicitly forced to white
   const pageHasHero = variant === "white"

@@ -30,7 +30,7 @@ export default function VuelosAerolineas() {
   return (
     <PageTransition>
       <SEOHead
-        title="Directorio de Aerolíneas y Vuelos Directos a República Dominicana | Descubre RD"
+        title="Directorio de Aerolíneas y Vuelos Directos a República Dominicana | Descubre República Dominicana"
         description="Explora todas las aerolíneas internacionales y dominicanas con vuelos directos a Punta Cana, Santo Domingo, Santiago y Puerto Plata. Tiempos de vuelo, conexiones y terminales."
       />
       <div className="min-h-screen bg-background">

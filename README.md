@@ -27,17 +27,19 @@ El portal incluye más de **240 páginas y módulos especializados**, abarcando:
 
 | Capa / Módulo | Tecnologías Utilizadas |
 | :--- | :--- |
-| **Framework Base** | React 18 (Hooks, Suspense, Lazy Loading) |
-| **Lenguaje** | TypeScript 5 (tipado estricto en datos y entidades) |
-| **Bundler & Build Tool** | Vite |
+| **Frontend Web** | React 18 (Hooks, Suspense, Lazy Loading) + Vite |
+| **Lenguaje** | TypeScript 5 (tipado estricto en datos y contratos de API) |
 | **Estilos & UI** | Tailwind CSS + Radix UI + shadcn/ui + Lucide Icons |
-| **Animaciones** | Framer Motion |
-| **Gestión de Estado & Cache** | TanStack Query (React Query v5) + Context API (`useAuth`, `useCart`, `useFavorites`, `useI18n`) |
-| **Backend & Base de Datos** | Supabase Cloud (PostgreSQL, Row Level Security, Auth, RPC) |
-| **SEO & Metadatos** | `react-helmet-async` (OpenGraph, Twitter Cards, Schema.org estructurado) |
+| **Animaciones** | Framer Motion (transiciones fluidas optimizadas) |
+| **Gestión de Estado & Cache** | TanStack Query v5 + Context API (`useAuth`, `useCart`, `useFavorites`, `useI18n`) |
+| **API Backend Principal (`backend/`)** | Fastify 5 + TypeScript + Zod (validación de esquemas y OpenAPI / Swagger) |
+| **Base de Datos & Almacenamiento** | PostgreSQL 16 (PostGIS, Row Level Security, pgpool) |
+| **Autenticación & Edge Services** | Supabase Auth (JWT RS256, RBAC `user_roles`) + Edge Functions sanitizadas |
+| **Persistencia Local / Offline** | Motor reactivo `leadStorage.ts` (almacenamiento de leads y reservas sin conexión con sincronización) |
+| **SEO & Metadatos** | `react-helmet-async` + Schema.org JSON-LD (Hotel, Restaurant, Beach, TouristAttraction) |
 | **Enrutamiento** | React Router v6 |
 | **Mapas & Geolocalización** | Leaflet (`react-leaflet`) + `leaflet.markercluster` + Google Maps API |
-| **Pruebas Automatizadas** | Vitest + Testing Library (`@testing-library/react`, `@testing-library/jest-dom`) |
+| **Pruebas Automatizadas** | Vitest (frontend) + Vitest (backend con 480+ pruebas de integración) |
 | **Internacionalización** | Sistema nativo i18n extensible (Español / Inglés) |
 
 ---
@@ -296,6 +298,30 @@ El ecosistema de **Descubre República Dominicana** integra un modelo de negocio
 
 ### 3. Medición de Leads (Lo que vende el Plan Premium)
 A diferencia de los portales tradicionales que solo miden impresiones gráficas, Descubre RD mide y reporta acciones comerciales de alto valor:
+
+### 4. Arquitectura de Monetización Digital Integral (21 Modelos de Negocio Activos en Backend)
+El backend implementa de forma completa y desacoplada del frontend los 21 modelos de monetización previstos:
+1. **Marketplace de Experiencias & Tours:** Catálogo extendido con liquidación y reservas directas (`/marketplace`).
+2. **Posiciones Patrocinadas en Búsqueda:** Ad server con subasta y rotación ponderada (`/sponsorship/serve/search_top`).
+3. **Suscripción para Operadores Turísticos:** Tiers `destacado`, `premium_partner` y `corporativo` (`/org/subscription`).
+4. **Comisiones en Alojamientos y Reservas:** Gestión transparente con webhooks y trazabilidad contable.
+5. **API B2B de Datos Agregados y Tendencias:** Claves API SHA-256 y endpoint de analíticas agregadas (`/api/v1/b2b/analytics/aggregate`).
+6. **Misiones Gamificadas Patrocinadas:** Retos con patrocinadores institucionales y comerciales (`/admin/gamification/missions`).
+7. **Espacios Publicitarios Nativos:** Integración modular a través de slots dinámicos.
+8. **Banners Display IAB:** 32 formatos con telemetría de impresiones y CTR (`/sponsorship/telemetry`).
+9. **Contenido Patrocinado y Publi-reportajes:** Marcado nativo y tracking de lectura.
+10. **Campañas de Email Patrocinadas:** Segmentación por destino e intereses.
+11. **Notificaciones Push Geolocalizadas Patrocinadas:** Campañas en tiempo real por ubicación.
+12. **Seguros de Asistencia al Viajero:** Cotización y emisión inmediata (`POST /insurance/quote-and-issue`).
+13. **Reservas de Traslados y Movilidad:** Traslados privados, chofer y rent-a-car (`POST /transport/book`).
+14. **Licenciamiento de Activos Multimedia:** Banco de fotos y videos oficiales de RD con permisos de uso.
+15. **Sello Oficial "Verificado":** Workflow con auditoría administrativa y auto-aprobación institucional (`/admin/verifications`).
+16. **Acceso a Datos e Inteligencia Turística:** Monetización de reportes de demanda y estacionalidad.
+17. **Paquetes Turísticos Dinámicos Multidestino:** Catálogo combinado de vuelos, hoteles y tours (`GET /packages/dynamic`).
+18. **Fidelización y Puntos Canjeables:** Ledger transaccional de puntos por compras y misiones (`loyalty_points_ledger`).
+19. **Pasaporte RD VIP (Membresía Anual Recurrente):** Descuentos exclusivos, concierge y multiplicador x2 en puntos (`/memberships`).
+20. **Ticketing de Eventos en Vivo & Streaming:** Emisión de entradas con QR único y check-in criptográfico (`/events/:id/tickets`).
+21. **Programa de Creadores UGC:** 3 capas de monetización (comisión por ventas, licenciamiento de videos y creator fund con `/creators`).
 1. **Clics a WhatsApp:** Turistas iniciando una conversación directa de reserva o cotización.
 2. **Llamadas telefónicas directas:** Clics en números `tel:` desde dispositivos móviles.
 3. **Peticiones de ruta GPS:** Usuarios abriendo la ubicación en Google Maps / Waze.

@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, ResponsiveContainer, Area, AreaChart } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
+import { saveLeadLocally } from "@/lib/leadStorage";
 
 import heroBeach from "@/assets/hero-beach.jpg";
 
@@ -87,7 +88,23 @@ export default function Partners() {
         created_at: new Date().toISOString()
       };
 
-      await (supabase as any).from("marketing_leads").insert(payload);
+      // 1. Persistir garantizadamente en storage local y cola
+      saveLeadLocally({
+        name: formData.fullName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        company: formData.company.trim(),
+        interest: formData.interest,
+        budget: formData.budget,
+        message: formData.message.trim(),
+        source: "partners_b2b_page",
+      });
+
+      // 2. Intentar guardar en backend / Supabase
+      try {
+        await (supabase as any).from("marketing_leads").insert(payload);
+      } catch (insertErr) {
+        console.info("Lead almacenado localmente en espera de sincronización:", insertErr);
+      }
 
       setIsSubmitted(true);
       toast.success("¡Solicitud enviada con éxito!", {
@@ -116,22 +133,22 @@ export default function Partners() {
             </div>
             <div className="relative container mx-auto px-4 text-center">
               <Badge className="mb-6 bg-primary/20 text-primary">
-                ● OPORTUNIDADES Q3 2024 DISPONIBLES
+                ● ALIANZAS ESTRATÉGICAS DISPONIBLES
               </Badge>
               <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6">
-                Conecte su Marca con el<br />
-                <span className="text-gradient">Turismo de RD</span>
+                Conecte su Negocio con el<br />
+                <span className="text-gradient">Turismo Dominicano</span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-                La plataforma líder para alcanzar a millones de viajeros internacionales y locales. 
-                Impulse su negocio con nuestras soluciones publicitarias estratégicas basadas en datos.
+                El portal de referencia para viajeros internacionales y locales. 
+                Impulse su establecimiento con presencia destacada, reservas directas y sin comisiones.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2" onClick={() => window.location.href = "/para-empresas"}>
                   <Sparkles className="w-5 h-5" /> Ver Planes para Empresas
                 </Button>
                 <Button size="lg" variant="outline" className="gap-2" onClick={() => {
-                  toast.info("Descargando Media Kit Oficial Q3 2024...");
+                  toast.info("Descargando Media Kit Oficial de Descubre República Dominicana...");
                 }}>
                   <Download className="w-5 h-5" /> Descargar Media Kit
                 </Button>

@@ -114,9 +114,10 @@ export class CatalogService {
     const total = (await this.db.query<{ n: number }>(`SELECT count(*)::int AS n FROM partner_profiles p WHERE ${w}`, params)).rows[0]!.n;
     const { rows } = await this.db.query(
       `SELECT p.id, p.business_name, p.slug, p.description, p.province, p.logo_url, p.cover_url,
+              p.subscription_tier, p.verified_badge, p.priority_score,
               (SELECT count(*)::int FROM operator_listings l WHERE l.org_id = p.id AND l.status = 'published') AS listings,
               (SELECT array_agg(DISTINCT l.category) FROM operator_listings l WHERE l.org_id = p.id AND l.status = 'published') AS categories
-         FROM partner_profiles p WHERE ${w} ORDER BY p.business_name, p.id LIMIT ${q.per_page} OFFSET ${(q.page - 1) * q.per_page}`, params,
+         FROM partner_profiles p WHERE ${w} ORDER BY p.priority_score DESC, (CASE p.subscription_tier WHEN 'corporativo' THEN 1 WHEN 'premium_partner' THEN 2 WHEN 'destacado' THEN 3 ELSE 4 END), p.business_name, p.id LIMIT ${q.per_page} OFFSET ${(q.page - 1) * q.per_page}`, params,
     );
     return { rows, total };
   }

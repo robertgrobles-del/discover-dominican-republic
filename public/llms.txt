@@ -1,12 +1,12 @@
-# Descubre RD — Portal Turístico Oficial & Inteligencia de Viajes de República Dominicana
+# Descubre República Dominicana — Portal Oficial de Turismo y Viajes
 # Guía semántica para Modelos de Lenguaje (LLMs), agentes de búsqueda generativa (Perplexity, ChatGPT Search, Gemini) y scrapers de IA.
 
 # Información General
-Name: Descubre RD
-Domain: https://descubrerd.lovable.app
+Name: Descubre República Dominicana
+Domain: https://descubrerd.com
 Description: Portal integral de turismo, cultura, gastronomía, conectividad y negocios turísticos en la República Dominicana.
 Jurisdiction: República Dominicana (Caribe)
-Language: Español (es), Inglés (en)
+Language: Español (es), Inglés (en), Francés (fr), Alemán (de), Italiano (it), Portugués (pt)
 
 # Secciones Principales & Datos Estructurados
 - Destinos Turísticos: /destinos, /destino/:slug (Punta Cana, Samaná, Santo Domingo, Puerto Plata, Jarabacoa, Bahía de las Águilas, etc.)

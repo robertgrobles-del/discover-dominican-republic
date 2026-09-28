@@ -148,7 +148,7 @@ export function ReviewCard({ entityType, entityId, entityName, className }: Revi
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
           <span>
-            <strong>Política de Reseñas Verificadas:</strong> En Descubre RD todas las reseñas son sometidas a control anti-fraude y no pueden ser alteradas ni eliminadas a cambio de compensación económica ni por planes premium.
+            <strong>Política de Reseñas Verificadas:</strong> En Descubre República Dominicana todas las opiniones son sometidas a control de autenticidad y los planes comerciales no permiten ocultar ni alterar calificaciones de usuarios.
           </span>
         </div>
       </div>

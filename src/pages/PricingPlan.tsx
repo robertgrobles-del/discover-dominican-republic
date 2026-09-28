@@ -15,8 +15,8 @@ export default function PricingPlan() {
   return (
     <PageTransition>
       <SEOHead
-        title="Planes y Publicidad para Empresas Turísticas - Descubre RD"
-        description="Registra o reclama tu hotel, restaurante, bar o tour en Descubre República Dominicana. Conecta con millones de viajeros nacionales e internacionales."
+        title="Planes y Publicidad para Empresas Turísticas - Descubre República Dominicana"
+        description="Registra o reclama tu hotel, restaurante, bar o tour en Descubre República Dominicana. Conecta con viajeros nacionales e internacionales sin pagar comisiones por reserva."
       />
       <div className="min-h-screen bg-background flex flex-col justify-between">
         <Header />

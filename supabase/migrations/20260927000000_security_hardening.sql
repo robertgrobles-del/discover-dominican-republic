@@ -462,3 +462,66 @@ BEGIN
   END LOOP;
 END $$;
 
+-- ---------------------------------------------------------------------
+-- 11) Seguridad: Fijar search_path e is_admin_user() (N16, N18, N19)
+--     - is_admin_user() delegada a has_role(auth.uid(), 'admin') sobre user_roles
+--     - Fijar SET search_path = public en funciones críticas SECURITY DEFINER
+--     - Revocar EXECUTE a public/anon en funciones de administración
+-- ---------------------------------------------------------------------
+
+-- 11a) is_admin_user delegada a user_roles / has_role
+CREATE OR REPLACE FUNCTION public.is_admin_user()
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN public.has_role(auth.uid(), 'admin');
+END;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.is_admin_user() FROM public, anon;
+GRANT EXECUTE ON FUNCTION public.is_admin_user() TO authenticated;
+
+-- 11b) Revocar y proteger funciones administrativas
+REVOKE EXECUTE ON FUNCTION public.admin_update_user_role(UUID, TEXT) FROM public, anon;
+GRANT EXECUTE ON FUNCTION public.admin_update_user_role(UUID, TEXT) TO authenticated;
+
+-- 11c) Endurecer search_path en funciones SECURITY DEFINER críticas
+DO $$
+BEGIN
+  -- increment_user_sorteo_tickets
+  IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'increment_user_sorteo_tickets') THEN
+    ALTER FUNCTION public.increment_user_sorteo_tickets(TEXT, INT, TEXT) SET search_path = public;
+    REVOKE EXECUTE ON FUNCTION public.increment_user_sorteo_tickets(TEXT, INT, TEXT) FROM anon;
+    GRANT EXECUTE ON FUNCTION public.increment_user_sorteo_tickets(TEXT, INT, TEXT) TO authenticated;
+  END IF;
+
+  -- log_admin_activity
+  IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'log_admin_activity') THEN
+    ALTER FUNCTION public.log_admin_activity() SET search_path = public;
+  END IF;
+
+  -- perform_daily_checkin
+  IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'perform_daily_checkin') THEN
+    ALTER FUNCTION public.perform_daily_checkin() SET search_path = public;
+    REVOKE EXECUTE ON FUNCTION public.perform_daily_checkin() FROM anon;
+    GRANT EXECUTE ON FUNCTION public.perform_daily_checkin() TO authenticated;
+  END IF;
+
+  -- track_ambassador_sale
+  IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'track_ambassador_sale') THEN
+    ALTER FUNCTION public.track_ambassador_sale(TEXT, NUMERIC, TEXT, UUID) SET search_path = public;
+    REVOKE EXECUTE ON FUNCTION public.track_ambassador_sale(TEXT, NUMERIC, TEXT, UUID) FROM anon;
+    GRANT EXECUTE ON FUNCTION public.track_ambassador_sale(TEXT, NUMERIC, TEXT, UUID) TO authenticated;
+  END IF;
+
+  -- unlock_user_achievement
+  IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'unlock_user_achievement') THEN
+    ALTER FUNCTION public.unlock_user_achievement(UUID, TEXT) SET search_path = public;
+    REVOKE EXECUTE ON FUNCTION public.unlock_user_achievement(UUID, TEXT) FROM anon;
+    GRANT EXECUTE ON FUNCTION public.unlock_user_achievement(UUID, TEXT) TO authenticated;
+  END IF;
+END $$;
+

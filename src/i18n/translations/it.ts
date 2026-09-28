@@ -999,7 +999,6 @@ export const it: Record<string, string> = {
   "destinos.allRegions": "Tutte le Regioni",
   "destinos.allCategories": "Tutte le Categorie",
   "destinos.sortBy": "Ordina per",
-  "destinos.popular": "I Più Popolari",
   "destinos.rating": "I Più Votati",
   "destinos.nameAsc": "Nome (A-Z)",
   "destinos.nameDesc": "Nome (Z-A)",
@@ -1153,8 +1152,6 @@ export const it: Record<string, string> = {
   // === BLOCCO 4: ESPERIENZE, CULTURA, PATRIMONIO E SPORT ===
   // Esperienze & Attività
   "experiencias.badge": "Vivi la Repubblica Dominicana",
-  "experiencias.title": "Catalogo di Esperienze ed Escursioni",
-  "experiencias.subtitle": "Avventura, natura incontaminata, patrimonio storico ed esperienze autentiche",
   "experiencias.allCategories": "Tutte le Categorie",
   "experiencias.search": "Cerca esperienze...",
   "experiencias.nature": "Natura & Ecoturismo",
@@ -1170,8 +1167,6 @@ export const it: Record<string, string> = {
 
   // Cultura, Storia & Carnevale
   "cultura.badge": "Identità & Tradizione",
-  "cultura.title": "Cultura, Storia e Tradizioni Dominicane",
-  "cultura.subtitle": "500 anni di storia viva, ritmi caraibici e il famoso carnevale dominicano",
   "cultura.carnival": "Carnevale Dominicano",
   "cultura.diablosCojuelos": "Diablos Cojuelos & Maschere Tradizionali",
   "cultura.merengueBachata": "Merengue & Bachata (Patrimonio UNESCO)",

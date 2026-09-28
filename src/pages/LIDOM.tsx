@@ -72,7 +72,7 @@ export default function LIDOM() {
   return (
     <PageTransition>
       <SEOHead
-        title="LIDOM Béisbol Dominicano & Deportes - Calendario, Boletas y Marcadores"
+        title="LIDOM Béisbol Dominicano & Deportes - Calendario y Boletas | Descubre República Dominicana"
         description="Guía oficial de béisbol invernal LIDOM y deportes dominicanos. Consulta calendarios en vivo, estados del clima, estadios, equipos y compra de boletas."
       />
       <div className="min-h-screen bg-background flex flex-col justify-between">

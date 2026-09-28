@@ -190,6 +190,7 @@ export default function Alojamientos() {
         title={t("alojamientos.seoTitle")}
         description={t("alojamientos.seoDesc")}
         keywords="hoteles República Dominicana, Airbnb Punta Cana, resorts Santo Domingo, alojamiento Caribe"
+        image={hotelRoomSuite}
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />

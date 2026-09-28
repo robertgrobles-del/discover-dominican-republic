@@ -2,7 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
-import { SEOHead } from "@/components/SEOHead";
+import { SEOHead, generateTouristAttractionSchema } from "@/components/SEOHead";
 import { DestinationGallery } from "@/components/destination/DestinationGallery";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, TreeDeciduous } from "lucide-react";
@@ -80,9 +80,21 @@ export default function ParqueNacionalDetalle() {
   return (
     <PageTransition>
       <SEOHead
-        title={`${parque.nombre} - Parques Nacionales de República Dominicana`}
+        title={`${parque.nombre} - Parques Nacionales de República Dominicana | Descubre República Dominicana`}
         description={parque.descripcion}
-        keywords={`${parque.nombre}, parques nacionales RD, ecoturismo dominicano, naturaleza`}
+        keywords={`${parque.nombre}, parques nacionales RD, ecoturismo dominicano, naturaleza, áreas protegidas`}
+        image={parque.imagenes[0]?.src}
+        jsonLd={generateTouristAttractionSchema({
+          name: parque.nombre,
+          description: parque.descripcionLarga || parque.descripcion,
+          image: parque.imagenes[0]?.src || "https://descubrerd.com/og-image.jpg",
+          address: `${parque.ubicacion}, República Dominicana`,
+          touristType: ["Parque Nacional", "Ecoturismo", "Biodiversidad"],
+          geo: parque.coordenadas ? {
+            latitude: parque.coordenadas.lat,
+            longitude: parque.coordenadas.lng,
+          } : undefined,
+        })}
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />

@@ -256,14 +256,17 @@ export default function TourDetalle() {
                     href={`https://wa.me/18092214660?text=${encodeURIComponent(`Hola, vi el paquete turístico "${tour.name}" en Descubre República Dominicana (${window.location.href}) y deseo reservar cupos para mi grupo.`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full mb-3 inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg py-5 px-4 rounded-xl transition-all shadow-md"
+                    className="w-full mb-1 inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg py-5 px-4 rounded-xl transition-all shadow-md"
                   >
                     <MessageCircle className="h-5 w-5" />
                     Reservar Ahora
                   </a>
+                  <p className="text-[11px] text-center text-muted-foreground mb-3">
+                    💬 Te atiende directamente el equipo de asistencia y conserjería del portal (+1 809-221-4660).
+                  </p>
 
                   <a
-                    href={`mailto:info@descubrerd.do?subject=${encodeURIComponent(`Consulta sobre Tour: ${tour.name}`)}&body=${encodeURIComponent(`Hola equipo de Turismo Descubre RD,\n\nDeseo solicitar más información sobre el paquete turístico "${tour.name}".\n\n- Número de viajeros:\n- Fecha aproximada:\n- Preguntas específicas:\n\nGracias.`)}`}
+                    href={`mailto:info@descubrerd.do?subject=${encodeURIComponent(`Consulta sobre Tour: ${tour.name}`)}&body=${encodeURIComponent(`Hola equipo de Descubre República Dominicana,\n\nDeseo solicitar más información sobre el paquete turístico "${tour.name}".\n\n- Número de viajeros:\n- Fecha aproximada:\n- Preguntas específicas:\n\nGracias.`)}`}
                     className="w-full inline-flex items-center justify-center gap-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground font-semibold py-3 px-4 rounded-xl text-sm transition-all"
                   >
                     <Phone className="h-4 w-4" />

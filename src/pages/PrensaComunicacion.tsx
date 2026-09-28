@@ -364,10 +364,10 @@ export default function PrensaComunicacion() {
                     <Card className="rounded-3xl border-border bg-card p-6 space-y-4">
                       <div className="flex items-center gap-2">
                         <ShieldCheck className="h-5 w-5 text-emerald-500" />
-                        <h3 className="font-bold text-base text-foreground">Contacto de Prensa</h3>
+                        <h3 className="font-bold text-base text-foreground">Contacto de Prensa & Comunicaciones</h3>
                       </div>
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        Atención directa a corresponsales, agencias de noticias internacionales y equipos de filmación.
+                        Atención directa del equipo de prensa y relaciones institucionales de Descubre República Dominicana a corresponsales, agencias de noticias internacionales y productoras.
                       </p>
 
                       <div className="space-y-3 pt-2">

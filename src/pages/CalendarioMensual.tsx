@@ -102,9 +102,9 @@ export default function CalendarioMensual() {
   return (
     <PageTransition>
       <SEOHead
-        title="Calendario de Viaje a RD - Qué Hacer Cada Mes"
-        description="Guía mes a mes de República Dominicana: clima, eventos, festivales, precios y mejor temporada para cada tipo de experiencia."
-        keywords="mejor época viajar dominicana, calendario eventos RD, temporada ballenas, carnaval dominicano"
+        title="Calendario de Viaje Mes a Mes - Festividades y Temporadas | Descubre República Dominicana"
+        description="Guía mes a mes de República Dominicana: clima, eventos, fiestas patronales, festivales, precios y mejor temporada para cada tipo de experiencia."
+        keywords="mejor época viajar dominicana, calendario eventos RD, temporada ballenas, carnaval dominicano, fiestas patronales"
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />

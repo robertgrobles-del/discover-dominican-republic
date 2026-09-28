@@ -53,7 +53,7 @@ const mockGuides: Guide[] = [
     pricePerHour: 35,
     isEco: true,
     license: "MA-ECO-PROV-048",
-    phone: "+1 (809) 221-4660"
+    phone: "+1 (829) 450-2819"
   },
   {
     id: "carmen",
@@ -69,7 +69,7 @@ const mockGuides: Guide[] = [
     bio: "Historiadora especializada en la Zona Colonial y el patrimonio cultural dominicano.",
     pricePerHour: 40,
     isEco: false,
-    phone: "+1 (809) 221-4660"
+    phone: "+1 (809) 710-8432"
   },
   {
     id: "pedro",
@@ -85,7 +85,7 @@ const mockGuides: Guide[] = [
     bio: "Experto en los 27 Charcos de Damajagua y rutas por el Cibao.",
     pricePerHour: 30,
     isEco: false,
-    phone: "+1 (809) 221-4660"
+    phone: "+1 (849) 330-1945"
   },
   {
     id: "lucia",
@@ -102,7 +102,7 @@ const mockGuides: Guide[] = [
     pricePerHour: 45,
     isEco: true,
     license: "MA-ECO-PROV-112",
-    phone: "+1 (809) 221-4660"
+    phone: "+1 (809) 620-5518"
   },
 ];
 
@@ -210,8 +210,26 @@ export default function GuiasLocales() {
     }
   });
 
+  interface DBTourGuide {
+    id: string;
+    name: string;
+    location?: string;
+    image_url?: string;
+    cover_photo?: string;
+    rating?: number | string;
+    reviews?: number | string;
+    is_certified?: boolean;
+    languages?: string[];
+    specialties?: string[];
+    description?: string;
+    price_range?: string;
+    is_eco_guide?: boolean;
+    eco_license?: string;
+    phone?: string;
+  }
+
   const guidesList: Guide[] = dbGuides && dbGuides.length > 0
-    ? dbGuides.map((g: any) => ({
+    ? (dbGuides as DBTourGuide[]).map((g) => ({
         id: g.id,
         name: g.name,
         location: g.location || "General, RD",

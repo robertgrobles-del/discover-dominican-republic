@@ -1,3 +1,4 @@
+import { createHash, randomBytes } from "node:crypto";
 import { TtlCache } from "../../lib/cache.js";
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
@@ -177,6 +178,112 @@ export async function analyticsRoutes(app: FastifyInstance) {
     const count = async (t: string) => Number((await db.query<{ n: string }>(`SELECT count(*) AS n FROM ${t} WHERE status = 'published' AND deleted_at IS NULL`)).rows[0]!.n);
     reply.header("cache-control", PUBLIC_CACHE);
     return { data: { official: s?.value ?? null, portal: { destinations: await count("destinations"), beaches: await count("beaches"), hotels: await count("hotels"), restaurants: await count("restaurants"), events: await count("events") } } };
+  });
+
+  // ---------- API B2B & Analítica Agregada Anonimizada (#5 y #16) ----------
+  r.post("/b2b/api-keys", {
+    onRequest: app.authenticate,
+    schema: {
+      tags: ["b2b", "analítica"],
+      summary: "Genera una nueva API Key B2B para acceso a datos agregados del turismo",
+      security: bearer,
+      body: z.object({
+        client_name: z.string().trim().min(3).max(100),
+        tier: z.enum(["standard", "pro", "enterprise"]).default("standard"),
+        allowed_domains: z.array(z.string().max(100)).max(10).default([]),
+      }),
+      response: { 201: ok },
+    },
+  }, async (req, reply) => {
+    const rawKey = `dr_b2b_${randomBytes(24).toString("hex")}`;
+    const keyHash = createHash("sha256").update(rawKey).digest("hex");
+    const keyPrefix = rawKey.slice(0, 14);
+    const rateLimit = req.body.tier === "enterprise" ? 600 : req.body.tier === "pro" ? 240 : 60;
+
+    const ins = await db.query(
+      `INSERT INTO b2b_api_keys (user_id, client_name, key_hash, key_prefix, tier, allowed_domains, rate_limit_minute)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, client_name, key_prefix, tier, allowed_domains, rate_limit_minute, is_active, created_at`,
+      [req.user!.id, req.body.client_name, keyHash, keyPrefix, req.body.tier, req.body.allowed_domains, rateLimit],
+    );
+
+    await audit(db, { actor: req.user!.id, action: "b2b.key_create", entity: "b2b_api_key", id: ins.rows[0].id, meta: { tier: req.body.tier }, ip: req.ip });
+    reply.code(201);
+    return { data: { key: rawKey, details: ins.rows[0] } };
+  });
+
+  r.get("/b2b/api-keys", {
+    onRequest: app.authenticate,
+    schema: {
+      tags: ["b2b"],
+      summary: "Mis API Keys B2B activas",
+      security: bearer,
+      response: { 200: ok },
+    },
+  }, async (req) => {
+    const { rows } = await db.query(
+      "SELECT id, client_name, key_prefix, tier, allowed_domains, rate_limit_minute, is_active, last_used_at, created_at FROM b2b_api_keys WHERE user_id = $1 ORDER BY created_at DESC",
+      [req.user!.id],
+    );
+    return { data: rows };
+  });
+
+  r.delete("/b2b/api-keys/:id", {
+    onRequest: app.authenticate,
+    schema: {
+      tags: ["b2b"],
+      summary: "Revoca una API Key B2B",
+      security: bearer,
+      params: z.object({ id: z.string().uuid() }),
+      response: { 204: z.null() },
+    },
+  }, async (req, reply) => {
+    await db.query("UPDATE b2b_api_keys SET is_active = false, revoked_at = now() WHERE id = $1 AND user_id = $2", [req.params.id, req.user!.id]);
+    await audit(db, { actor: req.user!.id, action: "b2b.key_revoke", entity: "b2b_api_key", id: req.params.id, ip: req.ip });
+    reply.code(204);
+    return null;
+  });
+
+  r.get("/api/v1/b2b/analytics/aggregate", {
+    schema: {
+      tags: ["b2b"],
+      summary: "Datos turísticos agregados y anonimizados B2B (requiere encabezado X-API-Key)",
+      querystring: z.object({ from: date.optional(), to: date.optional(), dimension: z.enum(["country", "destination", "category"]).default("country") }),
+      response: { 200: ok },
+    },
+  }, async (req) => {
+    const rawKey = req.headers["x-api-key"];
+    if (typeof rawKey !== "string" || !rawKey.startsWith("dr_b2b_")) {
+      throw new AppError("UNAUTHENTICATED", "API Key B2B inválida o ausente en el encabezado X-API-Key");
+    }
+    const hash = createHash("sha256").update(rawKey).digest("hex");
+    const keyRow = (await db.query<{ id: string; tier: string }>("SELECT id, tier FROM b2b_api_keys WHERE key_hash = $1 AND is_active", [hash])).rows[0];
+    if (!keyRow) throw new AppError("UNAUTHENTICATED", "API Key no autorizada o revocada");
+
+    await db.query("UPDATE b2b_api_keys SET last_used_at = now() WHERE id = $1", [keyRow.id]);
+
+    const { from, to } = range(req.query);
+    const { rows } = await db.query(
+      `SELECT coalesce(country, 'global') AS origin_country,
+              sum(events)::int AS total_events,
+              sum(sessions)::int AS total_sessions
+         FROM analytics_daily
+        WHERE day >= $1::date AND day <= $2::date
+        GROUP BY country
+        ORDER BY total_events DESC
+        LIMIT 50`,
+      [from, to],
+    );
+
+    return {
+      data: {
+        provider: "Descubre RD Open Tourism B2B Network",
+        period: { from, to },
+        dimension: req.query.dimension,
+        total_sample_points: rows.length,
+        records: rows,
+      },
+    };
   });
 }
 

@@ -6,7 +6,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AccommodationGallery } from "@/components/AccommodationGallery";
-import { SEOHead } from "@/components/SEOHead";
+import { SEOHead, generateHotelSchema } from "@/components/SEOHead";
 import { AccommodationRooms } from "@/components/accommodation/AccommodationRooms";
 import { AccommodationPolicies } from "@/components/accommodation/AccommodationPolicies";
 import { AccommodationDining } from "@/components/accommodation/AccommodationDining";
@@ -118,8 +118,17 @@ export default function AlojamientoDetalle() {
       <SEOHead
         title={`${hotelName} - Reserva y Opiniones en República Dominicana`}
         description={hotelShortDesc || hotelDescription?.substring(0, 160)}
+        image={hotelImages[0]}
+        jsonLd={generateHotelSchema({
+          name: hotelName,
+          description: hotelShortDesc || hotelDescription,
+          image: hotelImages[0] || "https://descubrerd.com/og-image.jpg",
+          priceRange: staticHotel?.priceRange || "$$$",
+          rating: hotelRating,
+          address: hotelLocation,
+        })}
       />
-      <Header variant="white" hasHero={false} />
+      <Header hasHero />
 
       {/* Hero Slider */}
       <HotelHeroSlider

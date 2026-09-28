@@ -1026,7 +1026,6 @@ export const en: Record<string, string> = {
   "destinos.allRegions": "All Regions",
   "destinos.allCategories": "All Categories",
   "destinos.sortBy": "Sort by",
-  "destinos.popular": "Most Popular",
   "destinos.rating": "Top Rated",
   "destinos.nameAsc": "Name (A-Z)",
   "destinos.nameDesc": "Name (Z-A)",
@@ -1180,8 +1179,6 @@ export const en: Record<string, string> = {
   // === BLOCK 4: EXPERIENCES, CULTURE, HERITAGE & SPORTS ===
   // Experiences & Activities
   "experiencias.badge": "Live the Dominican Experience",
-  "experiencias.title": "Experiences & Excursions Catalog",
-  "experiencias.subtitle": "Adventure, pristine nature, historic heritage, and authentic Dominican encounters",
   "experiencias.allCategories": "All Categories",
   "experiencias.search": "Search experiences...",
   "experiencias.nature": "Nature & Eco-Tourism",
@@ -1197,8 +1194,6 @@ export const en: Record<string, string> = {
 
   // Culture, History & Carnival
   "cultura.badge": "Identity & Tradition",
-  "cultura.title": "Dominican Culture, History & Traditions",
-  "cultura.subtitle": "500 years of living history, native Caribbean rhythms, and the vibrant Dominican Carnival",
   "cultura.carnival": "Dominican Carnival",
   "cultura.diablosCojuelos": "Diablos Cojuelos & Elaborate Masks",
   "cultura.merengueBachata": "Merengue & Bachata (UNESCO Intangible Heritage)",

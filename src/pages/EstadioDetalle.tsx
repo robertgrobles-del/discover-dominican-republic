@@ -11,7 +11,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { FavoriteButton } from "@/components/FavoriteButton";
-import { SEOHead } from "@/components/SEOHead";
+import { SEOHead, generateTouristAttractionSchema } from "@/components/SEOHead";
 import { toast } from "sonner";
 import { getVenueBySlug, getAllVenues, type VenueItem } from "@/data/venuesData";
 
@@ -25,7 +25,7 @@ export default function EstadioDetalle() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${venue.name} — Descubre RD`,
+          title: `${venue.name} — Descubre República Dominicana`,
           text: `Conoce las instalaciones y eventos en ${venue.name} (${venue.location})`,
           url: window.location.href,
         });
@@ -61,10 +61,17 @@ export default function EstadioDetalle() {
   return (
     <PageTransition>
       <SEOHead
-        title={`${venue.name} — ${venue.categoryLabel} en ${venue.location}`}
+        title={`${venue.name} — ${venue.categoryLabel} en ${venue.location} | Descubre República Dominicana`}
         description={venue.description}
         image={venue.image}
         keywords={`${venue.name}, ${venue.categoryLabel}, ${venue.location}, eventos república dominicana, deportes rd, espectáculos`}
+        jsonLd={generateTouristAttractionSchema({
+          name: venue.name,
+          description: venue.description,
+          image: venue.image,
+          address: `${venue.location}, ${venue.province}, República Dominicana`,
+          touristType: [venue.categoryLabel, "Recinto Deportivo y Espectáculos", "Estadio"],
+        })}
       />
       <div className="min-h-screen bg-background flex flex-col">
         <Header />

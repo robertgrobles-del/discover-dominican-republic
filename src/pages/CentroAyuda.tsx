@@ -95,9 +95,9 @@ const supportChannels = [
 
 const contactInfo = {
   address: "Av. México esq. 30 de Marzo\nSanto Domingo, R.D.",
-  phone: "+1 (809) 555-0123",
-  phoneHours: "Lun - Vie: 8:00 AM - 5:00 PM",
-  email: "soporte@descubrerd.gob.do",
+  phone: "+1 (809) 221-4660",
+  phoneHours: "Lun - Vie: 8:00 AM - 5:00 PM (Asistencia del Portal)",
+  email: "soporte@descubrerd.com",
   emailResponse: "Respuesta en 24 horas",
 };
 
@@ -412,8 +412,9 @@ export default function CentroAyuda() {
                         </div>
                         <div>
                           <h4 className="font-semibold">Atención Telefónica</h4>
-                          <p className="text-sm text-primary">{contactInfo.phone}</p>
+                          <p className="text-sm text-primary font-medium">{contactInfo.phone}</p>
                           <p className="text-xs text-muted-foreground">{contactInfo.phoneHours}</p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">Te atiende el equipo de atención y asistencia del portal.</p>
                         </div>
                       </div>
 

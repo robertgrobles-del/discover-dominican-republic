@@ -9,7 +9,21 @@ import type { NotifyFn } from "../notifications/insert.js";
 import { fromCents, toCents } from "../operators/domain/money.js";
 import type { PaymentGateway } from "../operators/gateway.js";
 
-export const CATEGORIES = ["artesania", "gastronomia", "cafe-cacao-ron", "moda", "arte", "joyeria", "bienestar", "experiencia", "otros"] as const;
+export const CATEGORIES = [
+  "artesania",
+  "gastronomia",
+  "cafe-cacao-ron",
+  "moda",
+  "arte",
+  "joyeria",
+  "bienestar",
+  "experiencia",
+  "tour-aventura",
+  "tour-cultural",
+  "deportes-acuaticos",
+  "ecoturismo",
+  "otros"
+] as const;
 export const PAYOUT_HOLD_DAYS = 3;          // días tras la entrega antes de liquidar al vendedor (ventana de devolución)
 const MAX_LINE_QTY = 20;
 const sha = (t: string) => createHash("sha256").update(t).digest("hex");

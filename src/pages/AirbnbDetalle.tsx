@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { PageTransition } from "@/components/PageTransition";
 import { useLightbox } from "@/hooks/useLightbox";
-import { SEOHead } from "@/components/SEOHead";
+import { SEOHead, generateHotelSchema } from "@/components/SEOHead";
 import { ClaimBusinessModal } from "@/components/business/ClaimBusinessModal";
 
 import { AirbnbGallery } from "@/components/airbnb/AirbnbGallery";
@@ -152,6 +152,14 @@ const AirbnbDetalle = () => {
         description={property.short_description || property.description}
         image={property.image_url}
         keywords={`${property.name}, ${property.property_type}, ${property.address}, airbnb república dominicana, alojamiento vacacional`}
+        jsonLd={generateHotelSchema({
+          name: property.name,
+          description: property.short_description || property.description,
+          image: property.image_url || "https://descubrerd.com/og-image.jpg",
+          priceRange: `$${property.price_per_night || 450} USD / noche`,
+          rating: 4.9,
+          address: property.address,
+        })}
       />
       <Header />
 

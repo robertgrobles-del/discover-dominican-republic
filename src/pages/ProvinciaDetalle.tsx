@@ -7,7 +7,7 @@ import { getSafeCoverImage } from "@/lib/imageCovers";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
-import { SEOHead } from "@/components/SEOHead";
+import { SEOHead, generateDestinationSchema } from "@/components/SEOHead";
 import { useMemo, useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -291,6 +291,13 @@ export default function ProvinciaDetalle() {
         title={`${province.name} - Guía Turística Completa de la República Dominicana`}
         description={province.description || province.shortDescription}
         keywords={`${province.name}, turismo, República Dominicana, qué hacer en ${province.name}, hoteles, restaurantes, monumentos, parques`}
+        image={heroImages[0]}
+        jsonLd={generateDestinationSchema({
+          name: province.name,
+          description: province.description || province.shortDescription,
+          image: heroImages[0] || "https://descubrerd.com/og-image.jpg",
+          url: `https://descubrerd.com/provincias/${province.slug}`,
+        })}
       />
 
       <Header />

@@ -60,6 +60,7 @@ const staticRestaurants = [
 // Bar patrocinado destacado
 const sponsoredBar = {
   id: "sponsored-bar",
+  slug: "oro-nightclub-punta-cana",
   name: "Oro Lounge",
   rating: 4.9,
   location: "Cap Cana, Punta Cana",
@@ -73,6 +74,7 @@ const sponsoredBar = {
 const staticBars = [
   {
     id: "la-terraza-lounge",
+    slug: "lulu-tasting-bar",
     name: "La Terraza Lounge",
     rating: 4.8,
     location: "Zona Colonial, Santo Domingo",
@@ -83,6 +85,7 @@ const staticBars = [
   },
   {
     id: "blue-mall-sky",
+    slug: "onno-s",
     name: "Sky Bar RD",
     rating: 4.6,
     location: "Punta Cana",
@@ -93,6 +96,7 @@ const staticBars = [
   },
   {
     id: "merengue-club",
+    slug: "la-zona-colonial-pub",
     name: "Club Merengue",
     rating: 4.5,
     location: "Malecón, Santo Domingo",
@@ -103,6 +107,7 @@ const staticBars = [
   },
   {
     id: "coco-bongo-rd",
+    slug: "coco-bongo-punta-cana",
     name: "Coco Bongo",
     rating: 4.9,
     location: "Bávaro, Punta Cana",
@@ -218,6 +223,7 @@ function RestaurantCard({ restaurant, index, t }: { restaurant: RestaurantType; 
 
 interface BarType {
   id: string;
+  slug?: string;
   name: string;
   rating: number;
   location: string;
@@ -229,58 +235,74 @@ interface BarType {
 }
 
 function BarCard({ bar, index, t }: { bar: BarType; index: number; t: (key: string) => string }) {
+  const barLink = bar.slug ? `/bar/${bar.slug}` : '/vida-nocturna';
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.05 }}
-      className={`group relative h-[360px] lg:h-[390px] rounded-2xl overflow-hidden cursor-pointer shadow-md hover:shadow-xl transition-all ${
-        bar.isSponsored ? 'ring-2 ring-primary/50' : 'border border-border/60'
-      }`}
-    >
-      <LazyImage
-        src={bar.image}
-        alt={bar.name}
-        className="absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
-        containerClassName="absolute inset-0"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-black/10 transition-opacity" />
-      
-      <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
-        {bar.isSponsored && (
-          <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1 text-[11px] py-0.5 px-2 w-fit shadow-xs">
-            <Megaphone className="h-3 w-3" />
-            {t("accommodations.sponsored")}
-          </Badge>
-        )}
-        <span className="bg-primary/90 backdrop-blur-md text-primary-foreground text-[11px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 w-fit shadow-xs">
-          <Wine className="h-3 w-3" />
-          {bar.type}
-        </span>
-      </div>
-
-      <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-black/60 backdrop-blur-md text-white text-[11px] font-bold px-2 py-0.5 rounded-md border border-white/10 shadow-xs">
-        <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
-        {bar.rating}
-      </div>
-
-      <div className="absolute inset-x-0 bottom-0 p-4 z-10">
-        <span className="inline-block bg-white/15 backdrop-blur-md text-slate-200 text-[10px] font-medium px-2 py-0.5 rounded mb-1.5 border border-white/10">
-          {bar.atmosphere}
-        </span>
-        <h3 className="font-display text-lg font-bold text-white mb-1 group-hover:text-primary transition-colors leading-tight drop-shadow-sm">
-          {bar.name}
-        </h3>
-        <div className="flex items-center gap-1 text-xs text-slate-300 mb-2">
-          <MapPin className="h-3 w-3 text-primary shrink-0" />
-          <span className="truncate">{bar.location}</span>
+    <Link to={barLink} className="block group">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ delay: index * 0.05 }}
+        className={`relative h-[360px] lg:h-[390px] rounded-2xl overflow-hidden cursor-pointer shadow-md hover:shadow-xl transition-all ${
+          bar.isSponsored ? 'ring-2 ring-primary/50' : 'border border-border/60'
+        }`}
+      >
+        <LazyImage
+          src={bar.image}
+          alt={bar.name}
+          className="absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
+          containerClassName="absolute inset-0"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 transition-opacity" />
+        
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+          {bar.isSponsored && (
+            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1 text-[11px] py-0.5 px-2 w-fit shadow-xs">
+              <Megaphone className="h-3 w-3" />
+              {t("accommodations.sponsored")}
+            </Badge>
+          )}
+          <span className="bg-primary/90 backdrop-blur-md text-primary-foreground text-[11px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 w-fit shadow-xs">
+            <Wine className="h-3 w-3" />
+            {bar.type}
+          </span>
         </div>
-        <p className="text-xs text-amber-300 font-medium truncate">
-          🍹 {bar.specialty}
-        </p>
-      </div>
-    </motion.div>
+
+        <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-black/60 backdrop-blur-md text-white text-[11px] font-bold px-2 py-0.5 rounded-md border border-white/10 shadow-xs">
+          <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
+          {bar.rating}
+        </div>
+
+        <div className="absolute inset-x-0 bottom-0 p-4 z-10 space-y-2">
+          <div>
+            <span className="inline-block bg-white/15 backdrop-blur-md text-slate-200 text-[10px] font-medium px-2 py-0.5 rounded mb-1.5 border border-white/10">
+              {bar.atmosphere}
+            </span>
+            <h3 className="font-display text-lg font-bold text-white mb-1 group-hover:text-primary transition-colors leading-tight drop-shadow-sm">
+              {bar.name}
+            </h3>
+            <div className="flex items-center gap-1 text-xs text-slate-300">
+              <MapPin className="h-3 w-3 text-primary shrink-0" />
+              <span className="truncate">{bar.location}</span>
+            </div>
+            <p className="text-xs text-amber-300 font-medium truncate mt-1">
+              🍹 {bar.specialty}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-white/15">
+            <span className="text-[11px] font-semibold text-white/90 group-hover:text-primary transition-colors flex items-center gap-1">
+              Ver Horario & Reservar VIP
+              <ChevronRight className="h-3.5 w-3.5" />
+            </span>
+            <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full">
+              Entrada 18+
+            </span>
+          </div>
+        </div>
+      </motion.div>
+    </Link>
   );
 }
 
@@ -331,6 +353,7 @@ export function RestaurantsBarsSection() {
       if (!ids.has(b.slug || b.id)) {
         items.push({
           id: b.slug || b.id,
+          slug: b.slug || b.id,
           name: b.name,
           rating: Number(b.rating) || 0,
           location: b.address || '',

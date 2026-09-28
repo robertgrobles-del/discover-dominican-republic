@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
-import { SEOHead } from "@/components/SEOHead";
+import { SEOHead, generateBeachSchema } from "@/components/SEOHead";
 import { getBeachBySlug, beaches as allStaticBeaches, type Beach } from "@/data/beaches";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -188,6 +188,14 @@ export default function PlayaDetalle() {
         title={`${beach.name} - Guía de Playa en ${beach.province} | República Dominicana`}
         description={beach.shortDescription || beach.description?.slice(0, 160)}
         keywords={`playa ${beach.name}, ${beach.province}, turismo costa republica dominicana, como llegar ${beach.name}, oleaje, arena blanca`}
+        image={beach.imageUrl}
+        jsonLd={generateBeachSchema({
+          name: beach.name,
+          description: beach.shortDescription || beach.description,
+          image: beach.imageUrl,
+          latitude: beach.latitude,
+          longitude: beach.longitude,
+        })}
       />
 
       <div className="min-h-screen bg-background pb-16 md:pb-0">

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { saveLeadLocally } from "@/lib/leadStorage";
 
 interface BarVipBookingCardProps {
   barName: string;
@@ -23,16 +24,25 @@ export function BarVipBookingCard({
   const [vipZone, setVipZone] = useState("Mesa VIP Pista");
   const [guestCount, setGuestCount] = useState("4");
   const [vipName, setVipName] = useState("");
+  const [vipPhone, setVipPhone] = useState("");
   const [vipDate, setVipDate] = useState(new Date().toISOString().split("T")[0]);
 
-  const handleVipBooking = (e: React.FormEvent) => {
+  const handleVipBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!vipName.trim()) {
       toast.error("Por favor ingresa el nombre para la lista VIP");
       return;
     }
-    toast.success("¡Solicitud VIP Enviada!", {
-      description: `Mesa ${vipZone} solicitada para ${guestCount} personas el ${vipDate} a nombre de ${vipName}. Te contactaremos vía WhatsApp para confirmar tu paquete.`
+
+    await saveLeadLocally({
+      name: vipName.trim(),
+      phone: vipPhone.trim() || undefined,
+      service: `Mesa VIP (${vipZone}, ${guestCount} personas, ${vipDate}) - ${barName}`,
+      source: "bar-vip-booking"
+    });
+
+    toast.success("¡Solicitud VIP Registrada!", {
+      description: `Mesa ${vipZone} solicitada para ${guestCount} personas el ${vipDate} a nombre de ${vipName}. Datos guardados correctamente.`
     });
   };
 
@@ -102,18 +112,32 @@ export function BarVipBookingCard({
           </div>
         </div>
 
-        {/* Full Name */}
-        <div className="space-y-1.5">
-          <label htmlFor="vip-lead-name" className="text-xs font-semibold text-muted-foreground uppercase">Nombre del Titular</label>
-          <Input 
-            placeholder="Ej: Lic. Roberto Guzmán"
-            id="vip-lead-name"
-            aria-label="Nombre del titular para lista VIP"
-            value={vipName}
-            onChange={(e) => setVipName(e.target.value)}
-            className="rounded-xl bg-muted/30 border-border"
-            required
-          />
+        {/* Full Name & Phone */}
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <label htmlFor="vip-lead-name" className="text-xs font-semibold text-muted-foreground uppercase">Nombre del Titular</label>
+            <Input 
+              placeholder="Ej: Lic. Roberto Guzmán"
+              id="vip-lead-name"
+              aria-label="Nombre del titular para lista VIP"
+              value={vipName}
+              onChange={(e) => setVipName(e.target.value)}
+              className="rounded-xl bg-muted/30 border-border"
+              required
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label htmlFor="vip-lead-phone" className="text-xs font-semibold text-muted-foreground uppercase">Teléfono / WhatsApp</label>
+            <Input 
+              placeholder="Ej: +1 809-555-0199"
+              id="vip-lead-phone"
+              aria-label="Teléfono o WhatsApp de contacto"
+              value={vipPhone}
+              onChange={(e) => setVipPhone(e.target.value)}
+              className="rounded-xl bg-muted/30 border-border"
+            />
+          </div>
         </div>
 
         <Button type="submit" size="lg" className="w-full rounded-xl font-bold py-6 shadow-md mt-2">

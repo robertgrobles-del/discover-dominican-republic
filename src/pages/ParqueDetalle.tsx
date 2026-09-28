@@ -2,7 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
-import { SEOHead } from "@/components/SEOHead";
+import { SEOHead, generateTouristAttractionSchema } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,6 +39,14 @@ export default function ParqueDetalle() {
         title={`${parque.nombre} | Parques Temáticos RD`}
         description={parque.descripcion}
         keywords={`${parque.nombre}, parques temáticos RD, ${parque.tipo}, ${parque.ubicacion}`}
+        image={parque.imagen}
+        jsonLd={generateTouristAttractionSchema({
+          name: parque.nombre,
+          description: parque.descripcion,
+          image: parque.imagen,
+          address: parque.ubicacion,
+          touristType: ["Parques Temáticos", parque.tipo],
+        })}
       />
       <Header />
 

@@ -167,8 +167,9 @@ export default function MuseosMonumentos() {
   return (
     <PageTransition>
       <SEOHead
-        title="Museos y Monumentos de República Dominicana | Descubre RD"
+        title="Museos y Monumentos de República Dominicana | Descubre República Dominicana"
         description="Explora los museos y monumentos históricos de RD: arte taíno, historia colonial, ámbar dominicano, obeliscos y los mausoleos de los Padres de la Patria."
+        image="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&auto=format&fit=crop&q=80"
       />
       <div className="min-h-screen bg-background">
         <Header />

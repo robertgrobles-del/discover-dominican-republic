@@ -60,6 +60,49 @@ function baseQuery(d: CollectionDef) {
 const listMeta = z.object({ page: z.number(), per_page: z.number(), total: z.number(), total_pages: z.number(), locale: z.string(), fallback_locale: z.string().optional() });
 
 export async function contentRoutes(app: FastifyInstance) {
+  // Paquete consolidado de emergencia y datos clave para modo sin conexión PWA/Capacitor (#222)
+  app.get("/content/offline-bundle", async (_request, reply) => {
+    const clinics = await app.db.query(
+      `SELECT id, name, address, phone_number, emergency_phone, latitude, longitude, specialties
+       FROM clinics
+       WHERE is_active = true
+       ORDER BY name ASC LIMIT 100`
+    ).catch(() => ({ rows: [] }));
+
+    const embassies = await app.db.query(
+      `SELECT id, country, name, address, phone_number, emergency_phone, email, website
+       FROM embassies
+       ORDER BY country ASC LIMIT 100`
+    ).catch(() => ({ rows: [] }));
+
+    const tollRoutes = await app.db.query(
+      `SELECT id, name, description, toll_stations
+       FROM toll_routes
+       ORDER BY name ASC LIMIT 50`
+    ).catch(() => ({ rows: [] }));
+
+    const emergencyContacts = [
+      { name: "Sistema Nacional de Emergencias (911)", phone: "911", desc: "Policía, Bomberos, Ambulancias y Rescate" },
+      { name: "POLITUR (Policía Turística)", phone: "+18092003500", desc: "Asistencia y protección directa al turista nacional e internacional" },
+      { name: "Asistencia Vial MOPC", phone: "+18296881000", desc: "Patrullas de auxilio en autopistas y carreteras 24h" },
+      { name: "Defensa Civil RD", phone: "+18094728614", desc: "Gestión de riesgos, alertas meteorológicas y emergencias" },
+      { name: "Cruz Roja Dominicana", phone: "+18093344133", desc: "Servicio de urgencias y banco de sangre" },
+    ];
+
+    reply.header("cache-control", PUBLIC_CACHE);
+    return reply.send({
+      success: true,
+      data: {
+        version: "2026.1",
+        generated_at: new Date().toISOString(),
+        emergency_contacts: emergencyContacts,
+        clinics: clinics.rows,
+        embassies: embassies.rows,
+        toll_routes: tollRoutes.rows,
+      },
+    });
+  });
+
   for (const d of COLLECTIONS) registerCollection(app, d);
 }
 

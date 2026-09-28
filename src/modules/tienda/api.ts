@@ -101,7 +101,7 @@ export async function fetchOrders(): Promise<StoreOrder[]> {
 
 export async function createOrder(o: Omit<StoreOrder, "id" | "created_at" | "status"> & { status?: StoreOrder["status"] }) {
   const id = `ord-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
-  const { error } = await from("store_orders").insert({ ...o, id, status: o.status || "paid", created_at: new Date().toISOString() });
+  const { error } = await from("store_orders").insert({ ...o, id, status: o.status || "pending", created_at: new Date().toISOString() });
   if (error) throw new Error(error.message);
   // descuenta stock
   for (const it of o.items) {

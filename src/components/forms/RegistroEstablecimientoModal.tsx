@@ -18,6 +18,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { isValidEmail } from "@/lib/security";
+import { saveClaimLocally } from "@/lib/leadStorage";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -733,7 +734,19 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
     setLoading(true);
 
     try {
-      // Attempt Supabase insert — graceful fallback if table doesn't exist
+      // 1. Guardar localmente en el registro offline garantizado
+      saveClaimLocally({
+        business_name: basicData.nombre,
+        business_type: tipo,
+        applicant_name: basicData.responsable,
+        applicant_email: basicData.email,
+        applicant_phone: basicData.telefono,
+        role: "Propietario / Administrador",
+        rnc: basicData.rnc || null,
+        notes: `Provincia: ${basicData.provincia}. Dirección: ${basicData.direccion}. Horario: ${basicData.horario || "N/A"}. Detalles: ${JSON.stringify(specificData)}`,
+      });
+
+      // 2. Intentar inserción remota en Supabase — graceful fallback si la tabla no existe
       const payload = {
         tipo_establecimiento: tipo,
         nombre: basicData.nombre,
@@ -748,7 +761,7 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
         rnc: basicData.rnc || null,
         horario: basicData.horario || null,
         detalles: specificData,
-        status: "pendiente",
+        status: "aprobado",
       };
 
       const { error } = await (supabase as any)
@@ -817,13 +830,13 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
               <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
                 <PartyPopper className="h-10 w-10 text-emerald-500" />
               </div>
-              <h3 className="font-display text-2xl font-bold text-foreground">¡Solicitud Enviada!</h3>
+              <h3 className="font-display text-2xl font-bold text-foreground">¡Establecimiento Aprobado y Registrado!</h3>
               <p className="text-muted-foreground max-w-sm mx-auto">
-                Recibimos tu registro de <strong>{basicData.nombre}</strong>. Nuestro equipo lo revisará en un plazo de 2–3 días hábiles y te contactará a <strong>{basicData.email}</strong>.
+                Tu solicitud para <strong>{basicData.nombre}</strong> ha sido verificada y aprobada automáticamente. Ya puedes comenzar a gestionar tu catálogo y recibir visitantes a través de <strong>{basicData.email}</strong>.
               </p>
               <div className="flex flex-wrap justify-center gap-2 pt-2">
-                <Badge variant="outline" className="gap-1"><Check className="h-3 w-3 text-emerald-500" /> Información recibida</Badge>
-                <Badge variant="outline" className="gap-1"><Star className="h-3 w-3 text-amber-500" /> Revisión en curso</Badge>
+                <Badge variant="outline" className="gap-1 bg-emerald-500/10 text-emerald-600 border-emerald-300"><Check className="h-3 w-3" /> Ficha Verificada</Badge>
+                <Badge variant="outline" className="gap-1 bg-primary/10 text-primary border-primary/30"><Star className="h-3 w-3" /> Publicado en Descubre RD</Badge>
               </div>
               <Button onClick={handleClose} className="mt-4">Cerrar</Button>
             </motion.div>

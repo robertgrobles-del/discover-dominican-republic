@@ -140,7 +140,7 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
         guests: 1,
         total_price: totalPrice,
         currency: "USD",
-        status: "paid",
+        status: "pending",
         contact_name: fullName,
         contact_email: email,
         contact_phone: phone,

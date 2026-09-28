@@ -18,7 +18,7 @@ export default function ItinerariosRecomendados() {
   return (
     <PageTransition>
       <SEOHead
-        title="Itinerarios de Viaje a República Dominicana - 3, 5, 7 y 14 Días"
+        title="Itinerarios de Viaje - 3, 5, 7 y 14 Días | Descubre República Dominicana"
         description="Itinerarios prediseñados para tu viaje a RD: escapada de 3 días, ruta cultural de 5 días, tour completo de 7 días o gran aventura de 14 días."
         keywords="itinerario viaje dominicana, plan viaje RD, ruta 7 días dominicana, que hacer en dominicana"
       />

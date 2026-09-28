@@ -132,7 +132,7 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
               <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
                 <span className="font-display font-black text-slate-950 text-sm">RD</span>
               </div>
-              <span className="font-display font-bold text-foreground">Descubre RD</span>
+              <span className="font-display font-bold text-foreground">Descubre República Dominicana</span>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
               {t("hero.subtitle")}

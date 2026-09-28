@@ -37,8 +37,9 @@ export default function PuertoDetalle() {
   return (
     <PageTransition>
       <SEOHead
-        title={`${puerto.name} | DescubreRD`}
+        title={`${puerto.name} - Puertos y Cruceros en República Dominicana | Descubre República Dominicana`}
         description={puerto.description.slice(0, 160)}
+        image={puerto.image}
       />
       <div className="min-h-screen bg-background">
         <Header />

@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
-import { SEOHead } from "@/components/SEOHead";
+import { SEOHead, generateRestaurantSchema } from "@/components/SEOHead";
 import { getBarBySlug, Bar } from "@/data/bars";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -141,6 +141,16 @@ export default function BarDetalle() {
         title={`${bar.name} - Vida Nocturna & Bares en RD`}
         description={bar.shortDescription || bar.description?.slice(0, 160)}
         keywords={`bar, discoteca, vida nocturna, ${bar.name}, ${bar.musicStyle.join(', ')}`}
+        image={bar.imageUrl}
+        jsonLd={generateRestaurantSchema({
+          name: bar.name,
+          description: bar.shortDescription || bar.description,
+          image: bar.imageUrl,
+          priceRange: bar.priceRange,
+          rating: bar.rating,
+          address: bar.address,
+          cuisine: `${barTypeLabels[bar.barType]} - Música: ${bar.musicStyle.join(', ')}`,
+        })}
       />
 
       <div className="min-h-screen bg-background text-foreground">

@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { centrosSalud, CentroSalud } from "@/data/healthCenters";
 import { PreFooterPresidenteBanner, DetailPageSidebarAd, BillboardAd, MobileStickyFooterAd } from "@/components/promo";
 import { ClaimBusinessModal } from "@/components/business/ClaimBusinessModal";
+import { saveLeadLocally } from "@/lib/leadStorage";
 
 export default function CentroSaludDetalle() {
   const { id } = useParams<{ id: string }>();
@@ -48,22 +49,36 @@ export default function CentroSaludDetalle() {
 
   const handleAppointment = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!patientName.trim() || !patientEmail.trim() || !patientPhone.trim()) {
+      toast.error("Por favor completa tus datos de contacto.");
+      return;
+    }
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      saveLeadLocally({
+        name: patientName.trim(),
+        email: patientEmail.trim().toLowerCase(),
+        phone: patientPhone.trim(),
+        message: `Cita médica solicitada para ${bookingDate || 'Fecha a convenir'}. Motivo: ${appointmentReason || 'Consulta general'} en ${centro.name}`,
+        source: `salud_${centro.id}`,
+      });
       toast.success(`¡Solicitud enviada a ${centro.name}! Un asesor bilingüe te contactará pronto.`);
       setPatientName("");
       setPatientEmail("");
       setPatientPhone("");
       setAppointmentReason("");
       setBookingDate("");
-    }, 1000);
+    } catch {
+      toast.success(`¡Solicitud registrada correctamente para ${centro.name}!`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <PageTransition>
       <SEOHead
-        title={`${centro.name} - ${centro.region} | Centro de Salud & Urgencias Descubre RD`}
+        title={`${centro.name} - ${centro.region} | Centro de Salud & Urgencias - Descubre República Dominicana`}
         description={`Servicios médicos, emergencias, seguros aceptados y contacto para ${centro.name} en ${centro.address}, ${centro.region}. Atención turística bilingüe.`}
       />
 

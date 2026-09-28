@@ -60,6 +60,89 @@ export async function gameRoutes(app: FastifyInstance) {
   r.post("/gamification/streak-bonus", { onRequest: auth, schema: { tags: ["gamificación"], summary: "Bono por hitos de racha (7, 14, 30, 60 y 100 días)", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await game.streakBonus(req.user!.id) }));
   r.post("/gamification/milestones/check", { onRequest: auth, schema: { tags: ["gamificación"], summary: "Entrega los hitos de XP pendientes", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await game.checkMilestones(req.user!.id) }));
 
+  // ---------- Pasaporte y Sellos por Código QR (#220) ----------
+  r.post("/gamification/passport/scan-qr", {
+    onRequest: auth,
+    config: rl(30, "1 minute"),
+    schema: {
+      tags: ["gamificación"],
+      summary: "Valida un código QR escaneado en un destino/negocio y otorga el sello oficial del pasaporte digital con XP y monedas (#220)",
+      security: bearer,
+      body: z.object({
+        qr_token: z.string().trim().min(3).max(120),
+      }),
+      response: { 200: ok },
+    },
+  }, async (req) => {
+    const { qr_token } = req.body;
+    const qrRes = await db.query<{
+      id: string;
+      entity_type: string;
+      entity_id: string;
+      stamp_title: string;
+      stamp_badge_url: string | null;
+      xp_reward: number;
+      coins_reward: number;
+      province_id: string | null;
+      is_active: boolean;
+      expires_at: Date | null;
+    }>(
+      `SELECT * FROM passport_qr_codes WHERE qr_token = $1 AND is_active = true AND (expires_at IS NULL OR expires_at > now()) LIMIT 1`,
+      [qr_token]
+    );
+
+    if (!qrRes.rows[0]) {
+      throw new AppError("NOT_FOUND", "Código QR del pasaporte no válido o expirado.", { code: "INVALID_PASSPORT_QR" });
+    }
+
+    const qr = qrRes.rows[0];
+
+    // Verificar si el usuario ya posee este sello en su pasaporte
+    const existing = await db.query(
+      `SELECT id FROM passport_stamps WHERE user_id = $1 AND (verification_data->>'qr_token' = $2 OR (entity_type = $3 AND entity_id = $4)) LIMIT 1`,
+      [req.user!.id, qr_token, qr.entity_type, qr.entity_id]
+    );
+
+    if (existing.rows.length > 0) {
+      throw new AppError("CONFLICT", "Ya has obtenido el sello de este lugar en tu Pasaporte Digital.", { code: "STAMP_ALREADY_COLLECTED" });
+    }
+
+    // Registrar el sello oficial en passport_stamps
+    const stampRes = await db.query(
+      `INSERT INTO passport_stamps (
+        user_id, entity_type, entity_id, stamp_name, badge_url, verification_method, verification_data
+      ) VALUES ($1, $2, $3, $4, $5, 'qr_code', $6)
+      RETURNING *`,
+      [
+        req.user!.id,
+        qr.entity_type,
+        qr.entity_id,
+        qr.stamp_title,
+        qr.stamp_badge_url,
+        JSON.stringify({ qr_token, verified_at: new Date().toISOString() }),
+      ]
+    );
+
+    // Otorgar recompensas en puntos XP y monedas en el motor de juego
+    const granted = await game.grant({
+      userId: req.user!.id,
+      action: "passport_stamp_qr",
+      ref: `stamp:${qr.id}`,
+      xp: qr.xp_reward,
+      coins: qr.coins_reward,
+      description: `Sello de Pasaporte: ${qr.stamp_title}`,
+      skipLimits: true,
+    });
+
+    return {
+      data: {
+        stamp: stampRes.rows[0],
+        game_reward: summary(granted),
+        message: `¡Felicidades! Has obtenido el sello «${qr.stamp_title}» en tu Pasaporte del Viajero.`,
+      },
+    };
+  });
+
   // ---------- Misiones y logros ----------
   r.get("/gamification/missions", { onRequest: optionalUser, schema: { tags: ["gamificación"], summary: "Misiones activas (con mi progreso si hay sesión)", security: [{}, ...bearer], response: { 200: ok } } }, async (req) => ({ data: await game.missions(req.user?.id ?? null) }));
   r.get("/gamification/missions/me", { onRequest: auth, schema: { tags: ["gamificación"], summary: "Mis misiones con progreso", security: bearer, response: { 200: ok } } }, async (req) => ({ data: (await game.missions(req.user!.id)).filter((m) => m.progress > 0 || m.completed) }));
@@ -152,6 +235,46 @@ export async function gameRoutes(app: FastifyInstance) {
     await audit(db, { actor: req.user!.id, action: "gamification.shipment", entity: "shipment", id: req.params.id, meta: { status: req.body.status }, ip: req.ip });
     reply.code(204);
     return null;
+  });
+
+  r.post("/admin/gamification/missions", {
+    onRequest: admin,
+    schema: {
+      tags: ["admin", "gamificación"],
+      summary: "Crea una misión de gamificación, opcionalmente patrocinada por un operador o marca (#6)",
+      security: bearer,
+      body: z.object({
+        name: z.string().trim().min(3).max(100),
+        description: z.string().max(500).optional(),
+        target_action: z.string().min(2).max(50),
+        target_count: z.number().int().min(1).default(1),
+        xp_reward: z.number().int().min(0).default(50),
+        coin_reward: z.number().int().min(0).default(10),
+        mission_type: z.enum(["daily", "weekly", "special", "onboarding"]).default("weekly"),
+        is_featured: z.boolean().default(false),
+        min_level: z.number().int().min(1).default(1),
+        icon: z.string().max(100).optional(),
+        sponsor_id: z.string().uuid().optional(),
+        sponsor_name: z.string().max(120).optional(),
+        sponsor_logo_url: z.string().url().max(500).optional(),
+        sponsor_reward_text: z.string().max(200).optional(),
+        is_sponsored: z.boolean().default(false),
+      }),
+      response: { 201: ok },
+    },
+  }, async (req, reply) => {
+    const b = req.body;
+    const isSponsored = b.is_sponsored || !!b.sponsor_id || !!b.sponsor_name;
+    const ins = await db.query(
+      `INSERT INTO gamification_missions
+        (name, description, target_action, target_count, xp_reward, coin_reward, mission_type, is_featured, min_level, icon, sponsor_id, sponsor_name, sponsor_logo_url, sponsor_reward_text, is_sponsored)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+       RETURNING *`,
+      [b.name, b.description ?? null, b.target_action, b.target_count, b.xp_reward, b.coin_reward, b.mission_type, b.is_featured, b.min_level, b.icon ?? null, b.sponsor_id ?? null, b.sponsor_name ?? null, b.sponsor_logo_url ?? null, b.sponsor_reward_text ?? null, isSponsored],
+    );
+    await audit(db, { actor: req.user!.id, action: "gamification.mission_create", entity: "mission", id: ins.rows[0].id, meta: { is_sponsored: isSponsored, sponsor_name: b.sponsor_name }, ip: req.ip });
+    reply.code(201);
+    return { data: ins.rows[0] };
   });
 
   r.post("/admin/gamification/seasons/:id/close", { onRequest: admin, schema: { tags: ["admin"], summary: "Cierra la temporada: reparte premios al top, y abre la siguiente", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => {

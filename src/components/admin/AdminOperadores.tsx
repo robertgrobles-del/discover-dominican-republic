@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { FileCheck, CheckCheck, Clock } from "lucide-react";
+import { getStoredClaims, updateClaimStatus, autoApprovePendingClaims, StoredBusinessClaim } from "@/lib/leadStorage";
 
 interface Operator {
   id: string;
@@ -407,6 +409,175 @@ function OperatorTable({
   );
 }
 
+
+
+function BusinessClaimsTable({
+  search,
+  filterStatus,
+}: {
+  search: string;
+  filterStatus: string;
+}) {
+  const [claims, setClaims] = useState<StoredBusinessClaim[]>(() => getStoredClaims());
+
+  const refreshClaims = () => {
+    setClaims(getStoredClaims());
+  };
+
+  const handleUpdateStatus = (id: string, status: StoredBusinessClaim["status"]) => {
+    updateClaimStatus(id, status);
+    refreshClaims();
+    toast.success(`Solicitud marcada como ${status}`);
+  };
+
+  const handleAutoApproveAll = () => {
+    const count = autoApprovePendingClaims();
+    refreshClaims();
+    toast.success(`Se auto-aprobaron ${count} solicitudes pendientes exitosamente.`);
+  };
+
+  const filtered = claims.filter(c => {
+    const matchesSearch =
+      c.business_name.toLowerCase().includes(search.toLowerCase()) ||
+      c.applicant_name.toLowerCase().includes(search.toLowerCase()) ||
+      c.applicant_email.toLowerCase().includes(search.toLowerCase()) ||
+      (c.rnc && c.rnc.includes(search));
+    const matchesStatus =
+      filterStatus === "all" ||
+      (filterStatus === "verified" && c.status === "aprobado") ||
+      (filterStatus === "pending" && (c.status === "pendiente" || c.status === "en_revision")) ||
+      (filterStatus === "inactive" && c.status === "rechazado");
+    return matchesSearch && matchesStatus;
+  });
+
+  const pendingCount = claims.filter(c => c.status === "pendiente" || c.status === "en_revision").length;
+
+  return (
+    <Card className="rounded-2xl border-border">
+      <CardHeader className="flex flex-row items-center justify-between pb-3">
+        <div>
+          <CardTitle className="text-base font-bold flex items-center gap-2">
+            <FileCheck className="h-5 w-5 text-primary" /> Solicitudes de Alta & Verificación de Negocios
+          </CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            Reclamos de propiedad y altas directas enviadas desde el portal ({claims.length} totales, {pendingCount} pendientes).
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={refreshClaims}
+            className="gap-1.5 text-xs"
+          >
+            <RefreshCw className="h-3.5 w-3.5" /> Actualizar
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleAutoApproveAll}
+            disabled={pendingCount === 0}
+            className="gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20"
+          >
+            <CheckCheck className="h-4 w-4" /> Auto-Aprobar Todo ({pendingCount})
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        {filtered.length === 0 ? (
+          <div className="p-10 text-center text-muted-foreground text-sm">
+            No se encontraron solicitudes con los filtros actuales.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="bg-muted/50 border-y border-border">
+                <tr>
+                  <th className="p-3 text-left font-semibold">Negocio</th>
+                  <th className="p-3 text-left font-semibold">Tipo</th>
+                  <th className="p-3 text-left font-semibold">Solicitante</th>
+                  <th className="p-3 text-left font-semibold">Contacto</th>
+                  <th className="p-3 text-left font-semibold">RNC / Licencia</th>
+                  <th className="p-3 text-left font-semibold">Estado</th>
+                  <th className="p-3 text-right font-semibold">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filtered.map(claim => (
+                  <tr key={claim.id} className="hover:bg-muted/20 transition-colors">
+                    <td className="p-3 font-semibold text-foreground">
+                      {claim.business_name}
+                      {claim.notes && (
+                        <p className="text-[10px] text-muted-foreground font-normal line-clamp-1 mt-0.5">
+                          {claim.notes}
+                        </p>
+                      )}
+                    </td>
+                    <td className="p-3 capitalize text-muted-foreground">{claim.business_type}</td>
+                    <td className="p-3">
+                      <p className="font-medium text-foreground">{claim.applicant_name}</p>
+                      <p className="text-[10px] text-muted-foreground">{claim.role}</p>
+                    </td>
+                    <td className="p-3">
+                      <a href={`mailto:${claim.applicant_email}`} className="text-primary hover:underline block">
+                        {claim.applicant_email}
+                      </a>
+                      <span className="text-[10px] text-muted-foreground">{claim.applicant_phone}</span>
+                    </td>
+                    <td className="p-3 font-mono text-[11px]">
+                      {claim.rnc || claim.mitur_license || <span className="text-muted-foreground">N/D</span>}
+                    </td>
+                    <td className="p-3">
+                      {claim.status === "aprobado" && (
+                        <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-300 text-[10px] gap-1">
+                          <CheckCircle2 className="h-3 w-3" /> Aprobado
+                        </Badge>
+                      )}
+                      {claim.status === "pendiente" && (
+                        <Badge className="bg-amber-500/10 text-amber-600 border-amber-300 text-[10px] gap-1">
+                          <Clock className="h-3 w-3" /> Pendiente
+                        </Badge>
+                      )}
+                      {claim.status === "rechazado" && (
+                        <Badge className="bg-rose-500/10 text-rose-600 border-rose-300 text-[10px] gap-1">
+                          <XCircle className="h-3 w-3" /> Rechazado
+                        </Badge>
+                      )}
+                    </td>
+                    <td className="p-3 text-right">
+                      <div className="flex justify-end gap-1">
+                        {claim.status !== "aprobado" && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleUpdateStatus(claim.id, "aprobado")}
+                            className="h-7 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                          >
+                            Aprobar
+                          </Button>
+                        )}
+                        {claim.status !== "rechazado" && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleUpdateStatus(claim.id, "rechazado")}
+                            className="h-7 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                          >
+                            Rechazar
+                          </Button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function AdminOperadores() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -417,15 +588,15 @@ export function AdminOperadores() {
       <div className="flex flex-wrap gap-3 items-center justify-between">
         <div>
           <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-primary" /> Operadores Turísticos
+            <Building2 className="h-5 w-5 text-primary" /> Operadores & Negocios Registrados
           </h2>
-          <p className="text-sm text-muted-foreground">Gestiona y verifica tour operadores y agencias de viaje</p>
+          <p className="text-sm text-muted-foreground">Gestiona y verifica operadores, agencias y solicitudes de alta de negocios</p>
         </div>
         <div className="flex gap-3 items-center">
           <div className="relative min-w-[220px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar operador..."
+              placeholder="Buscar operador o negocio..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="pl-9"
@@ -446,8 +617,11 @@ export function AdminOperadores() {
         </div>
       </div>
 
-      <Tabs defaultValue="tour_operators">
+      <Tabs defaultValue="claims">
         <TabsList>
+          <TabsTrigger value="claims" className="gap-2">
+            <FileCheck className="h-4 w-4 text-primary" /> Solicitudes de Alta & Reclamos
+          </TabsTrigger>
           <TabsTrigger value="tour_operators" className="gap-2">
             <Compass className="h-4 w-4" /> Tour Operadores
           </TabsTrigger>
@@ -455,6 +629,10 @@ export function AdminOperadores() {
             <Package className="h-4 w-4" /> Agencias de Viaje
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="claims" className="mt-6">
+          <BusinessClaimsTable search={search} filterStatus={filterStatus} />
+        </TabsContent>
 
         <TabsContent value="tour_operators" className="mt-6">
           <OperatorTable type="tour_operator" search={search} filterStatus={filterStatus} />
@@ -467,3 +645,4 @@ export function AdminOperadores() {
     </div>
   );
 }
+
