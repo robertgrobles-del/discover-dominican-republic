@@ -1,47 +1,36 @@
+import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
 import { CheckoutModal } from "@/components/CheckoutModal";
-import {
-  ShoppingBag, Paintbrush, Package, Truck, Shield, Phone,
-  Compass, Store, Building2, Award, Heart, ChevronRight,
-} from "lucide-react";
-import { artesanos, productos, servicios, negocios, type Artesano, type Producto, type Servicio } from "@/data/marketplaceData";
-import { ProductosTab } from "@/components/marketplace/ProductosTab";
-import { ServiciosTab } from "@/components/marketplace/ServiciosTab";
-import { ArtesanosTab } from "@/components/marketplace/ArtesanosTab";
-import { DirectorioTab } from "@/components/marketplace/DirectorioTab";
+import { artesanos, productos, servicios, type Artesano, type Producto, type Servicio } from "@/data/marketplaceData";
 import { ProductDetailModal, parsePrice, getShippingFee, type ShippingDestination } from "@/components/marketplace/ProductDetailModal";
 import { ArtisanChatModal } from "@/components/marketplace/ArtisanChatModal";
+import { MarketplaceCatalog } from "@/features/marketplace/MarketplaceCatalog";
+import { VendorProfile } from "@/features/marketplace/VendorProfile";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ShoppingBag, Users } from "lucide-react";
 
 export default function Marketplace() {
   const [searchProd, setSearchProd] = useState("");
   const [searchServ, setSearchServ] = useState("");
-  const [searchNeg, setSearchNeg] = useState("");
   const [catProd, setCatProd] = useState("Todos");
   const [catServ, setCatServ] = useState("Todos");
-  const [catNeg, setCatNeg] = useState("Todos");
 
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<{ id: string; name: string; type: string; price: number; image?: string; } | null>(null);
+  const [selectedItem, setSelectedItem] = useState<{ id: string; name: string; type: string; price: number; image?: string } | null>(null);
 
-  // International Shipping & Detail Modal State
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
   const [shippingDest, setShippingDest] = useState<ShippingDestination>("Local");
 
-  // Artisan Chat Simulation State
   const [chatOpen, setChatOpen] = useState(false);
   const [selectedArtisano, setSelectedArtisano] = useState<Artesano | null>(null);
   const [chatMessage, setChatMessage] = useState("");
   const [chatHistory, setChatHistory] = useState<string[]>([]);
 
-  const handleOpenCheckout = (item: { id: string; name: string; type: string; price: number; image?: string; }) => {
+  const handleOpenCheckout = (item: { id: string; name: string; type: string; price: number; image?: string }) => {
     setSelectedItem(item);
     setCheckoutOpen(true);
   };
@@ -70,7 +59,7 @@ export default function Marketplace() {
       name: `${selectedProduct.nombre} (Envío: ${shippingDest})`,
       type: "producto",
       price: parsePrice(selectedProduct.precio) + getShippingFee(shippingDest),
-      image: selectedProduct.imagen
+      image: selectedProduct.imagen,
     });
   };
 
@@ -85,233 +74,112 @@ export default function Marketplace() {
     if (!chatMessage.trim()) return;
 
     const userMsg = chatMessage;
-    setChatHistory(prev => [...prev, userMsg]);
+    setChatHistory((prev) => [...prev, userMsg]);
     setChatMessage("");
 
-    // Simulate artisan response after 1s
     setTimeout(() => {
-      setChatHistory(prev => [
+      setChatHistory((prev) => [
         ...prev,
-        `¡Hola! Recibimos tu mensaje en el Taller. Estaremos encantados de ayudarte con tu consulta sobre "${userMsg.substring(0, 15)}...". Nos pondremos en contacto contigo en breve para darte precios y detalles de envío local e internacional. ¡Gracias por apoyar lo local!`
+        `¡Hola! Recibimos tu mensaje en el Taller. Estaremos encantados de ayudarte con tu consulta sobre "${userMsg.substring(0, 15)}...". Nos pondremos en contacto contigo en breve. ¡Gracias por apoyar lo local!`,
       ]);
     }, 1000);
   };
 
   const filteredProd = productos.filter((p) => {
-    const matchSearch = p.nombre.toLowerCase().includes(searchProd.toLowerCase()) || p.vendedor.toLowerCase().includes(searchProd.toLowerCase());
     const matchCat = catProd === "Todos" || p.categoria === catProd;
-    return matchSearch && matchCat;
+    const matchSearch = p.nombre.toLowerCase().includes(searchProd.toLowerCase()) || p.artesano.toLowerCase().includes(searchProd.toLowerCase());
+    return matchCat && matchSearch;
   });
 
   const filteredServ = servicios.filter((s) => {
-    const matchSearch = s.nombre.toLowerCase().includes(searchServ.toLowerCase()) || s.proveedor.toLowerCase().includes(searchServ.toLowerCase());
     const matchCat = catServ === "Todos" || s.categoria === catServ;
-    return matchSearch && matchCat;
-  });
-
-  const filteredNeg = negocios.filter((n) => {
-    const matchSearch = n.nombre.toLowerCase().includes(searchNeg.toLowerCase());
-    const matchCat = catNeg === "Todos" || n.categorias.some(c => c === catNeg);
-    return matchSearch && matchCat;
+    const matchSearch = s.nombre.toLowerCase().includes(searchServ.toLowerCase()) || s.proveedor.toLowerCase().includes(searchServ.toLowerCase());
+    return matchCat && matchSearch;
   });
 
   return (
     <PageTransition>
       <SEOHead
-        title="Marketplace Dominicano - Productos, Servicios y Negocios"
-        description="Compra productos artesanales dominicanos, contrata servicios turísticos y descubre negocios locales. Larimar, café, ron, tours y más."
-        keywords="marketplace dominicano, productos artesanales RD, servicios turísticos, directorio negocios dominicanos"
+        title="Marketplace Turístico & Artesanal | Descubre República Dominicana"
+        description="Mercado oficial de productos criollos, artesanía certificada de larimar y ámbar, dulces tradicionales, café orgánico y excursiones locales."
       />
-      <div className="min-h-screen flex flex-col bg-background">
-        <Header />
+      <Header />
 
-        {/* Hero */}
-        <section className="relative py-20 bg-gradient-to-b from-primary/10 to-background">
-          <div className="container mx-auto px-4 text-center">
-            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
-              <ShoppingBag className="h-3 w-3 mr-1" /> Marketplace
-            </Badge>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Marketplace <span className="text-primary">Dominicano</span>
+      <main className="min-h-screen pt-24 pb-16 bg-background">
+        <div className="container mx-auto px-4 max-w-7xl space-y-8">
+          {/* Hero Header */}
+          <div className="text-center space-y-3 max-w-3xl mx-auto">
+            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
+              Marketplace Turístico RD
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Descubre productos artesanales auténticos, contrata servicios turísticos verificados y explora el directorio de negocios locales.
+            <p className="text-base text-muted-foreground">
+              Mercado directo de artesanos, productores y experiencias locales auténticas de la República Dominicana.
             </p>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-              {[
-                { icon: Package, label: "Productos", value: "200+" },
-                { icon: Compass, label: "Servicios", value: "80+" },
-                { icon: Store, label: "Negocios", value: "150+" },
-                { icon: Shield, label: "Verificados", value: "85%" },
-              ].map((s) => (
-                <div key={s.label} className="bg-card rounded-xl p-4 border border-border">
-                  <s.icon className="h-6 w-6 text-primary mx-auto mb-2" />
-                  <p className="text-2xl font-bold text-foreground">{s.value}</p>
-                  <p className="text-xs text-muted-foreground">{s.label}</p>
-                </div>
-              ))}
-            </div>
           </div>
-        </section>
 
-        {/* Tabs & Certified Sellers Guarantee */}
-        <section className="py-12">
-          <div className="container mx-auto px-4 space-y-8">
-            
-            {/* ESCROW & CERTIFIED SELLERS GUARANTEE BANNER */}
-            <div className="rounded-3xl p-5 sm:p-6 bg-gradient-to-r from-emerald-500/10 via-card to-primary/10 border border-emerald-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
-              <div className="flex items-start gap-3.5">
-                <div className="h-11 w-11 rounded-2xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                  <Shield className="h-6 w-6" />
-                </div>
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-sm sm:text-base text-foreground">
-                      Compra 100% Protegida: Vendedores Certificados con Pago en Custodia
-                    </h3>
-                    <Badge className="bg-emerald-500 text-slate-950 font-black text-[9px] uppercase hidden sm:inline-flex">
-                      Garantía Descubre RD
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed max-w-3xl">
-                    Descubre RD procesa tu pago de forma segura y <strong>retiene los fondos en custodia</strong>. El artesano o vendedor recibe el desembolso únicamente cuando se comprueba el envío mediante guía oficial de transporte.
-                  </p>
-                </div>
-              </div>
+          <Tabs defaultValue="catalog" className="w-full space-y-6">
+            <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+              <TabsTrigger value="catalog" className="flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4" />
+                Catálogo Principal
+              </TabsTrigger>
+              <TabsTrigger value="vendors" className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Artesanos & Talleres
+              </TabsTrigger>
+            </TabsList>
 
-              <a href="/partner/login" className="shrink-0 self-end md:self-auto">
-                <Button size="sm" variant="outline" className="rounded-xl text-xs gap-1.5 font-bold border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10">
-                  <Building2 className="h-3.5 w-3.5" />
-                  <span>¿Eres Vendedor? Certifícate Aquí</span>
-                </Button>
-              </a>
-            </div>
+            <TabsContent value="catalog">
+              <MarketplaceCatalog
+                products={filteredProd}
+                services={filteredServ}
+                searchProd={searchProd}
+                setSearchProd={setSearchProd}
+                catProd={catProd}
+                setCatProd={setCatProd}
+                searchServ={searchServ}
+                setSearchServ={setSearchServ}
+                catServ={catServ}
+                setCatServ={setCatServ}
+                onOpenProductModal={handleOpenProductModal}
+                onReserveServicio={handleReserveServicio}
+              />
+            </TabsContent>
 
-            <Tabs defaultValue="productos" className="w-full">
-              <TabsList className="grid w-full max-w-xl mx-auto grid-cols-4 mb-8">
-                <TabsTrigger value="productos" className="gap-1.5 text-xs sm:text-sm">
-                  <ShoppingBag className="h-4 w-4" /> Productos
-                </TabsTrigger>
-                <TabsTrigger value="servicios" className="gap-1.5 text-xs sm:text-sm">
-                  <Compass className="h-4 w-4" /> Servicios
-                </TabsTrigger>
-                <TabsTrigger value="artesanos" className="gap-1.5 text-xs sm:text-sm">
-                  <Paintbrush className="h-4 w-4" /> Artesanos
-                </TabsTrigger>
-                <TabsTrigger value="directorio" className="gap-1.5 text-xs sm:text-sm">
-                  <Building2 className="h-4 w-4" /> Directorio
-                </TabsTrigger>
-              </TabsList>
+            <TabsContent value="vendors">
+              <VendorProfile artesanos={artesanos} onOpenChat={handleOpenChat} />
+            </TabsContent>
+          </Tabs>
 
-              <TabsContent value="productos">
-                <ProductosTab
-                  productos={filteredProd}
-                  search={searchProd}
-                  onSearchChange={setSearchProd}
-                  category={catProd}
-                  onCategoryChange={setCatProd}
-                  onBuy={handleOpenProductModal}
-                />
-              </TabsContent>
+          {/* Modales */}
+          <CheckoutModal
+            open={checkoutOpen}
+            onOpenChange={setCheckoutOpen}
+            item={selectedItem}
+          />
 
-              <TabsContent value="servicios">
-                <ServiciosTab
-                  servicios={filteredServ}
-                  search={searchServ}
-                  onSearchChange={setSearchServ}
-                  category={catServ}
-                  onCategoryChange={setCatServ}
-                  onReserve={handleReserveServicio}
-                />
-              </TabsContent>
+          <ProductDetailModal
+            open={productModalOpen}
+            onOpenChange={setProductModalOpen}
+            product={selectedProduct}
+            shippingDest={shippingDest}
+            setShippingDest={setShippingDest}
+            handleProceedToCheckout={handleProceedToCheckout}
+          />
 
-              <TabsContent value="artesanos">
-                <ArtesanosTab artesanos={artesanos} onChat={handleOpenChat} />
-              </TabsContent>
+          <ArtisanChatModal
+            open={chatOpen}
+            onOpenChange={setChatOpen}
+            artesano={selectedArtisano}
+            chatHistory={chatHistory}
+            chatMessage={chatMessage}
+            setChatMessage={setChatMessage}
+            handleSendMessage={handleSendMessage}
+          />
+        </div>
+      </main>
 
-              <TabsContent value="directorio">
-                <DirectorioTab
-                  negocios={filteredNeg}
-                  search={searchNeg}
-                  onSearchChange={setSearchNeg}
-                  category={catNeg}
-                  onCategoryChange={setCatNeg}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
-        </section>
-
-        {/* CTA - Únete */}
-        <section className="py-16 bg-card/50">
-          <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-              {[
-                { icon: Package, title: "Vende tus productos", desc: "¿Produces artesanías, café, ron o arte? Publica tus productos y llega a miles de turistas.", cta: "Publicar producto" },
-                { icon: Compass, title: "Ofrece tus servicios", desc: "¿Eres guía, fotógrafo o tienes un tour? Únete al marketplace y consigue más clientes.", cta: "Publicar servicio" },
-                { icon: Store, title: "Registra tu negocio", desc: "¿Tienes una tienda, restaurante o atracción? Aparece en nuestro directorio verificado.", cta: "Registrar negocio" },
-              ].map((item) => (
-                <div key={item.title} className="bg-background rounded-xl p-6 border border-border text-center hover:border-primary/30 transition-colors">
-                  <item.icon className="h-10 w-10 text-primary mx-auto mb-4" />
-                  <h3 className="font-semibold text-foreground mb-2">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-4">{item.desc}</p>
-                  <Button variant="outline" size="sm" className="gap-1">
-                    {item.cta} <ChevronRight className="h-3 w-3" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Trust badges */}
-        <section className="py-12">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-wrap justify-center gap-8 text-center">
-              {[
-                { icon: Shield, text: "Vendedores verificados" },
-                { icon: Truck, text: "Envío internacional" },
-                { icon: Award, text: "Productos auténticos" },
-                { icon: Heart, text: "Apoyo a comunidades" },
-              ].map((badge) => (
-                <div key={badge.text} className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <badge.icon className="h-5 w-5 text-primary" />
-                  {badge.text}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <Footer />
-
-        <CheckoutModal
-          isOpen={checkoutOpen}
-          onClose={() => setCheckoutOpen(false)}
-          item={selectedItem}
-        />
-
-        <ProductDetailModal
-          open={productModalOpen}
-          onOpenChange={setProductModalOpen}
-          product={selectedProduct}
-          shippingDest={shippingDest}
-          onShippingDestChange={setShippingDest}
-          onProceedToCheckout={handleProceedToCheckout}
-        />
-
-        <ArtisanChatModal
-          open={chatOpen}
-          onOpenChange={setChatOpen}
-          artesano={selectedArtisano}
-          chatHistory={chatHistory}
-          chatMessage={chatMessage}
-          onChatMessageChange={setChatMessage}
-          onSendMessage={handleSendMessage}
-        />
-      </div>
+      <Footer />
     </PageTransition>
   );
 }
