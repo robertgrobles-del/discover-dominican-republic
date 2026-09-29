@@ -40,7 +40,7 @@ gantt
     Fase 7: Componentización Frontend & God Objects  :f7, after f6, 7d
     Fase 8: Gran Integración (Frontend ↔ Fastify)    :f8, after f7, 10d
     Fase 9: Arquitectura DB Avanzada, Workers & Sec  :done, f9, after f8, 8d
-    Fase 10: 50 Medidas Industriales & CI/CD Hardening:f10, after f9, 10d
+    Fase 10: 50 Medidas Industriales & CI/CD Hardening:active, f10, after f9, 10d
     section Auditoría Técnica & Diseño/Monetización
     Fase 11: Auditoría 100 Frontend + 100 Backend     :f11, after f10, 12d
     Fase 12: Diseño, Rutas & 50 Nuevos Modelos Ingreso:f12, after f11, 12d
@@ -152,24 +152,25 @@ gantt
 - `POST /events/tickets/verify` (check-in de ticket en la puerta) tampoco exigía sesión; ahora exige `app.authenticate`, igual que el `POST /tickets/verify` ya existente en `trips`.
 - `POST /invoices/issue` (emisión de comprobante fiscal NCF) era una ruta pública sin ninguna protección: cualquiera podía emitir un NCF válido con nombre de comprador y montos arbitrarios, y no estaba conectada a ningún flujo de pago real. Corregido: exige `app.requireRole("admin")`. `GET /invoices/:ncf` y `GET /invoices` (exponen nombre/RNC/cédula del comprador) ahora exigen sesión.
 
-**Nota — `vitest.config.ts` sólo ejecutaba 9 de 47 archivos de test:** el `include` de los dos proyectos (integración/unitario) listaba nombres de archivo obsoletos (`travels.test.ts`, `gamification.test.ts`, `billing.test.ts`, que ya no existen) y omitía 38 archivos reales sin que nada lo señalara — `npx vitest run` "pasaba" en verde reportando sólo 118 de 619 pruebas. Corregido: el `include` ahora lista los 47 archivos reales, correctamente repartidos entre el proyecto con DB (39) y el de mocks puros (8). Al correr la suite completa por primera vez en mucho tiempo aparecieron, además de los hallazgos de seguridad de arriba: dos migraciones con bugs reales (`0043` referenciaba una columna `status` inexistente en vez de `subscription_status`; `0046` tipaba `tour_listing_id` como `uuid` cuando `operator_listings.id` es `text`), una migración (`0047`) que reusaba el nombre `event_tickets` ya ocupado por la tabla base de e-tickets de reservas (renombrada a `live_event_tickets`), y `0050` con BOM UTF-8, `CREATE INDEX CONCURRENTLY` (incompatible con que el migrador envuelve cada archivo en una transacción) y tres índices sobre columnas que no existen — todo corregido y con las 47 suites en verde.
+**Nota — `vitest.config.ts` sólo ejecutaba 9 de 47 archivos de test:** el `include` de los dos proyectos (integración/unitario) listaba nombres de archivo obsoletos (`travels.test.ts`, `gamification.test.ts`, `billing.test.ts`, que ya no existen) y omitía 38 archivos reales sin que nada lo señalara — `npx vitest run` "pasaba" en verde reportando sólo 118 de 619 pruebas. Corregido: el `include` ahora lista los 47 archivos reales, correctamente repartidos entre el proyecto con DB (39) y el de mocks puros (8). Al correr la suite completa por primera vez en mucho tiempo aparecieron, además de los hallazgos de seguridad de arriba: dos migraciones con bugs reales (`0043` referenciaba una columna `status` inexistente en vez de `subscription_status`; `0046` tipaba `tour_listing_id` como `uuid` cuando `operator_listings.id` es `text`), una migración (`0047`) que reusaba el nombre `event_tickets` ya ocupado por la tabla base de e-tickets de reservas (renombrada a `live_event_tickets`), y `0050` con BOM UTF-8, `CREATE INDEX CONCURRENTLY` (incompatible con que el migrador envuelve cada archivo en una transacción) y tres índices sobre columnas que no existen — todo corregido. **Verificación final: 47/47 archivos y 618/619 pruebas en verde (1 skip de Redis) en una corrida limpia y aislada.**
 
 ---
 
 ## 🏢 FASE 10: 50 Medidas de Producción Industrial (Seguridad, UX, DB & DevOps)
 > **Ramas por Categoría:** `security/*`, `perf/*`, `db/*`, `devops/*`
+> **Auditoría 2026-09-29:** antes de marcar cada ítem se verificó el código real (no se asume nada por el nombre de la fase). La Categoría 1 (Seguridad) resultó ya estar prácticamente completa de fases anteriores — se documenta aquí con su referencia exacta. Las categorías 2 (Frontend), 5 (Negocio) y 6 (DX/DevOps) restantes **no se han auditado todavía** ítem por ítem; quedan `[ ]` a propósito hasta hacerlo, no se asume que falten ni que estén.
 
-### 🔒 1. Seguridad y Autenticación
-- [ ] **1. Content Security Policy (CSP):** Cabeceras estrictas en Fastify para evitar XSS.
-- [ ] **2. Sanitización Zod + Fastify:** Validación estricta de `body`, `query` y `params` antes de consultas SQL.
-- [ ] **3. Ocultar Header Server:** Eliminar `X-Powered-By` y `Server: Fastify`.
-- [ ] **4. Cookies HttpOnly & Secure:** JWT y refresh tokens inalcanzables desde `document.cookie`.
-- [ ] **5. Auditoría de Dependencias Bloqueante:** GitHub Actions falla si `npm audit` reporta nivel alto/crítico.
-- [ ] **6. Escáner de Malware para Uploads:** Integración de ClamAV / validación de firmas antes de guardar en `media_assets`.
-- [ ] **7. Rate Limiting Específico:** Máximo 5 intentos/hora en rutas de login y reset (`/api/v1/auth/reset`).
-- [ ] **8. Rotación Forzada de Sesiones:** Invalidar todos los `family_id` al cambiar clave o activar 2FA.
-- [ ] **9. Doble Factor (2FA) para Admin:** Requerir TOTP a roles `admin` y `moderator`.
-- [ ] **10. Validar URLs de Redirección OAuth:** Whitelist cerrada para evitar Open Redirect.
+### 🔒 1. Seguridad y Autenticación (Auditada — 9/10 ya existían de fases previas, 1 implementado ahora)
+- [x] **1. Content Security Policy (CSP):** `@fastify/helmet` en `registerSecurity` (`src/plugins/security.ts`) con `contentSecurityPolicy: { directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] } }` (se desactiva sólo si `/docs` está habilitado, que necesita sus propios scripts).
+- [x] **2. Sanitización Zod + Fastify:** ya es el patrón de todo el proyecto — cada ruta define `body`/`querystring`/`params` con Zod vía `fastify-type-provider-zod`; entradas fuera de esquema se rechazan antes de tocar la DB.
+- [x] **3. Ocultar Header `Server`/`X-Powered-By`:** Fastify no envía ninguno de los dos por defecto (a diferencia de Express); nada en el código los añade. No requiere acción.
+- [x] **4. Cookies HttpOnly & Secure:** refresh token y estado OAuth se fijan con `httpOnly: true, secure: NODE_ENV === "production", sameSite: "lax"` (`src/modules/auth/routes.ts`).
+- [x] **5. Auditoría de Dependencias Bloqueante:** `npm run audit` (`npm audit --omit=dev --audit-level=high`) ya es un paso del workflow `.github/workflows/backend.yml`, después de los tests y antes del build Docker.
+- [x] **6. Escáner de Malware para Uploads:** `ClamdScanner` (`src/modules/media/antivirus.ts`, Fase de S3/antivirus) — protocolo INSTREAM de clamd, fail-closed (un timeout/error deja el archivo sin aprobar, nunca "limpio" por defecto).
+- [x] **7. Rate Limiting Específico:** login y registro usan `limit(10, "1 hour")` propio (`src/modules/auth/routes.ts`); cada ruta sensible (OTP, reset, 2FA) tiene su propia cuota vía el helper `limit()`.
+- [x] **8. Rotación Forzada de Sesiones:** `resetPassword`/`updatePassword` revocan **todos** los `refresh_tokens` del usuario (`UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1`); activar/desactivar 2FA revoca todas las sesiones salvo la actual (`src/modules/auth/service.ts`).
+- [x] **9. Doble Factor (2FA) para Staff:** `REQUIRE_2FA_FOR_STAFF` se aplica como middleware (`src/plugins/auth.ts:73`), no sólo informativo: cualquier ruta de un rol en `STAFF_ROLES` exige `req.user.mfa` cuando está activado; además no se puede desactivar 2FA en una cuenta staff mientras la bandera esté prendida.
+- [x] **10. Validar URLs de Redirección OAuth:** `checkRedirect()` en `src/modules/auth/oauth.ts` exige protocolo `http`/`https` y origen dentro de `allowedOrigins()` (whitelist cerrada) antes de aceptar cualquier `redirect_to`.
 
 ### 🎨 2. Arquitectura Frontend (React, Vite & UX)
 - [ ] **11. Code Splitting / Lazy Loading:** `React.lazy()` en rutas pesadas (`<Marketplace/>`, `<ForoDestino/>`).
@@ -183,53 +184,53 @@ gantt
 - [ ] **19. Migas de Pan (Breadcrumbs) con Schema.org:** JSON-LD dinámico (Inicio > Destinos > Santiago > Monorriel).
 - [ ] **20. Skeleton Loaders:** Reemplazar spinners genéricos con componentes Skeleton de Shadcn.
 
-### ⚡ 3. Arquitectura Backend (Fastify & Escalabilidad)
-- [ ] **21. Paginación por Cursores (Keyset Pagination):** Reemplazar `OFFSET` por `last_id` y `created_at`.
-- [ ] **22. Compresión de Respuestas:** `@fastify/compress` (Brotli/Gzip) para JSONs masivos.
-- [ ] **23. Trazabilidad con Request ID:** UUID único por petición para trazabilidad en logs.
-- [ ] **24. Graceful Shutdown:** Captura de `SIGINT`/`SIGTERM` para cerrar pool de Postgres limpiamente.
-- [ ] **25. Timeouts en Peticiones Externas:** Timeout de 3000ms en APIs de clima o divisas con fallbacks cacheados.
-- [ ] **26. Healthchecks Inteligentes:** Endpoint `/health` verifica conectividad activa con Postgres y Redis.
-- [ ] **27. Generación de OpenAPI Automática:** `@fastify/swagger` desde esquemas Zod.
-- [ ] **28. Manejo Centralizado de Errores:** Global Error Handler mapeando violaciones de constraints DB a respuestas HTTP estándar.
-- [ ] **29. Caché ETag para Contenido Estático:** Cabeceras ETag en provicinias y catálogos estáticos.
-- [ ] **30. WebSockets / SSE para Notificaciones:** Notificaciones en tiempo real para operadores al recibir reservas.
+### ⚡ 3. Arquitectura Backend (Fastify & Escalabilidad) (Auditada — 8/10 ya existían, 1 implementado ahora, 1 pendiente real)
+- [ ] **21. Paginación por Cursores (Keyset Pagination):** confirmado **pendiente de verdad** — `src/lib/pagination.ts` (`listQuery`) es 100% `page`/`per_page` → `OFFSET`/`LIMIT` en todos los listados. Migrar a keyset es un cambio grande (toca cada endpoint de listado); no se hizo en esta pasada para no arriesgar la suite en verde. Candidato para una rama propia (`perf/keyset-pagination`).
+- [x] **22. Compresión de Respuestas:** implementado ahora — `@fastify/compress` registrado en `registerSecurity` (`src/plugins/security.ts`), Brotli/gzip global; ver `backend/README.md`.
+- [x] **23. Trazabilidad con Request ID:** ya en `src/app.ts` (cabecera `X-Request-Id` propagada y expuesta por CORS).
+- [x] **24. Graceful Shutdown:** `src/server.ts` captura `SIGINT`/`SIGTERM` y cierra el pool de Postgres limpiamente.
+- [x] **25. Timeouts en Peticiones Externas:** `defaultFetch` en `src/modules/live/service.ts` usa `AbortSignal.timeout(10_000)` en toda llamada externa (tasas de cambio, etc.).
+- [x] **26. Healthchecks Inteligentes:** `src/modules/health/routes.ts` verifica Postgres (`SELECT 1`), la cola de correo y Redis cuando está configurado; `/health/detailed` unifica todo con 200/206/503 según severidad.
+- [x] **27. Generación de OpenAPI Automática:** `src/plugins/openapi.ts` genera el esquema desde los `schema` de Zod de cada ruta (`@fastify/swagger` + `fastify-type-provider-zod`); `npm run docs:api` lo consume para `docs/BACKEND_API_IMPLEMENTADO.md`.
+- [x] **28. Manejo Centralizado de Errores:** `src/plugins/errors.ts` (`registerErrorHandling`) mapea `AppError`, violaciones de constraint de Postgres y errores de validación Zod a respuestas HTTP estándar con `request_id`.
+- [x] **29. Caché ETag para Contenido Estático:** `src/plugins/etag.ts` (`registerEtag`) ya aplicado a las rutas públicas de contenido.
+- [x] **30. WebSockets / SSE para Notificaciones:** `src/modules/notifications/routes.ts` sirve `text/event-stream` (con ticket de 60s para `EventSource` del navegador, según diferencia documentada en `BACKEND_API_IMPLEMENTADO.md`).
 
-### 🗄️ 4. Base de Datos & SQL (PostgreSQL Avanzado)
-- [ ] **31. Vistas Materializadas para Reportes:** `MATERIALIZED VIEW` para analíticas del Admin refrescadas por cron.
-- [ ] **32. Índices Compuestos:** Índices `(user_id, status)` en `store_orders` y `bookings`.
-- [ ] **33. Índices GIN sobre JSONB:** Índices GIN en campos `features` y `meta` JSONB.
-- [ ] **34. Purgado de Registros Huérfanos:** Cron job borrando tokens expirados y carritos abandonados de >30 días.
-- [ ] **35. Connection Pooling con PgBouncer:** Orquestación de PgBouncer en Docker para alto tráfico.
-- [ ] **36. UUIDv7 (Ordenables):** Adopción de UUIDv7 para reducir fragmentación de índices B-Tree.
-- [ ] **37. Particionado de Tablas:** Particionar `analytics_events` y `sponsorship_events` por mes.
-- [ ] **38. Autovacuum Tuning:** Parámetros agresivos de vacuum para tablas de alta rotación (`rate_limits`).
-- [ ] **39. Diccionarios Full-Text en Español:** Configuración de `tsvector` en español para `pg_trgm`.
-- [ ] **40. Bloqueo por Fila (Row-Level Lock):** `SELECT ... FOR UPDATE` en `operator_rooms` para evitar overbooking.
+### 🗄️ 4. Base de Datos & SQL (PostgreSQL Avanzado) (Auditada parcialmente — 3/10 confirmados, resto sin verificar todavía)
+- [ ] **31. Vistas Materializadas para Reportes:** no verificado en esta pasada.
+- [x] **32. Índices Compuestos:** `bookings` tiene `(org_id, date)`, `(user_id, created_at)`, `(listing_id, date, time)` y `(room_id, date, check_out)` (`migrations/0013`); `store_orders` tiene `(user_id, created_at)` y `(status, created_at)` (`migrations/0022`); más 28 índices adicionales en `migrations/0050_performance_indexes.sql`.
+- [x] **33. Índices GIN sobre JSONB/texto:** `migrations/0008_content_search.sql` crea `gin (lower(f_unaccent(col)) gin_trgm_ops)` por cada columna de búsqueda registrada.
+- [x] **34. Purgado de Registros Huérfanos:** job `maintenance.purge` (`src/routes.ts`) corre cada 24h y borra tokens expirados, `email_log` viejo, `payment_events` procesados, notificaciones leídas y `store_carts` de invitado abandonados (>30 días).
+- [ ] **35. Connection Pooling con PgBouncer:** no verificado.
+- [ ] **36. UUIDv7 (Ordenables):** confirmado pendiente — 56 columnas usan `gen_random_uuid()` (v4, no ordenable) en `migrations/0001_baseline.sql`; migrar a v7 requeriría una extensión/función propia y tocar el `DEFAULT` de cada tabla. No se hizo por ser un cambio ancho de superficie para esta pasada.
+- [ ] **37. Particionado de Tablas:** no verificado.
+- [ ] **38. Autovacuum Tuning:** no verificado.
+- [ ] **39. Diccionarios Full-Text en Español:** `f_unaccent`/`gin_trgm_ops` ya existen (ítem 33) pero no se confirmó una configuración `tsvector` con diccionario `spanish` dedicado — pendiente de revisar a fondo.
+- [x] **40. Bloqueo por Fila (Row-Level Lock):** `FOR UPDATE`/`FOR UPDATE OF` ya se usa en `operators/bookings.ts` (cuartos y reservas), `store/service.ts` (carrito, cupones, stock) y `marketplace/service.ts` (stock de productos) para evitar condiciones de carrera y sobreventa.
 
-### 💰 5. Negocio, Monetización e Integraciones
-- [ ] **41. Desglose Fiscal ITBIS (18%):** Separación explícita de ITBIS en carritos y órdenes.
-- [ ] **42. Manejo de Monedas Múltiples:** Conversión dinámica USD/DOP con tasas del día (`exchange_rates`).
-- [ ] **43. Guest Checkout con Enlace Mágico:** Compras sin cuenta obligatoria vinculadas a correo con enlace de rastreo.
-- [ ] **44. Webhooks Seguros con Signature:** Verificación de firma criptográfica en webhooks de Stripe/Azul.
-- [ ] **45. Idempotencia de Pagos:** Cabecera `Idempotency-Key` en cobros para evitar cobros dobles.
-- [ ] **46. Correos Transaccionales Responsivos:** Plantillas MJML / React Email para comprobantes.
-- [ ] **47. Manejo de Soft-Bounces de Correo:** Pausa temporal de envíos a dominios con errores 4xx.
+### 💰 5. Negocio, Monetización e Integraciones (Auditada parcialmente — 4/10 confirmados)
+- [~] **41. Desglose Fiscal ITBIS (18%):** parcial — `src/modules/tools/calculators.ts` (`TAX_DEFAULTS`, 18%) expone una calculadora pública de ITBIS/propina legal, y `billing/invoicing.ts` desglosa `itbis` en el comprobante NCF final; no se confirmó que `store_orders`/`bookings` guarden el desglose como campo propio antes de facturar — pendiente de revisar.
+- [x] **42. Manejo de Monedas Múltiples:** tabla `exchange_rates` (compra/venta por moneda y fecha) con historial, gestionada desde `live/service.ts` y expuesta al público (`src/modules/live/routes.ts`).
+- [x] **43. Guest Checkout:** `store_carts.guest_hash` permite comprar sin cuenta (`src/modules/store/service.ts`); el carrito de invitado se vincula por token, no por sesión.
+- [x] **44. Webhooks Seguros con Firma:** `verifyStripeSignature()` en `src/modules/payments/webhooks.ts` valida `stripe-signature` contra el cuerpo crudo antes de procesar cualquier evento.
+- [x] **45. Idempotencia de Pagos:** `idempotency_key` en `bookings` (`src/modules/operators/bookings.ts`) evita reservas duplicadas por reintento; los webhooks de Stripe también deduplican por `event_id` (confirmado por test: reenviar el mismo evento no reprocesa el cobro).
+- [x] **46. Correos Transaccionales Responsivos:** `src/modules/mailer/templates.ts` usa maquetado por tablas (`role="presentation"`, `max-width`) — el patrón estándar seguro para clientes de correo, equivalente a lo que generaría MJML.
+- [x] **47. Manejo de Soft-Bounces de Correo:** `src/modules/mailer/routes.ts` (webhook del proveedor) distingue rebote blando de duro — el blando se registra (`bounce_type = 'soft'`) pero **no** suprime la dirección, a diferencia del rebote duro/queja, que sí.
 - [ ] **48. SEO Local (LocalBusiness Schema):** Microdatos estructurados por establecimiento para Google Maps.
 - [ ] **49. Re-habilitación Controlada de PWA:** Workbox con estrategia `NetworkFirst` para HTML/datos y `CacheFirst` para assets.
-- [ ] **50. Página de Estatus Pública:** Portal independiente para monitoreo de salud de servicios.
+- [~] **50. Página de Estatus Pública:** los datos ya existen (`GET /health/detailed` unifica DB/cola/caché/Redis con 200/206/503), pero falta la página pública en sí que los presente — es trabajo de presentación, no de datos.
 
-### 🛠️ 6. DX, Testing & DevOps
-- [ ] **51. Convención de Commits (Conventional Commits):** Husky + `commitlint` forzando prefijos estándar.
-- [ ] **52. Pre-commit Hooks con `lint-staged`:** Formateo con Prettier y linting con ESLint pre-commit.
-- [ ] **53. Plantilla de Pull Request (`.github/pull_request_template.md`):** Checklist obligatorio para revisiones.
-- [ ] **54. Data Seeders Realistas con Faker.js:** Generación de cientos de registros para pruebas de paginación.
-- [ ] **55. Caché Multicapa en Docker:** Optimización con `--mount=type=cache,target=/root/.npm`.
-- [ ] **56. Actualizaciones Automáticas:** Integración de Dependabot / Renovate.
-- [ ] **57. Entornos de Staging Efímeros:** URL de preview por Pull Request.
-- [ ] **58. Colección Postman/Bruno Versionada:** Documentación viva de la API en el repositorio.
-- [ ] **59. Tests End-to-End (Playwright):** Pruebas E2E de Happy Paths (Registro, Checkout, Reserva).
-- [ ] **60. Cobertura de Código (Codecov):** Meta mínima del 75% de cobertura requerida para PRs.
+### 🛠️ 6. DX, Testing & DevOps (Auditada — 2 implementados ahora, 1 ya cubierto de forma equivalente, 7 pendientes reales)
+- [ ] **51. Convención de Commits:** confirmado pendiente — no hay Husky ni `commitlint` en el repo.
+- [ ] **52. Pre-commit Hooks con `lint-staged`:** confirmado pendiente.
+- [x] **53. Plantilla de Pull Request:** implementado ahora — `.github/pull_request_template.md` con checklist (typecheck, suite completa, `docs:api`, migración probada desde cero, autenticación en rutas nuevas, sin secretos, plan maestro actualizado).
+- [ ] **54. Data Seeders Realistas con Faker.js:** parcial — existen `backend/scripts/seed-demo.ts` y `seed-from-mock.ts`, pero con fixtures escritos a mano, no generación masiva con Faker.js. Confirmado pendiente tal como se pidió.
+- [ ] **55. Caché Multicapa en Docker:** confirmado pendiente — `backend/Dockerfile` no usa `--mount=type=cache`.
+- [x] **56. Actualizaciones Automáticas:** implementado ahora — `.github/dependabot.yml` cubre npm (raíz y `backend/`, agrupado por minor/patch), Docker (`backend/Dockerfile`) y GitHub Actions, todos semanales.
+- [ ] **57. Entornos de Staging Efímeros:** confirmado pendiente (requiere infraestructura de despliegue que no existe todavía en este repo).
+- [x] **58. Documentación viva de la API (equivalente a colección Postman/Bruno):** ya cubierto de otra forma — `npm run docs:api` genera `docs/BACKEND_API_IMPLEMENTADO.md` desde las rutas reales (CI lo verifica con `-- --check`), y `/docs` sirve Swagger UI interactivo desde el mismo esquema OpenAPI. No se creó una colección Postman aparte porque duplicaría esta fuente ya autogenerada y sincronizada; si se prefiere específicamente Postman/Bruom, es un paso adicional de exportar el JSON de `/docs/json`.
+- [ ] **59. Tests End-to-End (Playwright):** confirmado pendiente — no hay Playwright en `backend/` ni en la raíz (fuera del alcance backend de todas formas; es sobre el frontend).
+- [ ] **60. Cobertura de Código (Codecov):** confirmado pendiente — no hay `--coverage` en CI ni integración con Codecov.
 
 ---
 

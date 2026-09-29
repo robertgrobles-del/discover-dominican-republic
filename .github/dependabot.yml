@@ -1,0 +1,39 @@
+# Fase 10.56 del plan maestro: actualizaciones automáticas de dependencias.
+# Agrupadas semanalmente para no generar decenas de PRs sueltos; cada ecosistema en su propio directorio de trabajo.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    groups:
+      frontend-minor-patch:
+        update-types: ["minor", "patch"]
+    labels: ["dependencies", "frontend"]
+
+  - package-ecosystem: "npm"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    groups:
+      backend-minor-patch:
+        update-types: ["minor", "patch"]
+    labels: ["dependencies", "backend"]
+
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels: ["dependencies", "docker"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels: ["dependencies", "ci"]
