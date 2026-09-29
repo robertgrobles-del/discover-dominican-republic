@@ -321,6 +321,12 @@ Deliberadamente **no** se encola `sponsorship_events`: su inserción vive dentro
 
 `readImage`/`sniffMime` (`src/modules/media/images.ts`) detectan el formato real de cada archivo subido por sus primeros bytes (firma PNG/JPEG/WebP/GIF), no por el `Content-Type` que declare el cliente ni por su extensión; `POST /media/:id/complete` y la importación por URL rechazan cualquier archivo cuyos bytes no correspondan a una imagen válida antes de procesarlo con `sharp` o de pasarlo al antivirus.
 
+## Paginación por cursor en las colecciones del CMS (Fase 10.21)
+
+Todo listado de una colección (`GET /destinations`, `/hotels`, ...) sigue aceptando `page`/`per_page` como siempre, pero ahora también admite `cursor` — más barato en páginas avanzadas, porque evita el `OFFSET`, que en Postgres obliga a recorrer y descartar todas las filas anteriores (cada vez más lento cuantas más páginas se avanzan). El flujo: pedir la primera página normal, y si la respuesta trae `meta.next_cursor`, usarlo como `?cursor=...` para pedir la siguiente; cuando no queden más filas, `next_cursor` es `null`.
+
+El cursor es opaco (base64url de los valores de la fila con la que terminó la página, en las columnas del `ORDER BY` activo) y sólo es válido junto con el mismo `sort` con el que se generó — no tiene sentido "seguir" en un orden distinto. No todo orden admite cursor: si alguna de sus columnas permite `NULL` en el esquema real (un `NULL` rompe silenciosamente la comparación `</>`), o el orden es por `distance` (con `near`, una expresión calculada), `meta.next_cursor` sencillamente no aparece — y si de todas formas se manda un `cursor` en esas condiciones, la API responde `400` en vez de devolver una página incompleta o repetida. `src/modules/content/query.ts` (`keysetEligible`, `buildKeysetWhere`, `resolveCursorWhere`) tiene el detalle; `test/content.test.ts` cubre el recorrido completo, el corte cuando ya no hay más filas, y el rechazo con columnas nulificables.
+
 ## Compresión de respuestas (Fase 10.22)
 
 `@fastify/compress` registrado en `registerSecurity` (`src/plugins/security.ts`) comprime toda respuesta con Brotli o gzip según lo que acepte el cliente (`global: true`). Las respuestas ya binarias (imágenes servidas desde `/media/files/*`) no se recomprimen: el filtro por `Content-Type` del propio plugin sólo actúa sobre tipos comprimibles (JSON, texto, XML del sitemap, etc.), así que los listados y exportaciones grandes son los que más se benefician.

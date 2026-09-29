@@ -8,8 +8,8 @@ import { PUBLIC_CACHE } from "../../plugins/etag.js";
 import { BY_PATH, BY_TABLE, COLLECTIONS, type CollectionDef } from "./collections.js";
 import type { ColType } from "./manifest-reader.js";
 import {
-  buildOrder, buildSelect, buildWhere, colType, hasCol, listColumns, manifest, mapRow, parseQuery, publicColumns, visibility,
-  type ParsedQuery,
+  buildOrder, buildSelect, buildWhere, colType, encodeCursor, hasCol, keysetEligible, listColumns, manifest, mapRow, parseQuery,
+  publicColumns, resolveCursorWhere, resolveSortSpecs, visibility, type ParsedQuery,
 } from "./query.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -45,8 +45,9 @@ const loose = z.union([z.string(), z.array(z.string())]);
 
 function baseQuery(d: CollectionDef) {
   return z.object({
-    page: z.string().optional().describe("Página (desde 1)"),
+    page: z.string().optional().describe("Página (desde 1); se ignora si se manda `cursor`"),
     per_page: z.string().optional().describe("Elementos por página (1-100, 24 por defecto)"),
+    cursor: z.string().optional().describe("Paginación por cursor (más eficiente que `page` en páginas avanzadas): usa `meta.next_cursor` de la respuesta anterior. Sólo funciona con el `sort` activo con el que se generó; si ese orden tiene alguna columna que admite vacío, o es por `distance`, se rechaza con 400."),
     q: z.string().optional().describe("Búsqueda de texto sin acentos ni mayúsculas"),
     sort: z.string().optional().describe(`Orden: ${d.sort.join(", ")}${d.geo ? ", distance (con near)" : ""}; prefijo - para descendente`),
     lang: z.string().optional().describe("es, en, fr, de, pt, it"),
@@ -57,7 +58,11 @@ function baseQuery(d: CollectionDef) {
   }).catchall(loose);
 }
 
-const listMeta = z.object({ page: z.number(), per_page: z.number(), total: z.number(), total_pages: z.number(), locale: z.string(), fallback_locale: z.string().optional() });
+const listMeta = z.object({
+  page: z.number(), per_page: z.number(), total: z.number(), total_pages: z.number(), locale: z.string(), fallback_locale: z.string().optional(),
+  /** Fase 10.21: presente sólo si el sort activo admite keyset y hay más filas; pásalo como `cursor` para la siguiente página. */
+  next_cursor: z.string().nullable().optional(),
+});
 
 export async function contentRoutes(app: FastifyInstance) {
   // Paquete consolidado de emergencia y datos clave para modo sin conexión PWA/Capacitor (#222)
@@ -156,14 +161,35 @@ function registerCollection(app: FastifyInstance, d: CollectionDef) {
     const locale = pickLocale(req, parsed.lang);
     const built = buildWhere(d, parsed);
     const sel = buildSelect(d, parsed, false, built.nearPh);
+    const specs = resolveSortSpecs(d, parsed);
     const order = buildOrder(d, parsed);
     const total = (await app.db.query<{ n: number }>(`SELECT count(*)::int AS n FROM ${T} WHERE ${built.where}`, built.params)).rows[0]!.n;
-    const { rows } = await app.db.query<Row>(
-      `SELECT ${sel.select} FROM ${T} WHERE ${built.where} ORDER BY ${order} LIMIT ${parsed.perPage} OFFSET ${(parsed.page - 1) * parsed.perPage}`, built.params,
-    );
+
+    // Fase 10.21: paginación por cursor (keyset) además de OFFSET, sin romper la firma existente.
+    const push = (v: unknown) => { built.params.push(v); return `$${built.params.length}`; };
+    const cursorWhere = resolveCursorWhere(d, parsed, specs, push);
+    const where = cursorWhere ? `${built.where} AND (${cursorWhere})` : built.where;
+    // Las columnas del sort activo tienen que viajar en el SELECT para poder armar el próximo cursor, aunque el
+    // cliente haya pedido `fields` más angosto (mapRow igual sólo copia a la salida lo que está en sel.fields).
+    const extraSortCols = specs.filter((s) => s.column !== "distance" && !sel.fields.includes(s.column)).map((s) => `"${s.column}"`);
+    const select = extraSortCols.length ? `${sel.select}, ${extraSortCols.join(", ")}` : sel.select;
+    const offset = cursorWhere ? "" : ` OFFSET ${(parsed.page - 1) * parsed.perPage}`;
+    // Si el sort admite cursor, se pide una fila de más: si llega, es la prueba de que hay una página siguiente de
+    // verdad (si sólo se mirara `rows.length === perPage`, la última página —que también viene "llena"— ofrecería
+    // por error un cursor que no lleva a ningún lado).
+    const canCursor = keysetEligible(d, specs);
+    const fetchLimit = canCursor ? parsed.perPage + 1 : parsed.perPage;
+    const { rows: fetched } = await app.db.query<Row>(`SELECT ${select} FROM ${T} WHERE ${where} ORDER BY ${order} LIMIT ${fetchLimit}${offset}`, built.params);
+    const hasMore = canCursor && fetched.length > parsed.perPage;
+    const rows = hasMore ? fetched.slice(0, parsed.perPage) : fetched;
+
+    const nextCursor = hasMore ? encodeCursor(specs, rows[rows.length - 1]!) : null;
     const tr = await decorate(rows, parsed, sel, locale);
     reply.header("cache-control", PUBLIC_CACHE).header("content-language", locale);
-    return { data: tr.rows, meta: { ...pageMeta(parsed.page, parsed.perPage, total), locale, ...(tr.fallback ? { fallback_locale: "es" } : {}) } };
+    return {
+      data: tr.rows,
+      meta: { ...pageMeta(parsed.page, parsed.perPage, total), locale, ...(tr.fallback ? { fallback_locale: "es" } : {}), ...(canCursor ? { next_cursor: nextCursor } : {}) },
+    };
   });
 
   // ---------- Facetas ----------

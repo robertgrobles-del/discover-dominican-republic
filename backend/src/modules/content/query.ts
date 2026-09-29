@@ -14,6 +14,7 @@ const q = (name: string) => `"${name}"`;
 export const cols = (table: string) => manifest[table] ?? {};
 export const hasCol = (table: string, c: string) => c in cols(table);
 export const colType = (table: string, c: string): ColType => cols(table)[c]!.type;
+export const colNullable = (table: string, c: string): boolean => cols(table)[c]?.nullable ?? true;
 
 /** Columnas públicas de una colección (detalle) y de su listado. */
 export const publicColumns = (d: CollectionDef) => Object.keys(cols(d.table)).filter((c) => !GOVERNANCE.has(c) && !d.exclude.includes(c));
@@ -32,7 +33,7 @@ export function visibility(d: CollectionDef): string {
 }
 
 // ---------- Parámetros ----------
-export const BASE_KEYS = new Set(["page", "per_page", "q", "sort", "lang", "include", "fields", "near", "radius", "limit"]);
+export const BASE_KEYS = new Set(["page", "per_page", "q", "sort", "lang", "include", "fields", "near", "radius", "limit", "cursor"]);
 const FILTER_RE = /^filter\[([a-z_0-9]+)\](?:\[(gte|lte|gt|lt|ne)\])?$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const OPS = { gte: ">=", lte: "<=", gt: ">", lt: "<", ne: "<>" } as const;
@@ -41,7 +42,7 @@ const PG_TYPE: Record<ColType, string> = { uuid: "uuid", text: "text", integer: 
 export interface ParsedFilter { column: string; op: "eq" | keyof typeof OPS | "contains"; values: string[]; type: ColType; kind: FilterKind }
 export interface ParsedQuery {
   page: number; perPage: number; q?: string; sort?: string; lang?: string; include: string[]; fields?: string[];
-  filters: ParsedFilter[]; near?: { lat: number; lng: number; radius: number };
+  filters: ParsedFilter[]; near?: { lat: number; lng: number; radius: number }; cursor?: string;
 }
 
 function coerceValue(type: ColType, column: string, v: string): string {
@@ -101,7 +102,7 @@ export function parseQuery(d: CollectionDef, raw: Record<string, unknown>): Pars
     const allowed = new Set([...publicColumns(d), "seo"]);
     for (const f of fields) if (!allowed.has(f)) throw AppError.validation(`fields no válido: ${f}`, { allowed: [...allowed] });
   }
-  return { page, perPage, q: str("q")?.trim().slice(0, 100) || undefined, sort: str("sort"), lang: str("lang"), include, fields, filters, near };
+  return { page, perPage, q: str("q")?.trim().slice(0, 100) || undefined, sort: str("sort"), lang: str("lang"), include, fields, filters, near, cursor: str("cursor") };
 }
 
 // ---------- SQL ----------
@@ -148,7 +149,8 @@ export function buildWhere(d: CollectionDef, p: ParsedQuery, opts: { skip?: stri
   return { where: where.join(" AND "), params, nearPh };
 }
 
-export function buildOrder(d: CollectionDef, p: ParsedQuery): string {
+/** El orden activo (columnas pedidas por `sort=`, o el default de la colección) sin el desempate por `id`. */
+function activeSortSpecs(d: CollectionDef, p: ParsedQuery): SortSpec[] {
   const allowed = new Set([...d.sort, ...(p.near ? ["distance"] : [])]);
   let specs: SortSpec[] = d.defaultSort;
   if (p.near && !p.sort) specs = [{ column: "distance", dir: "ASC" }];
@@ -160,8 +162,76 @@ export function buildOrder(d: CollectionDef, p: ParsedQuery): string {
       specs.push({ column, dir: part.startsWith("-") ? "DESC" : "ASC" });
     }
   }
-  const sql = specs.map((s) => (s.column === "distance" ? `distance_m ${s.dir}` : `${q(s.column)} ${s.dir}${s.dir === "DESC" ? " NULLS LAST" : ""}`));
-  return `${sql.join(", ")}${sql.length ? ", " : ""}${q("id")}`;
+  return specs;
+}
+
+/** El orden activo CON el desempate final por `id` (única y NOT NULL: garantiza un orden determinista, base tanto
+ * de `ORDER BY` como de la paginación por cursor — item 21 del plan maestro). */
+export function resolveSortSpecs(d: CollectionDef, p: ParsedQuery): SortSpec[] {
+  return [...activeSortSpecs(d, p), { column: "id", dir: "ASC" as const }];
+}
+
+export function buildOrder(d: CollectionDef, p: ParsedQuery): string {
+  return resolveSortSpecs(d, p).map((s) => (s.column === "distance" ? `distance_m ${s.dir}` : `${q(s.column)} ${s.dir}${s.dir === "DESC" ? " NULLS LAST" : ""}`)).join(", ");
+}
+
+// ---------- Paginación por cursor (keyset; Fase 10.21) ----------
+// El cursor es opaco: base64url de un array JSON con el valor de cada columna del ORDER BY activo (incluido el
+// `id` final) tomado de la última fila de la página anterior. Evita el OFFSET, que en Postgres obliga a recorrer
+// y descartar todas las filas previas — cada vez más lento a medida que se avanza en páginas grandes.
+export function encodeCursor(specs: SortSpec[], row: Record<string, unknown>): string {
+  const values = specs.map((s) => {
+    const v = row[s.column === "distance" ? "distance_m" : s.column];
+    return v instanceof Date ? v.toISOString() : v;
+  });
+  return Buffer.from(JSON.stringify(values), "utf8").toString("base64url");
+}
+
+function decodeCursor(cursor: string): unknown[] {
+  try {
+    const parsed: unknown = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8"));
+    if (!Array.isArray(parsed)) throw new Error("no es un array");
+    return parsed;
+  } catch {
+    throw AppError.validation("El cursor no es válido; pide una página nueva sin `cursor`.", { field: "cursor" });
+  }
+}
+
+/**
+ * Condición SQL "después de este cursor" para el `ORDER BY` activo, respetando ASC/DESC de cada columna (una
+ * comparación de tupla simple con `>`/`<` sólo sirve si TODAS las columnas van en la misma dirección).
+ * Devuelve `null` cuando el sort no es apto para keyset: alguna columna admite NULL (además de `id`, que es
+ * PK y por tanto nunca lo admite) — un NULL rompe `<`/`>` silenciosamente y produciría páginas incompletas —,
+ * o el sort es por `distance` (near), que es una expresión calculada y queda fuera del alcance de esta primera
+ * versión. En ambos casos el cursor se ignora con un error claro en vez de devolver una página equivocada.
+ */
+export function keysetEligible(d: CollectionDef, specs: SortSpec[]): boolean {
+  return !specs.some((s) => s.column === "distance") && !specs.some((s) => s.column !== "id" && colNullable(d.table, s.column));
+}
+
+export function buildKeysetWhere(d: CollectionDef, specs: SortSpec[], cursorValues: unknown[], push: (v: unknown) => string): string | null {
+  if (specs.length !== cursorValues.length || !keysetEligible(d, specs)) return null;
+
+  let cond = "";
+  for (let i = specs.length - 1; i >= 0; i--) {
+    const s = specs[i]!;
+    const c = q(s.column);
+    const type = colType(d.table, s.column);
+    const ph = push(cursorValues[i]);
+    const gt = `${c} ${s.dir === "DESC" ? "<" : ">"} ${ph}::${PG_TYPE[type]}`;
+    cond = cond ? `(${gt} OR (${c} = ${ph}::${PG_TYPE[type]} AND ${cond}))` : gt;
+  }
+  return cond;
+}
+
+/** Decodifica y valida el cursor de la petición contra el sort activo; null si no hay cursor. Lanza 400 si el
+ * cliente pidió `cursor` pero el sort actual no admite keyset (ver `buildKeysetWhere`). */
+export function resolveCursorWhere(d: CollectionDef, p: ParsedQuery, specs: SortSpec[], push: (v: unknown) => string): string | null {
+  if (!p.cursor) return null;
+  const values = decodeCursor(p.cursor);
+  const where = buildKeysetWhere(d, specs, values, push);
+  if (!where) throw AppError.validation("Este orden no admite `cursor` (alguna columna admite valores vacíos, o es por cercanía); usa `page` en su lugar.", { field: "cursor" });
+  return where;
 }
 
 /** Lista de columnas a seleccionar (más `distance_m` si hay `near`). */

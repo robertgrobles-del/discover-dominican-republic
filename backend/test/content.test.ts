@@ -90,6 +90,37 @@ describe("colecciones públicas", () => {
       expect(p2.meta).toMatchObject({ total: 3, total_pages: 2 });
     });
 
+    it("pagina por cursor (keyset) sin repetir ni saltar filas, en el mismo orden que page/per_page", async () => {
+      // sort=name es una sola columna NOT NULL (a diferencia del orden por defecto, que empieza por is_featured
+      // — esa sí admite NULL en el esquema real aunque en la práctica siempre tenga true/false), así que sí admite cursor.
+      const p1 = json(await get("/beaches?sort=name&per_page=1"));
+      expect(p1.meta.next_cursor).toBeTruthy();
+      expect(p1.data.map((x: { name: string }) => x.name)).toEqual(["Playa Bávaro"]); // orden alfabético: Bávaro < Macao < Rincón
+
+      const p2 = json(await get(`/beaches?sort=name&per_page=1&cursor=${encodeURIComponent(p1.meta.next_cursor)}`));
+      expect(p2.meta.next_cursor).toBeTruthy();
+      expect(p2.data.map((x: { name: string }) => x.name)).toEqual(["Playa Macao"]);
+      // El total sigue reflejando la colección completa (no sólo lo que queda por delante del cursor).
+      expect(p2.meta).toMatchObject({ total: 3 });
+
+      const p3 = json(await get(`/beaches?sort=name&per_page=1&cursor=${encodeURIComponent(p2.meta.next_cursor)}`));
+      expect(p3.data.map((x: { name: string }) => x.name)).toEqual(["Playa Rincón"]);
+      // Última página: no hay más filas después de esta, así que no debe ofrecer un próximo cursor.
+      expect(p3.meta.next_cursor).toBeFalsy();
+    });
+
+    it("no ofrece cursor en el orden por defecto (is_featured admite NULL en el esquema) ni en sort=rating (también nullable); un cursor forzado ahí se rechaza con 400", async () => {
+      expect(json(await get("/beaches?per_page=1")).meta.next_cursor).toBeUndefined();
+      const noCursor = json(await get("/beaches?sort=rating&per_page=1"));
+      expect(noCursor.meta.next_cursor).toBeUndefined();
+      const rejected = await get("/beaches?sort=rating&per_page=1&cursor=" + Buffer.from(JSON.stringify(["4.90", "b1000000-0000-4000-8000-000000000003"])).toString("base64url"));
+      expect(rejected.statusCode).toBe(400);
+    });
+
+    it("un cursor con formato inválido (no es el base64 de un array JSON) se rechaza con 400", async () => {
+      expect((await get("/beaches?cursor=esto-no-es-un-cursor-valido")).statusCode).toBe(400);
+    });
+
     it("el listado omite los campos pesados; el detalle los incluye", async () => {
       const item = json(await get("/beaches")).data[0];
       expect(item).not.toHaveProperty("description");
