@@ -9,7 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/hooks/useI18n";
+import { ResponsiveImage } from "@/components/ResponsiveImage";
 import whaleSamanaImg from "@/assets/whale-samana.jpg";
+import heroAvif from "@/assets/whale-samana.avif";
+import heroWebp from "@/assets/whale-samana.webp";
 import heroBeachImg from "@/assets/hero-beach.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
@@ -363,8 +366,10 @@ export function HeroSlideshow() {
     >
       {/* Static first image always present for instant LCP with 0 delay */}
       <div className="absolute inset-0 z-0">
-        <img
+        <ResponsiveImage
           src={slidesData[0].image}
+          avif={heroAvif}
+          webp={heroWebp}
           alt="Playas paradisíacas de República Dominicana"
           width="1920"
           height="1080"

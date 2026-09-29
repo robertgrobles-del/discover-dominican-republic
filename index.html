@@ -57,8 +57,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-    <!-- Preload LCP hero image -->
-    <link rel="preload" as="image" href="/src/assets/whale-samana.jpg" fetchpriority="high" />
+    <!-- Preload LCP hero image: sólo AVIF (soporte amplio en navegadores modernos) para no precargar dos formatos a
+         la vez; el <picture> de Hero.tsx sigue sirviendo WebP/JPEG como respaldo para el resto (Fase 10.17). -->
+    <link rel="preload" as="image" href="/src/assets/whale-samana.avif" type="image/avif" fetchpriority="high" />
 
     <!-- Non-render-blocking Google Fonts -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />

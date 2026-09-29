@@ -2,7 +2,10 @@ import { motion } from "framer-motion";
 import { Play, ChevronRight, Sun, Ruler, Landmark, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/hooks/useI18n";
+import { ResponsiveImage } from "@/components/ResponsiveImage";
 import heroImage from "@/assets/whale-samana.jpg";
+import heroImageAvif from "@/assets/whale-samana.avif";
+import heroImageWebp from "@/assets/whale-samana.webp";
 
 export function Hero() {
   const { t } = useTranslation();
@@ -24,8 +27,10 @@ export function Hero() {
           transition={{ duration: 20, ease: "linear" }}
           className="h-full w-full"
         >
-          <img
+          <ResponsiveImage
             src={heroImage}
+            avif={heroImageAvif}
+            webp={heroImageWebp}
             alt="Ballena jorobada en Bahía de Samaná"
             className="h-full w-full object-cover"
           />
