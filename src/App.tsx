@@ -49,6 +49,7 @@ const Alojamientos = lazy(() => import("./pages/Alojamientos"));
 const Estadisticas = lazy(() => import("./pages/Estadisticas"));
 const Partners = lazy(() => import("./pages/Partners"));
 const SobreNosotros = lazy(() => import("./pages/SobreNosotros"));
+const EstadoServicio = lazy(() => import("./pages/EstadoServicio"));
 // Operadores RD (reservas directas) y Tienda oficial
 const Top100 = lazy(() => import("./modules/viajero/RetoTop100"));
 const OperadoresLanding = lazy(() => import("./modules/operadores/pages/OperadoresLanding"));
@@ -359,6 +360,7 @@ function AnimatedRoutes() {
           <Route path="/planes" element={<PricingPlan />} />
           <Route path="/anunciate" element={<PricingPlan />} />
           <Route path="/sobre-nosotros" element={<SobreNosotros />} />
+          <Route path="/estado" element={<EstadoServicio />} />
           <Route path="/sitemap" element={<Sitemap />} />
           <Route path="/destinos-regiones" element={<DestinosRegiones />} />
           <Route path="/destino/:slug" element={<DestinoDetalle />} />
