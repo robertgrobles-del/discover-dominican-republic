@@ -21,16 +21,23 @@ export interface CommentItem {
 }
 
 interface CommentSectionProps {
-  contentId: string;
-  contentType: "destination" | "article" | "route" | "general" | "province" | "restaurant" | "hotel" | "bar" | "parque";
+  contentId?: string;
+  contentType?: "destination" | "article" | "route" | "general" | "province" | "restaurant" | "hotel" | "bar" | "parque" | "activity" | "playa" | "rio" | string;
+  targetId?: string;
+  targetType?: string;
+  targetName?: string;
   title?: string;
 }
 
 export const CommentSection: React.FC<CommentSectionProps> = ({
-  contentId,
-  contentType,
-  title = "Comentarios y Experiencias de Viajeros"
+  contentId: rawContentId,
+  contentType = "general",
+  targetId,
+  targetType,
+  targetName,
+  title = "Opiniones de la Comunidad",
 }) => {
+  const contentId = rawContentId || targetId || "";
   const { user } = useAuth();
   const [comments, setComments] = useState<CommentItem[]>([
     {

@@ -307,6 +307,20 @@ Transportes: `MAIL_TRANSPORT=log` (desarrollo: el mensaje con sus enlaces sale e
 
 `RATE_LIMIT_STORE=memory` (por defecto, una sola instancia) · `postgres` (tabla `rate_limits`, atómica, compartida entre instancias, sin infraestructura extra) · `redis` (`REDIS_URL`). Cada ruta con límite propio (registro, login, olvidé mi contraseña, 2FA, OAuth) tiene su contador. Si el almacén falla la API sigue respondiendo (falla abierta): los intentos de contraseña y de segundo factor siguen protegidos por el bloqueo de cuenta, que vive en la base de datos. En producción con `memory` se registra una advertencia.
 
+## Cola de telemetría (Fase 9.1)
+
+`app.telemetryQueue` (`src/lib/telemetry-queue.ts`) delega a Redis la ingesta de `POST /analytics/events` cuando `REDIS_URL` está configurado: cada lote del cliente se encola (`LPUSH telemetry:analytics_events`) en vez de insertarse directo en la tabla transaccional, y el trabajo programado `analytics.flush_queue` (cada 30 s) lo vacía en lotes de hasta 500 filas con `RPOP ... COUNT`. Sin `REDIS_URL`, o si falla encolar algún evento del lote, se inserta directo como antes — el cambio es transparente y no requiere infraestructura adicional para desarrollo o una sola instancia.
+
+Deliberadamente **no** se encola `sponsorship_events`: su inserción vive dentro de la misma transacción que valida la creatividad/campaña y actualiza `impressions_count`/`clicks_count`/`budget_spent` (dinero real). Diferir esa escritura cambiaría cuándo se confirma el gasto publicitario y podría perder eventos con efecto financiero si el proceso muere antes de vaciar la cola; se prioriza la consistencia inmediata sobre el throughput ahí.
+
+## Bloqueo entre instancias en trabajos programados (Fase 9.2)
+
+`JobRunner.execute()` (`src/modules/jobs/runner.ts`) ya reclama cada trabajo vencido con un único `UPDATE system_cron_jobs SET status = 'running' ... WHERE (status IS DISTINCT FROM 'running' OR started_at < now() - interval '60 min') RETURNING id`: el `UPDATE` es atómico a nivel de fila en PostgreSQL, así que con varias instancias corriendo el mismo proceso sólo una obtiene la fila devuelta y ejecuta el trabajo — el resto ve `rowCount = 0` y no hace nada. Un trabajo que quedó `running` más de 60 minutos (proceso caído) se considera huérfano y se puede reclamar de nuevo. Cumple el mismo objetivo que `pg_advisory_lock`/Redlock sin depender de una conexión persistente ni de infraestructura adicional, y además deja el estado de cada trabajo visible y editable desde el panel admin.
+
+## Verificación de magic bytes en medios (Fase 9.3)
+
+`readImage`/`sniffMime` (`src/modules/media/images.ts`) detectan el formato real de cada archivo subido por sus primeros bytes (firma PNG/JPEG/WebP/GIF), no por el `Content-Type` que declare el cliente ni por su extensión; `POST /media/:id/complete` y la importación por URL rechazan cualquier archivo cuyos bytes no correspondan a una imagen válida antes de procesarlo con `sharp` o de pasarlo al antivirus.
+
 ## Sobre el esquema generado
 
 `0001_baseline.sql` y `0002_cms_governance.sql` se **generan** con `npm run db:gen-baseline` combinando:

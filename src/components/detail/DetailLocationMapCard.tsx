@@ -9,6 +9,9 @@ interface DetailLocationMapCardProps {
   coordinates?: { lat: number; lng: number };
   parkingNotes?: string;
   howToGetThereNotes?: string;
+  locationName?: string;
+  howToGetThere?: string;
+  googleMapsQuery?: string;
 }
 
 export const DetailLocationMapCard: React.FC<DetailLocationMapCardProps> = ({

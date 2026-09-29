@@ -8,6 +8,10 @@ interface DetailPageSidebarAdProps {
   showDemo?: boolean;
   variant?: SidebarAdVariant;
   industry?: IndustryCategory;
+  category?: string;
+  location?: string;
+  position?: string;
+  section?: string;
 }
 
 export function DetailPageSidebarAd({ 

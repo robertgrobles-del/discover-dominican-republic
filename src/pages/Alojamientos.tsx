@@ -30,6 +30,8 @@ import {
   Hotel, Airbnb, FALLBACK_HOTELS, FALLBACK_AIRBNBS 
 } from "@/data/fallbackAccommodations";
 
+export type AccommodationType = "all" | "hotel" | "airbnb";
+
 export default function Alojamientos() {
   const [type, setType] = useState<AccommodationType>("all");
   const [categoryFilter, setCategoryFilter] = useState("all");

@@ -6,12 +6,14 @@ import { Button } from "./button";
 interface LightboxProps {
   images: string[];
   initialIndex?: number;
-  isOpen: boolean;
+  isOpen?: boolean;
+  open?: boolean;
   onClose: () => void;
   alt?: string;
 }
 
-export function Lightbox({ images, initialIndex = 0, isOpen, onClose, alt = "Image" }: LightboxProps) {
+export function Lightbox({ images, initialIndex = 0, isOpen, open, onClose, alt = "Image" }: LightboxProps) {
+  const activeOpen = isOpen !== undefined ? isOpen : (open !== undefined ? open : false);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isZoomed, setIsZoomed] = useState(false);
 
@@ -27,7 +29,7 @@ export function Lightbox({ images, initialIndex = 0, isOpen, onClose, alt = "Ima
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isOpen) return;
+      if (!activeOpen) return;
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowRight") goNext();
       if (e.key === "ArrowLeft") goPrev();
@@ -35,10 +37,10 @@ export function Lightbox({ images, initialIndex = 0, isOpen, onClose, alt = "Ima
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose, goNext, goPrev]);
+  }, [activeOpen, onClose, goNext, goPrev]);
 
   useEffect(() => {
-    if (isOpen) {
+    if (activeOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";

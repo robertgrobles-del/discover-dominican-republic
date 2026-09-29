@@ -23,6 +23,7 @@ export interface PassportStamp {
   notes?: string;
   photos?: string[];
   rating?: number;
+  location_id?: string;
   is_verified: boolean;
   created_at: string;
 }

@@ -5,13 +5,20 @@ import { Heart, Share2 } from "lucide-react";
 interface DetailFloatingBarProps {
   priceLabel?: string;
   priceValue?: string;
-  primaryActionLabel: string;
-  onPrimaryAction: () => void;
+  primaryActionLabel?: string;
+  onPrimaryAction?: () => void;
   primaryActionIcon?: React.ReactNode;
   isSaved?: boolean;
   onToggleSave?: () => void;
   onShare?: () => void;
   disabled?: boolean;
+
+  title?: string;
+  price?: string;
+  pricePeriod?: string;
+  rating?: number;
+  ctaText?: string;
+  onCtaClick?: () => void;
 }
 
 export const DetailFloatingBar: React.FC<DetailFloatingBarProps> = ({
@@ -24,11 +31,17 @@ export const DetailFloatingBar: React.FC<DetailFloatingBarProps> = ({
   onToggleSave,
   onShare,
   disabled = false,
+  price,
+  ctaText,
+  onCtaClick,
 }) => {
+  const displayPrice = priceValue || price || "";
+  const displayCta = primaryActionLabel || ctaText || "Reservar";
+  const handleAction = onPrimaryAction || onCtaClick || (() => {});
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-t border-border p-3 px-4 shadow-xl md:hidden">
       <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
-        {priceValue ? (
+        {displayPrice ? (
           <div>
             {priceLabel && (
               <span className="text-[10px] text-muted-foreground uppercase font-bold block leading-none">
@@ -36,7 +49,7 @@ export const DetailFloatingBar: React.FC<DetailFloatingBarProps> = ({
               </span>
             )}
             <span className="text-base font-black text-foreground block leading-tight mt-0.5">
-              {priceValue}
+              {displayPrice}
             </span>
           </div>
         ) : (
@@ -67,11 +80,11 @@ export const DetailFloatingBar: React.FC<DetailFloatingBarProps> = ({
         <Button
           size="sm"
           disabled={disabled}
-          onClick={onPrimaryAction}
+          onClick={handleAction}
           className="flex-1 rounded-2xl font-bold text-xs h-10 shadow-md gap-1.5"
         >
           {primaryActionIcon}
-          {primaryActionLabel}
+          {displayCta}
         </Button>
       </div>
     </div>

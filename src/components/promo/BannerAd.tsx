@@ -625,7 +625,7 @@ export function InlineAd({ className, showDemo = false, variant = "medium", sect
   );
 }
 
-export function BetweenSectionsAd({ className, showDemo = false, section, industry }: { className?: string; showDemo?: boolean; section?: string; industry?: IndustryCategory }) {
+export function BetweenSectionsAd({ className, showDemo = false, section, industry, position }: { className?: string; showDemo?: boolean; section?: string; industry?: IndustryCategory; position?: string }) {
   return (
     <div className={cn("w-full py-6 container mx-auto px-4 lg:px-8", className)}>
       <div className="hidden md:block w-full">

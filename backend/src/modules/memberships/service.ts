@@ -192,7 +192,7 @@ export class MembershipsAndTicketingService {
     const curr = params.currency || "USD";
 
     const insertRes = await this.pool.query(
-      `INSERT INTO event_tickets (
+      `INSERT INTO live_event_tickets (
         id, event_id, user_id, tier_name, price_paid, currency, qr_code_hash, status, metadata
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'ISSUED', $8)
       RETURNING *`,
@@ -217,7 +217,7 @@ export class MembershipsAndTicketingService {
 
   async verifyAndCheckInTicket(qrCodeHash: string): Promise<EventTicket> {
     const res = await this.pool.query(
-      `SELECT * FROM event_tickets WHERE qr_code_hash = $1 LIMIT 1`,
+      `SELECT * FROM live_event_tickets WHERE qr_code_hash = $1 LIMIT 1`,
       [qrCodeHash]
     );
 
@@ -235,7 +235,7 @@ export class MembershipsAndTicketingService {
     }
 
     const updateRes = await this.pool.query(
-      `UPDATE event_tickets 
+      `UPDATE live_event_tickets 
        SET status = 'CHECKED_IN', checked_in_at = NOW(), updated_at = NOW()
        WHERE id = $1
        RETURNING *`,

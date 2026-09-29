@@ -39,8 +39,11 @@ export interface FreeTicketData {
 
 interface FreeTicketModalProps {
   open: boolean;
-  onClose: () => void;
-  event: {
+  onClose?: () => void;
+  onOpenChange?: (open: boolean) => void;
+  eventName?: string;
+  eventDate?: string;
+  event?: {
     id: string;
     name: string;
     start_date?: string;

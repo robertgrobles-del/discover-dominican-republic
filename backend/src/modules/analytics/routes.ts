@@ -69,6 +69,12 @@ export async function analyticsRoutes(app: FastifyInstance) {
       const t = e.ts && Math.abs(new Date(e.ts).getTime() - now) < 86_400_000 ? e.ts : new Date(now).toISOString();
       return [e.type, cleanPage(e.page), e.session_id.slice(0, 64), JSON.stringify(cleanProps(e.props)), t, c, cleanSource(e.source)];
     });
+    // Fase 9.1: con Redis configurado, encolar en vez de insertar en la DB transaccional (un trabajo programado vacía la cola en lotes).
+    // Si no hay Redis, o si falló encolar algún evento del lote, se inserta directo como antes (comportamiento sin cambios).
+    if (app.telemetryQueue.enabled) {
+      const queued = await Promise.all(rows.map((row) => app.telemetryQueue.push("analytics_events", row)));
+      if (queued.every(Boolean)) return null;
+    }
     const values = rows.map((_, i) => `($${i * 7 + 1},$${i * 7 + 2},$${i * 7 + 3},$${i * 7 + 4},$${i * 7 + 5},$${i * 7 + 6},$${i * 7 + 7})`).join(",");
     await db.query(`INSERT INTO analytics_events (event_type, page, session_id, metadata, created_at, country, source) VALUES ${values}`, rows.flat());
     return null;
@@ -289,6 +295,22 @@ export async function analyticsRoutes(app: FastifyInstance) {
 
 /** Retención (docs §14/§9): agrega por día lo que sale de la ventana de 13 meses y borra los eventos crudos ya agregados. */
 export function registerAnalyticsJobs(app: FastifyInstance, runner: JobRunner) {
+  runner.register({
+    name: "analytics.flush_queue", description: "Vacía en lotes la cola Redis de eventos de analítica hacia PostgreSQL (Fase 9.1; no hace nada si no hay Redis)", everySeconds: 30,
+    run: async () => {
+      if (!app.telemetryQueue.enabled) return { flushed: 0 };
+      let flushed = 0;
+      for (;;) {
+        const batch = (await app.telemetryQueue.drain("analytics_events", 500)) as [string, string | null, string, string, string, string | null, string | null][];
+        if (batch.length === 0) break;
+        const values = batch.map((_, i) => `($${i * 7 + 1},$${i * 7 + 2},$${i * 7 + 3},$${i * 7 + 4},$${i * 7 + 5},$${i * 7 + 6},$${i * 7 + 7})`).join(",");
+        await app.db.query(`INSERT INTO analytics_events (event_type, page, session_id, metadata, created_at, country, source) VALUES ${values}`, batch.flat());
+        flushed += batch.length;
+        if (batch.length < 500) break;
+      }
+      return { flushed };
+    },
+  });
   runner.register({
     name: "analytics.rollup", description: `Agrega por día y purga los eventos de más de ${RETENTION_MONTHS} meses`, everySeconds: 86_400,
     run: async () => {

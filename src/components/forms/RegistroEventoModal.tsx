@@ -21,7 +21,8 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface RegistroEventoModalProps {
   open: boolean;
-  onClose: () => void;
+  onClose?: () => void;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps) {

@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS loyalty_points_ledger (
 CREATE INDEX IF NOT EXISTS idx_loyalty_ledger_user ON loyalty_points_ledger(user_id);
 
 -- Ticketing para eventos en vivo (#20)
-CREATE TABLE IF NOT EXISTS event_tickets (
+CREATE TABLE IF NOT EXISTS live_event_tickets (
   id VARCHAR(64) PRIMARY KEY,
   event_id VARCHAR(64) NOT NULL,
   user_id VARCHAR(64) NOT NULL,
@@ -61,9 +61,9 @@ CREATE TABLE IF NOT EXISTS event_tickets (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_event_tickets_event ON event_tickets(event_id);
-CREATE INDEX IF NOT EXISTS idx_event_tickets_user ON event_tickets(user_id);
-CREATE INDEX IF NOT EXISTS idx_event_tickets_qr ON event_tickets(qr_code_hash);
+CREATE INDEX IF NOT EXISTS idx_event_tickets_event ON live_event_tickets(event_id);
+CREATE INDEX IF NOT EXISTS idx_event_tickets_user ON live_event_tickets(user_id);
+CREATE INDEX IF NOT EXISTS idx_event_tickets_qr ON live_event_tickets(qr_code_hash);
 
 -- Semilla de planes de membresía VIP (#19 Pasaporte RD)
 INSERT INTO membership_plans (id, slug, name, description, price_annual, points_multiplier, benefits, is_active)

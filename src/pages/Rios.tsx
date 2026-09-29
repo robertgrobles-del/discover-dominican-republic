@@ -17,7 +17,7 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { BetweenSectionsAd, CompactInlineAd, MobileStickyFooterAd, PanoramaAd } from "@/components/promo";
 import { FavoriteButton } from "@/components/FavoriteButton";
-import { rivers as allRivers, River } from "@/data/rivers";
+import { rivers as allRivers, River, riverTypeLabels } from "@/data/rivers";
 import { getSafeCoverImage } from "@/lib/imageCovers";
 import {
   Accordion,

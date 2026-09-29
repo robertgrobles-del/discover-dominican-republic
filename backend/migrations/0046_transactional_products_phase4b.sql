@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS dynamic_packages (
   destination_id uuid REFERENCES destinations(id) ON DELETE SET NULL,
   duration_days integer NOT NULL CHECK (duration_days > 0),
   hotel_partner_id uuid REFERENCES partner_profiles(id) ON DELETE SET NULL,
-  tour_listing_id uuid REFERENCES operator_listings(id) ON DELETE SET NULL,
+  tour_listing_id text REFERENCES operator_listings(id) ON DELETE SET NULL,
   transport_type text CHECK (transport_type IN ('airport_transfer', 'rental_car', 'none')),
   base_price numeric(12,2) NOT NULL CHECK (base_price >= 0),
   currency text NOT NULL DEFAULT 'DOP',

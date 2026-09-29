@@ -274,7 +274,7 @@ export default function AlojamientoDetalle() {
       {/* Mobile Floating Bar */}
       <DetailFloatingBar
         priceLabel="Desde"
-        priceValue={`US$ ${selectedRoom.pricePerNight ?? selectedRoom.price ?? 140} / noche`}
+        priceValue={`US$ ${selectedRoom.price} / noche`}
         primaryActionLabel="Reservar Habitación"
         onPrimaryAction={() => {
           const checkinElement = document.getElementById("hotel-checkin");

@@ -126,8 +126,8 @@ export default function ProvinciaDetalle() {
             imageUrl: getSafeCoverImage(eh.imageUrl, "hotel", eh.slug),
             shortDescription: eh.shortDescription,
             rating: eh.rating,
-            priceRange: eh.priceRange,
-            category: eh.category,
+            priceRange: eh.priceRange as any,
+            category: eh.category as any,
             address: eh.address,
           });
           slugs.add(eh.slug);
@@ -172,7 +172,7 @@ export default function ProvinciaDetalle() {
             imageUrl: getSafeCoverImage(er.imageUrl, "restaurant", er.slug),
             shortDescription: er.shortDescription,
             rating: er.rating,
-            priceRange: er.priceRange,
+            priceRange: er.priceRange as any,
             category: er.category,
             address: er.address,
           });
@@ -215,9 +215,9 @@ export default function ProvinciaDetalle() {
             slug: eb.slug,
             name: eb.name,
             imageUrl: getSafeCoverImage(eb.imageUrl, "bar", eb.slug),
-            barType: eb.barType,
+            barType: eb.barType as any,
             musicStyle: eb.musicStyle,
-            priceRange: eb.priceRange,
+            priceRange: eb.priceRange as any,
             rating: eb.rating,
             address: eb.address,
             openingHours: eb.openingHours,

@@ -154,7 +154,7 @@ export default function EventoDetalle() {
     setIsSaved(!isSaved);
     if (!isSaved) {
       toast.success("Evento guardado en tus favoritos.");
-      awardXp(15, "Guardar evento favorito");
+      awardXp(15, 5, "Guardar evento favorito");
     } else {
       toast.info("Evento removido de favoritos.");
     }

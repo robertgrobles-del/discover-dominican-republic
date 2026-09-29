@@ -49,10 +49,14 @@ export interface Bar {
   openingHours: string;
   minimumAge: number;
   dressCode?: string;
-  services: string[];
+  services?: string[];
   latitude?: number;
   longitude?: number;
   isFeatured?: boolean;
+  instagram?: string;
+  features?: string[];
+  hasCover?: boolean;
+  coverPrice?: number;
 }
 
 export const bars: Bar[] = [

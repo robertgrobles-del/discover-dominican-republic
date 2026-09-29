@@ -182,3 +182,5 @@ export const parquesData: Record<string, ParqueNacionalData> = {
     reviews: 4532
   }
 };
+
+export const parquesNacionalesData = parquesData;

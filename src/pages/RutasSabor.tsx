@@ -90,7 +90,7 @@ export default function RutasSabor() {
         <section className="sticky top-16 z-30 bg-card/95 backdrop-blur-md border-y border-border py-3 px-4 shadow-md">
           <div className="container mx-auto">
             <div className="flex items-center justify-start md:justify-center gap-2 overflow-x-auto no-scrollbar py-1">
-              {Object.values(RUTAS_DATA).map((ruta) => {
+              {Object.values(RUTAS_SABOR_DATA).map((ruta: any) => {
                 const IconComponent = ruta.icon;
                 const isSelected = selectedRuta === ruta.id;
                 return (

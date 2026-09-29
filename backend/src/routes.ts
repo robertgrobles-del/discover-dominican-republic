@@ -76,6 +76,7 @@ import { operatorRoutes } from "./modules/operators/routes.js";
 import { contentRoutes } from "./modules/content/routes.js";
 
 import { seoRoutes } from "./modules/seo/routes.js";
+import { TelemetryQueue } from "./lib/telemetry-queue.js";
 
 /** Todas las rutas de la API cuelgan de /api/v1 (docs §3.1). `/health` también existe en la raíz para balanceadores. */
 export async function registerRoutes(app: FastifyInstance, version: string) {
@@ -116,6 +117,10 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   app.decorate("mediaStorage", mediaStorage);
   app.decorate("scanner", createScanner(app.env));
   app.decorate("mediaFetcher", { fn: defaultFetcher });
+  // Fase 9.1: cola Redis opcional para telemetría de alto volumen (analítica anónima); sin REDIS_URL sigue insertando directo.
+  const telemetryQueue = new TelemetryQueue(app.env.REDIS_URL, app.log);
+  app.decorate("telemetryQueue", telemetryQueue);
+  app.addHook("onClose", async () => { await telemetryQueue.close(); });
   const game = new GameService(app.db);
   app.decorate("game", game);
   app.decorate("play", new PlayService(app.db, game));
@@ -217,7 +222,6 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(transactionalProductsRoutes);
       await v1.register(membershipsRoutes);
       await v1.register(fiscalInvoiceRoutes);
-      await v1.register(seoRoutes);
     },
     { prefix: "/api/v1" },
   );

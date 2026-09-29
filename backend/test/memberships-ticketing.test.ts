@@ -192,7 +192,7 @@ describe("MembershipsAndTicketingService — Membresias y Ticketing (Fase 5B)", 
 
       const pool: any = {
         query: async (sql: string) => {
-          if (sql.includes("INSERT INTO event_tickets")) {
+          if (sql.includes("INSERT INTO live_event_tickets")) {
             ticketInserted = true; return { rows: [ticket] };
           }
           if (sql.includes("SELECT COALESCE")) return { rows: [{ balance: 0 }] };
@@ -221,7 +221,7 @@ describe("MembershipsAndTicketingService — Membresias y Ticketing (Fase 5B)", 
       let pointsDelta = 0;
       const pool: any = {
         query: async (sql: string, params?: unknown[]) => {
-          if (sql.includes("INSERT INTO event_tickets")) return { rows: [makeTicket({ price_paid: 50 })] };
+          if (sql.includes("INSERT INTO live_event_tickets")) return { rows: [makeTicket({ price_paid: 50 })] };
           if (sql.includes("SELECT COALESCE")) return { rows: [{ balance: 0 }] };
           if (sql.includes("INSERT INTO loyalty_points_ledger") && params) {
             pointsDelta = params[2] as number; // points_delta
@@ -242,8 +242,8 @@ describe("MembershipsAndTicketingService — Membresias y Ticketing (Fase 5B)", 
       const checkedInTicket = { ...ticket, status: "CHECKED_IN", checked_in_at: "2026-09-27T20:00:00Z" };
       const pool: any = {
         query: async (sql: string) => {
-          if (sql.includes("SELECT * FROM event_tickets WHERE qr_code_hash")) return { rows: [ticket] };
-          if (sql.includes("UPDATE event_tickets")) return { rows: [checkedInTicket] };
+          if (sql.includes("SELECT * FROM live_event_tickets WHERE qr_code_hash")) return { rows: [ticket] };
+          if (sql.includes("UPDATE live_event_tickets")) return { rows: [checkedInTicket] };
           return { rows: [] };
         },
       };

@@ -68,7 +68,23 @@ export interface River {
   // Destacados
   isPopular?: boolean;
   isFeatured?: boolean;
+  province?: string;
+  provinceSlug?: string;
+  municipality?: string;
+  hikingTime?: string;
+  familyFriendly?: boolean;
+  facilities?: string[];
+  parkingAvailable?: boolean;
 }
+
+export const riverTypeLabels: Record<string, string> = {
+  montaña: "Río de Montaña",
+  cascada: "Cascada",
+  charco: "Charco",
+  cañon: "Cañón",
+  manantial: "Manantial",
+  río: "Río",
+};
 
 export const rivers: River[] = [
   // === JARABACOA ===

@@ -38,6 +38,7 @@ export interface EnrichedPark {
   image_url: string;
   activities?: string[];
   is_featured?: boolean;
+  province?: string;
 }
 
 export interface EnrichedHotel {

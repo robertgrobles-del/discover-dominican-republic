@@ -109,7 +109,7 @@ const locations = ["Samaná", "Punta Cana", "Santo Domingo", "Puerto Plata", "La
 
 const sortOptions = ["Más Recientes", "Mejor Valorados", "Con Fotos"];
 
-import { ReviewCard, ReviewItem, travelerTypes } from "@/components/reviews/ReviewCard";
+import { ReviewCard, ReviewItem, travelerTypes as importedTravelerTypes } from "@/components/reviews/ReviewCard";
 import { StarRating, formatDate } from "@/components/reviews/StarRating";
 import { ReviewsSidebar, CategoryFilterItem } from "@/components/reviews/ReviewsSidebar";
 import { CreateReviewDialog } from "@/components/reviews/CreateReviewDialog";

@@ -28,7 +28,7 @@ ALTER TABLE partner_profiles
   ADD COLUMN IF NOT EXISTS verified_badge_issued_at timestamptz,
   ADD COLUMN IF NOT EXISTS verified_badge_notes text;
 
-CREATE INDEX IF NOT EXISTS idx_partner_profiles_tier ON partner_profiles (subscription_tier, priority_score DESC) WHERE status = 'active';
+CREATE INDEX IF NOT EXISTS idx_partner_profiles_tier ON partner_profiles (subscription_tier, priority_score DESC) WHERE subscription_status = 'active';
 
 -- Historial de suscripciones y facturación de operadores
 CREATE TABLE IF NOT EXISTS operator_subscriptions (

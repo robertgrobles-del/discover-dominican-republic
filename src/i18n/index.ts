@@ -1,6 +1,7 @@
 import { es } from "./translations/es";
 
 export type Locale = "es" | "en" | "fr" | "de" | "pt" | "it";
+export { useTranslation, useI18n } from "@/hooks/useI18n";
 
 export type TranslationDict = Record<string, string>;
 

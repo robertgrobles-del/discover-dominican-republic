@@ -4,6 +4,7 @@ import { CheckCircle2, XCircle, ShieldAlert } from "lucide-react";
 interface DetailInclusionsCardProps {
   included?: string[];
   notIncluded?: string[];
+  excluded?: string[];
   recommendations?: string[];
   title?: string;
 }
@@ -11,10 +12,12 @@ interface DetailInclusionsCardProps {
 export const DetailInclusionsCard: React.FC<DetailInclusionsCardProps> = ({
   included = [],
   notIncluded = [],
+  excluded = [],
   recommendations = [],
   title = "¿Qué incluye tu experiencia?",
 }) => {
-  const hasInclusions = included.length > 0 || notIncluded.length > 0;
+  const effectiveNotIncluded = notIncluded.length > 0 ? notIncluded : excluded;
+  const hasInclusions = included.length > 0 || effectiveNotIncluded.length > 0;
   const hasRecommendations = recommendations.length > 0;
 
   if (!hasInclusions && !hasRecommendations) return null;
