@@ -7,6 +7,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const SRC = path.resolve(fileURLToPath(new URL("../../../src/", import.meta.url)));
 const OUT = path.resolve(fileURLToPath(new URL("../../.data/static/", import.meta.url)));
+// Algunos data files importan íconos de lucide-react como referencia (nunca se renderizan aquí): un stub evita
+// depender de que el backend tenga instalado node_modules del frontend (en CI, cada proyecto instala el suyo).
+const LUCIDE_STUB = path.resolve(fileURLToPath(new URL("./lucide-stub.cjs", import.meta.url)));
 const IMG = /\.(jpe?g|png|webp|svg|gif|avif|mp4)$/i;
 
 export async function loadStatic(file: string): Promise<Record<string, unknown>> {
@@ -16,7 +19,7 @@ export async function loadStatic(file: string): Promise<Record<string, unknown>>
     entryPoints: [path.join(SRC, "data", file)], outfile, bundle: true, platform: "node", format: "esm", logLevel: "silent", target: "node22",
     banner: { js: 'import { createRequire as __cr } from "node:module"; const require = __cr(import.meta.url);' },
     define: { "import.meta.env": "{}", "process.env.NODE_ENV": '"production"' },
-    alias: { "@": SRC },
+    alias: { "@": SRC, "lucide-react": LUCIDE_STUB },
     plugins: [{
       name: "assets",
       setup(b) {
