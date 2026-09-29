@@ -180,7 +180,7 @@ export function RestaurantHeroSlider({
 
                 <FavoriteButton
                   id={favoriteId}
-                  type="restaurant"
+                  type="restaurante"
                   name={name}
                   image={finalImages[0]}
                   location={location}

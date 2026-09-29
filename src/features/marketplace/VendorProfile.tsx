@@ -18,7 +18,7 @@ export function VendorProfile({ artesanos, onOpenChat }: VendorProfileProps) {
         </p>
       </div>
 
-      <ArtesanosTab artesanos={artesanos} handleOpenChat={onOpenChat} />
+      <ArtesanosTab artesanos={artesanos} onChat={onOpenChat} />
     </div>
   );
 }

@@ -87,7 +87,7 @@ export default function Marketplace() {
 
   const filteredProd = productos.filter((p) => {
     const matchCat = catProd === "Todos" || p.categoria === catProd;
-    const matchSearch = p.nombre.toLowerCase().includes(searchProd.toLowerCase()) || p.artesano.toLowerCase().includes(searchProd.toLowerCase());
+    const matchSearch = p.nombre.toLowerCase().includes(searchProd.toLowerCase()) || p.vendedor.toLowerCase().includes(searchProd.toLowerCase());
     return matchCat && matchSearch;
   });
 
@@ -153,8 +153,8 @@ export default function Marketplace() {
 
           {/* Modales */}
           <CheckoutModal
-            open={checkoutOpen}
-            onOpenChange={setCheckoutOpen}
+            isOpen={checkoutOpen}
+            onClose={() => setCheckoutOpen(false)}
             item={selectedItem}
           />
 
@@ -163,8 +163,8 @@ export default function Marketplace() {
             onOpenChange={setProductModalOpen}
             product={selectedProduct}
             shippingDest={shippingDest}
-            setShippingDest={setShippingDest}
-            handleProceedToCheckout={handleProceedToCheckout}
+            onShippingDestChange={setShippingDest}
+            onProceedToCheckout={handleProceedToCheckout}
           />
 
           <ArtisanChatModal
@@ -173,8 +173,8 @@ export default function Marketplace() {
             artesano={selectedArtisano}
             chatHistory={chatHistory}
             chatMessage={chatMessage}
-            setChatMessage={setChatMessage}
-            handleSendMessage={handleSendMessage}
+            onChatMessageChange={setChatMessage}
+            onSendMessage={handleSendMessage}
           />
         </div>
       </main>

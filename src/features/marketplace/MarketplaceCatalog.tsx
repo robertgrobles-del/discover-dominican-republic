@@ -49,23 +49,23 @@ export function MarketplaceCatalog({
 
         <TabsContent value="productos">
           <ProductosTab
-            filteredProd={products}
-            searchProd={searchProd}
-            setSearchProd={setSearchProd}
-            catProd={catProd}
-            setCatProd={setCatProd}
-            handleOpenProductModal={onOpenProductModal}
+            productos={products}
+            search={searchProd}
+            onSearchChange={setSearchProd}
+            category={catProd}
+            onCategoryChange={setCatProd}
+            onBuy={onOpenProductModal}
           />
         </TabsContent>
 
         <TabsContent value="servicios">
           <ServiciosTab
-            filteredServ={services}
-            searchServ={searchServ}
-            setSearchServ={setSearchServ}
-            catServ={catServ}
-            setCatServ={setCatServ}
-            handleReserveServicio={onReserveServicio}
+            servicios={services}
+            search={searchServ}
+            onSearchChange={setSearchServ}
+            category={catServ}
+            onCategoryChange={setCatServ}
+            onReserve={onReserveServicio}
           />
         </TabsContent>
       </Tabs>
