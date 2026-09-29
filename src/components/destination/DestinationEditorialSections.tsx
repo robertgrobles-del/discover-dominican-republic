@@ -173,7 +173,7 @@ export function DestinationEditorialSections({
                       <div className="p-6">
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
                           <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-                          <span className="truncate">{hotel.location || hotel.province}</span>
+                          <span className="truncate">{(hotel as any).location || hotel.province}</span>
                         </div>
 
                         <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors leading-snug truncate">
@@ -320,7 +320,7 @@ export function DestinationEditorialSections({
                       <div className="absolute bottom-3 left-3 right-3 text-white">
                         <div className="flex items-center gap-1 text-[11px] text-white/80">
                           <MapPin className="h-3 w-3 text-amber-400" />
-                          <span className="truncate">{rest.location || rest.province}</span>
+                          <span className="truncate">{(rest as any).location || rest.province}</span>
                         </div>
                         <h3 className="text-lg font-bold text-white group-hover:text-amber-300 transition-colors truncate">
                           {rest.name}
@@ -453,7 +453,7 @@ export function DestinationEditorialSections({
                       {/* Bottom Title on Image */}
                       <div className="absolute bottom-2.5 left-2.5 right-2.5 text-white">
                         <span className="text-[10px] text-purple-300 font-semibold block uppercase tracking-wider truncate">
-                          {bar.location || bar.province}
+                          {(bar as any).location || bar.province}
                         </span>
                         <h3 className="text-base font-black text-white group-hover:text-purple-300 transition-colors truncate">
                           {bar.name}

@@ -38,7 +38,8 @@ export type AdSize =
   | "panorama"              // 980x120
   | "full-width-hero"       // 1280x240 Full-Width High-Impact
   | "full-width-screen"     // 1920x250 Full-Width Screen (100vw)
-  | "full-width-screen-2x"; // 1920x250 2x Retina Full-Width Screen
+  | "full-width-screen-2x" // 1920x250 2x Retina Full-Width Screen
+  | "portrait";            // 300x1050 Portrait / Retrato
 
 export type AdPlacement = 
   | "header" 

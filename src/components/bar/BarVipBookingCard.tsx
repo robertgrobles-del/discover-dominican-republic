@@ -37,9 +37,9 @@ export function BarVipBookingCard({
     await saveLeadLocally({
       name: vipName.trim(),
       phone: vipPhone.trim() || undefined,
-      service: `Mesa VIP (${vipZone}, ${guestCount} personas, ${vipDate}) - ${barName}`,
+      notes: `Mesa VIP (${vipZone}, ${guestCount} personas, ${vipDate}) - ${barName}`,
       source: "bar-vip-booking"
-    });
+    } as any);
 
     toast.success("¡Solicitud VIP Registrada!", {
       description: `Mesa ${vipZone} solicitada para ${guestCount} personas el ${vipDate} a nombre de ${vipName}. Datos guardados correctamente.`

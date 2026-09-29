@@ -11,7 +11,7 @@ import {
   Trash2, Save, RefreshCw, CheckCircle, AlertCircle, Building2, Calendar
 } from "lucide-react";
 import { toast } from "sonner";
-import { DEFAULT_LOTTERY_RESULTS, LotteryResult } from "@/pages/Loterias";
+import { DEFAULT_LOTTERY_RESULTS, LotteryResult } from "@/data/loteriasData";
 import { DOMINICAN_BANKS_RATES, BankRate } from "@/components/currency/CurrencyExchangeSection";
 
 export function AdminFinanceLotteryManager() {

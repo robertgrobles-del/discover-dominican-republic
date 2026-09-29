@@ -15,7 +15,7 @@ import {
   Share2, ShieldCheck, ArrowLeft, Building2, Bell
 } from "lucide-react";
 import { toast } from "sonner";
-import { DEFAULT_LOTTERY_RESULTS, LotteryResult } from "@/pages/Loterias";
+import { DEFAULT_LOTTERY_RESULTS, LotteryResult } from "@/data/loteriasData";
 import { PreFooterPresidenteBanner } from "@/components/promo";
 
 const COMPANY_INFO: Record<string, {

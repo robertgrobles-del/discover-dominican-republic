@@ -58,7 +58,7 @@ export function AgencyCard({ agency, index }: AgencyCardProps) {
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-display font-bold text-foreground">{agency.name}</h3>
                 {agency.verified && (
-                  <ShieldCheck className="h-4 w-4 text-emerald-500" title="Operador verificado" />
+                  <span title="Operador verificado"><ShieldCheck className="h-4 w-4 text-emerald-500" /></span>
                 )}
                 {agency.isDemo && (
                   <Badge
