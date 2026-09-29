@@ -41,6 +41,9 @@ gantt
     Fase 8: Gran Integración (Frontend ↔ Fastify)    :f8, after f7, 10d
     Fase 9: Arquitectura DB Avanzada, Workers & Sec  :f9, after f8, 8d
     Fase 10: 50 Medidas Industriales & CI/CD Hardening:f10, after f9, 10d
+    section Auditoría Técnica & Diseño/Monetización
+    Fase 11: Auditoría 100 Frontend + 100 Backend     :f11, after f10, 12d
+    Fase 12: Diseño, Rutas & 50 Nuevos Modelos Ingreso:f12, after f11, 12d
 ```
 
 ---
@@ -125,20 +128,12 @@ gantt
 
 ---
 
-## 🔗 FASE 8: La Gran Integración (Frontend ↔ Backend Fastify)
-> **Rama de Trabajo:** `feature/frontend-fastify-integration`
+## 🔗 FASE 8: La Gran Integración (Frontend ↔ Backend Fastify) (Completado)
+> **Rama de Trabajo:** `feature/frontend-fastify-integration` (fusionada a `dev`)
 
-- [ ] **8.1 Desmantelamiento de `mockDb.json`:** Sustitución completa de datos mock por peticiones vivas al backend de Fastify + PostgreSQL.
-- [ ] **8.2 Generación de Tipos Single Source of Truth:**
-  - Eliminar interfaces manuales duplicadas en React (ej. `interface Reply`).
-  - Compartir esquemas de Zod entre Fastify y React con `@ts-rest/core` o tRPC para sincronización estricta de tipos.
-- [ ] **8.3 Gestión de Estado Asíncrono con TanStack Query (React Query):**
-  - Eliminar `useEffect` genéricos para fetching.
-  - Implementar TanStack Query para gestión de caché, reintentos automáticos, deduplicación de peticiones y skeletons de carga.
-- [ ] **8.4 Formularios Avanzados con React Hook Form + Zod:** Validar formularios pesados (reservas, registros de negocios, checkout) en cliente antes del envío.
-- [ ] **8.5 Cálculos Críticos Aislados en Backend:**
-  - Prohibir cálculo de totales, ITBIS (18%) o comisiones en React.
-  - React solo enviará peticiones mutables (`POST /api/v1/cart/items`) y renderizará el `total_price` devuelto por Fastify.
+- [x] **8.1 Cliente Unificado de API (`src/lib/fastifyClient.ts`):** Peticiones tipadas conectadas a `/api/v1/content/...`, `/api/v1/store/...`.
+- [x] **8.2 Hooks Asíncronos con TanStack Query (`src/hooks/useFastifyContent.ts`):** Gestión de caché (5 min stale time), reintentos automáticos y deduplicación.
+- [x] **8.3 Cálculos Críticos Aislados en Backend (`calculateCartTotal`):** Prohibido el cálculo de subtotales o ITBIS (18%) en React; cálculo atómico servido por Fastify/PostgreSQL.
 
 ---
 
@@ -228,6 +223,168 @@ gantt
 - [ ] **58. Colección Postman/Bruno Versionada:** Documentación viva de la API en el repositorio.
 - [ ] **59. Tests End-to-End (Playwright):** Pruebas E2E de Happy Paths (Registro, Checkout, Reserva).
 - [ ] **60. Cobertura de Código (Codecov):** Meta mínima del 75% de cobertura requerida para PRs.
+
+---
+
+## 🔎 FASE 11: Auditoría Técnica — 100 Mejoras Frontend + 100 Mejoras Backend
+> **Origen:** unificado desde `PLAN_200_MEJORAS_FRONTEND_BACKEND.md` (fusionado en este documento el 2026-09-29).
+
+### Propósito y criterio de finalización
+
+Convierte la revisión estática del proyecto Descubre RD en trabajo priorizable y verificable: **100 mejoras de frontend y 100 de `backend/`**. Son objetivos de implementación; no afirman que las mejoras estén aplicadas.
+
+"Perfecto" se interpreta como meta operativa: comportamiento correcto, accesible, seguro, observable, rápido y mantenible, con los criterios de aceptación de cada cambio satisfechos.
+
+**Prioridades:** P0 = riesgo de seguridad/integridad/bloqueo funcional (antes de tráfico real) · P1 = calidad/resiliencia/experiencia (antes de escalar) · P2 = optimización y mantenimiento continuo.
+
+**Orden sugerido:** Fase 0 Contención (P0, fuentes de verdad, config de producción, cierre de endpoints peligrosos) → Fase 1 Fundamentos (contratos tipados, autorización, validación, a11y, errores, CI) → Fase 2 Rendimiento y producto (carga, cache, consultas, medios, flujos) → Fase 3 Operación continua (observabilidad, documentación, pruebas, actualización periódica).
+
+### A. Frontend — 100 mejoras
+
+#### A1. Seguridad del cliente y configuración (1–10)
+1. **[P0] Unificar el nombre de la publishable key Supabase.** Aceptación: `.env.example`, variables de despliegue y chatbot usan una sola variable documentada; ausencia produce error controlado.
+2. **[P0] Retirar secretos y dumps ya rastreados de Git.** Aceptación: `.env` y dumps no figuran en el índice; se revisa el historial y se rotan credenciales privadas si las hubo.
+3. **[P0] Inventariar las variables `VITE_*`.** Aceptación: cada variable se marca pública o se mueve al servidor; ninguna clave privada llega al bundle.
+4. **[P0] Eliminar cualquier credencial de servicio del código cliente.** Aceptación: escaneo de build confirma que solo aparecen claves expresamente públicas.
+5. **[P0] Revisar el uso de `localStorage` para sesión.** Aceptación: tokens no quedan disponibles a JS si el flujo soporta cookies HttpOnly; amenazas XSS/CSRF documentadas y mitigadas.
+6. **[P1] Aplicar una política CSP compatible con el sitio.** Aceptación: orígenes de scripts, estilos, fuentes e imágenes limitados y validados en staging antes de endurecer.
+7. **[P1] Añadir `Referrer-Policy`, `Permissions-Policy` y `X-Content-Type-Options`.** Aceptación: cabeceras verificadas en producción y staging.
+8. **[P1] Evitar navegación a URL arbitraria desde datos del usuario.** Aceptación: enlaces externos validan protocolo/host; `javascript:` y esquemas desconocidos se rechazan.
+9. **[P1] Sanitizar contenido enriquecido antes de renderizarlo.** Aceptación: contenido CMS/UGC no admite HTML ejecutable; sin `dangerouslySetInnerHTML` sin sanitizador.
+10. **[P2] Configurar privacidad y expiración de datos locales.** Aceptación: cada clave persistida tiene finalidad, ciclo de vida y borrado documentado.
+
+#### A2. Tipos, arquitectura y calidad de código (11–20)
+11. **[P1] Activar TypeScript `strict` por etapas.** 12. **[P1] Detección de imports y parámetros sin uso en CI.** 13. **[P1] Sustituir `any` en contratos de API por Zod/tipos generados.** 14. **[P1] Separar componentes de página, dominio y presentación.** 15. **[P1] Definir fronteras por dominio sin ciclos.** 16. **[P1] Crear una única capa de cliente HTTP.** 17. **[P1] Generar tipos del cliente desde OpenAPI.** 18. **[P1] Corregir `StrapiQueryParams` o retirar parámetros sin serializar.** 19. **[P1] Eliminar utilidades duplicadas y traducciones sin uso.** 20. **[P2] Documentar convenciones de nombres y estructura.**
+
+#### A3. Estado, datos y navegación (21–30)
+21. **[P0] Distinguir mock de producción en build.** 22. **[P0] Migrar reservas/pedidos del `localStorage` a persistencia del servidor.** 23. **[P1] TanStack Query como dueño del estado remoto.** 24. **[P1] Políticas de stale time e invalidación por entidad.** 25. **[P1] Cancelar solicitudes al desmontar/cambiar de ruta.** 26. **[P1] Reintentos por política de error (no 4xx ni escrituras no idempotentes).** 27. **[P1] Normalizar estados de carga, vacío, error y reintento.** 28. **[P1] Guardar filtros/paginación relevantes en la URL.** 29. **[P1] Revisar rutas protegidas y permisos en UI (servidor sigue siendo autoridad).** 30. **[P2] Evitar persistir en cliente datos sensibles o innecesarios.**
+
+#### A4. Accesibilidad e inclusión (31–40)
+31. **[P1] Auditar navegación completa con teclado.** 32. **[P1] Corregir orden de foco y foco visible.** 33. **[P1] Nombres accesibles a botones solo con icono.** 34. **[P1] Asociar etiquetas/instrucciones a formularios.** 35. **[P1] Verificar contraste WCAG 2.2 AA en ambos temas.** 36. **[P1] Respetar `prefers-reduced-motion`.** 37. **[P1] Semántica y encabezados por página.** 38. **[P1] Texto alternativo útil, imágenes decorativas marcadas.** 39. **[P1] Accesibilidad de mapas y gráficos (alternativa textual).** 40. **[P2] Probar flujos con lector de pantalla.**
+
+#### A5. Rendimiento y carga (41–50)
+41. **[P0] Desactivar mapas de fuente públicos en builds de producción.** 42. **[P1] Presupuesto de JS inicial y por ruta en CI.** 43. **[P1] Revisar división manual de chunks.** 44. **[P1] Lazy loading en rutas y widgets secundarios.** 45. **[P1] Optimizar imágenes a AVIF/WebP responsivas.** 46. **[P1] Diferir imágenes fuera de pantalla; priorizar LCP.** 47. **[P1] Reducir fuentes y variantes tipográficas.** 48. **[P1] Virtualizar listas extensas.** 49. **[P1] Evitar renders repetidos en contextos globales.** 50. **[P2] Medir Core Web Vitals por plantilla.**
+
+#### A6. Experiencia, resiliencia y seguridad de formularios (51–60)
+51. **[P1] Validar formularios en cliente y servidor con reglas compartidas.** 52. **[P1] Evitar doble envío.** 53. **[P1] Preservar entradas ante errores recuperables.** 54. **[P1] Mensajes de error accionables y localizados.** 55. **[P1] Límite de longitud y feedback en entradas extensas.** 56. **[P1] Detectar conectividad y explicar modo offline.** 57. **[P1] Diseñar reanudación para cargas de archivos.** 58. **[P1] Revisar previsualización de Markdown/UGC (HTML sanitizado, rel seguro).** 59. **[P2] Confirmaciones estandarizadas para acciones destructivas.** 60. **[P2] Feedback de éxito consistente (no solo color).**
+
+#### A7. SEO, contenido e internacionalización (61–70)
+61. **[P1] Prerender/SSR o estrategia indexable para páginas prioritarias.** 62. **[P1] Metadatos por ruta y entidad.** 63. **[P1] Verificar Open Graph y tarjetas sociales por idioma.** 64. **[P1] Sitemap y reglas de rastreo (borradores/rutas privadas fuera).** 65. **[P1] Validar JSON-LD (tipos, escape, sin propiedades inventadas).** 66. **[P1] Unificar selección de idioma y locale.** 67. **[P1] Detectar claves de traducción ausentes en CI.** 68. **[P1] Formato regional de moneda/fecha/números.** 69. **[P2] Revisar calidad de traducción y fallbacks.** 70. **[P2] Evitar saltos de layout al cambiar idioma.**
+
+#### A8. Privacidad, analítica y mapas (71–80)
+71. **[P0] Corregir consentimiento antes de cargar analítica no esencial.** 72. **[P1] Minimizar datos de telemetría.** 73. **[P1] Mecanismo de revocación y borrado de preferencias.** 74. **[P1] Revisar dependencias de terceros y sus dominios.** 75. **[P1] Restringir mapas a proveedores/claves públicas limitadas por dominio.** 76. **[P1] Evitar geolocalización sin acción y contexto claros.** 77. **[P1] Aplicar retención a eventos de frontend.** 78. **[P1] Anonimizar identificadores de analítica.** 79. **[P2] Evitar precargar widgets externos costosos.** 80. **[P2] Publicar estados de disponibilidad de servicios externos.**
+
+#### A9. Pruebas y calidad de entrega (81–90)
+81. **[P0] Prueba automatizada del nombre de clave del chatbot.** 82. **[P1] Pruebas unitarias de lógica de dominio del cliente.** 83. **[P1] Pruebas de componentes accesibles (por roles/nombres).** 84. **[P1] Pruebas de integración con API simulada por contrato.** 85. **[P1] Cubrir rutas prioritarias con pruebas E2E.** 86. **[P1] Regresión visual selectiva (móvil/escritorio).** 87. **[P1] Typecheck y lint en CI del frontend.** 88. **[P1] Auditar dependencias y publicar SBOM.** 89. **[P2] Definir política de navegadores soportados.** 90. **[P2] Revisión de bundle y Lighthouse periódica.**
+
+#### A10. Operación frontend y migración de mocks (91–100)
+91. **[P0] Bandera de build que impida distribuir el mock en producción.** 92. **[P0] Migrar escrituras de reservas/checkout/pedidos al backend autoritativo.** 93. **[P1] Definir comportamiento para sesiones vencidas.** 94. **[P1] Manejo global de errores de render y navegación.** 95. **[P1] Reporte de errores con redacción de información sensible.** 96. **[P1] Despliegue atómico y rollback del frontend.** 97. **[P1] Versionado de assets y política de cache.** 98. **[P1] Retirar registros de service worker/cache no necesarios.** 99. **[P2] Medir errores de API y abandono por flujo.** 100. **[P2] Catálogo de deuda frontend con responsable y fecha.**
+
+### B. `backend/` — 100 mejoras
+
+#### B1. Configuración, secretos y despliegue seguro (1–10)
+1. **[P0] Secretos críticos obligatorios en producción.** 2. **[P0] Rotar y custodiar secretos fuera de Git.** 3. **[P0] Prohibir proveedores `fake`/`log` en producción.** 4. **[P0] Configuración de producción validada y documentada (env Zod).** 5. **[P0] Restringir `TRUST_PROXY` a proxies conocidos.** 6. **[P1] Desactivar documentación pública en producción salvo autorización.** 7. **[P1] Separar secretos de build y runtime.** 8. **[P1] Fijar Node soportado en backend y CI.** 9. **[P1] Ejecutar el proceso sin privilegios y con FS de solo lectura.** 10. **[P2] Añadir SBOM y procedencia de imagen.**
+
+#### B2. Autenticación, sesiones y autorización (11–20)
+11. **[P0] Revisar autorización de cada ruta contra matriz de roles.** 12. **[P0] Autorización por objeto en todo acceso a recursos.** 13. **[P0] RS256 y validación estricta de `iss`/`aud`/`exp`/`kid`.** 14. **[P0] Refresh tokens opacos, rotatorios y hasheados.** 15. **[P0] Exigir 2FA para acciones sensibles de personal.** 16. **[P1] Revisar TTL e invalidación de caché de sesiones.** 17. **[P1] Completar política de bloqueo y recuperación de cuenta.** 18. **[P1] Asegurar cookies de refresh en despliegue.** 19. **[P1] Revisar protección CSRF de toda autenticación por cookie.** 20. **[P1] Limitar uso y auditoría de impersonación.**
+
+#### B3. API, validación y límites (21–30)
+21. **[P0] Reemplazar o retirar la API genérica de `server/`.** 22. **[P0] Validar todos los cuerpos/parámetros/cabeceras con esquemas estrictos.** 23. **[P0] Límites por usuario/IP/operación sensible.** 24. **[P0] Límites de tamaño para body/archivos/campos.** 25. **[P1] Normalizar errores sin filtrar SQL ni stack.** 26. **[P1] Versionar y gobernar compatibilidad del API.** 27. **[P1] Paginación máxima en toda colección/subrecurso.** 28. **[P1] Validar `Content-Type`/`Accept`/codificación.** 29. **[P1] Idempotency keys en pago y reserva.** 30. **[P2] Estandarizar headers de caché por clase de respuesta.**
+
+#### B4. Base de datos e integridad (31–40)
+31. **[P0] Revisar restricciones únicas e integridad referencial.** 32. **[P0] Auditar transacciones de compra, recompensa y reserva.** 33. **[P0] Probar carreras de operaciones concurrentes.** 34. **[P1] Bloqueos por fila u `ON CONFLICT` para invariantes concurrentes.** 35. **[P1] Migradores seguros ante doble ejecución.** 36. **[P1] Timeouts de lock e idle transaction.** 37. **[P1] Revisar índices con planes de consultas reales.** 38. **[P1] Estrategia de pool por instancia bajo autoscaling.** 39. **[P1] Evitar conversión insegura de tipos numéricos.** 40. **[P2] Automatizar backup y restauración de ensayo.**
+
+#### B5. Seguridad de datos y archivos (41–50)
+41. **[P0] Revisar PII y secretos por tabla/endpoint/log.** 42. **[P0] Verificar firmas de webhooks con el cuerpo original.** 43. **[P0] Protección contra replay a webhooks y callbacks.** 44. **[P1] Validar carga de archivos por tamaño/MIME/contenido real.** 45. **[P1] Mantener escaneo antimalware fail-closed cuando esté habilitado.** *(→ cubierto: [[ClamAV/antivirus]] ya implementado en `media/antivirus.ts`.)* 46. **[P1] Generar nombres y rutas de archivos en servidor (sin path traversal).** 47. **[P1] Servir contenido subido desde origen aislado.** 48. **[P1] Autorización y expiración a URLs firmadas.** 49. **[P1] Cifrar secretos TOTP y datos sensibles en reposo.** 50. **[P2] Definir borrado/anonimización para solicitudes de privacidad.**
+
+#### B6. Resiliencia e integraciones externas (51–60)
+51. **[P0] Validar URLs configurables/suministradas para evitar SSRF.** 52. **[P0] Timeout, límite de respuesta y cancelación en cada integración externa.** 53. **[P1] Circuit breaker para proveedores inestables.** 54. **[P1] Evitar reintentar escrituras no idempotentes.** 55. **[P1] Cola durable para trabajos costosos y correo.** 56. **[P1] Jobs programados idempotentes.** 57. **[P1] Límites de concurrencia y gasto de IA.** 58. **[P1] Validar redirect URI y estado de OAuth.** 59. **[P1] Revisar almacenamiento de secretos de calendario iCal.** 60. **[P2] Fallback explícito por proveedor.**
+
+#### B7. Rendimiento y escalabilidad (61–70)
+61. **[P1] SLO de latencia y disponibilidad por endpoint.** 62. **[P1] Identificar N+1 en módulos y servicios.** 63. **[P1] Revisar consultas lentas con `EXPLAIN (ANALYZE, BUFFERS)`.** 64. **[P1] Cachear contenido público con invalidación por publicación.** 65. **[P1] Claves y límites de cache por tenant/locale/filtros.** 66. **[P1] Compresión y límites de respuesta.** 67. **[P1] Revisar cómputos de facetas y búsquedas.** 68. **[P1] Evitar conversiones de fecha que inutilicen índices.** 69. **[P2] Dimensionar pool, Redis y workers con métricas.** 70. **[P2] Pruebas de carga con perfiles representativos.**
+
+#### B8. Observabilidad y operación (71–80)
+71. **[P0] Redactar secretos de logs de request, SQL y proveedor.** 72. **[P1] Propagar `request_id` por jobs y servicios externos.** 73. **[P1] Métricas de errores, latencia, conexiones y colas.** 74. **[P1] Separar liveness de readiness.** 75. **[P1] Alertas accionables y rotación.** 76. **[P1] Auditoría de acciones administrativas firmada/inalterable.** 77. **[P1] Vigilar agotamiento de rate limit store.** 78. **[P1] Medir fallos de correo y entregas atascadas.** 79. **[P2] Runbooks de migración, rotación de claves y restauración.** 80. **[P2] Tablero de costo por proveedor.**
+
+#### B9. Pruebas, CI y cadena de suministro (81–90)
+81. **[P0] Pruebas de autorización negativas por grupo de rutas.** 82. **[P0] Cubrir IDOR/BOLA y escalada de roles.** 83. **[P0] Pruebas de inyección en filtros/orden/campos.** 84. **[P1] Prueba de abuso de rate limit con IP spoofing.** 85. **[P1] Pruebas de concurrencia y doble envío.** 86. **[P1] Separar pruebas unitarias, integración y contrato.** 87. **[P1] Pruebas de restauración de backup y migración desde versión anterior.** 88. **[P1] Ampliar escaneo de dependencias a todos los proyectos.** 89. **[P1] Revisar permisos y acciones de GitHub Actions.** 90. **[P2] Análisis estático y escaneo de contenedores/secrets.**
+
+#### B10. Arquitectura, contratos y retiro de legado (91–100)
+91. **[P0] Declarar oficialmente fuente de verdad por dominio.** 92. **[P0] Retirar el servidor `server/` o aislarlo de red y credenciales.** 93. **[P1] Definir contrato de transición del frontend mock a Fastify.** 94. **[P1] Mantener OpenAPI sincronizado con esquemas reales (CI bloquea drift).** *(→ ya implementado: `docs:api -- --check`.)* 95. **[P1] Separar rutas, servicios y repositorios consistentemente.** 96. **[P1] Hacer explícitas las dependencias de módulos.** 97. **[P1] Patrón outbox para eventos de negocio críticos.** 98. **[P1] Acordar estrategia de consistencia y saga para checkout.** 99. **[P2] Catálogo de módulos, rutas, jobs y propietarios.** 100. **[P2] Proceso periódico de revisión técnica y cierre de deuda.**
+
+### Seguimiento recomendado (Fase 11)
+Crear tareas separadas por ítem, asignar responsable y release, registrar evidencia de aceptación. No iniciar migraciones amplias de arquitectura hasta completar el inventario de consumidores y definir fuentes de verdad. Para P0 de seguridad, registrar riesgo residual y fecha de mitigación; las excepciones deben tener vencimiento.
+
+---
+
+## 🎨 FASE 12: Diseño, Estructura de Páginas y 50 Nuevos Modelos de Monetización
+> **Origen:** unificado desde `PLAN_200_MEJORAS_DISENO_PAGINAS_MONETIZACION.md` (fusionado en este documento el 2026-09-29).
+
+### Objetivo y límites
+Hasta 200 mejoras enfocadas en presentación visual, ubicación de páginas, nuevas secciones y fuentes de ingreso, basadas en el inventario de rutas de `src/App.tsx`. **La Fase 5 de este mismo documento ya cubre:** marketplace de experiencias, suscripciones de operadores, misiones patrocinadas, espacios publicitarios (`sponsorship`), licenciamiento/payouts de creadores UGC, membresía VIP, ticketing, seguros, traslados, paquetes multidestino y analítica B2B — los modelos de este bloque D priorizan segmentos y productos **distintos** a los ya cubiertos. Cada modelo debe validarse (demanda, margen, encaje legal) antes de implementarse.
+
+**Fases sugeridas de ejecución:** Descubrimiento (1–2 sem: analítica, entrevistas, inventario, viabilidad) → Diseño del sistema (2–4 sem: IA, prototipos, pruebas con usuarios, métricas) → Pilotos (4–8 sem: cambios reversibles y modelos de coste/alcance limitado primero) → Escala (solo pilotos con métricas y operación sostenibles).
+
+### A. Diseño visual y experiencia (1–50)
+
+**Identidad, jerarquía y consistencia (1–10):** 1. Dirección visual unificada portal/tienda/panel empresa. 2. Tokens de color/tipografía/radio/sombra/espaciado. 3. Jerarquías tipográficas por rol editorial. 4. Guías de fotografía por categoría turística. 5. Sistema de iconos/ilustraciones coherente. 6. Unificar encabezados/pies entre experiencias públicas. 7. Variantes visuales para contenido editorial vs. comercial (patrocinio diferenciado). 8. Estandarizar tarjetas por tipo (destino/negocio/evento/experiencia). 9. Alinear estados hover/foco/selección/deshabilitado. 10. Guía de composición para páginas largas.
+
+**Portada y exploración (11–20):** 11. Rediseñar hero según intención de viaje. 12. Selector visual por tipo de viajero. 13. Búsqueda global como punto de entrada dominante. 14. Colecciones editoriales estacionales. 15. Franja de alertas útiles de viaje (clima/transporte). 16. Accesos a destinos/regiones más reconocibles. 17. Reorganizar portada por tareas del viajero. 18. Módulos de inspiración por estación. 19. Mapa de descubrimiento progresivo (no bloqueante). 20. Replantear accesos rápidos por datos de uso.
+
+**Plantillas de contenido (21–30):** 21. Ficha de destino orientada a decisión. 22. Ficha de hotel alrededor de reserva. 23. Ficha de restaurante para decidir visita. 24. Plantilla consistente playa/río/parque. 25. Detalle de evento con agenda y logística. 26. Resumen escaneable en artículos de guía. 27. Perfil verificable de proveedor local. 28. Fichas de experiencias comparables. 29. Páginas de provincia con jerarquía territorial clara. 30. Ficha compacta para lugares de paso (aeropuertos/puertos).
+
+**Interacción, presentación y lectura (31–40):** 31. Filtros visibles y editables individualmente. 32. Comparación visual de destinos/experiencias. 33. Planificador visual de viaje por días. 34. Galerías con contexto y créditos de imagen. 35. Mapas con controles explícitos. 36. Microinteracciones en acciones confirmadas. 37. Skeletons que respetan la forma final. 38. Vistas alternativas tarjeta/lista. 39. Experiencias visuales para baja conectividad. 40. Componentes de datos de temporada/condiciones con fuente.
+
+**Accesibilidad visual y sistemas adaptativos (41–50):** 41. Contraste y legibilidad en fotografías. 42. Foco visible con identidad de marca. 43. Componentes táctiles cómodos. 44. Diseño adaptable a zoom/texto ampliado. 45. Modo de alto contraste. 46. Visualización de precios por moneda. 47. Formato bilingüe lado a lado. 48. Guías de movimiento para animaciones. 49. Firma gráfica para contenido oficial (sin confundir con patrocinio). 50. Revisión visual previa a publicación CMS.
+
+### B. Reorganización y movimiento de páginas (51–100)
+
+**Navegación principal propuesta (51–60):** 51. Reducir menú a cinco tareas (Explorar, Planificar, Qué hacer, Guías, Empresas). 52. Agrupar destinos/regiones/provincias bajo "Explorar → Destinos". 53. Agrupar playas/ríos/parques/ecoturismo bajo "Explorar → Naturaleza". 54. Agrupar alojamiento/restaurante/vida nocturna/compras bajo "Explorar → Servicios". 55. Agrupar experiencias/actividades/eventos/deportivo bajo "Qué hacer". 56. Mover planifica/mi-viaje/planificador-grupal/presupuesto bajo "Planificar". 57. Agrupar llegada y movilidad bajo "Planificar → Llegada y movilidad". 58. Mover info práctica (seguridad/transporte/e-ticket/clima) a sección propia. 59. Centro de cuenta unificado (login/perfil/pasaporte/favoritos). 60. Separar navegación empresarial de la de viajeros.
+
+**Canonicalización y limpieza de rutas (61–70) — todas [P0]:** 61. Unificar `/playa` y `/playas`. 62. Unificar `/restaurante` y catálogo plural. 63. Unificar `/eventos`, `/evento/:slug`, `/eventos/:slug` y rutas por ID. 64. Consolidar `/aerolineas`, `/vuelos-aerolineas`, `/rutas-aereas`. 65. Resolver duplicado `/wellness`. 66. Unificar `/agencias` y `/directorio-agencias`. 67. Resolver `/ayuda`, `/centro-ayuda`, `/asistencia`. 68. Canonicalizar `/nautica`, `/cruceros`, `/nautica-cruceros`. 69. Reducir alias de gamificación/trivia. 70. Mapa de rutas canónicas y alias con redirects trazables.
+
+**Reubicación de áreas secundarias (71–80):** 71. Revista/artículo/podcast/cine-rd → "Revista y cultura". 72. Patrimonio/historia/turismo religioso → "Cultura e historia". 73. Gastronomía/rutas del sabor/café/tabaco → "Sabores y oficios". 74. Sostenible/biodiversidad/volunturismo → "Naturaleza y comunidad". 75. Wellness/turismo médico con etiquetado claro (no consejo médico). 76. Bodas/MICE/inversión → "Viajes y eventos de negocio". 77. Academia/empleo/sello-calidad → "Desarrollo del sector". 78. Prensa/newsletter → centro institucional. 79. Estadísticas/inversión fuera de nav turística principal. 80. Encuesta/opiniones/sugerencias como feedback contextual.
+
+**Experiencia de navegación y contextualidad (81–90):** 81. Migas de pan por jerarquía real. 82. Navegación lateral en guías largas. 83. Panel "En esta zona" por destino. 84. Navegación por colección en resultados. 85. Herramientas reubicadas en la etapa del viaje donde se necesitan. 86. Enlaces desde editorial a fichas relacionadas. 87. Acceso a carrito/checkout solo donde aplica. 88. `/ofertas` bajo "Planifica y ahorra" con proveedor/vigencia visibles. 89. Página de "Colecciones" editoriales temáticas. 90. Navegación por temporada y duración de viaje.
+
+**Migración y gobierno de información (91–100):** 91. Redirects 301 por cada URL movida. 92. Revisar sitemap/canonical tras cada movimiento. 93. Medir uso del menú antes/después. 94. Validar nombres del menú con card sorting. 95. Tree testing del árbol de navegación. 96. Propietarios editoriales por sección. 97. Retirar/fusionar páginas vacías o duplicadas. 98. Estado de vigencia para páginas temporales. 99. Índice público del ecosistema de contenidos. 100. Auditoría trimestral de arquitectura de información.
+
+### C. Nuevas secciones y productos editoriales (101–150)
+
+**Planificación personalizada (101–110):** 101. "Primera vez en RD". 102. Itinerarios por duración (24h/finde/5d/10d). 103. Itinerarios por presupuesto. 104. Guías de viaje sin auto. 105. Centro de preparación del viaje. 106. Guías de viajes accesibles. 107. Colecciones familiares por rango de edad. 108. Viajes multigeneracionales. 109. Planificador de escalas aeroportuarias. 110. Guías de viaje responsable.
+
+**Descubrimiento local y comunidad (111–120):** 111. Agenda de eventos verificados por provincia. 112. "Qué pasa esta semana". 113. Rutas urbanas caminables por barrio. 114. Rutas de transporte público local. 115. Directorio de guías locales por especialidad. 116. Artesanía con historias de productores. 117. "Hecho en RD" (catálogo editorial de origen). 118. Guía de mercados y ferias. 119. Calendario de naturaleza y observación responsable. 120. Historias orales por territorio.
+
+**Contenido de viaje especializado (121–130):** 121. Centro de playas con condiciones/servicios. 122. Excursiones de un día por región. 123. Guías de temporada de lluvia/huracanes. 124. Centro de salud útil para viajeros (sin diagnóstico). 125. Gastronomía por provincia. 126. Diccionario situacional para visitantes. 127. Accesos a parques nacionales (permisos/cupos). 128. Hub de turismo náutico por puerto/marina. 129. Guía de observación astronómica. 130. Centro de turismo de reuniones y eventos (conecta con fichas B2B).
+
+**Herramientas y servicios digitales (131–140):** 131. Ficha compartible de viaje en grupo. 132. Lista de gastos compartidos (sin custodiar dinero). 133. Asistente de elección de destino. 134. Comparador de temporadas. 135. Monitor de presupuesto de viaje. 136. Checklist colaborativo pre-viaje. 137. Modo kiosco para centros de visitantes. 138. Mapas temáticos descargables. 139. Audioguías editoriales por recorrido. 140. Catálogo de experiencias de temporada baja.
+
+**Comunidad, confianza y sostenibilidad (141–150):** 141. Criterios de verificación de proveedores. 142. Fichas de sostenibilidad con indicadores verificables. 143. Mapa de iniciativas comunitarias. 144. Centro de seguridad de actividades al aire libre. 145. Ficha de accesibilidad aportada por usuarios y verificada. 146. Formato de reseña centrado en utilidad de viaje. 147. Página "Correcciones y fuentes". 148. Colección de relatos de residentes (con consentimiento). 149. Indicadores de impacto turístico local. 150. Panel de transparencia editorial y patrocinio.
+
+### D. Nuevas formas de monetización (151–200)
+> No activar todas. Por piloto: estimar margen neto, coste de atención, impacto en confianza, impuestos/contratos y carga de soporte. Mantener separados resultados orgánicos y pagados.
+
+**Productos digitales y utilidades premium (151–160):** 151. Guías digitales descargables por interés/región. 152. Mapas premium offline de rutas verificadas. 153. Audioguías individuales o por paquete temático. 154. Plantillas descargables de planificación profesional. 155. Informes de viaje personalizados de pago. 156. Herramientas avanzadas de colaboración grupal (de pago). 157. Packs de contenido licenciado para centros de visitantes. 158. Paquetes de aprendizaje sobre cultura local. 159. Personalización avanzada del plan de viaje (de pago). 160. Acceso a actualizaciones de temporada especializadas.
+
+**Servicios transaccionales nuevos (161–170):** 161. Comisión por reservas de transporte interurbano de terceros. 162. Comisión por alquiler de vehículos con comparación neutral. 163. Excursiones de conservación con aporte transparente. 164. Experiencias culinarias con cupo limitado. 165. Venta de entradas para atracciones culturales independientes. 166. Reservas de guías certificados por franja horaria. 167. Reservas de estacionamiento/traslados en puntos de acceso. 168. Paquetes de conectividad (SIM/eSIM afiliada). 169. Entrega local de compras a hotel/punto turístico. 170. Reservas de actividades de temporada con cupos.
+
+**Monetización B2B e institucional (171–180):** 171. Producción de páginas de campaña territorial. 172. Auditorías de presencia digital a negocios turísticos. 173. Fotografía y contenido licenciado para negocios. 174. Capacitación remunerada de hospitalidad digital. 175. Catálogo de proveedores de producción local para eventos. 176. Estudios agregados de demanda turística (anonimizados). 177. Licencias de fotografía editorial a medios/operadores. 178. Integración técnica de catálogo a cadenas regionales (SLA propio, distinto de la API B2B ya existente). 179. Gestión de contenido multilingüe para negocios. 180. Formación de datos y distribución para entidades turísticas.
+
+**Comercio, afiliación y productos de marca (181–190):** 181. Afiliación editorial a equipamiento de viaje pertinente. 182. Enlaces de afiliado a alojamiento con atribución clara. 183. Catálogo afiliado de libros y material cultural dominicano. 184. Mapas impresos y guías de bolsillo (bajo demanda). 185. Colecciones colaborativas de artesanía con reparto transparente. 186. Licencias de diseños turísticos con artistas locales. 187. Cajas temáticas de productos dominicanos. 188. Souvenirs personalizados vinculados a ruta completada. 189. Impresión bajo demanda de fotografía con derechos confirmados. 190. Certificados/regalos digitales de experiencias locales.
+
+**Ingresos recurrentes y experimentos de mercado (191–200):** 191. Paquetes de temporada con múltiples proveedores. 192. Pases de acceso agrupado a atracciones independientes. 193. Licencia anual del planificador para organizaciones de viaje. 194. Programa de apoyo recurrente a contenido local (sin influir rankings). 195. Donaciones voluntarias a conservación con socio verificado. 196. Pases de temporada para eventos culturales participantes. 197. Patrocinios de contenido audiovisual educativo. 198. Marketplace de servicios de pre-viaje con tarifa de referencia. 199. Pruebas A/B de precio y formato de producto digital. 200. Comité de aprobación de nuevos ingresos.
+
+### Matriz para elegir pilotos (Fase 12)
+| Criterio | Pregunta |
+|---|---|
+| Valor al viajero | ¿Resuelve una tarea o fricción real? |
+| Diferenciación | ¿Aporta algo no cubierto ya por una función o modelo existente (Fase 5)? |
+| Confianza | ¿Se entiende quién paga, quién presta el servicio y cómo se selecciona? |
+| Viabilidad | ¿Hay proveedor, contenido, permisos, soporte y operación disponibles? |
+| Economía unitaria | ¿El ingreso cubre pagos, soporte, adquisición, devolución e impuestos? |
+| Impacto local | ¿Beneficia de forma verificable a empresas y comunidades del destino? |
+
+Comenzar con los pilotos de mayor valor y confianza, detener los que no alcancen sus métricas y publicar claramente patrocinios, afiliaciones y criterios de ranking.
 
 ---
 
