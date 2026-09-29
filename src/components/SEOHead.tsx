@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { autoBreadcrumbs } from "@/lib/breadcrumbs";
 
 interface SEOHeadProps {
   title: string;
@@ -8,6 +9,10 @@ interface SEOHeadProps {
   url?: string;
   type?: "website" | "article" | "product";
   jsonLd?: object;
+  /** Migas de pan explícitas (Fase 10.19) para cuando la ruta no basta (p. ej. mostrar la provincia real en vez
+   * del slug). Si no se pasa, se generan solas a partir de la URL — salvo en las rutas de `HIDDEN_PREFIXES`
+   * (`src/lib/breadcrumbs.ts`), donde nunca se muestran. Pasar `breadcrumbs={[]}` fuerza a ocultarlas también. */
+  breadcrumbs?: { name: string; url: string }[];
 }
 
 export function SEOHead({
@@ -18,6 +23,7 @@ export function SEOHead({
   url,
   type = "website",
   jsonLd,
+  breadcrumbs,
 }: SEOHeadProps) {
   const fullTitle = title.includes("Descubre RD") ? title : `${title} | Descubre República Dominicana`;
   const currentUrl = url || (typeof window !== "undefined" ? window.location.href : "");
@@ -85,12 +91,30 @@ export function SEOHead({
       script.textContent = JSON.stringify(jsonLd);
     }
 
+    // Migas de pan (Fase 10.19): explícitas si la página las pasó; si no, se generan solas por ruta (o se ocultan
+    // del todo en rutas de HIDDEN_PREFIXES — ver src/lib/breadcrumbs.ts). Script propio para no pisar el jsonLd principal.
+    const resolvedBreadcrumbs = breadcrumbs ?? (typeof window !== "undefined" ? autoBreadcrumbs(window.location.pathname, fullTitle) : null);
+    let bcScript = document.querySelector('script[data-seo-breadcrumb]') as HTMLScriptElement | null;
+    if (resolvedBreadcrumbs && resolvedBreadcrumbs.length > 0) {
+      if (!bcScript) {
+        bcScript = document.createElement("script");
+        bcScript.setAttribute("type", "application/ld+json");
+        bcScript.setAttribute("data-seo-breadcrumb", "true");
+        document.head.appendChild(bcScript);
+      }
+      bcScript.textContent = JSON.stringify(generateBreadcrumbSchema(resolvedBreadcrumbs));
+    } else if (bcScript) {
+      bcScript.remove();
+    }
+
     return () => {
       // Cleanup JSON-LD on unmount
       const script = document.querySelector('script[data-seo-jsonld]');
       if (script) script.remove();
+      const bcScript = document.querySelector('script[data-seo-breadcrumb]');
+      if (bcScript) bcScript.remove();
     };
-  }, [fullTitle, description, keywords, image, currentUrl, type, jsonLd]);
+  }, [fullTitle, description, keywords, image, currentUrl, type, jsonLd, breadcrumbs]);
 
   return null;
 }
