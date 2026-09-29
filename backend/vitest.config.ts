@@ -6,7 +6,6 @@ export default defineConfig({
     projects: [
       // ── Proyecto 1: Tests de integración (requieren DB real en puerto 5434) ──
       {
-        name: "integration",
         test: {
           name: "integration",
           environment: "node",
@@ -27,7 +26,6 @@ export default defineConfig({
       },
       // ── Proyecto 2: Tests unitarios (mocks puros, sin DB real) ────────────
       {
-        name: "unit",
         test: {
           name: "unit",
           environment: "node",

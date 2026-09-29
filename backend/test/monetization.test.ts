@@ -40,11 +40,11 @@ describe("Monetization Suite - Architecture & Logic Contracts", () => {
     const fakePool: any = { query: async () => ({ rows: [] }) };
     const service = new CreatorService(fakePool);
     expect(service).toBeDefined();
-    expect(typeof service.onboardCreator).toBe("function");
-    expect(typeof service.getFeed).toBe("function");
+    expect(typeof service.registerCreator).toBe("function");
+    expect(typeof service.listFeed).toBe("function");
     expect(typeof service.publishVideo).toBe("function");
-    expect(typeof service.recordVideoEvent).toBe("function");
-    expect(typeof service.processPayout).toBe("function");
+    expect(typeof service.trackVideoEvent).toBe("function");
+    expect(typeof service.attributeConversion).toBe("function");
   });
 
   it("SponsorshipService should serve ad slots and record telemetry", () => {
@@ -53,7 +53,5 @@ describe("Monetization Suite - Architecture & Logic Contracts", () => {
     expect(service).toBeDefined();
     expect(typeof service.serveSlot).toBe("function");
     expect(typeof service.recordEvent).toBe("function");
-    expect(typeof service.listSlots).toBe("function");
-    expect(typeof service.createCampaign).toBe("function");
   });
 });

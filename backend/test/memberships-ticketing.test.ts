@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Sprint 6.1 — Suite de tests: Membresias, Puntos de Lealtad y Ticketing (Fase 5B)
  * Cubre: listActivePlans, subscribeUserToPlan, getUserMembership, creditLoyaltyPoints, purchaseTicket, verifyAndCheckInTicket
  */
@@ -73,7 +73,7 @@ describe("MembershipsAndTicketingService — Membresias y Ticketing (Fase 5B)", 
       const svc = new MembershipsAndTicketingService(pool);
       const result = await svc.listActivePlans();
       expect(result).toHaveLength(3);
-      expect(result[0].slug).toBe("basico");
+      expect(result[0]!.slug).toBe("basico");
     });
 
     it("retorna array vacio si no hay planes activos", async () => {

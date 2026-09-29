@@ -112,7 +112,7 @@ function fakeClamd(opts: { reply?: string; silent?: boolean } = {}) {
   const server = net.createServer((sock) => {
     let buf = Buffer.alloc(0), started = false, payload = Buffer.alloc(0);
     sock.on("data", (d) => {
-      buf = Buffer.concat([buf, d]);
+      buf = Buffer.concat([buf, typeof d === "string" ? Buffer.from(d) : d]);
       if (!started) {
         const i = buf.indexOf(0);
         if (i < 0) return;

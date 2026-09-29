@@ -37,6 +37,13 @@ export async function healthRoutes(app: FastifyInstance, opts: { version: string
     },
   );
 
+  const dbHealthSchema = z.object({
+    status: checkStatus,
+    latency_ms: z.number().nullable(),
+    pool: z.object({ total: z.number(), idle: z.number(), waiting: z.number() }).nullable(),
+    migrations: z.object({ applied: z.number(), latest: z.string().nullable() }).nullable(),
+  });
+
   // GET /health/db — Diagnóstico detallado de la base de datos (Sprint 6.3)
   r.get(
     "/health/db",
@@ -44,12 +51,9 @@ export async function healthRoutes(app: FastifyInstance, opts: { version: string
       schema: {
         tags: ["sistema"], summary: "Health detallado de la base de datos: latencia, pool y migraciones",
         response: {
-          200: z.object({
-            status: checkStatus,
-            latency_ms: z.number().nullable(),
-            pool: z.object({ total: z.number(), idle: z.number(), waiting: z.number() }).nullable(),
-            migrations: z.object({ applied: z.number(), latest: z.string().nullable() }).nullable(),
-          }),
+          200: dbHealthSchema,
+          206: dbHealthSchema,
+          503: dbHealthSchema,
         },
       },
       config: { rateLimit: false },
@@ -75,13 +79,16 @@ export async function healthRoutes(app: FastifyInstance, opts: { version: string
           migrations = { applied: rows[0]?.count ?? 0, latest: rows[0]?.latest ?? null };
         } catch { /* schema_migrations puede no existir aun */ }
 
-        const status = latency_ms > 1000 ? "degraded" : "up";
-        return reply.code(status === "up" ? 200 : 206).send({ status, latency_ms, pool, migrations });
+        const status = latency_ms > 1000 ? ("degraded" as const) : ("up" as const);
+        const code = status === "up" ? 200 : 206;
+        return reply.code(code).send({ status, latency_ms, pool, migrations });
       } catch (err) {
         return reply.code(503).send({ status: "down" as const, latency_ms: null, pool: null, migrations: null });
       }
     },
   );
+
+  const queueHealthSchema = z.object({ status: checkStatus, pending: z.number(), failed: z.number(), oldest_pending_minutes: z.number().nullable() });
 
   // GET /health/queue — Estado de la cola de emails (Sprint 6.3)
   r.get(
@@ -90,7 +97,8 @@ export async function healthRoutes(app: FastifyInstance, opts: { version: string
       schema: {
         tags: ["sistema"], summary: "Estado de la cola de correos: pendientes y fallidos",
         response: {
-          200: z.object({ status: checkStatus, pending: z.number(), failed: z.number(), oldest_pending_minutes: z.number().nullable() }),
+          200: queueHealthSchema,
+          503: queueHealthSchema,
         },
       },
       config: { rateLimit: false },
@@ -106,7 +114,7 @@ export async function healthRoutes(app: FastifyInstance, opts: { version: string
           WHERE created_at > now() - interval '24 hours'
         `);
         const { pending, failed, oldest_minutes } = rows[0] ?? { pending: 0, failed: 0, oldest_minutes: null };
-        const status = failed > 50 ? "degraded" : pending > 500 ? "degraded" : "up";
+        const status = failed > 50 ? ("degraded" as const) : pending > 500 ? ("degraded" as const) : ("up" as const);
         return { status, pending, failed, oldest_pending_minutes: oldest_minutes ? Math.round(oldest_minutes) : null };
       } catch {
         return reply.code(503).send({ status: "down" as const, pending: 0, failed: 0, oldest_pending_minutes: null });
@@ -120,7 +128,7 @@ export async function healthRoutes(app: FastifyInstance, opts: { version: string
     {
       schema: {
         tags: ["sistema"], summary: "Estado de la caché Redis (si está configurada)",
-        response: { 200: checkDetail },
+        response: { 200: checkDetail, 503: checkDetail },
       },
       config: { rateLimit: false },
     },
@@ -143,6 +151,18 @@ export async function healthRoutes(app: FastifyInstance, opts: { version: string
     },
   );
 
+  const detailedSchema = z.object({
+    status: checkStatus,
+    version: z.string(),
+    environment: z.string(),
+    uptime_seconds: z.number(),
+    checks: z.object({
+      database: checkDetail,
+      queue: z.object({ status: checkStatus, pending: z.number(), failed: z.number() }),
+      cache: checkDetail,
+    }),
+  });
+
   // GET /health/detailed — Resumen unificado para dashboards (UptimeRobot, Grafana)
   r.get(
     "/health/detailed",
@@ -150,17 +170,9 @@ export async function healthRoutes(app: FastifyInstance, opts: { version: string
       schema: {
         tags: ["sistema"], summary: "Diagnóstico completo de todos los subsistemas",
         response: {
-          200: z.object({
-            status: checkStatus,
-            version: z.string(),
-            environment: z.string(),
-            uptime_seconds: z.number(),
-            checks: z.object({
-              database: checkDetail,
-              queue: z.object({ status: checkStatus, pending: z.number(), failed: z.number() }),
-              cache: checkDetail,
-            }),
-          }),
+          200: detailedSchema,
+          206: detailedSchema,
+          503: detailedSchema,
         },
       },
       config: { rateLimit: false },
@@ -192,15 +204,15 @@ export async function healthRoutes(app: FastifyInstance, opts: { version: string
       const cache = cacheResult.status === "fulfilled" ? cacheResult.value : { status: "down" as const, latency_ms: null };
 
       const overallStatus = [db.status, queue.status, cache.status].includes("down")
-        ? "down"
+        ? ("down" as const)
         : [db.status, queue.status, cache.status].includes("degraded")
-          ? "degraded"
-          : "up";
+          ? ("degraded" as const)
+          : ("up" as const);
 
       const httpCode = overallStatus === "up" ? 200 : overallStatus === "degraded" ? 206 : 503;
 
       return reply.code(httpCode).send({
-        status: overallStatus as "up" | "degraded" | "down",
+        status: overallStatus,
         version: opts.version,
         environment: app.env.NODE_ENV,
         uptime_seconds: Math.floor(process.uptime()),
