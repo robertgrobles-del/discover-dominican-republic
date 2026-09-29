@@ -1,3 +1,4 @@
+import compress from "@fastify/compress";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
@@ -7,6 +8,8 @@ import type { Env } from "../config/env.js";
 import { createPostgresStore, purgeRateLimits } from "./rate-limit-store.js";
 
 export async function registerSecurity(app: FastifyInstance, env: Env) {
+  // Comprime respuestas JSON grandes (listados, exportaciones) con Brotli/gzip según lo que acepte el cliente.
+  await app.register(compress, { global: true, encodings: ["br", "gzip"] });
   await app.register(helmet, {
     // La API sólo sirve JSON; la UI de documentación (/docs) necesita sus propios scripts y estilos.
     contentSecurityPolicy: env.DOCS_ENABLED ? false : { directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] } },

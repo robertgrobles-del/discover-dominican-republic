@@ -72,7 +72,9 @@ describe("asistente de IA", () => {
       expect(res.statusCode).toBe(200);
       expect(res.headers["content-type"]).toContain("text/event-stream");
       const ev = sse(res.body);
-      expect((ev[0] as { places: unknown[] }).places).toContainEqual({ type: "hotel", ref: HOTEL, name: "Hotel Caribe" });
+      // objectContaining: el resultado ahora trae más lugares y campos (is_sponsored/is_verified de las fases de patrocinio y sello verificado);
+      // sólo importa que el Hotel Caribe esté presente con sus datos básicos correctos.
+      expect((ev[0] as { places: unknown[] }).places).toContainEqual(expect.objectContaining({ type: "hotel", ref: HOTEL, name: "Hotel Caribe" }));
       expect(ev.filter((e) => "delta" in e).length).toBeGreaterThan(3);
       expect(ev.map((e) => e.delta ?? "").join("")).toContain("Hotel Caribe");
       expect(ev[ev.length - 1]).toMatchObject({ done: true });

@@ -3,7 +3,7 @@
 > Generado automáticamente por `npm run docs:api` a partir de las rutas que el servidor registra. **No se edita a mano**: si una ruta cambia, se regenera (CI verifica con `npm run docs:api -- --check`).
 > `docs/BACKEND_API.md` es el diseño original; donde difiera, esta lista describe lo que existe. Detalle de cada módulo, reglas y ejemplos: `backend/README.md`. Contrato completo (esquemas de entrada y salida): `/docs` (Swagger) del servidor.
 
-Versión 0.1.0 · 831 operaciones en 39 grupos.
+Versión 0.1.0 · 904 operaciones en 44 grupos.
 
 Convenciones: todas las rutas cuelgan de `/api/v1`. Errores con la forma `{ error: { code, message, details, request_id } }`. **Sesión** = `Authorization: Bearer <jwt>`; **Opcional** = funciona sin sesión y, con ella, personaliza.
 
@@ -129,6 +129,8 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | POST | `/admin/contests` | Personal / admin | Crea un concurso |
 | POST | `/admin/contests/{slug}/draw` | Personal / admin | Sortea ganadores al azar entre los inscritos y cierra el concurso |
 | GET | `/admin/contests/{slug}/registrations` | Personal / admin | Inscritos |
+| POST | `/admin/creators/{id}/payout` | Personal / admin | Registra y liquida fondos a creador (Fondo de Creadores o Comisiones) |
+| POST | `/admin/creators/{id}/payout` | Sesión | Registra y liquida fondos a creador (Fondo de Creadores o Comisiones) |
 | GET | `/admin/dashboard` | Personal / admin | KPIs, pendientes de moderación y contenido por estado |
 | GET | `/admin/dictionary_terms` | Personal / admin | Glosario: lista |
 | POST | `/admin/dictionary_terms` | Personal / admin | Glosario: crear |
@@ -199,6 +201,7 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | POST | `/admin/gamification_seasons` | Personal / admin | Temporadas: crear |
 | PATCH | `/admin/gamification_seasons/{id}` | Personal / admin | Temporadas: editar |
 | DELETE | `/admin/gamification_seasons/{id}` | Personal / admin | Temporadas: borrar |
+| POST | `/admin/gamification/missions` | Personal / admin | Crea una misión de gamificación, opcionalmente patrocinada por un operador o marca (#6) |
 | POST | `/admin/gamification/seasons/{id}/close` | Personal / admin | Cierra la temporada: reparte premios al top, y abre la siguiente |
 | GET | `/admin/gamification/shipments` | Personal / admin | Consola de envíos |
 | PATCH | `/admin/gamification/shipments/{id}` | Personal / admin | Avanza un envío (pending → packed → shipped → delivered) |
@@ -294,6 +297,10 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | PUT | `/admin/settings/{key}` | Personal / admin | Crea o reemplaza un ajuste (JSON, máx. 64 KB) |
 | DELETE | `/admin/settings/{key}` | Personal / admin | Elimina un ajuste |
 | PATCH | `/admin/social/posts/{id}` | Personal / admin | Oculta o restaura una publicación |
+| GET | `/admin/sponsorship/campaigns` | Personal / admin | Listado de campañas publicitarias |
+| GET | `/admin/sponsorship/campaigns` | Sesión | Listado de campañas publicitarias |
+| PATCH | `/admin/sponsorship/campaigns/{id}/status` | Personal / admin | Aprueba o cambia el estado de una campaña publicitaria |
+| PATCH | `/admin/sponsorship/campaigns/{id}/status` | Sesión | Aprueba o cambia el estado de una campaña publicitaria |
 | GET | `/admin/store/orders` | Personal / admin | Pedidos de la tienda |
 | GET | `/admin/store/orders/{id}` | Personal / admin | Detalle de un pedido |
 | PATCH | `/admin/store/orders/{id}` | Personal / admin | Cambia el estado (processing → shipped con guía → delivered; cancelar reembolsa) |
@@ -345,6 +352,9 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | PUT | `/admin/users/{id}/roles` | Personal / admin | Reemplaza los roles de un usuario (no puedes cambiar los tuyos ni quitar al último admin) |
 | POST | `/admin/users/{id}/suspend` | Personal / admin | Suspende una cuenta y cierra sus sesiones |
 | POST | `/admin/users/{id}/unsuspend` | Personal / admin | Reactiva una cuenta suspendida |
+| GET | `/admin/verifications` | Personal / admin | Solicitudes y auditorías de Sello Verificado (#15) |
+| POST | `/admin/verifications/{id}/approve` | Personal / admin | Aprueba el sello verificado para un negocio/operador |
+| POST | `/admin/verifications/{id}/reject` | Personal / admin | Rechaza la solicitud de verificación con motivo justificado |
 | GET | `/admin/weather_alerts` | Personal / admin | Alertas meteorológicas: lista |
 | POST | `/admin/weather_alerts` | Personal / admin | Alertas meteorológicas: crear |
 | PATCH | `/admin/weather_alerts/{id}` | Personal / admin | Alertas meteorológicas: editar |
@@ -388,6 +398,15 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | POST | `/analytics/events` | Público | Lote de eventos anónimos (máx. 50). Respeta Do-Not-Track, Sec-GPC y el consentimiento; no guarda IP |
 | GET | `/statistics/public` | Público | Cifras públicas de /estadisticas (las del equipo en `statistics.public` más conteos del portal) |
 
+## b2b
+
+| Método | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| GET | `/api/v1/b2b/analytics/aggregate` | Público | Datos turísticos agregados y anonimizados B2B (requiere encabezado X-API-Key) |
+| GET | `/b2b/api-keys` | Sesión | Mis API Keys B2B activas |
+| POST | `/b2b/api-keys` | Sesión | Genera una nueva API Key B2B para acceso a datos agregados del turismo |
+| DELETE | `/b2b/api-keys/{id}` | Sesión | Revoca una API Key B2B |
+
 ## calculadoras
 
 | Método | Ruta | Acceso | Descripción |
@@ -409,6 +428,23 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/contests/{slug}` | Público | Detalle de un concurso |
 | POST | `/contests/{slug}/register` | Sesión | Inscribirse (una vez por persona; correo verificado) |
 | GET | `/contests/{slug}/winners` | Público | Ganadores (nombre abreviado) |
+
+## creadores
+
+| Método | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| GET | `/creators/feed` | Público | Feed público de videos y experiencias UGC |
+| GET | `/creators/feed` | Público | Feed público de videos y experiencias UGC |
+| GET | `/creators/me` | Sesión | Panel privado del creador: métricas, saldo acumulado y videos |
+| GET | `/creators/me` | Sesión | Panel privado del creador: métricas, saldo acumulado y videos |
+| POST | `/creators/onboarding` | Sesión | Registro como creador de contenido de Descubre RD |
+| POST | `/creators/onboarding` | Sesión | Registro como creador de contenido de Descubre RD |
+| GET | `/creators/profile/{handle}` | Público | Perfil público de un creador y sus estadísticas |
+| GET | `/creators/profile/{handle}` | Público | Perfil público de un creador y sus estadísticas |
+| POST | `/creators/videos` | Sesión | Publica un video UGC con atribución a tours o experiencias |
+| POST | `/creators/videos` | Sesión | Publica un video UGC con atribución a tours o experiencias |
+| POST | `/creators/videos/{id}/events` | Público | Registra evento de reproducción o interacción en video UGC |
+| POST | `/creators/videos/{id}/events` | Público | Registra evento de reproducción o interacción en video UGC |
 
 ## datos vivos
 
@@ -542,6 +578,7 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/gamification/missions` | Opcional (sesión) | Misiones activas (con mi progreso si hay sesión) |
 | POST | `/gamification/missions/{id}/progress` | Sesión | Estado de una misión. El progreso lo suma el servidor con las acciones reales; aquí no se envían cifras |
 | GET | `/gamification/missions/me` | Sesión | Mis misiones con progreso |
+| POST | `/gamification/passport/scan-qr` | Sesión | Valida un código QR escaneado en un destino/negocio y otorga el sello oficial del pasaporte digital con XP y monedas (#220) |
 | GET | `/gamification/prizes` | Público | Premios canjeables |
 | POST | `/gamification/prizes/{id}/redeem` | Sesión | Canjea un premio con monedas (stock y monedas en una sola transacción) |
 | GET | `/gamification/redemptions/me` | Sesión | Mis canjes |
@@ -765,6 +802,9 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/org/rooms/{id}/calendar` | Sesión | URL de exportación y calendarios importados |
 | POST | `/org/rooms/{id}/calendar-links` | Sesión | Importa un calendario iCal externo (https) y bloquea sus fechas |
 | PUT | `/org/rooms/{id}/rates` | Sesión | Tarifas: fin de semana, noches mínimas y temporadas |
+| GET | `/org/subscription` | Sesión | Estado y plan de suscripción del operador |
+| POST | `/org/subscription/cancel` | Sesión | Cancela la renovación automática de la suscripción |
+| POST | `/org/subscription/upgrade` | Sesión | Cambia o activa el plan de suscripción (destacado, premium_partner, corporativo) |
 | GET | `/org/team` | Sesión | Miembros e invitaciones abiertas |
 | POST | `/org/team/invitations` | Sesión | Invita a alguien al equipo por correo |
 | DELETE | `/org/team/invitations/{id}` | Sesión | Revoca una invitación |
@@ -775,6 +815,56 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | PATCH | `/orgs/me` | Sesión | Actualiza mi organización |
 | GET | `/team-invitations/{token}` | Público | Vista previa de una invitación |
 | POST | `/team-invitations/{token}/accept` | Sesión | Acepta una invitación con la cuenta invitada |
+
+## otros
+
+| Método | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| GET | `/content/offline-bundle` | Público |  |
+| POST | `/events/{id}/tickets/purchase` | Público |  |
+| POST | `/events/{id}/tickets/purchase` | Público |  |
+| POST | `/events/tickets/verify` | Público |  |
+| POST | `/events/tickets/verify` | Público |  |
+| GET | `/invoices` | Público |  |
+| GET | `/invoices` | Público |  |
+| GET | `/invoices/{ncf}` | Público |  |
+| GET | `/invoices/{ncf}` | Público |  |
+| POST | `/invoices/issue` | Público |  |
+| POST | `/invoices/issue` | Público |  |
+| GET | `/memberships/me` | Público |  |
+| GET | `/memberships/me` | Público |  |
+| GET | `/memberships/plans` | Público |  |
+| GET | `/memberships/plans` | Público |  |
+| POST | `/memberships/subscribe` | Público |  |
+| POST | `/memberships/subscribe` | Público |  |
+| GET | `/sitemap.xml` | Público |  |
+| GET | `/sitemap.xml` | Público |  |
+
+## patrocinio
+
+| Método | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| POST | `/sponsorship/campaigns` | Sesión | Crea una nueva campaña publicitaria/patrocinada |
+| POST | `/sponsorship/campaigns` | Sesión | Crea una nueva campaña publicitaria/patrocinada |
+| POST | `/sponsorship/campaigns/{id}/creatives` | Sesión | Agrega una creatividad/anuncio a una campaña |
+| POST | `/sponsorship/campaigns/{id}/creatives` | Sesión | Agrega una creatividad/anuncio a una campaña |
+| GET | `/sponsorship/serve/{slot_id}` | Público | Entrega creatividades activas para un espacio publicitario |
+| GET | `/sponsorship/serve/{slot_id}` | Público | Entrega creatividades activas para un espacio publicitario |
+| GET | `/sponsorship/slots` | Público | Espacios de patrocinio e inventario disponibles en el portal |
+| GET | `/sponsorship/slots` | Público | Espacios de patrocinio e inventario disponibles en el portal |
+| POST | `/sponsorship/telemetry` | Público | Registra telemetría de anuncios (impresión, clic o conversión) |
+| POST | `/sponsorship/telemetry` | Público | Registra telemetría de anuncios (impresión, clic o conversión) |
+
+## productos
+
+| Método | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| POST | `/insurance/quote-and-issue` | Público | Emisión de seguro de viaje con cobertura médica y cancelación (#12) |
+| POST | `/insurance/quote-and-issue` | Público | Emisión de seguro de viaje con cobertura médica y cancelación (#12) |
+| GET | `/packages/dynamic` | Público | Catálogo de paquetes dinámicos multidestino (#17) |
+| GET | `/packages/dynamic` | Público | Catálogo de paquetes dinámicos multidestino (#17) |
+| POST | `/transport/book` | Público | Reserva de transfer privado, chofer o vehículo rent-a-car (#13) |
+| POST | `/transport/book` | Público | Reserva de transfer privado, chofer o vehículo rent-a-car (#13) |
 
 ## publicidad
 
@@ -908,6 +998,14 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/config` | Público | Configuración pública de arranque |
 | GET | `/health` | Público | Liveness: el proceso responde |
 | GET | `/health` | Público | Liveness: el proceso responde |
+| GET | `/health/cache` | Público | Estado de la caché Redis (si está configurada) |
+| GET | `/health/cache` | Público | Estado de la caché Redis (si está configurada) |
+| GET | `/health/db` | Público | Health detallado de la base de datos: latencia, pool y migraciones |
+| GET | `/health/db` | Público | Health detallado de la base de datos: latencia, pool y migraciones |
+| GET | `/health/detailed` | Público | Diagnóstico completo de todos los subsistemas |
+| GET | `/health/detailed` | Público | Diagnóstico completo de todos los subsistemas |
+| GET | `/health/queue` | Público | Estado de la cola de correos: pendientes y fallidos |
+| GET | `/health/queue` | Público | Estado de la cola de correos: pendientes y fallidos |
 | GET | `/health/ready` | Público | Readiness: dependencias disponibles (base de datos) |
 | GET | `/health/ready` | Público | Readiness: dependencias disponibles (base de datos) |
 | GET | `/version` | Público | Versión de la API |

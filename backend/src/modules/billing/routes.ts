@@ -9,7 +9,11 @@ declare module "fastify" {
 }
 
 export const fiscalInvoiceRoutes: FastifyPluginAsync = async (app) => {
-  // Emitir comprobante fiscal NCF (#4)
+  const auth = app.authenticate;
+  const admin = app.requireRole("admin");
+
+  // Emitir comprobante fiscal NCF (#4) — acción interna/fiscal: sólo personal admin, nunca a petición directa del cliente
+  // (el NCF y los montos deben salir de un pedido/reserva ya cobrado, no de lo que declare quien llama).
   app.post<{
     Body: {
       ncf_type: NcfType;
@@ -23,7 +27,7 @@ export const fiscalInvoiceRoutes: FastifyPluginAsync = async (app) => {
       reference_id: string;
       payment_method?: string;
     };
-  }>("/invoices/issue", async (request, reply) => {
+  }>("/invoices/issue", { onRequest: admin }, async (request, reply) => {
     const body = request.body;
     if (!body || !body.ncf_type || !body.buyer_name || !body.subtotal || !body.reference_type || !body.reference_id) {
       return reply.status(400).send({
@@ -40,10 +44,10 @@ export const fiscalInvoiceRoutes: FastifyPluginAsync = async (app) => {
     });
   });
 
-  // Consultar comprobante fiscal por NCF
+  // Consultar comprobante fiscal por NCF — exige sesión: expone datos del comprador (nombre, RNC/cédula, montos).
   app.get<{
     Params: { ncf: string };
-  }>("/invoices/:ncf", async (request, reply) => {
+  }>("/invoices/:ncf", { onRequest: auth }, async (request, reply) => {
     const invoice = await app.invoicingService.getInvoiceByNcf(request.params.ncf);
     if (!invoice) {
       return reply.status(404).send({
@@ -57,10 +61,10 @@ export const fiscalInvoiceRoutes: FastifyPluginAsync = async (app) => {
     });
   });
 
-  // Consultar comprobantes vinculados a una orden o reserva
+  // Consultar comprobantes vinculados a una orden o reserva — exige sesión (misma razón que arriba).
   app.get<{
     Querystring: { reference_type: string; reference_id: string };
-  }>("/invoices", async (request, reply) => {
+  }>("/invoices", { onRequest: auth }, async (request, reply) => {
     const { reference_type, reference_id } = request.query;
     if (!reference_type || !reference_id) {
       return reply.status(400).send({

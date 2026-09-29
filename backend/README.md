@@ -321,6 +321,10 @@ Deliberadamente **no** se encola `sponsorship_events`: su inserción vive dentro
 
 `readImage`/`sniffMime` (`src/modules/media/images.ts`) detectan el formato real de cada archivo subido por sus primeros bytes (firma PNG/JPEG/WebP/GIF), no por el `Content-Type` que declare el cliente ni por su extensión; `POST /media/:id/complete` y la importación por URL rechazan cualquier archivo cuyos bytes no correspondan a una imagen válida antes de procesarlo con `sharp` o de pasarlo al antivirus.
 
+## Compresión de respuestas (Fase 10.22)
+
+`@fastify/compress` registrado en `registerSecurity` (`src/plugins/security.ts`) comprime toda respuesta con Brotli o gzip según lo que acepte el cliente (`global: true`). Las respuestas ya binarias (imágenes servidas desde `/media/files/*`) no se recomprimen: el filtro por `Content-Type` del propio plugin sólo actúa sobre tipos comprimibles (JSON, texto, XML del sitemap, etc.), así que los listados y exportaciones grandes son los que más se benefician.
+
 ## Sobre el esquema generado
 
 `0001_baseline.sql` y `0002_cms_governance.sql` se **generan** con `npm run db:gen-baseline` combinando:

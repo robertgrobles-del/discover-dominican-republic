@@ -39,7 +39,7 @@ gantt
     Fase 6: SEO Dinámico, Robots & Desmontaje Lovable :done, f6, 2026-09-28, 5d
     Fase 7: Componentización Frontend & God Objects  :f7, after f6, 7d
     Fase 8: Gran Integración (Frontend ↔ Fastify)    :f8, after f7, 10d
-    Fase 9: Arquitectura DB Avanzada, Workers & Sec  :f9, after f8, 8d
+    Fase 9: Arquitectura DB Avanzada, Workers & Sec  :done, f9, after f8, 8d
     Fase 10: 50 Medidas Industriales & CI/CD Hardening:f10, after f9, 10d
     section Auditoría Técnica & Diseño/Monetización
     Fase 11: Auditoría 100 Frontend + 100 Backend     :f11, after f10, 12d
@@ -138,15 +138,21 @@ gantt
 
 ---
 
-## ⚙️ FASE 9: Optimización de Arquitectura, DB & Infraestructura
+## ⚙️ FASE 9: Optimización de Arquitectura, DB & Infraestructura (Completada)
 > **Rama de Trabajo:** `infra/architecture-db-workers`
 
-- [ ] **9.1 Delegación de Telemetría a Queues/Redis:**
-  - Migrar escrituras síncronas de `sponsorship_events` y `analytics_events` a colas Redis / ClickHouse para no saturar la DB transaccional.
-- [ ] **9.2 Bloqueo Distribuido en Cron Jobs (`system_cron_jobs`):**
-  - Implementar Redlock o `pg_advisory_lock` en Fastify para evitar ejecuciones duplicadas en entornos multi-contenedor.
-- [ ] **9.3 Verificación de Magic Bytes en Subida de Archivos:**
-  - Inspeccionar los primeros bytes de las imágenes subidas a `media_assets` en Fastify para evitar inyección de malware.
+- [x] **9.1 Delegación de Telemetría a Redis:**
+  - `TelemetryQueue` (`src/lib/telemetry-queue.ts`): con `REDIS_URL` configurado, `POST /analytics/events` encola (`LPUSH`) en vez de insertar directo; el job `analytics.flush_queue` (cada 30s) vacía en lotes de hasta 500 (`RPOP ... COUNT`). Sin `REDIS_URL`, o si falla encolar, inserta directo como antes — cambio 100% retrocompatible.
+  - `sponsorship_events` se deja **deliberadamente síncrono**: su inserción comparte transacción con la validación de campaña y el descuento de presupuesto (`budget_spent`), dinero real — encolarlo cambiaría cuándo se confirma el gasto. Documentado en `backend/README.md`.
+- [x] **9.2 Bloqueo entre instancias en Cron Jobs:** ya resuelto de fondo — `JobRunner.execute()` reclama cada trabajo con un único `UPDATE system_cron_jobs SET status='running' WHERE status IS DISTINCT FROM 'running' ... RETURNING id`, atómico a nivel de fila en PostgreSQL: con varias instancias sólo una obtiene la fila. Cumple el mismo objetivo que `pg_advisory_lock`/Redlock sin infraestructura adicional y deja el estado visible/editable desde el panel admin. Documentado en `backend/README.md`.
+- [x] **9.3 Verificación de Magic Bytes en Subida de Archivos:** ya resuelto de fondo — `readImage`/`sniffMime` (`src/modules/media/images.ts`) detectan el formato real por la firma de los primeros bytes (PNG/JPEG/WebP/GIF), no por `Content-Type` ni extensión; rechaza cualquier archivo cuyos bytes no correspondan antes de procesarlo con `sharp` o pasarlo al antivirus.
+
+**Hallazgos de seguridad encontrados y corregidos al correr la suite completa (ver nota más abajo sobre `vitest.config.ts`):**
+- `POST /memberships/subscribe`, `GET /memberships/me` y `POST /events/:id/tickets/purchase` no exigían sesión y, peor, caían a un usuario demo hardcodeado (`usr_demo_vip_traveler`) si no había token — cualquiera podía crear suscripciones/tickets a nombre de esa cuenta compartida. Corregido: las tres exigen `onRequest: app.authenticate` y usan `request.user!.id`.
+- `POST /events/tickets/verify` (check-in de ticket en la puerta) tampoco exigía sesión; ahora exige `app.authenticate`, igual que el `POST /tickets/verify` ya existente en `trips`.
+- `POST /invoices/issue` (emisión de comprobante fiscal NCF) era una ruta pública sin ninguna protección: cualquiera podía emitir un NCF válido con nombre de comprador y montos arbitrarios, y no estaba conectada a ningún flujo de pago real. Corregido: exige `app.requireRole("admin")`. `GET /invoices/:ncf` y `GET /invoices` (exponen nombre/RNC/cédula del comprador) ahora exigen sesión.
+
+**Nota — `vitest.config.ts` sólo ejecutaba 9 de 47 archivos de test:** el `include` de los dos proyectos (integración/unitario) listaba nombres de archivo obsoletos (`travels.test.ts`, `gamification.test.ts`, `billing.test.ts`, que ya no existen) y omitía 38 archivos reales sin que nada lo señalara — `npx vitest run` "pasaba" en verde reportando sólo 118 de 619 pruebas. Corregido: el `include` ahora lista los 47 archivos reales, correctamente repartidos entre el proyecto con DB (39) y el de mocks puros (8). Al correr la suite completa por primera vez en mucho tiempo aparecieron, además de los hallazgos de seguridad de arriba: dos migraciones con bugs reales (`0043` referenciaba una columna `status` inexistente en vez de `subscription_status`; `0046` tipaba `tour_listing_id` como `uuid` cuando `operator_listings.id` es `text`), una migración (`0047`) que reusaba el nombre `event_tickets` ya ocupado por la tabla base de e-tickets de reservas (renombrada a `live_event_tickets`), y `0050` con BOM UTF-8, `CREATE INDEX CONCURRENTLY` (incompatible con que el migrador envuelve cada archivo en una transacción) y tres índices sobre columnas que no existen — todo corregido y con las 47 suites en verde.
 
 ---
 

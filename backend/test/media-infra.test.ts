@@ -101,8 +101,8 @@ describe("almacenamiento S3", () => {
     await expect(s.put(`${ID}-evil`, Buffer.from("x"))).rejects.toThrow(/inválida/);
     await expect(store({ secretKey: "otro-secreto" }).put(ID, Buffer.from("x"))).rejects.toThrow(/403/);
     // Con pathStyle=false el bucket va en el host (aquí "medios.127.0.0.1" no resuelve: sólo se comprueba cómo se arma la URL).
-    const host = (store({ pathStyle: false }) as unknown as { target(k: string): { host: string; path: string } }).target(`media/${ID}`);
-    expect(host).toEqual({ host: `medios.127.0.0.1:${port}`, path: `/media/${ID}` });
+    const host = (store({ pathStyle: false }) as unknown as { target(k: string): { host: string; path: string; url: string } }).target(`media/${ID}`);
+    expect(host).toMatchObject({ host: `medios.127.0.0.1:${port}`, path: `/media/${ID}` });
   });
 });
 
@@ -213,8 +213,8 @@ describe("medios con S3 y antivirus (API)", () => {
     expect(json(done).data.status).toBe("ready");
     expect(await scan(u.asset_id)).toMatchObject({ status: "ready", scan_status: "clean" });
     const keys = [...s3.objects.keys()].filter((k) => k.includes(u.asset_id));
-    expect(keys.sort()).toEqual([`medios/${u.asset_id}`, `medios/${u.asset_id}-large`.replace("-large", "-medium"), `medios/${u.asset_id}-thumb`].sort().filter((k) => keys.includes(k)));
-    expect(keys.length).toBeGreaterThanOrEqual(3);
+    // Original + las 3 variantes (thumb/medium/large) generadas por VARIANTS en process.ts.
+    expect(keys.sort()).toEqual([`medios/${u.asset_id}`, `medios/${u.asset_id}-thumb`, `medios/${u.asset_id}-medium`, `medios/${u.asset_id}-large`].sort());
     expect((await sharp((await call(app, "GET", `/media/files/${u.asset_id}`)).rawPayload).metadata()).width).toBe(2000);
     expect((await call(app, "GET", `/media/files/${u.asset_id}?variant=thumb`)).headers["content-type"]).toBe("image/webp");
     expect((await pool.query("SELECT 1 FROM media_assets WHERE id = $1 AND sanitized", [u.asset_id])).rowCount).toBe(1);

@@ -8,6 +8,8 @@ declare module "fastify" {
 }
 
 export const membershipsRoutes: FastifyPluginAsync = async (app) => {
+  const auth = app.authenticate;
+
   // Listar planes disponibles (Público)
   app.get("/memberships/plans", async (_request, reply) => {
     const plans = await app.membershipsService.listActivePlans();
@@ -17,14 +19,14 @@ export const membershipsRoutes: FastifyPluginAsync = async (app) => {
     });
   });
 
-  // Suscribirse a un plan VIP (#19 Pasaporte RD)
+  // Suscribirse a un plan VIP (#19 Pasaporte RD) — exige sesión: la suscripción y su cobro quedan a nombre de quien llama, nunca de un usuario adivinado.
   app.post<{
     Body: {
       plan_slug_or_id: string;
       payment_reference?: string;
     };
-  }>("/memberships/subscribe", async (request, reply) => {
-    const userId = (request as unknown as { user?: { id: string } }).user?.id || "usr_demo_vip_traveler";
+  }>("/memberships/subscribe", { onRequest: auth }, async (request, reply) => {
+    const userId = request.user!.id;
     const { plan_slug_or_id, payment_reference } = request.body || {};
 
     if (!plan_slug_or_id) {
@@ -47,9 +49,9 @@ export const membershipsRoutes: FastifyPluginAsync = async (app) => {
     });
   });
 
-  // Ver membresía y balance de puntos (#18 y #19)
-  app.get("/memberships/me", async (request, reply) => {
-    const userId = (request as unknown as { user?: { id: string } }).user?.id || "usr_demo_vip_traveler";
+  // Ver membresía y balance de puntos (#18 y #19) — exige sesión: es información propia del viajero.
+  app.get("/memberships/me", { onRequest: auth }, async (request, reply) => {
+    const userId = request.user!.id;
     const data = await app.membershipsService.getUserMembership(userId);
 
     return reply.send({
@@ -58,7 +60,7 @@ export const membershipsRoutes: FastifyPluginAsync = async (app) => {
     });
   });
 
-  // Comprar ticket para evento en vivo (#20)
+  // Comprar ticket para evento en vivo (#20) — exige sesión: el pago y el ticket quedan a nombre de quien llama.
   app.post<{
     Params: { id: string };
     Body: {
@@ -66,8 +68,8 @@ export const membershipsRoutes: FastifyPluginAsync = async (app) => {
       price?: number;
       currency?: string;
     };
-  }>("/events/:id/tickets/purchase", async (request, reply) => {
-    const userId = (request as unknown as { user?: { id: string } }).user?.id || "usr_demo_vip_traveler";
+  }>("/events/:id/tickets/purchase", { onRequest: auth }, async (request, reply) => {
+    const userId = request.user!.id;
     const eventId = request.params.id;
     const { tier_name, price, currency } = request.body || {};
 
@@ -86,12 +88,12 @@ export const membershipsRoutes: FastifyPluginAsync = async (app) => {
     });
   });
 
-  // Validar y hacer check-in de ticket en puerta (#20)
+  // Validar y hacer check-in de ticket en puerta (#20) — exige sesión (personal escaneando en la puerta), igual que POST /tickets/verify.
   app.post<{
     Body: {
       qr_code_hash: string;
     };
-  }>("/events/tickets/verify", async (request, reply) => {
+  }>("/events/tickets/verify", { onRequest: auth }, async (request, reply) => {
     const { qr_code_hash } = request.body || {};
 
     if (!qr_code_hash) {
