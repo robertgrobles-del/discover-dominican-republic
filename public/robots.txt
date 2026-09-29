@@ -10,6 +10,18 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ByteSpider
+Allow: /
+
 User-agent: *
 Allow: /
 Disallow: /admin
@@ -18,5 +30,6 @@ Disallow: /registro
 Disallow: /reset-password
 Disallow: /perfil
 Disallow: /reservas
+Disallow: /panel-empresa
 
-Sitemap: https://descubrerd.lovable.app/sitemap.xml
+Sitemap: https://descubrerd.do/api/v1/sitemap.xml

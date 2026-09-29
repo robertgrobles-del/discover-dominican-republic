@@ -1,0 +1,51 @@
+{
+  "name": "DescubreRD_AI_Agent_MCP",
+  "version": "1.0.0",
+  "description": "Manifiesto MCP oficial para integración de Agentes de IA externos con la API de Descubre República Dominicana",
+  "server": {
+    "url": "https://descubrerd.do/api/v1"
+  },
+  "tools": [
+    {
+      "name": "search_destinations",
+      "description": "Busca destinos turísticos en República Dominicana en tiempo real desde la base de datos PostgreSQL",
+      "endpoint": "/content/destinations",
+      "method": "GET",
+      "parameters": {
+        "q": { "type": "string", "description": "Término de búsqueda (ej. Punta Cana, Samaná, Las Terrenas)" },
+        "page": { "type": "number", "default": 1 },
+        "per_page": { "type": "number", "default": 10 }
+      }
+    },
+    {
+      "name": "search_places",
+      "description": "Busca hoteles, restaurantes, playas, ríos, monumentos y comercios verificados",
+      "endpoint": "/content/establecimientos",
+      "method": "GET",
+      "parameters": {
+        "q": { "type": "string", "description": "Nombre del negocio, actividad o categoría" },
+        "provincia": { "type": "string", "description": "Filtro por provincia" },
+        "actividad": { "type": "string", "description": "Filtro por tipo de negocio" }
+      }
+    },
+    {
+      "name": "get_place_details",
+      "description": "Obtiene la ficha técnica completa de un atractivo o negocio por su slug",
+      "endpoint": "/content/destinations/by-slug/{slug}",
+      "method": "GET",
+      "parameters": {
+        "slug": { "type": "string", "required": true }
+      }
+    },
+    {
+      "name": "add_favorite",
+      "description": "Agrega un destino o lugar a los favoritos del itinerario del usuario",
+      "endpoint": "/trips/favorites",
+      "method": "POST",
+      "parameters": {
+        "entity_type": { "type": "string", "required": true },
+        "entity_id": { "type": "string", "required": true }
+      }
+    }
+  ]
+}
