@@ -75,6 +75,8 @@ import { adminRoutes } from "./modules/admin/routes.js";
 import { operatorRoutes } from "./modules/operators/routes.js";
 import { contentRoutes } from "./modules/content/routes.js";
 
+import { seoRoutes } from "./modules/seo/routes.js";
+
 /** Todas las rutas de la API cuelgan de /api/v1 (docs §3.1). `/health` también existe en la raíz para balanceadores. */
 export async function registerRoutes(app: FastifyInstance, version: string) {
   // La pasarela se decora en la raíz para que pruebas y otros módulos accedan a ella.
@@ -215,6 +217,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(transactionalProductsRoutes);
       await v1.register(membershipsRoutes);
       await v1.register(fiscalInvoiceRoutes);
+      await v1.register(seoRoutes);
     },
     { prefix: "/api/v1" },
   );
@@ -223,4 +226,5 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   await app.register(transactionalProductsRoutes);
   await app.register(membershipsRoutes);
   await app.register(fiscalInvoiceRoutes);
+  await app.register(seoRoutes);
 }
