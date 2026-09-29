@@ -1220,7 +1220,7 @@ Definidos en `system_cron_jobs` (visibles y ejecutables desde el panel, 5.17). Z
 | Tasas de cambio | Banco Central RD (BCRD) + scraping de bancos | exchangerate.host | 5.5 |
 | Combustibles / lotería | MICM / proveedores de resultados | Carga manual desde el admin | 5.5 |
 | Vuelos (opcional) | AviationStack / FlightAware | — | 5.5 |
-| IA | Claude / Gemini (las funciones actuales usan Gemini o el gateway `LOVABLE_API_KEY`) | — | 5.4, 5.17 |
+| IA | Claude / Gemini (las funciones actuales llaman directo a la API de Gemini con `GEMINI_API_KEY`) | — | 5.4, 5.17 |
 | Traducción automática | IA generativa (misma que arriba) o DeepL | Google Translate | 5.15 |
 | Almacenamiento / CDN | S3-compatible (Cloudflare R2 / AWS S3) + CDN | — | 5.16 |
 | Búsqueda (crecimiento) | Meilisearch / Typesense | Elasticsearch | 5.4 |

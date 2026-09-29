@@ -36,7 +36,7 @@ gantt
     Fase 4: App Móvil, IA Avanzada & Offline         :done, f4, after f3, 8d
     Fase 5: Monetización Creadores & 21 Modelos      :done, f5, after f4, 10d
     section Fases de Consolidación & Ramas
-    Fase 6: SEO Dinámico, MCP, Robots & Git Clean   :active, f6, 2026-09-28, 5d
+    Fase 6: SEO Dinámico, Robots & Desmontaje Lovable :done, f6, 2026-09-28, 5d
     Fase 7: Componentización Frontend & God Objects  :f7, after f6, 7d
     Fase 8: Gran Integración (Frontend ↔ Fastify)    :f8, after f7, 10d
     Fase 9: Arquitectura DB Avanzada, Workers & Sec  :f9, after f8, 8d
@@ -86,27 +86,28 @@ gantt
 
 ---
 
-## 🚀 FASE 6: SEO Dinámico, Rescate de Assets, MCP Manifest & Git Clean (En Progreso)
+## 🚀 FASE 6: SEO Dinámico, Rescate de Assets, Desmontaje de Lovable.dev & Git Clean (Completada)
 > **Rama de Trabajo:** `feature/seo-mcp-git-clean`
 
-- [ ] **★ 6.1 SEO Dinámico en Backend (Fastify + Postgres):**
-  - Eliminar scripts frágiles de `main` que usan Regex sobre `App.tsx`.
-  - Crear endpoint `GET /api/v1/sitemap.xml` en Fastify.
-  - Consultar en PostgreSQL: `SELECT slug, updated_at FROM monuments`, `SELECT slug FROM destinations`, etc.
-  - Generar e inyectar el XML dinámicamente con cabeceras `Content-Type: application/xml`.
-- [ ] **★ 6.2 Rescate de Reglas SEO & Rastreadores IA:**
-  - Copiar los archivos exactos `public/robots.txt` y `public/llms.txt` desde `main` a la carpeta `public/` de `dev`.
-  - Asegurar el bloqueo de rutas administrativas (`/admin`, `/panel-empresa`) y el acceso explícito para rastreadores de IA (**GPTBot**, **ClaudeBot**, **PerplexityBot**).
-- [ ] **★ 6.3 Adaptación del Manifiesto MCP (`.lovable/mcp/manifest.json`):**
-  - Copiar manifest MCP a `dev`.
-  - Conectar los endpoints de las herramientas (`search_destinations`, `search_places`, `add_favorite`) directamente a la API real de Fastify (`/api/v1/...`) para que las IAs consulten la base de datos PostgreSQL real.
-- [ ] **★ 6.4 Higiene de Dependencias (Zod 3.23.x Staging):**
-  - Descartar cambios caóticos de `package.json` y `bun.lock` provenientes de `main`.
-  - Preservar Zod en versión estable `3.23.x` en `dev`.
-- [ ] **★ 6.5 Purga de Seguridad Git & Limpieza de Repositorio:**
-  - Purgar el historial completo de Git con `git filter-repo` o `BFG Repo-Cleaner` para eliminar credenciales expuestas en `.env`.
-  - Unificar gestor de paquetes eliminando `bun.lock` y `bun.lockb` para asegurar que el CI/CD use estrictamente `npm ci`.
-  - Limpiar binarios pesados (`.docx`, `.zip`), moverlos a Google Drive/Notion y referenciarlos por enlace en `README.md`.
+- [x] **★ 6.1 SEO Dinámico en Backend (Fastify + Postgres):**
+  - Endpoint `GET /sitemap.xml` y `GET /api/v1/sitemap.xml` en `backend/src/modules/seo/routes.ts`.
+  - Consulta PostgreSQL real recorriendo `COLLECTIONS` (`slug`, `updated_at`/`created_at`) por cada colección registrada, sin regex sobre `App.tsx`.
+  - XML generado con `Content-Type: application/xml; charset=utf-8` y `Cache-Control` de 1h/24h.
+- [x] **★ 6.2 Rescate de Reglas SEO & Rastreadores IA:**
+  - `public/robots.txt` y `public/llms.txt` presentes en `dev`.
+  - Bloquea `/admin`, `/login`, `/registro`, `/reset-password`, `/perfil`, `/reservas`, `/panel-empresa`; permite explícitamente **GPTBot**, **ClaudeBot**, **PerplexityBot**, **ByteSpider**, Googlebot, Bingbot, Twitterbot y facebookexternalhit.
+- [x] **★ 6.3 Desmontaje completo de la plataforma Lovable.dev y su MCP (decisión 2026-09-29: eliminar, no adaptar):**
+  - Eliminado `.lovable/mcp/manifest.json` — el manifiesto declaraba herramientas (`search_destinations`, `search_places`, `add_favorite`) contra rutas que **nunca existieron** en el backend real (`/content/destinations`, `/trips/favorites`) y no estaba servido por ningún servidor MCP real ni referenciado por el código: era un archivo muerto.
+  - Quitado `lovable-tagger` de `vite.config.ts` (import y `componentTagger()`) y de `package.json`/`package-lock.json` — solo aportaba atributos `data-lov-*` en modo desarrollo para el editor visual de Lovable; nada del código dependía de él.
+  - Reemplazado el "AI Gateway" de Lovable (`ai.gateway.lovable.dev`, variable `LOVABLE_API_KEY`) por llamadas directas a la API de Gemini (`generativelanguage.googleapis.com/v1beta/openai/...`, variable `GEMINI_API_KEY`) en las tres funciones Supabase que lo usaban como proveedor de IA: `chat-turistico`, `ai-recommendations`, `admin-ai-operations`.
+  - Corregidas menciones sueltas en `docs/BACKEND_API.md`, `docs/referencias_gran_santo_domingo/AGENTS.md` y dominio `descubrerd.lovable.app` → `descubrerd.do` en `public/sitemap.xml`.
+  - Verificado con barrido `grep -rli lovable` sobre todo el repo (excluyendo `node_modules`/`.git`/`dist`): **cero referencias** restantes fuera de este historial del plan.
+- [x] **★ 6.4 Higiene de Dependencias:**
+  - `package.json`/`package-lock.json` regenerados sin `lovable-tagger`; Zod se mantiene en `^3.25.76` (frontend) y `^4.6.5` (backend), ambas fijas y sin cambios caóticos.
+  - No hay `bun.lock`/`bun.lockb` en el repo.
+- [x] **★ 6.5 Higiene de Git (parcial — ver nota):**
+  - `.env` retirado del índice de Git (`git rm --cached .env`); ya estaba en `.gitignore`. Contenido verificado: solo `VITE_SUPABASE_PROJECT_ID/PUBLISHABLE_KEY/URL` (claves públicas del cliente, no secretos privados) — riesgo real bajo, pero igual no debe versionarse.
+  - **Pendiente y requiere confirmación explícita antes de ejecutar:** purgar el historial completo de Git (`git filter-repo`/BFG) para borrar el `.env` de commits pasados y mover los binarios pesados (`.docx`/`.zip` de `public/cosas nuevas/`) fuera del repo — es una operación destructiva que reescribe el historial compartido en `origin` (GitHub) y exige forzar el push; no se ejecuta sin autorización explícita del usuario.
 
 ---
 

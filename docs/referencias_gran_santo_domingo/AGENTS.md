@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Instrucciones para asistentes de IA (Cursor, Codex, Copilot, Claude, Gemini, Lovable y otros) y para las personas que trabajan en este repositorio.
+Instrucciones para asistentes de IA (Cursor, Codex, Copilot, Claude, Gemini y otros) y para las personas que trabajan en este repositorio.
 
 ---
 

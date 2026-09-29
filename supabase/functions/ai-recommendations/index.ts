@@ -19,8 +19,8 @@ serve(async (req) => {
         .map((v) => v.replace(/[\r\n`{}<>]/g, " ").slice(0, 60));
     const interests = clean(body?.interests);
     const visitedDestinations = clean(body?.visitedDestinations);
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -42,14 +42,14 @@ Destinos disponibles: ${JSON.stringify(destinations?.map(d => ({ name: d.name, s
 Experiencias disponibles: ${JSON.stringify(experiences?.map(e => ({ name: e.name, slug: e.slug, category: e.category })))}
 Eventos próximos: ${JSON.stringify(events?.map(e => ({ name: e.name, slug: e.slug, type: e.event_type, date: e.start_date })))}`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GEMINI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: prompt },
           { role: "user", content: "Dame 5 recomendaciones personalizadas con destinos, experiencias y eventos. Para cada una incluye: nombre, tipo (destino/experiencia/evento), slug, razón breve y nivel de match (1-5 estrellas)." }

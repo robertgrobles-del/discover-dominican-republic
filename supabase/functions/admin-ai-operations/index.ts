@@ -20,7 +20,7 @@ serve(async (req) => {
       );
     }
 
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") || Deno.env.get("LOVABLE_API_KEY");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
     let text = "";
     let highlights: string[] = [];
@@ -36,14 +36,14 @@ Devuelve la respuesta en formato JSON con la siguiente estructura:
   "highlights": ["Punto destacado 1", "Punto destacado 2", "Punto destacado 3"]
 }`;
 
-        const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${GEMINI_API_KEY}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
+            model: "gemini-2.5-flash",
             messages: [
               { role: "system", content: systemInstruction },
               { role: "user", content: `Genera una ficha turística para: ${prompt}` },
