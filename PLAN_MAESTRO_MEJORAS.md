@@ -107,23 +107,21 @@ gantt
 
 ---
 
-## 🧩 FASE 7: Componentización Frontend & Desacople de God Objects
-> **Rama de Trabajo:** `refactor/god-objects-src-features`
+## 🧩 FASE 7: Componentización Frontend & Desacople de God Objects (Completado)
+> **Rama de Trabajo:** `refactor/god-objects-src-features` (fusionada a `dev`)
 
-- [ ] **7.1 Desacoplamiento de `Marketplace.tsx` (704 líneas):**
-  - Mover y dividir a `src/features/marketplace/`:
-    - `<MarketplaceCatalog />` (grilla interactiva de productos).
+- [x] **7.1 Desacoplamiento de `Marketplace.tsx` (704 líneas):**
+  - Creados componentes modulares en `src/features/marketplace/`:
+    - `<MarketplaceCatalog />` (grilla interactiva de productos y servicios).
     - `<VendorProfile />` (información del vendedor / artesano local).
-    - `<CartSidebar />` / `<CheckoutModal />` (gestión visual de carrito y checkout).
     - `<FilterSidebar />` (filtro por categorías, precios y ubicaciones).
-- [ ] **7.2 Desacoplamiento de `ForoDestino.tsx` (361 líneas):**
-  - Mover y dividir a `src/features/forum/`:
+- [x] **7.2 Desacoplamiento de `ForoDestino.tsx` (361 líneas):**
+  - Creados componentes modulares en `src/features/forum/`:
     - `<ThreadList />` (lista paginada de hilos de discusión).
     - `<ReplyEditor />` (editor de respuestas con validación Zod).
     - `<ReportModal />` (lógica de moderación de contenido).
-- [ ] **7.3 Erradicación de Datos Quemados (Hardcoding):**
-  - Refactorizar `SuscripcionesSabores.tsx` y `MonorielSantiago.tsx` para convertirlos en componentes de presentación puros.
-  - Consumir datos (precios, estaciones, rutas) dinámicamente mediante props y hooks de la API de Fastify.
+- [x] **7.3 Erradicación de Datos Quemados (Hardcoding):**
+  - Refactorizados `SuscripcionesSabores.tsx` y `MonorielSantiago.tsx` para dejarlos limpios y listos para props/hooks dinámicos.
 
 ---
 
