@@ -20,6 +20,22 @@ services:
     image: redis:7-alpine
     ports: ["6380:6379"]
 
+  # PgBouncer (Fase 10.35): pooling de conexiones para alto tráfico con varias instancias del backend. Opcional —
+  # una sola instancia funciona bien conectando directo a `postgres` (el pool de `pg` ya reutiliza conexiones);
+  # esto entra en juego con varias réplicas, donde `max_connections` de Postgres se agota antes que las conexiones
+  # reales de la app. Para usarlo: apuntar DATABASE_URL a postgres://postgres:postgres@localhost:6433/descubre_rd
+  # en vez de directo a `postgres:5433`. `transaction`: cada transacción toma una conexión física y la devuelve al
+  # terminar (no sirve para LISTEN/NOTIFY ni sesiones con `SET` persistente entre queries, que este backend no usa).
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    depends_on: { postgres: { condition: service_healthy } }
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/descubre_rd
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 200
+      DEFAULT_POOL_SIZE: 20
+    ports: ["6433:5432"]
+
   # Buzón de pruebas: los correos salen a http://localhost:8025 y nunca a destinatarios reales.
   mailpit:
     image: axllent/mailpit:latest
