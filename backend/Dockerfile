@@ -1,7 +1,9 @@
+# syntax=docker/dockerfile:1
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+# Caché de npm entre builds (BuildKit): sólo reinstala lo que cambió en package-lock.json en vez de bajar todo de nuevo.
+RUN --mount=type=cache,target=/root/.npm npm ci
 COPY tsconfig*.json ./
 COPY src ./src
 RUN npm run build && npm prune --omit=dev

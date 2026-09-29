@@ -173,6 +173,7 @@ gantt
 - [x] **10. Validar URLs de Redirección OAuth:** `checkRedirect()` en `src/modules/auth/oauth.ts` exige protocolo `http`/`https` y origen dentro de `allowedOrigins()` (whitelist cerrada) antes de aceptar cualquier `redirect_to`.
 
 ### 🎨 2. Arquitectura Frontend (React, Vite & UX)
+> **Fuera de esta auditoría (2026-09-29):** hay una sesión de Gemini trabajando en paralelo sobre el frontend (confirmado por el usuario); esta categoría, el ítem 48 (Schema LocalBusiness) y el 49 (PWA) no se tocan desde este lado para no chocar con ese trabajo. Quedan `[ ]` porque no se auditaron, no porque se hayan descartado.
 - [ ] **11. Code Splitting / Lazy Loading:** `React.lazy()` en rutas pesadas (`<Marketplace/>`, `<ForoDestino/>`).
 - [ ] **12. Error Boundaries:** Componente `<ErrorBoundary>` para aislar fallas en secciones críticas.
 - [ ] **13. Virtualización de Listas:** `react-window` o `react-virtuoso` en feed del Foro y Marketplace.
@@ -197,15 +198,15 @@ gantt
 - [x] **30. WebSockets / SSE para Notificaciones:** `src/modules/notifications/routes.ts` sirve `text/event-stream` (con ticket de 60s para `EventSource` del navegador, según diferencia documentada en `BACKEND_API_IMPLEMENTADO.md`).
 
 ### 🗄️ 4. Base de Datos & SQL (PostgreSQL Avanzado) (Auditada parcialmente — 3/10 confirmados, resto sin verificar todavía)
-- [ ] **31. Vistas Materializadas para Reportes:** no verificado en esta pasada.
+- [~] **31. Vistas Materializadas para Reportes:** equivalente funcional, no `MATERIALIZED VIEW` literal — `analytics_daily` (`migrations/0026_analytics.sql`) es una tabla de agregados por día/tipo/página que el job `analytics.rollup` (cada 24h) llena con `INSERT ... ON CONFLICT DO UPDATE`, el mismo patrón que un `REFRESH MATERIALIZED VIEW` pero con control fino de qué se agrega y sin bloquear lecturas durante el refresco. No se creó una vista materializada literal aparte porque duplicaría esto.
 - [x] **32. Índices Compuestos:** `bookings` tiene `(org_id, date)`, `(user_id, created_at)`, `(listing_id, date, time)` y `(room_id, date, check_out)` (`migrations/0013`); `store_orders` tiene `(user_id, created_at)` y `(status, created_at)` (`migrations/0022`); más 28 índices adicionales en `migrations/0050_performance_indexes.sql`.
 - [x] **33. Índices GIN sobre JSONB/texto:** `migrations/0008_content_search.sql` crea `gin (lower(f_unaccent(col)) gin_trgm_ops)` por cada columna de búsqueda registrada.
 - [x] **34. Purgado de Registros Huérfanos:** job `maintenance.purge` (`src/routes.ts`) corre cada 24h y borra tokens expirados, `email_log` viejo, `payment_events` procesados, notificaciones leídas y `store_carts` de invitado abandonados (>30 días).
 - [ ] **35. Connection Pooling con PgBouncer:** no verificado.
 - [ ] **36. UUIDv7 (Ordenables):** confirmado pendiente — 56 columnas usan `gen_random_uuid()` (v4, no ordenable) en `migrations/0001_baseline.sql`; migrar a v7 requeriría una extensión/función propia y tocar el `DEFAULT` de cada tabla. No se hizo por ser un cambio ancho de superficie para esta pasada.
 - [ ] **37. Particionado de Tablas:** no verificado.
-- [ ] **38. Autovacuum Tuning:** no verificado.
-- [ ] **39. Diccionarios Full-Text en Español:** `f_unaccent`/`gin_trgm_ops` ya existen (ítem 33) pero no se confirmó una configuración `tsvector` con diccionario `spanish` dedicado — pendiente de revisar a fondo.
+- [x] **38. Autovacuum Tuning:** implementado ahora — `migrations/0051_autovacuum_tuning.sql` baja `autovacuum_vacuum_scale_factor`/`autovacuum_analyze_scale_factor` (2% en `rate_limits`, la tabla de más escritura de todo el sistema; 5% en `analytics_events` y `sponsorship_events`) frente al 20%/10% por defecto de Postgres.
+- [~] **39. Diccionarios Full-Text en Español:** decisión de arquitectura, no pendiente por descuido — la búsqueda del proyecto usa **trigramas** (`pg_trgm` + `f_unaccent`, ítem 33), no `tsvector`. Es una elección válida y distinta: trigramas toleran errores de tipeo y coincidencias parciales sin necesitar diccionario de idioma; `tsvector` con `spanish` aportaría stemming/ranking pero es un sistema de búsqueda paralelo (columnas, triggers para mantenerlo sincronizado, reescribir las consultas de `discover/routes.ts`) — no se implementó por ser una expansión de función, no una corrección.
 - [x] **40. Bloqueo por Fila (Row-Level Lock):** `FOR UPDATE`/`FOR UPDATE OF` ya se usa en `operators/bookings.ts` (cuartos y reservas), `store/service.ts` (carrito, cupones, stock) y `marketplace/service.ts` (stock de productos) para evitar condiciones de carrera y sobreventa.
 
 ### 💰 5. Negocio, Monetización e Integraciones (Auditada parcialmente — 4/10 confirmados)
