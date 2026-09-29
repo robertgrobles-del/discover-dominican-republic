@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Calendar, MapPin, Users, DollarSign, Clock, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Calendar, MapPin, Users, DollarSign, Clock, CheckCircle, XCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -100,7 +101,27 @@ export default function Reservas() {
             </TabsList>
 
             <TabsContent value="active" className="space-y-4">
-              {isLoading && <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}
+              {isLoading && (
+                <div className="space-y-4" aria-busy="true" aria-label="Cargando reservas">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i} className="overflow-hidden">
+                      <div className="flex flex-col md:flex-row">
+                        <Skeleton className="md:w-48 h-32 md:h-auto" />
+                        <CardContent className="flex-1 p-4 space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div className="space-y-2">
+                              <Skeleton className="h-5 w-40" />
+                              <Skeleton className="h-4 w-20" />
+                            </div>
+                            <Skeleton className="h-5 w-16" />
+                          </div>
+                          <Skeleton className="h-4 w-56" />
+                        </CardContent>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
               {!isLoading && active.length === 0 && (
                 <Card>
                   <CardContent className="p-8 text-center">

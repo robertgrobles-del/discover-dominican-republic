@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { 
   Star, MessageSquare, ThumbsUp, Share2,
   CheckCircle, User, Users, Heart, Briefcase,
-  ChevronDown, MapPin, Loader2
+  ChevronDown, MapPin
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { PageTransition } from "@/components/PageTransition";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -397,8 +398,22 @@ export default function Opiniones() {
               </div>
 
               {loading ? (
-                <div className="flex justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <div className="space-y-6" aria-busy="true" aria-label="Cargando reseñas">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="bg-card p-6 rounded-2xl border border-border">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                          <Skeleton className="h-12 w-12 rounded-full" />
+                          <div className="space-y-2">
+                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-3 w-24" />
+                          </div>
+                        </div>
+                      </div>
+                      <Skeleton className="h-4 w-full mb-2" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="space-y-6">
