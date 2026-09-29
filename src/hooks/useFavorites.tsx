@@ -2,6 +2,7 @@ import { useState, useEffect, createContext, useContext, ReactNode, useCallback 
 import { supabase } from "@/integrations/supabase/client";
 import { getStoredJSON } from "@/lib/safeStorage";
 import { useAuth } from "./useAuth";
+import { useToast } from "./use-toast";
 
 export type FavoriteType = "destino" | "hotel" | "experiencia" | "restaurante" | "evento" | "parque" | "bar" | "agencia" | "guia" | "clinica" | "puerto" | "estadio" | "cueva" | "parque-nacional" | "destino-religioso" | "airbnb" | "provincia" | "playa" | "rio" | "spa" | "tour" | "reserva-natural";
 
@@ -31,6 +32,7 @@ const STORAGE_KEY = "rd-travel-favorites";
 
 export function FavoritesProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -76,11 +78,13 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       const exists = favorites.some((f) => f.id === item.id && f.type === item.type);
       if (exists) return;
 
+      // Fase 10.15: actualización optimista — se refleja en la UI al instante; si el servidor rechaza el cambio,
+      // se revierte (quitar lo que se acaba de agregar) y se avisa, en vez de dejar la UI mintiendo sobre lo guardado.
       const newFavorite: FavoriteItem = { ...item, addedAt: Date.now() };
       setFavorites((prev) => [...prev, newFavorite]);
 
       if (user) {
-        await supabase.from("favorites").insert({
+        const { error } = await supabase.from("favorites").insert({
           user_id: user.id,
           item_id: item.id,
           item_type: item.type,
@@ -88,25 +92,35 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
           item_image: item.image || null,
           item_location: item.location || null,
         });
+        if (error) {
+          setFavorites((prev) => prev.filter((f) => !(f.id === item.id && f.type === item.type)));
+          toast({ title: "No se pudo guardar el favorito", description: "Inténtalo de nuevo en un momento.", variant: "destructive" });
+        }
       }
     },
-    [favorites, user]
+    [favorites, user, toast]
   );
 
   const removeFavorite = useCallback(
     async (id: string, type: FavoriteType) => {
+      // Igual que addFavorite: se quita de la UI al instante y, si falla en el servidor, se restaura.
+      const removed = favorites.find((f) => f.id === id && f.type === type);
       setFavorites((prev) => prev.filter((f) => !(f.id === id && f.type === type)));
 
       if (user) {
-        await supabase
+        const { error } = await supabase
           .from("favorites")
           .delete()
           .eq("user_id", user.id)
           .eq("item_id", id)
           .eq("item_type", type);
+        if (error && removed) {
+          setFavorites((prev) => [...prev, removed]);
+          toast({ title: "No se pudo quitar el favorito", description: "Inténtalo de nuevo en un momento.", variant: "destructive" });
+        }
       }
     },
-    [user]
+    [favorites, user, toast]
   );
 
   const isFavorite = useCallback(
@@ -124,11 +138,16 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
   );
 
   const clearAll = useCallback(async () => {
+    const previous = favorites;
     setFavorites([]);
     if (user) {
-      await supabase.from("favorites").delete().eq("user_id", user.id);
+      const { error } = await supabase.from("favorites").delete().eq("user_id", user.id);
+      if (error) {
+        setFavorites(previous);
+        toast({ title: "No se pudieron borrar los favoritos", description: "Inténtalo de nuevo en un momento.", variant: "destructive" });
+      }
     }
-  }, [user]);
+  }, [favorites, user, toast]);
 
   return (
     <FavoritesContext.Provider
