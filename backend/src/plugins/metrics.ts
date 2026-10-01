@@ -1,6 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { auditChainVerify } from "../lib/audit.js";
+import { paymentChargeCounts } from "../lib/payment-metrics.js";
 import { rateLimitStoreErrorCount } from "./rate-limit-store.js";
 
 const BUCKETS = [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10];
@@ -52,6 +53,8 @@ export function registerMetrics(app: FastifyInstance) {
     out.push(`http_requests_in_flight ${inFlight}`);
 
     const mem = process.memoryUsage();
+    metric("app_payment_charges_total", "Cobros en línea por proveedor y resultado desde el arranque (approved, declined, error…)", "counter");
+    for (const c of paymentChargeCounts()) out.push(`app_payment_charges_total{provider="${esc(c.provider)}",outcome="${esc(c.outcome)}"} ${c.count}`);
     metric("process_resident_memory_bytes", "Memoria residente", "gauge"); out.push(`process_resident_memory_bytes ${mem.rss}`);
     metric("process_heap_used_bytes", "Heap usado", "gauge"); out.push(`process_heap_used_bytes ${mem.heapUsed}`);
     metric("process_uptime_seconds", "Tiempo en marcha", "gauge"); out.push(`process_uptime_seconds ${Math.round(process.uptime())}`);

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { autoBreadcrumbs } from "@/lib/breadcrumbs";
+import { recordRecentlyViewed } from "@/lib/recentlyViewed";
 
 interface SEOHeadProps {
   title: string;
@@ -101,6 +102,20 @@ export function SEOHead({
       document.head.appendChild(canonical);
     }
     canonical.setAttribute("href", currentUrl);
+
+    // hreflang: el idioma se elige con `?lang=`; el español es la versión por defecto y no lleva parámetro.
+    const alternates: [string, string][] = [["es", currentUrl], ["en", `${currentUrl}?lang=en`], ["x-default", currentUrl]];
+    for (const [hreflang, href] of alternates) {
+      let link = document.querySelector(`link[rel="alternate"][hreflang="${hreflang}"]`) as HTMLLinkElement | null;
+      if (!link) {
+        link = document.createElement("link");
+        link.setAttribute("rel", "alternate");
+        link.setAttribute("hreflang", hreflang);
+        document.head.appendChild(link);
+      }
+      link.setAttribute("href", href);
+    }
+    recordRecentlyViewed(new URL(currentUrl).pathname, fullTitle);
 
     // JSON-LD structured data
     if (jsonLd) {

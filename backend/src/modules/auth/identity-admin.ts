@@ -7,6 +7,11 @@ import { hashToken, newOpaqueToken } from "../../lib/opaque-tokens.js";
 export class PostgresIdentityAdmin implements IdentityAdminPort {
   constructor(private readonly db: Db) {}
 
+  async userIdsWithRole(role: string) {
+    const { rows } = await this.db.query<{ id: string }>("SELECT ur.user_id AS id FROM user_roles ur JOIN users u ON u.id = ur.user_id WHERE ur.role = $1::app_role AND u.status = 'active'", [role]);
+    return rows.map((row) => row.id);
+  }
+
   async revokeSessions(userId: string, c: Db | PoolClient = this.db) {
     await c.query("UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL", [userId]);
   }

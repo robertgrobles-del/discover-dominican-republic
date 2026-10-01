@@ -7,6 +7,8 @@ type Queryable = Pool | PoolClient;
  * `users`, `user_roles` y `refresh_tokens`. Con `c` la operación participa en la transacción del llamador.
  */
 export interface IdentityAdminPort {
+  /** Cuentas activas con un rol global (para avisos al personal). */
+  userIdsWithRole(role: string): Promise<string[]>;
   revokeSessions(userId: string, c?: Queryable): Promise<void>;
   revokeSessionFamily(familyId: string, c?: Queryable): Promise<void>;
   /** Sesión de soporte: vive junto a las demás para que `authenticate` la compruebe, sin token de refresco entregable. */

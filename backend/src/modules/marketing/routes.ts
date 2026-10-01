@@ -5,6 +5,7 @@ import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
 import { tableAdminRoutes, type TableCfg } from "../../lib/table-admin.js";
+import { withUtm } from "../../lib/utm.js";
 import { unsubscribeToken } from "../../lib/unsubscribe-token.js";
 import type { JobRegistrar } from "../../contracts/jobs.js";
 import { todayInSantoDomingo } from "../../lib/dates.js";
@@ -92,13 +93,13 @@ export async function marketingRoutes(app: FastifyInstance) {
     return null;
   });
   r.get("/ads/:id/click", { config: rl(120, "1 minute"), schema: { tags: tag, summary: "Cuenta el clic y redirige al destino del anunciante", params: uuid, querystring: z.object({ s: sessionId.optional() }) } }, async (req, reply) => {
-    const b = (await db.query<{ target_url: string | null }>("SELECT target_url FROM ad_banners WHERE id = $1 AND status = 'published' AND deleted_at IS NULL", [req.params.id])).rows[0];
+    const b = (await db.query<{ target_url: string | null; name: string; slug: string | null; placement: string | null }>("SELECT target_url, name, slug, placement FROM ad_banners WHERE id = $1 AND status = 'published' AND deleted_at IS NULL", [req.params.id])).rows[0];
     if (!b?.target_url) throw AppError.notFound("Banner");
     await count(req.params.id, req.query.s ?? `${req.ip}:${req.headers["user-agent"] ?? ""}`, "click");
     // Sólo se redirige a https o a rutas propias (nunca a esquemas raros ni a "//dominio").
     const url = b.target_url;
     if (!(url.startsWith("https://") || (url.startsWith("/") && !url.startsWith("//")))) throw AppError.notFound("Banner");
-    return reply.redirect(url, 302);
+    return reply.redirect(withUtm(url, { source: "descubrerd", medium: "banner", campaign: b.slug ?? b.name, content: b.placement }), 302);
   });
 
   r.post("/advertisers/requests", {
@@ -231,5 +232,22 @@ export async function sendCampaigns(app: FastifyInstance): Promise<number> {
 
 export function registerMarketingJobs(app: FastifyInstance, runner: JobRegistrar) {
   runner.register({ name: "newsletter.send", description: "Envía las campañas programadas a los suscriptores confirmados (por lotes, sin duplicar)", everySeconds: 300, run: async () => ({ sent: await sendCampaigns(app) }) });
+  // Aviso al equipo cuando una campaña publicada está por terminar: a 7 días y la víspera (una vez cada uno).
+  runner.register({
+    name: "ads.expiring", description: "Avisa a los administradores de banners que vencen en 7 días o mañana", everySeconds: 86_400,
+    run: async ({ now }) => {
+      const today = todayInSantoDomingo(now);
+      const { rows } = await app.db.query<{ id: string; name: string; sponsor: string | null; days: number }>(
+        `SELECT id, name, sponsor, (end_date - $1::date) AS days FROM ad_banners
+          WHERE status = 'published' AND deleted_at IS NULL AND is_active AND end_date IS NOT NULL AND (end_date - $1::date) IN (1, 7)`, [today],
+      );
+      if (!rows.length) return { expiring: 0, notified: 0 };
+      const admins = await app.identity.userIdsWithRole("admin");
+      for (const b of rows) for (const adminId of admins) {
+        await app.notifications.notify(adminId, { type: "system", title: b.days === 1 ? `El banner "${b.name}" vence mañana` : `El banner "${b.name}" vence en 7 días`, message: b.sponsor ? `Anunciante: ${b.sponsor}` : null, link: "/admin", data: { banner_id: b.id, days_left: b.days } });
+      }
+      return { expiring: rows.length, notified: rows.length * admins.length };
+    },
+  });
   runner.register({ name: "ads.cleanup", description: "Borra marcas de deduplicación de anuncios de más de 3 días", everySeconds: 86_400, run: async () => ({ deleted: (await app.db.query("DELETE FROM ad_seen WHERE hour < now() - interval '3 days'")).rowCount }) });
 }

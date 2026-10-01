@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import { useTranslation } from "@/hooks/useI18n";
 import { toast } from "sonner";
 import { PreFooterPresidenteBanner } from "@/components/promo/PreFooterPresidenteBanner";
+import { RecentlyViewed } from "@/components/RecentlyViewed";
 import { openPrivacySettings } from "@/lib/privacy-consent";
 
 interface FooterProps {
@@ -120,6 +121,7 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
       {/* 250px Full-Width Cerveza Presidente Banner Before Footer */}
       {!hidePreFooterBanner && <PreFooterPresidenteBanner />}
 
+      <RecentlyViewed />
       <footer className="bg-card border-t border-border" role="contentinfo">
       <div className="container mx-auto px-4 lg:px-8 pt-12 pb-8 lg:pt-14 lg:pb-8">
         {/* Desktop: 5 Columns Grid */}

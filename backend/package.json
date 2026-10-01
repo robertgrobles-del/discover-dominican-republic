@@ -36,6 +36,7 @@
     "audit": "npm audit --omit=dev --audit-level=high",
     "db:explain": "tsx --env-file-if-exists=.env scripts/explain.ts",
     "check:cycles": "node scripts/check-cycles.mjs",
+    "check:links": "tsx --env-file-if-exists=.env scripts/check-links.ts",
     "architecture:dependencies": "node scripts/audit-module-dependencies.mjs --max-pairs=0",
     "architecture:tables": "node scripts/audit-table-access.mjs --max-shared=41 --max-shared-writes=0",
     "weather:reconcile": "node services/weather/scripts/reconcile-snapshots.mjs",

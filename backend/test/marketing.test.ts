@@ -68,7 +68,11 @@ describe("publicidad, ofertas y campañas", () => {
       expect(JSON.stringify(item)).not.toContain("anunciante.example.com");
       const res = await app.inject({ url: `/api/v1/ads/${b.id}/click?s=sesion-de-prueba-1` });
       expect(res.statusCode).toBe(302);
-      expect(res.headers.location).toBe("https://anunciante.example.com/promo");
+      // Mismo destino del anunciante, con los UTM de la campaña para que pueda atribuir el tráfico.
+      const destination = new URL(res.headers.location as string);
+      expect(destination.origin + destination.pathname).toBe("https://anunciante.example.com/promo");
+      expect(destination.searchParams.get("utm_source")).toBe("descubrerd");
+      expect(destination.searchParams.get("utm_medium")).toBe("banner");
     });
 
     it("la rotación favorece a los banners de más prioridad", async () => {

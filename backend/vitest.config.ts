@@ -45,6 +45,7 @@ export default defineConfig({
             "test/operators-b.test.ts",
             "test/operators.test.ts",
             "test/payments.test.ts",
+            "test/plan-batch.test.ts",
             "test/provinces-config.test.ts",
             "test/rate-limit.test.ts",
             "test/reviews.test.ts",

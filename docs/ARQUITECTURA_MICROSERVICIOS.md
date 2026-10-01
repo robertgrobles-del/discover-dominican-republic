@@ -131,3 +131,17 @@ Estas decisiones no bloquean el diseño local ni la preparación del piloto. Sí
 - **Datos:** base PostgreSQL propia con las 45 tablas de `COLLECTIONS` (`services/content/content-tables.txt`, verificado en CI). `services/content/scripts/sync-projection.sh` la reconstruye desde el origen (esquema completo, retiro de tablas ajenas, copia de datos, comparación de conteos). Exige confirmar el nombre de la base destino.
 - **Límite conocido:** la proyección es una copia completa bajo demanda. Hasta tener un flujo de cambios, el servicio puede servir datos anteriores a la última publicación.
 - **Hardening Compose:** `weather`, `weather-migrate` y `content` corren con `read_only`, `tmpfs /tmp`, `cap_drop: ALL` y `no-new-privileges`; los puertos sólo escuchan en loopback.
+
+## Subdominios (decisión 2026-10-01)
+
+El plan maestro dibuja un subdominio por servicio (`auth`, `b2b`, `api-gamificacion`, `ads`, `tienda`…). Para un proyecto personal en un VPS se simplifica a (el CMS conserva subdominio propio por decisión del responsable):
+
+| Subdominio | Sirve |
+| --- | --- |
+| `descubrerd.com` | Sitio (SPA estática) |
+| `api.descubrerd.com` | API Fastify completa bajo `/api/v1` |
+| `cms.descubrerd.com` | CMS editorial, separado del sitio público y con acceso restringido al equipo |
+| `staging.descubrerd.com` | Entorno de pruebas (sitio y API, con base propia) |
+| `media.descubrerd.com` (opcional) | Archivos subidos, si se usa almacenamiento S3 o CDN |
+
+Motivos: un certificado, un origen CORS y una cookie de sesión que funciona sin ajustes entre sitio y API; menos DNS y menos piezas que vigilar. La separación por dominio ya existe en el código (contratos, cero imports cruzados, un escritor por tabla), que es lo que permite extraer un servicio más adelante. Cuando uno se despliegue aparte seguirá detrás de `api.descubrerd.com`: el facade enruta y el frontend no cambia.

@@ -71,6 +71,7 @@ import { PayoutService } from "./modules/operators/payouts.js";
 import { AutomationService } from "./modules/operators/automations.js";
 import { IcalService } from "./modules/operators/ical.js";
 import { createGateway } from "./modules/operators/gateway.js";
+import { meteredGateway } from "./lib/payment-metrics.js";
 import { formsRoutes } from "./modules/forms/routes.js";
 import { campaignRoutes } from "./modules/community/campaigns.js";
 import { socialRoutes } from "./modules/community/social.js";
@@ -108,7 +109,7 @@ import { TelemetryQueue } from "./lib/telemetry-queue.js";
 /** Todas las rutas de la API cuelgan de /api/v1 (docs §3.1). `/health` también existe en la raíz para balanceadores. */
 export async function registerRoutes(app: FastifyInstance, version: string) {
   // La pasarela se decora en la raíz para que pruebas y otros módulos accedan a ella.
-  app.decorate("gateway", createGateway(app.env));
+  app.decorate("gateway", meteredGateway(createGateway(app.env)));
   app.decorate("flags", new FlagService(app.db));
   const imports = new ImportService(app.db, app.log);
   app.decorate("imports", imports);
