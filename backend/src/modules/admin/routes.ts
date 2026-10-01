@@ -15,6 +15,7 @@ export async function adminRoutes(app: FastifyInstance) {
     onRequest: admin,
     schema: { tags: ["admin"], summary: "Desactiva la verificación en dos pasos de una cuenta (pérdida de dispositivo y de códigos)", security: bearer, params: z.object({ id: z.string().uuid() }), body: z.object({ reason: z.string().trim().min(5).max(300) }), response: { 204: z.null() } },
   }, async (req, reply) => {
+    app.approvals.assertDirectAllowed("reset_2fa");
     if (req.params.id === req.user!.id) throw new AppError("FORBIDDEN", "No puedes restablecer tu propio 2FA; usa tus códigos de recuperación");
     const u = (await app.db.query<{ email: string; totp: Date | null; name: string | null }>("SELECT u.email, u.totp_enabled_at AS totp, p.display_name AS name FROM users u LEFT JOIN profiles p ON p.id = u.id WHERE u.id = $1", [req.params.id])).rows[0];
     if (!u) throw AppError.notFound("Usuario");
@@ -76,6 +77,7 @@ export async function adminRoutes(app: FastifyInstance) {
   });
   r.get("/admin/payouts/:id/items", { onRequest: admin, schema: { tags: ["admin"], summary: "Reservas de una liquidación", security: bearer, params: uuid, response: { 200: z.object({ data: any }) } } }, async (req) => ({ data: await app.payouts.items(req.params.id) }));
   r.post("/admin/payouts/:id/mark-paid", { onRequest: admin, schema: { tags: ["admin"], summary: "Marca una liquidación como pagada (comprobante obligatorio) y avisa al operador", security: bearer, params: uuid, body: z.object({ reference: z.string().trim().min(3).max(120) }), response: { 204: z.null() } } }, async (req, reply) => {
+    app.approvals.assertDirectAllowed("payout_mark_paid");
     await app.payouts.markPaid(req.params.id, req.user!.id, req.body, req.ip);
     reply.code(204);
     return null;

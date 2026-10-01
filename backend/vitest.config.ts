@@ -26,6 +26,7 @@ export default defineConfig({
             "test/content-service.test.ts",
             "test/creators-appeals.test.ts",
             "test/discover-live.test.ts",
+            "test/dual-approval.test.ts",
             "test/email-admin.test.ts",
             "test/explore.test.ts",
             "test/game.test.ts",

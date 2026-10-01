@@ -90,6 +90,7 @@ import { FiscalInvoicingService } from "./modules/billing/invoicing.js";
 import { fiscalInvoiceRoutes } from "./modules/billing/routes.js";
 import { adminSiteRoutes } from "./modules/admin/site.js";
 import { adminUserRoutes } from "./modules/admin/users.js";
+import { ApprovalService, adminApprovalRoutes } from "./modules/admin/approvals.js";
 import { meRoutes } from "./modules/me/routes.js";
 import { verifyPassword } from "./modules/auth/password.js";
 import { screenReview } from "./modules/community/reviews.js";
@@ -127,6 +128,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   app.decorate("leads", new PostgresLeadCapture(app.db));
   app.decorate("supportIntake", new PostgresSupportIntake(app.db));
   app.decorate("userFlags", userFlags);
+  app.decorate("approvals", new ApprovalService(app.db, app.env.DUAL_APPROVAL_REQUIRED));
   app.decorate("profiles", profiles);
   app.decorate("catalog", new CatalogService(app.db, app.env, app.log));
   app.decorate("promotions", promotions);
@@ -237,6 +239,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(operatorRoutes);
       await v1.register(adminRoutes);
       await v1.register(adminUserRoutes);
+      await v1.register(adminApprovalRoutes);
       await v1.register(adminSiteRoutes);
       await v1.register(adminCmsRoutes);
       await v1.register(async (meApp) => meRoutes(meApp, { verifyPassword }));

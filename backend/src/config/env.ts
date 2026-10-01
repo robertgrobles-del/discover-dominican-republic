@@ -48,6 +48,11 @@ const schema = z.object({
   TOTP_ISSUER: z.string().default("Descubre RD"),
   /** Exige 2FA a admin/editor/moderator para usar rutas de personal. Por defecto: sí en producción, no en desarrollo. */
   REQUIRE_2FA_FOR_STAFF: bool.optional(),
+  /**
+   * Doble aprobación de operaciones críticas (conceder admin, restablecer 2FA, marcar liquidaciones como pagadas).
+   * Apagada por omisión: exige al menos dos personas administradoras, y con una sola nadie podría aprobar.
+   */
+  DUAL_APPROVAL_REQUIRED: bool.default(false),
   /** Inicio de sesión con Google (OIDC). Sin CLIENT_ID/SECRET el proveedor queda desactivado. ISSUER sólo se cambia en pruebas. */
   OAUTH_GOOGLE_CLIENT_ID: z.string().optional(),
   OAUTH_GOOGLE_CLIENT_SECRET: z.string().optional(),

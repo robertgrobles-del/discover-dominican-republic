@@ -273,7 +273,7 @@ export const CAPABILITIES: CapabilityDefinition[] = [
     source: "rol_global",
     global_roles: ["admin"],
     org_roles: [],
-    resources: ["/admin/users", "/admin/ambassadors", "/admin/verifications"],
+    resources: ["/admin/users", "/admin/ambassadors", "/admin/verifications", "/admin/approvals"],
     owner: "Seguridad",
     assigned_by: "Otro administrador con segundo aprobador y MFA reciente",
     mfa_required: true,
@@ -400,6 +400,7 @@ export const CAPABILITIES: CapabilityDefinition[] = [
 export const ROUTE_CAPABILITIES: { prefix: string; capability: string }[] = [
   { prefix: "/api/v1/admin/access", capability: "admin.access_catalog" },
   { prefix: "/api/v1/admin/users", capability: "admin.accounts" },
+  { prefix: "/api/v1/admin/approvals", capability: "admin.accounts" },
   { prefix: "/api/v1/admin/ambassadors", capability: "admin.accounts" },
   { prefix: "/api/v1/admin/verifications", capability: "admin.accounts" },
   { prefix: "/api/v1/admin/support-sessions", capability: "support.readonly" },
