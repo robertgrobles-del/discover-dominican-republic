@@ -1,5 +1,6 @@
 import type { Env } from "../../config/env.js";
 import type { ChargeInput, ChargeResult, PaymentGateway, RefundInput } from "../../contracts/payments.js";
+import { AzulGateway, CardNetGateway, mutualTlsFetch } from "./gateway-local.js";
 
 // Reexport temporal: los módulos vecinos aún pueden migrar imports sin alterar la API interna.
 export type { ChargeInput, ChargeResult, PaymentGateway, RefundInput } from "../../contracts/payments.js";
@@ -37,8 +38,12 @@ export class NoGateway implements PaymentGateway {
   async refund(): Promise<ChargeResult> { return { ok: false, reason: "no_provider" }; }
 }
 
-export function createGateway(env: Pick<Env, "PAYMENT_PROVIDER" | "STRIPE_SECRET_KEY">, fetchImpl?: FetchLike): PaymentGateway {
+type GatewayEnv = Pick<Env, "PAYMENT_PROVIDER" | "STRIPE_SECRET_KEY"> & Partial<Pick<Env, "AZUL_BASE_URL" | "AZUL_MERCHANT_ID" | "AZUL_AUTH1" | "AZUL_AUTH2" | "AZUL_CERT_PATH" | "AZUL_KEY_PATH" | "CARDNET_BASE_URL" | "CARDNET_PRIVATE_KEY">>;
+
+export function createGateway(env: GatewayEnv, fetchImpl?: FetchLike): PaymentGateway {
   if (env.PAYMENT_PROVIDER === "stripe") return new StripeGateway(env.STRIPE_SECRET_KEY!, fetchImpl);
+  if (env.PAYMENT_PROVIDER === "azul") return new AzulGateway({ baseUrl: env.AZUL_BASE_URL!, merchantId: env.AZUL_MERCHANT_ID!, auth1: env.AZUL_AUTH1!, auth2: env.AZUL_AUTH2! }, fetchImpl ?? mutualTlsFetch(env.AZUL_CERT_PATH!, env.AZUL_KEY_PATH!));
+  if (env.PAYMENT_PROVIDER === "cardnet") return new CardNetGateway({ baseUrl: env.CARDNET_BASE_URL!, privateKey: env.CARDNET_PRIVATE_KEY! }, fetchImpl);
   return env.PAYMENT_PROVIDER === "fake" ? new FakeGateway() : new NoGateway();
 }
 

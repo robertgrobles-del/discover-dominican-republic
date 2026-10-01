@@ -1,3 +1,4 @@
+import { clearAccessToken, setAccessToken } from "@/lib/accessToken";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { calculateCartTotal, fetchApi } from "@/lib/fastifyClient";
 import { HttpError } from "@/lib/httpClient";
@@ -31,7 +32,7 @@ describe("contrato HTTP del cliente Fastify", () => {
     });
   });
 
-  it("inyecta el token Bearer en las peticiones si está guardado en el almacenamiento", async () => {
+  it("inyecta el token Bearer que está en memoria y nunca lo lee del almacenamiento del navegador", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ data: { success: true } }), {
         status: 200,
@@ -39,19 +40,21 @@ describe("contrato HTTP del cliente Fastify", () => {
       }),
     );
     vi.stubGlobal("fetch", fetchMock);
-    
-    // Simular token guardado
-    const storageMock: Record<string, string> = { "sb-access-token": "jwt-token-test-123" };
-    vi.stubGlobal("localStorage", {
-      getItem: (key: string) => storageMock[key] || null,
-      setItem: (key: string, val: string) => { storageMock[key] = val; },
-    });
+
+    // Un token dejado en el almacenamiento (p. ej. por una versión anterior) no debe usarse.
+    const storage: Record<string, string> = { "sb-access-token": "token-en-almacenamiento" };
+    const storageStub = { getItem: (key: string) => storage[key] ?? null, setItem: (key: string, val: string) => { storage[key] = val; }, removeItem: (key: string) => { delete storage[key]; } };
+    vi.stubGlobal("localStorage", storageStub);
+    vi.stubGlobal("sessionStorage", storageStub);
 
     await fetchApi("/operators/me/bookings");
+    expect(new Headers((fetchMock.mock.calls[0] as [string, RequestInit])[1].headers).has("Authorization")).toBe(false);
 
-    expect(fetchMock).toHaveBeenCalledOnce();
-    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(new Headers(init.headers).get("Authorization")).toBe("Bearer jwt-token-test-123");
+    setAccessToken("jwt-en-memoria-123", 900);
+    await fetchApi("/operators/me/bookings");
+    expect(new Headers((fetchMock.mock.calls[1] as [string, RequestInit])[1].headers).get("Authorization")).toBe("Bearer jwt-en-memoria-123");
+    expect(Object.values(storage)).not.toContain("jwt-en-memoria-123");
+    clearAccessToken();
   });
 
   it("convierte el error del contrato HTTP en HttpError con estado y detalle", async () => {

@@ -4,6 +4,7 @@ import { HttpError } from "@/lib/httpClient";
 import { API_BASE_URL } from "@/lib/apiBase";
 import { reportError } from "@/lib/errorReporter";
 import { dispatchSessionExpired } from "@/lib/session";
+import { REFRESH_TRANSPORT_HEADER, captureTokens, clearAccessToken, getAccessToken, hasSessionHint, refreshAccessToken } from "@/lib/accessToken";
 
 export function shouldRetryQuery(failureCount: number, error: unknown): boolean {
   if (error instanceof HttpError) return error.status >= 500 && failureCount < 2;
@@ -26,23 +27,43 @@ export const queryClient = new QueryClient({
 
 export async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = endpoint.startsWith("http") ? endpoint : `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
-  
-  // Inyectar token de autenticación si está disponible
-  const headers = new Headers(options?.headers);
-  if (!headers.has("Authorization")) {
-    const token = typeof window !== "undefined" ? localStorage.getItem("sb-access-token") || sessionStorage.getItem("sb-access-token") : null;
-    if (token) {
-      headers.set("Authorization", `Bearer ${token}`);
-    }
-  }
+  const isAnalytics = endpoint.includes("/analytics/");
+  const isAuthEndpoint = endpoint.startsWith("/auth/");
+  const callerSetAuth = new Headers(options?.headers).has("Authorization");
+
+  const send = (token: string | null) => {
+    const headers = new Headers(options?.headers);
+    if (token && !callerSetAuth) headers.set("Authorization", `Bearer ${token}`);
+    // Las rutas de sesión usan la cookie HttpOnly de refresco: el token de refresco nunca llega al JavaScript.
+    if (isAuthEndpoint) headers.set(REFRESH_TRANSPORT_HEADER, "cookie");
+    return requestJson<T>(url, { ...options, headers, ...(isAuthEndpoint ? { credentials: "include" as const } : {}) });
+  };
 
   try {
-    return await requestJson<T>(url, { ...options, headers });
+    // El token vive sólo en memoria: tras recargar se recupera con la cookie de refresco, y sólo si este
+    // navegador había iniciado sesión (los visitantes anónimos no generan peticiones extra).
+    let token = isAuthEndpoint || callerSetAuth ? null : getAccessToken();
+    if (!token && !isAuthEndpoint && !callerSetAuth && hasSessionHint()) token = await refreshAccessToken();
+
+    let payload: T;
+    try {
+      payload = await send(token);
+    } catch (error) {
+      // Un 401 con token puede ser sólo que venció: se renueva una vez y se reintenta.
+      const retry = error instanceof HttpError && error.status === 401 && !isAuthEndpoint && !callerSetAuth && hasSessionHint()
+        ? await refreshAccessToken()
+        : null;
+      if (!retry) throw error;
+      payload = await send(retry);
+    }
+    if (isAuthEndpoint) {
+      if (endpoint.startsWith("/auth/logout")) clearAccessToken();
+      else captureTokens(payload);
+    }
+    return payload;
   } catch (error) {
     // La telemetría de fallos vive aquí, no en httpClient: el transporte se
     // mantiene puro y sin dependencias del reportero (evita ciclos).
-    const isAnalytics = endpoint.includes("/analytics/");
-    const isAuthEndpoint = endpoint.startsWith("/auth/");
     if (error instanceof HttpError) {
       if (error.status === 401 && !isAuthEndpoint) dispatchSessionExpired();
       // 5xx y caídas de red: fallos que el visitante no puede resolver. Los 4xx

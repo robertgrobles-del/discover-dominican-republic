@@ -74,6 +74,7 @@ export default defineConfig({
             "test/breaker.test.ts",
             "test/cache.test.ts",
             "test/creators.test.ts",
+            "test/gateways-local.test.ts",
             "test/keys.test.ts",
             "test/memberships-ticketing.test.ts",
             "test/monetization.test.ts",

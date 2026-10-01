@@ -115,3 +115,14 @@ Cortes de escritura ya hechos, todos sobre la base compartida y conservando las 
 | `user_flags` | `admin` | `game` |
 | `user_gamification` | `game` | `notifications` |
 | `toll_routes` | — | `content`, `tools` |
+
+## Directorio de usuarios: diseño aplazado (2026-10-01)
+
+Fuera de `auth` y `me` hay unas 100 lecturas de `users` y `profiles`, más de la mitad como `JOIN` en consultas de listado. Sustituirlas una a una por llamadas a un puerto multiplicaría las consultas sin acercar la separación de bases, y hacerlo ahora, con una sola base, sólo añadiría una copia que mantener.
+
+Diseño para cuando un dominio se extraiga con base propia:
+
+- **Proyección `user_directory`** en la base de cada servicio que la necesite: `id`, `display_name`, `avatar_url`, `status` y `updated_at`. Sin correo, teléfono ni roles.
+- **El correo no se replica.** Quien necesite escribir a una persona (soporte, operadores, campañas) lo pide a `auth` por id en el momento, o delega el envío en el servicio de comunicación.
+- **Alimentación:** eventos `user.profile_changed`, `user.status_changed` y `account.erased` por outbox desde `me` y `auth`; el borrado de cuenta ya está modelado como participantes por dominio.
+- **Orden de adopción:** primero los dominios que sólo muestran nombre y avatar (`community`, `game`, `trips`), después los que filtran por estado (`admin`, `operators`).

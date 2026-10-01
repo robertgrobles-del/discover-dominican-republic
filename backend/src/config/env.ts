@@ -55,7 +55,18 @@ const schema = z.object({
   /** Destinos permitidos tras el login social (además de WEB_BASE_URL y CORS_ORIGINS), separados por comas. */
   OAUTH_REDIRECT_ALLOWLIST: z.string().default(""),
   /** Pasarela de pago: fake (simulador, sólo desarrollo/pruebas) | none (sin cobros en línea). Las reales se agregan como implementaciones de PaymentGateway. */
-  PAYMENT_PROVIDER: z.enum(["fake", "none", "stripe"]).optional(),
+  PAYMENT_PROVIDER: z.enum(["fake", "none", "stripe", "azul", "cardnet"]).optional(),
+  /** Pasarelas locales: integración preliminar. En producción exigen confirmar que se validaron contra el sandbox del adquirente. */
+  PAYMENT_LOCAL_GATEWAY_VALIDATED: bool.default(false),
+  AZUL_BASE_URL: z.string().url().default("https://pruebas.azul.com.do/webservices/JSON/Default.aspx"),
+  AZUL_MERCHANT_ID: z.string().min(3).optional(),
+  AZUL_AUTH1: z.string().min(3).optional(),
+  AZUL_AUTH2: z.string().min(3).optional(),
+  /** Certificado y llave de cliente (PEM) para el TLS mutuo que exige Azul. */
+  AZUL_CERT_PATH: z.string().optional(),
+  AZUL_KEY_PATH: z.string().optional(),
+  CARDNET_BASE_URL: z.string().url().default("https://lab.cardnet.com.do/servicios/tokens/v1"),
+  CARDNET_PRIVATE_KEY: z.string().min(10).optional(),
   STRIPE_SECRET_KEY: z.string().min(10).optional(),
   STRIPE_WEBHOOK_SECRET: z.string().min(10).optional(),
   /** Secreto con el que el proveedor de correo firma sus eventos (entrega, rebote, queja). Sin él, /webhooks/email queda apagado. */
@@ -156,6 +167,9 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   if (env.NODE_ENV === "production" && env.AI_PROVIDER === "fake") throw new Error("Configuración inválida: AI_PROVIDER=fake no está permitido en producción");
   if (env.AI_PROVIDER === "anthropic" && !env.ANTHROPIC_API_KEY) throw new Error("Configuración inválida: AI_PROVIDER=anthropic requiere ANTHROPIC_API_KEY");
   if (env.MEDIA_STORAGE === "s3" && (!env.S3_BUCKET || !env.S3_ACCESS_KEY_ID || !env.S3_SECRET_ACCESS_KEY)) throw new Error("Configuración inválida: MEDIA_STORAGE=s3 requiere S3_BUCKET, S3_ACCESS_KEY_ID y S3_SECRET_ACCESS_KEY");
+  if (env.PAYMENT_PROVIDER === "azul" && (!env.AZUL_MERCHANT_ID || !env.AZUL_AUTH1 || !env.AZUL_AUTH2 || !env.AZUL_CERT_PATH || !env.AZUL_KEY_PATH)) throw new Error("Configuración inválida: PAYMENT_PROVIDER=azul requiere AZUL_MERCHANT_ID, AZUL_AUTH1, AZUL_AUTH2, AZUL_CERT_PATH y AZUL_KEY_PATH");
+  if (env.PAYMENT_PROVIDER === "cardnet" && !env.CARDNET_PRIVATE_KEY) throw new Error("Configuración inválida: PAYMENT_PROVIDER=cardnet requiere CARDNET_PRIVATE_KEY");
+  if (env.NODE_ENV === "production" && (env.PAYMENT_PROVIDER === "azul" || env.PAYMENT_PROVIDER === "cardnet") && !env.PAYMENT_LOCAL_GATEWAY_VALIDATED) throw new Error("Configuración inválida: las pasarelas azul y cardnet son preliminares; valida la integración en el sandbox del adquirente y define PAYMENT_LOCAL_GATEWAY_VALIDATED=true");
   if (env.PAYMENT_PROVIDER === "stripe" && (!env.STRIPE_SECRET_KEY || !env.STRIPE_WEBHOOK_SECRET)) throw new Error("Configuración inválida: PAYMENT_PROVIDER=stripe requiere STRIPE_SECRET_KEY y STRIPE_WEBHOOK_SECRET");
   if (env.WEATHER_PROVIDER === "openweather" && !env.OPENWEATHER_API_KEY) throw new Error("Configuración inválida: WEATHER_PROVIDER=openweather requiere OPENWEATHER_API_KEY");
   if (!!env.WEATHER_SERVICE_URL !== !!env.WEATHER_SERVICE_TOKEN) throw new Error("Configuración inválida: WEATHER_SERVICE_URL y WEATHER_SERVICE_TOKEN deben configurarse juntos");

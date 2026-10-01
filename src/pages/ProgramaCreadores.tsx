@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Hotel, Users, Link2, Copy, Check, ShieldCheck, Gavel } from "lucide-react";
+import { Sparkles, Hotel, Users, Link2, Copy, Check, ShieldCheck, Gavel, Video, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { creatorsPool, initialSponsoredOpportunities, Creator, SponsoredOpportunity } from "@/data/creatorsData";
 import { PanoramaAd } from "@/components/promo";
