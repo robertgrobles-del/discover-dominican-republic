@@ -86,6 +86,12 @@ export class PostgresIdentityAdmin implements IdentityAdminPort {
     return rows;
   }
 
+  async lastSessionAt(userIds: string[]) {
+    if (!userIds.length) return new Map<string, Date>();
+    const { rows } = await this.db.query<{ user_id: string; at: Date }>("SELECT user_id, max(created_at) AS at FROM refresh_tokens WHERE user_id = ANY($1::uuid[]) GROUP BY user_id", [userIds]);
+    return new Map(rows.map((row) => [row.user_id, row.at]));
+  }
+
   async setAccountStatus(userId: string, status: "suspended" | "active", c: Db | PoolClient = this.db) {
     if (status === "suspended") await c.query("UPDATE users SET status = 'suspended' WHERE id = $1 AND status <> 'deleted'", [userId]);
     else await c.query("UPDATE users SET status = 'active' WHERE id = $1 AND status = 'suspended'", [userId]);

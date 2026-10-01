@@ -13,6 +13,7 @@ export default defineConfig({
           include: [
             "test/access.test.ts",
             "test/access-expiry.test.ts",
+            "test/access-reviews.test.ts",
             "test/admin-cms.test.ts",
             "test/admin-portal.test.ts",
             "test/ai.test.ts",

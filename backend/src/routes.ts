@@ -91,6 +91,7 @@ import { fiscalInvoiceRoutes } from "./modules/billing/routes.js";
 import { adminSiteRoutes } from "./modules/admin/site.js";
 import { adminUserRoutes } from "./modules/admin/users.js";
 import { ApprovalService, adminApprovalRoutes } from "./modules/admin/approvals.js";
+import { AccessReviewService, adminAccessReviewRoutes, registerAccessReviewJobs } from "./modules/admin/access-reviews.js";
 import { meRoutes } from "./modules/me/routes.js";
 import { verifyPassword } from "./modules/auth/password.js";
 import { screenReview } from "./modules/community/reviews.js";
@@ -129,6 +130,8 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   app.decorate("supportIntake", new PostgresSupportIntake(app.db));
   app.decorate("userFlags", userFlags);
   app.decorate("approvals", new ApprovalService(app.db, app.env.DUAL_APPROVAL_REQUIRED));
+  const accessReviews = new AccessReviewService(app.db, identity);
+  app.decorate("accessReviews", accessReviews);
   app.decorate("profiles", profiles);
   app.decorate("catalog", new CatalogService(app.db, app.env, app.log));
   app.decorate("promotions", promotions);
@@ -225,6 +228,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   runner.register({ name: "ambassadors.settle", description: "Libera las comisiones de embajadores cuyo periodo de espera terminó", everySeconds: 3600, run: async () => ambassadors.settle() });
   registerImportJobs(runner, imports);
   registerOperatorJobs({ db: app.db, env: app.env, mailer: app.mailer, runner, automations, ical, payouts });
+  registerAccessReviewJobs({ runner, reviews: accessReviews, identity, notify: (userId, n) => notifications.notify(userId, n), db: app.db });
   registerAuthJobs({ runner, identity, notify: (userId, n) => notifications.notify(userId, n) });
   registerAccountJobs({ db: app.db, runner, participants: [(c, userId) => identity.anonymizeAccount(userId, c), eraseProfileData, eraseNotifications, eraseOperatorData, eraseSupportData] });
   if (app.env.JOBS_ENABLED) { runner.start(); app.addHook("onClose", async () => { await runner.stop(); }); }
@@ -240,6 +244,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(adminRoutes);
       await v1.register(adminUserRoutes);
       await v1.register(adminApprovalRoutes);
+      await v1.register(adminAccessReviewRoutes);
       await v1.register(adminSiteRoutes);
       await v1.register(adminCmsRoutes);
       await v1.register(async (meApp) => meRoutes(meApp, { verifyPassword }));
