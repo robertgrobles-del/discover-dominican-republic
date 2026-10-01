@@ -12,6 +12,7 @@ export default defineConfig({
           globalSetup: ["./test/global-setup.ts"],
           include: [
             "test/access.test.ts",
+            "test/access-expiry.test.ts",
             "test/admin-cms.test.ts",
             "test/admin-portal.test.ts",
             "test/ai.test.ts",

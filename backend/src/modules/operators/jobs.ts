@@ -6,6 +6,7 @@ import type { AutomationService } from "./automations.js";
 import { addDays, todayInSantoDomingo } from "./domain/dates.js";
 import type { IcalService } from "./ical.js";
 import type { PayoutService } from "./payouts.js";
+import { auditInsert } from "../../lib/audit.js";
 
 const PENDING_PAYMENT_MINUTES = 30;
 
@@ -81,6 +82,22 @@ export function registerOperatorJobs(d: Deps) {
   runner.register({
     name: "promotions.expire", description: "Desactiva promociones vencidas", everySeconds: 86_400,
     run: async ({ now }) => ({ deactivated: (await db.query("UPDATE operator_promotions SET active = false WHERE active AND ends_at IS NOT NULL AND ends_at < $1::date", [todayInSantoDomingo(now)])).rowCount }),
+  });
+
+  // Plan de accesos, punto 86: al vencer un contrato o una invitación el acceso se retira solo y queda auditado.
+  runner.register({
+    name: "org.access.expire", description: "Retira membresías vencidas y cierra invitaciones caducadas", everySeconds: 900,
+    run: async () => {
+      const c = await db.connect();
+      try {
+        await c.query("BEGIN");
+        const members = (await c.query<{ org_id: string; user_id: string; role: string }>("DELETE FROM org_members WHERE expires_at IS NOT NULL AND expires_at <= now() AND role <> 'owner' RETURNING org_id, user_id, role")).rows;
+        for (const m of members) await auditInsert(c, { actor: null, action: "org.member_expired", entity: "user", id: m.user_id, org: m.org_id, meta: { role: m.role } });
+        const invitations = (await c.query("UPDATE org_invitations SET revoked_at = now() WHERE accepted_at IS NULL AND revoked_at IS NULL AND expires_at <= now()")).rowCount ?? 0;
+        await c.query("COMMIT");
+        return { members_removed: members.length, invitations_closed: invitations };
+      } catch (e) { await c.query("ROLLBACK").catch(() => undefined); throw e; } finally { c.release(); }
+    },
   });
 
   runner.register({ name: "payouts.generate", description: "Lote de liquidaciones a operadores (reservas completadas no liquidadas)", everySeconds: 7 * 86_400, run: async () => d.payouts.generate() });

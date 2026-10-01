@@ -84,7 +84,7 @@ export class CatalogService {
   async membership(userId: string, orgId?: string): Promise<Membership | null> {
     const { rows } = await this.db.query<Membership>(
       `SELECT m.org_id, m.role, m.listing_ids, p.verification, p.business_name, p.slug FROM org_members m JOIN partner_profiles p ON p.id = m.org_id
-        WHERE m.user_id = $1 AND ($2::uuid IS NULL OR m.org_id = $2) ORDER BY (m.role = 'owner') DESC, m.created_at LIMIT 1`, [userId, orgId ?? null],
+        WHERE m.user_id = $1 AND ($2::uuid IS NULL OR m.org_id = $2) AND (m.expires_at IS NULL OR m.expires_at > now()) ORDER BY (m.role = 'owner') DESC, m.created_at LIMIT 1`, [userId, orgId ?? null],
     );
     return rows[0] ?? null;
   }

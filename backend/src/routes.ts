@@ -63,6 +63,7 @@ import { JobRunner } from "./modules/jobs/runner.js";
 import { registerOperatorJobs } from "./modules/operators/jobs.js";
 import { eraseOperatorData } from "./modules/operators/erasure.js";
 import { PostgresIdentityAdmin } from "./modules/auth/identity-admin.js";
+import { registerAuthJobs } from "./modules/auth/jobs.js";
 import { PostgresProfileStore, eraseProfileData } from "./modules/me/profile-store.js";
 import { registerAccountJobs } from "./modules/me/jobs.js";
 import { eraseNotifications } from "./modules/notifications/erasure.js";
@@ -222,6 +223,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   runner.register({ name: "ambassadors.settle", description: "Libera las comisiones de embajadores cuyo periodo de espera terminó", everySeconds: 3600, run: async () => ambassadors.settle() });
   registerImportJobs(runner, imports);
   registerOperatorJobs({ db: app.db, env: app.env, mailer: app.mailer, runner, automations, ical, payouts });
+  registerAuthJobs({ runner, identity, notify: (userId, n) => notifications.notify(userId, n) });
   registerAccountJobs({ db: app.db, runner, participants: [(c, userId) => identity.anonymizeAccount(userId, c), eraseProfileData, eraseNotifications, eraseOperatorData, eraseSupportData] });
   if (app.env.JOBS_ENABLED) { runner.start(); app.addHook("onClose", async () => { await runner.stop(); }); }
   await app.register(healthRoutes, { version });

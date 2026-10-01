@@ -62,7 +62,7 @@ export class AuthService {
     return { id: u.id, email: u.email, email_verified: !!u.email_verified_at, display_name: u.display_name, avatar_url: u.avatar_url, locale: u.locale, roles, created_at: new Date(u.created_at).toISOString() };
   }
   private async rolesOf(userId: string, client: Db | PoolClient = this.db): Promise<string[]> {
-    const { rows } = await client.query<{ role: string }>("SELECT role::text FROM user_roles WHERE user_id = $1 ORDER BY role", [userId]);
+    const { rows } = await client.query<{ role: string }>("SELECT role::text FROM user_roles WHERE user_id = $1 AND (expires_at IS NULL OR expires_at > now()) ORDER BY role", [userId]);
     return rows.map((r) => r.role);
   }
   private assertPassword(password: string, email: string) {

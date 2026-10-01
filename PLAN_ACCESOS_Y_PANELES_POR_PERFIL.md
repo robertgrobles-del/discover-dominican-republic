@@ -92,7 +92,7 @@ Por tanto, un registro normal puede ser simultáneamente viajero, jugador, compr
 16. **Consolidar invitaciones empresariales.** Enviar invitación a email, rol de organización, servicios asignados para guías, expiración, revocación y aceptación con cuenta del email invitado.
 17. **Crear invitaciones para personal interno con límites.** Admin puede invitar editor/moderator; asignar admin requiere segundo aprobador y MFA reciente.
 18. **Definir invitaciones a viajes como acceso a recurso.** Compartir solo `viewer` o `editor` en el viaje, con vencimiento y revocación desde el propietario.
-19. **Normalizar suspensión y baja.** Una operación del servicio aplica estado, invalida sesiones, registra motivo y evita inconsistencias entre `users`, `profiles` y `user_suspensions`.
+19. **[x] Normalizar suspensión y baja.** Una operación del servicio aplica estado, invalida sesiones, registra motivo y evita inconsistencias entre `users`, `profiles` y `user_suspensions`. Implementado: `auth` es el único escritor de `users`, `refresh_tokens` y `user_roles` (`IdentityAdminPort`); la suspensión y la reactivación aplican estado de cuenta, marca del perfil, `user_suspensions`, cierre de sesiones y auditoría en una sola transacción (`backend/src/modules/admin/users.ts`).
 20. **Documentar la precedencia de permisos.** Reglas explícitas para rol global + organización + recurso; no combinar roles con lógica ad hoc en componentes.
 20.a **[x] Mantener gamificación fuera de `app_role`.** El usuario que hace retos conserva `user`; progreso, elegibilidad y puntos pertenecen al dominio de gamificación.
 20.b **[x] Definir acceso de gamificación por propietario.** Un usuario solo consulta/modifica su pasaporte, retos, logros y saldo; operaciones de corrección usan permisos de administración auditados.
@@ -183,7 +183,7 @@ Por tanto, un registro normal puede ser simultáneamente viajero, jugador, compr
 83. **[x] Agregar checklist de incorporación de empresa.** Verificación, datos públicos, servicios, pagos y equipo con estado y responsable visibles (componente `OrgHealthWidget.tsx` integrado en `/operadores/panel`).
 84. **[x] Mostrar salud operativa del espacio.** Reservas pendientes, disponibilidad, pagos por conciliar y documentos vencidos con permisos acordes al rol.
 85. **Definir administración delegada de eventos y retos.** Asignar capacidades acotadas a evento/campaña con fecha de vencimiento, sin crear roles globales innecesarios.
-86. **Cerrar y auditar membresías caducadas.** Revocar accesos al vencer contrato o invitación y facilitar revisión de miembros inactivos.
+86. **[x] Cerrar y auditar membresías caducadas.** Revocar accesos al vencer contrato o invitación y facilitar revisión de miembros inactivos. Implementado: `org_members.expires_at` (migración `0060`); el dueño o un administrador fija el fin del acceso con `PATCH /org/team/members/:id`, el guard de organización ignora al instante una membresía vencida y el trabajo `org.access.expire` la retira, cierra las invitaciones caducadas y deja `org.member_expired` en la auditoría. El propietario no puede vencer (restricción en base de datos). Pendiente: la revisión de miembros inactivos.
 
 ### Fase 8 — Campañas, derechos y liquidaciones de creadores (P1/P2)
 
@@ -201,9 +201,9 @@ Por tanto, un registro normal puede ser simultáneamente viajero, jugador, compr
 95. **Definir analítica interna de solo lectura.** Acceso a métricas agregadas; enmascarar PII y limitar exportaciones por permiso y propósito.
 96. **Asignar gestión de catálogo como capacidad acotada.** Permitir mantener categorías o fichas seleccionadas sin conceder administración de usuarios o seguridad.
 97. **Exigir doble aprobación para operaciones críticas.** Cambios de admin global, pagos manuales, cambios de beneficiario y recuperación/reset de MFA requieren actor y aprobador distintos.
-98. **Crear una línea de tiempo de acceso por usuario.** Mostrar invitaciones, membresías, cambios de rol, sesiones revocadas y decisiones relevantes con retención definida.
+98. **[x] Crear una línea de tiempo de acceso por usuario.** Mostrar invitaciones, membresías, cambios de rol, sesiones revocadas y decisiones relevantes con retención definida. Implementado en la API: `GET /admin/users/:id/access-timeline` devuelve roles vigentes con vencimiento y motivo, organizaciones y los eventos de acceso de la auditoría (roles, suspensiones, 2FA, altas y bajas en organizaciones). Pendiente: la pantalla en la consola y definir la retención.
 99. **Programar revisiones periódicas de acceso.** Responsables confirman o retiran permisos de personal, empresas y proveedores; registrar fecha, decisión y justificación.
-100. **Hacer temporales los privilegios elevados.** Justificación, alcance, vencimiento automático y notificación antes de expirar; evitar permisos permanentes por conveniencia.
+100. **[x] Hacer temporales los privilegios elevados.** Justificación, alcance, vencimiento automático y notificación antes de expirar; evitar permisos permanentes por conveniencia. Implementado para roles globales no administrativos: `POST /admin/users/:id/roles/temporary` exige motivo y duración (máx. 30 días); el rol vencido deja de entrar en los tokens al instante y el trabajo `access.roles.expire` avisa 24 h antes, lo retira, cierra sesiones y lo audita. `admin` queda fuera: requiere la doble aprobación de los puntos 17, 53 y 97, aún sin implementar.
 
 ## Orden de despliegue
 

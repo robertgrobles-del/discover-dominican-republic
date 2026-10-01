@@ -60,7 +60,7 @@ export async function accessRoutes(app: FastifyInstance, opts: CatalogRoutesOpti
       `SELECT om.org_id, om.role, p.business_name
          FROM org_members om
          JOIN partner_profiles p ON p.id = om.org_id
-        WHERE om.user_id = $1
+        WHERE om.user_id = $1 AND (om.expires_at IS NULL OR om.expires_at > now())
         ORDER BY om.role = 'owner' DESC, p.business_name NULLS LAST`,
       [userId],
     )).rows;

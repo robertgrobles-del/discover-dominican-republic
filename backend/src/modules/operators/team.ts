@@ -29,7 +29,7 @@ export class TeamService {
 
   async list(orgId: string) {
     const members = await this.db.query(
-      `SELECT m.user_id, m.role, m.listing_ids, m.created_at, u.email, p.display_name FROM org_members m JOIN users u ON u.id = m.user_id LEFT JOIN profiles p ON p.id = u.id
+      `SELECT m.user_id, m.role, m.listing_ids, m.created_at, m.expires_at, u.email, p.display_name FROM org_members m JOIN users u ON u.id = m.user_id LEFT JOIN profiles p ON p.id = u.id
         WHERE m.org_id = $1 ORDER BY (m.role = 'owner') DESC, m.created_at`, [orgId],
     );
     const invitations = await this.db.query(
@@ -97,7 +97,7 @@ export class TeamService {
     } catch (e) { await c.query("ROLLBACK"); throw e; } finally { c.release(); }
   }
 
-  async updateMember(orgId: string, actor: { id: string; role: OrgRole }, userId: string, patch: { role?: Invitable; listing_ids?: string[] }) {
+  async updateMember(orgId: string, actor: { id: string; role: OrgRole }, userId: string, patch: { role?: Invitable; listing_ids?: string[]; expires_at?: string | null }) {
     if (userId === actor.id) throw new AppError("FORBIDDEN", "No puedes cambiar tu propio rol");
     // El candado por organización serializa cambios concurrentes de rol: sin él, dos dueños que se degradan a la vez podrían dejar a la org sin dueño.
     const c = await this.db.connect();
@@ -110,12 +110,14 @@ export class TeamService {
       const role = patch.role ?? cur.role;
       const ids = role === "guia" ? patch.listing_ids ?? (await c.query<{ l: string[] }>("SELECT listing_ids AS l FROM org_members WHERE org_id = $1 AND user_id = $2", [orgId, userId])).rows[0]!.l : [];
       await this.checkListings(orgId, role, ids);
-      await c.query("UPDATE org_members SET role = $3, listing_ids = $4 WHERE org_id = $1 AND user_id = $2", [orgId, userId, role, ids]);
+      if (patch.expires_at && new Date(patch.expires_at).getTime() <= Date.now()) throw AppError.validation("La fecha de fin debe ser futura", { field: "expires_at" });
+      // `expires_at` ausente conserva el vencimiento actual; null lo quita.
+      await c.query("UPDATE org_members SET role = $3, listing_ids = $4, expires_at = CASE WHEN $5::boolean THEN $6::timestamptz ELSE expires_at END WHERE org_id = $1 AND user_id = $2", [orgId, userId, role, ids, patch.expires_at !== undefined, patch.expires_at ?? null]);
       if (cur.role === "owner" && role !== "owner") {
         const owners = (await c.query<{ n: number }>("SELECT count(*)::int AS n FROM org_members WHERE org_id = $1 AND role = 'owner'", [orgId])).rows[0]!.n;
         if (owners < 1) throw new AppError("BUSINESS_RULE", "La organización debe conservar al menos un propietario", { reason: "LAST_OWNER" });
       }
-      await auditInsert(c, { actor: actor.id, action: "org.member_update", entity: "user", id: userId, org: orgId, meta: { from: cur.role, to: role } });
+      await auditInsert(c, { actor: actor.id, action: "org.member_update", entity: "user", id: userId, org: orgId, meta: { from: cur.role, to: role, ...(patch.expires_at !== undefined ? { expires_at: patch.expires_at } : {}) } });
       await c.query("COMMIT");
     } catch (e) { await c.query("ROLLBACK").catch(() => undefined); throw e; } finally { c.release(); }
   }

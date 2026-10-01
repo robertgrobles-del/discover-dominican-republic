@@ -54,6 +54,47 @@ export async function adminUserRoutes(app: FastifyInstance) {
     return { data: { ...u, roles: await rolesOf(req.params.id), suspensions, organizations: orgs } };
   });
 
+  // Plan de accesos, punto 100: privilegio elevado con justificación, alcance y vencimiento automático.
+  r.post("/admin/users/:id/roles/temporary", {
+    onRequest: admin,
+    schema: {
+      tags: ["admin"], summary: "Concede un rol por tiempo limitado (vence solo y cierra la sesión al vencer)", security: bearer, params: uuid,
+      // `admin` queda fuera: concederlo exige doble aprobación (puntos 17 y 53), que este flujo no implementa.
+      body: z.object({ role: z.enum(["editor", "moderator", "partner", "ambassador"]), hours: z.number().int().min(1).max(720), reason: z.string().trim().min(10).max(300) }),
+      response: { 201: ok },
+    },
+  }, async (req, reply) => {
+    const id = req.params.id;
+    if (id === req.user!.id) throw new AppError("FORBIDDEN", "No puedes concederte roles a ti mismo");
+    await exists(id);
+    const expiresAt = new Date(Date.now() + req.body.hours * 3_600_000);
+    const granted = await app.identity.grantTemporaryRole({ userId: id, role: req.body.role, expiresAt, reason: req.body.reason, grantedBy: req.user!.id });
+    if (!granted) throw new AppError("CONFLICT", "La persona ya tiene ese rol de forma permanente", { reason: "ROLE_ALREADY_PERMANENT" });
+    await audit(db, { actor: req.user!.id, action: "user.role_granted_temporary", entity: "user", id, meta: { role: req.body.role, expires_at: expiresAt.toISOString(), reason: req.body.reason }, ip: req.ip });
+    await app.notifications.notify(id, { type: "system", title: `Tienes acceso temporal de ${req.body.role}`, message: `Vence el ${expiresAt.toISOString().slice(0, 16).replace("T", " ")} UTC.`, data: { role: req.body.role, expires_at: expiresAt.toISOString() } });
+    reply.code(201);
+    return { data: { role: req.body.role, expires_at: expiresAt.toISOString() } };
+  });
+
+  // Plan de accesos, punto 98: qué accesos tiene hoy una persona y cómo llegó a tenerlos.
+  r.get("/admin/users/:id/access-timeline", {
+    onRequest: admin,
+    schema: { tags: ["admin"], summary: "Accesos vigentes y línea de tiempo de cambios de acceso de una persona", security: bearer, params: uuid, querystring: z.object({ limit: z.coerce.number().int().min(1).max(200).default(100) }), response: { 200: ok } },
+  }, async (req) => {
+    const id = req.params.id;
+    await exists(id);
+    const organizations = (await db.query("SELECT m.org_id, m.role, m.expires_at, m.created_at AS since, p.business_name FROM org_members m JOIN partner_profiles p ON p.id = m.org_id WHERE m.user_id = $1 ORDER BY m.created_at", [id])).rows;
+    // Sólo acciones de acceso: sobre la cuenta (roles, suspensión, 2FA, sesiones de soporte) o hechas por ella al entrar a una organización.
+    const events = (await db.query(
+      `SELECT a.created_at AS at, a.action, a.actor_id, a.org_id, a.meta
+         FROM audit_log a
+        WHERE (a.entity_type = 'user' AND a.entity_id = $1::text AND (a.action LIKE 'user.%' OR a.action LIKE 'org.member_%'))
+           OR (a.actor_id = $1::uuid AND a.action IN ('org.join', 'user.deletion_requested', 'user.deletion_cancelled'))
+        ORDER BY a.created_at DESC LIMIT $2`, [id, req.query.limit],
+    )).rows;
+    return { data: { roles: await app.identity.rolesWithExpiry(id), organizations, events } };
+  });
+
   r.put("/admin/users/:id/roles", {
     onRequest: admin,
     schema: { tags: ["admin"], summary: "Reemplaza los roles de un usuario (no puedes cambiar los tuyos ni quitar al último admin)", security: bearer, params: uuid, body: z.object({ roles: z.array(z.enum(ROLES)).max(6) }), response: { 200: ok } },
