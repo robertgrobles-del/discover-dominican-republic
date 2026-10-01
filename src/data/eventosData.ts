@@ -11,6 +11,8 @@ export interface EventoItem {
   imagen: string;
   descripcion: string;
   ubicacion: string;
+  provincia?: string;
+  startsAt?: string;
 }
 
 export interface FestivalMusicalItem {

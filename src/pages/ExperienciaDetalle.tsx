@@ -3,7 +3,7 @@ import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { Link, useParams } from "react-router-dom";
 import { 
-  MapPin, Star, Clock, Users, ChevronRight, Heart, Share2, Play, Instagram, Check, 
+  MapPin, Star, Clock, Users, ChevronRight, Heart, Share2, Play, Instagram, Check, ArrowRight,
   Sparkles, Calendar, DollarSign, Backpack, ShieldCheck, AlertCircle, Compass, CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -536,6 +536,45 @@ export default function ExperienciaDetalle() {
                 </Link>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="related-experiences-title" className="py-14">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Compara alternativas</p>
+                <h2 id="related-experiences-title" className="mt-1 font-display text-2xl font-bold text-foreground">
+                  Actividades relacionadas con {experiencia.nombre.toLowerCase()}
+                </h2>
+              </div>
+              <p className="max-w-md text-xs leading-relaxed text-muted-foreground">
+                Precios, duración y valoraciones son referencias editoriales; confirma disponibilidad y condiciones con cada operador.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {experiencia.actividadesRelacionadas.map((activity) => (
+                <article key={activity.nombre} className="overflow-hidden rounded-card border border-border bg-surface-commercial">
+                  <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+                    <img src={activity.imagen} alt={activity.nombre} className="h-full w-full object-cover" loading="lazy" />
+                    <Badge className="absolute left-3 top-3 gap-1 bg-background/90 text-foreground">
+                      <Star className="h-3 w-3 fill-current text-amber-500" aria-hidden="true" />
+                      {activity.rating.toFixed(1)}
+                    </Badge>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold text-foreground">{activity.nombre}</h3>
+                    <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+                      <span className="text-muted-foreground">{activity.duracion}</span>
+                      <span className="font-bold text-foreground">Desde ${activity.precio} USD</span>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <Button asChild variant="outline" className="mt-5 gap-2">
+              <Link to="/experiencias">Ver catálogo de experiencias <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+            </Button>
           </div>
         </section>
 

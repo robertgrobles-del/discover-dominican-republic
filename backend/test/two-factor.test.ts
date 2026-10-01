@@ -304,7 +304,7 @@ describe("verificación en dos pasos (integración)", () => {
 
   it("configuración: la clave de cifrado debe ser de 32 bytes y es obligatoria en producción", () => {
     expect(() => loadEnv({ NODE_ENV: "test", TOTP_ENCRYPTION_KEY: Buffer.alloc(16).toString("base64") } as NodeJS.ProcessEnv)).toThrow(/32 bytes/);
-    const prod = { NODE_ENV: "production", JWT_PRIVATE_KEY: "a", JWT_PUBLIC_KEY: "b", APP_SECRET: "s".repeat(40), CORS_ORIGINS: "https://portal.example.com", DATABASE_URL: "postgres://app:clave-real@db.example.com:5432/rd" } as NodeJS.ProcessEnv;
+    const prod = { NODE_ENV: "production", JWT_PRIVATE_KEY: "a", JWT_PUBLIC_KEY: "b", APP_SECRET: "s".repeat(40), CORS_ORIGINS: "https://portal.example.com", DATABASE_URL: "postgres://app:clave-real@db.example.com:5432/rd", MAIL_TRANSPORT: "smtp" } as NodeJS.ProcessEnv;
     expect(() => loadEnv(prod)).toThrow(/TOTP_ENCRYPTION_KEY es obligatoria/);
     const ok = loadEnv({ ...prod, TOTP_ENCRYPTION_KEY: Buffer.alloc(32, 1).toString("base64") });
     expect(ok.REQUIRE_2FA_FOR_STAFF).toBe(true); // por defecto en producción

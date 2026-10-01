@@ -14,11 +14,12 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { 
   Search, MapPin, Star, Bed, Users, Home, Building2, 
-  SlidersHorizontal, X, Wifi, Car, Waves, Utensils, Dumbbell, Megaphone
+  SlidersHorizontal, X, Wifi, Car, Waves, Utensils, Dumbbell
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { BetweenSectionsAd, SidebarAd, CompactInlineAd, BannerAd, SuperLeaderboardAd, BillboardAd } from "@/components/promo";
+import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 import { useTranslation } from "@/hooks/useI18n";
 import { CTARegistroEstablecimiento } from "@/components/forms/CTARegistroEstablecimiento";
 import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
@@ -402,9 +403,7 @@ export default function Alojamientos() {
                                 />
                               </div>
                               {hotel.is_sponsored ? (
-                                <Badge className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1 text-[11px] shadow-sm">
-                                  <Megaphone className="h-3 w-3" /> {t("alojamientos.sponsored")}
-                                </Badge>
+                                <SponsoredBadge label={t("alojamientos.sponsored")} className="absolute top-3 left-3 text-[11px] shadow-sm" />
                               ) : hotel.stars ? (
                                 <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground text-[11px] shadow-sm font-semibold">
                                   {hotel.stars} ★
@@ -482,9 +481,7 @@ export default function Alojamientos() {
                                 />
                               </div>
                               {airbnb.is_sponsored ? (
-                                <Badge className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1 text-[11px] shadow-sm">
-                                  <Megaphone className="h-3 w-3" /> {t("alojamientos.sponsored")}
-                                </Badge>
+                                <SponsoredBadge label={t("alojamientos.sponsored")} className="absolute top-3 left-3 text-[11px] shadow-sm" />
                               ) : airbnb.is_superhost ? (
                                 <Badge className="absolute top-3 left-3 bg-rose-500 text-white text-[11px] shadow-sm font-semibold">
                                   Superhost

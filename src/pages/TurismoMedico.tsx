@@ -168,6 +168,13 @@ export default function TurismoMedico() {
           </div>
         </section>
 
+        <div className="container mx-auto px-4 lg:px-8 -mt-5 relative z-10">
+          <div role="note" className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-foreground">
+            <AlertCircle aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+            <p><strong>InformaciÃ³n turÃ­stica:</strong> este directorio no ofrece diagnÃ³sticos ni sustituye el consejo de un profesional de salud. Verifica directamente con cada proveedor sus servicios, credenciales y condiciones.</p>
+          </div>
+        </div>
+
         {/* Quick Categories */}
         <section className="py-12 bg-card">
           <div className="container mx-auto px-4 lg:px-8">

@@ -3,7 +3,7 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
-import { audit } from "../operators/team.js";
+import { audit, auditChainVerify } from "../operators/team.js";
 
 /** Administración transversal: restablecer 2FA de una cuenta y consultar la bitácora de auditoría. */
 export async function adminRoutes(app: FastifyInstance) {
@@ -39,6 +39,11 @@ export async function adminRoutes(app: FastifyInstance) {
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
   });
 
+  r.get("/admin/audit/verify", {
+    onRequest: admin,
+    schema: { tags: ["admin"], summary: "Verifica la cadena de hash de la bitácora (detecta manipulación)", security: bearer, querystring: z.object({ after_id: z.coerce.number().int().min(0).optional(), limit: z.coerce.number().int().min(1).max(20000).default(5000) }), response: { 200: z.object({ data: z.any() }) } },
+  }, async (req) => ({ data: await auditChainVerify(app.db, { afterId: req.query.after_id, limit: req.query.limit }) }));
+
   const any = z.any();
   const ok = z.object({ data: any });
   const uuid = z.object({ id: z.string().uuid() });
@@ -47,7 +52,7 @@ export async function adminRoutes(app: FastifyInstance) {
   // ---- Trabajos programados (docs 5.17/9) ----
   r.get("/admin/jobs", { onRequest: admin, schema: { tags: ["admin"], summary: "Trabajos programados y su último resultado", security: bearer, response: { 200: z.object({ data: any }) } } }, async () => ({ data: await app.jobs.list() }));
   r.post("/admin/jobs/:name/run", { onRequest: admin, schema: { tags: ["admin"], summary: "Ejecuta un trabajo ahora", security: bearer, params: z.object({ name: z.string().max(60) }), response: { 200: z.object({ data: any }) } } }, async (req) => {
-    const data = await app.jobs.runNow(req.params.name);
+    const data = await app.jobs.runNow(req.params.name, { requestId: req.id });
     await audit(app.db, { actor: req.user!.id, action: "job.run", entity: "job", id: req.params.name, ip: req.ip });
     return { data };
   });

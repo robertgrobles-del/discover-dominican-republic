@@ -104,6 +104,19 @@ describe("administración: CMS, usuarios y sitio", () => {
       expect((await pool.query("SELECT status FROM caves WHERE id = $1", [id])).rows[0].status).toBe("archived");
     });
 
+    it("publicar por el CMS vacía la caché pública: la búsqueda refleja el cambio al instante", async () => {
+      const name = `Cueva Cache B7 ${tag}`;
+      const row = json(await call("POST", "/admin/caves", { token: editor.token, payload: { name, short_description: "Para probar la invalidación" } })).data;
+      const q = `/search?q=${encodeURIComponent(`cache b7 ${tag}`)}&limit=5`;
+      expect(json(await call("GET", q)).data.length).toBe(0); // de borrador no sale (y la respuesta vacía queda cacheada)
+      await call("POST", `/admin/caves/${row.id}/publish`, { token: admin.token });
+      const found = json(await call("GET", q)).data;
+      expect(found.length).toBeGreaterThanOrEqual(1); // sin invalidación seguiría saliendo la respuesta vacía durante 30 s
+      expect(found.some((h: { title: string }) => h.title === name)).toBe(true);
+      await call("POST", `/admin/caves/${row.id}/unpublish`, { token: admin.token });
+      expect(json(await call("GET", q)).data.length).toBe(0);
+    });
+
     it("no publica registros incompletos", async () => {
       const row = json(await call("POST", "/admin/caves", { token: editor.token, payload: { name: `Otra ${tag}` } })).data;
       await pool.query("UPDATE caves SET name = '   ' WHERE id = $1", [row.id]);

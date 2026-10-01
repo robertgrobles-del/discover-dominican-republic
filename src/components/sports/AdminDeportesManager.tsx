@@ -20,7 +20,7 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/hooks/useAnalytics";
 
 export interface SportTournament {
   id: string;
@@ -344,12 +344,7 @@ export function AdminDeportesManager() {
 
     saveGames(updatedList);
 
-    // Sync analytics
-    await supabase.from("analytics_events").insert([{
-      event_type: "sports_game_updated",
-      page: window.location.pathname,
-      metadata: { gameId: gameRecord.id, status: gameRecord.status, match: `${gameRecord.homeTeam} vs ${gameRecord.awayTeam}` } as any
-    }]).catch(() => {});
+    trackEvent("click", { action: "sports_game_updated", status: gameRecord.status });
 
     setIsGameModalOpen(false);
   };

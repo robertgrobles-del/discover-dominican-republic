@@ -2,8 +2,18 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("rounded-lg border bg-card text-card-foreground shadow-sm", className)} {...props} />
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: "default" | "editorial" | "commercial";
+}
+
+const cardSurfaces: Record<NonNullable<CardProps["variant"]>, string> = {
+  default: "surface-editorial text-card-foreground shadow-sm",
+  editorial: "surface-editorial text-card-foreground shadow-sm",
+  commercial: "surface-commercial text-card-foreground shadow-sm",
+};
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(({ className, variant = "default", ...props }, ref) => (
+  <div ref={ref} className={cn(cardSurfaces[variant], className)} {...props} />
 ));
 Card.displayName = "Card";
 

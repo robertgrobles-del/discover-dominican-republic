@@ -273,6 +273,15 @@ export default function RequisitosEmbajadores() {
           </div>
         </section>
 
+        <section className="pb-12">
+          <div className="container mx-auto px-4 max-w-3xl text-center">
+            <p className="text-sm text-muted-foreground">
+              Este programa de representación y campañas es distinto del programa de afiliados, que calcula comisiones por pedidos elegibles.
+            </p>
+            <Link to="/afiliados" className="inline-block mt-2 text-primary hover:underline">Conocer el programa de afiliados</Link>
+          </div>
+        </section>
+
         {/* CTA */}
         <section id="aplicar" className="py-20 bg-primary/5">
           <div className="container mx-auto px-4 text-center max-w-2xl">

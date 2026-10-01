@@ -78,7 +78,7 @@ export async function liveRoutes(app: FastifyInstance) {
   // ---------- Administración ----------
   await tableAdminRoutes(app, LIVE_TABLES, ["admin", "editor"]);
   r.post("/admin/live/refresh", { onRequest: app.requireRole("admin"), schema: { tags: ["admin"], summary: "Actualiza ahora tasas o clima desde el proveedor configurado", security: bearer, querystring: z.object({ source: z.enum(["fx", "weather"]) }), response: { 200: ok } } }, async (req) => {
-    const res = await app.jobs.runNow(req.query.source === "fx" ? "fx.refresh" : "weather.refresh");
+    const res = await app.jobs.runNow(req.query.source === "fx" ? "fx.refresh" : "weather.refresh", { requestId: req.id });
     await audit(db, { actor: req.user!.id, action: "live.refresh", entity: "live", id: req.query.source, ip: req.ip });
     return { data: res };
   });

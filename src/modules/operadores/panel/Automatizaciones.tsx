@@ -13,9 +13,8 @@ import { toast } from "sonner";
 import { opKeys, updateOrg, useBookings, useMessages, useOpMutation } from "../api";
 import {
   AUTOMATION_META, TEMPLATE_VARS, getAutomation, renderTemplate, sendDueReminders,
-  type AutomationChannel, type AutomationConfig, type AutomationKind, type AutomationRule,
 } from "../automation";
-import type { Booking } from "../types";
+import type { AutomationChannel, AutomationConfig, AutomationKind, AutomationRule, Booking } from "../types";
 import { useOrg } from "./OrgContext";
 
 const KINDS = Object.keys(AUTOMATION_META) as AutomationKind[];

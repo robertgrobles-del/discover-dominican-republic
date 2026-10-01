@@ -255,7 +255,7 @@ Posición GPS o QR → servidor valida radio (300 m), precisión (≤150 m) y ve
 
 **Variables de entorno principales (backend):** `DATABASE_URL`, `CORS_ORIGINS`, `PUBLIC_BASE_URL`, `WEB_BASE_URL`, `JWT_PRIVATE_KEY` / `JWT_PUBLIC_KEY`, `JWT_ACCESS_TTL_SECONDS`, `REFRESH_TTL_DAYS`, `RATE_LIMIT_STORE`, `MAIL_TRANSPORT`, `MAIL_FROM`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `OAUTH_GOOGLE_*`, `APP_SECRET`, `FEATURE_CHECKOUT`, `FEATURE_AI_CHAT`, `FEATURE_OPERATORS`, `FEATURE_STORE`. La lista completa y comentada está en `backend/.env.example`.
 
-**Frontend:** hoy solo usa `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` (el `.env` versionado usa otro nombre: `VITE_SUPABASE_PUBLISHABLE_KEY`). Al conectar la API se agrega `VITE_API_URL`. **Nunca** poner secretos en variables `VITE_`: todas quedan visibles en el navegador.
+**Frontend:** usa `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` para el cliente público de Supabase; `VITE_API_URL` y `VITE_STRAPI_URL` son URLs de servicios. **Nunca** poner secretos en variables `VITE_`: todas quedan visibles en el navegador.
 
 ---
 

@@ -2,7 +2,7 @@
 // is not Spanish, visible text nodes and a few attributes are swapped using a
 // pre-generated dictionary (src/i18n/auto/keys.json + <locale>.json, aligned by
 // index). Untranslated strings simply stay in Spanish.
-import type { Locale } from "./index";
+import type { Locale } from "./types";
 
 const ATTRS = ["placeholder", "alt", "title", "aria-label"] as const;
 const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "CODE", "PRE", "TEXTAREA", "SVG", "INPUT"]);

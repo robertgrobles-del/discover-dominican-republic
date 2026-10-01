@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight, MapPin, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 import { Button } from "@/components/ui/button";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Destination } from "@/data/destinations";
@@ -185,9 +186,7 @@ export function DestinationHeroSlider({ destination, hotels, restaurants }: Dest
             >
               <div className="flex items-center gap-2 mb-4 flex-wrap">
                 {slide.isSponsored && (
-                  <Badge className="bg-amber-500 text-slate-950 font-bold border-none text-[11px] uppercase tracking-wider px-2.5 py-0.5 shadow-sm">
-                    {slide.sponsorBadge}
-                  </Badge>
+                  <SponsoredBadge label={slide.sponsorBadge} className="text-[11px] uppercase tracking-wider px-2.5 py-0.5 shadow-sm" />
                 )}
                 {!slide.isSponsored &&
                   destination.categories.map((cat) => (

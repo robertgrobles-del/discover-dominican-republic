@@ -48,7 +48,7 @@ export async function storeRoutes(app: FastifyInstance) {
   r.patch("/cart/items/:id", { onRequest: optionalUser, schema: { tags: ["tienda"], summary: "Cambia la cantidad", ...soft, params: uuid, body: z.object({ quantity: z.number().int().min(1).max(20) }), response: { 200: ok } } }, async (req) => ({ data: await store.setQuantity(actor(req), req.params.id, req.body.quantity) }));
   r.delete("/cart/items/:id", { onRequest: optionalUser, schema: { tags: ["tienda"], summary: "Quita un artículo", ...soft, params: uuid, response: { 200: ok } } }, async (req) => ({ data: await store.removeItem(actor(req), req.params.id) }));
   r.delete("/cart", { onRequest: optionalUser, schema: { tags: ["tienda"], summary: "Vacía el carrito", ...soft, response: { 204: z.null() } } }, async (req, reply) => { await store.clear(actor(req)); reply.code(204); return null; });
-  r.post("/cart/merge", { onRequest: app.authenticate, schema: { tags: ["tienda"], summary: "Al iniciar sesión, fusiona el carrito de invitado (X-Cart-Token) con el de la cuenta", security: bearer, response: { 200: ok } } }, async (req) => {
+  r.post("/cart/merge", { onRequest: app.authenticate, schema: { tags: ["tienda"], summary: "Al iniciar sesión, fusiona el carrito de invitado (X-Cart-Token) con el de la cuenta", security: bearer, headers: z.object({ "x-cart-token": z.string().max(100) }).passthrough(), response: { 200: ok } } }, async (req) => {
     const token = actor(req).cartToken;
     if (!token) throw AppError.validation("Falta el encabezado X-Cart-Token");
     return { data: { ...(await store.merge(req.user!.id, token)), cart: await store.cart({ userId: req.user!.id }) } };

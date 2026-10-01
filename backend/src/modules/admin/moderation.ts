@@ -10,7 +10,7 @@ import { audit } from "../operators/team.js";
 const ok = z.object({ data: z.any() });
 const paged = z.object({ data: z.any(), meta: z.any() });
 const bearer = [{ bearerAuth: [] }];
-const TYPES = ["review", "post", "comment", "media", "ugc_media", "photo_submission", "report"] as const;
+const TYPES = ["review", "post", "comment", "media", "ugc_media", "photo_submission", "report", "creator_video"] as const;
 type Type = (typeof TYPES)[number];
 const QUEUE_TYPES = TYPES.filter((t) => t !== "comment");
 const ACTIONS = ["approve", "reject", "remove"] as const;
@@ -53,6 +53,11 @@ export async function adminModerationRoutes(app: FastifyInstance) {
     report: {
       count: "SELECT count(*)::int AS n FROM ugc_reports WHERE status = 'pendiente'",
       list: (l) => `SELECT rp.id, rp.user_id AS author_id, p.display_name AS author_name, rp.target_type || ': ' || rp.reason AS excerpt, 1 AS reports, rp.created_at FROM ugc_reports rp LEFT JOIN profiles p ON p.id = rp.user_id WHERE rp.status = 'pendiente' ORDER BY rp.created_at ${l}`,
+    },
+    // Punto 44: las publicaciones de creador entran en la misma cola mientras esperan moderación.
+    creator_video: {
+      count: "SELECT count(*)::int AS n FROM creator_videos WHERE status = 'pending_review'",
+      list: (l) => `SELECT v.id, v.creator_id AS author_id, c.display_name AS author_name, v.title AS excerpt, 0 AS reports, v.created_at FROM creator_videos v LEFT JOIN creator_profiles c ON c.id = v.creator_id WHERE v.status = 'pending_review' ORDER BY v.created_at ${l}`,
     },
   };
 
@@ -125,6 +130,23 @@ export async function adminModerationRoutes(app: FastifyInstance) {
         if (!rp) throw AppError.notFound("Reporte");
         return { authorId: rp.user_id, label: "tu reporte" };
       }
+      // Punto 44: aprobar publica, rechazar deja el motivo y retirar archiva. La regla que motivó la
+      // decisión y quién/cuándo la tomó quedan en la publicación para que el creador pueda apelarla.
+      case "creator_video": {
+        const v = (await db.query<{ creator_id: string; status: string }>("SELECT creator_id, status FROM creator_videos WHERE id = $1", [id])).rows[0];
+        if (!v) throw AppError.notFound("Publicación de creador");
+        const status = action === "approve" ? "published" : action === "reject" ? "rejected" : "archived";
+        const rule = `manual_${action}`;
+        await db.query(
+          `UPDATE creator_videos
+              SET status = $2,
+                  review_notes = CASE WHEN $2 = 'published' THEN NULL WHEN $3::text IS NOT NULL THEN $3 ELSE review_notes END,
+                  moderation_rule = $4, moderated_at = now(), moderated_by = $5, updated_at = now()
+            WHERE id = $1`,
+          [id, status, reason ?? null, rule, actor],
+        );
+        return { authorId: v.creator_id, label: "tu video" };
+      }
     }
     void actor;
   };
@@ -145,6 +167,39 @@ export async function adminModerationRoutes(app: FastifyInstance) {
     else await app.notifications.notify(authorId, { type: "system", title: "Revisamos tu reporte", message: "Gracias por ayudarnos a cuidar la comunidad.", data: { report_id: id } });
     await audit(db, { actor: req.user!.id, action: `moderation.${action}`, entity: type, id, meta: { reason }, ip: req.ip });
     return { data: { type, id, action, notified: !!authorId } };
+  });
+
+  // ---------- Punto 44: apelaciones de contenido de creador ----------
+  r.get("/admin/moderation/appeals", {
+    onRequest: mod,
+    schema: { tags: tag, summary: "Apelaciones pendientes de creadores, con contexto limitado (sin correo ni datos de pago)", security: bearer, querystring: z.object(page), response: { 200: paged } },
+  }, async (req) => {
+    const total = (await db.query<{ n: number }>("SELECT count(*)::int AS n FROM creator_video_appeals WHERE status = 'pending'")).rows[0]!.n;
+    const { rows } = await db.query(
+      `SELECT a.id, a.video_id, a.creator_id, a.reason, a.status, a.rule_code, a.created_at,
+              v.title AS video_title, v.status AS video_status, v.review_notes,
+              c.handle AS creator_handle, c.display_name AS creator_name
+         FROM creator_video_appeals a
+         JOIN creator_videos v ON v.id = a.video_id
+         JOIN creator_profiles c ON c.id = a.creator_id
+        WHERE a.status = 'pending'
+        ORDER BY a.created_at ${limitSql(req.query.per_page, req.query.page)}`,
+    );
+    return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
+  });
+
+  r.post("/admin/moderation/appeals/:id/resolve", {
+    onRequest: mod,
+    schema: {
+      tags: tag, summary: "Resuelve la apelación de un creador: aceptarla devuelve la publicación a revisión", security: bearer,
+      params: z.object({ id: z.string().uuid() }),
+      body: z.object({ status: z.enum(["accepted", "rejected"]), note: z.string().trim().min(3).max(300) }),
+      response: { 200: ok },
+    },
+  }, async (req) => {
+    // `resolveAppeal` resuelve en una transacción y escribe la entrada de auditoría dentro de ella.
+    const { appeal, video } = await app.creators.resolveAppeal(req.user!.id, req.params.id, req.body.status, req.body.note, req.ip);
+    return { data: { appeal, video_status: video?.status ?? null } };
   });
 
   // ---------- Reportes ----------

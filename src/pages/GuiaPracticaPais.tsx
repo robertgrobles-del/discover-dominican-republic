@@ -183,9 +183,22 @@ export default function GuiaPracticaPais() {
         {/* Datos esenciales */}
         <section className="py-16">
           <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-              {datosEsenciales.map(seccion => (
-                <Card key={seccion.titulo} className="overflow-hidden">
+            <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+              <aside className="h-fit lg:sticky lg:top-24">
+                <nav aria-label="En esta guía" className="rounded-xl border border-border bg-card p-4">
+                  <h2 className="mb-3 text-sm font-bold text-foreground">En esta guía</h2>
+                  <ul className="flex gap-2 overflow-x-auto lg:flex-col lg:overflow-visible">
+                    {datosEsenciales.map((seccion, index) => (
+                      <li key={seccion.titulo} className="shrink-0">
+                        <a href={`#guia-esencial-${index}`} className="block rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-secondary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{seccion.titulo}</a>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              </aside>
+              <div className="grid gap-6 md:grid-cols-2">
+              {datosEsenciales.map((seccion, index) => (
+                <Card id={`guia-esencial-${index}`} key={seccion.titulo} className="scroll-mt-28 overflow-hidden">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -204,6 +217,7 @@ export default function GuiaPracticaPais() {
                   </CardContent>
                 </Card>
               ))}
+              </div>
             </div>
           </div>
         </section>

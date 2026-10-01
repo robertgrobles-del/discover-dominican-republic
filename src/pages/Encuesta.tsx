@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Smile, 
@@ -40,6 +41,11 @@ const ratings = [
 ];
 
 export default function Encuesta() {
+  const [searchParams] = useSearchParams();
+  const requestedSource = searchParams.get("from") ?? "";
+  const sourcePage = requestedSource.startsWith("/") && !requestedSource.startsWith("//")
+    ? requestedSource.slice(0, 200)
+    : "";
   const [step, setStep] = useState(1);
   const [rating, setRating] = useState<number | null>(null);
   const [selectedExperiences, setSelectedExperiences] = useState<string[]>([]);
@@ -58,6 +64,7 @@ export default function Encuesta() {
       selectedExperiences,
       recommendation,
       comments,
+      sourcePage,
     });
     // Submit logic here
     alert("¡Gracias por tu opinión!");
@@ -92,6 +99,7 @@ export default function Encuesta() {
                 Tu opinión es vital para mejorar el turismo en nuestro país.
                 Solo tomará 2 minutos.
               </p>
+              {sourcePage && <p className="mt-3 text-sm text-muted-foreground">Encuesta abierta desde: <span className="font-medium">{sourcePage}</span></p>}
             </motion.div>
           </div>
         </section>

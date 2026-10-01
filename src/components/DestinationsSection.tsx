@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 import { Link } from "react-router-dom";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { LazyImage } from "@/components/ui/lazy-image";
@@ -168,9 +169,7 @@ export function DestinationsSection() {
                         
                         {/* Top Sponsor Badge */}
                         <div className="absolute top-4 left-4 z-10">
-                          <span className="bg-amber-500 text-slate-950 text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                            ★ Hotel Patrocinado
-                          </span>
+                          <SponsoredBadge label="Hotel patrocinado" className="text-xs uppercase tracking-wider shadow-sm" />
                         </div>
 
                         {/* Red Centered Indicator Badge */}

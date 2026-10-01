@@ -3,18 +3,7 @@
 // (operator_messages) y en la reserva (`notified`). Con un backend real, aquí se llamaría al proveedor de correo/WhatsApp.
 import { balanceDue, fetchAllBookings, sendMessage, updateBooking } from "./api";
 import { formatMoney } from "./constants";
-import type { Booking, OperatorOrg } from "./types";
-
-export type AutomationKind = "confirmation" | "reminder" | "review";
-export type AutomationChannel = "email" | "whatsapp";
-
-export interface AutomationRule {
-  enabled: boolean;
-  channels: AutomationChannel[];
-  subject: string;
-  body: string;
-}
-export type AutomationConfig = Record<AutomationKind, AutomationRule>;
+import type { AutomationChannel, AutomationConfig, AutomationKind, Booking, OperatorOrg } from "./types";
 
 export const AUTOMATION_META: Record<AutomationKind, { label: string; when: string }> = {
   confirmation: { label: "Confirmación de reserva", when: "Al recibir una reserva en tu sitio web." },

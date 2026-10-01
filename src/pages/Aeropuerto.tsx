@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Plane, Clock, Thermometer, Terminal, Search, PlaneTakeoff, PlaneLanding,
@@ -122,6 +123,7 @@ export default function Aeropuerto() {
                 Mapa de Terminal
               </Button>
             </div>
+            <Link to="/planifica-escala" className="mt-5 inline-block text-sm font-semibold text-primary-foreground underline underline-offset-4">¿Tienes una escala? Estima tu margen antes de salir</Link>
           </motion.div>
         </div>
       </section>

@@ -8,9 +8,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Camera, Video, Instagram, Users, TrendingUp, Star,
-  ChevronRight, CheckCircle, Globe, Zap, Send, MapPin, Heart, Gift
+  ChevronRight, CheckCircle, Globe, Zap, Send, MapPin, Heart, Gift, Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 import relaxBeach from "@/assets/relax-beach.jpg";
@@ -211,12 +212,19 @@ export default function ContratarInfluencers() {
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
               Conecta tu marca con <span className="text-primary">Influencers</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-6">
               Trabajamos con los mejores creadores de contenido turístico de República Dominicana para promocionar tu negocio.
             </p>
-            <Button size="lg" className="gap-2" onClick={() => document.getElementById("form-contacto")?.scrollIntoView({ behavior: "smooth" })}>
-              Solicitar campaña <ChevronRight className="h-4 w-4" />
-            </Button>
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <Button size="lg" className="gap-2" onClick={() => document.getElementById("form-contacto")?.scrollIntoView({ behavior: "smooth" })}>
+                Solicitar campaña <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button size="lg" variant="outline" asChild className="gap-2 rounded-xl">
+                <Link to="/creadores">
+                  <Sparkles className="h-4 w-4 text-primary" /> ¿Eres Creador? Únete al Programa
+                </Link>
+              </Button>
+            </div>
           </div>
         </section>
 

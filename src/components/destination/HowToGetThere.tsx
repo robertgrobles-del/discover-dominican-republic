@@ -35,7 +35,7 @@ const transportLabels = {
 
 export function HowToGetThere({ aeropuertoCercano, opciones }: HowToGetThereProps) {
   return (
-    <section className="py-16">
+    <section id="destination-arrival" className="scroll-mt-32 py-16">
       <div className="container mx-auto px-4">
         <h2 className="font-display text-2xl font-bold text-foreground mb-8">
           Cómo Llegar

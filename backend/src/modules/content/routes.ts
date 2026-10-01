@@ -208,20 +208,24 @@ function registerCollection(app: FastifyInstance, d: CollectionDef) {
       delete raw.fields; delete raw.include; delete raw.sort; delete raw.page; delete raw.per_page;
       for (const f of wanted) if (!facetable.includes(f)) throw AppError.validation(`Faceta no válida: ${f}`, { allowed: facetable });
       const parsed = parseQuery(d, raw);
-      const data: Record<string, { value: string; count: number }[]> = {};
-      for (const f of wanted) {
-        const { where, params } = buildWhere(d, parsed, { skip: f });
-        const c = Q(f);
-        const type = colType(d.table, f);
-        const source = type === "jsonb" ? `${T} CROSS JOIN LATERAL jsonb_array_elements_text(CASE WHEN jsonb_typeof(${c}) = 'array' THEN ${c} ELSE '[]'::jsonb END) AS v(val)`
-          : type === "array" ? `${T} CROSS JOIN LATERAL unnest(${c}) AS v(val)` : T;
-        const value = type === "jsonb" || type === "array" ? "v.val" : `${c}::text`;
-        const res = await app.db.query<{ value: string; count: number }>(
-          `SELECT ${value} AS value, count(*)::int AS count FROM ${source} WHERE ${where} AND ${type === "jsonb" || type === "array" ? "v.val" : c} IS NOT NULL GROUP BY 1 ORDER BY 2 DESC, 1 LIMIT 50`, params,
-        );
-        data[f] = res.rows;
-      }
-      const total = (await app.db.query<{ n: number }>(`SELECT count(*)::int AS n FROM ${T} WHERE ${buildWhere(d, parsed).where}`, buildWhere(d, parsed).params)).rows[0]!.n;
+      // Igual para todos los visitantes: 30 s en app.publicCache con la colección y todos los filtros en la clave (B7.65).
+      const { data, total } = await app.publicCache.facets.wrap(`facets|${d.path}|${JSON.stringify(raw)}`, async () => {
+        const data: Record<string, { value: string; count: number }[]> = {};
+        for (const f of wanted) {
+          const { where, params } = buildWhere(d, parsed, { skip: f });
+          const c = Q(f);
+          const type = colType(d.table, f);
+          const source = type === "jsonb" ? `${T} CROSS JOIN LATERAL jsonb_array_elements_text(CASE WHEN jsonb_typeof(${c}) = 'array' THEN ${c} ELSE '[]'::jsonb END) AS v(val)`
+            : type === "array" ? `${T} CROSS JOIN LATERAL unnest(${c}) AS v(val)` : T;
+          const value = type === "jsonb" || type === "array" ? "v.val" : `${c}::text`;
+          const res = await app.db.query<{ value: string; count: number }>(
+            `SELECT ${value} AS value, count(*)::int AS count FROM ${source} WHERE ${where} AND ${type === "jsonb" || type === "array" ? "v.val" : c} IS NOT NULL GROUP BY 1 ORDER BY 2 DESC, 1 LIMIT 50`, params,
+          );
+          data[f] = res.rows;
+        }
+        const total = (await app.db.query<{ n: number }>(`SELECT count(*)::int AS n FROM ${T} WHERE ${buildWhere(d, parsed).where}`, buildWhere(d, parsed).params)).rows[0]!.n;
+        return { data, total };
+      });
       reply.header("cache-control", PUBLIC_CACHE);
       return { data, meta: { total } };
     });

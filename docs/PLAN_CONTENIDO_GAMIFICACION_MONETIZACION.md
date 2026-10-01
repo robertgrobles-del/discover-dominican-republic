@@ -1,6 +1,6 @@
 # Plan de mejoras: contenido, gamificación, creadores, afiliados y monetización
 
-**Proyecto:** Descubre RD · **Fecha:** 2026-09-30 · **Estado:** propuesta para priorizar
+**Proyecto:** Descubre RD · **Fecha:** 2026-09-30 · **Estado:** en ejecución (Fases A–C parciales; quedan términos legales y Fase D)
 
 Este documento reúne las mejoras propuestas para dos frentes que se refuerzan entre sí:
 
@@ -223,7 +223,7 @@ El modelo definido para creadores combina tres fuentes de ingreso:
 | Licencia de uso | Pago fijo cuando la plataforma usa el video en una campaña | Contenido de alta calidad visual |
 | Fondo de creadores | Reparto mensual por vistas/engagement | Contenido de inspiración que no vende directo |
 
-- **Mejora:** presentar las tres capas juntas en `ProgramaCreadores`, con ejemplos, en lugar de programas que parecen competir entre sí.
+- **[x] Mejora completada:** Las tres capas de ingreso (Comisión por Conversión, Licencias UGC Fijas y Fondo Mensual) están integradas y explicadas en `ProgramaCreadores` mediante el componente `CreatorsMonetizationInfoCard`.
 
 ### 7.2 Onboarding completo
 - Flujo por pasos alineado con `/creators/onboarding`: datos, redes, muestras, aceptación de términos de cesión de derechos, verificación, datos de cobro.
@@ -234,10 +234,7 @@ El modelo definido para creadores combina tres fuentes de ingreso:
 - Videos con estado de moderación y motivo si fue rechazado.
 - Oportunidades abiertas: campañas de negocios que buscan creadores para un destino.
 
-### 7.4 Puente con empresas
-- `ContratarInfluencers` debe enlazar a `ProgramaCreadores` ("¿Eres creador? Postúlate") y viceversa ("¿Eres negocio? Contrata creadores").
-- Directorio de creadores verificados por especialidad y región, con métricas públicas básicas.
-- Flujo de propuesta: el negocio publica una campaña, los creadores aplican, la plataforma media el pago.
+- **[x] Puente con empresas:** `ContratarInfluencers` incluye enlace directo a `ProgramaCreadores` ("¿Eres Creador? Únete al Programa") y viceversa ("¿Eres negocio? Contrata creadores"), manteniendo directorio de creadores verificados por especialidad y región.
 
 ### 7.5 Calidad y derechos
 - Guía de estilo de video (duración, formato vertical/horizontal, créditos, música con derechos).
@@ -321,25 +318,33 @@ Cada mejora que se implemente debe declarar qué métrica mueve y su valor de pa
 ## 12. Hoja de ruta por fases
 
 ### Fase A — Contenido y puentes (sin conectar backend)
-- Auditoría de `ReglasGamificacion` contra reglas reales.
-- "Cómo funciona" en Pasaporte Digital.
-- Enlaces cruzados entre creadores ↔ empresas e influencers.
-- Consolidación o enlace explícito de las páginas de embajadores.
-- Página "Gana con Descubre RD" con contenido estático.
-- Bloques "Gana con esta visita" en fichas, con reglas escritas (sin saldo en vivo).
+- [x] Auditoría de `ReglasGamificacion` contra reglas por defecto de las migraciones del backend; se aclara que el servidor es la fuente autoritativa.
+- [x] "Cómo funciona" en Pasaporte Digital, con progreso y acceso a destinos cuando aún no hay sellos.
+- [x] Enlaces cruzados entre creadores ↔ empresas e influencers (ya existían y se mantienen).
+- [x] Enlace explícito entre las páginas de embajadores, afiliados y participación, preservando sus propósitos distintos.
+- [x] Página "Gana con Descubre RD" con contenido estático y enlaces a programas existentes.
+- [x] Bloques "Gana con esta visita" en fichas, con reglas escritas y sin saldo en vivo.
+
+**Ejecución de Fase A (2026-09-30):** completada en interfaz. La página de afiliados ya no presenta reservas turísticas como generadoras de comisión ni muestra un ranking de ejemplo como si fuera real; comunica los niveles configurados, el período de validación y el mínimo de pago. La conexión en vivo se registra por separado en Fase C y continúa parcial.
 
 ### Fase B — Herramientas visibles
-- Calculadora de comisión de embajadores.
-- Ejemplos de ganancia de creadores por capa.
-- Comparativa de planes VIP.
-- Guía de estilo y términos de creadores.
-- Centro de ayuda por programa.
+- [x] Calculadora de comisión estimada de afiliados con tasas y bases comisionables del servicio, identificada como ejemplo sin garantía de ingreso.
+- [x] Ejemplos de ganancia de creadores por capa, indicando qué depende de una venta atribuida, una licencia pactada o una asignación aprobada.
+- [x] Comparativa gratuita/VIP/Elite basada en la configuración inicial del servicio, con aviso de que compra y beneficios comerciales no están conectados.
+- [x] Guía editorial de publicación y uso de contenido.
+- [x] Preguntas y enlaces del centro de ayuda para gamificación, afiliados, creadores y membresías.
+- [ ] Términos legales de creadores: requieren aprobación de Legal antes de solicitar una aceptación vinculante.
+
+**Ejecución de Fase B (2026-09-30):** las herramientas y la guía informativa están publicadas como contenido de referencia. Los términos legales siguen pendientes de aprobación; la postulación de creadores y la compra/activación de membresías requieren integración en Fase C.
 
 ### Fase C — Datos en vivo (requiere conectar frontend y backend)
-- Panel personal único de gamificación con saldo, nivel, liga y siguiente paso.
-- Paneles de embajador y creador con cifras reales.
-- Estado de envíos de premios y de postulaciones.
+- [~] Resumen personal de gamificación conectado a `/gamification/me` y `/gamification/missions/me` en el Hub; otros widgets y páginas todavía leen Supabase y deben migrarse para tener una sola fuente en todo el recorrido.
+- [~] Panel de embajador conectado a `/ambassadors/me`, ventas atribuidas, solicitudes y pagos; falta pasar el código de referido desde el checkout de tienda/marketplace para completar el flujo de conversión.
+- [~] Panel de creador conectado a `/creators/me` para saldo disponible/pendiente, ganancias acumuladas, nivel, vistas, videos y pagos registrados. No hay endpoint de retiro, las conversiones por video no se exponen y el formulario de publicación aún no envía los metadatos requeridos.
+- [~] Estado de envíos de premios integrado en el resumen del Hub mediante `/gamification/shipments/me`; el estado de postulaciones continúa pendiente.
 - Panel del anunciante con telemetría real.
+
+**Ejecución parcial de Fase C (2026-09-30):** el Hub muestra el perfil personal, misiones y seguimiento de envíos desde `/gamification/me`, `/gamification/missions/me` y `/gamification/shipments/me`; queda migrar los widgets y páginas de gamificación que todavía leen Supabase y sus acciones heredadas antes de considerar cerrado el panel único. La solicitud, estado, clics validados, ventas registradas y solicitud de pago del embajador usan los endpoints del backend. La compra de tienda actual todavía crea pedidos en Supabase y no transmite el código de atribución; por eso el flujo de ventas no está completo. En creadores, las métricas, videos y pagos registrados se leen de `/creators/me`; se retiraron saldos, videos e historial de pagos de muestra. El retiro, publicación desde la interfaz, afiliación propia y convocatorias/asignaciones aún no están integrados; los controles de muestra están deshabilitados o identificados. La interfaz de afiliados ya no atribuye reservas turísticas ni inicia pagos ficticios.
 
 ### Fase D — Crecimiento
 - Directorio de creadores y flujo de campañas negocio-creador.

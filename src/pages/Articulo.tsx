@@ -227,9 +227,26 @@ export default function Articulo() {
 
             {/* Article Content Body with In-Content Banner Ad */}
             <div className="prose dark:prose-invert max-w-none text-foreground leading-relaxed space-y-6 text-base font-normal">
-              <p className="text-lg font-medium text-muted-foreground leading-relaxed">
-                {post.excerpt}
-              </p>
+              <aside aria-labelledby="article-quick-summary" className="not-prose mb-8 rounded-card border border-primary/20 bg-surface-editorial p-5 md:p-6">
+                <div className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary" aria-hidden="true">
+                    <Compass className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <h2 id="article-quick-summary" className="font-display text-base font-bold text-foreground">Lo esencial</h2>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{post.excerpt}</p>
+                    {post.tags.length > 0 && (
+                      <ul aria-label="Temas clave del artículo" className="mt-4 flex flex-wrap gap-2">
+                        {post.tags.slice(0, 4).map((tag) => (
+                          <li key={tag}>
+                            <Badge variant="secondary" className="text-xs">{tag}</Badge>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              </aside>
 
               {/* In-Content Banner Ad */}
               <div className="my-8 not-prose">
@@ -362,7 +379,7 @@ export default function Articulo() {
                     <Link
                       key={rel.id}
                       to={`/articulo/${rel.slug}`}
-                      className="group bg-card rounded-2xl border border-border overflow-hidden hover:border-primary/50 transition-all flex flex-col"
+                      className="group surface-editorial rounded-card border border-border overflow-hidden hover:border-primary/50 transition-all flex flex-col"
                     >
                       <div className="aspect-[16/10] overflow-hidden">
                         <img

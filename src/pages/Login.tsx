@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useRef, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, Loader2, ShieldAlert, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { PageTransition } from "@/components/PageTransition";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { safeReturnTo } from "@/lib/session";
 import { 
   isValidEmail, 
   sanitizeInput, 
@@ -22,9 +23,12 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState("");
+  const submitLock = useRef(false);
   const { signIn } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,11 +66,15 @@ export default function Login() {
       return;
     }
 
+    if (submitLock.current) return;
+    submitLock.current = true;
+    setFormError("");
     setIsLoading(true);
-
+    try {
     const { error } = await signIn(cleanEmail, password);
 
     if (error) {
+      setFormError(error.message === "Invalid login credentials" ? "Credenciales incorrectas. Verifica tu email y contraseña." : "No se pudo iniciar sesión con esos datos.");
       const record = ClientRateLimiter.recordAttempt("login", cleanEmail, 5, 60000, 300000);
       const remaining = 5 - (record.isBlocked ? 5 : 1);
       
@@ -84,10 +92,17 @@ export default function Login() {
         title: "¡Bienvenido!",
         description: "Has iniciado sesión correctamente.",
       });
-      navigate("/");
+      // Vuelve a donde la sesión venció (solo rutas internas; ver safeReturnTo).
+      navigate(safeReturnTo(searchParams.get("returnTo")), { replace: true });
     }
 
-    setIsLoading(false);
+    } catch {
+      setFormError("Comprueba tu conexión e inténtalo de nuevo. El formulario conserva tus datos.");
+      toast({ variant: "destructive", title: "No se pudo iniciar sesión", description: "Comprueba tu conexión e inténtalo de nuevo. El formulario conserva tus datos." });
+    } finally {
+      submitLock.current = false;
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -133,7 +148,8 @@ export default function Login() {
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-5" aria-busy={isLoading}>
+                {formError && <p role="alert" aria-live="assertive" className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{formError}</p>}
                 <div className="space-y-2">
                   <Label htmlFor="email">Correo electrónico</Label>
                   <div className="relative">
@@ -141,6 +157,7 @@ export default function Login() {
                     <Input
                       id="email"
                       type="email"
+                      maxLength={254}
                       placeholder="tu@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -157,6 +174,7 @@ export default function Login() {
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
+                      maxLength={128}
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -166,6 +184,7 @@ export default function Login() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}

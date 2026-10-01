@@ -16,7 +16,8 @@ import { ProductArt } from "../ProductArt";
 
 export default function TiendaProducto() {
   const { slug } = useParams();
-  const { data: product, isLoading } = useProduct(slug);
+  const productQuery = useProduct(slug);
+  const { data: product, isLoading, isError, refetch } = productQuery;
   const { data: all = [] } = useProducts();
   const { addItem } = useCart();
   const [qty, setQty] = useState(1);
@@ -24,6 +25,17 @@ export default function TiendaProducto() {
   const [color, setColor] = useState("");
 
   if (isLoading) return <div className="min-h-screen" />;
+  if (isError) return (
+    <PageTransition>
+      <Header variant="white" />
+      <main className="min-h-[60vh] flex flex-col items-center justify-center gap-4 pt-24" role="alert">
+        <p className="text-destructive">No se pudo cargar este producto.</p>
+        <Button variant="outline" onClick={() => { void refetch(); }}>Reintentar</Button>
+        <Button asChild><Link to="/tienda">Volver a la tienda</Link></Button>
+      </main>
+      <Footer />
+    </PageTransition>
+  );
   if (!product) {
     return (
       <PageTransition>
@@ -64,7 +76,7 @@ export default function TiendaProducto() {
         <div className="container mx-auto px-4">
           <nav className="text-sm text-muted-foreground mb-4"><Link to="/tienda" className="hover:text-primary">Tienda</Link> / {CATEGORY_LABEL[product.category]}</nav>
           <div className="grid gap-10 lg:grid-cols-2">
-            <ProductArt product={product} className="aspect-square rounded-2xl" />
+            <ProductArt product={product} className="aspect-square rounded-card" />
             <div className="space-y-5">
               <h1 className="font-display text-3xl md:text-4xl font-bold">{product.name}</h1>
               <p className="text-2xl font-semibold">{formatDop(product.price)} <span className="text-sm font-normal text-muted-foreground">≈ US$ {dopToUsd(product.price).toFixed(2)}</span></p>
@@ -100,7 +112,7 @@ export default function TiendaProducto() {
           <h2 className="font-display text-2xl font-bold mt-16 mb-5">Productos relacionados</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
             {related.map((p) => (
-              <Link key={p.id} to={`/tienda/${p.slug}`}><Card className="overflow-hidden h-full"><ProductArt product={p} className="aspect-square" /><div className="p-3"><p className="text-sm font-medium leading-snug">{p.name}</p><p className="text-sm text-muted-foreground">{formatDop(p.price)}</p></div></Card></Link>
+              <Link key={p.id} to={`/tienda/${p.slug}`}><Card variant="commercial" className="overflow-hidden h-full"><ProductArt product={p} className="aspect-square" /><div className="p-3"><p className="text-sm font-medium leading-snug">{p.name}</p><p className="text-sm text-muted-foreground">{formatDop(p.price)}</p></div></Card></Link>
             ))}
           </div>
         </div>

@@ -9,8 +9,16 @@
 // in memory for the current tab session only (not persisted).
 //
 // See MOCK_MIGRATION_NOTES.md for what this intentionally does not support.
+import { isSessionExpired } from '@/lib/session';
+import { DATA_SOURCE } from '@/lib/dataSource';
 import type { Database } from './types';
 import mockDbRaw from './mockDb.json';
+
+if (DATA_SOURCE === "api") {
+  throw new Error(
+    "VITE_DATA_SOURCE=api no está conectado al backend real todavía: las escrituras siguen migrándose (plan A10, tareas #21 y #92). Este build falla de forma intencional para no distribuir datos simulados como si fueran producción.",
+  );
+}
 
 type Row = Record<string, any>;
 type MockDb = Record<string, Row[]>;
@@ -162,30 +170,25 @@ function matchesFilter(row: Row, f: { type: string; column: string; value: any }
 }
 
 const authListeners = new Set<(event: string, session: any) => void>();
+// El proveedor actual es una simulación local: no hay credencial de servidor.
+// Mantener su estado sólo en memoria evita representar un token falso como sesión persistente.
+let mockSession: any = null;
+
+// Limpia claves creadas por versiones anteriores del mock; nunca son tokens válidos del backend.
+try {
+  localStorage.removeItem("sb-token");
+  localStorage.removeItem("sb-user");
+} catch {
+  // El almacenamiento puede estar bloqueado; la sesión simulada sigue siendo efímera.
+}
 
 function getSessionSync() {
-  try {
-    const token = localStorage.getItem("sb-token");
-    const userJson = localStorage.getItem("sb-user");
-    if (!token || !userJson) return null;
-    const user = JSON.parse(userJson);
-    return {
-      access_token: token,
-      refresh_token: token,
-      expires_in: 3600,
-      expires_at: Math.floor(Date.now() / 1000) + 3600,
-      user: {
-        id: user.id,
-        email: user.email,
-        user_metadata: { display_name: user.display_name },
-        app_metadata: {},
-        aud: "authenticated",
-        created_at: "",
-      },
-    };
-  } catch {
-    return null;
+  // La sesión simulada también vence: antes se devolvía viva para siempre.
+  if (mockSession && isSessionExpired(mockSession)) {
+    mockSession = null;
+    notifyAuthChange("SIGNED_OUT", null);
   }
+  return mockSession;
 }
 
 function notifyAuthChange(event: string, session: any) {
@@ -207,8 +210,20 @@ function mockLogin(email: string, displayName?: string) {
     mockData.profiles.push(profile);
   }
   const user = { id: userId, email, display_name: profile.display_name };
-  localStorage.setItem("sb-token", `mock-${userId}`);
-  localStorage.setItem("sb-user", JSON.stringify(user));
+  mockSession = {
+    access_token: `mock-${userId}`,
+    refresh_token: `mock-${userId}`,
+    expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    user: {
+      id: user.id,
+      email: user.email,
+      user_metadata: { display_name: user.display_name },
+      app_metadata: {},
+      aud: "authenticated",
+      created_at: "",
+    },
+  };
   const session = getSessionSync();
   notifyAuthChange("SIGNED_IN", session);
   return session;
@@ -393,10 +408,10 @@ class RpcBuilder implements PromiseLike<any> {
   constructor(private name: string, private args: any = {}) {}
 
   private execute(): { data: any; error: any } {
-    // Mock mode has no real user/role system (see MOCK_MIGRATION_NOTES.md —
-    // any logged-in mock user can act as any role) so the admin panel and
-    // other role-gated screens stay reachable without a backend.
-    if (this.name === "has_role") return { data: true, error: null };
+    // Mock mode has no real user/role system. Fail closed for role checks;
+    // granting admin to every signed-in user would create a dangerous
+    // permission model if this shim is ever mistaken for production auth.
+    if (this.name === "has_role") return { data: false, error: null };
     if (RPC_ARRAY_RESULTS.has(this.name)) return { data: [], error: null };
     // Everything else (award_user_xp, perform_daily_checkin, post_comment,
     // vote_photo_submission, ...) responds with a generic success shape:
@@ -537,8 +552,7 @@ export const supabase: any = {
     },
 
     async signOut() {
-      localStorage.removeItem("sb-token");
-      localStorage.removeItem("sb-user");
+      mockSession = null;
       notifyAuthChange("SIGNED_OUT", null);
       return { error: null };
     },

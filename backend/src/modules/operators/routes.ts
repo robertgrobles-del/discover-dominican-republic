@@ -2,9 +2,10 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
+import { resolveLocale } from "../../lib/i18n.js";
 import { pageMeta } from "../../lib/pagination.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
-import { BookingService, type BookingDto } from "./bookings.js";
+import { BookingService, CLAIM_HOURS, type BookingDto } from "./bookings.js";
 import { CatalogService, CATEGORIES, type Membership, type OrgRole } from "./catalog.js";
 import type { PaymentGateway } from "./gateway.js";
 import { AutomationService } from "./automations.js";
@@ -70,15 +71,15 @@ export async function operatorRoutes(app: FastifyInstance) {
   /** Usuario si manda un token válido; un token inválido se ignora (la reserva de invitado sigue funcionando). */
   const optionalUser = async (req: FastifyRequest) => { if (req.headers.authorization) { try { await app.authenticate(req, undefined as never); } catch { req.user = undefined; } } };
 
-  /** preHandler del panel: exige sesión, pertenecer a una organización y (opcional) alguno de los roles. */
-  const org = (...roles: OrgRole[]) => async (req: FastifyRequest) => {
+  /** preHandler del panel: exige sesión, pertenecer a una organización y (opcional) alguno de los roles. `roles` y `orgScope` viajan adjuntos para el inventario de seguridad. */
+  const org = (...roles: OrgRole[]) => Object.assign(async (req: FastifyRequest) => {
     await app.authenticate(req, undefined as never);
     const wanted = req.headers["x-org-id"];
     const m = await catalog.membership(req.user!.id, typeof wanted === "string" ? wanted : undefined);
     if (!m) throw new AppError("FORBIDDEN", "No perteneces a ninguna organización de operador");
     if (roles.length && !roles.includes(m.role)) throw new AppError("FORBIDDEN", "Tu rol no permite esta acción");
     req.member = m;
-  };
+  }, { roles, orgScope: true as const });
   const only = (m: Membership) => (m.role === "guia" ? m.listing_ids : undefined);
   const staff = app.requireRole("admin");
   const idem = (req: FastifyRequest) => {
@@ -150,6 +151,31 @@ export async function operatorRoutes(app: FastifyInstance) {
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
   });
 
+  // ---- Reclamo de una reserva de invitado (punto 76) ----
+  /** Enlace del correo: el front lo abre en /reservas/reclamar?token=… */
+  const claimUrl = (token: string) => `${app.env.WEB_BASE_URL}/reservas/reclamar?token=${encodeURIComponent(token)}`;
+  r.post("/bookings/:id/claim/start", {
+    onRequest: [optionalUser], config: rl(10, "1 hour"),
+    schema: {
+      tags: ["reservas"], summary: "Envía al correo de contacto un enlace de un solo uso (1 hora) para vincular la reserva a una cuenta",
+      security: [{}, ...bearer], params: id.extend({ id: z.string().uuid() }), querystring: tokenQ,
+      body: z.object({ email: z.string().trim().toLowerCase().min(3).max(254) }), response: { 202: ok },
+    },
+  }, async (req, reply) => {
+    // Siempre 202 con la misma forma: no revela si el correo coincide ni si se emitió el enlace.
+    const out = await bookings.startClaim(req.params.id, { token: req.query.token, email: req.body.email, ip: req.ip, userId: req.user?.id });
+    if (out.mail) {
+      await app.mailer.send({
+        to: out.mail.to, template: "booking.claim", locale: resolveLocale(req.user?.locale, undefined), userId: req.user?.id,
+        data: { name: out.mail.name, organizer: out.mail.organizer, dates: out.mail.dates, url: claimUrl(out.mail.token), hours: CLAIM_HOURS },
+      });
+    }
+    reply.code(202);
+    return { data: { sent: true, expires_at: out.expires_at } };
+  });
+  r.get("/bookings/claim/:token", { config: rl(30, "1 minute"), schema: { tags: ["reservas"], summary: "Vista previa sin datos personales del enlace de reclamo (correo enmascarado)", security: [], params: z.object({ token: z.string().min(20).max(200) }), response: { 200: ok } } }, async (req) => ({ data: await bookings.previewClaim(req.params.token) }));
+  r.post("/bookings/claim", { onRequest: app.authenticate, config: rl(10, "1 hour"), schema: { tags: ["reservas"], summary: "Vincula a mi cuenta la reserva del enlace (un solo uso)", security: bearer, body: z.object({ token: z.string().min(20).max(200) }), response: { 200: ok } } }, async (req) => ({ data: await bookings.consumeClaim(req.body.token, req.user!.id, req.ip) }));
+
   // ================= Organización =================
   r.post("/orgs", { onRequest: app.authenticate, schema: { tags: ["operadores"], summary: "Registra mi organización de operador (queda pendiente de verificación)", security: bearer, body: z.object({ business_name: z.string().trim().min(2).max(120), business_type: z.string().max(60).optional(), email: z.string().email().optional(), phone: z.string().max(30).optional(), province: z.string().max(60).optional(), description: z.string().max(2000).optional() }), response: { 201: ok } } }, async (req, reply) => {
     const u = await app.db.query<{ email: string }>("SELECT email FROM users WHERE id = $1", [req.user!.id]);
@@ -166,9 +192,18 @@ export async function operatorRoutes(app: FastifyInstance) {
     const o = only(req.member!); if (o && !o.includes(req.params.id)) throw AppError.notFound("Servicio");
     return { data: await catalog.getListing(req.member!.org_id, req.params.id) };
   });
-  r.patch("/org/listings/:id", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Edita un servicio", security: bearer, params: id, body: listingBody.partial(), response: { 200: ok } } }, async (req) => ({ data: await catalog.updateListing(req.member!.org_id, req.params.id, req.body as never) }));
-  r.put("/org/listings/:id/status", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Publica, pausa o pasa a borrador (publicar exige organización verificada)", security: bearer, params: id, body: z.object({ status: z.enum(["draft", "published", "paused"]) }), response: { 200: ok } } }, async (req) => ({ data: await catalog.setListingStatus(req.member!.org_id, req.params.id, req.body.status) }));
-  r.delete("/org/listings/:id", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Elimina un servicio sin reservas", security: bearer, params: id, response: { 204: z.null() } } }, async (req, reply) => { await catalog.deleteListing(req.member!.org_id, req.params.id); reply.code(204); return null; });
+  // Editar, publicar/pausar o borrar un servicio cambia lo que muestra el sitio público: se vacía su caché (B7.64).
+  r.patch("/org/listings/:id", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Edita un servicio", security: bearer, params: id, body: listingBody.partial(), response: { 200: ok } } }, async (req) => {
+    const out = await catalog.updateListing(req.member!.org_id, req.params.id, req.body as never);
+    app.invalidatePublicContent();
+    return { data: out };
+  });
+  r.put("/org/listings/:id/status", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Publica, pausa o pasa a borrador (publicar exige organización verificada)", security: bearer, params: id, body: z.object({ status: z.enum(["draft", "published", "paused"]) }), response: { 200: ok } } }, async (req) => {
+    const out = await catalog.setListingStatus(req.member!.org_id, req.params.id, req.body.status);
+    app.invalidatePublicContent();
+    return { data: out };
+  });
+  r.delete("/org/listings/:id", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Elimina un servicio sin reservas", security: bearer, params: id, response: { 204: z.null() } } }, async (req, reply) => { await catalog.deleteListing(req.member!.org_id, req.params.id); app.invalidatePublicContent(); reply.code(204); return null; });
 
   // ---- Habitaciones, tarifas y bloqueos ----
   r.post("/org/listings/:id/rooms", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Crea una habitación", security: bearer, params: id, body: roomBody, response: { 201: ok } } }, async (req, reply) => { reply.code(201); return { data: await catalog.createRoom(req.member!.org_id, req.params.id, req.body as never) }; });
@@ -302,28 +337,34 @@ export async function operatorRoutes(app: FastifyInstance) {
     const expiresAt = new Date();
     expiresAt.setMonth(expiresAt.getMonth() + months);
 
-    await app.db.query("BEGIN");
+    // BEGIN sobre el pool se ejecuta en una conexión y el COMMIT puede caer en otra:
+    // la transacción necesita un cliente dedicado durante todo el bloque.
+    const c = await app.db.connect();
+    let subIns;
     try {
-      await app.db.query(
+      await c.query("BEGIN");
+      await c.query(
         `UPDATE partner_profiles
             SET subscription_tier = $1, subscription_status = 'active', subscription_expires_at = $2, priority_score = $3, updated_at = now()
           WHERE id = $4`,
         [plan_tier, expiresAt.toISOString(), priority, req.member!.org_id],
       );
-      const subIns = await app.db.query(
+      subIns = await c.query(
         `INSERT INTO operator_subscriptions (org_id, plan_tier, billing_cycle, price, currency, status, current_period_start, current_period_end, auto_renew)
          VALUES ($1, $2, $3, $4, $5, 'active', now(), $6, true)
          RETURNING *`,
         [req.member!.org_id, plan_tier, billing_cycle, price, currency, expiresAt.toISOString()],
       );
-      await app.db.query("COMMIT");
-      await audit(app.db, { actor: req.user!.id, action: "org.subscription_upgrade", entity: "org", id: req.member!.org_id, meta: { plan_tier, billing_cycle, price }, ip: req.ip });
-      reply.code(201);
-      return { data: subIns.rows[0] };
+      await c.query("COMMIT");
     } catch (e) {
-      await app.db.query("ROLLBACK");
+      await c.query("ROLLBACK").catch(() => undefined);
       throw e;
+    } finally {
+      c.release();
     }
+    await audit(app.db, { actor: req.user!.id, action: "org.subscription_upgrade", entity: "org", id: req.member!.org_id, meta: { plan_tier, billing_cycle, price }, ip: req.ip });
+    reply.code(201);
+    return { data: subIns.rows[0] };
   });
 
   r.post("/org/subscription/cancel", { onRequest: org("owner"), schema: { tags: ["operadores"], summary: "Cancela la renovación automática de la suscripción", security: bearer, response: { 200: ok } } }, async (req) => {

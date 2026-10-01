@@ -6,6 +6,7 @@ import { BadgeCheck, Ban, ExternalLink, Trash2, XCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmActionDialog } from "@/components/ConfirmActionDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -77,7 +78,13 @@ function Listings() {
           <div className="flex items-center gap-2">
             <Badge variant={l.status === "published" ? "default" : "secondary"}>{LISTING_STATUS_LABEL[l.status]}</Badge>
             {l.status === "published" && <Button size="sm" variant="outline" className="gap-1" onClick={() => save.mutate({ ...l, status: "paused" }, { onSuccess: () => toast.success("Servicio pausado por moderación") })}><Ban className="h-3.5 w-3.5" /> Pausar</Button>}
-            <Button size="icon" variant="ghost" aria-label={`Eliminar ${l.title}`} onClick={() => { if (confirm(`¿Eliminar "${l.title}"?`)) del.mutate(l.id, { onSuccess: () => toast.success("Servicio eliminado") }); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+            <ConfirmActionDialog
+              trigger={<Button size="icon" variant="ghost" aria-label={`Eliminar ${l.title}`}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+              title="Eliminar servicio"
+              description={`Se eliminará “${l.title}”. Esta acción no se puede deshacer.`}
+              confirmLabel="Eliminar"
+              onConfirm={() => del.mutate(l.id, { onSuccess: () => toast.success("Servicio eliminado") })}
+            />
           </div>
         </CardContent></Card>
       ))}

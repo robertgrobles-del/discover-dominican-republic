@@ -21,7 +21,7 @@ interface DestinationRestaurantsProps {
 
 export function DestinationRestaurants({ restaurantes, destinoId }: DestinationRestaurantsProps) {
   return (
-    <section className="py-16">
+    <section id="destination-restaurants" className="scroll-mt-32 py-16">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <div>

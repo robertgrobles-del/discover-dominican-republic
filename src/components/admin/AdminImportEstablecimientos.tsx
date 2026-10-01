@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, CheckCircle, AlertCircle, Loader2, Database, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { readValidatedTextFile } from "@/lib/forms";
 
 interface ImportResult {
   file: string;
@@ -39,19 +40,34 @@ export function AdminImportEstablecimientos() {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files?.length) return;
+    if (Array.from(files).reduce((sum, file) => sum + file.size, 0) > 20 * 1024 * 1024) {
+      toast.error("La selección supera el máximo total de 20 MB.");
+      e.target.value = "";
+      return;
+    }
     setImporting(true);
     setResults([]);
     const newResults: ImportResult[] = [];
-    for (const file of Array.from(files)) {
-      const text = await file.text();
-      newResults.push(await importCsv(file.name, text));
+    try {
+      for (const file of Array.from(files)) {
+        try {
+          const text = await readValidatedTextFile(file, [".csv", ".txt", ".tsv"], 10 * 1024 * 1024);
+          newResults.push(await importCsv(file.name, text));
+        } catch (error) {
+          newResults.push({ file: file.name, inserted: 0, error: error instanceof Error ? error.message : "Archivo inválido" });
+        }
+        setResults([...newResults]);
+      }
+    } finally {
+      setImporting(false);
+      e.target.value = "";
     }
     setResults(newResults);
-    setImporting(false);
     const total = newResults.reduce((sum, r) => sum + r.inserted, 0);
-    toast.success(`Importación completada: ${total.toLocaleString()} registros`);
+    const failures = newResults.filter((result) => result.error).length;
+    if (failures) toast.error(`${total.toLocaleString()} registros importados; ${failures} archivo(s) requieren corrección.`);
+    else toast.success(`Importación completada: ${total.toLocaleString()} registros`);
   };
-
   const handleImportBundled = async () => {
     setImporting(true);
     setResults([]);

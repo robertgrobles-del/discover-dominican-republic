@@ -67,7 +67,10 @@ export class FiscalInvoicingService {
 
       let ncf: string;
       if (seqRes.rows.length === 0) {
-        // Fallback correlativo estándar si no existe secuencia previa
+        // Fallback correlativo estándar si no existe secuencia previa. El conteo es lectura
+        // susceptible de carrera (dos emisiones → mismo número): un lock de transacción por
+        // tipo lo serializa, mismo papel que el FOR UPDATE del camino con secuencia.
+        await client.query(`SELECT pg_advisory_xact_lock(hashtext($1))`, [`fiscal-fallback:${input.ncf_type}`]);
         const countRes = await client.query(`SELECT count(*)::int as c FROM fiscal_invoices WHERE ncf_type = $1`, [input.ncf_type]);
         const nextNum = (countRes.rows[0]?.c || 0) + 1;
         ncf = `${input.ncf_type}${String(nextNum).padStart(8, "0")}`;

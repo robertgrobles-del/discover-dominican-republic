@@ -1,31 +1,30 @@
-import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Calendar, MapPin, Users, DollarSign, Clock, CheckCircle, XCircle } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Calendar, Users, DollarSign, Clock, CheckCircle, XCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { queryKeys, queryStaleTime } from "@/lib/queryPolicy";
 
 export default function Reservas() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: reservations, isLoading } = useQuery({
-    queryKey: ["my-reservations", user?.id],
+  const reservationsQuery = useQuery({
+    queryKey: queryKeys.reservations(user?.id),
+    staleTime: queryStaleTime.reservations,
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
@@ -38,19 +37,20 @@ export default function Reservas() {
     },
     enabled: !!user,
   });
-
-  const handleCancel = async (id: string) => {
-    const { error } = await supabase
-      .from("reservations")
-      .update({ status: "cancelled" })
-      .eq("id", id);
-    if (error) {
-      toast({ variant: "destructive", title: "Error", description: error.message });
-    } else {
+  const reservations = reservationsQuery.data;
+  const cancelMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("reservations").update({ status: "cancelled" }).eq("id", id).eq("user_id", user!.id);
+      if (error) throw new Error(error.message || "No se pudo cancelar la reserva");
+    },
+    onSuccess: async () => {
       toast({ title: "Reserva cancelada" });
-      queryClient.invalidateQueries({ queryKey: ["my-reservations"] });
-    }
-  };
+      await queryClient.invalidateQueries({ queryKey: queryKeys.reservations(user?.id) });
+    },
+    onError: (error: Error) => toast({ variant: "destructive", title: "Error", description: error.message }),
+  });
+
+  const handleCancel = (id: string) => cancelMutation.mutate(id);
 
   const statusConfig: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
     pending: { label: "Pendiente", color: "bg-yellow-500/10 text-yellow-500", icon: Clock },
@@ -74,6 +74,12 @@ export default function Reservas() {
                   <Button asChild><Link to="/login">Iniciar Sesión</Link></Button>
                   <Button variant="outline" asChild><Link to="/registro">Registrarse</Link></Button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  ¿Reservaste como invitado?{" "}
+                  <Link to="/reclamar-reserva" className="font-semibold text-primary underline-offset-4 hover:underline">
+                    Vincula tu reserva a tu cuenta
+                  </Link>
+                </p>
               </CardContent>
             </Card>
           </main>
@@ -93,6 +99,12 @@ export default function Reservas() {
         <Header />
         <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
           <h1 className="font-display text-3xl font-bold mb-6">Mis Reservas</h1>
+          <p className="mb-6 text-xs text-muted-foreground">
+            ¿Tienes una reserva hecha como invitado?{" "}
+            <Link to="/reclamar-reserva" className="font-semibold text-primary underline-offset-4 hover:underline">
+              Vincúlala a tu cuenta
+            </Link>
+          </p>
 
           <Tabs defaultValue="active">
             <TabsList className="mb-6">
@@ -101,7 +113,13 @@ export default function Reservas() {
             </TabsList>
 
             <TabsContent value="active" className="space-y-4">
-              {isLoading && (
+              {reservationsQuery.isError && (
+                <Card role="alert"><CardContent className="p-6 text-center space-y-3">
+                  <p className="text-destructive">No se pudieron cargar tus reservas.</p>
+                  <Button variant="outline" onClick={() => { void reservationsQuery.refetch(); }}>Reintentar</Button>
+                </CardContent></Card>
+              )}
+              {reservationsQuery.isLoading && (
                 <div className="space-y-4" aria-busy="true" aria-label="Cargando reservas">
                   {[1, 2, 3].map((i) => (
                     <Card key={i} className="overflow-hidden">
@@ -122,7 +140,7 @@ export default function Reservas() {
                   ))}
                 </div>
               )}
-              {!isLoading && active.length === 0 && (
+              {!reservationsQuery.isLoading && !reservationsQuery.isError && active.length === 0 && (
                 <Card>
                   <CardContent className="p-8 text-center">
                     <Calendar className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
@@ -161,7 +179,9 @@ export default function Reservas() {
                           {r.total_price && <span className="flex items-center gap-1"><DollarSign className="h-3.5 w-3.5" />{r.currency} {Number(r.total_price).toLocaleString()}</span>}
                         </div>
                         {r.status === "pending" && (
-                          <Button variant="destructive" size="sm" onClick={() => handleCancel(r.id)}>Cancelar</Button>
+                          <Button variant="destructive" size="sm" disabled={cancelMutation.isPending} onClick={() => handleCancel(r.id)}>
+                            {cancelMutation.isPending && cancelMutation.variables === r.id ? "Cancelando…" : "Cancelar"}
+                          </Button>
                         )}
                       </CardContent>
                     </div>
@@ -171,7 +191,7 @@ export default function Reservas() {
             </TabsContent>
 
             <TabsContent value="past" className="space-y-4">
-              {past.length === 0 && (
+              {!reservationsQuery.isLoading && !reservationsQuery.isError && past.length === 0 && (
                 <Card><CardContent className="p-8 text-center text-muted-foreground">Sin historial de reservas</CardContent></Card>
               )}
               {past.map((r) => {

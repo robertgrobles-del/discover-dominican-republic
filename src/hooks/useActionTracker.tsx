@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAchievementChecker } from "@/hooks/useAchievementChecker";
 import { toast } from "sonner";
+import { cleanAnalyticsMetadata, cleanAnalyticsPage, getAnalyticsSessionId } from "@/hooks/useAnalytics";
+import { isAnalyticsAllowed } from "@/lib/privacy-consent";
 
 export type ActionType =
   | "page_visit"
@@ -41,13 +43,6 @@ export function useActionTracker() {
     skipNotification = false
   }: TrackActionOptions) => {
     try {
-      // Log analytics event (works for all users)
-      const sessionId = sessionStorage.getItem("session_id") || (() => {
-        const newId = crypto.randomUUID();
-        sessionStorage.setItem("session_id", newId);
-        return newId;
-      })();
-
       // Track page depth for session_explorer bonus (#4)
       if (actionType === "page_visit") {
         sessionPagesRef.current += 1;
@@ -58,13 +53,17 @@ export function useActionTracker() {
         }
       }
 
-      await supabase.from("analytics_events").insert([{
-        event_type: actionType,
-        user_id: user?.id || null,
-        page: window.location.pathname,
-        metadata: metadata as Record<string, string | number | boolean | null>,
-        session_id: sessionId
-      }]);
+      // XP/missions continue as product functionality; optional analytics stays opt-in and pseudonymous.
+      const analyticsSessionId = getAnalyticsSessionId();
+      const analyticsPage = cleanAnalyticsPage(window.location.pathname);
+      if (isAnalyticsAllowed() && analyticsSessionId && analyticsPage) {
+        await supabase.from("analytics_events").insert([{
+          event_type: actionType,
+          page: analyticsPage,
+          metadata: cleanAnalyticsMetadata(metadata) as Record<string, string | number | boolean | null>,
+          session_id: analyticsSessionId,
+        }]);
+      }
 
       // Gamification only for logged-in users
       if (!user) return;

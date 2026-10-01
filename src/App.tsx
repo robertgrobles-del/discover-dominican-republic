@@ -1,16 +1,22 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { DeferredWidget } from "@/components/DeferredWidget";
+import { NetworkStatusNotice } from "@/components/NetworkStatusNotice";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
+import { SessionExpiryGuard } from "@/components/SessionExpiryGuard";
+import { AffiliateReferralCapture } from "@/components/AffiliateReferralCapture";
 import { FavoritesProvider } from "@/hooks/useFavorites";
 import { AuthProvider } from "@/hooks/useAuth";
 import { I18nProvider } from "@/hooks/useI18n";
 import { CartProvider } from "@/hooks/useCart";
+import { queryClient } from "@/lib/fastifyClient";
+import { usePageTracking } from "@/hooks/useAnalytics";
 
 // Lazy load non-critical global UI
 const BackToTop = lazy(() => import("@/components/BackToTop").then(m => ({ default: m.BackToTop })));
@@ -64,6 +70,8 @@ const TiendaCheckout = lazy(() => import("./modules/tienda/pages/TiendaCheckout"
 
 const DestinosRegiones = lazy(() => import("./pages/DestinosRegiones"));
 const Eventos = lazy(() => import("./pages/Eventos"));
+const PlanificadorEscala = lazy(() => import("./pages/PlanificadorEscala"));
+const DescubrimientoLocal = lazy(() => import("./pages/DescubrimientoLocal"));
 const EventoDetalle = lazy(() => import("./pages/EventoDetalle"));
 const ComoLlegar = lazy(() => import("./pages/ComoLlegar"));
 const Herramientas = lazy(() => import("./pages/Herramientas"));
@@ -169,6 +177,8 @@ const SpasWellness = lazy(() => import("./pages/SpasWellness"));
 const SpaDetalle = lazy(() => import("./pages/SpaDetalle"));
 const NewsletterPage = lazy(() => import("./pages/NewsletterPage"));
 const SistemaAfiliados = lazy(() => import("./pages/SistemaAfiliados"));
+const GanaConDescubreRD = lazy(() => import("./pages/GanaConDescubreRD"));
+const MembresiasPasaporte = lazy(() => import("./pages/MembresiasPasaporte"));
 const AudioGuias = lazy(() => import("./pages/AudioGuias"));
 const CheckInDigital = lazy(() => import("./pages/CheckInDigital"));
 const Badges = lazy(() => import("./pages/Badges"));
@@ -237,6 +247,7 @@ const GuiaLGBTQ = lazy(() => import("./pages/GuiaLGBTQ"));
 const ViajeraSola = lazy(() => import("./pages/ViajeraSola"));
 const GuiaVegana = lazy(() => import("./pages/GuiaVegana"));
 const ProgramaCreadores = lazy(() => import("./pages/ProgramaCreadores"));
+const ReclamarReserva = lazy(() => import("./pages/ReclamarReserva"));
 const ConcursosFotografia = lazy(() => import("./pages/ConcursosFotografia"));
 const DiarioViaje = lazy(() => import("./pages/DiarioViaje"));
 const FamiliaConNinos = lazy(() => import("./pages/FamiliaConNinos"));
@@ -283,17 +294,6 @@ const PricingPlan = lazy(() => import("./pages/PricingPlan"));
 const VuelosAerolineas = lazy(() => import("./pages/VuelosAerolineas"));
 // End of page imports
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,   // 5 min — data stays fresh, no refetch
-      gcTime: 15 * 60 * 1000,     // 15 min — cache kept in memory
-      refetchOnWindowFocus: false, // don't refetch when tab regains focus
-      retry: 1,                    // single retry on failure
-    },
-  },
-});
-
 // Loading fallback component
 const PageLoader = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -306,13 +306,7 @@ const PageLoader = () => (
 
 function AnimatedRoutes() {
   const location = useLocation();
-  
-  // Page view tracking
-  useEffect(() => {
-    import("@/hooks/useAnalytics").then(({ trackEvent }) => {
-      trackEvent("page_view", { page: location.pathname });
-    });
-  }, [location.pathname]);
+  usePageTracking();
   
   return (
     <AnimatePresence mode="wait">
@@ -324,21 +318,22 @@ function AnimatedRoutes() {
           <Route path="/actividades" element={<Actividades />} />
           <Route path="/planifica" element={<Planifica />} />
           <Route path="/cultura" element={<Cultura />} />
-          <Route path="/playa" element={<Playas />} />
+          <Route path="/playa" element={<Navigate to="/playas" replace />} />
           <Route path="/playas" element={<Playas />} />
           <Route path="/playa/:slug" element={<PlayaDetalle />} />
           <Route path="/rios" element={<Rios />} />
           <Route path="/rio/:slug" element={<RioDetalle />} />
           <Route path="/alojamientos" element={<Alojamientos />} />
           <Route path="/alojamiento/:slug" element={<AlojamientoDetalle />} />
-          <Route path="/restaurante" element={<Restaurantes />} />
+          <Route path="/restaurante" element={<Navigate to="/restaurantes" replace />} />
+          <Route path="/restaurantes" element={<Restaurantes />} />
           <Route path="/restaurante/:slug" element={<RestauranteDetalle />} />
           <Route path="/revista" element={<Revista />} />
           <Route path="/aeropuerto" element={<Aeropuerto />} />
           <Route path="/aeropuerto/:slug" element={<AeropuertoDetalle />} />
           <Route path="/vuelos-aerolineas" element={<VuelosAerolineas />} />
-          <Route path="/aerolineas" element={<VuelosAerolineas />} />
-          <Route path="/rutas-aereas" element={<VuelosAerolineas />} />
+          <Route path="/aerolineas" element={<Navigate to="/vuelos-aerolineas" replace />} />
+          <Route path="/rutas-aereas" element={<Navigate to="/vuelos-aerolineas" replace />} />
           <Route path="/wellness" element={<Navigate to="/spas-wellness" replace />} />
           <Route path="/historia-rd" element={<Navigate to="/historia" replace />} />
           <Route path="/vida-nocturna" element={<VidaNocturna />} />
@@ -351,6 +346,7 @@ function AnimatedRoutes() {
           <Route path="/centro-ayuda" element={<CentroAyuda />} />
           <Route path="/asistencia" element={<CentroAyuda />} />
           <Route path="/sostenible" element={<Sostenible />} />
+          <Route path="/viaje-responsable" element={<Sostenible />} />
           <Route path="/articulo/:slug" element={<Articulo />} />
           <Route path="/galeria" element={<Galeria />} />
           <Route path="/terminos" element={<Terminos />} />
@@ -366,10 +362,12 @@ function AnimatedRoutes() {
           <Route path="/destino/:slug" element={<DestinoDetalle />} />
           <Route path="/destinos/:slug" element={<DestinoDetalle />} />
           <Route path="/eventos" element={<Eventos />} />
+          <Route path="/descubrimiento-local" element={<DescubrimientoLocal />} />
+          <Route path="/planifica-escala" element={<PlanificadorEscala />} />
           <Route path="/evento/:slug" element={<EventoDetalle />} />
           <Route path="/evento/:id" element={<EventoDetalle />} />
-          <Route path="/eventos/:slug" element={<EventoDetalle />} />
-          <Route path="/eventos/:id" element={<EventoDetalle />} />
+          <Route path="/eventos/:slug" element={<Navigate to="/evento/:slug" replace />} />
+          <Route path="/eventos/:id" element={<Navigate to="/evento/:id" replace />} />
           <Route path="/como-llegar" element={<ComoLlegar />} />
           <Route path="/herramientas" element={<Herramientas />} />
           <Route path="/patrimonio" element={<Patrimonio />} />
@@ -379,11 +377,11 @@ function AnimatedRoutes() {
           <Route path="/teleferico-santo-domingo" element={<TelefericoSantoDomingo />} />
           <Route path="/monoriel-santiago" element={<MonorielSantiago />} />
           <Route path="/centro-comercial/:slug" element={<CentroComercialDetalle />} />
-          <Route path="/wellness" element={<Wellness />} />
+          <Route path="/wellness" element={<Navigate to="/spas-wellness" replace />} />
           <Route path="/bodas" element={<Bodas />} />
           <Route path="/cruceros" element={<NauticaCruceros />} />
-          <Route path="/nautica" element={<NauticaCruceros />} />
-          <Route path="/nautica-cruceros" element={<NauticaCruceros />} />
+          <Route path="/nautica" element={<Navigate to="/cruceros" replace />} />
+          <Route path="/nautica-cruceros" element={<Navigate to="/cruceros" replace />} />
           <Route path="/inversion" element={<Inversion />} />
           <Route path="/mice" element={<MICE />} />
           <Route path="/experiencias" element={<Experiencias />} />
@@ -399,8 +397,8 @@ function AnimatedRoutes() {
           <Route path="/cine-rd" element={<CineRD />} />
           <Route path="/academia" element={<AcademiaTuristica />} />
           <Route path="/prensa" element={<PrensaComunicacion />} />
-          <Route path="/newsletter" element={<PrensaComunicacion />} />
-          <Route path="/prensa-comunicacion" element={<PrensaComunicacion />} />
+          <Route path="/newsletter" element={<Navigate to="/prensa" replace />} />
+          <Route path="/prensa-comunicacion" element={<Navigate to="/prensa" replace />} />
           <Route path="/ofertas" element={<Ofertas />} />
           <Route path="/encuesta" element={<Encuesta />} />
           <Route path="/webcams" element={<Webcams />} />
@@ -408,7 +406,7 @@ function AnimatedRoutes() {
           <Route path="/nomadas-digitales" element={<NomadasDigitales />} />
           <Route path="/turismo-deportivo" element={<TurismoDeportivo />} />
           <Route path="/club-recompensas" element={<ClubRecompensas />} />
-          <Route path="/gamificacion" element={<GamificacionTuristica />} />
+          <Route path="/gamificacion" element={<Navigate to="/gamificacion-turistica" replace />} />
           <Route path="/gamificacion-turistica" element={<GamificacionTuristica />} />
           <Route path="/gamificacion-turistica/retos" element={<RetosTuristicos />} />
           <Route path="/gamificacion-turistica/creadores" element={<ProgramaCreadores />} />
@@ -417,12 +415,12 @@ function AnimatedRoutes() {
           <Route path="/gamificacion-turistica/perfil" element={<PerfilJugador />} />
           <Route path="/gamificacion-turistica/recompensas" element={<ClubRecompensas />} />
           <Route path="/gamificacion-turistica/reglas" element={<ReglasGamificacion />} />
-          <Route path="/reglas-gamificacion" element={<ReglasGamificacion />} />
-          <Route path="/perfil-jugador" element={<PerfilJugador />} />
+          <Route path="/reglas-gamificacion" element={<Navigate to="/gamificacion-turistica/reglas" replace />} />
+          <Route path="/perfil-jugador" element={<Navigate to="/gamificacion-turistica/perfil" replace />} />
           <Route path="/explorador/:id" element={<ExplorerProfile />} />
-          <Route path="/retos" element={<RetosTuristicos />} />
+          <Route path="/retos" element={<Navigate to="/retos-turisticos" replace />} />
           <Route path="/retos-turisticos" element={<RetosTuristicos />} />
-          <Route path="/trivia" element={<TriviaTuristica />} />
+          <Route path="/trivia" element={<Navigate to="/trivia-turistica" replace />} />
           <Route path="/trivia-turistica" element={<TriviaTuristica />} />
           <Route path="/mapa-misiones" element={<MapaMisiones />} />
           <Route path="/comparador" element={<ComparadorDestinos />} />
@@ -501,6 +499,8 @@ function AnimatedRoutes() {
           <Route path="/emergencias" element={<ContactosEmergencia />} />
           <Route path="/newsletter-subscribe" element={<NewsletterPage />} />
           <Route path="/afiliados" element={<SistemaAfiliados />} />
+          <Route path="/gana-con-descubre-rd" element={<GanaConDescubreRD />} />
+          <Route path="/membresias-pasaporte" element={<MembresiasPasaporte />} />
           <Route path="/audio-guias" element={<AudioGuias />} />
           <Route path="/check-in" element={<CheckInDigital />} />
           <Route path="/badges" element={<Badges />} />
@@ -592,14 +592,21 @@ function AnimatedRoutes() {
           <Route path="/mapa-interactivo" element={<MapaInteractivo />} />
           <Route path="/establecimientos" element={<Establecimientos />} />
           <Route path="/reservas" element={<Reservas />} />
+          {/* Reclamar una reserva de invitado (Plan de accesos, punto 76): enlace de un solo uso.
+              El correo del backend apunta a /reservas/reclamar?token=…, así que ambas rutas montan la misma
+              página: una redirección perdería el token de la query. */}
+          <Route path="/reclamar-reserva" element={<ReclamarReserva />} />
+          <Route path="/reservas/reclamar" element={<ReclamarReserva />} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/creadores" element={<ProgramaCreadores />} />
+          <Route path="/panel-creador" element={<Navigate to="/creadores" replace />} />
+          <Route path="/panel-embajador" element={<Navigate to="/creadores" replace />} />
           <Route path="/concursos" element={<ConcursosFotografia />} />
           <Route path="/diario-viaje" element={<DiarioViaje />} />
           <Route path="/partner/login" element={<PartnerLogin />} />
-          <Route path="/partner/dashboard" element={<PartnerDashboard />} />
-          <Route path="/panel-empresa" element={<PartnerDashboard />} />
-          <Route path="/panel-negocio" element={<PartnerDashboard />} />
+          <Route path="/partner/dashboard" element={<Navigate to="/operadores/panel" replace />} />
+          <Route path="/panel-empresa" element={<Navigate to="/operadores/panel" replace />} />
+          <Route path="/panel-negocio" element={<Navigate to="/operadores/panel" replace />} />
           <Route path="/silent-guide" element={<SilentGuide />} />
           <Route path="/suscripciones-sabores" element={<SuscripcionesSabores />} />
           <Route path="/tarjeta-prepago" element={<TarjetaPrepago />} />
@@ -649,14 +656,17 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <AffiliateReferralCapture />
+              <NetworkStatusNotice />
               <ScrollToTop />
+              <SessionExpiryGuard />
               <AnimatedRoutes />
               <Suspense fallback={null}>
-                <BackToTop />
-                <ChatbotTuristico />
-                <GamificationToastOverlay />
-                <ExitIntentModal />
-                <CookieConsentBanner />
+                <DeferredWidget><BackToTop /></DeferredWidget>
+                <DeferredWidget><ChatbotTuristico /></DeferredWidget>
+                <DeferredWidget><GamificationToastOverlay /></DeferredWidget>
+                <DeferredWidget><ExitIntentModal /></DeferredWidget>
+                <DeferredWidget delayMs={250}><CookieConsentBanner /></DeferredWidget>
               </Suspense>
             </BrowserRouter>
             </CartProvider>

@@ -1,0 +1,20 @@
+# Secretos y datos locales: nunca entran al contexto de build (los secretos llegan sólo en tiempo de ejecución).
+.env
+.env.*
+!.env.example
+.data
+storage
+node_modules
+dist
+coverage
+*.log
+loadtest-report.json
+
+# Sólo se compila lo que copia el Dockerfile (src, tsconfig, package*.json, migrations).
+test
+scripts
+openapi.yaml
+Dockerfile
+docker-compose.yml
+.nvmrc
+.gitignore

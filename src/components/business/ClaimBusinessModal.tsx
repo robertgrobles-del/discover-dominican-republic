@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { 
   Building2, ShieldCheck, CheckCircle2, Star, ArrowRight, 
   Sparkles, Mail, Phone, User, Check, AlertCircle, HelpCircle,
@@ -20,8 +20,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { saveClaimLocally } from "@/lib/leadStorage";
+import { businessClaimDraftSchema } from "@/lib/forms";
 
 interface ClaimBusinessModalProps {
   businessName: string;
@@ -39,6 +39,8 @@ export function ClaimBusinessModal({
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"form" | "success">("form");
   const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState("");
+  const submitLock = useRef(false);
   
   // Form State
   const [fullName, setFullName] = useState("");
@@ -51,59 +53,48 @@ export function ClaimBusinessModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !email || !phone) {
-      toast.error("Por favor completa los campos de contacto requeridos.");
+    if (submitLock.current) return;
+    const parsed = businessClaimDraftSchema.safeParse({
+      name: fullName,
+      email,
+      phone,
+      role: role || "Propietario",
+      miturLicense,
+      rnc,
+      notes,
+    });
+    if (!parsed.success) {
+      setFormError("Revisa los campos: nombre (2–100), email válido, teléfono (7–30) y cargo (2–80). Notas: máximo 1,000 caracteres.");
       return;
     }
 
+    submitLock.current = true;
     setLoading(true);
+    setFormError("");
     try {
-      // 1. Guardar reclamo formal en storage local garantizado
+      // Esta pantalla aún no tiene endpoint de reclamos; mantenerlo en memoria
+      // evita afirmar que el portal o un administrador recibió/verificó el reclamo.
       saveClaimLocally({
         business_name: businessName,
-        business_type: businessType || "general",
+        business_type: businessType,
         business_id: businessId || null,
-        applicant_name: fullName.trim(),
-        applicant_email: email.trim().toLowerCase(),
-        applicant_phone: phone.trim(),
-        role: role.trim() || "Propietario",
-        mitur_license: miturLicense.trim() || null,
-        rnc: rnc.trim() || null,
-        notes: notes.trim() || null,
+        applicant_name: parsed.data.name,
+        applicant_email: parsed.data.email,
+        applicant_phone: parsed.data.phone,
+        role: parsed.data.role,
+        mitur_license: parsed.data.miturLicense || null,
+        rnc: parsed.data.rnc || null,
+        notes: parsed.data.notes || null,
       });
-
-      // 2. Enviar a base de datos / Supabase si está disponible
-      try {
-        const payload = {
-          business_name: businessName,
-          business_type: businessType || "general",
-          business_id: businessId || null,
-          applicant_name: fullName.trim(),
-          applicant_email: email.trim().toLowerCase(),
-          applicant_phone: phone.trim(),
-          role: role.trim() || "Propietario",
-          mitur_license: miturLicense.trim() || null,
-          rnc: rnc.trim() || null,
-          notes: notes.trim() || null,
-          status: "aprobado",
-          created_at: new Date().toISOString()
-        };
-        await (supabase as any).from("business_claims").insert(payload);
-      } catch (insertErr) {
-        console.info("Reclamo guardado localmente en espera de sincronización:", insertErr);
-      }
-
       setStep("success");
-      toast.success("¡Solicitud de verificación registrada exitosamente!");
-    } catch (err: any) {
-      console.warn("Fallo al guardar claim:", err);
-      setStep("success");
-      toast.success("¡Solicitud enviada para validación!");
+      toast.message("Borrador guardado solo durante esta sesión; todavía no se envió para revisión.");
+    } catch {
+      setFormError("No se pudo guardar el borrador. Conservamos tus datos en este formulario; vuelve a intentarlo.");
     } finally {
+      submitLock.current = false;
       setLoading(false);
     }
   };
-
   const handleReset = () => {
     setStep("form");
     setOpen(false);
@@ -144,7 +135,7 @@ export function ClaimBusinessModal({
               </DialogDescription>
             </DialogHeader>
 
-            <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+            <form onSubmit={handleSubmit} className="space-y-4 pt-2" aria-busy={loading}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="space-y-1.5">
                   <Label htmlFor="claim-name" className="text-xs font-semibold text-foreground">
@@ -155,6 +146,7 @@ export function ClaimBusinessModal({
                     <Input 
                       id="claim-name" 
                       placeholder="Ej. Juan Pérez"
+                      maxLength={100}
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
@@ -170,6 +162,7 @@ export function ClaimBusinessModal({
                   <Input 
                     id="claim-role" 
                     placeholder="Ej. Propietario / Gerente General"
+                    maxLength={80}
                     required
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
@@ -188,6 +181,7 @@ export function ClaimBusinessModal({
                     <Input 
                       id="claim-email" 
                       type="email"
+                      maxLength={254}
                       placeholder="gerencia@tunegocio.com"
                       required
                       value={email}
@@ -204,8 +198,9 @@ export function ClaimBusinessModal({
                   <div className="relative">
                     <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input 
-                      id="claim-phone" 
-                      placeholder="+1 (809) 000-0000"
+                    id="claim-phone"
+                    placeholder="+1 (809) 000-0000"
+                    maxLength={30}
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
@@ -226,6 +221,7 @@ export function ClaimBusinessModal({
                   <Input 
                     id="claim-rnc" 
                     placeholder="130-XXXXXX-X"
+                    maxLength={30}
                     value={rnc}
                     onChange={(e) => setRnc(e.target.value)}
                     className="rounded-xl"
@@ -237,11 +233,12 @@ export function ClaimBusinessModal({
                     <Label htmlFor="claim-mitur" className="text-xs font-semibold text-foreground">
                       No. Licencia MITUR (SIGTUR)
                     </Label>
-                    <span className="text-[10px] text-amber-500 font-medium">Sello Verificado</span>
+                    <span className="text-[10px] text-amber-500 font-medium">Dato para verificación</span>
                   </div>
                   <Input 
                     id="claim-mitur" 
                     placeholder="Ej. OP-1234 / AV-5678"
+                    maxLength={80}
                     value={miturLicense}
                     onChange={(e) => setMiturLicense(e.target.value)}
                     className="rounded-xl"
@@ -257,6 +254,7 @@ export function ClaimBusinessModal({
                   id="claim-notes" 
                   placeholder="Por favor indícanos brevemente cómo podemos validar tu vinculación con la empresa..."
                   rows={2}
+                  maxLength={1000}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   className="rounded-xl text-xs resize-none"
@@ -270,6 +268,8 @@ export function ClaimBusinessModal({
                   Recibe contactos directos a tu WhatsApp, edita tu menú/habitaciones y obtén el sello oficial de calidad.
                 </div>
               </div>
+
+              {formError && <p role="alert" aria-live="assertive" className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{formError}</p>}
 
               <DialogFooter className="pt-2 flex flex-col sm:flex-row gap-2">
                 <Button 
@@ -285,7 +285,7 @@ export function ClaimBusinessModal({
                   disabled={loading} 
                   className="rounded-xl w-full sm:w-auto font-semibold gap-2"
                 >
-                  {loading ? "Validando..." : "Enviar Solicitud de Verificación"}
+                  {loading ? "Validando..." : "Guardar borrador"}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </DialogFooter>
@@ -299,10 +299,10 @@ export function ClaimBusinessModal({
 
             <div className="space-y-2">
               <h3 className="text-2xl font-bold font-display text-foreground">
-                ¡Ficha Verificada y Auto-Aprobada!
+                Borrador de solicitud guardado
               </h3>
               <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
-                Tu solicitud de reclamo para <strong className="text-foreground">{businessName}</strong> ha sido verificada y aprobada automáticamente. Ya tienes el control de tu ficha de negocio en el portal oficial.
+                El borrador de <strong className="text-foreground">{businessName}</strong> solo queda en memoria durante esta sesión. Aún no se envió para revisión y la ficha no está verificada.
               </p>
             </div>
 
@@ -311,9 +311,9 @@ export function ClaimBusinessModal({
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" /> Siguientes pasos:
               </div>
               <ul className="list-disc list-inside space-y-1 pl-1">
-                <li>Te enviaremos un correo de confirmación con las credenciales de acceso.</li>
-                <li>Podrás configurar tu panel de empresa y activar tu plan publicitario.</li>
-                <li>Si ingresaste licencia MITUR, el sello dorado quedará activo automáticamente.</li>
+                <li>El portal todavía no puede enviar este borrador al equipo de revisión.</li>
+                <li>No se crea acceso al panel de empresa con este borrador.</li>
+                <li>La licencia debe verificarse antes de emitir un sello.</li>
               </ul>
             </div>
 

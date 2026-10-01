@@ -1,0 +1,288 @@
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { PageTransition } from "@/components/PageTransition";
+import { SEOHead } from "@/components/SEOHead";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Sparkles, Hotel, Users, Link2, Copy, Video, Wallet, Check, ShieldCheck, Gavel
+} from "lucide-react";
+import { toast } from "sonner";
+import { creatorsPool, initialSponsoredOpportunities, Creator, SponsoredOpportunity } from "@/data/creatorsData";
+import { PanoramaAd } from "@/components/promo";
+import { IS_MOCK_DATA } from "@/lib/dataSource";
+import { usePanelAdoption } from "@/lib/adoption";
+
+import { CreatorsMetrics } from "@/components/creators/CreatorsMetrics";
+import { CreatorsMonetizationInfoCard } from "@/components/creators/CreatorsMonetizationInfoCard";
+import { CreatorsOnboardingModal } from "@/components/creators/CreatorsOnboardingModal";
+import { CreatorsSponsorshipsTab } from "@/components/creators/CreatorsSponsorshipsTab";
+import { CreatorsAffiliatesTab } from "@/components/creators/CreatorsAffiliatesTab";
+import { CreatorsPoolTab } from "@/components/creators/CreatorsPoolTab";
+import { CreatorsVideosTab, CreatorVideoItem } from "@/components/creators/CreatorsVideosTab";
+import { CreatorsPayoutsTab } from "@/components/creators/CreatorsPayoutsTab";
+import { CreatorsIdentityTab } from "@/components/creators/CreatorsIdentityTab";
+import { CreatorsAppealsTab, CreatorAppealItem } from "@/components/creators/CreatorsAppealsTab";
+import { demoCreatorAppeals } from "@/components/creators/demoCreatorIdentity";
+
+export default function ProgramaCreadores() {
+  // Punto 67: una sola marca de apertura del panel de creador por montaje.
+  usePanelAdoption("creador");
+
+  // Dashboard & Balance States
+  const [balance, setBalance] = useState(385.50);
+  const [affiliateEarnings, setAffiliateEarnings] = useState(140.00);
+  const [tier, setTier] = useState("Oro");
+  const [affiliateCode, setAffiliateCode] = useState("CREADOR_RD2026");
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+
+  // Matchmaking & Sponsorships States
+  const [opportunities, setOpportunities] = useState<SponsoredOpportunity[]>(initialSponsoredOpportunities);
+  const [selectedOpp, setSelectedOpp] = useState<SponsoredOpportunity | null>(null);
+  const [selectedCreatorId, setSelectedCreatorId] = useState<string>("");
+  const [isAssigning, setIsAssigning] = useState(false);
+
+  // Withdrawal States
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [withdrawMethod, setWithdrawMethod] = useState("paypal");
+  const [withdrawDetails, setWithdrawDetails] = useState("");
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
+
+  // Video State
+  const [videoTitle, setVideoTitle] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [videoDestination, setVideoDestination] = useState("Puerto Plata (POP)");
+  const [isUploading, setIsUploading] = useState(false);
+  const [creatorVideos, setCreatorVideos] = useState<CreatorVideoItem[]>([
+    { id: "1", title: "Guía Secreta de Hoteles en Puerto Plata", dest: "Puerto Plata (POP)", views: 18400, bookings: 38, earnings: "$76.00", status: "Aprobado", date: "2026-06-01" },
+    { id: "2", title: "Snorkel secreto en Las Terrenas", dest: "Samaná", views: 9450, bookings: 19, earnings: "$38.00", status: "Aprobado", date: "2026-06-10" }
+  ]);
+
+  const handleCopyAffiliate = (url: string) => {
+    navigator.clipboard.writeText(`${url}${affiliateCode}`);
+    setCopiedLink(true);
+    toast.success("¡Enlace de afiliado con tu código copiado al portapapeles!");
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const handleAssignCreatorToHotel = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedOpp || !selectedCreatorId) {
+      toast.error("Por favor selecciona una oportunidad de patrocinio y un creador del pool.");
+      return;
+    }
+
+    const creator = creatorsPool.find((c: Creator) => c.id === selectedCreatorId);
+    setIsAssigning(true);
+
+    setTimeout(() => {
+      setOpportunities(prev => prev.map(opp => {
+        if (opp.id === selectedOpp.id) {
+          return {
+            ...opp,
+            status: "Asignada",
+            assignedCreatorId: selectedCreatorId
+          };
+        }
+        return opp;
+      }));
+
+      setIsAssigning(false);
+      toast.success(`¡Creador ${creator?.name} (${creator?.handle}) asignado exitosamente al hotel ${selectedOpp.hotelName} en ${selectedOpp.destination}! 🎉`);
+      setSelectedOpp(null);
+      setSelectedCreatorId("");
+    }, 1200);
+  };
+
+  const handleUploadVideo = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!videoTitle || !videoUrl) return;
+
+    setIsUploading(true);
+    setTimeout(() => {
+      setIsUploading(false);
+      const newVideo: CreatorVideoItem = {
+        id: Date.now().toString(),
+        title: videoTitle,
+        dest: videoDestination,
+        views: 0,
+        bookings: 0,
+        earnings: "$0.00",
+        status: "Pendiente",
+        date: new Date().toISOString().split("T")[0]
+      };
+      setCreatorVideos([newVideo, ...creatorVideos]);
+      setVideoTitle("");
+      setVideoUrl("");
+      toast.success("¡Contenido enviado a revisión editorial y auditoría de métricas!");
+    }, 1200);
+  };
+
+  const handleWithdraw = (e: React.FormEvent) => {
+    e.preventDefault();
+    const amount = parseFloat(withdrawAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Por favor ingresa un monto válido.");
+      return;
+    }
+    if (amount > balance) {
+      toast.error("Saldo insuficiente en tu balance.");
+      return;
+    }
+    if (amount < 50) {
+      toast.error("El retiro mínimo es de $50 USD.");
+      return;
+    }
+
+    setIsWithdrawing(true);
+    setTimeout(() => {
+      setIsWithdrawing(false);
+      setBalance(prev => prev - amount);
+      setWithdrawAmount("");
+      setWithdrawDetails("");
+      toast.success(`¡Solicitud de retiro de $${amount} USD procesada! Fondos en camino en 24-48h.`);
+    }, 1500);
+  };
+
+  return (
+    <PageTransition>
+      <SEOHead
+        title="Programa de Creadores, Influencers y Enlaces de Afiliados | Descubre RD"
+        description="Monetiza tu contenido de viajes, genera ingresos con enlaces de afiliados y postúlate a estancias patrocinadas 100% gratis en hoteles de Puerto Plata, Samaná y Punta Cana."
+        keywords="creadores turismo rd, influencers republica dominicana, patrocinios hoteles pop, afiliados hoteles rd, fam trips dominicana"
+      />
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+
+        <main className="flex-1 py-10">
+          <div className="container mx-auto px-4 max-w-6xl">
+            {/* Header Title */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+              <div>
+                <Badge className="mb-2 bg-primary/20 text-primary border-primary/30">
+                  <Sparkles className="h-3.5 w-3.5 mr-1" /> Ecosistema de Creadores & Hoteles Patrocinadores
+                </Badge>
+                <h1 className="font-display text-3xl md:text-4xl font-black text-foreground tracking-tight">
+                  Programa de Creadores & <span className="text-primary">Matchmaking de Patrocinios</span>
+                </h1>
+                <p className="text-xs md:text-sm text-muted-foreground mt-1">
+                  Gana por reproducciones, comisiones de afiliados y viajes patrocinados con todo incluido en los mejores hoteles del país.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Button size="sm" onClick={() => setOnboardingOpen(true)} className="rounded-xl text-xs font-bold gap-1.5 shadow-xs">
+                  <Sparkles className="h-3.5 w-3.5" /> Postularse al Programa
+                </Button>
+                <div className="flex items-center gap-3 bg-card p-3 rounded-2xl border border-border shadow-sm">
+                  <div>
+                    <p className="text-[10px] text-muted-foreground font-semibold uppercase">Tu Código de Afiliado</p>
+                    <p className="text-xs font-mono font-bold text-primary">{affiliateCode}</p>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => handleCopyAffiliate("https://descubrerd.com?ref=")} className="text-xs rounded-xl h-8">
+                    {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Metrics */}
+            <CreatorsMetrics balance={balance} tier={tier} />
+
+            {/* Monetization Model Info Card (3 Capas Integradas) */}
+            <CreatorsMonetizationInfoCard />
+
+            {/* Navigation Tabs */}
+            <Tabs defaultValue="patrocinios" className="space-y-6">
+              <TabsList className="bg-muted p-1 rounded-2xl flex flex-wrap h-auto gap-1">
+                <TabsTrigger value="patrocinios" className="rounded-xl text-xs font-semibold gap-1.5 py-2 px-4">
+                  <Hotel className="h-4 w-4" /> Matchmaking Hoteles (Estadías Gratis)
+                </TabsTrigger>
+                <TabsTrigger value="afiliados" className="rounded-xl text-xs font-semibold gap-1.5 py-2 px-4">
+                  <Link2 className="h-4 w-4" /> Enlaces de Afiliados
+                </TabsTrigger>
+                <TabsTrigger value="creadores" className="rounded-xl text-xs font-semibold gap-1.5 py-2 px-4">
+                  <Users className="h-4 w-4" /> Pool de Creadores Registrados
+                </TabsTrigger>
+                <TabsTrigger value="videos" className="rounded-xl text-xs font-semibold gap-1.5 py-2 px-4">
+                  <Video className="h-4 w-4" /> Mis Contenidos & Vistas
+                </TabsTrigger>
+                <TabsTrigger value="pagos" className="rounded-xl text-xs font-semibold gap-1.5 py-2 px-4">
+                  <Wallet className="h-4 w-4" /> Retirar Fondos
+                </TabsTrigger>
+              </TabsList>
+
+              {/* TAB 1: Matchmaking de Hoteles Patrocinados */}
+              <TabsContent value="patrocinios">
+                <CreatorsSponsorshipsTab
+                  opportunities={opportunities}
+                  selectedOpp={selectedOpp}
+                  selectedCreatorId={selectedCreatorId}
+                  isAssigning={isAssigning}
+                  onSelectOpp={setSelectedOpp}
+                  onSelectCreatorId={setSelectedCreatorId}
+                  onAssignCreator={handleAssignCreatorToHotel}
+                />
+              </TabsContent>
+
+              {/* TAB 2: Enlaces de Afiliados */}
+              <TabsContent value="afiliados">
+                <CreatorsAffiliatesTab onCopyAffiliate={handleCopyAffiliate} />
+              </TabsContent>
+
+              {/* TAB 3: Pool de Creadores Registrados */}
+              <TabsContent value="creadores">
+                <CreatorsPoolTab />
+              </TabsContent>
+
+              {/* TAB 4: Mis Contenidos & Vistas */}
+              <TabsContent value="videos">
+                <CreatorsVideosTab
+                  creatorVideos={creatorVideos}
+                  videoTitle={videoTitle}
+                  videoUrl={videoUrl}
+                  videoDestination={videoDestination}
+                  isUploading={isUploading}
+                  onVideoTitleChange={setVideoTitle}
+                  onVideoUrlChange={setVideoUrl}
+                  onVideoDestinationChange={setVideoDestination}
+                  onUploadVideo={handleUploadVideo}
+                />
+              </TabsContent>
+
+              {/* TAB 5: Pagos y Retiro */}
+              <TabsContent value="pagos">
+                <CreatorsPayoutsTab
+                  balance={balance}
+                  withdrawAmount={withdrawAmount}
+                  withdrawMethod={withdrawMethod}
+                  withdrawDetails={withdrawDetails}
+                  isWithdrawing={isWithdrawing}
+                  onWithdrawAmountChange={setWithdrawAmount}
+                  onWithdrawMethodChange={setWithdrawMethod}
+                  onWithdrawDetailsChange={setWithdrawDetails}
+                  onWithdraw={handleWithdraw}
+                />
+              </TabsContent>
+            </Tabs>
+
+            <div className="mt-12">
+              <PanoramaAd />
+            </div>
+          </div>
+        </main>
+
+        <Footer />
+      </div>
+
+      <CreatorsOnboardingModal
+        open={onboardingOpen}
+        onOpenChange={setOnboardingOpen}
+        onComplete={() => setTier("Platino")}
+      />
+    </PageTransition>
+  );
+}

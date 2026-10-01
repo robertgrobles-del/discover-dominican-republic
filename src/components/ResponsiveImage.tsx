@@ -15,12 +15,12 @@ interface ResponsiveImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>,
  * `backend/scripts/gen-hero-variants.mjs` (reutiliza el `sharp` que ya tiene el backend; el frontend no gana
  * ninguna dependencia nueva). Úsalo en vez de `<img>` para imágenes de contenido grandes (hero, tarjetas destacadas).
  */
-export function ResponsiveImage({ src, avif, webp, alt, ...imgProps }: ResponsiveImageProps) {
+export function ResponsiveImage({ src, avif, webp, alt, loading = "lazy", decoding = "async", ...imgProps }: ResponsiveImageProps) {
   return (
     <picture>
       {avif && <source srcSet={avif} type="image/avif" />}
       {webp && <source srcSet={webp} type="image/webp" />}
-      <img src={src} alt={alt} {...imgProps} />
+      <img src={src} alt={alt} loading={loading} decoding={decoding} {...imgProps} />
     </picture>
   );
 }

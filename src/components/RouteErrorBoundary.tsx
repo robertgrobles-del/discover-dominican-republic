@@ -1,6 +1,7 @@
 import { Component, type ReactNode } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { reportError } from "@/lib/errorReporter";
 
 interface Props {
   children: ReactNode;
@@ -10,6 +11,13 @@ interface State {
   hasError: boolean;
   error: Error | null;
 }
+
+/**
+ * Un chunk con hash viejo deja de existir en el servidor tras un despliegue:
+ * el import dinámico de la ruta falla y el error típico es este. Se distingue
+ * para ofrecer recargar (trae el bundle nuevo) en vez del fallback genérico.
+ */
+const CHUNK_LOAD_ERROR = /dynamically imported module|Importing a module script failed|Loading chunk|ChunkLoadError/i;
 
 /**
  * Per-route boundary. Mounted with `key={location.pathname}` around the
@@ -30,10 +38,35 @@ export class RouteErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error("[RouteError]", error, info.componentStack);
+    reportError(error, { source: "render" });
   }
 
   render() {
     if (this.state.hasError) {
+      const isStaleChunk = CHUNK_LOAD_ERROR.test(this.state.error?.message ?? "");
+      if (isStaleChunk) {
+        return (
+          <div className="min-h-screen flex flex-col">
+            <Header />
+            <main className="flex-1 flex flex-col items-center justify-center gap-4 px-4 py-24 text-center">
+              <h1 className="text-2xl font-bold text-foreground">
+                Hay una nueva versión del portal
+              </h1>
+              <p className="text-muted-foreground max-w-md">
+                Esta sección se actualizó mientras navegabas. Recarga la página
+                para cargar la versión más reciente.
+              </p>
+              <button
+                onClick={() => window.location.reload()}
+                className="inline-flex items-center justify-center rounded-lg bg-primary text-primary-foreground px-5 py-2 font-semibold"
+              >
+                Recargar página
+              </button>
+            </main>
+            <Footer />
+          </div>
+        );
+      }
       return (
         <div className="min-h-screen flex flex-col">
           <Header />

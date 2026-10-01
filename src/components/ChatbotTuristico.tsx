@@ -4,13 +4,15 @@ import { MessageCircle, X, Send, Bot, User, Loader2, Minimize2, Maximize2 } from
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ReactMarkdown from "react-markdown";
+import { getChatbotConfig } from "@/lib/chatbotConfig";
 
 type Message = {
   role: "user" | "assistant";
   content: string;
 };
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-turistico`;
+const { chatUrl: CHAT_URL, publishableKey: supabasePublishableKey } =
+  getChatbotConfig(import.meta.env);
 
 const quickQuestions = [
   "🏖️ Mejores playas",
@@ -57,11 +59,15 @@ export function ChatbotTuristico() {
     let assistantContent = "";
 
     try {
+      if (!CHAT_URL || !supabasePublishableKey) {
+        throw new Error("El chatbot no está configurado.");
+      }
+
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          Authorization: `Bearer ${supabasePublishableKey}`,
         },
         body: JSON.stringify({ messages: newMessages }),
       });
@@ -211,7 +217,7 @@ export function ChatbotTuristico() {
                     }`}
                   >
                     <div className="prose prose-sm max-w-none dark:prose-invert">
-                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                      <ReactMarkdown skipHtml>{message.content}</ReactMarkdown>
                     </div>
                   </div>
                 </motion.div>

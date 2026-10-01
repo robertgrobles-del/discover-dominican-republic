@@ -7,6 +7,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { OfficialSourceBadge } from "@/components/promo/OfficialSourceBadge";
 import {
   Sun,
   Cloud,
@@ -172,8 +173,10 @@ export default function ClimaTemporadas() {
                   <Calendar className="h-4 w-4" />
                   Ver Calendario
                 </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Pronóstico Actual
+                <Button asChild size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
+                  <a href="https://indomet.gob.do/pronostico/informes-marino/informe-del-tiempo/" target="_blank" rel="noopener noreferrer">
+                    Pronóstico oficial
+                  </a>
                 </Button>
               </div>
             </motion.div>
@@ -183,36 +186,18 @@ export default function ClimaTemporadas() {
         {/* Pronóstico Actual */}
         <section className="py-8 bg-muted/30 border-y border-border/50">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="text-center p-4 bg-card/60 backdrop-blur-sm border-border/80">
-                <CardContent className="p-0">
-                  <Thermometer className="h-8 w-8 text-red-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-foreground">28°C</div>
-                  <div className="text-xs text-muted-foreground">Temperatura Actual</div>
-                </CardContent>
-              </Card>
-              <Card className="text-center p-4 bg-card/60 backdrop-blur-sm border-border/80">
-                <CardContent className="p-0">
-                  <Droplets className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-foreground">75%</div>
-                  <div className="text-xs text-muted-foreground">Humedad</div>
-                </CardContent>
-              </Card>
-              <Card className="text-center p-4 bg-card/60 backdrop-blur-sm border-border/80">
-                <CardContent className="p-0">
-                  <Wind className="h-8 w-8 text-gray-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-foreground">15 km/h</div>
-                  <div className="text-xs text-muted-foreground">Viento</div>
-                </CardContent>
-              </Card>
-              <Card className="text-center p-4 bg-card/60 backdrop-blur-sm border-border/80">
-                <CardContent className="p-0">
-                  <Waves className="h-8 w-8 text-cyan-500 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-foreground">27°C</div>
-                  <div className="text-xs text-muted-foreground">Temp. del Mar</div>
-                </CardContent>
-              </Card>
-            </div>
+            <Card className="border-border/80 bg-card/70">
+              <CardContent className="flex flex-col items-start justify-between gap-5 p-6 md:flex-row md:items-center">
+                <div>
+                  <h2 className="font-display text-xl font-bold text-foreground">Consulta las condiciones actuales</h2>
+                  <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Este portal no recibe datos meteorológicos en tiempo real. Revisa el pronóstico marítimo de INDOMET y las alertas oficiales del COE antes de salir.</p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <div className="flex flex-col items-start gap-2"><OfficialSourceBadge /><Button asChild><a href="https://indomet.gob.do/pronostico/informes-marino/informe-del-tiempo/" target="_blank" rel="noopener noreferrer">Pronóstico INDOMET</a></Button></div>
+                  <div className="flex flex-col items-start gap-2"><OfficialSourceBadge /><Button asChild variant="outline"><a href="https://www.coe.gob.do/" target="_blank" rel="noopener noreferrer">Alertas COE</a></Button></div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </section>
 
@@ -231,6 +216,7 @@ export default function ClimaTemporadas() {
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 Entiende el clima dominicano para planificar tu viaje perfecto.
               </p>
+              <p className="mt-2 text-xs text-muted-foreground">Las temperaturas y condiciones por temporada son referencias generales, no pronósticos actuales. Pueden variar según la zona y el año.</p>
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-6">

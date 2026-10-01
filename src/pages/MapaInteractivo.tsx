@@ -19,6 +19,9 @@ const MapaInteractivo = () => {
             <p className="text-muted-foreground mb-6">
               Explora todos los destinos, hoteles, playas y restaurantes de República Dominicana en un solo lugar.
             </p>
+            <p className="text-xs text-muted-foreground mb-3" role="note">
+              El mapa carga mosaicos de OpenStreetMap cuando se acerca a la pantalla; el proveedor recibe la dirección IP de tu conexión. La ubicación del dispositivo no se solicita.
+            </p>
             <InteractiveMap />
           </div>
         </main>

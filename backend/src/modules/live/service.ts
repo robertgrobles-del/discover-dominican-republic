@@ -2,10 +2,17 @@ import type { FastifyBaseLogger } from "fastify";
 import type { Env } from "../../config/env.js";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
+import { CircuitBreaker } from "../../lib/breaker.js";
+import { readBodyCapped, traceHeaders } from "../../lib/http.js";
 import { todayInSantoDomingo } from "../operators/domain/dates.js";
 
 export type FetchJson = (url: string) => Promise<{ status: number; json(): Promise<any> }>;
-const defaultFetch: FetchJson = (url) => fetch(url, { signal: AbortSignal.timeout(10_000), headers: { accept: "application/json" } });
+const MAX_JSON_BYTES = 2_000_000;
+const defaultFetch: FetchJson = async (url) => {
+  const res = await fetch(url, { signal: AbortSignal.timeout(10_000), headers: traceHeaders({ accept: "application/json" }) });
+  const text = await readBodyCapped(res, MAX_JSON_BYTES);
+  return { status: res.status, json: async () => JSON.parse(text) };
+};
 
 export const FX_CURRENCIES = ["USD", "EUR", "GBP", "CAD", "MXN"] as const;
 export const WEATHER_LOCATIONS = [
@@ -27,6 +34,9 @@ const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
 
 /** Datos vivos (docs §5.5): tasas, combustibles, loterías, clima y utilidades. Los proveedores externos se apagan con `*_PROVIDER=none`. */
 export class LiveService {
+  /** Cinco ciclos consecutivos fallidos abren el circuito del proveedor 5 minutos; cada proveedor tiene el suyo. */
+  private readonly fxBreaker = new CircuitBreaker(5, 300_000);
+  private readonly weatherBreaker = new CircuitBreaker(5, 300_000);
   constructor(private readonly db: Db, private readonly env: Env, private readonly log: FastifyBaseLogger, public fetchJson: FetchJson = defaultFetch) {}
 
   // ---------- Tasas de cambio ----------
@@ -60,23 +70,25 @@ export class LiveService {
   /** Actualiza las tasas desde el proveedor configurado (mitad del mercado ± margen de compra/venta). */
   async refreshRates() {
     if (this.env.FX_PROVIDER === "none") return { skipped: true as const, reason: "FX_PROVIDER=none" };
-    const res = await this.fetchJson("https://open.er-api.com/v6/latest/USD");
-    if (res.status !== 200) throw new Error(`El proveedor de tasas respondió ${res.status}`);
-    const body = await res.json();
-    const r = body?.rates as Record<string, number> | undefined;
-    if (body?.result !== "success" || !r?.DOP || r.DOP < 20 || r.DOP > 200) throw new Error("Respuesta del proveedor de tasas inválida");
-    const today = todayInSantoDomingo(), spread = this.env.FX_SPREAD_PCT / 100;
-    let saved = 0;
-    for (const c of FX_CURRENCIES) {
-      const perUnit = c === "USD" ? r.DOP : r[c] ? r.DOP / r[c]! : null; // DOP por 1 unidad de la moneda
-      if (!perUnit || !Number.isFinite(perUnit)) continue;
-      await this.db.query(
-        "INSERT INTO exchange_rates (rate_date, currency_code, buy_rate, sell_rate) VALUES ($1,$2,$3,$4) ON CONFLICT (rate_date, currency_code) DO UPDATE SET buy_rate = EXCLUDED.buy_rate, sell_rate = EXCLUDED.sell_rate",
-        [today, c, round(perUnit * (1 - spread), 4), round(perUnit * (1 + spread), 4)],
-      );
-      saved++;
-    }
-    return { skipped: false as const, saved, date: today };
+    return this.fxBreaker.execute(async () => {
+      const res = await this.fetchJson("https://open.er-api.com/v6/latest/USD");
+      if (res.status !== 200) throw new Error(`El proveedor de tasas respondió ${res.status}`);
+      const body = await res.json();
+      const r = body?.rates as Record<string, number> | undefined;
+      if (body?.result !== "success" || !r?.DOP || r.DOP < 20 || r.DOP > 200) throw new Error("Respuesta del proveedor de tasas inválida");
+      const today = todayInSantoDomingo(), spread = this.env.FX_SPREAD_PCT / 100;
+      let saved = 0;
+      for (const c of FX_CURRENCIES) {
+        const perUnit = c === "USD" ? r.DOP : r[c] ? r.DOP / r[c]! : null; // DOP por 1 unidad de la moneda
+        if (!perUnit || !Number.isFinite(perUnit)) continue;
+        await this.db.query(
+          "INSERT INTO exchange_rates (rate_date, currency_code, buy_rate, sell_rate) VALUES ($1,$2,$3,$4) ON CONFLICT (rate_date, currency_code) DO UPDATE SET buy_rate = EXCLUDED.buy_rate, sell_rate = EXCLUDED.sell_rate",
+          [today, c, round(perUnit * (1 - spread), 4), round(perUnit * (1 + spread), 4)],
+        );
+        saved++;
+      }
+      return { skipped: false as const, saved, date: today };
+    }, new Error("El proveedor de tasas está en circuito abierto; se reintenta más tarde"));
   }
 
   // ---------- Combustibles ----------
@@ -139,34 +151,37 @@ export class LiveService {
   /** Clima y pronóstico de las ciudades principales desde OpenWeather (5 días, agregado por día). */
   async refreshWeather() {
     if (this.env.WEATHER_PROVIDER === "none") return { skipped: true as const, reason: "WEATHER_PROVIDER=none" };
-    const key = this.env.OPENWEATHER_API_KEY!;
-    let saved = 0;
-    const errors: string[] = [];
-    for (const loc of WEATHER_LOCATIONS) {
-      try {
-        const q = `lat=${loc.lat}&lon=${loc.lng}&units=metric&lang=es&appid=${encodeURIComponent(key)}`;
-        const [now, fc] = await Promise.all([this.fetchJson(`https://api.openweathermap.org/data/2.5/weather?${q}`), this.fetchJson(`https://api.openweathermap.org/data/2.5/forecast?${q}`)]);
-        if (now.status !== 200) throw new Error(`clima ${now.status}`);
-        const w = await now.json();
-        const days = new Map<string, { min: number; max: number; pop: number; cond: string[] }>();
-        if (fc.status === 200) for (const it of (await fc.json()).list ?? []) {
-          const date = String(it.dt_txt ?? "").slice(0, 10);
-          if (!date) continue;
-          const d = days.get(date) ?? { min: 99, max: -99, pop: 0, cond: [] };
-          d.min = Math.min(d.min, it.main?.temp_min ?? it.main?.temp); d.max = Math.max(d.max, it.main?.temp_max ?? it.main?.temp); d.pop = Math.max(d.pop, it.pop ?? 0); d.cond.push(it.weather?.[0]?.description ?? "");
-          days.set(date, d);
-        }
-        const forecast = [...days.entries()].map(([date, d]) => ({ date, min_c: round(d.min, 1), max_c: round(d.max, 1), rain_probability: Math.round(d.pop * 100), condition: d.cond[Math.floor(d.cond.length / 2)] || d.cond[0] || "" }));
-        await this.db.query(
-          `INSERT INTO weather_snapshots (location_slug, location_name, temperature_c, feels_like_c, humidity, wind_kmh, condition, icon, forecast, source, observed_at, updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'openweather',now(),now())
-           ON CONFLICT (location_slug) DO UPDATE SET temperature_c = EXCLUDED.temperature_c, feels_like_c = EXCLUDED.feels_like_c, humidity = EXCLUDED.humidity, wind_kmh = EXCLUDED.wind_kmh, condition = EXCLUDED.condition, icon = EXCLUDED.icon, forecast = EXCLUDED.forecast, source = 'openweather', observed_at = now(), updated_at = now()`,
-          [loc.slug, loc.name, round(w.main.temp, 1), round(w.main.feels_like, 1), w.main.humidity, round((w.wind?.speed ?? 0) * 3.6, 1), w.weather?.[0]?.description ?? "", w.weather?.[0]?.icon ?? null, JSON.stringify(forecast)],
-        );
-        saved++;
-      } catch (err) { errors.push(`${loc.slug}: ${(err as Error).message}`); this.log.warn({ err, location: loc.slug }, "No se pudo actualizar el clima de una ubicación"); }
-    }
-    if (!saved) throw new Error(`No se pudo actualizar el clima: ${errors.join("; ")}`);
-    return { skipped: false as const, saved, errors };
+    // Un fallo por ciclo (no por llamada): un fallo parcial que salva alguna ciudad no cuenta contra el circuito.
+    return this.weatherBreaker.execute(async () => {
+      const key = this.env.OPENWEATHER_API_KEY!;
+      let saved = 0;
+      const errors: string[] = [];
+      for (const loc of WEATHER_LOCATIONS) {
+        try {
+          const q = `lat=${loc.lat}&lon=${loc.lng}&units=metric&lang=es&appid=${encodeURIComponent(key)}`;
+          const [now, fc] = await Promise.all([this.fetchJson(`https://api.openweathermap.org/data/2.5/weather?${q}`), this.fetchJson(`https://api.openweathermap.org/data/2.5/forecast?${q}`)]);
+          if (now.status !== 200) throw new Error(`clima ${now.status}`);
+          const w = await now.json();
+          const days = new Map<string, { min: number; max: number; pop: number; cond: string[] }>();
+          if (fc.status === 200) for (const it of (await fc.json()).list ?? []) {
+            const date = String(it.dt_txt ?? "").slice(0, 10);
+            if (!date) continue;
+            const d = days.get(date) ?? { min: 99, max: -99, pop: 0, cond: [] };
+            d.min = Math.min(d.min, it.main?.temp_min ?? it.main?.temp); d.max = Math.max(d.max, it.main?.temp_max ?? it.main?.temp); d.pop = Math.max(d.pop, it.pop ?? 0); d.cond.push(it.weather?.[0]?.description ?? "");
+            days.set(date, d);
+          }
+          const forecast = [...days.entries()].map(([date, d]) => ({ date, min_c: round(d.min, 1), max_c: round(d.max, 1), rain_probability: Math.round(d.pop * 100), condition: d.cond[Math.floor(d.cond.length / 2)] || d.cond[0] || "" }));
+          await this.db.query(
+            `INSERT INTO weather_snapshots (location_slug, location_name, temperature_c, feels_like_c, humidity, wind_kmh, condition, icon, forecast, source, observed_at, updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'openweather',now(),now())
+             ON CONFLICT (location_slug) DO UPDATE SET temperature_c = EXCLUDED.temperature_c, feels_like_c = EXCLUDED.feels_like_c, humidity = EXCLUDED.humidity, wind_kmh = EXCLUDED.wind_kmh, condition = EXCLUDED.condition, icon = EXCLUDED.icon, forecast = EXCLUDED.forecast, source = 'openweather', observed_at = now(), updated_at = now()`,
+            [loc.slug, loc.name, round(w.main.temp, 1), round(w.main.feels_like, 1), w.main.humidity, round((w.wind?.speed ?? 0) * 3.6, 1), w.weather?.[0]?.description ?? "", w.weather?.[0]?.icon ?? null, JSON.stringify(forecast)],
+          );
+          saved++;
+        } catch (err) { errors.push(`${loc.slug}: ${(err as Error).message}`); this.log.warn({ err, location: loc.slug }, "No se pudo actualizar el clima de una ubicación"); }
+      }
+      if (!saved) throw new Error(`No se pudo actualizar el clima: ${errors.join("; ")}`);
+      return { skipped: false as const, saved, errors };
+    }, new Error("El proveedor de clima está en circuito abierto; se reintenta más tarde"));
   }
 
   // ---------- Playas, alertas, eventos, webcams ----------

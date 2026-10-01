@@ -31,6 +31,7 @@ import Informacion from "./Informacion";
 import Promocion from "./Promocion";
 import Reportes from "./Reportes";
 import Perfil from "./Perfil";
+import Sucursales from "./Sucursales";
 
 const NAV: { to: string; label: string; icon: LucideIcon; end?: boolean; badge?: "messages" | "requests" }[] = [
   { to: "", label: "Panel", icon: LayoutDashboard, end: true },
@@ -47,6 +48,7 @@ const NAV: { to: string; label: string; icon: LucideIcon; end?: boolean; badge?:
   { to: "comunidades", label: "Comunidades", icon: Users },
   { to: "reportes", label: "Reportes", icon: BarChart3 },
   { to: "perfil", label: "Org/Perfil", icon: Building2 },
+  { to: "sucursales", label: "Sucursales", icon: Store },
   { to: "equipo", label: "Equipo", icon: UserCog },
 ];
 
@@ -181,6 +183,7 @@ function Shell() {
             <Route path="comunidades" element={g("comunidades", <Comunidades />)} />
             <Route path="reportes" element={g("reportes", <Reportes />)} />
             <Route path="perfil" element={g("perfil", <Perfil />)} />
+            <Route path="sucursales" element={g("perfil", <Sucursales />)} />
             <Route path="equipo" element={g("equipo", <Equipo />)} />
             <Route path="*" element={<Navigate to="" replace />} />
           </Routes>
@@ -219,7 +222,9 @@ export default function OperatorPanel() {
   }
   const org = orgQuery.data;
   const member = org.id === user.id ? undefined : findMember(org, user.email);
-  const role = org.id === user.id ? "owner" as const : member?.role || "recepcion" as const;
+  // Denegar por defecto: la ausencia de una membresía no concede acceso de recepción.
+  if (org.id !== user.id && !member) return <Navigate to="/operadores" replace />;
+  const role = org.id === user.id ? "owner" as const : member!.role;
   const ctx = { org, refetchOrg: () => orgQuery.refetch(), role, readOnly: role === "guia", scopeListingIds: role === "guia" ? member?.listing_ids || [] : undefined };
   return (
     <OrgContext.Provider value={ctx}>

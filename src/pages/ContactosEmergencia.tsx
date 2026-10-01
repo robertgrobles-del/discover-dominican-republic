@@ -203,6 +203,7 @@ export default function ContactosEmergencia() {
 
   const obtainGPSLocation = () => {
     setIsLocating(true);
+    setGpsCoordinates(null);
     if (!navigator.geolocation) {
       toast.error("La geolocalización no está soportada por tu navegador.");
       setIsLocating(false);
@@ -219,13 +220,11 @@ export default function ContactosEmergencia() {
         setIsLocating(false);
         toast.success(`Ubicación SOS obtenida: ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)}`);
       },
-      (error) => {
-        // Mock fallback to Santo Domingo coords for testing
-        const fallback = { lat: 18.4861, lng: -69.9312 };
-        setGpsCoordinates(fallback);
+      () => {
         setIsLocating(false);
-        toast.info("Ubicación de referencia en Santo Domingo cargada.");
-      }
+        toast.error("No se obtuvo tu ubicación. No se adjuntaron coordenadas; si es una emergencia, llama al 911.");
+      },
+      { enableHighAccuracy: true, timeout: 15_000, maximumAge: 10_000 }
     );
   };
 
@@ -236,7 +235,7 @@ export default function ContactosEmergencia() {
 
     navigator.clipboard.writeText(coordsText);
     setCopiedSOS(true);
-    toast.success("Mensaje de auxilio con geolocalización copiado al portapapeles.");
+    toast.success(gpsCoordinates ? "Mensaje con tus coordenadas reales copiado." : "Mensaje sin coordenadas copiado.");
     setTimeout(() => setCopiedSOS(false), 3000);
   };
 

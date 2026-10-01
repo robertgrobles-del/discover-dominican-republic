@@ -12,6 +12,7 @@ import { BetweenSectionsAd } from "@/components/promo";
 import { RegistroEventoModal } from "@/components/forms/RegistroEventoModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/hooks/useI18n";
+import { formatDate } from "@/lib/localeFormat";
 import { 
   categoriasEventos, 
   generosMusicales, 
@@ -29,7 +30,7 @@ import jazzFestival from "@/assets/jazz-festival.jpg";
 import gastronomy from "@/assets/gastronomy.jpg";
 
 export default function Eventos() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [selectedCategoria, setSelectedCategoria] = useState("Todo");
   const [selectedGenero, setSelectedGenero] = useState("Todos");
   const [heroLoaded, setHeroLoaded] = useState(false);
@@ -56,11 +57,13 @@ export default function Eventos() {
       .map(e => ({
         id: e.slug || e.id,
         titulo: e.name,
-        fecha: e.start_date ? new Date(e.start_date).toLocaleDateString("es-DO", { day: "numeric", month: "short" }).toUpperCase() : "",
+        fecha: e.start_date ? formatDate(e.start_date, locale, { day: "numeric", month: "short" }).toLocaleUpperCase() : "",
         categoria: e.event_type || "Evento",
         imagen: e.image_url || carnival,
         descripcion: e.short_description || e.description || "",
         ubicacion: e.address || "",
+        provincia: e.province || undefined,
+        startsAt: e.start_date || undefined,
       })),
     ...staticEventos,
   ];

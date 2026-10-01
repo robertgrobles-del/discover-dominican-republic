@@ -240,6 +240,7 @@ export default function PerfilJugador() {
               <TabsTrigger value="badges" className="gap-2"><Award className="h-4 w-4" /> Insignias</TabsTrigger>
               <TabsTrigger value="missions" className="gap-2"><Target className="h-4 w-4" /> Misiones</TabsTrigger>
               <TabsTrigger value="history" className="gap-2"><BookOpen className="h-4 w-4" /> Historial</TabsTrigger>
+              <TabsTrigger value="privacy" className="gap-2"><Shield className="h-4 w-4" /> Privacidad</TabsTrigger>
             </TabsList>
 
             {/* Overview */}
@@ -478,6 +479,50 @@ export default function PerfilJugador() {
                   <p className="text-xs text-muted-foreground mt-1">Explora destinos y completa misiones para empezar</p>
                 </div>
               )}
+            </TabsContent>
+
+            {/* Privacy Controls */}
+            <TabsContent value="privacy">
+              <div className="max-w-2xl mx-auto space-y-6 bg-card border border-border p-6 rounded-2xl">
+                <div>
+                  <h2 className="text-xl font-bold text-foreground mb-1 flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-primary" /> Ajustes de Privacidad de Jugador
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Controla cómo se muestra tu perfil y progreso en las tablas públicas de clasificación y retos.
+                  </p>
+                </div>
+
+                <div className="space-y-4 pt-2">
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border border-border">
+                    <div>
+                      <p className="font-medium text-foreground text-sm">Perfil visible en tabla pública de clasificación</p>
+                      <p className="text-xs text-muted-foreground">Permite que otros viajeros vean tu nivel y total de XP acumulado.</p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => toast.success("Preferencia de visibilidad actualizada")}>
+                      Activado
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border border-border">
+                    <div>
+                      <p className="font-medium text-foreground text-sm">Ocultar nombre real en el ranking</p>
+                      <p className="text-xs text-muted-foreground">Muestra tu nombre como "Explorador RD Anónimo" en la tabla pública.</p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => toast.success("Alias anónimo activado")}>
+                      Desactivado
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-muted/40 border border-border">
+                    <div>
+                      <p className="font-medium text-foreground text-sm">Separación estricta de Monedas vs Dinero</p>
+                      <p className="text-xs text-muted-foreground">Las monedas 🪙 del juego son puntos promocionales y no constituyen saldo bancario ni efectivo.</p>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">Informativo</Badge>
+                  </div>
+                </div>
+              </div>
             </TabsContent>
           </Tabs>
         </div>

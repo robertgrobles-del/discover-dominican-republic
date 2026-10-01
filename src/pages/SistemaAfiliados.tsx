@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { 
-  DollarSign, Users, Link as LinkIcon, Gift, TrendingUp,
-  Share2, Copy, CheckCircle, BarChart, Award, Zap, QrCode, Download, Trophy, AlertTriangle, Loader2
+  DollarSign, Gift, Share2, Copy, BarChart, Zap, AlertTriangle, Loader2
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -10,84 +9,134 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
-import { FloatingInput } from "@/components/ui/floating-input";
-import { ProgressBar } from "@/components/ui/progress-bar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchApi } from "@/lib/fastifyClient";
+import { HttpError } from "@/lib/httpClient";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 const benefits = [
-  { icon: DollarSign, title: "Comisiones Competitivas", desc: "Gana hasta 10% por cada reserva confirmada" },
-  { icon: Gift, title: "Bonos por Volumen", desc: "Bonificaciones extras al superar metas mensuales" },
-  { icon: BarChart, title: "Dashboard en Tiempo Real", desc: "Monitorea tus conversiones y ganancias" },
-  { icon: Zap, title: "Pagos Rápidos", desc: "Recibe tus comisiones cada 15 días" },
+  { icon: DollarSign, title: "Ventas elegibles", desc: "Las comisiones se calculan sobre pedidos cobrados en tienda y marketplace, según la atribución registrada." },
+  { icon: Gift, title: "Tasa por nivel", desc: "La tasa del programa depende del nivel y de las ventas aprobadas; consulta las condiciones vigentes antes de compartir." },
+  { icon: BarChart, title: "Validación de ventas", desc: "Cada pedido y posible devolución se revisa antes de liberar la comisión." },
+  { icon: Zap, title: "Solicitud de pago", desc: "El saldo disponible puede solicitarse al alcanzar el mínimo del programa y completar la verificación requerida." },
 ];
 
 const tiers = [
   { name: "Bronce", minSales: 0, commission: 5, color: "text-orange-600" },
   { name: "Plata", minSales: 10, commission: 7, color: "text-gray-400" },
-  { name: "Oro", minSales: 25, commission: 8, color: "text-amber-500 fill-amber-500" },
-  { name: "Platino", minSales: 50, commission: 10, color: "text-primary" },
+  { name: "Oro", minSales: 30, commission: 10, color: "text-amber-500 fill-amber-500" },
 ];
 
-// Mock leaderboard showing top ambassadors
-const mockLeaderboard = [
-  { rank: 1, name: "@carlosRD", sales: 74, earned: 1250, tier: "Platino" },
-  { rank: 2, name: "@elviajerodr", sales: 48, earned: 820, tier: "Oro" },
-  { rank: 3, name: "@mariagomez", sales: 32, earned: 490, tier: "Oro" },
-  { rank: 4, name: "@juan_explora", sales: 15, earned: 220, tier: "Plata" }
-];
+interface AmbassadorMe {
+  status: "pending" | "approved" | "rejected" | "suspended";
+  status_note?: string | null;
+  referral_code: string;
+  tier: string;
+  commission_rate: number;
+  next_tier: { tier: string; rate: number; sales_needed: number } | null;
+  sales_count: number;
+  clicks: number;
+  total_earned: number;
+  available: number;
+  in_hold: number;
+  requested: number;
+  paid: number;
+  min_payout: number;
+  hold_days: number;
+  payout_method: "bank_transfer" | "paypal" | null;
+  payout_details: string | null;
+}
+
+interface AmbassadorReferral {
+  id: string;
+  buyer: string;
+  source_type: "store" | "marketplace";
+  sale_amount: number;
+  commission: number;
+  rate: number | null;
+  status: string;
+  hold_until: string | null;
+  created_at: string;
+}
+
+interface AmbassadorPayout {
+  id: string;
+  amount: number;
+  status: string;
+  payout_method: string;
+  reference: string | null;
+  processed_at: string | null;
+  created_at: string;
+}
 
 export default function SistemaAfiliados() {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [ambassador, setAmbassador] = useState<any>(null);
+  const [ambassador, setAmbassador] = useState<AmbassadorMe | null>(null);
+  const [referrals, setReferrals] = useState<AmbassadorReferral[]>([]);
+  const [payouts, setPayouts] = useState<AmbassadorPayout[]>([]);
+  const [applicationMotivation, setApplicationMotivation] = useState("");
+  const [applicationAudience, setApplicationAudience] = useState("");
+  const [payoutMethod, setPayoutMethod] = useState<"bank_transfer" | "paypal">("bank_transfer");
+  const [payoutDetails, setPayoutDetails] = useState("");
   
   // Registration form inputs
-  const [customCode, setCustomCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [estimateBase, setEstimateBase] = useState("5000");
+  const [eligibleOrders, setEligibleOrders] = useState("0");
 
-  useEffect(() => {
+  const orderCount = Math.max(0, Math.floor(Number(eligibleOrders) || 0));
+  const saleBase = Math.max(0, Number(estimateBase) || 0);
+  const currentTier = [...tiers].reverse().find((tier) => orderCount >= tier.minSales) ?? tiers[0];
+  const estimatedCommission = Math.round(saleBase * currentTier.commission) / 100;
+
+  const loadAmbassador = useCallback(async () => {
     if (!user) {
+      setAmbassador(null);
+      setReferrals([]);
+      setPayouts([]);
       setLoading(false);
       return;
     }
+    const token = session?.access_token;
+    if (!token) return;
 
-    async function checkAmbassadorStatus() {
-      try {
-        const { data, error } = await (supabase as any)
-          .from("ambassadors")
-          .select("*")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        if (error || !data) {
-          const cached = localStorage.getItem(`ambassador_${user.id}`);
-          if (cached) {
-            const parsed = JSON.parse(cached);
-            setAmbassador(parsed);
-            localStorage.setItem("affiliate_ref", parsed.referral_code);
-          }
-        } else if (data) {
-          setAmbassador(data);
-          // Set referral code in local storage for simulation tests
-          localStorage.setItem("affiliate_ref", data.referral_code);
-        }
-      } catch (err) {
-        const cached = localStorage.getItem(`ambassador_${user.id}`);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          setAmbassador(parsed);
-          localStorage.setItem("affiliate_ref", parsed.referral_code);
-        }
-      } finally {
-        setLoading(false);
+    const headers = { Authorization: `Bearer ${token}` };
+    setLoading(true);
+    try {
+      const response = await fetchApi<{ data: AmbassadorMe }>("/ambassadors/me", { headers });
+      setAmbassador(response.data);
+      setPayoutMethod(response.data.payout_method ?? "bank_transfer");
+      setPayoutDetails(response.data.payout_details ?? "");
+      if (response.data.status === "approved") {
+        const [referralResponse, payoutResponse] = await Promise.all([
+          fetchApi<{ data: AmbassadorReferral[] }>("/ambassadors/me/referrals?page=1&per_page=10", { headers }),
+          fetchApi<{ data: AmbassadorPayout[] }>("/ambassadors/me/payouts", { headers }),
+        ]);
+        setReferrals(referralResponse.data);
+        setPayouts(payoutResponse.data);
+      } else {
+        setReferrals([]);
+        setPayouts([]);
       }
+    } catch (error) {
+      if (error instanceof HttpError && error.status === 404) {
+        setAmbassador(null);
+        setReferrals([]);
+        setPayouts([]);
+      } else {
+        toast.error("No se pudo consultar el estado del programa. Intenta más tarde.");
+      }
+    } finally {
+      setLoading(false);
     }
+  }, [user, session?.access_token]);
 
-    checkAmbassadorStatus();
-  }, [user]);
+  useEffect(() => { void loadAmbassador(); }, [loadAmbassador]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,114 +145,61 @@ export default function SistemaAfiliados() {
       return;
     }
 
-    const code = customCode.trim().toUpperCase() || "RD-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-    
-    if (code.length < 3) {
-      toast.error("El código de referido debe tener al menos 3 caracteres.");
+    if (!session?.access_token) {
+      toast.error("Inicia sesión nuevamente para enviar tu solicitud.");
+      return;
+    }
+    if (applicationMotivation.trim().length < 20) {
+      toast.error("Cuéntanos tu motivación en al menos 20 caracteres.");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await (supabase as any)
-        .from("ambassadors")
-        .insert({
-          id: user.id,
-          referral_code: code,
-          clicks_count: 0,
-          sales_count: 0,
-          total_earned: 0.00,
-          pending_payout: 0.00,
-          tier: "Bronce"
-        })
-        .select()
-        .single();
-
-      if (error) {
-        // Fallback local en caso de que la tabla aún no haya sido migrada en Supabase
-        const fallbackAmbassador = {
-          id: user.id,
-          referral_code: code,
-          clicks_count: 0,
-          sales_count: 0,
-          total_earned: 0.00,
-          pending_payout: 0.00,
-          tier: "Bronce"
-        };
-        localStorage.setItem(`ambassador_${user.id}`, JSON.stringify(fallbackAmbassador));
-        localStorage.setItem("affiliate_ref", code);
-        setAmbassador(fallbackAmbassador);
-        toast.success("¡Registro completado! Ya eres embajador oficial de Descubre RD.");
-        return;
-      }
-
-      setAmbassador(data);
-      localStorage.setItem("affiliate_ref", code);
-      toast.success("¡Registro completado! Ya eres embajador oficial de Descubre RD.");
-    } catch (err: any) {
-      const fallbackAmbassador = {
-        id: user.id,
-        referral_code: code,
-        clicks_count: 0,
-        sales_count: 0,
-        total_earned: 0.00,
-        pending_payout: 0.00,
-        tier: "Bronce"
-      };
-      localStorage.setItem(`ambassador_${user.id}`, JSON.stringify(fallbackAmbassador));
-      localStorage.setItem("affiliate_ref", code);
-      setAmbassador(fallbackAmbassador);
-      toast.success("¡Registro completado! Ya eres embajador oficial de Descubre RD.");
+      const response = await fetchApi<{ data: { status: AmbassadorMe["status"] } }>("/ambassadors/apply", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({ motivation: applicationMotivation.trim(), audience: applicationAudience.trim() || undefined }),
+      });
+      toast.success("Solicitud recibida. Está pendiente de revisión.");
+      setAmbassador({ status: response.data.status } as AmbassadorMe);
+    } catch (err) {
+      toast.error(`No se pudo enviar la solicitud: ${err instanceof Error ? err.message : "intenta más tarde."}`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleCopyLink = () => {
-    if (!ambassador) return;
+    if (!ambassador || ambassador.status !== "approved") return;
     const link = `${window.location.origin}/?ref=${ambassador.referral_code}`;
-    navigator.clipboard.writeText(link);
-    toast.success("¡Enlace de referido copiado al portapapeles!");
+    void navigator.clipboard.writeText(link).then(() => toast.success("Enlace copiado al portapapeles!"));
   };
 
-  const downloadQR = () => {
-    const svg = document.getElementById("qr-code-svg");
-    if (!svg) return;
-    const svgString = new XMLSerializer().serializeToString(svg);
-    const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-    const svgUrl = URL.createObjectURL(svgBlob);
-    const downloadLink = document.createElement("a");
-    downloadLink.href = svgUrl;
-    downloadLink.download = `referral-qr-${ambassador?.referral_code}.svg`;
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-    toast.success("¡Código QR SVG descargado correctamente!");
-  };
-
-  const handleRequestPayout = async () => {
-    if (!ambassador || ambassador.pending_payout <= 0) {
-      toast.warning("No tienes fondos pendientes para retirar.");
-      return;
-    }
-
+  const handlePayoutRequest = async () => {
+    if (!session?.access_token || !ambassador) return;
     setIsSubmitting(true);
     try {
-      const payoutAmount = ambassador.pending_payout;
-      const { error } = await (supabase as any)
-        .from("ambassadors")
-        .update({
-          pending_payout: 0.00
-        })
-        .eq("id", user?.id);
-
-      if (error) throw error;
-
-      setAmbassador((prev: any) => ({ ...prev, pending_payout: 0.00 }));
-      toast.success(`¡Retiro exitoso de $${payoutAmount} USD! Procesado a tu cuenta de Stripe Connect.`);
-    } catch (err: any) {
-      toast.error(`Error al procesar pago: ${err.message || "Por favor intente de nuevo."}`);
+      if (!ambassador.payout_method || !ambassador.payout_details) {
+        await fetchApi<{ data: AmbassadorMe }>("/ambassadors/me", {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          body: JSON.stringify({ payout_method: payoutMethod, payout_details: payoutDetails }),
+        });
+      }
+      const result = await fetchApi<{ data: { amount: number } }>("/ambassadors/me/payouts/request", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify({
+          method: ambassador.payout_method ?? payoutMethod,
+          details: ambassador.payout_details ?? payoutDetails,
+        }),
+      });
+      toast.success(`Solicitud de pago registrada por RD$ ${result.data.amount.toLocaleString("es-DO", { minimumFractionDigits: 2 })}. El envío debe confirmarlo el equipo.`);
+      await loadAmbassador();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo solicitar el pago.");
     } finally {
       setIsSubmitting(false);
     }
@@ -212,8 +208,8 @@ export default function SistemaAfiliados() {
   return (
     <PageTransition>
       <SEOHead
-        title="Programa de Embajadores - Gana con Descubre RD"
-        description="Únete a nuestro programa de embajadores y afiliados, promociona destinos turísticos de República Dominicana y gana comisiones."
+        title="Programa de Afiliados - Gana con Descubre RD"
+        description="Conoce el programa de afiliados de Descubre RD: comisiones sujetas a pedidos elegibles, atribución y validación."
       />
       <div className="min-h-screen bg-background flex flex-col justify-between">
         <Header />
@@ -230,12 +226,12 @@ export default function SistemaAfiliados() {
               animate={{ opacity: 1, y: 0 }}
               className="max-w-3xl"
             >
-              <Badge className="mb-4 bg-amber-500/10 text-amber-500 border-amber-500/20">Programa de Embajadores</Badge>
+              <Badge className="mb-4 bg-amber-500/10 text-amber-500 border-amber-500/20">Programa de Afiliados</Badge>
               <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-                Gana Comisiones Promocionando <span className="text-primary">República Dominicana</span>
+                Recomienda Descubre RD y gana por ventas elegibles
               </h1>
               <p className="text-lg text-muted-foreground mb-8">
-                Genera tu código QR único y tu enlace de referido. Recibe comisiones reales por cada reserva de hoteles, restaurantes o tours confirmada en nuestra plataforma.
+                Comparte tu enlace o código de referido. Las comisiones aplican a pedidos cobrados en tienda y marketplace, según el nivel, la atribución y la validación del servidor. Las visitas y reservas turísticas no generan comisión por sí solas.
               </p>
               {!ambassador && (
                 <div className="flex gap-4">
@@ -244,7 +240,7 @@ export default function SistemaAfiliados() {
                     el?.scrollIntoView({ behavior: "smooth" });
                   }}>
                     <DollarSign className="h-4 w-4" />
-                    Comenzar a Ganar
+                    Solicitar afiliación
                   </Button>
                 </div>
               )}
@@ -275,13 +271,37 @@ export default function SistemaAfiliados() {
             </div>
           </section>
 
+          <section aria-labelledby="commission-calculator-title" className="max-w-4xl mx-auto w-full">
+            <Card className="border-amber-500/20">
+              <CardHeader>
+                <CardTitle id="commission-calculator-title" className="font-display text-2xl">Calcula una comisión estimada</CardTitle>
+                <CardDescription>Usa la base elegible del pedido y tu nivel actual para ver un ejemplo. No representa saldo ni garantiza una comisión.</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-5 md:grid-cols-[1fr_1fr_auto] md:items-end">
+                <label className="space-y-2 text-sm font-medium">
+                  <span>Base comisionable del pedido (RD$)</span>
+                  <Input type="number" min="0" step="0.01" value={estimateBase} onChange={(event) => setEstimateBase(event.target.value)} inputMode="decimal" />
+                </label>
+                <label className="space-y-2 text-sm font-medium">
+                  <span>Pedidos elegibles previos</span>
+                  <Input type="number" min="0" step="1" value={eligibleOrders} onChange={(event) => setEligibleOrders(event.target.value)} inputMode="numeric" />
+                </label>
+                <div aria-live="polite" className="rounded-xl bg-amber-500/10 px-5 py-3">
+                  <div className="text-xs text-muted-foreground">{currentTier.name} · {currentTier.commission}%</div>
+                  <div className="text-xl font-bold text-foreground">RD$ {estimatedCommission.toLocaleString("es-DO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                </div>
+                <p className="md:col-span-3 text-xs leading-5 text-muted-foreground">La tasa se determina por tus pedidos elegibles anteriores. El servidor calcula sobre el importe cobrado menos reembolsos y envío (tienda) o sobre las líneas elegibles no reembolsadas (marketplace). Se requiere atribución válida; el pedido pasa por una espera de 7 días y puede revertirse.</p>
+              </CardContent>
+            </Card>
+          </section>
+
           {/* Registration / Dashboard Section */}
           <section id="register-section" className="max-w-4xl mx-auto">
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="h-8 w-8 text-primary animate-spin" />
               </div>
-            ) : !user ? (
+            ) : !user || !session ? (
               <Card className="border-border">
                 <CardContent className="p-8 text-center space-y-4">
                   <div className="w-12 h-12 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center mx-auto">
@@ -290,10 +310,10 @@ export default function SistemaAfiliados() {
                   <div>
                     <h3 className="font-bold text-lg">Inicia sesión como Viajero</h3>
                     <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
-                      Necesitas una cuenta registrada para poder unirte al programa de embajadores y acumular comisiones.
+                      Inicia sesión para enviar una solicitud. La activación del código y las comisiones dependen de la validación del programa y de pedidos elegibles.
                     </p>
                   </div>
-                  <Button onClick={() => window.location.href = "/login"}>Iniciar Sesión / Registrarse</Button>
+                  <Button onClick={() => window.location.href = "/login"}>Iniciar sesión / registrarse</Button>
                 </CardContent>
               </Card>
             ) : !ambassador ? (
@@ -302,26 +322,42 @@ export default function SistemaAfiliados() {
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-card rounded-2xl p-8 border border-border max-w-xl mx-auto"
               >
-                <h2 className="font-display text-2xl font-bold mb-4 text-center">
-                  Crea tu Código de Embajador
+                  <h2 className="font-display text-2xl font-bold mb-4 text-center">
+                  Solicita ser embajador
                 </h2>
                 <p className="text-sm text-muted-foreground text-center mb-6">
-                  Elige un código personalizado que identifique tu marca personal.
+                  Describe cómo recomendarás productos elegibles. La solicitud requiere una cuenta verificada y aprobación del equipo; el servidor asignará el código si se aprueba.
                 </p>
                 <form onSubmit={handleRegister} className="space-y-4">
-                  <FloatingInput
-                    label="Código de Referido Personalizado"
-                    value={customCode}
-                    onChange={(e) => setCustomCode(e.target.value.replace(/[^a-zA-Z0-9-]/g, ""))}
-                    placeholder="Ej: VIAJERORD"
+                  <Textarea
+                    aria-label="Motivación para ser embajador"
+                    value={applicationMotivation}
+                    onChange={(event) => setApplicationMotivation(event.target.value)}
+                    placeholder="Cuéntanos por qué quieres recomendar Descubre RD y cómo compartirías el programa."
+                    minLength={20}
+                    maxLength={1000}
                     required
                   />
-                  <p className="text-[10px] text-muted-foreground">Solo letras, números y guiones. Dejar vacío para autogenerar.</p>
+                  <Input
+                    value={applicationAudience}
+                    onChange={(event) => setApplicationAudience(event.target.value)}
+                    placeholder="Audiencia o comunidad (opcional)"
+                    maxLength={300}
+                  />
                   <Button type="submit" size="lg" className="w-full bg-amber-500 hover:bg-amber-600 text-white" disabled={isSubmitting}>
-                    {isSubmitting ? "Registrando..." : "Crear Enlace y Código QR"}
+                    {isSubmitting ? "Enviando..." : "Enviar solicitud"}
                   </Button>
                 </form>
               </motion.div>
+            ) : ambassador.status !== "approved" ? (
+              <Card className="mx-auto max-w-2xl border-amber-500/30">
+                <CardContent className="space-y-3 p-8 text-center">
+                  <Badge className="capitalize">Solicitud {ambassador.status === "pending" ? "pendiente" : ambassador.status === "rejected" ? "rechazada" : "suspendida"}</Badge>
+                  <h2 className="font-display text-2xl font-bold">Tu solicitud requiere revisión</h2>
+                  <p className="text-sm text-muted-foreground">No hay código activo, ventas ni comisiones hasta recibir aprobación. {ambassador.status_note || "Consulta aquí más adelante para ver cambios de estado."}</p>
+                  {ambassador.status === "rejected" && <Button variant="outline" onClick={() => setAmbassador(null)}>Enviar una nueva solicitud</Button>}
+                </CardContent>
+              </Card>
             ) : (
               <div className="grid md:grid-cols-2 gap-8">
                 {/* Ambassador stats dashboard */}
@@ -329,91 +365,52 @@ export default function SistemaAfiliados() {
                   <CardHeader>
                     <div className="flex justify-between items-center">
                       <div>
-                        <CardTitle className="text-xl font-bold">Tu Panel de Embajador</CardTitle>
-                        <CardDescription>Estadísticas y balance financiero.</CardDescription>
+                        <CardTitle className="text-xl font-bold">Tu resumen de embajador</CardTitle>
+                        <CardDescription>Datos consultados al servicio del programa.</CardDescription>
                       </div>
-                      <Badge className="bg-amber-500 text-white font-semibold">{ambassador.tier}</Badge>
+                      <Badge className="bg-amber-500 text-white font-semibold capitalize">{ambassador.tier} · {ambassador.commission_rate}%</Badge>
                     </div>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-muted/30 p-4 rounded-xl border border-border">
-                        <span className="text-xs text-muted-foreground">Clics generados</span>
-                        <div className="text-2xl font-bold text-foreground mt-1">{ambassador.clicks_count || 0}</div>
-                      </div>
-                      <div className="bg-muted/30 p-4 rounded-xl border border-border">
-                        <span className="text-xs text-muted-foreground">Reservas logradas</span>
-                        <div className="text-2xl font-bold text-foreground mt-1">{ambassador.sales_count || 0}</div>
-                      </div>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <p className="rounded-lg bg-muted/40 p-3"><span className="block text-xs text-muted-foreground">Clics</span><strong>{ambassador.clicks}</strong></p>
+                      <p className="rounded-lg bg-muted/40 p-3"><span className="block text-xs text-muted-foreground">Ventas elegibles</span><strong>{ambassador.sales_count}</strong></p>
+                      <p className="rounded-lg bg-muted/40 p-3"><span className="block text-xs text-muted-foreground">En espera</span><strong>RD$ {ambassador.in_hold.toLocaleString("es-DO", { minimumFractionDigits: 2 })}</strong></p>
+                      <p className="rounded-lg bg-muted/40 p-3"><span className="block text-xs text-muted-foreground">Disponible</span><strong>RD$ {ambassador.available.toLocaleString("es-DO", { minimumFractionDigits: 2 })}</strong></p>
                     </div>
-
-                    <div className="space-y-4">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Ingresos totales</span>
-                        <span className="font-bold text-foreground">${ambassador.total_earned} USD</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Retiro pendiente</span>
-                        <span className="font-bold text-emerald-500">${ambassador.pending_payout} USD</span>
-                      </div>
-                      <ProgressBar value={ambassador.sales_count % 10} max={10} label="Progreso al siguiente nivel de comisión" />
+                    <div className="text-sm text-muted-foreground">
+                      <p>Solicitado: RD$ {ambassador.requested.toLocaleString("es-DO", { minimumFractionDigits: 2 })} · Pagado: RD$ {ambassador.paid.toLocaleString("es-DO", { minimumFractionDigits: 2 })}</p>
+                      {ambassador.next_tier && <p className="mt-1">Próximo nivel: {ambassador.next_tier.tier} ({ambassador.next_tier.rate}%) al sumar {ambassador.next_tier.sales_needed} ventas elegibles.</p>}
                     </div>
+                    {(!ambassador.payout_method || !ambassador.payout_details) && (
+                      <div className="grid gap-3 border-t border-border pt-4">
+                        <label className="space-y-1 text-sm"><span>Método de pago</span>
+                          <select value={payoutMethod} onChange={(event) => setPayoutMethod(event.target.value as "bank_transfer" | "paypal")} className="h-10 w-full rounded-md border border-input bg-background px-3">
+                            <option value="bank_transfer">Transferencia bancaria</option><option value="paypal">PayPal</option>
+                          </select>
+                        </label>
+                        <label className="space-y-1 text-sm"><span>{payoutMethod === "paypal" ? "Correo de PayPal" : "Datos de cuenta bancaria"}</span>
+                          <Input value={payoutDetails} onChange={(event) => setPayoutDetails(event.target.value)} minLength={5} maxLength={300} autoComplete="off" />
+                        </label>
+                      </div>
+                    )}
                   </CardContent>
                   <div className="p-6 pt-0">
-                    <Button 
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-2" 
-                      onClick={handleRequestPayout}
-                      disabled={isSubmitting || ambassador.pending_payout <= 0}
-                    >
-                      {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <DollarSign className="h-4 w-4" />}
-                      Solicitar Transferencia de Fondos
+                    <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-2" onClick={handlePayoutRequest} disabled={isSubmitting || ambassador.available < ambassador.min_payout || (!ambassador.payout_details && payoutDetails.trim().length < 5)}>
+                      <DollarSign className="h-4 w-4" />
+                      {isSubmitting ? "Enviando solicitud…" : `Solicitar pago (mínimo RD$ ${ambassador.min_payout.toLocaleString("es-DO")})`}
                     </Button>
+                    {ambassador.available < ambassador.min_payout && <p className="mt-2 text-center text-xs text-muted-foreground">El saldo disponible aún no alcanza el mínimo de retiro.</p>}
                   </div>
                 </Card>
 
-                {/* QR and share link card */}
+                {/* Referral link card */}
                 <Card className="border-border text-center flex flex-col justify-between">
                   <CardHeader>
-                    <CardTitle className="text-xl font-bold">Enlace & Código QR de Referido</CardTitle>
-                    <CardDescription>Los turistas pueden escanear tu QR para reservar con tu código.</CardDescription>
+                    <CardTitle className="text-xl font-bold">Tu enlace de afiliado</CardTitle>
+                    <CardDescription>Este enlace cuenta clics validados. La atribución de ventas requiere que el checkout envíe el código al servicio.</CardDescription>
                   </CardHeader>
                   <CardContent className="flex flex-col items-center justify-center gap-4">
-                    {/* Visual QR Code Generator */}
-                    <div className="bg-white p-3 rounded-2xl border border-border shadow-md">
-                      <svg id="qr-code-svg" viewBox="0 0 100 100" className="w-32 h-32">
-                        <rect x="0" y="0" width="100" height="100" fill="white" />
-                        {/* Anchor boxes standard */}
-                        <rect x="5" y="5" width="25" height="25" fill="black" />
-                        <rect x="9" y="9" width="17" height="17" fill="white" />
-                        <rect x="13" y="13" width="9" height="9" fill="black" />
-                        
-                        <rect x="70" y="5" width="25" height="25" fill="black" />
-                        <rect x="74" y="9" width="17" height="17" fill="white" />
-                        <rect x="78" y="13" width="9" height="9" fill="black" />
-
-                        <rect x="5" y="70" width="25" height="25" fill="black" />
-                        <rect x="9" y="74" width="17" height="17" fill="white" />
-                        <rect x="13" y="78" width="9" height="9" fill="black" />
-
-                        {/* Middle dots simulation based on code length */}
-                        <rect x="40" y="10" width="5" height="5" fill="black" />
-                        <rect x="50" y="15" width="5" height="5" fill="black" />
-                        <rect x="45" y="25" width="5" height="5" fill="black" />
-                        <rect x="55" y="35" width="5" height="5" fill="black" />
-                        <rect x="40" y="45" width="10" height="10" fill="black" />
-                        <rect x="15" y="45" width="5" height="5" fill="black" />
-                        <rect x="25" y="50" width="5" height="5" fill="black" />
-                        <rect x="35" y="55" width="5" height="5" fill="black" />
-                        <rect x="45" y="60" width="5" height="5" fill="black" />
-                        <rect x="55" y="70" width="5" height="5" fill="black" />
-                        <rect x="65" y="55" width="10" height="10" fill="black" />
-                        <rect x="75" y="70" width="5" height="5" fill="black" />
-                        <rect x="85" y="80" width="10" height="10" fill="black" />
-                        <rect x="80" y="50" width="5" height="5" fill="black" />
-                        <rect x="75" y="40" width="5" height="5" fill="black" />
-                      </svg>
-                    </div>
-
                     <div className="bg-secondary/40 rounded-xl p-3 w-full border border-border flex items-center justify-between gap-2 max-w-sm">
                       <span className="text-xs font-mono font-bold truncate text-muted-foreground flex-1 text-left">
                         {window.location.origin}/?ref={ambassador.referral_code}
@@ -423,55 +420,37 @@ export default function SistemaAfiliados() {
                       </Button>
                     </div>
                   </CardContent>
-                  <div className="p-6 pt-0 flex gap-2 w-full">
-                    <Button variant="outline" className="w-1/2 gap-1.5" onClick={downloadQR}>
-                      <Download className="h-4 w-4" /> Descargar QR
-                    </Button>
-                    <Button variant="outline" className="w-1/2 gap-1.5" onClick={handleCopyLink}>
-                      <Share2 className="h-4 w-4" /> Compartir Link
+                  <div className="p-6 pt-0 w-full">
+                    <Button variant="outline" className="w-full gap-1.5" onClick={handleCopyLink}>
+                      <Share2 className="h-4 w-4" /> Compartir enlace
                     </Button>
                   </div>
+                </Card>
+                <Card className="md:col-span-2">
+                  <CardHeader><CardTitle>Ventas atribuidas recientes</CardTitle><CardDescription>Datos del comprador enmascarados por privacidad.</CardDescription></CardHeader>
+                  <CardContent>
+                    {referrals.length === 0 ? <p className="text-sm text-muted-foreground">Aún no hay ventas atribuidas.</p> : <div className="overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr className="border-b text-muted-foreground"><th className="p-2">Fecha</th><th className="p-2">Origen</th><th className="p-2">Venta</th><th className="p-2">Comisión</th><th className="p-2">Estado</th></tr></thead><tbody>{referrals.map((referral) => <tr key={referral.id} className="border-b border-border/60"><td className="p-2">{new Date(referral.created_at).toLocaleDateString("es-DO")}</td><td className="p-2">{referral.source_type === "store" ? "Tienda" : "Marketplace"}</td><td className="p-2">RD$ {referral.sale_amount.toLocaleString("es-DO", { minimumFractionDigits: 2 })}</td><td className="p-2">RD$ {referral.commission.toLocaleString("es-DO", { minimumFractionDigits: 2 })}</td><td className="p-2 capitalize">{referral.status === "pending" ? "En espera" : referral.status === "approved" ? "Disponible" : referral.status === "requested" ? "Solicitada" : referral.status === "paid" ? "Pagada" : referral.status}</td></tr>)}</tbody></table></div>}
+                    {payouts.length > 0 && <div className="mt-5 border-t border-border pt-4"><h3 className="mb-2 font-semibold">Solicitudes de pago</h3><ul className="space-y-2 text-sm">{payouts.slice(0, 5).map((payout) => <li key={payout.id} className="flex justify-between gap-3"><span>{new Date(payout.created_at).toLocaleDateString("es-DO")} · {payout.status === "pending" ? "Pendiente" : payout.status === "paid" ? "Pagado" : "Fallido"}</span><strong>RD$ {payout.amount.toLocaleString("es-DO", { minimumFractionDigits: 2 })}</strong></li>)}</ul></div>}
+                  </CardContent>
                 </Card>
               </div>
             )}
           </section>
 
-          {/* Leaderboard Section */}
+          {/* Commission release information */}
           <section>
             <div className="max-w-2xl mx-auto space-y-4">
               <div className="text-center">
-                <Badge className="bg-amber-500/10 text-amber-500 border-amber-500/20 gap-1.5">
-                  <Trophy className="h-4 w-4" /> Ranking Nacional
-                </Badge>
-                <h2 className="font-display text-2xl font-bold mt-2">Embajadores del Mes</h2>
-                <p className="text-sm text-muted-foreground">Los embajadores con mayor volumen de reservas en República Dominicana.</p>
+                <h2 className="font-display text-2xl font-bold mt-2">Cómo se liberan tus comisiones</h2>
+                <p className="text-sm text-muted-foreground">Las cifras de esta página dependen de la conexión con el servicio y la validación de cada pedido elegible.</p>
               </div>
-
               <Card className="border-border">
-                <CardContent className="p-0">
-                  <div className="divide-y divide-border">
-                    {mockLeaderboard.map((item, idx) => (
-                      <div key={item.name} className="flex items-center justify-between p-4 hover:bg-muted/20 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <span className={`w-8 h-8 rounded-full font-bold text-sm flex items-center justify-center ${
-                            idx === 0 ? "bg-amber-500/20 text-amber-500" :
-                            idx === 1 ? "bg-slate-400/20 text-slate-400" :
-                            idx === 2 ? "bg-orange-500/20 text-orange-500" : "bg-muted text-muted-foreground"
-                          }`}>
-                            {item.rank}
-                          </span>
-                          <div>
-                            <div className="font-bold text-foreground">{item.name}</div>
-                            <div className="text-xs text-muted-foreground">{item.tier}</div>
-                          </div>
-                        </div>
-
-                        <div className="text-right space-y-0.5">
-                          <div className="font-bold text-foreground">{item.sales} Reservas</div>
-                          <div className="text-xs text-emerald-500 font-semibold">+${item.earned} USD</div>
-                        </div>
-                      </div>
-                    ))}
+                <CardContent className="p-6 space-y-3 text-sm text-muted-foreground">
+                  <p>Las ventas elegibles permanecen en validación durante 7 días. El pago podrá solicitarse al alcanzar RD$1,000, sujeto a verificación y a que el servicio de pagos esté disponible.</p>
+                  <p>El programa ofrece niveles Bronce (5%), Plata (7%) y Oro (10%), según pedidos elegibles atribuidos. No se publica un ranking hasta contar con datos conectados y verificables.</p>
+                  <div className="flex flex-wrap gap-4 pt-2">
+                    <Link to="/gana-con-descubre-rd" className="text-primary hover:underline">Ver formas de participar</Link>
+                    <Link to="/requisitos-embajadores" className="text-primary hover:underline">Programa de embajadores</Link>
                   </div>
                 </CardContent>
               </Card>

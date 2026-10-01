@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from "react";
+import { reportError } from "@/lib/errorReporter";
 
 interface Props {
   children: ReactNode;
@@ -27,6 +28,7 @@ export class RootErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error("[RootError]", error, info.componentStack);
+    reportError(error, { source: "render" });
   }
 
   render() {

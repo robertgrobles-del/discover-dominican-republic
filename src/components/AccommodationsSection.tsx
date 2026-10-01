@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
-import { Star, ChevronRight, Home, Users, Award, Megaphone } from "lucide-react";
+import { Star, ChevronRight, Home, Users, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -122,10 +123,7 @@ function AccommodationCard({ item, type, t }: AccommodationCardProps) {
         />
         <div className="absolute top-4 left-4 flex gap-2 flex-wrap">
           {item.isSponsored && (
-            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1">
-              <Megaphone className="h-3 w-3" />
-              {t("accommodations.sponsored")}
-            </Badge>
+            <SponsoredBadge label={t("accommodations.sponsored")} />
           )}
           {item.tags.map((tag) => (
             <span

@@ -35,7 +35,7 @@ export function CreatorsSponsorshipsTab({
               Estadías Todo Incluido para Creación de Contenido
             </h2>
             <p className="text-xs text-muted-foreground max-w-2xl mt-1">
-              Los hoteles y resorts patrocinadores publican convocatorias (ej. Hotel en Puerto Plata todo pagado). Como administrador o establecimiento, selecciona a los influencers adecuados de nuestro pool de más de 100 creadores registrados.
+              Las tarjetas que siguen son ejemplos ilustrativos. Las convocatorias reales y la selección de creadores aún no están conectadas al backend.
             </p>
           </div>
         </div>
@@ -118,11 +118,11 @@ export function CreatorsSponsorshipsTab({
 
               <div className="p-5 pt-0">
                 {opp.status === "Abierta" ? (
-                  <Button 
-                    onClick={() => onSelectOpp(opp)} 
+                    <Button
+                    disabled
                     className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs gap-1.5"
                   >
-                    <Users className="h-4 w-4" /> Seleccionar Creador del Pool
+                    <Users className="h-4 w-4" /> Convocatoria de ejemplo
                   </Button>
                 ) : (
                   <Button variant="outline" disabled className="w-full rounded-xl text-xs">

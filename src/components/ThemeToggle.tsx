@@ -51,7 +51,7 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={cycleTheme}
-      className="text-inherit hover:bg-white/20 h-9 w-9 transition-colors"
+      className="a11y-touch-target text-inherit hover:bg-white/20 transition-colors"
       title={
         mode === "dark"
           ? "Tema Oscuro (Click para Claro)"

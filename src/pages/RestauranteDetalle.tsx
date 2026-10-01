@@ -19,6 +19,7 @@ import { RestaurantActionBar } from "@/components/restaurant/RestaurantActionBar
 import { RestaurantOverviewSection } from "@/components/restaurant/RestaurantOverviewSection";
 import { RestaurantFaqAccordion } from "@/components/restaurant/RestaurantFaqAccordion";
 import { RestaurantPhotoGallery } from "@/components/restaurant/RestaurantPhotoGallery";
+import { ParticipationInvite } from "@/components/gamificacion/ParticipationInvite";
 
 export default function RestauranteDetalle() {
   const { slug } = useParams<{ slug: string }>();
@@ -157,6 +158,7 @@ export default function RestauranteDetalle() {
 
         {/* Main Content Layout */}
         <main className="container mx-auto px-4 lg:px-8 py-10">
+          <div className="mb-10"><ParticipationInvite placeName={restaurant.name} /></div>
           <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
             {/* Left Column (8 cols) */}
             <div className="lg:col-span-8 space-y-10">

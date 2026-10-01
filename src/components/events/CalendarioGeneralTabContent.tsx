@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight, ChevronRight as ChevronRightIcon, MapPin } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ChevronRight as ChevronRightIcon, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { BannerAd } from "@/components/promo";
 import { EventoItem } from "@/data/eventosData";
 
@@ -26,6 +26,25 @@ export function CalendarioGeneralTabContent({
   eventos,
   labels
 }: CalendarioGeneralTabContentProps) {
+  const [province, setProvince] = useState("all");
+  const [onlyThisWeek, setOnlyThisWeek] = useState(false);
+  const provinces = useMemo(() => [...new Set(eventos.map((event) => event.provincia).filter((value): value is string => Boolean(value)))].sort(), [eventos]);
+  const filteredEvents = useMemo(() => {
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setHours(0, 0, 0, 0);
+    weekStart.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 7);
+    return eventos.filter((event) => {
+      if (province !== "all" && event.provincia !== province) return false;
+      if (!onlyThisWeek) return true;
+      if (!event.startsAt) return false;
+      const startDate = new Date(event.startsAt);
+      return !Number.isNaN(startDate.getTime()) && startDate >= weekStart && startDate < weekEnd;
+    });
+  }, [eventos, onlyThisWeek, province]);
+
   return (
     <div>
       {/* Próximos Eventos */}
@@ -50,39 +69,18 @@ export function CalendarioGeneralTabContent({
 
       <div className="grid lg:grid-cols-4 gap-8">
         {/* Calendar Sidebar */}
-        <div className="bg-card rounded-xl border border-border p-6">
-          <div className="flex items-center justify-between mb-4">
-            <Button size="icon" variant="ghost" aria-label="Mes anterior"><ChevronLeft className="h-4 w-4" /></Button>
-            <span className="font-semibold text-foreground">Octubre 2024</span>
-            <Button size="icon" variant="ghost" aria-label="Siguiente mes"><ChevronRight className="h-4 w-4" /></Button>
+        <div className="bg-card rounded-xl border border-border p-6 space-y-5">
+          <div>
+            <label htmlFor="event-province" className="text-sm font-semibold text-foreground">Filtrar por provincia</label>
+            <select id="event-province" className="mt-2 w-full rounded-md border border-input bg-background p-2 text-sm" value={province} onChange={(event) => setProvince(event.target.value)}>
+              <option value="all">Todas las provincias</option>
+              {provinces.map((item) => <option key={item} value={item}>{item}</option>)}
+            </select>
           </div>
-          <div className="grid grid-cols-7 gap-1 text-center text-sm mb-4">
-            {["D", "L", "M", "M", "J", "V", "S"].map((d, i) => (
-              <span key={i} className="text-muted-foreground py-1">{d}</span>
-            ))}
-            {Array.from({ length: 31 }, (_, i) => (
-              <button
-                key={i}
-                className={`py-1 rounded-full hover:bg-primary/20 ${
-                  i + 1 === 5 ? "bg-primary text-primary-foreground" : "text-foreground"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
-
-          <div className="border-t border-border pt-4">
-            <p className="text-sm font-semibold text-foreground mb-3">{labels.filterByLocation}</p>
-            <div className="space-y-2">
-              {["Santo Domingo", "Punta Cana", "Puerto Plata"].map((loc, i) => (
-                <div key={loc} className="flex items-center gap-2">
-                  <Checkbox id={`loc-${i}`} defaultChecked={i === 0} />
-                  <label htmlFor={`loc-${i}`} className="text-sm text-foreground">{loc}</label>
-                </div>
-              ))}
-            </div>
-          </div>
+          <Button type="button" variant={onlyThisWeek ? "default" : "outline"} className="w-full" aria-pressed={onlyThisWeek} onClick={() => setOnlyThisWeek((value) => !value)}>
+            {onlyThisWeek ? "Mostrando esta semana" : "Qué pasa esta semana"}
+          </Button>
+          <p className="text-xs leading-relaxed text-muted-foreground">El filtro semanal incluye eventos con fecha de inicio registrada. Confirma cambios de fecha o lugar con la organización.</p>
           
           {/* Skyscraper Banner Ad inside Sidebar */}
           <div className="border-t border-border pt-6 hidden sm:flex justify-center">
@@ -98,7 +96,7 @@ export function CalendarioGeneralTabContent({
 
         {/* Events Grid */}
         <div className="lg:col-span-3 grid md:grid-cols-3 gap-6">
-          {eventos.slice(0, 6).map((evento) => (
+          {filteredEvents.slice(0, 9).map((evento) => (
             <div key={evento.id} className="bg-card rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-colors">
               <div className="relative aspect-[4/3]">
                 <img src={evento.imagen} alt={evento.titulo} className="w-full h-full object-cover" loading="lazy" />
@@ -115,7 +113,7 @@ export function CalendarioGeneralTabContent({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <MapPin className="h-3 w-3 text-primary" />
-                    <span>{evento.ubicacion}</span>
+                    <span>{evento.provincia || evento.ubicacion}</span>
                   </div>
                   <Link to={`/evento/${evento.id}`} className="text-primary text-sm font-medium flex items-center gap-1 hover:underline">
                     {labels.viewDetails} <ChevronRightIcon className="h-4 w-4" />
@@ -124,6 +122,7 @@ export function CalendarioGeneralTabContent({
               </div>
             </div>
           ))}
+          {filteredEvents.length === 0 && <div className="md:col-span-3 rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">No hay eventos con fecha registrada para estos filtros. Prueba otra provincia o consulta la agenda general.</div>}
         </div>
       </div>
     </div>

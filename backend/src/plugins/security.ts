@@ -13,7 +13,15 @@ export async function registerSecurity(app: FastifyInstance, env: Env) {
   await app.register(helmet, {
     // La API sólo sirve JSON; la UI de documentación (/docs) necesita sus propios scripts y estilos.
     contentSecurityPolicy: env.DOCS_ENABLED ? false : { directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] } },
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    xContentTypeOptions: true,
     crossOriginResourcePolicy: { policy: "cross-origin" },
+  });
+  // Helmet no añade Permissions-Policy. Geolocalización se usa en el portal;
+  // cámara y micrófono no son necesarios y se deniegan de forma explícita.
+  app.addHook("onSend", async (request, reply, payload) => {
+    reply.header("Permissions-Policy", "camera=(), microphone=(), geolocation=(self)");
+    return payload;
   });
   const origins = env.CORS_ORIGINS.split(",").map((s) => s.trim()).filter(Boolean);
   await app.register(cors, {

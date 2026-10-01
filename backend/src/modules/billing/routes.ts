@@ -1,6 +1,8 @@
-import { type FastifyPluginAsync } from "fastify";
+import type { FastifyInstance } from "fastify";
+import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { type FiscalInvoicingService, type NcfType } from "./invoicing.js";
+import { AppError } from "../../lib/errors.js";
+import { type FiscalInvoicingService } from "./invoicing.js";
 
 declare module "fastify" {
   interface FastifyInstance {
@@ -8,75 +10,77 @@ declare module "fastify" {
   }
 }
 
-export const fiscalInvoiceRoutes: FastifyPluginAsync = async (app) => {
+const any = z.any();
+const ok = z.object({ data: any });
+const bearer = [{ bearerAuth: [] }];
+const ncfType = z.enum(["B01", "B02", "B14", "B15", "E31", "E32", "E44", "E45"]);
+const referenceType = z.enum(["membership", "booking", "store_order", "sponsorship", "ticket"]);
+const referenceId = z.string().min(1).max(64);
+const money = z.number().min(0).max(99_999_999);
+
+/** Comprobantes fiscales NCF/e-CF (DGII) (#4) */
+export async function fiscalInvoiceRoutes(app: FastifyInstance) {
+  const r = app.withTypeProvider<ZodTypeProvider>();
   const auth = app.authenticate;
   const admin = app.requireRole("admin");
+  const rl = (max: number, timeWindow: string) => ({ rateLimit: app.env.AUTH_RATE_LIMIT_ENABLED ? { max, timeWindow } : { max: 1_000_000, timeWindow: "1 minute" } });
 
   // Emitir comprobante fiscal NCF (#4) — acción interna/fiscal: sólo personal admin, nunca a petición directa del cliente
   // (el NCF y los montos deben salir de un pedido/reserva ya cobrado, no de lo que declare quien llama).
-  app.post<{
-    Body: {
-      ncf_type: NcfType;
-      buyer_name: string;
-      buyer_rnc_cedula?: string;
-      subtotal: number;
-      itbis?: number;
-      currency?: string;
-      exchange_rate?: number;
-      reference_type: string;
-      reference_id: string;
-      payment_method?: string;
-    };
-  }>("/invoices/issue", { onRequest: admin }, async (request, reply) => {
-    const body = request.body;
-    if (!body || !body.ncf_type || !body.buyer_name || !body.subtotal || !body.reference_type || !body.reference_id) {
-      return reply.status(400).send({
-        success: false,
-        error: { code: "VALIDATION_ERROR", message: "Faltan campos obligatorios para la emisión fiscal (ncf_type, buyer_name, subtotal, reference_type, reference_id)." },
-      });
-    }
-
-    const invoice = await app.invoicingService.issueInvoice(body);
-    return reply.status(201).send({
-      success: true,
-      data: invoice,
-      message: `Comprobante fiscal ${invoice.ncf} emitido exitosamente.`,
-    });
+  r.post("/invoices/issue", {
+    onRequest: admin, ...rl(60, "1 hour"),
+    schema: {
+      tags: ["billing"],
+      summary: "Emite un comprobante fiscal NCF/e-CF asociado a un pedido o reserva cobrada (#4)",
+      security: bearer,
+      body: z.object({
+        ncf_type: ncfType,
+        buyer_name: z.string().trim().min(3).max(200),
+        buyer_rnc_cedula: z.string().trim().regex(/^\d{9}(\d{2})?$/, "Debe ser un RNC (9 dígitos) o cédula (11 dígitos)").optional(),
+        subtotal: money,
+        itbis: money.optional(),
+        currency: z.enum(["DOP", "USD", "EUR"]).optional(),
+        exchange_rate: z.number().positive().max(1_000).optional(),
+        reference_type: referenceType,
+        reference_id: referenceId,
+        payment_method: z.string().trim().min(2).max(40).optional(),
+      }),
+      response: { 201: ok },
+    },
+  }, async (req, reply) => {
+    const invoice = await app.invoicingService.issueInvoice(req.body);
+    reply.code(201);
+    return { data: invoice };
   });
 
   // Consultar comprobante fiscal por NCF — exige sesión: expone datos del comprador (nombre, RNC/cédula, montos).
-  app.get<{
-    Params: { ncf: string };
-  }>("/invoices/:ncf", { onRequest: auth }, async (request, reply) => {
-    const invoice = await app.invoicingService.getInvoiceByNcf(request.params.ncf);
-    if (!invoice) {
-      return reply.status(404).send({
-        success: false,
-        error: { code: "NOT_FOUND", message: "Comprobante fiscal no encontrado." },
-      });
-    }
-    return reply.send({
-      success: true,
-      data: invoice,
-    });
+  r.get("/invoices/:ncf", {
+    onRequest: auth,
+    schema: {
+      tags: ["billing"],
+      summary: "Consulta un comprobante fiscal por su NCF (#4)",
+      security: bearer,
+      params: z.object({ ncf: z.string().trim().min(6).max(20) }),
+      response: { 200: ok },
+    },
+  }, async (req) => {
+    const invoice = await app.invoicingService.getInvoiceByNcf(req.params.ncf);
+    if (!invoice) throw AppError.notFound("Comprobante fiscal");
+    return { data: invoice };
   });
 
   // Consultar comprobantes vinculados a una orden o reserva — exige sesión (misma razón que arriba).
-  app.get<{
-    Querystring: { reference_type: string; reference_id: string };
-  }>("/invoices", { onRequest: auth }, async (request, reply) => {
-    const { reference_type, reference_id } = request.query;
-    if (!reference_type || !reference_id) {
-      return reply.status(400).send({
-        success: false,
-        error: { code: "VALIDATION_ERROR", message: "reference_type y reference_id son requeridos." },
-      });
-    }
-
-    const invoices = await app.invoicingService.listInvoicesByReference(reference_type, reference_id);
-    return reply.send({
-      success: true,
-      data: invoices,
-    });
+  r.get("/invoices", {
+    onRequest: auth,
+    schema: {
+      tags: ["billing"],
+      summary: "Lista los comprobantes fiscales vinculados a una referencia (#4)",
+      security: bearer,
+      querystring: z.object({ reference_type: referenceType, reference_id: referenceId }),
+      response: { 200: ok },
+    },
+  }, async (req) => {
+    const invoices = await app.invoicingService.listInvoicesByReference(req.query.reference_type, req.query.reference_id);
+    return { data: invoices };
   });
-};
+}

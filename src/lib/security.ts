@@ -39,6 +39,21 @@ export function sanitizeInput(input: string): string {
   return stripDangerousTags(input).trim();
 }
 
+/** Accept only absolute HTTP(S) URLs for external anchors built from content data. */
+export function safeExternalUrl(value: unknown): string | undefined {
+  if (typeof value !== "string" || value.length > 2048) return undefined;
+
+  try {
+    const url = new URL(value.trim());
+    if ((url.protocol !== "https:" && url.protocol !== "http:") || !url.hostname || url.username || url.password) {
+      return undefined;
+    }
+    return url.href;
+  } catch {
+    return undefined;
+  }
+}
+
 // Strict email format validation according to RFC 5322 regex standards
 export function isValidEmail(email: string): boolean {
   if (!email || typeof email !== "string") return false;

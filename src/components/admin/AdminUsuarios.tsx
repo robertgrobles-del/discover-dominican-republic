@@ -53,6 +53,7 @@ interface Transaction {
 
 const ROLE_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   admin:     { label: "Admin",       color: "bg-red-500/10 text-red-600 border-red-200",     icon: <Shield className="h-3 w-3" /> },
+  editor:    { label: "Editor",      color: "bg-amber-500/10 text-amber-600 border-amber-200", icon: <TrendingUp className="h-3 w-3" /> },
   moderator: { label: "Moderador",   color: "bg-purple-500/10 text-purple-600 border-purple-200", icon: <Star className="h-3 w-3" /> },
   partner:   { label: "Partner",     color: "bg-blue-500/10 text-blue-600 border-blue-200",   icon: <Crown className="h-3 w-3" /> },
   user:      { label: "Usuario",     color: "bg-gray-500/10 text-gray-600 border-gray-200",   icon: <Users className="h-3 w-3" /> },
@@ -105,16 +106,25 @@ export function AdminUsuarios() {
     enabled: !!txModal,
   });
 
+  // Role change state
+  const [roleModal, setRoleModal] = useState<{ user: AdminUser; newRole: string } | null>(null);
+  const [roleReason, setRoleReason] = useState("");
+
   // Mutations
   const updateRole = useMutation({
-    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+    mutationFn: async ({ userId, role, reason }: { userId: string; role: string; reason?: string }) => {
       const { data, error } = await supabase.rpc("admin_update_user_role" as any, {
-        p_user_id: userId, p_new_role: role
+        p_user_id: userId, p_new_role: role, p_reason: reason || null
       });
       if (error) throw error;
       return data;
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin-users"] }); toast.success("Rol actualizado"); },
+    onSuccess: () => { 
+      qc.invalidateQueries({ queryKey: ["admin-users"] }); 
+      toast.success("Rol actualizado correctamente"); 
+      setRoleModal(null);
+      setRoleReason("");
+    },
     onError: () => toast.error("Error al actualizar rol"),
   });
 
@@ -224,6 +234,7 @@ export function AdminUsuarios() {
             <SelectItem value="all">Todos los roles</SelectItem>
             <SelectItem value="user">Usuario</SelectItem>
             <SelectItem value="partner">Partner</SelectItem>
+            <SelectItem value="editor">Editor</SelectItem>
             <SelectItem value="moderator">Moderador</SelectItem>
             <SelectItem value="admin">Admin</SelectItem>
           </SelectContent>
@@ -342,16 +353,19 @@ export function AdminUsuarios() {
                                 <Zap className="h-4 w-4 mr-2" /> Otorgar XP/Monedas
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => updateRole.mutate({ userId: user.id, role: "user" })} disabled={user.role === "user"}>
+                              <DropdownMenuItem onClick={() => setRoleModal({ user, newRole: "user" })} disabled={user.role === "user"}>
                                 <Users className="h-4 w-4 mr-2" /> Rol: Usuario
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => updateRole.mutate({ userId: user.id, role: "moderator" })} disabled={user.role === "moderator"}>
+                              <DropdownMenuItem onClick={() => setRoleModal({ user, newRole: "editor" })} disabled={user.role === "editor"}>
+                                <TrendingUp className="h-4 w-4 mr-2 text-amber-500" /> Rol: Editor
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setRoleModal({ user, newRole: "moderator" })} disabled={user.role === "moderator"}>
                                 <Star className="h-4 w-4 mr-2" /> Rol: Moderador
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => updateRole.mutate({ userId: user.id, role: "partner" })} disabled={user.role === "partner"}>
+                              <DropdownMenuItem onClick={() => setRoleModal({ user, newRole: "partner" })} disabled={user.role === "partner"}>
                                 <Crown className="h-4 w-4 mr-2" /> Rol: Partner
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => updateRole.mutate({ userId: user.id, role: "admin" })} disabled={user.role === "admin"}>
+                              <DropdownMenuItem onClick={() => setRoleModal({ user, newRole: "admin" })} disabled={user.role === "admin"}>
                                 <Shield className="h-4 w-4 mr-2" /> Rol: Admin
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
@@ -459,6 +473,42 @@ export function AdminUsuarios() {
             >
               <Zap className="h-4 w-4" />
               {awardXp.isPending ? "Otorgando..." : "Aplicar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Role Change Modal */}
+      <Dialog open={!!roleModal} onOpenChange={open => !open && setRoleModal(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-amber-500" />
+              Confirmar cambio de rol
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">
+              Estás a punto de cambiar el rol del usuario <strong className="text-foreground">{roleModal?.user.display_name || roleModal?.user.email}</strong> de <Badge variant="outline">{roleModal?.user.role}</Badge> a <Badge className="bg-primary text-primary-foreground">{roleModal?.newRole}</Badge>.
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="role-reason" className="text-xs font-semibold">Motivo del cambio de rol (obligatorio para auditoría)</Label>
+              <Textarea
+                id="role-reason"
+                placeholder="Indica la razón formal o ticket para este cambio de rol..."
+                value={roleReason}
+                onChange={e => setRoleReason(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRoleModal(null)}>Cancelar</Button>
+            <Button
+              disabled={!roleReason.trim() || updateRole.isPending}
+              onClick={() => roleModal && updateRole.mutate({ userId: roleModal.user.id, role: roleModal.newRole, reason: roleReason })}
+            >
+              {updateRole.isPending ? "Actualizando..." : "Confirmar Cambio"}
             </Button>
           </DialogFooter>
         </DialogContent>

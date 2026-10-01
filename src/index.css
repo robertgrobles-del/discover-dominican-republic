@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -39,6 +37,21 @@
     --radius: 0.5rem;
 
     /* Custom tokens */
+    --brand-caribbean: 193 86% 50%;
+    --brand-deep-sea: 195 22% 10%;
+    --brand-sand: 45 93% 58%;
+    --brand-coral: 16 100% 66%;
+    --brand-forest: 160 84% 39%;
+    --surface-editorial: 195 18% 13%;
+    --surface-commercial: 195 16% 15%;
+    --border-strong: 195 15% 34%;
+    --focus-ring: 193 86% 50%;
+    --sponsored-bg: 45 70% 20%;
+    --sponsored-fg: 45 93% 76%;
+    --sponsored-border: 45 75% 44%;
+    --radius-card: 1rem;
+    --space-section: clamp(3rem, 7vw, 6rem);
+    --page-gutter: clamp(1rem, 4vw, 2.5rem);
     --surface: 195 16% 15%;
     --surface-elevated: 195 14% 18%;
     --text-secondary: 192 20% 72%;
@@ -69,6 +82,13 @@
   }
 
   .light {
+    --surface-editorial: 0 0% 100%;
+    --surface-commercial: 180 15% 97%;
+    --border-strong: 200 15% 65%;
+    --focus-ring: 193 86% 38%;
+    --sponsored-bg: 45 100% 94%;
+    --sponsored-fg: 32 80% 25%;
+    --sponsored-border: 36 75% 58%;
     --background: 180 20% 98%;
     --foreground: 200 30% 12%;
     --card: 0 0% 100%;
@@ -101,6 +121,11 @@
 
   html {
     scroll-behavior: smooth;
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--focus-ring));
+    outline-offset: 3px;
   }
 
   body {
@@ -163,6 +188,45 @@
   ::selection {
     background: hsl(193 86% 50%);
     color: hsl(195 22% 10%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@layer components {
+  .surface-editorial {
+    background-color: hsl(var(--surface-editorial));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-card);
+  }
+
+  .surface-commercial {
+    background-color: hsl(var(--surface-commercial));
+    border: 1px solid hsl(var(--border-strong));
+    border-radius: var(--radius-card);
+  }
+
+  .image-credit {
+    color: hsl(var(--foreground) / 0.78);
+    background: hsl(var(--background) / 0.88);
+    border-radius: 0.25rem;
+    padding: 0.2rem 0.45rem;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+  }
+
+  .badge-sponsored {
+    color: hsl(var(--sponsored-fg));
+    background-color: hsl(var(--sponsored-bg));
+    border-color: hsl(var(--sponsored-border));
   }
 }
 
@@ -364,6 +428,63 @@
                  0 0 20px hsl(var(--primary) / 0.3);
   }
 }
+
+/* Persistently available high-contrast mode; overrides semantic colors, not layout. */
+html[data-contrast="high"] {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 6%;
+  --card-foreground: 0 0% 100%;
+  --popover: 0 0% 6%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 54 100% 50%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 0 0% 14%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 14%;
+  --muted-foreground: 0 0% 88%;
+  --accent: 54 100% 50%;
+  --accent-foreground: 0 0% 0%;
+  --border: 0 0% 72%;
+  --input: 0 0% 72%;
+  --ring: 54 100% 50%;
+  --focus-ring: 54 100% 50%;
+  --surface-editorial: 0 0% 6%;
+  --surface-commercial: 0 0% 9%;
+  --surface: 0 0% 9%;
+  --surface-elevated: 0 0% 14%;
+  --text-secondary: 0 0% 88%;
+}
+
+html[data-contrast="high"] a:not([class*="bg-"]) {
+  text-decoration: underline;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.16em;
+}
+
+html[data-contrast="high"] body.sol-de-playa,
+html[data-contrast="high"] .sol-de-playa {
+  --background: 0 0% 0% !important;
+  --foreground: 0 0% 100% !important;
+  --card: 0 0% 6% !important;
+  --card-foreground: 0 0% 100% !important;
+  --muted: 0 0% 14% !important;
+  --muted-foreground: 0 0% 88% !important;
+  --border: 0 0% 72% !important;
+  --primary: 54 100% 50% !important;
+  --primary-foreground: 0 0% 0% !important;
+}
+html[data-contrast="high"] body.sol-de-playa * {
+  border-color: #fff !important;
+}
+
+@media (pointer: coarse) {
+  .a11y-touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
 
 /* Keyframe animations */
 @keyframes countUp {

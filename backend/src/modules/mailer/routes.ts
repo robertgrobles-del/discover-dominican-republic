@@ -193,15 +193,16 @@ export async function emailWebhookRoutes(app: FastifyInstance) {
   // Encapsulado: el parser entrega el texto crudo (para verificar la firma) y no afecta al resto de la API.
   app.addContentTypeParser("application/json", { parseAs: "string" }, (_req, body, done) => done(null, body));
 
-  const verify = (raw: string, header: string | undefined, secret: string) => {
-    const m = /^sha256=([0-9a-f]{64})$/i.exec(header ?? "");
-    if (!m) return false;
-    const good = createHmac("sha256", secret).update(raw).digest();
-    const got = Buffer.from(m[1]!, "hex");
+  // Firma con marca de tiempo (estilo Stripe): `t=<unix>,sha256=<hex>` sobre `t.cuerpo`; fuera de ±300 s se rechaza para acotar el replay.
+  const verify = (raw: string, header: string | undefined, secret: string, nowSeconds = Math.floor(Date.now() / 1000), toleranceSeconds = 300) => {
+    const m = /^t=(\d+),sha256=([0-9a-f]{64})$/i.exec(header ?? "");
+    if (!m || Math.abs(nowSeconds - Number(m[1])) > toleranceSeconds) return false;
+    const good = createHmac("sha256", secret).update(`${m[1]}.${raw}`).digest();
+    const got = Buffer.from(m[2]!, "hex");
     return got.length === good.length && timingSafeEqual(got, good);
   };
 
-  r.post("/webhooks/email/:provider", { config: { rateLimit: { max: 600, timeWindow: "1 minute" } }, schema: { tags: ["correo"], summary: "Eventos de entrega, rebote, queja y apertura (firma `X-Email-Signature: sha256=…`)", hide: true, params: z.object({ provider: z.enum(["generic"]) }) } }, async (req, reply) => {
+  r.post("/webhooks/email/:provider", { config: { rateLimit: { max: 600, timeWindow: "1 minute" } }, schema: { tags: ["correo"], summary: "Eventos de entrega, rebote, queja y apertura (firma `X-Email-Signature: t=…,sha256=…`)", hide: true, params: z.object({ provider: z.enum(["generic"]) }) } }, async (req, reply) => {
     const secret = app.env.EMAIL_WEBHOOK_SECRET;
     if (!secret) throw new AppError("NOT_FOUND", "Webhook no configurado");
     const raw = typeof req.body === "string" ? req.body : "";

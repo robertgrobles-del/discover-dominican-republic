@@ -27,6 +27,7 @@ import { LeaderboardLeagueSection } from "@/components/gamificacion-hub/Leaderbo
 import { FeatureGrid } from "@/components/gamificacion-hub/FeatureGrid";
 import { LevelsPreview } from "@/components/gamificacion-hub/LevelsPreview";
 import { HubCTA } from "@/components/gamificacion-hub/HubCTA";
+import { GamificationLivePanel } from "@/components/gamification/GamificationLivePanel";
 
 export default function GamificacionHub() {
   const { user } = useAuth();
@@ -72,12 +73,10 @@ export default function GamificacionHub() {
       localStorage.setItem("push_notifications_enabled", "true");
 
       // Send sample browser notification
-      if (navigator.serviceWorker?.controller) {
-        new Notification("🔥 Descubre RD - Alerta de Racha", {
-          body: "¡Notificaciones activadas! Te avisaremos 2 horas antes de que expire tu racha turística diaria.",
-          icon: "/pwa-192x192.png",
-        });
-      }
+      new Notification("🔥 Descubre RD - Alerta de Racha", {
+        body: "¡Notificaciones activadas! Te avisaremos 2 horas antes de que expire tu racha turística diaria.",
+        icon: "/pwa-192x192.png",
+      });
       toast.success("🔔 ¡Notificaciones activadas! No perderás tu racha ni descenderás de liga.");
     } else {
       toast.error("Permiso de notificaciones denegado.");
@@ -196,6 +195,8 @@ export default function GamificacionHub() {
           activeCount={activeCount}
           completedCount={completedCount}
         />
+
+        <GamificationLivePanel />
 
         {!user && missions.length > 0 && <MissionsTeaser missions={teaserMissions} />}
 

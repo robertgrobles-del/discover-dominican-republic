@@ -2,31 +2,61 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Sparkles, Hotel, Users, Link2, Copy, Video, Wallet, Check
-} from "lucide-react";
+import { Sparkles, Hotel, Users, Link2, Copy, Check, ShieldCheck, Gavel } from "lucide-react";
 import { toast } from "sonner";
 import { creatorsPool, initialSponsoredOpportunities, Creator, SponsoredOpportunity } from "@/data/creatorsData";
 import { PanoramaAd } from "@/components/promo";
+import { usePanelAdoption } from "@/lib/adoption";
 
 import { CreatorsMetrics } from "@/components/creators/CreatorsMetrics";
+import { CreatorsMonetizationInfoCard } from "@/components/creators/CreatorsMonetizationInfoCard";
+import { CreatorsOnboardingModal } from "@/components/creators/CreatorsOnboardingModal";
 import { CreatorsSponsorshipsTab } from "@/components/creators/CreatorsSponsorshipsTab";
 import { CreatorsAffiliatesTab } from "@/components/creators/CreatorsAffiliatesTab";
 import { CreatorsPoolTab } from "@/components/creators/CreatorsPoolTab";
 import { CreatorsVideosTab, CreatorVideoItem } from "@/components/creators/CreatorsVideosTab";
 import { CreatorsPayoutsTab } from "@/components/creators/CreatorsPayoutsTab";
+import { CreatorsIdentityTab } from "@/components/creators/CreatorsIdentityTab";
+import { CreatorsAppealsTab, CreatorAppealItem } from "@/components/creators/CreatorsAppealsTab";
+import { useAuth } from "@/hooks/useAuth";
+import { fetchApi } from "@/lib/fastifyClient";
+import { HttpError } from "@/lib/httpClient";
+
+interface CreatorDashboard {
+  profile: { id: string; handle: string; display_name: string; tier: string; total_views: number; total_earnings: number | string; balance_available: number | string; balance_pending: number | string; commission_rate: number | string; status: string };
+  videos: Array<{ id: string; title: string; destination_name: string | null; views_count: number; status: string; created_at: string; moderation_rule?: string | null; review_notes?: string | null }>;
+  payouts: Array<{ id: string; amount: number | string; status: string; created_at: string }>;
+}
 
 export default function ProgramaCreadores() {
+  const { session } = useAuth();
+  const [creatorDashboard, setCreatorDashboard] = useState<CreatorDashboard | null>(null);
+  const [creatorLoading, setCreatorLoading] = useState(true);
+  const [creatorLoadError, setCreatorLoadError] = useState<string | null>(null);
+  const loadCreatorDashboard = useCallback(async () => {
+    if (!session?.access_token) { setCreatorDashboard(null); setCreatorLoading(false); return; }
+    setCreatorLoading(true);
+    setCreatorLoadError(null);
+    try {
+      const result = await fetchApi<{ data: CreatorDashboard }>("/creators/me", { headers: { Authorization: `Bearer ${session.access_token}` } });
+      setCreatorDashboard(result.data);
+    } catch (error) {
+      if (error instanceof HttpError && error.status === 404) setCreatorDashboard(null);
+      else setCreatorLoadError("No pudimos cargar los datos del creador. Intenta de nuevo más tarde.");
+    } finally { setCreatorLoading(false); }
+  }, [session?.access_token]);
+  useEffect(() => { void loadCreatorDashboard(); }, [loadCreatorDashboard]);
+  // Punto 67: una sola marca de apertura del panel de creador por montaje.
+  usePanelAdoption("creador");
+
   // Dashboard & Balance States
-  const [balance, setBalance] = useState(385.50);
-  const [affiliateEarnings, setAffiliateEarnings] = useState(140.00);
-  const [tier, setTier] = useState("Oro");
-  const [affiliateCode, setAffiliateCode] = useState("CREADOR_RD2026");
+  const affiliateCode = "";
   const [copiedLink, setCopiedLink] = useState(false);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
 
   // Matchmaking & Sponsorships States
   const [opportunities, setOpportunities] = useState<SponsoredOpportunity[]>(initialSponsoredOpportunities);
@@ -34,23 +64,25 @@ export default function ProgramaCreadores() {
   const [selectedCreatorId, setSelectedCreatorId] = useState<string>("");
   const [isAssigning, setIsAssigning] = useState(false);
 
-  // Withdrawal States
-  const [withdrawAmount, setWithdrawAmount] = useState("");
-  const [withdrawMethod, setWithdrawMethod] = useState("paypal");
-  const [withdrawDetails, setWithdrawDetails] = useState("");
-  const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const creatorVideos: CreatorVideoItem[] = (creatorDashboard?.videos ?? []).map(video => ({
+    id: video.id, title: video.title, dest: video.destination_name ?? "—", views: video.views_count,
+    bookings: 0, earnings: "—", status: video.status, date: video.created_at,
+    ruleCode: video.moderation_rule ?? undefined, reviewNotes: video.review_notes ?? undefined,
+  }));
 
-  // Video State
-  const [videoTitle, setVideoTitle] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
-  const [videoDestination, setVideoDestination] = useState("Puerto Plata (POP)");
-  const [isUploading, setIsUploading] = useState(false);
-  const [creatorVideos, setCreatorVideos] = useState<CreatorVideoItem[]>([
-    { id: "1", title: "Guía Secreta de Hoteles en Puerto Plata", dest: "Puerto Plata (POP)", views: 18400, bookings: 38, earnings: "$76.00", status: "Aprobado", date: "2026-06-01" },
-    { id: "2", title: "Snorkel secreto en Las Terrenas", dest: "Samaná", views: 9450, bookings: 19, earnings: "$38.00", status: "Aprobado", date: "2026-06-10" }
-  ]);
+  // Las apelaciones se cargan desde el servicio; no se precargan filas de ejemplo.
+  const [creatorAppeals, setCreatorAppeals] = useState<CreatorAppealItem[]>(
+    [],
+  );
+  const [appealsReloadKey, setAppealsReloadKey] = useState(0);
+
+  const handleAppealSubmitted = (appeal: CreatorAppealItem) => {
+    setCreatorAppeals(prev => [appeal, ...prev.filter(item => item.id !== appeal.id)]);
+    setAppealsReloadKey(key => key + 1);
+  };
 
   const handleCopyAffiliate = (url: string) => {
+    if (!affiliateCode) { toast.info("El enlace personal estará disponible cuando el backend habilite el código de creador."); return; }
     navigator.clipboard.writeText(`${url}${affiliateCode}`);
     setCopiedLink(true);
     toast.success("¡Enlace de afiliado con tu código copiado al portapapeles!");
@@ -86,56 +118,6 @@ export default function ProgramaCreadores() {
     }, 1200);
   };
 
-  const handleUploadVideo = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!videoTitle || !videoUrl) return;
-
-    setIsUploading(true);
-    setTimeout(() => {
-      setIsUploading(false);
-      const newVideo: CreatorVideoItem = {
-        id: Date.now().toString(),
-        title: videoTitle,
-        dest: videoDestination,
-        views: 0,
-        bookings: 0,
-        earnings: "$0.00",
-        status: "Pendiente",
-        date: new Date().toISOString().split("T")[0]
-      };
-      setCreatorVideos([newVideo, ...creatorVideos]);
-      setVideoTitle("");
-      setVideoUrl("");
-      toast.success("¡Contenido enviado a revisión editorial y auditoría de métricas!");
-    }, 1200);
-  };
-
-  const handleWithdraw = (e: React.FormEvent) => {
-    e.preventDefault();
-    const amount = parseFloat(withdrawAmount);
-    if (isNaN(amount) || amount <= 0) {
-      toast.error("Por favor ingresa un monto válido.");
-      return;
-    }
-    if (amount > balance) {
-      toast.error("Saldo insuficiente en tu balance.");
-      return;
-    }
-    if (amount < 50) {
-      toast.error("El retiro mínimo es de $50 USD.");
-      return;
-    }
-
-    setIsWithdrawing(true);
-    setTimeout(() => {
-      setIsWithdrawing(false);
-      setBalance(prev => prev - amount);
-      setWithdrawAmount("");
-      setWithdrawDetails("");
-      toast.success(`¡Solicitud de retiro de $${amount} USD procesada! Fondos en camino en 24-48h.`);
-    }, 1500);
-  };
-
   return (
     <PageTransition>
       <SEOHead
@@ -158,23 +140,31 @@ export default function ProgramaCreadores() {
                   Programa de Creadores & <span className="text-primary">Matchmaking de Patrocinios</span>
                 </h1>
                 <p className="text-xs md:text-sm text-muted-foreground mt-1">
-                  Gana por reproducciones, comisiones de afiliados y viajes patrocinados con todo incluido en los mejores hoteles del país.
+                  Consulta tus métricas reales y conoce las opciones de colaboración disponibles para creadores.
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 bg-card p-3 rounded-2xl border border-border shadow-sm">
-                <div>
-                  <p className="text-[10px] text-muted-foreground font-semibold uppercase">Tu Código de Afiliado</p>
-                  <p className="text-xs font-mono font-bold text-primary">{affiliateCode}</p>
-                </div>
-                <Button size="sm" variant="outline" onClick={() => handleCopyAffiliate("https://descubrerd.com?ref=")} className="text-xs rounded-xl h-8">
-                  {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+              <div className="flex items-center gap-3">
+                <Button size="sm" onClick={() => setOnboardingOpen(true)} className="rounded-xl text-xs font-bold gap-1.5 shadow-xs">
+                  <Sparkles className="h-3.5 w-3.5" /> Postularse al Programa
                 </Button>
+                <div className="flex items-center gap-3 bg-card p-3 rounded-2xl border border-border shadow-sm">
+                  <div>
+                    <p className="text-[10px] text-muted-foreground font-semibold uppercase">Tu Código de Afiliado</p>
+                  <p className="text-xs font-mono font-bold text-muted-foreground">{affiliateCode || "Aún no disponible"}</p>
+                  </div>
+                  <Button size="sm" variant="outline" disabled={!affiliateCode} onClick={() => handleCopyAffiliate("https://descubrerd.com?ref=")} className="text-xs rounded-xl h-8">
+                    {copiedLink ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
+                  </Button>
+                </div>
               </div>
             </div>
 
             {/* Quick Metrics */}
-            <CreatorsMetrics balance={balance} tier={tier} />
+            <CreatorsMetrics profile={creatorDashboard?.profile ?? null} loading={creatorLoading} error={creatorLoadError} />
+
+            {/* Monetization Model Info Card (3 Capas Integradas) */}
+            <CreatorsMonetizationInfoCard />
 
             {/* Navigation Tabs */}
             <Tabs defaultValue="patrocinios" className="space-y-6">
@@ -194,6 +184,12 @@ export default function ProgramaCreadores() {
                 <TabsTrigger value="pagos" className="rounded-xl text-xs font-semibold gap-1.5 py-2 px-4">
                   <Wallet className="h-4 w-4" /> Retirar Fondos
                 </TabsTrigger>
+                <TabsTrigger value="identidad" className="rounded-xl text-xs font-semibold gap-1.5 py-2 px-4">
+                  <ShieldCheck className="h-4 w-4" /> Identidad y reputación
+                </TabsTrigger>
+                <TabsTrigger value="apelaciones" className="rounded-xl text-xs font-semibold gap-1.5 py-2 px-4">
+                  <Gavel className="h-4 w-4" /> Apelaciones
+                </TabsTrigger>
               </TabsList>
 
               {/* TAB 1: Matchmaking de Hoteles Patrocinados */}
@@ -211,7 +207,7 @@ export default function ProgramaCreadores() {
 
               {/* TAB 2: Enlaces de Afiliados */}
               <TabsContent value="afiliados">
-                <CreatorsAffiliatesTab onCopyAffiliate={handleCopyAffiliate} />
+                <CreatorsAffiliatesTab />
               </TabsContent>
 
               {/* TAB 3: Pool de Creadores Registrados */}
@@ -223,30 +219,25 @@ export default function ProgramaCreadores() {
               <TabsContent value="videos">
                 <CreatorsVideosTab
                   creatorVideos={creatorVideos}
-                  videoTitle={videoTitle}
-                  videoUrl={videoUrl}
-                  videoDestination={videoDestination}
-                  isUploading={isUploading}
-                  onVideoTitleChange={setVideoTitle}
-                  onVideoUrlChange={setVideoUrl}
-                  onVideoDestinationChange={setVideoDestination}
-                  onUploadVideo={handleUploadVideo}
+                  onAppealSubmitted={handleAppealSubmitted}
+                  loading={creatorLoading}
+                  hasProfile={Boolean(creatorDashboard)}
                 />
               </TabsContent>
 
               {/* TAB 5: Pagos y Retiro */}
               <TabsContent value="pagos">
-                <CreatorsPayoutsTab
-                  balance={balance}
-                  withdrawAmount={withdrawAmount}
-                  withdrawMethod={withdrawMethod}
-                  withdrawDetails={withdrawDetails}
-                  isWithdrawing={isWithdrawing}
-                  onWithdrawAmountChange={setWithdrawAmount}
-                  onWithdrawMethodChange={setWithdrawMethod}
-                  onWithdrawDetailsChange={setWithdrawDetails}
-                  onWithdraw={handleWithdraw}
-                />
+                <CreatorsPayoutsTab profile={creatorDashboard?.profile ?? null} payouts={creatorDashboard?.payouts ?? []} />
+              </TabsContent>
+
+              {/* TAB 6: Identidad y reputación del creador (punto 41) */}
+              <TabsContent value="identidad">
+                <CreatorsIdentityTab />
+              </TabsContent>
+
+              {/* TAB 7: Apelaciones de moderación (punto 44) */}
+              <TabsContent value="apelaciones">
+                <CreatorsAppealsTab appeals={creatorAppeals} reloadKey={appealsReloadKey} />
               </TabsContent>
             </Tabs>
 
@@ -258,6 +249,11 @@ export default function ProgramaCreadores() {
 
         <Footer />
       </div>
+
+      <CreatorsOnboardingModal
+        open={onboardingOpen}
+        onOpenChange={setOnboardingOpen}
+      />
     </PageTransition>
   );
 }

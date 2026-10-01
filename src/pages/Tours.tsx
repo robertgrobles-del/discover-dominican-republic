@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { 
   Clock, Users, MapPin, Star, ChevronRight, Filter, Compass, 
-  Mountain, Heart, Sparkles, Megaphone, ShieldCheck, CheckCircle2, Calendar, PhoneCall, Check
+  Mountain, Heart, Sparkles, ShieldCheck, CheckCircle2, Calendar, PhoneCall, Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { BetweenSectionsAd } from "@/components/promo";
+import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 import { useTranslation } from "@/hooks/useI18n";
 import heroBeach from "@/assets/hero-beach.jpg";
 import { toast } from "sonner";
@@ -245,7 +246,7 @@ export default function Tours() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: Math.min(i * 0.08, 0.4) }}
-                    className="bg-card rounded-3xl border border-border overflow-hidden shadow-lg hover:border-primary/40 transition-all duration-300 flex flex-col justify-between group"
+                    className="surface-commercial rounded-card border border-border overflow-hidden shadow-lg hover:border-primary/40 transition-all duration-300 flex flex-col justify-between group"
                   >
                     <div>
                       {/* IMAGEN Y BADGES */}
@@ -269,9 +270,7 @@ export default function Tours() {
                         </div>
 
                         {pkg.is_sponsored && (
-                          <Badge className="absolute top-4 right-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs">
-                            <Megaphone className="h-3 w-3 mr-1" /> Patrocinado Oficial
-                          </Badge>
+                          <SponsoredBadge label="Patrocinado oficial" className="absolute top-4 right-4 text-xs" />
                         )}
 
                         <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white text-xs">

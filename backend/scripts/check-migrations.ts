@@ -13,7 +13,7 @@ import { Pool } from "pg";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = join(__dirname, "..", "migrations");
 
-interface MigrationRecord { filename: string; applied_at: string; }
+interface MigrationRecord { name: string; applied_at: string; }
 
 async function main() {
   const pool = new Pool({
@@ -31,9 +31,10 @@ async function main() {
     let applied: Set<string>;
     try {
       const { rows } = await pool.query<MigrationRecord>(
-        "SELECT filename FROM schema_migrations ORDER BY filename"
+        // La columna se llama `name` (schema_migrations, migrator.ts); leer `filename` siempre daba vacío.
+        "SELECT name FROM schema_migrations ORDER BY name"
       );
-      applied = new Set(rows.map(r => r.filename));
+      applied = new Set(rows.map(r => r.name));
       console.log(`📋 Migraciones aplicadas en DB: ${applied.size}`);
     } catch {
       // Tabla schema_migrations no existe aun (primera ejecucion)

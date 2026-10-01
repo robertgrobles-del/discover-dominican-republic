@@ -13,6 +13,16 @@ export interface FastifyDestination {
   is_featured?: boolean;
 }
 
+export interface FastifyEstablishment {
+  id: string;
+  name: string;
+  slug?: string;
+  description?: string;
+  province?: string;
+  category?: string;
+  image_url?: string;
+}
+
 export function useFastifyDestinations(params?: { q?: string; page?: number; per_page?: number }) {
   const queryParams = new URLSearchParams();
   if (params?.q) queryParams.set("q", params.q);
@@ -23,7 +33,7 @@ export function useFastifyDestinations(params?: { q?: string; page?: number; per
 
   return useQuery({
     queryKey: ["fastify", "destinations", params],
-    queryFn: () => fetchApi<{ data: FastifyDestination[]; meta: { total: number } }>(`/content/destinations${queryStr}`),
+    queryFn: ({ signal }) => fetchApi<{ data: FastifyDestination[]; meta: { total: number } }>(`/content/destinations${queryStr}`, { signal }),
   });
 }
 
@@ -37,6 +47,6 @@ export function useFastifyEstablishments(params?: { q?: string; provincia?: stri
 
   return useQuery({
     queryKey: ["fastify", "establecimientos", params],
-    queryFn: () => fetchApi<{ data: any[]; meta: { total: number } }>(`/content/establecimientos${queryStr}`),
+    queryFn: ({ signal }) => fetchApi<{ data: FastifyEstablishment[]; meta: { total: number } }>(`/content/establecimientos${queryStr}`, { signal }),
   });
 }

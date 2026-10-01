@@ -116,9 +116,12 @@ export class AmbassadorService {
 
   /** Libera las comisiones cuya espera terminó (trabajo `ambassadors.settle`). */
   async settle(): Promise<{ approved: number }> {
-    const { rows } = await this.db.query<{ ambassador_id: string }>("UPDATE ambassador_referrals SET status = 'approved', updated_at = now() WHERE status = 'pending' AND hold_until <= now() AND commission_earned > 0 RETURNING ambassador_id");
-    for (const id of new Set(rows.map((r) => r.ambassador_id))) await this.recompute(this.db, id);
-    return { approved: rows.length };
+    // UPDATE + recompute en un solo tx: los contadores del embajador nunca quedan a mitad de la liberación.
+    return this.tx(async (c) => {
+      const { rows } = await c.query<{ ambassador_id: string }>("UPDATE ambassador_referrals SET status = 'approved', updated_at = now() WHERE status = 'pending' AND hold_until <= now() AND commission_earned > 0 RETURNING ambassador_id");
+      for (const id of new Set(rows.map((r) => r.ambassador_id))) await this.recompute(c, id);
+      return { approved: rows.length };
+    });
   }
 
   // ---------- Solicitud y panel del embajador ----------

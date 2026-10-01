@@ -18,8 +18,8 @@ export const ROLE_DESC: Record<Exclude<PanelRole, "owner">, string> = {
 /** Secciones del panel (primer segmento de la ruta; "" = inicio) permitidas por rol. */
 const ALL = ["", "calendario", "tarifas", "automatizaciones", "anuncios", "mensajes", "reservas", "solicitudes", "ingresos", "informacion", "promocion", "comunidades", "reportes"];
 export const ALLOWED: Record<PanelRole, string[]> = {
-  owner: [...ALL, "perfil", "equipo"],
-  admin: ALL,
+  owner: [...ALL, "perfil", "sucursales", "equipo"],
+  admin: [...ALL, "sucursales"],
   recepcion: ["", "calendario", "reservas", "solicitudes", "mensajes"],
   guia: ["", "calendario", "reservas"],
 };

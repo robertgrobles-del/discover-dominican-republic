@@ -171,7 +171,11 @@ export async function adminCmsRoutes(app: FastifyInstance) {
     const idp = z.object({ id: uuid });
     const hide = { tags: ["cms"], hide: true, security: bearer };
     const actorOf = (req: { user?: { id: string } }) => req.user!.id;
-    const done = (req: { user?: { id: string }; ip: string }, action: string, id: string, extra?: Record<string, unknown>) => audit(db, { actor: actorOf(req), action: `cms.${action}`, entity: t, id, meta: extra, ip: req.ip });
+    // Punto único de las mutaciones del CMS: al auditar se vacía también la caché pública (B7.64); export es sólo lectura.
+    const done = (req: { user?: { id: string }; ip: string }, action: string, id: string, extra?: Record<string, unknown>) => {
+      if (action !== "export") app.invalidatePublicContent();
+      return audit(db, { actor: actorOf(req), action: `cms.${action}`, entity: t, id, meta: extra, ip: req.ip });
+    };
 
     r.get(`${base}/schema`, { onRequest: editor, schema: { ...hide, summary: `Definición de campos de ${d.label}` } }, async () => ({
       data: {

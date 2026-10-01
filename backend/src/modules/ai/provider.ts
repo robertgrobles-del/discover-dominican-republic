@@ -1,5 +1,7 @@
 import type { Env } from "../../config/env.js";
 import { AppError } from "../../lib/errors.js";
+import { CircuitBreaker } from "../../lib/breaker.js";
+import { readBodyCapped, traceHeaders } from "../../lib/http.js";
 
 export type AiKind = "chat" | "itinerary" | "recommendations" | "translate" | "generate";
 export interface AiMessage { role: "user" | "assistant"; content: string }
@@ -70,23 +72,30 @@ class FakeProvider implements AiProvider {
 }
 
 // ---------- Anthropic ----------
+const MAX_BODY_BYTES = 2_000_000;
+
 class AnthropicProvider implements AiProvider {
   readonly name = "anthropic" as const;
+  /** Cinco fallos seguidos (429/529/5xx/red) abren el circuito un minuto: falla rápido en vez de hacer esperar a cada usuario. */
+  private readonly breaker = new CircuitBreaker(5, 60_000);
   constructor(private readonly key: string) {}
   private body(req: AiRequest, stream: boolean) {
     return JSON.stringify({ model: req.model, max_tokens: req.maxTokens, temperature: req.temperature ?? 0.7, system: req.system, messages: req.messages, stream });
   }
   private async call(req: AiRequest, stream: boolean) {
-    let res: Response;
-    try { res = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": this.key, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: this.body(req, stream), signal: AbortSignal.timeout(60_000) }); }
-    catch { throw new AppError("UPSTREAM_ERROR", "El asistente de IA no respondió; intenta de nuevo", { code: "AI_UPSTREAM" }); }
-    if (res.status === 429 || res.status === 529) throw new AppError("SERVICE_UNAVAILABLE", "El asistente de IA está saturado; intenta en unos minutos", { code: "AI_BUSY" });
-    if (!res.ok) throw new AppError("UPSTREAM_ERROR", "El asistente de IA no pudo responder", { code: "AI_UPSTREAM", status: res.status });
-    return res;
+    return this.breaker.execute(async () => {
+      let res: Response;
+      try { res = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": this.key, "anthropic-version": "2023-06-01", "content-type": "application/json", ...traceHeaders() }, body: this.body(req, stream), signal: AbortSignal.timeout(60_000) }); }
+      catch { throw new AppError("UPSTREAM_ERROR", "El asistente de IA no respondió; intenta de nuevo", { code: "AI_UPSTREAM" }); }
+      if (res.status === 429 || res.status === 529) throw new AppError("SERVICE_UNAVAILABLE", "El asistente de IA está saturado; intenta en unos minutos", { code: "AI_BUSY" });
+      if (!res.ok) throw new AppError("UPSTREAM_ERROR", "El asistente de IA no pudo responder", { code: "AI_UPSTREAM", status: res.status });
+      return res;
+    }, new AppError("SERVICE_UNAVAILABLE", "El asistente de IA está saturado; intenta en unos minutos", { code: "AI_BUSY" }));
   }
   async complete(req: AiRequest): Promise<AiResult> {
     const res = await this.call(req, false);
-    const j = (await res.json()) as { content?: { type: string; text?: string }[]; usage?: { input_tokens?: number; output_tokens?: number } };
+    // Tope de tamaño para no bajar en memoria una respuesta desbocada; los dobles de prueba sin stream caen a res.json().
+    const j = (res.body ? JSON.parse(await readBodyCapped(res, MAX_BODY_BYTES)) : await res.json()) as { content?: { type: string; text?: string }[]; usage?: { input_tokens?: number; output_tokens?: number } };
     const text = (j.content ?? []).filter((c) => c.type === "text").map((c) => c.text ?? "").join("");
     return { text, inputTokens: j.usage?.input_tokens ?? 0, outputTokens: j.usage?.output_tokens ?? 0 };
   }

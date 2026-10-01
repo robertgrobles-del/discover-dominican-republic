@@ -4,17 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { Copy } from "lucide-react";
 import { affiliateOffers } from "@/data/creatorsData";
 
-interface CreatorsAffiliatesTabProps {
-  onCopyAffiliate: (url: string) => void;
-}
-
-export function CreatorsAffiliatesTab({ onCopyAffiliate }: CreatorsAffiliatesTabProps) {
+export function CreatorsAffiliatesTab() {
   return (
     <div className="space-y-6">
       <div className="p-6 rounded-3xl bg-card border border-border space-y-2">
         <h3 className="font-display text-xl font-bold text-foreground">Programas de Afiliados Oficiales</h3>
         <p className="text-xs text-muted-foreground">
-          Comparte tus enlaces personalizados en tus redes sociales (Instagram Bio, YouTube description, TikTok, blog). Cada vez que un usuario reserve, ganas comisiones automáticas.
+          Los enlaces y ofertas mostrados en esta sección son ejemplos; no generan atribución ni comisiones. Los enlaces de creador todavía no están conectados al servicio de afiliados.
         </p>
       </div>
 
@@ -39,11 +35,11 @@ export function CreatorsAffiliatesTab({ onCopyAffiliate }: CreatorsAffiliatesTab
                 <p className="text-[10px] text-muted-foreground">Ganancia promedio por clic (EPC): {offer.epc}</p>
               </div>
 
-              <Button 
-                onClick={() => onCopyAffiliate(offer.affiliateUrl)}
+              <Button
+                disabled
                 className="w-full rounded-xl text-xs font-bold gap-2"
               >
-                <Copy className="h-3.5 w-3.5" /> Copiar Enlace de Afiliado
+                <Copy className="h-3.5 w-3.5" /> Enlace de ejemplo
               </Button>
             </CardContent>
           </Card>

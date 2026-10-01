@@ -63,17 +63,18 @@ export class JobRunner {
     return ran;
   }
 
-  /** Ejecución manual desde el panel (ignora la frecuencia, pero no corre si ya está corriendo). */
-  async runNow(name: string) {
+  /** Ejecución manual desde el panel (ignora la frecuencia, pero no corre si ya está corriendo). `requestId` ata la corrida a la petición que la pidió. */
+  async runNow(name: string, opts: { requestId?: string } = {}) {
     if (!this.jobs.has(name)) throw AppError.notFound("Trabajo");
     await this.sync();
-    const result = await this.execute(name, { now: new Date(), onlyIfDue: false });
+    const result = await this.execute(name, { now: new Date(), onlyIfDue: false, requestId: opts.requestId });
     if (!result) throw new AppError("CONFLICT", "El trabajo ya se está ejecutando", { reason: "JOB_RUNNING" });
     return result;
   }
 
-  private async execute(name: string, o: { now: Date; onlyIfDue: boolean }): Promise<{ status: "success" | "failed"; result?: unknown; error?: string } | null> {
+  private async execute(name: string, o: { now: Date; onlyIfDue: boolean; requestId?: string }): Promise<{ status: "success" | "failed"; result?: unknown; error?: string; request_id?: string } | null> {
     const job = this.jobs.get(name)!;
+    const log = o.requestId ? this.log.child({ job: name, request_id: o.requestId }) : this.log.child({ job: name });
     const claim = await this.db.query(
       `UPDATE system_cron_jobs SET status = 'running', started_at = now()
         WHERE job_name = $1
@@ -83,12 +84,12 @@ export class JobRunner {
     );
     if (!claim.rowCount) return null;
     const t0 = Date.now();
-    let outcome: { status: "success" | "failed"; result?: unknown; error?: string };
+    let outcome: { status: "success" | "failed"; result?: unknown; error?: string; request_id?: string };
     try {
-      const result = (await job.run({ now: o.now, log: this.log })) ?? {};
+      const result = (await job.run({ now: o.now, log })) ?? {};
       outcome = { status: "success", result };
     } catch (err) {
-      this.log.error({ err, job: name }, "Falló un trabajo programado");
+      log.error({ err, request_id: o.requestId }, "Falló un trabajo programado");
       outcome = { status: "failed", error: err instanceof Error ? err.message.slice(0, 500) : "Error desconocido" };
     }
     await this.db.query(
@@ -96,7 +97,7 @@ export class JobRunner {
               next_run_at = now() + make_interval(secs => interval_seconds) WHERE job_name = $1`,
       [name, outcome.status, Date.now() - t0, JSON.stringify(outcome.result ?? null), outcome.error ?? null],
     );
-    return outcome;
+    return o.requestId ? { ...outcome, request_id: o.requestId } : outcome;
   }
 
   async list() {

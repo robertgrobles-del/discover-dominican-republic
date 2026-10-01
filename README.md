@@ -47,7 +47,10 @@ El portal incluye más de **240 páginas y módulos especializados**, abarcando:
 ## 📂 Estructura de Directorios
 
 ```text
+├── .github/workflows/        # CI del frontend: verificaciones y artefacto de despliegue `frontend-dist-<sha>`
+├── docs/                     # Documentación técnica, de seguridad y de operación
 ├── public/
+│   ├── _headers              # Política de caché (assets con hash `immutable`, `index.html` sin caché)
 │   ├── banners/              # Catálogo de 32 imágenes oficiales de banners (Desktop, Mobile, Full-Width)
 │   ├── placeholder.svg       # Fallbacks optimizados
 │   └── favicon.ico
@@ -358,6 +361,17 @@ timeline
 
 ---
 
+## 📚 Documentación del Proyecto
+
+- [`PLAN_MAESTRO_MEJORAS.md`](PLAN_MAESTRO_MEJORAS.md): las 100 mejoras del frontend y del backend, organizadas por áreas, con estado y evidencia de cada una.
+- [`docs/OPERACION_FRONTEND.md`](docs/OPERACION_FRONTEND.md): despliegue atómico y rollback, política de caché y retirada del service worker.
+- [`docs/DEUDA_FRONTEND.md`](docs/DEUDA_FRONTEND.md): catálogo de deuda técnica con evidencia reproducible, responsable funcional y fecha propuesta.
+- [`docs/MIGRACION_ESCRITURAS_BACKEND.md`](docs/MIGRACION_ESCRITURAS_BACKEND.md): contrato de transición para mover reservas, checkout y pedidos al backend autoritativo.
+- [`docs/BACKEND_OPERACION.md`](docs/BACKEND_OPERACION.md): checklist de salida a producción, respaldo y restauración, monitoreo, rotación de secretos, contenedor endurecido y verificación de SBOM/procedencia.
+- [`docs/BACKEND_SEGURIDAD.md`](docs/BACKEND_SEGURIDAD.md): controles de autenticación, sesiones, autorización y datos, cada uno con su evidencia de prueba, más los riesgos residuales declarados.
+
+---
+
 ## ⚙️ Variables de Entorno
 
 Crea un archivo `.env` en la raíz del proyecto tomando como referencia el siguiente esquema:
@@ -367,10 +381,14 @@ Crea un archivo `.env` en la raíz del proyecto tomando como referencia el sigui
 VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
 
 # Clave pública anónima de Supabase
-VITE_SUPABASE_ANON_KEY=eyJhbGciOi...
+VITE_SUPABASE_PUBLISHABLE_KEY=your-public-supabase-publishable-key
 
 # Opcional: Claves de mapas u otros servicios externos si aplican
 # VITE_MAPBOX_TOKEN=pk.eyJ...
+
+# Fuente de datos del frontend: "mock" (por defecto) usa los catálogos simulados locales;
+# "api" exige la API real (`backend/`) y el build falla cerrado si queda algo acoplado al mock.
+# VITE_DATA_SOURCE=api
 ```
 
 ---
@@ -412,6 +430,14 @@ El servidor local se iniciará típicamente en `http://localhost:8080` o `http:/
 - `npm run lint`: Ejecuta el análisis de código estático con ESLint.
 - `npm run test`: Ejecuta la suite de pruebas unitarias y de integración con **Vitest**.
 - `npm run test:watch`: Inicia el runner de pruebas en modo interactivo/observador.
+- `npm run check:data-source`: Compila en modo simulado y en modo API, y verifica que el build de API no contenga los datos simulados (`VITE_DATA_SOURCE`).
+- `npm run check:bundle-budget`: Comprueba que el bundle inicial y el mayor fragmento diferido respeten los presupuestos de tamaño.
+- `npm run check:client-secrets`: Escanea el frontend en busca de secretos que nunca deben publicarse.
+- `npm run check:import-cycles` / `npm run check:i18n-keys`: Detectan ciclos de importación y claves de traducción usadas sin definir.
+- `npm run audit:local-storage`: Lista cada acceso al almacenamiento del navegador con archivo y línea (ver [`docs/ALMACENAMIENTO_LOCAL.md`](docs/ALMACENAMIENTO_LOCAL.md)).
+- `npm run typecheck:strict-pilot`: Verifica con el modo estricto de TypeScript el conjunto piloto de archivos.
+
+El flujo de CI (`.github/workflows/frontend.yml`) ejecuta estas verificaciones en cada cambio y publica el artefacto validado `frontend-dist-<sha>`, que sirve tanto para desplegar como para revertir una revisión. El procedimiento completo está en [`docs/OPERACION_FRONTEND.md`](docs/OPERACION_FRONTEND.md).
 
 ---
 

@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  ChevronRight, Sun, Ruler, Landmark, Users, ChevronLeft, MapPin, Star, Calendar, 
+  ChevronRight, Search, Sun, Ruler, Landmark, Users, ChevronLeft, MapPin, Star, Calendar,
   Hotel, UtensilsCrossed, Waves, Award, Building2, Utensils, Mountain, Compass, Crown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/hooks/useI18n";
@@ -304,7 +305,7 @@ function DestinationCard({
   );
 }
 
-export function HeroSlideshow() {
+export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -416,6 +417,24 @@ export function HeroSlideshow() {
       <div className="relative z-10 flex-1 flex flex-col justify-center container mx-auto px-4 lg:px-8 pt-8 lg:pt-12 pb-8">
         <div className="grid lg:grid-cols-5 gap-8 items-center">
           <div className="lg:col-span-3 max-w-2xl">
+
+            {onOpenSearch && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onOpenSearch}
+                aria-label="Abrir búsqueda global"
+                className="mb-6 h-12 w-full max-w-xl justify-between rounded-xl border-border/80 bg-background/85 px-4 text-left text-muted-foreground shadow-lg backdrop-blur-md hover:border-primary/50 hover:bg-background"
+              >
+                <span className="flex items-center gap-3">
+                  <Search className="h-5 w-5 text-primary" aria-hidden="true" />
+                  <span>¿Qué quieres descubrir en República Dominicana?</span>
+                </span>
+                <span className="hidden rounded-md border border-border bg-muted px-2 py-1 text-[10px] font-medium text-muted-foreground sm:inline-flex">
+                  Buscar
+                </span>
+              </Button>
+            )}
             
             {/* Tag / Sponsor Badge & Red Dimensions Indicator */}
             <AnimatePresence mode="wait">
@@ -435,9 +454,7 @@ export function HeroSlideshow() {
                 )}
                 <div className="flex items-center gap-2">
                   {slide.isSponsored && (
-                    <Badge className="bg-amber-500 text-slate-950 font-bold border-none text-[11px] uppercase tracking-wider px-2.5 py-0.5 shadow-sm">
-                      {slide.sponsorBadge}
-                    </Badge>
+                    <SponsoredBadge label={slide.sponsorBadge} className="text-[11px] uppercase tracking-wider px-2.5 py-0.5 shadow-sm" />
                   )}
                   <span className="inline-flex items-center gap-2 text-primary text-sm font-semibold tracking-wide">
                     <span className="w-6 h-px bg-primary" />
@@ -606,4 +623,3 @@ export function HeroSlideshow() {
     </section>
   );
 }
-

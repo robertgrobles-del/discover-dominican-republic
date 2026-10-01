@@ -1,42 +1,12 @@
 import type { Locale } from "../../lib/i18n.js";
 import { EXTRA_LOCALES, renderExtra, type ExtraLocale } from "./templates-extra.js";
 import { htmlToText, sanitizeHtml, substitute, type TemplateOverride } from "./templates-meta.js";
+import type { Rendered, TemplateData, TemplateKey } from "./templates-types.js";
 
 // Plantillas del catálogo de correos (docs §5.13). Por ahora es/en; los demás idiomas caen a español
 // hasta que se carguen en la tabla de plantillas del admin (Fase 3).
 
-export interface TemplateData {
-  "auth.verify_email": { name: string; url: string; hours: number };
-  "auth.welcome": { name: string; url: string };
-  "auth.reset_password": { name: string; url: string; minutes: number };
-  "auth.password_changed": { name: string };
-  "booking.confirmation": BookingMail & { paid: string; balance: string };
-  "booking.request_received": BookingMail;
-  "booking.date_changed": BookingMail;
-  "booking.cancelled": { name: string; reference: string; service: string; refund: string; operator: string };
-  "booking.balance_due": { name: string; reference: string; service: string; operator: string; date: string; balance: string; url: string };
-  "operator.min_guests": { operator: string; service: string; date: string; booked: number; min: number; url: string };
-  "operator.payout_sent": { operator: string; amount: string; reference: string };
-  "newsletter.confirm": { url: string };
-  "support.received": { name: string; reference: string; subject: string };
-  "establishment.received": { name: string; establishment: string; url: string };
-  "support.reply": { name: string; reference: string; message: string; url: string };
-  "store.order_confirmation": { name: string; reference: string; total: string; items: string; url: string };
-  "store.order_update": { name: string; reference: string; title: string; message: string; url: string };
-  "vendor.approved": { shop: string; url: string };
-  "vendor.new_order": { shop: string; reference: string; items: string; total: string; url: string };
-  "ambassador.approved": { name: string; code: string; url: string };
-  "ambassador.payout": { name: string; amount: string; reference: string };
-  "marketing.campaign": { subject: string; body: string; unsubscribe_url: string };
-  "org.invitation": { operator: string; inviter: string; role: string; url: string; days: number };
-  "booking.reminder": BookingMail;
-  "booking.review_request": { name: string; service: string; operator: string; url: string };
-  "auth.two_factor_reset": { name: string };
-  "operator.new_booking": { operator: string; traveler: string; reference: string; service: string; dates: string; guests: string; total: string; url: string };
-}
-interface BookingMail { name: string; reference: string; service: string; operator: string; dates: string; guests: string; total: string; url: string }
-export type TemplateKey = keyof TemplateData;
-export interface Rendered { subject: string; text: string; html: string }
+export type { Rendered, TemplateData, TemplateKey } from "./templates-types.js";
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
@@ -253,6 +223,19 @@ T["booking.balance_due"] = {
     html: layout("Balance due", p(`Hi ${esc(d.name)}, your <b>${esc(d.service)}</b> with ${esc(d.operator)} is on <b>${esc(d.date)}</b> and you have a balance of <b>${esc(d.balance)}</b>.`), { label: "View my booking", url: d.url }),
   }),
 };
+T["booking.claim"] = {
+  es: (d) => ({
+    subject: `Vincula tu reserva con ${d.organizer}`,
+    text: `Hola ${d.name},\n\nConfirma que la reserva del ${d.dates} con ${d.organizer} es tuya: quedará vinculada a tu cuenta de Descubre RD.\n${d.url}\n\nEl enlace es de un solo uso y vence en ${d.hours} horas. Si no fuiste tú, ignora este mensaje.`,
+    html: layout("Vincula tu reserva", p(`Hola ${esc(d.name)},`) + p(`Confirma que la reserva del <b>${esc(d.dates)}</b> con <b>${esc(d.organizer)}</b> es tuya: quedará vinculada a tu cuenta de Descubre RD.`) + p(`El enlace es de un solo uso y vence en ${d.hours} horas.`) + p("Si no fuiste tú, ignora este mensaje."), { label: "Vincular mi reserva", url: d.url }),
+  }),
+  en: (d) => ({
+    subject: `Link your booking with ${d.organizer}`,
+    text: `Hi ${d.name},\n\nConfirm that the booking for ${d.dates} with ${d.organizer} is yours: it will be linked to your Descubre RD account.\n${d.url}\n\nThe link is single-use and expires in ${d.hours} hours. If this was not you, ignore this message.`,
+    html: layout("Link your booking", p(`Hi ${esc(d.name)},`) + p(`Confirm that the booking for <b>${esc(d.dates)}</b> with <b>${esc(d.organizer)}</b> is yours: it will be linked to your Descubre RD account.`) + p(`The link is single-use and expires in ${d.hours} hours.`) + p("If this was not you, ignore this message."), { label: "Link my booking", url: d.url }),
+  }),
+};
+
 T["operator.min_guests"] = {
   es: (d) => ({
     subject: `Salida sin el mínimo de personas: ${d.service} (${d.date})`,

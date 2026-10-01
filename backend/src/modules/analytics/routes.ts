@@ -12,14 +12,24 @@ import { audit } from "../operators/team.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
 
 const RETENTION_MONTHS = 13;
-const EVENT_TYPES = ["page_view", "click", "search", "favorite", "share", "booking_start", "booking_complete", "signup", "login", "add_to_cart", "checkout_start", "purchase", "ad_click", "outbound_link", "error"] as const;
-const SENSITIVE_KEY = /(mail|phone|tel|pass|token|secret|card|dni|cedula|passport|address|direccion|name|nombre)/i;
+const EVENT_TYPES = ["page_view", "click", "search", "favorite", "share", "booking_start", "booking_complete", "signup", "login", "add_to_cart", "checkout_start", "purchase", "ad_click", "outbound_link", "error", "free_ticket_registered"] as const;
+/** Paneles internos cuya adopción se mide (punto 67 del plan de accesos). Describe un rol, nunca a una persona. */
+const PANEL_ROLES = ["viajero", "empresa", "creador", "embajador", "editorial", "moderacion", "admin"] as const;
+/** Pasos que envía el frontend con `trackPanelAdoption`; `panel/` es la página sintética que los agrupa. */
+const ADOPTION_STEPS = ["panel_open", "onboarding_started", "onboarding_completed", "task_started", "task_completed", "task_abandoned", "task_error"] as const;
+type AdoptionCounters = { panel_open: number; onboarding_started: number; onboarding_completed: number; tasks_started: number; tasks_completed: number; tasks_abandoned: number; task_error: number; duration_sum: number; duration_n: number };
+type AdoptionRow = { panel: string; task: string } & AdoptionCounters;
+const SENSITIVE_KEY = /(mail|phone|tel|pass|token|secret|card|dni|cedula|passport|address|direccion|name|nombre|uuid|(^|[_-])id($|[_-]))/i;
 const ok = z.object({ data: z.any() });
 const bearer = [{ bearerAuth: [] }];
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
 /** Ruta sin parámetros ni fragmento (pueden llevar tokens o datos personales). */
-const cleanPage = (p: string | undefined) => (p ? p.split(/[?#]/)[0]!.slice(0, 200) : null);
+const cleanPage = (p: string | undefined) => {
+  if (!p) return null;
+  const path = p.split(/[?#]/)[0]!.slice(0, 200);
+  return /^\/(admin|login|registro|reset-password|perfil|reservas|checkout|panel|partner)(\/|$)/i.test(path) ? null : path;
+};
 /** Sólo el host de origen. */
 const cleanSource = (s: string | undefined) => { if (!s) return null; try { return new URL(s).hostname.slice(0, 100) || null; } catch { return /^[a-z0-9.-]{1,100}$/i.test(s) ? s.toLowerCase() : null; } };
 /** Quita de las propiedades cualquier campo que parezca un dato personal y limita su tamaño. */
@@ -27,7 +37,8 @@ export function cleanProps(props: Record<string, unknown> | undefined): Record<s
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(props ?? {}).slice(0, 20)) {
     if (SENSITIVE_KEY.test(k) || k.length > 40) continue;
-    if (typeof v === "string") out[k] = v.slice(0, 200);
+    // Un valor que parece correo, URL o ruta se descarta; el resto se conserva truncado a 200.
+    if (typeof v === "string" && !["@", ":", "/", "?", "\\"].some((char) => v.includes(char))) out[k] = v.slice(0, 200);
     else if (typeof v === "number" || typeof v === "boolean" || v === null) out[k] = v;
   }
   return JSON.stringify(out).length > 2000 ? {} : out;
@@ -177,6 +188,82 @@ export async function analyticsRoutes(app: FastifyInstance) {
     reply.header("content-type", "text/csv; charset=utf-8").header("content-disposition", `attachment; filename="${q.report}.csv"`);
     return toCsv(rows);
   });
+
+  // ---------- Adopción por perfil (punto 67 del plan de accesos) ----------
+  // Mide onboarding, tareas, abandono y errores por tipo de panel a partir de los eventos que el frontend
+  // envía con `trackPanelAdoption` (eventos `click`/`error` con la página sintética `panel/<tipo>` y `props`
+  // de lista blanca). El resultado es siempre agregado y no incluye el JSON crudo de `metadata`: nada que
+  // identifique a una persona (sin sesión, sin usuario, sin correo) sale de aquí.
+  const adoptionPct = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 1000) / 10 : 0);
+  const adoptionAvg = (c: AdoptionCounters) => (c.duration_n > 0 ? Math.round(c.duration_sum / c.duration_n) : 0);
+  const adoptionVolume = (c: AdoptionCounters) => c.panel_open + c.onboarding_started + c.onboarding_completed + c.tasks_started + c.tasks_completed + c.tasks_abandoned + c.task_error;
+  const zeroAdoption = (): AdoptionCounters => ({ panel_open: 0, onboarding_started: 0, onboarding_completed: 0, tasks_started: 0, tasks_completed: 0, tasks_abandoned: 0, task_error: 0, duration_sum: 0, duration_n: 0 });
+  const addAdoption = (a: AdoptionCounters, b: AdoptionCounters) => { for (const k of Object.keys(a) as (keyof AdoptionCounters)[]) a[k] += b[k]; };
+
+  const panelAdoption = async (q: { days: number; panel?: (typeof PANEL_ROLES)[number] }) => {
+    const to = todayInSantoDomingo(), from = addDays(to, -(q.days - 1));
+    // Una sola pasada: agrupa por panel y tarea y cuenta cada paso con FILTER. `duration_ms` sólo se suma
+    // cuando el valor guardado es realmente numérico (el frontend lo sanea, pero la DB es la última defensa).
+    const { rows } = await db.query<AdoptionRow>(
+      `SELECT metadata->>'panel' AS panel,
+              coalesce(metadata->>'task', '') AS task,
+              count(*) FILTER (WHERE metadata->>'step' = 'panel_open')::int AS panel_open,
+              count(*) FILTER (WHERE metadata->>'step' = 'onboarding_started')::int AS onboarding_started,
+              count(*) FILTER (WHERE metadata->>'step' = 'onboarding_completed')::int AS onboarding_completed,
+              count(*) FILTER (WHERE metadata->>'step' = 'task_started')::int AS tasks_started,
+              count(*) FILTER (WHERE metadata->>'step' = 'task_completed')::int AS tasks_completed,
+              count(*) FILTER (WHERE metadata->>'step' = 'task_abandoned')::int AS tasks_abandoned,
+              count(*) FILTER (WHERE metadata->>'step' = 'task_error')::int AS task_error,
+              coalesce(sum((metadata->>'duration_ms')::numeric) FILTER (WHERE jsonb_typeof(metadata->'duration_ms') = 'number'), 0) AS duration_sum,
+              count(*) FILTER (WHERE jsonb_typeof(metadata->'duration_ms') = 'number')::int AS duration_n
+         FROM analytics_events
+        WHERE created_at >= ($1::date::timestamp AT TIME ZONE 'America/Santo_Domingo')
+          AND created_at < (($2::date + 1)::timestamp AT TIME ZONE 'America/Santo_Domingo')
+          AND metadata->>'step' = ANY($3::text[])
+          AND metadata->>'panel' = ANY($4::text[])
+          AND ($5::text IS NULL OR metadata->>'panel' = $5)
+        GROUP BY 1, 2`,
+      [from, to, [...ADOPTION_STEPS], [...PANEL_ROLES], q.panel ?? null],
+    );
+    const totals = zeroAdoption();
+    const panels = new Map<string, { total: AdoptionCounters; tasks: Map<string, AdoptionCounters> }>();
+    for (const row of rows) {
+      const counts: AdoptionCounters = { panel_open: row.panel_open, onboarding_started: row.onboarding_started, onboarding_completed: row.onboarding_completed, tasks_started: row.tasks_started, tasks_completed: row.tasks_completed, tasks_abandoned: row.tasks_abandoned, task_error: row.task_error, duration_sum: Number(row.duration_sum), duration_n: row.duration_n };
+      const entry = panels.get(row.panel) ?? { total: zeroAdoption(), tasks: new Map<string, AdoptionCounters>() };
+      panels.set(row.panel, entry);
+      addAdoption(entry.total, counts); addAdoption(totals, counts);
+      if (row.task) { const t = entry.tasks.get(row.task) ?? zeroAdoption(); addAdoption(t, counts); entry.tasks.set(row.task, t); }
+    }
+    const shape = (c: AdoptionCounters) => ({
+      panel_open: c.panel_open,
+      onboarding_started: c.onboarding_started,
+      onboarding_completed: c.onboarding_completed,
+      onboarding_rate: adoptionPct(c.onboarding_completed, c.onboarding_started),
+      tasks_started: c.tasks_started,
+      tasks_completed: c.tasks_completed,
+      tasks_abandoned: c.tasks_abandoned,
+      completion_rate: adoptionPct(c.tasks_completed, c.tasks_started),
+      task_error: c.task_error,
+      avg_duration_ms: adoptionAvg(c),
+      events: adoptionVolume(c),
+    });
+    return {
+      range: { days: q.days, from, to },
+      panel: q.panel ?? null,
+      totals: shape(totals),
+      panels: [...panels.entries()]
+        .sort((a, b) => adoptionVolume(b[1].total) - adoptionVolume(a[1].total) || a[0].localeCompare(b[0]))
+        .map(([panel, entry]) => ({
+          panel,
+          ...shape(entry.total),
+          tasks: [...entry.tasks.entries()]
+            .sort((a, b) => adoptionVolume(b[1]) - adoptionVolume(a[1]) || a[0].localeCompare(b[0]))
+            .map(([task, c]) => ({ task, events: adoptionVolume(c), started: c.tasks_started, completed: c.tasks_completed, abandoned: c.tasks_abandoned, error: c.task_error, completion_rate: adoptionPct(c.tasks_completed, c.tasks_started), avg_duration_ms: adoptionAvg(c) })),
+        })),
+    };
+  };
+  const adoptionQ = z.object({ days: z.coerce.number().int().min(1).max(365).default(30), panel: z.enum(["viajero", "empresa", "creador", "embajador", "editorial", "moderacion", "admin"]).optional() });
+  r.get("/admin/analytics/panel-adoption", { onRequest: admin, schema: { tags: ["admin"], summary: "Adopción por perfil: onboarding, tareas, abandono y errores por tipo de panel (agregado y sin PII)", security: bearer, querystring: adoptionQ, response: { 200: ok } } }, async (req) => ({ data: await panelAdoption(req.query) }));
 
   // ---------- Cifras públicas ----------
   r.get("/statistics/public", { schema: { tags: tag, summary: "Cifras públicas de /estadisticas (las del equipo en `statistics.public` más conteos del portal)", response: { 200: ok } } }, async (_q, reply) => {

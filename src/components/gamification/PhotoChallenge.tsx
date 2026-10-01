@@ -87,14 +87,13 @@ export function PhotoChallenge() {
       (pos) => {
         setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setGpsChecking(false);
-        toast.success("📍 GPS verificado: Te encuentras en la zona del reto.");
+        toast.success("Ubicacion del dispositivo obtenida; no se verifico el destino.");
       },
-      (err) => {
+      () => {
         setGpsChecking(false);
-        toast.info("📍 Ubicación manual aproximada establecida para el reto.");
-        setUserLocation({ lat: 18.4861, lng: -69.9312 }); // Fallback Santo Domingo
+        toast.error("No se pudo verificar tu ubicación. El reto no usará una ubicación simulada.");
       },
-      { timeout: 8000 }
+      { enableHighAccuracy: true, timeout: 10_000, maximumAge: 10_000 }
     );
   };
 
@@ -305,7 +304,7 @@ export function PhotoChallenge() {
                 <div>
                   <p className="font-bold text-foreground">Verificación Geográfica</p>
                   <p className="text-[11px] text-muted-foreground">
-                    {userLocation ? "Ubicación GPS confirmada" : "Comprueba que estás en el destino"}
+                    {userLocation ? "Ubicacion del dispositivo obtenida" : "Solicita tu ubicacion para continuar"}
                   </p>
                 </div>
               </div>
@@ -317,7 +316,7 @@ export function PhotoChallenge() {
                 disabled={gpsChecking}
                 className="text-xs h-8"
               >
-                {gpsChecking ? "Detectando..." : userLocation ? "✓ Verificado" : "Validar GPS"}
+                {gpsChecking ? "Detectando..." : userLocation ? "Actualizar ubicacion" : "Obtener GPS"}
               </Button>
             </div>
 

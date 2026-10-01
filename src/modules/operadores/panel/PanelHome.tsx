@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { opKeys, seedDemoData, useBookings, useListings, useOpMutation } from "../api";
 import { BOOKING_STATUS_LABEL, PLATFORM_ANNOUNCEMENTS, formatMoney } from "../constants";
 import { useOrg, useScopedBookings } from "./OrgContext";
+import { OrgHealthWidget } from "./OrgHealthWidget";
 
 export default function PanelHome() {
   const { org } = useOrg();
@@ -34,6 +35,13 @@ export default function PanelHome() {
     <div className="space-y-8">
       <h1 className="font-display text-3xl font-bold">Bienvenido, {org.business_name}</h1>
 
+      <OrgHealthWidget
+        org={org}
+        listingsCount={listings.length}
+        teamCount={(org.team || []).length}
+        pendingBookingsCount={bookings.filter((b) => b.status === "pending").length}
+      />
+
       {org.verification !== "verified" && (
         <Alert className="border-amber-500/40 bg-amber-500/10">
           <AlertTriangle className="h-4 w-4 text-amber-600" />
@@ -48,7 +56,7 @@ export default function PanelHome() {
         <div className="grid gap-3 md:grid-cols-3">
           {steps.map((s) => (
             <Link key={s.title} to={s.to} className="group">
-              <Card className={`h-full transition-colors group-hover:border-primary/50 ${s.done ? "border-emerald-500/40" : ""}`}>
+              <Card variant="editorial" className={`h-full transition-colors group-hover:border-primary/50 ${s.done ? "border-emerald-500/40" : ""}`}>
                 <CardContent className="p-5 flex gap-3">
                   <s.icon className="h-5 w-5 text-primary mt-0.5 shrink-0" />
                   <div>
@@ -80,14 +88,14 @@ export default function PanelHome() {
           ))}
         </div>
         {shown.length === 0 ? (
-          <Card><CardContent className="py-10 text-center text-muted-foreground">
+          <Card variant="editorial"><CardContent className="py-10 text-center text-muted-foreground">
             <p className="font-semibold text-foreground">No tienes reserva pendiente.</p>
             <p className="text-sm">Las reservas se visualizarán en esta pantalla.</p>
           </CardContent></Card>
         ) : (
           <div className="space-y-2">
             {shown.map((b) => (
-              <Card key={b.id}><CardContent className="p-4 flex flex-wrap items-center gap-3 justify-between">
+              <Card key={b.id} variant="editorial"><CardContent className="p-4 flex flex-wrap items-center gap-3 justify-between">
                 <div className="min-w-0">
                   <p className="font-semibold truncate">{b.contact_name} · {b.listing_title || "Servicio"}</p>
                   <p className="text-sm text-muted-foreground">{b.date}{b.time ? ` · ${b.time}` : ""} · {b.guests} {b.guests === 1 ? "persona" : "personas"}</p>
@@ -106,7 +114,7 @@ export default function PanelHome() {
         <h2 className="font-display text-xl font-bold mb-3">Novedades de la plataforma</h2>
         <div className="grid gap-3 md:grid-cols-3">
           {PLATFORM_ANNOUNCEMENTS.map((a) => (
-            <Card key={a.id}><CardContent className="p-4">
+            <Card key={a.id} variant="editorial"><CardContent className="p-4">
               <p className="font-semibold text-sm">{a.title}</p>
               <p className="text-xs text-muted-foreground mt-1">{a.body}</p>
             </CardContent></Card>

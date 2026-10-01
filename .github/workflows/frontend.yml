@@ -1,25 +1,38 @@
 name: frontend
 
+permissions:
+  contents: read
+
 on:
+  # Permite recompilar y descargar el artefacto bajo demanda (despliegue o rollback de una revisión concreta).
+  workflow_dispatch:
   push:
     paths:
       - "src/**"
       - "public/**"
       - "index.html"
+      - ".env.example"
+      - "scripts/**"
       - "package.json"
       - "package-lock.json"
       - "tsconfig*.json"
       - "vite.config.ts"
+      - "playwright.config.ts"
+      - "e2e/**"
       - ".github/workflows/frontend.yml"
   pull_request:
     paths:
       - "src/**"
       - "public/**"
       - "index.html"
+      - ".env.example"
+      - "scripts/**"
       - "package.json"
       - "package-lock.json"
       - "tsconfig*.json"
       - "vite.config.ts"
+      - "playwright.config.ts"
+      - "e2e/**"
 
 jobs:
   validate:
@@ -34,8 +47,72 @@ jobs:
       - name: Instalar dependencias limpias
         run: npm ci
 
+      - name: Instalar Chromium para pruebas E2E
+        run: npx playwright install --with-deps chromium
+
+      - name: Vulnerabilidades en dependencias de producción
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Verificar contrato de configuración del chatbot
+        run: npm test -- src/test/chatbot-config.test.ts
+
+      - name: Verificar lógica de tarifas y fechas de operadores
+        run: npm test -- src/test/operator-pricing.test.ts
+
+      - name: Verificar semántica accesible de componentes frontend
+        run: npm test -- src/test/accessible-components.test.tsx
+
+      - name: Verificar contrato API Fastify con respuesta simulada
+        run: npm test -- src/test/api-contract.test.ts
+
       - name: Verificación estricta de tipos TypeScript
         run: npx tsc -p tsconfig.app.json --noEmit
 
+      - name: TypeScript strict por etapas (cliente API)
+        run: npm run typecheck:strict-pilot
+
+      - name: Detectar imports y variables sin uso (cliente API)
+        run: npm run lint:unused-pilot
+
+      - name: Auditar accesos directos a almacenamiento local
+        run: npm run audit:local-storage
+
+      - name: Evitar ciclos entre módulos
+        run: npm run check:import-cycles
+
+      - name: Detectar claves de traduccion ausentes
+        run: npm run check:i18n-keys
+
       - name: Compilación y empaquetado de producción con Vite
+        # El portal todavía corre con datos simulados por decisión documentada (MOCK_MIGRATION_NOTES.md):
+        # el build de producción lo exige explícito para que un despliegue real nunca salga con el mock
+        # por descuido (plan de accesos, punto 1).
+        env:
+          VITE_DATA_SOURCE: mock
+          VITE_ALLOW_MOCK_BUILD: "true"
         run: npm run build
+
+      - name: Flujos prioritarios de frontend en escritorio y móvil
+        run: npm run test:e2e
+
+      - name: Verificar presupuesto de JavaScript inicial y por ruta
+        run: npm run check:bundle-budget
+
+      - name: Comprobar que el bundle no contiene credenciales de servicio
+        run: npm run check:client-secrets
+
+      - name: Comprobar que un build api no distribuye el mock
+        run: npm run check:data-source
+
+      - name: Verificar que no se registra ningún service worker
+        run: npm test -- src/test/service-worker-removal.test.ts
+
+      # El artefacto validado (dist/) queda descargable para desplegar y para revertir:
+      # el despliegue es subir esta carpeta y el rollback, volver a la de la revisión anterior.
+      - name: Publicar artefacto de despliegue
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 90

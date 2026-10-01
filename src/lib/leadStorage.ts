@@ -1,8 +1,8 @@
 /**
- * Almacenamiento y sincronización de leads, reclamos y altas de establecimientos.
- * Garantiza persistencia local offline (localStorage) y cola de sincronización.
+ * Memoria temporal de formularios mock durante la sesión actual.
+ * No guardar datos personales de leads/reclamos en localStorage: el backend debe
+ * ser el almacenamiento duradero y aplicar autorización/retención.
  */
-
 export interface StoredLead {
   id: string;
   name: string;
@@ -34,108 +34,53 @@ export interface StoredBusinessClaim {
   synced: boolean;
 }
 
-const LEADS_STORAGE_KEY = "descubrerd_stored_leads";
-const CLAIMS_STORAGE_KEY = "descubrerd_stored_claims";
+const leads: StoredLead[] = [];
+const claims: StoredBusinessClaim[] = [];
+// Remove legacy browser copies that may contain names, contact details or tax IDs.
+try {
+  localStorage.removeItem("descubrerd_stored_leads");
+  localStorage.removeItem("descubrerd_stored_claims");
+} catch {
+  // Storage can be unavailable (private mode / restricted browser context).
+}
+const makeId = (prefix: string) => `${prefix}-${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`}`;
 
 export function saveLeadLocally(lead: Omit<StoredLead, "id" | "created_at" | "synced">): StoredLead {
-  try {
-    const existing: StoredLead[] = JSON.parse(localStorage.getItem(LEADS_STORAGE_KEY) || "[]");
-    const newLead: StoredLead = {
-      ...lead,
-      id: "lead-" + Date.now() + "-" + Math.random().toString(36).substring(2, 7),
-      created_at: new Date().toISOString(),
-      synced: false,
-    };
-    existing.unshift(newLead);
-    localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(existing.slice(0, 100)));
-    return newLead;
-  } catch (e) {
-    console.error("Error guardando lead localmente:", e);
-    return {
-      ...lead,
-      id: "lead-" + Date.now(),
-      created_at: new Date().toISOString(),
-      synced: false,
-    };
-  }
+  const saved = { ...lead, id: makeId("lead"), created_at: new Date().toISOString(), synced: false };
+  leads.unshift(saved);
+  leads.length = Math.min(leads.length, 100);
+  return saved;
 }
 
 export function saveClaimLocally(claim: Omit<StoredBusinessClaim, "id" | "created_at" | "status" | "synced">): StoredBusinessClaim {
-  try {
-    const existing: StoredBusinessClaim[] = JSON.parse(localStorage.getItem(CLAIMS_STORAGE_KEY) || "[]");
-    const newClaim: StoredBusinessClaim = {
-      ...claim,
-      id: "claim-" + Date.now() + "-" + Math.random().toString(36).substring(2, 7),
-      status: "aprobado",
-      created_at: new Date().toISOString(),
-      synced: true,
-    };
-    existing.unshift(newClaim);
-    localStorage.setItem(CLAIMS_STORAGE_KEY, JSON.stringify(existing.slice(0, 100)));
-    return newClaim;
-  } catch (e) {
-    console.error("Error guardando reclamo localmente:", e);
-    return {
-      ...claim,
-      id: "claim-" + Date.now(),
-      status: "pendiente",
-      created_at: new Date().toISOString(),
-      synced: false,
-    };
-  }
+  const saved: StoredBusinessClaim = {
+    ...claim,
+    id: makeId("claim"),
+    status: "pendiente",
+    created_at: new Date().toISOString(),
+    synced: false,
+  };
+  claims.unshift(saved);
+  claims.length = Math.min(claims.length, 100);
+  return saved;
 }
 
 export function getStoredLeads(): StoredLead[] {
-  try {
-    return JSON.parse(localStorage.getItem(LEADS_STORAGE_KEY) || "[]");
-  } catch {
-    return [];
-  }
+  return [...leads];
 }
 
 export function getStoredClaims(): StoredBusinessClaim[] {
-  try {
-    return JSON.parse(localStorage.getItem(CLAIMS_STORAGE_KEY) || "[]");
-  } catch {
-    return [];
-  }
+  return [...claims];
 }
 
 export function updateClaimStatus(claimId: string, status: StoredBusinessClaim["status"]): boolean {
-  try {
-    const claims = getStoredClaims();
-    const idx = claims.findIndex(c => c.id === claimId);
-    if (idx !== -1) {
-      claims[idx].status = status;
-      localStorage.setItem(CLAIMS_STORAGE_KEY, JSON.stringify(claims));
-      return true;
-    }
-    return false;
-  } catch (e) {
-    console.error("Error al actualizar estado del reclamo:", e);
-    return false;
-  }
+  const claim = claims.find((item) => item.id === claimId);
+  if (!claim) return false;
+  claim.status = status;
+  return true;
 }
 
-/**
- * Auto-aprueba todas las solicitudes de negocios y reclamos pendientes
- */
+/** Mock temporal: las aprobaciones masivas requieren flujo backend y auditoría. */
 export function autoApprovePendingClaims(): number {
-  try {
-    const claims = getStoredClaims();
-    let approvedCount = 0;
-    const updated = claims.map(c => {
-      if (c.status === "pendiente" || c.status === "en_revision") {
-        approvedCount++;
-        return { ...c, status: "aprobado" as const, synced: true };
-      }
-      return c;
-    });
-    localStorage.setItem(CLAIMS_STORAGE_KEY, JSON.stringify(updated));
-    return approvedCount;
-  } catch (e) {
-    console.error("Error en auto-aprobación de reclamos:", e);
-    return 0;
-  }
+  return 0;
 }
-

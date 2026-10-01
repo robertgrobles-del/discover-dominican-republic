@@ -1,6 +1,7 @@
 // Datos de la Tienda oficial de Descubre RD (tablas store_products / store_orders del mock).
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { queryKeys, queryStaleTime } from "@/lib/queryPolicy";
 
 export interface StoreProduct {
   id: string;
@@ -71,7 +72,7 @@ export function resolveProductImage(p: Partial<StoreProduct>): string {
   return DEFAULT_PRODUCT_IMAGES["poster"];
 }
 
-const from = (t: string) => (supabase as any).from(t);
+const from = (t: string) => supabase.from(t);
 
 export async function fetchProducts(): Promise<StoreProduct[]> {
   const { data, error } = await from("store_products").select("*");
@@ -123,6 +124,6 @@ export async function updateProduct(id: string, patch: Partial<StoreProduct>) {
   if (error) throw new Error(error.message);
 }
 
-export const useProducts = () => useQuery({ queryKey: ["store", "products"], queryFn: fetchProducts });
-export const useProduct = (slug?: string) => useQuery({ queryKey: ["store", "product", slug], queryFn: () => fetchProduct(slug!), enabled: !!slug });
-export const useOrders = () => useQuery({ queryKey: ["store", "orders"], queryFn: fetchOrders });
+export const useProducts = () => useQuery({ queryKey: queryKeys.store.products, queryFn: fetchProducts, staleTime: queryStaleTime.catalog });
+export const useProduct = (slug?: string) => useQuery({ queryKey: queryKeys.store.product(slug), queryFn: () => fetchProduct(slug!), enabled: !!slug, staleTime: queryStaleTime.catalog });
+export const useOrders = () => useQuery({ queryKey: queryKeys.store.orders, queryFn: fetchOrders, staleTime: queryStaleTime.orders });

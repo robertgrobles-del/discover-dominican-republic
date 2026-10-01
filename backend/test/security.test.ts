@@ -56,6 +56,21 @@ describe("seguridad", () => {
       const unexpected = routes().filter((r) => r.method !== "GET" && !r.authenticated && !PUBLIC_MUTATIONS.some((p) => p.test(r.url)));
       expect(unexpected.map((r) => `${r.method} ${r.url}`)).toEqual([]);
     });
+
+    it("toda ruta administrativa pasa por un guard de roles y sólo admite roles de personal", () => {
+      const admin = routes().filter((r) => r.url === "/api/v1/admin" || r.url.startsWith("/api/v1/admin/"));
+      // La cota inferior detecta una regresión del inventario: si los guardas dejaran de exponer sus roles, la lista quedaría vacía y el resto de la prueba pasaría en falso.
+      expect(admin.length).toBeGreaterThan(50);
+      const bad = admin.filter((r) => !r.roles.length || r.roles.some((role) => !["admin", "editor", "moderator"].includes(role)));
+      expect(bad.map((r) => `${r.method} ${r.url} [${r.roles.join(",")}]`)).toEqual([]);
+    });
+
+    it("toda ruta del panel del operador pasa por el guard de organización y con roles válidos", () => {
+      const org = routes().filter((r) => r.url.startsWith("/api/v1/org/"));
+      expect(org.length).toBeGreaterThan(20);
+      const bad = org.filter((r) => !r.orgScope || r.roles.some((role) => !["owner", "admin", "recepcion", "guia"].includes(role)));
+      expect(bad.map((r) => `${r.method} ${r.url} orgScope=${r.orgScope} [${r.roles.join(",")}]`)).toEqual([]);
+    });
   });
 
   describe("autorización real", () => {
@@ -181,10 +196,13 @@ describe("seguridad", () => {
       expect(await ipOf("true", "1.2.3.4")).toBe("1.2.3.4");
       expect(await ipOf("1", "9.9.9.9, 1.2.3.4")).toBe("1.2.3.4"); // un salto: la última IP añadida por nuestro proxy
     });
+    it("con una lista de IP/CIDR sólo se cree la cabecera si el proxy conecta desde una de ellas", async () => {
+      expect(await ipOf("127.0.0.1", "1.2.3.4")).toBe("1.2.3.4"); // el inyector conecta desde 127.0.0.1, que está en la lista
+    });
   });
 
   describe("configuración de producción", () => {
-    const prod = { NODE_ENV: "production", DATABASE_URL: "postgres://app:clave-real@db.example.com:5432/rd", JWT_PRIVATE_KEY: "a", JWT_PUBLIC_KEY: "b", APP_SECRET: "s".repeat(40), TOTP_ENCRYPTION_KEY: Buffer.alloc(32, 1).toString("base64"), MAIL_TRANSPORT: "log" } as NodeJS.ProcessEnv;
+    const prod = { NODE_ENV: "production", DATABASE_URL: "postgres://app:clave-real@db.example.com:5432/rd", JWT_PRIVATE_KEY: "a", JWT_PUBLIC_KEY: "b", APP_SECRET: "s".repeat(40), TOTP_ENCRYPTION_KEY: Buffer.alloc(32, 1).toString("base64"), MAIL_TRANSPORT: "smtp" } as NodeJS.ProcessEnv;
     it("exige orígenes https concretos y no acepta credenciales de desarrollo", async () => {
       const { loadEnv } = await import("../src/config/env.js");
       expect(() => loadEnv({ ...prod, CORS_ORIGINS: "*" })).toThrow(/CORS_ORIGINS/);
@@ -194,6 +212,25 @@ describe("seguridad", () => {
       const ok = loadEnv({ ...prod, CORS_ORIGINS: "https://portal.example.com,https://www.example.com", PAYMENT_PROVIDER: "none" });
       expect(ok.NODE_ENV).toBe("production");
       expect(ok.TRUST_PROXY).toBe("false");
+    });
+
+    it("prohíbe los transportes de correo simulados: en producción los correos deben entregarse", async () => {
+      const { loadEnv } = await import("../src/config/env.js");
+      const base = { ...prod, CORS_ORIGINS: "https://portal.example.com" };
+      expect(() => loadEnv({ ...base, MAIL_TRANSPORT: "log" })).toThrow(/MAIL_TRANSPORT/);
+      expect(() => loadEnv({ ...base, MAIL_TRANSPORT: "memory" })).toThrow(/MAIL_TRANSPORT/);
+      expect(loadEnv(base).MAIL_TRANSPORT).toBe("smtp");
+    });
+
+    it("restringe TRUST_PROXY a proxies conocidos: valida el formato al arrancar y veta \"true\" en producción", async () => {
+      const { loadEnv } = await import("../src/config/env.js");
+      const base = { ...prod, CORS_ORIGINS: "https://portal.example.com" };
+      expect(() => loadEnv({ ...base, TRUST_PROXY: "true" })).toThrow(/TRUST_PROXY/);
+      expect(() => loadEnv({ ...base, TRUST_PROXY: "detras-del-proxy" })).toThrow(/TRUST_PROXY/);
+      expect(() => loadEnv({ ...base, TRUST_PROXY: "10.0.0.0/8,,evil" })).toThrow(/TRUST_PROXY/);
+      expect(loadEnv({ ...base, TRUST_PROXY: "1" }).TRUST_PROXY).toBe("1");
+      expect(loadEnv({ ...base, TRUST_PROXY: "10.0.0.0/8,2001:db8::/32" }).TRUST_PROXY).toBe("10.0.0.0/8,2001:db8::/32");
+      expect(() => loadEnv({ NODE_ENV: "test", TRUST_PROXY: "todos" })).toThrow(/TRUST_PROXY/); // un valor mal escrito es un error de arranque también fuera de producción
     });
   });
 
@@ -234,6 +271,34 @@ describe("seguridad", () => {
       expect(left).not.toContain(`h-viejo-${tagId}`);
       expect((await ins("SELECT to_email FROM email_log WHERE to_email IN ('viejo@t.local', 'cola@t.local')")).rows.map((r) => r.to_email)).toEqual(["cola@t.local"]); // lo pendiente no se borra aunque sea viejo
       await ins("DELETE FROM email_log WHERE to_email = 'cola@t.local'");
+    });
+  });
+
+  describe("content-type y caché por clase de respuesta", () => {
+    it("rechaza los cuerpos con Content-Type sin parser (415) y el text/plain incorporado lo rechaza el esquema (400)", async () => {
+      const body = JSON.stringify({ events: [] });
+      for (const ct of ["application/xml", "text/csv"]) {
+        const res = await call("POST", "/api/v1/analytics/events", { payload: body, headers: { "content-type": ct } });
+        expect(res.statusCode, ct).toBe(415);
+        expect(json(res).error.code, ct).toBe("VALIDATION_ERROR");
+        expect(json(res).error.message, ct).not.toMatch(/stack|SELECT|postgres/i);
+      }
+      // text/plain tiene parser nativo en Fastify: llega como cadena y no pasa el esquema del cuerpo.
+      const txt = await call("POST", "/api/v1/analytics/events", { payload: body, headers: { "content-type": "text/plain" } });
+      expect(txt.statusCode).toBe(400);
+      expect(json(txt).error.code).toBe("VALIDATION_ERROR");
+    });
+
+    it("todo GET/HEAD 200 sin cabecera de caché explícita queda private, no-store; el público mantiene su ETag", async () => {
+      const me = await call("GET", "/api/v1/me/notifications", { token: plain });
+      expect(me.statusCode).toBe(200);
+      expect(me.headers["cache-control"]).toBe("private, no-store");
+      const plans = await call("GET", "/api/v1/memberships/plans");
+      expect(plans.statusCode).toBe(200);
+      expect(plans.headers["cache-control"]).toContain("public");
+      expect(plans.headers.etag).toBeTruthy();
+      const again = await app.inject({ method: "GET", url: "/api/v1/memberships/plans", headers: { "if-none-match": plans.headers.etag as string } });
+      expect(again.statusCode).toBe(304);
     });
   });
 });

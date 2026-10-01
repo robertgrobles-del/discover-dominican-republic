@@ -1,4 +1,4 @@
-import "@testing-library/jest-dom";
+import "@testing-library/jest-dom/vitest";
 
 Object.defineProperty(window, "matchMedia", {
   writable: true,
@@ -13,6 +13,18 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: () => {},
   }),
 });
+
+// jsdom no implementa ResizeObserver, y los primitivos de interfaz (Select, ScrollArea, Tabs con medición)
+// lo usan al montar. Sin este sustituto cualquier prueba que renderice un panel revienta con
+// "ResizeObserver is not defined" y el fallo no tiene nada que ver con lo que se estaba probando.
+if (!("ResizeObserver" in globalThis)) {
+  class ResizeObserverStub {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+  Object.defineProperty(globalThis, "ResizeObserver", { value: ResizeObserverStub, writable: true });
+}
 
 // Mock localStorage for test environment
 const createLocalStorageMock = () => {

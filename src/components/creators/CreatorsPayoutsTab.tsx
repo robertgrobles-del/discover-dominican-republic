@@ -1,104 +1,34 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-interface CreatorsPayoutsTabProps {
-  balance: number;
-  withdrawAmount: string;
-  withdrawMethod: string;
-  withdrawDetails: string;
-  isWithdrawing: boolean;
-  onWithdrawAmountChange: (val: string) => void;
-  onWithdrawMethodChange: (val: string) => void;
-  onWithdrawDetailsChange: (val: string) => void;
-  onWithdraw: (e: React.FormEvent) => void;
+interface CreatorPayoutsProps {
+  profile: { balance_available: number | string; balance_pending: number | string } | null;
+  payouts: Array<{ id: string; amount: number | string; status: string; created_at: string }>;
 }
 
-export function CreatorsPayoutsTab({
-  balance,
-  withdrawAmount,
-  withdrawMethod,
-  withdrawDetails,
-  isWithdrawing,
-  onWithdrawAmountChange,
-  onWithdrawMethodChange,
-  onWithdrawDetailsChange,
-  onWithdraw
-}: CreatorsPayoutsTabProps) {
-  return (
-    <div className="grid md:grid-cols-2 gap-6">
-      <Card className="border border-border bg-card">
-        <CardHeader>
-          <CardTitle className="text-base font-bold">Solicitar Retiro de Fondos</CardTitle>
-          <CardDescription className="text-xs">Saldo disponible: <strong>${balance.toFixed(2)} USD</strong></CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onWithdraw} className="space-y-4">
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase">Monto a Retirar (USD)</label>
-              <Input 
-                type="number"
-                placeholder="Mínimo $50 USD"
-                value={withdrawAmount}
-                onChange={(e) => onWithdrawAmountChange(e.target.value)}
-                required
-                className="mt-1 rounded-xl text-xs"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase">Método de Cobro</label>
-              <select
-                value={withdrawMethod}
-                onChange={(e) => onWithdrawMethodChange(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-xs text-foreground focus:outline-none"
-              >
-                <option value="paypal">PayPal</option>
-                <option value="banco">Transferencia Bancaria Local (Banreservas, BHD, Popular)</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase">Datos de la Cuenta</label>
-              <Input 
-                placeholder={withdrawMethod === "paypal" ? "correo@paypal.com" : "Banco, No. de Cuenta, Cédula / RNC"} 
-                value={withdrawDetails}
-                onChange={(e) => onWithdrawDetailsChange(e.target.value)}
-                required
-                className="mt-1 rounded-xl text-xs"
-              />
-            </div>
-            <Button type="submit" disabled={isWithdrawing} className="w-full rounded-xl text-xs font-bold gap-2">
-              {isWithdrawing ? "Procesando transferencia..." : "Solicitar Retiro Seguro"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+const money = (value: number | string) => {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric.toLocaleString("es-DO", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—";
+};
 
-      <Card className="border border-border bg-card">
-        <CardHeader>
-          <CardTitle className="text-base font-bold">Historial de Transferencias</CardTitle>
-          <CardDescription className="text-xs">Comprobantes y liquidaciones anteriores.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {[
-            { date: "2026-09-01", method: "Transferencia BHD", amount: "$150.00 USD", status: "Completado" },
-            { date: "2026-08-15", method: "PayPal", amount: "$95.00 USD", status: "Completado" }
-          ].map((item, i) => (
-            <div key={i} className="flex justify-between items-center p-3 rounded-xl bg-muted/40 border border-border">
-              <div>
-                <p className="font-semibold text-xs text-foreground">{item.method}</p>
-                <p className="text-[10px] text-muted-foreground">{item.date}</p>
-              </div>
-              <div className="text-right">
-                <p className="font-mono text-xs font-bold text-foreground">{item.amount}</p>
-                <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8px] uppercase">
-                  {item.status}
-                </Badge>
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-    </div>
-  );
+export function CreatorsPayoutsTab({ profile, payouts }: CreatorPayoutsProps) {
+  return <div className="grid md:grid-cols-2 gap-6">
+    <Card className="border border-border bg-card">
+      <CardHeader><CardTitle className="text-base font-bold">Saldo del creador</CardTitle><CardDescription className="text-xs">Información consultada desde el backend.</CardDescription></CardHeader>
+      <CardContent className="space-y-3 text-sm">
+        <p>Disponible: <strong>{profile ? money(profile.balance_available) : "—"}</strong></p>
+        <p>Pendiente: <strong>{profile ? money(profile.balance_pending) : "—"}</strong></p>
+        <p className="text-xs text-muted-foreground">La solicitud de retiro para creadores aún no está habilitada. Esta pantalla no procesa pagos.</p>
+      </CardContent>
+    </Card>
+    <Card className="border border-border bg-card">
+      <CardHeader><CardTitle className="text-base font-bold">Pagos registrados</CardTitle><CardDescription className="text-xs">Historial devuelto por el servicio, sin datos de ejemplo.</CardDescription></CardHeader>
+      <CardContent className="space-y-3">
+        {payouts.length === 0 ? <p className="text-xs text-muted-foreground">No hay pagos registrados.</p> : payouts.map(item => <div key={item.id} className="flex justify-between items-center p-3 rounded-xl bg-muted/40 border border-border">
+          <div><p className="font-semibold text-xs">{new Date(item.created_at).toLocaleDateString("es-DO")}</p><p className="text-[10px] text-muted-foreground">{money(item.amount)}</p></div>
+          <Badge variant="outline" className="text-[10px]">{item.status}</Badge>
+        </div>)}
+      </CardContent>
+    </Card>
+  </div>;
 }

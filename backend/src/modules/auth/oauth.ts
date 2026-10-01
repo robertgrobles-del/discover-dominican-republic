@@ -4,6 +4,7 @@ import type { FastifyBaseLogger } from "fastify";
 import type { Env } from "../../config/env.js";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
+import { readBodyCapped, traceHeaders } from "../../lib/http.js";
 import type { AuthService, LoginResult, RequestContext } from "./service.js";
 
 /**
@@ -16,6 +17,7 @@ interface Discovery { authorization_endpoint: string; token_endpoint: string; jw
 
 const STATE_TTL_SECONDS = 600;
 const CODE_TTL_SECONDS = 60;
+const MAX_OIDC_BYTES = 1_000_000;
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
 const b64u = (buf: Buffer) => buf.toString("base64url");
 
@@ -66,9 +68,9 @@ export class OAuthService {
     const hit = this.discovery.get(p.issuer);
     if (hit && Date.now() - hit.at < 3_600_000) return hit.doc;
     try {
-      const res = await fetch(`${p.issuer.replace(/\/$/, "")}/.well-known/openid-configuration`, { signal: AbortSignal.timeout(5000) });
+      const res = await fetch(`${p.issuer.replace(/\/$/, "")}/.well-known/openid-configuration`, { headers: traceHeaders(), signal: AbortSignal.timeout(5000) });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const doc = (await res.json()) as Discovery;
+      const doc = (res.body ? JSON.parse(await readBodyCapped(res, MAX_OIDC_BYTES)) : await res.json()) as Discovery;
       if (!doc.authorization_endpoint || !doc.token_endpoint || !doc.jwks_uri) throw new Error("Documento de descubrimiento incompleto");
       this.discovery.set(p.issuer, { at: Date.now(), doc });
       return doc;
@@ -115,11 +117,11 @@ export class OAuthService {
     try {
       const doc = await this.discover(p);
       const res = await fetch(doc.token_endpoint, {
-        method: "POST", headers: { "content-type": "application/x-www-form-urlencoded", accept: "application/json" }, signal: AbortSignal.timeout(8000),
+        method: "POST", headers: { "content-type": "application/x-www-form-urlencoded", accept: "application/json", ...traceHeaders() }, signal: AbortSignal.timeout(8000),
         body: new URLSearchParams({ grant_type: "authorization_code", code: input.code, redirect_uri: this.callbackUrl(p), client_id: p.clientId, client_secret: p.clientSecret, code_verifier: st.code_verifier }),
       });
       if (!res.ok) { this.log.warn({ status: res.status }, "El proveedor rechazó el intercambio de código"); return fail(st.redirect_to, "token_exchange_failed"); }
-      const tokens = (await res.json()) as { id_token?: string };
+      const tokens = (res.body ? JSON.parse(await readBodyCapped(res, MAX_OIDC_BYTES)) : await res.json()) as { id_token?: string };
       if (!tokens.id_token) return fail(st.redirect_to, "token_exchange_failed");
       let jwks = this.jwks.get(doc.jwks_uri);
       if (!jwks) { jwks = createRemoteJWKSet(new URL(doc.jwks_uri), { cooldownDuration: 30_000, timeoutDuration: 5000 }); this.jwks.set(doc.jwks_uri, jwks); }

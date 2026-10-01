@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { EntityList } from "@/components/admin/EntityList";
+import { readValidatedTextFile } from "@/lib/forms";
 import { EntityType as AdminEntityType } from "@/hooks/useAdminEntities";
 import {
   EntityType,
@@ -67,21 +68,24 @@ export function EntityImportManager() {
     return data;
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
+    try {
+      const text = await readValidatedTextFile(file, [".csv"], 5 * 1024 * 1024);
       const data = parseCSV(text);
+      if (data.length === 0) throw new Error("El CSV debe incluir encabezados y al menos una fila de datos.");
       setCsvData(data);
       toast({
         title: "Archivo cargado",
         description: `Se encontraron ${data.length} registros para importar.`
       });
-    };
-    reader.readAsText(file);
+    } catch (error) {
+      setCsvData([]);
+      toast({ title: "No se pudo leer el archivo", description: error instanceof Error ? error.message : "Revisa el formato CSV.", variant: "destructive" });
+    } finally {
+      event.target.value = "";
+    }
   };
 
   const processArrayField = (value: string): string[] | null => {

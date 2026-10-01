@@ -88,25 +88,28 @@ describe("MembershipsAndTicketingService — Membresias y Ticketing (Fase 5B)", 
       let previousCancelled = false;
       let membershipInserted = false;
       let bonusPointsAdded = false;
+      let bonusReference = "";
       const plan = makePlan();
       const membership = makeMembership();
 
-      const pool: any = {
-        query: async (sql: string) => {
-          if (sql.includes("SELECT * FROM membership_plans")) return { rows: [plan] };
-          if (sql.includes("UPDATE user_memberships SET status = 'CANCELLED'")) {
-            previousCancelled = true; return { rows: [] };
-          }
-          if (sql.includes("INSERT INTO user_memberships")) {
-            membershipInserted = true; return { rows: [membership] };
-          }
-          if (sql.includes("INSERT INTO loyalty_points_ledger")) {
-            bonusPointsAdded = true; return { rows: [] };
-          }
-          if (sql.includes("SELECT COALESCE")) return { rows: [{ balance: 0 }] };
-          return { rows: [], rowCount: 0 };
-        },
+      const handler = async (sql: string, params?: unknown[]) => {
+        if (sql.includes("SELECT * FROM membership_plans")) return { rows: [plan] };
+        if (sql.includes("UPDATE user_memberships SET status = 'CANCELLED'")) {
+          previousCancelled = true; return { rows: [] };
+        }
+        if (sql.includes("INSERT INTO user_memberships")) {
+          membershipInserted = true; return { rows: [membership] };
+        }
+        if (sql.includes("INSERT INTO loyalty_points_ledger")) {
+          bonusPointsAdded = true;
+          bonusReference = (params?.[5] as string) ?? "";
+          return { rows: [{ balance_after: 500 }] };
+        }
+        if (sql.includes("SELECT COALESCE")) return { rows: [{ balance: 0 }] };
+        return { rows: [], rowCount: 0 };
       };
+      // Las escrituras del servicio corren en transacción: el fake necesita pool.connect().
+      const pool: any = { query: handler, connect: async () => ({ query: handler, release() {} }) };
 
       const svc = new MembershipsAndTicketingService(pool);
       const result = await svc.subscribeUserToPlan("user-001", "pasaporte-vip");
@@ -116,6 +119,7 @@ describe("MembershipsAndTicketingService — Membresias y Ticketing (Fase 5B)", 
       expect(previousCancelled).toBe(true);
       expect(membershipInserted).toBe(true);
       expect(bonusPointsAdded).toBe(true); // bono de bienvenida 500 pts
+      expect(bonusReference).toBe("vip_bonus:user-001"); // referencia fija: una sola vez por usuario
     });
 
     it("lanza error si el plan no existe", async () => {
@@ -168,15 +172,15 @@ describe("MembershipsAndTicketingService — Membresias y Ticketing (Fase 5B)", 
   describe("creditLoyaltyPoints()", () => {
     it("acredita puntos y retorna el nuevo balance", async () => {
       let insertedBalance = 0;
-      const pool: any = {
-        query: async (sql: string, params?: unknown[]) => {
-          if (sql.includes("SELECT COALESCE")) return { rows: [{ balance: 200 }] };
-          if (sql.includes("INSERT INTO loyalty_points_ledger") && params) {
-            insertedBalance = params[3] as number; // balance_after
-          }
-          return { rows: [], rowCount: 0 };
-        },
+      const handler = async (sql: string, params?: unknown[]) => {
+        if (sql.includes("SELECT COALESCE")) return { rows: [{ balance: 200 }] };
+        if (sql.includes("INSERT INTO loyalty_points_ledger") && params) {
+          insertedBalance = params[3] as number; // balance_after
+          return { rows: [{ balance_after: insertedBalance }] };
+        }
+        return { rows: [], rowCount: 0 };
       };
+      const pool: any = { query: handler, connect: async () => ({ query: handler, release() {} }) };
       const svc = new MembershipsAndTicketingService(pool);
       const newBalance = await svc.creditLoyaltyPoints("user-001", 100, "PURCHASE_REWARD");
       expect(newBalance).toBe(300); // 200 + 100
@@ -190,18 +194,17 @@ describe("MembershipsAndTicketingService — Membresias y Ticketing (Fase 5B)", 
       let pointsAccredited = false;
       const ticket = makeTicket();
 
-      const pool: any = {
-        query: async (sql: string) => {
-          if (sql.includes("INSERT INTO live_event_tickets")) {
-            ticketInserted = true; return { rows: [ticket] };
-          }
-          if (sql.includes("SELECT COALESCE")) return { rows: [{ balance: 0 }] };
-          if (sql.includes("INSERT INTO loyalty_points_ledger")) {
-            pointsAccredited = true; return { rows: [] };
-          }
-          return { rows: [], rowCount: 0 };
-        },
+      const handler = async (sql: string) => {
+        if (sql.includes("INSERT INTO live_event_tickets")) {
+          ticketInserted = true; return { rows: [ticket] };
+        }
+        if (sql.includes("SELECT COALESCE")) return { rows: [{ balance: 0 }] };
+        if (sql.includes("INSERT INTO loyalty_points_ledger")) {
+          pointsAccredited = true; return { rows: [{ balance_after: 750 }] };
+        }
+        return { rows: [], rowCount: 0 };
       };
+      const pool: any = { query: handler, connect: async () => ({ query: handler, release() {} }) };
 
       const svc = new MembershipsAndTicketingService(pool);
       const result = await svc.purchaseTicket({
@@ -219,16 +222,16 @@ describe("MembershipsAndTicketingService — Membresias y Ticketing (Fase 5B)", 
 
     it("los puntos acreditados son proporcionales al precio (10 pts por USD)", async () => {
       let pointsDelta = 0;
-      const pool: any = {
-        query: async (sql: string, params?: unknown[]) => {
-          if (sql.includes("INSERT INTO live_event_tickets")) return { rows: [makeTicket({ price_paid: 50 })] };
-          if (sql.includes("SELECT COALESCE")) return { rows: [{ balance: 0 }] };
-          if (sql.includes("INSERT INTO loyalty_points_ledger") && params) {
-            pointsDelta = params[2] as number; // points_delta
-          }
-          return { rows: [], rowCount: 0 };
-        },
+      const handler = async (sql: string, params?: unknown[]) => {
+        if (sql.includes("INSERT INTO live_event_tickets")) return { rows: [makeTicket({ price_paid: 50 })] };
+        if (sql.includes("SELECT COALESCE")) return { rows: [{ balance: 0 }] };
+        if (sql.includes("INSERT INTO loyalty_points_ledger") && params) {
+          pointsDelta = params[2] as number; // points_delta
+          return { rows: [{ balance_after: 500 }] };
+        }
+        return { rows: [], rowCount: 0 };
       };
+      const pool: any = { query: handler, connect: async () => ({ query: handler, release() {} }) };
       const svc = new MembershipsAndTicketingService(pool);
       await svc.purchaseTicket({ eventId: "event-001", userId: "user-001", price: 50 });
       // 50 USD * 10 = 500 puntos
@@ -256,7 +259,8 @@ describe("MembershipsAndTicketingService — Membresias y Ticketing (Fase 5B)", 
     it("lanza error CONFLICT si el ticket ya fue utilizado", async () => {
       const alreadyUsed = makeTicket({ status: "CHECKED_IN", checked_in_at: "2026-09-27T18:00:00Z" });
       const pool: any = {
-        query: async () => ({ rows: [alreadyUsed] }),
+        // El UPDATE atómico no aplica (ya no está ISSUED); el SELECT revela el estado real.
+        query: async (sql: string) => (sql.includes("UPDATE live_event_tickets") ? { rows: [] } : { rows: [alreadyUsed] }),
       };
       const svc = new MembershipsAndTicketingService(pool);
       await expect(svc.verifyAndCheckInTicket("DR-TKT-USED")).rejects.toThrow(/utilizada/);
@@ -270,7 +274,9 @@ describe("MembershipsAndTicketingService — Membresias y Ticketing (Fase 5B)", 
 
     it("rechaza tickets con estado diferente a ISSUED o CHECKED_IN", async () => {
       const cancelledTicket = makeTicket({ status: "CANCELLED" });
-      const pool: any = { query: async () => ({ rows: [cancelledTicket] }) };
+      const pool: any = {
+        query: async (sql: string) => (sql.includes("UPDATE live_event_tickets") ? { rows: [] } : { rows: [cancelledTicket] }),
+      };
       const svc = new MembershipsAndTicketingService(pool);
       await expect(svc.verifyAndCheckInTicket("DR-TKT-CANCELLED")).rejects.toThrow();
     });

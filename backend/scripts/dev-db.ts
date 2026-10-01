@@ -1,10 +1,15 @@
-// PostgreSQL local sin Docker: levanta un clúster real (binarios de embedded-postgres) en el puerto 5433.
+// PostgreSQL local sin Docker: levanta un clúster real (binarios de embedded-postgres) en el puerto 5434.
 // Sólo para desarrollo. La vía oficial es `docker compose up -d` (ver README).
+// `EMBEDDED_PG_DIR` y `EMBEDDED_PG_PORT` permiten levantar un clúster paralelo y limpio (por ejemplo para
+// las pruebas de integración) sin tocar el de desarrollo: un directorio distinto evita el bloqueo del
+// clúster en uso y un puerto distinto evita chocar con él.
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import EmbeddedPostgres from "embedded-postgres";
 
-const dir = fileURLToPath(new URL("../.data/pg", import.meta.url));
+const dir = process.env.EMBEDDED_PG_DIR
+  ? fileURLToPath(new URL(process.env.EMBEDDED_PG_DIR, new URL("../", import.meta.url)))
+  : fileURLToPath(new URL("../.data/pg", import.meta.url));
 const port = Number(process.env.EMBEDDED_PG_PORT ?? 5434);
 const pg = new EmbeddedPostgres({ databaseDir: dir, user: "postgres", password: "postgres", port, persistent: true,
   // UTF-8 y colación neutra: el locale por defecto de Windows (WIN1252) rechaza emojis y otros caracteres

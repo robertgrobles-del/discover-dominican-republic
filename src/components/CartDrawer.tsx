@@ -1,13 +1,11 @@
-import { ShoppingCart, Minus, Plus, Trash2, X } from "lucide-react";
+import { ShoppingCart, Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useCart } from "@/hooks/useCart";
 
 export function CartDrawer() {
-  const { items, count, total, removeItem, updateQuantity, clearCart } = useCart();
+  const { items, count, total, removeItem, updateQuantity, clearCart, loading, error, retry } = useCart();
 
   return (
     <Sheet>
@@ -34,7 +32,16 @@ export function CartDrawer() {
           </SheetTitle>
         </SheetHeader>
 
-        {items.length === 0 ? (
+        {error ? (
+          <div role="alert" className="flex-1 flex flex-col items-center justify-center gap-3 text-center">
+            <p className="text-sm text-destructive">No se pudo cargar el carrito.</p>
+            <Button variant="outline" onClick={retry}>Reintentar</Button>
+          </div>
+        ) : loading ? (
+          <div role="status" aria-live="polite" className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
+            Cargando el carrito…
+          </div>
+        ) : items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-2">
             <ShoppingCart className="h-12 w-12 opacity-30" aria-hidden="true" />
             <p className="text-sm">Tu carrito está vacío</p>

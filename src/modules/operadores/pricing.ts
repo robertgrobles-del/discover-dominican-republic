@@ -4,6 +4,11 @@ import type { Room } from "./types";
 const DAY = 86400000;
 const toDate = (s: string) => new Date(`${s}T00:00:00Z`);
 const toStr = (d: Date) => d.toISOString().slice(0, 10);
+const isValidDateOnly = (value: string) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = toDate(value);
+  return !Number.isNaN(date.getTime()) && toStr(date) === value;
+};
 export const addDays = (s: string, n: number) => toStr(new Date(toDate(s).getTime() + n * DAY));
 
 /** Fecha bloqueada por el operador (rango inclusivo). */
@@ -34,7 +39,15 @@ export interface StayQuote {
 }
 
 export function quoteStay(room: Room, checkIn: string, checkOut: string): StayQuote {
-  const nights = Math.max(0, Math.round((toDate(checkOut).getTime() - toDate(checkIn).getTime()) / DAY));
+  if (!isValidDateOnly(checkIn) || !isValidDateOnly(checkOut)) {
+    return { nights: 0, total: 0, average: room.price, lines: [], issue: "Las fechas de entrada y salida deben ser válidas." };
+  }
+
+  const nights = (toDate(checkOut).getTime() - toDate(checkIn).getTime()) / DAY;
+  if (nights <= 0) {
+    return { nights: 0, total: 0, average: room.price, lines: [], issue: "La fecha de salida debe ser posterior a la fecha de entrada." };
+  }
+
   const groups = new Map<string, { label: string; nights: number; price: number }>();
   let total = 0;
   let issue: string | null = null;

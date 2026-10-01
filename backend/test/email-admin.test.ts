@@ -31,7 +31,7 @@ describe("administración del correo", () => {
   };
   const logRow = async (to: string, template = "auth.welcome") => (await pool.query("SELECT * FROM email_log WHERE to_email = $1 AND template = $2 ORDER BY created_at DESC LIMIT 1", [to, template])).rows[0];
   const custom = { subject: "¡Hola {{name}}, bienvenido!", title: "Bienvenido, {{name}}", body_html: "<p>Tu cuenta está lista, <b>{{name}}</b>.</p><p>Empieza aquí.</p>", cta_label: "Entrar", cta_var: "url" };
-  const sign = (raw: string, secret = SECRET) => `sha256=${createHmac("sha256", secret).update(raw).digest("hex")}`;
+  const sign = (raw: string, secret = SECRET, at = Math.floor(Date.now() / 1000)) => `t=${at},sha256=${createHmac("sha256", secret).update(`${at}.${raw}`).digest("hex")}`;
   const webhook = (events: object[], signature?: string) => {
     const raw = JSON.stringify({ events });
     return hook.inject({ method: "POST", url: "/api/v1/webhooks/email/generic", payload: raw, headers: { "content-type": "application/json", "x-email-signature": signature ?? sign(raw) } });
@@ -222,6 +222,9 @@ describe("administración del correo", () => {
       expect((await webhook([], "sha256=" + "0".repeat(64))).statusCode).toBe(401);
       expect((await webhook([], "sin-firma")).statusCode).toBe(401);
       expect((await webhook([], sign(JSON.stringify({ events: [] }), "otro-secreto-de-16-caracteres"))).statusCode).toBe(401);
+      // Firma válida pero capturada hace más de la tolerancia (±300 s): no se reinyecta (replay).
+      const viejo = Math.floor(Date.now() / 1000) - 3600;
+      expect((await webhook([], sign(JSON.stringify({ events: [] }), SECRET, viejo))).statusCode).toBe(401);
       const bad = JSON.stringify({ events: [{ type: "inventado" }] });
       expect((await hook.inject({ method: "POST", url: "/api/v1/webhooks/email/generic", payload: bad, headers: { "content-type": "application/json", "x-email-signature": sign(bad) } })).statusCode).toBe(400);
       expect((await hook.inject({ method: "POST", url: "/api/v1/webhooks/email/otro", payload: raw, headers: { "content-type": "application/json", "x-email-signature": sign(raw) } })).statusCode).toBe(400);

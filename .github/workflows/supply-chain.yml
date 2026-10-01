@@ -1,0 +1,43 @@
+name: supply-chain
+
+# Auditoría de dependencias de producción de los proyectos que el backend y el
+# frontend no cubren (cms/ y server/). Sólo lee los lockfiles: no instala nada.
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "cms/package.json"
+      - "cms/package-lock.json"
+      - "server/package.json"
+      - "server/package-lock.json"
+      - ".github/workflows/supply-chain.yml"
+  pull_request:
+    paths:
+      - "cms/package.json"
+      - "cms/package-lock.json"
+      - "server/package.json"
+      - "server/package-lock.json"
+      - ".github/workflows/supply-chain.yml"
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [cms, server]
+    # cms/ (Strapi legado) arrastra vulnerabilidades altas heredadas: el resultado
+    # se reporta pero no bloquea, mientras que server/ sí falla el workflow.
+    continue-on-error: ${{ matrix.project == 'cms' }}
+    name: Auditoría ${{ matrix.project }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Vulnerabilidades en dependencias de producción
+        working-directory: ${{ matrix.project }}
+        run: npm audit --package-lock-only --omit=dev --audit-level=high

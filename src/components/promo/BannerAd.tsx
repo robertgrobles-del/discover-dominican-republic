@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { safeExternalUrl } from "@/lib/security";
 import { ExternalLink, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useBanner, type AdBanner } from "@/hooks/useAdBanners";
+import { useBanner, trackBannerClick, trackBannerImpression, type AdBanner } from "@/hooks/useAdBanners";
 import { BannerMediaContent } from "./BannerMediaContent";
 import { INDUSTRY_BANNERS_DEMO, type IndustryBannerDemo } from "@/data/mockIndustryBanners";
 
@@ -261,11 +262,6 @@ export function BannerAd({
   bannerData,
   isPremiumListing = false,
 }: BannerAdProps) {
-  // Si la ficha es de un establecimiento Premium, no se muestran banners de competidores
-  if (isPremiumListing) {
-    return null;
-  }
-
   // Fetch dynamic banner from DB if section is provided and no bannerData passed
   const dynamicBanner = useBanner(
     section && !bannerData
@@ -287,7 +283,13 @@ export function BannerAd({
   const resolvedImageUrl = activeBanner?.image_url || imageUrl || industryAd?.imageUrl || officialBannerSrc || demoAd?.image;
   const isOfficialGraphic = resolvedImageUrl?.startsWith("/banners/");
   const resolvedAltText = activeBanner?.alt_text || altText || industryAd?.sponsor || demoAd?.alt || `Banner Oficial RD ${config.label}`;
-  const resolvedTargetUrl = activeBanner?.target_url || (industryAd?.targetUrl ?? targetUrl);
+  const rawTargetUrl = activeBanner?.target_url || (industryAd?.targetUrl ?? targetUrl);
+  const safeExternalTarget = safeExternalUrl(rawTargetUrl);
+  const resolvedTargetUrl = safeExternalTarget ?? (
+    rawTargetUrl.startsWith("/") && !rawTargetUrl.startsWith("//") && !rawTargetUrl.includes("\\")
+      ? rawTargetUrl
+      : "/"
+  );
   const resolvedSponsor = activeBanner?.sponsor || sponsor || industryAd?.sponsor || demoAd?.sponsor;
   const resolvedHeadline = activeBanner?.headline || industryAd?.headline || (defaultPromo[size] || defaultPromo["default"]).headline;
   const resolvedSubtext = activeBanner?.subtext || industryAd?.subtext || (defaultPromo[size] || defaultPromo["default"]).subtext;
@@ -295,18 +297,21 @@ export function BannerAd({
 
   // Count impression on render/view once per banner id
   useEffect(() => {
+    if (isPremiumListing) return;
     if (activeBanner?.id && activeBanner.id !== "preview-id") {
-      import("@/hooks/useAdBanners").then(({ trackBannerImpression }) => {
-        trackBannerImpression(activeBanner.id);
-      });
+      void trackBannerImpression(activeBanner.id);
     }
-  }, [activeBanner?.id]);
+  }, [activeBanner?.id, isPremiumListing]);
+
+  // Si la ficha es de un establecimiento Premium, no se muestran banners de competidores.
+  // Va después de los hooks: un `return` temprano antes de ellos rompería las reglas de React.
+  if (isPremiumListing) {
+    return null;
+  }
 
   const handleBannerClick = () => {
     if (activeBanner?.id && activeBanner.id !== "preview-id") {
-      import("@/hooks/useAdBanners").then(({ trackBannerClick }) => {
-        trackBannerClick(activeBanner.id);
-      });
+      void trackBannerClick(activeBanner.id);
     }
   };
 
@@ -317,7 +322,7 @@ export function BannerAd({
 
   // Placeholder (no image)
   if (!resolvedImageUrl) {
-    const isExternalPlaceholder = resolvedTargetUrl.startsWith("http://") || resolvedTargetUrl.startsWith("https://");
+    const isExternalPlaceholder = Boolean(safeExternalTarget);
     const placeholderContent = (
       <div
         className={cn(
@@ -346,7 +351,7 @@ export function BannerAd({
     if (isExternalPlaceholder) {
       return (
         <a
-          href={resolvedTargetUrl}
+          href={safeExternalTarget}
           target="_blank"
           rel="noopener noreferrer"
           onClick={handleBannerClick}
@@ -369,7 +374,7 @@ export function BannerAd({
   }
 
   const isFullWidth = placement === "between-sections" || placement === "sidebar";
-  const isExternalUrl = resolvedTargetUrl.startsWith("http://") || resolvedTargetUrl.startsWith("https://");
+  const isExternalUrl = Boolean(safeExternalTarget);
 
   const bannerInnerContent = (
     <div
@@ -490,7 +495,7 @@ export function BannerAd({
   if (isExternalUrl) {
     return (
       <a
-        href={resolvedTargetUrl}
+        href={safeExternalTarget}
         target="_blank"
         rel="noopener noreferrer"
         onClick={handleBannerClick}
@@ -716,6 +721,3 @@ export function FullWidthScreenAd({ className, showDemo = false, section, isReti
 export function FullWidthScreenAd2x({ className, showDemo = false, section }: { className?: string; showDemo?: boolean; section?: string }) {
   return <FullWidthScreenAd className={className} showDemo={showDemo} section={section} isRetina={true} />;
 }
-
-
-

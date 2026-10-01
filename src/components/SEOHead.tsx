@@ -26,7 +26,18 @@ export function SEOHead({
   breadcrumbs,
 }: SEOHeadProps) {
   const fullTitle = title.includes("Descubre RD") ? title : `${title} | Descubre República Dominicana`;
-  const currentUrl = url || (typeof window !== "undefined" ? window.location.href : "");
+  // Canonical URLs must not inherit tracking, filter, or fragment parameters.
+  const currentUrl = (() => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://descubrerd.com";
+    try {
+      const fallback = typeof window !== "undefined" ? window.location.href : "/";
+      const candidate = new URL(url || fallback, origin);
+      if (candidate.origin !== origin) return `${origin}${typeof window !== "undefined" ? window.location.pathname : "/"}`;
+      return `${candidate.origin}${candidate.pathname}`;
+    } catch {
+      return `${origin}${typeof window !== "undefined" ? window.location.pathname : "/"}`;
+    }
+  })();
 
   useEffect(() => {
     // Update document title
@@ -51,14 +62,26 @@ export function SEOHead({
     // Open Graph
     updateMeta("og:title", fullTitle, true);
     updateMeta("og:description", description, true);
-    updateMeta("og:image", image, true);
-    updateMeta("og:image:secure_url", image, true);
-    updateMeta("og:image:width", "1200", true);
-    updateMeta("og:image:height", "630", true);
-    updateMeta("og:image:type", "image/jpeg", true);
+    let imageUrl = "https://descubrerd.com/og-image.jpg";
+    try { imageUrl = new URL(image, window.location.origin).href; } catch { /* Keep the known-good default image. */ }
+    updateMeta("og:image", imageUrl, true);
+    updateMeta("og:image:secure_url", imageUrl, true);
+    const imageType = /\.png(?:\?|$)/i.test(imageUrl) ? "image/png" : /\.webp(?:\?|$)/i.test(imageUrl) ? "image/webp" : /\.avif(?:\?|$)/i.test(imageUrl) ? "image/avif" : "image/jpeg";
+    updateMeta("og:image:type", imageType, true);
+    const removeMeta = (property: string) => document.querySelector(`meta[property="${property}"]`)?.remove();
+    if (new URL(imageUrl).pathname === "/og-image.jpg") {
+      updateMeta("og:image:width", "1200", true);
+      updateMeta("og:image:height", "630", true);
+    } else {
+      removeMeta("og:image:width");
+      removeMeta("og:image:height");
+    }
     updateMeta("og:image:alt", description.slice(0, 100), true);
     updateMeta("og:url", currentUrl, true);
     updateMeta("og:type", type, true);
+    const locale = document.documentElement.lang || "es";
+    const ogLocales: Record<string, string> = { es: "es_DO", en: "en_US", fr: "fr_FR", de: "de_DE", pt: "pt_BR", it: "it_IT" };
+    updateMeta("og:locale", ogLocales[locale] || ogLocales.es, true);
     updateMeta("og:site_name", "Descubre República Dominicana", true);
 
     // Twitter Card
@@ -67,7 +90,7 @@ export function SEOHead({
     updateMeta("twitter:creator", "@DescubreRD");
     updateMeta("twitter:title", fullTitle);
     updateMeta("twitter:description", description);
-    updateMeta("twitter:image", image);
+    updateMeta("twitter:image", imageUrl);
     updateMeta("twitter:image:alt", description.slice(0, 100));
 
     // Update or create canonical link
@@ -123,7 +146,7 @@ export function SEOHead({
 export function generateOrganizationSchema() {
   return {
     "@context": "https://schema.org",
-    "@type": ["Organization", "TourismBusiness"],
+    "@type": "Organization",
     name: "Descubre República Dominicana",
     description: "Portal oficial de turismo de República Dominicana",
     url: "https://descubrerd.com",
@@ -173,6 +196,7 @@ export function generateHotelSchema(hotel: {
   image: string;
   priceRange: string;
   rating?: number;
+  reviewCount?: number;
   address: string;
 }) {
   return {
@@ -182,12 +206,8 @@ export function generateHotelSchema(hotel: {
     description: hotel.description,
     image: hotel.image,
     priceRange: hotel.priceRange,
-    aggregateRating: hotel.rating
-      ? {
-          "@type": "AggregateRating",
-          ratingValue: hotel.rating,
-          bestRating: 5,
-        }
+    aggregateRating: typeof hotel.rating === "number" && hotel.rating >= 1 && hotel.rating <= 5 && Number.isInteger(hotel.reviewCount) && hotel.reviewCount! > 0
+      ? { "@type": "AggregateRating", ratingValue: hotel.rating, bestRating: 5, ratingCount: hotel.reviewCount }
       : undefined,
     address: {
       "@type": "PostalAddress",
@@ -208,7 +228,9 @@ export function generateReviewSchema(review: {
     "@context": "https://schema.org",
     "@type": "Review",
     author: { "@type": "Person", name: review.author },
-    reviewRating: { "@type": "Rating", ratingValue: review.rating, bestRating: 5 },
+    reviewRating: typeof review.rating === "number" && review.rating >= 1 && review.rating <= 5
+      ? { "@type": "Rating", ratingValue: review.rating, bestRating: 5 }
+      : undefined,
     datePublished: review.datePublished,
     reviewBody: review.reviewBody,
     itemReviewed: { "@type": "TouristDestination", name: review.itemReviewed },
@@ -228,7 +250,7 @@ export function generateBeachSchema(beach: {
     name: beach.name,
     description: beach.description,
     image: beach.image,
-    geo: beach.latitude && beach.longitude ? {
+    geo: Number.isFinite(beach.latitude) && Number.isFinite(beach.longitude) ? {
       "@type": "GeoCoordinates",
       latitude: beach.latitude,
       longitude: beach.longitude,
@@ -243,6 +265,7 @@ export function generateRestaurantSchema(restaurant: {
   image?: string;
   priceRange?: string;
   rating?: number;
+  reviewCount?: number;
   address?: string;
   cuisine?: string;
 }) {
@@ -254,11 +277,9 @@ export function generateRestaurantSchema(restaurant: {
     image: restaurant.image,
     priceRange: restaurant.priceRange,
     servesCuisine: restaurant.cuisine,
-    aggregateRating: restaurant.rating ? {
-      "@type": "AggregateRating",
-      ratingValue: restaurant.rating,
-      bestRating: 5,
-    } : undefined,
+    aggregateRating: typeof restaurant.rating === "number" && restaurant.rating >= 1 && restaurant.rating <= 5 && Number.isInteger(restaurant.reviewCount) && restaurant.reviewCount! > 0
+      ? { "@type": "AggregateRating", ratingValue: restaurant.rating, bestRating: 5, ratingCount: restaurant.reviewCount }
+      : undefined,
     address: restaurant.address ? {
       "@type": "PostalAddress",
       addressLocality: restaurant.address,
@@ -283,7 +304,7 @@ export function generateTouristAttractionSchema(attraction: {
     description: attraction.description,
     image: attraction.image,
     url: attraction.url,
-    touristType: attraction.touristType || ["Eco-turismo", "Cultural", "Aventura"],
+    touristType: attraction.touristType,
     geo: attraction.geo ? {
       "@type": "GeoCoordinates",
       latitude: attraction.geo.latitude,
@@ -297,8 +318,6 @@ export function generateTouristAttractionSchema(attraction: {
       "@type": "PostalAddress",
       addressCountry: "DO",
     },
-    isAccessibleForFree: false,
-    publicAccess: true,
   };
 }
 

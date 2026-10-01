@@ -25,7 +25,9 @@ services:
   # esto entra en juego con varias réplicas, donde `max_connections` de Postgres se agota antes que las conexiones
   # reales de la app. Para usarlo: apuntar DATABASE_URL a postgres://postgres:postgres@localhost:6433/descubre_rd
   # en vez de directo a `postgres:5433`. `transaction`: cada transacción toma una conexión física y la devuelve al
-  # terminar (no sirve para LISTEN/NOTIFY ni sesiones con `SET` persistente entre queries, que este backend no usa).
+  # terminar. Cuidado: el canal SSE de notificaciones usa LISTEN (notifications/service.ts) y LISTEN vive a nivel de
+  # sesión — con PgBouncer en modo transaction la conexión LISTEN se apaga; esa ruta debe conectarse directo a
+  # `postgres:5433` (o usar SESSION_MODE/pool_mode=session para ese cliente).
   pgbouncer:
     image: edoburu/pgbouncer:latest
     depends_on: { postgres: { condition: service_healthy } }

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { LazyImage } from "@/components/ui/lazy-image";
 
 interface DestinationGalleryProps {
-  images: { src: string; alt: string }[];
+  images: { src: string; alt: string; caption?: string; credit?: string }[];
 }
 
 export function DestinationGallery({ images }: DestinationGalleryProps) {
@@ -19,9 +19,13 @@ export function DestinationGallery({ images }: DestinationGalleryProps) {
     <>
       <div className="grid grid-cols-4 grid-rows-2 gap-3 h-[400px] md:h-[500px]">
         {/* Main Image */}
-        <div 
-          className="col-span-2 row-span-2 relative rounded-2xl overflow-hidden cursor-pointer group"
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label={`Abrir galería: ${images[0]?.alt || "foto principal"}`}
+          className="col-span-2 row-span-2 relative rounded-2xl overflow-hidden cursor-pointer group text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           onClick={() => setIsFullscreen(true)}
+          onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setIsFullscreen(true); } }}
         >
           <LazyImage 
             src={images[0]?.src} 
@@ -36,13 +40,17 @@ export function DestinationGallery({ images }: DestinationGalleryProps) {
 
         {/* Secondary Images */}
         {images.slice(1, 5).map((img, index) => (
-          <div 
+          <div
             key={index}
-            className="relative rounded-xl overflow-hidden cursor-pointer group"
+            role="button"
+            tabIndex={0}
+            aria-label={`Abrir foto: ${img.alt}`}
+            className="relative rounded-xl overflow-hidden cursor-pointer group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             onClick={() => {
               setCurrentIndex(index + 1);
               setIsFullscreen(true);
             }}
+            onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setCurrentIndex(index + 1); setIsFullscreen(true); } }}
           >
             <LazyImage 
               src={img.src} 
@@ -95,8 +103,9 @@ export function DestinationGallery({ images }: DestinationGalleryProps) {
                 className="max-h-[80vh] object-contain"
               />
               <p className="text-center text-white/80 mt-4">
-                {currentIndex + 1} / {images.length} — {images[currentIndex]?.alt}
+                {currentIndex + 1} / {images.length} — {images[currentIndex]?.caption || images[currentIndex]?.alt}
               </p>
+              {images[currentIndex]?.credit && <p className="text-center text-sm text-white/60 mt-1">Crédito: {images[currentIndex]?.credit}</p>}
             </div>
 
             <Button
@@ -114,6 +123,9 @@ export function DestinationGallery({ images }: DestinationGalleryProps) {
               {images.map((img, index) => (
                 <button
                   key={index}
+                  type="button"
+                  aria-label={`Mostrar foto ${index + 1}: ${img.alt}`}
+                  aria-pressed={currentIndex === index}
                   onClick={() => setCurrentIndex(index)}
                   className={`w-16 h-12 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-colors ${
                     currentIndex === index ? "border-primary" : "border-transparent"

@@ -82,4 +82,22 @@ describe("esquema y migraciones", () => {
       await scratch.end();
     }
   });
+
+  it("dos migradores simultáneos no aplican el mismo archivo dos veces", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "mig-race-"));
+    writeFileSync(join(dir, "9901_concurrent_probe.sql"), "CREATE TABLE IF NOT EXISTS _mig_race (id int);");
+    const a = new pg.Pool({ connectionString: process.env.TEST_DATABASE_URL });
+    const b = new pg.Pool({ connectionString: process.env.TEST_DATABASE_URL });
+    try {
+      // El advisory lock del migrador hace que el segundo espere, re-escanee y no aplique nada.
+      const [ra, rb] = await Promise.all([migrate(a, { dir }), migrate(b, { dir })]);
+      expect([...ra.applied, ...rb.applied]).toEqual(["9901_concurrent_probe.sql"]);
+      expect((await pool.query("SELECT count(*)::int AS n FROM schema_migrations WHERE name = '9901_concurrent_probe.sql'")).rows[0].n).toBe(1);
+    } finally {
+      await a.query("DROP TABLE IF EXISTS _mig_race");
+      await a.query("DELETE FROM schema_migrations WHERE name = '9901_concurrent_probe.sql'");
+      await a.end();
+      await b.end();
+    }
+  });
 });

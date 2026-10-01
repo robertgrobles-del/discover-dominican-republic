@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, Loader2, User, ShieldCheck, AlertCircle, ArrowLeft } from "lucide-react";
@@ -28,6 +28,8 @@ export default function Registro() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [subscribeNewsletter, setSubscribeNewsletter] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState("");
+  const submitLock = useRef(false);
   const { signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -100,11 +102,15 @@ export default function Registro() {
       return;
     }
 
+    if (submitLock.current) return;
+    submitLock.current = true;
+    setFormError("");
     setIsLoading(true);
-
+    try {
     const { error } = await signUp(cleanEmail, password, cleanName);
 
     if (error) {
+      setFormError("No se pudo completar el registro. Comprueba los datos e inténtalo de nuevo.");
       ClientRateLimiter.recordAttempt("register", cleanEmail, 3, 60000, 600000);
       toast({
         variant: "destructive",
@@ -120,7 +126,13 @@ export default function Registro() {
       navigate("/perfil");
     }
 
-    setIsLoading(false);
+    } catch {
+      setFormError("Comprueba tu conexión e inténtalo de nuevo. El formulario conserva tus datos.");
+      toast({ variant: "destructive", title: "No se pudo completar el registro", description: "Comprueba tu conexión e inténtalo de nuevo. El formulario conserva tus datos." });
+    } finally {
+      submitLock.current = false;
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -188,7 +200,8 @@ export default function Registro() {
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-5" aria-busy={isLoading}>
+                {formError && <p role="alert" aria-live="assertive" className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{formError}</p>}
                 <div className="space-y-2">
                   <Label htmlFor="displayName">Nombre</Label>
                   <div className="relative">
@@ -196,6 +209,7 @@ export default function Registro() {
                     <Input
                       id="displayName"
                       type="text"
+                      maxLength={80}
                       placeholder="Tu nombre"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
@@ -212,6 +226,7 @@ export default function Registro() {
                     <Input
                       id="email"
                       type="email"
+                      maxLength={254}
                       placeholder="tu@email.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -228,6 +243,7 @@ export default function Registro() {
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
+                      maxLength={128}
                       placeholder="Mínimo 8 caracteres (A-Z, 0-9, !@#)"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -237,6 +253,7 @@ export default function Registro() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     >
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -290,6 +307,7 @@ export default function Registro() {
                     <Input
                       id="confirmPassword"
                       type={showPassword ? "text" : "password"}
+                      maxLength={128}
                       placeholder="Repite tu contraseña"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}

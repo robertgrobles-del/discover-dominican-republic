@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ChevronRight, ChevronLeft, MapPin, Users, Compass, 
-  Building2, Award, Star, ExternalLink, ArrowRight, Sparkles, Crown
+  Building2, Award, Star, ExternalLink, ArrowRight, Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -191,9 +192,7 @@ export function ProvincesHeroSlider() {
           {/* Badges / Category */}
           <div className="flex flex-wrap items-center gap-2 mb-4">
             {current.isSponsored ? (
-              <Badge className="bg-amber-500 text-slate-950 font-black border-none text-xs px-3 py-1 uppercase tracking-wider shadow-md">
-                <Crown className="h-3.5 w-3.5 mr-1" /> {current.sponsorBadge} • {current.sponsorBrand}
-              </Badge>
+              <SponsoredBadge label={`${current.sponsorBadge} · ${current.sponsorBrand}`} className="text-xs uppercase tracking-wider px-3 py-1 shadow-md" />
             ) : (
               <Badge className="bg-primary/25 border-primary/40 text-primary font-semibold text-xs px-3 py-1 backdrop-blur-md">
                 <Building2 className="h-3.5 w-3.5 mr-1" /> {current.region}

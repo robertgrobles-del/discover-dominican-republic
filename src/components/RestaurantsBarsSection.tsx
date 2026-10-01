@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Star, ChevronRight, MapPin, Clock, Wine, Utensils, Megaphone } from "lucide-react";
+import { Star, ChevronRight, MapPin, Clock, Wine, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { FavoriteButton } from "@/components/FavoriteButton";
@@ -14,6 +14,7 @@ import divingImg from "@/assets/diving.jpg";
 import laBanderaImg from "@/assets/la-bandera.jpg";
 import beachCategoryImg from "@/assets/beach-category.jpg";
 import { BannerAd } from "@/components/promo/BannerAd";
+import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 
 // Restaurante patrocinado destacado
 const sponsoredRestaurant = {
@@ -156,10 +157,7 @@ function RestaurantCard({ restaurant, index, t }: { restaurant: RestaurantType; 
           <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
           <div className="absolute top-3 left-3 flex gap-2 flex-wrap">
             {restaurant.isSponsored && (
-              <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1">
-                <Megaphone className="h-3 w-3" />
-                {t("accommodations.sponsored")}
-              </Badge>
+              <SponsoredBadge label={t("accommodations.sponsored")} />
             )}
             <span className="bg-background/80 backdrop-blur-sm text-foreground text-xs font-medium px-2 py-1 rounded">
               {restaurant.cuisine}
@@ -258,10 +256,7 @@ function BarCard({ bar, index, t }: { bar: BarType; index: number; t: (key: stri
         
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
           {bar.isSponsored && (
-            <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1 text-[11px] py-0.5 px-2 w-fit shadow-xs">
-              <Megaphone className="h-3 w-3" />
-              {t("accommodations.sponsored")}
-            </Badge>
+            <SponsoredBadge label={t("accommodations.sponsored")} className="text-[11px] py-0.5 px-2 w-fit shadow-xs" />
           )}
           <span className="bg-primary/90 backdrop-blur-md text-primary-foreground text-[11px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 w-fit shadow-xs">
             <Wine className="h-3 w-3" />

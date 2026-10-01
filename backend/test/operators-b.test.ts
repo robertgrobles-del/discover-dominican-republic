@@ -100,6 +100,20 @@ describe("Operadores RD fase B", () => {
     expect((await call("GET", "/org/bookings", { token: guide.token })).statusCode).toBe(403);
   });
 
+  it("otra organización no puede operar recursos ajenos ni suplantar su contexto", async () => {
+    const stranger = await signup();
+    await call("POST", "/orgs", { token: stranger.token, payload: { business_name: "Org Ajena" } });
+    // Pedir explícitamente el contexto de otra organización (x-org-id) se rechaza aunque tenga sesión válida.
+    expect((await call("GET", "/org/bookings", { token: stranger.token, headers: { "x-org-id": orgId } })).statusCode).toBe(403);
+    // Y los recursos de la otra organización quedan fuera de su alcance (404, no 403: no se revela su existencia).
+    expect((await call("GET", `/org/listings/${tour}`, { token: stranger.token })).statusCode).toBe(404);
+    expect((await call("PATCH", `/org/listings/${tour}`, { token: stranger.token, payload: { title: "Secuestrado" } })).statusCode).toBe(404);
+    expect((await call("PUT", `/org/listings/${tour}/status`, { token: stranger.token, payload: { status: "paused" } })).statusCode).toBe(404);
+    expect((await call("GET", `/org/bookings`, { token: stranger.token })).statusCode).toBe(200);
+    const seen = json(await call("GET", "/org/bookings?per_page=100", { token: stranger.token })).data as unknown[];
+    expect(seen).toEqual([]);
+  });
+
   it("mensajes: la reserva abre una conversación y el operador responde", async () => {
     const b = json(await book({ date: day(3) })).data;
     const threads = json(await call("GET", "/org/messages?unread=true", { token: owner.token })).data as { thread_id: string; unread: number }[];

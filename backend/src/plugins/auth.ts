@@ -19,8 +19,8 @@ declare module "fastify" {
     oauth: OAuthService;
     /** onRequest: exige `Authorization: Bearer <jwt>` válido y deja `req.user`. */
     authenticate: (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
-    /** onRequest: como `authenticate`, pero además exige alguno de los roles indicados (docs §7.3). */
-    requireRole: (...roles: string[]) => (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    /** onRequest: como `authenticate`, pero además exige alguno de los roles indicados (docs §7.3). Expone `.roles` para el inventario de seguridad. */
+    requireRole: (...roles: string[]) => ((req: FastifyRequest, reply: FastifyReply) => Promise<void>) & { roles: string[] };
   }
 }
 
@@ -66,12 +66,13 @@ export async function registerAuth(app: FastifyInstance) {
     if (!req.user?.imp) return;
     await app.db.query("INSERT INTO audit_log (actor_id, action, entity_type, entity_id, meta, ip) VALUES ($1, 'support.impersonated_request', 'user', $2, $3, $4)", [req.user.imp, req.user.id, JSON.stringify({ method: req.method, path: req.url.split("?")[0], status: reply.statusCode, session: (await app.db.query<{ id: string }>("SELECT id FROM support_sessions WHERE sid = $1", [req.user.sid])).rows[0]?.id ?? null }), req.ip]).catch((err) => app.log.warn({ err }, "No se pudo auditar la petición de soporte"));
   });
-  app.decorate("requireRole", (...roles: string[]) => async (req: FastifyRequest) => {
+  // Los roles viajan adjuntos al hook (Object.assign) para que el inventario de rutas verifique qué exige cada ruta administrativa sin leer el código de cada módulo (test/security.test.ts).
+  app.decorate("requireRole", (...roles: string[]) => Object.assign(async (req: FastifyRequest) => {
     await authenticate(req);
     if (!req.user!.roles.some((r) => roles.includes(r))) throw new AppError("FORBIDDEN", "No tienes permiso para esta acción");
     // Rutas de personal (admin/editor/moderator): con la política activa exigen haber completado el segundo factor en esta sesión.
     if (app.env.REQUIRE_2FA_FOR_STAFF && roles.some((r) => STAFF_ROLES.includes(r)) && !req.user!.mfa) {
       throw new AppError("MFA_REQUIRED", "Esta acción requiere verificación en dos pasos", { setup: "/api/v1/auth/2fa/setup", verify: "/api/v1/auth/2fa/verify" });
     }
-  });
+  }, { roles }));
 }

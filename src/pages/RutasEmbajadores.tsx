@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Star, MapPin, Play, Calendar, Users, ArrowRight } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -276,11 +277,14 @@ export default function RutasEmbajadores() {
                 únete a nuestro programa de embajadores.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="gap-2">
-                  <Users className="h-5 w-5" />
-                  Aplicar al Programa
+                <Button size="lg" className="gap-2" asChild>
+                  <Link to="/requisitos-embajadores">
+                    <Users className="h-5 w-5" />
+                    Aplicar al Programa
+                  </Link>
                 </Button>
-                <Button size="lg" variant="outline">Conocer Requisitos</Button>
+                <Button size="lg" variant="outline" asChild><Link to="/requisitos-embajadores">Conocer Requisitos</Link></Button>
+                <Button size="lg" variant="ghost" asChild><Link to="/afiliados">Conocer el programa de afiliados</Link></Button>
               </div>
             </div>
           </div>

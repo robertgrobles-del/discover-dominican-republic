@@ -3,7 +3,7 @@
 > Generado automáticamente por `npm run docs:api` a partir de las rutas que el servidor registra. **No se edita a mano**: si una ruta cambia, se regenera (CI verifica con `npm run docs:api -- --check`).
 > `docs/BACKEND_API.md` es el diseño original; donde difiera, esta lista describe lo que existe. Detalle de cada módulo, reglas y ejemplos: `backend/README.md`. Contrato completo (esquemas de entrada y salida): `/docs` (Swagger) del servidor.
 
-Versión 0.1.0 · 904 operaciones en 44 grupos.
+Versión 0.1.0 · 880 operaciones en 46 grupos.
 
 Convenciones: todas las rutas cuelgan de `/api/v1`. Errores con la forma `{ error: { code, message, details, request_id } }`. **Sesión** = `Authorization: Bearer <jwt>`; **Opcional** = funciona sin sesión y, con ella, personaliza.
 
@@ -125,12 +125,12 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/admin/analytics/traffic` | Personal / admin | Vistas y sesiones por página, origen, país o día |
 | GET | `/admin/audit` | Personal / admin | Bitácora de auditoría |
 | GET | `/admin/audit-logs` | Personal / admin | Auditoría con filtros por actor, entidad, acción y fechas (?format=csv exporta) |
+| GET | `/admin/audit/verify` | Personal / admin | Verifica la cadena de hash de la bitácora (detecta manipulación) |
 | GET | `/admin/calculators/defaults` | Personal / admin | Cifras por defecto y vigentes de las calculadoras (se ajustan con site_settings `calculators.<nombre>`) |
 | POST | `/admin/contests` | Personal / admin | Crea un concurso |
 | POST | `/admin/contests/{slug}/draw` | Personal / admin | Sortea ganadores al azar entre los inscritos y cierra el concurso |
 | GET | `/admin/contests/{slug}/registrations` | Personal / admin | Inscritos |
 | POST | `/admin/creators/{id}/payout` | Personal / admin | Registra y liquida fondos a creador (Fondo de Creadores o Comisiones) |
-| POST | `/admin/creators/{id}/payout` | Sesión | Registra y liquida fondos a creador (Fondo de Creadores o Comisiones) |
 | GET | `/admin/dashboard` | Personal / admin | KPIs, pendientes de moderación y contenido por estado |
 | GET | `/admin/dictionary_terms` | Personal / admin | Glosario: lista |
 | POST | `/admin/dictionary_terms` | Personal / admin | Glosario: crear |
@@ -298,9 +298,7 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | DELETE | `/admin/settings/{key}` | Personal / admin | Elimina un ajuste |
 | PATCH | `/admin/social/posts/{id}` | Personal / admin | Oculta o restaura una publicación |
 | GET | `/admin/sponsorship/campaigns` | Personal / admin | Listado de campañas publicitarias |
-| GET | `/admin/sponsorship/campaigns` | Sesión | Listado de campañas publicitarias |
 | PATCH | `/admin/sponsorship/campaigns/{id}/status` | Personal / admin | Aprueba o cambia el estado de una campaña publicitaria |
-| PATCH | `/admin/sponsorship/campaigns/{id}/status` | Sesión | Aprueba o cambia el estado de una campaña publicitaria |
 | GET | `/admin/store/orders` | Personal / admin | Pedidos de la tienda |
 | GET | `/admin/store/orders/{id}` | Personal / admin | Detalle de un pedido |
 | PATCH | `/admin/store/orders/{id}` | Personal / admin | Cambia el estado (processing → shipped con guía → delivered; cancelar reembolsa) |
@@ -407,6 +405,14 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | POST | `/b2b/api-keys` | Sesión | Genera una nueva API Key B2B para acceso a datos agregados del turismo |
 | DELETE | `/b2b/api-keys/{id}` | Sesión | Revoca una API Key B2B |
 
+## billing
+
+| Método | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| GET | `/invoices` | Sesión | Lista los comprobantes fiscales vinculados a una referencia (#4) |
+| GET | `/invoices/{ncf}` | Sesión | Consulta un comprobante fiscal por su NCF (#4) |
+| POST | `/invoices/issue` | Sesión | Emite un comprobante fiscal NCF/e-CF asociado a un pedido o reserva cobrada (#4) |
+
 ## calculadoras
 
 | Método | Ruta | Acceso | Descripción |
@@ -434,16 +440,10 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
 | GET | `/creators/feed` | Público | Feed público de videos y experiencias UGC |
-| GET | `/creators/feed` | Público | Feed público de videos y experiencias UGC |
-| GET | `/creators/me` | Sesión | Panel privado del creador: métricas, saldo acumulado y videos |
 | GET | `/creators/me` | Sesión | Panel privado del creador: métricas, saldo acumulado y videos |
 | POST | `/creators/onboarding` | Sesión | Registro como creador de contenido de Descubre RD |
-| POST | `/creators/onboarding` | Sesión | Registro como creador de contenido de Descubre RD |
-| GET | `/creators/profile/{handle}` | Público | Perfil público de un creador y sus estadísticas |
 | GET | `/creators/profile/{handle}` | Público | Perfil público de un creador y sus estadísticas |
 | POST | `/creators/videos` | Sesión | Publica un video UGC con atribución a tours o experiencias |
-| POST | `/creators/videos` | Sesión | Publica un video UGC con atribución a tours o experiencias |
-| POST | `/creators/videos/{id}/events` | Público | Registra evento de reproducción o interacción en video UGC |
 | POST | `/creators/videos/{id}/events` | Público | Registra evento de reproducción o interacción en video UGC |
 
 ## datos vivos
@@ -706,6 +706,16 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/media/files/{id}` | Público | El archivo (inmutable y cacheable una vez aprobado). `?variant=thumb\|medium\|large` sirve una versión reducida en webp; si no existe, el original |
 | POST | `/media/upload-url` | Sesión | Pide una URL firmada para subir una imagen (PUT directo con el binario) |
 
+## memberships
+
+| Método | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| POST | `/events/{id}/tickets/purchase` | Sesión | Compra de entrada para un evento en vivo con QR único (#20) |
+| POST | `/events/tickets/verify` | Sesión | Valida el QR de una entrada y registra el check-in en puerta (#20) |
+| GET | `/memberships/me` | Sesión | Membresía activa y balance de puntos de quien llama (#18, #19) |
+| GET | `/memberships/plans` | Público | Planes de membresía Pasaporte RD activos (#19) |
+| POST | `/memberships/subscribe` | Sesión | Suscribe a la persona autenticada en un plan Pasaporte RD (#19) |
+
 ## mi viaje
 
 | Método | Ruta | Acceso | Descripción |
@@ -821,22 +831,6 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
 | GET | `/content/offline-bundle` | Público |  |
-| POST | `/events/{id}/tickets/purchase` | Público |  |
-| POST | `/events/{id}/tickets/purchase` | Público |  |
-| POST | `/events/tickets/verify` | Público |  |
-| POST | `/events/tickets/verify` | Público |  |
-| GET | `/invoices` | Público |  |
-| GET | `/invoices` | Público |  |
-| GET | `/invoices/{ncf}` | Público |  |
-| GET | `/invoices/{ncf}` | Público |  |
-| POST | `/invoices/issue` | Público |  |
-| POST | `/invoices/issue` | Público |  |
-| GET | `/memberships/me` | Público |  |
-| GET | `/memberships/me` | Público |  |
-| GET | `/memberships/plans` | Público |  |
-| GET | `/memberships/plans` | Público |  |
-| POST | `/memberships/subscribe` | Público |  |
-| POST | `/memberships/subscribe` | Público |  |
 | GET | `/sitemap.xml` | Público |  |
 | GET | `/sitemap.xml` | Público |  |
 
@@ -845,14 +839,9 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
 | POST | `/sponsorship/campaigns` | Sesión | Crea una nueva campaña publicitaria/patrocinada |
-| POST | `/sponsorship/campaigns` | Sesión | Crea una nueva campaña publicitaria/patrocinada |
-| POST | `/sponsorship/campaigns/{id}/creatives` | Sesión | Agrega una creatividad/anuncio a una campaña |
 | POST | `/sponsorship/campaigns/{id}/creatives` | Sesión | Agrega una creatividad/anuncio a una campaña |
 | GET | `/sponsorship/serve/{slot_id}` | Público | Entrega creatividades activas para un espacio publicitario |
-| GET | `/sponsorship/serve/{slot_id}` | Público | Entrega creatividades activas para un espacio publicitario |
 | GET | `/sponsorship/slots` | Público | Espacios de patrocinio e inventario disponibles en el portal |
-| GET | `/sponsorship/slots` | Público | Espacios de patrocinio e inventario disponibles en el portal |
-| POST | `/sponsorship/telemetry` | Público | Registra telemetría de anuncios (impresión, clic o conversión) |
 | POST | `/sponsorship/telemetry` | Público | Registra telemetría de anuncios (impresión, clic o conversión) |
 
 ## productos
@@ -860,10 +849,7 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
 | POST | `/insurance/quote-and-issue` | Público | Emisión de seguro de viaje con cobertura médica y cancelación (#12) |
-| POST | `/insurance/quote-and-issue` | Público | Emisión de seguro de viaje con cobertura médica y cancelación (#12) |
 | GET | `/packages/dynamic` | Público | Catálogo de paquetes dinámicos multidestino (#17) |
-| GET | `/packages/dynamic` | Público | Catálogo de paquetes dinámicos multidestino (#17) |
-| POST | `/transport/book` | Público | Reserva de transfer privado, chofer o vehículo rent-a-car (#13) |
 | POST | `/transport/book` | Público | Reserva de transfer privado, chofer o vehículo rent-a-car (#13) |
 
 ## publicidad

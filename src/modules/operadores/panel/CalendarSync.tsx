@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { buildIcs, parseIcs } from "../ical";
+import { readValidatedTextFile } from "@/lib/forms";
 import type { Booking, Room } from "../types";
 
 interface Props {
@@ -76,9 +77,16 @@ export default function CalendarSync({ room, listingTitle, bookings, onChange }:
 
   const onFile = async (f?: File) => {
     if (!f) return;
-    if (f.size > 2_000_000) return toast.error("El archivo es demasiado grande.");
-    setText(await f.text());
-    toast.message("Archivo cargado: pulsa Importar.");
+    try {
+      const content = await readValidatedTextFile(f, [".ics"], 2_000_000);
+      if (!/^BEGIN:VCALENDAR\s*$/m.test(content) || !/^END:VCALENDAR\s*$/m.test(content)) {
+        throw new Error("El contenido no tiene una estructura iCalendar válida.");
+      }
+      setText(content);
+      toast.message("Archivo iCal leído y validado localmente. Revisa las fechas antes de importar.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo leer el archivo.");
+    }
   };
 
   const resync = async (id: string) => {

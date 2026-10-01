@@ -2,26 +2,32 @@ import { useState, useEffect } from "react";
 import { ShieldCheck, Cookie, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { getAnalyticsConsent, OPEN_PRIVACY_SETTINGS_EVENT, setAnalyticsConsent } from "@/lib/privacy-consent";
 
 export function CookieConsentBanner() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem("dr_privacy_consent");
-    if (!consent) {
+    const openSettings = () => setIsOpen(true);
+    window.addEventListener(OPEN_PRIVACY_SETTINGS_EVENT, openSettings);
+    if (!getAnalyticsConsent()) {
       // Delay slightly for smooth non-blocking entry
       const timer = setTimeout(() => setIsOpen(true), 1500);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener(OPEN_PRIVACY_SETTINGS_EVENT, openSettings);
+      };
     }
+    return () => window.removeEventListener(OPEN_PRIVACY_SETTINGS_EVENT, openSettings);
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem("dr_privacy_consent", "accepted");
+    setAnalyticsConsent("accepted");
     setIsOpen(false);
   };
 
   const handleDecline = () => {
-    localStorage.setItem("dr_privacy_consent", "essential_only");
+    setAnalyticsConsent("essential_only");
     setIsOpen(false);
   };
 
@@ -46,8 +52,9 @@ export function CookieConsentBanner() {
             <h4 className="font-display font-bold text-sm text-foreground flex items-center gap-1.5 mb-1">
               Privacidad & Experiencia de Viaje
             </h4>
+            {getAnalyticsConsent() && <p className="text-[11px] text-muted-foreground mb-1">Puedes cambiar o retirar tu elección cuando quieras.</p>}
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Utilizamos cookies propias y de análisis ético para recordar tus preferencias de destinos y ofrecerte recomendaciones personalizadas sin vender tus datos.
+              Analitica opcional. Si la aceptas, registramos paginas y eventos de sesion sin asociarlos a tu cuenta y conservamos los eventos hasta 13 meses; despues quedan solo agregados. No solicitamos GPS para analitica.
             </p>
           </div>
         </div>

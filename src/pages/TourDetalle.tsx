@@ -4,15 +4,17 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Clock, Users, Star, ChevronRight, Check, X, MapPin,
   Globe, Mountain, Heart, Compass, Award, CalendarDays,
-  Shield, Megaphone, Loader2, Phone, MessageCircle
+  Shield, Loader2, Phone, MessageCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 import { TourPhysicalEffort } from "@/components/tour/TourPhysicalEffort";
 import { supabase } from "@/integrations/supabase/client";
 import heroBeach from "@/assets/hero-beach.jpg";
@@ -45,12 +47,24 @@ export default function TourDetalle() {
     },
     enabled: !!slug,
   });
-
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background">
         <Header />
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="container mx-auto px-4 pt-24 pb-12 space-y-8">
+          <Skeleton className="h-[400px] w-full rounded-2xl" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <Skeleton className="h-10 w-3/4" />
+              <Skeleton className="h-6 w-1/2" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+            <div className="space-y-4">
+              <Skeleton className="h-64 w-full rounded-xl" />
+            </div>
+          </div>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -107,9 +121,7 @@ export default function TourDetalle() {
                   <Badge variant="secondary">{tour.difficulty}</Badge>
                 )}
                 {tour.is_sponsored && (
-                  <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white">
-                    <Megaphone className="h-3 w-3 mr-1" /> Patrocinado
-                  </Badge>
+                  <SponsoredBadge />
                 )}
                 <FavoriteButton id={tour.id} type="tour" name={tour.name} image={tour.image_url || heroBeach} variant="button" />
               </div>

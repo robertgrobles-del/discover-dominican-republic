@@ -171,6 +171,11 @@ describe("datos vivos", () => {
     expect((await app.jobs.runNow("fx.refresh")).status).toBe("failed");
     app.live.fetchJson = async () => ({ status: 503, json: async () => ({}) });
     expect((await app.jobs.runNow("fx.refresh")).status).toBe("failed");
+    for (let i = 0; i < 3; i++) expect((await app.jobs.runNow("fx.refresh")).status).toBe("failed"); // 5 fallos seguidos abren el circuito
+    app.live.fetchJson = async () => ({ status: 200, json: async () => ({ result: "success", rates: { DOP: 60, EUR: 0.9, GBP: 0.75, CAD: 1.4, MXN: 20 } }) });
+    const open = await app.jobs.runNow("fx.refresh");
+    expect(open.status).toBe("failed");
+    expect(open.error).toMatch(/circuito abierto/i); // falla rápido aunque el proveedor ya se haya recuperado
     await pool.query("DELETE FROM exchange_rates WHERE currency_code IN ('USD', 'CAD', 'MXN')"); // no dejar tasas de prueba que alteren otras pruebas
     const off = await makeApp();
     expect((await off.live.refreshRates()).skipped).toBe(true);

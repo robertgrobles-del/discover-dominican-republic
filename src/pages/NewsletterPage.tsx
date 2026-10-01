@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { 
   Mail, CheckCircle, Tag, MapPin, Calendar, Sparkles,
-  Bell, Gift, Plane, Hotel, Utensils
+  Gift, Plane
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -12,6 +12,9 @@ import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { FloatingInput } from "@/components/ui/floating-input";
 import { toast } from "sonner";
+import { fetchApi } from "@/lib/fastifyClient";
+import { getFormErrorMessage, newsletterSubscribeSchema } from "@/lib/forms";
+import { useI18n } from "@/hooks/useI18n";
 
 const interests = [
   { id: "playas", label: "Playas", icon: "🏖️" },
@@ -24,19 +27,16 @@ const interests = [
   { id: "bodas", label: "Bodas", icon: "💍" },
 ];
 
-const frequencies = [
-  { id: "weekly", label: "Semanal", desc: "Ofertas y novedades cada semana" },
-  { id: "biweekly", label: "Quincenal", desc: "Lo mejor cada dos semanas" },
-  { id: "monthly", label: "Mensual", desc: "Resumen mensual de ofertas" },
-];
-
 export default function Newsletter() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-  const [frequency, setFrequency] = useState("biweekly");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [website, setWebsite] = useState("");
+  const submitLock = useRef(false);
+  const { locale } = useI18n();
 
   const toggleInterest = (id: string) => {
     setSelectedInterests((prev) =>
@@ -46,22 +46,39 @@ export default function Newsletter() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email) {
-      toast.error("Por favor ingresa tu correo electrónico");
+    if (submitLock.current) return;
+    const parsed = newsletterSubscribeSchema.safeParse({
+      email,
+      name: name || undefined,
+      lists: selectedInterests,
+      locale,
+      source: "newsletter-page",
+      website,
+    });
+    if (!parsed.success) {
+      setFormError("Revisa el correo y el nombre. El nombre admite hasta 80 caracteres.");
       return;
     }
 
+    submitLock.current = true;
     setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    setIsSubmitting(false);
-    setIsSubscribed(true);
-    toast.success("¡Gracias por suscribirte! Revisa tu correo para confirmar.");
+    setFormError("");
+    try {
+      await fetchApi("/forms/newsletter/subscribe", {
+        method: "POST",
+        body: JSON.stringify(parsed.data),
+      });
+      setIsSubscribed(true);
+      toast.success("Solicitud recibida. Revisa tu correo para confirmar la suscripción.");
+    } catch (error) {
+      const message = getFormErrorMessage(error);
+      setFormError(message);
+      toast.error(message);
+    } finally {
+      submitLock.current = false;
+      setIsSubmitting(false);
+    }
   };
-
   if (isSubscribed) {
     return (
       <PageTransition>
@@ -127,7 +144,7 @@ export default function Newsletter() {
 
         <main className="container mx-auto px-4 lg:px-8 py-12">
           <div className="max-w-2xl mx-auto">
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-8" aria-busy={isSubmitting}>
               {/* Personal Info */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -141,12 +158,17 @@ export default function Newsletter() {
                 <div className="space-y-4">
                   <FloatingInput
                     label="Nombre (opcional)"
+                    id="newsletter-name"
+                    maxLength={80}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
+                  <p className="text-xs text-muted-foreground text-right" aria-live="polite">{name.length}/80</p>
                   <FloatingInput
                     label="Correo electrónico"
                     type="email"
+                    id="newsletter-email"
+                    maxLength={254}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -173,6 +195,7 @@ export default function Newsletter() {
                     <button
                       key={interest.id}
                       type="button"
+                      aria-pressed={selectedInterests.includes(interest.id)}
                       onClick={() => toggleInterest(interest.id)}
                       className={`p-3 rounded-xl border-2 text-center transition-all ${
                         selectedInterests.includes(interest.id)
@@ -182,36 +205,6 @@ export default function Newsletter() {
                     >
                       <span className="text-2xl block mb-1">{interest.icon}</span>
                       <span className="text-sm font-medium">{interest.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-
-              {/* Frequency */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="bg-card rounded-2xl p-6 border border-border"
-              >
-                <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
-                  <Bell className="h-5 w-5 text-primary" />
-                  Frecuencia de envío
-                </h2>
-                <div className="grid md:grid-cols-3 gap-3">
-                  {frequencies.map((freq) => (
-                    <button
-                      key={freq.id}
-                      type="button"
-                      onClick={() => setFrequency(freq.id)}
-                      className={`p-4 rounded-xl border-2 text-left transition-all ${
-                        frequency === freq.id
-                          ? "border-primary bg-primary/10"
-                          : "border-border hover:border-primary/50"
-                      }`}
-                    >
-                      <p className="font-medium">{freq.label}</p>
-                      <p className="text-xs text-muted-foreground">{freq.desc}</p>
                     </button>
                   ))}
                 </div>
@@ -243,11 +236,17 @@ export default function Newsletter() {
               </motion.div>
 
               {/* Submit */}
+              <label className="absolute -left-[10000px]" aria-hidden="true">
+                Sitio web
+                <input name="website" tabIndex={-1} autoComplete="off" value={website} onChange={(event) => setWebsite(event.target.value)} />
+              </label>
+              {formError && <p id="newsletter-form-error" role="alert" aria-live="assertive" className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{formError}</p>}
               <Button
                 type="submit"
                 size="lg"
                 className="w-full"
                 disabled={isSubmitting}
+                aria-describedby={formError ? "newsletter-form-error" : undefined}
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">

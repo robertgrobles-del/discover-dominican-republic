@@ -25,8 +25,8 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { FileCheck, CheckCheck, Clock } from "lucide-react";
-import { getStoredClaims, updateClaimStatus, autoApprovePendingClaims, StoredBusinessClaim } from "@/lib/leadStorage";
+import { FileCheck, Clock } from "lucide-react";
+import { getStoredClaims, updateClaimStatus, StoredBusinessClaim } from "@/lib/leadStorage";
 
 interface Operator {
   id: string;
@@ -430,12 +430,6 @@ function BusinessClaimsTable({
     toast.success(`Solicitud marcada como ${status}`);
   };
 
-  const handleAutoApproveAll = () => {
-    const count = autoApprovePendingClaims();
-    refreshClaims();
-    toast.success(`Se auto-aprobaron ${count} solicitudes pendientes exitosamente.`);
-  };
-
   const filtered = claims.filter(c => {
     const matchesSearch =
       c.business_name.toLowerCase().includes(search.toLowerCase()) ||
@@ -471,14 +465,6 @@ function BusinessClaimsTable({
             className="gap-1.5 text-xs"
           >
             <RefreshCw className="h-3.5 w-3.5" /> Actualizar
-          </Button>
-          <Button
-            size="sm"
-            onClick={handleAutoApproveAll}
-            disabled={pendingCount === 0}
-            className="gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20"
-          >
-            <CheckCheck className="h-4 w-4" /> Auto-Aprobar Todo ({pendingCount})
           </Button>
         </div>
       </CardHeader>
@@ -645,4 +631,3 @@ export function AdminOperadores() {
     </div>
   );
 }
-

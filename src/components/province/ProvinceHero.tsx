@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 import { Link } from "react-router-dom";
 import { useTranslation } from "@/hooks/useI18n";
 
@@ -240,13 +241,7 @@ export function ProvinceHero({
               {/* Badge & Sponsor Pill */}
               <div className="flex flex-wrap items-center gap-2.5">
                 {current.isSponsored ? (
-                  <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 gap-1.5 px-3 py-1 font-semibold backdrop-blur-md">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    <span>{current.tag || "Publicidad Patrocinada"}</span>
-                    {current.sponsorName && (
-                      <span className="text-amber-200/80 font-normal">| {current.sponsorName}</span>
-                    )}
-                  </Badge>
+                  <SponsoredBadge label={current.tag || "Publicidad patrocinada"} sponsor={current.sponsorName} className="gap-1.5 px-3 py-1 font-semibold backdrop-blur-md" />
                 ) : (
                   <Badge className="bg-primary/25 text-primary-foreground border-primary/40 gap-1.5 px-3 py-1 font-semibold backdrop-blur-md">
                     <MapPin className="h-3.5 w-3.5 text-primary" />
@@ -254,11 +249,6 @@ export function ProvinceHero({
                   </Badge>
                 )}
 
-                {current.isSponsored && (
-                  <span className="text-[10px] bg-white/10 text-white/80 uppercase tracking-widest px-2 py-0.5 rounded-full border border-white/15">
-                    Patrocinado
-                  </span>
-                )}
               </div>
 
               {/* Dynamic Slide Title */}

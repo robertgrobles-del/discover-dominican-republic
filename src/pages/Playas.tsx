@@ -6,7 +6,8 @@ import { Link } from "react-router-dom";
 import { 
   MapPin, Star, Waves, Umbrella, Fish, Camera, Search, 
   ArrowUpDown, ShieldCheck, Sun, Compass, Wind, Sparkles,
-  Heart, Navigation, HelpCircle, CheckCircle2, ChevronRight, AlertCircle
+  Heart, Navigation, HelpCircle, CheckCircle2, ChevronRight, AlertCircle,
+  LayoutGrid, List, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +43,7 @@ export default function Playas() {
   const [filterType, setFilterType] = useState<string>("todos");
   const [filterRegion, setFilterRegion] = useState<string>("todas");
   const [sortBy, setSortBy] = useState("destacados");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { t } = useTranslation();
 
   const beachTypeLabels: Record<string, string> = {
@@ -107,6 +109,17 @@ export default function Playas() {
   }, [allBeaches, search, filterType, filterRegion, sortBy]);
 
   const types = ['todos', 'arena-blanca', 'arena-dorada', 'virgen', 'bahia', 'deportiva', 'urbana'];
+  const regions = [
+    { id: "todas", label: "Todas las Costas" },
+    { id: "este", label: "Costa Este / Punta Cana" },
+    { id: "samana", label: "Península de Samaná" },
+    { id: "norte", label: "Costa Norte / Atlántico" },
+    { id: "sur", label: "Sur Profundo & Caribe" },
+    { id: "santo-domingo", label: "Santo Domingo & Cercanías" },
+  ];
+  const activeRegion = regions.find((region) => region.id === filterRegion);
+  const hasActiveFilters = Boolean(search.trim()) || filterType !== "todos" || filterRegion !== "todas";
+  const clearFilters = () => { setSearch(""); setFilterType("todos"); setFilterRegion("todas"); };
   const totalCount = allBeaches.length;
 
   return (
@@ -318,17 +331,12 @@ export default function Playas() {
               {/* Region Pills */}
               <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar text-xs font-medium">
                 <span className="text-muted-foreground font-semibold flex-shrink-0 mr-1">Costas:</span>
-                {[
-                  { id: "todas", label: "Todas las Costas" },
-                  { id: "este", label: "Costa Este / Punta Cana" },
-                  { id: "samana", label: "Península de Samaná" },
-                  { id: "norte", label: "Costa Norte / Atlántico" },
-                  { id: "sur", label: "Sur Profundo & Caribe" },
-                  { id: "santo-domingo", label: "Santo Domingo & Cercanías" },
-                ].map((reg) => (
+                {regions.map((reg) => (
                   <button
                     key={reg.id}
+                    type="button"
                     onClick={() => setFilterRegion(reg.id)}
+                    aria-pressed={filterRegion === reg.id}
                     className={`px-3 py-1.5 rounded-full whitespace-nowrap transition-all text-xs font-semibold ${
                       filterRegion === reg.id
                         ? "bg-primary text-primary-foreground shadow-sm"
@@ -345,6 +353,7 @@ export default function Playas() {
                 <div className="relative flex-1 w-full max-w-md">
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
+                    aria-label="Buscar playas por nombre, provincia o destino"
                     placeholder="Buscar por nombre de playa, provincia o destino..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -360,6 +369,7 @@ export default function Playas() {
                         variant={filterType === tp ? "default" : "outline"}
                         size="sm"
                         onClick={() => setFilterType(tp)}
+                        aria-pressed={filterType === tp}
                         className="text-xs h-9 rounded-xl"
                       >
                         {tp === 'todos' ? "Todos los Tipos" : beachTypeLabels[tp] || tp}
@@ -381,6 +391,16 @@ export default function Playas() {
                 </div>
               </div>
 
+              {hasActiveFilters && (
+                <div className="flex flex-wrap items-center gap-2" aria-label="Filtros activos">
+                  <span className="text-xs font-semibold text-muted-foreground">Filtros activos:</span>
+                  {search.trim() && <Button type="button" variant="secondary" size="sm" className="h-8 gap-1" onClick={() => setSearch("")} aria-label={`Quitar búsqueda: ${search}`}>Búsqueda: {search}<X aria-hidden="true" className="h-3.5 w-3.5" /></Button>}
+                  {filterType !== "todos" && <Button type="button" variant="secondary" size="sm" className="h-8 gap-1" onClick={() => setFilterType("todos")} aria-label={`Quitar filtro de tipo: ${beachTypeLabels[filterType]}`}>{beachTypeLabels[filterType]}<X aria-hidden="true" className="h-3.5 w-3.5" /></Button>}
+                  {filterRegion !== "todas" && activeRegion && <Button type="button" variant="secondary" size="sm" className="h-8 gap-1" onClick={() => setFilterRegion("todas")} aria-label={`Quitar filtro de región: ${activeRegion.label}`}>{activeRegion.label}<X aria-hidden="true" className="h-3.5 w-3.5" /></Button>}
+                  <Button type="button" variant="ghost" size="sm" className="h-8" onClick={clearFilters}>Limpiar todo</Button>
+                </div>
+              )}
+
             </div>
           </div>
         </section>
@@ -388,7 +408,7 @@ export default function Playas() {
         {/* Beach Cards Grid */}
         <section className="py-12 flex-1">
           <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-8 gap-4">
               <div>
                 <h2 className="font-display text-2xl font-bold text-foreground">
                   {filterType === 'todos' ? "Catálogo de Playas" : `Playas de ${beachTypeLabels[filterType]}`}
@@ -398,16 +418,29 @@ export default function Playas() {
                   Mostrando {filtered.length} {filtered.length === 1 ? "playa registrada" : "playas registradas"} con información verificada
                 </p>
               </div>
+              <div className="flex items-center gap-1" role="group" aria-label="Cambiar presentación de playas">
+                <Button type="button" variant={viewMode === "grid" ? "default" : "outline"} size="icon" aria-label="Vista de tarjetas" aria-pressed={viewMode === "grid"} onClick={() => setViewMode("grid")}><LayoutGrid aria-hidden="true" className="h-4 w-4" /></Button>
+                <Button type="button" variant={viewMode === "list" ? "default" : "outline"} size="icon" aria-label="Vista de lista" aria-pressed={viewMode === "list"} onClick={() => setViewMode("list")}><List aria-hidden="true" className="h-4 w-4" /></Button>
+              </div>
             </div>
 
             {isLoading ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-80 rounded-2xl" />)}
+              <div className={viewMode === "grid" ? "grid md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"} aria-label="Cargando playas" aria-busy="true">
+                {[...Array(6)].map((_, i) => viewMode === "grid" ? (
+                  <div key={i} className="overflow-hidden rounded-2xl border border-border/70 bg-card"><Skeleton className="aspect-[4/3] w-full rounded-none" /><div className="space-y-3 p-5"><Skeleton className="h-5 w-2/3" /><Skeleton className="h-3 w-full" /><Skeleton className="h-3 w-4/5" /><div className="flex gap-2"><Skeleton className="h-6 w-20 rounded-full" /><Skeleton className="h-6 w-24 rounded-full" /></div></div></div>
+                ) : (
+                  <div key={i} className="flex gap-4 rounded-2xl border border-border/70 bg-card p-4"><Skeleton className="h-28 w-36 shrink-0 rounded-xl" /><div className="flex-1 space-y-3 py-1"><Skeleton className="h-5 w-1/3" /><Skeleton className="h-3 w-full" /><Skeleton className="h-3 w-2/3" /><Skeleton className="h-6 w-24 rounded-full" /></div></div>
+                ))}
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filtered.map((playa, index) => (
+              <div className={viewMode === "grid" ? "grid md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
+                {filtered.map((playa, index) => viewMode === "grid" ? (
                   <PlayaCard key={playa.slug || playa.id} playa={playa} index={index} t={t} />
+                ) : (
+                  <Link key={playa.slug || playa.id} to={`/playa/${playa.slug || playa.id}`} className="group flex gap-4 rounded-2xl border border-border/70 bg-card p-3 transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    <img src={getSafeCoverImage(playa.imageUrl || (playa as { image_url?: string }).image_url, "beach", playa.provinceSlug || playa.slug)} alt="" loading="lazy" className="h-28 w-36 shrink-0 rounded-xl object-cover sm:h-36 sm:w-52" />
+                    <div className="min-w-0 flex-1 py-1"><h3 className="font-display text-lg font-bold text-foreground group-hover:text-primary">{playa.name}</h3><p className="mt-1 text-sm text-muted-foreground">{playa.destinationName || (playa as { destination_name?: string }).destination_name || playa.province}</p><p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{playa.shortDescription || (playa as { short_description?: string }).short_description || ""}</p><span className="mt-3 inline-flex text-sm font-semibold text-primary">Explorar playa <ChevronRight aria-hidden="true" className="ml-1 h-4 w-4" /></span></div>
+                  </Link>
                 ))}
               </div>
             )}

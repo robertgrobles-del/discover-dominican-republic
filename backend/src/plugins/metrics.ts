@@ -1,5 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import type { FastifyInstance } from "fastify";
+import { auditChainVerify } from "../modules/operators/team.js";
+import { rateLimitStoreErrorCount } from "./rate-limit-store.js";
 
 const BUCKETS = [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10];
 const esc = (s: string) => s.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n");
@@ -55,6 +57,9 @@ export function registerMetrics(app: FastifyInstance) {
     metric("process_uptime_seconds", "Tiempo en marcha", "gauge"); out.push(`process_uptime_seconds ${Math.round(process.uptime())}`);
     metric("db_pool_connections", "Conexiones del pool de la base de datos", "gauge");
     out.push(`db_pool_connections{state="total"} ${app.db.totalCount}`, `db_pool_connections{state="idle"} ${app.db.idleCount}`, `db_pool_connections{state="waiting"} ${app.db.waitingCount}`);
+    // Fallos del store de rate-limit desde el arranque del proceso: si sube, los límites dejaron de compartirse (fail-open).
+    metric("app_rate_limit_store_errors_total", "Fallos del almacén de límites de tasa desde el arranque", "counter");
+    out.push(`app_rate_limit_store_errors_total ${rateLimitStoreErrorCount()}`);
 
     // Estado del negocio: lo que hay que vigilar y alertar (trabajos caídos, cola de correo atascada, pagos por liquidar).
     try {
@@ -68,6 +73,10 @@ export function registerMetrics(app: FastifyInstance) {
       metric("app_payment_events_unprocessed", "Eventos de pago recibidos y no procesados (reintentos pendientes)", "gauge"); out.push(`app_payment_events_unprocessed ${await q("SELECT count(*) AS n FROM payment_events WHERE processed_at IS NULL")}`);
       metric("app_payouts_pending", "Liquidaciones pendientes de pago", "gauge"); out.push(`app_payouts_pending ${await q("SELECT count(*) AS n FROM payouts WHERE status = 'pending'")}`);
       metric("app_bookings_pending_unpaid", "Reservas con pago en línea sin cobrar (candidatas a vencer)", "gauge"); out.push(`app_bookings_pending_unpaid ${await q("SELECT count(*) AS n FROM bookings WHERE status = 'pending' AND payment_status = 'unpaid' AND payment_mode IN ('pay_now', 'deposit')")}`);
+      // Ventana reciente de la cadena de auditoría: si algún eslabón no cuadra, alguien tocó la bitácora.
+      const tailId = await q("SELECT coalesce(max(id), 0)::bigint AS n FROM audit_log");
+      const chain = await auditChainVerify(app.db, { afterId: Math.max(0, tailId - 2000) });
+      metric("app_audit_chain_broken", "Eslabones rotos en la cadena de hash de la auditoría (ventana reciente)", "gauge"); out.push(`app_audit_chain_broken ${chain.broken.length}`);
       metric("app_db_up", "1 si la base de datos responde", "gauge"); out.push("app_db_up 1");
     } catch {
       metric("app_db_up", "1 si la base de datos responde", "gauge"); out.push("app_db_up 0");

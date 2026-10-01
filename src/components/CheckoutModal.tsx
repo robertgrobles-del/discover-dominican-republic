@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { trackEvent } from "@/hooks/useAnalytics";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -118,7 +119,10 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
   const processPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (step === "billing") {
-      if (validateBilling()) setStep("payment");
+      if (validateBilling()) {
+        trackEvent("booking_start", { type: item.type, total: totalPrice });
+        setStep("payment");
+      }
       return;
     }
 
@@ -156,20 +160,8 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
         throw new Error(error.message);
       }
 
-      // 2. Ambassador / Affiliate tracking link integration via secure RPC
-      const refCode = localStorage.getItem("affiliate_ref");
-      if (refCode) {
-        const { error: rpcError } = await supabase.rpc("track_ambassador_sale", {
-          ref_code: refCode,
-          purchase_amount: totalPrice,
-          buyer_email: email
-        });
-        if (rpcError) {
-          console.error("Error tracking ambassador sale via RPC:", rpcError);
-        }
-      }
-
       setStep("success");
+      trackEvent("booking_complete", { type: item.type, total: totalPrice });
       toast.success("¡Pago procesado con éxito!");
     } catch (err: any) {
       toast.error(`Error al procesar el pago: ${err.message || "Por favor intente nuevamente."}`);

@@ -71,6 +71,7 @@ import { fiscalInvoiceRoutes } from "./modules/billing/routes.js";
 import { adminSiteRoutes } from "./modules/admin/site.js";
 import { adminUserRoutes } from "./modules/admin/users.js";
 import { meRoutes } from "./modules/me/routes.js";
+import { accessRoutes } from "./modules/access/routes.js";
 import { adminRoutes } from "./modules/admin/routes.js";
 import { operatorRoutes } from "./modules/operators/routes.js";
 import { contentRoutes } from "./modules/content/routes.js";
@@ -189,6 +190,9 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(adminSiteRoutes);
       await v1.register(adminCmsRoutes);
       await v1.register(meRoutes);
+      // Catálogo de capacidades y auditoría visual de permisos (Plan de accesos, puntos 58/66/70): recibe el
+      // inventario de rutas ya construido por el hook onRoute de app.ts para poder contrastarlo con el catálogo.
+      await v1.register(accessRoutes, { routeTable: app.routeTable });
       await v1.register(formsRoutes);
       await v1.register(reviewRoutes);
       await v1.register(socialRoutes);
@@ -225,10 +229,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
     },
     { prefix: "/api/v1" },
   );
-  await app.register(sponsorshipRoutes);
-  await app.register(creatorRoutes);
-  await app.register(transactionalProductsRoutes);
-  await app.register(membershipsRoutes);
-  await app.register(fiscalInvoiceRoutes);
+  // El versionado es exclusivo: toda ruta de API vive bajo /api/v1 (gobierno de compatibilidad, docs §3.1).
+  // Sólo el sitemap/SEO se registra en la raíz porque lo consumen rastreadores sin prefijo.
   await app.register(seoRoutes);
 }

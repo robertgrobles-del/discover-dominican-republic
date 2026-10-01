@@ -1,4 +1,4 @@
-import type { TemplateData, TemplateKey } from "./templates.js";
+import type { TemplateData, TemplateKey } from "./templates-types.js";
 
 /** Variables que admite cada plantilla (el tipo obliga a que coincidan con `TemplateData`). */
 export const VARS: { [K in TemplateKey]: (keyof TemplateData[K] & string)[] } = {
@@ -12,6 +12,7 @@ export const VARS: { [K in TemplateKey]: (keyof TemplateData[K] & string)[] } = 
   "booking.date_changed": ["name", "reference", "service", "operator", "dates", "guests", "total", "url"],
   "booking.cancelled": ["name", "reference", "service", "refund", "operator"],
   "booking.balance_due": ["name", "reference", "service", "operator", "date", "balance", "url"],
+  "booking.claim": ["name", "organizer", "dates", "url", "hours"],
   "booking.reminder": ["name", "reference", "service", "operator", "dates", "guests", "total", "url"],
   "booking.review_request": ["name", "service", "operator", "url"],
   "operator.min_guests": ["operator", "service", "date", "booked", "min", "url"],
@@ -44,6 +45,7 @@ export const SAMPLES: { [K in TemplateKey]: TemplateData[K] } = {
   "booking.date_changed": book,
   "booking.cancelled": { name: "Ana", reference: "RD-4F7K2", service: book.service, refund: "US$ 90.00", operator: book.operator },
   "booking.balance_due": { name: "Ana", reference: "RD-4F7K2", service: book.service, operator: book.operator, date: "12 mar 2027", balance: "US$ 90.00", url: book.url },
+  "booking.claim": { name: "Ana", organizer: book.operator, dates: book.dates, url: "https://descubre.example/reservas/reclamar?token=abc123", hours: 1 },
   "booking.reminder": book,
   "booking.review_request": { name: "Ana", service: book.service, operator: book.operator, url: "https://descubre.example/resenas/nueva" },
   "operator.min_guests": { operator: book.operator, service: book.service, date: "12 mar 2027", booked: 3, min: 6, url: "https://descubre.example/org/reservas" },

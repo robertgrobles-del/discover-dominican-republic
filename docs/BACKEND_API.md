@@ -1038,7 +1038,7 @@ Pestañas `operadores` y `reservas-directas` del panel admin (`AdminOperadores`,
 | GET | `/health` · `/health/ready` | Público | Liveness / readiness (BD, Redis) |
 | GET | `/version` | Público | Versión de la API y del esquema |
 | GET | `/config` | Público | Configuración de arranque del cliente: idiomas, monedas, banderas de funciones, claves públicas (mapa, pasarela), tasa USD→DOP |
-| GET | `/openapi.json` · `/docs` | Público (staging) / `Admin` (prod) | Contrato OpenAPI y documentación interactiva |
+| GET | `/openapi.json` · `/docs` | Público sólo con `DOCS_ENABLED` (en producción queda apagado salvo activación explícita) | Contrato OpenAPI y documentación interactiva |
 | POST | `/webhooks/cms` | Firma HMAC | Entrada del CMS headless (4.3): `entry.publish/unpublish/delete` → sincroniza, purga cache, reindexa |
 | POST | `/webhooks/payments/{provider}` · `/webhooks/email/{provider}` · `/webhooks/whatsapp` · `/webhooks/instagram` | Firma del proveedor | Ver 5.8 y 5.13 |
 | POST | `/internal/jobs/{name}` | Token de servicio | Disparo de tareas desde el planificador (sección 9) |

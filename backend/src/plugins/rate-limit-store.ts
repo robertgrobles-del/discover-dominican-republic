@@ -3,6 +3,10 @@ import type { Db } from "../db/pool.js";
 type Cb = (err: Error | null, res?: { current: number; ttl: number }) => void;
 interface RouteOptions { routeInfo?: { method?: string | string[]; url?: string } }
 
+// Contador local de fallos del store (fail-open): si crece, los límites dejaron de ser compartidos entre instancias.
+let storeErrors = 0;
+export const rateLimitStoreErrorCount = () => storeErrors;
+
 // Una sola sentencia atómica: incrementa dentro de la ventana o la reinicia si ya venció (sin condiciones de carrera entre instancias).
 const INCR = `
   INSERT INTO rate_limits (key, count, expires_at) VALUES ($1, 1, now() + make_interval(secs => $2::float8 / 1000))
@@ -23,7 +27,7 @@ export function createPostgresStore(db: Db) {
     incr(key: string, cb: Cb, timeWindow: number) {
       db.query<{ count: number; ttl: number }>(INCR, [`${this.prefix}${key}`, timeWindow]).then(
         (r) => cb(null, { current: r.rows[0]!.count, ttl: r.rows[0]!.ttl }),
-        (err: Error) => cb(err),
+        (err: Error) => { storeErrors++; cb(err); },
       );
     }
 
@@ -31,7 +35,7 @@ export function createPostgresStore(db: Db) {
     read(key: string, cb: Cb) {
       db.query<{ count: number; ttl: number }>(READ, [`${this.prefix}${key}`]).then(
         (r) => cb(null, r.rows[0] ? { current: r.rows[0].count, ttl: r.rows[0].ttl } : { current: 0, ttl: 0 }),
-        (err: Error) => cb(err),
+        (err: Error) => { storeErrors++; cb(err); },
       );
     }
 

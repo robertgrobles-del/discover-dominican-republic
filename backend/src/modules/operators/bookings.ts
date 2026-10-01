@@ -5,6 +5,7 @@ import type { Env } from "../../config/env.js";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
 import type { Locale } from "../../lib/i18n.js";
+import { newOpaqueToken } from "../auth/tokens.js";
 import type { Mailer } from "../mailer/mailer.js";
 import type { NotifyFn } from "../notifications/insert.js";
 import { POLICIES, refundFor, type CancellationPolicy } from "./domain/cancellation.js";
@@ -14,10 +15,13 @@ import type { RoomSnap } from "./domain/pricing.js";
 import { computeQuote, type ListingSnap, type Quote, type QuoteRequest } from "./domain/quote.js";
 import type { PaymentGateway } from "./gateway.js";
 import type { PromotionService } from "./promotions.js";
+import { audit } from "./team.js";
 
 export type PaymentMode = "pay_now" | "deposit" | "pay_later";
 const MAX_DATE_CHANGES = 2;
 const MIN_CHANGE_NOTICE_HOURS = 48;
+/** Vigencia del enlace de reclamo de una reserva de invitado (punto 76). */
+export const CLAIM_HOURS = 1;
 
 export interface BookingRequest {
   listing_id: string; room_id?: string; date: string; check_out?: string; time?: string;
@@ -26,6 +30,11 @@ export interface BookingRequest {
 export interface Contact { name: string; email: string; phone?: string }
 export interface CreateInput { request: BookingRequest; contact: Contact; notes?: string; payment_mode: PaymentMode; payment_token?: string; idempotency_key?: string; locale?: Locale }
 export interface Actor { userId?: string; source: "web" | "manual"; orgId?: string }
+/** Datos mínimos para armar el correo del enlace de reclamo; el token en claro sólo existe aquí. */
+export interface ClaimMailData { to: string; name: string; organizer: string; dates: string; token: string }
+export interface ClaimStart { expires_at: string; mail: ClaimMailData | null }
+/** Vista previa pública del reclamo: sin datos personales (el correo va enmascarado). */
+export interface ClaimPreview { organizer: string; service: string; dates: string; status: string; email: string; expires_at: string }
 
 interface Loaded {
   listing: ListingSnap & { org_id: string; title: string; slug: string; status: string; cancellation_policy: CancellationPolicy; category: ListingSnap["category"] };
@@ -37,6 +46,9 @@ const REF_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 const newReference = () => "DRD-" + Array.from(randomBytes(8), (b) => REF_ALPHABET[b % REF_ALPHABET.length]).join("");
 const hashToken = (t: string) => createHash("sha256").update(t).digest("hex");
 const money = (n: number, cur: string) => `${cur === "USD" ? "US$ " : "RD$ "}${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+/** Enmascara un correo para las vistas previas (`ana@dominio` → `a***@dominio`): nunca se expone completo. */
+const maskEmail = (email: string): string => { const at = email.indexOf("@"); return at > 0 ? `${email.charAt(0)}***@${email.slice(at + 1)}` : "***"; };
+const claimDates = (date: string, checkOut: string | null, time: string | null) => (checkOut && checkOut !== date ? `${date} → ${checkOut}` : `${date}${time ? ` ${time}` : ""}`);
 
 export interface BookingDto {
   id: string; reference: string; status: string; payment_status: string; source: string;
@@ -343,6 +355,88 @@ export class BookingService {
     const ok = r && ((access.token && r.access_hash && r.access_hash === hashToken(access.token)) || (access.userId && r.user_id === access.userId));
     if (!ok) throw AppError.notFound("Reserva"); // no se distingue "no existe" de "no es tuya"
     return toBookingDto(r);
+  }
+
+  // ---------- Reclamo de una reserva de invitado (punto 76) ----------
+  /**
+   * Emite el enlace para vincular una reserva de invitado a una cuenta. Sólo lo puede pedir quien tiene el token
+   * de invitado o el titular actual, y sólo si el correo indicado coincide (sin distinguir mayúsculas) con el de
+   * contacto y la reserva no pertenece ya a otra cuenta. El token es opaco, de un solo uso y vence en `CLAIM_HOURS`;
+   * en claro se devuelve únicamente a quien llama (para el correo) y nunca se registra en un log.
+   */
+  async startClaim(bookingId: string, input: { token?: string; email: string; ip?: string; userId?: string }): Promise<ClaimStart> {
+    const { rows } = await this.db.query<{
+      id: string; access_hash: string | null; user_id: string | null; contact_name: string; contact_email: string; listing_title: string;
+      date: string; check_out: string | null; time: string | null; business_name: string;
+    }>(
+      `SELECT b.id, b.access_hash, b.user_id, b.contact_name, b.contact_email, b.listing_title, b.date::text AS date,
+              b.check_out::text AS check_out, b.time, p.business_name
+         FROM bookings b JOIN partner_profiles p ON p.id = b.org_id WHERE b.id = $1`, [bookingId],
+    );
+    const r = rows[0];
+    if (!r) throw AppError.notFound("Reserva");
+    const byToken = !!input.token && !!r.access_hash && r.access_hash === hashToken(input.token);
+    const byOwner = !!input.userId && r.user_id === input.userId;
+    if (!byToken && !byOwner) throw AppError.notFound("Reserva"); // mismo criterio que getForTraveler: no se distingue
+
+    const expiresAt = new Date(Date.now() + CLAIM_HOURS * 3_600_000);
+    const expires = expiresAt.toISOString();
+    const sameEmail = r.contact_email.trim().toLowerCase() === input.email.trim().toLowerCase();
+    // Ya es de otra cuenta, o el correo no es el de contacto: no se emite nada (quien llama responde igual: 202).
+    if ((r.user_id && !byOwner) || !sameEmail) return { expires_at: expires, mail: null };
+
+    const token = newOpaqueToken();
+    await this.tx(async (c) => {
+      // Higiene: fuera lo usado o vencido de esta reserva y se anula cualquier enlace anterior que siguiera vigente (sólo uno sirve).
+      await c.query("DELETE FROM booking_claim_tokens WHERE booking_id = $1 AND (used_at IS NOT NULL OR expires_at <= now())", [bookingId]);
+      await c.query("UPDATE booking_claim_tokens SET used_at = now() WHERE booking_id = $1 AND used_at IS NULL", [bookingId]);
+      // Retención (mismo criterio que maintenance.purge con auth_tokens): los tokens ya quemados o vencidos no se acumulan.
+      await c.query("DELETE FROM booking_claim_tokens WHERE (used_at IS NOT NULL AND used_at < now() - interval '7 days') OR expires_at < now() - interval '7 days'");
+      await c.query(
+        "INSERT INTO booking_claim_tokens (booking_id, email, token_hash, requested_ip_hash, expires_at) VALUES ($1, $2, $3, $4, $5)",
+        [bookingId, r.contact_email.trim().toLowerCase(), hashToken(token), input.ip ? hashToken(input.ip) : null, expires],
+      );
+    });
+    return {
+      expires_at: expires,
+      mail: { to: r.contact_email.trim().toLowerCase(), name: r.contact_name.split(" ")[0] ?? r.contact_name, organizer: r.business_name, dates: claimDates(r.date, r.check_out, r.time), token },
+    };
+  }
+
+  /** Vista previa del reclamo: lo imprescindible y sin datos personales (correo enmascarado). */
+  async previewClaim(token: string): Promise<ClaimPreview> {
+    const { rows } = await this.db.query<{ email: string; expires_at: Date; listing_title: string; date: string; check_out: string | null; time: string | null; status: string; business_name: string }>(
+      `SELECT t.email, t.expires_at, b.listing_title, b.date::text AS date, b.check_out::text AS check_out, b.time, b.status, p.business_name
+         FROM booking_claim_tokens t JOIN bookings b ON b.id = t.booking_id JOIN partner_profiles p ON p.id = b.org_id
+        WHERE t.token_hash = $1 AND t.used_at IS NULL AND t.expires_at > now()`, [hashToken(token)],
+    );
+    const r = rows[0];
+    if (!r) throw AppError.notFound("Enlace"); // no existe, venció o ya se usó: todos son "no encontrado"
+    return { organizer: r.business_name, service: r.listing_title, dates: claimDates(r.date, r.check_out, r.time), status: r.status, email: maskEmail(r.email), expires_at: new Date(r.expires_at).toISOString() };
+  }
+
+  /**
+   * Canjea el token en una transacción: lo marca usado de forma atómica y vincula la reserva a la cuenta.
+   * Si la reserva ya pertenece a otra cuenta no se toca nada y se responde conflicto. Queda en la auditoría.
+   */
+  async consumeClaim(token: string, userId: string, ip?: string): Promise<BookingDto> {
+    const linked = await this.tx(async (c) => {
+      const used = await c.query<{ booking_id: string }>(
+        "UPDATE booking_claim_tokens SET used_at = now(), claimed_by = $2 WHERE token_hash = $1 AND used_at IS NULL AND expires_at > now() RETURNING booking_id",
+        [hashToken(token), userId],
+      );
+      if (!used.rows[0]) throw new AppError("INVALID_TOKEN", "El enlace es inválido o ya venció");
+      const bookingId = used.rows[0].booking_id;
+      const b = (await c.query<{ user_id: string | null; org_id: string; reference: string; contact_email: string }>(
+        "SELECT user_id, org_id, reference, contact_email FROM bookings WHERE id = $1 FOR UPDATE", [bookingId],
+      )).rows[0];
+      if (!b) throw AppError.notFound("Reserva");
+      if (b.user_id && b.user_id !== userId) throw new AppError("CONFLICT", "Esta reserva ya está vinculada a otra cuenta", { reason: "ALREADY_CLAIMED" });
+      await c.query("UPDATE bookings SET user_id = $2, claimed_at = now(), updated_at = now() WHERE id = $1", [bookingId, userId]);
+      return { bookingId, orgId: b.org_id, reference: b.reference, email: b.contact_email };
+    });
+    await audit(this.db, { actor: userId, action: "booking.claim", entity: "booking", id: linked.bookingId, org: linked.orgId, meta: { reference: linked.reference, email: maskEmail(linked.email) }, ip });
+    return (await this.get(linked.bookingId))!;
   }
 
   async listForUser(userId: string, opts: { status?: string; page: number; per_page: number }) {

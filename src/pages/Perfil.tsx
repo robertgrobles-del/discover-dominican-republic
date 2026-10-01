@@ -12,7 +12,7 @@ import { motion } from "framer-motion";
 import { 
   User, Heart, Star, Settings, MapPin, Calendar, Trash2, 
   ChevronRight, Edit3, Save, X, Globe, Compass, Printer, Download, Award, Share2,
-  Plus, CreditCard, Wifi, QrCode, Ticket, Coins
+  Plus, CreditCard, Wifi, QrCode, Ticket, Coins, Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,7 @@ import { ProfilePassport } from "@/components/profile/ProfilePassport";
 import { ProfileTimeline } from "@/components/profile/ProfileTimeline";
 import { ProfileWallet } from "@/components/profile/ProfileWallet";
 import { ProfileSettings } from "@/components/profile/ProfileSettings";
+import { ProfileSecurity } from "@/components/profile/ProfileSecurity";
 import { ProfileFavoritesTab } from "@/components/profile/ProfileFavoritesTab";
 import { ProfileReviewsTab } from "@/components/profile/ProfileReviewsTab";
 import { ProfileRechargeModal } from "@/components/profile/ProfileRechargeModal";
@@ -468,7 +469,7 @@ export default function Perfil() {
           <section className="py-8">
             <div className="container mx-auto px-4">
               <Tabs defaultValue="favoritos" className="w-full">
-                <TabsList className="grid w-full max-w-3xl grid-cols-2 md:grid-cols-5 gap-2 mb-8 bg-muted/50 p-1 rounded-xl">
+                <TabsList className="grid w-full max-w-4xl grid-cols-2 md:grid-cols-6 gap-2 mb-8 bg-muted/50 p-1 rounded-xl">
                   <TabsTrigger value="favoritos" className="gap-2 rounded-lg">
                     <Heart className="h-4 w-4" /> Favoritos
                   </TabsTrigger>
@@ -480,6 +481,9 @@ export default function Perfil() {
                   </TabsTrigger>
                   <TabsTrigger value="wallet" className="gap-2 rounded-lg">
                     <CreditCard className="h-4 w-4" /> Mi Billetera
+                  </TabsTrigger>
+                  <TabsTrigger value="seguridad" className="gap-2 rounded-lg">
+                    <Shield className="h-4 w-4 text-primary" /> Seguridad
                   </TabsTrigger>
                   <TabsTrigger value="configuracion" className="gap-2 rounded-lg">
                     <Settings className="h-4 w-4" /> Ajustes
@@ -544,6 +548,11 @@ export default function Perfil() {
                     setIsRechargeModalOpen={setIsRechargeModalOpen}
                     setSelectedTicket={setSelectedTicket}
                   />
+                </TabsContent>
+
+                {/* Seguridad Tab */}
+                <TabsContent value="seguridad">
+                  <ProfileSecurity user={user} />
                 </TabsContent>
 
                 {/* Configuración Tab */}

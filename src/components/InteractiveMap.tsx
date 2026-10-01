@@ -46,6 +46,25 @@ export function InteractiveMap({ className }: { className?: string }) {
   const clusterGroup = useRef<any>(null);
   const [activeLayers, setActiveLayers] = useState<MapLayer[]>(["destinations", "hotels", "beaches", "joyas_escondidas"]);
   const [selectedMarker, setSelectedMarker] = useState<MapMarker | null>(null);
+  const [isNearViewport, setIsNearViewport] = useState(false);
+
+  // Keep the map's tile requests and content queries off routes until the user approaches it.
+  useEffect(() => {
+    const element = mapRef.current;
+    if (!element) return;
+    if (!("IntersectionObserver" in window)) {
+      setIsNearViewport(true);
+      return;
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry?.isIntersecting) {
+        setIsNearViewport(true);
+        observer.disconnect();
+      }
+    }, { rootMargin: "200px" });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   // UGC Collaborative Map States
   const [ugcPins, setUgcPins] = useState<MapMarker[]>([]);
@@ -107,6 +126,7 @@ export function InteractiveMap({ className }: { className?: string }) {
 
   const { data: markers = [] } = useQuery({
     queryKey: ["map-markers", activeLayers],
+    enabled: isNearViewport,
     queryFn: async () => {
       const results: MapMarker[] = [];
       if (activeLayers.includes("destinations")) {
@@ -171,7 +191,7 @@ export function InteractiveMap({ className }: { className?: string }) {
 
   // Initialize map
   useEffect(() => {
-    if (!mapRef.current || leafletMap.current) return;
+    if (!isNearViewport || !mapRef.current || leafletMap.current) return;
 
     const map = L.map(mapRef.current, {
       center: [18.9, -70.0],
@@ -181,6 +201,7 @@ export function InteractiveMap({ className }: { className?: string }) {
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      referrerPolicy: "no-referrer",
     }).addTo(map);
 
     clusterGroup.current = (L as any).markerClusterGroup({
@@ -200,7 +221,7 @@ export function InteractiveMap({ className }: { className?: string }) {
       leafletMap.current?.remove();
       leafletMap.current = null;
     };
-  }, []);
+  }, [isNearViewport]);
 
   // Update markers with clustering
   useEffect(() => {
@@ -270,6 +291,9 @@ export function InteractiveMap({ className }: { className?: string }) {
                 <button
                   key={layer}
                   onClick={() => toggleLayer(layer)}
+                  type="button"
+                  aria-pressed={active}
+                  aria-label={`${active ? "Desactivar" : "Activar"} capa ${config.label}`}
                   className={cn(
                     "flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-all",
                     active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
@@ -314,13 +338,13 @@ export function InteractiveMap({ className }: { className?: string }) {
 
       {/* Zoom controls */}
       <div className="absolute top-4 right-4 z-[1000] flex flex-col gap-1">
-        <Button variant="outline" size="icon" className="bg-background/95 backdrop-blur-sm h-8 w-8" onClick={() => handleZoom(1)}>
+        <Button variant="outline" size="icon" aria-label="Acercar mapa" title="Acercar mapa" className="a11y-touch-target bg-background/95 backdrop-blur-sm" onClick={() => handleZoom(1)}>
           <ZoomIn className="h-4 w-4" />
         </Button>
-        <Button variant="outline" size="icon" className="bg-background/95 backdrop-blur-sm h-8 w-8" onClick={() => handleZoom(-1)}>
+        <Button variant="outline" size="icon" aria-label="Alejar mapa" title="Alejar mapa" className="a11y-touch-target bg-background/95 backdrop-blur-sm" onClick={() => handleZoom(-1)}>
           <ZoomOut className="h-4 w-4" />
         </Button>
-        <Button variant="outline" size="icon" className="bg-background/95 backdrop-blur-sm h-8 w-8" onClick={handleCenter}>
+        <Button variant="outline" size="icon" aria-label="Centrar mapa en República Dominicana" title="Centrar mapa" className="a11y-touch-target bg-background/95 backdrop-blur-sm" onClick={handleCenter}>
           <Locate className="h-4 w-4" />
         </Button>
       </div>

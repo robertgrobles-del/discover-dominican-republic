@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { 
   Calendar, Ticket, Globe, Sparkles, Building2, 
-  CheckCircle2, Clock, MapPin, DollarSign, Image as ImageIcon,
+  Clock, MapPin, DollarSign, Image as ImageIcon,
   Send, AlertCircle, ExternalLink, ShieldCheck
 } from "lucide-react";
 import {
@@ -17,7 +17,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 interface RegistroEventoModalProps {
   open: boolean;
@@ -57,33 +56,6 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
     setLoading(true);
 
     try {
-      // Send event application to Supabase or log
-      const payload = {
-        name: eventName,
-        organizer: organizerName,
-        contact_email: organizerEmail,
-        contact_phone: organizerPhone,
-        event_type: category,
-        location: destination,
-        venue,
-        start_date: startDate,
-        start_time: startTime,
-        price_range: priceType === "free" ? "Entrada Libre (Gratis)" : priceRange || "Por confirmar",
-        ticket_url: ticketSalesOption === "website_redirect" ? websiteTicketUrl : null,
-        ticketing_mode: ticketSalesOption,
-        promotional_tier: promotionalTier,
-        description,
-        status: "pending_review",
-        created_at: new Date().toISOString()
-      };
-
-      // Record lead in database
-      await supabase.from("analytics_events").insert([{
-        event_type: "b2b_event_registration_submitted",
-        page: window.location.pathname,
-        metadata: payload as any
-      }]).catch(() => {});
-
       // Save to organizer events repository in localStorage
       const newOrganizerEvent = {
         id: `evt-${Date.now()}`,
@@ -107,11 +79,11 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
       localStorage.setItem("dr_organizer_events", JSON.stringify(existingEvents));
 
       setStep(2);
-      toast.success("¡Solicitud de registro de evento enviada con éxito!", {
-        description: "El evento ya está disponible en tu consola de organizador."
+      toast.info("Borrador guardado en este navegador", {
+        description: "La solicitud no se envio al equipo ni se publico en el portal."
       });
     } catch (err) {
-      toast.error("Hubo un detalle al enviar tu solicitud. Intenta nuevamente.");
+      toast.error("No se pudo guardar el borrador local. Intenta nuevamente.");
     } finally {
       setLoading(false);
     }
@@ -145,6 +117,7 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
                 Gana visibilidad ante cientos de miles de turistas y dominicanos. Redirige a tu boletería oficial o activa la venta directa de taquillas.
+                <span className="block mt-2 font-medium">Vista previa local: no se envian solicitudes ni datos de contacto al equipo.</span>
               </DialogDescription>
             </DialogHeader>
 
@@ -441,33 +414,22 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
                   className="rounded-xl text-xs font-bold gap-2 px-6 h-11 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
                 >
                   <Send className="h-4 w-4" />
-                  {loading ? "Enviando Solicitud..." : "Enviar Evento a Revisión Oficial"}
+                  {loading ? "Guardando borrador..." : "Guardar borrador local"}
                 </Button>
               </div>
             </form>
           </div>
         ) : (
           <div className="py-8 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/15 text-emerald-500 flex items-center justify-center mx-auto mb-2">
-              <CheckCircle2 className="h-8 w-8" />
+            <div className="w-16 h-16 rounded-full bg-amber-500/15 text-amber-600 flex items-center justify-center mx-auto mb-2">
+              <AlertCircle className="h-8 w-8" />
             </div>
             <h3 className="font-display text-2xl font-bold text-foreground">
-              ¡Evento Registrado con Éxito!
+              Borrador local creado
             </h3>
             <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
-              Hemos recibido la información de <strong>{eventName}</strong>. Nuestro equipo de curaduría turística verificará los datos y el enlace de boletas en un plazo de 24 a 48 horas.
+              El borrador de <strong>{eventName}</strong> solo esta guardado en este navegador. No se envio al equipo ni se publicara hasta conectar un servicio de registro.
             </p>
-            <div className="p-4 rounded-2xl bg-secondary/40 border border-border/80 text-left max-w-md mx-auto text-xs space-y-1.5">
-              <p className="font-bold text-foreground flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-primary" /> Beneficios incluidos en tu publicación:
-              </p>
-              <ul className="list-disc list-inside text-muted-foreground space-y-1 pl-1 text-[11px]">
-                <li>Ficha oficial de evento con cuenta regresiva en vivo.</li>
-                <li>Botón directo de compra de taquillas con redirección a tu boletería.</li>
-                <li>Sincronización con Google Calendar y mapas Waze/Google Maps.</li>
-                <li>Presencia en la agenda nacional de turismo cultural y entretenimiento.</li>
-              </ul>
-            </div>
             <Button onClick={handleReset} className="rounded-xl text-xs font-bold px-8 mt-4">
               Entendido, volver a Eventos
             </Button>

@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
+import { trackEvent } from "@/hooks/useAnalytics";
 import { isValidEmail } from "@/lib/security";
 import { DOP_PER_USD, FREE_SHIPPING_FROM, SHIPPING_FLAT, createOrder, formatDop } from "../api";
 
@@ -37,7 +38,8 @@ export default function TiendaCheckout() {
     if (!isValidEmail(f.email)) return toast.error("Ingresa un correo válido.");
     if (f.address.trim().length < 6 || f.city.trim().length < 2) return toast.error("Completa la dirección de entrega.");
     if (!f.phone.trim() || f.phone.trim().length < 7) return toast.error("Ingresa un número de contacto válido.");
-    
+
+    trackEvent("checkout_start", { method: paymentMethod, items: items.length, total });
     setBusy(true);
     try {
       const id = await createOrder({
@@ -61,6 +63,7 @@ export default function TiendaCheckout() {
       await clearCart();
       qc.invalidateQueries({ queryKey: ["store"] });
       setOrderId(id);
+      trackEvent("purchase", { method: paymentMethod, items: items.length, total });
     } catch (e: any) {
       toast.error(e.message || "No se pudo procesar el pedido");
     } finally {
@@ -100,13 +103,13 @@ export default function TiendaCheckout() {
       <main className="pt-28 pb-16 container mx-auto px-4">
         <h1 className="font-display text-3xl font-bold mb-6">Finalizar Compra</h1>
         {!user ? (
-          <Card><CardContent className="py-12 text-center space-y-3"><p>Inicia sesión para ver tu carrito y completar la compra con tus sellos y beneficios.</p><Button asChild><Link to="/login">Iniciar sesión</Link></Button></CardContent></Card>
+          <Card variant="commercial"><CardContent className="py-12 text-center space-y-3"><p>Inicia sesión para ver tu carrito y completar la compra con tus sellos y beneficios.</p><Button asChild><Link to="/login">Iniciar sesión</Link></Button></CardContent></Card>
         ) : items.length === 0 ? (
-          <Card><CardContent className="py-12 text-center space-y-3"><p>Tu carrito está vacío.</p><Button asChild><Link to="/tienda">Ir a la tienda</Link></Button></CardContent></Card>
+          <Card variant="commercial"><CardContent className="py-12 text-center space-y-3"><p>Tu carrito está vacío.</p><Button asChild><Link to="/tienda">Ir a la tienda</Link></Button></CardContent></Card>
         ) : (
           <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
             <div className="space-y-6">
-              <Card>
+              <Card variant="commercial">
                 <CardContent className="p-6 grid gap-4 sm:grid-cols-2">
                   <h2 className="sm:col-span-2 font-display font-bold text-lg border-b border-border/60 pb-2">1. Datos de Entrega</h2>
                   <div className="space-y-1 sm:col-span-2"><Label htmlFor="c-name">Nombre completo</Label><Input id="c-name" maxLength={80} value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="Ej. Juan Pérez" /></div>
@@ -117,7 +120,7 @@ export default function TiendaCheckout() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card variant="commercial">
                 <CardContent className="p-6 space-y-4">
                   <h2 className="font-display font-bold text-lg border-b border-border/60 pb-2">2. Método de Pago</h2>
                   
@@ -125,7 +128,7 @@ export default function TiendaCheckout() {
                     <button
                       type="button"
                       onClick={() => setPaymentMethod("card")}
-                      className={`p-4 rounded-xl border text-left transition-all ${
+                      className={`surface-commercial p-4 rounded-card border text-left transition-all ${
                         paymentMethod === "card" 
                           ? "border-primary bg-primary/5 ring-1 ring-primary" 
                           : "border-border hover:border-border/80"
@@ -138,7 +141,7 @@ export default function TiendaCheckout() {
                     <button
                       type="button"
                       onClick={() => setPaymentMethod("transfer")}
-                      className={`p-4 rounded-xl border text-left transition-all ${
+                      className={`surface-commercial p-4 rounded-card border text-left transition-all ${
                         paymentMethod === "transfer" 
                           ? "border-primary bg-primary/5 ring-1 ring-primary" 
                           : "border-border hover:border-border/80"
@@ -157,7 +160,7 @@ export default function TiendaCheckout() {
               </Card>
             </div>
 
-            <Card className="self-start"><CardContent className="p-6 space-y-3">
+            <Card variant="commercial" className="self-start"><CardContent className="p-6 space-y-3">
               <h2 className="font-display font-bold">Resumen de Orden</h2>
               <ul className="space-y-1 text-sm divide-y divide-border/40">
                 {items.map((i) => (

@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { 
   Calendar, User, Tag, Search, ChevronRight, Newspaper, 
   Megaphone, Compass, Sparkles, Building2, CheckCircle, 
@@ -37,7 +37,9 @@ const mainTabs = [
 ];
 
 export default function Blog() {
-  const [activeTab, setActiveTab] = useState("all");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedCategory = searchParams.get("categoria") ?? "all";
+  const [activeTab, setActiveTab] = useState(() => mainTabs.some((tab) => tab.id === requestedCategory) ? requestedCategory : "all");
   const [searchQuery, setSearchQuery] = useState("");
   
   // Guest Author modal state
@@ -50,6 +52,18 @@ export default function Blog() {
   const [guestAcceptTerms, setGuestAcceptTerms] = useState(false);
   const [guestSubscribeNewsletter, setGuestSubscribeNewsletter] = useState(true);
   const [isSubmittingGuest, setIsSubmittingGuest] = useState(false);
+
+  useEffect(() => {
+    setActiveTab(mainTabs.some((tab) => tab.id === requestedCategory) ? requestedCategory : "all");
+  }, [requestedCategory]);
+
+  const selectCategory = (category: string) => {
+    setActiveTab(category);
+    const nextParams = new URLSearchParams(searchParams);
+    if (category === "all") nextParams.delete("categoria");
+    else nextParams.set("categoria", category);
+    setSearchParams(nextParams);
+  };
 
   const filteredPosts = useMemo(() => {
     return blogPosts.filter((post) => {
@@ -185,7 +199,7 @@ export default function Blog() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => selectCategory(tab.id)}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
                     isActive
                       ? "bg-primary text-primary-foreground shadow-sm"
@@ -253,7 +267,7 @@ export default function Blog() {
             <Search className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-30" />
             <h3 className="font-bold text-foreground text-lg">No encontramos publicaciones</h3>
             <p className="text-xs text-muted-foreground mt-1 mb-5">Prueba ajustando los términos de búsqueda o cambiando la pestaña de categoría.</p>
-            <Button variant="outline" size="sm" onClick={() => { setSearchQuery(""); setActiveTab("all"); }} className="rounded-xl">
+            <Button variant="outline" size="sm" onClick={() => { setSearchQuery(""); selectCategory("all"); }} className="rounded-xl">
               Ver todas las publicaciones
             </Button>
           </div>
@@ -267,7 +281,7 @@ export default function Blog() {
                 className="mb-8"
               >
                 <Link to={`/articulo/${featuredPost.slug}`} className="group block">
-                  <div className="grid lg:grid-cols-12 gap-6 bg-card rounded-3xl overflow-hidden border border-border/80 hover:border-primary/50 transition-all duration-300 shadow-md hover:shadow-xl">
+                  <div className="grid lg:grid-cols-12 gap-6 surface-editorial rounded-card overflow-hidden border border-border/80 hover:border-primary/50 transition-all duration-300 shadow-md hover:shadow-xl">
                     <div className="lg:col-span-7 aspect-[16/10] lg:aspect-auto overflow-hidden relative min-h-[300px]">
                       <img
                         src={featuredPost.imageUrl}
@@ -331,7 +345,7 @@ export default function Blog() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.04 }}
-                  className="bg-card rounded-3xl border border-border/80 overflow-hidden hover:border-primary/50 transition-all duration-300 flex flex-col group shadow-xs hover:shadow-md"
+                  className="surface-editorial rounded-card border border-border/80 overflow-hidden hover:border-primary/50 transition-all duration-300 flex flex-col group shadow-xs hover:shadow-md"
                 >
                   <Link to={`/articulo/${post.slug}`} className="flex flex-col h-full">
                     <div className="aspect-[16/10] overflow-hidden relative">
@@ -557,4 +571,3 @@ export default function Blog() {
     </div>
   );
 }
-

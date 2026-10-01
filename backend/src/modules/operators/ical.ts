@@ -3,6 +3,7 @@ import { isIP } from "node:net";
 import type { FastifyBaseLogger } from "fastify";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
+import { traceHeaders } from "../../lib/http.js";
 import { addDays, isIsoDate } from "./domain/dates.js";
 
 export type Fetcher = (url: string) => Promise<string>;
@@ -35,7 +36,7 @@ export async function assertPublicUrl(raw: string) {
 
 const defaultFetcher: Fetcher = async (url) => {
   await assertPublicUrl(url);
-  const res = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(10_000), headers: { accept: "text/calendar" } });
+  const res = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(10_000), headers: traceHeaders({ accept: "text/calendar" }) });
   if (!res.ok) throw new Error(`El calendario respondió ${res.status}`);
   const text = await res.text();
   if (text.length > MAX_BYTES) throw new Error("El calendario es demasiado grande");

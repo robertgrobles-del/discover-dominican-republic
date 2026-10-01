@@ -8,6 +8,16 @@ export type BookingStatus = "pending" | "confirmed" | "in_progress" | "completed
 export type PaymentStatus = "unpaid" | "partial" | "paid" | "refunded";
 export type OrgVerification = "unverified" | "pending" | "verified" | "rejected";
 export type MessageChannel = "web" | "whatsapp" | "instagram" | "email";
+export type AutomationKind = "confirmation" | "reminder" | "review";
+export type AutomationChannel = "email" | "whatsapp";
+
+export interface AutomationRule {
+  enabled: boolean;
+  channels: AutomationChannel[];
+  subject: string;
+  body: string;
+}
+export type AutomationConfig = Record<AutomationKind, AutomationRule>;
 
 export interface TeamMember {
   id: string;
@@ -34,7 +44,7 @@ export interface OperatorOrg {
   commission_rate: number; // porcentaje sobre reservas pagadas en la web del operador
   payout_method?: string;
   website_enabled: boolean;
-  automation?: import("./automation").AutomationConfig;
+  automation?: AutomationConfig;
   created_at?: string;
 }
 

@@ -33,6 +33,7 @@ import { CommentSection } from "@/components/comments/CommentSection";
 import { DestinationHighlightCards } from "@/components/destination/DestinationHighlightCards";
 import { DestinationArrivalGuide } from "@/components/destination/DestinationArrivalGuide";
 import { DestinationConsultantBanner } from "@/components/destination/DestinationConsultantBanner";
+import { ParticipationInvite } from "@/components/gamificacion/ParticipationInvite";
 import { HonestGuideSection } from "@/components/detail/HonestGuideSection";
 import { DestinationAnnualCalendar } from "@/components/destination/DestinationAnnualCalendar";
 import { DestinationTimeRadiusMap } from "@/components/destination/DestinationTimeRadiusMap";
@@ -295,13 +296,17 @@ function DestinoDetalleDynamic({ id }: { id?: string }) {
 
           <div className="container mx-auto px-4 relative z-10">
             {/* Breadcrumb navigation */}
-            <div className="flex items-center gap-2 text-sm text-white/70 mb-4">
+            <nav aria-label="Migas de pan" className="mb-4">
+              <ol className="flex items-center gap-2 text-sm text-white/70">
+                <li>
               <Link to="/destinos" className="hover:text-white transition-colors flex items-center gap-1">
                 <ArrowLeft className="h-4 w-4" /> Destinos
               </Link>
-              <ChevronRight className="h-3 w-3" />
-              <span className="text-white">{displayData.name}</span>
-            </div>
+                </li>
+                <li aria-hidden="true"><ChevronRight className="h-3 w-3" /></li>
+                <li aria-current="page" className="text-white">{displayData.name}</li>
+              </ol>
+            </nav>
 
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div>
@@ -398,6 +403,20 @@ function DestinoDetalleDynamic({ id }: { id?: string }) {
             </div>
           </section>
         )}
+
+        <nav aria-label="En esta zona" className="border-b border-border bg-background/95 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+          <div className="container mx-auto flex items-center gap-2 overflow-x-auto px-4">
+            <span className="shrink-0 pr-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">En esta zona</span>
+            {[
+              ["Actividades", "#destination-activities"],
+              ["Alojamientos", "#destination-hotels"],
+              ["Restaurantes", "#destination-restaurants"],
+              ["Cómo llegar", "#destination-arrival"],
+            ].map(([label, href]) => (
+              <a key={href} href={href} className="shrink-0 rounded-full border border-border px-3 py-1.5 text-sm text-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{label}</a>
+            ))}
+          </div>
+        </nav>
 
         {/* Lo Esencial para el Viajero (Trip Essentials inspirado en Australia, Países Bajos y Suiza) */}
         <DestinationEssentials
@@ -611,6 +630,8 @@ function DestinoDetalleDynamic({ id }: { id?: string }) {
 
         {/* Standard IAB Billboard Ad */}
         <BillboardAd showDemo section="destino-detalle" />
+
+        <div className="container mx-auto px-4 py-8"><ParticipationInvite placeName={displayData.name} /></div>
 
         {/* Sección de Comentarios y UGC */}
         <section className="py-8">

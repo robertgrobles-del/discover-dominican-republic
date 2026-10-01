@@ -8,7 +8,7 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: "var(--page-gutter)",
       screens: {
         "2xl": "1400px",
       },
@@ -17,8 +17,17 @@ export default {
       fontFamily: {
         display: ["Plus Jakarta Sans", "sans-serif"],
         body: ["Noto Sans", "sans-serif"],
+        utility: ["ui-monospace", "SFMono-Regular", "Consolas", "monospace"],
       },
       colors: {
+        "brand-caribbean": "hsl(var(--brand-caribbean))",
+        "brand-deep-sea": "hsl(var(--brand-deep-sea))",
+        "brand-sand": "hsl(var(--brand-sand))",
+        "brand-coral": "hsl(var(--brand-coral))",
+        "brand-forest": "hsl(var(--brand-forest))",
+        "surface-editorial": "hsl(var(--surface-editorial))",
+        "surface-commercial": "hsl(var(--surface-commercial))",
+        "border-strong": "hsl(var(--border-strong))",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -74,11 +83,15 @@ export default {
       },
       borderRadius: {
         lg: "var(--radius)",
+        card: "var(--radius-card)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
         xl: "0.75rem",
         "2xl": "1rem",
         "3xl": "1.5rem",
+      },
+      spacing: {
+        section: "var(--space-section)",
       },
       boxShadow: {
         glow: "0 0 20px hsl(var(--primary) / 0.4)",

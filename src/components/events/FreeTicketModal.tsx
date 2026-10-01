@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useGamification } from "@/hooks/useGamification";
-import { supabase } from "@/integrations/supabase/client";
+import { trackEvent } from "@/hooks/useAnalytics";
 
 export interface FreeTicketData {
   ticketId: string;
@@ -143,18 +143,8 @@ export function FreeTicketModal({ open, onClose, event }: FreeTicketModalProps) 
       existingRegistrations[event.id].unshift(newTicket);
       localStorage.setItem("dr_event_registrations", JSON.stringify(existingRegistrations));
 
-      // 3. Analytics tracking in Supabase
-      await supabase.from("analytics_events").insert([{
-        event_type: "free_ticket_registered",
-        page: window.location.pathname,
-        metadata: {
-          ticketId,
-          eventId: event.id,
-          eventName: event.name,
-          quantity,
-          attendeeEmail: email.trim()
-        } as any
-      }]).catch(() => {});
+      // Optional measurement; consent-gated and excludes attendee, ticket, and event identifiers.
+      trackEvent("free_ticket_registered", { quantity });
 
       // 4. Gamification points
       awardXp(50, 0, `Entrada gratuita obtenida: ${event.name}`, "free_ticket_obtained", event.id);

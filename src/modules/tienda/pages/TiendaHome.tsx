@@ -13,7 +13,8 @@ import { CATEGORY_LABEL, FREE_SHIPPING_FROM, dopToUsd, formatDop, useProducts, t
 import { ProductArt } from "../ProductArt";
 
 export default function TiendaHome() {
-  const { data: products = [], isLoading } = useProducts();
+  const productsQuery = useProducts();
+  const { data: products = [], isLoading, isError, refetch } = productsQuery;
   const { addItem } = useCart();
   const [cat, setCat] = useState<StoreProduct["category"] | "all">("all");
   const featured = products.find((p) => p.featured && p.category === "poster") || products.find((p) => p.featured);
@@ -33,7 +34,7 @@ export default function TiendaHome() {
         <div className="bg-primary text-primary-foreground text-center text-sm py-2">¡Bienvenido a la tienda oficial de Descubre RD! Envío gratis en compras desde {formatDop(FREE_SHIPPING_FROM)}.</div>
         <div className="container mx-auto px-4 pt-8">
           {featured && (
-            <Card className="overflow-hidden grid md:grid-cols-2 mb-10">
+            <Card variant="commercial" className="overflow-hidden grid md:grid-cols-2 mb-10">
               <ProductArt product={featured} className="min-h-[16rem]" />
               <div className="p-8 flex flex-col justify-center gap-3">
                 <Badge className="w-fit">Reto Descubre RD</Badge>
@@ -57,10 +58,19 @@ export default function TiendaHome() {
             {cats.map((c) => <Button key={c} size="sm" className="rounded-full" variant={cat === c ? "default" : "outline"} onClick={() => setCat(c)}>{CATEGORY_LABEL[c]}</Button>)}
           </div>
 
-          {isLoading ? null : (
+          {isError ? (
+            <div role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
+              <p>No se pudo cargar el catálogo.</p>
+              <Button variant="outline" className="mt-3" onClick={() => { void refetch(); }}>Reintentar</Button>
+            </div>
+          ) : isLoading ? (
+            <div role="status" aria-live="polite" className="py-12 text-center text-muted-foreground">Cargando productos…</div>
+          ) : shown.length === 0 ? (
+            <p className="py-12 text-center text-muted-foreground">No hay productos disponibles en esta categoría.</p>
+          ) : (
             <div className="grid gap-5 grid-cols-2 lg:grid-cols-4">
               {shown.map((p) => (
-                <Card key={p.id} className="overflow-hidden flex flex-col">
+                <Card key={p.id} variant="commercial" className="overflow-hidden flex flex-col">
                   <Link to={`/tienda/${p.slug}`} className="block group">
                     <ProductArt product={p} className="aspect-square transition-transform duration-500 group-hover:scale-[1.03]" />
                   </Link>

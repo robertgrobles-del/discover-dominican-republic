@@ -1,6 +1,14 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { IS_MOCK_DATA } from '@/lib/dataSource';
+import {
+  AdminApiError,
+  adminCreateEntity,
+  adminDeleteEntity,
+  adminGetEntity,
+  adminListEntities,
+  adminUpdateEntity,
+} from '@/lib/adminApi';
 
 export type EntityType = 
   | 'hotels' | 'restaurants' | 'bars' | 'experiences' | 'events'
@@ -44,6 +52,14 @@ interface CallApiOptions {
   filters?: Filters;
 }
 
+/**
+ * Datos de administración por colección (Plan de accesos, punto 3).
+ *
+ * Con `VITE_DATA_SOURCE=api` habla directamente con Fastify (`/api/v1/admin/<colección>` a través de
+ * `src/lib/adminApi.ts`). Mientras el portal siga sobre datos simulados, usa la función simulada de
+ * siempre, pero **cargada de forma diferida**: así un build real (`api`) nunca la importa, y el cliente
+ * simulado —que falla cerrado— no bloquea la carga del panel.
+ */
 export function useAdminEntities() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -55,40 +71,60 @@ export function useAdminEntities() {
   ): Promise<ApiResponse<T> | null> {
     setLoading(true);
     try {
-      const sessionResult = await supabase.auth.getSession();
-      const session = sessionResult.data.session;
-      
-      if (!session?.access_token) {
-        toast({
-          title: 'Error de autenticación',
-          description: 'Por favor, inicia sesión nuevamente.',
-          variant: 'destructive'
-        });
-        return null;
-      }
+      if (IS_MOCK_DATA) {
+        const { supabase } = await import('@/integrations/supabase/client');
+        const sessionResult = await supabase.auth.getSession();
+        const session = sessionResult.data.session;
 
-      const response = await supabase.functions.invoke('admin-entities', {
-        body: {
-          entity,
-          action,
-          id: options?.id,
-          data: options?.data,
-          filters: options?.filters
+        if (!session?.access_token) {
+          toast({
+            title: 'Error de autenticación',
+            description: 'Por favor, inicia sesión nuevamente.',
+            variant: 'destructive'
+          });
+          return null;
         }
-      });
 
-      if (response.error) {
-        throw new Error(response.error.message);
+        const response = await supabase.functions.invoke('admin-entities', {
+          body: {
+            entity,
+            action,
+            id: options?.id,
+            data: options?.data,
+            filters: options?.filters
+          }
+        });
+
+        if (response.error) {
+          throw new Error(response.error.message);
+        }
+
+        return response.data as ApiResponse<T>;
       }
 
-      return response.data as ApiResponse<T>;
+      // Camino real: el servidor decide permisos y alcance en cada endpoint.
+      switch (action) {
+        case 'list': {
+          // `callApi<T[]>` tipa la lista entera como T; aquí solo se normaliza el sobre del servidor.
+          const result = await adminListEntities<unknown>(entity, options?.filters);
+          return { data: result.data as T, total: result.total };
+        }
+        case 'get':
+          return { data: (await adminGetEntity<T>(entity, options!.id!)).data };
+        case 'create':
+          return { data: (await adminCreateEntity<T>(entity, options?.data ?? {})).data };
+        case 'update':
+          return { data: (await adminUpdateEntity<T>(entity, options!.id!, options?.data ?? {})).data };
+        case 'delete':
+          await adminDeleteEntity(entity, options!.id!);
+          return { message: 'Eliminado' };
+      }
     } catch (error) {
+      const description = error instanceof AdminApiError
+        ? error.message
+        : error instanceof Error ? error.message : 'Error desconocido';
       console.error('API Error:', error);
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Error desconocido',
-        variant: 'destructive'
-      });
+      toast({ title: 'Error', description, variant: 'destructive' });
       return null;
     } finally {
       setLoading(false);
@@ -143,7 +179,8 @@ export function useAdminEntities() {
     id: string
   ): Promise<ApiResponse<unknown> | null> {
     const result = await callApi<unknown>(entity, 'delete', { id });
-    if (result?.message) {
+    // En el camino real un borrado correcto responde 204 sin cuerpo: el éxito se reconoce por no haber error.
+    if (result && (result.message || result.data !== undefined || !IS_MOCK_DATA)) {
       toast({
         title: 'Eliminado exitosamente',
         description: 'El elemento ha sido eliminado.'

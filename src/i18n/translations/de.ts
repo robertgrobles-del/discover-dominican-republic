@@ -1,4 +1,7 @@
 export const de: Record<string, string> = {
+  "nav.explore": "Entdecken",
+  "nav.guides": "Reiseführer",
+  "nav.businesses": "Unternehmen",
   "nav.whereToGo": "Wohin",
   "nav.whatToDo": "Was Tun",
   "nav.whereToStay": "Wo Übernachten",
@@ -1254,7 +1257,6 @@ export const de: Record<string, string> = {
   "corporativo.terms": "Nutzungsbedingungen",
   "corporativo.contactMinistry": "Offizieller Kontakt - Tourismusministerium (MITUR)",
 };
-
 
 
 

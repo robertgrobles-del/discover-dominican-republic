@@ -2,12 +2,16 @@ import { z } from "zod";
 
 const bool = z.enum(["true", "false", "1", "0"]).transform((v) => v === "true" || v === "1");
 
+/** Cada entrada de TRUST_PROXY debe ser una IP (v4/v6) o un CIDR. */
+const TRUST_PROXY_ITEM = /^(?:(?:\d{1,3}\.){3}\d{1,3}|[0-9a-fA-F:]+)(?:\/\d{1,3})?$/;
+const trustProxyShape = (v: string) => ["", "false", "true"].includes(v) || /^\d+$/.test(v) || v.split(",").every((x) => TRUST_PROXY_ITEM.test(x.trim()));
+
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   HOST: z.string().default("0.0.0.0"),
-  /** Proxies de confianza para X-Forwarded-For: false | true | nº de saltos | lista de IP/CIDR. Por defecto ninguno (no se acepta la cabecera). */
-  TRUST_PROXY: z.string().default("false"),
+  /** Proxies de confianza para X-Forwarded-For: false | true | nº de saltos | lista de IP/CIDR. Por defecto ninguno (no se acepta la cabecera): nadie puede falsear su IP para evadir los límites. El formato se valida al arrancar y en producción no se admite "true". */
+  TRUST_PROXY: z.string().default("false").refine(trustProxyShape, "debe ser \"false\", \"true\", un número de saltos o una lista de IP/CIDR separadas por comas"),
   /** Si se define, habilita GET /metrics (Prometheus) con `Authorization: Bearer <token>`. */
   METRICS_TOKEN: z.string().min(16).optional(),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
@@ -132,7 +136,8 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     if (/\/\/postgres:postgres@/.test(env.DATABASE_URL)) throw new Error("Configuración inválida: DATABASE_URL usa las credenciales por defecto de desarrollo");
     if (!env.APP_SECRET) throw new Error("Configuración inválida: APP_SECRET (mínimo 32 caracteres) es obligatoria en producción");
     if (!env.TOTP_ENCRYPTION_KEY) throw new Error("Configuración inválida: TOTP_ENCRYPTION_KEY es obligatoria en producción");
-    if (env.MAIL_TRANSPORT === "memory") throw new Error("Configuración inválida: MAIL_TRANSPORT=memory no está permitido en producción");
+    if (env.TRUST_PROXY === "true") throw new Error("Configuración inválida: en producción TRUST_PROXY no puede ser \"true\" (cualquiera podría falsear su IP en X-Forwarded-For); indica el número de saltos del proxy o su lista de IP/CIDR");
+    if (env.MAIL_TRANSPORT !== "smtp") throw new Error("Configuración inválida: en producción MAIL_TRANSPORT debe ser smtp; \"log\" y \"memory\" no entregan correo real");
   }
   env.APP_SECRET ??= "dev-only-app-secret-change-me-0123456789"; // sólo llega aquí sin valor fuera de producción
   env.REQUIRE_2FA_FOR_STAFF ??= env.NODE_ENV === "production";

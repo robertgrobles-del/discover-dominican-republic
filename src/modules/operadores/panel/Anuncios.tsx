@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Plus, Pencil, Trash2, Eye, EyeOff, ExternalLink, Copy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmActionDialog } from "@/components/ConfirmActionDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { deleteListing, opKeys, saveListing, useListings, useOpMutation } from "../api";
@@ -67,10 +68,13 @@ export default function Anuncios() {
                     {l.status === "published" && (
                       <Button size="sm" variant="ghost" asChild><Link to={`/operador/${org.slug}/${l.slug}`} target="_blank" aria-label="Ver anuncio público"><ExternalLink className="h-3.5 w-3.5" /></Link></Button>
                     )}
-                    <Button
-                      size="sm" variant="ghost" className="text-destructive" aria-label="Eliminar anuncio"
-                      onClick={() => { if (confirm(`¿Eliminar "${l.title}"?`)) del.mutate(l.id, { onSuccess: () => toast.success("Anuncio eliminado") }); }}
-                    ><Trash2 className="h-3.5 w-3.5" /></Button>
+                    <ConfirmActionDialog
+                      trigger={<Button size="sm" variant="ghost" className="text-destructive" aria-label={`Eliminar anuncio ${l.title}`}><Trash2 className="h-3.5 w-3.5" /></Button>}
+                      title="Eliminar anuncio"
+                      description={`Se eliminará “${l.title}”. Esta acción no se puede deshacer.`}
+                      confirmLabel="Eliminar"
+                      onConfirm={() => del.mutate(l.id, { onSuccess: () => toast.success("Anuncio eliminado") })}
+                    />
                   </div>
                 </CardContent>
               </Card>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Phone, MessageCircle, AlertTriangle, FileText, Search,
@@ -320,6 +321,32 @@ export default function CentroAyuda() {
                       </AccordionItem>
                     ))}
                   </Accordion>
+
+                  <section aria-labelledby="program-help-title" className="mt-12">
+                    <h3 id="program-help-title" className="font-display text-xl font-bold">Ayuda sobre programas Descubre RD</h3>
+                    <div className="mt-4 space-y-4">
+                      <article className="rounded-xl border border-border bg-card p-5">
+                        <h4 className="font-semibold">¿Cómo se acreditan XP y monedas?</h4>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">Las reglas publican valores iniciales; el servidor valida la acción, sus límites y cualquier aprobación necesaria. Abrir una ficha no acredita puntos automáticamente.</p>
+                        <Link className="mt-2 inline-block text-sm text-primary hover:underline" to="/reglas-gamificacion">Consultar reglas de gamificación</Link>
+                      </article>
+                      <article className="rounded-xl border border-border bg-card p-5">
+                        <h4 className="font-semibold">¿Qué diferencia hay entre referir viajeros y ser afiliado?</h4>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">Los referidos de viajeros pueden acreditar XP o monedas conforme a sus reglas. Las comisiones de afiliados se calculan sólo sobre pedidos elegibles atribuidos y validados; una reserva turística no genera comisión por sí sola.</p>
+                        <Link className="mt-2 inline-block text-sm text-primary hover:underline" to="/afiliados">Ver condiciones del programa de afiliados</Link>
+                      </article>
+                      <article className="rounded-xl border border-border bg-card p-5">
+                        <h4 className="font-semibold">¿Publicar un video garantiza ingresos o licencia de uso?</h4>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">No. Las comisiones dependen de una conversión atribuida, las licencias requieren un acuerdo por separado y el fondo necesita una asignación aprobada. La postulación por sí sola no crea un pago.</p>
+                        <Link className="mt-2 inline-block text-sm text-primary hover:underline" to="/creadores">Consultar el programa de creadores</Link>
+                      </article>
+                      <article className="rounded-xl border border-border bg-card p-5">
+                        <h4 className="font-semibold">¿Puedo comprar una membresía VIP desde aquí?</h4>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">No por ahora. Los planes y precios mostrados son de configuración; el cobro y la activación de beneficios aún no están disponibles en la interfaz.</p>
+                        <Link className="mt-2 inline-block text-sm text-primary hover:underline" to="/membresias-pasaporte">Comparar planes Pasaporte RD</Link>
+                      </article>
+                    </div>
+                  </section>
                 </div>
               </TabsContent>
 

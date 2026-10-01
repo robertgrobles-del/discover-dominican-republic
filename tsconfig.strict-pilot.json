@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "strict": true
+  },
+  "include": [
+    "src/vite-env.d.ts",
+    "src/lib/httpClient.ts",
+    "src/lib/fastifyClient.ts",
+    "src/services/strapiClient.ts",
+    "src/hooks/useCart.tsx",
+    "src/hooks/useFastifyContent.ts",
+    "src/components/CartDrawer.tsx",
+    "src/modules/tienda/api.ts",
+    "src/modules/tienda/pages/TiendaHome.tsx",
+    "src/modules/tienda/pages/TiendaProducto.tsx",
+    "src/pages/Reservas.tsx"
+  ]
+}

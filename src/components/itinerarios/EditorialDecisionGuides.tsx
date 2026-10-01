@@ -59,6 +59,45 @@ export function EditorialDecisionGuides() {
             </p>
           </div>
         </div>
+
+        {/* Guías Especializadas C101-C105 */}
+        <div className="mt-12 pt-12 border-t border-border/60">
+          <div className="text-center max-w-2xl mx-auto mb-8">
+            <Badge className="bg-primary/10 text-primary border-primary/20 mb-2">
+              Planificación Inteligente C101-C105
+            </Badge>
+            <h3 className="text-2xl font-display font-bold text-foreground">
+              Guías Especializadas para tu Viaje
+            </h3>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="bg-card border border-border/80 rounded-xl p-5 space-y-3">
+              <span className="text-xs font-bold text-primary uppercase">C101 • Primera Vez en RD</span>
+              <h4 className="font-bold text-base text-foreground">Imprescindibles del Viajero Principiante</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Combina 3 días en Punta Cana/Bávaro, 2 días en Santo Domingo Colonial y 2 días en Samaná. La ruta perfecta balanceada entre relajación, historia y naturaleza.
+              </p>
+            </div>
+
+            <div className="bg-card border border-border/80 rounded-xl p-5 space-y-3">
+              <span className="text-xs font-bold text-primary uppercase">C103 • Viaje por Presupuesto</span>
+              <h4 className="font-bold text-base text-foreground">Mochilero vs. Lujo Resort</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                <strong>Bajo costo:</strong> Hostales en Las Terrenas y guaguas interurbanas (Caribe Tours). 
+                <strong>Gama Alta:</strong> Resorts boutique, helitransporte y catamarán privado.
+              </p>
+            </div>
+
+            <div className="bg-card border border-border/80 rounded-xl p-5 space-y-3">
+              <span className="text-xs font-bold text-primary uppercase">C104 • Guía Sin Auto</span>
+              <h4 className="font-bold text-base text-foreground">Movilidad Pública & Excursiones</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Muévete fácilmente entre Santo Domingo, Santiago y Puerto Plata usando Metro, Teleférico y autobuses express sin necesidad de rentar vehículo.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

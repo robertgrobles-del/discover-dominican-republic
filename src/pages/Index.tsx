@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Header } from "@/components/Header";
 import { HeroSlideshow } from "@/components/HeroSlideshow";
 import { PageTransition } from "@/components/PageTransition";
@@ -7,6 +7,9 @@ import { MobileAd, MobileStickyFooterAd, BetweenSectionsAd } from "@/components/
 import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
 import { Footer } from "@/components/Footer";
 import { DeferredSection } from "@/components/DeferredSection";
+import { TravelerIntentSection } from "@/components/home/TravelerIntentSection";
+import { HomeDiscoveryHub } from "@/components/home/HomeDiscoveryHub";
+import { GlobalSearch } from "@/components/GlobalSearch";
 
 // Critical above-the-fold components (loaded immediately for LCP and initial interaction)
 import { InterestSection } from "@/components/InterestSection";
@@ -31,6 +34,8 @@ function SectionFallback() {
 }
 
 const Index = () => {
+  const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
+
   return (
     <PageTransition>
       <SEOHead
@@ -40,12 +45,16 @@ const Index = () => {
         jsonLd={generateOrganizationSchema()}
       />
       <div className="min-h-screen bg-background" id="main-content">
-        <Header />
-        <HeroSlideshow />
+        <Header onOpenSearch={() => setIsGlobalSearchOpen(true)} />
+        <HeroSlideshow onOpenSearch={() => setIsGlobalSearchOpen(true)} />
+        <GlobalSearch isOpen={isGlobalSearchOpen} onClose={() => setIsGlobalSearchOpen(false)} />
+        <TravelerIntentSection />
 
         <SectionErrorBoundary sectionName="InterestSection">
           <InterestSection />
         </SectionErrorBoundary>
+
+        <HomeDiscoveryHub />
 
         <SectionErrorBoundary sectionName="GamificationTeaser">
           <GamificationTeaser />

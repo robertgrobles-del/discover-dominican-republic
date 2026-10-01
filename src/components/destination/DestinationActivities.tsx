@@ -20,7 +20,7 @@ interface DestinationActivitiesProps {
 
 export function DestinationActivities({ activities, destinoId }: DestinationActivitiesProps) {
   return (
-    <section className="py-16">
+    <section id="destination-activities" className="scroll-mt-32 py-16">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8">
           <div>

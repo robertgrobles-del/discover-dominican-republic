@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { type Pool } from "pg";
+import { type Pool, type PoolClient } from "pg";
 import { AppError } from "../../lib/errors.js";
 
 export interface MembershipPlan {
@@ -39,12 +39,32 @@ export interface EventTicket {
   metadata: Record<string, unknown>;
 }
 
+const isUniqueViolation = (e: unknown): boolean =>
+  typeof e === "object" && e !== null && (e as { code?: string }).code === "23505";
+
 export class MembershipsAndTicketingService {
   constructor(private pool: Pool) {}
 
+  /** Transacción con liberación garantizada: todo escrito en varias sentencias pasa por aquí. */
+  private async tx<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      const out = await fn(client);
+      await client.query("COMMIT");
+      return out;
+    } catch (e) {
+      await client.query("ROLLBACK").catch(() => undefined);
+      throw e;
+    } finally {
+      client.release();
+    }
+  }
+
   async listActivePlans(): Promise<MembershipPlan[]> {
+    // numeric → number vía el parser de tipos del pool (pool.ts); sin conversión ::float.
     const res = await this.pool.query(
-      `SELECT id, slug, name, description, price_annual::float, currency, points_multiplier::float, benefits, is_active
+      `SELECT id, slug, name, description, price_annual, currency, points_multiplier, benefits, is_active
        FROM membership_plans
        WHERE is_active = TRUE
        ORDER BY price_annual ASC`
@@ -70,33 +90,34 @@ export class MembershipsAndTicketingService {
     const membershipId = `mem_${randomUUID().replace(/-/g, "").slice(0, 16)}`;
     const now = new Date();
     const oneYearLater = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+    const payment = paymentRef || `sim_pay_${randomUUID().slice(0, 8)}`;
 
-    // Cancelar membresías activas previas si existen
-    await this.pool.query(
-      `UPDATE user_memberships SET status = 'CANCELLED', updated_at = NOW() WHERE user_id = $1 AND status = 'ACTIVE'`,
-      [userId]
-    );
-
-    const insertRes = await this.pool.query(
-      `INSERT INTO user_memberships (
-        id, user_id, plan_id, status, valid_from, valid_until, auto_renew, payment_reference, vip_badge_code
-      ) VALUES ($1, $2, $3, 'ACTIVE', $4, $5, TRUE, $6, 'PASAPORTE_VIP')
-      RETURNING *`,
-      [
-        membershipId,
-        userId,
-        plan.id,
-        now.toISOString(),
-        oneYearLater.toISOString(),
-        paymentRef || `sim_pay_${randomUUID().slice(0, 8)}`,
-      ]
-    );
-
-    // Bono de bienvenida en puntos (#18)
-    const pointsBonus = 500;
-    await this.creditLoyaltyPoints(userId, pointsBonus, "VIP_BONUS", membershipId);
-
-    return insertRes.rows[0];
+    // Dos suscripciones simultáneas compiten por el índice parcial único uq_user_memberships_active
+    // (migración 0053): la perdedora reintenta cancelando la del ganador — la última gana.
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await this.tx(async (c) => {
+          await c.query(
+            `UPDATE user_memberships SET status = 'CANCELLED', updated_at = NOW() WHERE user_id = $1 AND status = 'ACTIVE'`,
+            [userId]
+          );
+          const insertRes = await c.query(
+            `INSERT INTO user_memberships (
+              id, user_id, plan_id, status, valid_from, valid_until, auto_renew, payment_reference, vip_badge_code
+            ) VALUES ($1, $2, $3, 'ACTIVE', $4, $5, TRUE, $6, 'PASAPORTE_VIP')
+            RETURNING *`,
+            [membershipId, userId, plan.id, now.toISOString(), oneYearLater.toISOString(), payment]
+          );
+          // Bono de bienvenida (#18): una sola vez por usuario — reference_id fijo y índice único
+          // uq_loyalty_ledger_reference (0053) hacen que repetirlo sea un no-op idempotente.
+          await this.creditLoyaltyPoints(userId, 500, "VIP_BONUS", `vip_bonus:${userId}`, c);
+          return insertRes.rows[0];
+        });
+      } catch (e) {
+        if (attempt < 3 && isUniqueViolation(e)) continue;
+        throw e;
+      }
+    }
   }
 
   async getUserMembership(userId: string): Promise<{
@@ -105,7 +126,7 @@ export class MembershipsAndTicketingService {
     points_balance: number;
   }> {
     const memRes = await this.pool.query(
-      `SELECT m.*, p.name as plan_name, p.points_multiplier::float, p.benefits, p.slug as plan_slug
+      `SELECT m.*, p.name as plan_name, p.points_multiplier, p.benefits, p.slug as plan_slug
        FROM user_memberships m
        JOIN membership_plans p ON m.plan_id = p.id
        WHERE m.user_id = $1 AND m.status = 'ACTIVE' AND m.valid_until > NOW()
@@ -156,25 +177,46 @@ export class MembershipsAndTicketingService {
     userId: string,
     points: number,
     reason: string,
-    referenceId?: string
+    referenceId?: string,
+    client?: PoolClient
   ): Promise<number> {
-    const id = `pt_${randomUUID().replace(/-/g, "").slice(0, 16)}`;
-    
-    // Obtener balance previo
-    const curRes = await this.pool.query(
-      `SELECT COALESCE(SUM(points_delta), 0)::int as balance FROM loyalty_points_ledger WHERE user_id = $1`,
-      [userId]
-    );
-    const currentBalance = curRes.rows[0]?.balance || 0;
-    const newBalance = currentBalance + points;
+    const run = async (c: PoolClient): Promise<number> => {
+      // Serializa la lectura de SUM + INSERT por usuario: dos créditos concurrentes ya no
+      // calculan el mismo balance_after. El lock es de transacción, se libera al COMMIT/ROLLBACK.
+      await c.query(`SELECT pg_advisory_xact_lock(hashtext('loyalty:' || $1))`, [userId]);
 
-    await this.pool.query(
-      `INSERT INTO loyalty_points_ledger (id, user_id, points_delta, balance_after, reason, reference_id)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [id, userId, points, newBalance, reason, referenceId || null]
-    );
+      const curRes = await c.query(
+        `SELECT COALESCE(SUM(points_delta), 0)::int as balance FROM loyalty_points_ledger WHERE user_id = $1`,
+        [userId]
+      );
+      const currentBalance = curRes.rows[0]?.balance || 0;
+      const newBalance = currentBalance + points;
+      const id = `pt_${randomUUID().replace(/-/g, "").slice(0, 16)}`;
 
-    return newBalance;
+      if (referenceId) {
+        // Idempotencia por referencia (bono VIP, recompensa de ticket): repetir la misma
+        // referencia no duplica la fila — arbiter contra uq_loyalty_ledger_reference (0053).
+        const ins = await c.query(
+          `INSERT INTO loyalty_points_ledger (id, user_id, points_delta, balance_after, reason, reference_id)
+           VALUES ($1, $2, $3, $4, $5, $6)
+           ON CONFLICT (user_id, reason, reference_id) WHERE reference_id IS NOT NULL DO NOTHING
+           RETURNING balance_after`,
+          [id, userId, points, newBalance, reason, referenceId]
+        );
+        if (ins.rows.length === 0) return currentBalance;
+        return ins.rows[0].balance_after;
+      }
+
+      await c.query(
+        `INSERT INTO loyalty_points_ledger (id, user_id, points_delta, balance_after, reason, reference_id)
+         VALUES ($1, $2, $3, $4, $5, NULL)`,
+        [id, userId, points, newBalance, reason]
+      );
+      return newBalance;
+    };
+
+    if (client) return run(client);
+    return this.tx(run);
   }
 
   // --- Ticketing (#20) ---
@@ -191,57 +233,55 @@ export class MembershipsAndTicketingService {
     const price = params.price ?? 25.0;
     const curr = params.currency || "USD";
 
-    const insertRes = await this.pool.query(
-      `INSERT INTO live_event_tickets (
-        id, event_id, user_id, tier_name, price_paid, currency, qr_code_hash, status, metadata
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'ISSUED', $8)
-      RETURNING *`,
-      [
-        ticketId,
-        params.eventId,
-        params.userId,
-        tier,
-        price,
-        curr,
-        qrHash,
-        JSON.stringify({ purchase_channel: "web_app", tier }),
-      ]
-    );
+    return this.tx(async (c) => {
+      const insertRes = await c.query(
+        `INSERT INTO live_event_tickets (
+          id, event_id, user_id, tier_name, price_paid, currency, qr_code_hash, status, metadata
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'ISSUED', $8)
+        RETURNING *`,
+        [
+          ticketId,
+          params.eventId,
+          params.userId,
+          tier,
+          price,
+          curr,
+          qrHash,
+          JSON.stringify({ purchase_channel: "web_app", tier }),
+        ]
+      );
 
-    // Otorgar puntos de lealtad por compra de ticket
-    const earnedPoints = Math.round(price * 10);
-    await this.creditLoyaltyPoints(params.userId, earnedPoints, "PURCHASE_REWARD", ticketId);
+      // Otorgar puntos de lealtad por compra de ticket: mismo tx — nunca ticket sin puntos.
+      const earnedPoints = Math.round(price * 10);
+      await this.creditLoyaltyPoints(params.userId, earnedPoints, "PURCHASE_REWARD", ticketId, c);
 
-    return insertRes.rows[0];
+      return insertRes.rows[0];
+    });
   }
 
   async verifyAndCheckInTicket(qrCodeHash: string): Promise<EventTicket> {
-    const res = await this.pool.query(
+    // Gate atómico: solo el primer check-in ve status = 'ISSUED'; los concurrentes pierden el
+    // UPDATE y caen al SELECT para reportar el conflicto con el estado real.
+    const upd = await this.pool.query(
+      `UPDATE live_event_tickets
+       SET status = 'CHECKED_IN', checked_in_at = NOW(), updated_at = NOW()
+       WHERE qr_code_hash = $1 AND status = 'ISSUED'
+       RETURNING *`,
+      [qrCodeHash]
+    );
+    if (upd.rows[0]) return upd.rows[0];
+
+    const cur = await this.pool.query(
       `SELECT * FROM live_event_tickets WHERE qr_code_hash = $1 LIMIT 1`,
       [qrCodeHash]
     );
-
-    if (res.rows.length === 0) {
+    if (cur.rows.length === 0) {
       throw new AppError("NOT_FOUND", "Entrada no encontrada o código QR no válido.");
     }
-
-    const ticket = res.rows[0];
+    const ticket = cur.rows[0];
     if (ticket.status === "CHECKED_IN") {
       throw new AppError("CONFLICT", `La entrada ya fue utilizada en: ${ticket.checked_in_at}`);
     }
-
-    if (ticket.status !== "ISSUED") {
-      throw new AppError("VALIDATION_ERROR", `Estado de entrada no válido: ${ticket.status}`);
-    }
-
-    const updateRes = await this.pool.query(
-      `UPDATE live_event_tickets 
-       SET status = 'CHECKED_IN', checked_in_at = NOW(), updated_at = NOW()
-       WHERE id = $1
-       RETURNING *`,
-      [ticket.id]
-    );
-
-    return updateRes.rows[0];
+    throw new AppError("VALIDATION_ERROR", `Estado de entrada no válido: ${ticket.status}`);
   }
 }

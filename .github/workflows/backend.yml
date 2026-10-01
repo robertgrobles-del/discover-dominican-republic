@@ -1,5 +1,8 @@
 name: backend
 
+permissions:
+  contents: read
+
 on:
   push:
     paths: ["backend/**", ".github/workflows/backend.yml"]
@@ -34,25 +37,100 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
       - run: npm run typecheck
+      - name: Sin dependencias circulares entre módulos
+        run: npm run check:cycles
       - name: La referencia de la API está al día
         run: npm run docs:api -- --check
+      - name: El catálogo de capacidades publicado está al día
+        run: npx tsx scripts/gen-capability-doc.ts --check
       - run: npm test
       - run: npm run build
       - name: Vulnerabilidades en dependencias de producción
         run: npm run audit
+      - name: SBOM de dependencias de producción (CycloneDX)
+        run: npm sbom --sbom-format=cyclonedx --omit=dev > "$RUNNER_TEMP/sbom.cdx.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cdx
+          path: ${{ runner.temp }}/sbom.cdx.json
 
   docker:
     runs-on: ubuntu-latest
     needs: test
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: prueba-ci-descubre
+          POSTGRES_DB: descubre_rd
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U app" --health-interval 5s --health-timeout 3s --health-retries 10
     steps:
       - uses: actions/checkout@v4
-      - name: La imagen de producción compila y arranca sin secretos de desarrollo
+      - uses: docker/setup-buildx-action@v3
+      - name: Imagen OCI con SBOM y atestación de procedencia
+        working-directory: backend
         run: |
-          docker build -t descubre-rd-api backend
-          docker run --rm --entrypoint node descubre-rd-api -e "console.log('imagen ok', process.version)"
+          docker buildx build \
+            --tag descubre-rd-api:ci \
+            --sbom=true --provenance=mode=min \
+            --output type=oci,dest="$RUNNER_TEMP/image-oci.tar" \
+            .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: image-oci
+          path: ${{ runner.temp }}/image-oci.tar
+      - name: La imagen arranca endurecida (sin privilegios y FS de solo lectura) y responde /health y /health/ready
+        run: |
+          set -euo pipefail
+          docker load -i "$RUNNER_TEMP/image-oci.tar"
+          # Claves y secretos efímeros sólo para esta prueba de arranque (en producción vienen del gestor de secretos).
+          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out "$RUNNER_TEMP/jwt.pem"
+          openssl rsa -in "$RUNNER_TEMP/jwt.pem" -pubout -out "$RUNNER_TEMP/jwt.pub"
+          docker run -d --name api-smoke \
+            --read-only --tmpfs /tmp \
+            --cap-drop=ALL --security-opt no-new-privileges \
+            --add-host=host.docker.internal:host-gateway \
+            --env NODE_ENV=production \
+            --env DATABASE_URL="postgres://app:prueba-ci-descubre@host.docker.internal:5432/descubre_rd" \
+            --env CORS_ORIGINS="https://portal.example.com" \
+            --env JWT_PRIVATE_KEY="$(cat "$RUNNER_TEMP/jwt.pem")" \
+            --env JWT_PUBLIC_KEY="$(cat "$RUNNER_TEMP/jwt.pub")" \
+            --env APP_SECRET="$(openssl rand -base64 48)" \
+            --env TOTP_ENCRYPTION_KEY="$(head -c 32 /dev/urandom | base64)" \
+            --env MAIL_TRANSPORT=smtp \
+            --env MAIL_WORKER_ENABLED=false \
+            --env JOBS_ENABLED=false \
+            --volume media-smoke:/app/storage/media \
+            --publish 3000:3000 \
+            descubre-rd-api:ci
+          for _ in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/health > /dev/null && curl -fsS http://127.0.0.1:3000/health/ready > /dev/null; then
+              echo "La imagen arranca endurecida y responde /health y /health/ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::La API no respondió en 60 s"; docker logs api-smoke; exit 1
+      - name: Registros del contenedor (si algo falló)
+        if: failure()
+        run: docker logs api-smoke || true
+      - name: Escaneo de vulnerabilidades del contenedor (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          input: ${{ runner.temp }}/image-oci.tar
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: 1
 
   secrets:
     runs-on: ubuntu-latest
+    # gitleaks comenta en el PR cuando detecta filtraciones: necesita escribir en pull-requests.
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }

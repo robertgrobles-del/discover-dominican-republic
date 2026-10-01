@@ -20,6 +20,7 @@ import { DetailPageSidebarAd, BillboardAd, MobileStickyFooterAd } from "@/compon
 import { CommentSection } from "@/components/comments/CommentSection";
 import { toast } from "sonner";
 import { getSafeCoverImage } from "@/lib/imageCovers";
+import { ParticipationInvite } from "@/components/gamificacion/ParticipationInvite";
 
 import { DetailHeroHeader } from "@/components/detail/DetailHeroHeader";
 import { DetailAmenitiesGrid } from "@/components/detail/DetailAmenitiesGrid";
@@ -230,6 +231,7 @@ export default function PlayaDetalle() {
 
         {/* Main Content Layout */}
         <main className="container mx-auto px-4 max-w-7xl py-10">
+          <div className="mb-10"><ParticipationInvite placeName={beach.name} /></div>
           <div className="grid lg:grid-cols-12 gap-8">
             {/* Left Column: 8 cols */}
             <div className="lg:col-span-8 space-y-8">

@@ -190,3 +190,99 @@ describe("analítica", () => {
     expect((await pool.query("SELECT events FROM analytics_daily WHERE page = $1", [old])).rows[0].events).toBe(3);
   });
 });
+
+describe("adopción por perfil", () => {
+  let app: FastifyInstance;
+  let pool: pg.Pool;
+  let admin: string, corriente: string;
+  let seq = 0;
+  const call = (method: "GET" | "POST", url: string, token?: string) =>
+    app.inject({ method, url: `/api/v1${url}`, headers: token ? { authorization: `Bearer ${token}` } : {} });
+  const adoption = async (query = "") => json(await call("GET", `/admin/analytics/panel-adoption${query}`, admin)).data;
+  const account = async (role?: string) => {
+    const email = `adop${Date.now().toString(36)}${seq++}@test.local`;
+    const reg = json(await app.inject({ method: "POST", url: "/api/v1/auth/register", payload: { email, password: PW, accept_terms: true } }));
+    if (!role) return reg.data.tokens.access_token as string;
+    await pool.query("INSERT INTO user_roles (user_id, role) VALUES ($1, $2::app_role)", [reg.data.user.id, role]);
+    return json(await app.inject({ method: "POST", url: "/api/v1/auth/login", payload: { email, password: PW } })).data.tokens.access_token as string;
+  };
+  // Eventos de adopción tal como los manda el frontend: página sintética `panel/<tipo>` y `props` de lista blanca.
+  const seed = (panel: string, step: string, props: Record<string, unknown> = {}, when?: Date) =>
+    pool.query(
+      "INSERT INTO analytics_events (event_type, page, session_id, metadata, created_at) VALUES ($1, $2, $3, $4::jsonb, coalesce($5::timestamptz, now()))",
+      [step === "task_error" ? "error" : "click", `panel/${panel}`, `ses-adopcion-${seq++}`, JSON.stringify({ panel, step, ...props }), when ?? null],
+    );
+
+  beforeAll(async () => {
+    app = await makeApp();
+    pool = new pg.Pool({ connectionString: process.env.TEST_DATABASE_URL });
+    await pool.query("DELETE FROM analytics_events WHERE page LIKE 'panel/%'");
+    admin = await account("admin");
+    corriente = await account();
+    // Empresa: 3 aperturas, onboarding 2→1, 4 tareas empezadas (2 terminadas, 1 abandonada) y 1 error.
+    for (let i = 0; i < 3; i++) await seed("empresa", "panel_open");
+    for (let i = 0; i < 2; i++) await seed("empresa", "onboarding_started");
+    await seed("empresa", "onboarding_completed");
+    for (let i = 0; i < 2; i++) await seed("empresa", "task_started", { task: "invitar_equipo" });
+    await seed("empresa", "task_completed", { task: "invitar_equipo", duration_ms: 1000 });
+    await seed("empresa", "task_abandoned", { task: "invitar_equipo" });
+    for (let i = 0; i < 2; i++) await seed("empresa", "task_started", { task: "atender_reserva" });
+    await seed("empresa", "task_completed", { task: "atender_reserva", duration_ms: 3000 });
+    await seed("empresa", "task_completed", { task: "atender_reserva" });
+    await seed("empresa", "task_error", { task: "atender_reserva", result: "timeout" });
+    // Creador: onboarding completo y una tarea abandonada.
+    await seed("creador", "panel_open");
+    await seed("creador", "onboarding_started");
+    await seed("creador", "onboarding_completed");
+    await seed("creador", "task_started", { task: "publicar_contenido" });
+    await seed("creador", "task_abandoned", { task: "publicar_contenido" });
+    // Fuera de la ventana por defecto (30 días), dentro de una de 90.
+    await seed("empresa", "panel_open", {}, new Date(Date.now() - 60 * 86_400_000));
+  });
+  afterAll(async () => { await pool.end(); await app.close(); });
+
+  it("agrega aperturas, onboarding, tareas, abandono y errores por panel y por paso", async () => {
+    const d = await adoption();
+    expect(d.range).toEqual({ days: 30, from: day(-29), to: day(0) });
+    expect(d.panel).toBeNull();
+    expect(d.totals).toMatchObject({ panel_open: 4, onboarding_started: 3, onboarding_completed: 2, onboarding_rate: 66.7, tasks_started: 5, tasks_completed: 3, tasks_abandoned: 2, completion_rate: 60, task_error: 1, avg_duration_ms: 2000, events: 20 });
+    expect(d.panels.map((p: { panel: string }) => p.panel)).toEqual(["empresa", "creador"]);
+    const empresa = d.panels.find((p: { panel: string }) => p.panel === "empresa");
+    expect(empresa).toMatchObject({ panel_open: 3, onboarding_started: 2, onboarding_completed: 1, onboarding_rate: 50, tasks_started: 4, tasks_completed: 3, tasks_abandoned: 1, completion_rate: 75, task_error: 1, avg_duration_ms: 2000, events: 15 });
+    expect(empresa.tasks.map((t: { task: string }) => t.task)).toEqual(["atender_reserva", "invitar_equipo"]);
+    expect(empresa.tasks[0]).toMatchObject({ task: "atender_reserva", started: 2, completed: 2, abandoned: 0, error: 1, completion_rate: 100, avg_duration_ms: 3000, events: 5 });
+    expect(empresa.tasks[1]).toMatchObject({ task: "invitar_equipo", started: 2, completed: 1, abandoned: 1, error: 0, completion_rate: 50, avg_duration_ms: 1000, events: 4 });
+    const creador = d.panels.find((p: { panel: string }) => p.panel === "creador");
+    expect(creador).toMatchObject({ panel_open: 1, onboarding_started: 1, onboarding_completed: 1, onboarding_rate: 100, tasks_started: 1, tasks_completed: 0, tasks_abandoned: 1, completion_rate: 0, task_error: 0, avg_duration_ms: 0, events: 5 });
+  });
+
+  it("filtra por panel y por ventana de días, y valida los parámetros", async () => {
+    const solo = await adoption("?panel=creador");
+    expect(solo.panel).toBe("creador");
+    expect(solo.panels.map((p: { panel: string }) => p.panel)).toEqual(["creador"]);
+    expect(solo.totals).toMatchObject({ panel_open: 1, tasks_started: 1, tasks_completed: 0, completion_rate: 0, events: 5 });
+    const amplio = await adoption("?days=90&panel=empresa");
+    expect(amplio.range).toEqual({ days: 90, from: day(-89), to: day(0) });
+    expect(amplio.totals.panel_open).toBe(4); // incluye la apertura de hace 60 días
+    expect((await call("GET", "/admin/analytics/panel-adoption?days=0", admin)).statusCode).toBe(400);
+    expect((await call("GET", "/admin/analytics/panel-adoption?days=366", admin)).statusCode).toBe(400);
+    expect((await call("GET", "/admin/analytics/panel-adoption?panel=desconocido", admin)).statusCode).toBe(400);
+  });
+
+  it("sólo el admin ve el agregado", async () => {
+    expect((await call("GET", "/admin/analytics/panel-adoption")).statusCode).toBe(401);
+    expect((await call("GET", "/admin/analytics/panel-adoption", corriente)).statusCode).toBe(403);
+    expect((await call("GET", "/admin/analytics/panel-adoption", admin)).statusCode).toBe(200);
+  });
+
+  it("la respuesta es agregada y no expone ninguna clave potencialmente personal", async () => {
+    const d = await adoption();
+    const prohibida = /email|mail|user|nombre|name|session|phone|tel|token|address|direccion|ip_|metadata|props|uuid/i;
+    const walk = (v: unknown) => {
+      if (Array.isArray(v)) { for (const x of v) walk(x); return; }
+      if (v && typeof v === "object") for (const [k, val] of Object.entries(v)) { expect(prohibida.test(k), `clave sospechosa: ${k}`).toBe(false); walk(val); }
+    };
+    walk(d);
+    expect(JSON.stringify(d)).not.toMatch(/ses-adopcion|@|test\.local/);
+  });
+});

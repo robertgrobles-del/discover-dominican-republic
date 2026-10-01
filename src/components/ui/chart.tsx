@@ -37,7 +37,8 @@ const ChartContainer = React.forwardRef<
   }
 >(({ id, className, children, config, ...props }, ref) => {
   const uniqueId = React.useId();
-  const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
+  const requestedId = id && /^[\w-]+$/.test(id) ? id : uniqueId.replace(/:/g, "");
+  const chartId = `chart-${requestedId}`;
 
   return (
     <ChartContext.Provider value={{ config }}>
@@ -59,7 +60,11 @@ const ChartContainer = React.forwardRef<
 ChartContainer.displayName = "Chart";
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  const colorConfig = Object.entries(config).filter(([_, config]) => config.theme || config.color);
+  const safeId = /^[\w-]+$/.test(id) ? id : "invalid-chart";
+  const colorConfig = Object.entries(config).filter(([key, item]) =>
+    /^[\w-]+$/.test(key) &&
+    [item.color, ...Object.values(item.theme || {})].every((color) => !color || isSafeCssColor(color)),
+  );
 
   if (!colorConfig.length) {
     return null;
@@ -71,7 +76,7 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
         __html: Object.entries(THEMES)
           .map(
             ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
+${prefix} [data-chart=${safeId}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
     const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
@@ -86,6 +91,10 @@ ${colorConfig
     />
   );
 };
+
+function isSafeCssColor(value: string): boolean {
+  return /^(?:#[\da-f]{3,8}|[a-z]{1,20}|var\(--[a-z\d-]+\)|(?:rgb|hsl)a?\(\s*(?:var\(--[a-z\d-]+\)|[\d.%\s,/-]+)\s*\))$/i.test(value.trim());
+}
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 

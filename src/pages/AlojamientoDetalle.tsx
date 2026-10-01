@@ -20,6 +20,7 @@ import { HotelFaqSection } from "@/components/hotel/HotelFaqSection";
 import { DetailFloatingBar } from "@/components/detail/DetailFloatingBar";
 import { CommentSection } from "@/components/comments/CommentSection";
 import { ClaimBusinessModal } from "@/components/business/ClaimBusinessModal";
+import { ParticipationInvite } from "@/components/gamificacion/ParticipationInvite";
 import { useHotelData } from "@/hooks/useHotelData";
 import { toast } from "sonner";
 import {
@@ -183,6 +184,7 @@ export default function AlojamientoDetalle() {
 
       {/* Main Content Layout */}
       <main className="container mx-auto px-4 lg:px-8 pb-20">
+        <div className="mb-10"><ParticipationInvite placeName={hotelName} /></div>
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
           {/* Left Column: Details, Rooms, Pools, Food, Nightlife, Spa, FAQ (8 cols) */}
           <div className="lg:col-span-8 space-y-12">

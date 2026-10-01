@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useMemo } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { BadgeCheck, Search } from "lucide-react";
 import { Header } from "@/components/Header";
@@ -15,10 +15,20 @@ import { CATEGORY_META } from "../constants";
 import type { ListingCategory } from "../types";
 
 export default function OperadoresDirectorio() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data: listings = [], isLoading } = useQuery({ queryKey: ["op", "public-listings"], queryFn: fetchPublishedListings });
   const { data: orgs = [] } = useQuery({ queryKey: ["op", "orgs"], queryFn: fetchOrgs });
-  const [cat, setCat] = useState<ListingCategory | "all">("all");
-  const [q, setQ] = useState("");
+  const rawCat = searchParams.get("categoria") ?? "all";
+  const cat: ListingCategory | "all" = rawCat === "all" || rawCat in CATEGORY_META ? rawCat as ListingCategory | "all" : "all";
+  const q = searchParams.get("q") ?? "";
+  const updateFilters = (updates: { categoria?: string; q?: string }) => {
+    const next = new URLSearchParams(searchParams);
+    for (const [key, value] of Object.entries(updates)) {
+      if (!value || (key === "categoria" && value === "all")) next.delete(key);
+      else next.set(key, value);
+    }
+    setSearchParams(next, { replace: true });
+  };
   const orgById = useMemo(() => new Map(orgs.map((o) => [o.id, o])), [orgs]);
   const verified = orgs.filter((o) => o.verification === "verified" && o.website_enabled);
 
@@ -46,10 +56,10 @@ export default function OperadoresDirectorio() {
           )}
 
           <div className="flex flex-wrap items-center gap-2 mb-6">
-            <div className="relative w-full sm:w-72"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input className="pl-9" placeholder="Buscar servicio o destino" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar" /></div>
-            <Button size="sm" variant={cat === "all" ? "default" : "outline"} className="rounded-full" onClick={() => setCat("all")}>Todos</Button>
+            <div className="relative w-full sm:w-72"><Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input className="pl-9" placeholder="Buscar servicio o destino" value={q} onChange={(e) => updateFilters({ q: e.target.value })} aria-label="Buscar" /></div>
+            <Button size="sm" variant={cat === "all" ? "default" : "outline"} className="rounded-full" onClick={() => updateFilters({ categoria: "all" })}>Todos</Button>
             {(Object.keys(CATEGORY_META) as ListingCategory[]).map((c) => (
-              <Button key={c} size="sm" variant={cat === c ? "default" : "outline"} className="rounded-full gap-1" onClick={() => setCat(c)}>{CATEGORY_META[c].label}</Button>
+              <Button key={c} size="sm" variant={cat === c ? "default" : "outline"} className="rounded-full gap-1" onClick={() => updateFilters({ categoria: c })}>{CATEGORY_META[c].label}</Button>
             ))}
           </div>
 

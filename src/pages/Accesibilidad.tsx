@@ -1,307 +1,211 @@
-import { Header } from "@/components/Header";
+import { Accessibility, ArrowDown, Bus, Check, Ear, Eye, Footprints, HandHelping, MapPin, Phone, ShieldCheck, Signpost, Volume2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Footer } from "@/components/Footer";
+import { Header } from "@/components/Header";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Accessibility, Search, ChevronRight, Star, MapPin, Play, Bus, Phone, Eye, Volume2, Type, CheckCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
-import { FavoriteButton } from "@/components/FavoriteButton";
+import { Button } from "@/components/ui/button";
 
-import puntaCana from "@/assets/punta-cana.jpg";
-import laRomana from "@/assets/la-romana.jpg";
-import santoDomingo from "@/assets/santo-domingo.jpg";
-
-const filtros = [
-  { id: "todos", label: "Todos", icon: "📍" },
-  { id: "hoteles", label: "Hoteles", icon: "🏨" },
-  { id: "playas", label: "Playas", icon: "🏖️" },
-  { id: "transporte", label: "Transporte", icon: "🚌" },
-  { id: "cultura", label: "Cultura", icon: "🏛️" },
-];
-
-const herramientasAccesibilidad = [
-  { id: "texto", label: "Tamaño Texto", desc: "Ajustar lectura", icon: Type },
-  { id: "contraste", label: "Alto Contraste", desc: "Monocromático", icon: Eye },
-  { id: "voz", label: "Lectura de Voz", desc: "Escuchar sitio", icon: Volume2 },
-];
-
-const lugaresDestacados = [
+const travelStages = [
   {
-    id: "hotel-punta-cana",
-    nombre: "Hotel Punta Cana Accessible",
-    ubicacion: "Bávaro, Punta Cana",
-    rating: 4.9,
-    imagen: puntaCana,
-    caracteristicas: ["Rampas", "Grúa Piscina", "Puertas Anchas"],
-    cta: "Ver Detalles",
+    id: "antes-de-reservar",
+    step: "01",
+    title: "Antes de reservar",
+    intro: "Confirma las condiciones concretas que necesitas con cada proveedor. “Accesible” puede significar cosas distintas en cada lugar.",
+    questions: [
+      "¿La ruta desde la entrada hasta mi habitación o actividad no tiene escalones?",
+      "¿Hay ascensor operativo y cuál es el ancho útil de las puertas?",
+      "¿El baño tiene ducha a nivel, barras de apoyo y espacio para maniobrar?",
+      "¿Pueden confirmar estas condiciones por escrito y compartir fotos actuales?",
+    ],
   },
   {
-    id: "playa-bayahibe",
-    nombre: "Playa Bayahíbe Inclusiva",
-    ubicacion: "Bayahíbe, La Romana",
-    rating: 4.7,
-    imagen: laRomana,
-    caracteristicas: ["Sillas Anfibias", "Pasarelas", "Baños Adaptados"],
-    cta: "Ver Guía de Playa",
+    id: "como-llegar",
+    step: "02",
+    title: "Cómo llegar y moverte",
+    intro: "Planifica los traslados y los recorridos a pie, incluidos el pavimento, las distancias, el calor y los lugares donde descansar.",
+    questions: [
+      "¿El vehículo tiene el tipo de acceso y espacio que necesito?",
+      "¿Hay escalones, adoquines, pendientes o tramos sin acera en la ruta?",
+      "¿Dónde puedo solicitar asistencia para embarque o conexiones?",
+      "¿Qué alternativa tengo si el ascensor o el transporte previsto no funciona?",
+    ],
   },
   {
-    id: "museo-casas-reales",
-    nombre: "Museo de las Casas Reales",
-    ubicacion: "Zona Colonial, Santo Domingo",
-    rating: 4.8,
-    imagen: santoDomingo,
-    caracteristicas: ["Ascensor", "Audio Guía", "Carteles Braille"],
-    cta: "Planificar Visita",
+    id: "alojamiento-y-actividades",
+    step: "03",
+    title: "Alojamiento y actividades",
+    intro: "Pide detalles de la experiencia completa, no solo de la entrada: circulación interior, descansos, baños, evacuación y apoyos disponibles.",
+    questions: [
+      "¿La habitación accesible queda cerca de una salida y de los servicios que usaré?",
+      "¿La actividad tiene rutas alternativas o una duración adaptable?",
+      "¿El personal conoce los apoyos que necesito y puede confirmarlos antes de mi llegada?",
+      "¿Hay un plan de evacuación que contemple mis necesidades?",
+    ],
   },
 ];
 
-const transporteAdaptado = [
-  { id: "taxis", titulo: "Taxis Adaptados", desc: "Servicio 24/7 en Santo Domingo y Punta Cana", cta: "Ver lista" },
-  { id: "metro", titulo: "Metro y OMSA", desc: "Mapas de estaciones con ascensores", cta: "Ver mapas" },
+const accessNeeds = [
+  {
+    title: "Movilidad",
+    icon: Footprints,
+    description: "Comprueba escalones, pendientes, superficies, distancias, asientos, baños y espacio de giro en cada tramo.",
+  },
+  {
+    title: "Visión",
+    icon: Eye,
+    description: "Pregunta por iluminación, contraste, señalización táctil, orientación verbal y formatos digitales compatibles con lector de pantalla.",
+  },
+  {
+    title: "Audición y comunicación",
+    icon: Ear,
+    description: "Confirma opciones de comunicación escrita, subtítulos, interpretación y avisos visuales para cambios o emergencias.",
+  },
+  {
+    title: "Necesidades sensoriales o cognitivas",
+    icon: Volume2,
+    description: "Consulta horarios tranquilos, ruido, aglomeraciones, pausas, instrucciones anticipadas y espacios de descanso.",
+  },
 ];
 
 export default function Accesibilidad() {
-  const [filtroActivo, setFiltroActivo] = useState("todos");
-  const [search, setSearch] = useState("");
-
   return (
     <PageTransition>
       <SEOHead
-        title="Turismo Accesible en República Dominicana"
-        description="Encuentra hoteles, playas y museos con rampas, sillas anfibias y otras facilidades certificadas, además de transporte adaptado para viajar con total accesibilidad."
+        title="Guía de viaje accesible en República Dominicana"
+        description="Prepara un viaje accesible con preguntas prácticas sobre transporte, alojamiento y actividades. Confirma cada servicio directamente antes de reservar."
+        keywords="guía viaje accesible República Dominicana, turismo inclusivo, movilidad, accesibilidad"
       />
-      <div className="min-h-screen flex flex-col bg-background">
-        <Header />
+      <div className="min-h-screen bg-background text-foreground">
+        <Header variant="white" />
 
-        {/* Hero */}
-        <section className="relative h-[60vh] min-h-[500px] flex items-center justify-center">
-          <div className="absolute inset-0">
-            <img
-              src={laRomana}
-              alt="Turismo Accesible RD"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20" />
-          </div>
-          
-          <div className="relative z-10 text-center px-4 max-w-4xl">
-            <Badge className="mb-4 bg-green-500/20 text-green-400 border-green-500/30">
-              <Accessibility className="h-3 w-3 mr-1" /> TURISMO INCLUSIVO CERTIFICADO
-            </Badge>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Turismo sin Barreras en{" "}
-              <span className="text-gradient">República Dominicana</span>
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Descubre playas con pasarelas, hoteles adaptados y experiencias culturales diseñadas para todos. Tu aventura comienza aquí.
-            </p>
-            <div className="flex gap-4 justify-center flex-wrap">
-              <Button size="lg" className="gap-2">
-                <Accessibility className="h-4 w-4" /> Explorar Destinos
-              </Button>
-              <Button size="lg" variant="outline" className="gap-2">
-                <Play className="h-4 w-4" /> Ver Video Guía
-              </Button>
-            </div>
-          </div>
-        </section>
-
-        {/* Herramientas de Accesibilidad */}
-        <section className="py-6 border-b border-border bg-card/50">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-center gap-8 flex-wrap">
-              {herramientasAccesibilidad.map((tool) => (
-                <button
-                  key={tool.id}
-                  className="flex items-center gap-3 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <tool.icon className="h-5 w-5" />
-                  <div className="text-left">
-                    <p className="font-medium text-sm text-foreground">{tool.label}</p>
-                    <p className="text-xs">{tool.desc}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Buscador */}
-        <section className="py-8">
-          <div className="container mx-auto px-4">
-            <div className="max-w-2xl mx-auto">
-              <div className="relative mb-4">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Buscar hoteles, playas o museos accesibles..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-12 h-12 bg-card border-border"
-                />
-                <Button className="absolute right-2 top-1/2 -translate-y-1/2" size="sm">
-                  Buscar
+        <main id="main-content">
+          <section className="border-b border-border bg-card">
+            <div className="container mx-auto grid gap-10 px-4 py-16 md:grid-cols-[1.3fr_0.7fr] md:items-end md:px-8 md:py-24">
+              <div className="max-w-3xl">
+                <Badge variant="outline" className="mb-6 gap-2 border-primary/40 px-3 py-1 text-primary">
+                  <Accessibility className="h-4 w-4" aria-hidden="true" />
+                  Guía práctica para planificar
+                </Badge>
+                <h1 className="font-display text-4xl font-bold leading-tight tracking-tight md:text-6xl">
+                  Viaja con más información. Decide a tu ritmo.
+                </h1>
+                <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+                  Una guía para conversar con alojamientos, transportistas y espacios antes de reservar. Elige qué confirmar según tus necesidades y prepara alternativas para cada etapa.
+                </p>
+                <Button asChild size="lg" className="mt-8 gap-2">
+                  <a href="#antes-de-reservar">
+                    Empezar a planificar <ArrowDown className="h-4 w-4" aria-hidden="true" />
+                  </a>
                 </Button>
               </div>
 
-              <div className="flex items-center justify-center gap-2 flex-wrap">
-                {filtros.map((filtro) => (
-                  <button
-                    key={filtro.id}
-                    onClick={() => setFiltroActivo(filtro.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-colors ${
-                      filtroActivo === filtro.id
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border hover:border-primary/50"
-                    }`}
-                  >
-                    <span>{filtro.icon}</span>
-                    <span className="font-medium text-sm">{filtro.label}</span>
-                  </button>
+              <aside className="relative overflow-hidden rounded-2xl border border-border bg-background p-6 md:p-8" aria-labelledby="confirmar-heading">
+                <div className="absolute inset-y-0 left-0 w-1 bg-primary" aria-hidden="true" />
+                <div className="flex items-start gap-4">
+                  <ShieldCheck className="mt-1 h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
+                  <div>
+                    <h2 id="confirmar-heading" className="font-display text-xl font-bold">Confirma antes de viajar</h2>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      Las condiciones de acceso cambian entre proveedores y con el tiempo. Esta guía no certifica establecimientos ni sustituye la confirmación directa del servicio.
+                    </p>
+                  </div>
+                </div>
+                <a className="mt-6 inline-flex items-center gap-2 font-medium text-primary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" href="#preguntas-por-necesidad">
+                  Ir a preguntas por necesidad <ArrowDown className="h-4 w-4" aria-hidden="true" />
+                </a>
+              </aside>
+            </div>
+          </section>
+
+          <section className="container mx-auto grid gap-12 px-4 py-16 md:grid-cols-[240px_1fr] md:px-8 md:py-20" aria-label="Guía para preparar el viaje">
+            <nav aria-label="En esta guía" className="h-fit border-l-2 border-border pl-4 md:sticky md:top-24">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">En esta guía</p>
+              <ul className="space-y-3 text-sm">
+                {travelStages.map((stage) => (
+                  <li key={stage.id}>
+                    <a className="text-foreground underline-offset-4 hover:text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" href={`#${stage.id}`}>
+                      {stage.title}
+                    </a>
+                  </li>
+                ))}
+                <li><a className="text-foreground underline-offset-4 hover:text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" href="#preguntas-por-necesidad">Preguntas por necesidad</a></li>
+              </ul>
+            </nav>
+
+            <div className="min-w-0">
+              <div className="mb-10 max-w-2xl">
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">Un recorrido de preparación</p>
+                <h2 className="mt-3 font-display text-3xl font-bold md:text-4xl">Tres conversaciones que evitan sorpresas</h2>
+                <p className="mt-4 leading-relaxed text-muted-foreground">Usa estas preguntas como lista de comprobación. Describe lo que te funciona y pide medidas, fotos recientes o confirmación escrita cuando te ayude a decidir.</p>
+              </div>
+
+              <div className="space-y-5">
+                {travelStages.map((stage) => (
+                  <details key={stage.id} id={stage.id} className="group scroll-mt-24 rounded-2xl border border-border bg-card open:border-primary/40">
+                    <summary className="flex cursor-pointer list-none items-start gap-5 p-5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:p-7 [&::-webkit-details-marker]:hidden">
+                      <span className="font-mono text-sm font-semibold text-primary" aria-label={`Etapa ${Number(stage.step)}`}>{stage.step}</span>
+                      <span className="flex-1">
+                        <span className="block font-display text-xl font-bold">{stage.title}</span>
+                        <span className="mt-2 block max-w-2xl text-sm leading-relaxed text-muted-foreground">{stage.intro}</span>
+                      </span>
+                      <ArrowDown className="mt-1 h-5 w-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden="true" />
+                    </summary>
+                    <ul className="space-y-3 border-t border-border px-5 py-5 md:ml-12 md:px-7 md:py-6">
+                      {stage.questions.map((question) => (
+                        <li key={question} className="flex items-start gap-3 text-sm leading-relaxed">
+                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                          <span>{question}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
                 ))}
               </div>
-            </div>
-          </div>
-        </section>
 
-        {/* Lugares Destacados */}
-        <section className="py-12">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="font-display text-2xl font-bold text-foreground">Destinos Destacados</h2>
-                <p className="text-sm text-muted-foreground">Lugares verificados con las mejores facilidades de accesibilidad</p>
-              </div>
-              <Button variant="link" className="text-primary gap-1">
-                Ver todos <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-6">
-              {lugaresDestacados.map((lugar, index) => (
-                <motion.div
-                  key={lugar.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="bg-card rounded-2xl border border-border overflow-hidden group"
-                >
-                  <div className="relative aspect-[4/3]">
-                    <img
-                      src={lugar.imagen}
-                      alt={lugar.nombre}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <Badge className="absolute top-3 left-3 bg-card/90 text-foreground gap-1">
-                      <Star className="h-3 w-3 text-primary fill-primary" /> {lugar.rating}
-                    </Badge>
-                    <FavoriteButton
-                      id={lugar.id}
-                      type="destino"
-                      name={lugar.nombre}
-                      image={lugar.imagen}
-                      location={lugar.ubicacion}
-                      className="absolute top-3 right-3"
-                    />
-                  </div>
-                  <div className="p-5">
-                    <h3 className="font-semibold text-foreground mb-1">{lugar.nombre}</h3>
-                    <p className="text-sm text-muted-foreground flex items-center gap-1 mb-4">
-                      <MapPin className="h-3 w-3" /> {lugar.ubicacion}
-                    </p>
-                    <div className="flex gap-2 flex-wrap mb-4">
-                      {lugar.caracteristicas.map((carac) => (
-                        <Badge key={carac} variant="secondary" className="text-xs gap-1">
-                          <CheckCircle className="h-3 w-3 text-green-400" /> {carac}
-                        </Badge>
-                      ))}
-                    </div>
-                    <Button variant="outline" className="w-full">{lugar.cta}</Button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Transporte Adaptado */}
-        <section className="py-16 bg-card/30">
-          <div className="container mx-auto px-4">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <div className="flex items-center gap-2 text-primary mb-4">
-                  <Bus className="h-5 w-5" />
-                  <span className="text-sm font-semibold uppercase tracking-wider">Transporte Adaptado</span>
-                </div>
-                <h2 className="font-display text-3xl font-bold text-foreground mb-4">
-                  Muévete con libertad y seguridad por todo el país
-                </h2>
-                <p className="text-muted-foreground mb-6">
-                  Conectamos contigo los mejores servicios de transporte accesibles. Desde taxis con rampas hidráulicas hasta rutas de autobuses verificadas.
-                </p>
-
-                <div className="space-y-4">
-                  {transporteAdaptado.map((item) => (
-                    <div key={item.id} className="bg-card rounded-xl border border-border p-4 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Bus className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">{item.titulo}</p>
-                          <p className="text-sm text-muted-foreground">{item.desc}</p>
-                        </div>
-                      </div>
-                      <Button variant="link" className="text-primary">{item.cta}</Button>
-                    </div>
+              <section id="preguntas-por-necesidad" className="scroll-mt-24 pt-16" aria-labelledby="needs-heading">
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">Adapta la conversación</p>
+                <h2 id="needs-heading" className="mt-3 font-display text-3xl font-bold md:text-4xl">Preguntas según lo que necesitas</h2>
+                <p className="mt-4 max-w-2xl leading-relaxed text-muted-foreground">Las necesidades pueden combinarse. No tienes que encajar en una sola categoría para pedir información clara.</p>
+                <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+                  {accessNeeds.map(({ title, icon: Icon, description }) => (
+                    <li key={title} className="rounded-2xl border border-border p-5 md:p-6">
+                      <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
+                      <h3 className="mt-4 font-display text-lg font-bold">{title}</h3>
+                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p>
+                    </li>
                   ))}
-                </div>
-              </div>
+                </ul>
+              </section>
 
-              <div className="relative">
-                <div className="bg-card rounded-2xl border border-border overflow-hidden">
-                  <img
-                    src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600&h=400&fit=crop"
-                    alt="Transporte accesible"
-                    className="w-full aspect-[3/2] object-cover"
-                  />
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <div className="bg-card/95 backdrop-blur-sm rounded-xl p-4 border border-border">
-                      <Badge className="mb-2 bg-green-500/20 text-green-400">Servicio Recomendado</Badge>
-                      <h3 className="font-semibold text-foreground">RD Taxis Accesibles</h3>
-                      <p className="text-sm text-muted-foreground">Certificados por CONADIS</p>
+              <aside className="mt-12 rounded-2xl bg-primary/10 p-6 md:p-8" aria-labelledby="help-heading">
+                <div className="flex gap-4">
+                  <HandHelping className="mt-1 h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
+                  <div>
+                    <h2 id="help-heading" className="font-display text-xl font-bold">¿Necesitas ayuda para organizar la llegada?</h2>
+                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">Consulta nuestra información general de transporte y movilidad. Verifica horarios, asistencia y condiciones directamente con cada operador antes de salir.</p>
+                    <div className="mt-5 flex flex-wrap gap-3">
+                      <Button asChild variant="default"><Link to="/info/transporte"><Bus className="mr-2 h-4 w-4" aria-hidden="true" />Información de transporte</Link></Button>
+                      <Button asChild variant="outline"><Link to="/centro-ayuda"><Phone className="mr-2 h-4 w-4" aria-hidden="true" />Centro de ayuda</Link></Button>
+                      <Button asChild variant="ghost"><Link to="/destinos"><MapPin className="mr-2 h-4 w-4" aria-hidden="true" />Explorar destinos</Link></Button>
                     </div>
                   </div>
                 </div>
-              </div>
+              </aside>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* Contacto */}
-        <section className="py-12">
-          <div className="container mx-auto px-4">
-            <div className="bg-card rounded-2xl border border-border p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Phone className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium text-foreground">Línea de Asistencia Accesible</p>
-                  <p className="text-2xl font-bold text-primary">+1 (809) 555-0123</p>
-                </div>
+          <section className="border-t border-border bg-card py-12">
+            <div className="container mx-auto flex flex-col gap-4 px-4 md:flex-row md:items-center md:justify-between md:px-8">
+              <div className="flex items-start gap-3">
+                <Signpost className="mt-1 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">Si una ficha no explica sus condiciones de acceso, solicita la información antes de reservar. No interpretes una etiqueta, una fotografía o una calificación como garantía de accesibilidad.</p>
               </div>
-              <p className="text-muted-foreground text-center md:text-left">
-                Disponible 24/7 con intérpretes de lenguaje de señas por videollamada
-              </p>
+              <Link to="/accesibilidad" className="shrink-0 font-medium text-primary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">Volver al inicio de esta guía</Link>
             </div>
-          </div>
-        </section>
+          </section>
+        </main>
 
         <Footer />
       </div>

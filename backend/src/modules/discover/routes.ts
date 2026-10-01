@@ -2,7 +2,6 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
-import { TtlCache } from "../../lib/cache.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
 import { COLLECTIONS, type CollectionDef } from "../content/collections.js";
 import { cols, hasCol, visibility } from "../content/query.js";
@@ -62,9 +61,8 @@ export async function discoverRoutes(app: FastifyInstance) {
       return (await Promise.all(defs.map((d) => db.query(searchSql(d, limit, titleOnly), searchParams(q)).then((r) => r.rows.map(toHit)).catch((e) => { log.warn({ err: e, collection: d.path }, "Falló la búsqueda en una colección"); return [] as Hit[]; })))).flat();
     }
   };
-  // Respuestas iguales para todos: 30 s de caché y una sola consulta si llegan muchas idénticas a la vez.
-  const searchCache = new TtlCache<{ data: Hit[]; collections: number }>(30_000, 500);
-  const suggestCache = new TtlCache<unknown[]>(30_000, 500);
+  // Respuestas iguales para todos: 30 s de caché por app y una sola consulta si llegan muchas idénticas a la vez
+  // (las instancias viven en app.publicCache para que publicar las vacúe al instante).
 
   r.get("/search", {
     config: rl(120, "1 minute"),
@@ -73,7 +71,7 @@ export async function discoverRoutes(app: FastifyInstance) {
     const q = norm(req.query.q);
     const defs = pick(SEARCHABLE, wanted(req.query.types));
     const per = Math.min(req.query.limit, 10);
-    const { data } = await searchCache.wrap(`${q}|${req.query.types ?? ""}|${req.query.limit}`, async () => {
+    const { data } = await app.publicCache.search.wrap(`${q}|${req.query.types ?? ""}|${req.query.limit}`, async () => {
       const all = await searchMany(defs, q, per, false, req.log);
       all.sort((a, b) => b.score - a.score || a.title.localeCompare(b.title));
       return { data: all.slice(0, req.query.limit), collections: defs.length };
@@ -90,7 +88,7 @@ export async function discoverRoutes(app: FastifyInstance) {
   }, async (req, reply) => {
     const q = norm(req.query.q);
     const defs = pick(SEARCHABLE, wanted(req.query.types));
-    const data = await suggestCache.wrap(`${q}|${req.query.types ?? ""}`, async () => {
+    const data = await app.publicCache.suggest.wrap(`${q}|${req.query.types ?? ""}`, async () => {
       const hits = (await searchMany(defs, q, 4, true, req.log)).sort((a, b) => b.score - a.score || a.title.localeCompare(b.title));
       const seen = new Set<string>();
       return hits.filter((h) => { const k = `${h.type}:${norm(h.title)}`; if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 8).map((h) => ({ type: h.type, id: h.id, slug: h.slug, title: h.title, image: h.image }));
@@ -100,22 +98,25 @@ export async function discoverRoutes(app: FastifyInstance) {
   });
 
   r.get("/search/popular", { schema: { tags: ["búsqueda"], summary: "Búsquedas frecuentes de los últimos 7 días (o las sugeridas por el equipo)", response: { 200: ok } } }, async (_q, reply) => {
-    const { rows } = await db.query<{ q: string; n: number }>("SELECT metadata->>'q' AS q, count(*)::int AS n FROM analytics_events WHERE event_type = 'search' AND created_at > now() - interval '7 days' AND coalesce((metadata->>'results')::int, 0) > 0 GROUP BY 1 HAVING count(*) >= 2 ORDER BY 2 DESC, 1 LIMIT 10");
-    let data: string[] = rows.map((x) => x.q);
-    if (!data.length) {
-      const s = (await db.query<{ value: unknown }>("SELECT value FROM site_settings WHERE key = 'search.popular' AND is_public")).rows[0];
-      data = Array.isArray(s?.value) ? (s!.value as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 10) : [];
-    }
+    const data = await app.publicCache.popular.wrap("popular", async () => {
+      const { rows } = await db.query<{ q: string; n: number }>("SELECT metadata->>'q' AS q, count(*)::int AS n FROM analytics_events WHERE event_type = 'search' AND created_at > now() - interval '7 days' AND coalesce((metadata->>'results')::int, 0) > 0 GROUP BY 1 HAVING count(*) >= 2 ORDER BY 2 DESC, 1 LIMIT 10");
+      let d: string[] = rows.map((x) => x.q);
+      if (!d.length) {
+        const s = (await db.query<{ value: unknown }>("SELECT value FROM site_settings WHERE key = 'search.popular' AND is_public")).rows[0];
+        d = Array.isArray(s?.value) ? (s!.value as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 10) : [];
+      }
+      return d;
+    });
     reply.header("cache-control", PUBLIC_CACHE);
     return { data };
   });
 
   // ---------- Mapa ----------
   r.get("/map/layers", { schema: { tags: ["mapa"], summary: "Capas del mapa interactivo", response: { 200: ok } } }, async (_q, reply) => {
-    const data = await Promise.all(GEO.map(async (d) => ({
+    const data = await app.publicCache.mapLayers.wrap("layers", () => Promise.all(GEO.map(async (d) => ({
       id: d.path, type: d.entityType, label: d.label, group: d.tag,
       count: (await db.query<{ n: number }>(`SELECT count(*)::int AS n FROM ${Q(d.table)} WHERE ${visibility(d)} AND ${Q(d.geo!.lat)} IS NOT NULL AND ${Q(d.geo!.lng)} IS NOT NULL`)).rows[0]!.n,
-    })));
+    }))));
     reply.header("cache-control", PUBLIC_CACHE);
     return { data: data.filter((l) => l.count > 0) };
   });
@@ -190,36 +191,41 @@ export async function discoverRoutes(app: FastifyInstance) {
     schema: { tags: ["búsqueda"], summary: "Secciones de la portada (personalizadas si hay sesión)", security: [{}, { bearerAuth: [] }], querystring: z.object({ limit: z.coerce.number().int().min(1).max(20).default(8) }), response: { 200: ok } },
   }, async (req, reply) => {
     const limit = req.query.limit;
-    const top = async (d: CollectionDef, opts: { where?: string; order?: string; params?: unknown[] } = {}) => {
-      const t = d.table;
-      const { rows } = await db.query(
-        `SELECT id, ${hasCol(t, "slug") ? "slug" : "NULL::text AS slug"}, ${Q(d.title)}::text AS title, ${hasCol(t, "short_description") ? "short_description::text" : "NULL::text"} AS subtitle, ${hasCol(t, "image_url") ? "image_url::text" : "NULL::text"} AS image, ${hasCol(t, "rating") ? "rating::float8" : "NULL::float8"} AS rating
-           FROM ${Q(t)} WHERE ${visibility(d)}${opts.where ? ` AND ${opts.where}` : ""} ORDER BY ${opts.order ?? `${hasCol(t, "is_featured") ? "is_featured DESC NULLS LAST," : ""} ${hasCol(t, "rating") ? "rating DESC NULLS LAST," : ""} ${Q(d.title)}`} LIMIT ${limit}`, opts.params ?? [],
-      );
-      return rows.map((x) => ({ type: d.entityType, collection: d.path, id: x.id, slug: x.slug, title: x.title, subtitle: x.subtitle, image: x.image, rating: x.rating }));
-    };
-    const by = (path: string) => COLLECTIONS.find((c) => c.path === path);
-    const sections: { key: string; title: string; items: unknown[] }[] = [];
-    const add = async (key: string, title: string, path: string, opts?: Parameters<typeof top>[1]) => { const d = by(path); if (d) { const items = await top(d, opts); if (items.length) sections.push({ key, title, items }); } };
+    const buildSections = async () => {
+      const top = async (d: CollectionDef, opts: { where?: string; order?: string; params?: unknown[] } = {}) => {
+        const t = d.table;
+        const { rows } = await db.query(
+          `SELECT id, ${hasCol(t, "slug") ? "slug" : "NULL::text AS slug"}, ${Q(d.title)}::text AS title, ${hasCol(t, "short_description") ? "short_description::text" : "NULL::text"} AS subtitle, ${hasCol(t, "image_url") ? "image_url::text" : "NULL::text"} AS image, ${hasCol(t, "rating") ? "rating::float8" : "NULL::float8"} AS rating
+             FROM ${Q(t)} WHERE ${visibility(d)}${opts.where ? ` AND ${opts.where}` : ""} ORDER BY ${opts.order ?? `${hasCol(t, "is_featured") ? "is_featured DESC NULLS LAST," : ""} ${hasCol(t, "rating") ? "rating DESC NULLS LAST," : ""} ${Q(d.title)}`} LIMIT ${limit}`, opts.params ?? [],
+        );
+        return rows.map((x) => ({ type: d.entityType, collection: d.path, id: x.id, slug: x.slug, title: x.title, subtitle: x.subtitle, image: x.image, rating: x.rating }));
+      };
+      const by = (path: string) => COLLECTIONS.find((c) => c.path === path);
+      const sections: { key: string; title: string; items: unknown[] }[] = [];
+      const add = async (key: string, title: string, path: string, opts?: Parameters<typeof top>[1]) => { const d = by(path); if (d) { const items = await top(d, opts); if (items.length) sections.push({ key, title, items }); } };
 
-    if (req.user) {
-      // Personalización: lo del mismo destino que sus favoritos y de los tipos que más guarda, sin repetir lo que ya marcó.
-      const favs = (await db.query<{ entity_type: string; entity_id: string }>("SELECT entity_type, entity_id FROM favorites WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50", [req.user.id])).rows;
-      const typeCount = new Map<string, number>();
-      for (const f of favs) typeCount.set(f.entity_type, (typeCount.get(f.entity_type) ?? 0) + 1);
-      const favTypes = [...typeCount.entries()].sort((a, b) => b[1] - a[1]).map(([t]) => t).slice(0, 2);
-      const ids = favs.map((f) => f.entity_id).filter((x) => /^[0-9a-f-]{36}$/.test(x));
-      for (const t of favTypes) {
-        const d = COLLECTIONS.find((c) => c.entityType === t);
-        if (d) await add(`for_you_${d.path}`, `Para ti: ${d.label}`, d.path, { where: ids.length ? `id <> ALL($1::uuid[])` : undefined, params: ids.length ? [ids] : [] });
+      if (req.user) {
+        // Personalización: lo del mismo destino que sus favoritos y de los tipos que más guarda, sin repetir lo que ya marcó.
+        const favs = (await db.query<{ entity_type: string; entity_id: string }>("SELECT entity_type, entity_id FROM favorites WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50", [req.user.id])).rows;
+        const typeCount = new Map<string, number>();
+        for (const f of favs) typeCount.set(f.entity_type, (typeCount.get(f.entity_type) ?? 0) + 1);
+        const favTypes = [...typeCount.entries()].sort((a, b) => b[1] - a[1]).map(([t]) => t).slice(0, 2);
+        const ids = favs.map((f) => f.entity_id).filter((x) => /^[0-9a-f-]{36}$/.test(x));
+        for (const t of favTypes) {
+          const d = COLLECTIONS.find((c) => c.entityType === t);
+          if (d) await add(`for_you_${d.path}`, `Para ti: ${d.label}`, d.path, { where: ids.length ? `id <> ALL($1::uuid[])` : undefined, params: ids.length ? [ids] : [] });
+        }
       }
-    }
-    await add("destinations", "Destinos destacados", "destinations");
-    await add("beaches", "Playas mejor valoradas", "beaches");
-    await add("experiences", "Experiencias", "experiences");
-    await add("hotels", "Dónde hospedarte", "hotels");
-    await add("restaurants", "Dónde comer", "restaurants");
-    await add("events", "Próximos eventos", "events", { where: "coalesce(end_date, start_date) >= $1::date", order: "start_date ASC", params: [todayInSantoDomingo()] });
+      await add("destinations", "Destinos destacados", "destinations");
+      await add("beaches", "Playas mejor valoradas", "beaches");
+      await add("experiences", "Experiencias", "experiences");
+      await add("hotels", "Dónde hospedarte", "hotels");
+      await add("restaurants", "Dónde comer", "restaurants");
+      await add("events", "Próximos eventos", "events", { where: "coalesce(end_date, start_date) >= $1::date", order: "start_date ASC", params: [todayInSantoDomingo()] });
+      return sections;
+    };
+    // La versión anónima es igual para todos (30 s de caché); la personalizada depende del usuario y no se cachea.
+    const sections = req.user ? await buildSections() : await app.publicCache.home.wrap(`home|${limit}`, buildSections);
     if (!req.user) reply.header("cache-control", "public, max-age=120");
     return { data: { personalized: !!req.user, sections } };
   });

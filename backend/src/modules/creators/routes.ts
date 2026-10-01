@@ -53,12 +53,13 @@ export async function creatorRoutes(app: FastifyInstance) {
   r.get("/creators/profile/:handle", {
     schema: {
       tags: ["creadores"],
-      summary: "Perfil público de un creador y sus estadísticas",
+      summary: "Perfil público del creador: identidad, sellos con sus criterios, reputación y métricas agregadas",
       params: z.object({ handle: z.string().max(80) }),
       response: { 200: ok },
     },
   }, async (req, reply) => {
-    const p = await service.getProfile(req.params.handle);
+    // Punto 41: la identidad pública respeta `public_profile = false` respondiendo 404.
+    const p = await service.publicIdentity(req.params.handle);
     if (!p) throw AppError.notFound("Perfil de creador");
     reply.header("cache-control", PUBLIC_CACHE);
     return { data: p };
@@ -132,7 +133,7 @@ export async function creatorRoutes(app: FastifyInstance) {
     onRequest: auth,
     schema: {
       tags: ["creadores"],
-      summary: "Publica un video UGC con atribución a tours o experiencias",
+      summary: "Publica un video UGC con atribución a tours o experiencias (queda en revisión de moderación)",
       security: bearer,
       body: z.object({
         title: z.string().trim().min(3).max(120),
@@ -160,6 +161,70 @@ export async function creatorRoutes(app: FastifyInstance) {
     await audit(db, { actor: req.user!.id, action: "creator.video_publish", entity: "creator_video", id: video.id, ip: req.ip });
     reply.code(201);
     return { data: video };
+  });
+
+  // ---------- Punto 41: Centro de identidad y reputación del creador ----------
+  r.get("/creators/me/identity", {
+    onRequest: auth,
+    schema: {
+      tags: ["creadores"],
+      summary: "Centro de identidad: perfil, sellos con criterios publicados, reputación y audiencia",
+      security: bearer,
+      response: { 200: ok },
+    },
+  }, async (req) => ({ data: await service.identity(req.user!.id) }));
+
+  r.patch("/creators/me/identity", {
+    onRequest: auth,
+    schema: {
+      tags: ["creadores"],
+      summary: "Actualiza la identidad declarada del creador (categorías, idiomas, visibilidad y bio)",
+      security: bearer,
+      body: z.object({
+        categories: z.array(z.string().trim().min(1).max(40)).max(10).optional(),
+        languages: z.array(z.string().trim().min(1).max(5)).max(6).optional(),
+        public_profile: z.boolean().optional(),
+        bio: z.string().max(500).optional(),
+        avatar_url: z.string().url().max(500).optional(),
+      }),
+      response: { 200: ok },
+    },
+  }, async (req) => {
+    const profile = await service.updateIdentity(req.user!.id, req.body);
+    await audit(db, { actor: req.user!.id, action: "creator.identity_update", entity: "creator_profile", id: profile.id, meta: { fields: Object.keys(req.body) }, ip: req.ip });
+    return { data: profile };
+  });
+
+  // ---------- Punto 44: apelaciones del creador ----------
+  r.get("/creators/me/appeals", {
+    onRequest: auth,
+    schema: {
+      tags: ["creadores"],
+      summary: "Apelaciones de mis publicaciones, con su estado y resolución",
+      security: bearer,
+      querystring: z.object(page),
+      response: { 200: z.object({ data: any, meta: any }) },
+    },
+  }, async (req) => {
+    const { rows, total } = await service.listAppeals(req.user!.id, req.query);
+    return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
+  });
+
+  r.post("/creators/videos/:id/appeal", {
+    onRequest: auth,
+    schema: {
+      tags: ["creadores"],
+      summary: "Apela la moderación de mi publicación (una sola apelación abierta por publicación)",
+      security: bearer,
+      params: uuid,
+      body: z.object({ reason: z.string().trim().min(10).max(500) }).strict(),
+      response: { 201: ok },
+    },
+  }, async (req, reply) => {
+    const appeal = await service.appealVideo(req.user!.id, req.params.id, req.body.reason);
+    await audit(db, { actor: req.user!.id, action: "creator.appeal_create", entity: "creator_video_appeal", id: appeal.id, meta: { video_id: req.params.id }, ip: req.ip });
+    reply.code(201);
+    return { data: appeal };
   });
 
   // ---------- Administración / Liquidaciones (#G - Capa 3 Fondo de Creadores) ----------

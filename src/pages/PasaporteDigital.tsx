@@ -84,6 +84,37 @@ export default function PasaporteDigital() {
           nextLevelTitle={nextLevel?.title}
         />
 
+        <section aria-labelledby="passport-how-it-works" className="container mx-auto px-4 pb-4">
+          <Card className="overflow-hidden border-emerald-900/15 bg-gradient-to-r from-emerald-950 to-emerald-900 text-white">
+            <CardContent className="grid gap-6 p-6 md:grid-cols-[1fr_1.4fr] md:items-center md:p-8">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[.18em] text-amber-200">Tu ruta de exploración</p>
+                <h2 id="passport-how-it-works" className="mt-2 font-display text-2xl font-bold">Cada visita suma una historia.</h2>
+                <p className="mt-2 text-sm leading-6 text-emerald-50/80">Registra visitas y completa rutas para reunir sellos. Las acciones elegibles pueden generar XP o monedas, sujetas a validación y topes.</p>
+              </div>
+              <ol className="grid gap-3 sm:grid-cols-3">
+                {[
+                  ["01", "Explora", "Elige un destino o punto de interés."],
+                  ["02", "Acredita", "Completa el método de verificación disponible."],
+                  ["03", "Avanza", "Revisa tus sellos, nivel y progreso."],
+                ].map(([step, title, detail]) => (
+                  <li key={step} className="border-l border-amber-200/50 pl-3">
+                    <span className="font-mono text-xs text-amber-200">{step}</span>
+                    <h3 className="mt-1 font-semibold">{title}</h3>
+                    <p className="mt-1 text-xs leading-5 text-emerald-50/70">{detail}</p>
+                  </li>
+                ))}
+              </ol>
+              {totalStamps === 0 && (
+                <div className="flex flex-col gap-3 border-t border-white/15 pt-4 sm:flex-row sm:items-center sm:justify-between md:col-span-2">
+                  <p className="text-sm text-emerald-50/80">Tu pasaporte aún no tiene sellos. Puedes comenzar explorando un destino y consultar cómo acreditar la visita.</p>
+                  <Button onClick={() => navigate("/destinos")} className="w-fit bg-amber-300 text-emerald-950 hover:bg-amber-200">Buscar destinos</Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+
         {/* Stats Cards */}
         <PassportStatsGrid
           totalStamps={totalStamps}

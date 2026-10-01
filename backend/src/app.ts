@@ -4,15 +4,18 @@ import Fastify from "fastify";
 import { serializerCompiler, validatorCompiler, type ZodTypeProvider } from "fastify-type-provider-zod";
 import { loadEnv, type Env } from "./config/env.js";
 import { createPool, type Db } from "./db/pool.js";
+import { bindRequestId } from "./lib/request-context.js";
+import { setAuditChainSecret } from "./modules/operators/team.js";
 import { registerAuth } from "./plugins/auth.js";
 import { registerErrorHandling } from "./plugins/errors.js";
 import { registerMetrics } from "./plugins/metrics.js";
 import { registerEtag } from "./plugins/etag.js";
 import { registerOpenApi } from "./plugins/openapi.js";
+import { registerPublicCache } from "./plugins/public-cache.js";
 import { registerSecurity } from "./plugins/security.js";
 import { registerRoutes } from "./routes.js";
 
-declare module "fastify" { interface FastifyInstance { routeTable: { method: string; url: string; authenticated: boolean }[] } }
+declare module "fastify" { interface FastifyInstance { routeTable: { method: string; url: string; authenticated: boolean; roles: string[]; orgScope: boolean }[] } }
 
 export interface BuildOptions {
   env?: Env;
@@ -42,9 +45,15 @@ export async function buildApp(opts: BuildOptions = {}) {
 
   // Inventario de rutas con su protección (lo consulta la prueba de seguridad: toda ruta nueva sin autenticación debe justificarse).
   // Se registra primero para ver las opciones tal como las declaró cada módulo, antes de que los plugins añadan sus propios hooks.
-  const routeTable: { method: string; url: string; authenticated: boolean }[] = [];
+  const routeTable: { method: string; url: string; authenticated: boolean; roles: string[]; orgScope: boolean }[] = [];
   app.decorate("routeTable", routeTable);
-  app.addHook("onRoute", (r) => { for (const m of ([] as string[]).concat(r.method as string | string[])) routeTable.push({ method: m, url: r.url, authenticated: !!r.onRequest }); });
+  app.addHook("onRoute", (r) => {
+    // `app.requireRole(...)` y el guard `org(...)` del panel llevan adjuntos los roles que exigen y si son del panel del operador; aquí sólo se leen.
+    const hooks = ([] as unknown[]).concat((r.onRequest ?? []) as unknown | unknown[]);
+    const roles = [...new Set(hooks.flatMap((h) => (h as { roles?: string[] }).roles ?? []))];
+    const orgScope = hooks.some((h) => !!(h as { orgScope?: boolean }).orgScope);
+    for (const m of ([] as string[]).concat(r.method as string | string[])) routeTable.push({ method: m, url: r.url, authenticated: !!r.onRequest, roles, orgScope });
+  });
 
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
@@ -52,6 +61,12 @@ export async function buildApp(opts: BuildOptions = {}) {
   const db = opts.db ?? createPool(env);
   app.decorate("db", db);
   app.decorate("env", env);
+  // '' = sin secreto: las entradas quedan fuera de la cadena (igual criterio que audit()); en producción APP_SECRET es obligatoria.
+  setAuditChainSecret(env.APP_SECRET ?? "");
+  // Asocia cada petición a un request_id de trazabilidad (viaja a los proveedores externos con las llamadas salientes).
+  // Antes de auth/security para que cualquier fetch en el ciclo de la petición ya tenga el contexto.
+  app.addHook("onRequest", async (req) => { bindRequestId(req.id); });
+  registerPublicCache(app);
   if (!opts.db) app.addHook("onClose", async () => { await db.end(); });
 
   app.addHook("onSend", async (req, reply) => { reply.header("x-request-id", req.id); });

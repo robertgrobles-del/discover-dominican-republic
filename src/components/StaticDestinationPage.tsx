@@ -20,6 +20,7 @@ import { DestinationMustSee } from "@/components/destination/DestinationMustSee"
 import { DestinationZonesGrid } from "@/components/destination/DestinationZonesGrid";
 import { DestinationEditorialSections } from "@/components/destination/DestinationEditorialSections";
 import { RelatedBlogPosts } from "@/components/destination/RelatedBlogPosts";
+import { ParticipationInvite } from "@/components/gamificacion/ParticipationInvite";
 import { Link } from "react-router-dom";
 import { DetailPageSidebarAd } from "@/components/promo/DetailPageSidebarAd";
 import { BetweenSectionsAd } from "@/components/promo/BannerAd";
@@ -165,6 +166,7 @@ export function StaticDestinationPage({ destination }: StaticDestinationPageProp
               </div>
             </div>
           </div>
+          <div className="mt-10"><ParticipationInvite placeName={destination.name} /></div>
         </div>
       </section>
 

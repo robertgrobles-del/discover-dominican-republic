@@ -19,7 +19,8 @@ export async function registerOpenApi(app: FastifyInstance, env: Env, version: s
     },
     transform: jsonSchemaTransform,
   });
+  // En producción la documentación queda apagada salvo activación explícita (env.ts): sin DOCS_ENABLED no se sirve ni la UI ni el contrato.
   if (env.DOCS_ENABLED) await app.register(swaggerUi, { routePrefix: "/docs" });
   // El contrato OpenAPI es la fuente única para generar el SDK del frontend.
-  app.get("/openapi.json", { schema: { hide: true } }, async () => app.swagger());
+  if (env.DOCS_ENABLED) app.get("/openapi.json", { schema: { hide: true } }, async () => app.swagger());
 }

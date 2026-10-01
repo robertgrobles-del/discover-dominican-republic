@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
-import { translations, loadTranslation, type Locale } from "@/i18n";
+import { translations, loadTranslation } from "@/i18n/catalog";
+import type { Locale } from "@/i18n/types";
 import { setAutoTranslateLocale } from "@/i18n/autoTranslate";
 
 export type { Locale };
@@ -28,7 +29,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     } catch {}
 
     // 2. Check localStorage
-    const saved = localStorage.getItem("app-locale");
+    let saved: string | null = null;
+    try { saved = localStorage.getItem("app-locale"); } catch { /* Storage may be blocked by browser policy. */ }
     if (saved && ["es", "en", "fr", "de", "pt", "it"].includes(saved)) {
       return saved as Locale;
     }
@@ -64,7 +66,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       await loadTranslation(newLocale);
     }
     setLocale(newLocale);
-    localStorage.setItem("app-locale", newLocale);
+    try { localStorage.setItem("app-locale", newLocale); } catch { /* URL remains the shareable source of truth. */ }
+    const url = new URL(window.location.href);
+    if (newLocale === "es") url.searchParams.delete("lang");
+    else url.searchParams.set("lang", newLocale);
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
     document.documentElement.lang = newLocale;
     setLoadedVersion((v) => v + 1);
   }, []);
