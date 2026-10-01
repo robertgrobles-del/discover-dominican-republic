@@ -1,3 +1,4 @@
+import type { MediaReviewPort } from "../../contracts/moderation.js";
 import type { PoolClient } from "pg";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
@@ -8,7 +9,7 @@ const MIN_LEVEL_TO_CREATE_GUILD = 3;
 
 /** Coleccionables, retos de foto y gremios (docs §5.11). */
 export class CommunityGame {
-  constructor(private readonly db: Db, private readonly game: GameService) {}
+  constructor(private readonly db: Db, private readonly game: GameService, private readonly mediaReview: MediaReviewPort) {}
 
   private async tx<T>(fn: (c: PoolClient) => Promise<T>): Promise<T> {
     const c = await this.db.connect();
@@ -99,7 +100,7 @@ export class CommunityGame {
       if (action === "reject") { await c.query("DELETE FROM photo_submissions WHERE id = $1", [submissionId]); return { status: "rejected" as const, granted: { xp: 0, coins: 0 } }; }
       if (s.is_approved) throw new AppError("BUSINESS_RULE", "La foto ya está aprobada", { code: "INVALID_STATE" });
       await c.query("UPDATE photo_submissions SET is_approved = true, moderation_note = $2 WHERE id = $1", [submissionId, note ?? null]);
-      if (s.media_id) await c.query("UPDATE media_assets SET status = 'ready' WHERE id = $1 AND status = 'in_review'", [s.media_id]); // la foto ya pasó la moderación: se puede mostrar
+      if (s.media_id) await this.mediaReview.markReady(s.media_id, c); // la foto ya pasó la moderación: se puede mostrar
       const g = await this.game.grant({ userId: s.user_id, action: "photo_approved", ref: submissionId, description: "Foto de un reto aprobada" }, c);
       return { status: "approved" as const, granted: g.granted };
     });

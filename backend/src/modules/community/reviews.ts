@@ -4,9 +4,9 @@ import { z } from "zod";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
-import { BY_TABLE, COLLECTIONS } from "../content/collections.js";
-import { manifest } from "../content/routes.js";
-import { audit } from "../operators/team.js";
+import { BY_TABLE, COLLECTIONS } from "../../contracts/content-collections.js";
+import { contentManifest as manifest } from "../../contracts/content-schema.js";
+import { audit } from "../../lib/audit.js";
 
 const REVIEWABLE = new Map(COLLECTIONS.filter((c) => c.reviewable).map((c) => [c.entityType, c]));
 const TYPES = [...REVIEWABLE.keys()] as [string, ...string[]];

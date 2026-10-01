@@ -1,22 +1,11 @@
 import type { Pool } from "pg";
-import { COLLECTIONS } from "./collections.js";
+import { COLLECTIONS } from "../../contracts/content-collections.js";
+import type { ContentManifest } from "../../contracts/content-schema.js";
+import { normalizeType, type ColType } from "../../lib/db-types.js";
+export { normalizeType } from "../../lib/db-types.js";
+export type { ColType } from "../../lib/db-types.js";
 
-export type ColType = "uuid" | "text" | "integer" | "numeric" | "boolean" | "jsonb" | "array" | "timestamp" | "date";
-export type Manifest = Record<string, Record<string, { type: ColType; nullable: boolean }>>;
-
-export const normalizeType = (dataType: string): ColType => {
-  switch (dataType) {
-    case "uuid": return "uuid";
-    case "integer": case "smallint": case "bigint": return "integer";
-    case "numeric": case "double precision": case "real": return "numeric";
-    case "boolean": return "boolean";
-    case "jsonb": case "json": return "jsonb";
-    case "ARRAY": return "array";
-    case "timestamp with time zone": case "timestamp without time zone": return "timestamp";
-    case "date": return "date";
-    default: return "text";
-  }
-};
+export type Manifest = ContentManifest;
 
 /** Lee de la base las columnas y tipos de las tablas de contenido (base de `manifest.json`). */
 export async function readManifest(pool: Pool): Promise<Manifest> {

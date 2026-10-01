@@ -5,10 +5,10 @@ import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta, parseSort } from "../../lib/pagination.js";
 import { slugify } from "../../lib/slug.js";
-import { COLLECTIONS, type CollectionDef } from "../content/collections.js";
-import { cols, hasCol, manifest } from "../content/query.js";
-import type { ColType } from "../content/manifest-reader.js";
-import { audit } from "../operators/team.js";
+import { COLLECTIONS, type CollectionDef } from "../../contracts/content-collections.js";
+import { contentColumns as cols, contentManifest as manifest, hasContentColumn as hasCol } from "../../contracts/content-schema.js";
+import type { ColType } from "../../lib/db-types.js";
+import { audit } from "../../lib/audit.js";
 
 /** Columnas que gobierna el sistema (flujo editorial y trazabilidad): no se editan directamente. */
 const MANAGED = new Set(["id", "created_at", "updated_at", "version", "status", "published_at", "unpublished_at", "slug_history", "created_by", "updated_by", "reviewed_by", "deleted_at"]);

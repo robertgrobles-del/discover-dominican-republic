@@ -5,7 +5,7 @@ import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { LOCALES, type Locale } from "../../lib/i18n.js";
 import { pageMeta } from "../../lib/pagination.js";
-import { audit } from "../operators/team.js";
+import { audit } from "../../lib/audit.js";
 import { renderOverride, renderTemplate, type TemplateKey } from "./templates.js";
 import { checkOverride, NOT_EDITABLE, SAMPLES, VARS, type TemplateOverride } from "./templates-meta.js";
 

@@ -4,8 +4,8 @@ import { z } from "zod";
 import type { Db } from "../../db/pool.js";
 import { detectDelimiter, parseDelimited, type Delimiter } from "../../lib/delimited.js";
 import { AppError } from "../../lib/errors.js";
-import type { JobRunner } from "../jobs/runner.js";
-import { audit } from "../operators/team.js";
+import type { JobRegistrar } from "../../contracts/jobs.js";
+import { audit } from "../../lib/audit.js";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const MAX_ROWS = 100_000;
@@ -185,6 +185,6 @@ export async function adminImportRoutes(app: FastifyInstance) {
   r.get("/admin/imports", { onRequest: admin, schema: { tags: tag, summary: "Importaciones recientes", security: bearer, response: { 200: ok } } }, async () => ({ data: await svc.list() }));
 }
 
-export function registerImportJobs(runner: JobRunner, svc: ImportService) {
+export function registerImportJobs(runner: JobRegistrar, svc: ImportService) {
   runner.register({ name: "imports.cleanup", description: "Cierra importaciones interrumpidas y poda el historial de más de 90 días", everySeconds: 3600, run: async () => svc.cleanup() });
 }

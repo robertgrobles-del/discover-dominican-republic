@@ -31,6 +31,29 @@ describe("contrato HTTP del cliente Fastify", () => {
     });
   });
 
+  it("inyecta el token Bearer en las peticiones si está guardado en el almacenamiento", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ data: { success: true } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    
+    // Simular token guardado
+    const storageMock: Record<string, string> = { "sb-access-token": "jwt-token-test-123" };
+    vi.stubGlobal("localStorage", {
+      getItem: (key: string) => storageMock[key] || null,
+      setItem: (key: string, val: string) => { storageMock[key] = val; },
+    });
+
+    await fetchApi("/operators/me/bookings");
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(new Headers(init.headers).get("Authorization")).toBe("Bearer jwt-token-test-123");
+  });
+
   it("convierte el error del contrato HTTP en HttpError con estado y detalle", async () => {
     vi.stubGlobal(
       "fetch",

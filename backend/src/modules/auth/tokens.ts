@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import {
   SignJWT, calculateJwkThumbprint, createLocalJWKSet, errors as joseErrors, exportJWK, exportPKCS8, exportSPKI, generateKeyPair,
   importPKCS8, importSPKI, jwtVerify, type CryptoKey, type JWK,
@@ -113,5 +113,4 @@ export async function createTokenService(env: Env, log: FastifyBaseLogger) {
 export type TokenService = Awaited<ReturnType<typeof createTokenService>>;
 
 /** Token opaco de alta entropía; sólo su hash SHA-256 se guarda en la base de datos. */
-export const newOpaqueToken = () => randomBytes(32).toString("base64url");
-export const hashToken = (t: string) => createHash("sha256").update(t).digest("hex");
+export { newOpaqueToken, hashToken } from "../../lib/opaque-tokens.js";

@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
-import { audit } from "../operators/team.js";
+import { audit } from "../../lib/audit.js";
 import { TransactionalProductsService } from "./service.js";
 
 declare module "fastify" {

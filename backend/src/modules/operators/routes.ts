@@ -11,15 +11,16 @@ import type { PaymentGateway } from "./gateway.js";
 import { AutomationService } from "./automations.js";
 import { EngagementService } from "./engagement.js";
 import { IcalService } from "./ical.js";
-import type { JobRunner } from "../jobs/runner.js";
+import type { JobRunnerPort } from "../../contracts/jobs.js";
 import type { PayoutService } from "./payouts.js";
 import { PromotionService } from "./promotions.js";
 import { ReportService } from "./reports.js";
 import { renderVoucher } from "./voucher.js";
-import { audit, TeamService } from "./team.js";
+import { audit } from "../../lib/audit.js";
+import { TeamService } from "./team.js";
 
 declare module "fastify" {
-  interface FastifyInstance { jobs: JobRunner; payouts: PayoutService; automations: AutomationService; ical: IcalService; catalog: CatalogService; bookings: BookingService; promotions: PromotionService; gateway: PaymentGateway }
+  interface FastifyInstance { jobs: JobRunnerPort; payouts: PayoutService; automations: AutomationService; ical: IcalService; catalog: CatalogService; bookings: BookingService; promotions: PromotionService; gateway: PaymentGateway }
   interface FastifyRequest { member?: Membership }
 }
 

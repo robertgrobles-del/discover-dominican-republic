@@ -6,7 +6,7 @@ import { AppError } from "../../lib/errors.js";
 import type { FlagService } from "../../lib/flags.js";
 import { pageMeta } from "../../lib/pagination.js";
 import { evaluate, ipInCidr, type IpRule, type IpRuleService } from "../../plugins/ip-rules.js";
-import { audit } from "../operators/team.js";
+import { audit } from "../../lib/audit.js";
 
 declare module "fastify" { interface FastifyInstance { flags: FlagService; ipRules: IpRuleService } }
 

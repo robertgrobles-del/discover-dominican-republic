@@ -26,8 +26,18 @@ export const queryClient = new QueryClient({
 
 export async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = endpoint.startsWith("http") ? endpoint : `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+  
+  // Inyectar token de autenticación si está disponible
+  const headers = new Headers(options?.headers);
+  if (!headers.has("Authorization")) {
+    const token = typeof window !== "undefined" ? localStorage.getItem("sb-access-token") || sessionStorage.getItem("sb-access-token") : null;
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
+  }
+
   try {
-    return await requestJson<T>(url, options);
+    return await requestJson<T>(url, { ...options, headers });
   } catch (error) {
     // La telemetría de fallos vive aquí, no en httpClient: el transporte se
     // mantiene puro y sin dependencias del reportero (evita ciclos).

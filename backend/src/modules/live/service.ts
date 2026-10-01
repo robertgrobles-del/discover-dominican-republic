@@ -3,24 +3,11 @@ import type { Env } from "../../config/env.js";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
 import { CircuitBreaker } from "../../lib/breaker.js";
-import { readBodyCapped, traceHeaders } from "../../lib/http.js";
-import { todayInSantoDomingo } from "../operators/domain/dates.js";
+import { todayInSantoDomingo } from "../../lib/dates.js";
 
-export type FetchJson = (url: string) => Promise<{ status: number; json(): Promise<any> }>;
-const MAX_JSON_BYTES = 2_000_000;
-const defaultFetch: FetchJson = async (url) => {
-  const res = await fetch(url, { signal: AbortSignal.timeout(10_000), headers: traceHeaders({ accept: "application/json" }) });
-  const text = await readBodyCapped(res, MAX_JSON_BYTES);
-  return { status: res.status, json: async () => JSON.parse(text) };
-};
+import { defaultFetchJson, type FetchJson } from "../../lib/fetch-json.js";
 
 export const FX_CURRENCIES = ["USD", "EUR", "GBP", "CAD", "MXN"] as const;
-export const WEATHER_LOCATIONS = [
-  { slug: "santo-domingo", name: "Santo Domingo", lat: 18.4861, lng: -69.9312 }, { slug: "santiago", name: "Santiago", lat: 19.4517, lng: -70.697 },
-  { slug: "punta-cana", name: "Punta Cana", lat: 18.582, lng: -68.4055 }, { slug: "puerto-plata", name: "Puerto Plata", lat: 19.7934, lng: -70.6884 },
-  { slug: "la-romana", name: "La Romana", lat: 18.4273, lng: -68.9728 }, { slug: "samana", name: "Samaná", lat: 19.2058, lng: -69.3364 },
-  { slug: "jarabacoa", name: "Jarabacoa", lat: 19.1167, lng: -70.6367 }, { slug: "barahona", name: "Barahona", lat: 18.2085, lng: -71.1008 },
-] as const;
 export const TIME_ZONES = [
   { id: "America/Santo_Domingo", label: "República Dominicana", utc_offset: "-04:00", dst: false },
   { id: "America/New_York", label: "Nueva York / Miami", utc_offset: "-05:00 / -04:00 (verano)", dst: true },
@@ -32,12 +19,11 @@ export const TIME_ZONES = [
 const round = (n: number, d = 2) => Math.round(n * 10 ** d) / 10 ** d;
 const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
 
-/** Datos vivos (docs §5.5): tasas, combustibles, loterías, clima y utilidades. Los proveedores externos se apagan con `*_PROVIDER=none`. */
+/** Datos vivos que permanecen en este módulo: tasas, combustibles, loterías y otras lecturas. */
 export class LiveService {
   /** Cinco ciclos consecutivos fallidos abren el circuito del proveedor 5 minutos; cada proveedor tiene el suyo. */
   private readonly fxBreaker = new CircuitBreaker(5, 300_000);
-  private readonly weatherBreaker = new CircuitBreaker(5, 300_000);
-  constructor(private readonly db: Db, private readonly env: Env, private readonly log: FastifyBaseLogger, public fetchJson: FetchJson = defaultFetch) {}
+  constructor(private readonly db: Db, private readonly env: Env, private readonly log: FastifyBaseLogger, public fetchJson: FetchJson = defaultFetchJson) {}
 
   // ---------- Tasas de cambio ----------
   async latestRates(): Promise<{ date: string | null; rates: { currency: string; buy: number; sell: number; mid: number }[] }> {
@@ -135,55 +121,6 @@ export class LiveService {
     return (await this.db.query(`SELECT r.id, l.name AS lottery, d.name AS draw, r.draw_date::text AS date, r.winning_numbers AS numbers, r.bonus_number AS bonus, r.jackpot_amount AS jackpot FROM lottery_results r JOIN lottery_draws d ON d.id = r.draw_id JOIN lotteries l ON l.id = d.lottery_id WHERE ${where.join(" AND ")} ORDER BY r.draw_date DESC, d.draw_time DESC LIMIT ${f.limit}`, params)).rows;
   }
 
-  // ---------- Clima ----------
-  async weather(slug?: string) {
-    const { rows } = await this.db.query("SELECT location_slug, location_name, temperature_c, feels_like_c, humidity, wind_kmh, condition, icon, source, observed_at FROM weather_snapshots WHERE ($1::text IS NULL OR location_slug = $1) ORDER BY location_name", [slug ?? null]);
-    if (slug && !rows.length) throw AppError.notFound("Ubicación");
-    const data = rows.map((r) => ({ location: r.location_slug, name: r.location_name, temperature_c: num(r.temperature_c), feels_like_c: num(r.feels_like_c), humidity: r.humidity, wind_kmh: num(r.wind_kmh), condition: r.condition, icon: r.icon, source: r.source, observed_at: new Date(r.observed_at).toISOString(), stale: Date.now() - new Date(r.observed_at).getTime() > 3 * 3_600_000 }));
-    return slug ? data[0]! : data;
-  }
-  async forecast(slug: string, days: number) {
-    const r = (await this.db.query<{ location_name: string; forecast: unknown[]; observed_at: Date }>("SELECT location_name, forecast, observed_at FROM weather_snapshots WHERE location_slug = $1", [slug])).rows[0];
-    if (!r) throw AppError.notFound("Ubicación");
-    return { location: slug, name: r.location_name, days: (r.forecast ?? []).slice(0, days), updated_at: new Date(r.observed_at).toISOString() };
-  }
-
-  /** Clima y pronóstico de las ciudades principales desde OpenWeather (5 días, agregado por día). */
-  async refreshWeather() {
-    if (this.env.WEATHER_PROVIDER === "none") return { skipped: true as const, reason: "WEATHER_PROVIDER=none" };
-    // Un fallo por ciclo (no por llamada): un fallo parcial que salva alguna ciudad no cuenta contra el circuito.
-    return this.weatherBreaker.execute(async () => {
-      const key = this.env.OPENWEATHER_API_KEY!;
-      let saved = 0;
-      const errors: string[] = [];
-      for (const loc of WEATHER_LOCATIONS) {
-        try {
-          const q = `lat=${loc.lat}&lon=${loc.lng}&units=metric&lang=es&appid=${encodeURIComponent(key)}`;
-          const [now, fc] = await Promise.all([this.fetchJson(`https://api.openweathermap.org/data/2.5/weather?${q}`), this.fetchJson(`https://api.openweathermap.org/data/2.5/forecast?${q}`)]);
-          if (now.status !== 200) throw new Error(`clima ${now.status}`);
-          const w = await now.json();
-          const days = new Map<string, { min: number; max: number; pop: number; cond: string[] }>();
-          if (fc.status === 200) for (const it of (await fc.json()).list ?? []) {
-            const date = String(it.dt_txt ?? "").slice(0, 10);
-            if (!date) continue;
-            const d = days.get(date) ?? { min: 99, max: -99, pop: 0, cond: [] };
-            d.min = Math.min(d.min, it.main?.temp_min ?? it.main?.temp); d.max = Math.max(d.max, it.main?.temp_max ?? it.main?.temp); d.pop = Math.max(d.pop, it.pop ?? 0); d.cond.push(it.weather?.[0]?.description ?? "");
-            days.set(date, d);
-          }
-          const forecast = [...days.entries()].map(([date, d]) => ({ date, min_c: round(d.min, 1), max_c: round(d.max, 1), rain_probability: Math.round(d.pop * 100), condition: d.cond[Math.floor(d.cond.length / 2)] || d.cond[0] || "" }));
-          await this.db.query(
-            `INSERT INTO weather_snapshots (location_slug, location_name, temperature_c, feels_like_c, humidity, wind_kmh, condition, icon, forecast, source, observed_at, updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'openweather',now(),now())
-             ON CONFLICT (location_slug) DO UPDATE SET temperature_c = EXCLUDED.temperature_c, feels_like_c = EXCLUDED.feels_like_c, humidity = EXCLUDED.humidity, wind_kmh = EXCLUDED.wind_kmh, condition = EXCLUDED.condition, icon = EXCLUDED.icon, forecast = EXCLUDED.forecast, source = 'openweather', observed_at = now(), updated_at = now()`,
-            [loc.slug, loc.name, round(w.main.temp, 1), round(w.main.feels_like, 1), w.main.humidity, round((w.wind?.speed ?? 0) * 3.6, 1), w.weather?.[0]?.description ?? "", w.weather?.[0]?.icon ?? null, JSON.stringify(forecast)],
-          );
-          saved++;
-        } catch (err) { errors.push(`${loc.slug}: ${(err as Error).message}`); this.log.warn({ err, location: loc.slug }, "No se pudo actualizar el clima de una ubicación"); }
-      }
-      if (!saved) throw new Error(`No se pudo actualizar el clima: ${errors.join("; ")}`);
-      return { skipped: false as const, saved, errors };
-    }, new Error("El proveedor de clima está en circuito abierto; se reintenta más tarde"));
-  }
-
   // ---------- Playas, alertas, eventos, webcams ----------
   async alerts() {
     return (await this.db.query("SELECT id, alert_type AS type, severity, title, description, province_id, expires_at, created_at FROM weather_alerts WHERE is_active AND (expires_at IS NULL OR expires_at > now()) ORDER BY CASE severity WHEN 'extrema' THEN 0 WHEN 'grave' THEN 1 WHEN 'moderada' THEN 2 ELSE 3 END, created_at DESC LIMIT 100")).rows;
@@ -193,11 +130,5 @@ export class LiveService {
       .map((r) => ({ ...r, wind_speed: num(r.wind_speed), wave_height: num(r.wave_height), water_temp: num(r.water_temp) }));
     const alerts = (await this.db.query("SELECT alert_type AS type, severity, title FROM weather_alerts WHERE is_active AND alert_type IN ('sargazo', 'oleaje_alto') AND (expires_at IS NULL OR expires_at > now())")).rows;
     return { reports, alerts };
-  }
-  async eventsNow() {
-    const today = todayInSantoDomingo();
-    return (await this.db.query(
-      "SELECT id, title, slug, start_date, end_date, location, image_url FROM events WHERE status = 'published' AND deleted_at IS NULL AND (published_at IS NULL OR published_at <= now()) AND start_date <= $1::date AND coalesce(end_date, start_date) >= $1::date ORDER BY start_date LIMIT 50", [today],
-    )).rows;
   }
 }

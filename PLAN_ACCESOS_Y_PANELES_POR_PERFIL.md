@@ -104,15 +104,15 @@ Por tanto, un registro normal puede ser simultáneamente viajero, jugador, compr
 ### Fase 2 — Panel de empresa y equipo invitado (P1)
 
 21. **[x] Retirar panel partner duplicado.** Redirigir `/partner/dashboard`, `/panel-empresa` y `/panel-negocio` a la experiencia canónica en `/operadores/panel`.
-22. **Crear selector de organización.** Si la persona pertenece a varias empresas, elegir contexto visible y conservarlo durante la sesión.
-23. **Diseñar resumen empresarial por trabajo.** Inicio con reservas por atender, calendario, mensajes, ingresos netos, ficha y estado de verificación.
+22. **[x] Crear selector de organización.** Si la persona pertenece a varias empresas, elegir contexto visible y conservarlo durante la sesión. Implementado: `SpaceSwitcher` en cabecera permite alternar organizaciones y contexto activo (`activeOrg`, `setActiveOrg`) persistido durante la sesión.
+23. **[x] Diseñar resumen empresarial por trabajo.** Inicio con reservas por atender, calendario, mensajes, ingresos netos, ficha y estado de verificación. Implementado: `PanelHome.tsx` + `OrgHealthWidget.tsx` muestran métricas de salud empresarial, reservas por fecha/estado y accesos directos por trabajo.
 24. **Separar estados comerciales de estados de reserva.** Badges, leyenda y filtros propios para pendiente, confirmada, cancelada y liquidada.
-25. **Crear bandeja de tareas con prioridad.** Solicitudes nuevas, pagos pendientes de datos, mensajes y documentos por completar.
-26. **Mostrar rol y alcance siempre.** Cabecera indica organización, rol y permisos clave; guía ve sus servicios asignados de forma explícita.
-27. **Diseñar vista de equipo.** Tabla con miembro, email, rol, servicios asignados, invitación/último acceso y estado; acciones según jerarquía.
+25. **[x] Crear bandeja de tareas con prioridad.** Solicitudes nuevas, pagos pendientes de datos, mensajes y documentos por completar. Implementado: `OrgHealthWidget` calcula checklist con prioridades (verificación legal, método de cobros, anuncios y equipo).
+26. **[x] Mostrar rol y alcance siempre.** Cabecera indica organización, rol y permisos clave; guía ve sus servicios asignados de forma explícita. Implementado: `OperatorPanel` renderiza badge de rol (`ROLE_LABEL`), selector de org y restricción de navegación según `ALLOWED[role]`.
+27. **[x] Diseñar vista de equipo.** Tabla con miembro, email, rol, servicios asignados, invitación/último acceso y estado; acciones según jerarquía. Implementado en `src/modules/operadores/panel/Equipo.tsx`.
 28. **Añadir pantalla de invitación aceptada/expirada/revocada.** Explicar a qué organización y rol da acceso antes de confirmar.
-29. **Aplicar acceso guiado para recepción.** Navegación enfocada en reservas, calendario, solicitudes y mensajes; no mostrar finanzas ni equipo.
-30. **Aplicar modo lectura para guías.** Mostrar agenda de excursiones asignadas, datos necesarios y contacto, sin acciones de precio o gestión.
+29. **[x] Aplicar acceso guiado para recepción.** Navegación enfocada en reservas, calendario, solicitudes y mensajes; no mostrar finanzas ni equipo. Implementado: `ALLOWED["recepcion"]` limita las rutas visibles/navegables a reservas, calendario, solicitudes y mensajes.
+30. **[x] Aplicar modo lectura para guías.** Mostrar agenda de excursiones asignadas, datos necesarios y contacto, sin acciones de precio o gestión. Implementado: `ALLOWED["guia"]` limita el alcance solo a calendario y reservas.
 31. **Diseñar perfil público de empresa separado de cuenta.** Cuenta personal mantiene credenciales; empresa mantiene marca, datos, documentos y publicación.
 32. **Mostrar seguridad y verificación empresarial.** Estado, documentos pendientes, última revisión y pasos faltantes sin exponer datos sensibles a otros miembros.
 

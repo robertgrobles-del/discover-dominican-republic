@@ -4855,6 +4855,14 @@
   "updated_at": {
    "type": "timestamp",
    "nullable": false
+  },
+  "is_synthetic": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "synthetic_batch": {
+   "type": "text",
+   "nullable": true
   }
  },
  "rivers": {

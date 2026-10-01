@@ -3,8 +3,8 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
-import { todayInSantoDomingo } from "../operators/domain/dates.js";
-import { audit } from "../operators/team.js";
+import { todayInSantoDomingo } from "../../lib/dates.js";
+import { audit } from "../../lib/audit.js";
 
 const ok = z.object({ data: z.any() });
 const bearer = [{ bearerAuth: [] }];

@@ -3,7 +3,7 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
-import { audit } from "../operators/team.js";
+import { audit } from "../../lib/audit.js";
 
 const ok = z.object({ data: z.any() });
 const paged = z.object({ data: z.any(), meta: z.any() });

@@ -4,9 +4,8 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
-import { hashToken, newOpaqueToken } from "../auth/tokens.js";
-import { STAFF_ROLES } from "../auth/service.js";
-import { audit } from "../operators/team.js";
+import { STAFF_ROLES } from "../../lib/roles.js";
+import { audit } from "../../lib/audit.js";
 
 const ok = z.object({ data: z.any() });
 const bearer = [{ bearerAuth: [] }];
@@ -43,7 +42,7 @@ export async function impersonationRoutes(app: FastifyInstance) {
     const sid = randomUUID();
     const expires = new Date(Date.now() + SUPPORT_SESSION_MINUTES * 60_000);
     // La sesión vive en refresh_tokens (así la comprueba `authenticate` y se revoca con el resto si la persona cambia su contraseña), pero sin token de refresco entregable.
-    await db.query("INSERT INTO refresh_tokens (user_id, family_id, token_hash, user_agent, ip, expires_at, impersonated_by) VALUES ($1,$2,$3,'support-session',$4,$5,$6)", [t.id, sid, hashToken(newOpaqueToken()), req.ip, expires, req.user!.id]);
+    await app.identity.createSupportSession({ userId: t.id, familyId: sid, adminId: req.user!.id, ip: req.ip, expiresAt: expires });
     const row = (await db.query<{ id: string }>("INSERT INTO support_sessions (admin_id, target_id, reason, sid, ip, expires_at) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id", [req.user!.id, t.id, req.body.reason, sid, req.ip, expires])).rows[0]!;
     const token = await app.tokens.signAccess({ sub: t.id, roles: t.roles, locale: t.locale, sid, mfa: false, imp: req.user!.id }, SUPPORT_SESSION_MINUTES * 60);
     await audit(db, { actor: req.user!.id, action: "support.impersonation_started", entity: "user", id: t.id, meta: { reason: req.body.reason, session: row.id, minutes: SUPPORT_SESSION_MINUTES }, ip: req.ip });
@@ -58,7 +57,7 @@ export async function impersonationRoutes(app: FastifyInstance) {
     schema: { tags: tag, summary: "Cierra la sesión de soporte actual", security: bearer, response: { 200: ok } },
   }, async (req) => {
     if (!req.user!.imp) throw new AppError("BUSINESS_RULE", "Esta no es una sesión de soporte", { code: "NOT_IMPERSONATING" });
-    await db.query("UPDATE refresh_tokens SET revoked_at = now() WHERE family_id = $1 AND revoked_at IS NULL", [req.user!.sid]);
+    await app.identity.revokeSessionFamily(req.user!.sid);
     await db.query("UPDATE support_sessions SET ended_at = now() WHERE sid = $1 AND ended_at IS NULL", [req.user!.sid]);
     await audit(db, { actor: req.user!.imp, action: "support.impersonation_ended", entity: "user", id: req.user!.id, ip: req.ip });
     return { data: { ended: true } };

@@ -6,9 +6,9 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
-import { assertPublicUrl } from "../operators/ical.js";
-import type { JobRunner } from "../jobs/runner.js";
-import { audit } from "../operators/team.js";
+import { assertPublicUrl } from "../../lib/public-url.js";
+import type { JobRegistrar } from "../../contracts/jobs.js";
+import { audit } from "../../lib/audit.js";
 import { readImage, sniffMime, type ImageMime } from "./images.js";
 import type { Scanner } from "./antivirus.js";
 import { processImage, VARIANTS, type Processed, type VariantName } from "./process.js";
@@ -256,7 +256,7 @@ export async function mediaRoutes(app: FastifyInstance) {
   });
 }
 
-export function registerMediaJobs(app: FastifyInstance, runner: JobRunner) {
+export function registerMediaJobs(app: FastifyInstance, runner: JobRegistrar) {
   runner.register({
     name: "media.cleanup", description: "Elimina subidas sin completar de más de 24 h", everySeconds: 86_400,
     run: async () => {

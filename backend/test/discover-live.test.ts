@@ -179,7 +179,7 @@ describe("datos vivos", () => {
     await pool.query("DELETE FROM exchange_rates WHERE currency_code IN ('USD', 'CAD', 'MXN')"); // no dejar tasas de prueba que alteren otras pruebas
     const off = await makeApp();
     expect((await off.live.refreshRates()).skipped).toBe(true);
-    expect((await off.live.refreshWeather()).skipped).toBe(true);
+    expect((await off.weather.refreshWeather()).skipped).toBe(true);
     await off.close();
   });
 
@@ -213,7 +213,7 @@ describe("datos vivos", () => {
 
   it("clima: el proveedor guarda actual y pronóstico agregado por día; el público lo lee", async () => {
     const calls: string[] = [];
-    app.live.fetchJson = async (url) => {
+    app.weather.fetchJson = async (url) => {
       calls.push(url);
       if (url.includes("/forecast")) return { status: 200, json: async () => ({ list: [
         { dt_txt: `${day(1)} 09:00:00`, main: { temp_min: 24, temp_max: 27, temp: 25 }, pop: 0.2, weather: [{ description: "nubes" }] },
@@ -233,7 +233,7 @@ describe("datos vivos", () => {
     expect(fc.days).toEqual([{ date: day(1), min_c: 24, max_c: 31, rain_probability: 60, condition: expect.any(String) }]);
     expect((await call("GET", "/live/weather?province=atlantida")).statusCode).toBe(400);
     // Un fallo parcial no tumba el trabajo, pero uno total sí.
-    app.live.fetchJson = async () => ({ status: 500, json: async () => ({}) });
+    app.weather.fetchJson = async () => ({ status: 500, json: async () => ({}) });
     expect((await app.jobs.runNow("weather.refresh")).status).toBe("failed");
     expect(json(await call("GET", "/live/weather?province=santo-domingo")).data.temperature_c).toBe(28.3); // lo último conocido se conserva
     await pool.query("UPDATE weather_snapshots SET observed_at = now() - interval '5 hours' WHERE location_slug = 'santiago'");
@@ -279,7 +279,7 @@ describe("datos vivos", () => {
     expect(json(await call("GET", "/live/time-zones")).data[0]).toMatchObject({ id: "America/Santo_Domingo", utc_offset: "-04:00" });
     expect(json(await call("GET", "/live/locations")).data).toHaveLength(8);
     expect((await call("POST", "/admin/live/refresh?source=weather", { token: editor })).statusCode).toBe(403);
-    app.live.fetchJson = async () => ({ status: 200, json: async () => ({ main: { temp: 30, feels_like: 33, humidity: 60 }, wind: { speed: 3 }, weather: [{ description: "soleado" }] }) });
+    app.weather.fetchJson = async () => ({ status: 200, json: async () => ({ main: { temp: 30, feels_like: 33, humidity: 60 }, wind: { speed: 3 }, weather: [{ description: "soleado" }] }) });
     expect((await call("POST", "/admin/live/refresh?source=weather", { token: admin })).statusCode).toBe(200);
     expect((await call("POST", "/admin/live/refresh?source=lluvia", { token: admin })).statusCode).toBe(400);
   });

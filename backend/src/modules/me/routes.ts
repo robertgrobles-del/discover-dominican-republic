@@ -3,8 +3,8 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
-import { verifyPassword } from "../auth/password.js";
-import { audit } from "../operators/team.js";
+import type { PasswordVerifier } from "../../contracts/auth.js";
+import { audit } from "../../lib/audit.js";
 
 export const FAVORITE_TYPES = ["destination", "beach", "hotel", "restaurant", "bar", "experience", "event", "airbnb", "tour", "river", "mountain", "park", "article", "route", "operator_listing", "store_product"] as const;
 export const DELETION_GRACE_DAYS = 30;
@@ -18,7 +18,7 @@ const httpsUrl = z.string().url().max(500).refine((u) => u.startsWith("https://"
 const uuid = z.object({ id: z.string().uuid() });
 
 /** Perfil, preferencias, favoritos, notificaciones, exportación y borrado de cuenta (docs §5.2; Ley 172-13). */
-export async function meRoutes(app: FastifyInstance) {
+export async function meRoutes(app: FastifyInstance, { verifyPassword }: { verifyPassword: PasswordVerifier }) {
   const r = app.withTypeProvider<ZodTypeProvider>();
   const auth = app.authenticate;
   const db = app.db;
@@ -53,7 +53,7 @@ export async function meRoutes(app: FastifyInstance) {
     if (b.travel_interests) set.push(["travel_interests", JSON.stringify([...new Set(b.travel_interests)])]);
     await db.query("INSERT INTO profiles (id) VALUES ($1) ON CONFLICT DO NOTHING", [req.user!.id]);
     if (set.length) await db.query(`UPDATE profiles SET ${set.map(([k], i) => `"${k}" = $${i + 2}`).join(", ")}, updated_at = now() WHERE id = $1`, [req.user!.id, ...set.map(([, v]) => v)]);
-    if (b.locale) await db.query("UPDATE users SET locale = $2, updated_at = now() WHERE id = $1", [req.user!.id, b.locale]);
+    if (b.locale) await app.identity.setLocale(req.user!.id, b.locale);
     return { data: await profile(req.user!.id) };
   });
 
@@ -80,9 +80,9 @@ export async function meRoutes(app: FastifyInstance) {
   }, async (req) => {
     const id = req.user!.id, b = req.body;
     await db.query("INSERT INTO profiles (id) VALUES ($1) ON CONFLICT DO NOTHING", [id]);
-    if (b.locale) await db.query("UPDATE users SET locale = $2 WHERE id = $1", [id, b.locale]);
+    if (b.locale) await app.identity.setLocale(id, b.locale);
     if (b.currency) await db.query("UPDATE profiles SET currency = $2 WHERE id = $1", [id, b.currency]);
-    if (b.consents?.marketing !== undefined) await db.query("UPDATE users SET marketing_opt_in = $2 WHERE id = $1", [id, b.consents.marketing]);
+    if (b.consents?.marketing !== undefined) await app.identity.setMarketingOptIn(id, b.consents.marketing);
     if (b.consents?.analytics !== undefined) await db.query("UPDATE profiles SET analytics_consent = $2 WHERE id = $1", [id, b.consents.analytics]);
     if (b.notifications) {
       const cur = ((await db.query("SELECT notification_prefs FROM profiles WHERE id = $1", [id])).rows[0]?.notification_prefs ?? {}) as Record<string, Record<string, boolean>>;
@@ -126,13 +126,12 @@ export async function meRoutes(app: FastifyInstance) {
     return { data: rows, meta: { ...pageMeta(req.query.page, req.query.per_page, total), unread } };
   });
   r.patch("/me/notifications/:id", { onRequest: auth, schema: { tags: ["perfil"], summary: "Marca una notificación como leída o no leída", security: bearer, params: uuid, body: z.object({ is_read: z.boolean() }), response: { 204: z.null() } } }, async (req, reply) => {
-    const res = await db.query("UPDATE notifications SET is_read = $3 WHERE id = $1 AND user_id = $2", [req.params.id, req.user!.id, req.body.is_read]);
-    if (!res.rowCount) throw AppError.notFound("Notificación");
+    if (!(await app.notifications.markRead(req.user!.id, req.params.id, req.body.is_read))) throw AppError.notFound("Notificación");
     reply.code(204);
     return null;
   });
   r.post("/me/notifications/read-all", { onRequest: auth, schema: { tags: ["perfil"], summary: "Marca todas como leídas", security: bearer, response: { 204: z.null() } } }, async (req, reply) => {
-    await db.query("UPDATE notifications SET is_read = true WHERE user_id = $1 AND NOT is_read", [req.user!.id]);
+    await app.notifications.markAllRead(req.user!.id);
     reply.code(204);
     return null;
   });
@@ -168,7 +167,7 @@ export async function meRoutes(app: FastifyInstance) {
     if (owns.rowCount) throw new AppError("BUSINESS_RULE", "Eres propietario de una organización de operador: transfiérela o ciérrala antes de eliminar tu cuenta", { code: "OWNS_ORG" });
     await db.query("INSERT INTO profiles (id) VALUES ($1) ON CONFLICT DO NOTHING", [id]);
     await db.query("UPDATE profiles SET deletion_requested_at = coalesce(deletion_requested_at, now()) WHERE id = $1", [id]);
-    await db.query("UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL", [id]);
+    await app.identity.revokeSessions(id);
     await audit(db, { actor: id, action: "user.deletion_requested", entity: "user", id, ip: req.ip });
     return { data: { deletion_requested_at: (await profile(id)).deletion_requested_at, grace_days: DELETION_GRACE_DAYS } };
   });

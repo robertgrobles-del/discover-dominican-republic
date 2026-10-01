@@ -3,7 +3,7 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { LOCALES } from "../../lib/i18n.js";
-import { audit } from "../operators/team.js";
+import { audit } from "../../lib/audit.js";
 import { CHANNELS, NOTIFICATION_TYPES } from "./insert.js";
 import type { NotificationService } from "./service.js";
 

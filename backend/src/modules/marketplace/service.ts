@@ -4,10 +4,10 @@ import type { PoolClient } from "pg";
 import type { Env } from "../../config/env.js";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
-import type { Mailer } from "../mailer/mailer.js";
-import type { NotifyFn } from "../notifications/insert.js";
-import { fromCents, toCents } from "../operators/domain/money.js";
-import type { PaymentGateway } from "../operators/gateway.js";
+import type { MailerPort } from "../../contracts/email.js";
+import type { NotifyFn } from "../../contracts/notifications.js";
+import { fromCents, toCents } from "../../lib/money.js";
+import type { PaymentGateway } from "../../contracts/payments.js";
 
 export const CATEGORIES = [
   "artesania",
@@ -40,7 +40,7 @@ const PRODUCT_SELECT = `p.id, p.slug, p.name, p.category, p.kind, p.description,
 
 /** Marketplace de vendedores locales (docs §5.9): vendedores, catálogo moderado, pedidos multivendedor, cobros y liquidaciones. */
 export class MarketplaceService {
-  constructor(private readonly db: Db, private readonly env: Env, private readonly gateway: PaymentGateway, private readonly mailer: Mailer, private readonly log: FastifyBaseLogger) {}
+  constructor(private readonly db: Db, private readonly env: Env, private readonly gateway: PaymentGateway, private readonly mailer: MailerPort, private readonly log: FastifyBaseLogger) {}
 
   /** Aviso de que un pedido cambió su dinero (cobro, reembolso, cancelación); lo usa el programa de embajadores. */
   onMoneyChange?: (orderId: string) => Promise<void>;

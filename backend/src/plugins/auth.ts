@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { AppError } from "../lib/errors.js";
 import { OAuthService } from "../modules/auth/oauth.js";
+import { PostgresProfileStore } from "../modules/me/profile-store.js";
 import { AuthService, STAFF_ROLES } from "../modules/auth/service.js";
 import { createTokenService, type TokenService } from "../modules/auth/tokens.js";
 import { Mailer } from "../modules/mailer/mailer.js";
@@ -29,7 +30,7 @@ export async function registerAuth(app: FastifyInstance) {
   const mailer = new Mailer(app.env, app.db, app.log);
   app.decorate("tokens", tokens);
   app.decorate("mailer", mailer);
-  const auth = new AuthService(app.env, app.db, tokens, mailer, app.log);
+  const auth = new AuthService(app.env, app.db, tokens, mailer, app.log, new PostgresProfileStore(app.db));
   app.decorate("auth", auth);
   app.decorate("oauth", new OAuthService(app.env, app.db, auth, app.log));
   if (app.env.MAIL_WORKER_ENABLED) mailer.start();

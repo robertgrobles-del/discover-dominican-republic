@@ -5,9 +5,9 @@ import { AppError } from "../../lib/errors.js";
 import { LOCALES } from "../../lib/i18n.js";
 import { pageMeta } from "../../lib/pagination.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
-import { COLLECTIONS } from "../content/collections.js";
-import { cols, hasCol } from "../content/query.js";
-import { audit } from "../operators/team.js";
+import { COLLECTIONS } from "../../contracts/content-collections.js";
+import { contentColumns as cols, hasContentColumn as hasCol } from "../../contracts/content-schema.js";
+import { audit } from "../../lib/audit.js";
 
 const ok = z.object({ data: z.any() });
 const bearer = [{ bearerAuth: [] }];

@@ -7,7 +7,7 @@ on:
   push:
     paths: ["backend/**", ".github/workflows/backend.yml"]
   pull_request:
-    paths: ["backend/**"]
+    paths: ["backend/**", ".github/workflows/backend.yml"]
 
 jobs:
   test:
@@ -37,8 +37,25 @@ jobs:
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
       - run: npm run typecheck
+      - name: Typecheck del servicio autónomo weather
+        run: npm run weather:build
+      - name: Sintaxis y ayuda del migrador propietario weather
+        run: |
+          node --check services/weather/scripts/migrate.mjs
+          node services/weather/scripts/migrate.mjs --help
+          node --check services/weather/scripts/reconcile-snapshots.mjs
+          node services/weather/scripts/reconcile-snapshots.mjs --help
+      - name: Typecheck del servicio autónomo content y lista de tablas al día
+        run: |
+          npm run content:build
+          npm run content:tables:check
+          sh -n services/content/scripts/sync-projection.sh
       - name: Sin dependencias circulares entre módulos
         run: npm run check:cycles
+      - name: Sin regresiones en dependencias entre dominios
+        run: npm run architecture:dependencies
+      - name: Inventario de tablas compartidas entre dominios
+        run: npm run architecture:tables
       - name: La referencia de la API está al día
         run: npm run docs:api -- --check
       - name: El catálogo de capacidades publicado está al día
@@ -78,6 +95,29 @@ jobs:
             --sbom=true --provenance=mode=min \
             --output type=oci,dest="$RUNNER_TEMP/image-oci.tar" \
             .
+      - name: La imagen autónoma weather compila
+        working-directory: backend
+        run: docker buildx build --file services/weather/Dockerfile --tag descubre-weather:ci --load .
+      - name: La imagen autónoma content compila
+        working-directory: backend
+        run: docker buildx build --file services/content/Dockerfile --tag descubre-content:ci --load .
+      - name: Escaneo de vulnerabilidades de la imagen content (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: descubre-content:ci
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: 1
+      - name: Los perfiles de Compose son válidos
+        working-directory: backend
+        run: docker compose --profile weather --profile content --profile content-sync config --quiet
+      - name: Escaneo de vulnerabilidades de la imagen weather (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: descubre-weather:ci
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: 1
       - uses: actions/upload-artifact@v4
         with:
           name: image-oci

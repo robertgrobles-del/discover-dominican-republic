@@ -3,7 +3,7 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
-import { audit, auditInsert } from "../operators/team.js";
+import { audit, auditInsert } from "../../lib/audit.js";
 
 const ROLES = ["admin", "editor", "moderator", "partner", "ambassador", "user"] as const;
 /** Serializa los cambios de roles globales: el conteo de administradores restantes se lee bajo este candado para que dos cambios concurrentes no dejen al sistema sin admin. */
@@ -71,12 +71,11 @@ export async function adminUserRoutes(app: FastifyInstance) {
         const admins = (await c.query<{ n: number }>("SELECT count(*)::int AS n FROM user_roles ur JOIN users u ON u.id = ur.user_id WHERE ur.role = 'admin' AND u.status = 'active'")).rows[0]!.n;
         if (admins <= 1) throw new AppError("BUSINESS_RULE", "No se puede quitar al último administrador", { code: "LAST_ADMIN" });
       }
-      await c.query("DELETE FROM user_roles WHERE user_id = $1", [id]);
-      for (const role of next) await c.query("INSERT INTO user_roles (user_id, role) VALUES ($1, $2::app_role)", [id, role]);
+      await app.identity.replaceRoles(id, next, c);
       await auditInsert(c, { actor: req.user!.id, action: "user.roles_changed", entity: "user", id, meta: { before, after: next }, ip: req.ip });
       // La revocación de sesiones va en la MISMA transacción que el cambio de roles: si el proceso cayera
       // entre el COMMIT y la revocación, el rol quedaría aplicado con sesiones aún válidas (punto 7/8 del plan).
-      await c.query("UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL", [id]);
+      await app.identity.revokeSessions(id, c);
       await c.query("COMMIT");
     } catch (e) { await c.query("ROLLBACK").catch(() => undefined); throw e; } finally { c.release(); }
     return { data: { roles: next } };
@@ -97,12 +96,11 @@ export async function adminUserRoutes(app: FastifyInstance) {
     try {
       await c.query("BEGIN");
       await c.query("SELECT pg_advisory_xact_lock($1)", [ROLES_LOCK]);
-      await c.query("INSERT INTO profiles (id) VALUES ($1) ON CONFLICT DO NOTHING", [id]);
-      await c.query("UPDATE profiles SET is_suspended = true, suspension_reason = $2 WHERE id = $1", [id, req.body.reason]);
+      await app.profiles.setSuspension(id, req.body.reason, c);
       await c.query("UPDATE user_suspensions SET is_active = false WHERE user_id = $1 AND is_active", [id]);
       await c.query("INSERT INTO user_suspensions (user_id, reason, suspended_by, expires_at) VALUES ($1,$2,$3,$4)", [id, req.body.reason, req.user!.id, req.body.expires_at ?? null]);
-      await c.query("UPDATE users SET status = 'suspended' WHERE id = $1 AND status <> 'deleted'", [id]);
-      await c.query("UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL", [id]);
+      await app.identity.setAccountStatus(id, "suspended", c);
+      await app.identity.revokeSessions(id, c);
       await auditInsert(c, { actor: req.user!.id, action: "user.suspended", entity: "user", id, meta: { reason: req.body.reason, expires_at: req.body.expires_at ?? null }, ip: req.ip });
       await c.query("COMMIT");
     } catch (e) { await c.query("ROLLBACK").catch(() => undefined); throw e; } finally { c.release(); }
@@ -118,9 +116,9 @@ export async function adminUserRoutes(app: FastifyInstance) {
     try {
       await c.query("BEGIN");
       await c.query("SELECT pg_advisory_xact_lock($1)", [ROLES_LOCK]);
-      await c.query("UPDATE profiles SET is_suspended = false, suspension_reason = NULL WHERE id = $1", [req.params.id]);
+      await app.profiles.setSuspension(req.params.id, null, c);
       await c.query("UPDATE user_suspensions SET is_active = false WHERE user_id = $1 AND is_active", [req.params.id]);
-      await c.query("UPDATE users SET status = 'active' WHERE id = $1 AND status = 'suspended'", [req.params.id]);
+      await app.identity.setAccountStatus(req.params.id, "active", c);
       await auditInsert(c, { actor: req.user!.id, action: "user.unsuspended", entity: "user", id: req.params.id, ip: req.ip });
       await c.query("COMMIT");
     } catch (e) { await c.query("ROLLBACK").catch(() => undefined); throw e; } finally { c.release(); }

@@ -1,11 +1,11 @@
 import type { FastifyInstance } from "fastify";
-import { addDays, todayInSantoDomingo } from "../operators/domain/dates.js";
-import type { JobRunner } from "../jobs/runner.js";
+import { addDays, todayInSantoDomingo } from "../../lib/dates.js";
+import type { JobRegistrar } from "../../contracts/jobs.js";
 import { isoWeek } from "./service.js";
 import { closeSeason } from "./routes.js";
 
 /** Trabajos de gamificación (docs §9): rachas rotas, ligas semanales y cambio de temporada. */
-export function registerGameJobs(app: FastifyInstance, runner: JobRunner) {
+export function registerGameJobs(app: FastifyInstance, runner: JobRegistrar) {
   const db = app.db;
 
   runner.register({

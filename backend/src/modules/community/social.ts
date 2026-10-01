@@ -3,8 +3,8 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
-import { COLLECTIONS } from "../content/collections.js";
-import { audit } from "../operators/team.js";
+import { COLLECTIONS } from "../../contracts/content-collections.js";
+import { audit } from "../../lib/audit.js";
 import { screenReview } from "./reviews.js";
 
 const POSTS_PER_DAY = 10;

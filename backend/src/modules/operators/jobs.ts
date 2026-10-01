@@ -1,7 +1,7 @@
 import type { Env } from "../../config/env.js";
 import type { Db } from "../../db/pool.js";
-import type { JobRunner } from "../jobs/runner.js";
-import type { Mailer } from "../mailer/mailer.js";
+import type { JobRegistrar } from "../../contracts/jobs.js";
+import type { MailerPort } from "../../contracts/email.js";
 import type { AutomationService } from "./automations.js";
 import { addDays, todayInSantoDomingo } from "./domain/dates.js";
 import type { IcalService } from "./ical.js";
@@ -9,7 +9,7 @@ import type { PayoutService } from "./payouts.js";
 
 const PENDING_PAYMENT_MINUTES = 30;
 
-interface Deps { db: Db; env: Env; mailer: Mailer; runner: JobRunner; automations: AutomationService; ical: IcalService; payouts: PayoutService }
+interface Deps { db: Db; env: Env; mailer: MailerPort; runner: JobRegistrar; automations: AutomationService; ical: IcalService; payouts: PayoutService }
 
 /** Registra los trabajos de Operadores RD (docs §9). Cada uno es idempotente. */
 export function registerOperatorJobs(d: Deps) {
@@ -84,30 +84,4 @@ export function registerOperatorJobs(d: Deps) {
   });
 
   runner.register({ name: "payouts.generate", description: "Lote de liquidaciones a operadores (reservas completadas no liquidadas)", everySeconds: 7 * 86_400, run: async () => d.payouts.generate() });
-
-  // Borrado de cuentas (Ley 172-13): pasado el período de gracia se anonimiza al usuario y se conservan sólo registros que la ley o la contabilidad exigen.
-  runner.register({
-    name: "gdpr.process", description: "Anonimiza cuentas cuya eliminación superó el período de gracia", everySeconds: 86_400,
-    run: async () => {
-      const { rows } = await db.query<{ id: string }>("SELECT p.id FROM profiles p JOIN users u ON u.id = p.id WHERE p.deletion_requested_at < now() - make_interval(days => $1) AND u.status <> 'deleted' LIMIT 100", [30]);
-      for (const { id } of rows) {
-        const c = await db.connect();
-        try {
-          await c.query("BEGIN");
-          await c.query("UPDATE users SET email = 'deleted-' || id || '@invalid.local', password_hash = 'x', status = 'deleted', totp_secret_enc = NULL, totp_enabled_at = NULL, totp_recovery_hashes = '{}', marketing_opt_in = false, updated_at = now() WHERE id = $1", [id]);
-          await c.query("UPDATE profiles SET display_name = NULL, avatar_url = NULL, bio = NULL, travel_interests = NULL, country = NULL, birth_year = NULL, notification_prefs = '{}' WHERE id = $1", [id]);
-          await c.query("DELETE FROM favorites WHERE user_id = $1", [id]);
-          await c.query("DELETE FROM notifications WHERE user_id = $1", [id]);
-          await c.query("DELETE FROM explorer_follows WHERE follower_id = $1 OR following_id = $1", [id]);
-          await c.query("DELETE FROM org_members WHERE user_id = $1", [id]);
-          await c.query("UPDATE refresh_tokens SET revoked_at = coalesce(revoked_at, now()) WHERE user_id = $1", [id]);
-          // Las reservas se conservan (contabilidad) pero dejan de estar ligadas a la cuenta; el contacto se enmascara.
-          await c.query("UPDATE bookings SET user_id = NULL, contact_name = 'Cuenta eliminada', contact_phone = NULL WHERE user_id = $1", [id]);
-          await c.query("UPDATE support_tickets SET user_id = NULL, contact_name = NULL, contact_email = NULL WHERE user_id = $1", [id]);
-          await c.query("COMMIT");
-        } catch (e) { await c.query("ROLLBACK"); throw e; } finally { c.release(); }
-      }
-      return { anonymized: rows.length };
-    },
-  });
 }

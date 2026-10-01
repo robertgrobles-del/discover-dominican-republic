@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { pageMeta } from "../../lib/pagination.js";
-import { audit } from "../operators/team.js";
+import { audit } from "../../lib/audit.js";
 import type { AmbassadorService } from "./service.js";
 
 declare module "fastify" { interface FastifyInstance { ambassadors: AmbassadorService } }

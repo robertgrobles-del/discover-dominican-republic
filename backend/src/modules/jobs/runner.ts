@@ -1,14 +1,9 @@
 import type { FastifyBaseLogger } from "fastify";
+import type { JobRunnerPort, ScheduledJobDefinition } from "../../contracts/jobs.js";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
 
-export interface JobDef {
-  name: string;
-  description: string;
-  /** Frecuencia por defecto; el panel puede cambiarla (queda en `system_cron_jobs.interval_seconds`). */
-  everySeconds: number;
-  run: (ctx: { now: Date; log: FastifyBaseLogger }) => Promise<Record<string, unknown> | void>;
-}
+export type { ScheduledJobDefinition as JobDef } from "../../contracts/jobs.js";
 
 const STALE_MINUTES = 60;
 
@@ -17,14 +12,14 @@ const STALE_MINUTES = 60;
  * y seguro con varias instancias: cada ciclo "reclama" un trabajo vencido con un UPDATE atómico y sólo quien lo reclama lo ejecuta.
  * Un trabajo que quedó "running" más de una hora (proceso caído) se considera huérfano y se reclama de nuevo.
  */
-export class JobRunner {
-  private readonly jobs = new Map<string, JobDef>();
+export class JobRunner implements JobRunnerPort {
+  private readonly jobs = new Map<string, ScheduledJobDefinition>();
   private timer: NodeJS.Timeout | null = null;
   private ticking: Promise<void> | null = null;
 
   constructor(private readonly db: Db, private readonly log: FastifyBaseLogger) {}
 
-  register(job: JobDef) { this.jobs.set(job.name, job); }
+  register(job: ScheduledJobDefinition) { this.jobs.set(job.name, job); }
   get names() { return [...this.jobs.keys()]; }
 
   /** Crea la fila de cada trabajo registrado (sin pisar la frecuencia ni el estado "activo" que el panel haya cambiado). */

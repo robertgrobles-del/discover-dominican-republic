@@ -16,6 +16,121 @@ services:
       timeout: 3s
       retries: 10
 
+  # Perfil local del piloto. Usa base, volumen y puertos independientes de los del monolito.
+  # Actívalo con `docker compose --profile weather up -d weather-postgres weather`.
+  weather-postgres:
+    profiles: ["weather"]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: weather
+      POSTGRES_PASSWORD: weather
+      POSTGRES_DB: descubre_weather
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports: ["127.0.0.1:5435:5432"]
+    volumes: ["weatherdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U weather -d descubre_weather"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Aplica el SQL versionado del servicio y termina. `weather` no arranca hasta que este paso acaba bien.
+  weather-migrate:
+    profiles: ["weather"]
+    build: &weather-build
+      context: .
+      dockerfile: services/weather/Dockerfile
+    image: descubre-weather:local
+    depends_on:
+      weather-postgres:
+        condition: service_healthy
+    environment:
+      - WEATHER_DATABASE_URL=postgres://weather:weather@weather-postgres:5432/descubre_weather
+    command: ["node", "services/weather/scripts/migrate.mjs"]
+    restart: "no"
+    <<: &hardened
+      read_only: true
+      tmpfs: ["/tmp"]
+      cap_drop: ["ALL"]
+      security_opt: ["no-new-privileges:true"]
+
+  # WEATHER_SERVICE_TOKEN (>=32 caracteres) va en backend/.env; sin él el proceso se niega a arrancar.
+  weather:
+    profiles: ["weather"]
+    build: *weather-build
+    image: descubre-weather:local
+    depends_on:
+      weather-postgres:
+        condition: service_healthy
+      weather-migrate:
+        condition: service_completed_successfully
+    environment:
+      - WEATHER_DATABASE_URL=postgres://weather:weather@weather-postgres:5432/descubre_weather
+      - WEATHER_SERVICE_TOKEN=${WEATHER_SERVICE_TOKEN:-}
+      - WEATHER_PROVIDER=${WEATHER_PROVIDER:-none}
+      - WEATHER_REFRESH_ENABLED=${WEATHER_REFRESH_ENABLED:-false}
+      - WEATHER_REFRESH_INTERVAL_SECONDS=${WEATHER_REFRESH_INTERVAL_SECONDS:-1800}
+      - DOCS_ENABLED=${WEATHER_DOCS_ENABLED:-false}
+      - OPENWEATHER_API_KEY
+    ports: ["127.0.0.1:3001:3001"]
+    restart: unless-stopped
+    <<: *hardened
+
+  # Servicio de contenido: base, volumen y puertos propios. Su base es una proyección de lectura que
+  # llena `content-sync`; el monolito sigue siendo el único escritor del catálogo.
+  # 1) docker compose --profile content up -d content-postgres
+  # 2) docker compose --profile content-sync run --rm content-sync --apply
+  # 3) docker compose --profile content up -d content
+  content-postgres:
+    profiles: ["content", "content-sync"]
+    image: ${CONTENT_PG_IMAGE:-postgres:16-alpine}
+    environment:
+      POSTGRES_USER: content
+      POSTGRES_PASSWORD: content
+      POSTGRES_DB: descubre_content
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports: ["127.0.0.1:5438:5432"]
+    volumes: ["contentdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U content -d descubre_content"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # One-shot: reconstruye la proyección desde la base del monolito y compara conteos por tabla.
+  # Sin `--apply` sólo inspecciona. El origen por omisión es el servicio `postgres` de este archivo;
+  # para el PostgreSQL embebido del host usa host.docker.internal:5434 y CONTENT_PG_IMAGE=postgres:18-alpine.
+  content-sync:
+    profiles: ["content-sync"]
+    image: ${CONTENT_PG_IMAGE:-postgres:16-alpine}
+    depends_on:
+      content-postgres:
+        condition: service_healthy
+    environment:
+      - CONTENT_SOURCE_DATABASE_URL=${CONTENT_SOURCE_DATABASE_URL:-postgres://postgres:postgres@postgres:5432/descubre_rd}
+      - CONTENT_DATABASE_URL=postgres://content:content@content-postgres:5432/descubre_content
+      - CONTENT_SYNC_CONFIRM_DATABASE=descubre_content
+    volumes: ["./services/content:/sync:ro"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    entrypoint: ["sh", "/sync/scripts/sync-projection.sh"]
+    restart: "no"
+
+  content:
+    profiles: ["content"]
+    build:
+      context: .
+      dockerfile: services/content/Dockerfile
+    image: descubre-content:local
+    depends_on:
+      content-postgres:
+        condition: service_healthy
+    environment:
+      - CONTENT_DATABASE_URL=postgres://content:content@content-postgres:5432/descubre_content
+      - CONTENT_SERVICE_TOKEN=${CONTENT_SERVICE_TOKEN:-}
+    ports: ["127.0.0.1:3002:3002"]
+    restart: unless-stopped
+    <<: *hardened
+
   redis:
     image: redis:7-alpine
     ports: ["6380:6379"]
@@ -45,3 +160,5 @@ services:
 
 volumes:
   pgdata:
+  weatherdata:
+  contentdata:

@@ -3,9 +3,8 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
-import { refreshEntityRating, screenReview } from "../community/reviews.js";
-import { deleteFiles } from "../media/routes.js";
-import { audit } from "../operators/team.js";
+import type { ModerationOutcome, ModerationPorts } from "../../contracts/moderation.js";
+import { audit } from "../../lib/audit.js";
 
 const ok = z.object({ data: z.any() });
 const paged = z.object({ data: z.any(), meta: z.any() });
@@ -19,7 +18,7 @@ type Action = (typeof ACTIONS)[number];
 interface Item { type: Type; id: string; author_id: string | null; author_name: string | null; excerpt: string | null; reports: number; auto_flags: string[]; created_at: Date }
 
 /** Moderación unificada (docs §5.17): una cola para reseñas, publicaciones, fotos y reportes, con la misma acción y aviso al autor. */
-export async function adminModerationRoutes(app: FastifyInstance) {
+export async function adminModerationRoutes(app: FastifyInstance, { screenReview, decide, closeReport }: ModerationPorts) {
   const r = app.withTypeProvider<ZodTypeProvider>();
   const db = app.db;
   const mod = app.requireRole("admin", "moderator"), admin = app.requireRole("admin");
@@ -74,81 +73,13 @@ export async function adminModerationRoutes(app: FastifyInstance) {
     return { data: merged, meta: { totals, total: Object.values(totals).reduce((s, n) => s + n, 0) } };
   });
 
-  /** Aplica la acción y devuelve a quién avisar. Cada tipo conserva sus reglas propias (XP, calificaciones, archivos). */
-  const apply = async (type: Type, id: string, action: Action, reason: string | undefined, actor: string): Promise<{ authorId: string | null; label: string }> => {
-    const bad = (m: string): never => { throw new AppError("BUSINESS_RULE", m, { code: "ACTION_NOT_APPLICABLE" }); };
-    switch (type) {
-      case "review": {
-        const rev = (await db.query<{ user_id: string; entity_type: string; entity_id: string }>("SELECT user_id, entity_type, entity_id FROM reviews WHERE id = $1", [id])).rows[0];
-        if (!rev) throw AppError.notFound("Reseña");
-        const approve = action === "approve";
-        await db.query("UPDATE reviews SET status = $2, is_approved = $3, moderation_note = $4, report_count = CASE WHEN $3 THEN 0 ELSE report_count END WHERE id = $1", [id, approve ? "approved" : "rejected", approve, approve ? null : reason ?? null]);
-        if (approve) await db.query("DELETE FROM review_reports WHERE review_id = $1", [id]);
-        await refreshEntityRating(db, rev.entity_type, rev.entity_id);
-        if (approve) await app.game.safeGrant({ userId: rev.user_id, action: "review_created", ref: id, description: "Reseña aprobada" }, app.log);
-        return { authorId: rev.user_id, label: "tu reseña" };
-      }
-      case "post": {
-        const post = (await db.query<{ user_id: string }>("SELECT user_id FROM social_posts WHERE id = $1 AND deleted_at IS NULL", [id])).rows[0];
-        if (!post) throw AppError.notFound("Publicación");
-        const approve = action === "approve";
-        await db.query("UPDATE social_posts SET is_active = $2, report_count = CASE WHEN $2 THEN 0 ELSE report_count END WHERE id = $1", [id, approve]);
-        return { authorId: post.user_id, label: "tu publicación" };
-      }
-      case "comment": {
-        if (action === "approve") bad("Un comentario sólo se puede retirar");
-        const c = (await db.query<{ user_id: string; post_id: string }>("DELETE FROM social_comments WHERE id = $1 RETURNING user_id, post_id", [id])).rows[0];
-        if (!c) throw AppError.notFound("Comentario");
-        await db.query("UPDATE social_posts SET comments_count = GREATEST(0, comments_count - 1) WHERE id = $1", [c.post_id]);
-        return { authorId: c.user_id, label: "tu comentario" };
-      }
-      case "media": {
-        const m = (await db.query<{ owner_id: string | null; status: string; storage_key: string | null; variants: unknown }>("SELECT owner_id, status, storage_key, variants FROM media_assets WHERE id = $1", [id])).rows[0];
-        if (!m) throw AppError.notFound("Archivo");
-        if (action === "approve") {
-          if (m.status !== "in_review") bad("Sólo se aprueban las imágenes en revisión");
-          await db.query("UPDATE media_assets SET status = 'ready', moderation_note = NULL WHERE id = $1", [id]);
-        } else {
-          await deleteFiles(app.mediaStorage, m.storage_key, m.variants);
-          await db.query("UPDATE media_assets SET status = 'rejected', moderation_note = $2 WHERE id = $1", [id, reason ?? null]);
-        }
-        return { authorId: m.owner_id, label: "tu foto" };
-      }
-      case "ugc_media": {
-        const m = (await db.query<{ user_id: string }>("UPDATE ugc_media SET status = $2 WHERE id = $1 RETURNING user_id", [id, action === "approve" ? "approved" : "rejected"])).rows[0];
-        if (!m) throw AppError.notFound("Medio");
-        return { authorId: m.user_id, label: "tu contenido" };
-      }
-      case "photo_submission": {
-        const s = (await db.query<{ user_id: string }>("SELECT user_id FROM photo_submissions WHERE id = $1", [id])).rows[0];
-        if (!s) throw AppError.notFound("Foto");
-        await app.community.moderate(id, action === "approve" ? "approve" : "reject", reason);
-        return { authorId: s.user_id, label: "tu foto del reto" };
-      }
-      case "report": {
-        const rp = (await db.query<{ user_id: string | null }>("UPDATE ugc_reports SET status = $2 WHERE id = $1 RETURNING user_id", [id, action === "reject" ? "ignorado" : "revisado"])).rows[0];
-        if (!rp) throw AppError.notFound("Reporte");
-        return { authorId: rp.user_id, label: "tu reporte" };
-      }
-      // Punto 44: aprobar publica, rechazar deja el motivo y retirar archiva. La regla que motivó la
-      // decisión y quién/cuándo la tomó quedan en la publicación para que el creador pueda apelarla.
-      case "creator_video": {
-        const v = (await db.query<{ creator_id: string; status: string }>("SELECT creator_id, status FROM creator_videos WHERE id = $1", [id])).rows[0];
-        if (!v) throw AppError.notFound("Publicación de creador");
-        const status = action === "approve" ? "published" : action === "reject" ? "rejected" : "archived";
-        const rule = `manual_${action}`;
-        await db.query(
-          `UPDATE creator_videos
-              SET status = $2,
-                  review_notes = CASE WHEN $2 = 'published' THEN NULL WHEN $3::text IS NOT NULL THEN $3 ELSE review_notes END,
-                  moderation_rule = $4, moderated_at = now(), moderated_by = $5, updated_at = now()
-            WHERE id = $1`,
-          [id, status, reason ?? null, rule, actor],
-        );
-        return { authorId: v.creator_id, label: "tu video" };
-      }
-    }
-    void actor;
+  /** Aplica la acción en el dominio dueño del contenido y devuelve a quién avisar. */
+  const apply = async (type: Type, id: string, action: Action, reason: string | undefined, actor: string): Promise<ModerationOutcome> => {
+    if (type !== "photo_submission") return decide[type](id, action, reason, actor);
+    const s = (await db.query<{ user_id: string }>("SELECT user_id FROM photo_submissions WHERE id = $1", [id])).rows[0];
+    if (!s) throw AppError.notFound("Foto");
+    await app.community.moderate(id, action === "approve" ? "approve" : "reject", reason);
+    return { authorId: s.user_id, label: "tu foto del reto" };
   };
 
   r.post("/admin/moderation/:type/:id/:action", {
@@ -219,7 +150,7 @@ export async function adminModerationRoutes(app: FastifyInstance) {
     onRequest: mod,
     schema: { tags: tag, summary: "Cierra un reporte como revisado o ignorado", security: bearer, params: z.object({ id: z.string().uuid() }), body: z.object({ status: z.enum(["revisado", "ignorado"]), note: z.string().trim().max(300).optional() }), response: { 200: ok } },
   }, async (req) => {
-    const rp = (await db.query<{ user_id: string | null }>("UPDATE ugc_reports SET status = $2 WHERE id = $1 RETURNING user_id", [req.params.id, req.body.status])).rows[0];
+    const rp = await closeReport(req.params.id, req.body.status);
     if (!rp) throw AppError.notFound("Reporte");
     await app.notifications.notify(rp.user_id, { type: "system", title: "Revisamos tu reporte", message: "Gracias por ayudarnos a cuidar la comunidad.", data: { report_id: req.params.id } });
     await audit(db, { actor: req.user!.id, action: "moderation.report_closed", entity: "ugc_report", id: req.params.id, meta: { status: req.body.status, note: req.body.note }, ip: req.ip });

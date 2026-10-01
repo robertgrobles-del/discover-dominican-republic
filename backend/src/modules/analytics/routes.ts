@@ -4,11 +4,11 @@ import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
-import { COLLECTIONS } from "../content/collections.js";
-import { hasCol } from "../content/query.js";
-import type { JobRunner } from "../jobs/runner.js";
-import { addDays, todayInSantoDomingo } from "../operators/domain/dates.js";
-import { audit } from "../operators/team.js";
+import { COLLECTIONS } from "../../contracts/content-collections.js";
+import { hasContentColumn as hasCol } from "../../contracts/content-schema.js";
+import type { JobRegistrar } from "../../contracts/jobs.js";
+import { addDays, todayInSantoDomingo } from "../../lib/dates.js";
+import { audit } from "../../lib/audit.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
 
 const RETENTION_MONTHS = 13;
@@ -381,7 +381,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
 }
 
 /** Retención (docs §14/§9): agrega por día lo que sale de la ventana de 13 meses y borra los eventos crudos ya agregados. */
-export function registerAnalyticsJobs(app: FastifyInstance, runner: JobRunner) {
+export function registerAnalyticsJobs(app: FastifyInstance, runner: JobRegistrar) {
   runner.register({
     name: "analytics.flush_queue", description: "Vacía en lotes la cola Redis de eventos de analítica hacia PostgreSQL (Fase 9.1; no hace nada si no hay Redis)", everySeconds: 30,
     run: async () => {

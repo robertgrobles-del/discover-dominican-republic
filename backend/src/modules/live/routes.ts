@@ -3,10 +3,9 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
-import { tableAdminRoutes, type TableCfg } from "../admin/tables.js";
-import type { JobRunner } from "../jobs/runner.js";
-import { audit } from "../operators/team.js";
-import { FX_CURRENCIES, TIME_ZONES, WEATHER_LOCATIONS, LiveService } from "./service.js";
+import { tableAdminRoutes, type TableCfg } from "../../lib/table-admin.js";
+import { audit } from "../../lib/audit.js";
+import { FX_CURRENCIES, TIME_ZONES, LiveService } from "./service.js";
 
 declare module "fastify" { interface FastifyInstance { live: LiveService } }
 
@@ -24,13 +23,15 @@ const LIVE_TABLES: TableCfg[] = [
   { table: "lottery_draws", pk: "id", readonly: ["id", "created_at", "updated_at"], order: "name", label: "Sorteos" },
   { table: "lottery_results", pk: "id", readonly: ["id", "created_at", "updated_at"], order: "draw_date DESC", label: "Resultados de lotería" },
   { table: "weather_alerts", pk: "id", readonly: ["id", "created_at"], order: "created_at DESC", label: "Alertas meteorológicas" },
-  { table: "weather_snapshots", pk: "id", readonly: ["id", "updated_at"], order: "location_name", label: "Clima por ciudad" },
   { table: "marine_reports", pk: "id", readonly: ["id", "created_at", "updated_at"], order: "created_at DESC", label: "Reportes marinos" },
   { table: "webcams", pk: "id", readonly: ["id", "created_at"], order: "sort_order, name", label: "Webcams" },
 ];
 
 /** Datos vivos y utilidades (docs §5.5). */
-export async function liveRoutes(app: FastifyInstance) {
+export async function liveRoutes(app: FastifyInstance, deps: {
+  runRefreshJob(source: "fx" | "weather", requestId: string, actorId: string): Promise<unknown>;
+  eventsNow(): Promise<unknown[]>;
+}) {
   const r = app.withTypeProvider<ZodTypeProvider>();
   const live = app.live;
   const db = app.db;
@@ -52,8 +53,6 @@ export async function liveRoutes(app: FastifyInstance) {
   r.get("/lotteries/:id", { schema: { tags: tag, summary: "Ficha de una lotería con sus últimos resultados", params: z.object({ id: uuid }), response: { 200: ok } } }, async (req, reply) => pub(reply, { data: await live.lottery(req.params.id) }, "public, max-age=120"));
   r.get("/live/lottery/results", { schema: { tags: tag, summary: "Resultados por lotería o sorteo y rango de fechas", querystring: z.object({ game: uuid.optional(), from: date.optional(), to: date.optional(), limit: z.coerce.number().int().min(1).max(200).default(50) }), response: { 200: ok } } }, async (req, reply) => pub(reply, { data: await live.lotteryResults(req.query) }, "public, max-age=120"));
 
-  r.get("/live/weather", { schema: { tags: tag, summary: "Clima actual de una ciudad o de todas", querystring: z.object({ province: z.enum(WEATHER_LOCATIONS.map((l) => l.slug) as [string, ...string[]]).optional() }), response: { 200: ok } } }, async (req, reply) => pub(reply, { data: await live.weather(req.query.province) }, "public, max-age=300"));
-  r.get("/live/weather/forecast", { schema: { tags: tag, summary: "Pronóstico de una ciudad", querystring: z.object({ province: z.enum(WEATHER_LOCATIONS.map((l) => l.slug) as [string, ...string[]]), days: z.coerce.number().int().min(1).max(7).default(5) }), response: { 200: ok } } }, async (req, reply) => pub(reply, { data: await live.forecast(req.query.province, req.query.days) }, "public, max-age=300"));
   r.get("/live/weather/alerts", { schema: { tags: tag, summary: "Alertas meteorológicas vigentes", response: { 200: ok } } }, async (_q, reply) => pub(reply, { data: await live.alerts() }, "public, max-age=60"));
   r.get("/live/beach-status", { schema: { tags: tag, summary: "Estado del mar por localidad y alertas de oleaje o sargazo", response: { 200: ok } } }, async (_q, reply) => pub(reply, { data: await live.beachStatus() }, "public, max-age=120"));
   r.get("/live/marine-reports", { schema: { tags: tag, summary: "Reportes marinos recientes", querystring: z.object({ location: z.string().max(100).optional(), limit: z.coerce.number().int().min(1).max(100).default(30) }), response: { 200: ok } } }, async (req, reply) =>
@@ -71,21 +70,15 @@ export async function liveRoutes(app: FastifyInstance) {
     } catch (e) { if ((e as { code?: string }).code === "23514") throw AppError.validation("La calificación no es válida"); throw e; }
   });
   r.get("/live/webcams", { schema: { tags: tag, summary: "Webcams", response: { 200: ok } } }, async (_q, reply) => pub(reply, { data: (await db.query("SELECT id, name, location, province, stream_url, thumbnail_url FROM webcams WHERE is_active ORDER BY sort_order, name")).rows }, "public, max-age=600"));
-  r.get("/live/events-now", { schema: { tags: tag, summary: "Eventos que ocurren hoy", response: { 200: ok } } }, async (_q, reply) => pub(reply, { data: await live.eventsNow() }, "public, max-age=120"));
+  r.get("/live/events-now", { schema: { tags: tag, summary: "Eventos que ocurren hoy", response: { 200: ok } } }, async (_q, reply) => pub(reply, { data: await deps.eventsNow() }, "public, max-age=120"));
   r.get("/live/time-zones", { schema: { tags: tag, summary: "Zonas horarias frecuentes de los visitantes", response: { 200: ok } } }, async (_q, reply) => pub(reply, { data: TIME_ZONES }, "public, max-age=86400"));
-  r.get("/live/locations", { schema: { tags: tag, summary: "Ciudades con clima", response: { 200: ok } } }, async (_q, reply) => pub(reply, { data: WEATHER_LOCATIONS.map(({ slug, name }) => ({ slug, name })) }, "public, max-age=86400"));
 
   // ---------- Administración ----------
   await tableAdminRoutes(app, LIVE_TABLES, ["admin", "editor"]);
   r.post("/admin/live/refresh", { onRequest: app.requireRole("admin"), schema: { tags: ["admin"], summary: "Actualiza ahora tasas o clima desde el proveedor configurado", security: bearer, querystring: z.object({ source: z.enum(["fx", "weather"]) }), response: { 200: ok } } }, async (req) => {
-    const res = await app.jobs.runNow(req.query.source === "fx" ? "fx.refresh" : "weather.refresh", { requestId: req.id });
+    if (req.query.source === "weather" && app.env.WEATHER_WRITES_FROZEN) throw new AppError("SERVICE_UNAVAILABLE", "El refresh meteorológico está temporalmente congelado por migración");
+    const res = await deps.runRefreshJob(req.query.source, req.id, req.user!.id);
     await audit(db, { actor: req.user!.id, action: "live.refresh", entity: "live", id: req.query.source, ip: req.ip });
     return { data: res };
   });
-}
-
-/** Trabajos de datos vivos (docs §9). Sin proveedor configurado no hacen nada. */
-export function registerLiveJobs(app: FastifyInstance, runner: JobRunner) {
-  runner.register({ name: "fx.refresh", description: "Tasas de cambio desde el proveedor (cada 30 min)", everySeconds: 1800, run: async () => ({ ...(await app.live.refreshRates()) }) });
-  runner.register({ name: "weather.refresh", description: "Clima y pronóstico de las ciudades principales (cada 30 min)", everySeconds: 1800, run: async () => ({ ...(await app.live.refreshWeather()) }) });
 }

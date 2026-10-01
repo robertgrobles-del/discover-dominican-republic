@@ -1,11 +1,10 @@
 import type { PoolClient } from "pg";
 import type { Db } from "../../db/pool.js";
+import type { CreatedNotification, NotificationInput } from "../../contracts/notifications.js";
 
-export const NOTIFICATION_TYPES = ["booking", "promo", "social", "system", "gamification"] as const;
-export const CHANNELS = ["email", "push", "in_app"] as const;
-export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
-export interface NotificationInput { type: NotificationType; title: string; message?: string | null; link?: string | null; data?: Record<string, unknown> | null }
-export interface CreatedNotification { id: string; user_id: string; type: string; title: string; message: string | null; link: string | null; created_at: string }
+// Reexport temporal: los módulos vecinos aún pueden migrar imports sin alterar la API interna.
+export { CHANNELS, NOTIFICATION_TYPES } from "../../contracts/notifications.js";
+export type { CreatedNotification, NotificationInput, NotificationType, NotifyFn } from "../../contracts/notifications.js";
 
 /**
  * Crea la notificación en la bandeja si la persona no la desactivó (lo no configurado está activado, salvo las promociones) y avisa a las
@@ -25,6 +24,3 @@ export async function insertNotification(c: Db | PoolClient, userId: string, n: 
   await c.query("SELECT pg_notify('notif', $1)", [JSON.stringify({ ...row, message: row.message?.slice(0, 500) ?? null })]);
   return row;
 }
-
-/** Función que otros módulos reciben para avisar a alguien sin conocer el servicio de notificaciones (nunca lanza). */
-export type NotifyFn = (userId: string | null | undefined, n: NotificationInput) => Promise<void>;

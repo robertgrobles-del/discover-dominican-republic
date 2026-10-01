@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { AppError } from "../../lib/errors.js";
-import { tableAdminRoutes, type TableCfg } from "../admin/tables.js";
+import { tableAdminRoutes, type TableCfg } from "../../lib/table-admin.js";
 
 const CONFIGS: TableCfg[] = [
   { table: "achievements", pk: "id", readonly: ["id", "created_at", "updated_at", "total_unlocked"], order: "display_order, name", label: "Logros" },

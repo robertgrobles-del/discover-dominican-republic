@@ -4,11 +4,11 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
-import { tableAdminRoutes, type TableCfg } from "../admin/tables.js";
-import { unsubscribeToken } from "../forms/routes.js";
-import type { JobRunner } from "../jobs/runner.js";
-import { todayInSantoDomingo } from "../operators/domain/dates.js";
-import { audit } from "../operators/team.js";
+import { tableAdminRoutes, type TableCfg } from "../../lib/table-admin.js";
+import { unsubscribeToken } from "../../lib/unsubscribe-token.js";
+import type { JobRegistrar } from "../../contracts/jobs.js";
+import { todayInSantoDomingo } from "../../lib/dates.js";
+import { audit } from "../../lib/audit.js";
 
 const ok = z.object({ data: z.any() });
 const bearer = [{ bearerAuth: [] }];
@@ -108,9 +108,9 @@ export async function marketingRoutes(app: FastifyInstance) {
     const b = req.body;
     reply.code(202);
     if (b.website) return { data: { received: true } };
-    await db.query("INSERT INTO marketing_leads (nombre, email, telefono, empresa, mensaje, source, interest, consent) VALUES ($1,$2,$3,$4,$5,'advertiser',$6,true)", [b.contact_name, b.email, b.phone ?? null, b.company, b.message, b.budget ?? null]);
-    const t = (await db.query<{ id: string }>("INSERT INTO support_tickets (subject, description, category, contact_name, contact_email) VALUES ($1,$2,'advertising',$3,$4) RETURNING id", [`Publicidad: ${b.company}`, b.message, b.contact_name, b.email])).rows[0]!;
-    await app.mailer.send({ to: b.email, template: "support.received", locale: "es", data: { name: b.contact_name.split(" ")[0]!, reference: t.id.slice(0, 8).toUpperCase(), subject: `Publicidad: ${b.company}` } });
+    await app.leads.capture({ name: b.contact_name, email: b.email, phone: b.phone, company: b.company, message: b.message, source: "advertiser", interest: b.budget });
+    const ticketId = await app.supportIntake.openTicket({ subject: `Publicidad: ${b.company}`, description: b.message, category: "advertising", contactName: b.contact_name, contactEmail: b.email });
+    await app.mailer.send({ to: b.email, template: "support.received", locale: "es", data: { name: b.contact_name.split(" ")[0]!, reference: ticketId.slice(0, 8).toUpperCase(), subject: `Publicidad: ${b.company}` } });
     return { data: { received: true } };
   });
 
@@ -229,7 +229,7 @@ export async function sendCampaigns(app: FastifyInstance): Promise<number> {
   return sent;
 }
 
-export function registerMarketingJobs(app: FastifyInstance, runner: JobRunner) {
+export function registerMarketingJobs(app: FastifyInstance, runner: JobRegistrar) {
   runner.register({ name: "newsletter.send", description: "Envía las campañas programadas a los suscriptores confirmados (por lotes, sin duplicar)", everySeconds: 300, run: async () => ({ sent: await sendCampaigns(app) }) });
   runner.register({ name: "ads.cleanup", description: "Borra marcas de deduplicación de anuncios de más de 3 días", everySeconds: 86_400, run: async () => ({ deleted: (await app.db.query("DELETE FROM ad_seen WHERE hour < now() - interval '3 days'")).rowCount }) });
 }

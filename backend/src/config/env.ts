@@ -77,6 +77,14 @@ const schema = z.object({
   FX_SPREAD_PCT: z.coerce.number().min(0).max(10).default(1),
   WEATHER_PROVIDER: z.enum(["none", "openweather"]).default("none"),
   OPENWEATHER_API_KEY: z.string().min(10).optional(),
+  /** Ventana de corte: bloquea escrituras/refresh del clima en el facade hasta que el proxy al dueño nuevo esté listo. */
+  WEATHER_WRITES_FROZEN: bool.default(false),
+  /** Facade → servicio weather; ambos procesos comparten WEATHER_SERVICE_TOKEN para firmar comandos internos breves. */
+  WEATHER_SERVICE_URL: z.string().url().optional(),
+  WEATHER_SERVICE_TOKEN: z.string().min(32).optional(),
+  /** Facade → servicio content: las lecturas de catálogo de otros dominios salen por HTTP en vez de la base compartida. */
+  CONTENT_SERVICE_URL: z.string().url().optional(),
+  CONTENT_SERVICE_TOKEN: z.string().min(32).optional(),
   /** Carpeta de las imágenes subidas (almacenamiento local). Con varios servidores se usa un almacenamiento compartido (S3). */
   MEDIA_DIR: z.string().default("storage/media"),
   /** Dónde viven los archivos subidos: local (disco; un solo servidor) | s3 (S3, MinIO, R2, Spaces…; varios servidores). */
@@ -150,6 +158,10 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   if (env.MEDIA_STORAGE === "s3" && (!env.S3_BUCKET || !env.S3_ACCESS_KEY_ID || !env.S3_SECRET_ACCESS_KEY)) throw new Error("Configuración inválida: MEDIA_STORAGE=s3 requiere S3_BUCKET, S3_ACCESS_KEY_ID y S3_SECRET_ACCESS_KEY");
   if (env.PAYMENT_PROVIDER === "stripe" && (!env.STRIPE_SECRET_KEY || !env.STRIPE_WEBHOOK_SECRET)) throw new Error("Configuración inválida: PAYMENT_PROVIDER=stripe requiere STRIPE_SECRET_KEY y STRIPE_WEBHOOK_SECRET");
   if (env.WEATHER_PROVIDER === "openweather" && !env.OPENWEATHER_API_KEY) throw new Error("Configuración inválida: WEATHER_PROVIDER=openweather requiere OPENWEATHER_API_KEY");
+  if (!!env.WEATHER_SERVICE_URL !== !!env.WEATHER_SERVICE_TOKEN) throw new Error("Configuración inválida: WEATHER_SERVICE_URL y WEATHER_SERVICE_TOKEN deben configurarse juntos");
+  if (env.NODE_ENV === "production" && env.WEATHER_SERVICE_URL && new URL(env.WEATHER_SERVICE_URL).protocol !== "https:") throw new Error("Configuración inválida: WEATHER_SERVICE_URL debe usar HTTPS en producción");
+  if (!!env.CONTENT_SERVICE_URL !== !!env.CONTENT_SERVICE_TOKEN) throw new Error("Configuración inválida: CONTENT_SERVICE_URL y CONTENT_SERVICE_TOKEN deben configurarse juntos");
+  if (env.NODE_ENV === "production" && env.CONTENT_SERVICE_URL && new URL(env.CONTENT_SERVICE_URL).protocol !== "https:") throw new Error("Configuración inválida: CONTENT_SERVICE_URL debe usar HTTPS en producción");
   if (env.TOTP_ENCRYPTION_KEY && Buffer.from(env.TOTP_ENCRYPTION_KEY, "base64").length !== 32) throw new Error("Configuración inválida: TOTP_ENCRYPTION_KEY debe ser de 32 bytes en base64");
   if (!!env.OAUTH_GOOGLE_CLIENT_ID !== !!env.OAUTH_GOOGLE_CLIENT_SECRET) throw new Error("Configuración inválida: OAUTH_GOOGLE_CLIENT_ID y OAUTH_GOOGLE_CLIENT_SECRET van juntos");
   if (env.RATE_LIMIT_STORE === "redis" && !env.REDIS_URL) throw new Error("Configuración inválida: RATE_LIMIT_STORE=redis requiere REDIS_URL");

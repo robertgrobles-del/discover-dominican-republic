@@ -14,7 +14,7 @@ const makeCreatorRow = (overrides: Record<string, unknown> = {}) => ({
   avatar_url: null,
   cover_url: null,
   tier: "emerging",
-  status: "active",
+  status: "approved",
   commission_rate: 8,
   total_views: 0,
   total_earnings: 0,
@@ -82,7 +82,7 @@ describe("CreatorService — Modulo de Creadores UGC (Fase 3B)", () => {
         display_name: "Discovery RD",
         bio: "Turismo visual",
       });
-      expect(result).toMatchObject({ handle: "discoveryrd", tier: "emerging", status: "active" });
+      expect(result).toMatchObject({ handle: "discoveryrd", tier: "emerging", status: "approved" });
     });
 
     it("normaliza el handle eliminando @ inicial y convierte a minusculas", async () => {
@@ -122,7 +122,7 @@ describe("CreatorService — Modulo de Creadores UGC (Fase 3B)", () => {
       const db: any = { query: async () => ({ rows: [row] }) };
       const svc = new CreatorService(db);
       const profile = await svc.getProfile("discoveryrd");
-      expect(profile).toMatchObject({ handle: "discoveryrd", status: "active" });
+      expect(profile).toMatchObject({ handle: "discoveryrd", status: "approved" });
     });
 
     it("retorna null si el creador no existe o no esta activo", async () => {

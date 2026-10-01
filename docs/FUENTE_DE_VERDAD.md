@@ -5,7 +5,8 @@ Cuando dos sistemas tienen el mismo dato, manda el que figura aquí; el resto es
 
 ## Regla general
 
-- **`backend/` (Fastify 5 + PostgreSQL 16) es la fuente de verdad de todos los dominios transaccionales** y del contenido editorial (CMS integrado en `src/modules/content` + paneles de `src/modules/admin`).
+- **Estado actual:** `backend/` (Fastify 5 + PostgreSQL 16) es la fuente de verdad de los dominios transaccionales y del contenido editorial. Hoy se despliega como monolito modular.
+- **Arquitectura objetivo:** extraer los dominios a microservicios con propiedad de datos independiente detrás de una entrada API/gateway estable. Hasta que una extracción cumpla sus criterios de salida, el módulo de `backend/` sigue siendo autoritativo para ese dominio. El plan está en [`ARQUITECTURA_MICROSERVICIOS.md`](ARQUITECTURA_MICROSERVICIOS.md).
 - El frontend nunca decide precios, estados de pago, roles, monedas ni premios: los recalcula el servidor (AGENTS.md).
 - `docs/BACKEND_API.md` (generado con `npm run docs:api`) es el contrato público; el CI bloquea su drift (`docs:api -- --check`).
 
@@ -21,7 +22,7 @@ Cuando dos sistemas tienen el mismo dato, manda el que figura aquí; el resto es
 | Membresías y facturación | `backend/src/modules/memberships` + `billing` | Activo |
 | Correo transaccional y notificaciones | `backend/src/modules/mailer` (cola durable, outbox transaccional) + `notifications` | Activo |
 | Analítica, marketing y publicidad | `backend/src/modules/analytics` + `marketing` | Activo |
-| Contenido editorial (colecciones CMS, textos, SEO, traducciones) | `backend/src/modules/content` + `admin` (CMS integrado) | Activo en el backend; el frontend aún lee de Strapi (ver abajo) |
+| Contenido editorial (colecciones CMS, textos, SEO, traducciones) | `backend/src/modules/content` + `admin` (CMS integrado actual) | Activo en el backend; candidato para extracción como servicio de contenido; el frontend aún lee de Strapi (ver abajo) |
 | Archivos y medios | `backend/src/modules/media` (almacenamiento propio) | Activo |
 | Datos vivos (clima, tasas de cambio) | `backend/src/modules/live` (caché local, proveedor externo sólo origen) | Activo |
 | Mi viaje, e-tickets, favoritos | `backend/src/modules/me` + `trips` | Activo; el frontend consume el mock hasta cerrar la migración |

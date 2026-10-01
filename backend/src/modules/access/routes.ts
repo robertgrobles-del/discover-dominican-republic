@@ -105,7 +105,7 @@ export async function accessRoutes(app: FastifyInstance, opts: CatalogRoutesOpti
         add(getCapability("org.challenges_manage"), "membresía de organización");
       }
     }
-    if (creator?.status === "active") add(getCapability("creator.studio"), "perfil de creador aprobado");
+    if (creator?.status === "approved") add(getCapability("creator.studio"), "perfil de creador aprobado");
     if (ambassador?.status === "approved") add(getCapability("ambassador.program"), "afiliación aprobada");
 
     const spaceContext: Record<string, unknown> = {
@@ -124,7 +124,7 @@ export async function accessRoutes(app: FastifyInstance, opts: CatalogRoutesOpti
       available:
         s.key === "viajero"
         || (s.key === "empresa" && orgs.length > 0)
-        || (s.key === "creador" && creator?.status === "active")
+        || (s.key === "creador" && creator?.status === "approved")
         || (s.key === "embajador" && ambassador?.status === "approved")
         || (s.key === "admin" && user.roles.includes("admin"))
         || (s.key === "editorial" && (user.roles.includes("admin") || user.roles.includes("editor")))

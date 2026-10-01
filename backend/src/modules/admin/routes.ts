@@ -3,7 +3,7 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
-import { audit, auditChainVerify } from "../operators/team.js";
+import { audit, auditChainVerify } from "../../lib/audit.js";
 
 /** Administración transversal: restablecer 2FA de una cuenta y consultar la bitácora de auditoría. */
 export async function adminRoutes(app: FastifyInstance) {
@@ -19,8 +19,8 @@ export async function adminRoutes(app: FastifyInstance) {
     const u = (await app.db.query<{ email: string; totp: Date | null; name: string | null }>("SELECT u.email, u.totp_enabled_at AS totp, p.display_name AS name FROM users u LEFT JOIN profiles p ON p.id = u.id WHERE u.id = $1", [req.params.id])).rows[0];
     if (!u) throw AppError.notFound("Usuario");
     if (!u.totp) throw new AppError("BUSINESS_RULE", "Esa cuenta no tiene 2FA activo");
-    await app.db.query("UPDATE users SET totp_secret_enc = NULL, totp_enabled_at = NULL, totp_recovery_hashes = '{}', totp_last_step = NULL WHERE id = $1", [req.params.id]);
-    await app.db.query("UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL", [req.params.id]);
+    await app.identity.resetTwoFactor(req.params.id);
+    await app.identity.revokeSessions(req.params.id);
     await audit(app.db, { actor: req.user!.id, action: "user.2fa_reset", entity: "user", id: req.params.id, meta: { reason: req.body.reason }, ip: req.ip });
     await app.mailer.send({ to: u.email, template: "auth.two_factor_reset", locale: "es", data: { name: u.name ?? u.email } });
     reply.code(204);
@@ -96,19 +96,12 @@ export async function adminRoutes(app: FastifyInstance) {
       response: { 200: z.object({ data: any, meta: any }) },
     },
   }, async (req) => {
-    const p: unknown[] = [];
-    const w = ["true"];
-    if (req.query.status) { p.push(req.query.status); w.push(`status = $${p.length}`); }
-    if (req.query.business_type) { p.push(req.query.business_type); w.push(`business_type = $${p.length}`); }
-    const total = (await app.db.query<{ n: number }>(`SELECT count(*)::int AS n FROM business_verification_audits WHERE ${w.join(" AND ")}`, p)).rows[0]!.n;
-    const { rows } = await app.db.query(
-      `SELECT id, business_id, business_type, business_name, applicant_user_id, rnc, mitur_license, documents,
-              status, audited_by, audit_notes, badge_expires_at, created_at, updated_at
-         FROM business_verification_audits
-        WHERE ${w.join(" AND ")}
-        ORDER BY created_at DESC
-        LIMIT ${req.query.per_page} OFFSET ${(req.query.page - 1) * req.query.per_page}`, p,
-    );
+    const { rows, total } = await app.businessVerification.listAudits({
+      status: req.query.status,
+      businessType: req.query.business_type,
+      page: req.query.page,
+      perPage: req.query.per_page,
+    });
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
   });
 
@@ -126,30 +119,11 @@ export async function adminRoutes(app: FastifyInstance) {
       response: { 200: ok },
     },
   }, async (req) => {
-    const auditRow = (await app.db.query<{ id: string; business_id: string; business_type: string }>("SELECT id, business_id, business_type FROM business_verification_audits WHERE id = $1", [req.params.id])).rows[0];
-    if (!auditRow) throw AppError.notFound("Auditoría de verificación");
-
+    const notes = req.body.notes ?? "Aprobado por administración";
     const expiresAt = new Date();
     expiresAt.setMonth(expiresAt.getMonth() + req.body.expires_in_months);
-
-    await app.db.query(
-      `UPDATE business_verification_audits
-          SET status = 'approved', audited_by = $1, audit_notes = $2, badge_expires_at = $3, updated_at = now()
-        WHERE id = $4`,
-      [req.user!.id, req.body.notes ?? "Aprobado por administración", expiresAt.toISOString(), req.params.id],
-    );
-
-    // Si es un operador en partner_profiles, activar badge directamente
-    if (auditRow.business_type === "operador" || auditRow.business_type === "agencia" || auditRow.business_type === "guia") {
-      await app.db.query(
-        `UPDATE partner_profiles
-            SET verified_badge = true, verified_badge_issued_at = now(), verified_badge_notes = $1, verification = 'verified', updated_at = now()
-          WHERE id = $2`,
-        [req.body.notes ?? "Sello Verificado Oficial emitido", auditRow.business_id],
-      );
-    }
-
-    await audit(app.db, { actor: req.user!.id, action: "verification.approve", entity: "verification_audit", id: req.params.id, meta: { business_id: auditRow.business_id }, ip: req.ip });
+    const auditRow = await app.businessVerification.approveAudit({ id: req.params.id, actorId: req.user!.id, notes, badgeNotes: req.body.notes ?? "Sello Verificado Oficial emitido", expiresAt: expiresAt.toISOString(), ip: req.ip });
+    if (!auditRow) throw AppError.notFound("Auditoría de verificación");
     return { data: { success: true, message: "Sello verificado otorgado satisfactoriamente" } };
   });
 
@@ -164,17 +138,8 @@ export async function adminRoutes(app: FastifyInstance) {
       response: { 200: ok },
     },
   }, async (req) => {
-    const auditRow = (await app.db.query<{ id: string; business_id: string }>("SELECT id, business_id FROM business_verification_audits WHERE id = $1", [req.params.id])).rows[0];
+    const auditRow = await app.businessVerification.rejectAudit({ id: req.params.id, actorId: req.user!.id, reason: req.body.reason, ip: req.ip });
     if (!auditRow) throw AppError.notFound("Auditoría de verificación");
-
-    await app.db.query(
-      `UPDATE business_verification_audits
-          SET status = 'rejected', audited_by = $1, audit_notes = $2, updated_at = now()
-        WHERE id = $3`,
-      [req.user!.id, req.body.reason, req.params.id],
-    );
-
-    await audit(app.db, { actor: req.user!.id, action: "verification.reject", entity: "verification_audit", id: req.params.id, meta: { reason: req.body.reason }, ip: req.ip });
     return { data: { success: true, message: "Verificación rechazada" } };
   });
 }

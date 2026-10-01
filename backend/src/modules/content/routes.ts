@@ -5,7 +5,7 @@ import { AppError } from "../../lib/errors.js";
 import { applyTranslations, LOCALES, resolveLocale, type Locale } from "../../lib/i18n.js";
 import { pageMeta } from "../../lib/pagination.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
-import { BY_PATH, BY_TABLE, COLLECTIONS, type CollectionDef } from "./collections.js";
+import { BY_PATH, BY_TABLE, COLLECTIONS, type CollectionDef } from "../../contracts/content-collections.js";
 import type { ColType } from "./manifest-reader.js";
 import {
   buildOrder, buildSelect, buildWhere, colType, encodeCursor, hasCol, keysetEligible, listColumns, manifest, mapRow, parseQuery,

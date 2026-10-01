@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { audit, auditChainVerify } from "../src/modules/operators/team.js";
+import { audit, auditChainVerify } from "../src/lib/audit.js";
 import { json, makeApp } from "./helpers.js";
 
 const PW = "Correcta-Clave-2026!";

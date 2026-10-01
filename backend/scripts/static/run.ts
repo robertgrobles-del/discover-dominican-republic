@@ -1,5 +1,5 @@
 import { slugify } from "../../src/lib/slug.js";
-import manifestJson from "../../src/modules/content/manifest.json" with { type: "json" };
+import manifestJson from "../../src/contracts/content-manifest.json" with { type: "json" };
 import { DATASETS, type Ctx, type Dataset, type Row } from "./mappers.js";
 import { loadStatic } from "./loader.js";
 

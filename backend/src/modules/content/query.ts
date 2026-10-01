@@ -1,18 +1,19 @@
 import { AppError } from "../../lib/errors.js";
 import { MAX_PER_PAGE, type SortSpec } from "../../lib/pagination.js";
-import type { CollectionDef, FilterKind } from "./collections.js";
+import type { CollectionDef, FilterKind } from "../../contracts/content-collections.js";
 import type { ColType, Manifest } from "./manifest-reader.js";
-import manifestJson from "./manifest.json" with { type: "json" };
+import { contentColumns, contentManifest, hasContentColumn } from "../../contracts/content-schema.js";
+import { contentVisibility } from "../../contracts/content-visibility.js";
 
-export const manifest = manifestJson as Manifest;
+export const manifest = contentManifest as Manifest;
 
 /** Columnas de gobierno del CMS que nunca se exponen tal cual (salvo `seo`, que se agrupa). */
 const GOVERNANCE = new Set(["status", "unpublished_at", "slug_history", "seo_title", "seo_description", "og_image_url", "canonical_url", "noindex", "locale_default", "created_by", "updated_by", "reviewed_by", "version", "deleted_at"]);
 const SEO = { title: "seo_title", description: "seo_description", og_image: "og_image_url", canonical_url: "canonical_url", noindex: "noindex" } as const;
 
 const q = (name: string) => `"${name}"`;
-export const cols = (table: string) => manifest[table] ?? {};
-export const hasCol = (table: string, c: string) => c in cols(table);
+export const cols = contentColumns;
+export const hasCol = hasContentColumn;
 export const colType = (table: string, c: string): ColType => cols(table)[c]!.type;
 export const colNullable = (table: string, c: string): boolean => cols(table)[c]?.nullable ?? true;
 
@@ -21,16 +22,7 @@ export const publicColumns = (d: CollectionDef) => Object.keys(cols(d.table)).fi
 export const listColumns = (d: CollectionDef) => publicColumns(d).filter((c) => !d.listExclude.includes(c));
 
 /** Condición SQL de visibilidad pública (docs §4.1). */
-export function visibility(d: CollectionDef): string {
-  const t = d.table;
-  const parts: string[] = [];
-  if (hasCol(t, "status")) parts.push("status = 'published'");
-  if (hasCol(t, "deleted_at")) parts.push("deleted_at IS NULL");
-  if (hasCol(t, "published_at")) parts.push("(published_at IS NULL OR published_at <= now())");
-  if (hasCol(t, "is_active")) parts.push("COALESCE(is_active, true)");
-  if (d.visible) parts.push(d.visible);
-  return parts.length ? parts.join(" AND ") : "true";
-}
+export const visibility = contentVisibility;
 
 // ---------- Parámetros ----------
 export const BASE_KEYS = new Set(["page", "per_page", "q", "sort", "lang", "include", "fields", "near", "radius", "limit", "cursor"]);

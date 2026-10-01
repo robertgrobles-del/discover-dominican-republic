@@ -1,9 +1,9 @@
 import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { BY_PATH, COLLECTIONS } from "../src/modules/content/collections.js";
+import { BY_PATH, COLLECTIONS } from "../src/contracts/content-collections.js";
 import { readManifest } from "../src/modules/content/manifest-reader.js";
-import { manifest } from "../src/modules/content/query.js";
+import { contentManifest as manifest } from "../src/contracts/content-schema.js";
 import { json, makeApp } from "./helpers.js";
 
 const slugs = (res: { body: string }) => json(res).data.map((x: { slug: string }) => x.slug);

@@ -1,11 +1,9 @@
 import type { FastifyInstance } from "fastify";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
-import type { BookingService } from "../operators/bookings.js";
-import type { StoreService } from "../store/service.js";
-import type { MarketplaceService } from "../marketplace/service.js";
-import { verifyStripeSignature, type PaymentGateway } from "../operators/gateway.js";
-import { audit } from "../operators/team.js";
+import type { BookingPaymentsPort, OrderPaymentsPort, PaymentGateway } from "../../contracts/payments.js";
+import { verifyStripeSignature } from "../../lib/stripe-signature.js";
+import { audit } from "../../lib/audit.js";
 
 type StripeEvent = { id: string; type: string; data: { object: Record<string, any> } };
 const cents = (n: unknown) => Math.round(Number(n ?? 0)) / 100;
@@ -16,7 +14,7 @@ const cents = (n: unknown) => Math.round(Number(n ?? 0)) / 100;
  * reembolsó desde el panel del proveedor. Cada evento se procesa una sola vez (`payment_events`) y el registro es idempotente.
  */
 export class PaymentReconciler {
-  constructor(private readonly db: Db, private readonly bookings: BookingService, private readonly gateway: PaymentGateway, private readonly store: StoreService, private readonly marketplace: MarketplaceService) {}
+  constructor(private readonly db: Db, private readonly bookings: BookingPaymentsPort, private readonly gateway: PaymentGateway, private readonly store: OrderPaymentsPort, private readonly marketplace: OrderPaymentsPort) {}
 
   /** Devuelve el resultado del procesamiento; lanza si falla para que el proveedor reintente. */
   async handle(provider: string, event: StripeEvent): Promise<string> {

@@ -204,7 +204,7 @@ describe("plan #68: tareas por persona", () => {
 
       const onboarded = await call("POST", "/creators/onboarding", { token: creator.token, payload: { handle, display_name: "Creador TPP" } });
       expect(onboarded.statusCode).toBe(201);
-      expect(json(onboarded).data).toMatchObject({ handle, status: "active", tier: "emerging" });
+      expect(json(onboarded).data).toMatchObject({ handle, status: "approved", tier: "emerging" });
       // Un mismo usuario no se registra dos veces.
       expect((await call("POST", "/creators/onboarding", { token: creator.token, payload: { handle: `${handle}x`, display_name: "Duplicado" } })).statusCode).toBe(400);
 

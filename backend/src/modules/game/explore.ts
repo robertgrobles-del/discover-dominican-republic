@@ -1,12 +1,13 @@
+import type { UserFlagsPort } from "../../contracts/moderation.js";
 import { createHash } from "node:crypto";
 import type { PoolClient } from "pg";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
-import { COLLECTIONS, type CollectionDef } from "../content/collections.js";
-import { cols, hasCol, visibility } from "../content/query.js";
+import type { ContentReaderPort } from "../../contracts/content-reader.js";
+import { COLLECTIONS, type CollectionDef } from "../../contracts/content-collections.js";
+import { contentColumns as cols, hasContentColumn as hasCol } from "../../contracts/content-schema.js";
 import type { GameService } from "./service.js";
 
-const Q = (c: string) => `"${c}"`;
 export const sha = (t: string) => createHash("sha256").update(t.trim()).digest("hex");
 const GEO = COLLECTIONS.filter((c) => c.geo && hasCol(c.table, c.geo.lat) && hasCol(c.table, c.geo.lng));
 /** Radio de validación por tipo de lugar: un destino es un punto central de una zona grande; una playa o un restaurante, un lugar concreto. */
@@ -28,7 +29,7 @@ interface Target { lat: number | null; lng: number | null; radius_m: number; qr_
 
 /** Sello y rutas: la ubicación o el código QR se verifican en el servidor; el cliente sólo aporta la prueba, nunca el resultado. */
 export class ExploreService {
-  constructor(private readonly db: Db, private readonly game: GameService) {}
+  constructor(private readonly db: Db, private readonly game: GameService, private readonly content: ContentReaderPort, private readonly userFlags: UserFlagsPort) {}
 
   private async tx<T>(fn: (c: PoolClient) => Promise<T>): Promise<T> {
     const c = await this.db.connect();
@@ -43,7 +44,7 @@ export class ExploreService {
     if (!last) return;
     const hours = Math.max((Date.now() - last.at.getTime()) / 3_600_000, 1 / 60);
     if (distanceM(last, now) / 1000 / hours <= MAX_SPEED_KMH) return;
-    await c.query("INSERT INTO user_flags (user_id, flag_name, value) VALUES ($1, 'gps_suspect', '1') ON CONFLICT (user_id, flag_name) DO UPDATE SET value = (user_flags.value::int + 1)::text, updated_at = now()", [userId]);
+    await this.userFlags.increment(userId, "gps_suspect", c);
     await c.query("COMMIT"); await c.query("BEGIN"); // la bandera se conserva aunque se rechace la acción
     throw new AppError("BUSINESS_RULE", "Esa ubicación no es compatible con tu última posición verificada", { code: "IMPLAUSIBLE_TRAVEL" });
   }
@@ -69,10 +70,9 @@ export class ExploreService {
   private async entity(typeOrPath: string, id: string) {
     const d: CollectionDef | undefined = GEO.find((g) => g.entityType === typeOrPath || g.path === typeOrPath);
     if (!d) throw AppError.validation(`Tipo de lugar desconocido: ${typeOrPath}`, { types: GEO.map((g) => g.entityType) });
-    const t = d.table;
-    const r = (await this.db.query(`SELECT id, ${Q(d.title)}::text AS name, ${Q(d.geo!.lat)}::float8 AS lat, ${Q(d.geo!.lng)}::float8 AS lng, ${hasCol(t, "province_id") ? "province_id" : "NULL::uuid AS province_id"}, ${hasCol(t, "destination_id") ? "destination_id" : "NULL::uuid AS destination_id"}, ${hasCol(t, "image_url") ? "image_url::text" : "NULL::text"} AS image FROM ${Q(t)} WHERE id = $1 AND ${visibility(d)}`, [id])).rows[0];
-    if (!r) throw AppError.notFound("Lugar");
-    return { def: d, ...r } as { def: CollectionDef; id: string; name: string; lat: number | null; lng: number | null; province_id: string | null; destination_id: string | null; image: string | null };
+    const place = await this.content.getPublicPlace(d.entityType, id);
+    if (!place) throw AppError.notFound("Lugar");
+    return { def: d, ...place } as { def: CollectionDef; entity_type: string; id: string; name: string; lat: number | null; lng: number | null; province_id: string | null; destination_id: string | null; image: string | null };
   }
 
   async stamp(userId: string, input: { entity_type: string; entity_id: string; notes?: string; rating?: number } & Proof) {
@@ -94,9 +94,9 @@ export class ExploreService {
       const g = await this.game.grant({ userId, action: "passport_stamp", ref: `${e.def.entityType}:${e.id}`, description: `Sello: ${e.name}` }, c);
       await c.query("UPDATE passport_stamps SET xp_earned = $2, coins_earned = $3 WHERE id = $1", [row.id, g.granted.xp, g.granted.coins]);
       let province: { name: string; first_visit: boolean } | null = null;
-      const provinceId = e.province_id ?? (e.destination_id ? (await c.query<{ province_id: string | null }>("SELECT province_id FROM destinations WHERE id = $1", [e.destination_id])).rows[0]?.province_id ?? null : null);
+      const provinceId = e.province_id ?? (e.destination_id ? (await this.content.getPublicPlace("destinations", e.destination_id))?.province_id ?? null : null);
       if (provinceId) {
-        const p = (await c.query<{ name: string }>("SELECT name FROM provinces WHERE id = $1", [provinceId])).rows[0];
+        const p = await this.content.getPublicProvinceById(provinceId);
         if (p) {
           const ins = await c.query("INSERT INTO province_visits (user_id, province, verification) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING", [userId, p.name, method]);
           if (ins.rowCount) await this.game.grant({ userId, action: "province_visit", ref: e.province_id, description: `Primera visita a ${p.name}` }, c);
@@ -112,7 +112,7 @@ export class ExploreService {
     const byType: Record<string, number> = {};
     for (const s of stamps) byType[s.type] = (byType[s.type] ?? 0) + 1;
     const provinces = (await this.db.query("SELECT province, visited_at FROM province_visits WHERE user_id = $1 ORDER BY visited_at", [userId])).rows;
-    const total = Number((await this.db.query<{ n: string }>("SELECT count(*) AS n FROM provinces WHERE status = 'published' AND deleted_at IS NULL")).rows[0]!.n);
+    const total = await this.content.countPublicProvinces();
     return { stamps, totals: { stamps: stamps.length, by_type: byType, provinces_visited: provinces.length, provinces_total: total }, provinces };
   }
 
@@ -125,19 +125,17 @@ export class ExploreService {
 
   // ---------- Provincias ----------
   async provinces(userId: string) {
-    const all = (await this.db.query<{ id: string; name: string; slug: string | null; region: string | null }>("SELECT id, name, slug, region FROM provinces WHERE status = 'published' AND deleted_at IS NULL ORDER BY name")).rows;
+    const all = await this.content.listPublicProvinces();
     const seen = new Map((await this.db.query<{ province: string; visited_at: Date }>("SELECT province, visited_at FROM province_visits WHERE user_id = $1", [userId])).rows.map((x) => [x.province, x.visited_at]));
     return { provinces: all.map((p) => ({ ...p, visited: seen.has(p.name), visited_at: seen.get(p.name) ?? null })), visited: all.filter((p) => seen.has(p.name)).length, total: all.length };
   }
 
   /** Visita a una provincia comprobada por ubicación: el punto debe estar a menos de 25 km de un destino o municipio de esa provincia. */
   async visitProvince(userId: string, slugOrId: string, proof: Proof) {
-    const p = (await this.db.query<{ id: string; name: string }>("SELECT id, name FROM provinces WHERE (slug = $1 OR id::text = $1) AND status = 'published' AND deleted_at IS NULL", [slugOrId])).rows[0];
+    const p = await this.content.getPublicProvince(slugOrId);
     if (!p) throw AppError.notFound("Provincia");
     if (proof.lat === undefined || proof.lng === undefined) throw new AppError("BUSINESS_RULE", "Envía tu ubicación", { code: "PROOF_REQUIRED" });
-    const pts = (await this.db.query<{ lat: number; lng: number }>(
-      "SELECT latitude::float8 AS lat, longitude::float8 AS lng FROM destinations WHERE province_id = $1 AND status = 'published' AND deleted_at IS NULL AND latitude IS NOT NULL UNION ALL SELECT latitude::float8, longitude::float8 FROM municipalities WHERE province_id = $1 AND status = 'published' AND deleted_at IS NULL AND latitude IS NOT NULL", [p.id],
-    )).rows;
+    const pts = await this.content.listProvinceVerificationPoints(p.id);
     if (!pts.length) throw new AppError("BUSINESS_RULE", "Esta provincia todavía no tiene puntos de referencia para verificar la visita", { code: "NOT_VERIFIABLE" });
     return this.tx(async (c) => {
       const nearest = Math.min(...pts.map((x) => distanceM(x, { lat: proof.lat!, lng: proof.lng! })));

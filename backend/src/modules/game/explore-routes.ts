@@ -4,8 +4,8 @@ import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
-import { tableAdminRoutes, type TableCfg } from "../admin/tables.js";
-import { audit } from "../operators/team.js";
+import { tableAdminRoutes, type TableCfg } from "../../lib/table-admin.js";
+import { audit } from "../../lib/audit.js";
 import { CommunityGame } from "./community.js";
 import { ExploreService, sha } from "./explore.js";
 

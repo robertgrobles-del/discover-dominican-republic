@@ -1,20 +1,9 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
 import type { Env } from "../../config/env.js";
+import type { ChargeInput, ChargeResult, PaymentGateway, RefundInput } from "../../contracts/payments.js";
 
-export type ChargeResult = { ok: true; providerRef: string } | { ok: false; reason: string };
-
-/**
- * Pasarela de pago (docs §5.8). El backend nunca recibe datos de tarjeta: el navegador obtiene un `payment_method_token`
- * directamente del proveedor y aquí sólo se confirma. Las implementaciones reales (Azul, CardNET, Stripe) se añaden como
- * clases con esta misma interfaz; `FakeGateway` es el simulador de desarrollo y pruebas.
- */
-export interface ChargeInput { amount: number; currency: string; token: string; reference: string; idempotencyKey?: string; metadata?: Record<string, string> }
-export interface RefundInput { providerRef: string | null; amount: number; currency: string; reference: string; idempotencyKey?: string }
-export interface PaymentGateway {
-  readonly name: string;
-  charge(input: ChargeInput): Promise<ChargeResult>;
-  refund(input: RefundInput): Promise<ChargeResult>;
-}
+// Reexport temporal: los módulos vecinos aún pueden migrar imports sin alterar la API interna.
+export type { ChargeInput, ChargeResult, PaymentGateway, RefundInput } from "../../contracts/payments.js";
+export { verifyStripeSignature } from "../../lib/stripe-signature.js";
 
 /**
  * Simulador: `tok_test_ok` cobra, `tok_test_declined` rechaza, `tok_test_error` falla como si el proveedor no respondiera,
@@ -99,15 +88,4 @@ export class StripeGateway implements PaymentGateway {
     if (status >= 400) return { ok: false, reason: String(body?.error?.code ?? "refund_failed") };
     return { ok: true, providerRef: body.id };
   }
-}
-
-/** Verifica la firma `Stripe-Signature: t=…,v1=…` (HMAC-SHA256 de `${t}.${cuerpo}`) con tolerancia de reloj y comparación en tiempo constante. */
-export function verifyStripeSignature(raw: string, header: string | undefined, secret: string, nowSeconds = Math.floor(Date.now() / 1000), toleranceSeconds = 300): boolean {
-  if (!header) return false;
-  const parts = header.split(",").map((p) => p.trim().split("=") as [string, string]);
-  const t = parts.find(([k]) => k === "t")?.[1];
-  const sigs = parts.filter(([k]) => k === "v1").map(([, v]) => v);
-  if (!t || !sigs.length || !/^\d+$/.test(t) || Math.abs(nowSeconds - Number(t)) > toleranceSeconds) return false;
-  const expected = createHmac("sha256", secret).update(`${t}.${raw}`).digest();
-  return sigs.some((s) => { const b = Buffer.from(s, "hex"); return b.length === expected.length && timingSafeEqual(b, expected); });
 }

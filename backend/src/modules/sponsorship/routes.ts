@@ -4,7 +4,7 @@ import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
-import { audit } from "../operators/team.js";
+import { audit } from "../../lib/audit.js";
 import { SponsorshipService } from "./service.js";
 
 declare module "fastify" {

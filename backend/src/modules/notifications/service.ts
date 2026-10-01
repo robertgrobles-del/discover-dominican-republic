@@ -6,6 +6,7 @@ import type { Env } from "../../config/env.js";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
 import { CHANNELS, insertNotification, NOTIFICATION_TYPES, type CreatedNotification, type NotificationInput } from "./insert.js";
+import type { ProfileAdminPort } from "../../contracts/profile.js";
 
 const TICKET_TTL_SECONDS = 60;
 const MAX_STREAMS_PER_USER = 5;
@@ -42,7 +43,7 @@ export class NotificationService {
   private closed = false;
   private retry: NodeJS.Timeout | null = null;
 
-  constructor(private readonly db: Db, private readonly env: Env, private readonly log: FastifyBaseLogger, pushSender?: PushSender) {
+  constructor(private readonly db: Db, private readonly env: Env, private readonly log: FastifyBaseLogger, private readonly profiles: Pick<ProfileAdminPort, "saveNotificationPrefs">, pushSender?: PushSender) {
     this.pushSender = pushSender ?? new WebPushSender(env);
   }
 
@@ -79,10 +80,9 @@ export class NotificationService {
     return Object.fromEntries(CHANNELS.map((c) => [c, Object.fromEntries(NOTIFICATION_TYPES.map((t) => [t, saved[c]?.[t] ?? (t !== "promo")]))]));
   }
   async setPreferences(userId: string, changes: Partial<Record<(typeof CHANNELS)[number], Partial<Record<(typeof NOTIFICATION_TYPES)[number], boolean>>>>) {
-    await this.db.query("INSERT INTO profiles (id) VALUES ($1) ON CONFLICT DO NOTHING", [userId]);
     const cur = ((await this.db.query("SELECT notification_prefs FROM profiles WHERE id = $1", [userId])).rows[0]?.notification_prefs ?? {}) as Record<string, Record<string, boolean>>;
     for (const [c, types] of Object.entries(changes)) cur[c] = { ...(cur[c] ?? {}), ...types };
-    await this.db.query("UPDATE profiles SET notification_prefs = $2 WHERE id = $1", [userId, JSON.stringify(cur)]);
+    await this.profiles.saveNotificationPrefs(userId, cur);
     return this.preferences(userId);
   }
 
@@ -217,6 +217,14 @@ export class NotificationService {
       return { id: b.id, audience: size, delivered: ins.rowCount ?? 0, skipped_by_preferences: size - (ins.rowCount ?? 0) };
     } catch (e) { await c.query("ROLLBACK").catch(() => undefined); throw e; }
     finally { c.release(); }
+  }
+
+  /** Marca una notificación propia como leída o no; false si no existe o no es de esa persona. */
+  async markRead(userId: string, id: string, isRead: boolean) {
+    return !!(await this.db.query("UPDATE notifications SET is_read = $3 WHERE id = $1 AND user_id = $2", [id, userId, isRead])).rowCount;
+  }
+  async markAllRead(userId: string) {
+    await this.db.query("UPDATE notifications SET is_read = true WHERE user_id = $1 AND NOT is_read", [userId]);
   }
 
   async broadcasts() { return (await this.db.query("SELECT id, title, message, link, type, segment, recipients, created_at FROM notification_broadcasts ORDER BY created_at DESC LIMIT 100")).rows; }

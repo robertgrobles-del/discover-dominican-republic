@@ -2,11 +2,11 @@ import { createHash, randomBytes } from "node:crypto";
 import type { PoolClient } from "pg";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
-import { COLLECTIONS } from "../content/collections.js";
-import { hasCol, visibility } from "../content/query.js";
-import type { GameService } from "../game/service.js";
-import { insertNotification } from "../notifications/insert.js";
-import { addDays, nightsBetween, todayInSantoDomingo } from "../operators/domain/dates.js";
+import type { ContentReaderPort } from "../../contracts/content-reader.js";
+import { COLLECTIONS } from "../../contracts/content-collections.js";
+import type { GameGrantPort } from "../../contracts/game.js";
+import type { NotifyInTransaction } from "../../contracts/notifications.js";
+import { addDays, nightsBetween, todayInSantoDomingo } from "../../lib/dates.js";
 
 const Q = (c: string) => `"${c}"`;
 const sha = (t: string) => createHash("sha256").update(t).digest("hex");
@@ -23,7 +23,7 @@ const numeric = (r: Record<string, unknown>, ...keys: string[]) => { for (const 
 
 /** Mi viaje (docs §5.7): viajes con actividades por día, planificación en grupo, diario, lista de empaque, e-tickets y reto Top 100. */
 export class TripService {
-  constructor(private readonly db: Db, private readonly game: GameService) {}
+  constructor(private readonly db: Db, private readonly game: GameGrantPort, private readonly content: ContentReaderPort, private readonly notifyInTx: NotifyInTransaction) {}
 
   private async tx<T>(fn: (c: PoolClient) => Promise<T>): Promise<T> {
     const c = await this.db.connect();
@@ -91,10 +91,9 @@ export class TripService {
   private async entity(type: string, id: string) {
     const d = COLLECTIONS.find((c) => c.entityType === type || c.path === type);
     if (!d) throw AppError.validation(`Tipo de lugar desconocido: ${type}`, { field: "entity_type" });
-    const t = d.table, geo = d.geo && hasCol(t, d.geo.lat) && hasCol(t, d.geo.lng);
-    const r = (await this.db.query(`SELECT id, ${Q(d.title)}::text AS name, ${hasCol(t, "image_url") ? "image_url::text" : "NULL::text"} AS image, ${geo ? `${Q(d.geo!.lat)}::float8` : "NULL::float8"} AS lat, ${geo ? `${Q(d.geo!.lng)}::float8` : "NULL::float8"} AS lng FROM ${Q(t)} WHERE id = $1 AND ${visibility(d)}`, [id])).rows[0];
-    if (!r) throw AppError.notFound("Lugar");
-    return { type: d.entityType, ...r } as { type: string; id: string; name: string; image: string | null; lat: number | null; lng: number | null };
+    const place = await this.content.getPublicPlace(d.entityType, id);
+    if (!place) throw AppError.notFound("Lugar");
+    return { type: place.entity_type, id: place.id, name: place.name, image: place.image, lat: place.lat, lng: place.lng };
   }
 
   private checkDay(trip: { start_date: string | null; end_date: string | null }, day: number) {
@@ -229,7 +228,7 @@ export class TripService {
       await c.query("UPDATE trip_invites SET uses = uses + 1 WHERE id = $1", [inv.id]);
       const who = (await c.query<{ display_name: string | null }>("SELECT display_name FROM profiles WHERE id = $1", [userId])).rows[0]?.display_name ?? "Alguien";
       const title = (await c.query<{ title: string }>("SELECT title FROM trips WHERE id = $1", [inv.trip_id])).rows[0]?.title ?? "tu viaje";
-      await insertNotification(c, trip.owner_id, { type: "social", title: `${who} se unió a tu viaje`, message: title, link: `/mi-viaje/${inv.trip_id}`, data: { trip_id: inv.trip_id } });
+      await this.notifyInTx(c, trip.owner_id, { type: "social", title: `${who} se unió a tu viaje`, message: title, link: `/mi-viaje/${inv.trip_id}`, data: { trip_id: inv.trip_id } });
       return { trip_id: inv.trip_id, role: inv.role };
     });
   }

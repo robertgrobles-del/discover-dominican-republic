@@ -3,7 +3,8 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
-import { audit } from "../operators/team.js";
+import { audit } from "../../lib/audit.js";
+import { todayInSantoDomingo } from "../../lib/dates.js";
 import { PlayService } from "./play.js";
 import { GameService, type GrantResult } from "./service.js";
 
@@ -45,11 +46,8 @@ export async function gameRoutes(app: FastifyInstance) {
     const res = await game.grant({ userId: req.user!.id, action: req.body.action, ref });
     if (res.reason === "daily_cap" || res.reason === "cooldown") {
       // Insistir contra el tope es señal de abuso: se cuenta y, si se repite, se marca la cuenta para revisión manual.
-      const n = Number((await db.query<{ value: string }>(
-        `INSERT INTO user_flags (user_id, flag_name, value) VALUES ($1, 'xp_denied_' || to_char(now() AT TIME ZONE 'America/Santo_Domingo', 'YYYYMMDD'), '1')
-         ON CONFLICT (user_id, flag_name) DO UPDATE SET value = (user_flags.value::int + 1)::text, updated_at = now() RETURNING value`, [req.user!.id],
-      )).rows[0]!.value);
-      if (n === 200) await db.query("INSERT INTO user_flags (user_id, flag_name, value) VALUES ($1, 'xp_abuse_review', $2) ON CONFLICT (user_id, flag_name) DO UPDATE SET value = EXCLUDED.value, updated_at = now()", [req.user!.id, String(n)]);
+      const n = await app.userFlags.increment(req.user!.id, `xp_denied_${todayInSantoDomingo().replaceAll("-", "")}`);
+      if (n === 200) await app.userFlags.set(req.user!.id, "xp_abuse_review", String(n));
     }
     return { data: { ...summary(res), denied_reason: res.reason ?? null } };
   });

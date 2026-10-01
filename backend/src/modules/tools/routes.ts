@@ -3,7 +3,7 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
-import { tableAdminRoutes, type TableCfg } from "../admin/tables.js";
+import { tableAdminRoutes, type TableCfg } from "../../lib/table-admin.js";
 import { BUDGET_DEFAULTS, CARBON_DEFAULTS, CONFOTUR_DEFAULTS, TAX_DEFAULTS, budget, carbon, confotur, packingList, restaurantBill, tolls, withOverrides, type TollPoint } from "./calculators.js";
 
 const ok = z.object({ data: z.any() });
@@ -128,7 +128,7 @@ export async function toolsRoutes(app: FastifyInstance) {
         offer = (await db.query<{ name: string }>("SELECT name FROM affiliate_offers WHERE id = $1 AND kind = $2 AND is_active", [b.offer_id, kind])).rows[0]?.name ?? null;
         if (!offer) throw AppError.notFound("Oferta");
       }
-      await db.query("INSERT INTO marketing_leads (nombre, email, telefono, mensaje, source, interest, consent) VALUES ($1,$2,$3,$4,$5,$6,true)", [b.name, b.email, b.phone ?? null, b.message ?? null, `tool:${kind}`, offer]);
+      await app.leads.capture({ name: b.name, email: b.email, phone: b.phone, message: b.message, source: `tool:${kind}`, interest: offer });
       return { data: { received: true } };
     });
   }

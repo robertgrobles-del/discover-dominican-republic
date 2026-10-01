@@ -3,7 +3,7 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { LOCALES } from "../../lib/i18n.js";
-import { audit } from "../operators/team.js";
+import { audit } from "../../lib/audit.js";
 import type { AiService } from "./service.js";
 
 declare module "fastify" { interface FastifyInstance { ai: AiService } }

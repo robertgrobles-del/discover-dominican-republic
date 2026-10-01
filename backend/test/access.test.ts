@@ -140,13 +140,13 @@ describe("accesos", () => {
 
   it("concede el estudio de creador por perfil aprobado, sin tocar el rol global", async () => {
     const u = await account();
-    await pool.query("INSERT INTO creator_profiles (id, handle, display_name, status) VALUES ($1, $2, 'Creador Prueba', 'active')", [u.id, `creador${n}${Date.now().toString(36)}`]);
+    await pool.query("INSERT INTO creator_profiles (id, handle, display_name, status) VALUES ($1, $2, 'Creador Prueba', 'approved')", [u.id, `creador${n}${Date.now().toString(36)}`]);
     const ctx = await context(u.token);
     expect(ctx.user.roles).toEqual(["user"]);
     expect(ctx.capabilities.map((c: { key: string }) => c.key)).toContain("creator.studio");
     const creador = ctx.spaces.find((s: { key: string }) => s.key === "creador");
     expect(creador.available).toBe(true);
-    expect(creador.context.status).toBe("active");
+    expect(creador.context.status).toBe("approved");
   });
 
   it("reserva el catálogo y la auditoría al rol admin", async () => {

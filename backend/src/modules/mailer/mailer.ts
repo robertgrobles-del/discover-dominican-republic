@@ -2,6 +2,7 @@ import nodemailer, { type Transporter } from "nodemailer";
 import type { FastifyBaseLogger } from "fastify";
 import type { PoolClient } from "pg";
 import type { Env } from "../../config/env.js";
+import type { MailerPort, SendEmailInput } from "../../contracts/email.js";
 import type { Db } from "../../db/pool.js";
 import { TtlCache } from "../../lib/cache.js";
 import type { Locale } from "../../lib/i18n.js";
@@ -10,13 +11,7 @@ import type { TemplateOverride } from "./templates-meta.js";
 
 export interface SentMessage { to: string; subject: string; text: string; html: string; template: string; at: Date }
 
-export interface SendInput<K extends TemplateKey> {
-  to: string;
-  template: K;
-  data: TemplateData[K];
-  locale: Locale;
-  userId?: string | null;
-}
+export type SendInput<K extends TemplateKey> = SendEmailInput<K>;
 
 interface QueuedRow { id: string; to_email: string; template: TemplateKey; locale: Locale; payload: { data: TemplateData[TemplateKey]; test_override?: TemplateOverride; subject_prefix?: string }; attempts: number }
 
@@ -31,7 +26,7 @@ const STUCK_AFTER = "5 minutes";
  * por el transporte configurado (log, SMTP o memoria). Si falla, reintenta con espera creciente hasta `MAIL_MAX_ATTEMPTS`
  * y luego lo marca `failed`. Un mensaje `sending` abandonado por un proceso caído se vuelve a poner en cola.
  */
-export class Mailer {
+export class Mailer implements MailerPort {
   /** Mensajes entregados por el transporte de memoria (sólo NODE_ENV=test). */
   readonly outbox: SentMessage[] = [];
   private readonly transport: Transporter | null;

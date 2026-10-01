@@ -5,7 +5,7 @@ import type { Env } from "../../config/env.js";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
 import { LOCALES, type Locale } from "../../lib/i18n.js";
-import type { Mailer } from "../mailer/mailer.js";
+import type { MailerPort } from "../../contracts/email.js";
 import { hashPassword, passwordIssues, verifyAgainstDummy, verifyPassword } from "./password.js";
 import { hashToken, newOpaqueToken, type TokenService } from "./tokens.js";
 import {
@@ -21,8 +21,11 @@ export interface UserDto {
 }
 export type LoginResult = { user: UserDto; session: Session } | { twoFactor: { challenge_token: string } };
 
-/** Roles de personal: si la política lo exige, necesitan haber completado el segundo factor (docs §7.2). */
-export const STAFF_ROLES = ["admin", "editor", "moderator"];
+import { STAFF_ROLES } from "../../lib/roles.js";
+import type { ProfileAdminPort } from "../../contracts/profile.js";
+
+// Reexport temporal: los módulos vecinos aún pueden migrar imports sin alterar la API interna.
+export { STAFF_ROLES };
 
 const VERIFY_HOURS = 24;
 const RESET_MINUTES = 60;
@@ -46,7 +49,8 @@ export class AuthService {
 
   constructor(
     private readonly env: Env, private readonly db: Db, private readonly tokens: TokenService,
-    private readonly mailer: Mailer, private readonly log: FastifyBaseLogger,
+    private readonly mailer: MailerPort, private readonly log: FastifyBaseLogger,
+    private readonly profiles: Pick<ProfileAdminPort, "createProfile">,
   ) {
     // En producción loadEnv exige la clave; en desarrollo/pruebas se deriva una fija (los secretos de prueba no valen fuera de allí).
     this.box = createSecretBox(env.TOTP_ENCRYPTION_KEY ? Buffer.from(env.TOTP_ENCRYPTION_KEY, "base64") : createHash("sha256").update("descubre-rd-dev-only-totp-key").digest());
@@ -114,7 +118,7 @@ export class AuthService {
         if ((e as { code?: string }).code === "23505") throw new AppError("CONFLICT", "Ya existe una cuenta con ese correo", { reason: "EMAIL_TAKEN" });
         throw e;
       }
-      await c.query("INSERT INTO profiles (id, display_name, role) VALUES ($1, $2, 'user')", [id, name]);
+      await this.profiles.createProfile({ id, displayName: name }, c);
       await c.query("INSERT INTO user_roles (user_id, role) VALUES ($1, 'user')", [id]);
       await c.query("INSERT INTO auth_tokens (user_id, purpose, token_hash, expires_at) VALUES ($1, 'verify_email', $2, now() + make_interval(hours => $3))", [id, hashToken(verifyToken), VERIFY_HOURS]);
       // Outbox transaccional: el correo de verificación se encola en la misma transacción que la cuenta.
@@ -139,7 +143,7 @@ export class AuthService {
         "INSERT INTO users (id, email, password_hash, locale, email_verified_at, password_set) VALUES ($1, $2, $3, $4, now(), false)",
         [id, email, `!oauth:${newOpaqueToken()}`, locale], // el hash nunca es válido para argon2: no se puede iniciar con contraseña
       );
-      await c.query("INSERT INTO profiles (id, display_name, avatar_url, role) VALUES ($1, $2, $3, 'user')", [id, name, input.picture?.startsWith("https://") ? input.picture.slice(0, 500) : null]);
+      await this.profiles.createProfile({ id, displayName: name, avatarUrl: input.picture?.startsWith("https://") ? input.picture.slice(0, 500) : null }, c);
       await c.query("INSERT INTO user_roles (user_id, role) VALUES ($1, 'user')", [id]);
       await this.mailer.send({ to: email, template: "auth.welcome", locale, userId: id, data: { name, url: this.env.WEB_BASE_URL } }, c);
       return id;

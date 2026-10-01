@@ -4,9 +4,10 @@ import type { PoolClient } from "pg";
 import type { Env } from "../../config/env.js";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
-import type { Mailer } from "../mailer/mailer.js";
-import type { NotifyFn } from "../notifications/insert.js";
-import { fromCents, toCents } from "../operators/domain/money.js";
+import type { MailerPort } from "../../contracts/email.js";
+import type { NotifyFn } from "../../contracts/notifications.js";
+import type { IdentityAdminPort } from "../../contracts/identity.js";
+import { fromCents, toCents } from "../../lib/money.js";
 
 export const HOLD_DAYS = 7;                 // la comisión queda en espera por si hay devolución
 export const MIN_PAYOUT = 1000;             // RD$
@@ -30,7 +31,7 @@ type Db_ = Db | PoolClient;
  * pending (en espera) → approved (disponible) → requested (en una solicitud de pago) → paid; o reversed.
  */
 export class AmbassadorService {
-  constructor(private readonly db: Db, private readonly env: Env, private readonly mailer: Mailer, private readonly log: FastifyBaseLogger) {}
+  constructor(private readonly db: Db, private readonly env: Env, private readonly mailer: MailerPort, private readonly log: FastifyBaseLogger, private readonly identity: Pick<IdentityAdminPort, "grantRole" | "revokeRole">) {}
 
   /** Aviso en la bandeja del embajador (lo asigna el arranque de la app). */
   notifyUser?: NotifyFn;
@@ -233,10 +234,10 @@ export class AmbassadorService {
     await this.db.query(`UPDATE ambassadors SET ${sets.join(", ")} WHERE id = $1`, p);
     if (input.status === "approved" && cur.status !== "approved") {
       await this.notifyUser?.(id, { type: "system", title: "¡Ya eres embajador!", message: `Tu código es ${cur.referral_code}`, link: "/embajadores" });
-      await this.db.query("INSERT INTO user_roles (user_id, role) VALUES ($1, 'ambassador') ON CONFLICT DO NOTHING", [id]);
+      await this.identity.grantRole(id, "ambassador");
       await this.mailer.send({ to: cur.email, template: "ambassador.approved", locale: "es", data: { name: (cur.display_name ?? "").split(" ")[0] || "amigo", code: cur.referral_code, url: `${this.env.WEB_BASE_URL}/embajadores` } }).catch((err) => this.log.error({ err }, "No se pudo avisar la aprobación del embajador"));
     }
-    if (input.status && input.status !== "approved" && cur.status === "approved") await this.db.query("DELETE FROM user_roles WHERE user_id = $1 AND role = 'ambassador'", [id]);
+    if (input.status && input.status !== "approved" && cur.status === "approved") await this.identity.revokeRole(id, "ambassador");
     return this.adminGet(id);
   }
 

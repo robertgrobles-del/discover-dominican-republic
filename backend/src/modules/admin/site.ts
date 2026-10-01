@@ -4,9 +4,9 @@ import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
-import { COLLECTIONS } from "../content/collections.js";
-import { hasCol, manifest } from "../content/query.js";
-import { audit } from "../operators/team.js";
+import { COLLECTIONS } from "../../contracts/content-collections.js";
+import { contentManifest as manifest, hasContentColumn as hasCol } from "../../contracts/content-schema.js";
+import { audit } from "../../lib/audit.js";
 
 const bearer = [{ bearerAuth: [] }];
 const ok = z.object({ data: z.any() });

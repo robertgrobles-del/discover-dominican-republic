@@ -1,36 +1,12 @@
-import { insertNotification } from "../notifications/insert.js";
+import type { NotifyInTransaction } from "../../contracts/notifications.js";
+import type { DenyReason, GameGrantPort, GrantInput, GrantResult } from "../../contracts/game.js";
 import type { PoolClient } from "pg";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
-import { todayInSantoDomingo } from "../operators/domain/dates.js";
+import { todayInSantoDomingo } from "../../lib/dates.js";
 
-export type DenyReason = "no_rule" | "inactive" | "daily_cap" | "cooldown" | "duplicate";
-export interface GrantInput {
-  userId: string;
-  action: string;
-  /** Referencia única de lo que originó la acción (id de reseña, de publicación…); con `unique_per_ref` impide repetir. */
-  ref?: string | null;
-  description?: string;
-  /** Usa estas cifras en lugar de las de la regla (recompensas de misiones, trivia, ajustes). Nunca vienen del cliente. */
-  xp?: number;
-  coins?: number;
-  /** No aplica topes diarios, enfriamiento ni unicidad (recompensas ya validadas por su propio módulo). */
-  skipLimits?: boolean;
-  /** Evita cascadas: al otorgar la recompensa de una misión o logro no se vuelven a evaluar misiones. */
-  noMissions?: boolean;
-  noAchievements?: boolean;
-}
-export interface GrantResult {
-  granted: { xp: number; coins: number };
-  reason?: DenyReason;
-  total_xp: number;
-  coins: number;
-  level: number;
-  level_up: { from: number; to: number; title: string } | null;
-  missions_completed: { id: string; name: string; xp: number; coins: number }[];
-  achievements_unlocked: { id: string; name: string; icon: string }[];
-  milestones_reached: { id: string; name: string; coins: number }[];
-}
+// Reexport temporal: los módulos vecinos aún pueden migrar imports sin alterar la API interna.
+export type { DenyReason, GrantInput, GrantResult } from "../../contracts/game.js";
 
 const RD_DAY_START = "(date_trunc('day', now() AT TIME ZONE 'America/Santo_Domingo') AT TIME ZONE 'America/Santo_Domingo')";
 const STREAK_MILESTONES: [number, number][] = [[7, 1], [14, 2], [30, 4], [60, 8], [100, 15]];
@@ -53,8 +29,8 @@ export const missionPeriod = (type: string, today: string) => (type === "daily" 
  * las reglas de la tabla `gamification_rules` (topes diarios, enfriamiento, unicidad por referencia) y deja cada concesión en
  * `gamification_transactions`. El cliente nunca aporta cifras: sólo informa qué hizo, y el servidor decide.
  */
-export class GameService {
-  constructor(private readonly db: Db) {}
+export class GameService implements GameGrantPort {
+  constructor(private readonly db: Db, private readonly notifyInTx: NotifyInTransaction) {}
 
   private async tx<T>(fn: (c: PoolClient) => Promise<T>): Promise<T> {
     const c = await this.db.connect();
@@ -153,7 +129,7 @@ export class GameService {
 
     const out: GrantResult = { granted: { xp, coins }, total_xp: totalXp, coins: player.coins + coins, level: lvl.level_number, level_up: lvl.level_number > player.current_level ? { from: player.current_level, to: lvl.level_number, title: lvl.title } : null, missions_completed: [], achievements_unlocked: [], milestones_reached: [] };
 
-    if (out.level_up) await insertNotification(c, input.userId, { type: "gamification", title: `¡Subiste al nivel ${out.level_up.to}: ${out.level_up.title}!`, message: "Sigue explorando para desbloquear más.", link: "/perfil/juego", data: { level: out.level_up.to } });
+    if (out.level_up) await this.notifyInTx(c, input.userId, { type: "gamification", title: `¡Subiste al nivel ${out.level_up.to}: ${out.level_up.title}!`, message: "Sigue explorando para desbloquear más.", link: "/perfil/juego", data: { level: out.level_up.to } });
     if (xp > 0) out.milestones_reached = await this.milestones(c, input.userId, out);
     if (!input.noMissions && input.action !== "mission_completed") out.missions_completed = await this.advanceMissions(c, input.userId, input.action, out);
     if (!input.noAchievements) out.achievements_unlocked = await this.evaluateAchievements(c, input.userId, out);
@@ -239,7 +215,7 @@ export class GameService {
         out.total_xp = r.total_xp; out.coins = r.coins; out.level = r.level; out.level_up ??= r.level_up;
         out.milestones_reached.push(...r.milestones_reached);
         unlocked.push({ id: a.id, name: a.name, icon: a.icon });
-        await insertNotification(c, userId, { type: "gamification", title: `Logro desbloqueado: ${a.name}`, link: "/perfil/logros", data: { achievement_id: a.id } });
+        await this.notifyInTx(c, userId, { type: "gamification", title: `Logro desbloqueado: ${a.name}`, link: "/perfil/logros", data: { achievement_id: a.id } });
         any = true;
       }
       if (!any) break;

@@ -1,10 +1,10 @@
 import type { FastifyInstance } from "fastify";
-import { COLLECTIONS } from "../content/collections.js";
-import { hasCol } from "../content/query.js";
+import { COLLECTIONS } from "../../contracts/content-collections.js";
+import { hasContentColumn as hasCol } from "../../contracts/content-schema.js";
 
 const BASE_URL = (process.env.PUBLIC_APP_URL || "https://descubrerd.com").replace(/\/$/, "");
 const XML_ENTITIES: Record<string, string> = { "<": "&lt;", ">": "&gt;", "&": "&amp;", "'": "&apos;", '"': "&quot;" };
-const escapeXml = (value: string) => value.replace(/[<>&'\"]/g, (char) => XML_ENTITIES[char]!);
+const escapeXml = (value: string) => value.replace(/[<>&'"]/g, (char) => XML_ENTITIES[char]!);
 // Only include collection details that have a matching public frontend route.
 const PUBLIC_DETAIL_ROUTES: Record<string, string> = {
   provinces: "provincia", municipalities: "municipio", destinations: "destino", beaches: "playa",

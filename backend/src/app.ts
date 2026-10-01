@@ -5,7 +5,7 @@ import { serializerCompiler, validatorCompiler, type ZodTypeProvider } from "fas
 import { loadEnv, type Env } from "./config/env.js";
 import { createPool, type Db } from "./db/pool.js";
 import { bindRequestId } from "./lib/request-context.js";
-import { setAuditChainSecret } from "./modules/operators/team.js";
+import { setAuditChainSecret } from "./lib/audit.js";
 import { registerAuth } from "./plugins/auth.js";
 import { registerErrorHandling } from "./plugins/errors.js";
 import { registerMetrics } from "./plugins/metrics.js";

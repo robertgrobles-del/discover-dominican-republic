@@ -6,7 +6,7 @@ Bienvenido al repositorio oficial de **Descubre República Dominicana**, la plat
 
 ## 🌟 Resumen del Ecosistema
 
-El proyecto es una **Single Page Application (SPA)** de arquitectura moderna construida sobre **React 18**, **TypeScript**, **Vite** y **Tailwind CSS**, complementada con componentes accesibles de **Radix UI / shadcn/ui**, animaciones fluidas con **Framer Motion**, y backend en la nube con **Supabase** (autenticación, base de datos relacional PostgreSQL, RPC y Storage).
+El proyecto es una **Single Page Application (SPA)** construida con **React 18**, **TypeScript**, **Vite** y **Tailwind CSS**, complementada con **Radix UI / shadcn/ui** y **Framer Motion**. Hoy se conecta a un backend **Fastify 5 + PostgreSQL 16** organizado como monolito modular en `backend/`; el objetivo prioritario es extraer sus dominios a microservicios con contratos y datos propios, manteniendo una entrada estable para el frontend. El frontend todavía tiene un adaptador de datos de demostración en memoria mientras se migran las escrituras; por seguridad, el build de producción no permite distribuir el mock como si fuera datos reales.
 
 El portal incluye más de **240 páginas y módulos especializados**, abarcando:
 1. **Directorio Turístico Exhaustivo:** Provincias (32 provincias y Distrito Nacional), destinos, municipios, playas, ríos, montañas, parques nacionales y áreas protegidas.
@@ -25,6 +25,12 @@ El portal incluye más de **240 páginas y módulos especializados**, abarcando:
 
 ## 🏗️ Arquitectura Técnica y Stack Tecnológico
 
+**Estado de arquitectura:** el backend actual es un monolito modular; la migración a microservicios es el primer frente del plan. La topología objetivo, límites iniciales, propiedad de datos y orden de extracción están en [`docs/ARQUITECTURA_MICROSERVICIOS.md`](docs/ARQUITECTURA_MICROSERVICIOS.md). La transición será incremental: primero se fijan contratos y límites; luego se extraen servicios con despliegue y almacenamiento independientes, conservando compatibilidad de `/api/v1` mediante una capa de entrada.
+
+**Avance de la migración:** se desacoplaron auditoría, tokens opacos, correo y scheduler mediante utilidades y puertos fuera de los módulos de infraestructura; nueve módulos consumen funciones de fecha desde `backend/src/lib/dates.ts`; el CRUD genérico pasó de `modules/admin` a `backend/src/lib/table-admin.ts`; y `live` recibe puertos para jobs y lectura de eventos. El catálogo de colecciones y el snapshot del esquema actual residen ahora en `backend/src/contracts/`. `game`, `trips` y `ai` consultan `ContentReaderPort`; su adaptador PostgreSQL central conserva las reglas públicas de `content`. El flujo de Sello Verificado se encapsuló en `BusinessVerificationPort`/`OperatorVerificationService`: admin conserva endpoints y autorización, operadores concentra lecturas y escrituras, e IA recibe IDs aprobados por el puerto; contenido ya no consulta esa tabla. `discover` delega al mismo puerto la búsqueda/sugerencias, capas y entidades de mapa, cercanía, geocodificación inversa y contenido de secciones de portada. Sus lecturas de `analytics_events`, `site_settings` y `favorites` salen por puertos de `analytics`, `admin` y `me`. El servicio `content` (`backend/services/content`) expone `ContentReaderPort` por HTTP sobre una base propia que es proyección de lectura; el facade lo usa sólo si se define `CONTENT_SERVICE_URL`. `weather` tiene servicio, rutas, contrato `WeatherRepository`, entrypoint autónomo, Dockerfile y migrador en Compose, pero el corte de datos sigue pendiente. Typecheck de backend y compilación autónoma de `weather` pasan; CI build/escaneo y runtime independiente aún no se han validado. El backend continúa desplegado como un proceso con PostgreSQL compartido. El inventario ejecutado con Node 24.19.0 reporta 19 pares y 23 referencias entre módulos; CI bloquea aumentos sobre esa línea base. El [plan trazable de 150 mejoras](docs/PLAN_EJECUCION_ARQUITECTURA_150.md) y la [arquitectura objetivo](docs/ARQUITECTURA_MICROSERVICIOS.md) registran alcance y pendientes.
+
+**Decisiones para la transición:** mantener el monorepo durante el piloto con paquetes, imágenes y despliegues independientes por servicio; conservar la API Fastify actual como facade/gateway compatible para `/api/v1`; posponer la elección de un broker hasta medir los requisitos de eventos. Hosting productivo y autenticación servicio-a-servicio siguen pendientes.
+
 | Capa / Módulo | Tecnologías Utilizadas |
 | :--- | :--- |
 | **Frontend Web** | React 18 (Hooks, Suspense, Lazy Loading) + Vite |
@@ -32,11 +38,13 @@ El portal incluye más de **240 páginas y módulos especializados**, abarcando:
 | **Estilos & UI** | Tailwind CSS + Radix UI + shadcn/ui + Lucide Icons |
 | **Animaciones** | Framer Motion (transiciones fluidas optimizadas) |
 | **Gestión de Estado & Cache** | TanStack Query v5 + Context API (`useAuth`, `useCart`, `useFavorites`, `useI18n`) |
-| **API Backend Principal (`backend/`)** | Fastify 5 + TypeScript + Zod (validación de esquemas y OpenAPI / Swagger) |
-| **Base de Datos & Almacenamiento** | PostgreSQL 16 (PostGIS, Row Level Security, pgpool) |
-| **Autenticación & Edge Services** | Supabase Auth (JWT RS256, RBAC `user_roles`) + Edge Functions sanitizadas |
-| **Persistencia Local / Offline** | Motor reactivo `leadStorage.ts` (almacenamiento de leads y reservas sin conexión con sincronización) |
-| **SEO & Metadatos** | `react-helmet-async` + Schema.org JSON-LD (Hotel, Restaurant, Beach, TouristAttraction) |
+| **Backend API** | Fastify 5 + TypeScript + Zod (validación de esquemas y OpenAPI / Swagger) |
+| **Base de Datos** | PostgreSQL 16; migraciones SQL versionadas en `backend/migrations/` |
+| **API actual** | Monolito modular Fastify 5 + Zod; auth, JWT/JWKS, roles y TOTP en `backend/` |
+| **Arquitectura objetivo** | Microservicios por dominio con despliegue, contratos y propiedad de datos definidos por servicio |
+| **CMS actual / destino** | El contenido autoritativo reside hoy en `backend/`; `cms/` (Strapi) es origen editorial de transición. Su extracción se define en el plan de microservicios |
+| **Datos del frontend** | `VITE_DATA_SOURCE=mock` es sólo demostración; el modo `api` se mantiene cerrado hasta completar las escrituras de producción |
+| **SEO & Metadatos** | Metadatos del frontend y rutas SEO del backend; revisar generación dinámica al avanzar el plan |
 | **Enrutamiento** | React Router v6 |
 | **Mapas & Geolocalización** | Leaflet (`react-leaflet`) + `leaflet.markercluster` + Google Maps API |
 | **Pruebas Automatizadas** | Vitest (frontend) + Vitest (backend con 480+ pruebas de integración) |
@@ -73,7 +81,7 @@ El portal incluye más de **240 páginas y módulos especializados**, abarcando:
 │   │   ├── restaurantDetailData.ts # Fichas de restaurantes, menús y precios
 │   │   └── mockDestinations.ts, mockProvinces.ts, etc.
 │   ├── hooks/                # Custom hooks (useAuth, useCart, useFavorites, useI18n, useAdBanners)
-│   ├── integrations/         # Clientes de integración externa (Supabase)
+│   ├── integrations/         # Adaptador de demostración y límites de integraciones
 │   ├── modules/
 │   │   ├── operadores/       # Directorio B2B, vitrinas y panel de tour operadores
 │   │   └── tienda/           # Tienda oficial de productos dominicanos, carrito y checkout
@@ -129,7 +137,7 @@ El portal dispone de un sistema nativo para la comercialización de espacios pub
 - Notificaciones de logros en tiempo real con `GamificationToastOverlay`.
 
 ### 9. Panel Administrativo (`/admin`)
-Acceso protegido por roles de Supabase (`has_role('admin')`) con interfaz anti-fatiga que incluye:
+Acceso administrativo respaldado por los roles y permisos del backend (Fastify), con interfaz que incluye:
 - **Dashboard & Analíticas:** Métricas de visitas, interacción y tasas de conversión.
 - **Banners & Anuncios (`AdminMockupBanners`):** Simulador de campañas en vivo, control de modo (fijo o rotativo dinámico), asignación por página y catálogo visual con copia de rutas.
 - **Gestión de Entidades:** Moderación de usuarios, operadores turísticos registrados y reservas directas.
@@ -337,27 +345,13 @@ El backend implementa de forma completa y desacoplada del frontend los 21 modelo
 
 ---
 
-## 🗺️ Hoja de Ruta Estratégica y Roadmap de Evolución
+## 🗺️ Hoja de Ruta de Arquitectura y 150 Mejoras
 
-```mermaid
-timeline
-    title Hoja de Ruta Estratégica - Descubre RD
-    Fase 1 (0 a 3 meses) : Motor de Reclamo de Fichas (Claim & Verify)
-                         : Landing de Planes /para-empresas
-                         : Consolidación de Diseño & Mockups Completos
-                         : Integración del Sello Verificado MITUR
-    Fase 2 (3 a 6 meses) : Migración de datos mock a Supabase con RLS
-                         : Pasarelas de pago recurrentes con NCF (CardNet/Azul/Stripe)
-                         : Panel Unificado de Negocios (Merchant Dashboard)
-                         : Consolidación y fusión de rutas de tráfico solapadas
-    Fase 3 (6 a 12 meses): Motor de comisiones por reserva en excursiones
-                         : Módulo de cotizaciones múltiples para Bodas y MICE
-                         : Soporte multilingüe en Francés (mercados Francia y Quebec)
-                         : Optimización AEO (AI Engine Optimization, llms.txt)
-```
+La arquitectura vigente es un backend Fastify modular desplegado como una aplicación. La meta aprobada es migrar a microservicios por dominios, comenzando con límites, contratos, dependencias y propiedad de datos. El diseño evita compartir tablas entre servicios y contempla un gateway compatible con las rutas públicas actuales. El barrido inicial encontró 61 pares entre módulos; los contratos de correo, jobs, catálogo, lecturas de lugares/provincias y visibilidad pública redujeron la medición a 19 pares y 23 referencias. `ContentReaderPort` ya separa lecturas de `game`, `trips`, candidatos de `ai` y consultas de catálogo/geo de `discover`; `BusinessVerificationPort` concentra la lectura y actualización de auditorías, aunque sus adaptadores siguen en PostgreSQL compartido. `discover` ya no ejecuta SQL propio. El catálogo tiene un servicio de lectura con base propia (`content`), poblada como proyección desde el monolito, que sigue siendo el único escritor; está configurado en Compose y apagado por omisión. `weather` tiene entrypoint independiente, CRUD interno con aserciones JWT HMAC de un solo uso y scheduler opcional, pero el proxy continúa apagado y el corte de datos pendiente. El avance por fases está en [`docs/PLAN_EJECUCION_ARQUITECTURA_150.md`](docs/PLAN_EJECUCION_ARQUITECTURA_150.md).
 
-> [!TIP]
-> Puedes consultar el desglose detallado de las **100 mejoras y pilares de seguridad** organizados por tareas y sprints en [PLAN_MAESTRO_MEJORAS.md](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/PLAN_MAESTRO_MEJORAS.md).
+Después de fijar la plataforma base y extraer el primer servicio, se migran las escrituras de reservas, carrito y pedidos. Esa etapa requiere sesiones JWT válidas, asociar los productos visibles con entidades/listings de la API y configurar una pasarela tokenizada. La decisión sobre tickets gratuitos de eventos también debe cerrarse antes de declarar completa la migración.
+
+**Seguimiento:** se actualizarán este README y la matriz del plan en cada fase, indicando cambios, evidencia, dependencias y riesgos que sigan abiertos.
 
 ---
 
@@ -369,22 +363,19 @@ timeline
 - [`docs/MIGRACION_ESCRITURAS_BACKEND.md`](docs/MIGRACION_ESCRITURAS_BACKEND.md): contrato de transición para mover reservas, checkout y pedidos al backend autoritativo.
 - [`docs/BACKEND_OPERACION.md`](docs/BACKEND_OPERACION.md): checklist de salida a producción, respaldo y restauración, monitoreo, rotación de secretos, contenedor endurecido y verificación de SBOM/procedencia.
 - [`docs/BACKEND_SEGURIDAD.md`](docs/BACKEND_SEGURIDAD.md): controles de autenticación, sesiones, autorización y datos, cada uno con su evidencia de prueba, más los riesgos residuales declarados.
+- [`docs/FUENTE_DE_VERDAD.md`](docs/FUENTE_DE_VERDAD.md): autoridad actual de cada dominio y límites del mock, Strapi y el backend retirado.
+- [`docs/PLAN_EJECUCION_ARQUITECTURA_150.md`](docs/PLAN_EJECUCION_ARQUITECTURA_150.md): fases y seguimiento del catálogo maestro de 150 mejoras.
+- [`docs/ARQUITECTURA_MICROSERVICIOS.md`](docs/ARQUITECTURA_MICROSERVICIOS.md): estado actual, topología objetivo y plan incremental de extracción del monolito modular.
 
 ---
 
 ## ⚙️ Variables de Entorno
 
-Crea un archivo `.env` en la raíz del proyecto tomando como referencia el siguiente esquema:
+Crea un archivo `.env` en la raíz tomando como referencia [`.env.example`](.env.example). Los valores `VITE_*` se publican en el navegador: no pongas secretos de servidor allí. La API usa su configuración privada en `backend/.env` (consulta [`backend/.env.example`](backend/.env.example)).
 
 ```env
-# URL base de tu proyecto en Supabase
-VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
-
-# Clave pública anónima de Supabase
-VITE_SUPABASE_PUBLISHABLE_KEY=your-public-supabase-publishable-key
-
-# Opcional: Claves de mapas u otros servicios externos si aplican
-# VITE_MAPBOX_TOKEN=pk.eyJ...
+# URL de la API Fastify; en desarrollo puede dejarse vacía para usar el proxy local
+VITE_API_URL=
 
 # Fuente de datos del frontend: "mock" (por defecto) usa los catálogos simulados locales;
 # "api" exige la API real (`backend/`) y el build falla cerrado si queda algo acoplado al mock.
@@ -396,7 +387,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=your-public-supabase-publishable-key
 ## 🛠️ Instalación y Ejecución Local
 
 ### Prerrequisitos
-- **Node.js** v18.0.0 o superior
+- **Node.js** v22 o superior (requisito de `backend/`; usar la misma versión para frontend y API)
 - **npm** v9.0.0 o superior
 
 ### Pasos de Instalación
@@ -412,7 +403,7 @@ cd "Descubre RD"
 npm install
 
 # 4. Configurar variables de entorno
-# Copiar .env con tus credenciales de Supabase
+# Copiar .env.example a .env; los secretos de la API van en backend/.env
 
 # 5. Iniciar el servidor de desarrollo
 npm run dev
@@ -432,6 +423,18 @@ El servidor local se iniciará típicamente en `http://localhost:8080` o `http:/
 - `npm run test:watch`: Inicia el runner de pruebas en modo interactivo/observador.
 - `npm run check:data-source`: Compila en modo simulado y en modo API, y verifica que el build de API no contenga los datos simulados (`VITE_DATA_SOURCE`).
 - `npm run check:bundle-budget`: Comprueba que el bundle inicial y el mayor fragmento diferido respeten los presupuestos de tamaño.
+- `cd backend && npm run architecture:dependencies`: Inventaría dependencias estáticas entre dominios para orientar la extracción a microservicios.
+- `cd backend && npm run weather:migrate` / `weather:migrate:check`: Aplica migraciones versionadas de la base propietaria weather o valida que esté al día sin alterarla.
+- `cd backend && npm run weather:build` / `weather:start`: Compila e inicia el proceso autónomo meteorológico (GET públicos, health/readiness y CRUD administrativo privado); necesita su `WEATHER_DATABASE_URL` propia y migraciones aplicadas.
+- Para desarrollo aislado, genera un token con `node -p "require('node:crypto').randomBytes(48).toString('base64url')"` y configura en `backend/.env` `WEATHER_SERVICE_TOKEN=<token>` junto con `WEATHER_DATABASE_URL=postgres://weather:weather@localhost:5435/descubre_weather`. Luego `cd backend && docker compose --profile weather up -d weather-postgres weather` inicia la DB en `localhost:5435` y el servicio en `localhost:3001`, ambos ligados a loopback y sin activar el proxy del monolito. El paso one-shot `weather-migrate` aplica el SQL versionado antes de que arranque `weather`; comprueba `/health/ready`. Los contenedores de servicio corren sin root, con sistema de archivos de sólo lectura, sin capabilities y con `no-new-privileges`.
+- `cd backend && docker build -f services/weather/Dockerfile -t descubre-weather .`: Construye la imagen dedicada de `weather` (el daemon Docker debe estar activo).
+- `cd backend && npm run content:build` / `content:start` / `content:dev`: Compila e inicia el proceso autónomo de contenido (lecturas de `ContentReaderPort` en `POST /internal/content/read/:method`, health/readiness). Necesita `CONTENT_DATABASE_URL` y `CONTENT_SERVICE_TOKEN` (>=32 caracteres).
+- `cd backend && npm run content:tables` / `content:tables:check`: Regenera o verifica `services/content/content-tables.txt`, la lista de tablas del catálogo que se proyecta.
+- Servicio de contenido en Docker (configurado; no se ha levantado todavía). Con `CONTENT_SERVICE_TOKEN` en `backend/.env`: (1) `docker compose --profile content up -d content-postgres` crea la base propia en `localhost:5438`; (2) `docker compose --profile content-sync run --rm content-sync` inspecciona conteos y con `--apply` reconstruye la proyección desde el monolito y la verifica; (3) `docker compose --profile content up -d content` inicia el servicio en `localhost:3002`. El origen por omisión es el servicio `postgres` de Compose; para el PostgreSQL embebido del host define `CONTENT_SOURCE_DATABASE_URL=postgres://postgres:postgres@host.docker.internal:5434/descubre_rd` y `CONTENT_PG_IMAGE=postgres:18-alpine` (el embebido es v18 y `pg_dump` debe ser de la misma versión mayor o superior).
+- Para enrutar el facade al servicio de contenido: define `CONTENT_SERVICE_URL=http://localhost:3002` y el mismo `CONTENT_SERVICE_TOKEN` en el backend. Rollback: quita ambas variables y el facade vuelve a leer su propia base. La proyección es una foto: lo publicado en el CMS no aparece en el servicio hasta repetir `content-sync --apply`, por lo que aún no es apta para producción.
+- `cd backend && npm run weather:reconcile` / `weather:reconcile:apply` / `weather:reconcile:verify`: Inspecciona, reconcilia o verifica los snapshots entre bases, respectivamente.
+- `cd backend && npm run weather:reconcile:replace`: Sólo para rollback planificado; reemplaza transaccionalmente el destino (incluye borrados) y exige `WEATHER_REPLACE_TARGET_CONFIRM` con el nombre exacto de la base destino.
+- Para enrutar el facade al servicio: configura `WEATHER_SERVICE_URL` y `WEATHER_SERVICE_TOKEN` en el backend; configura el mismo token en weather. Los comandos administrativos y el refresh manual se firman con JWT HMAC breve y se aceptan una sola vez. Para la copia final, despliega primero el facade con `WEATHER_WRITES_FROZEN=true`: pausa escrituras y refresh, pero mantiene lecturas desde el origen. Tras reconciliar, activa el proxy y quita el freeze en un mismo despliegue. Con el proxy activo, el job `weather.refresh` deja de registrarse en el monolito; el scheduler propietario se configura sólo en weather mediante `WEATHER_REFRESH_ENABLED=true`. Un advisory lock por refresh serializa solicitudes manuales y automáticas en todas las instancias. Configura `WEATHER_DATABASE_URL` como conexión dedicada del proceso weather.
 - `npm run check:client-secrets`: Escanea el frontend en busca de secretos que nunca deben publicarse.
 - `npm run check:import-cycles` / `npm run check:i18n-keys`: Detectan ciclos de importación y claves de traducción usadas sin definir.
 - `npm run audit:local-storage`: Lista cada acceso al almacenamiento del navegador con archivo y línea (ver [`docs/ALMACENAMIENTO_LOCAL.md`](docs/ALMACENAMIENTO_LOCAL.md)).

@@ -3,24 +3,28 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
-import { COLLECTIONS, type CollectionDef } from "../content/collections.js";
-import { cols, hasCol, visibility } from "../content/query.js";
-import { todayInSantoDomingo } from "../operators/domain/dates.js";
+import { COLLECTIONS, type CollectionDef } from "../../contracts/content-collections.js";
+import { contentColumns as cols, hasContentColumn as hasCol } from "../../contracts/content-schema.js";
+import { todayInSantoDomingo } from "../../lib/dates.js";
+import type { ContentReaderPort, PublicContentSearchHit } from "../../contracts/content-reader.js";
+import type { FavoritesReaderPort } from "../../contracts/favorites.js";
+import type { SearchAnalyticsPort } from "../../contracts/search-analytics.js";
+import type { PublicSettingsReaderPort } from "../../contracts/site-settings.js";
 
 const ok = z.object({ data: z.any() });
-const Q = (c: string) => `"${c}"`;
 const SEARCHABLE = COLLECTIONS.filter((c) => cols(c.table)[c.title]);
 const GEO = COLLECTIONS.filter((c) => c.geo && hasCol(c.table, c.geo.lat) && hasCol(c.table, c.geo.lng));
 const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
-const like = (s: string) => `%${s.replace(/[\\%_]/g, "\\$&")}%`;
-/** Distancia en metros entre dos puntos (fórmula del semiverseno) como expresión SQL. */
-const haversine = (latCol: string, lngCol: string, latPh: string, lngPh: string) =>
-  `(2 * 6371000 * asin(sqrt(power(sin(radians((${latCol} - ${latPh}) / 2)), 2) + cos(radians(${latPh})) * cos(radians(${latCol})) * power(sin(radians((${lngCol} - ${lngPh}) / 2)), 2))))`;
+export interface DiscoverDeps {
+  contentReader: ContentReaderPort;
+  searchAnalytics: SearchAnalyticsPort;
+  publicSettings: PublicSettingsReaderPort;
+  favorites: FavoritesReaderPort;
+}
 
 /** Búsqueda global, mapa, "cerca de mí", geocodificación inversa y recomendaciones (docs §5.4). */
-export async function discoverRoutes(app: FastifyInstance) {
+export async function discoverRoutes(app: FastifyInstance, { contentReader, searchAnalytics, publicSettings, favorites }: DiscoverDeps) {
   const r = app.withTypeProvider<ZodTypeProvider>();
-  const db = app.db;
   const rl = (max: number, timeWindow: string) => ({ rateLimit: app.env.AUTH_RATE_LIMIT_ENABLED ? { max, timeWindow } : { max: 1_000_000, timeWindow: "1 minute" } });
   const optionalUser = async (req: FastifyRequest) => { if (req.headers.authorization) { try { await app.authenticate(req, undefined as never); } catch { req.user = undefined; } } };
   const typesParam = z.string().max(300).optional().describe("Tipos separados por coma (p. ej. beach,hotel)");
@@ -34,32 +38,17 @@ export async function discoverRoutes(app: FastifyInstance) {
 
   // ---------- Búsqueda ----------
   interface Hit { type: string; collection: string; id: string; slug: string | null; title: string; subtitle: string | null; image: string | null; score: number }
-  /** SQL de una colección (con sus parámetros $1 consulta normalizada, $2 %consulta%, $3 consulta%). */
-  const searchSql = (d: CollectionDef, limit: number, titleOnly: boolean) => {
-    const t = d.table, title = Q(d.title);
-    const t0 = `lower(f_unaccent(${title}::text))`;
-    const extra = titleOnly ? [] : d.search.filter((c) => c !== d.title && cols(t)[c]?.type === "text").slice(0, 3);
-    const match = [`${t0} LIKE $2 ESCAPE '\\'`, `similarity(${t0}, $1) > 0.3`, ...extra.map((c) => `lower(f_unaccent(${Q(c)}::text)) LIKE $2 ESCAPE '\\'`)].join(" OR ");
-    const score = `CASE WHEN ${t0} = $1 THEN 1.0 WHEN ${t0} LIKE $3 ESCAPE '\\' THEN 0.85 WHEN ${t0} LIKE $2 ESCAPE '\\' THEN 0.6 ELSE greatest(similarity(${t0}, $1), 0.25) END`;
-    return `SELECT '${d.entityType}'::text AS type, '${d.path}'::text AS collection, id::text AS id, ${hasCol(t, "slug") ? "slug::text" : "NULL::text"} AS slug, ${title}::text AS title, ${hasCol(t, "short_description") ? "short_description::text" : "NULL::text"} AS subtitle,
-              ${hasCol(t, "image_url") ? "image_url::text" : "NULL::text"} AS image, (${score})::float8 AS score
-         FROM ${Q(t)} WHERE ${visibility(d)} AND (${match}) ORDER BY score DESC${hasCol(t, "rating") ? ", rating DESC NULLS LAST" : ""}, ${title} LIMIT ${limit}`;
-  };
-  const searchParams = (q: string) => [q, like(q), `${q.replace(/[\\%_]/g, "\\$&")}%`];
-  const toHit = (x: Record<string, unknown>): Hit => ({ type: x.type as string, collection: x.collection as string, id: x.id as string, slug: x.slug as string | null, title: x.title as string, subtitle: x.subtitle as string | null, image: x.image as string | null, score: Math.round(Number(x.score) * 100) / 100 });
+  const toHit = (x: PublicContentSearchHit): Hit => ({ type: x.type, collection: x.collection, id: x.id, slug: x.slug, title: x.title, subtitle: x.subtitle, image: x.image, score: Math.round(Number(x.score) * 100) / 100 });
   /**
    * Todas las colecciones en UNA consulta (UNION ALL) y una sola conexión del pool: antes eran ~40 consultas por búsqueda, y con
    * tráfico simultáneo agotaban el pool. Si alguna colección fallara, se recurre a consultar una por una y se omite la que falla.
    */
   const searchMany = async (defs: CollectionDef[], q: string, limit: number, titleOnly: boolean, log: FastifyRequest["log"]): Promise<Hit[]> => {
     if (!defs.length) return [];
-    try {
-      const { rows } = await db.query(defs.map((d) => `(${searchSql(d, limit, titleOnly)})`).join(" UNION ALL "), searchParams(q));
-      return rows.map(toHit);
-    } catch (err) {
-      log.warn({ err }, "Falló la búsqueda unificada; se consulta colección por colección");
-      return (await Promise.all(defs.map((d) => db.query(searchSql(d, limit, titleOnly), searchParams(q)).then((r) => r.rows.map(toHit)).catch((e) => { log.warn({ err: e, collection: d.path }, "Falló la búsqueda en una colección"); return [] as Hit[]; })))).flat();
-    }
+    const result = await contentReader.searchPublicContent(defs.map((definition) => definition.path), q, limit, titleOnly);
+    if (result.fallbackUsed) log.warn({ failedCollections: result.failedCollections }, "Falló la búsqueda unificada; se consultó colección por colección");
+    for (const collection of result.failedCollections) log.warn({ collection }, "Falló la búsqueda en una colección");
+    return result.hits.map(toHit);
   };
   // Respuestas iguales para todos: 30 s de caché por app y una sola consulta si llegan muchas idénticas a la vez
   // (las instancias viven en app.publicCache para que publicar las vacúe al instante).
@@ -77,7 +66,7 @@ export async function discoverRoutes(app: FastifyInstance) {
       return { data: all.slice(0, req.query.limit), collections: defs.length };
     });
     // Se registra la consulta (sin datos personales) para las "búsquedas frecuentes".
-    if (q.length >= 3) void db.query("INSERT INTO analytics_events (event_type, page, metadata) VALUES ('search', '/search', $1)", [JSON.stringify({ q, results: data.length })]).catch(() => undefined);
+    if (q.length >= 3) void searchAnalytics.recordSearch(q, data.length).catch(() => undefined);
     reply.header("cache-control", "public, max-age=30");
     return { data, meta: { q: req.query.q, total: data.length, collections: defs.length } };
   });
@@ -99,11 +88,10 @@ export async function discoverRoutes(app: FastifyInstance) {
 
   r.get("/search/popular", { schema: { tags: ["búsqueda"], summary: "Búsquedas frecuentes de los últimos 7 días (o las sugeridas por el equipo)", response: { 200: ok } } }, async (_q, reply) => {
     const data = await app.publicCache.popular.wrap("popular", async () => {
-      const { rows } = await db.query<{ q: string; n: number }>("SELECT metadata->>'q' AS q, count(*)::int AS n FROM analytics_events WHERE event_type = 'search' AND created_at > now() - interval '7 days' AND coalesce((metadata->>'results')::int, 0) > 0 GROUP BY 1 HAVING count(*) >= 2 ORDER BY 2 DESC, 1 LIMIT 10");
-      let d: string[] = rows.map((x) => x.q);
+      let d = await searchAnalytics.listPopularSearches(10);
       if (!d.length) {
-        const s = (await db.query<{ value: unknown }>("SELECT value FROM site_settings WHERE key = 'search.popular' AND is_public")).rows[0];
-        d = Array.isArray(s?.value) ? (s!.value as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 10) : [];
+        const value = await publicSettings.getPublicSetting("search.popular");
+        d = Array.isArray(value) ? (value as unknown[]).filter((x): x is string => typeof x === "string").slice(0, 10) : [];
       }
       return d;
     });
@@ -113,10 +101,7 @@ export async function discoverRoutes(app: FastifyInstance) {
 
   // ---------- Mapa ----------
   r.get("/map/layers", { schema: { tags: ["mapa"], summary: "Capas del mapa interactivo", response: { 200: ok } } }, async (_q, reply) => {
-    const data = await app.publicCache.mapLayers.wrap("layers", () => Promise.all(GEO.map(async (d) => ({
-      id: d.path, type: d.entityType, label: d.label, group: d.tag,
-      count: (await db.query<{ n: number }>(`SELECT count(*)::int AS n FROM ${Q(d.table)} WHERE ${visibility(d)} AND ${Q(d.geo!.lat)} IS NOT NULL AND ${Q(d.geo!.lng)} IS NOT NULL`)).rows[0]!.n,
-    }))));
+    const data = await app.publicCache.mapLayers.wrap("layers", () => contentReader.listPublicMapLayers(GEO.map((definition) => definition.path)));
     reply.header("cache-control", PUBLIC_CACHE);
     return { data: data.filter((l) => l.count > 0) };
   });
@@ -129,17 +114,11 @@ export async function discoverRoutes(app: FastifyInstance) {
     const defs = layers.map((l) => { const d = GEO.find((g) => g.path === l || g.entityType === l); if (!d) throw AppError.validation(`Capa desconocida: ${l}`); return d; });
     const bbox = req.query.bbox?.split(",").map(Number) as [number, number, number, number] | undefined;
     if (bbox && (bbox[0] >= bbox[2] || bbox[1] >= bbox[3] || Math.abs(bbox[1]) > 90 || Math.abs(bbox[3]) > 90 || Math.abs(bbox[0]) > 180 || Math.abs(bbox[2]) > 180)) throw AppError.validation("bbox inválido");
-    const features: unknown[] = [];
-    for (const d of defs) {
-      const { lat, lng } = d.geo!;
-      const params: unknown[] = [], where = [visibility(d), `${Q(lat)} IS NOT NULL`, `${Q(lng)} IS NOT NULL`];
-      if (bbox) { params.push(bbox[0], bbox[2], bbox[1], bbox[3]); where.push(`${Q(lng)} BETWEEN $1 AND $2`, `${Q(lat)} BETWEEN $3 AND $4`); }
-      const { rows } = await db.query(
-        `SELECT id, ${hasCol(d.table, "slug") ? "slug" : "NULL::text AS slug"}, ${Q(d.title)}::text AS name, ${Q(lat)}::float8 AS lat, ${Q(lng)}::float8 AS lng, ${hasCol(d.table, "image_url") ? "image_url::text" : "NULL::text"} AS image, ${hasCol(d.table, "rating") ? "rating::float8" : "NULL::float8"} AS rating
-           FROM ${Q(d.table)} WHERE ${where.join(" AND ")} ORDER BY ${hasCol(d.table, "rating") ? "rating DESC NULLS LAST," : ""} id LIMIT ${req.query.limit}`, params,
-      );
-      for (const x of rows) features.push({ type: "Feature", geometry: { type: "Point", coordinates: [x.lng, x.lat] }, properties: { id: x.id, type: d.entityType, layer: d.path, slug: x.slug, name: x.name, image: x.image, rating: x.rating } });
-    }
+    const rows = await contentReader.listPublicMapFeatures(defs.map((definition) => definition.path), bbox, req.query.limit);
+    const features = rows.map((x) => {
+      const definition = defs.find((candidate) => candidate.path === x.collection);
+      return { type: "Feature", geometry: { type: "Point", coordinates: [x.lng, x.lat] }, properties: { id: x.id, type: definition!.entityType, layer: x.collection, slug: x.slug, name: x.name, image: x.image, rating: x.rating } };
+    });
     reply.header("cache-control", "public, max-age=60").header("content-type", "application/geo+json; charset=utf-8");
     return JSON.stringify({ type: "FeatureCollection", features: features.slice(0, req.query.limit) });
   });
@@ -152,14 +131,7 @@ export async function discoverRoutes(app: FastifyInstance) {
     const { lat, lng, radius, limit } = req.query;
     const set = wanted(req.query.types);
     const defs = set ? pick(GEO, set) : GEO.filter((d) => d.nearbyDefault);
-    const found = (await Promise.all(defs.map(async (d) => {
-      const dist = haversine(Q(d.geo!.lat), Q(d.geo!.lng), "$1", "$2");
-      const { rows } = await db.query(
-        `SELECT id, ${hasCol(d.table, "slug") ? "slug" : "NULL::text AS slug"}, ${Q(d.title)}::text AS name, ${hasCol(d.table, "image_url") ? "image_url::text" : "NULL::text"} AS image, ${hasCol(d.table, "rating") ? "rating::float8" : "NULL::float8"} AS rating, ${dist} AS distance_m
-           FROM ${Q(d.table)} WHERE ${visibility(d)} AND ${Q(d.geo!.lat)} IS NOT NULL AND ${Q(d.geo!.lng)} IS NOT NULL AND ${dist} <= $3 ORDER BY distance_m LIMIT ${limit}`, [lat, lng, radius],
-      );
-      return rows.map((x) => ({ type: d.entityType, collection: d.path, id: x.id, slug: x.slug, name: x.name, image: x.image, rating: x.rating, distance_m: Math.round(x.distance_m) }));
-    }))).flat().sort((a, b) => a.distance_m - b.distance_m).slice(0, limit);
+    const found = await contentReader.findNearbyPublicPlaces(defs.map((definition) => definition.path), lat, lng, radius, limit);
     reply.header("cache-control", "public, max-age=60");
     return { data: found, meta: { center: { lat, lng }, radius_m: radius, total: found.length } };
   });
@@ -169,20 +141,8 @@ export async function discoverRoutes(app: FastifyInstance) {
     schema: { tags: ["mapa"], summary: "Provincia, municipio y destino más cercanos a una coordenada (hasta 60 km)", querystring: z.object({ lat: z.coerce.number().min(-90).max(90), lng: z.coerce.number().min(-180).max(180) }), response: { 200: ok } },
   }, async (req, reply) => {
     const { lat, lng } = req.query;
-    const nearest = async (table: string) => (await db.query(
-      `SELECT t.id, t.name, t.slug, t.province_id, p.name AS province_name, p.slug AS province_slug, ${haversine("t.latitude", "t.longitude", "$1", "$2")} AS d
-         FROM ${Q(table)} t LEFT JOIN provinces p ON p.id = t.province_id WHERE t.status = 'published' AND t.deleted_at IS NULL AND t.latitude IS NOT NULL AND t.longitude IS NOT NULL ORDER BY d LIMIT 1`, [lat, lng],
-    )).rows[0];
-    const [mun, dest] = await Promise.all([nearest("municipalities"), nearest("destinations")]);
-    const close = (x?: { d: number }) => (x && x.d <= 60_000 ? x : null);
-    const m = close(mun) as typeof mun | null, d = close(dest) as typeof dest | null;
-    const best = [m, d].filter(Boolean).sort((a, b) => a!.d - b!.d)[0] ?? null;
     reply.header("cache-control", "public, max-age=300");
-    return { data: {
-      province: best?.province_id ? { id: best.province_id, name: best.province_name, slug: best.province_slug } : null,
-      municipality: m ? { id: m.id, name: m.name, slug: m.slug, distance_m: Math.round(m.d) } : null,
-      destination: d ? { id: d.id, name: d.name, slug: d.slug, distance_m: Math.round(d.d) } : null,
-    } };
+    return { data: await contentReader.reverseGeocode(lat, lng) };
   });
 
   // ---------- Recomendaciones de portada ----------
@@ -192,12 +152,8 @@ export async function discoverRoutes(app: FastifyInstance) {
   }, async (req, reply) => {
     const limit = req.query.limit;
     const buildSections = async () => {
-      const top = async (d: CollectionDef, opts: { where?: string; order?: string; params?: unknown[] } = {}) => {
-        const t = d.table;
-        const { rows } = await db.query(
-          `SELECT id, ${hasCol(t, "slug") ? "slug" : "NULL::text AS slug"}, ${Q(d.title)}::text AS title, ${hasCol(t, "short_description") ? "short_description::text" : "NULL::text"} AS subtitle, ${hasCol(t, "image_url") ? "image_url::text" : "NULL::text"} AS image, ${hasCol(t, "rating") ? "rating::float8" : "NULL::float8"} AS rating
-             FROM ${Q(t)} WHERE ${visibility(d)}${opts.where ? ` AND ${opts.where}` : ""} ORDER BY ${opts.order ?? `${hasCol(t, "is_featured") ? "is_featured DESC NULLS LAST," : ""} ${hasCol(t, "rating") ? "rating DESC NULLS LAST," : ""} ${Q(d.title)}`} LIMIT ${limit}`, opts.params ?? [],
-        );
+      const top = async (d: CollectionDef, opts: { excludeIds?: string[]; upcomingFrom?: string } = {}) => {
+        const rows = await contentReader.listPublicSectionItems(d.path, limit, opts);
         return rows.map((x) => ({ type: d.entityType, collection: d.path, id: x.id, slug: x.slug, title: x.title, subtitle: x.subtitle, image: x.image, rating: x.rating }));
       };
       const by = (path: string) => COLLECTIONS.find((c) => c.path === path);
@@ -206,14 +162,14 @@ export async function discoverRoutes(app: FastifyInstance) {
 
       if (req.user) {
         // Personalización: lo del mismo destino que sus favoritos y de los tipos que más guarda, sin repetir lo que ya marcó.
-        const favs = (await db.query<{ entity_type: string; entity_id: string }>("SELECT entity_type, entity_id FROM favorites WHERE user_id = $1 ORDER BY created_at DESC LIMIT 50", [req.user.id])).rows;
+        const favs = await favorites.listRecentFavorites(req.user.id, 50);
         const typeCount = new Map<string, number>();
         for (const f of favs) typeCount.set(f.entity_type, (typeCount.get(f.entity_type) ?? 0) + 1);
         const favTypes = [...typeCount.entries()].sort((a, b) => b[1] - a[1]).map(([t]) => t).slice(0, 2);
         const ids = favs.map((f) => f.entity_id).filter((x) => /^[0-9a-f-]{36}$/.test(x));
         for (const t of favTypes) {
           const d = COLLECTIONS.find((c) => c.entityType === t);
-          if (d) await add(`for_you_${d.path}`, `Para ti: ${d.label}`, d.path, { where: ids.length ? `id <> ALL($1::uuid[])` : undefined, params: ids.length ? [ids] : [] });
+          if (d) await add(`for_you_${d.path}`, `Para ti: ${d.label}`, d.path, { excludeIds: ids });
         }
       }
       await add("destinations", "Destinos destacados", "destinations");
@@ -221,7 +177,7 @@ export async function discoverRoutes(app: FastifyInstance) {
       await add("experiences", "Experiencias", "experiences");
       await add("hotels", "Dónde hospedarte", "hotels");
       await add("restaurants", "Dónde comer", "restaurants");
-      await add("events", "Próximos eventos", "events", { where: "coalesce(end_date, start_date) >= $1::date", order: "start_date ASC", params: [todayInSantoDomingo()] });
+      await add("events", "Próximos eventos", "events", { upcomingFrom: todayInSantoDomingo() });
       return sections;
     };
     // La versión anónima es igual para todos (30 s de caché); la personalizada depende del usuario y no se cachea.

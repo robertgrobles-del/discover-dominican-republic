@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
-import { auditInsert } from "../operators/team.js";
+import { auditInsert } from "../../lib/audit.js";
 import {
   CATEGORIES, LANGUAGES, SEALS, reputationScore, sealFor,
   type ReputationResult, type ReputationStats, type SealDefinition,
@@ -244,8 +244,10 @@ export class CreatorService {
     if (exists) throw AppError.validation("El usuario o handle ya se encuentra registrado como creador");
 
     const ins = await this.db.query<CreatorProfileRow>(
-      `INSERT INTO creator_profiles (id, handle, display_name, bio, avatar_url, social_channels, tier, status)
-       VALUES ($1, $2, $3, $4, $5, $6, 'emerging', 'active')
+      // El alta se aprueba al instante, como antes de la migración 0058: la revisión previa (draft → pending) aún no tiene
+      // endpoints ni pantallas. La migración quitó el DEFAULT de approved_at, así que se fija aquí.
+      `INSERT INTO creator_profiles (id, handle, display_name, bio, avatar_url, social_channels, tier, status, approved_at, status_changed_at)
+       VALUES ($1, $2, $3, $4, $5, $6, 'emerging', 'approved', now(), now())
        RETURNING *`,
       [userId, handle, data.display_name, data.bio ?? null, data.avatar_url ?? null, JSON.stringify(data.social_channels ?? {})],
     );
@@ -256,7 +258,7 @@ export class CreatorService {
   async getProfile(handleOrId: string): Promise<CreatorProfileRow | null> {
     const isUuid = /^[0-9a-f-]{36}$/i.test(handleOrId);
     const { rows } = await this.db.query<CreatorProfileRow>(
-      `SELECT * FROM creator_profiles WHERE ${isUuid ? "id = $1" : "lower(handle) = lower($1)"} AND status = 'active'`,
+      `SELECT * FROM creator_profiles WHERE ${isUuid ? "id = $1" : "lower(handle) = lower($1)"} AND status = 'approved'`,
       [handleOrId],
     );
     return rows[0] ?? null;
@@ -357,6 +359,13 @@ export class CreatorService {
     if (!profile) throw AppError.notFound("Perfil de creador no configurado");
     const [seals, stats] = await Promise.all([this.sealsOf(userId), this.statsOf(userId)]);
     const reputation = reputationScore({ ...profile, sealKeys: seals.map((s) => s.seal_key) }, stats);
+    const status = profile.status as CreatorStatus;
+    const missing: CreatorApprovalField[] = [];
+    if (!profile.handle.trim()) missing.push("handle");
+    if (!profile.display_name.trim()) missing.push("display_name");
+    if (!profile.bio?.trim()) missing.push("bio");
+    if (!profile.categories?.length) missing.push("categories");
+    if (!profile.languages?.length) missing.push("languages");
     return {
       profile: { ...profile, reputation_score: reputation.score },
       seals,
@@ -366,6 +375,7 @@ export class CreatorService {
       reputation,
       stats,
       audience: { verified: profile.audience_verified, verified_at: profile.audience_verified_at, metrics: profile.audience_metrics ?? {} },
+      approval: { status, missing, can_submit: (status === "draft" || status === "rejected") && missing.length === 0 },
     };
   }
 

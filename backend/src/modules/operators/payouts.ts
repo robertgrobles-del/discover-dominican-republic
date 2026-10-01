@@ -1,7 +1,7 @@
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
-import type { Mailer } from "../mailer/mailer.js";
-import { audit } from "./team.js";
+import type { MailerPort } from "../../contracts/email.js";
+import { audit } from "../../lib/audit.js";
 import { fromCents, toCents } from "./domain/money.js";
 
 const PAYOUT_COLS = "id, org_id, currency, gross, commission, net, status, method, reference, created_at, paid_at";
@@ -12,7 +12,7 @@ const dto = (r: Record<string, unknown>) => ({ ...r, gross: Number(r.gross), com
  * cobros manuales) de reservas `completed`, menos reembolsos y la comisión. Cada reserva entra en un solo lote (`payout_items.booking_id` único).
  */
 export class PayoutService {
-  constructor(private readonly db: Db, private readonly mailer: Mailer) {}
+  constructor(private readonly db: Db, private readonly mailer: MailerPort) {}
 
   /** Genera un lote por organización y moneda con todo lo liquidable. Idempotente: lo ya liquidado no se repite. */
   async generate(opts: { orgId?: string } = {}) {

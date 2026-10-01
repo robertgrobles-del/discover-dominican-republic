@@ -5,9 +5,9 @@ import type { Env } from "../../config/env.js";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
 import type { Locale } from "../../lib/i18n.js";
-import { newOpaqueToken } from "../auth/tokens.js";
-import type { Mailer } from "../mailer/mailer.js";
-import type { NotifyFn } from "../notifications/insert.js";
+import { newOpaqueToken } from "../../lib/opaque-tokens.js";
+import type { MailerPort } from "../../contracts/email.js";
+import type { NotifyFn } from "../../contracts/notifications.js";
 import { POLICIES, refundFor, type CancellationPolicy } from "./domain/cancellation.js";
 import { addDays, isIsoDate, nightsBetween, startsAt, todayInSantoDomingo } from "./domain/dates.js";
 import { fromCents, toCents } from "./domain/money.js";
@@ -15,7 +15,7 @@ import type { RoomSnap } from "./domain/pricing.js";
 import { computeQuote, type ListingSnap, type Quote, type QuoteRequest } from "./domain/quote.js";
 import type { PaymentGateway } from "./gateway.js";
 import type { PromotionService } from "./promotions.js";
-import { audit } from "./team.js";
+import { audit } from "../../lib/audit.js";
 
 export type PaymentMode = "pay_now" | "deposit" | "pay_later";
 const MAX_DATE_CHANGES = 2;
@@ -89,7 +89,7 @@ const toBookingDto = (r: Record<string, unknown>): BookingDto => {
 export class BookingService {
   constructor(
     private readonly db: Db, private readonly env: Env, private readonly promos: PromotionService, private readonly gateway: PaymentGateway,
-    private readonly mailer: Mailer, private readonly log: FastifyBaseLogger,
+    private readonly mailer: MailerPort, private readonly log: FastifyBaseLogger,
   ) {}
 
   /** Aviso en la bandeja de la persona (lo asigna el arranque de la app). */

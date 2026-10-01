@@ -1,9 +1,13 @@
-import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
+import { unsubscribeToken, verifyUnsubscribeToken } from "../../lib/unsubscribe-token.js";
+
+// Reexport temporal: los módulos vecinos aún pueden migrar imports sin alterar la API interna.
+export { unsubscribeToken, verifyUnsubscribeToken } from "../../lib/unsubscribe-token.js";
 
 const sha = (t: string) => createHash("sha256").update(t).digest("hex");
 const email = z.string().trim().toLowerCase().pipe(z.email().max(254));
@@ -12,17 +16,6 @@ const mailLocale = (l: string | undefined) => (l === "en" ? "en" : "es");
 const ok = z.object({ data: z.any() });
 const bearer = [{ bearerAuth: [] }];
 const uuid = z.object({ id: z.string().uuid() });
-
-/** Token de baja sin estado: `<correo en base64url>.<HMAC>`. Sirve para enlaces de campañas sin guardar un token por envío. */
-export const unsubscribeToken = (secret: string, mail: string) => `${Buffer.from(mail).toString("base64url")}.${createHmac("sha256", secret).update(`unsub:${mail}`).digest("base64url").slice(0, 32)}`;
-export function verifyUnsubscribeToken(secret: string, token: string): string | null {
-  const [b64, sig] = token.split(".");
-  if (!b64 || !sig) return null;
-  const mail = Buffer.from(b64, "base64url").toString("utf8");
-  const expected = createHmac("sha256", secret).update(`unsub:${mail}`).digest("base64url").slice(0, 32);
-  const a = Buffer.from(sig), b = Buffer.from(expected);
-  return a.length === b.length && timingSafeEqual(a, b) ? mail : null;
-}
 
 /** Captación y soporte (docs §5.6): newsletter con doble opt-in, contacto, tickets, leads y alta de establecimientos. */
 export async function formsRoutes(app: FastifyInstance) {
@@ -126,7 +119,7 @@ export async function formsRoutes(app: FastifyInstance) {
   }, async (req, reply) => {
     const b = req.body;
     reply.code(202);
-    if (!b.website) await db.query("INSERT INTO marketing_leads (nombre, email, telefono, empresa, mensaje, source, interest, consent) VALUES ($1,$2,$3,$4,$5,$6,$7,true)", [b.name, b.email, b.phone ?? null, b.company ?? null, b.message ?? null, b.source ?? null, b.interest ?? null]);
+    if (!b.website) await app.leads.capture({ name: b.name, email: b.email, phone: b.phone, company: b.company, message: b.message, source: b.source, interest: b.interest });
     return { data: { received: true } };
   });
 

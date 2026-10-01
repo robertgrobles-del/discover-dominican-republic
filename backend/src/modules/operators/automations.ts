@@ -2,8 +2,8 @@ import { randomBytes } from "node:crypto";
 import type { FastifyBaseLogger } from "fastify";
 import type { Env } from "../../config/env.js";
 import type { Db } from "../../db/pool.js";
-import { hashToken } from "../auth/tokens.js";
-import type { Mailer } from "../mailer/mailer.js";
+import { hashToken } from "../../lib/opaque-tokens.js";
+import type { MailerPort } from "../../contracts/email.js";
 import { todayInSantoDomingo } from "./domain/dates.js";
 import type { IcalService } from "./ical.js";
 
@@ -14,7 +14,7 @@ import type { IcalService } from "./ical.js";
  */
 export class AutomationService {
   private timer: NodeJS.Timeout | null = null;
-  constructor(private readonly db: Db, private readonly env: Env, private readonly mailer: Mailer, private readonly ical: IcalService, private readonly log: FastifyBaseLogger) {}
+  constructor(private readonly db: Db, private readonly env: Env, private readonly mailer: MailerPort, private readonly ical: IcalService, private readonly log: FastifyBaseLogger) {}
 
   start(everyMs = 5 * 60_000) {
     if (this.timer) return;
