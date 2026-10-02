@@ -216,6 +216,17 @@ export class TripService {
     await this.db.query("INSERT INTO trip_invites (trip_id, token_hash, role, expires_at, created_by) VALUES ($1,$2,$3, now() + make_interval(days => $4), $5)", [tripId, sha(token), role, INVITE_DAYS, userId]);
     return { token, role, expires_in_days: INVITE_DAYS };
   }
+  /** Enlaces de invitación aún utilizables. El token no se guarda en claro, así que aquí no se puede volver a mostrar. */
+  async listInvites(tripId: string, userId: string) {
+    await this.access(tripId, userId, "owner");
+    return (await this.db.query("SELECT id, role, expires_at, uses, max_uses, created_at FROM trip_invites WHERE trip_id = $1 AND expires_at > now() AND uses < max_uses ORDER BY created_at DESC", [tripId])).rows;
+  }
+  /** El dueño anula un enlace ya compartido: deja de servir de inmediato, sin afectar a quien ya se unió. */
+  async revokeInvite(tripId: string, userId: string, inviteId: string) {
+    await this.access(tripId, userId, "owner");
+    const res = await this.db.query("UPDATE trip_invites SET expires_at = now() WHERE id = $1 AND trip_id = $2 AND expires_at > now()", [inviteId, tripId]);
+    if (!res.rowCount) throw AppError.notFound("Invitación vigente");
+  }
   async join(userId: string, token: string) {
     return this.tx(async (c) => {
       const inv = (await c.query<{ id: string; trip_id: string; role: string; uses: number; max_uses: number; expires_at: Date }>("SELECT id, trip_id, role, uses, max_uses, expires_at FROM trip_invites WHERE token_hash = $1 FOR UPDATE", [sha(token)])).rows[0];

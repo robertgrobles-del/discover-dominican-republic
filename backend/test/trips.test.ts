@@ -172,6 +172,17 @@ describe("mi viaje", () => {
       expect((await call("DELETE", `/me/trips/${t.id}/members/${viewer.id}`, { token: viewer.token })).statusCode).toBe(204);
       expect((await call("GET", `/me/trips/${t.id}`, { token: viewer.token })).statusCode).toBe(404);
       expect((await call("DELETE", `/me/trips/${t.id}/members/${editor.id}`, { token: owner.token })).statusCode).toBe(204);
+      // El dueño ve sus enlaces vigentes y puede revocar uno ya compartido (plan de accesos, punto 18).
+      const fresh = json(await call("POST", `/me/trips/${t.id}/members`, { token: owner.token, payload: { role: "viewer" } })).data;
+      expect((await call("GET", `/me/trips/${t.id}/invites`, { token: stranger.token })).statusCode).toBe(404);
+      const open = json(await call("GET", `/me/trips/${t.id}/invites`, { token: owner.token })).data as { id: string; role: string }[];
+      expect(open.length).toBeGreaterThanOrEqual(1);
+      expect(JSON.stringify(open)).not.toContain(fresh.token); // el token no se vuelve a exponer
+      const target = open.find((i) => i.role === "viewer")!;
+      expect((await call("DELETE", `/me/trips/${t.id}/invites/${target.id}`, { token: stranger.token })).statusCode).toBe(404);
+      expect((await call("DELETE", `/me/trips/${t.id}/invites/${target.id}`, { token: owner.token })).statusCode).toBe(204);
+      expect((await call("DELETE", `/me/trips/${t.id}/invites/${target.id}`, { token: owner.token })).statusCode).toBe(404);
+      expect(json(await call("GET", `/me/trips/${t.id}/invites`, { token: owner.token })).data.some((i: { id: string }) => i.id === target.id)).toBe(false);
       // Invitación vencida o agotada.
       await pool.query("UPDATE trip_invites SET expires_at = now() - interval '1 minute' WHERE trip_id = $1", [t.id]);
       expect(json(await call("POST", "/trips/join", { token: stranger.token, payload: { token: invE.token } })).error.details.code).toBe("INVITE_INVALID");
