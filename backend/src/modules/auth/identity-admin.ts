@@ -3,6 +3,7 @@ import type { IdentityAdminPort, TemporaryRole } from "../../contracts/identity.
 import type { Db } from "../../db/pool.js";
 import { hashToken, newOpaqueToken } from "../../lib/opaque-tokens.js";
 import { auditInsert } from "../../lib/audit.js";
+import { verifyPassword } from "./password.js";
 
 /** Adaptador PostgreSQL de las escrituras de identidad que piden otros dominios. */
 export class PostgresIdentityAdmin implements IdentityAdminPort {
@@ -84,6 +85,12 @@ export class PostgresIdentityAdmin implements IdentityAdminPort {
       "SELECT role::text AS role, expires_at, grant_reason, granted_by::text AS granted_by FROM user_roles WHERE user_id = $1 AND (expires_at IS NULL OR expires_at > now()) ORDER BY role", [userId],
     );
     return rows;
+  }
+
+  async reauthenticate(userId: string, password: string) {
+    const u = (await this.db.query<{ password_hash: string; password_set: boolean; totp: Date | null }>("SELECT password_hash, password_set, totp_enabled_at AS totp FROM users WHERE id = $1 AND status = 'active'", [userId])).rows[0];
+    if (!u) return { ok: false, twoFactorEnabled: false };
+    return { ok: u.password_set && (await verifyPassword(u.password_hash, password)), twoFactorEnabled: !!u.totp };
   }
 
   async lastSessionAt(userIds: string[]) {

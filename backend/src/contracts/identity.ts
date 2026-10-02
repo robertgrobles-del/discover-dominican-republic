@@ -30,6 +30,8 @@ export interface IdentityAdminPort {
   expireTemporaryRoles(): Promise<TemporaryRole[]>;
   /** Roles vigentes de una cuenta con su vencimiento (null si es permanente). */
   rolesWithExpiry(userId: string): Promise<{ role: string; expires_at: Date | null; grant_reason: string | null; granted_by: string | null }[]>;
+  /** Comprueba la contraseña actual de una cuenta antes de una operación sensible e indica si tiene 2FA activo. */
+  reauthenticate(userId: string, password: string): Promise<{ ok: boolean; twoFactorEnabled: boolean }>;
   /** Fecha de la última sesión iniciada por cada cuenta (ausente si nunca inició). */
   lastSessionAt(userIds: string[]): Promise<Map<string, Date>>;
   /** `suspended` no toca cuentas borradas; `active` sólo reactiva las suspendidas. */

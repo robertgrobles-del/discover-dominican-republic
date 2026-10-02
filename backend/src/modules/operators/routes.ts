@@ -17,6 +17,7 @@ import { PromotionService } from "./promotions.js";
 import { ReportService } from "./reports.js";
 import { renderVoucher } from "./voucher.js";
 import { audit } from "../../lib/audit.js";
+import { OwnershipService } from "./ownership.js";
 import { TeamService } from "./team.js";
 
 declare module "fastify" {
@@ -62,6 +63,7 @@ const promoBody = z.object({
 export async function operatorRoutes(app: FastifyInstance) {
   const { catalog, promotions, bookings } = app; // se crean en la raíz (routes.ts) para compartirlos con otros módulos
   const team = new TeamService(app.db, app.env, app.mailer);
+  const ownership = new OwnershipService(app.db, app.identity, (userId, n) => app.notifications.notify(userId, n));
   const engagement = new EngagementService(app.db, bookings);
   const icalSvc = app.ical;
   const reports = new ReportService(app.db);
@@ -266,6 +268,23 @@ export async function operatorRoutes(app: FastifyInstance) {
   r.delete("/org/team/invitations/:id", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Revoca una invitación", security: bearer, params: memberId, response: { 204: z.null() } } }, async (req, reply) => { await team.revoke(req.member!.org_id, req.member!.role, req.params.id); reply.code(204); return null; });
   r.patch("/org/team/members/:id", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Cambia el rol o los servicios de un miembro", security: bearer, params: memberId, body: z.object({ role: z.enum(["admin", "recepcion", "guia"]).optional(), expires_at: z.string().datetime().nullable().optional().describe("Fin del acceso (contrato o temporada); null lo deja sin vencimiento"), listing_ids: z.array(z.string().max(80)).max(50).optional() }), response: { 204: z.null() } } }, async (req, reply) => { await team.updateMember(req.member!.org_id, { id: req.user!.id, role: req.member!.role }, req.params.id, req.body); reply.code(204); return null; });
   r.delete("/org/team/members/:id", { onRequest: org(), schema: { tags: ["operadores"], summary: "Quita a un miembro (o sal tú del equipo)", security: bearer, params: memberId, response: { 204: z.null() } } }, async (req, reply) => { await team.remove(req.member!.org_id, { id: req.user!.id, role: req.member!.role }, req.params.id); reply.code(204); return null; });
+  // ---- Transferencia de propiedad (plan de accesos, punto 82) ----
+  const transferId = id.extend({ id: z.string().uuid() });
+  r.get("/org/ownership-transfer", { onRequest: org(), schema: { tags: ["operadores"], summary: "Transferencia de propiedad pendiente de mi organización, si la hay", security: bearer, response: { 200: ok } } }, async (req) => {
+    const t = await ownership.current(req.member!.org_id);
+    // Sólo la ven quien la propuso y quien debe decidirla.
+    return { data: t && (t.from_user_id === req.user!.id || t.to_user_id === req.user!.id) ? { ...t, can_accept: t.to_user_id === req.user!.id } : null };
+  });
+  r.post("/org/ownership-transfer", {
+    onRequest: org("owner"), config: rl(5, "1 hour"),
+    schema: { tags: ["operadores"], summary: "Propone transferir la propiedad a un miembro del equipo (pide la contraseña y, si está activo, el segundo factor)", security: bearer, body: z.object({ user_id: z.string().uuid(), password: z.string().min(1).max(200) }), response: { 201: ok } },
+  }, async (req, reply) => {
+    reply.code(201);
+    return { data: await ownership.propose({ orgId: req.member!.org_id, ownerId: req.user!.id, toUserId: req.body.user_id, password: req.body.password, sessionHasMfa: req.user!.mfa, ip: req.ip }) };
+  });
+  r.post("/org/ownership-transfer/:id/accept", { onRequest: org(), schema: { tags: ["operadores"], summary: "Acepta ser el nuevo propietario; el anterior pasa a administrador", security: bearer, params: transferId, response: { 200: ok } } }, async (req) => ({ data: await ownership.accept(req.member!.org_id, req.params.id, req.user!.id, req.ip) }));
+  r.post("/org/ownership-transfer/:id/close", { onRequest: org(), schema: { tags: ["operadores"], summary: "Rechaza la transferencia (quien fue elegido) o la retira (quien la propuso)", security: bearer, params: transferId, response: { 200: ok } } }, async (req) => ({ data: { status: await ownership.close(req.member!.org_id, req.params.id, req.user!.id, req.ip) } }));
+
   r.get("/team-invitations/:token", { config: rl(30, "1 minute"), schema: { tags: ["operadores"], summary: "Vista previa de una invitación", params: z.object({ token: z.string().max(100) }), response: { 200: ok } } }, async (req) => ({ data: await team.preview(req.params.token) }));
   r.post("/team-invitations/:token/accept", { onRequest: app.authenticate, config: rl(10, "1 minute"), schema: { tags: ["operadores"], summary: "Acepta una invitación con la cuenta invitada", security: bearer, params: z.object({ token: z.string().max(100) }), response: { 200: ok } } }, async (req) => ({ data: await team.accept(req.user!.id, req.params.token) }));
 
