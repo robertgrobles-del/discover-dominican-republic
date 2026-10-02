@@ -28,6 +28,9 @@ export interface AccessTimeline {
   events: { at: string; action: string; actor_id: string | null; org_id: string | null; meta: Record<string, unknown> }[];
 }
 
+export interface StaffInvitation { id: string; email: string; role: "editor" | "moderator"; status: "open" | "accepted" | "revoked" | "expired"; expires_at: string; created_at: string }
+export interface CapabilityGrant { id: string; user_id: string; email: string; capability: "catalog.manage" | "analytics.read"; collections: string[]; record_ids: string[]; reason: string; expires_at: string | null; active: boolean }
+
 export const APPROVAL_KIND_LABEL: Record<ApprovalKind, string> = {
   grant_admin: "Conceder administración",
   reset_2fa: "Restablecer verificación en dos pasos",
@@ -71,6 +74,8 @@ export function governanceErrorMessage(error: unknown): string {
     if (code === "APPROVAL_ALREADY_PENDING") return "Ya hay una solicitud pendiente para esa operación.";
     if (code === "REVIEW_ALREADY_OPEN") return "Ya hay una revisión de accesos abierta.";
     if (code === "ROLE_ALREADY_PERMANENT") return "La persona ya tiene ese rol de forma permanente.";
+    if (code === "INVITATION_OPEN") return "Ya hay una invitación abierta para ese correo.";
+    if (code === "ALREADY_HAS_ROLE") return "Esa persona ya tiene ese rol.";
     if (code === "DUAL_APPROVAL_REQUIRED") return "Esta operación requiere doble aprobación: crea una solicitud.";
     if (error.status === 403) return "Tu sesión no tiene permiso para esta operación.";
     if (error.status === 404) return "No se encontró el registro.";
@@ -96,6 +101,15 @@ export const accessGovernanceApi = {
   decideItem: (reviewId: string, itemId: string, decision: "keep" | "revoke", justification: string) =>
     post<{ data: { decision: string } }>(`/admin/access-reviews/${reviewId}/items/${itemId}/decide`, { decision, justification }),
   closeReview: (id: string) => post<null>(`/admin/access-reviews/${id}/close`),
+
+  listStaffInvitations: () => fetchApi<{ data: StaffInvitation[] }>("/admin/staff-invitations"),
+  inviteStaff: (email: string, role: "editor" | "moderator") => post<{ data: { email: string } }>("/admin/staff-invitations", { email, role }),
+  revokeStaffInvitation: (id: string) => fetchApi<null>(`/admin/staff-invitations/${id}`, { method: "DELETE" }),
+
+  listGrants: (userId?: string) => fetchApi<{ data: CapabilityGrant[] }>(`/admin/capability-grants${userId ? `?user_id=${userId}` : ""}`),
+  grantCapability: (input: { user_id: string; capability: "catalog.manage" | "analytics.read"; reason: string; collections?: string[]; record_ids?: string[]; hours?: number }) =>
+    post<{ data: { id: string } }>("/admin/capability-grants", input),
+  revokeGrant: (id: string) => fetchApi<null>(`/admin/capability-grants/${id}`, { method: "DELETE" }),
 
   timeline: (userId: string) => fetchApi<{ data: AccessTimeline }>(`/admin/users/${userId}/access-timeline`),
   grantTemporaryRole: (userId: string, input: { role: string; hours: number; reason: string }) =>

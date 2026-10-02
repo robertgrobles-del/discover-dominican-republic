@@ -30,6 +30,7 @@ import { AdminAuditLogs } from "@/components/admin/AdminAuditLogs";
 import { AdminReservasDirectas } from "@/components/admin/AdminReservasDirectas";
 import { PermissionAuditPanel } from "@/components/admin/PermissionAuditPanel";
 import { AccessGovernancePanel } from "@/components/admin/AccessGovernancePanel";
+import { AdminCreatorCampaigns } from "@/components/admin/AdminCreatorCampaigns";
 import { SupportImpersonationBanner } from "@/components/admin/SupportImpersonationBanner";
 
 /**
@@ -76,6 +77,7 @@ const ADMIN_TABS: AdminTab[] = [
   { value: "operadores", label: "Negocios & Operadores", capability: "admin.accounts", icon: Building2, render: () => <AdminOperadores /> },
   { value: "reservas-directas", label: "Reservas Directas", capability: "admin.finance", render: () => <AdminReservasDirectas /> },
   { value: "gobernanza", label: "Aprobaciones y revisiones", capability: "admin.accounts", icon: ShieldCheck, iconClass: "text-primary", render: () => <AccessGovernancePanel /> },
+  { value: "campanas-creadores", label: "Campañas con creadores", capability: "admin.accounts", icon: Megaphone, iconClass: "text-primary", render: () => <AdminCreatorCampaigns /> },
   { value: "accesos", label: "Auditoría de accesos", capability: "admin.access_catalog", icon: KeyRound, iconClass: "text-primary", render: () => <PermissionAuditPanel /> },
   { value: "moderacion", label: "Moderación UGC", capability: "moderation.queue", render: () => <UGCModerationPanel /> },
   { value: "routebuilder", label: "Creador de Rutas", capability: "editorial.content", render: () => <AdminRouteBuilder /> },

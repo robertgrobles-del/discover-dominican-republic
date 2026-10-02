@@ -22,6 +22,8 @@ import { CreatorsVideosTab, CreatorVideoItem } from "@/components/creators/Creat
 import { CreatorsPayoutsTab } from "@/components/creators/CreatorsPayoutsTab";
 import { CreatorsIdentityTab } from "@/components/creators/CreatorsIdentityTab";
 import { CreatorsAppealsTab, CreatorAppealItem } from "@/components/creators/CreatorsAppealsTab";
+import { CreatorsCampaignsTab } from "@/components/creators/CreatorsCampaignsTab";
+import { CreatorsEarningsTab } from "@/components/creators/CreatorsEarningsTab";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchApi } from "@/lib/fastifyClient";
 import { HttpError } from "@/lib/httpClient";
@@ -187,6 +189,12 @@ export default function ProgramaCreadores() {
                 <TabsTrigger value="identidad" className="rounded-xl text-xs font-semibold gap-1.5 py-2 px-4">
                   <ShieldCheck className="h-4 w-4" /> Identidad y reputación
                 </TabsTrigger>
+                <TabsTrigger value="campanas" className="rounded-xl text-xs font-semibold gap-1.5 py-2 px-4">
+                  Campañas
+                </TabsTrigger>
+                <TabsTrigger value="ingresos" className="rounded-xl text-xs font-semibold gap-1.5 py-2 px-4">
+                  Ingresos y disputas
+                </TabsTrigger>
                 <TabsTrigger value="apelaciones" className="rounded-xl text-xs font-semibold gap-1.5 py-2 px-4">
                   <Gavel className="h-4 w-4" /> Apelaciones
                 </TabsTrigger>
@@ -236,6 +244,14 @@ export default function ProgramaCreadores() {
               </TabsContent>
 
               {/* TAB 7: Apelaciones de moderación (punto 44) */}
+              <TabsContent value="campanas">
+                <CreatorsCampaignsTab videos={(creatorDashboard?.videos ?? []).map((v) => ({ id: v.id, title: v.title }))} />
+              </TabsContent>
+
+              <TabsContent value="ingresos">
+                <CreatorsEarningsTab />
+              </TabsContent>
+
               <TabsContent value="apelaciones">
                 <CreatorsAppealsTab appeals={creatorAppeals} reloadKey={appealsReloadKey} />
               </TabsContent>

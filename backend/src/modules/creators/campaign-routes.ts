@@ -32,6 +32,7 @@ export async function creatorCampaignRoutes(app: FastifyInstance) {
     schema: { tags: adminTags, summary: "Abre o cierra la campaña", security: bearer, params: uuid, body: z.object({ status: z.enum(["open", "closed"]) }), response: { 204: z.null() } },
   }, async (req, reply) => { await svc.setStatus(req.user!.id, req.params.id, req.body.status, req.ip); reply.code(204); return null; });
   r.get("/admin/creator-campaigns/:id/acceptances", { onRequest: admin, schema: { tags: adminTags, summary: "Evidencia de aceptación: quién aceptó qué versión, cuándo y con qué texto", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => ({ data: await svc.acceptances(req.params.id) }));
+  r.get("/admin/creator-campaigns/:id/deliverables", { onRequest: admin, schema: { tags: adminTags, summary: "Entregas de una campaña, con las pendientes de revisar primero", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => ({ data: await svc.deliverables(req.params.id) }));
   r.post("/admin/creator-deliverables/:id/review", {
     onRequest: admin,
     schema: { tags: adminTags, summary: "Aprueba o rechaza una entrega; aprobar registra la licencia y, si aplica, el pago", security: bearer, params: uuid, body: z.object({ decision: z.enum(["approved", "rejected"]), note: z.string().trim().max(300).optional() }), response: { 200: ok } },

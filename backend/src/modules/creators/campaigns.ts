@@ -185,6 +185,15 @@ export class CreatorCampaignService {
     }
   }
 
+  /** Entregas de una campaña para que el personal las revise. */
+  async deliverables(campaignId: string) {
+    return (await this.db.query(
+      `SELECT d.id, d.creator_id, p.handle, d.video_id, v.title AS video_title, v.video_url, d.accepted_version, d.status, d.review_note, d.reviewed_at, d.created_at
+         FROM creator_campaign_deliverables d JOIN creator_profiles p ON p.id = d.creator_id JOIN creator_videos v ON v.id = d.video_id
+        WHERE d.campaign_id = $1 ORDER BY (d.status = 'submitted') DESC, d.created_at DESC`, [campaignId],
+    )).rows;
+  }
+
   /** Aprobar una entrega registra la licencia de la pieza y, si la compensación es fija, el pago en el libro. */
   async reviewDeliverable(actorId: string, deliverableId: string, decision: "approved" | "rejected", note: string | undefined, ip: string) {
     const result = await this.tx(async (c) => {

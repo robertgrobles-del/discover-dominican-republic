@@ -12,6 +12,7 @@ import { PanelEmptyState } from "@/components/ui/panel-empty-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MockDataNotice } from "@/components/MockDataNotice";
+import { CapabilityGrantsTab, StaffInvitationsTab } from "@/components/admin/AccessGrantsSections";
 import { IS_MOCK_DATA } from "@/lib/dataSource";
 import {
   APPROVAL_KIND_LABEL, APPROVAL_STATUS_LABEL, UUID_PATTERN, accessEventLabel, accessGovernanceApi as api, governanceErrorMessage,
@@ -49,14 +50,18 @@ export function AccessGovernancePanel() {
         <p className="text-xs text-muted-foreground">Operaciones críticas con doble aprobación, revisión periódica de roles y accesos por persona.</p>
       </div>
       <Tabs defaultValue="aprobaciones">
-        <TabsList>
+        <TabsList className="flex h-auto flex-wrap gap-1">
           <TabsTrigger value="aprobaciones" className="gap-1.5 text-xs"><CheckCircle2 className="h-3.5 w-3.5" aria-hidden /> Aprobaciones</TabsTrigger>
           <TabsTrigger value="revisiones" className="gap-1.5 text-xs"><ClipboardCheck className="h-3.5 w-3.5" aria-hidden /> Revisión de accesos</TabsTrigger>
           <TabsTrigger value="persona" className="gap-1.5 text-xs"><UserCog className="h-3.5 w-3.5" aria-hidden /> Accesos de una persona</TabsTrigger>
+          <TabsTrigger value="invitaciones" className="text-xs">Invitar personal</TabsTrigger>
+          <TabsTrigger value="permisos" className="text-xs">Permisos acotados</TabsTrigger>
         </TabsList>
         <TabsContent value="aprobaciones" className="space-y-4"><ApprovalsTab /></TabsContent>
         <TabsContent value="revisiones" className="space-y-4"><ReviewsTab /></TabsContent>
         <TabsContent value="persona" className="space-y-4"><PersonTab /></TabsContent>
+        <TabsContent value="invitaciones" className="space-y-4"><StaffInvitationsTab /></TabsContent>
+        <TabsContent value="permisos" className="space-y-4"><CapabilityGrantsTab /></TabsContent>
       </Tabs>
     </div>
   );
