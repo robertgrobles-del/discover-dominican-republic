@@ -15,6 +15,7 @@ import type { JobRunnerPort } from "../../contracts/jobs.js";
 import type { PayoutService } from "./payouts.js";
 import { PromotionService } from "./promotions.js";
 import { ReportService } from "./reports.js";
+import { CONTACT_CHANNELS, ContactMetricsService } from "./contact-metrics.js";
 import { renderVoucher } from "./voucher.js";
 import { audit } from "../../lib/audit.js";
 import { OwnershipService } from "./ownership.js";
@@ -72,6 +73,7 @@ export async function operatorRoutes(app: FastifyInstance) {
   const engagement = new EngagementService(app.db, bookings);
   const icalSvc = app.ical;
   const reports = new ReportService(app.db);
+  const contactMetrics = new ContactMetricsService(app.db, app.env, app.mailer);
   const r = app.withTypeProvider<ZodTypeProvider>();
   // Mismo criterio que auth: las pruebas desactivan estos topes con AUTH_RATE_LIMIT_ENABLED=false.
   const rl = (max: number, timeWindow: string) => ({ rateLimit: app.env.AUTH_RATE_LIMIT_ENABLED ? { max, timeWindow } : { max: 1_000_000, timeWindow: "1 minute" } });
@@ -109,6 +111,12 @@ export async function operatorRoutes(app: FastifyInstance) {
   r.get("/operators/:slug/listings/:listing", { schema: { tags: ["operadores"], summary: "Ficha pública de un servicio", params: z.object({ slug: z.string().max(100), listing: z.string().max(140) }), response: { 200: ok } } }, async (req, reply) => {
     reply.header("cache-control", PUBLIC_CACHE);
     return { data: await catalog.publicListing(req.params.slug, req.params.listing) };
+  });
+  // Contador anónimo: no guarda sesión, usuario ni IP. Respeta Do-Not-Track y Sec-GPC igual que la analítica.
+  r.post("/operators/:slug/contact-click", { config: rl(60, "1 minute"), schema: { tags: ["operadores"], summary: "Cuenta un clic de contacto (WhatsApp, llamada, ruta o sitio web) hacia un operador", params: z.object({ slug: z.string().max(100) }), body: z.object({ channel: z.enum(CONTACT_CHANNELS), listing_id: z.string().min(1).max(80).optional() }), response: { 204: z.null() } } }, async (req, reply) => {
+    reply.code(204);
+    if (req.headers.dnt !== "1" && req.headers["sec-gpc"] !== "1") await contactMetrics.record(req.params.slug, req.body.channel, req.body.listing_id);
+    return null;
   });
   r.get("/listings/:id/availability", { schema: { tags: ["reservas"], summary: "Disponibilidad por día (máx. 62 días)", params: id, querystring: z.object({ from: date, to: date }), response: { 200: ok } } }, async (req) => ({ data: await bookings.availability(req.params.id, req.query.from, req.query.to) }));
 
@@ -354,6 +362,14 @@ export async function operatorRoutes(app: FastifyInstance) {
 
   // ---- Reportes ----
   r.get("/org/reports/summary", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Resumen: reservas, ingresos, servicios, canales, cancelaciones y promociones", security: bearer, querystring: z.object({ from: date, to: date }), response: { 200: ok } } }, async (req) => ({ data: await reports.summary(req.member!.org_id, { from: req.query.from, to: req.query.to }) }));
+
+  r.get("/org/reports/contact-clicks", { onRequest: org(), schema: { tags: ["operadores"], summary: "Clics a WhatsApp, llamada, ruta y sitio web por día y por servicio", security: bearer, querystring: z.object({ from: date, to: date }), response: { 200: ok } } }, async (req) => ({ data: await contactMetrics.summary(req.member!.org_id, { from: req.query.from, to: req.query.to, only: only(req.member!) }) }));
+  r.get("/org/reports/weekly-email", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "¿Recibe mi organización el resumen semanal por correo?", security: bearer, response: { 200: ok } } }, async (req) => ({ data: { enabled: await contactMetrics.weeklyReportEnabled(req.member!.org_id) } }));
+  r.put("/org/reports/weekly-email", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Activa o desactiva el resumen semanal por correo", security: bearer, body: z.object({ enabled: z.boolean() }), response: { 200: ok } } }, async (req) => {
+    await contactMetrics.setWeeklyReport(req.member!.org_id, req.body.enabled);
+    await audit(app.db, { actor: req.user!.id, action: "org.weekly_report_set", entity: "org", id: req.member!.org_id, org: req.member!.org_id, meta: { enabled: req.body.enabled }, ip: req.ip });
+    return { data: { enabled: req.body.enabled } };
+  });
 
   // ---- Liquidaciones ----
   r.get("/org/payouts", { onRequest: org("owner"), schema: { tags: ["operadores"], summary: "Mis liquidaciones y lo pendiente de pago", security: bearer, querystring: z.object({ ...pageQ, status: z.enum(["pending", "paid", "failed"]).optional() }), response: { 200: z.object({ data: any, meta: z.any() }) } } }, async (req) => {

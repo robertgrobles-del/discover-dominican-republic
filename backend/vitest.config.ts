@@ -23,6 +23,7 @@ export default defineConfig({
             "test/booking-changes.test.ts",
             "test/booking-claim.test.ts",
             "test/capability-grants.test.ts",
+            "test/contact-metrics.test.ts",
             "test/business-verification.test.ts",
             "test/content.test.ts",
             "test/content-service.test.ts",

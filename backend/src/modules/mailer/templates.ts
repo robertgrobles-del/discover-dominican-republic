@@ -248,6 +248,18 @@ T["operator.min_guests"] = {
     html: layout("Departure below minimum", p(`The <b>${esc(d.service)}</b> departure on <b>${esc(d.date)}</b> has <b>${d.booked}</b> of ${d.min} minimum guests.`), { label: "Go to my bookings", url: d.url }),
   }),
 };
+T["operator.weekly_report"] = {
+  es: (d) => ({
+    subject: `Tu semana en Descubre RD: ${d.bookings} reservas (${d.period})`,
+    text: `${d.operator}, este es tu resumen del ${d.period}.\n\nReservas nuevas: ${d.bookings}\nValor reservado: ${d.revenue}\nClics a WhatsApp: ${d.whatsapp}\nClics para llamar: ${d.calls}\nClics a cómo llegar: ${d.directions}\nClics a tu sitio web: ${d.website}\n\n${d.url}\n\nPuedes desactivar este correo desde los reportes de tu panel.`,
+    html: layout("Tu resumen semanal", p(`<b>${esc(d.operator)}</b>, este es tu resumen del <b>${esc(d.period)}</b>.`) + p(`Reservas nuevas: <b>${d.bookings}</b><br>Valor reservado: <b>${esc(d.revenue)}</b>`) + p(`Clics a WhatsApp: <b>${d.whatsapp}</b><br>Clics para llamar: <b>${d.calls}</b><br>Clics a cómo llegar: <b>${d.directions}</b><br>Clics a tu sitio web: <b>${d.website}</b>`) + p("Puedes desactivar este correo desde los reportes de tu panel."), { label: "Ver mis reportes", url: d.url }),
+  }),
+  en: (d) => ({
+    subject: `Your week on Descubre RD: ${d.bookings} bookings (${d.period})`,
+    text: `${d.operator}, here is your summary for ${d.period}.\n\nNew bookings: ${d.bookings}\nBooked value: ${d.revenue}\nWhatsApp clicks: ${d.whatsapp}\nCall clicks: ${d.calls}\nDirections clicks: ${d.directions}\nWebsite clicks: ${d.website}\n\n${d.url}\n\nYou can turn this email off from the reports in your panel.`,
+    html: layout("Your weekly summary", p(`<b>${esc(d.operator)}</b>, here is your summary for <b>${esc(d.period)}</b>.`) + p(`New bookings: <b>${d.bookings}</b><br>Booked value: <b>${esc(d.revenue)}</b>`) + p(`WhatsApp clicks: <b>${d.whatsapp}</b><br>Call clicks: <b>${d.calls}</b><br>Directions clicks: <b>${d.directions}</b><br>Website clicks: <b>${d.website}</b>`) + p("You can turn this email off from the reports in your panel."), { label: "View my reports", url: d.url }),
+  }),
+};
 T["operator.payout_sent"] = {
   es: (d) => ({
     subject: `Liquidación enviada: ${d.amount}`,

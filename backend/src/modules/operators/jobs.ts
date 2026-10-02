@@ -7,6 +7,7 @@ import { addDays, todayInSantoDomingo } from "./domain/dates.js";
 import type { IcalService } from "./ical.js";
 import type { PayoutService } from "./payouts.js";
 import { auditInsert } from "../../lib/audit.js";
+import { ContactMetricsService } from "./contact-metrics.js";
 
 const PENDING_PAYMENT_MINUTES = 30;
 
@@ -15,6 +16,10 @@ interface Deps { db: Db; env: Env; mailer: MailerPort; runner: JobRegistrar; aut
 /** Registra los trabajos de Operadores RD (docs §9). Cada uno es idempotente. */
 export function registerOperatorJobs(d: Deps) {
   const { db, runner } = d;
+  const contactMetrics = new ContactMetricsService(db, d.env, d.mailer);
+
+  // Se evalúa cada 6 h, pero la marca por organización y semana garantiza un solo correo; sale en cuanto cierra la semana.
+  runner.register({ name: "operators.weekly_report", description: "Resumen semanal por correo a operadores con actividad (reservas y clics de contacto)", everySeconds: 6 * 3600, run: async ({ now }) => contactMetrics.sendWeeklyReports(now) });
 
   runner.register({ name: "bookings.reminders", description: "Recordatorio 24 h antes (una vez por reserva)", everySeconds: 900, run: async ({ now }) => ({ sent: await d.automations.reminders(now) }) });
   runner.register({ name: "bookings.review_requests", description: "Solicitud de reseña a reservas completadas", everySeconds: 3600, run: async () => ({ sent: await d.automations.reviewRequests() }) });

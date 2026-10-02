@@ -15,6 +15,7 @@ export interface EmailTemplateData {
   "booking.claim": { name: string; organizer: string; dates: string; url: string; hours: number };
   "operator.min_guests": { operator: string; service: string; date: string; booked: number; min: number; url: string };
   "operator.payout_sent": { operator: string; amount: string; reference: string };
+  "operator.weekly_report": { operator: string; period: string; bookings: number; revenue: string; whatsapp: number; calls: number; directions: number; website: number; url: string };
   "newsletter.confirm": { url: string };
   "support.received": { name: string; reference: string; subject: string };
   "establishment.received": { name: string; establishment: string; url: string };
