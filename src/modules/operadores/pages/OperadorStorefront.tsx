@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { BadgeCheck, Mail, MapPin, Phone } from "lucide-react";
+import { BadgeCheck, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { trackContactClick, whatsappNumber } from "@/lib/operatorContactApi";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
@@ -62,7 +63,8 @@ export default function OperadorStorefront() {
               {org.description && <p className="text-muted-foreground max-w-3xl">{org.description}</p>}
               <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground">
                 {org.province && <span className="flex items-center gap-1"><MapPin className="h-4 w-4" /> {org.province}</span>}
-                {org.phone && <span className="flex items-center gap-1"><Phone className="h-4 w-4" /> {org.phone}</span>}
+                {org.phone && <a href={`tel:${org.phone.replace(/[^\d+]/g, "")}`} onClick={() => trackContactClick(slug, "call")} className="flex items-center gap-1 hover:text-foreground"><Phone className="h-4 w-4" /> {org.phone}</a>}
+                {org.phone && whatsappNumber(org.phone) && <a href={`https://wa.me/${whatsappNumber(org.phone)}`} target="_blank" rel="noopener noreferrer" onClick={() => trackContactClick(slug, "whatsapp")} className="flex items-center gap-1 hover:text-foreground"><MessageCircle className="h-4 w-4" /> WhatsApp</a>}
                 {org.email && <span className="flex items-center gap-1"><Mail className="h-4 w-4" /> {org.email}</span>}
               </div>
             </div>

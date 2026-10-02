@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { opKeys, replyReview, useBookings, useListings, useOpMutation, useReviews } from "../api";
 import { formatMoney } from "../constants";
 import { useOrg } from "./OrgContext";
+import { ContactClicksCard } from "./ContactClicksCard";
 
 const COLORS = ["hsl(var(--primary))", "#f59e0b", "#10b981", "#6366f1"];
 
@@ -53,6 +54,7 @@ export default function Reportes() {
             <ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={bySource} dataKey="value" nameKey="name" outerRadius={80} label>{bySource.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}</Pie><Tooltip /></PieChart></ResponsiveContainer>
           )}</CardContent></Card>
       </div>
+      <ContactClicksCard />
       <Card>
         <CardHeader><CardTitle className="text-base">Reseñas</CardTitle></CardHeader>
         <CardContent className="space-y-4">
