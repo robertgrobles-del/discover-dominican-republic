@@ -10,6 +10,7 @@ import type { JobRegistrar } from "../../contracts/jobs.js";
 import { addDays, todayInSantoDomingo } from "../../lib/dates.js";
 import { audit } from "../../lib/audit.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
+import { BounceService } from "./bounce.js";
 
 const RETENTION_MONTHS = 13;
 const EVENT_TYPES = ["page_view", "click", "search", "favorite", "share", "booking_start", "booking_complete", "signup", "login", "add_to_cart", "checkout_start", "purchase", "ad_click", "outbound_link", "error", "free_ticket_registered"] as const;
@@ -194,6 +195,11 @@ export async function analyticsRoutes(app: FastifyInstance) {
     await audit(db, { actor: req.user!.id, action: "analytics.export", entity: "report", id: q.report, ip: req.ip });
     reply.header("content-type", "text/csv; charset=utf-8").header("content-disposition", `attachment; filename="${q.report}.csv"`);
     return toCsv(rows);
+  });
+
+  r.get("/admin/analytics/bounce", { onRequest: reader, schema: { tags: ["admin"], summary: "Tasa de rebote por día y por página de entrada, con el umbral de alerta vigente", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } } }, async (req) => {
+    const { from, to } = range(req.query);
+    return { data: await new BounceService(db).report(from, to) };
   });
 
   // ---------- Adopción por perfil (punto 67 del plan de accesos) ----------
@@ -404,6 +410,12 @@ export function registerAnalyticsJobs(app: FastifyInstance, runner: JobRegistrar
       }
       return { flushed };
     },
+  });
+  runner.register({
+    name: "analytics.bounce_alert", description: "Avisa al equipo si la tasa de rebote de ayer superó el umbral (una vez por día)", everySeconds: 6 * 3600,
+    run: async ({ now }) => new BounceService(app.db).alertFor(addDays(todayInSantoDomingo(now), -1), async (n) => {
+      for (const id of await app.identity.userIdsWithRole("admin")) await app.notifications.notify(id, n);
+    }),
   });
   runner.register({
     name: "analytics.rollup", description: `Agrega por día y purga los eventos de más de ${RETENTION_MONTHS} meses`, everySeconds: 86_400,

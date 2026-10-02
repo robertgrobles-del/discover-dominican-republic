@@ -21,6 +21,7 @@ export default defineConfig({
             "test/audit-chain.test.ts",
             "test/auth.test.ts",
             "test/booking-changes.test.ts",
+            "test/bounce.test.ts",
             "test/booking-claim.test.ts",
             "test/capability-grants.test.ts",
             "test/contact-metrics.test.ts",
