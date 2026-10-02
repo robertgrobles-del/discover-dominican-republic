@@ -12,7 +12,7 @@ import { usePanelAdoption } from "@/lib/adoption";
 import { IS_MOCK_DATA } from "@/lib/dataSource";
 import { MockDataNotice } from "@/components/MockDataNotice";
 import { Navigate } from "react-router-dom";
-import { Users, Building2, Shield, Megaphone, Coins, Sparkles, KeyRound, Loader2 } from "lucide-react";
+import { Users, Building2, Shield, ShieldCheck, Megaphone, Coins, Sparkles, KeyRound, Loader2 } from "lucide-react";
 import { AdminFinanceLotteryManager } from "@/components/admin/AdminFinanceLotteryManager";
 import { EntityImportManager } from "@/components/admin/EntityImportManager";
 import { UGCModerationPanel } from "@/components/admin/UGCModerationPanel";
@@ -29,6 +29,7 @@ import { AdminAiGenerator } from "@/components/admin/AdminAiGenerator";
 import { AdminAuditLogs } from "@/components/admin/AdminAuditLogs";
 import { AdminReservasDirectas } from "@/components/admin/AdminReservasDirectas";
 import { PermissionAuditPanel } from "@/components/admin/PermissionAuditPanel";
+import { AccessGovernancePanel } from "@/components/admin/AccessGovernancePanel";
 import { SupportImpersonationBanner } from "@/components/admin/SupportImpersonationBanner";
 
 /**
@@ -74,6 +75,7 @@ const ADMIN_TABS: AdminTab[] = [
   { value: "usuarios", label: "Usuarios & Roles", capability: "admin.accounts", icon: Users, render: () => <AdminUsuarios /> },
   { value: "operadores", label: "Negocios & Operadores", capability: "admin.accounts", icon: Building2, render: () => <AdminOperadores /> },
   { value: "reservas-directas", label: "Reservas Directas", capability: "admin.finance", render: () => <AdminReservasDirectas /> },
+  { value: "gobernanza", label: "Aprobaciones y revisiones", capability: "admin.accounts", icon: ShieldCheck, iconClass: "text-primary", render: () => <AccessGovernancePanel /> },
   { value: "accesos", label: "Auditoría de accesos", capability: "admin.access_catalog", icon: KeyRound, iconClass: "text-primary", render: () => <PermissionAuditPanel /> },
   { value: "moderacion", label: "Moderación UGC", capability: "moderation.queue", render: () => <UGCModerationPanel /> },
   { value: "routebuilder", label: "Creador de Rutas", capability: "editorial.content", render: () => <AdminRouteBuilder /> },
