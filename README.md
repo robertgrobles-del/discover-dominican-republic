@@ -27,9 +27,9 @@ El portal incluye más de **240 páginas y módulos especializados**, abarcando:
 
 **Estado de arquitectura:** el backend actual es un monolito modular; la migración a microservicios es el primer frente del plan. La topología objetivo, límites iniciales, propiedad de datos y orden de extracción están en [`docs/ARQUITECTURA_MICROSERVICIOS.md`](docs/ARQUITECTURA_MICROSERVICIOS.md). La transición será incremental: primero se fijan contratos y límites; luego se extraen servicios con despliegue y almacenamiento independientes, conservando compatibilidad de `/api/v1` mediante una capa de entrada.
 
-**Avance de la migración:** se desacoplaron auditoría, tokens opacos, correo y scheduler mediante utilidades y puertos fuera de los módulos de infraestructura; nueve módulos consumen funciones de fecha desde `backend/src/lib/dates.ts`; el CRUD genérico pasó de `modules/admin` a `backend/src/lib/table-admin.ts`; y `live` recibe puertos para jobs y lectura de eventos. El catálogo de colecciones y el snapshot del esquema actual residen ahora en `backend/src/contracts/`. `game`, `trips` y `ai` consultan `ContentReaderPort`; su adaptador PostgreSQL central conserva las reglas públicas de `content`. El flujo de Sello Verificado se encapsuló en `BusinessVerificationPort`/`OperatorVerificationService`: admin conserva endpoints y autorización, operadores concentra lecturas y escrituras, e IA recibe IDs aprobados por el puerto; contenido ya no consulta esa tabla. `discover` delega al mismo puerto la búsqueda/sugerencias, capas y entidades de mapa, cercanía, geocodificación inversa y contenido de secciones de portada. Sus lecturas de `analytics_events`, `site_settings` y `favorites` salen por puertos de `analytics`, `admin` y `me`. El servicio `content` (`backend/services/content`) expone `ContentReaderPort` por HTTP sobre una base propia que es proyección de lectura; el facade lo usa sólo si se define `CONTENT_SERVICE_URL`. `weather` tiene servicio, rutas, contrato `WeatherRepository`, entrypoint autónomo, Dockerfile y migrador en Compose, pero el corte de datos sigue pendiente. Typecheck de backend y compilación autónoma de `weather` pasan; CI build/escaneo y runtime independiente aún no se han validado. El backend continúa desplegado como un proceso con PostgreSQL compartido. El inventario ejecutado con Node 24.19.0 reporta 19 pares y 23 referencias entre módulos; CI bloquea aumentos sobre esa línea base. El [plan trazable de 150 mejoras](docs/PLAN_EJECUCION_ARQUITECTURA_150.md) y la [arquitectura objetivo](docs/ARQUITECTURA_MICROSERVICIOS.md) registran alcance y pendientes.
+**Avance de la migración (2026-10-02):** los módulos del backend ya no se importan entre sí: toda dependencia entre dominios pasa por los contratos de `backend/src/contracts/` (20 archivos), con el adaptador en el módulo dueño y la composición en `backend/src/routes.ts`. El inventario pasó de 61 pares de importaciones cruzadas a 0 y de 19 tablas con varios escritores a 0; quedan 41 tablas que otro dominio lee, cuya separación requiere proyecciones. CI bloquea cualquier retroceso (`architecture:dependencies`, `architecture:tables`, `check:cycles`). El servicio `content` (`backend/services/content`) expone `ContentReaderPort` por HTTP sobre una base propia que es proyección de lectura; el facade lo usa sólo si se define `CONTENT_SERVICE_URL`. `weather` tiene servicio, base propia, migrador y reconciliación. Ambos están configurados en Compose pero **nunca se han levantado en Docker**: las imágenes no se han construido y el corte de datos sigue pendiente. El backend continúa desplegado como un proceso con PostgreSQL compartido. El detalle está en la sección [Hoja de Ruta](#️-hoja-de-ruta-de-arquitectura-y-150-mejoras), el [plan de 150 mejoras](docs/PLAN_EJECUCION_ARQUITECTURA_150.md) y la [arquitectura objetivo](docs/ARQUITECTURA_MICROSERVICIOS.md).
 
-**Decisiones para la transición:** mantener el monorepo durante el piloto con paquetes, imágenes y despliegues independientes por servicio; conservar la API Fastify actual como facade/gateway compatible para `/api/v1`; posponer la elección de un broker hasta medir los requisitos de eventos. Hosting productivo y autenticación servicio-a-servicio siguen pendientes.
+**Decisiones para la transición:** mantener el monorepo con paquetes, imágenes y despliegues independientes por servicio; conservar la API Fastify actual como facade/gateway compatible para `/api/v1`; posponer la elección de un broker hasta medir los requisitos de eventos. El proyecto es personal (no institucional) y el alojamiento previsto es un VPS, aún sin contratar. Subdominios acordados: `descubrerd.com` (sitio), `api.` (backend), `cms.` (Strapi), `staging.` y, opcional, `media.`.
 
 | Capa / Módulo | Tecnologías Utilizadas |
 | :--- | :--- |
@@ -44,10 +44,11 @@ El portal incluye más de **240 páginas y módulos especializados**, abarcando:
 | **Arquitectura objetivo** | Microservicios por dominio con despliegue, contratos y propiedad de datos definidos por servicio |
 | **CMS actual / destino** | El contenido autoritativo reside hoy en `backend/`; `cms/` (Strapi) es origen editorial de transición. Su extracción se define en el plan de microservicios |
 | **Datos del frontend** | `VITE_DATA_SOURCE=mock` es sólo demostración; el modo `api` se mantiene cerrado hasta completar las escrituras de producción |
+| **Sesión del frontend** | `VITE_AUTH_SOURCE=api` inicia sesión contra el backend (token de acceso en memoria, refresco por cookie HttpOnly, 2FA) aunque el catálogo siga simulado |
 | **SEO & Metadatos** | Metadatos del frontend y rutas SEO del backend; revisar generación dinámica al avanzar el plan |
 | **Enrutamiento** | React Router v6 |
 | **Mapas & Geolocalización** | Leaflet (`react-leaflet`) + `leaflet.markercluster` + Google Maps API |
-| **Pruebas Automatizadas** | Vitest (frontend) + Vitest (backend con 480+ pruebas de integración) |
+| **Pruebas Automatizadas** | Vitest (frontend, 128 pruebas) + Vitest (backend, 769 pruebas unitarias y de integración sobre PostgreSQL) |
 | **Internacionalización** | Sistema nativo i18n extensible (Español / Inglés) |
 
 ---
@@ -347,11 +348,64 @@ El backend implementa de forma completa y desacoplada del frontend los 21 modelo
 
 ## 🗺️ Hoja de Ruta de Arquitectura y 150 Mejoras
 
-La arquitectura vigente es un backend Fastify modular desplegado como una aplicación. La meta aprobada es migrar a microservicios por dominios, comenzando con límites, contratos, dependencias y propiedad de datos. El diseño evita compartir tablas entre servicios y contempla un gateway compatible con las rutas públicas actuales. El barrido inicial encontró 61 pares entre módulos; los contratos de correo, jobs, catálogo, lecturas de lugares/provincias y visibilidad pública redujeron la medición a 19 pares y 23 referencias. `ContentReaderPort` ya separa lecturas de `game`, `trips`, candidatos de `ai` y consultas de catálogo/geo de `discover`; `BusinessVerificationPort` concentra la lectura y actualización de auditorías, aunque sus adaptadores siguen en PostgreSQL compartido. `discover` ya no ejecuta SQL propio. El catálogo tiene un servicio de lectura con base propia (`content`), poblada como proyección desde el monolito, que sigue siendo el único escritor; está configurado en Compose y apagado por omisión. `weather` tiene entrypoint independiente, CRUD interno con aserciones JWT HMAC de un solo uso y scheduler opcional, pero el proxy continúa apagado y el corte de datos pendiente. El avance por fases está en [`docs/PLAN_EJECUCION_ARQUITECTURA_150.md`](docs/PLAN_EJECUCION_ARQUITECTURA_150.md).
+La arquitectura vigente es un backend Fastify modular desplegado como una aplicación con PostgreSQL compartido. La meta es migrar a microservicios por dominio sin compartir tablas, con un gateway compatible con las rutas públicas actuales. Estado al 2026-10-02, en la rama `feature/nueva-arquitectura-optimizada` (sin publicar):
 
-Después de fijar la plataforma base y extraer el primer servicio, se migran las escrituras de reservas, carrito y pedidos. Esa etapa requiere sesiones JWT válidas, asociar los productos visibles con entidades/listings de la API y configurar una pasarela tokenizada. La decisión sobre tickets gratuitos de eventos también debe cerrarse antes de declarar completa la migración.
+### Estado de los planes
 
-**Seguimiento:** se actualizarán este README y la matriz del plan en cada fase, indicando cambios, evidencia, dependencias y riesgos que sigan abiertos.
+| Plan | Avance | Abierto |
+| :--- | :--- | :--- |
+| [150 mejoras de arquitectura](docs/PLAN_EJECUCION_ARQUITECTURA_150.md) | 24 implementadas · 96 parciales · 23 pendientes · 6 requieren medición · 1 aplazada | La mayoría de las parciales depende de desplegar (hosting, Docker, tráfico real) o de migrar los datos del frontend |
+| [Accesos y paneles por perfil](PLAN_ACCESOS_Y_PANELES_POR_PERFIL.md) | 95 de 100 puntos marcados | Puntos 12, 13, 14, 15 y 24. El 14 (revisión de creadores) se dejó como está por decisión del proyecto |
+
+### Lo que ya está construido
+
+**Límites entre dominios**
+- 0 importaciones cruzadas entre módulos (eran 61) y 0 tablas con más de un escritor (eran 19). Quedan 41 tablas con lecturas de otro dominio; el inventario está en [`docs/DEPENDENCIAS_DATOS_INVENTARIO.md`](docs/DEPENDENCIAS_DATOS_INVENTARIO.md).
+- Puertos para identidad, perfiles, contenido, verificación de negocios, moderación (comunidad, medios, creadores), leads de marketing, soporte, ajustes y analítica. La mesa de soporte pasó de `admin` a `forms`.
+- Borrado de datos personales (`gdpr.process`) con participantes por dominio, en lugar de un módulo que borra tablas ajenas.
+- Toda ruta autenticada declara su capacidad en `backend/src/modules/access/catalog.ts`; una prueba lo exige.
+
+**Servicios extraídos (configurados, sin levantar)**
+- `content`: lecturas de `ContentReaderPort` por HTTP sobre una base propia, poblada como proyección desde el monolito, que sigue siendo el único escritor. Validado ejecutando el proceso compilado en local y con pruebas de paridad.
+- `weather`: proceso autónomo con base propia, CRUD interno firmado con JWT HMAC de un solo uso, scheduler opcional y reconciliación entre bases.
+- `backend/docker-compose.yml` define ambos con perfiles (`weather`, `content`, `content-sync`) y contenedores endurecidos. Ninguno se ha iniciado en Docker.
+
+**Gobierno de accesos**
+- Roles temporales con vencimiento y revisiones periódicas de acceso.
+- Doble aprobación para acciones sensibles (`DUAL_APPROVAL_REQUIRED`, apagada por omisión).
+- Invitaciones al equipo interno, solicitudes para unirse a una organización y transferencia de propiedad de la organización.
+- Capacidades acotadas con alcance, motivo y vencimiento (`requireRoleOrGrant`).
+- Revocación de enlaces de invitación a viajes y puntos verificados.
+
+**Creadores y campañas**
+- Campañas con términos versionados y aceptación registrada, entregas, derechos y licencias por pieza, libro de ingresos (estimado frente a confirmado) y disputas con plazo de respuesta.
+- Las reglas de negocio son supuestos documentados en el plan de accesos, pendientes de validar.
+
+**Pagos**
+- Métricas por pasarela, historial de precios y utilidades de dinero.
+- Adaptadores preliminares de Azul y CardNet (`PAYMENT_PROVIDER=azul|cardnet`). No hay contrato con ninguna pasarela local, así que quedan bloqueados hasta definir `PAYMENT_LOCAL_GATEWAY_VALIDATED`.
+
+**Frontend**
+- Sesión real contra el backend con `VITE_AUTH_SOURCE=api`: token de acceso sólo en memoria, refresco por cookie HttpOnly, renovación automática y paso de verificación en dos pasos en el login.
+- Pantallas nuevas: en el panel de administración, "Aprobaciones y revisiones" y "Campañas con creadores"; en el programa de creadores, "Campañas" e "Ingresos y disputas".
+- `hreflang` en los metadatos, precarga de rutas y "vistos recientemente".
+
+**Calidad**
+- Backend: 768 de 769 pruebas pasan (1 omitida) en la última ejecución completa; `keys.test.ts` puede agotar el tiempo bajo carga y pasa aislada. Frontend: 128 pruebas.
+- Dependabot, verificador de enlaces externos del contenido (`check:links`) y reglas de ESLint para `backend/`.
+
+### Lo que falta
+
+- **Datos del frontend (Fase 1):** `VITE_DATA_SOURCE=api` aún no funciona; el catálogo, las reservas, el carrito y los pedidos siguen en el mock. Migrar las escrituras requiere asociar los productos visibles con entidades de la API y una pasarela tokenizada.
+- **Verificación en navegador:** el inicio de sesión real y las pantallas nuevas están cubiertos por pruebas del cliente, tipos y lint, pero no se han probado en un navegador contra el backend.
+- **Docker:** construir las imágenes, levantar `content` y `weather`, y hacer el corte de datos. La proyección de `content` es una foto: no es apta para producción hasta tener sincronización continua.
+- **Alojamiento:** elegir el VPS y preparar Compose de producción, respaldos, staging y despliegue.
+- **Directorio de usuarios:** la proyección que eliminaría buena parte de las 41 lecturas cruzadas está diseñada, no implementada.
+- **PWA:** el service worker sigue desactivado hasta desplegar su limpieza.
+- **Pasarelas locales y proveedores:** sin contratar; ver [`docs/PROVEEDORES_EXTERNOS.md`](docs/PROVEEDORES_EXTERNOS.md).
+- **Mensajería entre servicios:** broker y autenticación servicio-a-servicio general, sin decidir.
+
+**Seguimiento:** este README y la matriz del plan se actualizan en cada fase, indicando cambios, evidencia, dependencias y riesgos abiertos.
 
 ---
 
@@ -365,7 +419,10 @@ Después de fijar la plataforma base y extraer el primer servicio, se migran las
 - [`docs/BACKEND_SEGURIDAD.md`](docs/BACKEND_SEGURIDAD.md): controles de autenticación, sesiones, autorización y datos, cada uno con su evidencia de prueba, más los riesgos residuales declarados.
 - [`docs/FUENTE_DE_VERDAD.md`](docs/FUENTE_DE_VERDAD.md): autoridad actual de cada dominio y límites del mock, Strapi y el backend retirado.
 - [`docs/PLAN_EJECUCION_ARQUITECTURA_150.md`](docs/PLAN_EJECUCION_ARQUITECTURA_150.md): fases y seguimiento del catálogo maestro de 150 mejoras.
-- [`docs/ARQUITECTURA_MICROSERVICIOS.md`](docs/ARQUITECTURA_MICROSERVICIOS.md): estado actual, topología objetivo y plan incremental de extracción del monolito modular.
+- [`docs/ARQUITECTURA_MICROSERVICIOS.md`](docs/ARQUITECTURA_MICROSERVICIOS.md): estado actual, topología objetivo, subdominios y plan incremental de extracción del monolito modular.
+- [`docs/DEPENDENCIAS_DATOS_INVENTARIO.md`](docs/DEPENDENCIAS_DATOS_INVENTARIO.md): qué dominio lee y escribe cada tabla, y el diseño del directorio de usuarios.
+- [`docs/PROVEEDORES_EXTERNOS.md`](docs/PROVEEDORES_EXTERNOS.md): inventario de proveedores externos y su estado de contratación.
+- [`PLAN_ACCESOS_Y_PANELES_POR_PERFIL.md`](PLAN_ACCESOS_Y_PANELES_POR_PERFIL.md): los 100 puntos de accesos y paneles por perfil, con las reglas supuestas de creadores y campañas.
 
 ---
 
@@ -380,7 +437,20 @@ VITE_API_URL=
 # Fuente de datos del frontend: "mock" (por defecto) usa los catálogos simulados locales;
 # "api" exige la API real (`backend/`) y el build falla cerrado si queda algo acoplado al mock.
 # VITE_DATA_SOURCE=api
+
+# Origen de la sesión: si se omite, sigue a VITE_DATA_SOURCE. "api" permite iniciar sesión
+# contra el backend con el catálogo aún simulado. "mock" con VITE_DATA_SOURCE=api no se admite.
+# VITE_AUTH_SOURCE=api
 ```
+
+Variables del backend añadidas en esta etapa (todas opcionales y apagadas por omisión; ver `backend/.env.example`):
+
+| Variable | Efecto |
+| :--- | :--- |
+| `CONTENT_SERVICE_URL` / `CONTENT_SERVICE_TOKEN` | Enruta las lecturas de catálogo al servicio `content`. Sin ellas, el facade lee su propia base |
+| `WEATHER_SERVICE_URL` / `WEATHER_SERVICE_TOKEN` | Enruta el clima al servicio `weather` |
+| `DUAL_APPROVAL_REQUIRED` | Exige una segunda persona para aprobar acciones sensibles |
+| `PAYMENT_PROVIDER` (`azul`, `cardnet`) + `PAYMENT_LOCAL_GATEWAY_VALIDATED`, `AZUL_*`, `CARDNET_*` | Pasarelas locales preliminares; no arrancan sin la validación explícita |
 
 ---
 
@@ -423,7 +493,11 @@ El servidor local se iniciará típicamente en `http://localhost:8080` o `http:/
 - `npm run test:watch`: Inicia el runner de pruebas en modo interactivo/observador.
 - `npm run check:data-source`: Compila en modo simulado y en modo API, y verifica que el build de API no contenga los datos simulados (`VITE_DATA_SOURCE`).
 - `npm run check:bundle-budget`: Comprueba que el bundle inicial y el mayor fragmento diferido respeten los presupuestos de tamaño.
-- `cd backend && npm run architecture:dependencies`: Inventaría dependencias estáticas entre dominios para orientar la extracción a microservicios.
+- `cd backend && npm run architecture:dependencies`: Inventaría las importaciones entre dominios; CI falla si aparece alguna (máximo 0 pares).
+- `cd backend && npm run architecture:tables`: Inventaría qué dominio lee y escribe cada tabla; CI falla con más de 41 tablas compartidas o con alguna tabla de varios escritores.
+- `cd backend && npm run check:cycles`: Detecta ciclos de importación en el backend.
+- `cd backend && npm run check:links`: Recorre las URL externas del contenido publicado y reporta las que no responden.
+- `cd backend && npm test` / `test:unit` / `test:all`: Pruebas de integración, unitarias o ambas. Las de integración necesitan `TEST_DATABASE_URL` apuntando a un PostgreSQL de pruebas; la suite completa tarda entre 7 y 10 minutos.
 - `cd backend && npm run weather:migrate` / `weather:migrate:check`: Aplica migraciones versionadas de la base propietaria weather o valida que esté al día sin alterarla.
 - `cd backend && npm run weather:build` / `weather:start`: Compila e inicia el proceso autónomo meteorológico (GET públicos, health/readiness y CRUD administrativo privado); necesita su `WEATHER_DATABASE_URL` propia y migraciones aplicadas.
 - Para desarrollo aislado, genera un token con `node -p "require('node:crypto').randomBytes(48).toString('base64url')"` y configura en `backend/.env` `WEATHER_SERVICE_TOKEN=<token>` junto con `WEATHER_DATABASE_URL=postgres://weather:weather@localhost:5435/descubre_weather`. Luego `cd backend && docker compose --profile weather up -d weather-postgres weather` inicia la DB en `localhost:5435` y el servicio en `localhost:3001`, ambos ligados a loopback y sin activar el proxy del monolito. El paso one-shot `weather-migrate` aplica el SQL versionado antes de que arranque `weather`; comprueba `/health/ready`. Los contenedores de servicio corren sin root, con sistema de archivos de sólo lectura, sin capabilities y con `no-new-privileges`.
