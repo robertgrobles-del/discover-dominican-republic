@@ -25,7 +25,10 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState("");
   const submitLock = useRef(false);
-  const { signIn } = useAuth();
+  const { signIn, verifyTwoFactor } = useAuth();
+  // Verificación en dos pasos: tras la contraseña, el servidor entrega un reto que se canjea con el código.
+  const [challenge, setChallenge] = useState<string | null>(null);
+  const [otp, setOtp] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -71,7 +74,13 @@ export default function Login() {
     setFormError("");
     setIsLoading(true);
     try {
-    const { error } = await signIn(cleanEmail, password);
+    const result: { error: Error | null; twoFactor?: { challengeToken: string } } = challenge ? await verifyTwoFactor(challenge, otp) : await signIn(cleanEmail, password);
+    if (!challenge && result.twoFactor) {
+      setChallenge(result.twoFactor.challengeToken);
+      setOtp("");
+      return;
+    }
+    const { error } = result;
 
     if (error) {
       setFormError(error.message === "Invalid login credentials" ? "Credenciales incorrectas. Verifica tu email y contraseña." : "No se pudo iniciar sesión con esos datos.");
@@ -192,6 +201,27 @@ export default function Login() {
                   </div>
                 </div>
 
+                {challenge && (
+                  <div className="space-y-2">
+                    <Label htmlFor="otp">Código de verificación</Label>
+                    <Input
+                      id="otp"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={32}
+                      placeholder="123 456"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      autoFocus
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">Escribe el código de tu app de autenticación o un código de recuperación.</p>
+                    <button type="button" className="text-xs text-primary hover:underline" onClick={() => { setChallenge(null); setOtp(""); }}>
+                      Volver a escribir la contraseña
+                    </button>
+                  </div>
+                )}
+
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? (
                     <>
@@ -199,7 +229,7 @@ export default function Login() {
                       Iniciando...
                     </>
                   ) : (
-                    "Iniciar Sesión"
+                    challenge ? "Verificar código" : "Iniciar Sesión"
                   )}
                 </Button>
               </form>

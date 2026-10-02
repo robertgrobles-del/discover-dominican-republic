@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MockDataNotice } from "@/components/MockDataNotice";
 import { CapabilityGrantsTab, StaffInvitationsTab } from "@/components/admin/AccessGrantsSections";
-import { IS_MOCK_DATA } from "@/lib/dataSource";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import {
   APPROVAL_KIND_LABEL, APPROVAL_STATUS_LABEL, UUID_PATTERN, accessEventLabel, accessGovernanceApi as api, governanceErrorMessage,
   type AccessReviewItem, type ApprovalKind, type ApprovalRequest, type ApprovalStatus,
@@ -29,14 +29,14 @@ const shortId = (id: string | null) => (id ? id.slice(0, 8) : "—");
 const fail = (error: unknown) => toast.error(governanceErrorMessage(error));
 
 export function AccessGovernancePanel() {
-  if (IS_MOCK_DATA) {
+  if (!HAS_BACKEND_SESSION) {
     return (
       <div className="space-y-6">
         <MockDataNotice className="rounded-xl" />
         <PanelEmptyState
           icon={ShieldAlert}
           title="La gobernanza de accesos necesita el backend"
-          description="Las aprobaciones, las revisiones de acceso y la línea de tiempo se guardan en el servidor. Con datos simulados no hay nada real que aprobar; con VITE_DATA_SOURCE=api esta pantalla muestra y opera las solicitudes verdaderas."
+          description="Las aprobaciones, las revisiones de acceso y la línea de tiempo se guardan en el servidor. Con la sesión simulada no hay nada real que aprobar; con VITE_AUTH_SOURCE=api esta pantalla muestra y opera las solicitudes verdaderas."
         />
       </div>
     );

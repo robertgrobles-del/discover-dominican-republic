@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PanelEmptyState } from "@/components/ui/panel-empty-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { IS_MOCK_DATA } from "@/lib/dataSource";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { DISPUTE_STATUS_LABEL, LEDGER_STATUS_LABEL, campaignErrorMessage, creatorCampaignsApi as api, money, type LedgerEntry } from "@/lib/creatorCampaignsApi";
 
 /**
@@ -25,8 +25,8 @@ export function CreatorsEarningsTab() {
   const [disputing, setDisputing] = useState<LedgerEntry | null>(null);
   const [draft, setDraft] = useState({ reason: "", label: "", url: "" });
 
-  const earnings = useQuery({ queryKey: ["creator-earnings"], enabled: !IS_MOCK_DATA, queryFn: api.earnings });
-  const disputes = useQuery({ queryKey: ["creator-disputes"], enabled: !IS_MOCK_DATA, queryFn: api.myDisputes });
+  const earnings = useQuery({ queryKey: ["creator-earnings"], enabled: HAS_BACKEND_SESSION, queryFn: api.earnings });
+  const disputes = useQuery({ queryKey: ["creator-disputes"], enabled: HAS_BACKEND_SESSION, queryFn: api.myDisputes });
 
   const open = useMutation({
     mutationFn: () => api.openDispute({
@@ -38,7 +38,7 @@ export function CreatorsEarningsTab() {
   });
   const withdraw = useMutation({ mutationFn: api.withdrawDispute, onSuccess: () => { toast.success("Disputa retirada"); void client.invalidateQueries({ queryKey: ["creator-disputes"] }); }, onError: fail });
 
-  if (IS_MOCK_DATA) return <PanelEmptyState icon={Coins} title="Los ingresos necesitan el backend" description="Con datos simulados no hay movimientos reales que mostrar ni disputar." />;
+  if (!HAS_BACKEND_SESSION) return <PanelEmptyState icon={Coins} title="Los ingresos necesitan el backend" description="Sin sesión contra el backend no hay movimientos reales que mostrar ni disputar." />;
   if (earnings.isLoading) return <Skeleton className="h-48 w-full rounded-2xl" />;
   if (earnings.isError) return <PanelEmptyState icon={Coins} title="No pudimos cargar tus ingresos" description={campaignErrorMessage(earnings.error)} actionLabel="Reintentar" onAction={() => earnings.refetch()} />;
 

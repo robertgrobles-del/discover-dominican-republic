@@ -13,7 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { MockDataNotice } from "@/components/MockDataNotice";
-import { IS_MOCK_DATA } from "@/lib/dataSource";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { UUID_PATTERN } from "@/lib/accessGovernanceApi";
 import { campaignErrorMessage, creatorCampaignsApi as api, type AdminCampaign, type CampaignTerms } from "@/lib/creatorCampaignsApi";
 
@@ -65,11 +65,11 @@ export function buildTerms(f: typeof EMPTY): { terms?: CampaignTerms; problem?: 
 }
 
 export function AdminCreatorCampaigns() {
-  if (IS_MOCK_DATA) {
+  if (!HAS_BACKEND_SESSION) {
     return (
       <div className="space-y-6">
         <MockDataNotice className="rounded-xl" />
-        <PanelEmptyState icon={Megaphone} title="Las campañas con creadores necesitan el backend" description="Términos, aceptaciones, entregas y disputas se guardan en el servidor. Con datos simulados no hay nada real que gestionar." />
+        <PanelEmptyState icon={Megaphone} title="Las campañas con creadores necesitan el backend" description="Términos, aceptaciones, entregas y disputas se guardan en el servidor. Sin sesión contra el backend no hay nada real que gestionar." />
       </div>
     );
   }

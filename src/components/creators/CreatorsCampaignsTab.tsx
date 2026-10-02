@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PanelEmptyState } from "@/components/ui/panel-empty-state";
-import { IS_MOCK_DATA } from "@/lib/dataSource";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { DELIVERABLE_LABEL, campaignErrorMessage, creatorCampaignsApi as api, describeCompensation, type License, type OpenCampaign } from "@/lib/creatorCampaignsApi";
 
 /**
@@ -24,7 +24,7 @@ const fail = (error: unknown) => toast.error(campaignErrorMessage(error));
 export function CreatorsCampaignsTab({ videos }: Props) {
   const client = useQueryClient();
   const [pieces, setPieces] = useState<Record<string, string>>({});
-  const query = useQuery({ queryKey: ["creator-campaigns"], enabled: !IS_MOCK_DATA, queryFn: api.open });
+  const query = useQuery({ queryKey: ["creator-campaigns"], enabled: HAS_BACKEND_SESSION, queryFn: api.open });
   const refresh = () => client.invalidateQueries({ queryKey: ["creator-campaigns"] });
 
   const accept = useMutation({
@@ -39,7 +39,7 @@ export function CreatorsCampaignsTab({ videos }: Props) {
     onError: fail,
   });
 
-  if (IS_MOCK_DATA) return <PanelEmptyState icon={Megaphone} title="Las campañas necesitan el backend" description="Con datos simulados no hay campañas reales que aceptar ni entregas que registrar." />;
+  if (!HAS_BACKEND_SESSION) return <PanelEmptyState icon={Megaphone} title="Las campañas necesitan el backend" description="Sin sesión contra el backend no hay campañas reales que aceptar ni entregas que registrar." />;
   if (query.isLoading) return <Skeleton className="h-48 w-full rounded-2xl" />;
   if (query.isError) return <PanelEmptyState icon={Megaphone} title="No pudimos cargar las campañas" description={campaignErrorMessage(query.error)} actionLabel="Reintentar" onAction={() => query.refetch()} />;
 

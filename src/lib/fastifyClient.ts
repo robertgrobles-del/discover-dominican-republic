@@ -42,7 +42,7 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
   try {
     // El token vive sólo en memoria: tras recargar se recupera con la cookie de refresco, y sólo si este
     // navegador había iniciado sesión (los visitantes anónimos no generan peticiones extra).
-    let token = isAuthEndpoint || callerSetAuth ? null : getAccessToken();
+    let token = callerSetAuth ? null : getAccessToken();
     if (!token && !isAuthEndpoint && !callerSetAuth && hasSessionHint()) token = await refreshAccessToken();
 
     let payload: T;
