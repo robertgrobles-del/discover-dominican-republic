@@ -55,6 +55,7 @@ export default defineConfig({
             "test/reviews.test.ts",
             "test/security.test.ts",
             "test/social-campaigns.test.ts",
+            "test/staff-invitations.test.ts",
             "test/static-import.test.ts",
             "test/store.test.ts",
             "test/synthetic-data.test.ts",

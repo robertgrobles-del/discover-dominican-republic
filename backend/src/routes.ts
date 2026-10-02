@@ -91,6 +91,7 @@ import { fiscalInvoiceRoutes } from "./modules/billing/routes.js";
 import { adminSiteRoutes } from "./modules/admin/site.js";
 import { adminUserRoutes } from "./modules/admin/users.js";
 import { ApprovalService, adminApprovalRoutes } from "./modules/admin/approvals.js";
+import { adminStaffInvitationRoutes } from "./modules/admin/staff-invitations.js";
 import { AccessReviewService, adminAccessReviewRoutes, registerAccessReviewJobs } from "./modules/admin/access-reviews.js";
 import { meRoutes } from "./modules/me/routes.js";
 import { verifyPassword } from "./modules/auth/password.js";
@@ -245,6 +246,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(adminUserRoutes);
       await v1.register(adminApprovalRoutes);
       await v1.register(adminAccessReviewRoutes);
+      await v1.register(adminStaffInvitationRoutes);
       await v1.register(adminSiteRoutes);
       await v1.register(adminCmsRoutes);
       await v1.register(async (meApp) => meRoutes(meApp, { verifyPassword }));
