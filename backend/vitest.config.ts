@@ -25,6 +25,7 @@ export default defineConfig({
             "test/business-verification.test.ts",
             "test/content.test.ts",
             "test/content-service.test.ts",
+            "test/creator-campaigns.test.ts",
             "test/creators-appeals.test.ts",
             "test/discover-live.test.ts",
             "test/dual-approval.test.ts",

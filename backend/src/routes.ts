@@ -82,6 +82,8 @@ import { SponsorshipService } from "./modules/sponsorship/service.js";
 import { sponsorshipRoutes } from "./modules/sponsorship/routes.js";
 import { CreatorService } from "./modules/creators/service.js";
 import { creatorRoutes } from "./modules/creators/routes.js";
+import { CreatorCampaignService, registerCreatorCampaignJobs } from "./modules/creators/campaigns.js";
+import { creatorCampaignRoutes } from "./modules/creators/campaign-routes.js";
 import { TransactionalProductsService } from "./modules/products/service.js";
 import { transactionalProductsRoutes } from "./modules/products/routes.js";
 import { MembershipsAndTicketingService } from "./modules/memberships/service.js";
@@ -186,6 +188,8 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   app.decorate("sponsorship", sponsorship);
   const creators = new CreatorService(app.db);
   app.decorate("creators", creators);
+  const creatorCampaigns = new CreatorCampaignService(app.db, (userId, n) => notifications.notify(userId, n));
+  app.decorate("creatorCampaigns", creatorCampaigns);
   const products = new TransactionalProductsService(app.db);
   app.decorate("products", products);
   const memberships = new MembershipsAndTicketingService(app.db);
@@ -230,6 +234,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   registerImportJobs(runner, imports);
   registerOperatorJobs({ db: app.db, env: app.env, mailer: app.mailer, runner, automations, ical, payouts });
   registerAccessReviewJobs({ runner, reviews: accessReviews, identity, notify: (userId, n) => notifications.notify(userId, n), db: app.db });
+  registerCreatorCampaignJobs({ runner, campaigns: creatorCampaigns });
   registerAuthJobs({ runner, identity, notify: (userId, n) => notifications.notify(userId, n) });
   registerAccountJobs({ db: app.db, runner, participants: [(c, userId) => identity.anonymizeAccount(userId, c), eraseProfileData, eraseNotifications, eraseOperatorData, eraseSupportData] });
   if (app.env.JOBS_ENABLED) { runner.start(); app.addHook("onClose", async () => { await runner.stop(); }); }
@@ -308,6 +313,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(paymentWebhookRoutes);
       await v1.register(sponsorshipRoutes);
       await v1.register(creatorRoutes);
+      await v1.register(creatorCampaignRoutes);
       await v1.register(transactionalProductsRoutes);
       await v1.register(membershipsRoutes);
       await v1.register(fiscalInvoiceRoutes);

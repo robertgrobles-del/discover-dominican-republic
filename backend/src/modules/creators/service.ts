@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
 import { auditInsert } from "../../lib/audit.js";
+import { ATTRIBUTION_WINDOW_DAYS } from "./campaigns.js";
 import {
   CATEGORIES, LANGUAGES, SEALS, reputationScore, sealFor,
   type ReputationResult, type ReputationStats, type SealDefinition,
@@ -606,6 +607,11 @@ export class CreatorService {
         `INSERT INTO creator_payouts (creator_id, amount, payout_source, status, notes)
          VALUES ($1, $2, 'affiliate_commission', 'pending', $3)`,
         [v.creator_id, commission, `Comisión venta atribuida al video ${videoId} (${source})`],
+      );
+      // Libro por concepto (punto 90): nace estimada y se confirma al cumplirse la ventana de atribución.
+      await this.db.query(
+        "INSERT INTO creator_ledger (creator_id, source, amount, status, origin, video_id, attribution_window_days) VALUES ($1,'affiliate_commission',$2,'estimated',$3,$4,$5)",
+        [v.creator_id, commission, `Venta atribuida al video (${source})`, videoId, ATTRIBUTION_WINDOW_DAYS],
       );
     }
   }
