@@ -177,7 +177,16 @@ export async function adminCmsRoutes(app: FastifyInstance) {
       return audit(db, { actor: actorOf(req), action: `cms.${action}`, entity: t, id, meta: extra, ip: req.ip });
     };
 
-    r.get(`${base}/schema`, { onRequest: editor, schema: { ...hide, summary: `Definición de campos de ${d.label}` } }, async () => ({
+    // Quien tiene un permiso acotado sobre esta colección puede leer, crear, editar, borrar (lógico) y enviar a revisión.
+    // Publicar, restaurar, importar, exportar y las acciones masivas siguen siendo sólo de editor o admin.
+    const scoped = app.requireRoleOrGrant(["admin", "editor"], "catalog.manage", d.path);
+    /** Con un permiso limitado a registros concretos (p. ej. un evento delegado), sólo se tocan esos. */
+    const scopedTo = (req: { grant?: { record_ids: string[] } }, id?: string) => {
+      const ids = req.grant?.record_ids ?? [];
+      if (ids.length && (!id || !ids.includes(id))) throw new AppError("FORBIDDEN", "Tu permiso sólo cubre registros concretos de esta colección", { code: "OUT_OF_GRANT_SCOPE" });
+    };
+
+    r.get(`${base}/schema`, { onRequest: scoped, schema: { ...hide, summary: `Definición de campos de ${d.label}` } }, async () => ({
       data: {
         entity: d.path, table: t, label: d.label, title_field: d.title, states: ["draft", "in_review", "published", "archived"], has_workflow: hasCol(t, "status"),
         fields: Object.entries(cols(t)).map(([name, m]) => ({ name, type: m.type, nullable: m.nullable, writable: writableColumns(d).includes(name), searchable: d.search.includes(name), filterable: name in d.filters, sortable: d.sort.includes(name) })),
@@ -186,7 +195,7 @@ export async function adminCmsRoutes(app: FastifyInstance) {
     }));
 
     r.get(base, {
-      onRequest: editor,
+      onRequest: scoped,
       schema: { ...hide, summary: `Lista ${d.label} (todos los estados)`, querystring: z.object({ page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(100).default(25), q: z.string().trim().max(100).optional(), status: z.enum(["draft", "in_review", "published", "archived"]).optional(), deleted: z.enum(["true", "false"]).default("false"), sort: z.string().max(100).optional() }).catchall(z.string().max(200)) },
     }, async (req) => {
       const qs = req.query as Record<string, string> & { page: number; per_page: number };
@@ -220,27 +229,31 @@ export async function adminCmsRoutes(app: FastifyInstance) {
       return [names.join(","), ...rows.map((row) => names.map((n) => csvCell(row[n])).join(","))].join("\r\n");
     });
 
-    r.get(`${base}/:id`, { onRequest: editor, schema: { ...hide, summary: `Detalle de ${d.label}`, params: idp } }, async (req) => {
+    r.get(`${base}/:id`, { onRequest: scoped, schema: { ...hide, summary: `Detalle de ${d.label}`, params: idp } }, async (req) => {
+      scopedTo(req, req.params.id);
       const row = (await db.query(`SELECT * FROM ${Q(t)} WHERE id = $1`, [req.params.id])).rows[0];
       if (!row) throw AppError.notFound("Registro");
       return { data: row };
     });
 
-    r.post(base, { onRequest: editor, schema: { ...hide, summary: `Crea (borrador) en ${d.label}`, body } }, async (req, reply) => {
+    r.post(base, { onRequest: scoped, schema: { ...hide, summary: `Crea (borrador) en ${d.label}`, body } }, async (req, reply) => {
+      scopedTo(req); // un permiso sobre registros concretos no permite crear otros
       const row = await tx((c) => create(d, req.body as Record<string, unknown>, actorOf(req), c));
       await done(req, "create", row.id);
       reply.code(201);
       return { data: row };
     });
 
-    r.patch(`${base}/:id`, { onRequest: editor, schema: { ...hide, summary: `Edita ${d.label} (con version)`, params: idp, body: (hasCol(t, "version") ? body.extend({ version: z.number().int().min(1) }) : body) } }, async (req) => {
+    r.patch(`${base}/:id`, { onRequest: scoped, schema: { ...hide, summary: `Edita ${d.label} (con version)`, params: idp, body: (hasCol(t, "version") ? body.extend({ version: z.number().int().min(1) }) : body) } }, async (req) => {
+      scopedTo(req, req.params.id);
       const { version, ...data } = req.body as Record<string, unknown> & { version?: number };
       const row = await tx((c) => update(d, req.params.id, data, version, actorOf(req), c));
       await done(req, "update", req.params.id, { version: row.version });
       return { data: row };
     });
 
-    r.delete(`${base}/:id`, { onRequest: editor, schema: { ...hide, summary: `Borra ${d.label} (lógico; ?hard=true sólo admin)`, params: idp, querystring: z.object({ hard: z.enum(["true", "false"]).default("false") }) } }, async (req, reply) => {
+    r.delete(`${base}/:id`, { onRequest: scoped, schema: { ...hide, summary: `Borra ${d.label} (lógico; ?hard=true sólo admin)`, params: idp, querystring: z.object({ hard: z.enum(["true", "false"]).default("false") }) } }, async (req, reply) => {
+      scopedTo(req, req.params.id);
       const hard = req.query.hard === "true";
       if (hard && !req.user!.roles.includes("admin")) throw new AppError("FORBIDDEN", "El borrado definitivo es sólo para administradores");
       await tx((c) => softDelete(d, req.params.id, actorOf(req), c, hard));
@@ -251,9 +264,10 @@ export async function adminCmsRoutes(app: FastifyInstance) {
 
     for (const kind of ["submit-review", "publish", "unpublish", "archive"] as const) {
       r.post(`${base}/:id/${kind}`, {
-        onRequest: kind === "submit-review" ? editor : admin,
+        onRequest: kind === "submit-review" ? scoped : admin,
         schema: { ...hide, summary: `${kind} en ${d.label}`, params: idp, body: z.object({ publish_at: z.string().datetime({ offset: true }).optional() }).nullish() },
       }, async (req) => {
+        scopedTo(req, req.params.id);
         const row = await tx((c) => transition(d, req.params.id, kind, actorOf(req), c, kind === "publish" ? req.body?.publish_at : undefined));
         await done(req, kind, req.params.id, { status: row.status });
         return { data: row };

@@ -52,6 +52,9 @@ export async function analyticsRoutes(app: FastifyInstance) {
   const r = app.withTypeProvider<ZodTypeProvider>();
   const db = app.db;
   const admin = app.requireRole("admin");
+  // Plan de accesos, punto 95: métricas agregadas para quien tiene `analytics.read`, sin rol de administración.
+  // No incluye la exportación ni los comentarios en texto libre, que pueden traer datos personales.
+  const reader = app.requireRoleOrGrant(["admin"], "analytics.read");
   const rl = (max: number, timeWindow: string) => ({ rateLimit: app.env.AUTH_RATE_LIMIT_ENABLED ? { max, timeWindow } : { max: 1_000_000, timeWindow: "1 minute" } });
   const tag = ["analítica"];
   const range = (q: { from?: string; to?: string }) => {
@@ -91,7 +94,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
     return null;
   });
 
-  r.get("/admin/analytics/overview", { onRequest: admin, schema: { tags: ["admin"], summary: "KPIs de la plataforma en un rango", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } } }, async (req) => {
+  r.get("/admin/analytics/overview", { onRequest: reader, schema: { tags: ["admin"], summary: "KPIs de la plataforma en un rango", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } } }, async (req) => {
     const { from, to } = range(req.query);
     // Contar sesiones distintas sobre cientos de miles de eventos cuesta ~150 ms: se comparte el resultado 20 s (y una sola consulta si varios paneles lo piden a la vez).
     return { data: await overviewCache.wrap(`${from}|${to}`, () => overview(from, to)) };
@@ -131,7 +134,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
     return { range: { from, to }, group: q.group, rows: rows.map((x) => ({ key: x.k, views: x.views, sessions: x.sessions })) };
   };
   const trafficQ = z.object({ from: date.optional(), to: date.optional(), group: z.enum(["page", "source", "country", "day"]).default("page") });
-  r.get("/admin/analytics/traffic", { onRequest: admin, schema: { tags: ["admin"], summary: "Vistas y sesiones por página, origen, país o día", security: bearer, querystring: trafficQ, response: { 200: ok } } }, async (req) => ({ data: await traffic(req.query) }));
+  r.get("/admin/analytics/traffic", { onRequest: reader, schema: { tags: ["admin"], summary: "Vistas y sesiones por página, origen, país o día", security: bearer, querystring: trafficQ, response: { 200: ok } } }, async (req) => ({ data: await traffic(req.query) }));
 
   const topContent = async (q: { metric: "views" | "favorites"; type?: string; limit: number; from?: string; to?: string }) => {
     if (q.metric === "views") {
@@ -150,9 +153,9 @@ export async function analyticsRoutes(app: FastifyInstance) {
     return out;
   };
   const topQ = z.object({ metric: z.enum(["views", "favorites"]).default("views"), type: z.string().max(40).optional(), limit: z.coerce.number().int().min(1).max(100).default(20), from: date.optional(), to: date.optional() });
-  r.get("/admin/analytics/top-content", { onRequest: admin, schema: { tags: ["admin"], summary: "Contenido más visto o más guardado", security: bearer, querystring: topQ, response: { 200: ok } } }, async (req) => ({ data: await topContent(req.query) }));
+  r.get("/admin/analytics/top-content", { onRequest: reader, schema: { tags: ["admin"], summary: "Contenido más visto o más guardado", security: bearer, querystring: topQ, response: { 200: ok } } }, async (req) => ({ data: await topContent(req.query) }));
 
-  r.get("/admin/analytics/funnels/:name", { onRequest: admin, schema: { tags: ["admin"], summary: "Embudos calculados con datos reales (reserva, registro, tienda)", security: bearer, params: z.object({ name: z.enum(["reserva", "registro", "tienda"]) }), querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } } }, async (req) => {
+  r.get("/admin/analytics/funnels/:name", { onRequest: reader, schema: { tags: ["admin"], summary: "Embudos calculados con datos reales (reserva, registro, tienda)", security: bearer, params: z.object({ name: z.enum(["reserva", "registro", "tienda"]) }), querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } } }, async (req) => {
     const { from, to } = range(req.query);
     const p = [from, to];
     const inR = (col: string) => `${col} >= ($1::date::timestamp AT TIME ZONE 'America/Santo_Domingo') AND ${col} < (($2::date + 1)::timestamp AT TIME ZONE 'America/Santo_Domingo')`;
@@ -173,13 +176,17 @@ export async function analyticsRoutes(app: FastifyInstance) {
     const comments = (await db.query("SELECT r.nps_score AS score, t.title AS survey, (SELECT string_agg(value, ' · ') FROM jsonb_each_text(r.responses) WHERE key IN (SELECT q->>'id' FROM jsonb_array_elements(t.questions) q WHERE q->>'type' = 'text')) AS comment, r.created_at FROM survey_responses r JOIN survey_templates t ON t.id = r.template_id WHERE r.nps_score IS NOT NULL AND r.created_at >= ($1::date::timestamp AT TIME ZONE 'America/Santo_Domingo') AND r.created_at < (($2::date + 1)::timestamp AT TIME ZONE 'America/Santo_Domingo') ORDER BY r.created_at DESC LIMIT 50", [from, to])).rows.filter((x) => x.comment);
     return { range: { from, to }, count: scores.length, score: scores.length ? Math.round(((promoters - detractors) / scores.length) * 100) : null, promoters, detractors, passives: scores.length - promoters - detractors, comments };
   };
-  r.get("/admin/analytics/nps", { onRequest: admin, schema: { tags: ["admin"], summary: "NPS y comentarios de las encuestas", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } } }, async (req) => ({ data: await nps(req.query) }));
+  r.get("/admin/analytics/nps", { onRequest: reader, schema: { tags: ["admin"], summary: "NPS y comentarios de las encuestas", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } } }, async (req) => {
+    const data = await nps(req.query);
+    // Los comentarios son texto libre de personas: sólo los ve administración, no quien tiene analítica de sólo lectura.
+    return { data: req.grant ? { ...data, comments: [], comments_hidden: true } : data };
+  });
 
   const searchTerms = async (q: { from?: string; to?: string; limit: number }) => {
     const { from, to } = range(q);
     return (await db.query("SELECT metadata->>'q' AS term, count(*)::int AS searches FROM analytics_events WHERE event_type = 'search' AND coalesce((metadata->>'results')::int, 0) = 0 AND created_at >= ($1::date::timestamp AT TIME ZONE 'America/Santo_Domingo') AND created_at < (($2::date + 1)::timestamp AT TIME ZONE 'America/Santo_Domingo') GROUP BY 1 ORDER BY searches DESC, term LIMIT $3", [from, to, q.limit])).rows;
   };
-  r.get("/admin/analytics/search-terms", { onRequest: admin, schema: { tags: ["admin"], summary: "Términos buscados sin resultados", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional(), limit: z.coerce.number().int().min(1).max(200).default(50) }), response: { 200: ok } } }, async (req) => ({ data: await searchTerms(req.query) }));
+  r.get("/admin/analytics/search-terms", { onRequest: reader, schema: { tags: ["admin"], summary: "Términos buscados sin resultados", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional(), limit: z.coerce.number().int().min(1).max(200).default(50) }), response: { 200: ok } } }, async (req) => ({ data: await searchTerms(req.query) }));
 
   r.get("/admin/analytics/export.csv", { onRequest: admin, schema: { tags: ["admin"], summary: "Exporta un reporte en CSV", security: bearer, querystring: z.object({ report: z.enum(["traffic", "top-content", "search-terms", "nps"]), from: date.optional(), to: date.optional(), group: z.enum(["page", "source", "country", "day"]).default("page"), metric: z.enum(["views", "favorites"]).default("views"), limit: z.coerce.number().int().min(1).max(200).default(100) }) } }, async (req, reply) => {
     const q = req.query;
@@ -263,7 +270,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
     };
   };
   const adoptionQ = z.object({ days: z.coerce.number().int().min(1).max(365).default(30), panel: z.enum(["viajero", "empresa", "creador", "embajador", "editorial", "moderacion", "admin"]).optional() });
-  r.get("/admin/analytics/panel-adoption", { onRequest: admin, schema: { tags: ["admin"], summary: "Adopción por perfil: onboarding, tareas, abandono y errores por tipo de panel (agregado y sin PII)", security: bearer, querystring: adoptionQ, response: { 200: ok } } }, async (req) => ({ data: await panelAdoption(req.query) }));
+  r.get("/admin/analytics/panel-adoption", { onRequest: reader, schema: { tags: ["admin"], summary: "Adopción por perfil: onboarding, tareas, abandono y errores por tipo de panel (agregado y sin PII)", security: bearer, querystring: adoptionQ, response: { 200: ok } } }, async (req) => ({ data: await panelAdoption(req.query) }));
 
   // ---------- Cifras públicas ----------
   r.get("/statistics/public", { schema: { tags: tag, summary: "Cifras públicas de /estadisticas (las del equipo en `statistics.public` más conteos del portal)", response: { 200: ok } } }, async (_q, reply) => {

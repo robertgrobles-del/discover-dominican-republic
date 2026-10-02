@@ -403,6 +403,7 @@ export const ROUTE_CAPABILITIES: { prefix: string; capability: string }[] = [
   { prefix: "/api/v1/admin/approvals", capability: "admin.accounts" },
   { prefix: "/api/v1/admin/access-reviews", capability: "admin.accounts" },
   { prefix: "/api/v1/admin/staff-invitations", capability: "admin.accounts" },
+  { prefix: "/api/v1/admin/capability-grants", capability: "admin.accounts" },
   { prefix: "/api/v1/admin/creator-campaigns", capability: "admin.accounts" },
   { prefix: "/api/v1/admin/creator-deliverables", capability: "admin.accounts" },
   { prefix: "/api/v1/admin/creator-ledger", capability: "admin.accounts" },

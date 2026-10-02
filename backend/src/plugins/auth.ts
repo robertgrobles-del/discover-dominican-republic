@@ -22,6 +22,15 @@ declare module "fastify" {
     authenticate: (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
     /** onRequest: como `authenticate`, pero además exige alguno de los roles indicados (docs §7.3). Expone `.roles` para el inventario de seguridad. */
     requireRole: (...roles: string[]) => ((req: FastifyRequest, reply: FastifyReply) => Promise<void>) & { roles: string[] };
+    /**
+     * onRequest: pasa quien tiene alguno de los roles o, si no, un permiso acotado vigente para esa capacidad
+     * (y esa colección, si se indica). Cuando entra por permiso deja `req.grant` para que el handler limite el alcance.
+     */
+    requireRoleOrGrant: (roles: string[], capability: string, collection?: string) => ((req: FastifyRequest, reply: FastifyReply) => Promise<void>) & { roles: string[]; grant: string };
+  }
+  interface FastifyRequest {
+    /** Presente sólo si el acceso se concedió por un permiso acotado y no por rol global. */
+    grant?: { id: string; capability: string; record_ids: string[] };
   }
 }
 
@@ -76,4 +85,23 @@ export async function registerAuth(app: FastifyInstance) {
       throw new AppError("MFA_REQUIRED", "Esta acción requiere verificación en dos pasos", { setup: "/api/v1/auth/2fa/setup", verify: "/api/v1/auth/2fa/verify" });
     }
   }, { roles }));
+
+  app.decorate("requireRoleOrGrant", (roles: string[], capability: string, collection?: string) => Object.assign(async (req: FastifyRequest) => {
+    await authenticate(req);
+    const byRole = req.user!.roles.some((r) => roles.includes(r));
+    if (!byRole) {
+      const grant = (await app.db.query<{ id: string; record_ids: string[] }>(
+        `SELECT id, record_ids FROM capability_grants
+          WHERE user_id = $1 AND capability = $2 AND revoked_at IS NULL AND (expires_at IS NULL OR expires_at > now())
+            AND ($3::text IS NULL OR $3 = ANY(collections))
+          ORDER BY cardinality(record_ids) LIMIT 1`, [req.user!.id, capability, collection ?? null],
+      )).rows[0];
+      if (!grant) throw new AppError("FORBIDDEN", "No tienes permiso para esta acción");
+      req.grant = { id: grant.id, capability, record_ids: grant.record_ids };
+    }
+    // Entrar a la consola, por rol o por permiso, exige el segundo factor cuando la política está activa.
+    if (app.env.REQUIRE_2FA_FOR_STAFF && !req.user!.mfa) {
+      throw new AppError("MFA_REQUIRED", "Esta acción requiere verificación en dos pasos", { setup: "/api/v1/auth/2fa/setup", verify: "/api/v1/auth/2fa/verify" });
+    }
+  }, { roles, grant: capability }));
 }

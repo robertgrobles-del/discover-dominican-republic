@@ -22,6 +22,7 @@ export default defineConfig({
             "test/auth.test.ts",
             "test/booking-changes.test.ts",
             "test/booking-claim.test.ts",
+            "test/capability-grants.test.ts",
             "test/business-verification.test.ts",
             "test/content.test.ts",
             "test/content-service.test.ts",

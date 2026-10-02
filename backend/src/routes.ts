@@ -105,6 +105,7 @@ import { PostgresUserFlags } from "./modules/admin/user-flags.js";
 import { PostgresLeadCapture } from "./modules/marketing/leads.js";
 import { PostgresSupportIntake } from "./modules/forms/support-intake.js";
 import { accessRoutes } from "./modules/access/routes.js";
+import { capabilityGrantRoutes } from "./modules/access/grants.js";
 import { adminRoutes } from "./modules/admin/routes.js";
 import { operatorRoutes } from "./modules/operators/routes.js";
 import { contentRoutes } from "./modules/content/routes.js";
@@ -258,6 +259,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       // Catálogo de capacidades y auditoría visual de permisos (Plan de accesos, puntos 58/66/70): recibe el
       // inventario de rutas ya construido por el hook onRoute de app.ts para poder contrastarlo con el catálogo.
       await v1.register(accessRoutes, { routeTable: app.routeTable });
+      await v1.register(capabilityGrantRoutes);
       await v1.register(formsRoutes);
       await v1.register(reviewRoutes);
       await v1.register(socialRoutes);
