@@ -18,6 +18,7 @@ import { ReportService } from "./reports.js";
 import { renderVoucher } from "./voucher.js";
 import { audit } from "../../lib/audit.js";
 import { OwnershipService } from "./ownership.js";
+import { JoinRequestService } from "./join-requests.js";
 import { TeamService } from "./team.js";
 
 declare module "fastify" {
@@ -59,10 +60,14 @@ const promoBody = z.object({
   starts_at: date.nullish(), ends_at: date.nullish(), max_uses: z.number().int().min(1).nullish(), active: z.boolean().optional(),
 });
 
+/** Días sin iniciar sesión a partir de los cuales un miembro se marca como inactivo en el listado del equipo. */
+const INACTIVE_DAYS = 90;
+
 /** Portal de operadores: catálogo, motor de reservas, promociones e ingresos (docs §5.8 y §5.10). */
 export async function operatorRoutes(app: FastifyInstance) {
   const { catalog, promotions, bookings } = app; // se crean en la raíz (routes.ts) para compartirlos con otros módulos
   const team = new TeamService(app.db, app.env, app.mailer);
+  const joinRequests = new JoinRequestService(app.db, (userId, n) => app.notifications.notify(userId, n));
   const ownership = new OwnershipService(app.db, app.identity, (userId, n) => app.notifications.notify(userId, n));
   const engagement = new EngagementService(app.db, bookings);
   const icalSvc = app.ical;
@@ -260,7 +265,13 @@ export async function operatorRoutes(app: FastifyInstance) {
   const memberId = id.extend({ id: z.string().uuid() });
 
   // ---- Equipo ----
-  r.get("/org/team", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Miembros e invitaciones abiertas", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await team.list(req.member!.org_id) }));
+  r.get("/org/team", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Miembros e invitaciones abiertas", security: bearer, response: { 200: ok } } }, async (req) => {
+    const data = await team.list(req.member!.org_id);
+    // Plan de accesos, punto 86: para revisar miembros inactivos se muestra su última sesión (dato de `auth`).
+    const sessions = await app.identity.lastSessionAt(data.members.map((m: { user_id: string }) => m.user_id));
+    const cutoff = Date.now() - INACTIVE_DAYS * 86_400_000;
+    return { data: { ...data, inactive_after_days: INACTIVE_DAYS, members: data.members.map((m: { user_id: string }) => { const last = sessions.get(m.user_id) ?? null; return { ...m, last_session_at: last, inactive: !last || last.getTime() < cutoff }; }) } };
+  });
   r.post("/org/team/invitations", { onRequest: org("owner", "admin"), config: rl(20, "1 hour"), schema: { tags: ["operadores"], summary: "Invita a alguien al equipo por correo", security: bearer, body: z.object({ email: z.string().trim().toLowerCase().pipe(z.email().max(254)), role: z.enum(["admin", "recepcion", "guia"]), listing_ids: z.array(z.string().max(80)).max(50).optional() }), response: { 201: ok } } }, async (req, reply) => {
     reply.code(201);
     return { data: await team.invite(req.member!, req.user!.id, req.body) };
@@ -268,6 +279,27 @@ export async function operatorRoutes(app: FastifyInstance) {
   r.delete("/org/team/invitations/:id", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Revoca una invitación", security: bearer, params: memberId, response: { 204: z.null() } } }, async (req, reply) => { await team.revoke(req.member!.org_id, req.member!.role, req.params.id); reply.code(204); return null; });
   r.patch("/org/team/members/:id", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Cambia el rol o los servicios de un miembro", security: bearer, params: memberId, body: z.object({ role: z.enum(["admin", "recepcion", "guia"]).optional(), expires_at: z.string().datetime().nullable().optional().describe("Fin del acceso (contrato o temporada); null lo deja sin vencimiento"), listing_ids: z.array(z.string().max(80)).max(50).optional() }), response: { 204: z.null() } } }, async (req, reply) => { await team.updateMember(req.member!.org_id, { id: req.user!.id, role: req.member!.role }, req.params.id, req.body); reply.code(204); return null; });
   r.delete("/org/team/members/:id", { onRequest: org(), schema: { tags: ["operadores"], summary: "Quita a un miembro (o sal tú del equipo)", security: bearer, params: memberId, response: { 204: z.null() } } }, async (req, reply) => { await team.remove(req.member!.org_id, { id: req.user!.id, role: req.member!.role }, req.params.id); reply.code(204); return null; });
+  // ---- Solicitudes para unirse (plan de accesos, punto 81) ----
+  const joinRole = z.enum(["admin", "recepcion", "guia"]);
+  r.post("/orgs/:id/join-requests", {
+    onRequest: app.authenticate, config: rl(10, "1 hour"),
+    schema: { tags: ["operadores"], summary: "Pide unirte al equipo de una organización (requiere correo verificado)", security: bearer, params: z.object({ id: z.string().uuid() }), body: z.object({ role: joinRole, message: z.string().trim().max(500).optional() }), response: { 201: ok } },
+  }, async (req, reply) => {
+    reply.code(201);
+    return { data: await joinRequests.create({ orgId: req.params.id, userId: req.user!.id, role: req.body.role, message: req.body.message, ip: req.ip }) };
+  });
+  r.get("/me/org-join-requests", { onRequest: app.authenticate, schema: { tags: ["operadores"], summary: "Mis solicitudes para unirme a organizaciones", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await joinRequests.listMine(req.user!.id) }));
+  r.delete("/me/org-join-requests/:id", { onRequest: app.authenticate, schema: { tags: ["operadores"], summary: "Retira una solicitud propia aún pendiente", security: bearer, params: z.object({ id: z.string().uuid() }), response: { 204: z.null() } } }, async (req, reply) => { await joinRequests.cancel(req.params.id, req.user!.id); reply.code(204); return null; });
+  r.get("/org/join-requests", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Solicitudes para unirse a mi organización, con la identidad de quien pide", security: bearer, querystring: z.object({ status: z.enum(["pending", "approved", "rejected", "cancelled"]).default("pending") }), response: { 200: ok } } }, async (req) => ({ data: await joinRequests.listForOrg(req.member!.org_id, req.query.status) }));
+  r.post("/org/join-requests/:id/approve", {
+    onRequest: org("owner", "admin"),
+    schema: { tags: ["operadores"], summary: "Aprueba la solicitud y crea la membresía (se puede conceder un rol distinto del pedido)", security: bearer, params: z.object({ id: z.string().uuid() }), body: z.object({ role: joinRole.optional(), listing_ids: z.array(z.string().max(80)).max(50).optional(), note: z.string().trim().max(300).optional() }).nullish(), response: { 200: ok } },
+  }, async (req) => ({ data: await joinRequests.decide({ orgId: req.member!.org_id, requestId: req.params.id, actor: { id: req.user!.id, role: req.member!.role }, decision: "approved", role: req.body?.role, listingIds: req.body?.listing_ids, note: req.body?.note, ip: req.ip }) }));
+  r.post("/org/join-requests/:id/reject", {
+    onRequest: org("owner", "admin"),
+    schema: { tags: ["operadores"], summary: "Rechaza la solicitud (motivo obligatorio)", security: bearer, params: z.object({ id: z.string().uuid() }), body: z.object({ note: z.string().trim().min(5).max(300) }), response: { 200: ok } },
+  }, async (req) => ({ data: await joinRequests.decide({ orgId: req.member!.org_id, requestId: req.params.id, actor: { id: req.user!.id, role: req.member!.role }, decision: "rejected", note: req.body.note, ip: req.ip }) }));
+
   // ---- Transferencia de propiedad (plan de accesos, punto 82) ----
   const transferId = id.extend({ id: z.string().uuid() });
   r.get("/org/ownership-transfer", { onRequest: org(), schema: { tags: ["operadores"], summary: "Transferencia de propiedad pendiente de mi organización, si la hay", security: bearer, response: { 200: ok } } }, async (req) => {

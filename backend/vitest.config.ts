@@ -47,6 +47,7 @@ export default defineConfig({
             "test/oauth.test.ts",
             "test/operators-b.test.ts",
             "test/operators.test.ts",
+            "test/org-join-requests.test.ts",
             "test/ownership-transfer.test.ts",
             "test/payments.test.ts",
             "test/plan-batch.test.ts",
