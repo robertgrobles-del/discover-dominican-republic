@@ -2,10 +2,12 @@ import type { BusinessVerificationPort, VerificationAuditFilters } from "../../c
 import type { PoolClient } from "pg";
 import type { Db } from "../../db/pool.js";
 import { auditInsert } from "../../lib/audit.js";
+import { ContractService } from "./contracts.js";
 
 /** PostgreSQL adapter and use cases for the verified-business workflow. */
 export class OperatorVerificationService implements BusinessVerificationPort {
-  constructor(private readonly db: Db) {}
+  private readonly contracts: ContractService;
+  constructor(private readonly db: Db) { this.contracts = new ContractService(db); }
 
   async listApprovedBusinessIds(): Promise<string[]> {
     const { rows } = await this.db.query<{ id: string }>(
@@ -37,8 +39,8 @@ export class OperatorVerificationService implements BusinessVerificationPort {
 
   async approveAudit(input: { id: string; actorId: string; notes: string; badgeNotes: string; expiresAt: string; ip?: string }) {
     return this.tx(async (c) => {
-      const audit = (await c.query<{ business_id: string; business_type: string }>(
-        "SELECT business_id, business_type FROM business_verification_audits WHERE id = $1 FOR UPDATE",
+      const audit = (await c.query<{ business_id: string; business_type: string; business_name: string; rnc: string | null; applicant_user_id: string | null }>(
+        "SELECT business_id, business_type, business_name, rnc, applicant_user_id FROM business_verification_audits WHERE id = $1 FOR UPDATE",
         [input.id],
       )).rows[0];
       if (!audit) return null;
@@ -56,8 +58,11 @@ export class OperatorVerificationService implements BusinessVerificationPort {
           [input.badgeNotes, audit.business_id],
         );
       }
+      // Claim & Verify: el contrato de términos comerciales se emite en la misma transacción que el sello.
+      const rate = (await c.query<{ commission_rate: string }>("SELECT commission_rate FROM partner_profiles WHERE id = $1", [audit.business_id])).rows[0]?.commission_rate;
+      await this.contracts.issue(c, { audit_id: input.id, business_id: audit.business_id, business_name: audit.business_name, business_type: audit.business_type, rnc: audit.rnc, applicant_user_id: audit.applicant_user_id, commission_rate: rate === undefined ? null : Number(rate), badge_expires_at: input.expiresAt });
       await auditInsert(c, { actor: input.actorId, action: "verification.approve", entity: "verification_audit", id: input.id, meta: { business_id: audit.business_id }, ip: input.ip });
-      return audit;
+      return { business_id: audit.business_id, business_type: audit.business_type };
     });
   }
 

@@ -17,6 +17,7 @@ import { PromotionService } from "./promotions.js";
 import { ReportService } from "./reports.js";
 import { CONTACT_CHANNELS, ContactMetricsService } from "./contact-metrics.js";
 import { WEBHOOK_EVENTS, WebhookService } from "./webhooks.js";
+import { BUSINESS_TYPES, ContractService } from "./contracts.js";
 import { renderVoucher } from "./voucher.js";
 import { audit } from "../../lib/audit.js";
 import { OwnershipService } from "./ownership.js";
@@ -76,6 +77,7 @@ export async function operatorRoutes(app: FastifyInstance) {
   const reports = new ReportService(app.db);
   const contactMetrics = new ContactMetricsService(app.db, app.env, app.mailer);
   const webhooks = new WebhookService(app.db);
+  const contracts = new ContractService(app.db);
   const r = app.withTypeProvider<ZodTypeProvider>();
   // Mismo criterio que auth: las pruebas desactivan estos topes con AUTH_RATE_LIMIT_ENABLED=false.
   const rl = (max: number, timeWindow: string) => ({ rateLimit: app.env.AUTH_RATE_LIMIT_ENABLED ? { max, timeWindow } : { max: 1_000_000, timeWindow: "1 minute" } });
@@ -372,6 +374,15 @@ export async function operatorRoutes(app: FastifyInstance) {
     await audit(app.db, { actor: req.user!.id, action: "org.weekly_report_set", entity: "org", id: req.member!.org_id, org: req.member!.org_id, meta: { enabled: req.body.enabled }, ip: req.ip });
     return { data: { enabled: req.body.enabled } };
   });
+
+  // ---- Sello Verificado (Claim & Verify) y contrato de términos comerciales ----
+  r.post("/verifications", { onRequest: app.authenticate, config: rl(10, "1 hour"), schema: { tags: ["operadores"], summary: "Solicita el Sello Verificado para un negocio; queda en revisión", security: bearer, body: z.object({ business_id: z.string().uuid(), business_type: z.enum(BUSINESS_TYPES), business_name: z.string().trim().min(3).max(200), rnc: z.string().trim().regex(/^\d{9}(\d{2})?$/, "RNC (9 dígitos) o cédula (11 dígitos)").optional(), mitur_license: z.string().trim().max(60).optional(), documents: z.array(z.string().url().max(500)).max(10).default([]) }), response: { 201: ok } } }, async (req, reply) => {
+    reply.code(201);
+    return { data: await contracts.apply(req.user!.id, req.body, req.ip) };
+  });
+  r.get("/verifications/mine", { onRequest: app.authenticate, schema: { tags: ["operadores"], summary: "Mis solicitudes de Sello Verificado y su contrato", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await contracts.myApplications(req.user!.id) }));
+  r.get("/verifications/contracts", { onRequest: app.authenticate, schema: { tags: ["operadores"], summary: "Contratos de términos comerciales emitidos a mi nombre, con su texto", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await contracts.myContracts(req.user!.id) }));
+  r.post("/verifications/contracts/:id/accept", { onRequest: app.authenticate, config: rl(20, "1 hour"), schema: { tags: ["operadores"], summary: "Acepta un contrato indicando la huella del texto leído", security: bearer, params: id.extend({ id: z.string().uuid() }), body: z.object({ body_hash: z.string().regex(/^[0-9a-f]{64}$/) }), response: { 200: ok } } }, async (req) => ({ data: await contracts.accept(req.user!.id, req.params.id, req.body.body_hash, req.ip) }));
 
   // ---- Webhooks salientes (firmados con X-Signature) ----
   const admins = org("owner", "admin");
