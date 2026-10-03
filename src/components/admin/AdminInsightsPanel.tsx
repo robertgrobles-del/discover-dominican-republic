@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PanelEmptyState } from "@/components/ui/panel-empty-state";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AdminAuctionsSection, AdminLicensesSection } from "@/components/admin/AdminCommerceSections";
 import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { money } from "@/lib/creatorCampaignsApi";
 import { DISCREPANCY_LABEL, HEATMAP_METRIC_LABEL, WEEKDAYS, adminInsightsApi as api, heatmapGrid, lastDays, type DiscrepancyKind, type HeatmapMetric } from "@/lib/adminInsightsApi";
@@ -58,6 +59,8 @@ export function AdminInsightsPanel() {
           <TabsTrigger value="satisfaccion">Satisfacción</TabsTrigger>
           <TabsTrigger value="calor">Mapa de calor</TabsTrigger>
           <TabsTrigger value="conciliacion">Conciliación</TabsTrigger>
+          <TabsTrigger value="subasta">Subasta de posiciones</TabsTrigger>
+          <TabsTrigger value="licencias">Licencias de imágenes</TabsTrigger>
         </TabsList>
 
         <TabsContent value="rebote">
@@ -163,6 +166,8 @@ export function AdminInsightsPanel() {
             </div>
           )}</Loaded>
         </TabsContent>
+        <TabsContent value="subasta"><AdminAuctionsSection /></TabsContent>
+        <TabsContent value="licencias"><AdminLicensesSection /></TabsContent>
       </Tabs>
     </div>
   );
