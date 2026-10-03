@@ -1,0 +1,134 @@
+# Despliegue en un VPS. El mismo archivo sirve para producción y para staging: cambian el nombre del
+# proyecto y el archivo de variables, de modo que staging tiene red, base y volúmenes propios.
+#
+#   Producción: docker compose -p descubre-prod    --env-file .env.prod    -f docker-compose.vps.yml up -d
+#   Staging:    docker compose -p descubre-staging --env-file .env.staging -f docker-compose.vps.yml up -d
+#
+# Sólo `proxy` publica puertos. Con dos proyectos en el mismo VPS, uno solo puede ocupar 80/443:
+# staging define PROXY_HTTP_PORT/PROXY_HTTPS_PORT distintos o se sirve desde el proxy de producción
+# (ver docs/DESPLIEGUE_VPS.md). Configuración sin validar: nunca se ha levantado.
+name: descubre
+
+x-hardened: &hardened
+  read_only: true
+  tmpfs: ["/tmp"]
+  cap_drop: ["ALL"]
+  security_opt: ["no-new-privileges:true"]
+  restart: unless-stopped
+
+x-api-env: &api-env
+  NODE_ENV: production
+  HOST: 0.0.0.0
+  PORT: "3000"
+  TRUST_PROXY: "true"
+  DATABASE_URL: postgres://descubre:${POSTGRES_PASSWORD:?define POSTGRES_PASSWORD}@postgres:5432/descubre_rd
+  PUBLIC_BASE_URL: https://${API_DOMAIN:?define API_DOMAIN}
+  WEB_BASE_URL: https://${SITE_DOMAIN:?define SITE_DOMAIN}
+  CORS_ORIGINS: https://${SITE_DOMAIN}
+  JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY:?define JWT_PRIVATE_KEY}
+  JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:?define JWT_PUBLIC_KEY}
+  APP_SECRET: ${APP_SECRET:?define APP_SECRET}
+  TOTP_ENCRYPTION_KEY: ${TOTP_ENCRYPTION_KEY:?define TOTP_ENCRYPTION_KEY}
+  MAIL_TRANSPORT: ${MAIL_TRANSPORT:-log}
+  MAIL_FROM: ${MAIL_FROM:-Descubre RD <no-reply@descubrerd.com>}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASS: ${SMTP_PASS:-}
+  SMTP_SECURE: ${SMTP_SECURE:-false}
+  PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-none}
+  STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+  STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+  DUAL_APPROVAL_REQUIRED: ${DUAL_APPROVAL_REQUIRED:-false}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+
+services:
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "${PROXY_HTTP_PORT:-80}:80"
+      - "${PROXY_HTTPS_PORT:-443}:443"
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN}
+      API_DOMAIN: ${API_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?define ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Versiones del frontend: `current` es un enlace simbólico que deploy.sh cambia de forma atómica.
+      - ${SITE_ROOT:-/srv/descubre/site}:/srv/site:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+    cap_drop: ["ALL"]
+    cap_add: ["NET_BIND_SERVICE"]
+    security_opt: ["no-new-privileges:true"]
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: descubre
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: descubre_rd
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U descubre -d descubre_rd"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    # En un VPS pequeño conviene acotar la memoria; ajusta según el plan contratado.
+    mem_limit: ${POSTGRES_MEM_LIMIT:-1g}
+
+  # Aplica las migraciones pendientes y termina. `api` no arranca si este paso falla.
+  migrate:
+    image: ${API_IMAGE:-descubre-api:local}
+    build: { context: ../backend }
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment: *api-env
+    command:
+      - node
+      - --input-type=module
+      - -e
+      - |
+        import pg from "pg";
+        import { migrate } from "./dist/db/migrator.js";
+        const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+        try {
+          const r = await migrate(pool, { log: (m) => console.log(m) });
+          console.log("Migraciones aplicadas:", r.applied.length, "ya existentes:", r.skipped.length);
+        } finally { await pool.end(); }
+    <<: *hardened
+    restart: "no"
+
+  api:
+    image: ${API_IMAGE:-descubre-api:local}
+    build: { context: ../backend }
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment: *api-env
+    volumes: ["media:/app/storage/media"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/health/ready || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 20s
+    mem_limit: ${API_MEM_LIMIT:-768m}
+    # Al detenerse deja terminar las peticiones en curso antes de salir.
+    stop_grace_period: 30s
+    <<: *hardened
+
+volumes:
+  pgdata:
+  media:
+  caddy_data:
+  caddy_config:

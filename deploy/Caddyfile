@@ -1,0 +1,37 @@
+# Entrada única del VPS: certificados TLS automáticos, sitio estático y proxy hacia la API.
+{
+	email {$ACME_EMAIL}
+}
+
+(seguridad) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+}
+
+{$SITE_DOMAIN} {
+	import seguridad
+	encode zstd gzip
+	root * /srv/site/current
+	# Los archivos con hash no cambian nunca; index.html se revalida siempre para tomar la versión nueva.
+	@hashed path /assets/*
+	header @hashed Cache-Control "public, max-age=31536000, immutable"
+	header /index.html Cache-Control "no-cache"
+	try_files {path} /index.html
+	file_server
+}
+
+{$API_DOMAIN} {
+	import seguridad
+	encode zstd gzip
+	reverse_proxy api:3000 {
+		# Durante el reinicio de la API en un despliegue, reintenta en vez de devolver 502.
+		lb_try_duration 30s
+		lb_try_interval 500ms
+		health_uri /health/ready
+		health_interval 10s
+	}
+}
