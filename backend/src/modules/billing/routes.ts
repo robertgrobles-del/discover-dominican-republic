@@ -3,6 +3,10 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { type FiscalInvoicingService } from "./invoicing.js";
+import { audit } from "../../lib/audit.js";
+import { addDays, todayInSantoDomingo } from "../../lib/dates.js";
+import { ReconciliationService } from "./reconciliation.js";
+import type { SettlementReaderPort } from "../../contracts/settlements.js";
 
 declare module "fastify" {
   interface FastifyInstance {
@@ -24,6 +28,22 @@ export async function fiscalInvoiceRoutes(app: FastifyInstance) {
   const auth = app.authenticate;
   const admin = app.requireRole("admin");
   const rl = (max: number, timeWindow: string) => ({ rateLimit: app.env.AUTH_RATE_LIMIT_ENABLED ? { max, timeWindow } : { max: 1_000_000, timeWindow: "1 minute" } });
+
+  // Conciliación para finanzas: cobros, comprobantes NCF y liquidaciones en una sola vista, con lo que no cuadra.
+  const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+  // `operators` es dueño de reservas y liquidaciones: de su servicio, finanzas sólo usa lo que expone el contrato.
+  const settlements: SettlementReaderPort = app.payouts;
+  const reconciliation = new ReconciliationService(app.db, settlements);
+  r.get("/admin/finance/reconciliation", {
+    onRequest: admin,
+    schema: { tags: ["admin"], summary: "Conciliación de cobros, comprobantes fiscales y liquidaciones en un rango (máx. 366 días)", security: bearer, querystring: z.object({ from: day.optional(), to: day.optional() }), response: { 200: ok } },
+  }, async (req) => {
+    const to = req.query.to ?? todayInSantoDomingo(), from = req.query.from ?? addDays(to, -29);
+    if (from > to || addDays(from, 366) < to) throw AppError.validation("El rango de fechas es inválido");
+    // Muestra montos y referencias de clientes: queda constancia de quién lo consultó.
+    await audit(app.db, { actor: req.user!.id, action: "finance.reconciliation_view", entity: "report", id: `${from}:${to}`, ip: req.ip });
+    return { data: await reconciliation.report(from, to) };
+  });
 
   // Emitir comprobante fiscal NCF (#4) — acción interna/fiscal: sólo personal admin, nunca a petición directa del cliente
   // (el NCF y los montos deben salir de un pedido/reserva ya cobrado, no de lo que declare quien llama).

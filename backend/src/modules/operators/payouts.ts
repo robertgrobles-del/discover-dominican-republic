@@ -1,3 +1,4 @@
+import type { SettlementReaderPort, UnsettledBooking } from "../../contracts/settlements.js";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
 import type { MailerPort } from "../../contracts/email.js";
@@ -11,8 +12,18 @@ const dto = (r: Record<string, unknown>) => ({ ...r, gross: Number(r.gross), com
  * Liquidaciones a operadores (docs §5.10/§5.18). Sólo se liquida lo cobrado en línea (el operador ya tiene el efectivo de sus
  * cobros manuales) de reservas `completed`, menos reembolsos y la comisión. Cada reserva entra en un solo lote (`payout_items.booking_id` único).
  */
-export class PayoutService {
+export class PayoutService implements SettlementReaderPort {
   constructor(private readonly db: Db, private readonly mailer: MailerPort) {}
+
+  async unsettledBookings(from: string, to: string, limit: number): Promise<UnsettledBooking[]> {
+    const { rows } = await this.db.query<{ id: string; reference: string; currency: string; amount_paid: string }>(
+      `SELECT b.id::text AS id, b.reference, b.currency, b.amount_paid FROM bookings b
+        WHERE b.status = 'completed' AND b.amount_paid > 0 AND b.date BETWEEN $1::date AND $2::date
+          AND NOT EXISTS (SELECT 1 FROM payout_items pi WHERE pi.booking_id = b.id)
+        ORDER BY b.date LIMIT $3`, [from, to, limit],
+    );
+    return rows.map((r) => ({ ...r, amount_paid: Number(r.amount_paid) }));
+  }
 
   /** Genera un lote por organización y moneda con todo lo liquidable. Idempotente: lo ya liquidado no se repite. */
   async generate(opts: { orgId?: string } = {}) {

@@ -19,7 +19,7 @@ const fill = (url: string) => url.replace(/:(\w+)/g, (_m, p: string) => (/id$/i.
 const PUBLIC_MUTATIONS: RegExp[] = [
   /^\/api\/v1\/auth\//, /^\/api\/v1\/bookings(\/|$)/, /^\/api\/v1\/orders(\/|$)/, /^\/api\/v1\/cart(\/|$)/, /^\/api\/v1\/checkout\/quote$/, /^\/api\/v1\/coupons\/validate$/, /^\/api\/v1\/promotions\/validate$/,
   /^\/api\/v1\/contact$/, /^\/api\/v1\/newsletter\//, /^\/api\/v1\/leads$/, /^\/api\/v1\/establishments\/register$/, /^\/api\/v1\/advertisers\/requests$/, /^\/api\/v1\/vacation-registrations$/,
-  /^\/api\/v1\/analytics\/events$/, /^\/api\/v1\/ads\//, /^\/api\/v1\/surveys\//, /^\/api\/v1\/tools\//, /^\/api\/v1\/calculators\//, /^\/api\/v1\/utils\/convert$/,
+  /^\/api\/v1\/analytics\/events$/, /^\/api\/v1\/operators\/:slug\/contact-click$/, /^\/api\/v1\/ads\//, /^\/api\/v1\/surveys\//, /^\/api\/v1\/tools\//, /^\/api\/v1\/calculators\//, /^\/api\/v1\/utils\/convert$/,
   /^\/api\/v1\/webhooks\/(payments|email)\//, /^\/api\/v1\/media\/:id\/upload$/, /^\/api\/v1\/orders\/:id\//, /^\/api\/v1\/team-invitations\//, /^\/api\/v1\/listings\//,
   /^\/api\/v1\/reviews\/:id\/(helpful|report)$/, /^\/api\/v1\/marketplace\/checkout\/quote$/, /^\/api\/v1\/ai\/chat$/, /^\/api\/v1\/marketplace\/orders(\/|$)/,
 ];
@@ -109,6 +109,7 @@ describe("seguridad", () => {
       // correcta del chequeo, no un fallo sin manejar, así que se excluye del barrido de "nada debe responder 500".
       const all = app.routeTable.filter((r) => r.url.startsWith("/api/v1/") && !["HEAD", "OPTIONS"].includes(r.method) && !/webhooks|\/upload$|\/ical\/|\/notifications\/stream$|^\/api\/v1\/health\//.test(r.url));
       for (const r of all) {
+        // eslint-disable-next-line no-loss-of-precision -- 1e309 desborda a Infinity a propósito: es parte de la entrada basura
         const res = await call(r.method, fill(r.url), { token: plain, payload: r.method === "GET" || r.method === "DELETE" ? undefined : { "__proto__": { admin: true }, x: "'; DROP TABLE users; --", n: 1e309 } });
         if (res.statusCode >= 500) bad.push(`${r.method} ${r.url} → ${res.statusCode}`);
       }

@@ -8,6 +8,7 @@ import type { IcalService } from "./ical.js";
 import type { PayoutService } from "./payouts.js";
 import { auditInsert } from "../../lib/audit.js";
 import { ContactMetricsService } from "./contact-metrics.js";
+import { claimJobMark } from "../../lib/job-marks.js";
 
 const PENDING_PAYMENT_MINUTES = 30;
 
@@ -75,8 +76,7 @@ export function registerOperatorJobs(d: Deps) {
       );
       let notified = 0;
       for (const r of rows) {
-        const mark = await db.query("INSERT INTO job_marks (key) VALUES ($1) ON CONFLICT DO NOTHING", [`min_guests:${r.listing_id}:${r.date}`]);
-        if (!mark.rowCount) continue;
+        if (!(await claimJobMark(db, `min_guests:${r.listing_id}:${r.date}`))) continue;
         await d.mailer.send({ to: r.email, template: "operator.min_guests", locale: "es", data: { operator: r.business_name, service: r.title, date: r.date, booked: r.booked, min: r.min_guests, url: `${d.env.WEB_BASE_URL}/operadores/panel/reservas` } });
         notified++;
       }

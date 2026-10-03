@@ -57,6 +57,7 @@ export default defineConfig({
             "test/plan-batch.test.ts",
             "test/provinces-config.test.ts",
             "test/rate-limit.test.ts",
+            "test/reconciliation.test.ts",
             "test/reviews.test.ts",
             "test/security.test.ts",
             "test/social-campaigns.test.ts",

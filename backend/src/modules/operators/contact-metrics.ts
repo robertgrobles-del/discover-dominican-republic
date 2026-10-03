@@ -2,6 +2,7 @@ import type { Env } from "../../config/env.js";
 import type { Db } from "../../db/pool.js";
 import type { MailerPort } from "../../contracts/email.js";
 import { AppError } from "../../lib/errors.js";
+import { claimJobMark } from "../../lib/job-marks.js";
 import { addDays, isIsoDate, todayInSantoDomingo } from "./domain/dates.js";
 
 export const CONTACT_CHANNELS = ["whatsapp", "call", "directions", "website"] as const;
@@ -90,8 +91,7 @@ export class ContactMetricsService {
     );
     let sent = 0;
     for (const o of rows) {
-      const mark = await this.db.query("INSERT INTO job_marks (key) VALUES ($1) ON CONFLICT DO NOTHING", [`weekly_report:${o.id}:${from}`]);
-      if (!mark.rowCount) continue; // otra instancia ya lo envió
+      if (!(await claimJobMark(this.db, `weekly_report:${o.id}:${from}`))) continue; // otra instancia ya lo envió
       const revenue = (await this.db.query<{ currency: string; total: string }>(
         `SELECT b.currency, sum(b.total_price) AS total FROM bookings b WHERE b.org_id = $3 AND b.status <> 'cancelled' AND ${inWeek} GROUP BY b.currency ORDER BY b.currency`, [from, to, o.id],
       )).rows;

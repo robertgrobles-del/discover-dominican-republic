@@ -1,5 +1,6 @@
 import type { Db } from "../../db/pool.js";
 import type { NotificationInput } from "../../contracts/notifications.js";
+import { claimJobMark } from "../../lib/job-marks.js";
 
 /** Umbral por omisión; el equipo lo ajusta con el ajuste `analytics.bounce_alert` ({ threshold_pct, min_sessions }). */
 const DEFAULTS = { threshold_pct: 70, min_sessions: 50 };
@@ -51,8 +52,7 @@ export class BounceService {
     const r = await this.report(day, day);
     const result = { day, sessions: r.sessions, bounce_rate: r.bounce_rate, threshold_pct: r.threshold_pct, alerted: false };
     if (!r.alert) return result;
-    const mark = await this.db.query("INSERT INTO job_marks (key) VALUES ($1) ON CONFLICT DO NOTHING", [`bounce_alert:${day}`]);
-    if (!mark.rowCount) return result;
+    if (!(await claimJobMark(this.db, `bounce_alert:${day}`))) return result;
     const worst = r.landing_pages[0];
     await notifyStaff({
       type: "system", title: `Tasa de rebote alta: ${r.bounce_rate} % el ${day}`,
