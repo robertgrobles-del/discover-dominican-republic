@@ -13,6 +13,11 @@ import { fetchOrgs, fetchPublishedListings } from "../api";
 import { ListingCard } from "../components/ListingCard";
 import { CATEGORY_META } from "../constants";
 import type { ListingCategory } from "../types";
+import { NativeSponsoredCard } from "@/components/promo/NativeSponsoredCard";
+import { NATIVE_DIRECTORY_SLOT, serveNative } from "@/lib/sponsorshipApi";
+
+/** El anuncio nativo va después de la tercera tarjeta: dentro de los resultados, sin desplazar los primeros. */
+const NATIVE_AD_POSITION = 3;
 
 export default function OperadoresDirectorio() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -21,6 +26,8 @@ export default function OperadoresDirectorio() {
   const rawCat = searchParams.get("categoria") ?? "all";
   const cat: ListingCategory | "all" = rawCat === "all" || rawCat in CATEGORY_META ? rawCat as ListingCategory | "all" : "all";
   const q = searchParams.get("q") ?? "";
+  // Un fallo del servidor de anuncios no debe afectar al directorio: sin reintentos y sin estado de error visible.
+  const { data: ads = [] } = useQuery({ queryKey: ["ads", NATIVE_DIRECTORY_SLOT, cat], queryFn: () => serveNative(NATIVE_DIRECTORY_SLOT, { category: cat === "all" ? undefined : cat }), retry: false, staleTime: 5 * 60_000 });
   const updateFilters = (updates: { categoria?: string; q?: string }) => {
     const next = new URLSearchParams(searchParams);
     for (const [key, value] of Object.entries(updates)) {
@@ -67,7 +74,11 @@ export default function OperadoresDirectorio() {
             <p className="py-16 text-center text-muted-foreground">No encontramos servicios con esos filtros.</p>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {shown.map((l) => { const o = orgById.get(l.org_id); return o ? <ListingCard key={l.id} listing={l} orgSlug={o.slug} orgName={o.business_name} /> : null; })}
+              {shown.map((l, i) => {
+                const o = orgById.get(l.org_id);
+                const card = o ? <ListingCard key={l.id} listing={l} orgSlug={o.slug} orgName={o.business_name} /> : null;
+                return i === NATIVE_AD_POSITION && ads[0] ? [<NativeSponsoredCard key={`ad-${ads[0].id}`} creative={ads[0]} page="/operadores/directorio" />, card] : card;
+              })}
             </div>
           )}
 
