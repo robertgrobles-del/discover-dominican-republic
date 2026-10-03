@@ -12,6 +12,7 @@ import { audit } from "../../lib/audit.js";
 import { readImage, sniffMime, type ImageMime } from "./images.js";
 import type { Scanner } from "./antivirus.js";
 import { processImage, VARIANTS, type Processed, type VariantName } from "./process.js";
+import { MediaLicensingService, licensingRoutes } from "./licensing.js";
 
 const MB = 1024 * 1024;
 export const PURPOSES = { avatar: 2 * MB, review_photo: 5 * MB, ugc: 8 * MB, listing_image: 8 * MB, cms: 10 * MB } as const;
@@ -98,6 +99,8 @@ export async function mediaRoutes(app: FastifyInstance) {
   const optionalUser = async (req: FastifyRequest) => { if (req.headers.authorization) { try { await app.authenticate(req, undefined as never); } catch { req.user = undefined; } } };
   const isStaff = (req: FastifyRequest) => !!req.user?.roles.some((x) => STAFF.includes(x));
   const tag = ["medios"];
+  const licensing = new MediaLicensingService(db);
+  licensingRoutes(app, licensing, base);
 
   // El binario llega crudo (no JSON): este parser sólo existe dentro de este plugin.
   app.addContentTypeParser([...MIMES], { parseAs: "buffer", bodyLimit: 12 * MB }, (_req, body, done) => done(null, body));
@@ -183,10 +186,13 @@ export async function mediaRoutes(app: FastifyInstance) {
   r.get("/media/files/:id", { onRequest: optionalUser, schema: { tags: tag, summary: "El archivo (inmutable y cacheable una vez aprobado). `?variant=thumb|medium|large` sirve una versión reducida en webp; si no existe, el original", params: uuid, querystring: z.object({ variant: z.enum(["original", "thumb", "medium", "large"]).optional() }) } }, async (req, reply) => {
     const a = await visible(req.params.id, req);
     const v = req.query.variant && req.query.variant !== "original" ? (a?.variants as Partial<Record<VariantName, StoredVariant>> | undefined)?.[req.query.variant] : undefined;
+    // Imagen en licenciamiento: el original (o cualquier petición que caería en él) sólo para su dueño, el equipo o quien tenga licencia vigente.
+    if (a?.license_restricted && !v && a.owner_id !== req.user?.id && !isStaff(req) && !(await licensing.hasLicense(a.id, req.user?.id))) throw new AppError("FORBIDDEN", "El original de esta imagen requiere una licencia de uso", { code: "LICENSE_REQUIRED" });
     const buf = a && (v ? await storage.get(v.key) : a.storage_key ? await storage.get(a.storage_key) : null);
     if (!a || !buf) throw AppError.notFound("Archivo");
+    const open = a.status === "ready" && !(a.license_restricted && !v);
     reply.header("content-type", v ? v.mime : a.mime).header("x-content-type-options", "nosniff").header("content-disposition", "inline").header("content-security-policy", "default-src 'none'; sandbox")
-      .header("cache-control", a.status === "ready" ? "public, max-age=31536000, immutable" : "private, no-store").header("content-length", String(buf.length));
+      .header("cache-control", open ? "public, max-age=31536000, immutable" : "private, no-store").header("content-length", String(buf.length));
     return reply.send(buf);
   });
 

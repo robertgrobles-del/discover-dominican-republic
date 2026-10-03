@@ -48,6 +48,7 @@ export default defineConfig({
             "test/marketing.test.ts",
             "test/marketplace.test.ts",
             "test/media-infra.test.ts",
+            "test/media-licensing.test.ts",
             "test/media.test.ts",
             "test/migrations.test.ts",
             "test/notifications.test.ts",
