@@ -1,3 +1,4 @@
+import { haptic } from "@/lib/haptics";
 import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getStoredJSON } from "@/lib/safeStorage";
@@ -82,6 +83,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       // se revierte (quitar lo que se acaba de agregar) y se avisa, en vez de dejar la UI mintiendo sobre lo guardado.
       const newFavorite: FavoriteItem = { ...item, addedAt: Date.now() };
       setFavorites((prev) => [...prev, newFavorite]);
+      haptic("success");
 
       if (user) {
         const { error } = await supabase.from("favorites").insert({
@@ -94,6 +96,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         });
         if (error) {
           setFavorites((prev) => prev.filter((f) => !(f.id === item.id && f.type === item.type)));
+          haptic("warning");
           toast({ title: "No se pudo guardar el favorito", description: "Inténtalo de nuevo en un momento.", variant: "destructive" });
         }
       }

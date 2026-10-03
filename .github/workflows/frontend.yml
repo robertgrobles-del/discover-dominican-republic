@@ -83,6 +83,9 @@ jobs:
       - name: Detectar claves de traduccion ausentes
         run: npm run check:i18n-keys
 
+      - name: Auditar contraste de color (WCAG) sin empeorar lo registrado
+        run: npm run check:contrast
+
       - name: Compilación y empaquetado de producción con Vite
         # El portal todavía corre con datos simulados por decisión documentada (MOCK_MIGRATION_NOTES.md):
         # el build de producción lo exige explícito para que un despliegue real nunca salga con el mock

@@ -1,3 +1,4 @@
+import { haptic } from "@/lib/haptics";
 import { createContext, useContext, ReactNode, useCallback, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -61,6 +62,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return item;
     },
     onSuccess: (item) => {
+      haptic("success");
       toast({ title: "Agregado al carrito", description: item.product_name });
       trackEvent("add_to_cart", { quantity: Math.max(1, item.quantity || 1) });
       void refreshCart();
