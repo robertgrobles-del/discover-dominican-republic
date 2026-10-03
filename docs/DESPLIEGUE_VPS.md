@@ -7,7 +7,7 @@ Estado: **validado en parte, en local (2026-10-03)**. La imagen de producción d
 | Archivo | Para qué |
 | :--- | :--- |
 | `deploy/docker-compose.vps.yml` | Proxy Caddy (TLS automático), API, PostgreSQL y el paso de migraciones |
-| `deploy/Caddyfile` | Sitio estático en `SITE_DOMAIN` y proxy a la API en `API_DOMAIN` |
+| `deploy/Caddyfile` | Sitio estático en `SITE_DOMAIN` con la API bajo `/api`, y la misma API en `API_DOMAIN` |
 | `deploy/.env.example` | Variables de cada entorno; se copia como `.env.prod` o `.env.staging` en el VPS |
 | `deploy/deploy.sh` | Despliegue de la API, publicación atómica del frontend y vuelta atrás |
 | `deploy/backup.sh` | Respaldo de la base con rotación |
@@ -32,7 +32,7 @@ cp .env.example .env.staging      # completar dominios y secretos
 ./deploy.sh staging status
 ```
 
-El frontend se compila fuera del VPS (CI publica el artefacto `frontend-dist-<sha>`) con `VITE_API_URL=https://<API_DOMAIN>`, y se copia al servidor.
+El frontend se compila fuera del VPS (CI publica el artefacto `frontend-dist-<sha>`) **sin definir `VITE_API_URL`** y se copia al servidor. Así llama a la API por `/api/v1` en su mismo dominio, que el proxy reenvía. No apuntes el frontend a `API_DOMAIN`: la política de seguridad de contenido de `index.html` sólo permite conexiones al propio origen y el navegador bloquearía todas las llamadas (comprobado en local). `API_DOMAIN` queda para integraciones externas.
 
 ## Cómo se despliega sin cortar el servicio
 

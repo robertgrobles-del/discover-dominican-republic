@@ -12,21 +12,7 @@
 	}
 }
 
-{$SITE_DOMAIN} {
-	import seguridad
-	encode zstd gzip
-	root * /srv/site/current
-	# Los archivos con hash no cambian nunca; index.html se revalida siempre para tomar la versión nueva.
-	@hashed path /assets/*
-	header @hashed Cache-Control "public, max-age=31536000, immutable"
-	header /index.html Cache-Control "no-cache"
-	try_files {path} /index.html
-	file_server
-}
-
-{$API_DOMAIN} {
-	import seguridad
-	encode zstd gzip
+(api) {
 	reverse_proxy api:3000 {
 		# Durante el reinicio de la API en un despliegue, reintenta en vez de devolver 502.
 		lb_try_duration 30s
@@ -34,4 +20,32 @@
 		health_uri /health/ready
 		health_interval 10s
 	}
+}
+
+{$SITE_DOMAIN} {
+	import seguridad
+	encode zstd gzip
+
+	# El sitio llama a la API por su mismo origen (/api/v1): su política de seguridad de contenido sólo
+	# permite conexiones a 'self', y así la cookie de sesión es del mismo sitio y no hace falta CORS.
+	handle /api/* {
+		import api
+	}
+
+	handle {
+		root * /srv/site/current
+		# Los archivos con hash no cambian nunca; index.html se revalida siempre para tomar la versión nueva.
+		@hashed path /assets/*
+		header @hashed Cache-Control "public, max-age=31536000, immutable"
+		header /index.html Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+# Mismo backend en su propio dominio, para integraciones externas (webhooks de pago, clientes B2B).
+{$API_DOMAIN} {
+	import seguridad
+	encode zstd gzip
+	import api
 }
