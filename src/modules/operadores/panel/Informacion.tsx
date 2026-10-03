@@ -1,6 +1,7 @@
 import { Megaphone } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { PLATFORM_ANNOUNCEMENTS } from "../constants";
+import { VerificationCard } from "./VerificationCard";
 
 export default function Informacion() {
   return (
@@ -20,6 +21,7 @@ export default function Informacion() {
           </Card>
         ))}
       </div>
+      <div className="mt-6"><VerificationCard /></div>
     </div>
   );
 }

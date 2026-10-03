@@ -9,6 +9,7 @@ import { opKeys, replyReview, useBookings, useListings, useOpMutation, useReview
 import { formatMoney } from "../constants";
 import { useOrg } from "./OrgContext";
 import { ContactClicksCard } from "./ContactClicksCard";
+import { DemandReportCard } from "./DemandReportCard";
 
 const COLORS = ["hsl(var(--primary))", "#f59e0b", "#10b981", "#6366f1"];
 
@@ -55,6 +56,7 @@ export default function Reportes() {
           )}</CardContent></Card>
       </div>
       <ContactClicksCard />
+      <DemandReportCard />
       <Card>
         <CardHeader><CardTitle className="text-base">Reseñas</CardTitle></CardHeader>
         <CardContent className="space-y-4">

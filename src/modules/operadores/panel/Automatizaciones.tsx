@@ -16,6 +16,7 @@ import {
 } from "../automation";
 import type { AutomationChannel, AutomationConfig, AutomationKind, AutomationRule, Booking } from "../types";
 import { useOrg } from "./OrgContext";
+import { WebhooksCard } from "./WebhooksCard";
 
 const KINDS = Object.keys(AUTOMATION_META) as AutomationKind[];
 
@@ -55,7 +56,7 @@ export default function Automatizaciones() {
         <h1 className="font-display text-3xl font-bold">Automatizaciones</h1>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2" disabled={busy} onClick={runReminders}>{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <BellRing className="h-4 w-4" />} Enviar recordatorios de mañana</Button>
-          <Button disabled={!dirty || save.isPending} onClick={() => save.mutate(cfg, { onSuccess: () => { setDirty(false); toast.success("Automatizaciones guardadas"); }, onError: (e: any) => toast.error(e.message) })}>Guardar cambios</Button>
+          <Button disabled={!dirty || save.isPending} onClick={() => save.mutate(cfg, { onSuccess: () => { setDirty(false); toast.success("Automatizaciones guardadas"); }, onError: (e: Error) => toast.error(e.message) })}>Guardar cambios</Button>
         </div>
       </div>
       <p className="text-sm text-muted-foreground">Mensajes automáticos a tus viajeros por correo y WhatsApp. Quedan registrados en tus <b>Mensajes</b>. En este entorno de demostración el envío es simulado.</p>
@@ -91,6 +92,7 @@ export default function Automatizaciones() {
           ))}</div>
         )}
       </section>
+      <WebhooksCard />
     </div>
   );
 }
