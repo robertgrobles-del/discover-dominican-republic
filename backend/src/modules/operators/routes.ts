@@ -16,6 +16,7 @@ import type { PayoutService } from "./payouts.js";
 import { PromotionService } from "./promotions.js";
 import { ReportService } from "./reports.js";
 import { CONTACT_CHANNELS, ContactMetricsService } from "./contact-metrics.js";
+import { WEBHOOK_EVENTS, WebhookService } from "./webhooks.js";
 import { renderVoucher } from "./voucher.js";
 import { audit } from "../../lib/audit.js";
 import { OwnershipService } from "./ownership.js";
@@ -74,6 +75,7 @@ export async function operatorRoutes(app: FastifyInstance) {
   const icalSvc = app.ical;
   const reports = new ReportService(app.db);
   const contactMetrics = new ContactMetricsService(app.db, app.env, app.mailer);
+  const webhooks = new WebhookService(app.db);
   const r = app.withTypeProvider<ZodTypeProvider>();
   // Mismo criterio que auth: las pruebas desactivan estos topes con AUTH_RATE_LIMIT_ENABLED=false.
   const rl = (max: number, timeWindow: string) => ({ rateLimit: app.env.AUTH_RATE_LIMIT_ENABLED ? { max, timeWindow } : { max: 1_000_000, timeWindow: "1 minute" } });
@@ -370,6 +372,22 @@ export async function operatorRoutes(app: FastifyInstance) {
     await audit(app.db, { actor: req.user!.id, action: "org.weekly_report_set", entity: "org", id: req.member!.org_id, org: req.member!.org_id, meta: { enabled: req.body.enabled }, ip: req.ip });
     return { data: { enabled: req.body.enabled } };
   });
+
+  // ---- Webhooks salientes (firmados con X-Signature) ----
+  const admins = org("owner", "admin");
+  r.get("/org/webhooks", { onRequest: admins, schema: { tags: ["operadores"], summary: "Webhooks de mi organización (sin el secreto)", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await webhooks.list(req.member!.org_id) }));
+  r.post("/org/webhooks", { onRequest: admins, config: rl(20, "1 hour"), schema: { tags: ["operadores"], summary: "Registra un webhook https; el secreto para verificar la firma sólo se muestra aquí", security: bearer, body: z.object({ url: z.string().url().max(500), events: z.array(z.enum(WEBHOOK_EVENTS)).min(1).max(WEBHOOK_EVENTS.length) }), response: { 201: ok } } }, async (req, reply) => {
+    reply.code(201);
+    return { data: await webhooks.create(req.member!.org_id, req.user!.id, req.body) };
+  });
+  r.delete("/org/webhooks/:id", { onRequest: admins, schema: { tags: ["operadores"], summary: "Elimina un webhook y sus entregas", security: bearer, params: id.extend({ id: z.string().uuid() }), response: { 204: z.null() } } }, async (req, reply) => {
+    await webhooks.remove(req.member!.org_id, req.user!.id, req.params.id);
+    reply.code(204);
+    return null;
+  });
+  r.post("/org/webhooks/:id/enable", { onRequest: admins, schema: { tags: ["operadores"], summary: "Reactiva un webhook desactivado por fallos", security: bearer, params: id.extend({ id: z.string().uuid() }), response: { 200: ok } } }, async (req) => ({ data: await webhooks.enable(req.member!.org_id, req.params.id) }));
+  r.post("/org/webhooks/:id/test", { onRequest: admins, config: rl(10, "1 hour"), schema: { tags: ["operadores"], summary: "Encola una entrega de prueba", security: bearer, params: id.extend({ id: z.string().uuid() }), response: { 200: ok } } }, async (req) => ({ data: await webhooks.sendTest(req.member!.org_id, req.params.id) }));
+  r.get("/org/webhooks/:id/deliveries", { onRequest: admins, schema: { tags: ["operadores"], summary: "Últimas 50 entregas de un webhook", security: bearer, params: id.extend({ id: z.string().uuid() }), response: { 200: ok } } }, async (req) => ({ data: await webhooks.deliveries(req.member!.org_id, req.params.id) }));
 
   // ---- Liquidaciones ----
   r.get("/org/payouts", { onRequest: org("owner"), schema: { tags: ["operadores"], summary: "Mis liquidaciones y lo pendiente de pago", security: bearer, querystring: z.object({ ...pageQ, status: z.enum(["pending", "paid", "failed"]).optional() }), response: { 200: z.object({ data: any, meta: z.any() }) } } }, async (req) => {

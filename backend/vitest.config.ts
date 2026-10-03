@@ -72,6 +72,7 @@ export default defineConfig({
             "test/trips.test.ts",
             "test/two-factor.test.ts",
             "test/user-forms.test.ts",
+            "test/webhooks.test.ts",
           ],
           fileParallelism: false, // comparten la misma DB de pruebas
           testTimeout: 30_000,

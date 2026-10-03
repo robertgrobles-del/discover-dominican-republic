@@ -9,6 +9,7 @@ import type { PayoutService } from "./payouts.js";
 import { auditInsert } from "../../lib/audit.js";
 import { ContactMetricsService } from "./contact-metrics.js";
 import { claimJobMark } from "../../lib/job-marks.js";
+import { WebhookService } from "./webhooks.js";
 
 const PENDING_PAYMENT_MINUTES = 30;
 
@@ -18,6 +19,9 @@ interface Deps { db: Db; env: Env; mailer: MailerPort; runner: JobRegistrar; aut
 export function registerOperatorJobs(d: Deps) {
   const { db, runner } = d;
   const contactMetrics = new ContactMetricsService(db, d.env, d.mailer);
+
+  const webhooks = new WebhookService(db);
+  runner.register({ name: "webhooks.deliver", description: "Recoge reservas nuevas y canceladas y entrega los webhooks firmados de los operadores", everySeconds: 60, run: async ({ now }) => ({ queued: await webhooks.collect(now), ...(await webhooks.deliverDue(now)) }) });
 
   // Se evalúa cada 6 h, pero la marca por organización y semana garantiza un solo correo; sale en cuanto cierra la semana.
   runner.register({ name: "operators.weekly_report", description: "Resumen semanal por correo a operadores con actividad (reservas y clics de contacto)", everySeconds: 6 * 3600, run: async ({ now }) => contactMetrics.sendWeeklyReports(now) });
