@@ -38,6 +38,7 @@ export default defineConfig({
             "test/i18n.test.ts",
             "test/impersonation.test.ts",
             "test/imports.test.ts",
+            "test/insights.test.ts",
             "test/integrity.test.ts",
             "test/jobs.test.ts",
             "test/mail-queue.test.ts",

@@ -11,6 +11,7 @@ import { addDays, todayInSantoDomingo } from "../../lib/dates.js";
 import { audit } from "../../lib/audit.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
 import { BounceService } from "./bounce.js";
+import { HEATMAP_METRICS, InsightsService } from "./insights.js";
 
 const RETENTION_MONTHS = 13;
 const EVENT_TYPES = ["page_view", "click", "search", "favorite", "share", "booking_start", "booking_complete", "signup", "login", "add_to_cart", "checkout_start", "purchase", "ad_click", "outbound_link", "error", "free_ticket_registered"] as const;
@@ -200,6 +201,16 @@ export async function analyticsRoutes(app: FastifyInstance) {
   r.get("/admin/analytics/bounce", { onRequest: reader, schema: { tags: ["admin"], summary: "Tasa de rebote por día y por página de entrada, con el umbral de alerta vigente", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } } }, async (req) => {
     const { from, to } = range(req.query);
     return { data: await new BounceService(db).report(from, to) };
+  });
+
+  const insights = new InsightsService(db);
+  r.get("/admin/analytics/satisfaction", { onRequest: reader, schema: { tags: ["admin"], summary: "Índice de satisfacción: reseñas aprobadas ponderadas por visitas con sello de Pasaporte", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } } }, async (req) => {
+    const { from, to } = range(req.query);
+    return { data: await insights.satisfaction(from, to) };
+  });
+  r.get("/admin/analytics/heatmap", { onRequest: reader, schema: { tags: ["admin"], summary: "Mapa de calor de actividad por día de la semana y hora", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional(), metric: z.enum(HEATMAP_METRICS).default("page_view"), page_prefix: z.string().regex(/^\/[\w\-/]{0,100}$/).optional() }), response: { 200: ok } } }, async (req) => {
+    const { from, to } = range(req.query);
+    return { data: await insights.heatmap(from, to, req.query.metric, req.query.page_prefix) };
   });
 
   // ---------- Adopción por perfil (punto 67 del plan de accesos) ----------
