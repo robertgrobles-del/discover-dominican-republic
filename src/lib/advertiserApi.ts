@@ -14,6 +14,15 @@ export const MY_BID_STATUS_LABEL: Record<MyBid["status"], string> = { open: "Abi
 export interface LicensableImage { id: string; asset_id: string; title: string; description: string | null; price_editorial: number; price_commercial: number; currency: string; width: number; height: number; credit: string | null; alt: string | null; preview_url: string }
 export interface MyLicense { id: string; title: string; license_type: "editorial" | "commercial"; price: number; currency: string; status: "requested" | "approved" | "rejected"; decision_note: string | null; expires_at: string | null; download_url: string | null }
 
+/**
+ * El backend arma las direcciones de los archivos con su propio dominio, pero la política de seguridad de
+ * contenido del sitio sólo admite imágenes y conexiones del mismo origen. La API se sirve bajo `/api` del
+ * sitio, así que basta con quedarse con la ruta.
+ */
+export function sameOriginPath(url: string): string {
+  try { const u = new URL(url, "http://local.invalid"); return `${u.pathname}${u.search}`; } catch { return url; }
+}
+
 export function advertiserErrorMessage(error: unknown): string {
   if (error instanceof HttpError) {
     const body = (error.details as { error?: { message?: string; details?: { code?: string; reserve?: number } } } | null)?.error;
@@ -38,7 +47,7 @@ export const advertiserApi = {
   bid: (input: { slot_id: string; creative_id: string; period_start: string; amount: number }) => send<{ data: MyBid }>("POST", "/sponsorship/bids", input),
   withdraw: (id: string) => send<null>("DELETE", `/sponsorship/bids/${id}`),
 
-  catalog: () => fetchApi<{ data: LicensableImage[] }>("/media/licenses/catalog?per_page=48"),
+  catalog: async () => { const res = await fetchApi<{ data: LicensableImage[] }>("/media/licenses/catalog?per_page=48"); return { data: res.data.map((i) => ({ ...i, preview_url: sameOriginPath(i.preview_url) })) }; },
   requestLicense: (input: { offer_id: string; license_type: "editorial" | "commercial"; licensee_name: string; intended_use: string }) => send<{ data: { id: string } }>("POST", "/media/licenses/requests", input),
-  myLicenses: () => fetchApi<{ data: MyLicense[] }>("/media/licenses/mine"),
+  myLicenses: async () => { const res = await fetchApi<{ data: MyLicense[] }>("/media/licenses/mine"); return { data: res.data.map((l) => ({ ...l, download_url: l.download_url && sameOriginPath(l.download_url) })) }; },
 };
