@@ -6,7 +6,7 @@ RUN --mount=type=cache,target=/root/.npm npm ci
 COPY tsconfig.json ./
 COPY services/weather ./services/weather
 COPY src/modules/weather ./src/modules/weather
-COPY src/lib/errors.ts src/lib/breaker.ts src/lib/fetch-json.ts src/lib/http.ts src/lib/request-context.ts ./src/lib/
+COPY src/lib/errors.ts src/lib/breaker.ts src/lib/fetch-json.ts src/lib/http.ts src/lib/request-context.ts src/lib/pagination.ts ./src/lib/
 COPY src/plugins/errors.ts src/plugins/etag.ts ./src/plugins/
 RUN ./node_modules/.bin/tsc -p services/weather/tsconfig.json && npm prune --omit=dev
 

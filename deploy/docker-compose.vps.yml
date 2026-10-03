@@ -20,7 +20,8 @@ x-api-env: &api-env
   NODE_ENV: production
   HOST: 0.0.0.0
   PORT: "3000"
-  TRUST_PROXY: "true"
+  # Un salto: el proxy Caddy de este mismo Compose. La API rechaza "true" en producción.
+  TRUST_PROXY: "1"
   DATABASE_URL: postgres://descubre:${POSTGRES_PASSWORD:?define POSTGRES_PASSWORD}@postgres:5432/descubre_rd
   PUBLIC_BASE_URL: https://${API_DOMAIN:?define API_DOMAIN}
   WEB_BASE_URL: https://${SITE_DOMAIN:?define SITE_DOMAIN}
@@ -29,9 +30,10 @@ x-api-env: &api-env
   JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:?define JWT_PUBLIC_KEY}
   APP_SECRET: ${APP_SECRET:?define APP_SECRET}
   TOTP_ENCRYPTION_KEY: ${TOTP_ENCRYPTION_KEY:?define TOTP_ENCRYPTION_KEY}
-  MAIL_TRANSPORT: ${MAIL_TRANSPORT:-log}
+  # La API no arranca en producción sin un servidor SMTP real: "log" no entrega correo.
+  MAIL_TRANSPORT: smtp
   MAIL_FROM: ${MAIL_FROM:-Descubre RD <no-reply@descubrerd.com>}
-  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_HOST: ${SMTP_HOST:?define SMTP_HOST}
   SMTP_PORT: ${SMTP_PORT:-587}
   SMTP_USER: ${SMTP_USER:-}
   SMTP_PASS: ${SMTP_PASS:-}

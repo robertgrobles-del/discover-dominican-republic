@@ -1,6 +1,6 @@
 # Despliegue en un VPS
 
-Estado: **configurado, sin validar**. Los archivos de [`deploy/`](../deploy/) pasan la validación de sintaxis (`docker compose config`, `bash -n`), pero nunca se han levantado: no hay VPS contratado todavía. Trata el primer despliegue como una prueba y haz staging antes que producción.
+Estado: **validado en parte, en local (2026-10-03)**. La imagen de producción de la API se construyó y se ejecutó endurecida (sin root, sistema de archivos de sólo lectura, sin capabilities) contra PostgreSQL 16: arranca, pasa `/health/ready`, aplica las 74 migraciones, registra una cuenta y mantiene sesión. Esa prueba destapó dos errores de este Compose, ya corregidos: `TRUST_PROXY` debe ser el número de saltos (la API rechaza `true`) y el correo debe ser SMTP (la API no arranca con `log`). **Sigue sin validar** todo lo que necesita un servidor y un dominio: el proxy Caddy con TLS, `deploy.sh`, `backup.sh` y la publicación del frontend. Trata el primer despliegue como una prueba y haz staging antes que producción.
 
 ## Qué hay
 
@@ -19,7 +19,8 @@ El CMS (`cms.descubrerd.com`) y los servicios `content` y `weather` no están en
 - Linux con Docker y el plugin `compose`.
 - Puertos 80 y 443 abiertos; el resto cerrado en el cortafuegos (SSH sólo con llave).
 - Registros DNS `A` de `SITE_DOMAIN` y `API_DOMAIN` apuntando al VPS **antes** de arrancar: Caddy pide los certificados al iniciar.
-- Como referencia, 2 GB de RAM alcanzan para API, PostgreSQL y proxy; es una estimación, no una medición.
+- Un servidor SMTP: la API no arranca en producción (ni en staging) sin `SMTP_HOST`.
+- Memoria medida en local, en reposo y sin tráfico: API 133 MB y PostgreSQL 100 MB. Con sistema, proxy y margen, 2 GB de RAM son un mínimo razonable; no hay medición bajo carga.
 
 ## Primer despliegue
 
