@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
+import { AuctionService } from "./auctions.js";
 
 export interface SponsorshipSlotRow {
   id: string;
@@ -74,6 +75,15 @@ export class SponsorshipService {
       whereClause += ` AND (c.destination_target IS NULL OR lower(c.destination_target) = lower($${sqlParams.length}))`;
     }
 
+    // Si la semana en curso tuvo subasta, el espacio es de los ganadores, en el orden de sus pujas.
+    const winners = await new AuctionService(this.db).winningCreativeIds(params.slot_id);
+    let order = "(random() * c.weight) DESC";
+    if (winners.length) {
+      sqlParams.push(winners);
+      whereClause += ` AND c.id = ANY($${sqlParams.length}::uuid[])`;
+      order = `array_position($${sqlParams.length}::uuid[], c.id)`;
+    }
+
     const { rows } = await this.db.query<CreativeRow>(
       `SELECT c.id, c.campaign_id, c.slot_id, c.title, c.headline, c.body_text,
               c.target_url, c.image_url, c.badge_label, c.category_target, c.destination_target,
@@ -82,7 +92,7 @@ export class SponsorshipService {
          FROM sponsorship_creatives c
          JOIN sponsorship_campaigns camp ON camp.id = c.campaign_id
          ${whereClause}
-        ORDER BY (random() * c.weight) DESC
+        ORDER BY ${order}
         LIMIT ${limit}`,
       sqlParams,
     );
@@ -105,9 +115,11 @@ export class SponsorshipService {
 
     if (!creativeInfo) throw AppError.notFound("Creatividad publicitaria");
 
-    await this.db.query("BEGIN");
+    // Evento, contador y gasto van en una misma conexión: con el pool cada consulta podía caer en una distinta.
+    const c = await this.db.connect();
     try {
-      await this.db.query(
+      await c.query("BEGIN");
+      await c.query(
         `INSERT INTO sponsorship_events (creative_id, slot_id, event_type, session_id, user_id, page, ip_hash)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
         [input.creative_id, input.slot_id, input.event_type, input.session_id ?? null, input.user_id ?? null, input.page ?? null, ipHash],
@@ -115,25 +127,25 @@ export class SponsorshipService {
 
       // Actualizar contadores en la creatividad
       if (input.event_type === "impression") {
-        await this.db.query("UPDATE sponsorship_creatives SET impressions_count = impressions_count + 1 WHERE id = $1", [input.creative_id]);
+        await c.query("UPDATE sponsorship_creatives SET impressions_count = impressions_count + 1 WHERE id = $1", [input.creative_id]);
         if (creativeInfo.billing_type === "cpm" && Number(creativeInfo.cpm_rate) > 0) {
           const cost = Number(creativeInfo.cpm_rate) / 1000;
-          await this.db.query("UPDATE sponsorship_campaigns SET budget_spent = budget_spent + $1 WHERE id = $2", [cost, creativeInfo.campaign_id]);
+          await c.query("UPDATE sponsorship_campaigns SET budget_spent = budget_spent + $1 WHERE id = $2", [cost, creativeInfo.campaign_id]);
         }
       } else if (input.event_type === "click") {
-        await this.db.query("UPDATE sponsorship_creatives SET clicks_count = clicks_count + 1 WHERE id = $1", [input.creative_id]);
+        await c.query("UPDATE sponsorship_creatives SET clicks_count = clicks_count + 1 WHERE id = $1", [input.creative_id]);
         if (creativeInfo.billing_type === "cpc" && Number(creativeInfo.cpc_rate) > 0) {
           const cost = Number(creativeInfo.cpc_rate);
-          await this.db.query("UPDATE sponsorship_campaigns SET budget_spent = budget_spent + $1 WHERE id = $2", [cost, creativeInfo.campaign_id]);
+          await c.query("UPDATE sponsorship_campaigns SET budget_spent = budget_spent + $1 WHERE id = $2", [cost, creativeInfo.campaign_id]);
         }
       }
 
-      await this.db.query("COMMIT");
+      await c.query("COMMIT");
       return { recorded: true };
     } catch (e) {
-      await this.db.query("ROLLBACK");
+      await c.query("ROLLBACK").catch(() => undefined);
       throw e;
-    }
+    } finally { c.release(); }
   }
 
   /** Consulta los slots de patrocinio disponibles */

@@ -18,6 +18,7 @@ import { ReportService } from "./reports.js";
 import { CONTACT_CHANNELS, ContactMetricsService } from "./contact-metrics.js";
 import { WEBHOOK_EVENTS, WebhookService } from "./webhooks.js";
 import { BUSINESS_TYPES, ContractService } from "./contracts.js";
+import { DemandReportService } from "./demand-report.js";
 import { renderVoucher } from "./voucher.js";
 import { audit } from "../../lib/audit.js";
 import { OwnershipService } from "./ownership.js";
@@ -368,6 +369,7 @@ export async function operatorRoutes(app: FastifyInstance) {
   r.get("/org/reports/summary", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Resumen: reservas, ingresos, servicios, canales, cancelaciones y promociones", security: bearer, querystring: z.object({ from: date, to: date }), response: { 200: ok } } }, async (req) => ({ data: await reports.summary(req.member!.org_id, { from: req.query.from, to: req.query.to }) }));
 
   r.get("/org/reports/contact-clicks", { onRequest: org(), schema: { tags: ["operadores"], summary: "Clics a WhatsApp, llamada, ruta y sitio web por día y por servicio", security: bearer, querystring: z.object({ from: date, to: date }), response: { 200: ok } } }, async (req) => ({ data: await contactMetrics.summary(req.member!.org_id, { from: req.query.from, to: req.query.to, only: only(req.member!) }) }));
+  r.get("/org/reports/demand", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Reporte trimestral de demanda (planes Premium y Corporativo)", security: bearer, querystring: z.object({ quarter: z.string().regex(/^\d{4}-T[1-4]$/, "Trimestre AAAA-Tn") }), response: { 200: ok } } }, async (req) => ({ data: await new DemandReportService(app.db).quarterly(req.member!.org_id, req.query.quarter) }));
   r.get("/org/reports/weekly-email", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "¿Recibe mi organización el resumen semanal por correo?", security: bearer, response: { 200: ok } } }, async (req) => ({ data: { enabled: await contactMetrics.weeklyReportEnabled(req.member!.org_id) } }));
   r.put("/org/reports/weekly-email", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Activa o desactiva el resumen semanal por correo", security: bearer, body: z.object({ enabled: z.boolean() }), response: { 200: ok } } }, async (req) => {
     await contactMetrics.setWeeklyReport(req.member!.org_id, req.body.enabled);

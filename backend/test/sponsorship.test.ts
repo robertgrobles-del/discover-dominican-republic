@@ -28,11 +28,15 @@ const makeCreativeRow = (overrides: Record<string, unknown> = {}) => ({
 });
 
 // ── Tests ──────────────────────────────────────────────────────────
+/** El servicio toma una conexión para sus transacciones: en estas pruebas es el mismo doble que el pool. */
+ 
+const withConnect = (db: any) => Object.assign(db, { connect: async () => ({ query: db.query, release: () => undefined }) });
+
 describe("SponsorshipService — Motor de Ad Server (Fase 2B)", () => {
   describe("Contrato de API", () => {
     it("debe instanciarse y exponer todos los metodos de contrato", () => {
       const db: any = { query: async () => ({ rows: [] }) };
-      const svc = new SponsorshipService(db);
+      const svc = new SponsorshipService(withConnect(db));
       expect(svc).toBeDefined();
       expect(typeof svc.serveSlot).toBe("function");
       expect(typeof svc.recordEvent).toBe("function");
@@ -44,7 +48,7 @@ describe("SponsorshipService — Motor de Ad Server (Fase 2B)", () => {
     it("retorna creatividades para un slot activo sin filtros", async () => {
       const creative = makeCreativeRow();
       const db: any = { query: async () => ({ rows: [creative] }) };
-      const svc = new SponsorshipService(db);
+      const svc = new SponsorshipService(withConnect(db));
       const result = await svc.serveSlot({ slot_id: "slot-banner-top" });
       expect(Array.isArray(result)).toBe(true);
       expect(result[0]).toMatchObject({ slot_id: "slot-banner-top", status: "active" });
@@ -53,7 +57,7 @@ describe("SponsorshipService — Motor de Ad Server (Fase 2B)", () => {
     it("aplica filtro de categoria en el SQL generado", async () => {
       let capturedSql = "";
       const db: any = { query: async (sql: string) => { capturedSql = sql; return { rows: [] }; } };
-      const svc = new SponsorshipService(db);
+      const svc = new SponsorshipService(withConnect(db));
       await svc.serveSlot({ slot_id: "slot-001", category: "gastronomia" });
       expect(capturedSql).toContain("category_target");
     });
@@ -61,21 +65,21 @@ describe("SponsorshipService — Motor de Ad Server (Fase 2B)", () => {
     it("aplica filtro de destino en el SQL generado", async () => {
       let capturedSql = "";
       const db: any = { query: async (sql: string) => { capturedSql = sql; return { rows: [] }; } };
-      const svc = new SponsorshipService(db);
+      const svc = new SponsorshipService(withConnect(db));
       await svc.serveSlot({ slot_id: "slot-001", destination: "punta-cana" });
       expect(capturedSql).toContain("destination_target");
     });
 
     it("retorna array vacio si no hay creatividades elegibles", async () => {
       const db: any = { query: async () => ({ rows: [] }) };
-      const svc = new SponsorshipService(db);
+      const svc = new SponsorshipService(withConnect(db));
       const result = await svc.serveSlot({ slot_id: "slot-inexistente" });
       expect(result).toEqual([]);
     });
 
     it("clampea limite a maximo de 10 sin lanzar error", async () => {
       const db: any = { query: async () => ({ rows: [] }) };
-      const svc = new SponsorshipService(db);
+      const svc = new SponsorshipService(withConnect(db));
       await expect(svc.serveSlot({ slot_id: "slot-test", limit: 99 })).resolves.toBeDefined();
     });
   });
@@ -94,7 +98,7 @@ describe("SponsorshipService — Motor de Ad Server (Fase 2B)", () => {
           return { rows: [], rowCount: 0 };
         },
       };
-      const svc = new SponsorshipService(db);
+      const svc = new SponsorshipService(withConnect(db));
       const result = await svc.recordEvent({ creative_id: "cre-001", slot_id: "slot-001", event_type: "impression" });
       expect(result.recorded).toBe(true);
       expect(budgetUpdated).toBe(true);
@@ -111,7 +115,7 @@ describe("SponsorshipService — Motor de Ad Server (Fase 2B)", () => {
           return { rows: [], rowCount: 0 };
         },
       };
-      const svc = new SponsorshipService(db);
+      const svc = new SponsorshipService(withConnect(db));
       const result = await svc.recordEvent({ creative_id: "cre-001", slot_id: "slot-001", event_type: "click" });
       expect(result.recorded).toBe(true);
       expect(clickCostApplied).toBe(true);
@@ -124,7 +128,7 @@ describe("SponsorshipService — Motor de Ad Server (Fase 2B)", () => {
           return { rows: [] };
         },
       };
-      const svc = new SponsorshipService(db);
+      const svc = new SponsorshipService(withConnect(db));
       await expect(
         svc.recordEvent({ creative_id: "inexistente", slot_id: "slot-001", event_type: "impression" })
       ).rejects.toThrow();
@@ -143,7 +147,7 @@ describe("SponsorshipService — Motor de Ad Server (Fase 2B)", () => {
           return { rows: [], rowCount: 0 };
         },
       };
-      const svc = new SponsorshipService(db);
+      const svc = new SponsorshipService(withConnect(db));
       await svc.recordEvent({ creative_id: "c1", slot_id: "s1", event_type: "impression", ip: "192.168.1.100" });
       expect(storedIpHash).toBeTruthy();
       expect(storedIpHash).not.toBe("192.168.1.100");
@@ -162,7 +166,7 @@ describe("SponsorshipService — Motor de Ad Server (Fase 2B)", () => {
           return { rows: [], rowCount: 0 };
         },
       };
-      const svc = new SponsorshipService(db);
+      const svc = new SponsorshipService(withConnect(db));
       await expect(svc.recordEvent({ creative_id: "c1", slot_id: "s1", event_type: "click" })).rejects.toThrow("DB connection lost");
       expect(rolledBack).toBe(true);
     });
@@ -175,7 +179,7 @@ describe("SponsorshipService — Motor de Ad Server (Fase 2B)", () => {
         { id: "slot-002", name: "Mobile Footer Sticky", slot_type: "mobile_sticky", max_active_creatives: 1, recommended_dimensions: "320x50", is_active: true },
       ];
       const db: any = { query: async () => ({ rows: slots }) };
-      const svc = new SponsorshipService(db);
+      const svc = new SponsorshipService(withConnect(db));
       const result = await svc.listSlots();
       expect(result).toHaveLength(2);
       expect(result[0]).toMatchObject({ slot_type: "banner", is_active: true });
@@ -183,7 +187,7 @@ describe("SponsorshipService — Motor de Ad Server (Fase 2B)", () => {
 
     it("retorna array vacio si no hay slots", async () => {
       const db: any = { query: async () => ({ rows: [] }) };
-      const svc = new SponsorshipService(db);
+      const svc = new SponsorshipService(withConnect(db));
       expect(await svc.listSlots()).toEqual([]);
     });
   });

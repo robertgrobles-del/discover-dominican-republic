@@ -6,6 +6,7 @@ import { pageMeta } from "../../lib/pagination.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
 import { audit } from "../../lib/audit.js";
 import { SponsorshipService } from "./service.js";
+import { AuctionService } from "./auctions.js";
 
 declare module "fastify" {
   interface FastifyInstance {
@@ -115,10 +116,10 @@ export async function sponsorshipRoutes(app: FastifyInstance) {
     const b = req.body;
     const ins = await db.query(
       `INSERT INTO sponsorship_campaigns
-        (sponsor_id, advertiser_name, advertiser_email, campaign_name, billing_type, budget_total, cpc_rate, cpm_rate, starts_at, ends_at, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'pending_approval')
+        (sponsor_id, advertiser_name, advertiser_email, campaign_name, billing_type, budget_total, cpc_rate, cpm_rate, starts_at, ends_at, status, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'pending_approval', $11)
        RETURNING *`,
-      [b.sponsor_id ?? null, b.advertiser_name, b.advertiser_email, b.campaign_name, b.billing_type, b.budget_total, b.cpc_rate, b.cpm_rate, b.starts_at, b.ends_at],
+      [b.sponsor_id ?? null, b.advertiser_name, b.advertiser_email, b.campaign_name, b.billing_type, b.budget_total, b.cpc_rate, b.cpm_rate, b.starts_at, b.ends_at, req.user!.id],
     );
     await audit(db, { actor: req.user!.id, action: "campaign.create", entity: "sponsorship_campaign", id: ins.rows[0].id, ip: req.ip });
     reply.code(201);
@@ -148,6 +149,11 @@ export async function sponsorshipRoutes(app: FastifyInstance) {
     },
   }, async (req, reply) => {
     const b = req.body;
+    // Sólo quien creó la campaña (o administración) le añade anuncios; una campaña ajena responde como inexistente.
+    const campaign = (await db.query<{ created_by: string | null }>("SELECT created_by FROM sponsorship_campaigns WHERE id = $1", [req.params.id])).rows[0];
+    if (!campaign || (campaign.created_by !== req.user!.id && !req.user!.roles.includes("admin"))) throw AppError.notFound("Campaña publicitaria");
+    // `url()` admite cualquier esquema; un anuncio sólo puede enlazar por http(s).
+    for (const url of [b.target_url, b.image_url]) if (url && !/^https?:\/\//i.test(url)) throw AppError.validation("Los enlaces del anuncio deben ser http o https");
     const ins = await db.query(
       `INSERT INTO sponsorship_creatives
         (campaign_id, slot_id, title, headline, body_text, target_url, image_url, badge_label, category_target, destination_target, weight)
@@ -158,6 +164,29 @@ export async function sponsorshipRoutes(app: FastifyInstance) {
     await audit(db, { actor: req.user!.id, action: "creative.create", entity: "sponsorship_creative", id: ins.rows[0].id, ip: req.ip });
     reply.code(201);
     return { data: ins.rows[0] };
+  });
+
+  // ---------- Subasta semanal de posiciones patrocinadas ----------
+  const auctions = new AuctionService(db);
+  const monday = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha YYYY-MM-DD (lunes)");
+  r.post("/sponsorship/bids", { onRequest: auth, config: { rateLimit: app.env.AUTH_RATE_LIMIT_ENABLED ? { max: 30, timeWindow: "1 hour" } : { max: 1_000_000, timeWindow: "1 minute" } }, schema: { tags: ["patrocinio"], summary: "Puja (a sobre cerrado) por un espacio en una semana futura; repetirla sólo puede subirla", security: bearer, body: z.object({ slot_id: z.string().min(2).max(60), creative_id: z.string().uuid(), period_start: monday, amount: z.number().gt(0).max(99_999_999) }), response: { 201: ok } } }, async (req, reply) => {
+    const bid = await auctions.placeBid(req.user!.id, req.body);
+    await audit(db, { actor: req.user!.id, action: "sponsorship.bid", entity: "sponsorship_bid", id: bid.id, meta: { slot_id: bid.slot_id, period_start: bid.period_start, amount: bid.amount }, ip: req.ip });
+    reply.code(201);
+    return { data: bid };
+  });
+  r.get("/sponsorship/bids/mine", { onRequest: auth, schema: { tags: ["patrocinio"], summary: "Mis pujas y el precio mínimo de cada espacio", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await auctions.myBids(req.user!.id) }));
+  r.delete("/sponsorship/bids/:id", { onRequest: auth, schema: { tags: ["patrocinio"], summary: "Retira una puja propia mientras la subasta siga abierta", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
+    await auctions.withdraw(req.user!.id, req.params.id);
+    reply.code(204);
+    return null;
+  });
+  r.get("/admin/sponsorship/auctions", { onRequest: admin, schema: { tags: ["admin", "patrocinio"], summary: "Pujas de un espacio y semana, de mayor a menor", security: bearer, querystring: z.object({ slot_id: z.string().min(2).max(60), period_start: monday }), response: { 200: ok } } }, async (req) => ({ data: await auctions.board(req.query.slot_id, req.query.period_start) }));
+  r.post("/admin/sponsorship/auctions/close", { onRequest: admin, schema: { tags: ["admin", "patrocinio"], summary: "Cierra la subasta: ganan las pujas más altas hasta el cupo del espacio", security: bearer, body: z.object({ slot_id: z.string().min(2).max(60), period_start: monday }), response: { 200: ok } } }, async (req) => ({ data: await auctions.close(req.user!.id, req.body.slot_id, req.body.period_start, req.ip) }));
+  r.put("/admin/sponsorship/slots/:id/auction", { onRequest: admin, schema: { tags: ["admin", "patrocinio"], summary: "Activa la subasta de un espacio y fija su precio mínimo", security: bearer, params: z.object({ id: z.string().min(2).max(60) }), body: z.object({ enabled: z.boolean(), reserve: z.number().min(0).max(99_999_999) }), response: { 200: ok } } }, async (req) => {
+    const slot = await auctions.setSlotAuction(req.params.id, req.body);
+    await audit(db, { actor: req.user!.id, action: "sponsorship.slot_auction_set", entity: "sponsorship_slot", id: req.params.id, meta: req.body, ip: req.ip });
+    return { data: slot };
   });
 
   // ---------- Administración / Aprobación de Campañas ----------
