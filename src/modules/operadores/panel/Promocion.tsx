@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { deletePromotion, opKeys, savePromotion, usePromotions, useOpMutation } from "../api";
 import { useOrg } from "./OrgContext";
+import { SponsoredPositionsCard } from "./SponsoredPositionsCard";
 
 export default function Promocion() {
   const { org } = useOrg();
@@ -27,7 +28,7 @@ export default function Promocion() {
     if (f.value <= 0 || (f.type === "percent" && f.value > 90)) return toast.error("Valor de descuento inválido.");
     if (promos.some((p) => p.code === code)) return toast.error("Ya existe ese código.");
     save.mutate(
-      { org_id: org.id, code, type: f.type, value: f.value, max_uses: f.max_uses || undefined, ends_at: f.ends_at || undefined } as any,
+      { org_id: org.id, code, type: f.type, value: f.value, max_uses: f.max_uses || undefined, ends_at: f.ends_at || undefined } as Parameters<typeof savePromotion>[0],
       { onSuccess: () => { toast.success("Promoción creada"); setOpen(false); setF({ code: "", type: "percent", value: 10, max_uses: 0, ends_at: "" }); } },
     );
   };
@@ -51,7 +52,7 @@ export default function Promocion() {
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant={p.active ? "default" : "secondary"}>{p.active ? "Activo" : "Inactivo"}</Badge>
-                <Switch checked={p.active} aria-label={`Activar ${p.code}`} onCheckedChange={(v) => save.mutate({ id: p.id, org_id: org.id, code: p.code, active: v } as any)} />
+                <Switch checked={p.active} aria-label={`Activar ${p.code}`} onCheckedChange={(v) => save.mutate({ id: p.id, org_id: org.id, code: p.code, active: v } as Parameters<typeof savePromotion>[0])} />
                 <Button variant="ghost" size="icon" aria-label={`Eliminar ${p.code}`} onClick={() => del.mutate(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
               </div>
             </CardContent></Card>
@@ -64,7 +65,7 @@ export default function Promocion() {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1 col-span-2"><Label htmlFor="p-code">Código</Label><Input id="p-code" maxLength={20} value={f.code} onChange={(e) => setF({ ...f, code: e.target.value })} placeholder="VERANO15" /></div>
             <div className="space-y-1"><Label>Tipo</Label>
-              <Select value={f.type} onValueChange={(v) => setF({ ...f, type: v as any })}><SelectTrigger><SelectValue /></SelectTrigger>
+              <Select value={f.type} onValueChange={(v) => setF({ ...f, type: v as "percent" | "fixed" })}><SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent><SelectItem value="percent">Porcentaje</SelectItem><SelectItem value="fixed">Monto fijo (US$)</SelectItem></SelectContent></Select></div>
             <div className="space-y-1"><Label htmlFor="p-val">Valor</Label><Input id="p-val" type="number" min={1} value={f.value} onChange={(e) => setF({ ...f, value: Number(e.target.value) })} /></div>
             <div className="space-y-1"><Label htmlFor="p-max">Usos máximos (0 = sin límite)</Label><Input id="p-max" type="number" min={0} value={f.max_uses} onChange={(e) => setF({ ...f, max_uses: Number(e.target.value) })} /></div>
@@ -73,6 +74,7 @@ export default function Promocion() {
           <DialogFooter><Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button><Button onClick={create} disabled={save.isPending}>Crear</Button></DialogFooter>
         </DialogContent>
       </Dialog>
+      <div className="mt-8"><SponsoredPositionsCard businessName={org.business_name} /></div>
     </div>
   );
 }

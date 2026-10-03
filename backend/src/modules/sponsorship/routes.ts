@@ -126,6 +126,16 @@ export async function sponsorshipRoutes(app: FastifyInstance) {
     return { data: ins.rows[0] };
   });
 
+  r.get("/sponsorship/campaigns/mine", { onRequest: auth, schema: { tags: ["patrocinio"], summary: "Mis campañas con sus anuncios y resultados", security: bearer, response: { 200: ok } } }, async (req) => {
+    const { rows } = await db.query(
+      `SELECT camp.id, camp.campaign_name, camp.advertiser_name, camp.status, camp.billing_type, camp.starts_at, camp.ends_at, camp.created_at,
+              coalesce((SELECT jsonb_agg(jsonb_build_object('id', c.id, 'slot_id', c.slot_id, 'title', c.title, 'target_url', c.target_url, 'status', c.status, 'impressions', c.impressions_count, 'clicks', c.clicks_count) ORDER BY c.created_at)
+                          FROM sponsorship_creatives c WHERE c.campaign_id = camp.id), '[]'::jsonb) AS creatives
+         FROM sponsorship_campaigns camp WHERE camp.created_by = $1 ORDER BY camp.created_at DESC LIMIT 50`, [req.user!.id],
+    );
+    return { data: rows };
+  });
+
   r.post("/sponsorship/campaigns/:id/creatives", {
     onRequest: auth,
     schema: {

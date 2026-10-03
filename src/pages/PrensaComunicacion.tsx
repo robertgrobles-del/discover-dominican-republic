@@ -25,6 +25,7 @@ import gastronomiImg from "@/assets/gastronomy.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import heroBeachImg from "@/assets/hero-beach.jpg";
 import { PreFooterPresidenteBanner } from "@/components/promo";
+import { LicensableImagesSection } from "@/components/media/LicensableImagesSection";
 
 const downloadableResources = [
   {
@@ -486,6 +487,8 @@ export default function PrensaComunicacion() {
                 </div>
               </TabsContent>
             </Tabs>
+
+            <LicensableImagesSection />
 
             {/* PreFooter Promo */}
             <PreFooterPresidenteBanner />

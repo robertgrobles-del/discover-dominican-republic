@@ -62,6 +62,16 @@ describe("subasta de posiciones patrocinadas", () => {
     expect((await call("POST", `/sponsorship/campaigns/${uno!.campaign}/creatives`, { token: admin, payload })).statusCode).toBe(201);
   });
 
+  it("cada anunciante ve sólo sus campañas, con sus anuncios", async () => {
+    const [uno, dos] = advertisers;
+    const mine = json(await call("GET", "/sponsorship/campaigns/mine", { token: uno!.token })).data;
+    expect(mine).toHaveLength(1);
+    expect(mine[0]).toMatchObject({ id: uno!.campaign, status: "active" });
+    expect(mine[0].creatives.map((c: { id: string }) => c.id)).toContain(uno!.creative);
+    expect(JSON.stringify(mine)).not.toContain(dos!.campaign);
+    expect((await call("GET", "/sponsorship/campaigns/mine")).statusCode).toBe(401);
+  });
+
   it("sólo se puja en espacios en subasta, por semanas futuras que empiezan en lunes y sobre el precio mínimo", async () => {
     const [uno] = advertisers;
     expect((await bid(uno!, 500)).statusCode).toBe(422); // el espacio aún no se subasta
