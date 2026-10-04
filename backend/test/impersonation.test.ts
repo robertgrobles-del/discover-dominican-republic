@@ -77,7 +77,10 @@ describe("sesión de soporte (sólo lectura)", () => {
     await c("PATCH", "/me/profile", { token: d.access_token, payload: { display_name: "Intento" } });
     const end = await c("POST", "/auth/impersonation/end", { token: d.access_token });
     expect(end.statusCode).toBe(200);
-    const log = (await pool.query("SELECT action, actor_id, meta FROM audit_log WHERE entity_id = $1 AND action LIKE 'support.%' ORDER BY id", [u.id])).rows;
+    // La petición se audita al terminar la respuesta, después de que el cliente ya la recibió: se espera a que quede escrita.
+    const read = async () => (await pool.query("SELECT action, actor_id, meta FROM audit_log WHERE entity_id = $1 AND action LIKE 'support.%' ORDER BY id", [u.id])).rows;
+    let log = await read();
+    for (let i = 0; i < 40 && log.length < 5; i++) { await new Promise((r) => setTimeout(r, 50)); log = await read(); }
     expect(log.map((l) => l.action)).toEqual(["support.impersonation_started", "support.impersonated_request", "support.impersonated_request", "support.impersonation_ended", "support.impersonated_request"]);
     expect(log[0]).toMatchObject({ actor_id: admin.id, meta: { reason: REASON, minutes: 15 } });
     expect(log[1]!.meta).toMatchObject({ method: "GET", path: "/api/v1/me/favorites", status: 200, session: d.session_id });
