@@ -102,7 +102,7 @@ jobs:
         working-directory: backend
         run: docker buildx build --file services/content/Dockerfile --tag descubre-content:ci --load .
       - name: Escaneo de vulnerabilidades de la imagen content (Trivy)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: descubre-content:ci
           severity: CRITICAL,HIGH
@@ -112,7 +112,7 @@ jobs:
         working-directory: backend
         run: docker compose --profile weather --profile content --profile content-sync config --quiet
       - name: Escaneo de vulnerabilidades de la imagen weather (Trivy)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: descubre-weather:ci
           severity: CRITICAL,HIGH
@@ -158,7 +158,7 @@ jobs:
         if: failure()
         run: docker logs api-smoke || true
       - name: Escaneo de vulnerabilidades del contenedor (Trivy)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           input: ${{ runner.temp }}/image-oci.tar
           severity: CRITICAL,HIGH
