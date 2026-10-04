@@ -30,6 +30,7 @@ export default defineConfig({
             "test/content.test.ts",
             "test/content-service.test.ts",
             "test/creator-campaigns.test.ts",
+            "test/creator-stays.test.ts",
             "test/creators-appeals.test.ts",
             "test/demand-report.test.ts",
             "test/discover-live.test.ts",

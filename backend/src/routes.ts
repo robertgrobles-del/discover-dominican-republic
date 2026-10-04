@@ -108,6 +108,8 @@ import { accessRoutes } from "./modules/access/routes.js";
 import { capabilityGrantRoutes } from "./modules/access/grants.js";
 import { adminRoutes } from "./modules/admin/routes.js";
 import { operatorRoutes } from "./modules/operators/routes.js";
+import { operatorGamificationRoutes } from "./modules/operators/gamification.js";
+import { creatorStayRoutes } from "./modules/creators/stays.js";
 import { contentRoutes } from "./modules/content/routes.js";
 
 import { seoRoutes } from "./modules/seo/routes.js";
@@ -319,6 +321,8 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
       await v1.register(transactionalProductsRoutes);
       await v1.register(membershipsRoutes);
       await v1.register(fiscalInvoiceRoutes);
+      await v1.register(operatorGamificationRoutes);
+      await v1.register(creatorStayRoutes);
     },
     { prefix: "/api/v1" },
   );
