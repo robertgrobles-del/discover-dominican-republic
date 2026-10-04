@@ -125,7 +125,9 @@ jobs:
       - name: La imagen arranca endurecida (sin privilegios y FS de solo lectura) y responde /health y /health/ready
         run: |
           set -euo pipefail
-          docker load -i "$RUNNER_TEMP/image-oci.tar"
+          # El archivo OCI con SBOM es para publicar y escanear; `docker load` del ejecutor no lee ese formato.
+          # Se carga la misma imagen al Docker local desde la caché de la compilación anterior.
+          docker buildx build --tag descubre-rd-api:ci --load backend
           # Claves y secretos efímeros sólo para esta prueba de arranque (en producción vienen del gestor de secretos).
           openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out "$RUNNER_TEMP/jwt.pem"
           openssl rsa -in "$RUNNER_TEMP/jwt.pem" -pubout -out "$RUNNER_TEMP/jwt.pub"
