@@ -54,6 +54,42 @@ export async function adminSiteRoutes(app: FastifyInstance) {
     return null;
   });
 
+  // ---------- Documentos de contenido ----------
+  // Contenido que no es una colección de fichas (transporte, itinerarios, náutica, tasas de referencia…): un
+  // documento JSON por archivo de datos del frontend. `revision` es 0 mientras nadie lo ha editado.
+  const datasetKey = z.string().regex(/^[a-z][a-z0-9-]{1,63}$/, "Minúsculas, números y guion");
+  const editors = app.requireRole("admin", "editor");
+  r.get("/datasets", { schema: { tags: ["sitio"], summary: "Índice de documentos de contenido, con su revisión", response: { 200: ok } } }, async (_req, reply) => {
+    reply.header("cache-control", PUBLIC_CACHE);
+    return { data: (await db.query("SELECT key, revision, description, updated_at FROM content_datasets ORDER BY key")).rows };
+  });
+  r.get("/datasets/:key", { schema: { tags: ["sitio"], summary: "Un documento de contenido", params: z.object({ key: datasetKey }), response: { 200: ok } } }, async (req, reply) => {
+    const row = (await db.query("SELECT key, value, revision, description, updated_at FROM content_datasets WHERE key = $1", [req.params.key])).rows[0];
+    if (!row) throw AppError.notFound("Documento");
+    reply.header("cache-control", PUBLIC_CACHE);
+    return { data: row };
+  });
+  r.put("/admin/datasets/:key", {
+    onRequest: editors,
+    schema: { tags: ["admin"], summary: "Crea o reemplaza un documento de contenido (objeto JSON, máx. 512 KB)", security: bearer, params: z.object({ key: datasetKey }), body: z.object({ value: z.record(z.string(), z.any()), description: z.string().max(300).optional() }), response: { 200: ok } },
+  }, async (req) => {
+    const json = JSON.stringify(req.body.value);
+    if (json.length > 524_288) throw AppError.validation("El documento supera 512 KB");
+    const row = (await db.query(
+      `INSERT INTO content_datasets (key, value, description, revision, updated_by) VALUES ($1,$2,$3,1,$4)
+       ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, description = coalesce(EXCLUDED.description, content_datasets.description), revision = content_datasets.revision + 1, updated_at = now(), updated_by = EXCLUDED.updated_by
+       RETURNING key, value, revision, description, updated_at`, [req.params.key, json, req.body.description ?? null, req.user!.id],
+    )).rows[0];
+    await audit(db, { actor: req.user!.id, action: "dataset.updated", entity: "dataset", id: req.params.key, meta: { revision: row.revision, bytes: json.length }, ip: req.ip });
+    return { data: row };
+  });
+  r.delete("/admin/datasets/:key", { onRequest: admin, schema: { tags: ["admin"], summary: "Elimina un documento de contenido (el sitio vuelve a mostrar el que trae compilado)", security: bearer, params: z.object({ key: datasetKey }), response: { 204: z.null() } } }, async (req, reply) => {
+    if (!(await db.query("DELETE FROM content_datasets WHERE key = $1", [req.params.key])).rowCount) throw AppError.notFound("Documento");
+    await audit(db, { actor: req.user!.id, action: "dataset.deleted", entity: "dataset", id: req.params.key, ip: req.ip });
+    reply.code(204);
+    return null;
+  });
+
   // ---------- Redirecciones ----------
   const redirect = z.object({ source_path: localPath, target_path: z.string().max(500).refine((p) => p.startsWith("/") || p.startsWith("https://"), "Ruta local o URL https"), redirect_type: z.union([z.literal(301), z.literal(302)]).default(301), is_active: z.boolean().default(true) });
   r.get("/redirects", { schema: { tags: ["sitio"], summary: "Redirecciones activas (para el servidor web o el frontend)", response: { 200: ok } } }, async (_req, reply) => {

@@ -4,6 +4,7 @@ import type { Destination } from "@/data/destinations";
 import type { Experience } from "@/data/experiences";
 import type { Hotel } from "@/data/hotels";
 import type { Restaurant } from "@/data/restaurants";
+import { resolveAsset, resolveAssetsDeep } from "./assetPaths";
 
 /**
  * Conversión de las filas del catálogo del backend (`/api/v1/<colección>`) a los tipos que ya consumen las
@@ -23,12 +24,12 @@ export interface PlaceIndex {
 /** Columnas que se piden de cada colección; `id` y las relaciones se usan para resolver nombres. */
 export const CATALOG_FIELDS = {
   provinces: ["id", "slug", "name"],
-  destinations: ["id", "slug", "name", "province_id", "description", "short_description", "image_url", "gallery", "highlights", "typical_dishes", "latitude", "longitude", "weather_info", "best_time_to_visit", "how_to_get_there"],
-  beaches: ["id", "slug", "name", "destination_id", "province_id", "beach_type", "description", "short_description", "image_url", "gallery", "activities", "amenities", "water_color", "sand_type", "wave_intensity", "crowd_level", "access_type", "parking_available", "lifeguard_on_duty", "how_to_get_there", "best_time_to_visit", "latitude", "longitude", "rating", "is_popular", "is_featured"],
-  hotels: ["id", "slug", "name", "destination_id", "category", "stars", "description", "short_description", "image_url", "gallery", "address", "phone", "website", "price_range", "amenities", "latitude", "longitude", "rating", "review_count", "is_featured"],
-  restaurants: ["id", "slug", "name", "destination_id", "cuisine_type", "category", "price_range", "description", "short_description", "image_url", "gallery", "address", "phone", "opening_hours", "latitude", "longitude", "rating", "review_count", "services", "signature_dishes", "is_featured"],
-  bars: ["id", "slug", "name", "destination_id", "bar_type", "price_range", "description", "short_description", "image_url", "gallery", "address", "phone", "opening_hours", "latitude", "longitude", "rating", "review_count", "music_style", "minimum_age", "dress_code", "services", "is_featured"],
-  experiences: ["id", "slug", "name", "destination_id", "category", "experience_type", "difficulty", "duration", "description", "short_description", "image_url", "gallery", "highlights", "included", "requirements", "best_season", "price_range", "rating", "review_count", "is_featured"],
+  destinations: ["id", "slug", "name", "extras", "province_id", "description", "short_description", "image_url", "gallery", "highlights", "typical_dishes", "latitude", "longitude", "weather_info", "best_time_to_visit", "how_to_get_there"],
+  beaches: ["id", "slug", "name", "extras", "destination_id", "province_id", "beach_type", "description", "short_description", "image_url", "gallery", "activities", "amenities", "water_color", "sand_type", "wave_intensity", "crowd_level", "access_type", "parking_available", "lifeguard_on_duty", "how_to_get_there", "best_time_to_visit", "latitude", "longitude", "rating", "is_popular", "is_featured"],
+  hotels: ["id", "slug", "name", "extras", "destination_id", "category", "stars", "description", "short_description", "image_url", "gallery", "address", "phone", "website", "price_range", "amenities", "latitude", "longitude", "rating", "review_count", "is_featured"],
+  restaurants: ["id", "slug", "name", "extras", "destination_id", "cuisine_type", "category", "price_range", "description", "short_description", "image_url", "gallery", "address", "phone", "opening_hours", "latitude", "longitude", "rating", "review_count", "services", "signature_dishes", "is_featured"],
+  bars: ["id", "slug", "name", "extras", "destination_id", "bar_type", "price_range", "description", "short_description", "image_url", "gallery", "address", "phone", "opening_hours", "latitude", "longitude", "rating", "review_count", "music_style", "minimum_age", "dress_code", "services", "is_featured"],
+  experiences: ["id", "slug", "name", "extras", "destination_id", "category", "experience_type", "difficulty", "duration", "description", "short_description", "image_url", "gallery", "highlights", "included", "requirements", "best_season", "price_range", "rating", "review_count", "is_featured"],
 } as const;
 export type CatalogCollection = keyof typeof CATALOG_FIELDS;
 
@@ -37,11 +38,22 @@ const num = (v: unknown): number | undefined => { const n = typeof v === "string
 const flag = (v: unknown): boolean | undefined => (typeof v === "boolean" ? v : undefined);
 const list = (v: unknown): string[] | undefined => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : undefined);
 /**
- * Ruta de imagen utilizable. `/assets/…` es la huella de una imagen empaquetada al cargar la base: esa ruta no
- * existe en el sitio compilado, así que se ignora y el registro local conserva la suya.
+ * Ruta de imagen utilizable. `/assets/…` es una imagen empaquetada con el sitio: se traduce a su nombre
+ * compilado y, si no se puede, se ignora para que el registro local conserve la suya.
  */
-const image = (v: unknown): string | undefined => { const url = text(v); return url && !url.startsWith("/assets/") ? url : undefined; };
-const images = (v: unknown): string[] | undefined => { const urls = list(v); return urls && !urls.some((url) => url.startsWith("/assets/")) ? urls : undefined; };
+const image = (v: unknown): string | undefined => { const url = text(v); return url ? resolveAsset(url) : undefined; };
+const images = (v: unknown): string[] | undefined => { const urls = list(v)?.map(resolveAsset); return urls && urls.every((url): url is string => url !== undefined) ? urls : undefined; };
+
+/**
+ * Suma a la conversión de una fila su ficha completa (`extras`): los campos que no tienen columna propia. Lo
+ * que sí tiene columna manda sobre la copia que quedó en `extras`.
+ */
+export function withExtras<T extends object>(row: ApiRow, patch: Partial<T>): Partial<T> {
+  const extras = row.extras;
+  if (typeof extras !== "object" || extras === null || Array.isArray(extras)) return patch;
+  const kept = Object.entries(extras).map(([key, value]) => [key, resolveAssetsDeep(value)] as const).filter(([, value]) => value.ok).map(([key, value]) => [key, value.value]);
+  return { ...(Object.fromEntries(kept) as Partial<T>), ...patch };
+}
 
 /** Quita las claves sin valor: lo que la API no trae no debe pisar lo que ya tiene el registro local. */
 function defined<T extends object>(obj: T): Partial<T> {

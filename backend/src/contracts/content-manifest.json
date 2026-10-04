@@ -381,6 +381,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "articles": {
@@ -503,6 +507,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "artisanal_workshops": {
@@ -957,6 +965,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "beaches": {
@@ -1143,6 +1155,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "bird_species": {
@@ -1521,6 +1537,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "coffee_experiences": {
@@ -1820,6 +1840,10 @@
   },
   "version": {
    "type": "integer",
+   "nullable": false
+  },
+  "extras": {
+   "type": "jsonb",
    "nullable": false
   }
  },
@@ -2167,6 +2191,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "experiences": {
@@ -2333,6 +2361,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "golf_courses": {
@@ -2435,6 +2467,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "historical_events": {
@@ -2991,6 +3027,10 @@
   "version": {
    "type": "integer",
    "nullable": false
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "job_vacancies": {
@@ -3533,6 +3573,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "municipalities": {
@@ -3883,6 +3927,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "parks": {
@@ -4179,6 +4227,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "profiles": {
@@ -4359,6 +4411,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "provinces": {
@@ -4615,6 +4671,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "restaurants": {
@@ -4784,6 +4844,10 @@
   },
   "version": {
    "type": "integer",
+   "nullable": false
+  },
+  "extras": {
+   "type": "jsonb",
    "nullable": false
   }
  },
@@ -5017,6 +5081,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "routes": {
@@ -5119,6 +5187,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "shopping_centers": {
@@ -5221,6 +5293,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "souvenirs": {
@@ -5579,6 +5655,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "theme_parks": {
@@ -5753,6 +5833,10 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "toll_routes": {

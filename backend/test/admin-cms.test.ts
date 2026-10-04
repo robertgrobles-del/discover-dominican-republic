@@ -275,6 +275,23 @@ describe("administración: CMS, usuarios y sitio", () => {
       expect((await call("GET", `/admin/settings/${priv}`, { token: admin.token })).statusCode).toBe(404);
     });
 
+    it("documentos de contenido: los edita el equipo editorial, se leen sin sesión y cada edición sube la revisión", async () => {
+      const k = `transporte-${tag}`.toLowerCase();
+      expect((await call("PUT", `/admin/datasets/${k}`, { payload: { value: { rutas: [] } } })).statusCode).toBe(401);
+      expect((await call("PUT", `/admin/datasets/${k}`, { token: plain.token, payload: { value: { rutas: [] } } })).statusCode).toBe(403);
+      expect((await call("PUT", `/admin/datasets/${k}`, { token: editor.token, payload: { value: ["no", "es", "objeto"] } })).statusCode).toBe(400);
+      expect((await call("PUT", "/admin/datasets/Mala_Clave", { token: editor.token, payload: { value: {} } })).statusCode).toBe(400);
+      const created = json(await call("PUT", `/admin/datasets/${k}`, { token: editor.token, payload: { value: { rutas: [{ id: "sdq-puj", precio: 450 }] } } })).data;
+      expect(created.revision).toBe(1);
+      const updated = json(await call("PUT", `/admin/datasets/${k}`, { token: editor.token, payload: { value: { rutas: [{ id: "sdq-puj", precio: 500 }] } } })).data;
+      expect(updated.revision).toBe(2);
+      expect(json(await call("GET", `/datasets/${k}`)).data.value).toEqual({ rutas: [{ id: "sdq-puj", precio: 500 }] });
+      expect(json(await call("GET", "/datasets")).data.find((d: { key: string }) => d.key === k)).toMatchObject({ key: k, revision: 2 });
+      expect((await call("DELETE", `/admin/datasets/${k}`, { token: editor.token })).statusCode).toBe(403);
+      expect((await call("DELETE", `/admin/datasets/${k}`, { token: admin.token })).statusCode).toBe(204);
+      expect((await call("GET", `/datasets/${k}`)).statusCode).toBe(404);
+    });
+
     it("redirecciones: validan rutas, evitan bucles y se publican las activas", async () => {
       const a = `/viejo-${tag}`, b = `/nuevo-${tag}`;
       const create = (payload: object) => call("POST", "/admin/seo_redirections", { token: admin.token, payload });

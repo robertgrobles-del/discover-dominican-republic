@@ -3,7 +3,7 @@
 > Generado automáticamente por `npm run docs:api` a partir de las rutas que el servidor registra. **No se edita a mano**: si una ruta cambia, se regenera (CI verifica con `npm run docs:api -- --check`).
 > `docs/BACKEND_API.md` es el diseño original; donde difiera, esta lista describe lo que existe. Detalle de cada módulo, reglas y ejemplos: `backend/README.md`. Contrato completo (esquemas de entrada y salida): `/docs` (Swagger) del servidor.
 
-Versión 0.1.0 · 1002 operaciones en 47 grupos.
+Versión 0.1.0 · 1006 operaciones en 47 grupos.
 
 Convenciones: todas las rutas cuelgan de `/api/v1`. Errores con la forma `{ error: { code, message, details, request_id } }`. **Sesión** = `Authorization: Bearer <jwt>`; **Opcional** = funciona sin sesión y, con ella, personaliza.
 
@@ -162,6 +162,8 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | POST | `/admin/creators/{id}/payout` | Personal / admin | Registra y liquida fondos a creador (Fondo de Creadores o Comisiones) |
 | GET | `/admin/creators/stay-deliverables` | Personal / admin | Lista entregables de contenido (Reels, Videos, Fotos) subidos por creadores tras estancias |
 | GET | `/admin/dashboard` | Personal / admin | KPIs, pendientes de moderación y contenido por estado |
+| PUT | `/admin/datasets/{key}` | Personal / admin | Crea o reemplaza un documento de contenido (objeto JSON, máx. 512 KB) |
+| DELETE | `/admin/datasets/{key}` | Personal / admin | Elimina un documento de contenido (el sitio vuelve a mostrar el que trae compilado) |
 | GET | `/admin/dictionary_terms` | Personal / admin | Glosario: lista |
 | POST | `/admin/dictionary_terms` | Personal / admin | Glosario: crear |
 | PATCH | `/admin/dictionary_terms/{id}` | Personal / admin | Glosario: editar |
@@ -1128,6 +1130,8 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
+| GET | `/datasets` | Público | Índice de documentos de contenido, con su revisión |
+| GET | `/datasets/{key}` | Público | Un documento de contenido |
 | GET | `/redirects` | Público | Redirecciones activas (para el servidor web o el frontend) |
 | GET | `/site/settings` | Público | Ajustes públicos del sitio (textos, contacto, redes, menú…) |
 

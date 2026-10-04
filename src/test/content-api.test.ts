@@ -81,7 +81,7 @@ describe("catálogo desde el backend", () => {
     const calls = fetchMock.mock.calls.map((c) => String(c[0]));
     expect(calls.every((u) => u.startsWith("/api/v1/"))).toBe(true);
     expect(calls.filter((u) => u.startsWith("/api/v1/beaches?")).map((u) => new URL(u, "http://x").searchParams.get("page"))).toEqual(["1", "2"]);
-    expect(calls.find((u) => u.startsWith("/api/v1/beaches?"))).toContain("fields=id,slug,name,destination_id,province_id,beach_type");
+    expect(calls.find((u) => u.startsWith("/api/v1/beaches?"))).toContain("fields=id,slug,name,extras,destination_id,province_id,beach_type");
     expect(out.find((b) => b.slug === first.slug)).toMatchObject({ name: "Nombre actualizado", description: first.description });
     expect(out.find((b) => b.slug === "playa-nueva")).toMatchObject({ province: "Pedernales", imageUrl: "https://img.test/nueva.jpg" });
     expect(out).toHaveLength(localBeaches.length + 1);

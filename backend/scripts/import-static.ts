@@ -4,7 +4,9 @@
 //   npm run db:import-static -- --only beaches,hotels
 // Es idempotente: repetirlo no duplica ni pisa lo que el equipo haya editado después en el CMS.
 import pg from "pg";
-import { runImport } from "./static/run.js";
+import { readdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { runDatasetImport, runImport } from "./static/run.js";
 
 const flag = (n: string) => process.argv.includes(`--${n}`);
 const only = (() => { const i = process.argv.indexOf("--only"); return i >= 0 ? (process.argv[i + 1] ?? "").split(",").filter(Boolean) : []; })();
@@ -17,10 +19,15 @@ try {
   await c.query("BEGIN");
   console.log(`${dry ? "SIMULACIÓN (no se guarda nada)" : "Carga real"} en ${new URL(url).pathname.slice(1)}\n`);
   const res = await runImport(c, { only, log: console.log });
+  // Lo que no es una colección de fichas se guarda como documentos (uno por archivo de datos).
+  console.log("\nDocumentos de contenido");
+  const files = only.length ? [] : readdirSync(fileURLToPath(new URL("../../src/data/", import.meta.url))).filter((f) => /\.tsx?$/.test(f)).sort();
+  const docs = await runDatasetImport(c, files, { log: console.log });
   await c.query(dry ? "ROLLBACK" : "COMMIT");
   const n = (k: "source" | "inserted" | "existing" | "skipped") => res.reduce((s, r) => s + r[k], 0);
   console.log(`\nTotal: origen ${n("source")} · nuevas ${n("inserted")} · ya existían ${n("existing")} · omitidas ${n("skipped")}`);
   const errors = res.flatMap((r) => r.errors.map((e) => `  ${r.key}: ${e}`));
+  errors.push(...docs.filter((d) => d.error).map((d) => `  ${d.key}: ${d.error}`));
   if (errors.length) { console.log(`\n${errors.length} problema(s):\n${errors.slice(0, 40).join("\n")}`); process.exitCode = 1; }
 } catch (e) {
   await c.query("ROLLBACK").catch(() => undefined);

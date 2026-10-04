@@ -2,7 +2,7 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { DATASETS, idOf } from "../scripts/static/mappers.js";
 import { loadStatic } from "../scripts/static/loader.js";
-import { coerce, runImport, type DatasetResult } from "../scripts/static/run.js";
+import { coerce, datasetKey, datasetOf, runDatasetImport, runImport, sanitize, type DatasetResult, type DocumentResult } from "../scripts/static/run.js";
 
 /**
  * Carga real del contenido estático del frontend (src/data) dentro de una transacción que se revierte: comprueba que cada mapeo
@@ -11,7 +11,8 @@ import { coerce, runImport, type DatasetResult } from "../scripts/static/run.js"
 describe("carga del contenido estático del frontend", () => {
   let pool: pg.Pool;
   let c: pg.PoolClient;
-  let first: DatasetResult[], second: DatasetResult[];
+  let first: DatasetResult[], second: DatasetResult[], docs: DocumentResult[];
+  const DOC_FILES = ["transporteData.ts", "monedaData.ts", "mountains.ts", "hotels.ts", "rewardsData.ts"];
 
   beforeAll(async () => {
     pool = new pg.Pool({ connectionString: process.env.TEST_DATABASE_URL });
@@ -19,6 +20,7 @@ describe("carga del contenido estático del frontend", () => {
     await c.query("BEGIN");
     first = await runImport(c);
     second = await runImport(c);
+    docs = await runDatasetImport(c, DOC_FILES);
   }, 180_000);
   afterAll(async () => { await c.query("ROLLBACK"); c.release(); await pool.end(); });
 
@@ -86,6 +88,38 @@ describe("carga del contenido estático del frontend", () => {
     const port = (await c.query("SELECT latitude, longitude FROM ports_marinas WHERE id = $1", [idOf("ports_marinas", "sans-souci")])).rows[0];
     expect(Number(port.latitude)).toBeCloseTo(18.4636, 3);
     expect(Number(port.longitude)).toBeCloseTo(-69.8827, 3);           // «69.8827° W» → negativo
+  });
+
+  it("cada fila guarda su ficha completa en extras: lo que no tiene columna no se pierde", async () => {
+    const dests = await loaded("destinations.ts", "destinations", "destinations");
+    const one = dests[0] as unknown as Record<string, unknown>;
+    const row = (await c.query("SELECT extras FROM destinations WHERE id = $1", [idOf("destinations", String(one.id))])).rows[0];
+    expect(row.extras).toEqual(sanitize(one));
+    expect(Object.keys(row.extras).length).toBeGreaterThan(15);
+    // Una fila cuyo extras ya editó el equipo no se pisa al repetir la carga.
+    await c.query("UPDATE destinations SET extras = $2 WHERE id = $1", [idOf("destinations", String(one.id)), JSON.stringify({ editado: true })]);
+    await runImport(c, { only: ["destinations"] });
+    expect((await c.query("SELECT extras FROM destinations WHERE id = $1", [idOf("destinations", String(one.id))])).rows[0].extras).toEqual({ editado: true });
+  });
+
+  it("lo que no es una colección se guarda como documentos, uno por archivo; lo editado en el CMS no se pisa", async () => {
+    const by = Object.fromEntries(docs.map((d) => [d.file, d]));
+    expect(docs.filter((d) => d.error)).toEqual([]);
+    expect(by["rewardsData.ts"]).toBeUndefined(); // pertenece al módulo de recompensas, no es contenido editorial
+    expect(by["hotels.ts"]!.state).toBe("vacío"); // su único bloque de datos ya es una colección
+    expect(by["mountains.ts"]!.exports).toBe(1); // las etiquetas de cordillera, no las montañas
+    expect(datasetKey("comoLlegarData.ts")).toBe("como-llegar-data");
+    const stored = (await c.query("SELECT value, revision FROM content_datasets WHERE key = 'transporte-data'")).rows[0];
+    expect(stored.revision).toBe(0);
+    expect(stored.value).toEqual(datasetOf("transporteData.ts", await loadStatic("transporteData.ts")));
+    expect((await runDatasetImport(c, ["transporteData.ts"]))[0]!.state).toBe("sin cambios");
+    await c.query("UPDATE content_datasets SET value = '{\"routes\": []}', revision = 1 WHERE key = 'transporte-data'");
+    expect((await runDatasetImport(c, ["transporteData.ts"]))[0]!.state).toBe("editado en el CMS");
+    expect((await c.query("SELECT value FROM content_datasets WHERE key = 'transporte-data'")).rows[0].value).toEqual({ routes: [] });
+  });
+
+  it("sanitize deja sólo lo que cabe en JSON", () => {
+    expect(sanitize({ a: 1, icon: () => null, nested: [{ b: "x", render: { $$typeof: Symbol.for("react.forward_ref") } }], u: undefined })).toEqual({ a: 1, nested: [{ b: "x" }] });
   });
 
   it("coerce respeta el tipo de cada columna", () => {

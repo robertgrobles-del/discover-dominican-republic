@@ -1,3 +1,4 @@
+import { resolveAssetsDeep } from "./assetPaths";
 import type { ApiRow, PlaceIndex } from "./contentMappers";
 
 /**
@@ -10,10 +11,11 @@ import type { ApiRow, PlaceIndex } from "./contentMappers";
  *  - Sólo se listan los campos que el backend guarda tal cual. Los que guarda transformados (una dificultad
  *    numérica convertida a texto, una descripción compuesta) se quedan con el valor local.
  *  - Un valor sólo sustituye al local si es del mismo tipo (texto por texto, lista por lista del mismo tipo).
- *  - Las imágenes `/assets/…` se ignoran: son la huella de una imagen empaquetada al cargar la base, y esa
- *    ruta no existe en el sitio compilado. El registro local conserva su imagen.
- *  - Una fila que no existe en local sólo se añade en las colecciones marcadas con `addNew`, y sólo si trae
- *    lo imprescindible para su ficha.
+ *  - Las imágenes `/assets/…` (imágenes empaquetadas con el sitio) se traducen a su nombre compilado; si no
+ *    se puede, el registro local conserva la suya.
+ *  - `extras` trae la ficha completa tal como la conoce el sitio: alimenta los campos que no tienen columna.
+ *  - Una fila que no existe en local se añade si trae su ficha en `extras`, o si la colección está marcada con
+ *    `addNew` y trae lo imprescindible.
  */
 
 type Item = Record<string, unknown>;
@@ -45,7 +47,6 @@ export interface Change { collection: string; slug: string; field: string; from:
 
 const slugify = (name: unknown) => String(name ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 const isPlain = (v: unknown): v is Item => typeof v === "object" && v !== null && !Array.isArray(v);
-const isPackagedAsset = (v: unknown) => typeof v === "string" && v.startsWith("/assets/");
 
 function getPath(item: Item, path: string): unknown {
   return path.split(".").reduce<unknown>((at, key) => (isPlain(at) ? at[key] : undefined), item);
@@ -61,13 +62,15 @@ function setPath(item: Item, path: string, value: unknown): void {
  * Valor del backend listo para ocupar el lugar del local, o `undefined` si no debe tocarlo. `sample` es el
  * valor actual del registro o, si no lo tiene, el de otro registro de la colección: dice de qué tipo es el campo.
  */
-export function compatible(sample: unknown, value: unknown): unknown {
-  if (value === null || value === undefined || isPackagedAsset(value)) return undefined;
+export function compatible(sample: unknown, raw: unknown): unknown {
+  const resolved = resolveAssetsDeep(raw);
+  const value = resolved.value;
+  if (value === null || value === undefined || !resolved.ok) return undefined;
   if (typeof value === "string" && value.trim() === "") return undefined;
   if (sample === undefined || sample === null) return Array.isArray(value) || isPlain(value) ? undefined : value;
   if (typeof sample === "number") { const n = typeof value === "string" ? Number(value) : value; return typeof n === "number" && Number.isFinite(n) ? n : undefined; }
   if (Array.isArray(sample)) {
-    if (!Array.isArray(value) || value.some(isPackagedAsset)) return undefined;
+    if (!Array.isArray(value)) return undefined;
     if (sample.length === 0 || value.length === 0) return value;
     const [a, b] = [sample[0], value[0]];
     if (typeof a !== typeof b || isPlain(a) !== isPlain(b)) return undefined;
@@ -99,14 +102,25 @@ function blankLike(sample: unknown): unknown {
   return typeof sample === "string" ? "" : typeof sample === "number" ? 0 : typeof sample === "boolean" ? false : undefined;
 }
 
+/** Ficha completa que acompaña a la fila, si la trae. */
+const extrasOf = (row: ApiRow): Item | null => (isPlain(row.extras) && Object.keys(row.extras).length > 0 ? row.extras : null);
+/** Campo local que hace de título: el primero de la tabla de correspondencias. */
+const titleField = (spec: CollectionSpec) => Object.keys(spec.fields)[0]!;
+
 const itemsOf = (loaded: Loaded): Item[] => (Array.isArray(loaded) ? loaded : Object.values(loaded));
 
 /** Cambios que una fila produce sobre su registro local. No modifica nada. */
 function changesFor(spec: CollectionSpec, item: Item, row: ApiRow, sample: Item, slug: string): Change[] {
   const changes: Change[] = [];
-  for (const [field, column] of Object.entries(spec.fields)) {
+  // Primero las columnas; después, de `extras`, los campos que no tienen columna.
+  const mapped = new Set(Object.keys(spec.fields).map((field) => field.split(".")[0]));
+  const candidates: [string, unknown][] = [
+    ...Object.entries(spec.fields).map(([field, column]): [string, unknown] => [field, row[column]]),
+    ...Object.entries(extrasOf(row) ?? {}).filter(([key]) => !mapped.has(key)),
+  ];
+  for (const [field, value] of candidates) {
     const current = getPath(item, field);
-    const next = compatible(current ?? getPath(sample, field), row[column]);
+    const next = compatible(current ?? getPath(sample, field), value);
     if (next === undefined || same(current, next)) continue;
     if (current === undefined && next === false) continue; // la base guarda `false` donde el local no dice nada
     changes.push({ collection: spec.name, slug, field, from: current, to: next });
@@ -135,16 +149,29 @@ export function planCollections(specs: CollectionSpec[], loaded: Loaded[], rows:
       plans[owner]!.changes.push(...changesFor(spec, item, row, itemsOf(loaded[owner]!)[0] ?? item, slug));
       continue;
     }
-    const target = specs.findIndex((spec, i) => !!spec.addNew && Array.isArray(loaded[i]) && (spec.accepts?.(row) ?? true));
+    // Fila nueva. Con ficha en `extras` va a la colección cuya forma tiene (la que reconoce su título); sin
+    // ella, sólo a una colección que sepa completar una ficha a partir de las columnas.
+    const extras = extrasOf(row);
+    const target = specs.findIndex((spec, i) => (spec.accepts?.(row) ?? true) && (extras ? titleField(spec) in extras : !!spec.addNew && Array.isArray(loaded[i])));
     const sample = target >= 0 ? itemsOf(loaded[target]!)[0] : undefined;
-    if (target < 0 || !sample || !places) continue;
+    if (target < 0 || !sample) continue;
     const spec = specs[target]!;
-    const fresh = blankLike(sample) as Item;
-    if ("id" in sample) fresh.id = slug;
-    if ("slug" in sample) fresh.slug = slug;
-    for (const [field, value] of Object.entries(spec.addNew!.derive?.(row, places) ?? {})) if (value !== undefined) setPath(fresh, field, value);
+    let fresh: Item;
+    if (extras) {
+      const resolved = resolveAssetsDeep(extras);
+      if (!resolved.ok) continue;
+      fresh = resolved.value as Item;
+    } else {
+      if (!places) continue;
+      fresh = blankLike(sample) as Item;
+      if ("id" in sample) fresh.id = slug;
+      if ("slug" in sample) fresh.slug = slug;
+      for (const [field, value] of Object.entries(spec.addNew!.derive?.(row, places) ?? {})) if (value !== undefined) setPath(fresh, field, value);
+    }
     for (const change of changesFor(spec, fresh, row, sample, slug)) setPath(fresh, change.field, change.to);
-    if (spec.addNew!.required.every((field) => { const v = getPath(fresh, field); return v !== undefined && v !== "" && v !== 0; })) plans[target]!.added.push(fresh);
+    const required = spec.addNew?.required ?? [titleField(spec)];
+    if (indexes[target]!.has(spec.keyOf(fresh))) continue; // su ficha apunta a un registro que ya existe con otro slug
+    if (required.every((field) => { const v = getPath(fresh, field); return v !== undefined && v !== "" && v !== 0; })) plans[target]!.added.push(fresh);
   }
   return plans;
 }
@@ -153,7 +180,11 @@ export function planCollections(specs: CollectionSpec[], loaded: Loaded[], rows:
 export function applyPlan(spec: CollectionSpec, loaded: Loaded, plan: CollectionPlan): boolean {
   const index = new Map(itemsOf(loaded).map((item) => [spec.keyOf(item), item] as const));
   for (const change of plan.changes) { const item = index.get(change.slug); if (item) setPath(item, change.field, change.to); }
-  if (Array.isArray(loaded)) for (const item of plan.added) if (!index.has(spec.keyOf(item))) loaded.push(item);
+  for (const item of plan.added) {
+    if (index.has(spec.keyOf(item))) continue;
+    if (Array.isArray(loaded)) loaded.push(item);
+    else loaded[String(item.id ?? item.slug ?? spec.keyOf(item))] = item;
+  }
   return plan.changes.length > 0 || plan.added.length > 0;
 }
 

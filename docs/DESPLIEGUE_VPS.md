@@ -38,6 +38,7 @@ El frontend se compila fuera del VPS (CI publica el artefacto `frontend-dist-<sh
 
 - **Frontend:** cada versión va a `releases/<fecha>` y `current` es un enlace simbólico que se cambia con un `mv` atómico. Ninguna petición ve una versión a medias, y `./deploy.sh <entorno> rollback-site` vuelve a la anterior. Se conservan las últimas 5.
 - **API:** primero corre `migrate`; si falla, la API anterior sigue en servicio. Luego se reemplaza el contenedor y se espera a que pase `/health/ready`. Hay un solo contenedor, así que existe una ventana de unos segundos durante el reinicio: Caddy reintenta hasta 30 s en vez de devolver error. No es un despliegue sin interrupción estricto; para eso harían falta dos réplicas.
+- **Contenido inicial:** una sola vez tras la primera migración (y cada vez que cambien los archivos de `src/data`), desde una copia del repositorio y con un túnel SSH a la base: `ssh -L 5440:localhost:5432 usuario@servidor` y, en `backend/`, `DATABASE_URL=postgres://…@localhost:5440/… npm run db:import-static`. Carga las fichas del catálogo con su ficha completa y los documentos de contenido; no pisa lo que el equipo ya haya editado. Con `-- --dry-run` sólo informa.
 - **Migraciones:** deben ser compatibles con la versión anterior de la API mientras dura el cambio (añadir antes de quitar). `deploy.sh` hace un respaldo antes de migrar.
 
 ## Staging

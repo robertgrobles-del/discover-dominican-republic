@@ -6,7 +6,7 @@ import { hotels as localHotels, type Hotel } from "@/data/hotels";
 import { restaurants as localRestaurants, type Restaurant } from "@/data/restaurants";
 import { fetchApi } from "@/lib/fastifyClient";
 import {
-  CATALOG_FIELDS, barPatch, beachPatch, buildPlaceIndex, destinationPatch, experiencePatch, hasCardBasics, hotelPatch, overlay, restaurantPatch,
+  CATALOG_FIELDS, barPatch, beachPatch, buildPlaceIndex, destinationPatch, experiencePatch, hasCardBasics, hotelPatch, overlay, restaurantPatch, withExtras,
   type ApiRow, type CatalogCollection, type PlaceIndex,
 } from "./contentMappers";
 
@@ -57,26 +57,27 @@ export function placesFor(locale: string) {
 }
 
 async function load<T extends { slug: string; name: string; description: string; imageUrl: string }>(
-  collection: CatalogCollection, local: T[], patch: (row: ApiRow, places: PlaceIndex) => Partial<T>, locale: string,
+  collection: CatalogCollection, local: T[], patch: (row: ApiRow, places: PlaceIndex) => Partial<T>, locale: string, ready: Promise<unknown>,
 ): Promise<T[]> {
   try {
-    const [{ places }, rows] = await Promise.all([placesFor(locale), listAll(collection, locale)]);
-    return overlay(local, rows.map((row) => patch(row, places)), hasCardBasics<T>);
+    // `ready` (el traductor de imágenes empaquetadas) se espera a la vez que la red, no antes: no retrasa la petición.
+    const [{ places }, rows] = await Promise.all([placesFor(locale), listAll(collection, locale), ready]);
+    return overlay(local, rows.map((row) => withExtras(row, patch(row, places))), hasCardBasics<T>);
   } catch {
     return local;
   }
 }
 
 export const contentApi = {
-  beaches: (locale = "es"): Promise<Beach[]> => load("beaches", localBeaches, beachPatch, locale),
-  hotels: (locale = "es"): Promise<Hotel[]> => load("hotels", localHotels, hotelPatch, locale),
-  restaurants: (locale = "es"): Promise<Restaurant[]> => load("restaurants", localRestaurants, restaurantPatch, locale),
-  bars: (locale = "es"): Promise<Bar[]> => load("bars", localBars, barPatch, locale),
-  experiences: (locale = "es"): Promise<Experience[]> => load("experiences", localExperiences, experiencePatch, locale),
-  async destinations(locale = "es"): Promise<Destination[]> {
+  beaches: (locale = "es", ready: Promise<unknown> = Promise.resolve()): Promise<Beach[]> => load("beaches", localBeaches, beachPatch, locale, ready),
+  hotels: (locale = "es", ready: Promise<unknown> = Promise.resolve()): Promise<Hotel[]> => load("hotels", localHotels, hotelPatch, locale, ready),
+  restaurants: (locale = "es", ready: Promise<unknown> = Promise.resolve()): Promise<Restaurant[]> => load("restaurants", localRestaurants, restaurantPatch, locale, ready),
+  bars: (locale = "es", ready: Promise<unknown> = Promise.resolve()): Promise<Bar[]> => load("bars", localBars, barPatch, locale, ready),
+  experiences: (locale = "es", ready: Promise<unknown> = Promise.resolve()): Promise<Experience[]> => load("experiences", localExperiences, experiencePatch, locale, ready),
+  async destinations(locale = "es", ready: Promise<unknown> = Promise.resolve()): Promise<Destination[]> {
     try {
-      const { places, destinations } = await placesFor(locale);
-      return overlay(localDestinations, destinations.map((row) => destinationPatch(row, places)), hasCardBasics<Destination>);
+      const [{ places, destinations }] = await Promise.all([placesFor(locale), ready]);
+      return overlay(localDestinations, destinations.map((row) => withExtras(row, destinationPatch(row, places))), hasCardBasics<Destination>);
     } catch {
       return localDestinations;
     }

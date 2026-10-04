@@ -6,6 +6,8 @@ import { hotels } from "@/data/hotels";
 import { restaurants } from "@/data/restaurants";
 import { CATALOG_SOURCE } from "@/lib/catalogSource";
 import { IS_MOCK_DATA } from "@/lib/dataSource";
+import { fetchApi } from "@/lib/fastifyClient";
+import { setAssetResolver } from "./assetPaths";
 import { contentApi, listRaw, placesFor } from "./contentApi";
 
 /**
@@ -50,17 +52,37 @@ let pending: Promise<HydrationResult> | null = null;
 let secondary: Promise<string[]> | null = null;
 let currentLocale: string | null = null;
 
-function runSecondary(locale: string): Promise<string[]> {
-  return import("./catalogCollections")
-    .then((m) => m.hydrateSecondaryCollections((path) => listRaw(path, locale), placesFor(locale).then((p) => p.places)))
-    .catch(() => []);
+/** Lo que depende del empaquetador (imágenes con huella, cargadores de archivos de datos), una sola vez. */
+let browser: Promise<typeof import("./catalogBrowser")> | null = null;
+function browserSupport() {
+  browser ??= import("./catalogBrowser").then((m) => { setAssetResolver(m.resolvePackagedAsset); return m; });
+  return browser;
+}
+
+const datasetSource = {
+  index: async () => (await fetchApi<{ data: { key: string; revision: number }[] }>("/datasets")).data,
+  get: async (key: string) => (await fetchApi<{ data: { value: Record<string, unknown> } }>(`/datasets/${key}`)).data.value,
+};
+
+/** Documentos de contenido primero y colecciones después: si un dato está en ambos, manda la fila de la colección. */
+async function runSecondary(locale: string): Promise<string[]> {
+  try {
+    const { datasetLoaders } = await browserSupport();
+    const [{ hydrateDatasets }, collections] = await Promise.all([import("./datasetHydration"), import("./catalogCollections")]);
+    const documents = await hydrateDatasets(datasetSource, datasetLoaders).catch(() => [] as string[]);
+    const changed = await collections.hydrateSecondaryCollections((path) => listRaw(path, locale), placesFor(locale).then((p) => p.places));
+    return [...documents.map((key) => `dataset:${key}`), ...changed];
+  } catch {
+    return [];
+  }
 }
 
 async function run(locale: string): Promise<HydrationResult> {
+  const ready = browserSupport().catch(() => undefined); // sin él, las imágenes empaquetadas conservan la ruta local
   // Destinos primero no hace falta: cada carga superpone sobre su propio arreglo local.
   const [b, h, r, ba, e, d, mock] = await Promise.all([
-    contentApi.beaches(locale), contentApi.hotels(locale), contentApi.restaurants(locale),
-    contentApi.bars(locale), contentApi.experiences(locale), contentApi.destinations(locale),
+    contentApi.beaches(locale, ready), contentApi.hotels(locale, ready), contentApi.restaurants(locale, ready),
+    contentApi.bars(locale, ready), contentApi.experiences(locale, ready), contentApi.destinations(locale, ready),
     hydrateMockCatalog(locale).catch(() => [] as string[]),
   ]);
   const hydrated: string[] = [...mock];
@@ -106,8 +128,10 @@ export function secondaryCatalogReady(): Promise<string[]> {
 export async function rehydrateCatalog(locale: string, source: typeof CATALOG_SOURCE = CATALOG_SOURCE): Promise<boolean> {
   if (source !== "api" || locale === currentLocale) return false;
   currentLocale = locale;
-  const main = (pending = run(locale));
-  const extra = (secondary = runSecondary(locale));
+  // Las cargas van en fila: una anterior que termine después pisaría los textos con los de su idioma.
+  const previous = Promise.allSettled([pending, secondary]);
+  const main = (pending = previous.then(() => (locale === currentLocale ? run(locale) : { source: "api" as const, hydrated: [], timedOut: false })));
+  const extra = (secondary = main.then(() => (locale === currentLocale ? runSecondary(locale) : [])));
   const [result, changed] = await Promise.all([main, extra]);
   return locale === currentLocale && (result.hydrated.length > 0 || changed.length > 0);
 }

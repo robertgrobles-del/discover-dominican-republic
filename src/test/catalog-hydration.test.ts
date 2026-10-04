@@ -112,14 +112,15 @@ describe("hidratación del catálogo", () => {
     const langs: string[] = [];
     fetchMock.mockImplementation((url: string) => {
       const lang = new URL(url, "http://x").searchParams.get("lang")!;
-      langs.push(lang);
+      if (lang) langs.push(lang); // el índice de documentos no depende del idioma
       return Promise.resolve(collectionOf(url) === "hotels" ? page([{ slug: first.slug, name: lang === "en" ? "English name" : "Nombre en español" }]) : page([]));
     });
-    const { hydrateCatalog, rehydrateCatalog } = await import("@/services/catalogHydration");
+    const { hydrateCatalog, rehydrateCatalog, secondaryCatalogReady } = await import("@/services/catalogHydration");
     await hydrateCatalog({ source: "api", locale: "es" });
     const nameNow = () => hotels.find((h) => h.slug === first.slug)!.name; // la superposición crea registros nuevos
     expect(nameNow()).toBe("Nombre en español");
     expect(await rehydrateCatalog("es", "api")).toBe(false); // mismo idioma: nada que pedir
+    await secondaryCatalogReady(); // la tanda secundaria en español aún estaba pidiendo
     const requested = langs.length;
     expect(await rehydrateCatalog("en", "api")).toBe(true);
     expect(nameNow()).toBe("English name");

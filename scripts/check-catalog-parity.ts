@@ -1,6 +1,7 @@
 // Comprueba que el catálogo que sirve el backend, convertido con `contentMappers`, coincide con los datos
 // locales de los que se cargó. Requiere la API en marcha y el contenido importado (`npm run db:import-static`).
 // Uso: npx tsx scripts/check-catalog-parity.ts [http://localhost:3000/api/v1]
+import { readdirSync } from "node:fs";
 import { register } from "node:module";
 import { bars } from "../src/data/bars";
 import { beaches } from "../src/data/beaches";
@@ -9,10 +10,15 @@ import { experiences } from "../src/data/experiences";
 import { hotels } from "../src/data/hotels";
 import { restaurants } from "../src/data/restaurants";
 import {
-  CATALOG_FIELDS, DERIVED_KEYS, barPatch, beachPatch, buildPlaceIndex, destinationPatch, experiencePatch, hotelPatch, restaurantPatch,
+  CATALOG_FIELDS, DERIVED_KEYS, withExtras, barPatch, beachPatch, buildPlaceIndex, destinationPatch, experiencePatch, hotelPatch, restaurantPatch,
   type ApiRow, type CatalogCollection, type PlaceIndex,
 } from "../src/services/contentMappers";
+import { setAssetResolver } from "../src/services/assetPaths";
 import { collectionGroups, planCollections } from "../src/services/catalogCollections";
+import { mergeInPlace } from "../src/services/datasetHydration";
+
+// Aquí las imágenes empaquetadas se importan como `/assets/<archivo>`, igual que las guardó la carga de la base.
+setAssetResolver((fileName) => `/assets/${fileName}`);
 
 const API = (process.argv[2] ?? "http://localhost:3000/api/v1").replace(/\/$/, "");
 
@@ -29,9 +35,15 @@ async function listAll(collection: CatalogCollection): Promise<ApiRow[]> {
 }
 
 // Igualdad tolerante a lo que la base normaliza: números guardados con decimales fijos y listas vacías frente a ausentes.
+/** Texto estable de un valor: la base devuelve los objetos con las claves en otro orden. */
+function canonical(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (typeof value === "object" && value !== null) return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonical((value as Record<string, unknown>)[key])}`).join(",")}}`;
+  return JSON.stringify(value) ?? "null";
+}
 function same(a: unknown, b: unknown): boolean {
   if (typeof a === "number" && typeof b === "number") return Math.abs(a - b) < 1e-6;
-  if (Array.isArray(a) || Array.isArray(b)) return JSON.stringify(a ?? []) === JSON.stringify(b ?? []);
+  if (typeof a === "object" || typeof b === "object") return canonical(a ?? []) === canonical(b ?? []);
   return a === b;
 }
 
@@ -41,7 +53,7 @@ function compare(name: string, local: Item[], rows: ApiRow[], patch: (row: ApiRo
   let matched = 0, diffs = 0;
   const onlyApi: string[] = [];
   for (const row of rows) {
-    const mapped = patch(row, places);
+    const mapped = withExtras(row, patch(row, places));
     const original = bySlug.get(String(mapped.slug));
     if (!original) { onlyApi.push(String(row.slug)); continue; }
     matched++;
@@ -105,5 +117,26 @@ for (const [path, group] of collectionGroups()) {
     console.log(`${group.map((spec) => spec.name).join(", ").padEnd(17)} no comprobable aquí: ${(err as Error).message.slice(0, 90)}`);
   }
 }
+
+// Documentos de contenido: volcar cada uno sobre su archivo local no debe cambiar nada.
+const datasetKey = (file: string) => file.replace(/\.tsx?$/, "").replace(/([a-z0-9])([A-Z])/g, "$1-$2").replace(/[^A-Za-z0-9]+/g, "-").toLowerCase();
+const dataFiles = new Map(readdirSync(new URL("../src/data/", import.meta.url)).filter((f) => /\.tsx?$/.test(f)).map((f) => [datasetKey(f), f]));
+const index = (await (await fetch(`${API}/datasets`)).json()) as { data: { key: string; revision: number }[] };
+let documents = 0, documentDiffs = 0;
+for (const { key, revision } of index.data) {
+  const file = dataFiles.get(key);
+  if (!file) { console.log(`documento ${key}: no corresponde a ningún archivo local`); continue; }
+  try {
+    const doc = ((await (await fetch(`${API}/datasets/${key}`)).json()) as { data: { value: Record<string, unknown> } }).data.value;
+    const mod = (await import(`../src/data/${file}`)) as Record<string, unknown>;
+    const changes = Object.entries(doc).reduce((sum, [name, value]) => sum + mergeInPlace(mod[name], value, false), 0);
+    documents++;
+    if (changes > 0) { documentDiffs += changes; console.log(`  ≠ documento ${key}: ${changes} diferencias${revision > 0 ? " (editado en el CMS)" : ""}`); }
+  } catch (err) {
+    console.log(`documento ${key}: no comprobable aquí: ${(err as Error).message.slice(0, 90)}`);
+  }
+}
+console.log(`documentos        ${documents} comprobados · diferencias ${documentDiffs}`);
+total += documentDiffs;
 console.log(total === 0 ? "\nParidad completa: la API convertida coincide con los datos locales." : `\n${total} diferencias entre la API convertida y los datos locales.`);
 process.exit(total === 0 ? 0 : 1);

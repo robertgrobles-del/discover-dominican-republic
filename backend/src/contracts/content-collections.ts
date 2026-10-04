@@ -41,7 +41,7 @@ export interface CollectionDef {
   tag: string;
 }
 
-const HEAVY = ["description", "content", "biography", "gallery", "company_description", "historical_info", "production_process", "safety_tips", "significance", "house_rules", "host_description", "responsibilities", "benefits", "skills", "requirements", "achievements", "quotes", "sources", "consequences", "key_figures", "attractions", "rules", "tolls_data", "animation_config", "slider_items"];
+const HEAVY = ["extras", "description", "content", "biography", "gallery", "company_description", "historical_info", "production_process", "safety_tips", "significance", "house_rules", "host_description", "responsibilities", "benefits", "skills", "requirements", "achievements", "quotes", "sources", "consequences", "key_figures", "attractions", "rules", "tolls_data", "animation_config", "slider_items"];
 const TEXT_TRANSLATABLE = ["name", "title", "description", "short_description", "excerpt", "content", "headline", "subtext", "highlights"];
 const NOT_PUBLIC_DEFAULT = ["verification_notes", "verified_at"];
 
