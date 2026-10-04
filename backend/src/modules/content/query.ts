@@ -89,9 +89,11 @@ export function parseQuery(d: CollectionDef, raw: Record<string, unknown>): Pars
 
   const include = (str("include") ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   for (const i of include) if (!d.relations[i]) throw AppError.validation(`include no válido: ${i}`, { allowed: Object.keys(d.relations) });
-  const fields = str("fields")?.split(",").map((s) => s.trim()).filter(Boolean);
+  let fields = str("fields")?.split(",").map((s) => s.trim()).filter(Boolean);
   if (fields) {
     const allowed = new Set([...publicColumns(d), "seo"]);
+    // `fields=*` pide en un listado todas las columnas públicas (las mismas del detalle), sin tener que nombrarlas.
+    if (fields.length === 1 && fields[0] === "*") fields = [...allowed];
     for (const f of fields) if (!allowed.has(f)) throw AppError.validation(`fields no válido: ${f}`, { allowed: [...allowed] });
   }
   return { page, perPage, q: str("q")?.trim().slice(0, 100) || undefined, sort: str("sort"), lang: str("lang"), include, fields, filters, near, cursor: str("cursor") };

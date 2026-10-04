@@ -22,7 +22,7 @@ Cuando dos sistemas tienen el mismo dato, manda el que figura aquí; el resto es
 | Membresías y facturación | `backend/src/modules/memberships` + `billing` | Activo |
 | Correo transaccional y notificaciones | `backend/src/modules/mailer` (cola durable, outbox transaccional) + `notifications` | Activo |
 | Analítica, marketing y publicidad | `backend/src/modules/analytics` + `marketing` | Activo |
-| Contenido editorial (colecciones CMS, textos, SEO, traducciones) | `backend/src/modules/content` + `admin` (CMS integrado actual) | Activo en el backend; candidato para extracción como servicio de contenido; el frontend aún lee de Strapi (ver abajo) |
+| Contenido editorial (colecciones CMS, textos, SEO, traducciones) | `backend/src/modules/content` + `admin` (CMS integrado actual) | Activo en el backend; candidato para extracción como servicio de contenido. Con `VITE_CATALOG_SOURCE=api` el frontend lee de aquí playas, alojamientos, restaurantes, bares, experiencias, destinos, eventos y artículos; el resto de colecciones sigue en archivos locales |
 | Archivos y medios | `backend/src/modules/media` (almacenamiento propio) | Activo |
 | Datos vivos (clima, tasas de cambio) | `backend/src/modules/live` (caché local, proveedor externo sólo origen) | Activo |
 | Mi viaje, e-tickets, favoritos | `backend/src/modules/me` + `trips` | Activo; el frontend consume el mock hasta cerrar la migración |
@@ -30,7 +30,8 @@ Cuando dos sistemas tienen el mismo dato, manda el que figura aquí; el resto es
 ## Sistemas que NO son fuente de verdad
 
 - **`server/` (Express + MySQL): retirado.** Prototipo original sin uso; su propio `server/README.md` declara obsolescencia y prohíbe su uso en despliegue. No se construye ni despliega en ningún pipeline, no tiene credenciales en el repositorio (`.env` ignorado; `db_dump.json` fuera del índice) y no se conecta a la base de producción. Cualquier dato que sólo exista ahí se considera perdido, no autoritativo.
-- **`cms/` (Strapi): origen editorial en transición.** El frontend lo consulta hoy con respaldo a estáticos (`src/services/strapiClient.ts`), pero la fuente de verdad editorial declarada es el CMS integrado del backend; los contenidos de Strapi se consideran material de partida, no autoridad. No guarda datos transaccionales.
+- **`cms/` (Strapi): origen editorial en transición.** El frontend ya no lo consulta: `CatalogService` lee del backend o de los archivos locales. Además, al estar en otro origen, la política de seguridad de contenido del sitio bloqueaba esas peticiones, así que en la práctica siempre se servían los archivos locales. La fuente de verdad editorial es el CMS integrado del backend; los contenidos de Strapi se consideran material de partida, no autoridad. No guarda datos transaccionales.
+- **Archivos locales del catálogo (`src/data`): respaldo.** Con `VITE_CATALOG_SOURCE=api` se hidratan al arrancar con lo que sirve el backend (`src/services/catalogHydration.ts`) y sólo se muestran tal cual si el backend no responde. Cuando un registro existe en ambos, manda el backend en los campos que almacena.
 - **Mock del frontend (`src/mocks`): sólo lectura de demo mientras dura la migración de escrituras.** El build `api` falla de forma cerrada (`VITE_DATA_SOURCE`) hasta que todos los flujos estén conectados (`src/integrations/supabase/client.ts`). Reglas de la transición en `docs/MIGRACION_ESCRITURAS_BACKEND.md`.
 
 ## Cómo se cambia esta declaración

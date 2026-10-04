@@ -162,6 +162,11 @@ export function destinationPatch(row: ApiRow, places: PlaceIndex): Partial<Desti
  * muestra: lo derivado sólo rellena lo que falte.
  */
 const DERIVED_KEYS = ["destinationId", "destinationName", "province", "provinceId", "provinceSlug"] as const;
+/**
+ * Claves que un registro local conserva aunque la API traiga otro valor: las etiquetas de jerarquía y el `id`,
+ * que en los archivos locales es la clave con la que se enlazan entre sí (no siempre coincide con el slug).
+ */
+const LOCAL_KEYS = ["id", ...DERIVED_KEYS] as const;
 
 /**
  * Superpone lo que trae la API sobre los registros locales, emparejando por slug.
@@ -180,7 +185,7 @@ export function overlay<T extends { slug: string }>(local: T[], patches: Partial
     if (!patch.slug || seen.has(patch.slug)) continue;
     const base = bySlug.get(patch.slug);
     const merged: Partial<T> = base ? { ...base, ...patch } : patch;
-    if (base) for (const key of DERIVED_KEYS) { const kept = (base as Record<string, unknown>)[key]; if (kept !== undefined) (merged as Record<string, unknown>)[key] = kept; }
+    if (base) for (const key of LOCAL_KEYS) { const kept = (base as Record<string, unknown>)[key]; if (kept !== undefined) (merged as Record<string, unknown>)[key] = kept; }
     if (!isComplete(merged)) continue;
     seen.add(patch.slug);
     out.push(merged);

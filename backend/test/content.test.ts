@@ -134,6 +134,11 @@ describe("colecciones públicas", () => {
       expect(Object.keys(item).sort()).toEqual(["id", "name", "rating"]);
       expect(json(await get("/beaches?fields=name,seo")).data[0]).toHaveProperty("seo");
       expect((await get("/beaches?fields=name,password")).statusCode).toBe(400);
+      // `fields=*` entrega en el listado todas las columnas públicas, como el detalle.
+      const full = json(await get("/beaches?fields=*")).data[0];
+      for (const column of ["name", "description", "gallery", "seo"]) expect(full).toHaveProperty(column);
+      expect(full).not.toHaveProperty("created_by");
+      expect((await get("/beaches?fields=*,password")).statusCode).toBe(400);
     });
 
     it("include resuelve relaciones (destino y provincia) en una sola llamada", async () => {

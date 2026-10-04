@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Adaptador de demostración que imita una API sin tipos (el cliente de Supabase); se retira cuando el frontend lea todo del backend. Tiparlo no aporta: ver MOCK_MIGRATION_NOTES.md. */
 // Mock data client — replaces the network-backed Supabase/Express shim.
 //
 // The Express + MySQL + Docker stack this used to call kept failing
@@ -55,6 +56,21 @@ for (const table of PERSISTED_TABLES) {
   } catch {
     // ignorar datos corruptos
   }
+}
+
+/**
+ * Sustituye el contenido de tablas del mock por filas del backend (mismo esquema). Lo usa la hidratación del
+ * catálogo (`VITE_CATALOG_SOURCE=api`) para que las pantallas que aún consultan este cliente vean el catálogo
+ * real. Las tablas con cambios persistidos en el navegador no se tocan: son escrituras de la sesión.
+ */
+export function hydrateMockTables(tables: Record<string, Row[]>): string[] {
+  const done: string[] = [];
+  for (const [table, rows] of Object.entries(tables)) {
+    if (PERSISTED_TABLES.has(table) || !Array.isArray(rows) || rows.length === 0) continue;
+    mockData[table] = rows.filter((r) => r && r.id !== "");
+    done.push(table);
+  }
+  return done;
 }
 
 function genId() {

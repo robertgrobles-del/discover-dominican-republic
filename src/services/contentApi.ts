@@ -32,6 +32,17 @@ export async function listAll(collection: CatalogCollection, locale = "es"): Pro
   return rows;
 }
 
+/** Filas completas de una colección, con todas sus columnas públicas y sin convertir. */
+export async function listRaw(collection: string, locale = "es"): Promise<ApiRow[]> {
+  const rows: ApiRow[] = [];
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const res = await fetchApi<Page>(`/${collection}?per_page=${PAGE_SIZE}&page=${page}&fields=*&lang=${locale}`);
+    rows.push(...res.data);
+    if (page >= res.meta.total_pages) break;
+  }
+  return rows;
+}
+
 // Provincias y destinos resuelven los nombres de todas las demás colecciones: se piden una vez por idioma.
 const placeIndexes = new Map<string, Promise<{ places: PlaceIndex; destinations: ApiRow[] }>>();
 function placesFor(locale: string) {
