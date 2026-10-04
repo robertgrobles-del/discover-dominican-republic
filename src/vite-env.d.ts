@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_PUBLISHABLE_KEY?: string;
   /** "mock" (default) or "api"; validated at runtime in src/lib/dataSource.ts. */
   readonly VITE_DATA_SOURCE?: string;
+  readonly VITE_CATALOG_SOURCE?: string;
 }
 
 interface ImportMeta {
