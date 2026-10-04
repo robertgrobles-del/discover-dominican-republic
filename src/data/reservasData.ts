@@ -30,7 +30,8 @@ export const reservas: ReservaNatural[] = [
     imagen: samanaImg,
     tipo: "Parque Nacional",
     categoria: "Bosque húmedo",
-    superficie: "1,600 km²",
+    // Superficie legal del área protegida (600.82 km², Ley 202-04). 1,600 km² es la zona cárstica completa.
+    superficie: "601 km²",
     descripcion: "Majestuosos mogotes kársticos, manglares, cuevas con petroglifos taínos y una biodiversidad asombrosa.",
     especies: ["Manatíes", "Jutía", "Solenodonte", "Pelícano pardo"],
     actividades: ["Kayak", "Senderismo", "Observación de aves", "Espeleología"],

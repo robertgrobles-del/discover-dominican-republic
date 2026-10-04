@@ -4,6 +4,9 @@ import { clearAccessToken } from "@/lib/accessToken";
 const json = (body: unknown) => new Response(JSON.stringify(body), { status: 200, headers: { "Content-Type": "application/json" } });
 const page = (data: unknown[]) => json({ data, meta: { total_pages: 1 } });
 
+// Tope amplio para las pruebas que no tratan del tope: con la máquina cargada, el de producción (2,5 s) puede vencer.
+const WAIT = 30_000;
+
 describe("hidratación del catálogo", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
   beforeEach(() => { fetchMock = vi.fn(); vi.stubGlobal("fetch", fetchMock); localStorage.clear(); clearAccessToken(); vi.resetModules(); });
@@ -28,7 +31,7 @@ describe("hidratación del catálogo", () => {
       ? page([{ slug: first.slug, name: "Nombre del backend", is_featured: false }, { slug: "hotel-nuevo", name: "Hotel Nuevo", description: "Sólo en el backend", image_url: "https://img.test/h.jpg", is_featured: true }])
       : page([])));
     const { hydrateCatalog } = await import("@/services/catalogHydration");
-    const result = await hydrateCatalog({ source: "api" });
+    const result = await hydrateCatalog({ source: "api", timeoutMs: WAIT });
     expect(result).toMatchObject({ source: "api", timedOut: false });
     expect(result.hydrated).toContain("hotels");
     expect(hotels).toBe(sameArray); // misma referencia: quien ya la importó ve el cambio
@@ -44,7 +47,7 @@ describe("hidratación del catálogo", () => {
     const names = beaches.map((b) => b.name);
     fetchMock.mockRejectedValue(new TypeError("Failed to fetch"));
     const { hydrateCatalog } = await import("@/services/catalogHydration");
-    expect(await hydrateCatalog({ source: "api" })).toEqual({ source: "api", hydrated: [], timedOut: false });
+    expect(await hydrateCatalog({ source: "api", timeoutMs: WAIT })).toEqual({ source: "api", hydrated: [], timedOut: false });
     expect(beaches.map((b) => b.name)).toEqual(names);
   });
 
@@ -80,7 +83,7 @@ describe("hidratación del catálogo", () => {
       return Promise.resolve(page([]));
     });
     const { hydrateCatalog, secondaryCatalogReady } = await import("@/services/catalogHydration");
-    await hydrateCatalog({ source: "api" });
+    await hydrateCatalog({ source: "api", timeoutMs: WAIT });
     expect(await secondaryCatalogReady()).toEqual(expect.arrayContaining(["mountains", "parquesData"]));
     expect(mountain).toMatchObject({ name: "Pico del backend", altitude: 3098 });
     expect(mountain.imageUrl).toBe(before.imageUrl); // `/assets/…` no existe en el sitio compilado
@@ -100,7 +103,7 @@ describe("hidratación del catálogo", () => {
       return Promise.resolve(page([]));
     });
     const { hydrateCatalog, secondaryCatalogReady } = await import("@/services/catalogHydration");
-    await hydrateCatalog({ source: "api" });
+    await hydrateCatalog({ source: "api", timeoutMs: WAIT });
     await secondaryCatalogReady();
     expect(mountains).toHaveLength(before + 1);
     expect(mountains.at(-1)).toMatchObject({ id: "loma-nueva", slug: "loma-nueva", name: "Loma Nueva", provinceId: "la-vega", provinceName: "La Vega", altitude: 1200, activities: ["Senderismo"], gallery: [], safetyTips: [] });
@@ -116,7 +119,7 @@ describe("hidratación del catálogo", () => {
       return Promise.resolve(collectionOf(url) === "hotels" ? page([{ slug: first.slug, name: lang === "en" ? "English name" : "Nombre en español" }]) : page([]));
     });
     const { hydrateCatalog, rehydrateCatalog, secondaryCatalogReady } = await import("@/services/catalogHydration");
-    await hydrateCatalog({ source: "api", locale: "es" });
+    await hydrateCatalog({ source: "api", locale: "es", timeoutMs: WAIT });
     const nameNow = () => hotels.find((h) => h.slug === first.slug)!.name; // la superposición crea registros nuevos
     expect(nameNow()).toBe("Nombre en español");
     expect(await rehydrateCatalog("es", "api")).toBe(false); // mismo idioma: nada que pedir

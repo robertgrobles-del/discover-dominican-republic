@@ -189,13 +189,14 @@ const LOCAL_KEYS = ["id", ...DERIVED_KEYS] as const;
 /**
  * Superpone lo que trae la API sobre los registros locales, emparejando por slug.
  *  - Un registro que está en ambos conserva sus campos locales y toma de la API los que ésta almacena.
- *  - Uno que sólo está en la API se muestra si trae lo mínimo para una ficha (`isComplete`).
+ *  - Uno que sólo está en la API se muestra si trae lo mínimo para una ficha (`isComplete`); `fallback` rellena
+ *    antes lo que falte, de modo que un registro sin foto se ve con la imagen genérica en vez de desaparecer.
  *  - Uno que sólo está en local se conserva: la API todavía no es la única fuente del catálogo.
  * El orden es el de la API, y al final los que sólo existen en local.
  */
 export { DERIVED_KEYS };
 
-export function overlay<T extends { slug: string }>(local: T[], patches: Partial<T>[], isComplete: (item: Partial<T>) => item is T): T[] {
+export function overlay<T extends { slug: string }>(local: T[], patches: Partial<T>[], isComplete: (item: Partial<T>) => item is T, fallback: Partial<T> = {}): T[] {
   const bySlug = new Map(local.map((item) => [item.slug, item]));
   const seen = new Set<string>();
   const out: T[] = [];
@@ -204,6 +205,8 @@ export function overlay<T extends { slug: string }>(local: T[], patches: Partial
     const base = bySlug.get(patch.slug);
     const merged: Partial<T> = base ? { ...base, ...patch } : patch;
     if (base) for (const key of LOCAL_KEYS) { const kept = (base as Record<string, unknown>)[key]; if (kept !== undefined) (merged as Record<string, unknown>)[key] = kept; }
+    // Lo que ni la API ni el registro local traen se rellena con el valor de reserva (p. ej. la imagen genérica).
+    for (const [key, value] of Object.entries(fallback)) if (!(merged as Record<string, unknown>)[key]) (merged as Record<string, unknown>)[key] = value;
     if (!isComplete(merged)) continue;
     seen.add(patch.slug);
     out.push(merged);
@@ -211,6 +214,9 @@ export function overlay<T extends { slug: string }>(local: T[], patches: Partial
   for (const item of local) if (!seen.has(item.slug)) out.push(item);
   return out;
 }
+
+/** Imagen genérica del sitio para un registro que todavía no tiene fotografía. */
+export const PLACEHOLDER_IMAGE = "/placeholder.svg";
 
 /** Lo mínimo para pintar una ficha sin huecos: identidad, textos e imagen. */
 export function hasCardBasics<T extends { slug: string; name: string; description: string; imageUrl: string }>(item: Partial<T>): item is T {

@@ -6,7 +6,7 @@ import { hotels as localHotels, type Hotel } from "@/data/hotels";
 import { restaurants as localRestaurants, type Restaurant } from "@/data/restaurants";
 import { fetchApi } from "@/lib/fastifyClient";
 import {
-  CATALOG_FIELDS, barPatch, beachPatch, buildPlaceIndex, destinationPatch, experiencePatch, hasCardBasics, hotelPatch, overlay, restaurantPatch, withExtras,
+  CATALOG_FIELDS, PLACEHOLDER_IMAGE, barPatch, beachPatch, buildPlaceIndex, destinationPatch, experiencePatch, hasCardBasics, hotelPatch, overlay, restaurantPatch, withExtras,
   type ApiRow, type CatalogCollection, type PlaceIndex,
 } from "./contentMappers";
 
@@ -62,7 +62,7 @@ async function load<T extends { slug: string; name: string; description: string;
   try {
     // `ready` (el traductor de imágenes empaquetadas) se espera a la vez que la red, no antes: no retrasa la petición.
     const [{ places }, rows] = await Promise.all([placesFor(locale), listAll(collection, locale), ready]);
-    return overlay(local, rows.map((row) => withExtras(row, patch(row, places))), hasCardBasics<T>);
+    return overlay(local, rows.map((row) => withExtras(row, patch(row, places))), hasCardBasics<T>, { imageUrl: PLACEHOLDER_IMAGE } as Partial<T>);
   } catch {
     return local;
   }
@@ -77,7 +77,7 @@ export const contentApi = {
   async destinations(locale = "es", ready: Promise<unknown> = Promise.resolve()): Promise<Destination[]> {
     try {
       const [{ places, destinations }] = await Promise.all([placesFor(locale), ready]);
-      return overlay(localDestinations, destinations.map((row) => withExtras(row, destinationPatch(row, places))), hasCardBasics<Destination>);
+      return overlay(localDestinations, destinations.map((row) => withExtras(row, destinationPatch(row, places))), hasCardBasics<Destination>, { imageUrl: PLACEHOLDER_IMAGE });
     } catch {
       return localDestinations;
     }

@@ -8,7 +8,9 @@ type Manifest = Record<string, Record<string, { type: string; nullable: boolean 
 const manifest = manifestJson as Manifest;
 interface Queryable { query(sql: string, params?: unknown[]): Promise<{ rows: any[]; rowCount: number | null }> }
 
-export interface DatasetResult { key: string; table: string; source: number; inserted: number; existing: number; skipped: number; errors: string[] }
+export interface DatasetResult { key: string; table: string; source: number; inserted: number; existing: number; skipped: number; /** Filas que ya existían y recibieron algún dato que les faltaba. */ completed: number; errors: string[] }
+/** Columnas que identifican o gobiernan la fila: nunca se rellenan desde el archivo. */
+const FILL_SKIP = new Set(["id", "slug", "extras", "status", "published_at", "is_active"]);
 
 const norm = (s: string) => slugify(s);
 /** Valor de JS → parámetro de PostgreSQL según el tipo de la columna. */
@@ -74,7 +76,7 @@ export async function runImport(db: Queryable, opts: { only?: string[]; log?: (m
   const out: DatasetResult[] = [];
   for (const ds of DATASETS) {
     if (opts.only?.length && !opts.only.includes(ds.key)) continue;
-    const res: DatasetResult = { key: ds.key, table: ds.table, source: 0, inserted: 0, existing: 0, skipped: 0, errors: [] };
+    const res: DatasetResult = { key: ds.key, table: ds.table, source: 0, inserted: 0, existing: 0, skipped: 0, completed: 0, errors: [] };
     try {
       if (!modules.has(ds.file)) modules.set(ds.file, await loadStatic(ds.file));
       const items = ds.items(modules.get(ds.file)!);
@@ -99,6 +101,18 @@ export async function runImport(db: Queryable, opts: { only?: string[]; log?: (m
             const bySlug = typeof row.slug === "string" && manifest[ds.table]?.slug ? " OR slug = $3" : "";
             await db.query(`UPDATE "${ds.table}" SET extras = $1 WHERE (id = $2${bySlug}) AND extras = '{}'::jsonb`, [JSON.stringify(row.extras), row.id, ...(bySlug ? [row.slug] : [])]);
           }
+          // Y sus columnas vacías se rellenan con lo que dice el archivo (una foto, un teléfono que faltaba).
+          // Sólo lo que está en NULL: un valor que ya existe, venga de donde venga, no se toca.
+          if (!r.rowCount && row.id) {
+            const fill = columns.map((c, i) => ({ c, v: values[i] })).filter(({ c, v }) => !FILL_SKIP.has(c) && v !== null);
+            if (fill.length) {
+              const bySlug = typeof row.slug === "string" && manifest[ds.table]?.slug ? ` OR slug = $${fill.length + 2}` : "";
+              const filled = await db.query(
+                `UPDATE "${ds.table}" SET ${fill.map(({ c }, i) => `"${c}" = COALESCE("${c}", $${i + 1})`).join(", ")} WHERE (id = $${fill.length + 1}${bySlug}) AND (${fill.map(({ c }) => `"${c}" IS NULL`).join(" OR ")})`,
+                [...fill.map(({ v }) => v), row.id, ...(bySlug ? [row.slug] : [])]);
+              if (filled.rowCount) res.completed++;
+            }
+          }
           await db.query("RELEASE SAVEPOINT r");
           r.rowCount ? res.inserted++ : res.existing++;
         } catch (e) {
@@ -107,7 +121,7 @@ export async function runImport(db: Queryable, opts: { only?: string[]; log?: (m
         }
       }
     } catch (e) { res.errors.push(`carga: ${(e as Error).message.slice(0, 200)}`); }
-    opts.log?.(`${ds.key.padEnd(18)} → ${ds.table.padEnd(18)} origen ${String(res.source).padStart(3)}  nuevas ${String(res.inserted).padStart(3)}  ya existían ${String(res.existing).padStart(3)}  omitidas ${res.skipped}${res.errors.length ? `  ERRORES ${res.errors.length}` : ""}`);
+    opts.log?.(`${ds.key.padEnd(18)} → ${ds.table.padEnd(18)} origen ${String(res.source).padStart(3)}  nuevas ${String(res.inserted).padStart(3)}  ya existían ${String(res.existing).padStart(3)}  omitidas ${res.skipped}${res.completed ? `  completadas ${res.completed}` : ""}${res.errors.length ? `  ERRORES ${res.errors.length}` : ""}`);
     out.push(res);
   }
   return out;

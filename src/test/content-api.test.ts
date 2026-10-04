@@ -103,4 +103,12 @@ describe("catálogo desde el backend", () => {
     respond((collection) => (collection === "provinces" ? page(PROVINCES) : collection === "destinations" ? page(DESTINATIONS) : page([{ slug: localHotels[0]!.slug, stars: 3 }])));
     expect((await contentApi.hotels()).find((h) => h.slug === localHotels[0]!.slug)!.stars).toBe(3);
   });
+
+  it("un registro que sólo está en el backend y no tiene foto se muestra con la imagen genérica", async () => {
+    const { overlay, hasCardBasics, PLACEHOLDER_IMAGE } = await import("@/services/contentMappers");
+    type Card = { slug: string; name: string; description: string; imageUrl: string };
+    const local: Card[] = [{ slug: "con-foto", name: "Con foto", description: "d", imageUrl: "/local.jpg" }];
+    const out = overlay<Card>(local, [{ slug: "con-foto", name: "Con foto" }, { slug: "sin-foto", name: "Sin foto", description: "d" }, { slug: "sin-texto", name: "Sin texto" }], hasCardBasics<Card>, { imageUrl: PLACEHOLDER_IMAGE });
+    expect(out.map((c) => [c.slug, c.imageUrl])).toEqual([["con-foto", "/local.jpg"], ["sin-foto", PLACEHOLDER_IMAGE]]);
+  });
 });
