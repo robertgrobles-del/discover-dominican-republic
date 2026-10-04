@@ -5,10 +5,10 @@ import { serializerCompiler, validatorCompiler, type ZodTypeProvider } from "fas
 import { loadEnv, type Env } from "./config/env.js";
 import { createPool, type Db } from "./db/pool.js";
 import { bindRequestId } from "./lib/request-context.js";
-import { createErrorReporter, type ErrorReporter } from "./lib/error-reporter.js";
+import { createErrorReporter } from "./lib/error-reporter.js";
 import { setAuditChainSecret } from "./lib/audit.js";
 import { registerAuth } from "./plugins/auth.js";
-import { registerErrorHandling } from "./plugins/errors.js";
+import { registerErrorHandling, type ErrorSink } from "./plugins/errors.js";
 import { registerMetrics } from "./plugins/metrics.js";
 import { registerEtag } from "./plugins/etag.js";
 import { registerOpenApi } from "./plugins/openapi.js";
@@ -23,7 +23,7 @@ export interface BuildOptions {
   /** Pool inyectado (tests). Si no se pasa, se crea uno y se cierra con la app. */
   db?: Db;
   /** Reporte de errores inyectado (tests). Si no se pasa, se crea a partir de SENTRY_DSN y ALERT_WEBHOOK_URL. */
-  errorReporter?: ErrorReporter;
+  errorReporter?: ErrorSink;
 }
 
 /** `false` (sin proxy), `true`, número de saltos o lista de CIDR: sólo se confía en X-Forwarded-For de proxies conocidos, para que nadie falsee su IP y evada los límites. */

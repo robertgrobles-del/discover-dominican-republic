@@ -1,11 +1,16 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { hasZodFastifySchemaValidationErrors, isResponseSerializationError } from "fastify-type-provider-zod";
 import { AppError } from "../lib/errors.js";
-import type { ErrorReporter } from "../lib/error-reporter.js";
 
-// Declarado aquí y no en `app.ts`: los servicios autónomos (weather, content) usan este manejador sin la
-// aplicación principal y pueden no tener monitoreo.
-declare module "fastify" { interface FastifyInstance { errorReporter?: ErrorReporter } }
+/**
+ * Destino de los errores inesperados (`src/lib/error-reporter.ts` en la API). Se declara aquí, con lo mínimo y sin
+ * importar aquel archivo: los servicios autónomos (weather, content) usan este manejador sin la aplicación
+ * principal, sus imágenes sólo copian los archivos que necesitan y pueden no tener monitoreo.
+ */
+export interface ErrorSink {
+  capture(err: unknown, ctx?: { source?: string; requestId?: string; method?: string; route?: string; userId?: string; level?: "error" | "fatal"; tags?: Record<string, string> }): Promise<void>;
+}
+declare module "fastify" { interface FastifyInstance { errorReporter?: ErrorSink } }
 
 /** Envoltorio de errores único (docs §3.3): { error: { code, message, details?, request_id } }. */
 export function registerErrorHandling(app: FastifyInstance) {

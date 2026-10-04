@@ -11,7 +11,7 @@ describe("reporte de errores de las peticiones", () => {
   const captured: { err: unknown; ctx?: ErrorContext }[] = [];
 
   beforeAll(async () => {
-    app = await buildApp({ env: testEnv(), errorReporter: { enabled: true, capture: async (err, ctx) => { captured.push({ err, ctx }); } } });
+    app = await buildApp({ env: testEnv(), errorReporter: { capture: async (err, ctx) => { captured.push({ err, ctx }); } } });
     app.get("/api/v1/__prueba/reservas/:id/falla", async () => { throw new TypeError("No se pudo leer 'total'"); });
     app.get("/api/v1/__prueba/negocio", async () => { throw AppError.validation("Fecha inválida"); });
     await app.ready();
