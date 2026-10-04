@@ -9,6 +9,9 @@ COPY src ./src
 RUN npm run build && npm prune --omit=dev
 
 FROM node:22-alpine
+# En ejecución sólo hace falta `node`: npm, npx, corepack y yarn se quitan porque no se usan y cargan
+# con sus propias dependencias vulnerables, que el escaneo de la imagen marcaría como nuestras.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /opt/yarn-*
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /app/node_modules ./node_modules
