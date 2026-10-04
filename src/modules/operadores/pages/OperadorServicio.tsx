@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle2, Clock, Languages, MapPin, ShieldCheck, Star, Users } from "lucide-react";
+import { CheckCircle2, Clock, Languages, MapPin, MessageCircle, Phone, ShieldCheck, Star, Users } from "lucide-react";
+import { trackContactClick, whatsappNumber } from "@/lib/operatorContactApi";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
@@ -133,8 +134,8 @@ export default function OperadorServicio() {
       await runAutomation("confirmation", org, id).catch(() => false);
       qc.invalidateQueries({ queryKey: ["op"] });
       setDone({ id, paid: payNow, deposit: deposit ? depositAmount : 0, balance: deposit ? total - depositAmount : 0 });
-    } catch (e: any) {
-      toast.error(e.message || "No se pudo completar la reserva");
+    } catch (e) {
+      toast.error((e instanceof Error && e.message) || "No se pudo completar la reserva");
     } finally {
       setBusy(false);
     }
@@ -229,6 +230,14 @@ export default function OperadorServicio() {
                 <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" /> Punto de encuentro</p><p className="font-medium">{listing.meeting_point || "Se confirma al reservar"}</p></CardContent></Card>
                 <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground flex items-center gap-1"><ShieldCheck className="h-3 w-3" /> Cancelación</p><p className="font-medium">{policy?.label}: {policy?.desc}</p></CardContent></Card>
               </section>
+              {(org.phone || listing.meeting_point) && (
+                <section className="flex flex-wrap items-center gap-2 text-sm" aria-label="Contactar al operador">
+                  <span className="text-muted-foreground">¿Dudas antes de reservar?</span>
+                  {org.phone && whatsappNumber(org.phone) && <Button size="sm" variant="outline" asChild><a href={`https://wa.me/${whatsappNumber(org.phone)}`} target="_blank" rel="noopener noreferrer" onClick={() => trackContactClick(slug, "whatsapp", listing.id)}><MessageCircle className="mr-1 h-4 w-4" /> WhatsApp</a></Button>}
+                  {org.phone && <Button size="sm" variant="outline" asChild><a href={`tel:${org.phone.replace(/[^\d+]/g, "")}`} onClick={() => trackContactClick(slug, "call", listing.id)}><Phone className="mr-1 h-4 w-4" /> Llamar</a></Button>}
+                  {listing.meeting_point && <Button size="sm" variant="outline" asChild><a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${listing.meeting_point}, ${listing.destination ?? "República Dominicana"}`)}`} target="_blank" rel="noopener noreferrer" onClick={() => trackContactClick(slug, "directions", listing.id)}><MapPin className="mr-1 h-4 w-4" /> Cómo llegar</a></Button>}
+                </section>
+              )}
             </div>
 
             <aside className="lg:sticky lg:top-24 self-start">

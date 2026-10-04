@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { quarterRange } from "../src/modules/operators/demand-report.js";
+import { DemandReportService, lastFinishedQuarter, quarterRange } from "../src/modules/operators/demand-report.js";
 import { json, makeApp } from "./helpers.js";
 
 const PW = "Correcta-Clave-2026!";
@@ -14,6 +14,11 @@ describe("trimestres", () => {
     expect(quarterRange("2026-T1")).toEqual({ from: "2026-01-01", to: "2026-03-31", previous: "2025-T4" });
     expect(quarterRange("2028-T4")).toEqual({ from: "2028-10-01", to: "2028-12-31", previous: "2028-T3" });
     expect(() => quarterRange("2026-Q3")).toThrow(/AAAA-Tn/);
+  });
+  it("el último trimestre terminado cruza de año en enero", () => {
+    expect(lastFinishedQuarter("2026-10-04")).toBe("2026-T3");
+    expect(lastFinishedQuarter("2027-01-02")).toBe("2026-T4");
+    expect(lastFinishedQuarter("2027-04-01")).toBe("2027-T1");
   });
 });
 
@@ -80,5 +85,23 @@ describe("reporte trimestral de demanda", () => {
       "Por cada reserva hubo 3 clics de contacto (WhatsApp, llamada, ruta o sitio web).",
     ]));
     expect(data.generated_by).toContain("sin IA");
+  });
+
+  it("al cerrar el trimestre lo envía por correo una sola vez, con cifras y hallazgos", async () => {
+    const svc = new DemandReportService(app.db);
+    const email = (await pool.query("SELECT email FROM partner_profiles WHERE id = $1", [orgId])).rows[0].email as string;
+    const mine = () => app.mailer.outbox.filter((m) => m.to === email && m.subject.includes("2031-T2"));
+    const july = new Date("2031-07-02T16:00:00Z");
+    // El envío no depende de que la suscripción siga vigente hoy, sino el día en que se ejecuta.
+    await pool.query("UPDATE operator_subscriptions SET current_period_end = '2032-01-01' WHERE org_id = $1", [orgId]);
+    expect((await svc.sendQuarterly(app.mailer, "https://sitio.test", july)).quarter).toBe("2031-T2");
+    await app.mailer.drain();
+    expect(mine()).toHaveLength(1);
+    expect(mine()[0]!.text).toContain("Reservas: 3 (+200 % frente al trimestre anterior)");
+    expect(mine()[0]!.text).toContain("El día con más viajeros fue el sábado (6 personas).");
+    expect(mine()[0]!.text).toContain("https://sitio.test/operadores/panel/reportes");
+    await svc.sendQuarterly(app.mailer, "https://sitio.test", july);
+    await app.mailer.drain();
+    expect(mine()).toHaveLength(1);
   });
 });

@@ -248,6 +248,18 @@ T["operator.min_guests"] = {
     html: layout("Departure below minimum", p(`The <b>${esc(d.service)}</b> departure on <b>${esc(d.date)}</b> has <b>${d.booked}</b> of ${d.min} minimum guests.`), { label: "Go to my bookings", url: d.url }),
   }),
 };
+T["operator.quarterly_report"] = {
+  es: (d) => ({
+    subject: `Tu reporte de demanda del trimestre ${d.quarter}`,
+    text: `${d.operator}, este es tu trimestre ${d.quarter}.\n\nReservas: ${d.bookings} (${d.growth})\nViajeros: ${d.guests}\n\n${d.findings.map((f) => `- ${f}`).join("\n")}\n\n${d.url}`,
+    html: layout("Tu reporte trimestral de demanda", p(`<b>${esc(d.operator)}</b>, este es tu trimestre <b>${esc(d.quarter)}</b>.`) + p(`Reservas: <b>${d.bookings}</b> (${esc(d.growth)})<br>Viajeros: <b>${d.guests}</b>`) + p(d.findings.map((f) => `• ${esc(f)}`).join("<br>")), { label: "Ver el reporte completo", url: d.url }),
+  }),
+  en: (d) => ({
+    subject: `Your demand report for quarter ${d.quarter}`,
+    text: `${d.operator}, here is your quarter ${d.quarter}.\n\nBookings: ${d.bookings} (${d.growth})\nGuests: ${d.guests}\n\n${d.findings.map((f) => `- ${f}`).join("\n")}\n\n${d.url}`,
+    html: layout("Your quarterly demand report", p(`<b>${esc(d.operator)}</b>, here is your quarter <b>${esc(d.quarter)}</b>.`) + p(`Bookings: <b>${d.bookings}</b> (${esc(d.growth)})<br>Guests: <b>${d.guests}</b>`) + p(d.findings.map((f) => `• ${esc(f)}`).join("<br>")), { label: "View the full report", url: d.url }),
+  }),
+};
 T["operator.weekly_report"] = {
   es: (d) => ({
     subject: `Tu semana en Descubre RD: ${d.bookings} reservas (${d.period})`,

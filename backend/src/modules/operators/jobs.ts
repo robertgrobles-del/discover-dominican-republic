@@ -10,6 +10,7 @@ import { auditInsert } from "../../lib/audit.js";
 import { ContactMetricsService } from "./contact-metrics.js";
 import { claimJobMark } from "../../lib/job-marks.js";
 import { WebhookService } from "./webhooks.js";
+import { DemandReportService } from "./demand-report.js";
 
 const PENDING_PAYMENT_MINUTES = 30;
 
@@ -22,6 +23,9 @@ export function registerOperatorJobs(d: Deps) {
 
   const webhooks = new WebhookService(db);
   runner.register({ name: "webhooks.deliver", description: "Recoge reservas nuevas y canceladas y entrega los webhooks firmados de los operadores", everySeconds: 60, run: async ({ now }) => ({ queued: await webhooks.collect(now), ...(await webhooks.deliverDue(now)) }) });
+
+  // A diario: en cuanto cierra un trimestre, cada organización Premium recibe su reporte una sola vez.
+  runner.register({ name: "operators.quarterly_report", description: "Reporte trimestral de demanda por correo a planes Premium y Corporativo", everySeconds: 86_400, run: async ({ now }) => new DemandReportService(db).sendQuarterly(d.mailer, d.env.WEB_BASE_URL, now) });
 
   // Se evalúa cada 6 h, pero la marca por organización y semana garantiza un solo correo; sale en cuanto cierra la semana.
   runner.register({ name: "operators.weekly_report", description: "Resumen semanal por correo a operadores con actividad (reservas y clics de contacto)", everySeconds: 6 * 3600, run: async ({ now }) => contactMetrics.sendWeeklyReports(now) });

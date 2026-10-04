@@ -1,6 +1,8 @@
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
-import { addDays } from "./domain/dates.js";
+import type { MailerPort } from "../../contracts/email.js";
+import { claimJobMark } from "../../lib/job-marks.js";
+import { addDays, todayInSantoDomingo } from "./domain/dates.js";
 
 /** Planes que incluyen el reporte trimestral de demanda. */
 const PREMIUM_TIERS = ["premium_partner", "corporativo"];
@@ -15,6 +17,12 @@ export function quarterRange(quarter: string): { from: string; to: string; previ
   const from = `${year}-${String((q - 1) * 3 + 1).padStart(2, "0")}-01`;
   const next = q === 4 ? `${year + 1}-01-01` : `${year}-${String(q * 3 + 1).padStart(2, "0")}-01`;
   return { from, to: addDays(next, -1), previous: q === 1 ? `${year - 1}-T4` : `${year}-T${q - 1}` };
+}
+
+/** Trimestre `AAAA-Tn` que terminó más recientemente antes de `today`. */
+export function lastFinishedQuarter(today: string): string {
+  const year = Number(today.slice(0, 4)), q = Math.ceil(Number(today.slice(5, 7)) / 3);
+  return q === 1 ? `${year - 1}-T4` : `${year}-T${q - 1}`;
 }
 
 interface Totals { bookings: number; cancelled: number; guests: number; lead_days: number | null }
@@ -37,9 +45,38 @@ export class DemandReportService {
     return { ...r, lead_days: r.lead_days === null ? null : Math.round(Number(r.lead_days) * 10) / 10 };
   }
 
+  /**
+   * Envía por correo el reporte del último trimestre terminado a cada organización con plan Premium o Corporativo,
+   * una sola vez por trimestre. Quien no tuvo reservas ni en ese trimestre ni en el anterior no recibe nada.
+   */
+  async sendQuarterly(mailer: MailerPort, webBaseUrl: string, now = new Date()): Promise<{ quarter: string; sent: number }> {
+    const quarter = lastFinishedQuarter(todayInSantoDomingo(now));
+    const { rows } = await this.db.query<{ id: string; business_name: string; email: string }>(
+      `SELECT p.id, p.business_name, p.email FROM partner_profiles p
+        WHERE EXISTS (SELECT 1 FROM operator_subscriptions s WHERE s.org_id = p.id AND s.status = 'active' AND s.plan_tier = ANY($1) AND s.current_period_end > $2)
+          AND NOT EXISTS (SELECT 1 FROM job_marks m WHERE m.key = 'demand_report:' || p.id || ':' || $3)
+        ORDER BY p.id LIMIT 500`, [PREMIUM_TIERS, now, quarter],
+    );
+    let sent = 0;
+    for (const o of rows) {
+      if (!(await claimJobMark(this.db, `demand_report:${o.id}:${quarter}`))) continue; // otra instancia ya lo envió
+      const r = await this.report(o.id, quarter);
+      if (r.totals.bookings === 0 && r.previous.bookings === 0) continue;
+      const growth = r.previous.growth_pct === null ? "sin trimestre anterior con el que comparar" : `${r.previous.growth_pct >= 0 ? "+" : ""}${r.previous.growth_pct} % frente al trimestre anterior`;
+      await mailer.send({ to: o.email, template: "operator.quarterly_report", locale: "es", data: { operator: o.business_name, quarter, bookings: r.totals.bookings, guests: r.totals.guests, growth, findings: r.findings, url: `${webBaseUrl}/operadores/panel/reportes` } });
+      sent++;
+    }
+    return { quarter, sent };
+  }
+
+  /** El reporte de un trimestre para quien tiene un plan que lo incluye. */
   async quarterly(orgId: string, quarter: string) {
     const sub = await this.db.query("SELECT 1 FROM operator_subscriptions WHERE org_id = $1 AND status = 'active' AND plan_tier = ANY($2) AND current_period_end > now()", [orgId, PREMIUM_TIERS]);
     if (!sub.rowCount) throw new AppError("FORBIDDEN", "El reporte trimestral de demanda está incluido en los planes Premium y Corporativo");
+    return this.report(orgId, quarter);
+  }
+
+  private async report(orgId: string, quarter: string) {
     const { from, to, previous } = quarterRange(quarter);
     const prev = quarterRange(previous);
     const p = [orgId, from, to];
