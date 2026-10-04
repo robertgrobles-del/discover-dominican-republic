@@ -43,12 +43,12 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
       links: [
         { name: "Punta Cana", href: "/destino/punta-cana" },
         { name: "Santo Domingo", href: "/destino/santo-domingo" },
-        { name: "SamanÃ¡", href: "/destino/samana" },
+        { name: "Samaná", href: "/destino/samana" },
         { name: "Puerto Plata", href: "/destino/puerto-plata" },
         { name: "La Romana", href: "/destino/la-romana" },
         { name: "Jarabacoa", href: "/destino/jarabacoa" },
         { name: "Barahona", href: "/destino/barahona" },
-        { name: "BahÃ­a de las Ãguilas", href: "/destino/bahia-de-las-aguilas" },
+        { name: "Bahía de las Águilas", href: "/destino/bahia-de-las-aguilas" },
       ],
     },
     experiencias: {
@@ -69,7 +69,7 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
       links: [
         { name: "Ofertas y descuentos", href: "/ofertas" },
         { name: "Tasas de Cambio Bancarias", href: "/tasas-cambio" },
-        { name: "Resultados de LoterÃ­as", href: "/loterias" },
+        { name: "Resultados de Loterías", href: "/loterias" },
         { name: "Reserva Directa", href: "/reserva-directa" },
         { name: "Itinerario con IA", href: "/itinerario-ia" },
         { name: "Tarjeta RD Pass", href: "/tarjeta-prepago" },
@@ -91,11 +91,11 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
         { name: "Operadores RD (reservas directas)", href: "/operadores" },
         { name: "Tienda oficial", href: "/tienda" },
         { name: "Programa de Creadores", href: "/creadores" },
-        { name: "GamificaciÃ³n & Premios", href: "/gamificacion-turistica" },
+        { name: "Gamificación & Premios", href: "/gamificacion-turistica" },
         { name: t("footer.press"), href: "/prensa" },
         { name: "Boletín institucional", href: "/newsletter-subscribe" },
         { name: "Estadisticas turisticas", href: "/estadisticas" },
-        { name: "InversiÃ³n TurÃ­stica", href: "/inversion" },
+        { name: "Inversión Turística", href: "/inversion" },
         { name: t("footer.privacy"), href: "/terminos" },
         { name: t("footer.terms"), href: "/terminos" },
         { name: t("footer.contact"), href: "/sobre-nosotros#contacto" },
@@ -104,7 +104,7 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
     editorial: {
       title: "Revista, cultura y comunidad",
       links: [
-        { name: "Revista y artÃ­culos", href: "/revista" },
+        { name: "Revista y artículos", href: "/revista" },
         { name: "Podcast y cine RD", href: "/podcast" },
         { name: "Historia y patrimonio", href: "/museos-monumentos" },
         { name: "Sabores y oficios", href: "/rutas-sabor" },
@@ -152,7 +152,7 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
               <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
                 <span className="font-display font-black text-slate-950 text-sm">RD</span>
               </div>
-              <span className="font-display font-bold text-foreground">Descubre RepÃºblica Dominicana</span>
+              <span className="font-display font-bold text-foreground">Descubre República Dominicana</span>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
               {t("hero.subtitle")}
@@ -165,7 +165,7 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
               <Button variant="outline" size="icon" aria-label="Perfil de Instagram oficial" className="text-muted-foreground hover:text-primary hover:border-primary">
                 <Instagram className="h-4 w-4" aria-hidden="true" />
               </Button>
-              <Button variant="outline" size="icon" aria-label="PÃ¡gina de Facebook oficial" className="text-muted-foreground hover:text-primary hover:border-primary">
+              <Button variant="outline" size="icon" aria-label="Página de Facebook oficial" className="text-muted-foreground hover:text-primary hover:border-primary">
                 <Facebook className="h-4 w-4" aria-hidden="true" />
               </Button>
               <Button variant="outline" size="icon" aria-label="Cuenta de Twitter / X oficial" className="text-muted-foreground hover:text-primary hover:border-primary">
@@ -182,11 +182,11 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
                 placeholder={t("footer.newsletterPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                aria-label="Correo electrÃ³nico para boletÃ­n"
+                aria-label="Correo electrónico para boletín"
                 className="flex-1 bg-background"
                 required
               />
-              <Button type="submit" size="sm" aria-label="Suscribirse al boletÃ­n informativo">
+              <Button type="submit" size="sm" aria-label="Suscribirse al boletín informativo">
                 <Mail className="h-4 w-4" aria-hidden="true" />
               </Button>
             </form>
@@ -196,10 +196,10 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
                 <Smartphone className="h-4 w-4" aria-hidden="true" /> {t("footer.downloadApp")}
               </p>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" aria-label="Descargar aplicaciÃ³n en Apple App Store" className="text-xs">
+                <Button variant="outline" size="sm" aria-label="Descargar aplicación en Apple App Store" className="text-xs">
                   App Store
                 </Button>
-                <Button variant="outline" size="sm" aria-label="Descargar aplicaciÃ³n en Google Play Store" className="text-xs">
+                <Button variant="outline" size="sm" aria-label="Descargar aplicación en Google Play Store" className="text-xs">
                   Google Play
                 </Button>
               </div>
@@ -215,7 +215,7 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
                 type="button"
                 onClick={() => toggleSection(key)}
                 aria-expanded={expandedSection === key}
-                aria-label={`Desplegar secciÃ³n ${section.title}`}
+                aria-label={`Desplegar sección ${section.title}`}
                 className="flex items-center justify-between w-full py-4 text-left"
               >
                 <span className="font-display font-bold text-foreground">{section.title}</span>
@@ -252,7 +252,7 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
               <Button variant="outline" size="icon" aria-label="Perfil de Instagram" className="text-muted-foreground hover:text-primary">
                 <Instagram className="h-4 w-4" aria-hidden="true" />
               </Button>
-              <Button variant="outline" size="icon" aria-label="PÃ¡gina de Facebook" className="text-muted-foreground hover:text-primary">
+              <Button variant="outline" size="icon" aria-label="Página de Facebook" className="text-muted-foreground hover:text-primary">
                 <Facebook className="h-4 w-4" aria-hidden="true" />
               </Button>
               <Button variant="outline" size="icon" aria-label="Cuenta de Twitter / X" className="text-muted-foreground hover:text-primary">
@@ -267,11 +267,11 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
                 placeholder={t("footer.newsletterPlaceholder")}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                aria-label="Correo electrÃ³nico para boletÃ­n mÃ³vil"
+                aria-label="Correo electrónico para boletín móvil"
                 className="flex-1"
                 required
               />
-              <Button type="submit" size="sm" aria-label="Suscribirse al boletÃ­n mÃ³vil">
+              <Button type="submit" size="sm" aria-label="Suscribirse al boletín móvil">
                 <Mail className="h-4 w-4" aria-hidden="true" />
               </Button>
             </form>
@@ -279,22 +279,22 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
         </div>
 
         <section aria-label="Comentarios sobre el sitio" className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-secondary/20 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm font-medium text-foreground">Â¿CÃ³mo podemos mejorar esta pÃ¡gina?</p>
+          <p className="text-sm font-medium text-foreground">¿Cómo podemos mejorar esta página?</p>
           <div className="flex flex-wrap gap-4 text-sm">
             <Link to={`/encuesta${feedbackContext}`} className="text-primary hover:underline">Responder encuesta</Link>
-            <Link to={`/opiniones${feedbackContext}`} className="text-primary hover:underline">Compartir opiniÃ³n</Link>
+            <Link to={`/opiniones${feedbackContext}`} className="text-primary hover:underline">Compartir opinión</Link>
           </div>
         </section>
 
         {/* Bottom Bar */}
         <div className="pt-6 mt-6 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <p>Â© {new Date().getFullYear()} Descubre RepÃºblica Dominicana. {t("footer.allRightsReserved")}</p>
+          <p>© {new Date().getFullYear()} Descubre República Dominicana. {t("footer.allRightsReserved")}</p>
           <div className="flex flex-wrap items-center gap-6">
             <Link to="/terminos" className="hover:text-primary transition-colors">{t("footer.privacy")}</Link>
             <Link to="/terminos" className="hover:text-primary transition-colors">{t("footer.terms")}</Link>
             <Link to="/sitemap" className="hover:text-primary transition-colors">Mapa del Sitio</Link>
             <button type="button" onClick={openPrivacySettings} className="hover:text-primary transition-colors underline-offset-4 hover:underline">
-              ConfiguraciÃ³n de privacidad
+              Configuración de privacidad
             </button>
           </div>
         </div>
