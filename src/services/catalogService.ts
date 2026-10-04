@@ -52,18 +52,18 @@ export const CatalogService = {
   getHotels: (_locale = "es"): Promise<Hotel[]> => from(localHotels),
   getExperiences: (_locale = "es"): Promise<Experience[]> => from(localExperiences),
 
-  async getHotelsByDestination(destOrProvId: string): Promise<Hotel[]> { return inPlace(await this.getHotels(), destOrProvId); },
-  async getRestaurantsByDestination(destOrProvId: string): Promise<Restaurant[]> { return inPlace(await this.getRestaurants(), destOrProvId); },
-  async getBarsByDestination(destOrProvId: string): Promise<Bar[]> { return inPlace(await this.getBars(), destOrProvId); },
+  async getHotelsByDestination(destOrProvId: string): Promise<Hotel[]> { return inPlace(await from(localHotels), destOrProvId); },
+  async getRestaurantsByDestination(destOrProvId: string): Promise<Restaurant[]> { return inPlace(await from(localRestaurants), destOrProvId); },
+  async getBarsByDestination(destOrProvId: string): Promise<Bar[]> { return inPlace(await from(localBars), destOrProvId); },
   /** Las experiencias se filtran sólo por destino, no por provincia. */
-  async getExperiencesByDestination(destOrProvId: string): Promise<Experience[]> { return inPlace(await this.getExperiences(), destOrProvId, false); },
+  async getExperiencesByDestination(destOrProvId: string): Promise<Experience[]> { return inPlace(await from(localExperiences), destOrProvId, false); },
 
-  async getDestinationBySlug(slug: string, locale = "es"): Promise<Destination | null> { return bySlug(await this.getDestinations(locale), slug); },
-  async getBarBySlug(slug: string, locale = "es"): Promise<Bar | null> { return bySlug(await this.getBars(locale), slug); },
-  async getExperienceBySlug(slug: string, locale = "es"): Promise<Experience | null> { return bySlug(await this.getExperiences(locale), slug); },
-  async getRestaurantBySlug(slug: string, locale = "es"): Promise<Restaurant | null> { return bySlug(await this.getRestaurants(locale), slug); },
-  async getHotelBySlug(slug: string, locale = "es"): Promise<Hotel | null> { return bySlug(await this.getHotels(locale), slug); },
-  async getBeachBySlug(slug: string, locale = "es"): Promise<Beach | null> { return bySlug(await this.getBeaches(locale), slug); },
+  async getDestinationBySlug(slug: string, _locale = "es"): Promise<Destination | null> { return bySlug(await from(localDestinations), slug); },
+  async getBarBySlug(slug: string, _locale = "es"): Promise<Bar | null> { return bySlug(await from(localBars), slug); },
+  async getExperienceBySlug(slug: string, _locale = "es"): Promise<Experience | null> { return bySlug(await from(localExperiences), slug); },
+  async getRestaurantBySlug(slug: string, _locale = "es"): Promise<Restaurant | null> { return bySlug(await from(localRestaurants), slug); },
+  async getHotelBySlug(slug: string, _locale = "es"): Promise<Hotel | null> { return bySlug(await from(localHotels), slug); },
+  async getBeachBySlug(slug: string, _locale = "es"): Promise<Beach | null> { return bySlug(await from(localBeaches), slug); },
 
   /** Spas y centros de bienestar publicados en el backend. Sin backend no hay ninguno que añadir a los locales. */
   async getSpas(): Promise<SpaRow[]> {
