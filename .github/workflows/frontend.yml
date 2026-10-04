@@ -95,6 +95,15 @@ jobs:
           VITE_ALLOW_MOCK_BUILD: "true"
         run: npm run build
 
+      - name: Comprobar el prerenderizado de las fichas clave
+        # `npm run build` ejecuta `scripts/postbuild.mjs`: cada ficha debe tener su propio HTML con su título,
+        # y sin identificadores de píxel la política de seguridad no debe abrirse a terceros.
+        run: |
+          grep -q '<title>Punta Cana | ' dist/destino/punta-cana/index.html
+          grep -q 'data-prerendered' dist/playa/playa-bavaro/index.html
+          test "$(find dist -mindepth 3 -name index.html | wc -l)" -ge 100
+          ! grep -rq 'connect.facebook.net\|analytics.tiktok.com' dist/index.html dist/destino/punta-cana/index.html
+
       - name: Flujos prioritarios de frontend en escritorio y móvil
         # `vite preview` corre en modo producción: necesita la misma autorización explícita que el build.
         env:

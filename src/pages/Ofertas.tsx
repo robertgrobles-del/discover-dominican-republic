@@ -1,3 +1,4 @@
+import { ProximityAlertsToggle } from "@/components/promo/ProximityAlertsToggle";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
@@ -147,8 +148,10 @@ export default function Ofertas() {
   useEffect(() => {
     async function fetchOffers() {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- el cliente simulado no tipa esta tabla
         const { data, error } = await (supabase.from("offers" as any).select("*") as any);
         if (!error && data && data.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- el cliente simulado no tipa esta tabla
           const mapped = data.map((item: any) => ({
             id: item.id,
             title: item.title,
@@ -378,6 +381,12 @@ export default function Ofertas() {
         </section>
 
         {/* Geolocation Simulator Console */}
+        <section className="pt-8">
+          <div className="container mx-auto px-4">
+            <ProximityAlertsToggle />
+          </div>
+        </section>
+
         <section className="py-8 bg-card border-y border-border">
           <div className="container mx-auto px-4 max-w-4xl">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "postbuild": "node scripts/postbuild.mjs",
     "check:bundle-budget": "node scripts/check-bundle-budget.mjs",
     "typecheck:strict-pilot": "tsc -p tsconfig.strict-pilot.json --noEmit",
     "lint:unused-pilot": "eslint src/lib/httpClient.ts src/lib/fastifyClient.ts src/services/strapiClient.ts src/hooks/useCart.tsx src/hooks/useFastifyContent.ts src/components/CartDrawer.tsx src/modules/tienda/api.ts src/modules/tienda/pages/TiendaHome.tsx src/modules/tienda/pages/TiendaProducto.tsx src/pages/Reservas.tsx --rule @typescript-eslint/no-unused-vars:error",

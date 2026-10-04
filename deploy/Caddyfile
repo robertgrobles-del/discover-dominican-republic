@@ -38,7 +38,12 @@
 		@hashed path /assets/*
 		header @hashed Cache-Control "public, max-age=31536000, immutable"
 		header /index.html Cache-Control "no-cache"
-		try_files {path} /index.html
+		# Las fichas prerenderizadas (`scripts/postbuild.mjs`) viven en <ruta>/index.html: se sirven antes de caer en
+		# la plantilla de la aplicación, sin redirigir a la barra final.
+		# Toda ruta sin extensión es una página (prerenderizada o de la aplicación): se revalida siempre.
+		@pagina not path *.*
+		header @pagina Cache-Control "no-cache"
+		try_files {path} {path}/index.html /index.html
 		file_server
 	}
 }

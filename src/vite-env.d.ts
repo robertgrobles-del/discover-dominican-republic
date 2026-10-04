@@ -9,6 +9,10 @@ interface ImportMetaEnv {
   /** "mock" (default) or "api"; validated at runtime in src/lib/dataSource.ts. */
   readonly VITE_DATA_SOURCE?: string;
   readonly VITE_CATALOG_SOURCE?: string;
+  /** Identificador del píxel de Meta (sólo dígitos). Vacío: no se carga. */
+  readonly VITE_META_PIXEL_ID?: string;
+  /** Identificador del píxel de TikTok. Vacío: no se carga. */
+  readonly VITE_TIKTOK_PIXEL_ID?: string;
 }
 
 interface ImportMeta {

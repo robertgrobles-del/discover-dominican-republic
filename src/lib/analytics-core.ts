@@ -67,6 +67,9 @@ export function sendAnalyticsEvent(
   if (!isAnalyticsAllowed() || typeof window === "undefined") return;
   const safePage = opts.internalPanel ? `panel/${opts.internalPanel.slice(0, 40)}` : cleanAnalyticsPage(page);
   if (!safePage) return;
+  // Los píxeles de publicidad (`marketingPixels`) escuchan este aviso: sólo eventos de páginas públicas y con
+  // los datos ya filtrados. Sin píxeles configurados nadie lo escucha.
+  if (!opts.internalPanel) window.dispatchEvent(new CustomEvent("dr:analytics-event", { detail: { type, props: cleanAnalyticsMetadata(props) } }));
   void fetch(`${API_BASE_URL}/analytics/events`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },

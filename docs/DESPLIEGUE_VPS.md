@@ -34,6 +34,11 @@ cp .env.example .env.staging      # completar dominios y secretos
 
 El frontend se compila fuera del VPS (CI publica el artefacto `frontend-dist-<sha>`) **sin definir `VITE_API_URL`** y con `VITE_DATA_SOURCE=api`, y se copia al servidor. Con ese valor el catálogo se lee del backend, que es la fuente de verdad (`VITE_CATALOG_SOURCE` vacío sigue a `VITE_DATA_SOURCE`; sólo hay que definirlo para forzar `static` o `api` por separado). Así llama a la API por `/api/v1` en su mismo dominio, que el proxy reenvía. No apuntes el frontend a `API_DOMAIN`: la política de seguridad de contenido de `index.html` sólo permite conexiones al propio origen y el navegador bloquearía todas las llamadas (comprobado en local). `API_DOMAIN` queda para integraciones externas.
 
+`npm run build` ejecuta después `scripts/postbuild.mjs`, que deja en `dist/`:
+
+- **Fichas prerenderizadas** (`/destino/:slug`, `/playa/:slug`, `/alojamiento/:slug`, `/restaurante/:slug`, `/bar/:slug`, `/experiencia/:slug`, `/montana/:slug`, `/aeropuerto/:slug`, `/articulo/:slug`): un `index.html` por ficha con su título, descripción, imagen, URL canónica, datos estructurados y un resumen del contenido, para buscadores y para las vistas previas de WhatsApp, Facebook o X, que no ejecutan JavaScript. Caddy las sirve antes de caer en la plantilla de la aplicación (`try_files {path} {path}/index.html /index.html`). Variables del build: `SITE_URL` (dominio canónico) y, opcional, `PRERENDER_API` para que los textos salgan del backend. Una ficha creada después en el CMS no tiene página propia hasta el siguiente build: mientras tanto responde la aplicación, como antes.
+- **Píxeles de publicidad**: sólo si el build define `VITE_META_PIXEL_ID` o `VITE_TIKTOK_PIXEL_ID` se añaden sus dominios a la política de seguridad de contenido. El script del píxel no se carga hasta que la persona acepta la analítica, y no recibe datos personales (`src/lib/marketingPixels.ts`).
+
 ## Cómo se despliega sin cortar el servicio
 
 - **Frontend:** cada versión va a `releases/<fecha>` y `current` es un enlace simbólico que se cambia con un `mv` atómico. Ninguna petición ve una versión a medias, y `./deploy.sh <entorno> rollback-site` vuelve a la anterior. Se conservan las últimas 5.
