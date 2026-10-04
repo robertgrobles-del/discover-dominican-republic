@@ -12,7 +12,7 @@ describe("carga del contenido estático del frontend", () => {
   let pool: pg.Pool;
   let c: pg.PoolClient;
   let first: DatasetResult[], second: DatasetResult[], docs: DocumentResult[];
-  const DOC_FILES = ["transporteData.ts", "monedaData.ts", "mountains.ts", "hotels.ts", "rewardsData.ts"];
+  const DOC_FILES = ["transporteData.ts", "monedaData.ts", "mountains.ts", "hotels.ts", "rewardsData.ts", "partnerDashboardData.ts"];
 
   beforeAll(async () => {
     pool = new pg.Pool({ connectionString: process.env.TEST_DATABASE_URL });
@@ -105,7 +105,8 @@ describe("carga del contenido estático del frontend", () => {
   it("lo que no es una colección se guarda como documentos, uno por archivo; lo editado en el CMS no se pisa", async () => {
     const by = Object.fromEntries(docs.map((d) => [d.file, d]));
     expect(docs.filter((d) => d.error)).toEqual([]);
-    expect(by["rewardsData.ts"]).toBeUndefined(); // pertenece al módulo de recompensas, no es contenido editorial
+    expect(by["partnerDashboardData.ts"]).toBeUndefined(); // actividad simulada de un socio, no contenido del sitio
+    expect(by["rewardsData.ts"]!.exports).toBeGreaterThan(0); // el catálogo de recompensas sí es contenido editable
     expect(by["hotels.ts"]!.state).toBe("vacío"); // su único bloque de datos ya es una colección
     expect(by["mountains.ts"]!.exports).toBe(1); // las etiquetas de cordillera, no las montañas
     expect(datasetKey("comoLlegarData.ts")).toBe("como-llegar-data");

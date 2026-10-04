@@ -315,6 +315,17 @@ export const SECONDARY_COLLECTIONS: CollectionSpec[] = [
     // El cuerpo no: en la base es un único texto compuesto a partir de las secciones locales.
     fields: { title: "title", summary: "excerpt", heroImage: "image_url", "author.name": "author_name" },
   },
+  {
+    // La descripción de la base es un texto compuesto (descripción, impacto y aliado): el detalle llega por `extras`.
+    name: "offsetProjects", path: "offset-projects", load: async () => as((await import("../data/carbonoData")).offsetProjects),
+    keyOf: (p) => slugify(p.title),
+    fields: { title: "title", location: "location", category: "category", cost_info: "cost_info" },
+  },
+  {
+    name: "rutasSabor", path: "routes", load: async () => as((await import("../data/rutasSaborData")).RUTAS_SABOR_DATA),
+    keyOf: (r) => slugify(r.name), accepts: (row) => isPlain(row.extras) && "paradasClave" in row.extras,
+    fields: { name: "title" },
+  },
 ];
 
 /** Las recetas criollas nuevas sólo se muestran si su categoría es una de las que la pantalla sabe pintar. */

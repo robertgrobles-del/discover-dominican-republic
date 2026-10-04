@@ -129,8 +129,12 @@ export async function runImport(db: Queryable, opts: { only?: string[]; log?: (m
 
 // ---------- Documentos de contenido ----------
 
-/** Archivos cuyo contenido pertenece a otro módulo del backend (publicidad, tienda, recompensas, creadores, paneles): no son contenido editorial. */
-export const NOT_EDITORIAL = new Set(["partnerDashboardData", "creatorsData", "socialData", "mockIndustryBanners", "officialBanners", "marketplaceData", "rewardsData", "pricingPlansData", "fallbackAccommodations"]);
+/**
+ * Archivos que no son contenido del sitio sino actividad simulada de personas o de anunciantes para las
+ * demostraciones (reservas y reseñas de un socio, publicaciones de usuarios, creadores ficticios, campañas de
+ * muestra): en producción esos datos los generan sus módulos, no el equipo editorial.
+ */
+export const NOT_EDITORIAL = new Set(["partnerDashboardData", "creatorsData", "socialData", "mockIndustryBanners"]);
 /** Exportaciones que ya se cargan como filas de una colección: su ficha completa va en `extras`, no en un documento. */
 export const IN_COLLECTIONS = new Set(["destinations", "beaches", "mountains", "rivers", "rios", "reservas", "hotels", "restaurants", "bars", "shoppingMalls", "centrosSalud", "experiences", "parquesData.parquesData", "cruisePorts", "marinasList", "eventosEstaticosCompletos", "criolloRecipes", "recipesData", "airports", "blogPosts", "historyArticles", "offsetProjects", "RUTAS_SABOR_DATA"]);
 
