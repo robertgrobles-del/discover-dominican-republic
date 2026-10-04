@@ -3,7 +3,7 @@
 > Generado automáticamente por `npm run docs:api` a partir de las rutas que el servidor registra. **No se edita a mano**: si una ruta cambia, se regenera (CI verifica con `npm run docs:api -- --check`).
 > `docs/BACKEND_API.md` es el diseño original; donde difiera, esta lista describe lo que existe. Detalle de cada módulo, reglas y ejemplos: `backend/README.md`. Contrato completo (esquemas de entrada y salida): `/docs` (Swagger) del servidor.
 
-Versión 0.1.0 · 880 operaciones en 46 grupos.
+Versión 0.1.0 · 1002 operaciones en 47 grupos.
 
 Convenciones: todas las rutas cuelgan de `/api/v1`. Errores con la forma `{ error: { code, message, details, request_id } }`. **Sesión** = `Authorization: Bearer <jwt>`; **Opcional** = funciona sin sesión y, con ella, personaliza.
 
@@ -63,6 +63,7 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
 | DELETE | `/me` | Sesión | Solicita eliminar mi cuenta (30 días de gracia) |
+| GET | `/me/capability-grants` | Sesión | Mis permisos acotados vigentes |
 | POST | `/me/deletion/cancel` | Sesión | Cancela la solicitud de eliminación durante el período de gracia |
 | GET | `/me/export` | Sesión | Descarga todos mis datos personales (JSON) |
 | GET | `/me/favorites` | Sesión | Mis favoritos |
@@ -92,6 +93,11 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
+| GET | `/admin/access-reviews` | Personal / admin | Revisiones de acceso del personal, con lo pendiente de cada una |
+| POST | `/admin/access-reviews` | Personal / admin | Abre una revisión con los roles actuales del personal (sólo una abierta a la vez) |
+| GET | `/admin/access-reviews/{id}` | Personal / admin | Una revisión con cada acceso, su última sesión y la decisión tomada |
+| POST | `/admin/access-reviews/{id}/close` | Personal / admin | Cierra la revisión (exige haber decidido todos los accesos) |
+| POST | `/admin/access-reviews/{id}/items/{itemId}/decide` | Personal / admin | Confirma o retira un acceso (justificación obligatoria; nadie revisa los suyos) |
 | GET | `/admin/achievements` | Personal / admin | Logros: lista |
 | POST | `/admin/achievements` | Personal / admin | Logros: crear |
 | PATCH | `/admin/achievements/{id}` | Personal / admin | Logros: editar |
@@ -116,21 +122,45 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | PATCH | `/admin/ambassadors/{id}` | Personal / admin | Aprueba, rechaza o suspende; fija una comisión especial |
 | GET | `/admin/ambassadors/payouts` | Personal / admin | Pagos de comisiones |
 | PATCH | `/admin/ambassadors/payouts/{id}` | Personal / admin | Marca un pago como enviado (con referencia) o fallido (las comisiones vuelven a estar disponibles) |
+| GET | `/admin/analytics/bounce` | Personal / admin | Tasa de rebote por día y por página de entrada, con el umbral de alerta vigente |
 | GET | `/admin/analytics/export.csv` | Personal / admin | Exporta un reporte en CSV |
 | GET | `/admin/analytics/funnels/{name}` | Personal / admin | Embudos calculados con datos reales (reserva, registro, tienda) |
+| GET | `/admin/analytics/heatmap` | Personal / admin | Mapa de calor de actividad por día de la semana y hora |
 | GET | `/admin/analytics/nps` | Personal / admin | NPS y comentarios de las encuestas |
 | GET | `/admin/analytics/overview` | Personal / admin | KPIs de la plataforma en un rango |
+| GET | `/admin/analytics/panel-adoption` | Personal / admin | Adopción por perfil: onboarding, tareas, abandono y errores por tipo de panel (agregado y sin PII) |
+| GET | `/admin/analytics/satisfaction` | Personal / admin | Índice de satisfacción: reseñas aprobadas ponderadas por visitas con sello de Pasaporte |
 | GET | `/admin/analytics/search-terms` | Personal / admin | Términos buscados sin resultados |
 | GET | `/admin/analytics/top-content` | Personal / admin | Contenido más visto o más guardado |
 | GET | `/admin/analytics/traffic` | Personal / admin | Vistas y sesiones por página, origen, país o día |
+| GET | `/admin/approvals` | Personal / admin | Solicitudes de aprobación |
+| POST | `/admin/approvals` | Personal / admin | Solicita una operación crítica; otra persona administradora debe aprobarla |
+| POST | `/admin/approvals/{id}/approve` | Personal / admin | Aprueba y ejecuta la operación (no puede hacerlo quien la solicitó) |
+| POST | `/admin/approvals/{id}/cancel` | Personal / admin | Retira una solicitud propia aún pendiente |
+| POST | `/admin/approvals/{id}/reject` | Personal / admin | Rechaza la solicitud (motivo obligatorio) |
 | GET | `/admin/audit` | Personal / admin | Bitácora de auditoría |
 | GET | `/admin/audit-logs` | Personal / admin | Auditoría con filtros por actor, entidad, acción y fechas (?format=csv exporta) |
 | GET | `/admin/audit/verify` | Personal / admin | Verifica la cadena de hash de la bitácora (detecta manipulación) |
 | GET | `/admin/calculators/defaults` | Personal / admin | Cifras por defecto y vigentes de las calculadoras (se ajustan con site_settings `calculators.<nombre>`) |
+| GET | `/admin/capability-grants` | Personal / admin | Permisos acotados concedidos, con su alcance y vigencia |
+| POST | `/admin/capability-grants` | Personal / admin | Concede un permiso acotado (colecciones del catálogo, registros concretos con vencimiento, o analítica de sólo lectura) |
+| DELETE | `/admin/capability-grants/{id}` | Personal / admin | Revoca un permiso acotado |
 | POST | `/admin/contests` | Personal / admin | Crea un concurso |
 | POST | `/admin/contests/{slug}/draw` | Personal / admin | Sortea ganadores al azar entre los inscritos y cierra el concurso |
 | GET | `/admin/contests/{slug}/registrations` | Personal / admin | Inscritos |
+| GET | `/admin/creator-campaigns` | Personal / admin | Campañas con creadores, con aceptaciones y entregas pendientes |
+| POST | `/admin/creator-campaigns` | Personal / admin | Crea una campaña en borrador con la primera versión de sus términos |
+| GET | `/admin/creator-campaigns/{id}/acceptances` | Personal / admin | Evidencia de aceptación: quién aceptó qué versión, cuándo y con qué texto |
+| GET | `/admin/creator-campaigns/{id}/deliverables` | Personal / admin | Entregas de una campaña, con las pendientes de revisar primero |
+| POST | `/admin/creator-campaigns/{id}/status` | Personal / admin | Abre o cierra la campaña |
+| PUT | `/admin/creator-campaigns/{id}/terms` | Personal / admin | Publica una versión nueva de los términos (quien ya aceptó debe volver a aceptar) |
+| POST | `/admin/creator-deliverables/{id}/review` | Personal / admin | Aprueba o rechaza una entrega; aprobar registra la licencia y, si aplica, el pago |
+| GET | `/admin/creator-disputes` | Personal / admin | Disputas de creadores por plazo de respuesta |
+| POST | `/admin/creator-disputes/{id}/resolve` | Personal / admin | Resuelve una disputa (la corrección económica, si procede, se registra aparte como reverso o ajuste) |
+| POST | `/admin/creator-ledger` | Personal / admin | Registra una bonificación, un ajuste, fondo de creadores o propina (motivo obligatorio) |
+| POST | `/admin/creator-ledger/{id}/reverse` | Personal / admin | Revierte un ingreso dejando la razón a la vista del creador |
 | POST | `/admin/creators/{id}/payout` | Personal / admin | Registra y liquida fondos a creador (Fondo de Creadores o Comisiones) |
+| GET | `/admin/creators/stay-deliverables` | Personal / admin | Lista entregables de contenido (Reels, Videos, Fotos) subidos por creadores tras estancias |
 | GET | `/admin/dashboard` | Personal / admin | KPIs, pendientes de moderación y contenido por estado |
 | GET | `/admin/dictionary_terms` | Personal / admin | Glosario: lista |
 | POST | `/admin/dictionary_terms` | Personal / admin | Glosario: crear |
@@ -169,6 +199,7 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | POST | `/admin/explorer_guilds` | Personal / admin | Gremios: crear |
 | PATCH | `/admin/explorer_guilds/{id}` | Personal / admin | Gremios: editar |
 | DELETE | `/admin/explorer_guilds/{id}` | Personal / admin | Gremios: borrar |
+| GET | `/admin/finance/reconciliation` | Personal / admin | Conciliación de cobros, comprobantes fiscales y liquidaciones en un rango (máx. 366 días) |
 | GET | `/admin/flight_routes` | Personal / admin | Distancias de vuelo: lista |
 | POST | `/admin/flight_routes` | Personal / admin | Distancias de vuelo: crear |
 | PATCH | `/admin/flight_routes/{id}` | Personal / admin | Distancias de vuelo: editar |
@@ -205,6 +236,10 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | POST | `/admin/gamification/seasons/{id}/close` | Personal / admin | Cierra la temporada: reparte premios al top, y abre la siguiente |
 | GET | `/admin/gamification/shipments` | Personal / admin | Consola de envíos |
 | PATCH | `/admin/gamification/shipments/{id}` | Personal / admin | Avanza un envío (pending → packed → shipped → delivered) |
+| GET | `/admin/gamification/sponsored-challenges` | Personal / admin | Lista los retos patrocinados creados por operadores para revisión y moderación |
+| PATCH | `/admin/gamification/sponsored-challenges/{id}/review` | Personal / admin | Aprueba o rechaza un reto patrocinado |
+| GET | `/admin/gamification/sponsored-rewards` | Personal / admin | Lista premios ofrecidos por negocios para el Club de Recompensas |
+| PATCH | `/admin/gamification/sponsored-rewards/{id}/review` | Personal / admin | Aprueba o rechaza un premio del Club ofrecido por un negocio |
 | GET | `/admin/gamification/stats` | Personal / admin | XP emitido, jugadores activos, canjes y distribución por nivel |
 | POST | `/admin/gamification/users/{id}/adjust` | Personal / admin | Ajuste manual de XP y monedas, también negativo (sin bajar de cero), con motivo; queda en la bitácora del juego |
 | GET | `/admin/gamified_routes` | Personal / admin | Rutas gamificadas: lista |
@@ -260,7 +295,13 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/admin/media` | Personal / admin | Biblioteca de medios |
 | POST | `/admin/media/{id}/moderate` | Personal / admin | Aprueba o rechaza una imagen de usuario |
 | POST | `/admin/media/import-url` | Personal / admin | Descarga una imagen de una URL https pública a nuestro almacenamiento |
+| POST | `/admin/media/licenses/offers` | Personal / admin | Oferta una imagen editorial para licenciar; su original deja de ser público |
+| DELETE | `/admin/media/licenses/offers/{id}` | Personal / admin | Retira una oferta (las licencias ya concedidas siguen vigentes) |
+| GET | `/admin/media/licenses/requests` | Personal / admin | Solicitudes de licencia |
+| POST | `/admin/media/licenses/requests/{id}/decide` | Personal / admin | Aprueba (anotando el comprobante del pago) o rechaza una solicitud de licencia |
 | POST | `/admin/moderation/{type}/{id}/{action}` | Personal / admin | Aprueba, rechaza o retira un contenido (rechazar y retirar exigen motivo). Avisa a la persona y queda auditado |
+| GET | `/admin/moderation/appeals` | Personal / admin | Apelaciones pendientes de creadores, con contexto limitado (sin correo ni datos de pago) |
+| POST | `/admin/moderation/appeals/{id}/resolve` | Personal / admin | Resuelve la apelación de un creador: aceptarla devuelve la publicación a revisión |
 | GET | `/admin/moderation/queue` | Personal / admin | Cola unificada de lo pendiente (sin `type`: lo más antiguo de cada tipo, con los totales) |
 | GET | `/admin/moderation/reports` | Personal / admin | Reportes de usuarios con un extracto de lo reportado |
 | PATCH | `/admin/moderation/reports/{id}` | Personal / admin | Cierra un reporte como revisado o ignorado |
@@ -297,8 +338,14 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | PUT | `/admin/settings/{key}` | Personal / admin | Crea o reemplaza un ajuste (JSON, máx. 64 KB) |
 | DELETE | `/admin/settings/{key}` | Personal / admin | Elimina un ajuste |
 | PATCH | `/admin/social/posts/{id}` | Personal / admin | Oculta o restaura una publicación |
+| GET | `/admin/sponsorship/auctions` | Personal / admin | Pujas de un espacio y semana, de mayor a menor |
+| POST | `/admin/sponsorship/auctions/close` | Personal / admin | Cierra la subasta: ganan las pujas más altas hasta el cupo del espacio |
 | GET | `/admin/sponsorship/campaigns` | Personal / admin | Listado de campañas publicitarias |
 | PATCH | `/admin/sponsorship/campaigns/{id}/status` | Personal / admin | Aprueba o cambia el estado de una campaña publicitaria |
+| PUT | `/admin/sponsorship/slots/{id}/auction` | Personal / admin | Activa la subasta de un espacio y fija su precio mínimo |
+| GET | `/admin/staff-invitations` | Personal / admin | Invitaciones de personal abiertas y recientes |
+| POST | `/admin/staff-invitations` | Personal / admin | Invita por correo a un editor o moderador (vence a los 7 días) |
+| DELETE | `/admin/staff-invitations/{id}` | Personal / admin | Revoca una invitación abierta |
 | GET | `/admin/store/orders` | Personal / admin | Pedidos de la tienda |
 | GET | `/admin/store/orders/{id}` | Personal / admin | Detalle de un pedido |
 | PATCH | `/admin/store/orders/{id}` | Personal / admin | Cambia el estado (processing → shipped con guía → delivered; cancelar reembolsa) |
@@ -344,10 +391,12 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/admin/users` | Personal / admin | Usuarios (filtros por texto, rol y estado) |
 | GET | `/admin/users/{id}` | Personal / admin | Detalle de un usuario |
 | POST | `/admin/users/{id}/2fa/reset` | Personal / admin | Desactiva la verificación en dos pasos de una cuenta (pérdida de dispositivo y de códigos) |
+| GET | `/admin/users/{id}/access-timeline` | Personal / admin | Accesos vigentes y línea de tiempo de cambios de acceso de una persona |
 | POST | `/admin/users/{id}/award-xp` | Personal / admin | Otorga XP o monedas con motivo (auditado) |
 | POST | `/admin/users/{id}/impersonate` | Personal / admin | Abre una sesión de soporte de sólo lectura (15 min, sin renovación) en la cuenta de una persona que no es del personal. Exige motivo y verificación en dos pasos |
 | POST | `/admin/users/{id}/reset-password` | Personal / admin | Envía al usuario un enlace de restablecimiento de contraseña |
 | PUT | `/admin/users/{id}/roles` | Personal / admin | Reemplaza los roles de un usuario (no puedes cambiar los tuyos ni quitar al último admin) |
+| POST | `/admin/users/{id}/roles/temporary` | Personal / admin | Concede un rol por tiempo limitado (vence solo y cierra la sesión al vencer) |
 | POST | `/admin/users/{id}/suspend` | Personal / admin | Suspende una cuenta y cierra sus sesiones |
 | POST | `/admin/users/{id}/unsuspend` | Personal / admin | Reactiva una cuenta suspendida |
 | GET | `/admin/verifications` | Personal / admin | Solicitudes y auditorías de Sello Verificado (#15) |
@@ -371,6 +420,16 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | DELETE | `/admin/xp_milestones/{id}` | Personal / admin | Hitos de XP: borrar |
 | POST | `/auth/impersonation/end` | Sesión | Cierra la sesión de soporte actual |
 | POST | `/gamification/xp/award` | Sesión | Ajuste manual de XP/monedas con motivo (auditado) |
+| GET | `/staff-invitations/{token}` | Público | Vista previa de una invitación de personal |
+| POST | `/staff-invitations/{token}/accept` | Sesión | Acepta la invitación con la cuenta del correo invitado (correo verificado) |
+
+## accesos
+
+| Método | Ruta | Acceso | Descripción |
+|---|---|---|---|
+| GET | `/admin/access/audit` | Personal / admin | Auditoría visual de permisos: rol, recurso, permiso y fuente de decisión por ruta |
+| GET | `/admin/access/catalog` | Personal / admin | Catálogo interno de capacidades con su gobierno (dueño, asignación, MFA y baja) |
+| GET | `/me/context` | Sesión | Mi contexto de acceso: roles, espacios de producto y capacidades efectivas |
 
 ## alojamiento
 
@@ -439,12 +498,32 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
+| GET | `/creators/campaigns` | Sesión | Campañas abiertas con sus términos vigentes y lo que ya acepté |
+| POST | `/creators/campaigns/{id}/accept` | Sesión | Acepta una versión concreta de los términos (queda registrada con fecha, IP y huella del texto) |
+| POST | `/creators/campaigns/{id}/deliverables` | Sesión | Entrega una pieza propia a la campaña (exige haber aceptado los términos vigentes) |
+| POST | `/creators/disputes` | Sesión | Abre una disputa sobre una campaña o un movimiento propio, con evidencia |
+| POST | `/creators/disputes/{id}/withdraw` | Sesión | Retira una disputa propia aún abierta |
 | GET | `/creators/feed` | Público | Feed público de videos y experiencias UGC |
+| PATCH | `/creators/invitations/{id}/respond` | Sesión | Aceptar o declinar invitación de un hotel |
 | GET | `/creators/me` | Sesión | Panel privado del creador: métricas, saldo acumulado y videos |
+| GET | `/creators/me/appeals` | Sesión | Apelaciones de mis publicaciones, con su estado y resolución |
+| GET | `/creators/me/disputes` | Sesión | Mis disputas y su estado |
+| GET | `/creators/me/earnings` | Sesión | Mis ingresos por concepto, separando lo estimado de lo confirmado y explicando los reversos |
+| GET | `/creators/me/identity` | Sesión | Centro de identidad: perfil, sellos con criterios publicados, reputación y audiencia |
+| PATCH | `/creators/me/identity` | Sesión | Actualiza la identidad declarada del creador (categorías, idiomas, visibilidad y bio) |
+| GET | `/creators/me/invitations` | Sesión | Invitaciones directas recibidas de hoteles |
+| GET | `/creators/me/stay-applications` | Sesión | Mis postulaciones a estancias de hoteles y estado |
 | POST | `/creators/onboarding` | Sesión | Registro como creador de contenido de Descubre RD |
-| GET | `/creators/profile/{handle}` | Público | Perfil público de un creador y sus estadísticas |
-| POST | `/creators/videos` | Sesión | Publica un video UGC con atribución a tours o experiencias |
+| GET | `/creators/profile/{handle}` | Público | Perfil público del creador: identidad, sellos con sus criterios, reputación y métricas agregadas |
+| POST | `/creators/rights/{id}/revoke` | Sesión | Revoca una licencia: el autor la de plataforma; el personal, cualquiera |
+| POST | `/creators/stays/{id}/apply` | Sesión | Postulación de un creador a una estancia de hotel |
+| POST | `/creators/stays/{id}/deliverables` | Sesión | El creador envía los enlaces de contenido UGC completados (Reels, TikTok, Posts) |
+| GET | `/creators/stays/open` | Público | Lista de estancias y colaboraciones abiertas para creadores de contenido |
+| POST | `/creators/videos` | Sesión | Publica un video UGC con atribución a tours o experiencias (queda en revisión de moderación) |
+| POST | `/creators/videos/{id}/appeal` | Sesión | Apela la moderación de mi publicación (una sola apelación abierta por publicación) |
 | POST | `/creators/videos/{id}/events` | Público | Registra evento de reproducción o interacción en video UGC |
+| POST | `/creators/videos/{id}/platform-license` | Sesión | Concede a la plataforma una licencia de difusión de un año sobre una pieza propia |
+| GET | `/creators/videos/{id}/rights` | Sesión | Titular y licencias de una pieza (sólo su autor y el personal) |
 
 ## datos vivos
 
@@ -704,6 +783,9 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | POST | `/media/{id}/complete` | Sesión | Confirma la subida: se valida el archivo real (formato, tamaño y dimensiones) |
 | PUT | `/media/{id}/upload` | Público | Sube el binario a la URL firmada (sin sesión: la firma lo autoriza) |
 | GET | `/media/files/{id}` | Público | El archivo (inmutable y cacheable una vez aprobado). `?variant=thumb\|medium\|large` sirve una versión reducida en webp; si no existe, el original |
+| GET | `/media/licenses/catalog` | Público | Imágenes del banco oficial disponibles para licenciar, con su vista previa y precios |
+| GET | `/media/licenses/mine` | Sesión | Mis solicitudes y licencias, con el enlace de descarga de las vigentes |
+| POST | `/media/licenses/requests` | Sesión | Solicita una licencia de uso; queda en revisión hasta confirmar el pago |
 | POST | `/media/upload-url` | Sesión | Pide una URL firmada para subir una imagen (PUT directo con el binario) |
 
 ## memberships
@@ -736,6 +818,8 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | PATCH | `/me/trips/{id}/diary/{entryId}` | Sesión | Edita una entrada |
 | DELETE | `/me/trips/{id}/diary/{entryId}` | Sesión | Borra una entrada |
 | POST | `/me/trips/{id}/from-itinerary` | Sesión | Copia un itinerario (prediseñado o de /ai/itinerary) al viaje |
+| GET | `/me/trips/{id}/invites` | Sesión | Enlaces de invitación vigentes de mi viaje (sólo el dueño) |
+| DELETE | `/me/trips/{id}/invites/{inviteId}` | Sesión | Revoca un enlace de invitación ya compartido (sólo el dueño) |
 | POST | `/me/trips/{id}/items` | Sesión | Agrega una actividad (lugar del catálogo o texto libre) |
 | PATCH | `/me/trips/{id}/items/{itemId}` | Sesión | Edita una actividad (día, hora, notas, costo) |
 | DELETE | `/me/trips/{id}/items/{itemId}` | Sesión | Quita una actividad |
@@ -772,9 +856,23 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 |---|---|---|---|
 | GET | `/ical/{file}` | Público | Feed iCal de una habitación (URL secreta para Airbnb, Booking, Google…) |
 | GET | `/listings/{id}/reviews` | Público | Reseñas públicas de un servicio |
+| GET | `/me/org-join-requests` | Sesión | Mis solicitudes para unirme a organizaciones |
+| DELETE | `/me/org-join-requests/{id}` | Sesión | Retira una solicitud propia aún pendiente |
 | GET | `/operators` | Público | Directorio de operadores verificados |
 | GET | `/operators/{slug}` | Público | Sitio web público de un operador |
+| POST | `/operators/{slug}/contact-click` | Público | Cuenta un clic de contacto (WhatsApp, llamada, ruta o sitio web) hacia un operador |
 | GET | `/operators/{slug}/listings/{listing}` | Público | Ficha pública de un servicio |
+| PATCH | `/operators/creator-stay-applications/{id}` | Sesión | Acepta o rechaza la postulación de un creador |
+| GET | `/operators/creator-stays` | Sesión | Lista las estancias publicadas por mi establecimiento con conteo de postulaciones |
+| POST | `/operators/creator-stays` | Sesión | Publica una oportunidad de estancia para influencers y creadores de contenido |
+| GET | `/operators/creator-stays/{id}/applications` | Sesión | Ver postulantes para una estancia concreta |
+| POST | `/operators/creators/{id}/invite-stay` | Sesión | Envía una invitación directa de estancia a un creador |
+| GET | `/operators/creators/directory` | Sesión | Directorio de creadores verificados para invitaciones directas |
+| GET | `/operators/sponsorship/challenges` | Sesión | Lista los retos patrocinados creados por mi establecimiento |
+| POST | `/operators/sponsorship/challenges` | Sesión | Crea un reto o misión patrocinada por el establecimiento |
+| GET | `/operators/sponsorship/rewards` | Sesión | Lista los premios publicados por mi establecimiento |
+| POST | `/operators/sponsorship/rewards` | Sesión | Publica un premio o voucher para el Club de Recompensas |
+| GET | `/operators/sponsorship/stats` | Sesión | Métricas de participación, visitas generadas y canjes |
 | GET | `/org/bookings` | Sesión | Reservas de mi organización |
 | POST | `/org/bookings` | Sesión | Reserva manual (teléfono, mostrador): confirmada, sin comisión |
 | GET | `/org/bookings/{id}` | Sesión | Detalle de una reserva |
@@ -787,6 +885,9 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | DELETE | `/org/calendar-links/{id}` | Sesión | Quita un calendario importado y sus bloqueos |
 | POST | `/org/calendar-links/{id}/sync` | Sesión | Sincroniza ahora un calendario importado |
 | GET | `/org/income` | Sesión | Ingresos, comisión y saldo por liquidar |
+| GET | `/org/join-requests` | Sesión | Solicitudes para unirse a mi organización, con la identidad de quien pide |
+| POST | `/org/join-requests/{id}/approve` | Sesión | Aprueba la solicitud y crea la membresía (se puede conceder un rol distinto del pedido) |
+| POST | `/org/join-requests/{id}/reject` | Sesión | Rechaza la solicitud (motivo obligatorio) |
 | GET | `/org/listings` | Sesión | Mis servicios |
 | POST | `/org/listings` | Sesión | Crea un servicio (borrador) |
 | GET | `/org/listings/{id}` | Sesión | Detalle de un servicio |
@@ -797,13 +898,21 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/org/messages` | Sesión | Conversaciones |
 | GET | `/org/messages/{thread}` | Sesión | Mensajes de una conversación (la marca como leída) |
 | POST | `/org/messages/{thread}` | Sesión | Responde una conversación |
+| GET | `/org/ownership-transfer` | Sesión | Transferencia de propiedad pendiente de mi organización, si la hay |
+| POST | `/org/ownership-transfer` | Sesión | Propone transferir la propiedad a un miembro del equipo (pide la contraseña y, si está activo, el segundo factor) |
+| POST | `/org/ownership-transfer/{id}/accept` | Sesión | Acepta ser el nuevo propietario; el anterior pasa a administrador |
+| POST | `/org/ownership-transfer/{id}/close` | Sesión | Rechaza la transferencia (quien fue elegido) o la retira (quien la propuso) |
 | GET | `/org/payouts` | Sesión | Mis liquidaciones y lo pendiente de pago |
 | GET | `/org/payouts/{id}/items` | Sesión | Reservas incluidas en una liquidación |
 | GET | `/org/promotions` | Sesión | Mis códigos promocionales |
 | POST | `/org/promotions` | Sesión | Crea un código |
 | PATCH | `/org/promotions/{id}` | Sesión | Edita un código |
 | DELETE | `/org/promotions/{id}` | Sesión | Elimina un código |
+| GET | `/org/reports/contact-clicks` | Sesión | Clics a WhatsApp, llamada, ruta y sitio web por día y por servicio |
+| GET | `/org/reports/demand` | Sesión | Reporte trimestral de demanda (planes Premium y Corporativo) |
 | GET | `/org/reports/summary` | Sesión | Resumen: reservas, ingresos, servicios, canales, cancelaciones y promociones |
+| GET | `/org/reports/weekly-email` | Sesión | ¿Recibe mi organización el resumen semanal por correo? |
+| PUT | `/org/reports/weekly-email` | Sesión | Activa o desactiva el resumen semanal por correo |
 | GET | `/org/reviews` | Sesión | Reseñas de mis servicios |
 | PUT | `/org/reviews/{id}/reply` | Sesión | Responde una reseña |
 | PATCH | `/org/rooms/{id}` | Sesión | Edita una habitación |
@@ -820,11 +929,22 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | DELETE | `/org/team/invitations/{id}` | Sesión | Revoca una invitación |
 | PATCH | `/org/team/members/{id}` | Sesión | Cambia el rol o los servicios de un miembro |
 | DELETE | `/org/team/members/{id}` | Sesión | Quita a un miembro (o sal tú del equipo) |
+| GET | `/org/webhooks` | Sesión | Webhooks de mi organización (sin el secreto) |
+| POST | `/org/webhooks` | Sesión | Registra un webhook https; el secreto para verificar la firma sólo se muestra aquí |
+| DELETE | `/org/webhooks/{id}` | Sesión | Elimina un webhook y sus entregas |
+| GET | `/org/webhooks/{id}/deliveries` | Sesión | Últimas 50 entregas de un webhook |
+| POST | `/org/webhooks/{id}/enable` | Sesión | Reactiva un webhook desactivado por fallos |
+| POST | `/org/webhooks/{id}/test` | Sesión | Encola una entrega de prueba |
 | POST | `/orgs` | Sesión | Registra mi organización de operador (queda pendiente de verificación) |
+| POST | `/orgs/{id}/join-requests` | Sesión | Pide unirte al equipo de una organización (requiere correo verificado) |
 | GET | `/orgs/me` | Sesión | Mi organización y mi rol |
 | PATCH | `/orgs/me` | Sesión | Actualiza mi organización |
 | GET | `/team-invitations/{token}` | Público | Vista previa de una invitación |
 | POST | `/team-invitations/{token}/accept` | Sesión | Acepta una invitación con la cuenta invitada |
+| POST | `/verifications` | Sesión | Solicita el Sello Verificado para un negocio; queda en revisión |
+| GET | `/verifications/contracts` | Sesión | Contratos de términos comerciales emitidos a mi nombre, con su texto |
+| POST | `/verifications/contracts/{id}/accept` | Sesión | Acepta un contrato indicando la huella del texto leído |
+| GET | `/verifications/mine` | Sesión | Mis solicitudes de Sello Verificado y su contrato |
 
 ## otros
 
@@ -838,8 +958,12 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
+| POST | `/sponsorship/bids` | Sesión | Puja (a sobre cerrado) por un espacio en una semana futura; repetirla sólo puede subirla |
+| DELETE | `/sponsorship/bids/{id}` | Sesión | Retira una puja propia mientras la subasta siga abierta |
+| GET | `/sponsorship/bids/mine` | Sesión | Mis pujas y el precio mínimo de cada espacio |
 | POST | `/sponsorship/campaigns` | Sesión | Crea una nueva campaña publicitaria/patrocinada |
 | POST | `/sponsorship/campaigns/{id}/creatives` | Sesión | Agrega una creatividad/anuncio a una campaña |
+| GET | `/sponsorship/campaigns/mine` | Sesión | Mis campañas con sus anuncios y resultados |
 | GET | `/sponsorship/serve/{slot_id}` | Público | Entrega creatividades activas para un espacio publicitario |
 | GET | `/sponsorship/slots` | Público | Espacios de patrocinio e inventario disponibles en el portal |
 | POST | `/sponsorship/telemetry` | Público | Registra telemetría de anuncios (impresión, clic o conversión) |
@@ -884,10 +1008,13 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/bookings/{id}` | Público | Detalle de una reserva (token de invitado o sesión del titular) |
 | POST | `/bookings/{id}/cancel` | Público | Cancela con reembolso según la política |
 | POST | `/bookings/{id}/change-date` | Público | Cambia la fecha (misma cotización: el total nunca baja; si sube, la diferencia queda como saldo). Hasta 2 veces y 48 h antes. `dry_run` sólo muestra cómo quedaría |
+| POST | `/bookings/{id}/claim/start` | Opcional (sesión) | Envía al correo de contacto un enlace de un solo uso (1 hora) para vincular la reserva a una cuenta |
 | POST | `/bookings/{id}/messages` | Público | El viajero escribe al operador desde su reserva |
 | POST | `/bookings/{id}/pay-balance` | Público | Paga el saldo pendiente |
 | POST | `/bookings/{id}/review` | Público | Reseña verificada de una reserva completada (una por reserva) |
 | GET | `/bookings/{id}/voucher.pdf` | Público | Voucher en PDF con el QR de la referencia (reservas confirmadas o realizadas) |
+| POST | `/bookings/claim` | Sesión | Vincula a mi cuenta la reserva del enlace (un solo uso) |
+| GET | `/bookings/claim/{token}` | Público | Vista previa sin datos personales del enlace de reclamo (correo enmascarado) |
 | POST | `/bookings/quote` | Público | Cotiza una reserva (precio final, disponibilidad y motivos si no se puede) |
 | GET | `/listings/{id}/availability` | Público | Disponibilidad por día (máx. 62 días) |
 | GET | `/me/bookings` | Sesión | Mis reservas |

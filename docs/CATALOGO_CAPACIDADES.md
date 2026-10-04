@@ -9,9 +9,9 @@ el servidor vuelve a comprobar el permiso en cada endpoint, así que ocultar un 
 
 ## Resumen
 
-- Capacidades declaradas: **23**
+- Capacidades declaradas: **24**
 - Espacios de producto: **7**
-- Reglas ruta → capacidad: **56**
+- Reglas ruta → capacidad: **64**
 - Capacidades con segundo factor obligatorio: **10**
 
 ## Espacios de producto
@@ -43,6 +43,7 @@ el contexto activo se conserva durante la sesión y **no** mezcla permisos entre
 | `gamification.self` | viajero | Rol global | user, partner, ambassador, editor, moderator, admin | — | No |
 | `org.bookings_manage` | empresa | Membresía de organización | partner, admin | owner, admin, recepcion, guia | No |
 | `org.team_manage` | empresa | Membresía de organización | partner, admin | owner, admin | No |
+| `org.challenges_manage` | empresa | Membresía de organización | partner, admin | owner, admin | No |
 | `creator.studio` | creador | Perfil de producto | user, partner, ambassador, editor, moderator, admin | — | No |
 | `ambassador.program` | embajador | Perfil de producto | user, partner, ambassador, editor, moderator, admin | — | No |
 | `editorial.content` | editorial | Rol global | admin, editor | — | Sí |
@@ -169,6 +170,17 @@ el contexto activo se conserva durante la sesión y **no** mezcla permisos entre
 - **Segundo factor:** no requerido
 - **Baja o revocación:** Al retirar la membresía o transferir la propiedad; el último propietario no se puede retirar
 
+### `org.challenges_manage` — Campañas y retos patrocinados por la organización
+
+- **Propósito:** Crear y administrar campañas o retos que la organización patrocina, con su presupuesto y vigencia.
+- **Panel:** empresa
+- **Fuente de autorización:** Membresía de organización
+- **Recursos:** campañas patrocinadas, retos de marca, presupuesto de campaña
+- **Dueño funcional:** Marketing
+- **Quién la asigna:** El propietario o un administrador de la organización
+- **Segundo factor:** no requerido
+- **Baja o revocación:** Al retirar la membresía o vencer la campaña
+
 ### `creator.studio` — Estudio de creador y contenido propio
 
 - **Propósito:** Onboarding de creador, publicaciones propias, métricas, licencias y cobros propios.
@@ -218,7 +230,7 @@ el contexto activo se conserva durante la sesión y **no** mezcla permisos entre
 - **Propósito:** Buscar cuentas, ver su estado, cambiar roles, suspender y restablecer accesos.
 - **Panel:** admin
 - **Fuente de autorización:** Rol global
-- **Recursos:** /admin/users, /admin/ambassadors, /admin/verifications
+- **Recursos:** /admin/users, /admin/ambassadors, /admin/verifications, /admin/approvals, /admin/access-reviews, /admin/staff-invitations
 - **Dueño funcional:** Seguridad
 - **Quién la asigna:** Otro administrador con segundo aprobador y MFA reciente
 - **Segundo factor:** obligatorio
@@ -318,11 +330,18 @@ Se evalúa por **prefijo más específico**: una ruta concreta siempre gana sobr
 
 | Prefijo de ruta | Capacidad |
 |---|---|
+| `/api/v1/admin/creator-deliverables` | `admin.accounts` |
+| `/api/v1/admin/staff-invitations` | `admin.accounts` |
+| `/api/v1/admin/capability-grants` | `admin.accounts` |
+| `/api/v1/admin/creator-campaigns` | `admin.accounts` |
 | `/api/v1/admin/photo-submissions` | `moderation.queue` |
+| `/api/v1/admin/creator-disputes` | `admin.accounts` |
 | `/api/v1/admin/support-sessions` | `support.readonly` |
 | `/api/v1/admin/photo-challenges` | `moderation.queue` |
 | `/api/v1/admin/discount_coupons` | `admin.finance` |
 | `/api/v1/admin/seo_redirections` | `editorial.content` |
+| `/api/v1/admin/access-reviews` | `admin.accounts` |
+| `/api/v1/admin/creator-ledger` | `admin.accounts` |
 | `/api/v1/admin/verifications` | `admin.accounts` |
 | `/api/v1/auth/impersonation` | `support.readonly` |
 | `/api/v1/admin/ambassadors` | `admin.accounts` |
@@ -331,6 +350,7 @@ Se evalúa por **prefijo más específico**: una ruta concreta siempre gana sobr
 | `/api/v1/admin/moderation` | `moderation.queue` |
 | `/api/v1/admin/user-flags` | `moderation.queue` |
 | `/api/v1/team-invitations` | `org.team_manage` |
+| `/api/v1/admin/approvals` | `admin.accounts` |
 | `/api/v1/admin/creators` | `admin.finance` |
 | `/api/v1/admin/settings` | `admin.global_config` |
 | `/api/v1/admin/ip-rules` | `admin.global_config` |
