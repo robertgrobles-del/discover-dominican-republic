@@ -21,7 +21,7 @@ const die = (err: unknown, source: string) => {
   dying = true;
   app.log.fatal({ err }, `Error fatal (${source})`);
   const timeout = new Promise((resolve) => setTimeout(resolve, 4000).unref());
-  void Promise.race([app.errorReporter.capture(err, { source, level: "fatal" }), timeout]).finally(() => process.exit(1));
+  void Promise.race([app.errorReporter?.capture(err, { source, level: "fatal" }), timeout]).finally(() => process.exit(1));
 };
 process.on("uncaughtException", (err) => die(err, "excepción no capturada"));
 process.on("unhandledRejection", (reason) => die(reason, "promesa rechazada sin capturar"));

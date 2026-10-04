@@ -204,7 +204,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   app.decorate("ical", ical);
   app.decorate("automations", automations);
   const payouts = new PayoutService(app.db, app.mailer);
-  const runner = new JobRunner(app.db, app.log, (err, job) => { void app.errorReporter.capture(err, { source: "tarea programada", tags: { job } }); });
+  const runner = new JobRunner(app.db, app.log, (err, job) => { void app.errorReporter?.capture(err, { source: "tarea programada", tags: { job } }); });
   app.decorate("payouts", payouts);
   app.decorate("jobs", runner);
   registerGameJobs(app, runner);

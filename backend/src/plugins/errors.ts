@@ -1,6 +1,11 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { hasZodFastifySchemaValidationErrors, isResponseSerializationError } from "fastify-type-provider-zod";
 import { AppError } from "../lib/errors.js";
+import type { ErrorReporter } from "../lib/error-reporter.js";
+
+// Declarado aquí y no en `app.ts`: los servicios autónomos (weather, content) usan este manejador sin la
+// aplicación principal y pueden no tener monitoreo.
+declare module "fastify" { interface FastifyInstance { errorReporter?: ErrorReporter } }
 
 /** Envoltorio de errores único (docs §3.3): { error: { code, message, details?, request_id } }. */
 export function registerErrorHandling(app: FastifyInstance) {
@@ -11,7 +16,7 @@ export function registerErrorHandling(app: FastifyInstance) {
   // Sólo lo inesperado llega al monitoreo: los errores de validación y de negocio son respuestas normales.
   // De la petición viaja la ruta declarada, nunca la URL real, el cuerpo ni las cabeceras.
   const report = (err: unknown, req: FastifyRequest) => {
-    void app.errorReporter.capture(err, { source: "petición", requestId: req.id, method: req.method, route: req.routeOptions?.url, userId: (req as { user?: { id?: string } }).user?.id });
+    void app.errorReporter?.capture(err, { source: "petición", requestId: req.id, method: req.method, route: req.routeOptions?.url, userId: (req as { user?: { id?: string } }).user?.id });
   };
 
   app.setErrorHandler((err, req, reply) => {

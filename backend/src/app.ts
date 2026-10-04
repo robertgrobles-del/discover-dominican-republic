@@ -16,7 +16,6 @@ import { registerPublicCache } from "./plugins/public-cache.js";
 import { registerSecurity } from "./plugins/security.js";
 import { registerRoutes } from "./routes.js";
 
-declare module "fastify" { interface FastifyInstance { errorReporter: ErrorReporter } }
 declare module "fastify" { interface FastifyInstance { routeTable: { method: string; url: string; authenticated: boolean; roles: string[]; orgScope: boolean }[] } }
 
 export interface BuildOptions {
