@@ -45,6 +45,10 @@ x-api-env: &api-env
   STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
   DUAL_APPROVAL_REQUIRED: ${DUAL_APPROVAL_REQUIRED:-false}
   LOG_LEVEL: ${LOG_LEVEL:-info}
+  # Monitoreo de errores (opcional): proyecto de Sentry y webhook de Slack o Discord para los avisos.
+  SENTRY_DSN: ${SENTRY_DSN:-}
+  SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT:-}
+  ALERT_WEBHOOK_URL: ${ALERT_WEBHOOK_URL:-}
 
 services:
   proxy:

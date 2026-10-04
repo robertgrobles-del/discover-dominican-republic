@@ -17,7 +17,8 @@ export class JobRunner implements JobRunnerPort {
   private timer: NodeJS.Timeout | null = null;
   private ticking: Promise<void> | null = null;
 
-  constructor(private readonly db: Db, private readonly log: FastifyBaseLogger) {}
+  /** `onError` recibe el fallo de un trabajo (para el monitoreo); el trabajo queda como fallido igualmente. */
+  constructor(private readonly db: Db, private readonly log: FastifyBaseLogger, private readonly onError?: (err: unknown, job: string) => void) {}
 
   register(job: ScheduledJobDefinition) { this.jobs.set(job.name, job); }
   get names() { return [...this.jobs.keys()]; }
@@ -85,6 +86,7 @@ export class JobRunner implements JobRunnerPort {
       outcome = { status: "success", result };
     } catch (err) {
       log.error({ err, request_id: o.requestId }, "Falló un trabajo programado");
+      this.onError?.(err, name);
       outcome = { status: "failed", error: err instanceof Error ? err.message.slice(0, 500) : "Error desconocido" };
     }
     await this.db.query(

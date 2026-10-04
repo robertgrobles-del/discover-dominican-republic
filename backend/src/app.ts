@@ -5,6 +5,7 @@ import { serializerCompiler, validatorCompiler, type ZodTypeProvider } from "fas
 import { loadEnv, type Env } from "./config/env.js";
 import { createPool, type Db } from "./db/pool.js";
 import { bindRequestId } from "./lib/request-context.js";
+import { createErrorReporter, type ErrorReporter } from "./lib/error-reporter.js";
 import { setAuditChainSecret } from "./lib/audit.js";
 import { registerAuth } from "./plugins/auth.js";
 import { registerErrorHandling } from "./plugins/errors.js";
@@ -15,12 +16,15 @@ import { registerPublicCache } from "./plugins/public-cache.js";
 import { registerSecurity } from "./plugins/security.js";
 import { registerRoutes } from "./routes.js";
 
+declare module "fastify" { interface FastifyInstance { errorReporter: ErrorReporter } }
 declare module "fastify" { interface FastifyInstance { routeTable: { method: string; url: string; authenticated: boolean; roles: string[]; orgScope: boolean }[] } }
 
 export interface BuildOptions {
   env?: Env;
   /** Pool inyectado (tests). Si no se pasa, se crea uno y se cierra con la app. */
   db?: Db;
+  /** Reporte de errores inyectado (tests). Si no se pasa, se crea a partir de SENTRY_DSN y ALERT_WEBHOOK_URL. */
+  errorReporter?: ErrorReporter;
 }
 
 /** `false` (sin proxy), `true`, número de saltos o lista de CIDR: sólo se confía en X-Forwarded-For de proxies conocidos, para que nadie falsee su IP y evada los límites. */
@@ -71,6 +75,10 @@ export async function buildApp(opts: BuildOptions = {}) {
 
   app.addHook("onSend", async (req, reply) => { reply.header("x-request-id", req.id); });
 
+  app.decorate("errorReporter", opts.errorReporter ?? createErrorReporter({
+    dsn: env.SENTRY_DSN, webhookUrl: env.ALERT_WEBHOOK_URL, environment: env.SENTRY_ENVIRONMENT ?? env.NODE_ENV, release: `descubre-rd-api@${pkg.version}`,
+    log: (message) => app.log.warn(message),
+  }));
   registerErrorHandling(app);
   await registerAuth(app);
   await registerSecurity(app, env);

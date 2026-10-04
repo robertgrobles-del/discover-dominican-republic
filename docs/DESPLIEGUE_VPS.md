@@ -10,7 +10,9 @@ Estado: **validado en parte, en local (2026-10-03)**. La imagen de producción d
 | `deploy/Caddyfile` | Sitio estático en `SITE_DOMAIN` con la API bajo `/api`, y la misma API en `API_DOMAIN` |
 | `deploy/.env.example` | Variables de cada entorno; se copia como `.env.prod` o `.env.staging` en el VPS |
 | `deploy/deploy.sh` | Despliegue de la API, publicación atómica del frontend y vuelta atrás |
-| `deploy/backup.sh` | Respaldo de la base con rotación |
+| `deploy/backup.sh` | Respaldo de la base con rotación y copia externa cifrada |
+| `deploy/watchdog.sh` | Aviso cuando la API deja de responder |
+| `deploy/lib.sh` | Funciones comunes de los dos anteriores |
 
 El CMS (`cms.descubrerd.com`) y los servicios `content` y `weather` no están en este Compose: se añaden cuando se decida desplegarlos.
 
@@ -62,6 +64,35 @@ Antes de aplicar una migración en producción, restaura en staging el último r
 ```
 
 Deja los volcados en `BACKUP_DIR/<entorno>` y borra los de más de `BACKUP_KEEP_DAYS` días. **Copia esa carpeta fuera del VPS**: un respaldo en el mismo disco no protege de perder el servidor. La prueba de restauración está descrita en [`BACKEND_OPERACION.md`](BACKEND_OPERACION.md).
+
+### Copia externa cifrada
+
+Con `BACKUP_S3_BUCKET` definido en el archivo del entorno, `backup.sh` cifra el volcado (AES-256, clave derivada de `BACKUP_ENCRYPTION_KEY`) y lo sube con su huella SHA-256 a un almacenamiento compatible con S3: AWS S3, Cloudflare R2, DigitalOcean Spaces, Backblaze B2, MinIO o Google Cloud Storage con claves HMAC. Sólo necesita `openssl` y `curl` (7.75 o posterior), que ya están en el servidor. Recomendaciones: una clave de acceso que sólo pueda escribir en ese bucket, una regla de ciclo de vida que caduque las copias antiguas, y la clave de cifrado guardada fuera del servidor: sin ella las copias no se pueden leer.
+
+```bash
+# Restaurar desde el bucket: bajar x.dump.enc y x.dump.enc.sha256, comprobar y descifrar
+sha256sum -c x.dump.enc.sha256
+BACKUP_ENCRYPTION_KEY=… openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in x.dump.enc -out x.dump -pass env:BACKUP_ENCRYPTION_KEY
+```
+
+Fuera del VPS, `npm run db:backup -- --upload` hace lo mismo y `-- --decrypt x.dump.enc` descifra. Si el respaldo falla en cualquier paso, `backup.sh` termina con error y avisa al canal del equipo.
+
+## Monitoreo y avisos
+
+| Qué vigila | Cómo | Variables |
+|---|---|---|
+| Excepciones no controladas de la API, fallos de tareas programadas y caída del proceso | La API las envía a Sentry (por HTTP, sin SDK) y avisa al canal | `SENTRY_DSN`, `SENTRY_ENVIRONMENT`, `ALERT_WEBHOOK_URL` |
+| Que la API responda | `./watchdog.sh prod` desde cron: consulta `/api/v1/health/ready` por la dirección pública y avisa al caer, cada 30 minutos mientras siga caída y al recuperarse | `ALERT_WEBHOOK_URL` |
+| Respaldo diario | `backup.sh` avisa si falla el volcado o la subida | `ALERT_WEBHOOK_URL` |
+
+`ALERT_WEBHOOK_URL` es un webhook entrante de Slack o de Discord. Los avisos no llevan datos personales: de una petición sólo salen el método, la ruta declarada (`/bookings/:id`, no la URL real), el identificador de la petición y el id de la cuenta. El mismo error avisa al canal una vez cada cinco minutos; a Sentry va cada ocurrencia.
+
+```cron
+*/5 * * * *  /srv/descubre/deploy/watchdog.sh prod
+15 3 * * *   /srv/descubre/deploy/backup.sh prod >> /var/log/descubre-backup.log 2>&1
+```
+
+El vigilante corre en el mismo servidor: no detecta que el servidor entero esté apagado o sin red. Para eso hace falta además un monitor externo (el de Sentry, UptimeRobot u otro) apuntando a `https://<dominio>/api/v1/health/ready`.
 
 ## Pendiente
 

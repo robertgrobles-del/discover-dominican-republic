@@ -15,6 +15,12 @@ const schema = z.object({
   /** Si se define, habilita GET /metrics (Prometheus) con `Authorization: Bearer <token>`. */
   METRICS_TOKEN: z.string().min(16).optional(),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).default("info"),
+  /** Monitoreo de errores: DSN del proyecto de Sentry (https://<clave>@<host>/<proyecto>). Vacío: no se envía nada. */
+  SENTRY_DSN: z.string().url().optional(),
+  /** Nombre del entorno en Sentry y en los avisos (por defecto, NODE_ENV). */
+  SENTRY_ENVIRONMENT: z.string().max(60).optional(),
+  /** Webhook entrante de Slack o Discord para avisar de errores no controlados y de la caída del proceso. */
+  ALERT_WEBHOOK_URL: z.string().url().optional(),
   DATABASE_URL: z.string().url().default("postgres://postgres:postgres@localhost:5434/descubre_rd"),
   DB_POOL_MAX: z.coerce.number().int().min(1).max(100).default(10),
   /** Orígenes permitidos por CORS, separados por comas (portal, paneles, staging). */

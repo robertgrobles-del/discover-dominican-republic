@@ -40,6 +40,7 @@ export default defineConfig({
             "test/game.test.ts",
             "test/i18n.test.ts",
             "test/impersonation.test.ts",
+            "test/error-reporting.test.ts",
             "test/imports.test.ts",
             "test/insights.test.ts",
             "test/integrity.test.ts",
@@ -91,6 +92,7 @@ export default defineConfig({
           environment: "node",
           include: [
             "test/breaker.test.ts",
+            "test/monitoring-backup.test.ts",
             "test/cache.test.ts",
             "test/creators.test.ts",
             "test/gateways-local.test.ts",

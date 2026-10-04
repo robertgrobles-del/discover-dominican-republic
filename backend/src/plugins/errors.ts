@@ -1,4 +1,4 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyRequest } from "fastify";
 import { hasZodFastifySchemaValidationErrors, isResponseSerializationError } from "fastify-type-provider-zod";
 import { AppError } from "../lib/errors.js";
 
@@ -7,6 +7,12 @@ export function registerErrorHandling(app: FastifyInstance) {
   app.setNotFoundHandler((req, reply) => {
     reply.code(404).send({ error: { code: "NOT_FOUND", message: `Ruta no encontrada: ${req.method} ${req.url.split("?")[0]}`, request_id: req.id } });
   });
+
+  // Sólo lo inesperado llega al monitoreo: los errores de validación y de negocio son respuestas normales.
+  // De la petición viaja la ruta declarada, nunca la URL real, el cuerpo ni las cabeceras.
+  const report = (err: unknown, req: FastifyRequest) => {
+    void app.errorReporter.capture(err, { source: "petición", requestId: req.id, method: req.method, route: req.routeOptions?.url, userId: (req as { user?: { id?: string } }).user?.id });
+  };
 
   app.setErrorHandler((err, req, reply) => {
     const request_id = req.id;
@@ -23,6 +29,7 @@ export function registerErrorHandling(app: FastifyInstance) {
     }
     if (isResponseSerializationError(err)) {
       req.log.error({ err }, "La respuesta no cumple su esquema");
+      report(err, req);
       return reply.code(500).send({ error: { code: "INTERNAL", message: "Error interno", request_id } });
     }
     if (err instanceof AppError) {
@@ -36,6 +43,7 @@ export function registerErrorHandling(app: FastifyInstance) {
       return reply.code(status).send({ error: { code: status === 404 ? "NOT_FOUND" : "VALIDATION_ERROR", message: (err as Error).message, request_id } });
     }
     req.log.error({ err }, "Error no controlado");
+    report(err, req);
     return reply.code(500).send({ error: { code: "INTERNAL", message: "Error interno", request_id } });
   });
 }

@@ -108,11 +108,17 @@ describe("puerto de verificación de negocios (#15)", () => {
     expect(op.data.map((r: { business_name: string }) => r.business_name)).toEqual([NM.pendOp2, NM.pendOp1]);
     expect(op.meta.total).toBe(2);
 
-    const page1 = json(await call("GET", "/admin/verifications?per_page=3", { token: admin.token }));
-    expect(page1.data.map((r: { business_name: string }) => r.business_name)).toEqual([NM.expHotel, NM.rechAg, NM.okOtro]);
-    const page2 = json(await call("GET", "/admin/verifications?per_page=3&page=2", { token: admin.token }));
-    expect(page2.data.map((r: { business_name: string }) => r.business_name)).toEqual([NM.okBar, NM.pendGuia, NM.pendOp2]);
-    expect(page2.meta).toMatchObject({ page: 2, per_page: 3, total: 8, total_pages: 3 });
+    // Otros archivos de prueba crean solicitudes en la misma base mientras éste corre: se recorren todas las
+    // páginas y se comprueba el orden de las propias, sin suponer que la tabla es sólo de esta prueba.
+    const first = json(await call("GET", "/admin/verifications?per_page=3", { token: admin.token }));
+    expect(first.data).toHaveLength(3);
+    expect(first.meta).toMatchObject({ page: 1, per_page: 3 });
+    expect(first.meta.total).toBeGreaterThanOrEqual(8);
+    const all: { id: string; business_name: string }[] = [...first.data];
+    for (let page = 2; page <= first.meta.total_pages; page++) all.push(...json(await call("GET", `/admin/verifications?per_page=3&page=${page}`, { token: admin.token })).data);
+    expect(new Set(all.map((r) => r.id)).size).toBe(all.length); // ninguna fila repetida entre páginas
+    const own = new Set(Object.values(NM));
+    expect(all.map((r) => r.business_name).filter((name) => own.has(name))).toEqual([NM.expHotel, NM.rechAg, NM.okOtro, NM.okBar, NM.pendGuia, NM.pendOp2, NM.pendOp1, NM.pendHotel]);
 
     expect((await call("GET", "/admin/verifications?status=inventado", { token: admin.token })).statusCode).toBe(400);
     expect((await call("GET", "/admin/verifications?business_type=airport", { token: admin.token })).statusCode).toBe(400);
