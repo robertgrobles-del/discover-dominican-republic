@@ -2,7 +2,7 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { DATASETS, idOf } from "../scripts/static/mappers.js";
 import { loadStatic } from "../scripts/static/loader.js";
-import { coerce, datasetKey, datasetOf, runDatasetImport, runImport, sanitize, type DatasetResult, type DocumentResult } from "../scripts/static/run.js";
+import { backfillExtras, coerce, datasetKey, datasetOf, runDatasetImport, runImport, sanitize, type DatasetResult, type DocumentResult } from "../scripts/static/run.js";
 
 /**
  * Carga real del contenido estático del frontend (src/data) dentro de una transacción que se revierte: comprueba que cada mapeo
@@ -117,6 +117,32 @@ describe("carga del contenido estático del frontend", () => {
     expect((await runDatasetImport(c, ["transporteData.ts"]))[0]!.state).toBe("editado en el CMS");
     expect((await c.query("SELECT value FROM content_datasets WHERE key = 'transporte-data'")).rows[0].value).toEqual({ routes: [] });
   });
+
+  it("una fila que no viene de src/data recibe su ficha a partir de sus columnas, y su destino si la dirección lo nombra", async () => {
+    const tag = Date.now().toString(36);
+    const insert = (slug: string, name: string, address: string) => c.query(
+      "INSERT INTO hotels (id, slug, name, address, description, short_description, image_url, stars, rating, amenities, status, published_at) VALUES (gen_random_uuid(), $1, $2, $3, 'Descripción larga', 'Resumen', 'https://img.test/h.jpg', 5, 4.7, $4, 'published', now())",
+      [slug, name, address, JSON.stringify(["Spa", "Playa privada"])]);
+    await insert(`hotel-enlazable-${tag}`, "Hotel Enlazable", "Boulevard Cap Cana, Punta Cana");
+    await insert(`hotel-ambiguo-${tag}`, "Hotel Ambiguo", "Playa Grande, Río San Juan");
+    const report = await backfillExtras(c);
+    expect(report.find((r) => r.table === "hotels")!.filled).toBeGreaterThanOrEqual(2);
+
+    const row = async (slug: string) => (await c.query("SELECT h.extras, d.slug AS destination FROM hotels h LEFT JOIN destinations d ON d.id = h.destination_id WHERE h.slug = $1", [slug])).rows[0];
+    const linked = await row(`hotel-enlazable-${tag}`);
+    expect(linked.destination).toBe("punta-cana");
+    expect(linked.extras).toMatchObject({ id: `hotel-enlazable-${tag}`, slug: `hotel-enlazable-${tag}`, name: "Hotel Enlazable", stars: 5, rating: 4.7, amenities: ["Spa", "Playa privada"], imageUrl: "https://img.test/h.jpg", shortDescription: "Resumen", destinationId: "punta-cana", destinationName: "Punta Cana", gallery: [] });
+    expect(linked.extras.province).toBeTruthy();
+    // "Río San Juan" no es la provincia de San Juan: sin coincidencia exacta la fila se queda sin destino.
+    const ambiguous = await row(`hotel-ambiguo-${tag}`);
+    expect(ambiguous.destination).toBeNull();
+    expect(ambiguous.extras).toMatchObject({ name: "Hotel Ambiguo", destinationId: "" });
+
+    // Repetirlo no toca nada: todas las filas tienen ya su ficha.
+    await c.query("UPDATE hotels SET extras = extras || '{\"editado\": true}' WHERE slug = $1", [`hotel-enlazable-${tag}`]);
+    expect(await backfillExtras(c)).toEqual([]);
+    expect((await row(`hotel-enlazable-${tag}`)).extras.editado).toBe(true);
+  }, 120_000);
 
   it("sanitize deja sólo lo que cabe en JSON", () => {
     expect(sanitize({ a: 1, icon: () => null, nested: [{ b: "x", render: { $$typeof: Symbol.for("react.forward_ref") } }], u: undefined })).toEqual({ a: 1, nested: [{ b: "x" }] });

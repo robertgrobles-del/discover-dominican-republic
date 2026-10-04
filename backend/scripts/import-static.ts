@@ -6,7 +6,7 @@
 import pg from "pg";
 import { readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { runDatasetImport, runImport } from "./static/run.js";
+import { backfillExtras, runDatasetImport, runImport } from "./static/run.js";
 
 const flag = (n: string) => process.argv.includes(`--${n}`);
 const only = (() => { const i = process.argv.indexOf("--only"); return i >= 0 ? (process.argv[i + 1] ?? "").split(",").filter(Boolean) : []; })();
@@ -23,6 +23,8 @@ try {
   console.log("\nDocumentos de contenido");
   const files = only.length ? [] : readdirSync(fileURLToPath(new URL("../../src/data/", import.meta.url))).filter((f) => /\.tsx?$/.test(f)).sort();
   const docs = await runDatasetImport(c, files, { log: console.log });
+  // Las filas que no salieron de src/data (sembradas por otra vía o creadas en el CMS) reciben su ficha completa.
+  if (!only.length) { console.log("\nFichas completas de las filas sin archivo de origen"); const filled = await backfillExtras(c, { log: console.log }); if (!filled.length) console.log("(todas las filas tienen ya su ficha)"); }
   await c.query(dry ? "ROLLBACK" : "COMMIT");
   const n = (k: "source" | "inserted" | "existing" | "skipped") => res.reduce((s, r) => s + r[k], 0);
   console.log(`\nTotal: origen ${n("source")} · nuevas ${n("inserted")} · ya existían ${n("existing")} · omitidas ${n("skipped")}`);

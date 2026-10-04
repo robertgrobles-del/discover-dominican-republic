@@ -1,4 +1,5 @@
 import { slugify } from "../../src/lib/slug.js";
+import { COLLECTIONS } from "../../src/contracts/content-collections.js";
 import manifestJson from "../../src/contracts/content-manifest.json" with { type: "json" };
 import { DATASETS, type Ctx, type Dataset, type Row } from "./mappers.js";
 import { loadStatic } from "./loader.js";
@@ -163,6 +164,122 @@ export async function runDatasetImport(db: Queryable, files: string[], opts: { l
     } catch (e) { res.error = (e as Error).message.slice(0, 200); }
     opts.log?.(`${key.padEnd(30)} ${String(res.exports).padStart(2)} bloques ${String(res.bytes).padStart(6)} bytes  ${res.error ? `ERROR ${res.error}` : res.state}`);
     out.push(res);
+  }
+  return out;
+}
+
+// ---------- Ficha completa de las filas que no vienen de src/data ----------
+
+type Item = Record<string, unknown>;
+const isPlain = (v: unknown): v is Item => typeof v === "object" && v !== null && !Array.isArray(v);
+/** Registro vacío con la misma forma que `sample`: todas las claves que las pantallas esperan, sin contenido. */
+function blankLike(sample: unknown): unknown {
+  if (Array.isArray(sample)) return [];
+  if (isPlain(sample)) return Object.fromEntries(Object.entries(sample).map(([k, v]) => [k, blankLike(v)]).filter(([, v]) => v !== undefined));
+  return typeof sample === "string" ? "" : typeof sample === "number" ? 0 : typeof sample === "boolean" ? false : undefined;
+}
+function setPath(item: Item, field: string, value: unknown): void {
+  const keys = field.split(".");
+  let at = item;
+  for (const key of keys.slice(0, -1)) { if (!isPlain(at[key])) at[key] = {}; at = at[key] as Item; }
+  at[keys[keys.length - 1]!] = value;
+}
+const getPath = (item: Item, field: string): unknown => field.split(".").reduce<unknown>((at, key) => (isPlain(at) ? at[key] : undefined), item);
+
+/** Las seis colecciones principales: archivo local, exportación y conversor del frontend (`contentMappers`). */
+const MAIN_SHAPES: { table: string; file: string; key: string; patch: string }[] = [
+  { table: "destinations", file: "destinations.ts", key: "destinations", patch: "destinationPatch" },
+  { table: "beaches", file: "beaches.ts", key: "beaches", patch: "beachPatch" },
+  { table: "hotels", file: "hotels.ts", key: "hotels", patch: "hotelPatch" },
+  { table: "restaurants", file: "restaurants.ts", key: "restaurants", patch: "restaurantPatch" },
+  { table: "bars", file: "bars.ts", key: "bars", patch: "barPatch" },
+  { table: "experiences", file: "experiences.ts", key: "experiences", patch: "experiencePatch" },
+];
+
+export interface BackfillResult { table: string; filled: number }
+
+/**
+ * Da ficha completa (`extras`) a las filas que no la tienen: las que no salieron de `src/data` (sembradas por
+ * otra vía o creadas en el CMS antes de que existiera la columna). La ficha se arma con la forma que esperan
+ * las pantallas —la del primer registro local de su colección, vacía— rellenada con las columnas de la fila,
+ * usando los mismos conversores que el frontend. Una fila que ya tiene ficha no se toca.
+ */
+export async function backfillExtras(db: Queryable, opts: { log?: (m: string) => void } = {}): Promise<BackfillResult[]> {
+  const mappers = await loadStatic("contentMappers.ts", "services");
+  const collections = await loadStatic("catalogCollections.ts", "services");
+  type Spec = { name: string; path: string; load: () => Promise<Item[] | Record<string, Item>>; accepts?: (row: Item) => boolean; fields: Record<string, string> };
+  const specs = collections.SECONDARY_COLLECTIONS as Spec[];
+  const tableOfPath = new Map(COLLECTIONS.map((c) => [c.path, c.table] as const));
+
+  const places = (mappers.buildPlaceIndex as (p: Item[], d: Item[]) => unknown)(
+    (await db.query("SELECT id, slug, name FROM provinces")).rows, (await db.query("SELECT id, slug, name, province_id FROM destinations")).rows,
+  );
+  const pending = async (table: string) => (manifest[table]?.extras ? (await db.query(`SELECT * FROM "${table}" WHERE extras = '{}'::jsonb`)).rows as Item[] : []);
+  const save = async (table: string, id: unknown, extras: Item) => { await db.query(`UPDATE "${table}" SET extras = $1 WHERE id = $2 AND extras = '{}'::jsonb`, [JSON.stringify(sanitize(extras)), id]); };
+  const identity = (fresh: Item, sample: Item, row: Item) => { const slug = row.slug ?? slugify(String(row.name ?? row.title ?? "")); if ("id" in sample) fresh.id = slug; if ("slug" in sample) fresh.slug = slug; };
+  const out: BackfillResult[] = [];
+  const done = (table: string, filled: number) => { if (filled) { out.push({ table, filled }); opts.log?.(`${table.padEnd(18)} ${String(filled).padStart(3)} fichas completadas a partir de sus columnas`); } };
+
+  // Antes de armar las fichas: una fila sin destino lo recibe si su dirección termina nombrándolo
+  // ("Boulevard Cap Cana, Punta Cana"). Sólo vale la coincidencia exacta con el último tramo: buscar el nombre
+  // dentro del texto enlazaba "Río San Juan" con la provincia de San Juan. Lo que no encaja se queda sin destino.
+  const destinationByName = new Map<string, string | null>();
+  for (const d of (await db.query("SELECT id, name FROM destinations WHERE name IS NOT NULL")).rows as { id: string; name: string }[]) {
+    const key = slugify(d.name);
+    destinationByName.set(key, destinationByName.has(key) ? null : d.id); // dos destinos con el mismo nombre: ambiguo
+  }
+  for (const table of ["hotels", "restaurants", "bars", "experiences", "beaches"]) {
+    if (!manifest[table]?.destination_id || !manifest[table]?.extras || !manifest[table]?.address) continue;
+    const orphans = (await db.query(`SELECT id, address FROM "${table}" WHERE destination_id IS NULL AND address IS NOT NULL AND extras = '{}'::jsonb`)).rows as { id: string; address: string }[];
+    let linked = 0;
+    for (const row of orphans) {
+      const destination = destinationByName.get(slugify(row.address.split(",").pop() ?? ""));
+      if (!destination) continue;
+      await db.query(`UPDATE "${table}" SET destination_id = $1 WHERE id = $2 AND destination_id IS NULL`, [destination, row.id]);
+      linked++;
+    }
+    if (linked) opts.log?.(`${table.padEnd(18)} ${String(linked).padStart(3)} filas enlazadas a su destino por la dirección`);
+  }
+
+  for (const shape of MAIN_SHAPES) {
+    const rows = await pending(shape.table);
+    if (!rows.length) continue;
+    const sample = ((await loadStatic(shape.file))[shape.key] as Item[])[0]!;
+    const patch = mappers[shape.patch] as (row: Item, places: unknown) => Item;
+    for (const row of rows) {
+      const fresh = blankLike(sample) as Item;
+      identity(fresh, sample, row);
+      await save(shape.table, row.id, { ...fresh, ...patch(row, places) });
+    }
+    done(shape.table, rows.length);
+  }
+
+  // Colecciones secundarias: la tabla de correspondencias del frontend dice qué columna alimenta qué campo.
+  const tables = new Set(specs.map((spec) => tableOfPath.get(spec.path)).filter((t): t is string => !!t));
+  for (const table of tables) {
+    const rows = await pending(table);
+    if (!rows.length) continue;
+    const group = specs.filter((spec) => tableOfPath.get(spec.path) === table);
+    const samples = new Map<string, Item>();
+    let filled = 0;
+    for (const row of rows) {
+      const spec = group.find((candidate) => candidate.accepts?.(row) ?? true);
+      if (!spec) continue;
+      if (!samples.has(spec.name)) { const loaded = await spec.load(); samples.set(spec.name, (Array.isArray(loaded) ? loaded : Object.values(loaded))[0]!); }
+      const sample = samples.get(spec.name)!;
+      const fresh = blankLike(sample) as Item;
+      identity(fresh, sample, row);
+      for (const [field, column] of Object.entries(spec.fields)) {
+        const value = row[column], like = getPath(sample, field);
+        if (value === null || value === undefined) continue;
+        // La base devuelve los decimales como texto; el campo local dice qué tipo espera la pantalla.
+        if (typeof like === "number") { const n = Number(value); if (Number.isFinite(n)) setPath(fresh, field, n); }
+        else if (like === undefined || typeof like === typeof value) setPath(fresh, field, value);
+      }
+      await save(table, row.id, fresh);
+      filled++;
+    }
+    done(table, filled);
   }
   return out;
 }

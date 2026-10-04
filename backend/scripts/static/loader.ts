@@ -12,11 +12,12 @@ const OUT = path.resolve(fileURLToPath(new URL("../../.data/static/", import.met
 const LUCIDE_STUB = path.resolve(fileURLToPath(new URL("./lucide-stub.cjs", import.meta.url)));
 const IMG = /\.(jpe?g|png|webp|svg|gif|avif|mp4)$/i;
 
-export async function loadStatic(file: string): Promise<Record<string, unknown>> {
+/** `dir` es la carpeta dentro de `src/` del frontend: los datos (`data`) o, para sus conversores, `services`. */
+export async function loadStatic(file: string, dir = "data"): Promise<Record<string, unknown>> {
   mkdirSync(OUT, { recursive: true });
-  const outfile = path.join(OUT, `${file.replace(/\.ts$/, "")}.mjs`);
+  const outfile = path.join(OUT, `${dir === "data" ? "" : `${dir}-`}${file.replace(/\.ts$/, "")}.mjs`);
   await build({
-    entryPoints: [path.join(SRC, "data", file)], outfile, bundle: true, platform: "node", format: "esm", logLevel: "silent", target: "node22",
+    entryPoints: [path.join(SRC, dir, file)], outfile, bundle: true, platform: "node", format: "esm", logLevel: "silent", target: "node22",
     banner: { js: 'import { createRequire as __cr } from "node:module"; const require = __cr(import.meta.url);' },
     define: { "import.meta.env": "{}", "process.env.NODE_ENV": '"production"' },
     alias: { "@": SRC, "lucide-react": LUCIDE_STUB },
