@@ -150,7 +150,11 @@ export class SponsorshipService {
 
   /** Consulta los slots de patrocinio disponibles */
   async listSlots(): Promise<SponsorshipSlotRow[]> {
-    const { rows } = await this.db.query<SponsorshipSlotRow>("SELECT * FROM sponsorship_slots WHERE is_active ORDER BY id");
+    // `closed_weeks`: semanas futuras cuya subasta ya se cerró, para que la interfaz no las ofrezca al pujar.
+    const { rows } = await this.db.query<SponsorshipSlotRow>(
+      `SELECT s.*, coalesce((SELECT array_agg(r.period_start::text ORDER BY r.period_start) FROM sponsorship_auction_results r WHERE r.slot_id = s.id AND r.period_start > current_date), '{}') AS closed_weeks
+         FROM sponsorship_slots s WHERE s.is_active ORDER BY s.id`,
+    );
     return rows;
   }
 }

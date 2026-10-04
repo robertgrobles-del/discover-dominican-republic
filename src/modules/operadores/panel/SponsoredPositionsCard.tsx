@@ -43,7 +43,7 @@ export function SponsoredPositionsCard({ businessName }: { businessName: string 
     onError: fail,
   });
   const place = useMutation({
-    mutationFn: () => { const creative = creatives.find((c) => c.id === bid.creative)!; return api.bid({ slot_id: creative.slot_id, creative_id: creative.id, period_start: bid.week, amount: Number(bid.amount) }); },
+    mutationFn: () => { const creative = creatives.find((c) => c.id === bid.creative)!; return api.bid({ slot_id: creative.slot_id, creative_id: creative.id, period_start: week, amount: Number(bid.amount) }); },
     onSuccess: () => { toast.success("Puja registrada"); setBid({ ...bid, amount: "" }); refresh(); }, onError: fail,
   });
   const withdraw = useMutation({ mutationFn: api.withdraw, onSuccess: () => { toast.success("Puja retirada"); refresh(); }, onError: fail });
@@ -55,9 +55,13 @@ export function SponsoredPositionsCard({ businessName }: { businessName: string 
   // Sólo se puja con anuncios de campañas aprobadas y en espacios que se subastan.
   const creatives = mine.filter((c) => c.status === "active").flatMap((c) => c.creatives.filter((cr) => slotList.some((s) => s.id === cr.slot_id)).map((cr) => ({ ...cr, campaign: c.campaign_name })));
   const selected = creatives.find((c) => c.id === bid.creative);
-  const reserve = Number(slotList.find((s) => s.id === selected?.slot_id)?.auction_reserve ?? 0);
+  const slot = slotList.find((s) => s.id === selected?.slot_id);
+  const reserve = Number(slot?.auction_reserve ?? 0);
+  // Las semanas cuya subasta ya se cerró no se ofrecen; el servidor las rechazaría de todos modos.
+  const openWeeks = WEEKS.filter((w) => !slot?.closed_weeks?.includes(w));
+  const week = openWeeks.includes(bid.week) ? bid.week : openWeeks[0] ?? "";
   const draftOk = draft.campaign.trim().length >= 3 && !!draft.slot && draft.title.trim().length >= 3 && /^https:\/\/\S+$/.test(draft.url.trim()) && !!user?.email;
-  const bidOk = !!selected && Number(bid.amount) > 0 && Number(bid.amount) >= reserve;
+  const bidOk = !!selected && !!week && Number(bid.amount) > 0 && Number(bid.amount) >= reserve;
 
   return (
     <Card>
@@ -88,9 +92,9 @@ export function SponsoredPositionsCard({ businessName }: { businessName: string 
             </div>
             <div className="space-y-1">
               <Label htmlFor="bid-week" className="text-xs">Semana</Label>
-              <Select value={bid.week} onValueChange={(v) => setBid({ ...bid, week: v })}>
-                <SelectTrigger id="bid-week" className="h-9 text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>{WEEKS.map((w) => <SelectItem key={w} value={w} className="text-xs">{day(w)}</SelectItem>)}</SelectContent>
+              <Select value={week} onValueChange={(v) => setBid({ ...bid, week: v })}>
+                <SelectTrigger id="bid-week" className="h-9 text-xs"><SelectValue placeholder="Sin semanas abiertas" /></SelectTrigger>
+                <SelectContent>{openWeeks.map((w) => <SelectItem key={w} value={w} className="text-xs">{day(w)}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-1">

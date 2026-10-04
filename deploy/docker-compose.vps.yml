@@ -23,8 +23,10 @@ x-api-env: &api-env
   # Un salto: el proxy Caddy de este mismo Compose. La API rechaza "true" en producción.
   TRUST_PROXY: "1"
   DATABASE_URL: postgres://descubre:${POSTGRES_PASSWORD:?define POSTGRES_PASSWORD}@postgres:5432/descubre_rd
-  PUBLIC_BASE_URL: https://${API_DOMAIN:?define API_DOMAIN}
-  WEB_BASE_URL: https://${SITE_DOMAIN:?define SITE_DOMAIN}
+  # La API se publica bajo /api del dominio del sitio: así las direcciones de archivos que genera son del
+  # mismo origen y la política de seguridad de contenido del frontend no las bloquea.
+  PUBLIC_BASE_URL: https://${SITE_DOMAIN:?define SITE_DOMAIN}
+  WEB_BASE_URL: https://${SITE_DOMAIN}
   CORS_ORIGINS: https://${SITE_DOMAIN}
   JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY:?define JWT_PRIVATE_KEY}
   JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:?define JWT_PUBLIC_KEY}

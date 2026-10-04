@@ -6,7 +6,7 @@ import { HttpError } from "@/lib/httpClient";
 export interface MyCreative { id: string; slot_id: string; title: string; target_url: string; status: string; impressions: number; clicks: number }
 export interface MyCampaign { id: string; campaign_name: string; advertiser_name: string; status: "draft" | "pending_approval" | "active" | "paused" | "completed" | "cancelled"; starts_at: string; ends_at: string; creatives: MyCreative[] }
 export interface MyBid { id: string; slot_id: string; slot_name: string; auction_reserve: number; creative_id: string; period_start: string; amount: number; currency: string; status: "open" | "won" | "lost" | "withdrawn" }
-export interface AuctionSlot { id: string; name: string; max_active_creatives: number; auction_enabled: boolean; auction_reserve: number | string }
+export interface AuctionSlot { id: string; name: string; max_active_creatives: number; auction_enabled: boolean; auction_reserve: number | string; closed_weeks?: string[] }
 
 export const CAMPAIGN_STATUS_LABEL: Record<MyCampaign["status"], string> = { draft: "Borrador", pending_approval: "En revisión", active: "Aprobada", paused: "En pausa", completed: "Finalizada", cancelled: "Cancelada" };
 export const MY_BID_STATUS_LABEL: Record<MyBid["status"], string> = { open: "Abierta", won: "Ganaste", lost: "No ganó", withdrawn: "Retirada" };
