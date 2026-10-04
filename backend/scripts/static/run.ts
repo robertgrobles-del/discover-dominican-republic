@@ -93,7 +93,11 @@ export async function runImport(db: Queryable, opts: { only?: string[]; log?: (m
           await db.query("SAVEPOINT r");
           const r = await db.query(`INSERT INTO "${ds.table}" (${columns.map((c) => `"${c}"`).join(", ")}) VALUES (${columns.map((_, i) => `$${i + 1}`).join(", ")}) ON CONFLICT DO NOTHING`, values);
           // Una fila cargada antes de que existiera `extras` lo recibe ahora; si el equipo ya lo editó, no se toca.
-          if (!r.rowCount && row.extras !== undefined && row.id) await db.query(`UPDATE "${ds.table}" SET extras = $1 WHERE id = $2 AND extras = '{}'::jsonb`, [JSON.stringify(row.extras), row.id]);
+          // La fila puede existir con otro id (sembrada antes por otra vía): entonces se reconoce por su slug.
+          if (!r.rowCount && row.extras !== undefined && row.id) {
+            const bySlug = typeof row.slug === "string" && manifest[ds.table]?.slug ? " OR slug = $3" : "";
+            await db.query(`UPDATE "${ds.table}" SET extras = $1 WHERE (id = $2${bySlug}) AND extras = '{}'::jsonb`, [JSON.stringify(row.extras), row.id, ...(bySlug ? [row.slug] : [])]);
+          }
           await db.query("RELEASE SAVEPOINT r");
           r.rowCount ? res.inserted++ : res.existing++;
         } catch (e) {
