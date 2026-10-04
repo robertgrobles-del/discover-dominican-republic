@@ -67,7 +67,11 @@ export function hydrateMockTables(tables: Record<string, Row[]>): string[] {
   const done: string[] = [];
   for (const [table, rows] of Object.entries(tables)) {
     if (PERSISTED_TABLES.has(table) || !Array.isArray(rows) || rows.length === 0) continue;
-    mockData[table] = rows.filter((r) => r && r.id !== "");
+    // Una imagen `/assets/…` es la huella de una imagen empaquetada al cargar la base y no existe en el sitio
+    // compilado: la fila conserva la imagen que ya tenía aquí.
+    const previous = new Map((mockData[table] ?? []).map((r) => [r.slug, r.image_url]));
+    mockData[table] = rows.filter((r) => r && r.id !== "").map((r) =>
+      typeof r.image_url === "string" && r.image_url.startsWith("/assets/") ? { ...r, image_url: previous.get(r.slug) ?? null } : r);
     done.push(table);
   }
   return done;

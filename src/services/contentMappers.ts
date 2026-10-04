@@ -36,6 +36,12 @@ const text = (v: unknown): string | undefined => (typeof v === "string" && v.tri
 const num = (v: unknown): number | undefined => { const n = typeof v === "string" && v.trim() !== "" ? Number(v) : v; return typeof n === "number" && Number.isFinite(n) ? n : undefined; };
 const flag = (v: unknown): boolean | undefined => (typeof v === "boolean" ? v : undefined);
 const list = (v: unknown): string[] | undefined => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : undefined);
+/**
+ * Ruta de imagen utilizable. `/assets/…` es la huella de una imagen empaquetada al cargar la base: esa ruta no
+ * existe en el sitio compilado, así que se ignora y el registro local conserva la suya.
+ */
+const image = (v: unknown): string | undefined => { const url = text(v); return url && !url.startsWith("/assets/") ? url : undefined; };
+const images = (v: unknown): string[] | undefined => { const urls = list(v); return urls && !urls.some((url) => url.startsWith("/assets/")) ? urls : undefined; };
 
 /** Quita las claves sin valor: lo que la API no trae no debe pisar lo que ya tiene el registro local. */
 function defined<T extends object>(obj: T): Partial<T> {
@@ -65,7 +71,7 @@ function common(row: ApiRow) {
   return defined({
     id: text(row.slug), slug: text(row.slug), name: text(row.name),
     shortDescription: text(row.short_description), description: text(row.description),
-    imageUrl: text(row.image_url), gallery: list(row.gallery),
+    imageUrl: image(row.image_url), gallery: images(row.gallery),
     latitude: num(row.latitude), longitude: num(row.longitude), rating: num(row.rating), isFeatured: flag(row.is_featured),
   });
 }

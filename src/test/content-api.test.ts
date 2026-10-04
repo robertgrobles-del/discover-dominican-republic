@@ -14,6 +14,9 @@ const places = buildPlaceIndex(PROVINCES, DESTINATIONS);
 describe("origen del catálogo", () => {
   it("por defecto son los archivos locales; un valor desconocido falla en vez de degradar en silencio", () => {
     expect(resolveCatalogSource(undefined)).toBe("static");
+    // Vacío sigue al origen de datos: un despliegue real lee el catálogo del backend sin configurarlo aparte.
+    expect(resolveCatalogSource("", "api")).toBe("api");
+    expect(resolveCatalogSource("static", "api")).toBe("static");
     expect(resolveCatalogSource(" API ")).toBe("api");
     expect(() => resolveCatalogSource("strapi")).toThrow(/VITE_CATALOG_SOURCE/);
   });

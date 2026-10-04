@@ -45,7 +45,7 @@ export async function listRaw(collection: string, locale = "es"): Promise<ApiRow
 
 // Provincias y destinos resuelven los nombres de todas las demás colecciones: se piden una vez por idioma.
 const placeIndexes = new Map<string, Promise<{ places: PlaceIndex; destinations: ApiRow[] }>>();
-function placesFor(locale: string) {
+export function placesFor(locale: string) {
   let pending = placeIndexes.get(locale);
   if (!pending) {
     pending = Promise.all([listAll("provinces", locale), listAll("destinations", locale)]).then(([provinces, destinations]) => ({ places: buildPlaceIndex(provinces, destinations), destinations }));

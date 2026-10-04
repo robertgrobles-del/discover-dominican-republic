@@ -36,6 +36,7 @@ export interface OperatorOrg {
   description?: string;
   phone?: string;
   email?: string;
+  rnc?: string; // RNC o cédula con que factura el operador
   business_type?: string;
   logo_url?: string;
   cover_url?: string;

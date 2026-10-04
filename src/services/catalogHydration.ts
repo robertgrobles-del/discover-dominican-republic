@@ -6,7 +6,7 @@ import { hotels } from "@/data/hotels";
 import { restaurants } from "@/data/restaurants";
 import { CATALOG_SOURCE } from "@/lib/catalogSource";
 import { IS_MOCK_DATA } from "@/lib/dataSource";
-import { contentApi, listRaw } from "./contentApi";
+import { contentApi, listRaw, placesFor } from "./contentApi";
 
 /**
  * Hidratación del catálogo. Decenas de pantallas importan los arreglos de `src/data` y sus funciones de
@@ -15,6 +15,10 @@ import { contentApi, listRaw } from "./contentApi";
  * funciones de búsqueda leen el arreglo en cada llamada, todas las pantallas ven los datos del backend.
  *
  * Los archivos locales quedan como respaldo: si el backend no responde, el sitio muestra lo que ya traía.
+ *
+ * Hay dos tandas. La principal (playas, alojamientos, restaurantes, bares, experiencias y destinos) retiene el
+ * primer pintado hasta un tope. La secundaria (`catalogCollections`: montañas, ríos, recetas, parques…) empieza a
+ * la vez pero no retiene el pintado, porque obliga a descargar sus archivos locales, que son de páginas interiores.
  */
 
 export interface HydrationResult { source: "static" | "api"; hydrated: string[]; timedOut: boolean }
@@ -43,6 +47,14 @@ async function hydrateMockCatalog(locale: string): Promise<string[]> {
 }
 
 let pending: Promise<HydrationResult> | null = null;
+let secondary: Promise<string[]> | null = null;
+let currentLocale: string | null = null;
+
+function runSecondary(locale: string): Promise<string[]> {
+  return import("./catalogCollections")
+    .then((m) => m.hydrateSecondaryCollections((path) => listRaw(path, locale), placesFor(locale).then((p) => p.places)))
+    .catch(() => []);
+}
 
 async function run(locale: string): Promise<HydrationResult> {
   // Destinos primero no hace falta: cada carga superpone sobre su propio arreglo local.
@@ -68,7 +80,11 @@ async function run(locale: string): Promise<HydrationResult> {
  */
 export function hydrateCatalog(opts: { locale?: string; timeoutMs?: number; source?: typeof CATALOG_SOURCE } = {}): Promise<HydrationResult> {
   if ((opts.source ?? CATALOG_SOURCE) !== "api") return Promise.resolve({ source: "static", hydrated: [], timedOut: false });
-  pending ??= run(opts.locale ?? "es");
+  if (!pending) {
+    currentLocale = opts.locale ?? "es";
+    pending = run(currentLocale);
+    secondary = runSecondary(currentLocale);
+  }
   const timeout = new Promise<HydrationResult>((resolve) => setTimeout(() => resolve({ source: "api", hydrated: [], timedOut: true }), opts.timeoutMs ?? HYDRATION_TIMEOUT_MS));
   return Promise.race([pending, timeout]);
 }
@@ -78,7 +94,27 @@ export function catalogReady(): Promise<unknown> {
   return pending ?? Promise.resolve();
 }
 
+/** Espera también a las colecciones secundarias y devuelve cuáles cambiaron. */
+export function secondaryCatalogReady(): Promise<string[]> {
+  return secondary ?? Promise.resolve([]);
+}
+
+/**
+ * Vuelve a pedir el catálogo en otro idioma y lo superpone sobre el actual. Devuelve `true` si algo cambió, para
+ * que quien llama vuelva a pintar: los arreglos se actualizan en su sitio y React no se entera por sí solo.
+ */
+export async function rehydrateCatalog(locale: string, source: typeof CATALOG_SOURCE = CATALOG_SOURCE): Promise<boolean> {
+  if (source !== "api" || locale === currentLocale) return false;
+  currentLocale = locale;
+  const main = (pending = run(locale));
+  const extra = (secondary = runSecondary(locale));
+  const [result, changed] = await Promise.all([main, extra]);
+  return locale === currentLocale && (result.hydrated.length > 0 || changed.length > 0);
+}
+
 /** Sólo para pruebas: olvida la carga anterior. */
 export function resetCatalogHydration(): void {
   pending = null;
+  secondary = null;
+  currentLocale = null;
 }

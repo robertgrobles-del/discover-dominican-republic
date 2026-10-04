@@ -1,6 +1,7 @@
 // Comprueba que el catálogo que sirve el backend, convertido con `contentMappers`, coincide con los datos
 // locales de los que se cargó. Requiere la API en marcha y el contenido importado (`npm run db:import-static`).
 // Uso: npx tsx scripts/check-catalog-parity.ts [http://localhost:3000/api/v1]
+import { register } from "node:module";
 import { bars } from "../src/data/bars";
 import { beaches } from "../src/data/beaches";
 import { destinations } from "../src/data/destinations";
@@ -11,6 +12,7 @@ import {
   CATALOG_FIELDS, DERIVED_KEYS, barPatch, beachPatch, buildPlaceIndex, destinationPatch, experiencePatch, hotelPatch, restaurantPatch,
   type ApiRow, type CatalogCollection, type PlaceIndex,
 } from "../src/services/contentMappers";
+import { collectionGroups, planCollections } from "../src/services/catalogCollections";
 
 const API = (process.argv[2] ?? "http://localhost:3000/api/v1").replace(/\/$/, "");
 
@@ -65,5 +67,43 @@ total += compare("hotels", hotels as unknown as Item[], await listAll("hotels"),
 total += compare("restaurants", restaurants as unknown as Item[], await listAll("restaurants"), restaurantPatch, places);
 total += compare("bars", bars as unknown as Item[], await listAll("bars"), barPatch, places);
 total += compare("experiences", experiences as unknown as Item[], await listAll("experiences"), experiencePatch, places);
+
+// Algunos archivos de datos importan imágenes empaquetadas. Fuera del empaquetador se resuelven a la misma ruta
+// `/assets/<archivo>` que guardó la carga de la base; la hidratación ignora esas rutas, así que no cuentan.
+register(`data:text/javascript,${encodeURIComponent(`
+  const IMAGES = [".jpg", ".jpeg", ".png", ".webp", ".avif", ".svg", ".gif"];
+  export async function load(url, context, next) {
+    const file = url.split("?")[0];
+    if (!IMAGES.some((ext) => file.toLowerCase().endsWith(ext))) return next(url, context);
+    return { format: "module", shortCircuit: true, source: "export default " + JSON.stringify("/assets/" + file.split("/").pop()) + ";" };
+  }`)}`);
+
+// Colecciones secundarias: lo que la hidratación cambiaría sobre los datos locales debe ser nada.
+async function listRaw(path: string): Promise<ApiRow[]> {
+  const rows: ApiRow[] = [];
+  for (let page = 1; page <= 20; page++) {
+    const res = await fetch(`${API}/${path}?per_page=100&page=${page}&fields=*&lang=es`);
+    if (!res.ok) throw new Error(`${path}: la API respondió ${res.status}`);
+    const body = (await res.json()) as { data: ApiRow[]; meta: { total_pages: number } };
+    rows.push(...body.data);
+    if (page >= body.meta.total_pages) break;
+  }
+  return rows;
+}
+for (const [path, group] of collectionGroups()) {
+  try {
+    const loaded = await Promise.all(group.map((spec) => spec.load()));
+    const rows = await listRaw(path);
+    planCollections(group, loaded, rows, places).forEach((plan, i) => {
+      const size = Array.isArray(loaded[i]) ? loaded[i].length : Object.keys(loaded[i]!).length;
+      console.log(`${group[i]!.name.padEnd(17)} local ${String(size).padStart(3)} · API ${String(rows.length).padStart(3)} · emparejados ${String(plan.matched).padStart(3)} · diferencias ${plan.changes.length}${plan.added.length ? ` · nuevos: ${plan.added.length}` : ""}`);
+      for (const c of plan.changes.slice(0, 6)) console.log(`  ≠ ${c.collection}/${c.slug}.${c.field}: API=${JSON.stringify(c.to)?.slice(0, 70)} local=${JSON.stringify(c.from)?.slice(0, 70)}`);
+      total += plan.changes.length + plan.added.length;
+    });
+  } catch (err) {
+    // Los archivos que importan imágenes empaquetadas sólo cargan dentro del empaquetador.
+    console.log(`${group.map((spec) => spec.name).join(", ").padEnd(17)} no comprobable aquí: ${(err as Error).message.slice(0, 90)}`);
+  }
+}
 console.log(total === 0 ? "\nParidad completa: la API convertida coincide con los datos locales." : `\n${total} diferencias entre la API convertida y los datos locales.`);
 process.exit(total === 0 ? 0 : 1);

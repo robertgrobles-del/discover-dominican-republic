@@ -21,7 +21,21 @@ import { fetchApi } from "@/lib/fastifyClient";
 import { catalogReady } from "./catalogHydration";
 
 /** Fila de spa tal como la entrega el backend; la página la combina con sus datos locales por slug. */
-export interface SpaRow { id: string; slug: string | null; name: string; [column: string]: unknown }
+export interface SpaRow {
+  id: string;
+  slug: string | null;
+  name: string;
+  image_url?: string | null;
+  spa_type?: string | null;
+  address?: string | null;
+  rating?: number | null;
+  review_count?: number | null;
+  short_description?: string | null;
+  description?: string | null;
+  services?: string[] | null;
+  treatments?: string[] | null;
+  is_featured?: boolean | null;
+}
 
 /** Espera a que termine la hidratación (si la hay) y devuelve el arreglo local, ya con los datos del backend. */
 async function from<T>(local: T[]): Promise<T[]> {
@@ -44,7 +58,7 @@ function bySlug<T extends { slug: string; id: string }>(items: T[], slug: string
 }
 
 export const CatalogService = {
-  // El idioma se conserva en la firma: la hidratación ya pidió el catálogo en el idioma de arranque.
+  // El idioma se conserva en la firma: la hidratación ya pidió el catálogo en el idioma activo.
   getBeaches: (_locale = "es"): Promise<Beach[]> => from(localBeaches),
   getRestaurants: (_locale = "es"): Promise<Restaurant[]> => from(localRestaurants),
   getBars: (_locale = "es"): Promise<Bar[]> => from(localBars),
@@ -69,7 +83,7 @@ export const CatalogService = {
   async getSpas(): Promise<SpaRow[]> {
     if (CATALOG_SOURCE !== "api") return [];
     try {
-      return (await fetchApi<{ data: SpaRow[] }>("/spas_wellness?per_page=100")).data;
+      return (await fetchApi<{ data: SpaRow[] }>("/spas?per_page=100&fields=*")).data;
     } catch {
       return [];
     }

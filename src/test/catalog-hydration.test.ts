@@ -62,4 +62,68 @@ describe("hidratación del catálogo", () => {
     await catalogReady();
     expect(bars.find((b) => b.slug === first.slug)!.name).toBe("Llegó tarde");
   });
+
+  it("las colecciones secundarias toman del backend sólo valores del mismo tipo y nunca una imagen empaquetada", async () => {
+    const { mountains } = await import("@/data/mountains");
+    const { parquesData } = await import("@/data/parquesData");
+    const mountain = mountains[0]!;
+    const park = Object.values(parquesData)[0]!;
+    const before = { imageUrl: mountain.imageUrl, activities: mountain.activities, count: mountains.length };
+    const slug = (name: string) => name.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    fetchMock.mockImplementation((url: string) => {
+      const collection = collectionOf(url);
+      if (collection === "mountains") return Promise.resolve(page([
+        { slug: mountain.slug, name: "Pico del backend", altitude_m: "3098.00", image_url: "/assets/pico.jpg", activities: "senderismo", },
+        { slug: "sin-ficha", name: "Montaña incompleta" },
+      ]));
+      if (collection === "theme-parks") return Promise.resolve(page([{ slug: slug(park.nombre), name: park.nombre, price_adult: "99.50", attractions: [{ nombre: "Sin descripción" }] }]));
+      return Promise.resolve(page([]));
+    });
+    const { hydrateCatalog, secondaryCatalogReady } = await import("@/services/catalogHydration");
+    await hydrateCatalog({ source: "api" });
+    expect(await secondaryCatalogReady()).toEqual(expect.arrayContaining(["mountains", "parquesData"]));
+    expect(mountain).toMatchObject({ name: "Pico del backend", altitude: 3098 });
+    expect(mountain.imageUrl).toBe(before.imageUrl); // `/assets/…` no existe en el sitio compilado
+    expect(mountain.activities).toBe(before.activities); // un texto no sustituye a una lista
+    expect(mountains).toHaveLength(before.count); // una fila sin lo imprescindible no se muestra
+    expect(park.precioAdulto).toBe(99.5);
+    expect(park.atracciones[0]).toHaveProperty("descripcion"); // la lista del backend no traía las claves que lee la pantalla
+  });
+
+  it("una fila que sólo existe en el backend se añade con la forma del resto de la colección", async () => {
+    const { mountains } = await import("@/data/mountains");
+    const before = mountains.length;
+    fetchMock.mockImplementation((url: string) => {
+      const collection = collectionOf(url);
+      if (collection === "provinces") return Promise.resolve(page([{ id: "p1", slug: "la-vega", name: "La Vega" }]));
+      if (collection === "mountains") return Promise.resolve(page([{ slug: "loma-nueva", name: "Loma Nueva", description: "Sólo en el backend", image_url: "https://img.test/m.jpg", province_id: "p1", altitude_m: 1200, activities: ["Senderismo"] }]));
+      return Promise.resolve(page([]));
+    });
+    const { hydrateCatalog, secondaryCatalogReady } = await import("@/services/catalogHydration");
+    await hydrateCatalog({ source: "api" });
+    await secondaryCatalogReady();
+    expect(mountains).toHaveLength(before + 1);
+    expect(mountains.at(-1)).toMatchObject({ id: "loma-nueva", slug: "loma-nueva", name: "Loma Nueva", provinceId: "la-vega", provinceName: "La Vega", altitude: 1200, activities: ["Senderismo"], gallery: [], safetyTips: [] });
+  });
+
+  it("al cambiar de idioma vuelve a pedir el catálogo en ese idioma y avisa de que hay que repintar", async () => {
+    const { hotels } = await import("@/data/hotels");
+    const first = hotels[0]!;
+    const langs: string[] = [];
+    fetchMock.mockImplementation((url: string) => {
+      const lang = new URL(url, "http://x").searchParams.get("lang")!;
+      langs.push(lang);
+      return Promise.resolve(collectionOf(url) === "hotels" ? page([{ slug: first.slug, name: lang === "en" ? "English name" : "Nombre en español" }]) : page([]));
+    });
+    const { hydrateCatalog, rehydrateCatalog } = await import("@/services/catalogHydration");
+    await hydrateCatalog({ source: "api", locale: "es" });
+    const nameNow = () => hotels.find((h) => h.slug === first.slug)!.name; // la superposición crea registros nuevos
+    expect(nameNow()).toBe("Nombre en español");
+    expect(await rehydrateCatalog("es", "api")).toBe(false); // mismo idioma: nada que pedir
+    const requested = langs.length;
+    expect(await rehydrateCatalog("en", "api")).toBe(true);
+    expect(nameNow()).toBe("English name");
+    expect(langs.slice(requested).every((lang) => lang === "en")).toBe(true);
+    expect(await rehydrateCatalog("fr", "static")).toBe(false);
+  });
 });

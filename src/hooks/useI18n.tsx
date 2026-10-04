@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { createContext, Fragment, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { CATALOG_SOURCE } from "@/lib/catalogSource";
+import { detectLocale } from "@/lib/detectLocale";
 import { translations, loadTranslation } from "@/i18n/catalog";
 import type { Locale } from "@/i18n/types";
 import { setAutoTranslateLocale } from "@/i18n/autoTranslate";
@@ -18,34 +20,11 @@ const I18nContext = createContext<I18nContextType>({
 });
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<Locale>(() => {
-    // 1. Check URL search param e.g. ?lang=en
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const urlLang = urlParams.get("lang");
-      if (urlLang && ["es", "en", "fr", "de", "pt", "it"].includes(urlLang)) {
-        return urlLang as Locale;
-      }
-    } catch {}
-
-    // 2. Check localStorage
-    let saved: string | null = null;
-    try { saved = localStorage.getItem("app-locale"); } catch { /* Storage may be blocked by browser policy. */ }
-    if (saved && ["es", "en", "fr", "de", "pt", "it"].includes(saved)) {
-      return saved as Locale;
-    }
-
-    // 3. Fallback to browser language
-    try {
-      const navLang = navigator.language?.slice(0, 2);
-      if (navLang && ["es", "en", "fr", "de", "pt", "it"].includes(navLang)) {
-        return navLang as Locale;
-      }
-    } catch {}
-
-    return "es";
-  });
+  const [locale, setLocale] = useState<Locale>(detectLocale);
   const [, setLoadedVersion] = useState(0);
+  // Cambia cuando el catálogo del backend llega en otro idioma: las pantallas leen arreglos que se actualizan
+  // en su sitio, así que hay que volver a montarlas para que muestren los textos nuevos.
+  const [catalogVersion, setCatalogVersion] = useState(0);
 
   useEffect(() => {
     document.documentElement.lang = locale;
@@ -73,6 +52,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
     document.documentElement.lang = newLocale;
     setLoadedVersion((v) => v + 1);
+    if (CATALOG_SOURCE === "api") {
+      void import("@/services/catalogHydration")
+        .then((m) => m.rehydrateCatalog(newLocale))
+        .then((changed) => { if (changed) setCatalogVersion((v) => v + 1); })
+        .catch(() => undefined);
+    }
   }, []);
 
   const t = useCallback(
@@ -84,7 +69,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   return (
     <I18nContext.Provider value={{ locale, setLocale: handleSetLocale, t }}>
-      {children}
+      <Fragment key={catalogVersion}>{children}</Fragment>
     </I18nContext.Provider>
   );
 }

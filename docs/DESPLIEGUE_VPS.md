@@ -32,7 +32,7 @@ cp .env.example .env.staging      # completar dominios y secretos
 ./deploy.sh staging status
 ```
 
-El frontend se compila fuera del VPS (CI publica el artefacto `frontend-dist-<sha>`) **sin definir `VITE_API_URL`** y con `VITE_CATALOG_SOURCE=api`, y se copia al servidor. Con esa variable el catálogo se lee del backend, que es la fuente de verdad; sin ella el sitio muestra los archivos locales con los que se compiló. Así llama a la API por `/api/v1` en su mismo dominio, que el proxy reenvía. No apuntes el frontend a `API_DOMAIN`: la política de seguridad de contenido de `index.html` sólo permite conexiones al propio origen y el navegador bloquearía todas las llamadas (comprobado en local). `API_DOMAIN` queda para integraciones externas.
+El frontend se compila fuera del VPS (CI publica el artefacto `frontend-dist-<sha>`) **sin definir `VITE_API_URL`** y con `VITE_DATA_SOURCE=api`, y se copia al servidor. Con ese valor el catálogo se lee del backend, que es la fuente de verdad (`VITE_CATALOG_SOURCE` vacío sigue a `VITE_DATA_SOURCE`; sólo hay que definirlo para forzar `static` o `api` por separado). Así llama a la API por `/api/v1` en su mismo dominio, que el proxy reenvía. No apuntes el frontend a `API_DOMAIN`: la política de seguridad de contenido de `index.html` sólo permite conexiones al propio origen y el navegador bloquearía todas las llamadas (comprobado en local). `API_DOMAIN` queda para integraciones externas.
 
 ## Cómo se despliega sin cortar el servicio
 
