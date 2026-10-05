@@ -334,8 +334,8 @@ export default function EventoDetalle() {
       <FreeTicketModal
         open={isFreeTicketModalOpen}
         onOpenChange={setIsFreeTicketModalOpen}
-        eventName={event.name}
-        eventDate={event.start_date}
+        onClose={() => setIsFreeTicketModalOpen(false)}
+        event={event}
       />
 
       <RegistroEventoModal
