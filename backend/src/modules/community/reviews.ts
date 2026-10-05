@@ -43,6 +43,33 @@ export async function refreshEntityRating(db: Db, entityType: string, entityId: 
   await db.query(`UPDATE "${def.table}" SET ${sets.join(", ")} WHERE id = $2`, [entityType, entityId]);
 }
 
+export interface ReviewedEntity { name: string; slug: string | null; collection: string }
+
+/**
+ * Nombre, slug y colección de los lugares reseñados, por `tipo:id`. Una consulta por tipo presente: sirve para
+ * mostrar una reseña fuera de la ficha de su lugar ("mis reseñas", el muro de opiniones recientes).
+ */
+export async function reviewedEntities(db: Db, refs: { entity_type: string; entity_id: string }[]): Promise<Map<string, ReviewedEntity>> {
+  const out = new Map<string, ReviewedEntity>();
+  const byType = new Map<string, Set<string>>();
+  for (const ref of refs) (byType.get(ref.entity_type) ?? byType.set(ref.entity_type, new Set()).get(ref.entity_type)!).add(String(ref.entity_id));
+  for (const [type, ids] of byType) {
+    const def = REVIEWABLE.get(type);
+    if (!def) continue;
+    const cols = manifest[def.table] ?? {};
+    const { rows } = await db.query<{ id: string; name: string | null; slug: string | null }>(
+      `SELECT id::text AS id, "${def.title}"::text AS name, ${cols.slug ? "slug" : "NULL::text AS slug"} FROM "${def.table}" WHERE id::text = ANY($1::text[])`, [[...ids]]);
+    for (const row of rows) out.set(`${type}:${row.id}`, { name: row.name ?? "", slug: row.slug, collection: def.path });
+  }
+  return out;
+}
+
+/** "Ana Pérez" → "Ana P.": el nombre con que se firma una reseña pública. */
+const publicAuthor = (displayName: string | null) => {
+  const [first = "", second = ""] = (displayName ?? "").trim().split(/\s+/);
+  return first ? `${first}${second ? ` ${second[0]!.toUpperCase()}.` : ""}` : "Viajero";
+};
+
 /** Reseñas del portal: escritura, moderación y respuesta oficial. La lectura pública vive en cada colección (`/{colección}/{id}/reviews`). */
 export async function reviewRoutes(app: FastifyInstance) {
   const r = app.withTypeProvider<ZodTypeProvider>();
@@ -144,7 +171,34 @@ export async function reviewRoutes(app: FastifyInstance) {
   r.get("/me/reviews", { onRequest: app.authenticate, schema: { tags: ["reseñas"], summary: "Mis reseñas (incluye las pendientes)", security: bearer, querystring: z.object({ page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(50).default(20) }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
     const total = (await db.query<{ n: number }>("SELECT count(*)::int AS n FROM reviews WHERE user_id = $1", [req.user!.id])).rows[0]!.n;
     const { rows } = await db.query(`SELECT id, entity_type, entity_id, rating, title, comment, visit_date, status, helpful_count, reply, created_at FROM reviews WHERE user_id = $1 ORDER BY created_at DESC LIMIT ${req.query.per_page} OFFSET ${(req.query.page - 1) * req.query.per_page}`, [req.user!.id]);
-    return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
+    const entities = await reviewedEntities(db, rows as { entity_type: string; entity_id: string }[]);
+    return { data: rows.map((row) => ({ ...row, entity: entities.get(`${row.entity_type}:${row.entity_id}`) ?? null })), meta: pageMeta(req.query.page, req.query.per_page, total) };
+  });
+
+  // ---- Opiniones recientes de todo el portal ----
+  r.get("/reviews/recent", {
+    schema: {
+      tags: ["reseñas"], summary: "Reseñas aprobadas más recientes de todo el portal, con el lugar al que pertenecen",
+      querystring: z.object({ page: z.coerce.number().int().min(1).default(1), per_page: z.coerce.number().int().min(1).max(30).default(12), type: z.enum(TYPES).optional(), min_rating: z.coerce.number().int().min(1).max(5).optional() }),
+      response: { 200: z.object({ data: z.any(), meta: z.any() }) },
+    },
+  }, async (req, reply) => {
+    const params: unknown[] = [];
+    const where = ["r.is_approved"];
+    if (req.query.type) { params.push(req.query.type); where.push(`r.entity_type = $${params.length}`); }
+    if (req.query.min_rating) { params.push(req.query.min_rating); where.push(`r.rating >= $${params.length}`); }
+    const total = (await db.query<{ n: number }>(`SELECT count(*)::int AS n FROM reviews r WHERE ${where.join(" AND ")}`, params)).rows[0]!.n;
+    const { rows } = await db.query<{ id: string; entity_type: string; entity_id: string; rating: number; title: string | null; comment: string | null; visit_date: string | null; helpful_count: number; reply: string | null; created_at: Date; display_name: string | null }>(
+      `SELECT r.id, r.entity_type, r.entity_id, r.rating, r.title, r.comment, r.visit_date, r.helpful_count, r.reply, r.created_at, p.display_name
+         FROM reviews r LEFT JOIN profiles p ON p.id = r.user_id WHERE ${where.join(" AND ")}
+        ORDER BY r.created_at DESC, r.id LIMIT ${req.query.per_page} OFFSET ${(req.query.page - 1) * req.query.per_page}`, params);
+    const entities = await reviewedEntities(db, rows);
+    reply.header("cache-control", "public, max-age=60");
+    return {
+      // Sin el id de quien escribe: públicamente una reseña sólo lleva su firma abreviada.
+      data: rows.map(({ display_name, entity_id, ...row }) => ({ ...row, author: publicAuthor(display_name), entity: entities.get(`${row.entity_type}:${entity_id}`) ?? null, created_at: row.created_at.toISOString() })),
+      meta: pageMeta(req.query.page, req.query.per_page, total),
+    };
   });
 
   // ---- Respuesta oficial del establecimiento ----

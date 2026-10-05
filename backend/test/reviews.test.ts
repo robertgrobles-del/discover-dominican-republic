@@ -84,6 +84,15 @@ describe("reseñas del portal", () => {
 
     const mine = json(await call("GET", "/me/reviews", { token: spam.token })).data;
     expect(mine[0]).toMatchObject({ status: "pending" });
+    // "Mis reseñas" trae el lugar al que pertenece cada una, para poder mostrarla fuera de su ficha.
+    expect(mine[0].entity).toMatchObject({ collection: "caves" });
+    expect(typeof mine[0].entity.name).toBe("string");
+    // El muro público sólo muestra lo aprobado, firmado de forma abreviada y sin identificar a quien escribe.
+    const pendingId = json(s).data.id;
+    const wall = json(await call("GET", "/reviews/recent?per_page=30&type=cave"));
+    expect(wall.data.some((x: { id: string }) => x.id === pendingId)).toBe(false);
+    for (const x of wall.data) { expect(x).not.toHaveProperty("user_id"); expect(x).not.toHaveProperty("display_name"); expect(x.entity).toMatchObject({ collection: "caves" }); expect(typeof x.author).toBe("string"); }
+    expect((await call("GET", "/reviews/recent?type=planeta")).statusCode).toBe(400);
     const queue = json(await call("GET", "/admin/reviews?status=pending", { token: admin }));
     expect(queue.data.some((x: { id: string }) => x.id === json(s).data.id)).toBe(true);
     expect((await call("GET", "/admin/reviews", { token: spam.token })).statusCode).toBe(403);

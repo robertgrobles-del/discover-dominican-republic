@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- filas del cliente simulado, que no tipa sus tablas; con sesión real esta pantalla usa accountApi, que sí está tipado. */
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
@@ -7,6 +8,8 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { useState, useEffect } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { accountApi, apiMessage } from "@/lib/accountApi";
 import { getStoredJSON } from "@/lib/safeStorage";
 import { motion } from "framer-motion";
 import { 
@@ -317,6 +320,17 @@ export default function Perfil() {
   const fetchProfile = async () => {
     if (!user) return;
     setProfileLoading(true);
+    if (HAS_BACKEND_SESSION) {
+      // Con sesión real el perfil es el de la cuenta en el backend.
+      try {
+        const p = await accountApi.profile();
+        setProfile({ ...p, display_name: p.display_name || user.email?.split("@")[0] || "", bio: p.bio || "", preferred_language: p.preferred_language || "es", travel_interests: p.travel_interests || [] });
+      } catch {
+        setProfile(prev => ({ ...prev, display_name: user.email?.split("@")[0] || "" }));
+      }
+      setProfileLoading(false);
+      return;
+    }
     const { data, error } = await supabase
       .from("profiles")
       .select("display_name, bio, preferred_language, travel_interests, avatar_url")
@@ -340,6 +354,11 @@ export default function Perfil() {
   const fetchUserReviews = async () => {
     if (!user) return;
     setReviewsLoading(true);
+    if (HAS_BACKEND_SESSION) {
+      try { setReviews(await accountApi.myReviews()); } catch { setReviews([]); }
+      setReviewsLoading(false);
+      return;
+    }
     const { data, error } = await supabase
       .from("reviews")
       .select("*")
@@ -351,6 +370,16 @@ export default function Perfil() {
   };
 
   const handleDeleteReview = async (reviewId: string) => {
+    if (HAS_BACKEND_SESSION) {
+      try {
+        await accountApi.deleteReview(reviewId);
+        setReviews(reviews.filter(r => r.id !== reviewId));
+        toast.success("Opinión eliminada");
+      } catch (err) {
+        toast.error(apiMessage(err, "Error al eliminar la opinión"));
+      }
+      return;
+    }
     const { error } = await supabase.from("reviews").delete().eq("id", reviewId);
     if (error) {
       toast.error("Error al eliminar la opinión");
@@ -362,6 +391,17 @@ export default function Perfil() {
 
   const handleSaveProfile = async () => {
     if (!user) return;
+    if (HAS_BACKEND_SESSION) {
+      try {
+        const saved = await accountApi.saveProfile(profile);
+        setProfile(prev => ({ ...prev, ...saved, bio: saved.bio || "", travel_interests: saved.travel_interests || [] }));
+        toast.success("Perfil actualizado");
+        setIsEditing(false);
+      } catch (err) {
+        toast.error(apiMessage(err, "Error al guardar el perfil"));
+      }
+      return;
+    }
     const { error } = await supabase
       .from("profiles")
       .update({

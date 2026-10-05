@@ -95,18 +95,29 @@ export async function meRoutes(app: FastifyInstance, { verifyPassword }: { verif
 
   // ---- Favoritos ----
   const favParams = z.object({ entity_type: z.enum(FAVORITE_TYPES), entity_id: z.string().trim().min(1).max(80) });
+  // Lo que el sitio muestra del favorito. La imagen sólo puede ser una ruta del propio sitio o una dirección https.
+  const favMeta = z.object({
+    name: z.string().trim().min(1).max(160).optional(),
+    image: z.string().trim().max(500).refine((v) => v === "" || v.startsWith("/") || v.startsWith("https://"), "Ruta local o URL https").optional(),
+    location: z.string().trim().max(160).optional(),
+    /** Clase de ficha tal como la nombra el sitio (p. ej. "clinica"), cuando es más fina que `entity_type`. */
+    kind: z.string().trim().regex(/^[a-z][a-z-]{1,30}$/).optional(),
+  }).strict();
   r.get("/me/favorites", { onRequest: auth, schema: { tags: ["perfil"], summary: "Mis favoritos", security: bearer, querystring: z.object({ ...pageQ, type: z.enum(FAVORITE_TYPES).optional() }), response: { 200: z.object({ data: z.any(), meta: z.any() }) } } }, async (req) => {
     const p: unknown[] = [req.user!.id];
     let w = "user_id = $1";
     if (req.query.type) { p.push(req.query.type); w += ` AND entity_type = $${p.length}`; }
     const total = (await db.query<{ n: number }>(`SELECT count(*)::int AS n FROM favorites WHERE ${w}`, p)).rows[0]!.n;
-    const { rows } = await db.query(`SELECT entity_type, entity_id, created_at FROM favorites WHERE ${w} ORDER BY created_at DESC LIMIT ${req.query.per_page} OFFSET ${(req.query.page - 1) * req.query.per_page}`, p);
+    const { rows } = await db.query(`SELECT entity_type, entity_id, meta, created_at FROM favorites WHERE ${w} ORDER BY created_at DESC LIMIT ${req.query.per_page} OFFSET ${(req.query.page - 1) * req.query.per_page}`, p);
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
   });
-  r.put("/me/favorites/:entity_type/:entity_id", { onRequest: auth, config: { rateLimit: { max: 120, timeWindow: "1 minute" } }, schema: { tags: ["perfil"], summary: "Marca un favorito (idempotente)", security: bearer, params: favParams, response: { 204: z.null() } } }, async (req, reply) => {
+  r.put("/me/favorites/:entity_type/:entity_id", { onRequest: auth, config: { rateLimit: { max: 120, timeWindow: "1 minute" } }, schema: { tags: ["perfil"], summary: "Marca un favorito (idempotente)", security: bearer, params: favParams, body: favMeta.nullish(), response: { 204: z.null() } } }, async (req, reply) => {
     const n = (await db.query<{ n: number }>("SELECT count(*)::int AS n FROM favorites WHERE user_id = $1", [req.user!.id])).rows[0]!.n;
     if (n >= 2000) throw new AppError("BUSINESS_RULE", "Llegaste al máximo de favoritos", { code: "FAVORITES_LIMIT" });
-    const ins = await db.query("INSERT INTO favorites (user_id, entity_type, entity_id) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING", [req.user!.id, req.params.entity_type, req.params.entity_id]);
+    const meta = JSON.stringify(req.body ?? {});
+    const ins = await db.query("INSERT INTO favorites (user_id, entity_type, entity_id, meta) VALUES ($1,$2,$3,$4) ON CONFLICT DO NOTHING", [req.user!.id, req.params.entity_type, req.params.entity_id, meta]);
+    // Repetir el marcado no da puntos de nuevo, pero sí refresca lo que se muestra (un nombre o una foto que cambió).
+    if (!ins.rowCount && meta !== "{}") await db.query("UPDATE favorites SET meta = $4 WHERE user_id = $1 AND entity_type = $2 AND entity_id = $3", [req.user!.id, req.params.entity_type, req.params.entity_id, meta]);
     if (ins.rowCount) await app.game.safeGrant({ userId: req.user!.id, action: "favorite_added", ref: `${req.params.entity_type}:${req.params.entity_id}` }, req.log);
     reply.code(204);
     return null;

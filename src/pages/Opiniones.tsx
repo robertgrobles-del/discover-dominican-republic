@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- filas del cliente simulado, que no tipa sus tablas; con sesión real esta pantalla usa accountApi, que sí está tipado. */
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
@@ -114,11 +115,15 @@ import { ReviewCard, ReviewItem, travelerTypes as importedTravelerTypes } from "
 import { StarRating, formatDate } from "@/components/reviews/StarRating";
 import { ReviewsSidebar, CategoryFilterItem } from "@/components/reviews/ReviewsSidebar";
 import { CreateReviewDialog } from "@/components/reviews/CreateReviewDialog";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { accountApi, apiMessage, type ReviewablePlace } from "@/lib/accountApi";
 
 export default function Opiniones() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [reviews, setReviews] = useState<Review[]>(sampleReviews);
+  // Con sesión real el muro muestra las reseñas del backend; las de muestra son sólo para la demostración.
+  const [reviews, setReviews] = useState<Review[]>(HAS_BACKEND_SESSION ? [] : sampleReviews);
+  const [places, setPlaces] = useState<ReviewablePlace[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTravelerTypes, setSelectedTravelerTypes] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -202,6 +207,15 @@ export default function Opiniones() {
 
   async function loadReviews() {
     setLoading(true);
+    if (HAS_BACKEND_SESSION) {
+      try {
+        const recent = await accountApi.recentReviews();
+        setReviews(recent.map((r) => ({ ...r, verified: true, traveler_type: undefined as unknown as Review["traveler_type"], user_id: "" })));
+      } catch { /* sin respuesta el muro queda vacío, con su estado de "sin reseñas" */ }
+      void accountApi.reviewablePlaces().then(setPlaces).catch(() => undefined);
+      setLoading(false);
+      return;
+    }
     const { data, error } = await supabase
       .from("reviews")
       .select("*")
@@ -222,6 +236,25 @@ export default function Opiniones() {
         title: "Inicia sesión",
         description: "Debes iniciar sesión para escribir una reseña.",
       });
+      return;
+    }
+
+    if (HAS_BACKEND_SESSION) {
+      // La reseña pertenece a un lugar del catálogo: el servidor la modera y decide si se publica ya.
+      const place = places.find((p) => p.label === formData.location);
+      if (!formData.rating || !place) { toast({ variant: "destructive", title: "Campos incompletos", description: "Elige el lugar que visitaste y una valoración." }); return; }
+      if (formData.content.trim().length < 10) { toast({ variant: "destructive", title: "Cuéntanos un poco más", description: "La reseña necesita al menos 10 caracteres." }); return; }
+      setSubmitting(true);
+      try {
+        const result = await accountApi.createReview(place, { rating: formData.rating, title: formData.title, comment: formData.content });
+        toast({ title: "¡Gracias!", description: result.status === "approved" ? "Tu reseña ya está publicada." : (result.message ?? "Tu reseña está en revisión y se publicará pronto.") });
+        setDialogOpen(false);
+        if (result.status === "approved") await loadReviews();
+      } catch (err) {
+        toast({ variant: "destructive", title: "No se pudo publicar", description: apiMessage(err, "Intenta de nuevo en un momento.") });
+      } finally {
+        setSubmitting(false);
+      }
       return;
     }
 
@@ -349,7 +382,8 @@ export default function Opiniones() {
                 onOpenChange={setDialogOpen}
                 formData={formData}
                 onFormDataChange={setFormData}
-                locations={locations}
+                locations={HAS_BACKEND_SESSION ? places.map((p) => p.label) : locations}
+                placeMode={HAS_BACKEND_SESSION}
                 categoryFilters={categoryFilters}
                 onSubmit={handleSubmit}
                 submitting={submitting}

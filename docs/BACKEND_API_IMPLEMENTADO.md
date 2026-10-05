@@ -3,7 +3,7 @@
 > Generado automáticamente por `npm run docs:api` a partir de las rutas que el servidor registra. **No se edita a mano**: si una ruta cambia, se regenera (CI verifica con `npm run docs:api -- --check`).
 > `docs/BACKEND_API.md` es el diseño original; donde difiera, esta lista describe lo que existe. Detalle de cada módulo, reglas y ejemplos: `backend/README.md`. Contrato completo (esquemas de entrada y salida): `/docs` (Swagger) del servidor.
 
-Versión 0.1.0 · 1006 operaciones en 47 grupos.
+Versión 0.1.0 · 1007 operaciones en 47 grupos.
 
 Convenciones: todas las rutas cuelgan de `/api/v1`. Errores con la forma `{ error: { code, message, details, request_id } }`. **Sesión** = `Authorization: Bearer <jwt>`; **Opcional** = funciona sin sesión y, con ella, personaliza.
 
@@ -1001,6 +1001,7 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | POST | `/reviews/{id}/helpful` | Sesión | Marca una reseña como útil (una vez; no la propia) |
 | POST | `/reviews/{id}/reply` | Sesión | Respuesta oficial (editor/admin, o el operador dueño del servicio) |
 | POST | `/reviews/{id}/report` | Sesión | Reporta una reseña (a los 3 reportes distintos se oculta hasta revisarla) |
+| GET | `/reviews/recent` | Público | Reseñas aprobadas más recientes de todo el portal, con el lugar al que pertenecen |
 
 ## reservas
 

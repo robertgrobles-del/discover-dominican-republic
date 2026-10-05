@@ -305,6 +305,17 @@ describe("gamificación", () => {
       const u = await signup();
       await call("PUT", "/me/favorites/hotel/abc", { token: u.token });
       await call("PUT", "/me/favorites/hotel/abc", { token: u.token }); // repetido: no vuelve a dar puntos
+      const m = await signup();
+      // Con otra cuenta, para no alterar los puntos que mide esta prueba. Con lo que el sitio muestra: se guarda, se devuelve y repetirlo lo refresca sin duplicar.
+      expect((await call("PUT", "/me/favorites/experience/clinica-abreu", { token: m.token, payload: { name: "Clínica Abreu", image: "https://img.test/c.jpg", location: "Santo Domingo", kind: "clinica" } })).statusCode).toBe(204);
+      expect((await call("PUT", "/me/favorites/experience/clinica-abreu", { token: m.token, payload: { name: "Clínica Abreu (renovada)", kind: "clinica" } })).statusCode).toBe(204);
+      expect((await call("PUT", "/me/favorites/experience/x", { token: m.token, payload: { image: "javascript:alert(1)" } })).statusCode).toBe(400);
+      expect((await call("PUT", "/me/favorites/experience/x", { token: m.token, payload: { name: "x", intruso: true } })).statusCode).toBe(400);
+      await call("PUT", "/me/favorites/hotel/abc", { token: m.token });
+      const favs = json(await call("GET", "/me/favorites", { token: m.token })).data as { entity_id: string; meta: Record<string, string> }[];
+      expect(favs.filter((f) => f.entity_id === "clinica-abreu")).toHaveLength(1);
+      expect(favs.find((f) => f.entity_id === "clinica-abreu")!.meta).toEqual({ name: "Clínica Abreu (renovada)", kind: "clinica" });
+      expect(favs.find((f) => f.entity_id === "abc")!.meta).toEqual({});
       expect((await me(u.token)).xp).toBe(2);
       const post = json(await call("POST", "/social/posts", { token: u.token, payload: { content: "Un día maravilloso en Samaná" } })).data.id;
       expect((await me(u.token)).xp).toBe(2 + 5);

@@ -47,6 +47,11 @@ interface CreateReviewDialogProps {
   onSubmit: (e: React.FormEvent) => void;
   submitting: boolean;
   isLoggedIn: boolean;
+  /**
+   * La reseña es de un lugar concreto del catálogo: `locations` trae los lugares y la categoría sobra, porque
+   * el propio lugar ya dice qué es.
+   */
+  placeMode?: boolean;
 }
 
 export function CreateReviewDialog({
@@ -59,6 +64,7 @@ export function CreateReviewDialog({
   onSubmit,
   submitting,
   isLoggedIn,
+  placeMode = false,
 }: CreateReviewDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -88,7 +94,7 @@ export function CreateReviewDialog({
               <Select
                 value={formData.traveler_type}
                 onValueChange={(v) =>
-                  onFormDataChange((prev) => ({ ...prev, traveler_type: v as any }))
+                  onFormDataChange((prev) => ({ ...prev, traveler_type: v as "solo" | "couple" | "family" | "business" }))
                 }
               >
                 <SelectTrigger>
@@ -105,7 +111,7 @@ export function CreateReviewDialog({
             </div>
 
             <div className="space-y-2">
-              <Label>Destino *</Label>
+              <Label>{placeMode ? "Lugar que visitaste *" : "Destino *"}</Label>
               <Select
                 value={formData.location}
                 onValueChange={(v) =>
@@ -126,7 +132,7 @@ export function CreateReviewDialog({
             </div>
           </div>
 
-          <div className="space-y-2">
+          {!placeMode && <div className="space-y-2">
             <Label>Categoría *</Label>
             <Select
               value={formData.category}
@@ -145,7 +151,7 @@ export function CreateReviewDialog({
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </div>}
 
           <div className="space-y-2">
             <Label>Título de tu reseña *</Label>
