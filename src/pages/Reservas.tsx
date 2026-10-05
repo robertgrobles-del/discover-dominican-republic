@@ -16,6 +16,9 @@ import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { queryKeys, queryStaleTime } from "@/lib/queryPolicy";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { apiMessage } from "@/lib/accountApi";
+import { bookingsApi } from "@/lib/bookingsApi";
 
 export default function Reservas() {
   const { user } = useAuth();
@@ -27,6 +30,8 @@ export default function Reservas() {
     staleTime: queryStaleTime.reservations,
     queryFn: async () => {
       if (!user) return [];
+      // Con sesión real las reservas son las de la cuenta en el backend.
+      if (HAS_BACKEND_SESSION) return bookingsApi.mine();
       const { data, error } = await supabase
         .from("reservations")
         .select("*")
@@ -40,11 +45,16 @@ export default function Reservas() {
   const reservations = reservationsQuery.data;
   const cancelMutation = useMutation({
     mutationFn: async (id: string) => {
+      if (HAS_BACKEND_SESSION) {
+        // El servidor aplica la política de cancelación y calcula el reembolso.
+        try { return await bookingsApi.cancel(id); }
+        catch (err) { throw new Error(apiMessage(err, "No se pudo cancelar la reserva")); }
+      }
       const { error } = await supabase.from("reservations").update({ status: "cancelled" }).eq("id", id).eq("user_id", user!.id);
       if (error) throw new Error(error.message || "No se pudo cancelar la reserva");
     },
-    onSuccess: async () => {
-      toast({ title: "Reserva cancelada" });
+    onSuccess: async (result) => {
+      toast({ title: "Reserva cancelada", description: result && result.refund_amount > 0 ? `Reembolso: ${result.currency} ${result.refund_amount.toLocaleString()}` : undefined });
       await queryClient.invalidateQueries({ queryKey: queryKeys.reservations(user?.id) });
     },
     onError: (error: Error) => toast({ variant: "destructive", title: "Error", description: error.message }),
