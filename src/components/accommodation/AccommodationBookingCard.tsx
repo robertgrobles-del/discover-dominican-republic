@@ -3,6 +3,7 @@ import { Calendar, Users, ShieldCheck, Check, Sparkles, Phone, ExternalLink, Bed
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SelloVerificadoBadge } from "@/components/ui/SelloVerificadoBadge";
 import { toast } from "sonner";
 
 interface RoomSelection {
@@ -76,9 +77,12 @@ export function AccommodationBookingCard({
                 aprox. RD$ {(roomPrice * 60).toLocaleString("es-DO")}
               </p>
             </div>
-            <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-xs border-emerald-500/20">
-              Mejor Tarifa Directa
-            </Badge>
+            <div className="flex flex-col items-end gap-1.5">
+              <SelloVerificadoBadge variant="compact" size="sm" licenseNumber="MITUR-HOTEL" />
+              <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px] border-emerald-500/20">
+                Mejor Tarifa Directa
+              </Badge>
+            </div>
           </div>
 
           {isBooked ? (

@@ -22,6 +22,7 @@ const CONFIGS: TableCfg[] = [
     check: (data) => { if (data.starts_at && data.ends_at && String(data.ends_at) <= String(data.starts_at)) throw AppError.validation("La temporada debe terminar después de empezar"); },
   },
   { table: "gamification_leagues", pk: "id", readonly: ["id", "created_at"], order: "display_order", label: "Ligas" },
+  { table: "reward_inventory", pk: "id", readonly: ["id", "created_at"], order: "title", label: "Inventario de Premios" },
 ];
 
 /** Configuración del juego (docs §5.17): logros, misiones, premios, niveles, reglas, trivia, hitos, temporadas y ligas. */

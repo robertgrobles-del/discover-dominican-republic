@@ -190,42 +190,42 @@ export default function RutasSabor() {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: idx * 0.1 }}
-                    className="group bg-card rounded-2xl overflow-hidden border border-border hover:border-amber-500/40 transition-all duration-300 flex flex-col"
+                    transition={{ delay: idx * 0.08 }}
+                    className="card-taste overflow-hidden group flex flex-col justify-between shadow-sm"
                   >
-                    <div className="aspect-[16/10] relative overflow-hidden bg-muted">
-                      <img
-                        src={parada.imagen}
-                        alt={parada.nombre}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                      <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white font-mono text-xs px-2.5 py-1 rounded-md border border-white/10">
-                        Parada {idx + 1}
-                      </span>
-                    </div>
+                    <div>
+                      <div className="aspect-[16/10] relative overflow-hidden bg-muted">
+                        <img
+                          src={parada.imagen}
+                          alt={parada.nombre}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white font-mono text-xs px-2.5 py-1 rounded-md border border-white/10">
+                          Parada {idx + 1}
+                        </span>
+                      </div>
 
-                    <div className="p-6 flex-1 flex flex-col justify-between">
-                      <div>
-                        <p className="text-xs text-amber-500 font-medium flex items-center gap-1 mb-1">
-                          <MapPin className="h-3 w-3" />
+                      <div className="p-6">
+                        <p className="text-xs text-amber-500 font-bold flex items-center gap-1 mb-1">
+                          <MapPin className="h-3.5 w-3.5 text-primary" />
                           {parada.ubicacion}
                         </p>
-                        <h4 className="font-display font-bold text-lg text-foreground mb-2 leading-tight">
+                        <h4 className="font-display font-bold text-lg text-foreground mb-2 leading-tight group-hover:text-primary transition-colors">
                           {parada.nombre}
                         </h4>
                         <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                           {parada.descripcion}
                         </p>
                       </div>
+                    </div>
 
-                      <div className="pt-4 border-t border-border/60 bg-muted/30 -mx-6 -mb-6 p-4 mt-auto">
-                        <p className="text-xs font-semibold text-foreground flex items-start gap-1.5">
-                          <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
-                          <span>{parada.destacado}</span>
-                        </p>
-                      </div>
+                    <div className="pt-4 border-t border-border/60 bg-muted/20 p-5 mt-auto">
+                      <p className="text-xs font-semibold text-foreground flex items-start gap-1.5">
+                        <Sparkles className="h-3.5 w-3.5 text-amber-500 shrink-0 mt-0.5" />
+                        <span>{parada.destacado}</span>
+                      </p>
                     </div>
                   </motion.div>
                 ))}
@@ -237,7 +237,7 @@ export default function RutasSabor() {
 
             {/* TOURS Y EXPERIENCIAS DISPONIBLES */}
             <div>
-              <div className="flex flex-col md:flex-row md:items-end justify-between mb-8">
+              <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-3">
                 <div>
                   <Badge className="bg-amber-500/20 text-amber-500 mb-2">EXPERIENCIAS GUIADAS</Badge>
                   <h3 className="font-display text-2xl sm:text-3xl font-bold">
@@ -251,13 +251,13 @@ export default function RutasSabor() {
 
               <div className="grid md:grid-cols-2 gap-6">
                 {rutaActual.tours.map((tour, idx) => (
-                  <Card key={idx} className="bg-card border-border hover:border-amber-500/30 transition-all">
-                    <CardContent className="p-6 sm:p-8">
+                  <div key={idx} className="card-taste p-6 sm:p-8 flex flex-col justify-between shadow-sm">
+                    <div>
                       <div className="flex items-center justify-between mb-4">
-                        <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30">
+                        <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30 text-xs">
                           Certificado MITUR
                         </Badge>
-                        <div className="flex items-center gap-1 text-sm font-semibold">
+                        <div className="flex items-center gap-1 text-sm font-semibold bg-secondary/70 px-2.5 py-1 rounded-lg">
                           <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                           <span>{tour.rating.toFixed(1)}</span>
                         </div>
@@ -272,28 +272,28 @@ export default function RutasSabor() {
                           <Clock className="h-4 w-4 text-primary" />
                           {tour.duracion}
                         </span>
-                        <span className="text-xl font-bold text-amber-500">
+                        <span className="text-2xl font-black text-amber-500">
                           {tour.precio}
                         </span>
                       </div>
 
-                      <div className="space-y-2 mb-6">
-                        <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
+                      <div className="space-y-2 mb-6 bg-muted/20 p-4 rounded-xl border border-border/50">
+                        <p className="text-xs uppercase tracking-wider text-muted-foreground font-bold">
                           Qué incluye:
                         </p>
                         {tour.incluye.map((item, i) => (
-                          <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <div key={i} className="flex items-center gap-2 text-xs text-foreground font-medium">
                             <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
                             <span>{item}</span>
                           </div>
                         ))}
                       </div>
+                    </div>
 
-                      <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white gap-2 font-medium py-5">
-                        Reservar Plaza para el Tour <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </CardContent>
-                  </Card>
+                    <Button className="btn-cta-magnetic w-full bg-amber-600 hover:bg-amber-700 text-white gap-2 font-semibold py-5 rounded-xl">
+                      Reservar Plaza para el Tour <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
                 ))}
               </div>
             </div>

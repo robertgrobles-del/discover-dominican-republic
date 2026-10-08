@@ -35,6 +35,8 @@ export interface AdBanner {
   slider_interval: number | null;
   is_fixed?: boolean;
   rotation_mode?: "fixed" | "rotative";
+  sponsorship_scope?: "slot" | "section" | "global";
+  is_takeover?: boolean;
 }
 
 /**
@@ -59,13 +61,16 @@ export function useAdBanners() {
   });
 }
 
+// In-memory click deduplication cache (prevents duplicate clicks within 5 seconds)
+const recentClicks = new Map<string, number>();
+
 /**
  * Track an impression for a banner ID in DB (increment impressions count)
  */
 export async function trackBannerImpression(bannerId: string) {
   if (!bannerId || bannerId === "preview-id" || bannerId.startsWith("demo-")) return;
   try {
-    // Increment count using rpc or direct update
+    // Record impression in Supabase / Local DB
     const { data: current } = await supabase
       .from("ad_banners")
       .select("impressions")
@@ -79,16 +84,80 @@ export async function trackBannerImpression(bannerId: string) {
         .eq("id", bannerId);
     }
   } catch (e) {
-    // Silent fail for offline/sandbox
     console.debug("Track impression fallback:", e);
   }
 }
 
+// Cache for viewable impressions to avoid counting multiple times per session
+const viewableImpressionSet = new Set<string>();
+
 /**
- * Track a click for a banner ID in DB (increment clicks count)
+ * Track a viewable impression (IAB standard: >= 50% in viewport for >= 1s)
+ */
+export async function trackBannerViewableImpression(bannerId: string) {
+  if (!bannerId || bannerId === "preview-id" || bannerId.startsWith("demo-")) return;
+  if (viewableImpressionSet.has(bannerId)) return;
+  viewableImpressionSet.add(bannerId);
+
+  try {
+    const { data: current } = await supabase
+      .from("ad_banners")
+      .select("impressions, viewable_impressions")
+      .eq("id", bannerId)
+      .maybeSingle();
+
+    if (current) {
+      await supabase
+        .from("ad_banners")
+        .update({ 
+          viewable_impressions: ((current as unknown as { viewable_impressions?: number })?.viewable_impressions || 0) + 1 
+        })
+        .eq("id", bannerId);
+    }
+  } catch (e) {
+    console.debug("Track viewable impression fallback:", e);
+  }
+}
+
+/**
+ * Track an engagement (CPE) for rich interactive banners (slider next, video play, expand)
+ */
+export async function trackBannerEngagement(bannerId: string, action = "interact") {
+  if (!bannerId || bannerId === "preview-id" || bannerId.startsWith("demo-")) return;
+  try {
+    const { data: current } = await supabase
+      .from("ad_banners")
+      .select("engagements")
+      .eq("id", bannerId)
+      .maybeSingle();
+
+    if (current) {
+      await supabase
+        .from("ad_banners")
+        .update({ 
+          engagements: ((current as unknown as { engagements?: number })?.engagements || 0) + 1 
+        })
+        .eq("id", bannerId);
+    }
+  } catch (e) {
+    console.debug("Track engagement fallback:", e, action);
+  }
+}
+
+/**
+ * Track a click for a banner ID with anti-duplication protection
  */
 export async function trackBannerClick(bannerId: string) {
   if (!bannerId || bannerId === "preview-id" || bannerId.startsWith("demo-")) return;
+  
+  // Anti-duplication check: ignore multiple clicks on same banner within 5 seconds
+  const now = Date.now();
+  const lastClick = recentClicks.get(bannerId) || 0;
+  if (now - lastClick < 5000) {
+    return;
+  }
+  recentClicks.set(bannerId, now);
+
   try {
     const { data: current } = await supabase
       .from("ad_banners")
@@ -109,7 +178,8 @@ export async function trackBannerClick(bannerId: string) {
 
 /**
  * Get a banner by section and placement, supporting FIXED or ROTATIVE mode.
- * If multiple eligible banners exist, it rotates based on user session or randomized weight.
+ * - Banners fijos: se muestran el 100% de las veces sin límite.
+ * - Banners rotativos: rotan dinámicamente con control de frecuencia por sesión.
  */
 export function useBanner(options: {
   section?: string;
@@ -131,18 +201,73 @@ export function useBanner(options: {
   const matchingBanners = useMemo(() => {
     if (!allBanners || allBanners.length === 0) return [];
 
+    // Section alias normalization helper (e.g. hoteles <-> alojamientos, home <-> index/inicio)
+    const matchesSection = (bannerSection: string | null | undefined, targetSection?: string) => {
+      if (!bannerSection) return false;
+      if (bannerSection === "global") return true;
+      if (!targetSection) return true;
+      if (bannerSection.toLowerCase() === targetSection.toLowerCase()) return true;
+      // Aliases
+      if ((targetSection === "hoteles" || targetSection === "alojamientos") && 
+          (bannerSection === "hoteles" || bannerSection === "alojamientos")) {
+        return true;
+      }
+      if ((targetSection === "home" || targetSection === "inicio" || targetSection === "index") && 
+          (bannerSection === "home" || bannerSection === "inicio" || bannerSection === "index")) {
+        return true;
+      }
+      return false;
+    };
+
+    // 1. NIVEL MÁXIMO: Global Takeover (Patrocinio exclusivo de TODO el portal)
+    // Si una marca patrocina todo el portal, todos los banners muestran su publicidad
+    const globalTakeovers = allBanners.filter(
+      (b) =>
+        isValid(b) &&
+        (b.sponsorship_scope === "global" || (b.is_takeover && b.section === "global")) &&
+        (!options.bannerType || b.banner_type === options.bannerType)
+    );
+    if (globalTakeovers.length > 0) {
+      return globalTakeovers;
+    }
+
+    // 2. SEGUNDO NIVEL: Section Takeover (Patrocinio exclusivo de una sección completa, ej. Hoteles)
+    // Todos los banners de la sección seleccionada pertenecen al patrocinador exclusivo
+    if (options.section) {
+      const sectionTakeovers = allBanners.filter(
+        (b) =>
+          isValid(b) &&
+          (b.sponsorship_scope === "section" || b.is_takeover) &&
+          matchesSection(b.section, options.section) &&
+          (!options.bannerType || b.banner_type === options.bannerType)
+      );
+      if (sectionTakeovers.length > 0) {
+        return sectionTakeovers;
+      }
+    }
+
+    // 3. TERCER NIVEL: Banners estándar por sección y placement
     let matches = allBanners.filter(
       (b) =>
         isValid(b) &&
-        (!options.section || b.section === options.section || b.section === "global") &&
+        matchesSection(b.section, options.section) &&
         (!options.bannerType || b.banner_type === options.bannerType) &&
         (!options.placement || b.placement === options.placement)
     );
 
-    // If matches contain fixed banners with highest priority, prioritize fixed
-    const fixedBanner = matches.find((b) => b.is_fixed === true || (b.priority && b.priority >= 100));
+    // If matches contain fixed banners with highest priority, prioritize fixed (100% visibility)
+    const fixedBanner = matches.find((b) => b.is_fixed === true || b.rotation_mode === "fixed" || (b.priority && b.priority >= 100));
     if (fixedBanner) {
       return [fixedBanner];
+    }
+
+    // Frequency capping for rotative pool: filter out banners that have exceeded 10 rotative impressions in session
+    if (typeof window !== "undefined" && window.sessionStorage) {
+      matches = matches.filter((b) => {
+        if (b.is_fixed || b.rotation_mode === "fixed") return true;
+        const count = parseInt(sessionStorage.getItem(`ad_rot_views_${b.id}`) || "0", 10);
+        return count < 10;
+      });
     }
 
     return matches;
@@ -159,13 +284,21 @@ export function useBanner(options: {
     return () => clearInterval(interval);
   }, [matchingBanners, options.rotationInterval]);
 
-  // If initial randomized rotation for different users:
+  // Pick banner
   const selectedBanner = useMemo(() => {
     if (matchingBanners.length === 0) return null;
     if (matchingBanners.length === 1) return matchingBanners[0];
     
-    // Pick based on rotatedIndex or initial pseudo-random seed
-    return matchingBanners[rotatedIndex % matchingBanners.length] || matchingBanners[0];
+    const banner = matchingBanners[rotatedIndex % matchingBanners.length] || matchingBanners[0];
+    if (banner && !banner.is_fixed && banner.rotation_mode !== "fixed" && typeof window !== "undefined" && window.sessionStorage) {
+      try {
+        const cur = parseInt(sessionStorage.getItem(`ad_rot_views_${banner.id}`) || "0", 10);
+        sessionStorage.setItem(`ad_rot_views_${banner.id}`, (cur + 1).toString());
+      } catch {
+        // Storage unavailable
+      }
+    }
+    return banner;
   }, [matchingBanners, rotatedIndex]);
 
   return selectedBanner;
@@ -184,12 +317,52 @@ export function useBanners(options: {
   if (!allBanners) return [];
 
   const now = new Date();
-  
+
+  const isValid = (b: AdBanner) => {
+    if (b.start_date && new Date(b.start_date) > now) return false;
+    if (b.end_date && new Date(b.end_date) < now) return false;
+    return true;
+  };
+
+  const matchesSection = (bannerSection: string | null | undefined, targetSection?: string) => {
+    if (!bannerSection) return false;
+    if (bannerSection === "global") return true;
+    if (!targetSection) return true;
+    if (bannerSection.toLowerCase() === targetSection.toLowerCase()) return true;
+    if ((targetSection === "hoteles" || targetSection === "alojamientos") && 
+        (bannerSection === "hoteles" || bannerSection === "alojamientos")) {
+      return true;
+    }
+    if ((targetSection === "home" || targetSection === "inicio" || targetSection === "index") && 
+        (bannerSection === "home" || bannerSection === "inicio" || bannerSection === "index")) {
+      return true;
+    }
+    return false;
+  };
+
+  // 1. Check Global Takeover
+  const globalTakeovers = allBanners.filter(
+    (b) => isValid(b) && (b.sponsorship_scope === "global" || (b.is_takeover && b.section === "global"))
+  );
+  if (globalTakeovers.length > 0) {
+    return globalTakeovers.slice(0, options.limit || 10);
+  }
+
+  // 2. Check Section Takeover
+  if (options.section) {
+    const sectionTakeovers = allBanners.filter(
+      (b) => isValid(b) && (b.sponsorship_scope === "section" || b.is_takeover) && matchesSection(b.section, options.section)
+    );
+    if (sectionTakeovers.length > 0) {
+      return sectionTakeovers.slice(0, options.limit || 10);
+    }
+  }
+
+  // 3. Regular banners
   return allBanners
     .filter((b) => {
-      if (b.start_date && new Date(b.start_date) > now) return false;
-      if (b.end_date && new Date(b.end_date) < now) return false;
-      if (options.section && b.section !== options.section && b.section !== "global") return false;
+      if (!isValid(b)) return false;
+      if (options.section && !matchesSection(b.section, options.section)) return false;
       if (options.placement && b.placement !== options.placement) return false;
       return true;
     })

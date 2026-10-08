@@ -375,7 +375,6 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
           width="1920"
           height="1080"
           className="h-full w-full object-cover"
-          // @ts-ignore
           fetchpriority="high"
           loading="eager"
           decoding="sync"

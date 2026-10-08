@@ -2,6 +2,10 @@
 
 **Fecha:** 2026-10-05 · **Rama:** `feature/nueva-arquitectura-optimizada`
 
+> **Estado al 2026-10-07:** el avance, las revisiones y lo que queda por hacer se llevan en
+> [`TAREAS_CONEXION_BACKEND_PENDIENTES.md`](TAREAS_CONEXION_BACKEND_PENDIENTES.md). Esta guía sigue valiendo como
+> referencia de rutas y de trampas del entorno; `useCart.tsx` (bloque 5) ya está conectado.
+
 Guía de trabajo para quien continúe la conexión del frontend a la API. Los bloques 1 a 3 están hechos o en
 curso (sesión, favoritos, perfil, reseñas, «Mis reservas»). Aquí se describe lo que falta:
 

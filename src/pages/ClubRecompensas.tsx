@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Gift, Crown, Target, Sparkles, Zap,
@@ -19,6 +19,9 @@ import { ComoGanarPuntosModal } from "@/components/gamificacion/ComoGanarPuntosM
 import { ComoGanarPuntosSection } from "@/components/gamificacion/ComoGanarPuntosSection";
 import { useGamification } from "@/hooks/useGamification";
 import { toast } from "sonner";
+import { apiClient } from "@/lib/api";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi, type UserRewardShipment } from "@/lib/gamificationApi";
 
 import {
   initialRewards,
@@ -43,6 +46,75 @@ export default function ClubRecompensas() {
   const [activeTab, setActiveTab] = useState<"catalog" | "my-vouchers" | "levels" | "how-it-works" | "partners">("catalog");
   const [rewardsList, setRewardsList] = useState<CatalogReward[]>(initialRewards);
   const [myVouchers, setMyVouchers] = useState<RedeemedVoucher[]>(mockInitialVouchers);
+  const [myShipments, setMyShipments] = useState<UserRewardShipment[]>([]);
+
+  useEffect(() => {
+    if (HAS_BACKEND_SESSION) {
+      gamificationApi.getMyRedemptions().then((reds) => {
+        if (Array.isArray(reds) && reds.length > 0) {
+          const mappedVouchers: RedeemedVoucher[] = reds.map((r: any) => ({
+            id: r.id,
+            code: r.code || r.redemption_code || `RD-${r.id.slice(0, 6).toUpperCase()}`,
+            prizeName: r.prize_name || r.prize?.name || "Premio Canjeado",
+            sponsor: r.sponsor || "Empresa Aliada",
+            location: "República Dominicana",
+            category: r.category || "experience",
+            redeemedDate: new Date(r.created_at || Date.now()).toLocaleDateString("es-DO"),
+            expiryDate: "90 días",
+            status: r.status === "used" ? "used" : r.status === "expired" ? "expired" : "active",
+            qrData: `DESCUBRERD-VOUCHER-${r.code || r.id}-AUTHENTICATED`,
+            instructions: "Presentar este voucher digital al proveedor o en el establecimiento.",
+          }));
+          setMyVouchers(mappedVouchers);
+        }
+      }).catch((err) => {
+        toast.error("Error al cargar vouchers canjeados", { description: err.message });
+      });
+
+      gamificationApi.getMyShipments().then((ships) => {
+        if (Array.isArray(ships)) {
+          setMyShipments(ships);
+        }
+      }).catch((err) => {
+        toast.error("Error al cargar envíos de premios", { description: err.message });
+      });
+    }
+
+    apiClient.get<any[]>("/operators/sponsorship/rewards")
+      .then((res) => {
+        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+          const mapped: CatalogReward[] = res.data.map((r) => ({
+            id: r.id,
+            name: r.prize_name,
+            description: r.terms_conditions || "Premio exclusivo patrocinado por empresa asociada.",
+            sponsor: r.operator_name || "Empresa Aliada",
+            location: r.location || "República Dominicana",
+            category: r.category || "resort",
+            coin_cost: r.coin_price || 300,
+            estimated_value_dop: (r.coin_price || 300) * 25,
+            estimated_value_usd: Math.round(((r.coin_price || 300) * 25) / 60),
+            prize_type: r.category === "product" ? "product" : "experience",
+            min_level: 1,
+            quantity_available: r.stock_total - (r.stock_claimed || 0),
+            quantity_redeemed: r.stock_claimed || 0,
+            is_featured: true,
+            image_url: r.image_url || "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&auto=format&fit=crop&q=80",
+            validity_days: 90,
+            includes: ["Beneficio exclusivo verificado", "Atención preferencial para exploradores"],
+            isPartnerCustom: true,
+          }));
+
+          setRewardsList((prev) => {
+            const existingIds = new Set(prev.map((p) => p.id));
+            const newItems = mapped.filter((m) => !existingIds.has(m.id));
+            return [...newItems, ...prev];
+          });
+        }
+      })
+      .catch((err) => {
+        console.warn("Could not load dynamic sponsor rewards:", err?.message || err);
+      });
+  }, []);
 
   // Modals state
   const [selectedDetailPrize, setSelectedDetailPrize] = useState<CatalogReward | null>(null);
@@ -61,7 +133,7 @@ export default function ClubRecompensas() {
     toast.success("¡Enlace de referido copiado! Compártelo con amigos para ganar +50 monedas.");
   };
 
-  const handleRedeemDigitalPrize = (prize: CatalogReward) => {
+  const handleRedeemDigitalPrize = async (prize: CatalogReward) => {
     const newCode = `RD-${prize.location.substring(0, 3).toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}`;
     const newVoucher: RedeemedVoucher = {
       id: `vouch-${Date.now()}`,
@@ -76,6 +148,18 @@ export default function ClubRecompensas() {
       qrData: `DESCUBRERD-VOUCHER-${newCode}-AUTHENTICATED`,
       instructions: `Presentar este voucher al momento de llegar a ${prize.sponsor}. Se recomienda confirmar con 24-48h de antelación.`
     };
+
+    if (HAS_BACKEND_SESSION) {
+      try {
+        await gamificationApi.redeemPrize(prize.id);
+        setMyVouchers((prev) => [newVoucher, ...prev]);
+        setActiveGeneratedVoucher(newVoucher);
+        toast.success(`🎉 ¡Recompensa canjeada con éxito! Se ha generado tu Voucher ${newCode}.`);
+      } catch (err: any) {
+        toast.error("Error al canjear la recompensa", { description: err.message });
+      }
+      return;
+    }
 
     setMyVouchers((prev) => [newVoucher, ...prev]);
     setActiveGeneratedVoucher(newVoucher);
@@ -93,6 +177,22 @@ export default function ClubRecompensas() {
       notes: string;
     }
   ) => {
+    if (HAS_BACKEND_SESSION) {
+      try {
+        await gamificationApi.redeemPrize(prize.id, {
+          recipient_name: shippingData.recipientName,
+          recipient_phone: shippingData.recipientPhone,
+          shipping_address: `${shippingData.shippingAddress}, ${shippingData.city}`,
+        });
+        toast.success(`📦 ¡Despacho programado! Envío coordinado a: ${shippingData.shippingAddress}`);
+        const updatedShips = await gamificationApi.getMyShipments();
+        if (Array.isArray(updatedShips)) setMyShipments(updatedShips);
+      } catch (err: any) {
+        toast.error("Error al registrar el envío de la recompensa", { description: err.message });
+      }
+      return;
+    }
+
     await redeemPrize(prize.id);
     toast.success(`📦 ¡Despacho programado! Envío coordinado a: ${shippingData.shippingAddress}`);
   };
@@ -353,6 +453,7 @@ export default function ClubRecompensas() {
             <TabsContent value="my-vouchers">
               <UserVouchersTab
                 vouchers={myVouchers}
+                shipments={myShipments}
                 onOpenQR={(v) => setActiveGeneratedVoucher(v)}
                 onExploreCatalog={() => setActiveTab("catalog")}
               />

@@ -36,6 +36,7 @@ export default function PasaporteDigital() {
     userRouteProgress,
     collectibles,
     userCollectibles,
+    addStamp,
   } = usePassport();
 
   const [activeTab, setActiveTab] = useState("overview");
@@ -148,7 +149,20 @@ export default function PasaporteDigital() {
 
               {/* Stamps Tab */}
               <TabsContent value="stamps">
-                <PassportStampsTab stamps={stamps} />
+                <PassportStampsTab
+                  stamps={stamps}
+                  onAddStamp={async (code) => {
+                    return await addStamp({
+                      stamp_name: code,
+                      stamp_type: 'destination',
+                      visited_at: new Date().toISOString(),
+                      xp_earned: 50,
+                      coins_earned: 10,
+                      is_verified: true,
+                      verification_data: { qr_token: code },
+                    });
+                  }}
+                />
               </TabsContent>
 
               {/* Routes Tab */}

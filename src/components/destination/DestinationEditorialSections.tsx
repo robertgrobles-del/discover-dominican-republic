@@ -280,7 +280,7 @@ export function DestinationEditorialSections({
 
         {restaurants.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
-            {restaurants.slice(0, 6).map((rest, index) => {
+            {restaurants.slice(0, 3).map((rest, index) => {
               const isFirstFeatured = index === 0;
               return (
                 <article

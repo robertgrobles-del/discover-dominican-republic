@@ -224,8 +224,8 @@ export default function Cultura() {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: idx * 0.1 }}
-                  className="bg-card rounded-3xl border border-border overflow-hidden hover:border-amber-500/40 transition-all flex flex-col justify-between group"
+                  transition={{ delay: idx * 0.08 }}
+                  className="card-taste overflow-hidden flex flex-col justify-between group"
                 >
                   <div className="relative aspect-[16/9] overflow-hidden bg-muted">
                     <img
@@ -234,7 +234,7 @@ export default function Cultura() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                    <Badge className="absolute top-3 left-3 bg-amber-600 text-white text-xs">
+                    <Badge className="absolute top-3 left-3 bg-amber-600 text-white text-xs shadow-md">
                       {item.category}
                     </Badge>
                     <span className="absolute bottom-3 right-3 text-white font-mono text-xs bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-md">
@@ -242,14 +242,16 @@ export default function Cultura() {
                     </span>
                   </div>
 
-                  <div className="p-6">
-                    <h3 className="font-display text-xl font-bold text-foreground mb-2 group-hover:text-amber-500 transition-colors">
-                      {item.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                      {item.desc}
-                    </p>
-                    <Button asChild variant="outline" size="sm" className="rounded-xl text-xs gap-1.5 hover:border-amber-500 hover:text-amber-500">
+                  <div className="p-6 flex flex-col justify-between flex-1">
+                    <div>
+                      <h3 className="font-display text-xl font-bold text-foreground mb-2 group-hover:text-amber-500 transition-colors">
+                        {item.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                        {item.desc}
+                      </p>
+                    </div>
+                    <Button asChild variant="outline" size="sm" className="rounded-xl text-xs gap-1.5 hover:border-amber-500 hover:text-amber-500 self-start">
                       <Link to={item.link}>
                         Conocer más detalles <ChevronRight className="h-3.5 w-3.5" />
                       </Link>
@@ -280,10 +282,10 @@ export default function Cultura() {
 
             <div className="grid md:grid-cols-3 gap-6">
               {festivals.map((fest, idx) => (
-                <div key={idx} className="bg-card rounded-3xl border border-border overflow-hidden hover:border-amber-500/40 transition-all flex flex-col justify-between">
+                <div key={idx} className="card-taste overflow-hidden flex flex-col justify-between group">
                   <div>
                     <div className="relative aspect-[16/10] overflow-hidden bg-muted">
-                      <img src={fest.image} alt={fest.name} className="w-full h-full object-cover" />
+                      <img src={fest.image} alt={fest.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                       <Badge className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-amber-400 border border-white/10 text-xs">
                         {fest.badge}
@@ -297,7 +299,7 @@ export default function Cultura() {
                       <p className="text-xs text-amber-500 font-bold mb-1 flex items-center gap-1">
                         <MapPin className="h-3 w-3" /> {fest.location}
                       </p>
-                      <h4 className="font-display font-bold text-lg text-foreground mb-2">
+                      <h4 className="font-display font-bold text-lg text-foreground mb-2 group-hover:text-amber-500 transition-colors">
                         {fest.name}
                       </h4>
                       <p className="text-xs text-muted-foreground leading-relaxed">
@@ -307,7 +309,7 @@ export default function Cultura() {
                   </div>
 
                   <div className="p-6 pt-0">
-                    <Button asChild className="w-full bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs py-5">
+                    <Button asChild className="w-full btn-cta-magnetic bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs py-5">
                       <Link to="/eventos">
                         Ver Programa y Fechas de Salida →
                       </Link>

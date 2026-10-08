@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, Loader2, ShieldAlert, ArrowLeft } from "lucide-react";
@@ -7,8 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageTransition } from "@/components/PageTransition";
 import { useAuth } from "@/hooks/useAuth";
+import { useAccessContext } from "@/hooks/useAccessContext";
 import { useToast } from "@/hooks/use-toast";
 import { safeReturnTo } from "@/lib/session";
+import { resolvePostLoginDestination } from "@/lib/authRedirect";
+import { handlePostLogin } from "@/lib/authLifecycle";
 import { 
   isValidEmail, 
   sanitizeInput, 
@@ -25,13 +28,26 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState("");
   const submitLock = useRef(false);
-  const { signIn, verifyTwoFactor } = useAuth();
+  const { user, loading: authLoading, signIn, verifyTwoFactor } = useAuth();
+  const { context, spaces } = useAccessContext();
   // Verificación en dos pasos: tras la contraseña, el servidor entrega un reto que se canjea con el código.
   const [challenge, setChallenge] = useState<string | null>(null);
   const [otp, setOtp] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const returnToParam = searchParams.get("returnTo");
+
+  // Reconocimiento automático de sesión: si ya está logueado, redirige a su página según rol o returnTo
+  useEffect(() => {
+    if (authLoading || !user) return;
+
+    const userRoles: string[] = (user.app_metadata as any)?.roles || (user.user_metadata as any)?.roles || context.user.roles || [];
+    const userSpaces: string[] = spaces.map((s) => s.key);
+    const destination = resolvePostLoginDestination(returnToParam, userRoles, userSpaces);
+
+    navigate(destination, { replace: true });
+  }, [user, authLoading, returnToParam, context.user.roles, spaces, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,36 +90,56 @@ export default function Login() {
     setFormError("");
     setIsLoading(true);
     try {
-    const result: { error: Error | null; twoFactor?: { challengeToken: string } } = challenge ? await verifyTwoFactor(challenge, otp) : await signIn(cleanEmail, password);
-    if (!challenge && result.twoFactor) {
-      setChallenge(result.twoFactor.challengeToken);
-      setOtp("");
-      return;
-    }
-    const { error } = result;
+      const result: { error: Error | null; twoFactor?: { challengeToken: string }; user?: any } = challenge
+        ? await verifyTwoFactor(challenge, otp)
+        : await signIn(cleanEmail, password);
 
-    if (error) {
-      setFormError(error.message === "Invalid login credentials" ? "Credenciales incorrectas. Verifica tu email y contraseña." : "No se pudo iniciar sesión con esos datos.");
-      const record = ClientRateLimiter.recordAttempt("login", cleanEmail, 5, 60000, 300000);
-      const remaining = 5 - (record.isBlocked ? 5 : 1);
-      
-      toast({
-        variant: "destructive",
-        title: "Error al iniciar sesión",
-        description: error.message === "Invalid login credentials"
-          ? "Credenciales incorrectas. Verifica tu email y contraseña."
-          : error.message,
+      if (!challenge && result.twoFactor) {
+        setChallenge(result.twoFactor.challengeToken);
+        setOtp("");
+        return;
+      }
+
+      const { error } = result;
+
+      if (error) {
+        setFormError(error.message === "Invalid login credentials" ? "Credenciales incorrectas. Verifica tu email y contraseña." : "No se pudo iniciar sesión con esos datos.");
+        ClientRateLimiter.recordAttempt("login", cleanEmail, 5, 60000, 300000);
+
+        toast({
+          variant: "destructive",
+          title: "Error al iniciar sesión",
+          description: error.message === "Invalid login credentials"
+            ? "Credenciales incorrectas. Verifica tu email y contraseña."
+            : error.message,
+        });
+        return;
+      }
+
+      // --- INICIO DE SESIÓN EXITOSO ---
+      // Pipeline de ciclo de vida post-login (rate limit reset, check-in diario/racha, invalidación de caché)
+      void handlePostLogin({
+        email: cleanEmail,
+        onCheckinBonus: (streak, xp, coins) => {
+          toast({
+            title: `¡Racha de ${streak} días! 🔥`,
+            description: `Recibiste +${xp || 0} XP y +${coins || 0} Quisqueya Coins por tu visita diaria.`,
+          });
+        },
       });
-    } else {
-      // Reset rate limiter upon successful login
-      ClientRateLimiter.reset("login", cleanEmail);
+
       toast({
         title: "¡Bienvenido!",
         description: "Has iniciado sesión correctamente.",
       });
-      // Vuelve a donde la sesión venció (solo rutas internas; ver safeReturnTo).
-      navigate(safeReturnTo(searchParams.get("returnTo")), { replace: true });
-    }
+
+      // Reconocer roles y redirigir inmediatamente a returnTo o a la página adecuada
+      let userRoles: string[] = [];
+      if ("user" in result && result.user) {
+        userRoles = result.user.roles || (result.user as any).app_metadata?.roles || [];
+      }
+      const targetDestination = resolvePostLoginDestination(returnToParam, userRoles, spaces.map((s) => s.key));
+      navigate(targetDestination, { replace: true });
 
     } catch {
       setFormError("Comprueba tu conexión e inténtalo de nuevo. El formulario conserva tus datos.");
@@ -233,6 +269,66 @@ export default function Login() {
                   )}
                 </Button>
               </form>
+
+              {/* Social Login Separator & Buttons */}
+              <div className="mt-6">
+                <div className="relative flex items-center justify-center my-4">
+                  <div className="border-t border-border w-full" />
+                  <span className="bg-card px-3 text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                    o continúa con
+                  </span>
+                  <div className="border-t border-border w-full" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full flex items-center justify-center gap-2 border-border hover:bg-muted/60"
+                    onClick={() => {
+                      const returnTo = safeReturnTo(searchParams.get("return_to"));
+                      window.location.href = `/api/v1/auth/oauth/google?redirect_to=${encodeURIComponent(window.location.origin + returnTo)}`;
+                    }}
+                  >
+                    <svg className="h-4 w-4" viewBox="0 0 24 24">
+                      <path
+                        fill="#4285F4"
+                        d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.04 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                      />
+                    </svg>
+                    <span className="text-xs font-semibold">Google</span>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full flex items-center justify-center gap-2 border-border hover:bg-muted/60"
+                    onClick={() => {
+                      toast({
+                        title: "Apple ID",
+                        description: "Autenticación segura con Apple ID disponible en el lanzamiento oficial.",
+                      });
+                    }}
+                  >
+                    <svg className="h-4 w-4 fill-current" viewBox="0 0 170 170">
+                      <path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.19-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.74 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.35.13-9.16-1.9-14.42-6.08-3.7-3.04-7.6-7.79-11.7-14.25-5.78-9.15-10.32-19.53-13.62-31.13-3.3-11.6-4.96-22.38-4.96-32.33 0-14.48 3.7-26.23 11.1-35.25 7.4-9.02 16.5-13.62 27.3-13.8 4.8 0 10.02 1.34 15.66 4.02 5.64 2.68 9.38 4.09 11.22 4.23 1.57-.27 5.53-1.78 11.89-4.54 6.36-2.76 11.63-3.9 15.82-3.42 12.24.96 21.84 5.73 28.8 14.31-10.9 6.59-16.23 15.66-16 27.2.23 9.02 3.7 16.63 10.42 22.84 6.72 6.2 14.7 9.8 23.94 10.8-2.12 6.35-4.82 12.79-8.1 19.33zm-39.73-108.5c0-6.72 2.45-12.89 7.35-18.51 4.9-5.62 10.88-9.15 17.94-10.59.34 1.25.51 2.5.51 3.75 0 6.64-2.58 12.92-7.74 18.84-5.16 5.92-11.2 9.29-18.12 10.11-.2-.84-.3-1.77-.3-2.8z" />
+                    </svg>
+                    <span className="text-xs font-semibold">Apple</span>
+                  </Button>
+                </div>
+              </div>
 
               <div className="flex items-center justify-between mt-6">
                 <Link to="/registro" className="text-primary hover:underline font-medium text-sm">

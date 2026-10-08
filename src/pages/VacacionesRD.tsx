@@ -12,6 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi } from "@/lib/gamificationApi";
+import { apiMessage } from "@/lib/fastifyClient";
 import {
   Plane, Gift, Hotel, UtensilsCrossed, Compass, Heart,
   PartyPopper, Calendar, Users, MapPin, Star, CheckCircle,
@@ -78,33 +81,47 @@ export default function VacacionesRD() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.from("vacation_registrations").insert({
-      nombre: form.nombre,
-      email: form.email,
-      telefono: form.telefono || null,
-      pais: form.pais || null,
-      acompanantes: form.acompanantes || null,
-      tipo_viajero: form.tipoViajero || null,
-      fecha_llegada: form.fechaLlegada || null,
-      fecha_salida: form.fechaSalida || null,
-      aeropuerto: form.aeropuerto || null,
-      destino: form.destino,
-      alojamiento: form.alojamiento || null,
-      nombre_alojamiento: form.nombreAlojamiento || null,
-      intereses: form.intereses.length ? form.intereses : null,
-      primera_vez: form.primeraVez || null,
-      como_supo: form.comoSupo || null,
-    });
-    setLoading(false);
-    if (error) { toast.error("Error al registrar. Intenta de nuevo."); return; }
-    toast.success("🎉 ¡Registro exitoso! Ya participas para ganar premios durante tus vacaciones. ¡Bienvenido a RD!");
-    setForm({
-      nombre: "", email: "", telefono: "", pais: "",
-      acompanantes: "", tipoViajero: "",
-      fechaLlegada: "", fechaSalida: "", aeropuerto: "",
-      destino: "", alojamiento: "", nombreAlojamiento: "",
-      intereses: [], primeraVez: "", comoSupo: "", acepta: false,
-    });
+    try {
+      if (HAS_BACKEND_SESSION) {
+        await gamificationApi.registerVacationDraw({
+          name: form.nombre,
+          email: form.email,
+          phone: form.telefono || undefined,
+          destination_preference: form.destino,
+        });
+      } else {
+        const { error } = await supabase.from("vacation_registrations").insert({
+          nombre: form.nombre,
+          email: form.email,
+          telefono: form.telefono || null,
+          pais: form.pais || null,
+          acompanantes: form.acompanantes || null,
+          tipo_viajero: form.tipoViajero || null,
+          fecha_llegada: form.fechaLlegada || null,
+          fecha_salida: form.fechaSalida || null,
+          aeropuerto: form.aeropuerto || null,
+          destino: form.destino,
+          alojamiento: form.alojamiento || null,
+          nombre_alojamiento: form.nombreAlojamiento || null,
+          intereses: form.intereses.length ? form.intereses : null,
+          primera_vez: form.primeraVez || null,
+          como_supo: form.comoSupo || null,
+        });
+        if (error) throw error;
+      }
+      toast.success("🎉 ¡Registro exitoso! Ya participas para ganar premios durante tus vacaciones. ¡Bienvenido a RD!");
+      setForm({
+        nombre: "", email: "", telefono: "", pais: "",
+        acompanantes: "", tipoViajero: "",
+        fechaLlegada: "", fechaSalida: "", aeropuerto: "",
+        destino: "", alojamiento: "", nombreAlojamiento: "",
+        intereses: [], primeraVez: "", comoSupo: "", acepta: false,
+      });
+    } catch (err) {
+      toast.error(apiMessage(err, "Error al registrar. Intenta de nuevo."));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

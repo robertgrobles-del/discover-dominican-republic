@@ -7,3 +7,6 @@ export { AdminGamification } from './AdminGamification';
 export { GamificationStats } from './GamificationStats';
 export { AdminUsuarios } from './AdminUsuarios';
 export { AdminOperadores } from './AdminOperadores';
+export { AdBannerSimulatorModal } from './AdBannerSimulatorModal';
+export { ExportAdMetricsDialog } from './ExportAdMetricsDialog';
+

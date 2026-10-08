@@ -19,6 +19,9 @@ import { SEOHead } from "@/components/SEOHead";
 import { useGamification } from "@/hooks/useGamification";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi } from "@/lib/gamificationApi";
+import { fetchApi } from "@/lib/fastifyClient";
 import { CircularProgress } from "@/components/ui/progress-bar";
 import { XpHistoryChart } from "@/components/gamification/XpHistoryChart";
 import { CertificateModal } from "@/components/gamification/CertificateModal";
@@ -56,13 +59,30 @@ export default function PerfilJugador() {
 
   useEffect(() => {
     if (!user) return;
+    if (HAS_BACKEND_SESSION) {
+      fetchApi<{ data: any }>("/me/profile")
+        .then((res) => { if (res.data) setProfile(res.data); })
+        .catch((err) => {
+          toast.error("Error al cargar perfil", { description: err.message });
+        });
+      return;
+    }
     supabase.from("profiles").select("*").eq("id", user.id).single()
       .then(({ data }) => { if (data) setProfile(data as any); });
   }, [user]);
 
-  // Fetch transactions
   useEffect(() => {
     if (!user) return;
+    if (HAS_BACKEND_SESSION) {
+      gamificationApi.getTransactions(50).then((res) => {
+        setTransactions(res.data as Transaction[]);
+        setLoadingTx(false);
+      }).catch((err) => {
+        setLoadingTx(false);
+        toast.error("Error al cargar transacciones", { description: err.message });
+      });
+      return;
+    }
     setLoadingTx(true);
     supabase
       .from("gamification_transactions")
@@ -79,6 +99,18 @@ export default function PerfilJugador() {
   // Fetch achievements
   useEffect(() => {
     if (!user) return;
+    if (HAS_BACKEND_SESSION) {
+      Promise.all([
+        gamificationApi.getAchievements(),
+        gamificationApi.getMyAchievements()
+      ]).then(([ach, uAch]) => {
+        setAchievements(ach);
+        setUserAchievements(uAch);
+      }).catch((err) => {
+        toast.error("Error al cargar logros", { description: err.message });
+      });
+      return;
+    }
     Promise.all([
       supabase.from("achievements").select("*").eq("is_active", true),
       supabase.from("user_achievements").select("*").eq("user_id", user.id)
@@ -316,7 +348,7 @@ export default function PerfilJugador() {
                       <Compass className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
                       <p className="text-muted-foreground">No tienes misiones activas</p>
                       <Button asChild className="mt-4" variant="outline">
-                        <Link to="/club-recompensas">Explorar Misiones</Link>
+                        <Link to="/mapa-misiones">Explorar Misiones</Link>
                       </Button>
                     </div>
                   )}

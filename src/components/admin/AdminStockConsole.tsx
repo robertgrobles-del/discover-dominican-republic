@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { adminShipmentsApi } from "@/lib/adminShipmentsApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +22,25 @@ export function AdminStockConsole() {
   const { data: shipments, isLoading } = useQuery({
     queryKey: ["admin-reward-shipments"],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        const res = await adminShipmentsApi.listShipments();
+        return res.map((s) => ({
+          id: s.id,
+          recipient_name: s.recipient_name,
+          recipient_phone: s.recipient_phone,
+          shipping_address: s.shipping_address,
+          courier_name: s.courier_name || null,
+          tracking_number: s.tracking_number || null,
+          status: s.status,
+          created_at: s.created_at,
+          reward_id: s.id,
+          reward_inventory: {
+            title: s.prize || "Premio Físico",
+            is_physical: true,
+          },
+        }));
+      }
+
       const { data, error } = await (supabase as any)
         .from("reward_shipments")
         .select(`
@@ -44,6 +65,15 @@ export function AdminStockConsole() {
 
   const updateShipmentMutation = useMutation({
     mutationFn: async ({ id, status, courierName, trackingNumber }: { id: string; status: string; courierName?: string; trackingNumber?: string }) => {
+      if (HAS_BACKEND_SESSION) {
+        await adminShipmentsApi.updateShipment(id, {
+          status: status as any,
+          courier_name: courierName,
+          tracking_number: trackingNumber,
+        });
+        return;
+      }
+
       const updates: any = { status };
       if (courierName !== undefined) updates.courier_name = courierName;
       if (trackingNumber !== undefined) updates.tracking_number = trackingNumber;

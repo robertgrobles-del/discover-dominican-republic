@@ -465,6 +465,28 @@ export class BookingService {
     return { rows: rows.map(toBookingDto), total };
   }
 
+  /** Listado global para el staff (B1): mismos filtros que `listForOrg`, con `org_id` opcional. */
+  async listAll(f: { status?: string; from?: string; to?: string; listing_id?: string; q?: string; source?: string; org_id?: string; page: number; per_page: number }) {
+    const params: unknown[] = [];
+    const where: string[] = ["true"];
+    const add = (sql: string, v: unknown) => { params.push(v); where.push(sql.replace("?", `$${params.length}`)); };
+    if (f.org_id) add("b.org_id = ?", f.org_id);
+    if (f.status) add("b.status = ?", f.status);
+    if (f.source) add("b.source = ?", f.source);
+    if (f.listing_id) add("b.listing_id = ?", f.listing_id);
+    if (f.from) add("coalesce(b.check_out, b.date) >= ?::date", f.from);
+    if (f.to) add("b.date <= ?::date", f.to);
+    if (f.q) {
+      params.push(`%${f.q.replace(/[\\%_]/g, "\\$&")}%`);
+      const n = `$${params.length}`;
+      where.push(`(b.contact_name ILIKE ${n} OR b.contact_email ILIKE ${n} OR b.reference ILIKE ${n})`);
+    }
+    const w = where.join(" AND ");
+    const total = (await this.db.query<{ n: number }>(`SELECT count(*)::int AS n FROM bookings b WHERE ${w}`, params)).rows[0]!.n;
+    const { rows } = await this.db.query(`SELECT ${BOOKING_SELECT} FROM bookings b JOIN partner_profiles p ON p.id = b.org_id WHERE ${w} ORDER BY b.date DESC, b.created_at DESC LIMIT ${f.per_page} OFFSET ${(f.page - 1) * f.per_page}`, params);
+    return { rows: rows.map(toBookingDto), total };
+  }
+
   async getForOrg(orgId: string, id: string, only?: string[]): Promise<BookingDto> {
     const b = await this.get(id);
     const { rows } = await this.db.query("SELECT org_id FROM bookings WHERE id = $1", [id]);

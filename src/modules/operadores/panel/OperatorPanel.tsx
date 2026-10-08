@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, CalendarDays, Store, MessageSquare, ClipboardList, Coins, BadgeDollarSign, UserCog, Zap, Megaphone, Tag,
-  HandHelping, Users, BarChart3, Building2, ExternalLink, ArrowLeft, Loader2, BadgeCheck, Clock, type LucideIcon,
+  HandHelping, Users, BarChart3, Building2, ExternalLink, ArrowLeft, Loader2, BadgeCheck, Clock, Trophy, Sparkles, Menu, X, Bell, LogOut, type LucideIcon,
 } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
@@ -29,27 +29,39 @@ import Reservas from "./Reservas";
 import Ingresos from "./Ingresos";
 import Informacion from "./Informacion";
 import Promocion from "./Promocion";
+import RecompensasRetos from "./RecompensasRetos";
+import EstanciasCreadores from "./EstanciasCreadores";
 import Reportes from "./Reportes";
 import Perfil from "./Perfil";
 import Sucursales from "./Sucursales";
 
-const NAV: { to: string; label: string; icon: LucideIcon; end?: boolean; badge?: "messages" | "requests" }[] = [
-  { to: "", label: "Panel", icon: LayoutDashboard, end: true },
-  { to: "calendario", label: "Calendario", icon: CalendarDays },
-  { to: "tarifas", label: "Tarifas", icon: BadgeDollarSign },
-  { to: "automatizaciones", label: "Automatizaciones", icon: Zap },
-  { to: "anuncios", label: "Anuncios", icon: Store },
-  { to: "mensajes", label: "Mensajes", icon: MessageSquare, badge: "messages" },
-  { to: "reservas", label: "Reservas", icon: ClipboardList },
-  { to: "ingresos", label: "Ingresos", icon: Coins },
-  { to: "informacion", label: "Información", icon: Megaphone },
-  { to: "promocion", label: "Promoción", icon: Tag },
-  { to: "solicitudes", label: "Solicitudes", icon: HandHelping, badge: "requests" },
-  { to: "comunidades", label: "Comunidades", icon: Users },
-  { to: "reportes", label: "Reportes", icon: BarChart3 },
-  { to: "perfil", label: "Org/Perfil", icon: Building2 },
-  { to: "sucursales", label: "Sucursales", icon: Store },
-  { to: "equipo", label: "Equipo", icon: UserCog },
+type NavGroup = "operaciones" | "ingresos" | "contenido" | "configuracion";
+const NAV_GROUPS: { key: NavGroup; label: string }[] = [
+  { key: "operaciones", label: "Operaciones" },
+  { key: "ingresos", label: "Ingresos y precios" },
+  { key: "contenido", label: "Inteligencia y contenido" },
+  { key: "configuracion", label: "Configuración" },
+];
+
+const NAV: { to: string; label: string; icon: LucideIcon; group: NavGroup; end?: boolean; badge?: "messages" | "requests" }[] = [
+  { to: "", label: "Panel general", icon: LayoutDashboard, group: "operaciones", end: true },
+  { to: "calendario", label: "Calendario", icon: CalendarDays, group: "operaciones" },
+  { to: "anuncios", label: "Anuncios", icon: Store, group: "operaciones" },
+  { to: "reservas", label: "Reservas", icon: ClipboardList, group: "operaciones" },
+  { to: "solicitudes", label: "Solicitudes", icon: HandHelping, group: "operaciones", badge: "requests" },
+  { to: "mensajes", label: "Mensajes", icon: MessageSquare, group: "operaciones", badge: "messages" },
+  { to: "tarifas", label: "Tarifas", icon: BadgeDollarSign, group: "ingresos" },
+  { to: "ingresos", label: "Ingresos", icon: Coins, group: "ingresos" },
+  { to: "promocion", label: "Promoción", icon: Tag, group: "ingresos" },
+  { to: "automatizaciones", label: "Automatizaciones", icon: Zap, group: "ingresos" },
+  { to: "reportes", label: "Estadísticas y reportes", icon: BarChart3, group: "contenido" },
+  { to: "informacion", label: "Información", icon: Megaphone, group: "contenido" },
+  { to: "recompensas", label: "Premios y Retos", icon: Trophy, group: "contenido" },
+  { to: "creadores", label: "Creadores/Estancias", icon: Sparkles, group: "contenido" },
+  { to: "comunidades", label: "Comunidades", icon: Users, group: "contenido" },
+  { to: "perfil", label: "Org/Perfil", icon: Building2, group: "configuracion" },
+  { to: "sucursales", label: "Sucursales", icon: Store, group: "configuracion" },
+  { to: "equipo", label: "Equipo", icon: UserCog, group: "configuracion" },
 ];
 
 function OrgOnboarding({ userId, defaultName, email }: { userId: string; defaultName: string; email?: string }) {
@@ -107,7 +119,10 @@ function OrgOnboarding({ userId, defaultName, email }: { userId: string; default
 
 function Shell() {
   const { org, role } = useOrg();
+  const { user } = useAuth();
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const userName = (user?.user_metadata as { display_name?: string } | undefined)?.display_name || user?.email?.split("@")[0] || "Mi cuenta";
   const allowed = ALLOWED[role];
   const nav = NAV.filter((n) => allowed.includes(n.to));
   const g = (key: string, el: JSX.Element) => (allowed.includes(key) ? el : <Navigate to="/operadores/panel" replace />);
@@ -118,52 +133,98 @@ function Shell() {
   const badges = { messages: unread, requests };
   const VerifIcon = org.verification === "verified" ? BadgeCheck : Clock;
 
+  // Menú lateral: el mismo contenido sirve para la columna de escritorio y para el cajón del móvil.
+  const sidebar = (
+    <>
+      <div className="p-4 border-b border-border/60">
+        <div className="bg-muted/50 rounded-xl p-3 flex items-center gap-3">
+          <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
+            {userName.slice(0, 2).toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold truncate text-foreground">{userName}</p>
+            <p className="text-xs text-muted-foreground truncate">{ROLE_LABEL[role]} · {org.business_name}</p>
+          </div>
+        </div>
+      </div>
+      <nav aria-label="Panel de operador" className="flex-1 overflow-y-auto p-3 space-y-5">
+        {NAV_GROUPS.map((group) => {
+          const items = nav.filter((n) => n.group === group.key);
+          if (!items.length) return null;
+          return (
+            <div key={group.key} className="space-y-1">
+              <p className="px-3 mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
+              {items.map((n) => {
+                const count = n.badge ? badges[n.badge] : 0;
+                return (
+                  <NavLink
+                    key={n.to}
+                    to={n.to}
+                    end={n.end}
+                    onClick={() => setSidebarOpen(false)}
+                    className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+                  >
+                    <n.icon className="h-4 w-4" />
+                    <span className="flex-1 truncate">{n.label}</span>
+                    {count > 0 && <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">{count}</span>}
+                  </NavLink>
+                );
+              })}
+            </div>
+          );
+        })}
+      </nav>
+      <div className="p-3 border-t border-border/60">
+        <Link to="/" className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+          <LogOut className="h-4 w-4" /> Volver al portal turístico
+        </Link>
+      </div>
+    </>
+  );
+
   return (
     <div className="min-h-screen bg-secondary/30">
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
+      {sidebarOpen && <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden" onClick={() => setSidebarOpen(false)} aria-hidden="true" />}
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border bg-background shadow-xl transition-transform duration-300 md:hidden ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`} aria-hidden={!sidebarOpen}>
+        <div className="flex h-14 items-center justify-between border-b border-border/60 px-4">
+          <span className="font-display font-bold text-primary">Operadores RD</span>
+          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} aria-label="Cerrar menú"><X className="h-5 w-5" /></Button>
+        </div>
+        {sidebar}
+      </aside>
+
+      <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
         <div className="flex items-center justify-between gap-3 px-4 h-14">
-          <div className="flex items-center gap-3 min-w-0">
-            <Button variant="ghost" size="sm" asChild className="shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <Button variant="ghost" size="icon" className="md:hidden shrink-0" onClick={() => setSidebarOpen(true)} aria-label="Abrir menú"><Menu className="h-5 w-5" /></Button>
+            <Button variant="ghost" size="sm" asChild className="hidden md:inline-flex shrink-0">
               <Link to="/" aria-label="Volver al portal"><ArrowLeft className="h-4 w-4 mr-1" /> Portal</Link>
             </Button>
             <span className="font-display font-bold truncate">{org.business_name}</span>
-            {role !== "owner" && <Badge variant="outline" className="shrink-0">{ROLE_LABEL[role]}</Badge>}
-            <Badge variant={org.verification === "verified" ? "default" : "secondary"} className="gap-1 shrink-0">
+            {role !== "owner" && <Badge variant="outline" className="shrink-0 hidden sm:inline-flex">{ROLE_LABEL[role]}</Badge>}
+            <Badge variant={org.verification === "verified" ? "default" : "secondary"} className="gap-1 shrink-0 hidden sm:inline-flex">
               <VerifIcon className="h-3 w-3" /> {VERIFICATION_LABEL[org.verification]}
             </Badge>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link to={`/operador/${org.slug}`} target="_blank"><ExternalLink className="h-4 w-4 mr-1" /> Ver mi sitio</Link>
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            {allowed.includes("mensajes") && (
+              <Button variant="ghost" size="icon" asChild className="relative">
+                <Link to="mensajes" aria-label={unread > 0 ? `Mensajes: ${unread} sin leer` : "Mensajes"}>
+                  <Bell className="h-4 w-4 text-muted-foreground" />
+                  {unread > 0 && <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary" />}
+                </Link>
+              </Button>
+            )}
+            <Button variant="outline" size="sm" asChild>
+              <Link to={`/operador/${org.slug}`} target="_blank"><ExternalLink className="h-4 w-4 sm:mr-1" /> <span className="hidden sm:inline">Ver mi sitio</span></Link>
+            </Button>
+          </div>
         </div>
-        <nav aria-label="Panel de operador" className="md:hidden flex gap-1 overflow-x-auto px-2 pb-2 no-scrollbar">
-          {nav.map((n) => (
-            <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => `whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium ${isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}>
-              {n.label}
-            </NavLink>
-          ))}
-        </nav>
       </header>
 
       <div className="flex">
-        <aside className="hidden md:block w-60 shrink-0 border-r border-border bg-background min-h-[calc(100vh-3.5rem)] p-3 sticky top-14 self-start">
-          <nav aria-label="Panel de operador" className="space-y-1">
-            {nav.map((n) => {
-              const count = n.badge ? badges[n.badge] : 0;
-              return (
-                <NavLink
-                  key={n.to}
-                  to={n.to}
-                  end={n.end}
-                  className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors ${isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
-                >
-                  <n.icon className="h-4 w-4" />
-                  <span className="flex-1">{n.label}</span>
-                  {count > 0 && <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">{count}</span>}
-                </NavLink>
-              );
-            })}
-          </nav>
+        <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-border bg-background h-[calc(100vh-3.5rem)] sticky top-14 self-start">
+          {sidebar}
         </aside>
         <main key={location.pathname} className="flex-1 min-w-0 p-4 md:p-8 max-w-6xl">
           <Routes>
@@ -174,6 +235,8 @@ function Shell() {
             <Route path="anuncios" element={g("anuncios", <Anuncios />)} />
             <Route path="anuncios/nuevo" element={g("anuncios", <AnuncioWizard />)} />
             <Route path="anuncios/:id" element={g("anuncios", <AnuncioWizard />)} />
+            <Route path="recompensas" element={g("recompensas", <RecompensasRetos />)} />
+            <Route path="creadores" element={g("creadores", <EstanciasCreadores />)} />
             <Route path="mensajes" element={g("mensajes", <Mensajes />)} />
             <Route path="reservas" element={g("reservas", <Reservas />)} />
             <Route path="solicitudes" element={g("solicitudes", <Reservas onlyPending />)} />
@@ -215,7 +278,7 @@ export default function OperatorPanel() {
   if (authLoading || (user && orgQuery.isLoading)) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
-  if (!user) return <Navigate to="/partner/login" replace />;
+  if (!user) return <Navigate to="/partner/login?returnTo=/operadores/panel" replace />;
   if (!orgQuery.data) {
     const fallbackName = (user.user_metadata as any)?.display_name || user.email?.split("@")[0] || "Mi organización";
     return <OrgOnboarding userId={user.id} defaultName={fallbackName} email={user.email || undefined} />;

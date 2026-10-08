@@ -1,4 +1,4 @@
-export interface UtmTags { source: string; medium: string; campaign: string; content?: string | null }
+export interface UtmTags { source: string; medium: string; campaign: string; content?: string | null; extra?: Record<string, string | null | undefined> }
 
 const slug = (value: string) => value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 
@@ -18,5 +18,10 @@ export function withUtm(url: string, tags: UtmTags): string {
   add("utm_medium", tags.medium);
   add("utm_campaign", tags.campaign);
   add("utm_content", tags.content);
+  if (tags.extra) {
+    for (const [k, v] of Object.entries(tags.extra)) {
+      if (v && !parsed.searchParams.has(k)) parsed.searchParams.set(k, v);
+    }
+  }
   return parsed.toString();
 }

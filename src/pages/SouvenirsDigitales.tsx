@@ -26,6 +26,11 @@ import {
 } from "@/data/souvenirsData";
 import { SouvenirsWeb3WalletTab } from "@/components/souvenirs/SouvenirsWeb3WalletTab";
 
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi } from "@/lib/gamificationApi";
+import { fetchApi } from "@/lib/fastifyClient";
+import { apiMessage } from "@/lib/fastifyClient";
+
 export default function SouvenirsDigitales() {
   const { user } = useAuth();
   const [collectibles, setCollectibles] = useState<Collectible[]>([]);
@@ -52,32 +57,56 @@ export default function SouvenirsDigitales() {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const { data: coll } = await supabase
-        .from("digital_collectibles")
-        .select("*")
-        .eq("is_active", true)
-        .order("rarity", { ascending: false });
+      try {
+        if (HAS_BACKEND_SESSION) {
+          const [allColls, myColls] = await Promise.all([
+            gamificationApi.getCollectibles(),
+            user ? gamificationApi.getMyCollectibles().catch(() => []) : Promise.resolve([]),
+          ]);
+          setCollectibles(allColls as unknown as Collectible[]);
+          if (user && Array.isArray(myColls)) {
+            setUserCollectibles(myColls.map((c: any) => ({
+              id: c.id,
+              collectible_id: c.id,
+              acquired_at: c.claimed_at || new Date().toISOString(),
+              acquisition_method: "claim",
+              is_favorite: false,
+            })));
+          }
+        } else {
+          const { data: coll } = await supabase
+            .from("digital_collectibles")
+            .select("*")
+            .eq("is_active", true)
+            .order("rarity", { ascending: false });
 
-      if (coll) setCollectibles(coll as Collectible[]);
+          if (coll) setCollectibles(coll as Collectible[]);
 
-      if (user) {
-        const { data: uc } = await supabase
-          .from("user_collectibles")
-          .select("*")
-          .eq("user_id", user.id);
-        if (uc) setUserCollectibles(uc as UserCollectible[]);
-        
-        // Load Web3 state
-        const localConnected = localStorage.getItem(`wallet_connected_${user.id}`) === "true";
-        setIsConnected(localConnected);
-        if (localConnected) {
-          setWalletAddress(localStorage.getItem(`wallet_address_${user.id}`) || "0x7a2d4...f68b");
+          if (user) {
+            const { data: uc } = await supabase
+              .from("user_collectibles")
+              .select("*")
+              .eq("user_id", user.id);
+            if (uc) setUserCollectibles(uc as UserCollectible[]);
+          }
         }
-        
-        setMintedNfts(getStoredJSON(`minted_nfts_${user.id}`, []));
-        setTxHistory(getStoredJSON(`nft_txs_${user.id}`, []));
+
+        if (user) {
+          // Load Web3 state
+          const localConnected = localStorage.getItem(`wallet_connected_${user.id}`) === "true";
+          setIsConnected(localConnected);
+          if (localConnected) {
+            setWalletAddress(localStorage.getItem(`wallet_address_${user.id}`) || "0x7a2d4...f68b");
+          }
+          
+          setMintedNfts(getStoredJSON(`minted_nfts_${user.id}`, []));
+          setTxHistory(getStoredJSON(`nft_txs_${user.id}`, []));
+        }
+      } catch (err) {
+        console.error("Error loading souvenirs:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     load();
   }, [user]);
@@ -169,11 +198,21 @@ export default function SouvenirsDigitales() {
       const userCol = userCollectibles.find(uc => uc.collectible_id === item.id);
       
       if (userCol && user) {
-        const { error } = await supabase.from("user_collectibles").delete().eq("id", userCol.id);
-        if (error) {
-          toast.error("Error al procesar la transferencia en el servidor");
-          setIsTransferring(false);
-          return;
+        if (HAS_BACKEND_SESSION) {
+          try {
+            await fetchApi(`/collectibles/me/${userCol.collectible_id}`, { method: "DELETE" });
+          } catch (err: any) {
+            toast.error("Error al procesar la transferencia en el servidor", { description: err.message });
+            setIsTransferring(false);
+            return;
+          }
+        } else {
+          const { error } = await supabase.from("user_collectibles").delete().eq("id", userCol.id);
+          if (error) {
+            toast.error("Error al procesar la transferencia en el servidor");
+            setIsTransferring(false);
+            return;
+          }
         }
         
         setUserCollectibles(prev => prev.filter(u => u.id !== userCol.id));
@@ -322,7 +361,7 @@ export default function SouvenirsDigitales() {
                     </h3>
                     <p className="text-muted-foreground mb-4">Explora destinos y completa retos para desbloquear</p>
                     <Button asChild>
-                      <Link to="/gamificacion">Explorar Retos</Link>
+                      <Link to="/retos">Explorar Retos</Link>
                     </Button>
                   </div>
                 ) : (

@@ -482,4 +482,8 @@ export async function operatorRoutes(app: FastifyInstance) {
     await audit(app.db, { actor: req.user!.id, action: "org.verification", entity: "org", id: req.params.id, org: req.params.id, meta: { verification: req.body.verification }, ip: req.ip });
     return { data };
   });
+  r.get("/admin/bookings", { onRequest: staff, schema: { tags: ["admin"], summary: "Todas las reservas del sistema (filtros por estado, operador, servicio, origen y fecha)", security: bearer, querystring: bookingFilters.extend({ org_id: z.string().uuid().optional() }), response: { 200: paged } } }, async (req) => {
+    const { rows, total } = await bookings.listAll(req.query);
+    return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
+  });
 }

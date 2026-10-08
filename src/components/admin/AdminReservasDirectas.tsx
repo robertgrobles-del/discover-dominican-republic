@@ -2,8 +2,9 @@
 // moderación de servicios, reservas/comisiones y pedidos de la tienda.
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { BadgeCheck, Ban, ExternalLink, Trash2, XCircle } from "lucide-react";
+import { BadgeCheck, Ban, ExternalLink, Trash2, XCircle, CalendarCheck } from "lucide-react";
 import { Link } from "react-router-dom";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmActionDialog } from "@/components/ConfirmActionDialog";
@@ -17,8 +18,13 @@ import { deleteListing, fetchAllBookings, fetchOrgs, paidAmount, saveListing, up
 import { BOOKING_STATUS_LABEL, CATEGORY_META, LISTING_STATUS_LABEL, VERIFICATION_LABEL, formatMoney } from "@/modules/operadores/constants";
 import type { Listing, OperatorOrg, OrgVerification } from "@/modules/operadores/types";
 import { supabase } from "@/integrations/supabase/client";
+import { adminBookingsApi, type AdminBookingStatus } from "@/lib/adminBookingsApi";
 import {
-  ORDER_STATUS_LABEL, formatDop, updateOrderStatus, updateProduct, useOrders, useProducts, type StoreOrder,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  ORDER_STATUS_LABEL, formatDop, updateOrderStatus, updateProduct, useOrders, useProducts,
+  useAdminOrders, adminConfirmTransfer, adminUpdateOrderStatus, type StoreOrder,
 } from "@/modules/tienda/api";
 
 const ORG_KEY = ["admin", "op-orgs"];
@@ -92,7 +98,53 @@ function Listings() {
   );
 }
 
+function BookingsReal() {
+  const [status, setStatus] = useState<AdminBookingStatus | "all">("all");
+  const [q, setQ] = useState("");
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: [...BK_KEY, "real", status, q],
+    queryFn: () => adminBookingsApi.list({ per_page: 50, ...(status !== "all" ? { status } : {}), ...(q.trim() ? { q: q.trim() } : {}) }),
+  });
+  const rows = data?.data ?? [];
+  const paid = rows.filter((b) => b.amount_paid > 0 && b.status !== "cancelled");
+  const gross = paid.reduce((n, b) => n + b.amount_paid, 0);
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
+        {(["all", "pending", "confirmed", "in_progress", "completed", "cancelled"] as const).map((k) => (
+          <Button key={k} size="sm" variant={status === k ? "default" : "outline"} className="rounded-full" onClick={() => setStatus(k)}>{k === "all" ? "Todas" : BOOKING_STATUS_LABEL[k]}</Button>
+        ))}
+        <Input className="h-8 w-56" placeholder="Buscar nombre, correo o referencia" aria-label="Buscar reservas" value={q} onChange={(e) => setQ(e.target.value)} />
+      </div>
+      {isError && <p className="text-sm text-destructive">No se pudieron cargar las reservas: {error instanceof Error ? error.message : "error del servidor"}</p>}
+      {isLoading && <p className="text-sm text-muted-foreground">Cargando reservas…</p>}
+      {!isLoading && !isError && (
+        <>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[["Reservas (total con este filtro)", String(data?.meta.total ?? 0)], ["Cobrado en esta página", formatMoney(gross)]].map(([l, v]) => (
+              <Card key={l}><CardContent className="p-4"><p className="text-xs text-muted-foreground">{l}</p><p className="font-display text-2xl font-bold">{v}</p></CardContent></Card>
+            ))}
+          </div>
+          {rows.length === 0 && <p className="text-sm text-muted-foreground py-6 text-center">Sin reservas con este filtro.</p>}
+          <div className="space-y-2">
+            {rows.map((b) => (
+              <Card key={b.id}><CardContent className="p-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+                <span className="truncate">{b.reference} · {b.operator.name} · {b.contact.name} · {b.listing.title} · {b.date}</span>
+                <span className="flex items-center gap-2"><Badge variant="secondary">{BOOKING_STATUS_LABEL[b.status]}</Badge><span className="font-mono">{formatMoney(b.total_price, b.currency)}</span></span>
+              </CardContent></Card>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function Bookings() {
+  return HAS_BACKEND_SESSION ? <BookingsReal /> : <BookingsDemo />;
+}
+
+function BookingsDemo() {
   const { data: rows = [] } = useQuery({ queryKey: BK_KEY, queryFn: fetchAllBookings });
   const { data: orgs = [] } = useQuery({ queryKey: ORG_KEY, queryFn: fetchOrgs });
   const rate = useMemo(() => new Map(orgs.map((o) => [o.id, o.commission_rate])), [orgs]);
@@ -121,9 +173,50 @@ function Bookings() {
 
 function Store() {
   const { data: products = [] } = useProducts();
-  const { data: orders = [] } = useOrders();
+  const { data: orders = [], refetch: refetchOrders } = useAdminOrders();
   const prodMut = useOpMutation(({ id, p }: { id: string; p: any }) => updateProduct(id, p), [["store"]]);
-  const ordMut = useOpMutation(({ id, s }: { id: string; s: StoreOrder["status"] }) => updateOrderStatus(id, s), [["store"]]);
+  const ordMut = useOpMutation(
+    ({ id, s }: { id: string; s: StoreOrder["status"] }) =>
+      HAS_BACKEND_SESSION ? adminUpdateOrderStatus(id, s) : updateOrderStatus(id, s),
+    [["store"]]
+  );
+
+  const [confirmModalOrder, setConfirmModalOrder] = useState<StoreOrder | null>(null);
+  const [transferRef, setTransferRef] = useState("");
+  const [transferAmountInput, setTransferAmountInput] = useState<string>("");
+  const [isSubmittingTransfer, setIsSubmittingTransfer] = useState(false);
+
+  const handleOpenConfirmTransfer = (order: StoreOrder) => {
+    setConfirmModalOrder(order);
+    setTransferRef("");
+    setTransferAmountInput(order.total ? String(order.total) : "");
+  };
+
+  const handleExecuteConfirmTransfer = async () => {
+    if (!confirmModalOrder) return;
+    if (!transferRef.trim() || transferRef.trim().length < 3) {
+      toast.error("Ingresa la referencia del depósito o transferencia (mínimo 3 caracteres)");
+      return;
+    }
+    const amt = transferAmountInput ? Number(transferAmountInput) : undefined;
+    if (amt !== undefined && (isNaN(amt) || amt <= 0)) {
+      toast.error("El monto ingresado no es válido");
+      return;
+    }
+
+    setIsSubmittingTransfer(true);
+    try {
+      await adminConfirmTransfer(confirmModalOrder.id, transferRef.trim(), amt);
+      toast.success("✅ Depósito confirmado. El pedido pasó a estado pagado.");
+      setConfirmModalOrder(null);
+      refetchOrders();
+    } catch (err: any) {
+      toast.error("Error al confirmar depósito", { description: err?.message || "No se pudo procesar" });
+    } finally {
+      setIsSubmittingTransfer(false);
+    }
+  };
+
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <Card><CardHeader><CardTitle className="text-base">Productos ({products.length})</CardTitle></CardHeader><CardContent className="space-y-2">
@@ -134,19 +227,115 @@ function Store() {
           </div>
         ))}
       </CardContent></Card>
-      <Card><CardHeader><CardTitle className="text-base">Pedidos ({orders.length})</CardTitle></CardHeader><CardContent className="space-y-2">
+      <Card><CardHeader><CardTitle className="text-base">Pedidos ({orders.length})</CardTitle></CardHeader><CardContent className="space-y-3">
         {orders.length === 0 && <p className="text-sm text-muted-foreground">Sin pedidos todavía.</p>}
-        {orders.map((o) => (
-          <div key={o.id} className="text-sm border-b border-border/60 pb-2 last:border-0 space-y-1">
-            <div className="flex justify-between gap-2"><span className="font-medium truncate">{o.customer_name} · {o.city}</span><span className="font-mono">{formatDop(o.total)}</span></div>
-            <p className="text-xs text-muted-foreground">{o.items.map((i) => `${i.qty}× ${i.name}`).join(", ")}</p>
-            <Select value={o.status} onValueChange={(v) => ordMut.mutate({ id: o.id, s: v as StoreOrder["status"] }, { onSuccess: () => toast.success("Pedido actualizado") })}>
-              <SelectTrigger className="h-8 w-40 text-xs" aria-label="Estado del pedido"><SelectValue /></SelectTrigger>
-              <SelectContent>{(Object.keys(ORDER_STATUS_LABEL) as StoreOrder["status"][]).map((s) => <SelectItem key={s} value={s}>{ORDER_STATUS_LABEL[s]}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-        ))}
+        {orders.map((o) => {
+          const isTransfer = o.payment_method === "transfer" || !o.payment_method;
+          const isPending = o.status === "pending";
+          return (
+            <div key={o.id} className="text-sm border-b border-border/60 pb-3 last:border-0 space-y-1.5">
+              <div className="flex justify-between items-start gap-2">
+                <div>
+                  <span className="font-semibold block truncate">{o.customer_name} · {o.city}</span>
+                  <span className="text-[11px] text-muted-foreground block">
+                    {isTransfer ? "🏦 Depósito / Transferencia" : "💳 Tarjeta"} · {new Date(o.created_at).toLocaleDateString("es-DO")}
+                  </span>
+                </div>
+                <span className="font-mono font-bold text-foreground">{formatDop(o.total)}</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {(o.items || []).map((i) => `${i.qty}× ${i.name}`).join(", ")}
+              </p>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <Select
+                  value={o.status}
+                  onValueChange={(v) => ordMut.mutate({ id: o.id, s: v as StoreOrder["status"] }, { onSuccess: () => toast.success("Pedido actualizado") })}
+                >
+                  <SelectTrigger className="h-8 w-36 text-xs" aria-label="Estado del pedido"><SelectValue /></SelectTrigger>
+                  <SelectContent>{(Object.keys(ORDER_STATUS_LABEL) as StoreOrder["status"][]).map((s) => <SelectItem key={s} value={s}>{ORDER_STATUS_LABEL[s]}</SelectItem>)}</SelectContent>
+                </Select>
+
+                {isTransfer && isPending && (
+                  <Button
+                    size="sm"
+                    className="h-8 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-sm"
+                    onClick={() => handleOpenConfirmTransfer(o)}
+                  >
+                    Confirmar depósito
+                  </Button>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </CardContent></Card>
+
+      {/* Modal para confirmar depósito / transferencia bancaria */}
+      <Dialog open={!!confirmModalOrder} onOpenChange={(open) => (!open ? setConfirmModalOrder(null) : undefined)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmar Depósito o Transferencia</DialogTitle>
+            <DialogDescription>
+              Registra el número de comprobante o referencia bancaria para marcar el pedido como pagado.
+            </DialogDescription>
+          </DialogHeader>
+
+          {confirmModalOrder && (
+            <div className="space-y-4 py-2 text-sm">
+              <div className="bg-muted/40 p-3 rounded-xl space-y-1 text-xs">
+                <p><strong>Pedido:</strong> {confirmModalOrder.id}</p>
+                <p><strong>Cliente:</strong> {confirmModalOrder.customer_name} ({confirmModalOrder.customer_email})</p>
+                <p><strong>Total a cobrar:</strong> {formatDop(confirmModalOrder.total)}</p>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">
+                  Número de Referencia o Comprobante <span className="text-destructive">*</span>
+                </label>
+                <Input
+                  placeholder="Ej: DEP-894210 o Ref Bancaria"
+                  value={transferRef}
+                  onChange={(e) => setTransferRef(e.target.value)}
+                  className="h-9"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">
+                  Monto Verificado (DOP)
+                </label>
+                <Input
+                  type="number"
+                  placeholder={String(confirmModalOrder.total)}
+                  value={transferAmountInput}
+                  onChange={(e) => setTransferAmountInput(e.target.value)}
+                  className="h-9"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Debe ser igual o mayor a {formatDop(confirmModalOrder.total)}.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmModalOrder(null)}
+              disabled={isSubmittingTransfer}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+              onClick={handleExecuteConfirmTransfer}
+              disabled={isSubmittingTransfer}
+            >
+              {isSubmittingTransfer ? "Confirmando..." : "Confirmar Pago"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -178,7 +178,7 @@ export function StaticDestinationPage({ destination }: StaticDestinationPageProp
       />
 
       {/* 3. LO QUE NO TE PUEDES PERDER */}
-      <DestinationMustSee destinoNombre={destination.name} />
+      <DestinationMustSee destinoNombre={destination.name} slug={destination.slug} />
 
       {/* 4. PLANIFICA TU LLEGADA & RUTAS TERRESTRES */}
       <DestinationArrivalGuide

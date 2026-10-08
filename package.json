@@ -22,7 +22,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:import-excel": "node scripts/import-excel.mjs",
+    "db:import-static": "npm --prefix backend run db:import-static --",
+    "db:migrate": "npm --prefix backend run db:migrate",
+    "db:seed": "npm --prefix backend run db:seed",
+    "db:seed-demo": "npm --prefix backend run db:seed-demo"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

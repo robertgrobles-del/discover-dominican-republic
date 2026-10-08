@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi, type PassportStampItem, type CollectibleItem } from "@/lib/gamificationApi";
+import { apiMessage } from "@/lib/accountApi";
 import { toast } from "sonner";
 
 export interface PassportStamp {
@@ -137,6 +140,34 @@ export function usePassport() {
   // Fetch user's passport stamps
   const fetchStamps = useCallback(async () => {
     if (!user) return;
+
+    if (HAS_BACKEND_SESSION) {
+      try {
+        const res = await gamificationApi.getPassport();
+        if (Array.isArray(res?.stamps)) {
+          setStamps(
+            res.stamps.map((s: PassportStampItem) => ({
+              id: s.id,
+              user_id: user.id,
+              stamp_type: 'destination',
+              stamp_name: s.stamp_title || s.stamp_name || "Sello Oficial",
+              stamp_location: "República Dominicana",
+              stamp_image: s.badge_url || undefined,
+              visited_at: s.created_at,
+              verification_method: (s.verification_method as any) || 'qr_scan',
+              xp_earned: 50,
+              coins_earned: 25,
+              is_verified: true,
+              created_at: s.created_at,
+            }))
+          );
+        }
+      } catch (err: any) {
+        console.warn("Error cargando pasaporte en backend:", err?.message || err);
+      }
+      return;
+    }
+
     const { data } = await supabase
       .from("passport_stamps")
       .select("*")
@@ -147,6 +178,18 @@ export function usePassport() {
 
   // Fetch available routes
   const fetchRoutes = useCallback(async () => {
+    if (HAS_BACKEND_SESSION) {
+      try {
+        const list = await gamificationApi.getRoutes();
+        if (Array.isArray(list)) {
+          setRoutes(list as unknown as GamifiedRoute[]);
+        }
+      } catch (err: any) {
+        console.warn("Error cargando rutas en backend:", err?.message || err);
+      }
+      return;
+    }
+
     const { data } = await supabase
       .from("gamified_routes")
       .select("*")
@@ -158,6 +201,11 @@ export function usePassport() {
   // Fetch user's route progress
   const fetchUserRouteProgress = useCallback(async () => {
     if (!user) return;
+    if (HAS_BACKEND_SESSION) {
+      // El backend retorna el progreso directamente integrado en las rutas /gamification/routes
+      return;
+    }
+
     const { data } = await supabase
       .from("user_route_progress")
       .select("*")
@@ -167,6 +215,34 @@ export function usePassport() {
 
   // Fetch available collectibles
   const fetchCollectibles = useCallback(async () => {
+    if (HAS_BACKEND_SESSION) {
+      try {
+        const list = await gamificationApi.getCollectibles();
+        if (Array.isArray(list)) {
+          setCollectibles(
+            list.map((c: CollectibleItem) => ({
+              id: c.id,
+              name: c.name,
+              description: c.description,
+              collectible_type: 'culture',
+              rarity: (c.rarity as any) || 'common',
+              image_url: c.image_url,
+              current_supply: 100,
+              xp_value: 100,
+              coin_value: 50,
+              is_tradeable: false,
+              is_active: true,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }))
+          );
+        }
+      } catch (err: any) {
+        console.warn("Error cargando coleccionables en backend:", err?.message || err);
+      }
+      return;
+    }
+
     const { data } = await supabase
       .from("digital_collectibles")
       .select("*")
@@ -178,6 +254,28 @@ export function usePassport() {
   // Fetch user's collectibles
   const fetchUserCollectibles = useCallback(async () => {
     if (!user) return;
+
+    if (HAS_BACKEND_SESSION) {
+      try {
+        const list = await gamificationApi.getMyCollectibles();
+        if (Array.isArray(list)) {
+          setUserCollectibles(
+            list.map((c: CollectibleItem) => ({
+              id: `uc-${c.id}`,
+              user_id: user.id,
+              collectible_id: c.id,
+              acquired_at: c.claimed_at || new Date().toISOString(),
+              is_favorite: false,
+              created_at: c.claimed_at || new Date().toISOString(),
+            }))
+          );
+        }
+      } catch (err: any) {
+        console.warn("Error cargando coleccionables de usuario en backend:", err?.message || err);
+      }
+      return;
+    }
+
     const { data } = await supabase
       .from("user_collectibles")
       .select("*")
@@ -185,7 +283,7 @@ export function usePassport() {
     if (data) setUserCollectibles(data as unknown as UserCollectible[]);
   }, [user]);
 
-  // Add a new stamp (con verificación de unicidad por lugar y día)
+  // Add a new stamp
   const addStamp = useCallback(async (stampData: Omit<PassportStamp, 'id' | 'user_id' | 'created_at'>) => {
     if (!user) return false;
 
@@ -198,6 +296,22 @@ export function usePassport() {
 
     if (alreadyStamped) {
       toast.info(`Ya registraste tu sello en ${stampData.stamp_name} el día de hoy.`);
+      return false;
+    }
+
+    if (HAS_BACKEND_SESSION) {
+      if (stampData.verification_data?.qr_token) {
+        try {
+          const res = await gamificationApi.scanPassportQR(stampData.verification_data.qr_token);
+          toast.success(res.message || `✅ Sello oficial obtenido: ${res.stamp?.stamp_title}`);
+          await fetchStamps();
+          return true;
+        } catch (err) {
+          toast.error(apiMessage(err, "No se pudo validar el código QR del pasaporte."));
+          return false;
+        }
+      }
+      toast.info("Para sellar este destino con sesión real, escanea el código QR oficial del lugar.");
       return false;
     }
 
@@ -220,7 +334,18 @@ export function usePassport() {
   const startRoute = useCallback(async (routeId: string) => {
     if (!user) return false;
 
-    // Fetch checkpoints count
+    if (HAS_BACKEND_SESSION) {
+      try {
+        await gamificationApi.startRoute(routeId);
+        toast.success("🗺️ ¡Ruta iniciada!");
+        await fetchRoutes();
+        return true;
+      } catch (err: any) {
+        toast.error(apiMessage(err, "Error al iniciar la ruta"));
+        return false;
+      }
+    }
+
     const { count } = await supabase
       .from("route_checkpoints")
       .select("*", { count: "exact", head: true })
@@ -240,7 +365,7 @@ export function usePassport() {
     toast.success("🗺️ ¡Ruta iniciada!");
     await fetchUserRouteProgress();
     return true;
-  }, [user, fetchUserRouteProgress]);
+  }, [user, fetchUserRouteProgress, fetchRoutes]);
 
   // Complete a checkpoint
   const completeCheckpoint = useCallback(async (
@@ -250,7 +375,18 @@ export function usePassport() {
   ) => {
     if (!user) return false;
 
-    // Get checkpoint details
+    if (HAS_BACKEND_SESSION) {
+      try {
+        await gamificationApi.completeRouteCheckpoint(routeId, checkpointId);
+        toast.success("✅ Checkpoint completado");
+        await fetchRoutes();
+        return true;
+      } catch (err: any) {
+        toast.error(apiMessage(err, "Error al completar el checkpoint"));
+        return false;
+      }
+    }
+
     const { data: checkpoint } = await supabase
       .from("route_checkpoints")
       .select("*")
@@ -259,7 +395,6 @@ export function usePassport() {
 
     if (!checkpoint) return false;
 
-    // Insert checkpoint completion
     const { error } = await supabase.from("user_checkpoint_completions").insert({
       user_id: user.id,
       route_id: routeId,
@@ -275,7 +410,6 @@ export function usePassport() {
       return false;
     }
 
-    // Update route progress
     const { data: progress } = await supabase
       .from("user_route_progress")
       .select("*")
@@ -318,6 +452,18 @@ export function usePassport() {
     method: 'mission' | 'route' | 'event' | 'purchase' | 'gift' | 'trade'
   ) => {
     if (!user) return false;
+
+    if (HAS_BACKEND_SESSION) {
+      try {
+        await gamificationApi.claimCollectible(collectibleId);
+        toast.success("🎁 ¡Nuevo coleccionable reclamado!");
+        await fetchUserCollectibles();
+        return true;
+      } catch (err) {
+        toast.error(apiMessage(err, "No se pudo reclamar el coleccionable"));
+        return false;
+      }
+    }
 
     const { error } = await supabase.from("user_collectibles").insert({
       user_id: user.id,

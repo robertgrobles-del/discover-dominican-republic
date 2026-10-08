@@ -38,10 +38,10 @@ const experienceCategories = [
 
 const quickDestinationPills = [
   { label: "Punta Cana y Bávaro", href: "/destino/punta-cana" },
-  { label: "Santuario de Samaná", href: "/destino/samana" },
-  { label: "Ciudad Colonial", href: "/patrimonio" },
-  { label: "Jarabacoa y Constanza", href: "/montanas" },
-  { label: "Cabarete y Costa Norte", href: "/destino/puerto-plata" },
+  { label: "Samaná", href: "/destino/samana" },
+  { label: "Ciudad Colonial", href: "/destino/zona-colonial" },
+  { label: "Jarabacoa", href: "/destino/jarabacoa" },
+  { label: "Puerto Plata", href: "/destino/puerto-plata" },
   { label: "Bahía de las Águilas", href: "/playas" },
   { label: "Ruta Gastronómica", href: "/guia-gastronomica" },
 ];

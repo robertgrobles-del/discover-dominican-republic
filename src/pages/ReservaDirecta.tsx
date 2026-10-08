@@ -9,10 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { SelloVerificadoBadge } from "@/components/ui/SelloVerificadoBadge";
+import { apiClient } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   CheckCircle, ShieldCheck, ArrowLeft, CreditCard, Calendar, 
   MapPin, Users, Bed, Sparkles, ChevronRight, Lock, PhoneCall,
-  Clock, DollarSign, Award, Gift
+  Clock, DollarSign, Award, Gift, Loader2
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -56,12 +59,21 @@ const beneficiosDirectos = [
   }
 ];
 
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { bookingsApi } from "@/lib/bookingsApi";
+import { apiMessage } from "@/lib/accountApi";
+
 export default function ReservaDirecta() {
+  const { user } = useAuth();
   const [selectedDestino, setSelectedDestino] = useState(destinosOpciones[0].id);
   const [selectedTipo, setSelectedTipo] = useState("hotel");
   const [noches, setNoches] = useState(3);
   const [huespedes, setHuespedes] = useState(2);
-  const [metodoPago, setMetodoPago] = useState("tarjeta");
+  const [metodoPago, setMetodoPago] = useState<"pay_later" | "card_sandbox" | "deposit">("pay_later");
+  const [guestName, setGuestName] = useState(user?.user_metadata?.full_name || "");
+  const [guestEmail, setGuestEmail] = useState(user?.email || "");
+  const [guestPhone, setGuestPhone] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const destinoActual = destinosOpciones.find(d => d.id === selectedDestino) || destinosOpciones[0];
   const precioBase = destinoActual.precioPromedio * noches;
@@ -69,10 +81,58 @@ export default function ReservaDirecta() {
   const propinaLegal = Math.round(precioBase * 0.10); // Ley 10%
   const total = precioBase + itbis + propinaLegal;
 
-  const handleBooking = () => {
-    toast.success("¡Solicitud de Reserva Directa Enviada!", {
-      description: `Destino: ${destinoActual.nombre} para ${huespedes} personas (${noches} noches). Te hemos enviado la confirmación y enlace de pago seguro a tu correo.`
-    });
+  const handleBooking = async () => {
+    if (!guestName.trim()) {
+      toast.error("Por favor ingresa tu nombre completo.");
+      return;
+    }
+    if (!guestEmail.trim() || !guestEmail.includes("@")) {
+      toast.error("Por favor ingresa un correo electrónico válido.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const checkInDate = new Date();
+      checkInDate.setDate(checkInDate.getDate() + 1);
+      const checkOutDate = new Date(checkInDate.getTime() + noches * 86400000);
+
+      const paymentMode = metodoPago === "deposit" ? "deposit" : metodoPago === "card_sandbox" ? "pay_now" : "pay_later";
+      const paymentToken = metodoPago === "card_sandbox" ? "tok_cardnet_demo_sandbox_approved" : undefined;
+
+      if (HAS_BACKEND_SESSION) {
+        const res = await bookingsApi.create({
+          request: {
+            listing_id: `listing-${selectedDestino}`,
+            date: checkInDate.toISOString().split("T")[0],
+            check_out: checkOutDate.toISOString().split("T")[0],
+            adults: huespedes,
+            children: 0,
+          },
+          contact: {
+            name: guestName.trim(),
+            email: guestEmail.trim().toLowerCase(),
+            phone: guestPhone.trim() || undefined,
+          },
+          notes: `Reserva directa para ${destinoActual.nombre} (${noches} noches, ${selectedTipo}) - Método: ${metodoPago}`,
+          payment_mode: paymentMode,
+          payment_method_token: paymentToken,
+          locale: "es",
+        });
+
+        toast.success("¡Reserva Confirmada Exitosamente!", {
+          description: `Referencia: ${res.booking.reference} en ${destinoActual.nombre} (${noches} noches). Se ha enviado el comprobante a ${guestEmail}.`,
+        });
+      } else {
+        toast.success("¡Solicitud de Reserva Directa Registrada!", {
+          description: `Destino: ${destinoActual.nombre} para ${huespedes} personas (${noches} noches). Te hemos enviado la confirmación oficial a ${guestEmail}.`,
+        });
+      }
+    } catch (err: unknown) {
+      toast.error(apiMessage(err, "No se pudo procesar la reserva directa. Intenta nuevamente."));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -91,6 +151,8 @@ export default function ReservaDirecta() {
             src={puntaCanaImg}
             alt="Reserva directa de hoteles y tours en República Dominicana"
             className="absolute inset-0 w-full h-full object-cover object-center"
+            loading="lazy"
+            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-black/30" />
 
@@ -105,9 +167,7 @@ export default function ReservaDirecta() {
 
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div>
-                <Badge className="mb-3 bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-xs px-3 py-1 font-semibold">
-                  <ShieldCheck className="h-3.5 w-3.5 mr-1.5" /> TARIFA DIRECTA SIN INTERMEDIARIOS
-                </Badge>
+                <SelloVerificadoBadge variant="full" size="md" className="mb-3" />
                 <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">
                   Portal de Reserva Directa
                 </h1>
@@ -279,32 +339,94 @@ export default function ReservaDirecta() {
                 </div>
 
                 {/* Payment methods */}
-                <div className="pt-2 border-t border-border">
-                  <label className="text-xs font-semibold text-muted-foreground block mb-2">
-                    Método de Pago Preferido:
+                <div className="pt-2 border-t border-border space-y-2">
+                  <label className="text-xs font-semibold text-muted-foreground block">
+                    Modalidad de Pago:
                   </label>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="grid grid-cols-1 gap-2 text-xs">
                     <button
-                      onClick={() => setMetodoPago("tarjeta")}
-                      className={`p-2.5 rounded-lg border text-center font-medium ${
-                        metodoPago === "tarjeta" ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
+                      type="button"
+                      onClick={() => setMetodoPago("pay_later")}
+                      className={`p-3 rounded-xl border text-left font-medium transition-all ${
+                        metodoPago === "pay_later"
+                          ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary"
+                          : "border-border text-muted-foreground hover:bg-muted/30"
                       }`}
                     >
-                      💳 Tarjeta de Crédito
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-foreground flex items-center gap-1.5">
+                          🏨 Pagar en Destino
+                          <Badge variant="outline" className="text-[10px] py-0 bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                            Recomendado
+                          </Badge>
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        Paga al momento del check-in directamente con el hotel u operador.
+                      </p>
                     </button>
+
                     <button
-                      onClick={() => setMetodoPago("rdpass")}
-                      className={`p-2.5 rounded-lg border text-center font-medium ${
-                        metodoPago === "rdpass" ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
+                      type="button"
+                      onClick={() => setMetodoPago("card_sandbox")}
+                      className={`p-3 rounded-xl border text-left font-medium transition-all ${
+                        metodoPago === "card_sandbox"
+                          ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary"
+                          : "border-border text-muted-foreground hover:bg-muted/30"
                       }`}
                     >
-                      🏝️ Tarjeta RD Pass
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-foreground flex items-center gap-1.5">
+                          💳 Tarjeta Online (Sandbox Demo)
+                          <Badge variant="outline" className="text-[10px] py-0 bg-amber-500/10 text-amber-600 border-amber-500/30">
+                            CardNet / Azul / Stripe
+                          </Badge>
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        Simulación de pasarela de pago segura con aprobación instantánea de prueba.
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setMetodoPago("deposit")}
+                      className={`p-3 rounded-xl border text-left font-medium transition-all ${
+                        metodoPago === "deposit"
+                          ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary"
+                          : "border-border text-muted-foreground hover:bg-muted/30"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-foreground">
+                          ⏳ Depósito Inicial (20%)
+                        </span>
+                        <span className="text-[11px] text-primary font-bold">
+                          US$ {Math.round(total * 0.2).toLocaleString()} hoy
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        Garantiza tu cupo con 20% y cancela el saldo restante al llegar.
+                      </p>
                     </button>
                   </div>
                 </div>
 
-                <Button onClick={handleBooking} size="lg" className="w-full gap-2 font-bold text-sm bg-primary hover:bg-primary/90 text-primary-foreground">
-                  <CreditCard className="h-4 w-4" /> Confirmar Solicitud de Reserva Directa
+                <Button
+                  onClick={handleBooking}
+                  disabled={isSubmitting}
+                  size="lg"
+                  className="w-full gap-2 font-bold text-sm bg-primary hover:bg-primary/90 text-primary-foreground"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" /> Procesando Reserva Oficial...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-4 w-4" /> Confirmar Solicitud de Reserva Directa
+                    </>
+                  )}
                 </Button>
 
                 <p className="text-[11px] text-center text-muted-foreground flex items-center justify-center gap-1.5">

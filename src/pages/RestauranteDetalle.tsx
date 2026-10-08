@@ -9,6 +9,7 @@ import { SEOHead, generateRestaurantSchema } from "@/components/SEOHead";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RestaurantHeroSlider } from "@/components/restaurant/RestaurantHeroSlider";
 import { RestaurantDishesGrid, SignatureDishDetail } from "@/components/restaurant/RestaurantDishesGrid";
+import { RestaurantInteractiveMenuPos } from "@/components/restaurant/RestaurantInteractiveMenuPos";
 import { RestaurantReservationCard } from "@/components/restaurant/RestaurantReservationCard";
 import { RestaurantAmbienceCard } from "@/components/restaurant/RestaurantAmbienceCard";
 import { DetailFloatingBar } from "@/components/detail/DetailFloatingBar";
@@ -63,7 +64,7 @@ export default function RestauranteDetalle() {
               El restaurante que buscas no se encuentra disponible o ha sido actualizado.
             </p>
             <Button asChild className="rounded-xl">
-              <Link to="/restaurante">Ver Guía Gastronómica</Link>
+              <Link to="/guia-gastronomica">Ver Guía Gastronómica</Link>
             </Button>
           </div>
           <Footer />
@@ -169,6 +170,11 @@ export default function RestauranteDetalle() {
               <div id="restaurant-menu-section">
                 <RestaurantDishesGrid dishes={signatureDishesDetailed} />
               </div>
+
+              {/* Carta Interactiva & Pre-orden Estilo POS Moderno */}
+              <RestaurantInteractiveMenuPos 
+                restaurantName={restaurant.name}
+              />
 
               {/* Ambience, Wine & Cocktails */}
               <RestaurantAmbienceCard />

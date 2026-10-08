@@ -54,7 +54,7 @@ const pillars = [
     title: "Viajero Responsable",
     description: "Guía práctica de comportamiento ético para minimizar tu huella ecológica durante tu visita.",
     link: "Descargar guía",
-    href: "/guia-viajero-responsable",
+    href: "/viaje-responsable",
   },
 ];
 

@@ -71,14 +71,14 @@ export function GamificationTeaser() {
 
               {/* Conversion Actions */}
               <div className="flex flex-wrap items-center gap-3 pt-3">
-                <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-2xl h-11 px-6 text-xs sm:text-sm shadow-md shadow-primary/20">
+                <Button asChild className="btn-cta-magnetic bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-2xl h-11 px-6 text-xs sm:text-sm shadow-md shadow-primary/20">
                   <Link to="/registro" className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4" /> Crear Mi Pasaporte Gratis
                   </Link>
                 </Button>
-                <Button asChild variant="outline" className="rounded-2xl h-11 px-5 text-xs sm:text-sm border-border bg-card hover:bg-muted">
-                  <Link to="/gamificacion-turistica" className="flex items-center gap-1.5 font-semibold">
-                    Explorar Hub de Gamificación <ArrowRight className="h-4 w-4 text-primary" />
+                <Button asChild variant="outline" className="rounded-2xl h-11 px-5 text-xs sm:text-sm border-border bg-card hover:bg-muted font-semibold transition-transform hover:translate-x-0.5">
+                  <Link to="/gamificacion-turistica" className="flex items-center gap-1.5">
+                    Ver Misiones y Recompensas <ArrowRight className="h-4 w-4 text-primary" />
                   </Link>
                 </Button>
               </div>

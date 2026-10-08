@@ -206,6 +206,16 @@ export async function gameRoutes(app: FastifyInstance) {
   r.post("/admin/users/:id/award-xp", { onRequest: admin, schema: { tags: ["admin"], summary: "Otorga XP o monedas con motivo (auditado)", security: bearer, params: z.object({ id: z.string().uuid() }), body: adjustBody.refine((b) => b.xp >= 0, "Para descontar usa /admin/gamification/users/{id}/adjust"), response: { 200: ok } } }, async (req) => adjust(req as never, "gamification.awarded"));
   r.post("/admin/gamification/users/:id/adjust", { onRequest: admin, schema: { tags: ["admin"], summary: "Ajuste manual de XP y monedas, también negativo (sin bajar de cero), con motivo; queda en la bitácora del juego", security: bearer, params: z.object({ id: z.string().uuid() }), body: adjustBody, response: { 200: ok } } }, async (req) => adjust(req as never, "gamification.adjusted"));
 
+  // Lo que la consola de usuarios pinta junto a cada cuenta: progreso del juego, por lote de identificadores.
+  r.get("/admin/gamification/users", { onRequest: admin, schema: { tags: ["admin"], summary: "Progreso del juego de varias cuentas (XP, monedas, nivel, racha)", security: bearer, querystring: z.object({ ids: z.string().max(4000).transform((s) => s.split(",").filter(Boolean)).pipe(z.array(z.string().uuid()).min(1).max(100)) }), response: { 200: ok } } }, async (req) => {
+    const { rows } = await db.query("SELECT user_id, total_xp, coins, current_level, streak_days, total_missions_completed, total_referrals FROM user_gamification WHERE user_id = ANY($1::uuid[])", [req.query.ids]);
+    return { data: rows };
+  });
+  r.get("/admin/gamification/users/:id/transactions", { onRequest: admin, schema: { tags: ["admin"], summary: "Últimos movimientos de XP y monedas de una cuenta", security: bearer, params: z.object({ id: z.string().uuid() }), querystring: z.object({ limit: z.coerce.number().int().min(1).max(100).default(30) }), response: { 200: ok } } }, async (req) => {
+    const { rows } = await db.query("SELECT id, transaction_type, xp_amount, coin_amount, description, source_type, created_at FROM gamification_transactions WHERE user_id = $1 ORDER BY created_at DESC LIMIT $2", [req.params.id, req.query.limit]);
+    return { data: rows };
+  });
+
   r.get("/admin/gamification/stats", { onRequest: admin, schema: { tags: ["admin"], summary: "XP emitido, jugadores activos, canjes y distribución por nivel", security: bearer, response: { 200: ok } } }, async () => {
     const one = async (sql: string) => Number((await db.query<{ n: string }>(sql)).rows[0]!.n);
     return {

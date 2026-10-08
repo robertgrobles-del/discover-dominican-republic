@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { adminAnalyticsApi } from "@/lib/adminAnalyticsApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from "recharts";
@@ -11,6 +13,22 @@ export function AdminNpsAnalytics() {
   const { data: npsStats, isLoading } = useQuery({
     queryKey: ["admin-nps-stats"],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        const nps = await adminAnalyticsApi.getNps();
+        return {
+          score: nps.score !== null ? Math.round(nps.score) : 0,
+          promoters: nps.promoters || 0,
+          passives: nps.passives || 0,
+          detractors: nps.detractors || 0,
+          total: nps.count || 0,
+          responses: (nps.comments || []).map((c) => ({
+            nps_score: c.score,
+            profiles: { display_name: c.survey || "Viajero" },
+            answers: { comment: c.comment },
+            created_at: c.created_at,
+          })),
+        };
+      }
       const { data, error } = await supabase
         .from("survey_responses")
         .select("nps_score, created_at, answers, user_id, profiles(display_name)")

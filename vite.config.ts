@@ -35,6 +35,11 @@ export default defineConfig(({ mode }) => {
       hmr: {
         overlay: false,
       },
+      // La API se llama por el mismo origen (/api/v1), igual que en producción detrás de Caddy: la política de
+      // seguridad de contenido del sitio sólo permite conexiones a 'self'. VITE_DEV_API cambia el destino.
+      proxy: {
+        "/api": { target: env.VITE_DEV_API || "http://localhost:3000", changeOrigin: false },
+      },
     },
     plugins: [react()],
     build: {
@@ -67,6 +72,14 @@ export default defineConfig(({ mode }) => {
             // Lucide icons - bundle together instead of individual chunks
             if (id.includes('node_modules/lucide-react')) {
               return 'vendor-icons';
+            }
+            // Mapas y Geodatos (Leaflet)
+            if (id.includes('node_modules/leaflet') || id.includes('node_modules/react-leaflet')) {
+              return 'vendor-maps';
+            }
+            // Gráficas y Métricas (Recharts)
+            if (id.includes('node_modules/recharts')) {
+              return 'vendor-charts';
             }
             // All local assets (images) in one chunk to avoid 30+ tiny image wrapper chunks
             if (id.includes('/src/assets/') && (id.endsWith('.jpg') || id.endsWith('.png') || id.endsWith('.webp'))) {

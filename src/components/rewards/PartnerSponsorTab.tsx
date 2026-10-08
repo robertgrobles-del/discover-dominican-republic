@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { PartnerEmbedBadge } from "@/components/gamification/PartnerEmbedBadge";
 import { rewardsFaqs, type CatalogReward, type RedeemedVoucher } from "@/data/rewardsData";
+import { apiClient } from "@/lib/api";
 
 interface PartnerSponsorTabProps {
   rewards: CatalogReward[];
@@ -157,6 +158,18 @@ export const PartnerSponsorTab: React.FC<PartnerSponsorTabProps> = ({
     onAddReward(createdReward);
     setPartnerStep("ads-perks");
     toast.success(`🎉 ¡Recompensa "${createdReward.name}" configurada! Puedes gestionar publicidad o regalos ahora.`);
+
+    // Persist to backend database for operator & admin moderation
+    apiClient.post("/operators/sponsorship/rewards", {
+      prize_name: createdReward.name,
+      category: createdReward.category,
+      coin_price: createdReward.coin_cost,
+      stock_total: createdReward.quantity_available,
+      terms_conditions: newRewardForm.bookingInstructions,
+      image_url: createdReward.image_url,
+    }).catch((err) => {
+      console.warn("Backend sponsorship sync note:", err?.message || err);
+    });
   };
 
   const handleValidateVoucherCode = () => {

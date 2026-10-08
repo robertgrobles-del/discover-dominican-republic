@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { fetchApi } from "@/lib/fastifyClient";
 import {
   Award, Download, Mic, Users, Link as LinkIcon, DollarSign,
   FileText, Plus, Percent, ShoppingBag, QrCode, Camera,
@@ -477,6 +479,51 @@ export function OperatorToolsModule() {
 
     setScanLoading(true);
     setScanResult(null);
+
+    if (HAS_BACKEND_SESSION) {
+      try {
+        interface TicketVerifyDto {
+          valid: boolean;
+          guest_name?: string;
+          contact_name?: string;
+          title?: string;
+          kind?: string;
+          total_price?: number;
+        }
+        const res = await fetchApi<{ data: TicketVerifyDto }>("/tickets/verify", {
+          method: "POST",
+          body: JSON.stringify({ code: codeToVerify.trim().toUpperCase() }),
+        });
+        if (res.data?.valid) {
+          setScanResult({
+            success: true,
+            code: codeToVerify.trim().toUpperCase(),
+            guest: res.data.guest_name || res.data.contact_name || "Cliente",
+            service: res.data.title || res.data.kind || "Evento / Reserva",
+            price: res.data.total_price || 0,
+            message: "¡Ticket validado y canjeado con éxito! Permita el abordaje.",
+          });
+          toast.success("¡Ticket validado con éxito!");
+        } else {
+          setScanResult({
+            success: false,
+            code: codeToVerify.trim().toUpperCase(),
+            message: "El ticket no es válido o ya fue utilizado.",
+          });
+          toast.error("Ticket no válido");
+        }
+      } catch (err: any) {
+        setScanResult({
+          success: false,
+          code: codeToVerify.trim().toUpperCase(),
+          message: err.message || "Código no encontrado o ya utilizado.",
+        });
+        toast.error("Error al validar ticket: " + (err.message || "Código no válido"));
+      } finally {
+        setScanLoading(false);
+      }
+      return;
+    }
 
     try {
       // Query the database for the ticket

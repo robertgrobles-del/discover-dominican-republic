@@ -36,6 +36,7 @@ export { BannerContentAnimation } from "./BannerContentAnimation";
 export { BannerContentSlider } from "./BannerContentSlider";
 export type { SliderItem } from "./BannerContentSlider";
 export { PreFooterPresidenteBanner } from "./PreFooterPresidenteBanner";
+export { GoogleAdSlot } from "./GoogleAdSlot";
 export { OFFICIAL_BANNERS, OFFICIAL_BANNER_MAP } from "@/data/officialBanners";
 export type { OfficialBannerDefinition } from "@/data/officialBanners";
 

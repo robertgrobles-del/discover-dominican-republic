@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { LineChart, Line, XAxis, ResponsiveContainer, Area, AreaChart } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { saveLeadLocally } from "@/lib/leadStorage";
+import { B2BROICalculator } from "@/components/pricing/B2BROICalculator";
 
 import heroBeach from "@/assets/hero-beach.jpg";
 
@@ -291,6 +292,9 @@ export default function Partners() {
               </div>
             </div>
           </section>
+
+          {/* B2B ROI Simulator */}
+          <B2BROICalculator />
 
           {/* Partners */}
           <section className="py-12 border-y border-border bg-card/50">

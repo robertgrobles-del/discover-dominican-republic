@@ -28,6 +28,9 @@ import {
 import { EntityType, useAdminEntities } from '@/hooks/useAdminEntities';
 import { EntityFormDialog } from './EntityFormDialog';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { HAS_BACKEND_SESSION } from '@/lib/authSource';
+import { adminSaveTranslations } from '@/lib/adminApi';
 
 interface FieldConfig {
   name: string;
@@ -123,6 +126,15 @@ export function EntityList({ entity, entityName, fields }: EntityListProps) {
     entityId: string,
     translations: Record<string, Record<string, string>>
   ) => {
+    if (HAS_BACKEND_SESSION) {
+      try {
+        await adminSaveTranslations(entityType, entityId, translations);
+      } catch (error) {
+        console.error('Error saving translations:', error);
+        toast.error('Traducciones sin guardar', { description: error instanceof Error ? error.message : 'Error desconocido' });
+      }
+      return;
+    }
     const upsertData: any[] = [];
     
     Object.entries(translations).forEach(([lang, fields]) => {

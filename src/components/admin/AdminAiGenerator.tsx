@@ -7,11 +7,13 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Loader2, Copy, RefreshCw, Send, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { adminAiApi, type AiTone } from "@/lib/adminAiApi";
 
 export function AdminAiGenerator() {
   const { toast } = useToast();
   const [prompt, setPrompt] = useState("");
-  const [tone, setTone] = useState("aventurero");
+  const [tone, setTone] = useState<AiTone>("aventurero");
   const [entityType, setEntityType] = useState("beaches");
   const [loading, setLoading] = useState(false);
   const [generatedText, setGeneratedText] = useState("");
@@ -32,6 +34,36 @@ export function AdminAiGenerator() {
     setGeneratedText("");
     setGeneratedHighlights([]);
 
+    if (HAS_BACKEND_SESSION) {
+      try {
+        const text = await adminAiApi.generate({
+          prompt,
+          tone,
+          entity_type: entityType,
+        });
+        setGeneratedText(text);
+        setGeneratedHighlights([
+          "Redacción asistida por Gemini vía Fastify API",
+          "Tono y estilo calibrado para turismo dominicano",
+        ]);
+        toast({
+          title: "Borrador generado",
+          description: "La IA generó el contenido en el backend exitosamente.",
+        });
+        setLoading(false);
+        return;
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "No se pudo conectar al servicio de IA";
+        toast({
+          title: "Error al generar con IA",
+          description: msg,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+    }
+
     try {
       // Attempting to call the AI edge function if configured, otherwise falling back
       const { data, error } = await supabase.functions.invoke("admin-ai-operations", {
@@ -46,7 +78,7 @@ export function AdminAiGenerator() {
       setGeneratedHighlights(data.highlights || []);
       toast({
         title: "Descripción generada",
-        description: "La IA de Gemini redactó la propuesta exitosamente.",
+        description: "La IA redactó la propuesta exitosamente.",
       });
     } catch (err) {
       // Fallback local robust with templates for wow effect
@@ -128,10 +160,10 @@ export function AdminAiGenerator() {
                 title="Tono de Voz"
                 className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 value={tone}
-                onChange={(e) => setTone(e.target.value)}
+                onChange={(e) => setTone(e.target.value as AiTone)}
               >
                 <option value="aventurero">Aventurero y Enérgico</option>
-                <option value="profesional">Profesional e Informativo</option>
+                <option value="informativo">Profesional e Informativo</option>
                 <option value="romantico">Romántico y Descriptivo</option>
                 <option value="familiar">Familiar y Acogedor</option>
               </select>

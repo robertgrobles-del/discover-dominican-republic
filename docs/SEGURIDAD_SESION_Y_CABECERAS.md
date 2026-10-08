@@ -1,10 +1,10 @@
 # Sesión y cabeceras de seguridad
 
-## Estado comprobado
+## Estado comprobado (actualizado 2026-10-07)
 
-- El cliente Supabase actual está sustituido por un adaptador simulado local; no autentica contra el backend. La sesión simulada vive sólo en memoria y desaparece al recargar. Las claves heredadas `sb-token` y `sb-user` se eliminan al iniciar el adaptador.
+- Con `VITE_AUTH_SOURCE=api` el frontend autentica contra el backend (`/auth/login`, `/auth/refresh`, `/auth/logout`, `/auth/me`): el token de acceso vive sólo en memoria (`src/lib/accessToken.ts`) y se renueva con la cookie de refresco. Sin esa variable sigue el adaptador simulado local, cuya sesión desaparece al recargar. Las claves heredadas `sb-token` y `sb-user` se eliminan al iniciar el adaptador.
 - El mock no es un control de acceso: cualquier usuario puede iniciar sesión y las comprobaciones de roles del mock son permisivas. No se deben exponer datos reales ni usarlo como autorización de producción.
-- El backend soporta refresh token en cookie `HttpOnly`, `Secure` en producción y `SameSite=Lax`, con la cabecera `X-Refresh-Transport: cookie` para forzar preflight en solicitudes cross-origin. El access token aún se devuelve en JSON; por tanto es visible a JavaScript. El frontend todavía no consume este flujo.
+- El backend soporta refresh token en cookie `HttpOnly`, `Secure` en producción y `SameSite=Lax`, con la cabecera `X-Refresh-Transport: cookie` para forzar preflight en solicitudes cross-origin. El access token se devuelve en JSON y es visible a JavaScript; el frontend lo guarda sólo en memoria, nunca en `localStorage`.
 - La API define CSP de API (`default-src 'none'; frame-ancestors 'none'`) cuando Swagger está desactivado. La página HTML tiene una CSP meta antigua/incompleta: no es un sustituto de cabeceras HTTP y no se considera validada para las integraciones actuales.
 - La API envía `Referrer-Policy: strict-origin-when-cross-origin`, `X-Content-Type-Options: nosniff` y `Permissions-Policy: camera=(), microphone=(), geolocation=(self)`. Geolocalización queda permitida sólo al mismo origen por el reto fotográfico.
 
@@ -20,6 +20,6 @@ Las cookies se envían automáticamente. `SameSite=Lax`, CORS con allow-list y l
 
 ## Pendiente antes de producción
 
-1. Integrar el frontend con `/auth/login`, `/auth/refresh`, `/auth/logout` y `/auth/me` en modo cookie; guardar el access token sólo en memoria. Completar flujo 2FA/registro/reset y gestionar expiración/rotación. Eliminar el mock permisivo antes de activar datos reales.
+1. ~~Integrar el frontend con el flujo de sesión en modo cookie~~ (hecho). Falta eliminar el mock permisivo antes de activar datos reales (`VITE_DATA_SOURCE=api`).
 2. Identificar el hosting del frontend y configurar allí cabeceras HTTP de staging, primero con `Content-Security-Policy-Report-Only`. Instrumentar reportes, probar rutas principales y terceros (fuentes, imágenes/CMS, mapas, API, Strapi), y luego imponer CSP en producción. No ampliar con comodines sin justificar cada origen. La política debe evitar `'unsafe-eval'`; eliminar scripts inline o usar nonce/hash generado por el servidor.
 3. Verificar las cuatro cabeceras con una petición HTTP real al dominio de staging y al de producción; el middleware Fastify sólo demuestra las cabeceras de la API, no las respuestas HTML del hosting.

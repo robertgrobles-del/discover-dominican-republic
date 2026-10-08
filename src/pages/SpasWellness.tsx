@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { supabase } from "@/integrations/supabase/client";
+import { CatalogService } from "@/services/catalogService";
 import { useQuery } from "@tanstack/react-query";
 import { CTARegistroEstablecimiento } from "@/components/forms/CTARegistroEstablecimiento";
 import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
@@ -99,13 +99,10 @@ export default function SpasWellness() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("Todos");
 
-  // Fetch from Supabase
+  // Fetch via CatalogService
   const { data: dbSpas } = useQuery({
     queryKey: ['spas-list'],
-    queryFn: async () => {
-      const { data } = await supabase.from('spas_wellness').select('*').eq('is_active', true).order('is_sponsored', { ascending: false }).order('is_featured', { ascending: false });
-      return data || [];
-    },
+    queryFn: () => CatalogService.getSpas(),
   });
 
   // Merge static + DB

@@ -10,7 +10,7 @@ import { backfillExtras, runDatasetImport, runImport } from "./static/run.js";
 
 const flag = (n: string) => process.argv.includes(`--${n}`);
 const only = (() => { const i = process.argv.indexOf("--only"); return i >= 0 ? (process.argv[i + 1] ?? "").split(",").filter(Boolean) : []; })();
-const url = process.env.DATABASE_URL ?? "postgres://postgres:postgres@localhost:5434/descubre_rd";
+const url = process.env.DATABASE_URL ?? "postgres://postgres:postgres@localhost:5433/descubre_rd";
 const dry = flag("dry-run");
 
 const pool = new pg.Pool({ connectionString: url, max: 1 });

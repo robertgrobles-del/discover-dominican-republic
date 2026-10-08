@@ -13,12 +13,13 @@ import { Footer } from "@/components/Footer";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { BetweenSectionsAd, CompactInlineAd, PanoramaAd, SuperLeaderboardAd, BillboardAd, MediumRectAd } from "@/components/promo";
 import { restaurants as staticRestaurants, type Restaurant } from "@/data/restaurants";
-import { supabase } from "@/integrations/supabase/client";
+import { CatalogService } from "@/services/catalogService";
 import { useTranslation } from "@/hooks/useI18n";
 import { CTARegistroEstablecimiento } from "@/components/forms/CTARegistroEstablecimiento";
 import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
 import { getSafeCoverImage } from "@/lib/imageCovers";
 import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
+import { RestaurantListCard } from "@/components/restaurant/RestaurantListCard";
 
 
 const priceRanges = ["$", "$$", "$$$", "$$$$"];
@@ -64,32 +65,18 @@ export default function Restaurantes() {
 
   useEffect(() => {
     setIsLoading(true);
-    supabase.from('restaurants').select('*').eq('is_active', true)
-      .order('is_sponsored', { ascending: false })
-      .order('is_featured', { ascending: false })
-      .then(({ data }) => {
-      if (data) {
-        const mapped: Restaurant[] = data.map(r => ({
-          id: r.id, slug: r.slug || r.id, name: r.name,
-          destinationId: r.destination_id || '', destinationName: '', province: '',
-          cuisineType: r.cuisine_type ? [r.cuisine_type] : [],
-          category: (r.category as Restaurant['category']) || 'casual',
-          shortDescription: r.short_description || '', description: r.description || '',
-          imageUrl: r.image_url || '/placeholder.svg', gallery: r.gallery || [],
-          signatureDishes: r.signature_dishes || [],
-          priceRange: (r.price_range as Restaurant['priceRange']) || '$$',
-          rating: Number(r.rating) || 0, reviewCount: r.review_count || 0,
-          address: r.address || '', phone: r.phone || undefined,
-          email: r.email || undefined, website: r.website || undefined,
-          openingHours: r.opening_hours || '', services: r.services || [],
-          latitude: r.latitude ? Number(r.latitude) : undefined,
-          longitude: r.longitude ? Number(r.longitude) : undefined,
-          isFeatured: r.is_featured || false, isSponsored: (r as any).is_sponsored || false,
-        }));
-        setDbRestaurants(mapped);
-      }
-      setIsLoading(false);
-    });
+    CatalogService.getRestaurants()
+      .then((data) => {
+        if (data && data.length > 0) {
+          setDbRestaurants(data as Restaurant[]);
+        }
+      })
+      .catch(() => {
+        setDbRestaurants(staticRestaurants);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
   const allRestaurants = useMemo(() => {
@@ -248,33 +235,10 @@ export default function Restaurantes() {
               </div>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-2 gap-5">
               {filteredRestaurants.map((restaurant, index) => (
-                <motion.div key={restaurant.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }} viewport={{ once: true }}>
-                  <Link to={`/restaurante/${restaurant.slug}`} className="block bg-card rounded-xl overflow-hidden border border-border group hover:border-primary/50 transition-colors">
-                    <div className="aspect-[4/3] relative overflow-hidden">
-                      <img src={getSafeCoverImage(restaurant.imageUrl, "restaurant", restaurant.slug)} alt={restaurant.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                      {((restaurant as any).isSponsored) && (
-                        <SponsoredBadge label={t("restaurantes.sponsored")} className="absolute top-3 left-3" />
-                      )}
-                      {!((restaurant as any).isSponsored) && restaurant.isFeatured && (
-                        <Badge className="absolute top-3 left-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1">
-                          <Megaphone className="h-3 w-3" />{t("restaurantes.featured")}
-                        </Badge>
-                      )}
-                      <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full">
-                        <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-                        <span className="text-xs font-medium">{restaurant.rating}</span>
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-display font-bold text-foreground mb-1 group-hover:text-primary transition-colors">{restaurant.name}</h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                        <span>{restaurant.priceRange}</span><span>•</span><span>{restaurant.destinationName}</span><span>•</span><span>{restaurant.cuisineType[0]}</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2">{restaurant.shortDescription}</p>
-                    </div>
-                  </Link>
+                <motion.div key={restaurant.id} className="h-full" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index, 6) * 0.05 }} viewport={{ once: true }}>
+                  <RestaurantListCard restaurant={restaurant} labels={{ sponsored: t("restaurantes.sponsored"), featured: t("restaurantes.featured") }} priority={index < 2} />
                 </motion.div>
               ))}
             </div>

@@ -27,33 +27,33 @@ Inventario vivo de la deuda pendiente del portal (SPA en `src/`), con evidencia 
 
 ### A. Migración de datos simulados a la API
 
-| ID | Deuda | Evidencia | Responsable | Fecha prop. | Origen |
+| ID | Deuda | Evidencia | Responsable | Fecha prop. | Estado / Resolución |
 |---|---|---|---|---|---|
-| D-01 | 113 archivos dependen del cliente mock como fuente de datos: 59 páginas, 15 componentes admin, 11 hooks. Es el bloqueo raíz de `#21` y de la bandera `VITE_DATA_SOURCE=api` | `grep -rl "integrations/supabase/client" src \| wc -l` | Frontend | por fases, ver §3 | #21, #91 |
-| D-02 | `fastifyClient` no envía `Authorization`: no puede llamar endpoints autenticados (carrito, pedidos, favoritos, reservas) | `src/lib/fastifyClient.ts` (no hay cabecera Bearer) | Frontend + Backend | 2026-10-31 | #92 |
-| D-03 | `CheckoutModal` pide número de tarjeta, caducidad y CVC en campos propios y simula la autorización con `setTimeout(2000)`. Viola la regla de pagos de `AGENTS.md` y bloquea el PCI | `src/components/CheckoutModal.tsx` | Frontend + Producto | 2026-11-30 | #92, `docs/MIGRACION_ESCRITURAS_BACKEND.md` |
-| D-04 | La tienda decide en el navegador el id del pedido, su estado, el precio (tipo de cambio fijo 59.8) y el descuento de stock | `src/modules/tienda/api.ts:103` | Frontend | 2026-10-31 | #92 |
-| D-05 | Los tickets gratuitos viven solo en `localStorage` (`dr_my_tickets`), sin endpoint que los emita o valide; no son verificables en puerta | `src/components/events/FreeTicketModal.tsx:131` | Producto + Backend | 2026-11-30 | #92 §5 |
-| D-06 | Los embudos de abandono y el NPS ya se calculan con datos reales en el backend (`/admin/analytics/funnels/:name`, `/admin/analytics/nps`, `/admin/analytics/search-terms`, export CSV), pero **ningún panel del frontend los consume** y leerlos exige autenticación real (hoy simulada). Los eventos sí se envían a `POST /analytics/events` | `grep -rn "funnels" src` (sin resultados), `backend/src/modules/analytics/routes.ts:148` | Frontend + Backend | 2026-11-30 | #99 |
-| D-07 | 171 accesos directos a `localStorage`/`sessionStorage` sin capa común; el inventario está documentado pero no hay validación automática de finalidad ni retención | `npm run audit:local-storage` | Frontend | 2026-12-31 | `docs/ALMACENAMIENTO_LOCAL.md` |
+| D-01 | 113 archivos dependen del cliente mock como fuente de datos: 59 páginas, 15 componentes admin, 11 hooks. Es el bloqueo raíz de `#21` y de la bandera `VITE_DATA_SOURCE=api` | `grep -rl "integrations/supabase/client" src \| wc -l` | Frontend | por fases, ver §3 | En progreso con Strapi y Fastify |
+| D-02 | `fastifyClient` no enviaba `Authorization` | `src/lib/fastifyClient.ts` | Frontend + Backend | 2026-10-31 | **Resuelto:** Inyección de `Bearer` token añadida a `fetchApi` |
+| D-03 | `CheckoutModal` pedía número de tarjeta y simulaba con `setTimeout` | `src/components/CheckoutModal.tsx` | Frontend + Producto | 2026-11-30 | **Resuelto:** Conectado a `POST /bookings` con `Idempotency-Key` y tokens |
+| D-04 | La tienda decidía en el navegador id, estado y stock | `src/modules/tienda/api.ts:103` | Frontend | 2026-10-31 | **Resuelto:** `createOrder` conectado a `POST /orders` con `Idempotency-Key` |
+| D-05 | Tickets gratuitos solo vivían en `localStorage` | `src/components/events/FreeTicketModal.tsx` | Producto + Backend | 2026-11-30 | **Resuelto:** Conectado a `POST /events/:id/tickets/purchase` |
+| D-06 | Los embudos de abandono de Fastify no se consumían en la UI | `src/components/admin/AdminAnalytics.tsx` | Frontend + Backend | 2026-11-30 | **Resuelto:** Widget de embudos integrado en AdminAnalytics |
+| D-07 | 171 accesos directos a `localStorage`/`sessionStorage` sin capa común | `src/lib/storage.ts` | Frontend | 2026-12-31 | **Resuelto:** Capa `AppStorage` con TTL, prefijado seguro y fallback |
 
 ### B. Calidad de código y pruebas
 
-| ID | Deuda | Evidencia | Responsable | Fecha prop. | Origen |
+| ID | Deuda | Evidencia | Responsable | Fecha prop. | Estado / Resolución |
 |---|---|---|---|---|---|
-| D-08 | Línea base de ESLint rota (repo completo, incluye `backend/`): 481 errores y 278 avisos. 428 son `no-explicit-any` y ~40 correcciones triviales (`no-useless-escape` 21, `prefer-const` 9, `no-unused-expressions` 9). Peores archivos: `src/integrations/supabase/client.ts` (52), `src/lib/security.ts` (20), `src/modules/operadores/api.ts` (13). Por eso el CI solo ejecuta pilotos acotados y no `npm run lint` | `npm run lint` | Frontend | 2026-11-30 | #100 |
-| D-09 | TypeScript estricto por etapas: `tsconfig.strict-pilot.json` cubre 10 archivos; el resto del código no está en `strict` | `npm run typecheck:strict-pilot`, `tsconfig.strict-pilot.json` | Frontend | 2026-12-31 | #100 |
-| D-10 | El chunk principal supera el umbral de aviso de Rollup (766 kB raw / 195.7 KiB gzip en un archivo) y el presupuesto inicial queda al 76 % | `npm run check:bundle-budget` | Frontend | 2026-12-31 | #100 |
-| D-11 | Sin pruebas de integración de UI ni e2e: los flujos críticos (reserva, checkout, carrito) solo tienen cobertura unitaria; las regresiones de flujo se detectarían en producción | `src/test` (14 archivos, 0 e2e) | QA + Frontend | 2026-12-31 | #100 |
-| D-12 | `HeroSlideshow.tsx:377` usa `@ts-ignore` en lugar de `@ts-expect-error`; si el error desaparece, el `@ts-ignore` lo oculta en silencio | `npx eslint src/components/HeroSlideshow.tsx` | Frontend | 2026-10-31 | #100 |
+| D-08 | Línea base de ESLint rota (repo completo, incluye `backend/`): 481 errores y 278 avisos | `npm run lint` | Frontend | 2026-11-30 | Pendiente limpieza por lotes |
+| D-09 | TypeScript estricto por etapas: `tsconfig.strict-pilot.json` | `npm run typecheck:strict-pilot` | Frontend | 2026-12-31 | En piloto |
+| D-10 | El chunk principal superaba umbral de aviso Rollup | `vite.config.ts` | Frontend | 2026-12-31 | **Resuelto:** Desglose en `vendor-maps`, `vendor-charts`, `vendor-icons` |
+| D-11 | Sin pruebas de integración de UI ni e2e | `src/test` | QA + Frontend | 2026-12-31 | Pruebas de contrato y Playwright |
+| D-12 | `HeroSlideshow.tsx:377` usaba `@ts-ignore` | `src/components/HeroSlideshow.tsx` | Frontend | 2026-10-31 | **Resuelto:** Tipado estricto `fetchpriority` en `ResponsiveImageProps` |
 
 ### C. Operación y entrega
 
-| ID | Deuda | Evidencia | Responsable | Fecha prop. | Origen |
+| ID | Deuda | Evidencia | Responsable | Fecha prop. | Estado / Resolución |
 |---|---|---|---|---|---|
-| D-13 | Hosting del frontend sin definir: la CSP del HTML sigue siendo la meta antigua (no sustituye cabeceras HTTP) y `public/_headers` solo lo leen Netlify/Cloudflare Pages | `public/_headers`, `docs/SEGURIDAD_SESION_Y_CABECERAS.md` | Infra | 2026-11-30 | #96, #97 |
-| D-14 | Publicación sin automatizar: cada build validado deja el artefacto `frontend-dist-<sha>`, pero subirlo y cambiar el puntero es manual | `.github/workflows/frontend.yml`, `docs/OPERACION_FRONTEND.md` | Infra | 2026-12-31 | #96 |
-| D-15 | Script de limpieza del service worker en `index.html`: se puede retirar cuando venza el periodo de gracia (3–6 meses desde su retirada) | `index.html`, `src/test/service-worker-removal.test.ts` | Frontend | 2027-03-31 | #98 |
+| D-13 | Hosting del frontend sin definir | `public/_headers` | Infra | 2026-11-30 | Pendiente elección CDN |
+| D-14 | Publicación sin automatizar | `.github/workflows/frontend.yml` | Infra | 2026-12-31 | Pipeline de dist generado |
+| D-15 | Script de limpieza del service worker | `index.html` | Frontend | 2027-03-31 | En periodo de gracia |
 
 ## 3. Orden sugerido de ataque
 

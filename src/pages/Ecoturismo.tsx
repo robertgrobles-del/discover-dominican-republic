@@ -244,37 +244,55 @@ export default function Ecoturismo() {
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ delay: index * 0.1 }}
-                      className="bg-card rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-colors"
+                      transition={{ delay: index * 0.08 }}
+                      className="card-taste overflow-hidden flex flex-col justify-between group"
                     >
-                      <div className="relative h-48">
-                        <img src={cueva.imagen} alt={cueva.nombre} className="w-full h-full object-cover" />
-                        <Badge className={`absolute top-3 left-3 ${
-                          cueva.dificultad === "Fácil" ? "bg-emerald-500" : 
-                          cueva.dificultad === "Moderado" ? "bg-amber-500" : "bg-red-500"
-                        } text-white`}>
-                          {cueva.dificultad}
-                        </Badge>
-                      </div>
-                      <div className="p-5">
-                        <h3 className="font-display font-bold text-lg text-foreground mb-1">{cueva.nombre}</h3>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
-                          <MapPin className="h-3 w-3" />
-                          {cueva.ubicacion}
+                      <div>
+                        <div className="relative h-52 overflow-hidden">
+                          <img 
+                            src={cueva.imagen} 
+                            alt={cueva.nombre} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                          <Badge className={`absolute top-3 left-3 shadow-md font-semibold text-xs ${
+                            cueva.dificultad === "Fácil" ? "bg-emerald-600 text-white" : 
+                            cueva.dificultad === "Moderado" ? "bg-amber-600 text-white" : "bg-rose-600 text-white"
+                          }`}>
+                            {cueva.dificultad}
+                          </Badge>
+                          <span className="absolute bottom-3 left-3 text-white text-xs font-medium flex items-center gap-1 drop-shadow-sm">
+                            <MapPin className="h-3.5 w-3.5 text-primary" /> {cueva.ubicacion}
+                          </span>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-4">{cueva.descripcion}</p>
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 mr-4">
-                            <p className="text-xs text-muted-foreground mb-1">Nivel Físico</p>
+                        <div className="p-6">
+                          <h3 className="font-display font-bold text-xl text-foreground mb-2 group-hover:text-primary transition-colors">
+                            {cueva.nombre}
+                          </h3>
+                          <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                            {cueva.descripcion}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="px-6 pb-6 pt-0">
+                        <div className="flex items-center justify-between gap-4 pt-3 border-t border-border/60">
+                          <div className="flex-1">
+                            <div className="flex justify-between text-xs text-muted-foreground mb-1 font-medium">
+                              <span>Exigencia física</span>
+                              <span className="font-semibold text-foreground">{cueva.nivelFisico}%</span>
+                            </div>
                             <div className="h-2 bg-secondary rounded-full overflow-hidden">
                               <div 
-                                className="h-full bg-primary rounded-full transition-all"
+                                className="h-full bg-gradient-to-r from-emerald-500 via-primary to-amber-500 rounded-full transition-all duration-500"
                                 style={{ width: `${cueva.nivelFisico}%` }}
                               />
                             </div>
                           </div>
                           <Link to={`/cueva/${cueva.id}`}>
-                            <Button variant="outline" size="sm">Ver Detalles</Button>
+                            <Button size="sm" className="btn-cta-magnetic rounded-xl text-xs font-semibold px-4">
+                              Detalles
+                            </Button>
                           </Link>
                         </div>
                       </div>
@@ -465,33 +483,51 @@ export default function Ecoturismo() {
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ delay: index * 0.1 }}
-                      className="bg-card rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-colors"
+                      transition={{ delay: index * 0.08 }}
+                      className="card-taste overflow-hidden flex flex-col justify-between group"
                     >
-                      <div className="relative h-48">
-                        <img src={parque.imagen} alt={parque.nombre} className="w-full h-full object-cover" />
-                        <Badge className={`absolute top-3 right-3 ${
-                          parque.dificultad === "Fácil" ? "bg-emerald-500" : 
-                          parque.dificultad === "Media" ? "bg-amber-500" : "bg-red-500"
-                        } text-white`}>
-                          {parque.dificultad}
-                        </Badge>
+                      <div>
+                        <div className="relative h-52 overflow-hidden">
+                          <img 
+                            src={parque.imagen} 
+                            alt={parque.nombre} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                          <Badge className={`absolute top-3 right-3 shadow-md font-semibold text-xs ${
+                            parque.dificultad === "Fácil" ? "bg-emerald-600 text-white" : 
+                            parque.dificultad === "Media" ? "bg-amber-600 text-white" : "bg-rose-600 text-white"
+                          }`}>
+                            {parque.dificultad}
+                          </Badge>
+                          <span className="absolute bottom-3 left-3 text-white text-xs font-medium flex items-center gap-1 drop-shadow-sm">
+                            <MapPin className="h-3.5 w-3.5 text-primary" /> {parque.ubicacion}
+                          </span>
+                        </div>
+                        <div className="p-6">
+                          <h3 className="font-display font-bold text-xl text-foreground mb-2 group-hover:text-primary transition-colors">
+                            {parque.nombre}
+                          </h3>
+                          <div className="flex flex-wrap gap-1.5 mb-4">
+                            {parque.etiquetas.map((etiqueta) => (
+                              <Badge key={etiqueta} variant="secondary" className="text-xs bg-secondary/70">
+                                {etiqueta}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                      <div className="p-5">
-                        <h3 className="font-display font-bold text-lg text-foreground mb-1">{parque.nombre}</h3>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground mb-3">
-                          <MapPin className="h-3 w-3" />
-                          {parque.ubicacion}
-                        </div>
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {parque.etiquetas.map((etiqueta) => (
-                            <Badge key={etiqueta} variant="secondary" className="text-xs">{etiqueta}</Badge>
-                          ))}
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-primary font-semibold">{parque.precio}</span>
+
+                      <div className="px-6 pb-6 pt-0">
+                        <div className="flex items-center justify-between pt-3 border-t border-border/60">
+                          <div>
+                            <span className="text-xs text-muted-foreground block font-medium">Entrada oficial</span>
+                            <span className="text-primary font-bold text-base">{parque.precio}</span>
+                          </div>
                           <Link to={`/parque-nacional/${parque.id}`}>
-                            <Button variant="outline" size="sm">Ver Detalles</Button>
+                            <Button size="sm" className="btn-cta-magnetic rounded-xl text-xs font-semibold px-4">
+                              Ver Ficha Completa
+                            </Button>
                           </Link>
                         </div>
                       </div>

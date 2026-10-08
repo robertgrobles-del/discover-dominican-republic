@@ -91,10 +91,13 @@ export default function TiendaProducto() {
                 <div className="inline-flex items-center border border-border rounded-lg">
                   <Button variant="ghost" size="icon" aria-label="Disminuir" onClick={() => setQty(Math.max(1, qty - 1))}><Minus className="h-4 w-4" /></Button>
                   <span className="w-10 text-center" aria-live="polite">{qty}</span>
-                  <Button variant="ghost" size="icon" aria-label="Aumentar" onClick={() => setQty(Math.min(10, product.stock || 1, qty + 1))}><Plus className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" aria-label="Aumentar" onClick={() => setQty(Math.min(10, qty + 1))}><Plus className="h-4 w-4" /></Button>
                 </div>
+                {product.low_stock && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">¡Solo quedan {product.low_stock} disponibles!</p>
+                )}
               </div>
-              <Button size="lg" className="w-full" disabled={product.stock <= 0} onClick={add}>{product.stock <= 0 ? "Agotado" : "Agregar al carrito"}</Button>
+              <Button size="lg" className="w-full" disabled={!product.in_stock} onClick={add}>{!product.in_stock ? "Agotado" : "Agregar al carrito"}</Button>
 
               <div className="space-y-4 text-sm text-muted-foreground">
                 <p className="font-semibold text-foreground">{product.tagline}</p>

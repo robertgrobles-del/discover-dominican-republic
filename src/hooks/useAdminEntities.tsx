@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { IS_MOCK_DATA } from '@/lib/dataSource';
+import { HAS_BACKEND_SESSION } from '@/lib/authSource';
 import {
   AdminApiError,
   adminCreateEntity,
@@ -28,7 +28,8 @@ export type EntityType =
   | 'marketplace_order_items' | 'vendor_payments' | 'discount_coupons' | 'weather_alerts'
   | 'emergency_contacts' | 'system_cron_jobs' | 'ip_rules' | 'entity_translations'
   | 'lotteries' | 'lottery_draws' | 'lottery_results' | 'exchange_rates' | 'fuel_prices' | 'reservations'
-  | 'protected_areas' | 'bird_species' | 'hot_springs' | 'offset_projects' | 'toll_routes' | 'marine_reports';
+  | 'protected_areas' | 'bird_species' | 'hot_springs' | 'offset_projects' | 'toll_routes' | 'marine_reports'
+  | 'airports' | 'articles' | 'trivia_questions';
 
 interface Filters {
   destination_id?: string;
@@ -55,7 +56,7 @@ interface CallApiOptions {
 /**
  * Datos de administración por colección (Plan de accesos, punto 3).
  *
- * Con `VITE_DATA_SOURCE=api` habla directamente con Fastify (`/api/v1/admin/<colección>` a través de
+ * Con sesión real (`HAS_BACKEND_SESSION`) habla directamente con Fastify (`/api/v1/admin/<colección>` a través de
  * `src/lib/adminApi.ts`). Mientras el portal siga sobre datos simulados, usa la función simulada de
  * siempre, pero **cargada de forma diferida**: así un build real (`api`) nunca la importa, y el cliente
  * simulado —que falla cerrado— no bloquea la carga del panel.
@@ -71,7 +72,7 @@ export function useAdminEntities() {
   ): Promise<ApiResponse<T> | null> {
     setLoading(true);
     try {
-      if (IS_MOCK_DATA) {
+      if (!HAS_BACKEND_SESSION) {
         const { supabase } = await import('@/integrations/supabase/client');
         const sessionResult = await supabase.auth.getSession();
         const session = sessionResult.data.session;
@@ -180,7 +181,7 @@ export function useAdminEntities() {
   ): Promise<ApiResponse<unknown> | null> {
     const result = await callApi<unknown>(entity, 'delete', { id });
     // En el camino real un borrado correcto responde 204 sin cuerpo: el éxito se reconoce por no haber error.
-    if (result && (result.message || result.data !== undefined || !IS_MOCK_DATA)) {
+    if (result && (result.message || result.data !== undefined || HAS_BACKEND_SESSION)) {
       toast({
         title: 'Eliminado exitosamente',
         description: 'El elemento ha sido eliminado.'

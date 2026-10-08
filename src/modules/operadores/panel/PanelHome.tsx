@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { sendDueReminders } from "../automation";
 import { Link } from "react-router-dom";
-import { AlertTriangle, Store, Globe, Wallet, ArrowRight, Sparkles, Loader2 } from "lucide-react";
+import { AlertTriangle, Store, Globe, Wallet, ArrowRight, Sparkles, Loader2, Trophy, Gift } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -73,6 +73,47 @@ export default function PanelHome() {
             {seed.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />} Cargar datos de demostración
           </Button>
         )}
+      </section>
+
+      {/* Gamification & Creator Collaborations Growth Cards */}
+      <section className="grid gap-4 md:grid-cols-2">
+        <Link to="recompensas" className="group">
+          <Card variant="editorial" className="h-full transition-all group-hover:border-amber-500/60 bg-gradient-to-br from-amber-500/5 to-transparent">
+            <CardContent className="p-5 flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                <Trophy className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <div className="font-semibold flex items-center gap-2 text-foreground group-hover:text-primary transition-colors">
+                  Retos y Premios Patrocinados
+                  <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500/30">Gamificación</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Crea retos interactivos o añade premios al Club de Recompensas para que los turistas ganen puntos y visiten tu negocio.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to="creadores" className="group">
+          <Card variant="editorial" className="h-full transition-all group-hover:border-purple-500/60 bg-gradient-to-br from-purple-500/5 to-transparent">
+            <CardContent className="p-5 flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <div className="font-semibold flex items-center gap-2 text-foreground group-hover:text-primary transition-colors">
+                  Estancias con Creadores
+                  <Badge variant="outline" className="text-[10px] text-purple-600 border-purple-500/30">Influencers UGC</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Publica estancias para creadores de viajes o invita perfiles verificados directamente a cambio de Reels y cobertura.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </section>
 
       <section>

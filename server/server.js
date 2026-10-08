@@ -4,12 +4,40 @@ import cors from "cors";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { securityHeaders, createRateLimiter } from "./security.js";
+import { validateRegisterInput, validateLoginInput, sanitizeString } from "./validations.js";
 
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsDir = path.join(__dirname, "public", "uploads");
+
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 const app = express();
+
+// Security headers & basic protection
+app.use(securityHeaders);
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "15mb" }));
+app.use("/uploads", express.static(uploadsDir));
+
+// Rate Limiters
+const apiLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 600 });
+const authLimiter = createRateLimiter({ 
+  windowMs: 15 * 60 * 1000, 
+  max: 60, 
+  message: "Demasiados intentos de autenticación. Por favor intente más tarde." 
+});
+
+app.use("/api", apiLimiter);
+app.use("/api/auth", authLimiter);
 
 const port = process.env.PORT || 5000;
 
@@ -62,18 +90,21 @@ const optionalAuthenticateToken = (req, res, next) => {
 // ─── AUTHENTICATION ENDPOINTS ──────────────────────────────────────────────
 
 app.post("/api/auth/register", async (req, res) => {
-  const { email, password, display_name } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ error: "Email and password are required" });
+  const validation = validateRegisterInput(req.body);
+  if (!validation.isValid) {
+    return res.status(400).json({ error: validation.errors[0], errors: validation.errors });
   }
+
+  const { email, password, display_name } = req.body;
+  const cleanEmail = email.trim().toLowerCase();
+  const cleanDisplayName = sanitizeString(display_name || "Explorador");
 
   try {
     const passwordHash = await bcrypt.hash(password, 10);
     const userId = crypto.randomUUID();
 
     // Check if email already exists
-    const [existing] = await pool.query("SELECT id FROM users WHERE email = ?", [email]);
+    const [existing] = await pool.query("SELECT id FROM users WHERE email = ?", [cleanEmail]);
     if (existing.length > 0) {
       return res.status(400).json({ error: "Email already registered" });
     }
@@ -84,11 +115,11 @@ app.post("/api/auth/register", async (req, res) => {
       await conn.beginTransaction();
       await conn.query(
         "INSERT INTO users (id, email, password_hash) VALUES (?, ?, ?)",
-        [userId, email, passwordHash]
+        [userId, cleanEmail, passwordHash]
       );
       await conn.query(
         "INSERT INTO profiles (id, display_name, travel_interests) VALUES (?, ?, ?)",
-        [userId, display_name || "Explorador", JSON.stringify([])]
+        [userId, cleanDisplayName, JSON.stringify([])]
       );
       await conn.query(
         "INSERT INTO user_gamification (user_id, total_xp, coins, current_level, streak_days) VALUES (?, 0, 0, 1, 0)",
@@ -102,8 +133,8 @@ app.post("/api/auth/register", async (req, res) => {
       conn.release();
     }
 
-    const token = jwt.sign({ id: userId, email }, process.env.JWT_SECRET || "secret", { expiresIn: "7d" });
-    res.json({ token, user: { id: userId, email, display_name } });
+    const token = jwt.sign({ id: userId, email: cleanEmail }, process.env.JWT_SECRET || "secret", { expiresIn: "7d" });
+    res.json({ token, user: { id: userId, email: cleanEmail, display_name: cleanDisplayName } });
   } catch (error) {
     console.error("Registration error:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -111,14 +142,16 @@ app.post("/api/auth/register", async (req, res) => {
 });
 
 app.post("/api/auth/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ error: "Email and password are required" });
+  const validation = validateLoginInput(req.body);
+  if (!validation.isValid) {
+    return res.status(400).json({ error: validation.errors[0], errors: validation.errors });
   }
 
+  const { email, password } = req.body;
+  const cleanEmail = email.trim().toLowerCase();
+
   try {
-    const [users] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+    const [users] = await pool.query("SELECT * FROM users WHERE email = ?", [cleanEmail]);
     const user = users[0];
 
     if (!user || !(await bcrypt.compare(password, user.password_hash))) {
@@ -142,6 +175,114 @@ app.get("/api/auth/me", authenticateToken, async (req, res) => {
     res.json({ id: req.user.id, email: req.user.email, display_name: profiles[0]?.display_name || "Explorador" });
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ─── USER STATE SYNC (FAVORITES & ITINERARIES) ──────────────────────────────
+app.post("/api/user/sync-state", authenticateToken, async (req, res) => {
+  const { favorites, itineraries, recentViews } = req.body;
+  const userId = req.user.id;
+
+  try {
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+      // Update travel_interests or profile metadata if provided
+      if (favorites || itineraries || recentViews) {
+        const payload = JSON.stringify({
+          favorites: favorites || [],
+          itineraries: itineraries || [],
+          recentViews: recentViews || [],
+          last_synced_at: new Date().toISOString()
+        });
+        await conn.query(
+          "UPDATE profiles SET travel_interests = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+          [payload, userId]
+        );
+      }
+      await conn.commit();
+      res.json({ success: true, synced_at: new Date().toISOString() });
+    } catch (e) {
+      await conn.rollback();
+      throw e;
+    } finally {
+      conn.release();
+    }
+  } catch (error) {
+    console.error("State sync error:", error);
+    res.status(500).json({ error: "Failed to sync user state" });
+  }
+});
+
+app.get("/api/user/sync-state", authenticateToken, async (req, res) => {
+  try {
+    const [profiles] = await pool.query("SELECT travel_interests FROM profiles WHERE id = ?", [req.user.id]);
+    let state = { favorites: [], itineraries: [], recentViews: [] };
+    if (profiles[0]?.travel_interests) {
+      try {
+        state = typeof profiles[0].travel_interests === "string" 
+          ? JSON.parse(profiles[0].travel_interests) 
+          : profiles[0].travel_interests;
+      } catch {}
+    }
+    res.json({ data: state, error: null });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch user state" });
+  }
+});
+
+// ─── FILE & IMAGE UPLOAD ENDPOINT (/api/upload) ─────────────────────────────
+app.post("/api/upload", authenticateToken, async (req, res) => {
+  const { file, filename } = req.body;
+
+  if (!file || typeof file !== "string") {
+    return res.status(400).json({ error: "Archivo no proporcionado o formato inválido" });
+  }
+
+  try {
+    // Detect base64 and mime type
+    const matches = file.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    if (!matches || matches.length !== 3) {
+      return res.status(400).json({ error: "El archivo debe estar codificado en formato base64 válido" });
+    }
+
+    const mimeType = matches[1].toLowerCase();
+    const base64Data = matches[2];
+    const allowedMimeTypes = {
+      "image/jpeg": "jpg",
+      "image/jpg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+    };
+
+    const extension = allowedMimeTypes[mimeType];
+    if (!extension) {
+      return res.status(400).json({ error: "Tipo de archivo no permitido. Solo se admiten JPG, PNG, WEBP y GIF" });
+    }
+
+    const buffer = Buffer.from(base64Data, "base64");
+    if (buffer.length > 10 * 1024 * 1024) {
+      return res.status(400).json({ error: "El archivo supera el tamaño máximo permitido de 10MB" });
+    }
+
+    const uniqueId = crypto.randomUUID();
+    const safeFilename = `${uniqueId}.${extension}`;
+    const destinationPath = path.join(uploadsDir, safeFilename);
+
+    fs.writeFileSync(destinationPath, buffer);
+
+    const fileUrl = `/uploads/${safeFilename}`;
+    res.json({
+      success: true,
+      url: fileUrl,
+      sizeBytes: buffer.length,
+      mimeType,
+      filename: safeFilename,
+    });
+  } catch (error) {
+    console.error("Upload error:", error);
+    res.status(500).json({ error: "Fallo al procesar y guardar la imagen" });
   }
 });
 
@@ -352,6 +493,10 @@ app.post("/api/query", optionalAuthenticateToken, async (req, res) => {
         }
         return item;
       });
+
+      if (!req.user) {
+        res.set("Cache-Control", "public, max-age=300, stale-while-revalidate=600");
+      }
 
       if (single || maybeSingle) {
         return res.json({ data: formattedRows[0] || null, error: null });
@@ -1118,7 +1263,33 @@ app.post("/api/rpc/:name", optionalAuthenticateToken, async (req, res) => {
   }
 });
 
+// ─── HEALTH CHECK ENDPOINT ──────────────────────────────────────────────────
+app.get("/api/health", async (req, res) => {
+  let dbStatus = "unknown";
+  try {
+    const [rows] = await pool.query("SELECT 1 AS alive");
+    dbStatus = rows[0]?.alive === 1 ? "connected" : "error";
+  } catch (err) {
+    dbStatus = "disconnected";
+  }
+
+  res.json({
+    status: dbStatus === "connected" ? "healthy" : "degraded",
+    timestamp: new Date().toISOString(),
+    uptimeSeconds: Math.floor(process.uptime()),
+    database: {
+      status: dbStatus,
+    },
+    microservices: {
+      content: "http://127.0.0.1:3002",
+      weather: "http://127.0.0.1:3001",
+    },
+    version: "2.0.0",
+  });
+});
+
 // Run Server
 app.listen(port, () => {
   console.log(`Backend server running on http://127.0.0.1:${port}`);
 });
+

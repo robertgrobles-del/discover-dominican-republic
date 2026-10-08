@@ -1,6 +1,8 @@
 import { useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi } from "@/lib/gamificationApi";
 import { toast } from "sonner";
 
 /**
@@ -13,8 +15,31 @@ export function useAchievementChecker() {
   const checkAchievements = useCallback(async () => {
     if (!user) return;
 
+    if (HAS_BACKEND_SESSION) {
+      try {
+        const achievements = await gamificationApi.getAchievements();
+        for (const a of achievements) {
+          if (!a.unlocked && !a.is_secret) {
+            try {
+              const res = await gamificationApi.unlockAchievement(a.id);
+              if (res.unlocked) {
+                toast.success(`🏆 ¡Logro desbloqueado: ${a.name}!`, {
+                  description: `+${a.xp_reward || 0} XP${a.coin_reward ? `, +${a.coin_reward} monedas` : ""}`,
+                });
+              }
+            } catch {
+              // Condición aún no cumplida; continúa con el siguiente
+            }
+          }
+        }
+        return;
+      } catch (err: any) {
+        console.warn("Error al verificar logros en backend:", err?.message || err);
+        return;
+      }
+    }
+
     try {
-      // Get user stats
       const { data: gamification } = await supabase
         .from("user_gamification")
         .select("*")
@@ -23,7 +48,6 @@ export function useAchievementChecker() {
 
       if (!gamification) return;
 
-      // Get all active achievements
       const { data: achievements } = await supabase
         .from("achievements")
         .select("*")
@@ -31,15 +55,13 @@ export function useAchievementChecker() {
 
       if (!achievements) return;
 
-      // Get already unlocked
       const { data: userAchievements } = await supabase
         .from("user_achievements")
         .select("achievement_id")
         .eq("user_id", user.id);
 
-      const unlockedIds = new Set(userAchievements?.map(ua => ua.achievement_id) || []);
+      const unlockedIds = new Set(userAchievements?.map((ua) => ua.achievement_id) || []);
 
-      // Get additional stats
       const [
         { count: favoriteCount },
         { count: reviewCount },
@@ -63,7 +85,6 @@ export function useAchievementChecker() {
         missions_completed: missionCount || 0,
       };
 
-      // Check each achievement
       for (const achievement of achievements) {
         if (unlockedIds.has(achievement.id)) continue;
         if (achievement.min_level && stats.current_level < achievement.min_level) continue;
@@ -71,7 +92,6 @@ export function useAchievementChecker() {
         const req = achievement.unlock_requirement as Record<string, number> | null;
         if (!req) continue;
 
-        // Evaluate unlock conditions
         let unlocked = true;
         for (const [key, value] of Object.entries(req)) {
           const statValue = stats[key as keyof typeof stats];
@@ -82,9 +102,8 @@ export function useAchievementChecker() {
         }
 
         if (unlocked) {
-          // Call secure RPC to unlock achievement
           const { error } = await supabase.rpc("unlock_user_achievement", {
-            target_achievement_id: achievement.id
+            target_achievement_id: achievement.id,
           });
 
           if (error) {

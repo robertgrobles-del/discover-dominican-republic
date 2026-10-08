@@ -34,9 +34,13 @@ import { CommunityMissionsWidget } from "@/components/gamification/CommunityMiss
 import { ComoGanarPuntosModal } from "@/components/gamificacion/ComoGanarPuntosModal";
 import { ComoGanarPuntosSection } from "@/components/gamificacion/ComoGanarPuntosSection";
 
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi } from "@/lib/gamificationApi";
+import { apiMessage } from "@/lib/fastifyClient";
+
 export default function GamificacionTuristica() {
   const { user } = useAuth();
-  const { userGamification } = useGamification();
+  const { userGamification, seasons, selectedSeasonId, setSelectedSeasonId, refresh } = useGamification();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get("tab") || "pasaporte";
 
@@ -69,6 +73,22 @@ export default function GamificacionTuristica() {
   const fetchRegionalLeaderboard = useCallback(async () => {
     setLoadingLeaderboard(true);
     try {
+      if (HAS_BACKEND_SESSION) {
+        const res = await gamificationApi.getLeaderboard("season", 20);
+        setLocalLeaderboard((res.rows || []).map(d => ({
+          user_id: d.user_id,
+          total_xp: d.total_xp,
+          current_level: d.level,
+          coins: d.coins || 0,
+          streak_days: d.streak_days || 0,
+          display_name: d.display_name || "Viajero Anónimo",
+          avatar_url: d.avatar_url || null,
+          level_icon: "🌱",
+          level_title: "Explorador"
+        })));
+        return;
+      }
+
       let query = supabase
         .from("user_gamification")
         .select(`
@@ -145,6 +165,22 @@ export default function GamificacionTuristica() {
   const loadData = useCallback(async () => {
     if (!user) return;
     try {
+      if (HAS_BACKEND_SESSION) {
+        const [allAch, myAch, provList] = await Promise.all([
+          gamificationApi.getAchievements(),
+          gamificationApi.getMyAchievements(),
+          gamificationApi.getProvinces().catch(() => []),
+        ]);
+        setAchievements(allAch);
+        setUserAchievements(myAch.map(a => ({ achievement_id: a.id, ...a })));
+        if (provList && Array.isArray(provList)) {
+          const visited = provList.filter((p: any) => p.visited);
+          setTotalProvinces(visited.length);
+          setVisitedProvinces(new Set(visited.map((p: any) => p.name || p.slug)));
+        }
+        return;
+      }
+
       const [statsRes, achRes, userAchRes] = await Promise.all([
         supabase.rpc("get_province_stats"),
         supabase.from("achievements").select("*").eq("is_active", true).order("display_order"),
@@ -169,6 +205,17 @@ export default function GamificacionTuristica() {
     if (visitedProvinces.has(province)) { toast.info(`Ya visitaste ${province}`); return; }
     setRecordingVisit(province);
     try {
+      if (HAS_BACKEND_SESSION) {
+        const result = await gamificationApi.recordProvinceVisit(province);
+        GamificationSoundEngine.playStampSound();
+        GamificationSoundEngine.playCoinSound();
+        setVisitedProvinces(prev => new Set([...prev, province]));
+        setTotalProvinces(result?.total_provinces ?? totalProvinces + 1);
+        toast.success(`¡${province} registrada! +${result?.xp_awarded ?? 50} XP 🗺️`);
+        await refresh();
+        return;
+      }
+
       const { data, error } = await supabase.rpc("record_province_visit", { p_province: province });
       if (error) throw error;
       const result = data as { success: boolean; xp_awarded?: number; total_provinces?: number };
@@ -181,8 +228,8 @@ export default function GamificacionTuristica() {
       } else {
         toast.info(`Ya registraste ${province}`);
       }
-    } catch {
-      toast.error("Error al registrar visita");
+    } catch (err) {
+      toast.error(apiMessage(err, "Error al registrar visita"));
     } finally {
       setRecordingVisit(null);
     }
@@ -519,6 +566,9 @@ export default function GamificacionTuristica() {
                 onActiveRankingRegionChange={setActiveRankingRegion}
                 loadingLeaderboard={loadingLeaderboard}
                 localLeaderboard={localLeaderboard}
+                seasons={seasons}
+                selectedSeasonId={selectedSeasonId}
+                onSeasonChange={setSelectedSeasonId}
               />
             </TabsContent>
 

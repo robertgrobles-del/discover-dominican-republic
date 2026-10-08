@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { SEOHead, generateDestinationSchema } from "@/components/SEOHead";
-import { supabase } from "@/integrations/supabase/client";
+import { CatalogService } from "@/services/catalogService";
 import { useTranslation } from "@/hooks/useI18n";
 
 import { DestinationGallery } from "@/components/destination/DestinationGallery";
@@ -27,7 +27,6 @@ import { DestinationLocalGastronomy } from "@/components/destination/Destination
 import { DestinationEssentials } from "@/components/destination/DestinationEssentials";
 import { DestinationMustSee } from "@/components/destination/DestinationMustSee";
 import { DestinationZonesGrid } from "@/components/destination/DestinationZonesGrid";
-import { SubDestinationsSection } from "@/components/destinations/SubDestinationsSection";
 import { CommentSection } from "@/components/comments/CommentSection";
 
 import { DestinationHighlightCards } from "@/components/destination/DestinationHighlightCards";
@@ -41,6 +40,12 @@ import { destinosData, provinceToDestinationMap } from "@/data/destinosData";
 import { getDestinationBySlug } from "@/data/destinations";
 import { StaticDestinationPage } from "@/components/StaticDestinationPage";
 import { PanoramaAd, BillboardAd, BetweenSectionsAd } from "@/components/promo/BannerAd";
+import { SocialShareBar } from "@/components/social/SocialShareBar";
+import { ProvinceEmergencyGuideModal } from "@/components/destination/ProvinceEmergencyGuideModal";
+import { SargazoOleajeAlert } from "@/components/destination/SargazoOleajeAlert";
+import { DestinationNarrativeBento } from "@/components/destinations/DestinationNarrativeBento";
+import { DestinationMobileQuickBar } from "@/components/destinations/DestinationMobileQuickBar";
+import { ProvinceDigitalCardModal } from "@/components/social/ProvinceDigitalCardModal";
 
 function DestinoDetalleDynamic({ id }: { id?: string }) {
   const [heroLoaded, setHeroLoaded] = useState(false);
@@ -55,142 +60,49 @@ function DestinoDetalleDynamic({ id }: { id?: string }) {
   // Only query DB if no static data exists
   const shouldQueryDb = !staticDestino;
 
-  // First try to find in database (destinations table)
+  // First try to find in database or Strapi (destinations)
   const { data: dbDestination, isLoading: loadingDestination } = useQuery({
     queryKey: ["destination-detail", id],
-    queryFn: async () => {
-      let query = supabase.from("destinations").select(`
-        *,
-        province:provinces(id, name, slug, region, capital, population, area_km2, highlights, image_url)
-      `);
-      
-      if (isUUID) {
-        query = query.or(`slug.eq.${id},id.eq.${id}`);
-      } else {
-        query = query.eq("slug", id);
-      }
-      
-      const { data, error } = await query.maybeSingle();
-      if (error && error.code !== "PGRST116") throw error;
-      return data;
-    },
+    queryFn: () => (id ? CatalogService.getDestinationBySlug(id) : null),
     enabled: !!id && shouldQueryDb,
   });
 
-  // Second try: check if it's a province
-  const { data: dbProvince, isLoading: loadingProvince } = useQuery({
-    queryKey: ["province-detail", id],
-    queryFn: async () => {
-      let query = supabase.from("provinces").select("*");
-      
-      if (isUUID) {
-        query = query.or(`slug.eq.${id},id.eq.${id}`);
-      } else {
-        query = query.eq("slug", id);
-      }
-      
-      const { data, error } = await query.maybeSingle();
-      if (error && error.code !== "PGRST116") throw error;
-      return data;
-    },
-    enabled: !!id && !dbDestination && shouldQueryDb,
-  });
-
   // Fetch hotels for this destination/province
-  const { data: hotels } = useQuery({
-    queryKey: ["hotels", id, dbDestination?.id, dbProvince?.id],
-    queryFn: async () => {
-      let query = supabase.from("hotels").select("*");
-      if (dbDestination?.id) {
-        query = query.eq("destination_id", dbDestination.id);
-      } else if (dbProvince?.id) {
-        query = query.eq("province_id", dbProvince.id);
-      }
-      const { data } = await query.limit(8);
-      return data || [];
-    },
-    enabled: !!(dbDestination?.id || dbProvince?.id),
+  const { data: hotels = [] } = useQuery({
+    queryKey: ["hotels", id, dbDestination?.id],
+    queryFn: () => (id ? CatalogService.getHotelsByDestination(id) : []),
+    enabled: !!id,
   });
 
   // Fetch restaurants for this destination/province
-  const { data: restaurants } = useQuery({
-    queryKey: ["restaurants", id, dbDestination?.id, dbProvince?.id],
-    queryFn: async () => {
-      let query = supabase.from("restaurants").select("*");
-      if (dbDestination?.id) {
-        query = query.eq("destination_id", dbDestination.id);
-      } else if (dbProvince?.id) {
-        query = query.eq("province_id", dbProvince.id);
-      }
-      const { data } = await query.limit(8);
-      return data || [];
-    },
-    enabled: !!(dbDestination?.id || dbProvince?.id),
+  const { data: restaurants = [] } = useQuery({
+    queryKey: ["restaurants", id, dbDestination?.id],
+    queryFn: () => (id ? CatalogService.getRestaurantsByDestination(id) : []),
+    enabled: !!id,
   });
 
   // Fetch bars for this destination/province
-  const { data: bars } = useQuery({
-    queryKey: ["bars", id, dbDestination?.id, dbProvince?.id],
-    queryFn: async () => {
-      let query = supabase.from("bars").select("*");
-      if (dbDestination?.id) {
-        query = query.eq("destination_id", dbDestination.id);
-      } else if (dbProvince?.id) {
-        query = query.eq("province_id", dbProvince.id);
-      }
-      const { data } = await query.limit(8);
-      return data || [];
-    },
-    enabled: !!(dbDestination?.id || dbProvince?.id),
+  const { data: bars = [] } = useQuery({
+    queryKey: ["bars", id, dbDestination?.id],
+    queryFn: () => (id ? CatalogService.getBarsByDestination(id) : []),
+    enabled: !!id,
   });
 
   // Fetch experiences for this destination/province
-  const { data: experiences } = useQuery({
-    queryKey: ["experiences", id, dbDestination?.id, dbProvince?.id],
-    queryFn: async () => {
-      let query = supabase.from("experiences").select("*");
-      if (dbDestination?.id) {
-        query = query.eq("destination_id", dbDestination.id);
-      } else if (dbProvince?.id) {
-        query = query.eq("province_id", dbProvince.id);
-      }
-      const { data } = await query.limit(8);
-      return data || [];
-    },
-    enabled: !!(dbDestination?.id || dbProvince?.id),
+  const { data: experiences = [] } = useQuery({
+    queryKey: ["experiences", id, dbDestination?.id],
+    queryFn: () => (id ? CatalogService.getExperiencesByDestination(id) : []),
+    enabled: !!id,
   });
 
-  // Fetch destinations for a province view
-  const { data: destinations } = useQuery({
-    queryKey: ["province-destinations", dbProvince?.id],
-    queryFn: async () => {
-      if (!dbProvince?.id) return [];
-      const { data } = await supabase
-        .from("destinations")
-        .select("*")
-        .eq("province_id", dbProvince.id);
-      return data || [];
-    },
-    enabled: !!dbProvince?.id,
+  // Fetch destinations list
+  const { data: destinations = [] } = useQuery({
+    queryKey: ["destinations-list"],
+    queryFn: () => CatalogService.getDestinations(),
   });
 
-  // Fetch municipalities for a province view
-  const { data: municipalities } = useQuery({
-    queryKey: ["province-municipalities", dbProvince?.id],
-    queryFn: async () => {
-      if (!dbProvince?.id) return [];
-      const { data } = await supabase
-        .from("municipalities")
-        .select("*")
-        .eq("province_id", dbProvince.id);
-      return data || [];
-    },
-    enabled: !!dbProvince?.id,
-  });
-
-  const isLoading = shouldQueryDb && (loadingDestination || loadingProvince);
-  const isProvinceView = !!dbProvince && !dbDestination;
-  const hasDbData = !!dbDestination || !!dbProvince;
+  const isLoading = shouldQueryDb && loadingDestination;
+  const hasDbData = !!dbDestination;
 
   // Build display data
   const displayData = staticDestino ? {
@@ -204,25 +116,13 @@ function DestinoDetalleDynamic({ id }: { id?: string }) {
     highlights: staticDestino.galeria.map(g => g.alt).slice(0, 4),
   } : dbDestination ? {
     name: dbDestination.name,
-    subtitle: dbDestination.short_description,
-    description: dbDestination.description || dbDestination.short_description,
-    heroImage: dbDestination.image_url || "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1920&h=1080&fit=crop",
-    region: dbDestination.region || dbDestination.province?.region || "República Dominicana",
+    subtitle: (dbDestination as any).shortDescription || (dbDestination as any).short_description || "",
+    description: dbDestination.description || (dbDestination as any).shortDescription || "",
+    heroImage: (dbDestination as any).heroImage || (dbDestination as any).imageUrl || (dbDestination as any).image_url || "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1920&h=1080&fit=crop",
+    region: (dbDestination as any).region || "República Dominicana",
     clima: { temp: "28", condicion: "Tropical" },
     temporada: { meses: "Todo el año", evento: "Temporada alta: Dic - Abr" },
-    highlights: dbDestination.highlights || [],
-  } : dbProvince ? {
-    name: dbProvince.name,
-    subtitle: `Provincia de la Región ${dbProvince.region}`,
-    description: dbProvince.description,
-    heroImage: dbProvince.image_url || "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1920&h=1080&fit=crop",
-    region: dbProvince.region,
-    clima: { temp: "27", condicion: "Tropical cálido" },
-    temporada: { meses: "Todo el año", evento: "Ideal para ecoturismo" },
-    highlights: dbProvince.highlights || [],
-    capital: dbProvince.capital,
-    population: dbProvince.population,
-    area: dbProvince.area_km2,
+    highlights: (dbDestination as any).highlights || [],
   } : null;
 
   if (isLoading) {
@@ -258,7 +158,7 @@ function DestinoDetalleDynamic({ id }: { id?: string }) {
     );
   }
 
-  const municipios = municipalities || [];
+  const municipios: any[] = [];
 
   return (
     <PageTransition>
@@ -327,43 +227,32 @@ function DestinoDetalleDynamic({ id }: { id?: string }) {
                   {displayData.description}
                 </p>
                 
-                {/* Province stats */}
-                {isProvinceView && (
-                  <div className="flex flex-wrap gap-4 text-white/90 mb-6">
-                    {displayData.capital && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4" />
-                        {t("destinoDetalle.capital")}: {displayData.capital}
-                      </span>
-                    )}
-                    {displayData.population && (
-                      <span className="flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        {displayData.population.toLocaleString()} {t("destinoDetalle.population")}
-                      </span>
-                    )}
-                    {displayData.area && (
-                      <span className="flex items-center gap-1">
-                        <Map className="h-4 w-4" />
-                        {displayData.area.toLocaleString()} {t("destinoDetalle.area")}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap items-center gap-3">
                   <Button size="lg" className="gap-2">
                     <Play className="h-4 w-4" /> Ver Video
                   </Button>
                   <FavoriteButton
                     id={id || ""}
-                    type={isProvinceView ? "provincia" : "destino"}
+                    type="destino"
                     name={displayData.name}
                     image={displayData.heroImage}
                     location={displayData.region}
                     variant="button"
                     size="lg"
                     className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+                  />
+                  <SocialShareBar
+                    title={displayData.name}
+                    description={displayData.description}
+                    variant="compact"
+                    className="bg-white/10 border-white/30 backdrop-blur-md rounded-xl p-1 text-white"
+                  />
+                  <ProvinceDigitalCardModal
+                    provinceName={displayData.name}
+                    region={displayData.region}
+                    heroImage={displayData.heroImage}
+                    highlights={displayData.highlights?.map(h => h.title) || ["Playas", "Cultura", "Ecoturismo"]}
+                    climate={`${displayData.clima.temp}°C ${displayData.clima.condicion}`}
                   />
                 </div>
               </div>
@@ -391,6 +280,37 @@ function DestinoDetalleDynamic({ id }: { id?: string }) {
           </div>
         </section>
 
+        {/* Narrativa Visual Bento & Storytelling Fuera de lo Común */}
+        <DestinationNarrativeBento
+          destinationName={displayData.name}
+          provinceName={displayData.region}
+          quote={(dbDestination as any)?.narrative_quote || undefined}
+          quoteAuthor={(dbDestination as any)?.narrative_author || undefined}
+          storyText={(dbDestination as any)?.local_story || displayData.description}
+          photos={
+            (dbDestination as any)?.curated_gallery && Array.isArray((dbDestination as any)?.curated_gallery) && (dbDestination as any).curated_gallery.length > 0
+              ? (dbDestination as any).curated_gallery
+              : staticDestino?.galeria?.length
+              ? staticDestino.galeria.map((g: any, idx) => ({
+                  url: g.url || g.src || "",
+                  caption: g.alt || "",
+                  tag: idx === 0 ? "Spot Secreto" : idx === 1 ? "Postal Inmortal" : "Rincón Típico",
+                  highlight: idx === 0
+                }))
+              : [
+                  { url: displayData.heroImage, caption: `${displayData.name} en todo su esplendor`, tag: "Esencia RD", highlight: true },
+                  { url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&fit=crop", caption: "Atardeceres dorados y brisa de palma", tag: "Atardecer" },
+                  { url: "https://images.unsplash.com/photo-1510414842594-a61752afb394?w=800&fit=crop", caption: "Ecoturismo y senderos autóctonos", tag: "Aventura Verde" }
+                ]
+          }
+          dayTimeline={(dbDestination as any)?.day_timeline}
+          quickFacts={(dbDestination as any)?.quick_facts}
+          onOpenGallery={() => {
+            const galSection = document.getElementById("galeria");
+            if (galSection) galSection.scrollIntoView({ behavior: "smooth" });
+          }}
+        />
+
         {/* Highlights */}
         {displayData.highlights && displayData.highlights.length > 0 && (
           <section className="py-8 bg-background border-b border-border/60">
@@ -405,18 +325,28 @@ function DestinoDetalleDynamic({ id }: { id?: string }) {
         )}
 
         <nav aria-label="En esta zona" className="border-b border-border bg-background/95 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-          <div className="container mx-auto flex items-center gap-2 overflow-x-auto px-4">
-            <span className="shrink-0 pr-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">En esta zona</span>
-            {[
-              ["Actividades", "#destination-activities"],
-              ["Alojamientos", "#destination-hotels"],
-              ["Restaurantes", "#destination-restaurants"],
-              ["Cómo llegar", "#destination-arrival"],
-            ].map(([label, href]) => (
-              <a key={href} href={href} className="shrink-0 rounded-full border border-border px-3 py-1.5 text-sm text-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{label}</a>
-            ))}
+          <div className="container mx-auto flex items-center justify-between gap-4 overflow-x-auto px-4">
+            <div className="flex items-center gap-2">
+              <span className="shrink-0 pr-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">En esta zona</span>
+              {[
+                ["Actividades", "#destination-activities"],
+                ["Alojamientos", "#destination-hotels"],
+                ["Restaurantes", "#destination-restaurants"],
+                ["Cómo llegar", "#destination-arrival"],
+              ].map(([label, href]) => (
+                <a key={href} href={href} className="shrink-0 rounded-full border border-border px-3 py-1.5 text-sm text-foreground transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">{label}</a>
+              ))}
+            </div>
+            <div className="shrink-0">
+              <ProvinceEmergencyGuideModal provinceName={displayData.name} />
+            </div>
           </div>
         </nav>
+
+        {/* Coastal / Beach Safety Condition Widget */}
+        <section className="container mx-auto px-4 py-4">
+          <SargazoOleajeAlert beachName={displayData.name} />
+        </section>
 
         {/* Lo Esencial para el Viajero (Trip Essentials inspirado en Australia, Países Bajos y Suiza) */}
         <DestinationEssentials
@@ -426,7 +356,7 @@ function DestinoDetalleDynamic({ id }: { id?: string }) {
         />
 
         {/* Lo que no te puedes perder (Must-See Highlights inspirado en Francia y Colombia) */}
-        <DestinationMustSee destinoNombre={displayData.name} />
+        <DestinationMustSee destinoNombre={displayData.name} slug={id} />
 
         {/* Mejora 607: Calendario Anual (Lluvia, Precios, Multitud, Ballenas y Sargazo) */}
         <DestinationAnnualCalendar 
@@ -597,7 +527,7 @@ function DestinoDetalleDynamic({ id }: { id?: string }) {
           <section className="py-12">
             <div className="container mx-auto px-4">
               <DestinationDbEntitiesTabs
-                isProvinceView={isProvinceView}
+                isProvinceView={false}
                 destinations={destinations}
                 municipios={municipios}
                 hotels={hotels}
@@ -619,14 +549,6 @@ function DestinoDetalleDynamic({ id }: { id?: string }) {
           </div>
         </section>
 
-        {/* Sub-destinations for provinces */}
-        {isProvinceView && destinations && destinations.length > 0 && (
-          <SubDestinationsSection
-            parentName={displayData.name}
-            destinations={destinations}
-            municipalities={municipalities || []}
-          />
-        )}
 
         {/* Standard IAB Billboard Ad */}
         <BillboardAd showDemo section="destino-detalle" />
@@ -643,6 +565,16 @@ function DestinoDetalleDynamic({ id }: { id?: string }) {
             />
           </div>
         </section>
+
+        {/* Barra de Acciones Flotante Exclusiva para Móvil */}
+        <DestinationMobileQuickBar
+          destinationId={id || ""}
+          destinationName={displayData.name}
+          regionName={displayData.region}
+          heroImage={displayData.heroImage}
+          tempCelsius={displayData.clima?.temp != null ? String(displayData.clima.temp) : undefined}
+          condition={displayData.clima?.condicion}
+        />
 
         <Footer />
       </div>

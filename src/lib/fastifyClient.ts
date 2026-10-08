@@ -85,3 +85,9 @@ export async function calculateCartTotal(items: Array<{ id: string; quantity: nu
     body: JSON.stringify({ items }),
   });
 }
+
+export function apiMessage(error: unknown, fallback = "Ocurrió un error inesperado"): string {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "string" && error.length > 0) return error;
+  return fallback;
+}

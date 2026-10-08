@@ -12,7 +12,7 @@ import {
   BookOpen, Search, Clock, ChevronRight, Landmark, Calendar, 
   User, Award, Sparkles, Compass, ArrowRight, Quote, Library
 } from "lucide-react";
-import { historyArticles, HistoryArticle } from "@/data/historyArticles";
+import { useAllHistoryArticles } from "@/lib/historyApi";
 import { PanoramaAd } from "@/components/promo";
 import historyHeroImg from "@/assets/history.jpg";
 
@@ -36,9 +36,10 @@ export default function HistoriaIndex() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEra, setSelectedEra] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const { data: articles = [], isLoading } = useAllHistoryArticles();
 
   const filteredArticles = useMemo(() => {
-    return historyArticles.filter((article) => {
+    return articles.filter((article) => {
       const matchQuery = 
         article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         article.subtitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -47,7 +48,7 @@ export default function HistoriaIndex() {
       const matchCat = selectedCategory === "all" || article.category === selectedCategory;
       return matchQuery && matchEra && matchCat;
     });
-  }, [searchQuery, selectedEra, selectedCategory]);
+  }, [articles, searchQuery, selectedEra, selectedCategory]);
 
   return (
     <PageTransition>

@@ -22,6 +22,8 @@ const PUBLIC_MUTATIONS: RegExp[] = [
   /^\/api\/v1\/analytics\/events$/, /^\/api\/v1\/operators\/:slug\/contact-click$/, /^\/api\/v1\/ads\//, /^\/api\/v1\/surveys\//, /^\/api\/v1\/tools\//, /^\/api\/v1\/calculators\//, /^\/api\/v1\/utils\/convert$/,
   /^\/api\/v1\/webhooks\/(payments|email)\//, /^\/api\/v1\/media\/:id\/upload$/, /^\/api\/v1\/orders\/:id\//, /^\/api\/v1\/team-invitations\//, /^\/api\/v1\/listings\//,
   /^\/api\/v1\/reviews\/:id\/(helpful|report)$/, /^\/api\/v1\/marketplace\/checkout\/quote$/, /^\/api\/v1\/ai\/chat$/, /^\/api\/v1\/marketplace\/orders(\/|$)/,
+  // Reacciones anónimas a artículos: contador público, limitado a 20 por minuto por IP.
+  /^\/api\/v1\/articles\/:idOrSlug\/react$/,
 ];
 /** Prefijos que SIEMPRE exigen sesión, sea cual sea el método. */
 const ALWAYS_PROTECTED: RegExp[] = [/^\/api\/v1\/admin\//, /^\/api\/v1\/org\//, /^\/api\/v1\/me(\/|$)/, /^\/api\/v1\/support\//, /^\/api\/v1\/social\/me\//, /^\/api\/v1\/gamification\/me/, /^\/api\/v1\/partner\//, /^\/api\/v1\/ambassadors\/(me|apply)/, /^\/api\/v1\/marketplace\/vendors\/(me|apply)$/];

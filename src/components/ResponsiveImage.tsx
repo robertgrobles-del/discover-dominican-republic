@@ -7,6 +7,8 @@ interface ResponsiveImageProps extends Omit<ImgHTMLAttributes<HTMLImageElement>,
   avif?: string;
   /** Variante WebP ya generada (mismo nombre, extensión `.webp`), si existe. */
   webp?: string;
+  /** Prioridad de carga del navegador */
+  fetchpriority?: "high" | "low" | "auto";
 }
 
 /**

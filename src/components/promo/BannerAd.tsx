@@ -1,10 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { safeExternalUrl } from "@/lib/security";
 import { ExternalLink, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useBanner, trackBannerClick, trackBannerImpression, type AdBanner } from "@/hooks/useAdBanners";
+import { useBanner, trackBannerClick, trackBannerImpression, trackBannerViewableImpression, type AdBanner } from "@/hooks/useAdBanners";
 import { BannerMediaContent } from "./BannerMediaContent";
+import { GoogleAdSlot } from "./GoogleAdSlot";
+import { buildUtmUrl } from "@/lib/utmBuilder";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { INDUSTRY_BANNERS_DEMO, type IndustryBannerDemo } from "@/data/mockIndustryBanners";
 
 // Demo images for tourism promos (fallback)
@@ -83,6 +86,8 @@ interface BannerAdProps {
   bannerData?: AdBanner | null;
   /** Si la ficha es de un establecimiento Premium, bloquea anuncios de competidores (★ Mejora 71) */
   isPremiumListing?: boolean;
+  /** Permite recurrir a Google AdSense cuando no hay un banner directo contratado */
+  allowGoogleFallback?: boolean;
 }
 
 // Default promo messages (clean editorial tourism fallback when no DB banner)
@@ -261,6 +266,7 @@ export function BannerAd({
   section,
   bannerData,
   isPremiumListing = false,
+  allowGoogleFallback = true,
 }: BannerAdProps) {
   // Fetch dynamic banner from DB if section is provided and no bannerData passed
   const dynamicBanner = useBanner(
@@ -271,10 +277,10 @@ export function BannerAd({
 
   const activeBanner = bannerData || dynamicBanner;
   const config = sizeConfig[size] || sizeConfig["medium-rect"];
-  const demoAd = showDemo ? demoAds[size] : null;
+  const demoAd = !HAS_BACKEND_SESSION && showDemo ? demoAds[size] : null;
 
   // Resolve industry ad if specified
-  const industryAd = industry
+  const industryAd = !HAS_BACKEND_SESSION && industry
     ? INDUSTRY_BANNERS_DEMO.find((d) => d.industry === industry)
     : null;
 
@@ -283,17 +289,38 @@ export function BannerAd({
   const resolvedImageUrl = activeBanner?.image_url || imageUrl || industryAd?.imageUrl || officialBannerSrc || demoAd?.image;
   const isOfficialGraphic = resolvedImageUrl?.startsWith("/banners/");
   const resolvedAltText = activeBanner?.alt_text || altText || industryAd?.sponsor || demoAd?.alt || `Banner Oficial RD ${config.label}`;
-  const rawTargetUrl = activeBanner?.target_url || (industryAd?.targetUrl ?? targetUrl);
-  const safeExternalTarget = safeExternalUrl(rawTargetUrl);
-  const resolvedTargetUrl = safeExternalTarget ?? (
-    rawTargetUrl.startsWith("/") && !rawTargetUrl.startsWith("//") && !rawTargetUrl.includes("\\")
+  const rawTargetUrl = (activeBanner?.target_url || industryAd?.targetUrl || targetUrl || "").trim();
+  // Automatically prepend https:// if the user enters a domain like "www.melia.com" or "hotelpuntacana.do"
+  const normalizedRawUrl = 
+    rawTargetUrl.startsWith("http://") || rawTargetUrl.startsWith("https://") || rawTargetUrl.startsWith("/")
       ? rawTargetUrl
+      : rawTargetUrl.length > 0 ? `https://${rawTargetUrl}` : "/";
+
+  const safeExternalTarget = safeExternalUrl(normalizedRawUrl);
+  const resolvedSponsor = activeBanner?.sponsor || sponsor || industryAd?.sponsor || demoAd?.sponsor;
+
+  // Automatically enrich external destination URL with campaign UTMs
+  const enrichedTargetUrl = safeExternalTarget
+    ? buildUtmUrl(safeExternalTarget, {
+        source: "descubrerd",
+        medium: activeBanner?.sponsorship_scope === "global" ? "global_takeover" : activeBanner?.sponsorship_scope === "section" ? "section_takeover" : "banner_ad",
+        campaign: activeBanner?.section ? `${activeBanner.section}_campaign` : "portal_campaign",
+        content: size,
+        sponsor: resolvedSponsor || undefined,
+      })
+    : undefined;
+
+  const resolvedTargetUrl = enrichedTargetUrl ?? (
+    normalizedRawUrl.startsWith("/") && !normalizedRawUrl.startsWith("//") && !normalizedRawUrl.includes("\\")
+      ? normalizedRawUrl
       : "/"
   );
-  const resolvedSponsor = activeBanner?.sponsor || sponsor || industryAd?.sponsor || demoAd?.sponsor;
   const resolvedHeadline = activeBanner?.headline || industryAd?.headline || (defaultPromo[size] || defaultPromo["default"]).headline;
   const resolvedSubtext = activeBanner?.subtext || industryAd?.subtext || (defaultPromo[size] || defaultPromo["default"]).subtext;
   const resolvedCta = activeBanner?.cta_text || industryAd?.ctaText || (defaultPromo[size] || defaultPromo["default"]).cta;
+
+  // Ref for Viewability Tracking (IAB Standard: >= 50% in viewport for >= 1s)
+  const bannerContainerRef = useRef<HTMLDivElement>(null);
 
   // Count impression on render/view once per banner id
   useEffect(() => {
@@ -301,6 +328,37 @@ export function BannerAd({
     if (activeBanner?.id && activeBanner.id !== "preview-id") {
       void trackBannerImpression(activeBanner.id);
     }
+  }, [activeBanner?.id, isPremiumListing]);
+
+  // Track Viewable Impression (vCPM) using IntersectionObserver
+  useEffect(() => {
+    if (isPremiumListing || !activeBanner?.id || activeBanner.id === "preview-id") return;
+    const el = bannerContainerRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+
+    let timer: NodeJS.Timeout | null = null;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+            // User held the banner in view for at least 1 second
+            timer = setTimeout(() => {
+              void trackBannerViewableImpression(activeBanner.id);
+            }, 1000);
+          } else {
+            if (timer) clearTimeout(timer);
+          }
+        });
+      },
+      { threshold: [0.5] }
+    );
+
+    observer.observe(el);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      observer.disconnect();
+    };
   }, [activeBanner?.id, isPremiumListing]);
 
   // Si la ficha es de un establecimiento Premium, no se muestran banners de competidores.
@@ -320,8 +378,18 @@ export function BannerAd({
   const isRectangle = ["medium-rect", "large-rect", "square-small", "square-large", "mobile-medium"].includes(size);
   const isCompact = ["mobile-banner", "mobile-large"].includes(size);
 
-  // Placeholder (no image)
+  // Placeholder (no image) -> Fallback automático con Google AdSense si está habilitado
   if (!resolvedImageUrl) {
+    if (allowGoogleFallback && !showDemo) {
+      return (
+        <GoogleAdSlot
+          className={className}
+          style={{ maxWidth: config.width, minHeight: config.placeholderHeight }}
+          label={`Publicidad • ${config.label}`}
+        />
+      );
+    }
+
     const isExternalPlaceholder = Boolean(safeExternalTarget);
     const placeholderContent = (
       <div
@@ -378,6 +446,7 @@ export function BannerAd({
 
   const bannerInnerContent = (
     <div
+      ref={bannerContainerRef}
       className={cn(
         "relative overflow-hidden rounded-2xl transition-all duration-300 transform-gpu w-full cursor-pointer",
         isOfficialGraphic ? "bg-transparent border-0 shadow-none hover:shadow-md" : "border border-white/10 shadow-md group-hover:shadow-xl",

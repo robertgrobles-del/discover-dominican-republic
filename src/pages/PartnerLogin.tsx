@@ -59,7 +59,8 @@ export default function PartnerLogin() {
       }
 
       toast.success("¡Sesión iniciada con éxito!");
-      navigate("/partner/dashboard");
+      const returnTarget = new URLSearchParams(window.location.search).get("returnTo") || "/partner/dashboard";
+      navigate(returnTarget);
     } catch (err: any) {
       toast.error(`Error de inicio de sesión: ${err.message || "Credenciales inválidas."}`);
     } finally {

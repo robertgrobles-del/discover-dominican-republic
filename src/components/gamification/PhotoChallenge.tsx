@@ -16,6 +16,9 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi } from "@/lib/gamificationApi";
+import { apiMessage } from "@/lib/fastifyClient";
 
 interface PhotoChallenge {
   id: string;
@@ -66,6 +69,15 @@ export function PhotoChallenge() {
     queryKey: ["user-level-check", user?.id],
     queryFn: async () => {
       if (!user) return null;
+      if (HAS_BACKEND_SESSION) {
+        try {
+          const state = await gamificationApi.getMyState();
+          if (state?.current_level) setUserLevel(state.current_level);
+          return state;
+        } catch {
+          return null;
+        }
+      }
       const { data } = await supabase
         .from("user_gamification")
         .select("current_level")
@@ -100,6 +112,10 @@ export function PhotoChallenge() {
   const { data: challenges = [], isLoading: loadingChallenges } = useQuery<PhotoChallenge[]>({
     queryKey: ["photo-challenges"],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        const list = await gamificationApi.getPhotoChallenges();
+        return list as PhotoChallenge[];
+      }
       const { data } = await supabase
         .from("photo_challenges" as any)
         .select("*")
@@ -116,6 +132,10 @@ export function PhotoChallenge() {
     queryKey: ["photo-submissions", activeChallenge?.id],
     queryFn: async () => {
       if (!activeChallenge) return [];
+      if (HAS_BACKEND_SESSION) {
+        const list = await gamificationApi.getPhotoSubmissions(activeChallenge.id);
+        return list as PhotoSubmission[];
+      }
       const { data } = await supabase
         .from("photo_submissions" as any)
         .select("*, profiles(display_name, avatar_url)")
@@ -134,6 +154,13 @@ export function PhotoChallenge() {
   const submitPhoto = useMutation({
     mutationFn: async () => {
       if (!user || !activeChallenge || !imageUrl.trim()) throw new Error("Datos incompletos");
+      if (HAS_BACKEND_SESSION) {
+        await gamificationApi.submitPhoto(activeChallenge.id, {
+          image_url: imageUrl.trim(),
+          caption: caption.trim() || undefined,
+        });
+        return;
+      }
       const { error } = await supabase
         .from("photo_submissions" as any)
         .insert({
@@ -153,7 +180,7 @@ export function PhotoChallenge() {
       setCaption("");
       qc.invalidateQueries({ queryKey: ["photo-submissions"] });
     },
-    onError: (e: Error) => toast.error(e.message || "Error al enviar foto"),
+    onError: (e: any) => toast.error(apiMessage(e, "Error al enviar foto")),
   });
 
   const votePhoto = useMutation({
@@ -161,6 +188,10 @@ export function PhotoChallenge() {
       // Regla Anti-Fraude #31: Nivel 3 mínimo para votar
       if (userLevel < 3) {
         throw new Error("level_too_low");
+      }
+      if (HAS_BACKEND_SESSION) {
+        await gamificationApi.votePhoto(submissionId);
+        return;
       }
       const { data, error } = await supabase.rpc("vote_photo_submission" as any, {
         p_submission_id: submissionId,
@@ -173,7 +204,7 @@ export function PhotoChallenge() {
       toast.success("❤️ ¡Voto registrado!");
       qc.invalidateQueries({ queryKey: ["photo-submissions"] });
     },
-    onError: (e: Error) => {
+    onError: (e: any) => {
       if (e.message === "level_too_low") {
         toast.error("🛡️ Nivel 3 requerido", {
           description: "Para prevenir votos fraudulentos, necesitas alcanzar nivel 3 (Explorador) para votar."
@@ -181,7 +212,7 @@ export function PhotoChallenge() {
       } else if (e.message === "already_voted") {
         toast.info("Ya votaste por esta foto");
       } else {
-        toast.error("Error al votar");
+        toast.error(apiMessage(e, "Error al votar"));
       }
     },
   });

@@ -10,16 +10,24 @@ import {
   BookOpen, Clock, Calendar, ArrowLeft, Share2, Quote, Landmark, 
   MapPin, CheckCircle2, ChevronRight, User, ShieldCheck, Sparkles 
 } from "lucide-react";
-import { getHistoryArticleBySlug, historyArticles } from "@/data/historyArticles";
-import { PanoramaAd } from "@/components/promo";
 import { toast } from "sonner";
+import { PanoramaAd } from "@/components/promo";
+import { useHistoryArticle } from "@/lib/historyApi";
 
 export default function HistoriaDetalle() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const article = getHistoryArticleBySlug(slug || "");
+  const { data: article, isLoading, isError, refetch } = useHistoryArticle(slug);
 
-  if (!article) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background" aria-busy="true">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (isError || !article) {
     return (
       <PageTransition>
         <div className="min-h-screen bg-background flex flex-col">
@@ -31,9 +39,16 @@ export default function HistoriaDetalle() {
               <p className="text-xs text-muted-foreground leading-relaxed">
                 No pudimos encontrar la publicación solicitada. Puede que la crónica o biografía haya sido reubicada.
               </p>
-              <Button asChild className="rounded-xl">
-                <Link to="/historia">Volver al Archivo Histórico</Link>
-              </Button>
+              <div className="flex justify-center gap-2">
+                {isError && (
+                  <Button variant="outline" onClick={() => refetch()} className="rounded-xl">
+                    Reintentar
+                  </Button>
+                )}
+                <Button asChild className="rounded-xl">
+                  <Link to="/historia">Volver al Archivo Histórico</Link>
+                </Button>
+              </div>
             </div>
           </main>
           <Footer />

@@ -126,15 +126,6 @@ export function DestinationArrivalGuide({
             <MapPin className="h-3.5 w-3.5 text-primary" />
             * Distancias y tiempos aproximados por carretera según condiciones usuales de tráfico.
           </p>
-          <a
-            href="/guia-oficial-rd.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 font-bold text-primary hover:underline"
-          >
-            <Download className="h-3.5 w-3.5" /> Descargar Guía Oficial en PDF
-            <span className="text-[10px] px-2 py-0.5 rounded bg-muted text-foreground border border-border">Actualizado 2025</span>
-          </a>
         </div>
       </div>
     </section>

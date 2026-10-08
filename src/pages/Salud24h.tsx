@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { BetweenSectionsAd, CompactInlineAd, MobileStickyFooterAd, PanoramaAd } from "@/components/promo";
 import { centrosSalud, mockHealthLocations, CentroSalud } from "@/data/healthCenters";
+import { EmergencyPdfExport } from "@/components/health/EmergencyPdfExport";
 
 export type HealthCategory = "all" | "hospital" | "pharmacy" | "laboratory" | "dental";
 
@@ -127,6 +128,9 @@ export default function Salud24h() {
                 <p className="text-muted-foreground mt-2 text-sm sm:text-base leading-relaxed">
                   Red integral de hospitales certificados, farmacias de turno 24h, laboratorios clínicos para viajeros y clínicas dentales de urgencia en toda República Dominicana.
                 </p>
+                <div className="mt-4">
+                  <EmergencyPdfExport />
+                </div>
               </div>
 
               {/* Emergency Call Widgets */}

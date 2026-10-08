@@ -13,6 +13,7 @@ import {
   Navigation, Share2, Copy, CheckCircle2, Wrench, ShieldAlert
 } from "lucide-react";
 import { toast } from "sonner";
+import { EmergencyPdfExport } from "@/components/health/EmergencyPdfExport";
 
 const numerosEmergencia = [
   { 
@@ -262,6 +263,9 @@ export default function ContactosEmergencia() {
               <p className="text-base md:text-lg text-muted-foreground max-w-3xl mx-auto">
                 Acceso directo de un toque a POLITUR 24/7, Asistencia Vial MOPC gratuita en autopistas, red consular y hospitales con cobertura de seguros internacionales.
               </p>
+              <div className="mt-5 flex justify-center">
+                <EmergencyPdfExport />
+              </div>
             </div>
           </section>
 

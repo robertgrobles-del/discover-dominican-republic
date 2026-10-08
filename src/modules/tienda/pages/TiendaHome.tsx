@@ -23,7 +23,9 @@ export default function TiendaHome() {
 
   const quickAdd = (p: StoreProduct) => {
     if (p.sizes.length > 1 || p.colors.length > 1) return;
-    addItem({ product_id: p.id, product_name: p.name, product_image: null, price: dopToUsd(p.price), quantity: 1 });
+    const size = p.sizes.length === 1 ? p.sizes[0] : undefined;
+    const color = p.colors.length === 1 ? p.colors[0] : undefined;
+    addItem({ product_id: p.id, product_name: p.name, product_image: null, price: dopToUsd(p.price), quantity: 1, size, color });
   };
 
   return (
@@ -79,7 +81,7 @@ export default function TiendaHome() {
                     <p className="text-xs text-muted-foreground">{CATEGORY_LABEL[p.category]}</p>
                     <p className="font-semibold">{formatDop(p.price)}</p>
                     <div className="mt-auto pt-2">
-                      {p.stock <= 0 ? <Button size="sm" variant="outline" className="w-full" disabled>Agotado</Button>
+                      {!p.in_stock ? <Button size="sm" variant="outline" className="w-full" disabled>Agotado</Button>
                         : p.sizes.length > 1 || p.colors.length > 1 ? <Button size="sm" variant="outline" className="w-full" asChild><Link to={`/tienda/${p.slug}`}>Elegir opciones</Link></Button>
                         : <Button size="sm" variant="outline" className="w-full" onClick={() => quickAdd(p)}>Agregar al carrito</Button>}
                     </div>

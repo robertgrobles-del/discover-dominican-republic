@@ -18,10 +18,26 @@ export interface BlogPost {
     company?: string;
   };
   isFeatured?: boolean;
+  is_sponsored?: boolean;
+  sponsor?: {
+    name: string;
+    category?: string;
+    url?: string;
+    description?: string;
+    logo?: string;
+    bookingUrl?: string;
+    offerText?: string;
+  };
+  sections?: { id: string; title: string; content: string }[];
   pressReleaseDetails?: {
     partnerName: string;
     contactEmail: string;
     officialSourceUrl?: string;
+  };
+  reactions_count?: {
+    likes?: number;
+    love?: number;
+    fire?: number;
   };
 }
 

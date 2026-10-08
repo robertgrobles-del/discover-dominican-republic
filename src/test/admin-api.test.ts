@@ -101,13 +101,23 @@ describe("adminApi", () => {
   });
 
   it("distingue falta de sesión y falta de capacidad", async () => {
+    // Sin token en memoria la petición sale igual (fetchApi intenta renovarlo); es el servidor quien responde 401.
     setAdminAccessTokenProvider(() => null);
+    fetchMock.mockResolvedValue(jsonResponse({ error: { code: "UNAUTHORIZED", message: "Sin sesión" } }, 401));
     await expect(adminListEntities("hotels")).rejects.toMatchObject({ kind: "unauthorized", status: 401 });
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(new Headers(lastCall(fetchMock)[1].headers).has("Authorization")).toBe(false);
 
     setAdminAccessTokenProvider(() => "token-de-prueba");
     fetchMock.mockResolvedValue(jsonResponse({ error: { code: "FORBIDDEN", message: "No tienes permiso" } }, 403));
     await expect(adminListEntities("hotels")).rejects.toMatchObject({ kind: "forbidden", status: 403 });
+  });
+
+  it("usa la ruta del CMS cuando no coincide con el nombre de la tabla", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ data: [], meta: { total: 0 } }));
+    await adminListEntities("spas_wellness");
+    expect(lastCall(fetchMock)[0]).toMatch(/^\/api\/v1\/admin\/spas\?/);
+    await adminListEntities("historical_figures");
+    expect(lastCall(fetchMock)[0]).toMatch(/^\/api\/v1\/admin\/historical-figures\?/);
   });
 
   it("marca los errores de validación del servidor", async () => {

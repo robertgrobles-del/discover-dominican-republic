@@ -14,7 +14,7 @@ const ROUTES: Record<string, () => Promise<unknown>> = {
   "/cultura": () => import("@/pages/Cultura"),
   "/herramientas": () => import("@/pages/Herramientas"),
   "/galeria": () => import("@/pages/Galeria"),
-  "/blog": () => import("@/pages/Blog"),
+  "/revista": () => import("@/pages/EditorialMagazineHub"),
   "/tienda": () => import("@/modules/tienda/pages/TiendaHome"),
 };
 

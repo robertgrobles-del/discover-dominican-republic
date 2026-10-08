@@ -1,9 +1,20 @@
-import { Trophy, Medal, Award, Crown } from "lucide-react";
+import { Trophy, Medal, Award, Crown, Calendar, Sparkles, History, Filter } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+
+export interface SeasonInfo {
+  id: string;
+  number: number;
+  name: string;
+  starts_at?: string;
+  ends_at?: string;
+  is_active?: boolean;
+  top_rewards?: Array<{ rank: string | number; prize: string; icon?: string; coins?: number }>;
+}
 
 interface LeaderboardEntry {
   user_id: string;
@@ -14,11 +25,16 @@ interface LeaderboardEntry {
   streak_days: number;
   total_missions_completed: number;
   avatar_url?: string;
+  league_slug?: string;
+  season_id?: string;
 }
 
 interface LeaderboardTabProps {
   leaderboard: LeaderboardEntry[];
   currentUserId?: string;
+  seasons?: SeasonInfo[];
+  selectedSeasonId?: string;
+  onSeasonChange?: (seasonId: string) => void;
 }
 
 const getRankIcon = (rank: number) => {
@@ -41,12 +57,56 @@ const getRankBadgeColor = (rank: number) => {
   return "";
 };
 
-export function LeaderboardTab({ leaderboard, currentUserId }: LeaderboardTabProps) {
+export function LeaderboardTab({
+  leaderboard,
+  currentUserId,
+  seasons = [],
+  selectedSeasonId = "all",
+  onSeasonChange,
+}: LeaderboardTabProps) {
   const topThree = leaderboard.slice(0, 3);
   const rest = leaderboard.slice(3);
+  const activeSeason = seasons.find((s) => s.id === selectedSeasonId);
 
   return (
     <div className="space-y-6">
+      {/* Seasons Selector Header */}
+      {seasons.length > 0 && onSeasonChange && (
+        <div className="p-4 bg-muted/40 rounded-2xl border border-border flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-primary/10 text-primary">
+              <Calendar className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Temporada de Competición
+              </p>
+              <p className="text-sm font-bold text-foreground">
+                {selectedSeasonId === "all" ? "Histórico Global Acumulado" : activeSeason?.name || "Temporada"}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Select value={selectedSeasonId} onValueChange={onSeasonChange}>
+              <SelectTrigger className="h-9 w-[240px] text-xs rounded-xl bg-card">
+                <SelectValue placeholder="Seleccionar temporada" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all" className="text-xs font-semibold">
+                  🏆 Histórico Global (Todas las temporadas)
+                </SelectItem>
+                {seasons.map((s) => (
+                  <SelectItem key={s.id} value={s.id} className="text-xs">
+                    {s.is_active ? "🟢 (Actual) " : "⚪ "}
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      )}
       {/* Top 3 Podium */}
       {topThree.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">

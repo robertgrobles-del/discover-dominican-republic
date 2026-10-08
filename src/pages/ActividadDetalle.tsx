@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { SEOHead } from "@/components/SEOHead";
-import { supabase } from "@/integrations/supabase/client";
+import { CatalogService } from "@/services/catalogService";
 import { toast } from "sonner";
 import { staticActivities } from "@/data/activitiesData";
 import { ActivityBookingCard } from "@/components/activities/ActivityBookingCard";
@@ -29,21 +29,12 @@ export function ActividadDetalle() {
   // Load static activity data
   const staticActivity = staticActivities[slug || ""];
 
-  // Fetch activity from DB if it's dynamic
+  // Fetch activity via CatalogService if it's dynamic
   const { data: dbActivity, isLoading: loadingDb } = useQuery({
     queryKey: ["db-activity", slug],
     queryFn: async () => {
       if (!slug || staticActivity) return null;
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
-      let query = supabase.from("experiences").select("*");
-      if (isUUID) {
-        query = query.eq("id", slug);
-      } else {
-        query = query.eq("slug", slug);
-      }
-      const { data, error } = await query.maybeSingle();
-      if (error) throw error;
-      return data;
+      return CatalogService.getExperienceBySlug(slug);
     },
     enabled: !!slug && !staticActivity,
   });
@@ -103,15 +94,19 @@ export function ActividadDetalle() {
     isStatic: true
   } : {
     id: dbActivity!.id,
-    nombre: dbActivity!.name,
-    categoria: dbActivity!.category || "Aventura",
-    imagen: dbActivity!.image_url || "/placeholder.svg",
-    rating: dbActivity!.rating || 4.5,
-    duracion: dbActivity!.duration || "3 horas",
-    precio: typeof dbActivity!.price_range === 'number' ? dbActivity!.price_range : parseFloat((dbActivity!.price_range || "45").replace(/[^0-9.]/g, "")) || 45,
+    nombre: (dbActivity as any).title || (dbActivity as any).name || "Experiencia en RD",
+    categoria: (dbActivity as any).category || "Aventura",
+    imagen: (dbActivity as any).image || (dbActivity as any).image_url || "/placeholder.svg",
+    rating: (dbActivity as any).rating || 4.5,
+    duracion: (dbActivity as any).duration || "3 horas",
+    precio: typeof (dbActivity as any).price === 'number'
+      ? (dbActivity as any).price
+      : typeof (dbActivity as any).price_range === 'number'
+      ? (dbActivity as any).price_range
+      : parseFloat(String((dbActivity as any).price || (dbActivity as any).price_range || "45").replace(/[^0-9.]/g, "")) || 45,
     descripcion: dbActivity!.description || "Una fantástica actividad turística en República Dominicana.",
-    ubicacion: (dbActivity as any)?.location || dbActivity!.destination_id || "República Dominicana",
-    dificultad: dbActivity!.difficulty || "Moderado",
+    ubicacion: (dbActivity as any)?.location || (dbActivity as any)?.destination_id || (dbActivity as any)?.destinationId || "República Dominicana",
+    dificultad: (dbActivity as any).difficulty || "Moderado",
     recomendaciones: [
       "Llevar protector solar amigable con el arrecife.",
       "Mantenerse hidratado durante el trayecto.",
@@ -122,7 +117,7 @@ export function ActividadDetalle() {
       "Equipo de seguridad obligatorio",
       "Paseo con entradas incluidas"
     ],
-    galeria: [dbActivity!.image_url || "/placeholder.svg"],
+    galeria: [(dbActivity as any).image || (dbActivity as any).image_url || "/placeholder.svg"],
     itinerario: undefined,
     isStatic: false
   };

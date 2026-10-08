@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { BetweenSectionsAd, CompactInlineAd } from "@/components/promo";
-import { supabase } from "@/integrations/supabase/client";
+import { CatalogService } from "@/services/catalogService";
 import { useQuery } from "@tanstack/react-query";
 import { bars as staticBarsData } from "@/data/bars";
 import { useTranslation } from "@/hooks/useI18n";
@@ -53,12 +53,9 @@ export default function VidaNocturna() {
     { id: "playa", label: t("nightlife.beach"), icon: Palmtree }
   ];
 
-  const { data: dbBars } = useQuery({
+  const { data: dbBars = staticBarsData } = useQuery({
     queryKey: ['bars-list'],
-    queryFn: async () => {
-      const { data } = await supabase.from('bars').select('*').eq('is_active', true).order('is_sponsored', { ascending: false }).order('is_featured', { ascending: false });
-      return data || [];
-    },
+    queryFn: () => CatalogService.getBars(),
   });
 
   const allVenues = useMemo(() => {
@@ -75,20 +72,20 @@ export default function VidaNocturna() {
       barType: b.barType,
     }));
     const slugs = new Set(staticMapped.map(v => v.slug));
-    (dbBars || []).forEach(db => {
+    (dbBars || []).forEach((db: any) => {
       const slug = db.slug || db.id;
       if (!slugs.has(slug)) {
         staticMapped.push({
           name: db.name,
           slug,
-          location: db.address || '',
+          location: db.address || db.destinationName || '',
           rating: Number(db.rating) || 0,
-          description: db.short_description || '',
-          tags: [db.dress_code, db.music_style].filter(Boolean) as string[],
-          image: db.image_url || `https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=500&h=350&fit=crop`,
+          description: db.shortDescription || db.short_description || '',
+          tags: [db.dressCode || db.dress_code, db.musicStyle?.[0] || db.music_style].filter(Boolean) as string[],
+          image: db.imageUrl || db.image_url || `https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=500&h=350&fit=crop`,
           badge: '#Nuevo',
           badgeColor: 'bg-primary',
-          barType: (db.bar_type || 'lounge') as any,
+          barType: (db.barType || db.bar_type || 'lounge') as any,
         });
         slugs.add(slug);
       }

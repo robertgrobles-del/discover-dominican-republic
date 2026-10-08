@@ -34,7 +34,7 @@ import { getProvinceEnrichedData } from "@/data/provinceEnrichment";
 import { hotels } from "@/data/hotels";
 import { restaurants } from "@/data/restaurants";
 import { bars } from "@/data/bars";
-import { supabase } from "@/integrations/supabase/client";
+import { CatalogService } from "@/services/catalogService";
 import { useQuery } from "@tanstack/react-query";
 
 export default function ProvinciaDetalle() {
@@ -50,48 +50,22 @@ export default function ProvinciaDetalle() {
     return getProvinceEnrichedData(province.slug, province.name, province.region);
   }, [province]);
 
-  // Fetch province DB ID for monument/park queries
-  const { data: dbProvince } = useQuery({
-    queryKey: ['province-db-id', slug],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('provinces')
-        .select('id, name, slug, capital, population, area_km2')
-        .eq('slug', slug!)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!slug && !!province,
-  });
-
-  const { data: dbHotels } = useQuery({
+  const { data: dbHotels = [] } = useQuery({
     queryKey: ['province-hotels', slug],
-    queryFn: async () => {
-      if (!dbProvince) return [];
-      const { data } = await supabase.from('hotels').select('*').eq('destination_id', dbProvince.id).eq('is_active', true).limit(10);
-      return data || [];
-    },
-    enabled: !!dbProvince,
+    queryFn: () => (slug ? CatalogService.getHotelsByDestination(slug) : []),
+    enabled: !!slug,
   });
 
-  const { data: dbRestaurants } = useQuery({
+  const { data: dbRestaurants = [] } = useQuery({
     queryKey: ['province-restaurants', slug],
-    queryFn: async () => {
-      if (!dbProvince) return [];
-      const { data } = await supabase.from('restaurants').select('*').eq('destination_id', dbProvince.id).eq('is_active', true).limit(10);
-      return data || [];
-    },
-    enabled: !!dbProvince,
+    queryFn: () => (slug ? CatalogService.getRestaurantsByDestination(slug) : []),
+    enabled: !!slug,
   });
 
-  const { data: dbBars } = useQuery({
+  const { data: dbBars = [] } = useQuery({
     queryKey: ['province-bars', slug],
-    queryFn: async () => {
-      if (!dbProvince) return [];
-      const { data } = await supabase.from('bars').select('*').eq('destination_id', dbProvince.id).eq('is_active', true).limit(10);
-      return data || [];
-    },
-    enabled: !!dbProvince,
+    queryFn: () => (slug ? CatalogService.getBarsByDestination(slug) : []),
+    enabled: !!slug,
   });
 
   const provinceHotels = useMemo(() => {
@@ -306,9 +280,9 @@ export default function ProvinciaDetalle() {
         <ProvinceHero
           name={province.name}
           region={province.region}
-          capital={dbProvince?.capital}
-          population={dbProvince?.population}
-          areaKm2={dbProvince?.area_km2}
+          capital={(province as any).capital || province.name}
+          population={(province as any).population}
+          areaKm2={(province as any).areaKm2}
           description={province.description}
           images={heroImages}
           highlights={province.highlights}
@@ -321,9 +295,9 @@ export default function ProvinciaDetalle() {
         {/* Bento Grid Technical Card */}
         <ProvinceTechCard
           name={province.name}
-          capital={dbProvince?.capital}
-          population={dbProvince?.population}
-          areaKm2={dbProvince?.area_km2}
+          capital={(province as any).capital || province.name}
+          population={(province as any).population}
+          areaKm2={(province as any).areaKm2}
           region={province.region}
           bestTimeToVisit={province.bestTimeToVisit}
           weatherInfo={province.weatherInfo}
@@ -414,7 +388,7 @@ export default function ProvinciaDetalle() {
 
         {/* Monuments (With authentic regional fallback) */}
         <ProvinceMonuments
-          provinceId={dbProvince?.id || ''}
+          provinceId={province.id || slug || ''}
           provinceName={province.name}
           fallbackItems={enrichedData?.monuments}
         />
@@ -423,7 +397,7 @@ export default function ProvinciaDetalle() {
 
         {/* Parks & Protected Areas (With authentic regional fallback) */}
         <ProvinceParks
-          provinceId={dbProvince?.id || ''}
+          provinceId={province.id || slug || ''}
           provinceName={province.name}
           fallbackItems={enrichedData?.parks}
         />

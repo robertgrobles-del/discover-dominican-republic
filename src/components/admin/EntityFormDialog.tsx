@@ -8,7 +8,10 @@ import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Loader2, Save } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { HAS_BACKEND_SESSION } from '@/lib/authSource';
+import { adminGetTranslations } from '@/lib/adminApi';
 import { type EntityType } from '@/hooks/useAdminEntities';
+import { LocationSelector, type LocationValue } from './LocationSelector';
 
 interface FieldConfig {
   name: string;
@@ -57,6 +60,10 @@ export function EntityFormDialog({
       if (open && initialData?.id && entity) {
         setLoadingTranslations(true);
         try {
+          if (HAS_BACKEND_SESSION) {
+            setTranslationsData(await adminGetTranslations(entity, initialData.id as string));
+            return;
+          }
           const { data, error } = await supabase
             .from('entity_translations')
             .select('language, field_name, translation_text')
@@ -243,15 +250,42 @@ export function EntityFormDialog({
           <ScrollArea className="h-[60vh] pr-4">
             {activeLang === 'es' ? (
               <div className="grid gap-4 py-4">
-                {fields.map((field) => (
-                  <div key={field.name} className="grid gap-2">
-                    <Label htmlFor={field.name} className="flex items-center gap-1">
-                      {field.label}
-                      {field.required && <span className="text-destructive">*</span>}
-                    </Label>
-                    {renderField(field)}
-                  </div>
-                ))}
+                {/* Selector Jerárquico de Ubicación (Provincia -> Municipio -> Destino) */}
+                {fields.some(f => ['destination_id', 'province_id', 'province', 'municipality_id'].includes(f.name)) && (
+                  <LocationSelector
+                    value={{
+                      provinceId: formData.province_id as string,
+                      provinceName: formData.province as string,
+                      municipalityId: formData.municipality_id as string,
+                      destinationId: formData.destination_id as string,
+                      isProvinceWide: Boolean(formData.is_province_wide),
+                    }}
+                    onChange={(loc: LocationValue) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        province_id: loc.provinceId || null,
+                        province: loc.provinceName || null,
+                        municipality_id: loc.municipalityId || null,
+                        destination_id: loc.destinationId || null,
+                        is_province_wide: loc.isProvinceWide || false,
+                      }));
+                    }}
+                    allowProvinceWide={['events', 'experiences', 'tour_guides', 'tour_operators'].includes(entity)}
+                  />
+                )}
+
+                {/* Resto de campos del formulario (excluyendo los que ya maneja LocationSelector) */}
+                {fields
+                  .filter(f => !['destination_id', 'province_id', 'province', 'municipality_id', 'is_province_wide'].includes(f.name))
+                  .map((field) => (
+                    <div key={field.name} className="grid gap-2">
+                      <Label htmlFor={field.name} className="flex items-center gap-1">
+                        {field.label}
+                        {field.required && <span className="text-destructive">*</span>}
+                      </Label>
+                      {renderField(field)}
+                    </div>
+                  ))}
               </div>
             ) : loadingTranslations ? (
               <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-2">

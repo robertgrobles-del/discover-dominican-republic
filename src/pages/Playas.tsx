@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useMemo } from "react";
 import { beaches as staticBeaches, Beach } from "@/data/beaches";
-import { supabase } from "@/integrations/supabase/client";
+import { CatalogService } from "@/services/catalogService";
 import { useQuery } from "@tanstack/react-query";
 import { BetweenSectionsAd, CompactInlineAd, MobileStickyFooterAd, PanoramaAd } from "@/components/promo";
 import { FavoriteButton } from "@/components/FavoriteButton";
@@ -55,25 +55,12 @@ export default function Playas() {
     'urbana': t("playas.urban") || "Urbanas",
   };
 
-  const { data: dbBeaches, isLoading } = useQuery({
+  const { data: beaches = staticBeaches, isLoading } = useQuery({
     queryKey: ['beaches-list'],
-    queryFn: async () => {
-      const { data } = await supabase.from('beaches').select('*').eq('is_active', true).order('is_featured', { ascending: false });
-      return data || [];
-    },
+    queryFn: () => CatalogService.getBeaches(),
   });
 
-  const allBeaches = useMemo(() => {
-    const merged = [...staticBeaches];
-    const slugs = new Set(merged.map(b => b.slug));
-    (dbBeaches || []).forEach(db => {
-      if (db.slug && !slugs.has(db.slug)) {
-        merged.push(db as any);
-        slugs.add(db.slug);
-      }
-    });
-    return merged;
-  }, [dbBeaches]);
+  const allBeaches = beaches;
 
   const filtered = useMemo(() => {
     let result = allBeaches.filter(b => {

@@ -6,10 +6,13 @@ import { Upload, CheckCircle, AlertCircle, Loader2, Database, FileText } from "l
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { readValidatedTextFile } from "@/lib/forms";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { submitEstablecimientosImport, pollImportJobUntilFinished } from "@/lib/adminImportsApi";
 
 interface ImportResult {
   file: string;
   inserted: number;
+  updated?: number;
   error?: string;
 }
 
@@ -23,9 +26,32 @@ const BUNDLED_FILES = [
 
 export function AdminImportEstablecimientos() {
   const [importing, setImporting] = useState(false);
+  const [currentProgress, setCurrentProgress] = useState<string | null>(null);
   const [results, setResults] = useState<ImportResult[]>([]);
 
   const importCsv = async (fileName: string, csvText: string): Promise<ImportResult> => {
+    if (HAS_BACKEND_SESSION) {
+      try {
+        const { job_id } = await submitEstablecimientosImport(csvText, { fileName });
+        setCurrentProgress(`Procesando ${fileName}...`);
+        const job = await pollImportJobUntilFinished(job_id, (j) => {
+          if (j.total > 0) {
+            setCurrentProgress(`Procesando ${fileName} (${j.progress}% - ${j.processed}/${j.total})`);
+          }
+        });
+        if (job.status === "failed") {
+          return { file: fileName, inserted: 0, error: job.error || "Falló la importación" };
+        }
+        return {
+          file: fileName,
+          inserted: job.inserted,
+          updated: job.updated,
+        };
+      } catch (err: any) {
+        return { file: fileName, inserted: 0, error: err.message || "Error al conectar con el servidor" };
+      }
+    }
+
     try {
       const { data, error } = await supabase.functions.invoke("import-establecimientos", {
         body: { csv_text: csvText },
@@ -60,6 +86,7 @@ export function AdminImportEstablecimientos() {
       }
     } finally {
       setImporting(false);
+      setCurrentProgress(null);
       e.target.value = "";
     }
     setResults(newResults);
@@ -72,18 +99,22 @@ export function AdminImportEstablecimientos() {
     setImporting(true);
     setResults([]);
     const newResults: ImportResult[] = [];
-    for (const file of BUNDLED_FILES) {
-      try {
-        const resp = await fetch(file.path);
-        const text = await resp.text();
-        newResults.push(await importCsv(file.name, text));
-        setResults([...newResults]);
-      } catch (err: any) {
-        newResults.push({ file: file.name, inserted: 0, error: err.message });
-        setResults([...newResults]);
+    try {
+      for (const file of BUNDLED_FILES) {
+        try {
+          const resp = await fetch(file.path);
+          const text = await resp.text();
+          newResults.push(await importCsv(file.name, text));
+          setResults([...newResults]);
+        } catch (err: any) {
+          newResults.push({ file: file.name, inserted: 0, error: err.message });
+          setResults([...newResults]);
+        }
       }
+    } finally {
+      setImporting(false);
+      setCurrentProgress(null);
     }
-    setImporting(false);
     const total = newResults.reduce((sum, r) => sum + r.inserted, 0);
     toast.success(`Importación completada: ${total.toLocaleString()} registros`);
   };
@@ -130,6 +161,13 @@ export function AdminImportEstablecimientos() {
           </Button>
         </div>
 
+        {importing && currentProgress && (
+          <div className="flex items-center gap-2 text-xs text-primary font-medium p-2.5 rounded bg-primary/10">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            <span>{currentProgress}</span>
+          </div>
+        )}
+
         {results.length > 0 && (
           <div className="space-y-2">
             {results.map((r, i) => (
@@ -143,7 +181,10 @@ export function AdminImportEstablecimientos() {
                 {r.error ? (
                   <span className="text-destructive text-xs">{r.error}</span>
                 ) : (
-                  <span className="text-muted-foreground">{r.inserted.toLocaleString()} registros</span>
+                  <span className="text-muted-foreground">
+                    {r.inserted.toLocaleString()} nuevos
+                    {r.updated ? ` · ${r.updated.toLocaleString()} actualizados` : ""}
+                  </span>
                 )}
               </div>
             ))}

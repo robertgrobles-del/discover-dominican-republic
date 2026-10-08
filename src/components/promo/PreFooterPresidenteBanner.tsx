@@ -16,6 +16,8 @@ export function PreFooterPresidenteBanner() {
           src={bannerPresidenteImg}
           alt="Festival Presidente 2026 - Cerveza Presidente"
           className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+          loading="lazy"
+          decoding="async"
         />
 
         {/* Subtle hover overlay */}

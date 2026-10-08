@@ -12,7 +12,7 @@ import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead, generateRestaurantSchema } from "@/components/SEOHead";
 import { getBarBySlug, Bar } from "@/data/bars";
-import { supabase } from "@/integrations/supabase/client";
+import { CatalogService } from "@/services/catalogService";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { BarHeroSlider } from "@/components/bar/BarHeroSlider";
@@ -62,46 +62,46 @@ export default function BarDetalle() {
     window.scrollTo(0, 0);
   }, [id]);
 
-  // Fetch from DB if not found in static data
+  // Fetch via CatalogService if not found in static data
   const { data: dbBar, isLoading } = useQuery({
     queryKey: ['bar-detail', id],
     queryFn: async () => {
-      const { data } = await supabase.from('bars').select('*').eq('slug', id!).maybeSingle();
-      return data;
+      if (!id || staticBar) return null;
+      return CatalogService.getBarBySlug(id);
     },
     enabled: !!id && !staticBar,
   });
 
-  // Merge: static takes priority, DB as fallback
+  // Merge: static takes priority, CatalogService as fallback
   const bar: Bar | undefined = staticBar || (dbBar ? {
     id: dbBar.id,
     slug: dbBar.slug || dbBar.id,
     name: dbBar.name,
-    destinationId: dbBar.destination_id || '',
-    destinationName: '',
-    province: '',
-    barType: (dbBar.bar_type as Bar['barType']) || 'cocktail-bar',
-    musicStyle: dbBar.music_style || ['Latina', 'Internacional'],
-    priceRange: (dbBar.price_range as Bar['priceRange']) || '$$',
+    destinationId: dbBar.destinationId || (dbBar as any).destination_id || '',
+    destinationName: dbBar.destinationName || '',
+    province: dbBar.province || '',
+    barType: (dbBar.barType || (dbBar as any).bar_type || 'cocktail-bar') as Bar['barType'],
+    musicStyle: dbBar.musicStyle || (dbBar as any).music_style || ['Latina', 'Internacional'],
+    priceRange: (dbBar.priceRange || (dbBar as any).price_range || '$$') as Bar['priceRange'],
     rating: Number(dbBar.rating) || 4.5,
-    reviewCount: dbBar.review_count || 50,
-    shortDescription: dbBar.short_description || '',
+    reviewCount: dbBar.reviewCount || (dbBar as any).review_count || 50,
+    shortDescription: dbBar.shortDescription || (dbBar as any).short_description || '',
     description: dbBar.description || '',
     address: dbBar.address || '',
-    openingHours: dbBar.opening_hours || '',
+    openingHours: dbBar.openingHours || (dbBar as any).opening_hours || '',
     phone: dbBar.phone,
     instagram: dbBar.instagram,
     website: dbBar.website,
-    minimumAge: dbBar.minimum_age || 18,
-    dressCode: dbBar.dress_code || 'Smart Casual',
-    hasCover: dbBar.has_cover || false,
-    coverPrice: dbBar.cover_price,
+    minimumAge: dbBar.minimumAge || (dbBar as any).minimum_age || 18,
+    dressCode: dbBar.dressCode || (dbBar as any).dress_code || 'Smart Casual',
+    hasCover: dbBar.hasCover ?? (dbBar as any).has_cover ?? false,
+    coverPrice: dbBar.coverPrice || (dbBar as any).cover_price,
     features: dbBar.features || [],
-    imageUrl: dbBar.image_url || '/placeholder.svg',
+    imageUrl: dbBar.imageUrl || (dbBar as any).image_url || '/placeholder.svg',
     gallery: dbBar.gallery || [],
     latitude: dbBar.latitude ? Number(dbBar.latitude) : undefined,
     longitude: dbBar.longitude ? Number(dbBar.longitude) : undefined,
-    isFeatured: dbBar.is_featured || false,
+    isFeatured: dbBar.isFeatured ?? (dbBar as any).is_featured ?? false,
   } : undefined);
 
   if (isLoading) {

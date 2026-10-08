@@ -1,5 +1,8 @@
 import { Sparkles, ArrowUpRight, Camera } from "lucide-react";
 import { Link } from "react-router-dom";
+import { groupByCategory, useDestinationActivities } from "@/lib/destinationActivities";
+
+const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&auto=format&fit=crop&q=80";
 
 interface MustSeeItem {
   titulo: string;
@@ -11,10 +14,12 @@ interface MustSeeItem {
 
 interface DestinationMustSeeProps {
   destinoNombre: string;
+  /** Slug del destino: con él la sección lee las actividades registradas y enlaza a su listado. */
+  slug?: string;
   items?: MustSeeItem[];
 }
 
-export function DestinationMustSee({ destinoNombre, items }: DestinationMustSeeProps) {
+export function DestinationMustSee({ destinoNombre, slug, items }: DestinationMustSeeProps) {
   const defaultItems: MustSeeItem[] = [
     {
       titulo: `Playas y Aguas Cristalinas de ${destinoNombre}`,
@@ -42,11 +47,25 @@ export function DestinationMustSee({ destinoNombre, items }: DestinationMustSeeP
       subtitulo: "Pescado al coco, chivo liniero, dulces criollos y ron premium.",
       categoria: "Sabores de Origen",
       imagen: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&auto=format&fit=crop&q=80",
-      enlace: "/gastronomia",
+      enlace: "/guia-gastronomica",
     },
   ];
 
-  const displayItems = items && items.length > 0 ? items : defaultItems;
+  // Con actividades registradas en el destino, la sección muestra sus categorías reales: cada una aparece en
+  // cuanto el panel de administración publica la primera actividad de esa categoría aquí.
+  const { data: activities = [] } = useDestinationActivities(slug);
+  const categories = groupByCategory(activities);
+  const allActivitiesHref = slug ? `/destino/${slug}/actividades` : "/experiencias";
+  const categoryItems: MustSeeItem[] = categories.map((category) => ({
+    titulo: `${category.label} en ${destinoNombre}`,
+    subtitulo: category.count === 1 ? "1 actividad disponible" : `${category.count} actividades disponibles`,
+    categoria: category.label,
+    imagen: category.image || FALLBACK_IMAGE,
+    enlace: `${allActivitiesHref}?categoria=${encodeURIComponent(category.key)}`,
+  }));
+  const hasActivities = categoryItems.length > 0;
+
+  const displayItems = hasActivities ? categoryItems : items && items.length > 0 ? items : defaultItems;
 
   return (
     <section className="py-16 bg-background">
@@ -64,17 +83,17 @@ export function DestinationMustSee({ destinoNombre, items }: DestinationMustSeeP
             </p>
           </div>
           <Link
-            to="/experiencias"
+            to={allActivitiesHref}
             className="text-sm font-semibold text-primary hover:underline flex items-center gap-1 group self-start md:self-auto"
           >
-            Explorar todas las vivencias
+            {hasActivities ? `Ver todas las actividades (${activities.length})` : "Explorar todas las vivencias"}
             <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </Link>
         </div>
 
         {/* Grid Visual Inmersivo */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {displayItems.slice(0, 4).map((item, idx) => (
+          {displayItems.slice(0, hasActivities ? 8 : 4).map((item, idx) => (
             <Link
               key={idx}
               to={item.enlace || "#"}

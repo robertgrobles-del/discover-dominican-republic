@@ -17,6 +17,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { fetchApi } from "@/lib/fastifyClient";
+
+/** Cómo se entra al evento, en el vocabulario del servidor. */
+const TICKET_MODE = { website_redirect: "external", native_checkout: "free_pass", door_only: "none" } as const;
 
 interface RegistroEventoModalProps {
   open: boolean;
@@ -25,7 +31,10 @@ interface RegistroEventoModalProps {
 }
 
 export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps) {
+  const { user } = useAuth();
   const [step, setStep] = useState<1 | 2>(1);
+  /** El evento llegó al servidor y espera la aprobación de un administrador. */
+  const [sentForReview, setSentForReview] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Form states
@@ -53,6 +62,43 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
       return;
     }
 
+    if (HAS_BACKEND_SESSION) {
+      if (!user) { toast.error("Inicia sesión para enviar tu evento a revisión."); return; }
+      if (description.trim().length < 20) { toast.error("Describe el evento con al menos 20 caracteres."); return; }
+      setLoading(true);
+      try {
+        await fetchApi("/events/submissions", {
+          method: "POST",
+          body: JSON.stringify({
+            title: eventName.trim(),
+            start_date: startDate,
+            start_time: startTime || undefined,
+            location: `${venue.trim()}, ${destination}`,
+            description: description.trim(),
+            category,
+            organizer_name: organizerName.trim(),
+            organizer_email: organizerEmail.trim(),
+            organizer_phone: organizerPhone.trim() || undefined,
+            ticket_mode: TICKET_MODE[ticketSalesOption],
+            ticket_url: ticketSalesOption === "website_redirect" && websiteTicketUrl.trim()
+              ? (websiteTicketUrl.trim().startsWith("http://") || websiteTicketUrl.trim().startsWith("https://")
+                  ? websiteTicketUrl.trim()
+                  : `https://${websiteTicketUrl.trim()}`)
+              : undefined,
+            price_info: priceType === "free" ? "Entrada libre" : priceRange.trim() || undefined,
+          }),
+        });
+        setSentForReview(true);
+        setStep(2);
+        toast.success("Evento enviado a revisión");
+      } catch (err) {
+        toast.error("No se pudo enviar el evento", { description: err instanceof Error ? err.message : undefined });
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -67,7 +113,9 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
         start_time: startTime,
         price_type: priceType,
         price_range: priceType === "free" ? "Entrada Libre (Gratis)" : priceRange || "RD$ 500+",
-        status: "published",
+        status: "draft",
+        ticket_sales_option: ticketSalesOption,
+        website_ticket_url: websiteTicketUrl || null,
         max_capacity: 500,
         total_registered: 0,
         organizer: organizerName.trim(),
@@ -91,6 +139,7 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
 
   const handleReset = () => {
     setStep(1);
+    setSentForReview(false);
     setEventName("");
     setOrganizerName("");
     setOrganizerEmail("");
@@ -425,10 +474,12 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
               <AlertCircle className="h-8 w-8" />
             </div>
             <h3 className="font-display text-2xl font-bold text-foreground">
-              Borrador local creado
+              {sentForReview ? "Evento enviado a revisión" : "Borrador local creado"}
             </h3>
             <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
-              El borrador de <strong>{eventName}</strong> solo esta guardado en este navegador. No se envio al equipo ni se publicara hasta conectar un servicio de registro.
+              {sentForReview
+                ? <>Recibimos <strong>{eventName}</strong>. Todavía no es público: un administrador lo revisará y, si lo aprueba, aparecerá en la agenda de eventos.</>
+                : <>El borrador de <strong>{eventName}</strong> solo está guardado en este navegador. No se envió al equipo ni se publicará.</>}
             </p>
             <Button onClick={handleReset} className="rounded-xl text-xs font-bold px-8 mt-4">
               Entendido, volver a Eventos

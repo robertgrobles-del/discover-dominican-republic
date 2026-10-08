@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { fetchApi } from "@/lib/fastifyClient";
+import { initUtmTracker } from "@/lib/utmTracker";
 
 const REFERRAL_TTL_DAYS = 30;
 
@@ -10,6 +11,7 @@ export function AffiliateReferralCapture() {
   const trackedRef = useRef<string | null>(null);
 
   useEffect(() => {
+    initUtmTracker();
     const expiresAt = Number(localStorage.getItem("affiliate_ref_expires_at") || 0);
     if (localStorage.getItem("affiliate_ref") && (!expiresAt || expiresAt <= Date.now())) {
       localStorage.removeItem("affiliate_ref");

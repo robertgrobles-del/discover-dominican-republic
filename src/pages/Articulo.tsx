@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -10,28 +11,71 @@ import { PageTransition } from "@/components/PageTransition";
 import {
   User, Calendar, Clock, Bookmark, Share2, ThumbsUp,
   ChevronLeft, Tag, Send, Mail, CheckCircle, Megaphone,
-  PenTool, Compass, Newspaper, Building2, ExternalLink
+  PenTool, Compass, Newspaper, Building2, ExternalLink, Loader2
 } from "lucide-react";
 import { toast } from "sonner";
-import { getBlogPostBySlug, blogPosts } from "@/data/blogData";
+import { useEditorialArticle, useEditorialArticles, reactToEditorialArticle } from "@/lib/editorialApi";
+import { fetchApi } from "@/lib/fastifyClient";
+import { useAuth } from "@/hooks/useAuth";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { PanoramaAd, BannerAd, CompactInlineAd } from "@/components/promo";
 import { SectionWithSideAds } from "@/components/SectionWithSideAds";
+import { SocialShareBar } from "@/components/social/SocialShareBar";
+import { ArticleTableOfContents } from "@/components/editorial/ArticleTableOfContents";
+import { ArticleFeedbackWidget } from "@/components/editorial/ArticleFeedbackWidget";
+import { SponsoredArticleCard } from "@/components/editorial/SponsoredArticleCard";
+import { SelloVerificadoBadge } from "@/components/ui/SelloVerificadoBadge";
+
+interface ArticleReviewItem {
+  id: string;
+  rating: number;
+  comment: string | null;
+  author: string;
+  created_at: string;
+}
 
 export default function Articulo() {
   const { slug } = useParams<{ slug: string }>();
-  const post = getBlogPostBySlug(slug || "");
+  const { data: post, isLoading, isError, refetch } = useEditorialArticle(slug);
+  const { data: allArticles = [] } = useEditorialArticles();
+  const { user } = useAuth();
   const [readProgress, setReadProgress] = useState(0);
 
   // Comments states
-  const [comments, setComments] = useState([
-    { id: 1, author: "Manuel Gómez", content: "¡Excelente publicación! Muy detallada y oportuna para planificar nuestras vacaciones en familia.", date: "Hace 2 días" },
-    { id: 2, author: "Sofia Martínez", content: "Gran cobertura. La información sobre la sostenibilidad y accesos es sumamente valiosa.", date: "Hace 1 día" }
-  ]);
   const [newCommentAuthor, setNewCommentAuthor] = useState("");
   const [newCommentText, setNewCommentText] = useState("");
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+
+  // Reactions & bookmark states
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [likeCount, setLikeCount] = useState(42);
+  const [likeCount, setLikeCount] = useState(0);
   const [hasLiked, setHasLiked] = useState(false);
+
+  // Sync likes and bookmarks from post & localStorage
+  useEffect(() => {
+    if (!post?.id) return;
+    const initialLikes = post.reactions_count?.likes ?? 0;
+    const likedLocally = localStorage.getItem(`art_liked_${post.id}`) === "true";
+    setLikeCount(likedLocally ? Math.max(initialLikes, 1) : initialLikes);
+    setHasLiked(likedLocally);
+    setIsBookmarked(localStorage.getItem(`art_fav_${post.id}`) === "true");
+  }, [post?.id, post?.reactions_count?.likes]);
+
+  // Load real reviews from backend
+  const { data: reviews = [], refetch: refetchReviews } = useQuery<ArticleReviewItem[]>({
+    queryKey: ["article-reviews", post?.slug],
+    queryFn: async () => {
+      if (!post?.slug) return [];
+      try {
+        const res = await fetchApi<{ data: ArticleReviewItem[] }>(`/articles/${encodeURIComponent(post.slug)}/reviews`);
+        return Array.isArray(res?.data) ? res.data : [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: Boolean(post?.slug),
+    staleTime: 60 * 1000,
+  });
 
   // Calculate read progress on scroll
   useEffect(() => {
@@ -45,34 +89,133 @@ export default function Articulo() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLike = () => {
-    if (!hasLiked) {
-      setLikeCount(prev => prev + 1);
-      setHasLiked(true);
+  const handleLike = async () => {
+    if (!post) return;
+    const nextState = !hasLiked;
+    setHasLiked(nextState);
+    setLikeCount((prev) => (nextState ? prev + 1 : Math.max(0, prev - 1)));
+
+    if (nextState) {
+      localStorage.setItem(`art_liked_${post.id}`, "true");
       toast.success("¡Gracias por valorar este artículo!");
     } else {
-      setLikeCount(prev => prev - 1);
-      setHasLiked(false);
+      localStorage.removeItem(`art_liked_${post.id}`);
+    }
+
+    // Persist reaction to backend
+    try {
+      await reactToEditorialArticle(post.slug, "likes", nextState ? 1 : -1);
+    } catch {
+      // Non-blocking for offline / degraded
+    }
+
+    // If authenticated, sync with user favorites
+    if (user && HAS_BACKEND_SESSION) {
+      try {
+        if (nextState) {
+          await fetchApi(`/me/favorites/article/${post.id}`, {
+            method: "PUT",
+            body: JSON.stringify({ name: post.title, image: post.imageUrl || "" }),
+          });
+        }
+      } catch {
+        // Silently tolerate
+      }
     }
   };
 
-  const handleAddComment = (e: React.FormEvent) => {
+  const handleBookmarkToggle = async () => {
+    if (!post) return;
+    const nextState = !isBookmarked;
+    setIsBookmarked(nextState);
+
+    if (nextState) {
+      localStorage.setItem(`art_fav_${post.id}`, "true");
+      toast.success("Guardado en tus lecturas");
+    } else {
+      localStorage.removeItem(`art_fav_${post.id}`);
+      toast.success("Eliminado de guardados");
+    }
+
+    if (user && HAS_BACKEND_SESSION) {
+      try {
+        if (nextState) {
+          await fetchApi(`/me/favorites/article/${post.id}`, {
+            method: "PUT",
+            body: JSON.stringify({ name: post.title, image: post.imageUrl || "" }),
+          });
+        } else {
+          await fetchApi(`/me/favorites/article/${post.id}`, { method: "DELETE" });
+        }
+      } catch {
+        // Silently tolerate
+      }
+    }
+  };
+
+  const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCommentAuthor || !newCommentText) {
-      toast.error("Por favor completa tu nombre y comentario.");
+    if (!newCommentText.trim()) {
+      toast.error("Por favor completa tu comentario.");
       return;
     }
-    const newComment = {
-      id: Date.now(),
-      author: newCommentAuthor,
-      content: newCommentText,
-      date: "Ahora mismo"
-    };
-    setComments(prev => [...prev, newComment]);
-    setNewCommentAuthor("");
-    setNewCommentText("");
-    toast.success("¡Comentario enviado para moderación comunitaria!");
+    if (newCommentText.trim().length < 10) {
+      toast.error("El comentario debe tener al menos 10 caracteres.");
+      return;
+    }
+
+    if (HAS_BACKEND_SESSION && !user) {
+      toast.error("Inicia sesión para publicar comentarios en la comunidad.");
+      return;
+    }
+
+    setIsSubmittingComment(true);
+    try {
+      if (HAS_BACKEND_SESSION && post) {
+        await fetchApi("/reviews", {
+          method: "POST",
+          body: JSON.stringify({
+            entity_type: "article",
+            entity_id: post.id,
+            rating: 5,
+            comment: newCommentText.trim(),
+          }),
+        });
+        toast.success("¡Comentario enviado para moderación comunitaria!");
+        setNewCommentText("");
+        refetchReviews();
+      } else {
+        toast.success("¡Comentario recibido! Se publicará tras revisión.");
+        setNewCommentText("");
+      }
+    } catch (err: any) {
+      toast.error("No se pudo publicar el comentario", { description: err.message });
+    } finally {
+      setIsSubmittingComment(false);
+    }
   };
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center" aria-busy="true"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
+  }
+
+  if (isError) {
+    return (
+      <PageTransition>
+        <div className="min-h-screen bg-background flex flex-col">
+          <Header />
+          <main className="flex-1 flex items-center justify-center py-20 px-4 text-center">
+            <div className="max-w-md space-y-4">
+              <h1 className="font-display text-2xl font-bold text-foreground">No pudimos cargar el artículo</h1>
+              <p className="text-sm text-muted-foreground">Revisa tu conexión e inténtalo otra vez.</p>
+              <Button onClick={() => refetch()} className="rounded-xl">Reintentar</Button>
+            </div>
+          </main>
+          <Footer />
+        </div>
+      </PageTransition>
+    );
+  }
 
   if (!post) {
     return (
@@ -87,7 +230,7 @@ export default function Articulo() {
                 La publicación que buscas no existe o fue movida de categoría.
               </p>
               <Button asChild className="rounded-xl">
-                <Link to="/blog">Volver al Blog Editorial</Link>
+                <Link to="/revista">Volver a la revista</Link>
               </Button>
             </div>
           </main>
@@ -97,8 +240,8 @@ export default function Articulo() {
     );
   }
 
-  const relatedPosts = blogPosts
-    .filter(p => p.id !== post.id && (p.category === post.category || p.tags.some(t => post.tags.includes(t))))
+  const relatedPosts = allArticles
+    .filter(p => p.slug !== post.slug && (p.category === post.category || p.tags.some(t => post.tags.includes(t))))
     .slice(0, 3);
 
   return (
@@ -133,10 +276,10 @@ export default function Articulo() {
               {/* Breadcrumb & Category */}
             <div className="flex items-center justify-between gap-4 mb-6">
               <Link
-                to="/blog"
+                to="/revista"
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors"
               >
-                <ChevronLeft className="h-4 w-4" /> Volver a Editorial
+                <ChevronLeft className="h-4 w-4" /> Volver a Editorial & Revista
               </Link>
               <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">
                 {post.categoryLabel}
@@ -225,6 +368,23 @@ export default function Articulo() {
               </div>
             )}
 
+            {/* Floating Share Bar (Desktop) */}
+            <SocialShareBar
+              title={post.title}
+              description={post.excerpt}
+              variant="floating"
+            />
+
+            {/* Table of Contents */}
+            <ArticleTableOfContents
+              items={post.sections?.map(s => ({ id: s.id, title: s.title })) || [
+                { id: "introduccion", title: "1. Introducción y Contexto" },
+                { id: "destacados", title: "2. Puntos Destacados y Experiencias" },
+                { id: "consejos-viajero", title: "3. Consejos Prácticos y Recomendaciones" },
+                { id: "reserva-directa", title: "4. Dónde Hospedarse y Reservas Directas" },
+              ]}
+            />
+
             {/* Article Content Body with In-Content Banner Ad */}
             <div className="prose dark:prose-invert max-w-none text-foreground leading-relaxed space-y-6 text-base font-normal">
               <aside aria-labelledby="article-quick-summary" className="not-prose mb-8 rounded-card border border-primary/20 bg-surface-editorial p-5 md:p-6">
@@ -247,6 +407,10 @@ export default function Articulo() {
                   </div>
                 </div>
               </aside>
+
+              <section id="introduccion" className="scroll-mt-24">
+                <p>{post.content}</p>
+              </section>
 
               {/* In-Content Banner Ad */}
               <div className="my-8 not-prose">
@@ -275,9 +439,33 @@ export default function Articulo() {
                 </div>
               </div>
 
-              <p>
-                {post.content}
-              </p>
+              <section id="destacados" className="scroll-mt-24 space-y-4">
+                <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">Puntos Destacados & Recomendaciones</h3>
+                <p>
+                  Para aprovechar al máximo esta ruta, se aconseja iniciar temprano en la mañana, llevar protección solar biodegradable y coordinar traslados con operadores locales certificados con el <strong>Sello Verificado MITUR</strong>.
+                </p>
+              </section>
+
+              {/* Native Sponsored Article Card / Publirreportaje Block */}
+              <section id="reserva-directa" className="scroll-mt-24 not-prose">
+                <SponsoredArticleCard
+                  sponsorName={post.sponsor?.name || "Hoteles & Eco-Lodges de Quisqueya"}
+                  sponsorCategory={post.sponsor?.category || "Alojamiento Aliado Recomendado"}
+                  sponsorDescription={post.sponsor?.description || "Establecimiento con licencia oficial de turismo que garantiza tarifas directas sin comisiones y atenciones de bienvenida exclusivas."}
+                  sponsorUrl={post.sponsor?.url}
+                  bookingUrl={post.sponsor?.bookingUrl || "/reservas"}
+                  offerText={post.sponsor?.offerText || "Reserva Directa: Hasta 15% de ahorro vs OTAs"}
+                />
+              </section>
+
+              <section id="consejos-viajero" className="scroll-mt-24 space-y-3">
+                <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">Consejos Prácticos para el Viajero</h3>
+                <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
+                  <li><strong>Moneda:</strong> Se recomienda llevar pesos dominicanos (DOP) para compras menores en artesanías y peajes locales.</li>
+                  <li><strong>Conectividad:</strong> Las zonas costeras principales disponen de excelente cobertura 4G/5G con eSIM Turista.</li>
+                  <li><strong>Respeto Ambiental:</strong> No retirar caracoles, estrellas de mar ni flora autóctona protegida.</li>
+                </ul>
+              </section>
             </div>
 
             {/* Tags */}
@@ -295,6 +483,21 @@ export default function Articulo() {
               </div>
             )}
 
+            {/* Inline Social Share Bar */}
+            <div className="mt-8">
+              <SocialShareBar
+                title={post.title}
+                description={post.excerpt}
+                variant="inline"
+              />
+            </div>
+
+            {/* Article Feedback & Utility Widget */}
+            <ArticleFeedbackWidget
+              articleId={post.id}
+              articleTitle={post.title}
+            />
+
             {/* Interactions Bar */}
             <div className="flex items-center justify-between mt-8 p-4 rounded-2xl bg-card border border-border">
               <Button
@@ -311,10 +514,7 @@ export default function Articulo() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    setIsBookmarked(!isBookmarked);
-                    toast.success(isBookmarked ? "Eliminado de guardados" : "Guardado en tus lecturas");
-                  }}
+                  onClick={handleBookmarkToggle}
                   className="gap-1.5 rounded-xl text-xs"
                 >
                   <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-primary text-primary" : ""}`} />
@@ -326,44 +526,60 @@ export default function Articulo() {
             {/* Comments Section */}
             <section className="mt-12 pt-8 border-t border-border">
               <h3 className="font-display text-xl font-bold text-foreground mb-6">
-                Comentarios ({comments.length})
+                Comentarios y Opiniones ({reviews.length})
               </h3>
 
-              <div className="space-y-4 mb-8">
-                {comments.map((comment) => (
-                  <div key={comment.id} className="p-4 rounded-2xl bg-card border border-border space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-foreground">{comment.author}</span>
-                      <span className="text-muted-foreground text-[10px]">{comment.date}</span>
+              {reviews.length === 0 ? (
+                <div className="p-6 rounded-2xl bg-card/60 border border-border text-center text-xs text-muted-foreground mb-8">
+                  Sé el primero en compartir tu opinión o experiencia sobre este artículo.
+                </div>
+              ) : (
+                <div className="space-y-4 mb-8">
+                  {reviews.map((rev) => (
+                    <div key={rev.id} className="p-4 rounded-2xl bg-card border border-border space-y-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-foreground">{rev.author}</span>
+                        <span className="text-muted-foreground text-[10px]">
+                          {new Date(rev.created_at).toLocaleDateString("es-DO", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{rev.comment}</p>
                     </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{comment.content}</p>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
               {/* Add Comment Form */}
               <form onSubmit={handleAddComment} className="p-5 rounded-2xl bg-card border border-border space-y-3">
                 <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">Deja tu opinión</h4>
-                <div className="grid md:grid-cols-2 gap-3">
-                  <input
-                    type="text"
-                    placeholder="Tu nombre completo"
-                    value={newCommentAuthor}
-                    onChange={(e) => setNewCommentAuthor(e.target.value)}
-                    required
-                    className="rounded-xl border border-input bg-background px-3 py-2 text-xs text-foreground focus:outline-none"
-                  />
-                </div>
+                {!user && HAS_BACKEND_SESSION && (
+                  <p className="text-xs text-muted-foreground">
+                    Para que tu opinión quede registrada en la comunidad oficial,{" "}
+                    <Link to="/auth/login" className="text-primary underline font-medium">inicia sesión aquí</Link>.
+                  </p>
+                )}
                 <textarea
-                  placeholder="Escribe tu comentario respetuoso sobre el artículo..."
+                  placeholder="Escribe tu comentario respetuoso sobre el artículo (mínimo 10 caracteres)..."
                   value={newCommentText}
                   onChange={(e) => setNewCommentText(e.target.value)}
                   rows={3}
                   required
                   className="w-full rounded-xl border border-input bg-background px-3 py-2 text-xs text-foreground focus:outline-none resize-none"
                 />
-                <Button type="submit" size="sm" className="rounded-xl text-xs font-bold gap-1.5">
-                  <Send className="h-3.5 w-3.5" /> Publicar Comentario
+                <Button type="submit" size="sm" disabled={isSubmittingComment} className="rounded-xl text-xs font-bold gap-1.5">
+                  {isSubmittingComment ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-3.5 w-3.5" /> Publicar Comentario
+                    </>
+                  )}
                 </Button>
               </form>
             </section>
@@ -378,12 +594,12 @@ export default function Articulo() {
                   {relatedPosts.map((rel) => (
                     <Link
                       key={rel.id}
-                      to={`/articulo/${rel.slug}`}
+                      to={rel.href}
                       className="group surface-editorial rounded-card border border-border overflow-hidden hover:border-primary/50 transition-all flex flex-col"
                     >
                       <div className="aspect-[16/10] overflow-hidden">
                         <img
-                          src={rel.imageUrl}
+                          src={rel.image ?? undefined}
                           alt={rel.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
@@ -392,7 +608,7 @@ export default function Articulo() {
                         <h4 className="font-bold text-xs text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-2">
                           {rel.title}
                         </h4>
-                        <span className="text-[10px] text-muted-foreground">{rel.readTime} de lectura</span>
+                        <span className="text-[10px] text-muted-foreground">{rel.readMinutes ? `${rel.readMinutes} min de lectura` : ""}</span>
                       </div>
                     </Link>
                   ))}

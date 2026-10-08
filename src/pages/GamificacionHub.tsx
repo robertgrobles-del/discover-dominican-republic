@@ -17,6 +17,8 @@ import { FloatingXPBar } from "@/components/gamification/FloatingXPBar";
 import { GuidedOnboardingTour } from "@/components/gamification/GuidedOnboardingTour";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi } from "@/lib/gamificationApi";
 import { AMBER_STORY_REWARDS } from "@/data/gamificacionHubData";
 import { HubHero } from "@/components/gamificacion-hub/HubHero";
 import { MissionsTeaser } from "@/components/gamificacion-hub/MissionsTeaser";
@@ -104,6 +106,18 @@ export default function GamificacionHub() {
 
       // Auto unlock 'Ámbar Dominicano' achievement
       try {
+        if (HAS_BACKEND_SESSION) {
+          const achievements = await gamificationApi.getAchievements();
+          const ambarAch = achievements.find((a) => a.name === "Ámbar Dominicano");
+          if (ambarAch) {
+            await gamificationApi.unlockAchievement(ambarAch.id);
+          }
+          toast.success("🏆 ¡Desbloqueaste la insignia: Ámbar Dominicano!", {
+            description: "Has completado la historia del Ámbar",
+          });
+          return;
+        }
+
         const { data: ach } = await supabase
           .from("achievements")
           .select("id")
@@ -118,8 +132,8 @@ export default function GamificacionHub() {
             description: "Has completado la historia del Ámbar"
           });
         }
-      } catch (err) {
-        console.error("Error auto-unlocking amber badge:", err);
+      } catch (err: any) {
+        toast.error("Error al desbloquear el logro", { description: err.message });
       }
     }
   };

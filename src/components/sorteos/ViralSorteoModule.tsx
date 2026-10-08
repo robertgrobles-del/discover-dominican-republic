@@ -32,6 +32,10 @@ const SOCIAL_ACTIONS = [
   { id: "fb", name: "Seguir en Facebook", url: "https://facebook.com/descubrerd", points: 1, icon: "👍", color: "hover:border-blue-600 hover:text-blue-600" },
 ];
 
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi } from "@/lib/gamificationApi";
+import { apiMessage } from "@/lib/fastifyClient";
+
 export const ViralSorteoModule: React.FC<ViralSorteoModuleProps> = ({ onPointsUpdated }) => {
   // Main form state
   const [formData, setFormData] = useState({
@@ -109,7 +113,7 @@ export const ViralSorteoModule: React.FC<ViralSorteoModuleProps> = ({ onPointsUp
 
   const handleShare = (channel?: "whatsapp" | "twitter" | "native") => {
     const text = "¡Participa en el sorteo de fines de semana en resorts de lujo en República Dominicana con Descubre RD!";
-    const url = window.location.origin + "/sorteos-y-premios";
+    const url = window.location.origin + "/sorteos";
 
     if (channel === "whatsapp") {
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + " " + url)}`, "_blank");
@@ -136,24 +140,34 @@ export const ViralSorteoModule: React.FC<ViralSorteoModuleProps> = ({ onPointsUp
 
     setIsSubmitting(true);
     try {
-      await supabase.from("contest_registrations").insert({
-        nombre: formData.fullName,
-        email: formData.email,
-        telefono: formData.phone || null,
-        pais: formData.country,
-        intereses: ["Resorts de Lujo", "Sorteo Viral 2026", `Amigos: ${invites.length}`],
-      });
-    } catch {
-      // Offline fallback
-    }
+      if (HAS_BACKEND_SESSION) {
+        await gamificationApi.registerContest("gran-sorteo-2026", {
+          full_name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone || undefined,
+          extra_entries: points,
+        });
+      } else {
+        await supabase.from("contest_registrations").insert({
+          nombre: formData.fullName,
+          email: formData.email,
+          telefono: formData.phone || null,
+          pais: formData.country,
+          intereses: ["Resorts de Lujo", "Sorteo Viral 2026", `Amigos: ${invites.length}`],
+        });
+      }
 
-    localStorage.setItem("sorteo_grand_registered", "true");
-    localStorage.setItem("sorteo_tickets_count", points.toString());
-    setIsSubmitting(false);
-    setIsSuccess(true);
-    toast.success("🏆 ¡Tu registro ha sido completado con éxito!", {
-      description: `Tienes ${points} boletos activos para el próximo sorteo mensual.`
-    });
+      localStorage.setItem("sorteo_grand_registered", "true");
+      localStorage.setItem("sorteo_tickets_count", points.toString());
+      setIsSuccess(true);
+      toast.success("🏆 ¡Tu registro ha sido completado con éxito!", {
+        description: `Tienes ${points} boletos activos para el próximo sorteo mensual.`
+      });
+    } catch (err) {
+      toast.error(apiMessage(err, "Error al registrarte en el sorteo"));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSuccess) {

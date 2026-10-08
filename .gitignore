@@ -31,3 +31,6 @@ server/.env
 
 # Salidas temporales de scripts/check-data-source.mjs
 .data-source-check/
+
+# Datos del Registro Nacional Turístico: contienen datos personales y se conectarán por API, no por archivo.
+docs/Registro Nacional Tur*.txt

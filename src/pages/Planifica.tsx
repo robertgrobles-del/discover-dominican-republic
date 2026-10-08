@@ -191,7 +191,7 @@ export default function Planifica() {
       </section>
 
       {/* Entry Requirements & Health */}
-      <section className="py-16 bg-card">
+      <section className="py-16 bg-card/40 border-y border-border/60">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12">
             {/* Entry Requirements */}
@@ -201,8 +201,8 @@ export default function Planifica() {
               viewport={{ once: true }}
             >
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-                  <FileText className="h-5 w-5 text-primary" />
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+                  <FileText className="h-5 w-5" />
                 </div>
                 <h2 className="font-display text-2xl font-bold">Requisitos de Entrada</h2>
               </div>
@@ -211,7 +211,7 @@ export default function Planifica() {
                 {entryRequirements.map((item, index) => (
                   <div
                     key={item.title}
-                    className="bg-surface rounded-xl overflow-hidden"
+                    className="card-taste overflow-hidden"
                   >
                     <button
                       onClick={() =>
@@ -221,7 +221,7 @@ export default function Planifica() {
                     >
                       <div className="flex items-center gap-3">
                         <item.icon className="h-5 w-5 text-primary" />
-                        <span className="font-medium text-foreground">
+                        <span className="font-semibold text-foreground text-sm sm:text-base">
                           {item.title}
                         </span>
                       </div>
@@ -237,13 +237,13 @@ export default function Planifica() {
                         animate={{ opacity: 1, height: "auto" }}
                         className="px-4 pb-4"
                       >
-                        <p className="text-muted-foreground text-sm mb-3">
+                        <p className="text-muted-foreground text-sm leading-relaxed mb-3">
                           {item.description}
                         </p>
                         {item.link && (
                           <a
                             href="#"
-                            className="text-primary text-sm font-medium hover:underline"
+                            className="text-primary text-sm font-semibold hover:underline"
                           >
                             {item.link} ↗
                           </a>
@@ -263,24 +263,24 @@ export default function Planifica() {
               transition={{ delay: 0.1 }}
             >
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-                  <Syringe className="h-5 w-5 text-primary" />
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+                  <Syringe className="h-5 w-5" />
                 </div>
                 <h2 className="font-display text-2xl font-bold">Salud y Seguridad</h2>
               </div>
 
               <div className="space-y-4">
                 {healthTips.map((tip) => (
-                  <div key={tip.title} className="bg-surface rounded-xl p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                        <tip.icon className="h-4 w-4 text-primary" />
+                  <div key={tip.title} className="card-taste p-5 shadow-xs">
+                    <div className="flex items-start gap-3.5">
+                      <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 text-primary">
+                        <tip.icon className="h-4 w-4" />
                       </div>
                       <div>
-                        <h3 className="font-medium text-foreground mb-1">
+                        <h3 className="font-bold text-foreground text-sm mb-1">
                           {tip.title}
                         </h3>
-                        <p className="text-muted-foreground text-sm">
+                        <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
                           {tip.description}
                         </p>
                       </div>

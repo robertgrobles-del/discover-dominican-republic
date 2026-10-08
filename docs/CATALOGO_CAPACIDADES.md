@@ -11,7 +11,7 @@ el servidor vuelve a comprobar el permiso en cada endpoint, así que ocultar un 
 
 - Capacidades declaradas: **24**
 - Espacios de producto: **7**
-- Reglas ruta → capacidad: **64**
+- Reglas ruta → capacidad: **65**
 - Capacidades con segundo factor obligatorio: **10**
 
 ## Espacios de producto
@@ -351,6 +351,7 @@ Se evalúa por **prefijo más específico**: una ruta concreta siempre gana sobr
 | `/api/v1/admin/user-flags` | `moderation.queue` |
 | `/api/v1/team-invitations` | `org.team_manage` |
 | `/api/v1/admin/approvals` | `admin.accounts` |
+| `/api/v1/admin/bookings` | `admin.finance` |
 | `/api/v1/admin/creators` | `admin.finance` |
 | `/api/v1/admin/settings` | `admin.global_config` |
 | `/api/v1/admin/ip-rules` | `admin.global_config` |

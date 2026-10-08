@@ -128,6 +128,10 @@ const schema = z.object({
   LOGIN_MAX_FAILURES: z.coerce.number().int().min(1).default(5),
   LOGIN_LOCK_MINUTES: z.coerce.number().int().min(1).default(15),
   WEB_BASE_URL: z.string().url().default("http://localhost:8080"),
+  /** Datos de la cuenta para pagar pedidos de la tienda por depósito o transferencia (banco, tipo, número, titular). Vacío: se avisa al cliente de que recibirá los datos por correo. */
+  STORE_TRANSFER_INSTRUCTIONS: z.string().trim().max(1000).optional(),
+  /** Horas que un pedido por transferencia conserva su stock antes de cancelarse solo. */
+  STORE_TRANSFER_HOLD_HOURS: z.coerce.number().int().min(1).max(720).default(72),
   MAIL_FROM: z.string().default("Descubre RD <no-reply@descubre.local>"),
   /** log: imprime el correo en el log (desarrollo) · smtp: envía por SMTP (Mailpit/SES) · memory: pruebas. */
   MAIL_TRANSPORT: z.enum(["log", "smtp", "memory"]).default("log"),

@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { fetchApi } from "@/lib/fastifyClient";
+import { adminListEntities, adminCreateEntity, adminDeleteEntity, adminUpdateEntity } from "@/lib/adminApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +21,22 @@ export function AdminRouteBuilder() {
   const { data: routes, isLoading: routesLoading } = useQuery({
     queryKey: ["admin-routes-list"],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        const res = await adminListEntities<any[]>("gamified_routes", { limit: 100 });
+        const mapped = (res.data || []).map((r: any) => ({
+          id: r.id,
+          title: r.title || r.name,
+          slug: r.slug,
+          difficulty: r.difficulty || undefined,
+          duration_hours: r.duration_hours || r.estimated_hours || undefined,
+          distance_km: r.distance_km || undefined,
+        }));
+        if (mapped.length > 0 && !selectedRouteId) {
+          setSelectedRouteId(mapped[0].id);
+        }
+        return mapped;
+      }
+
       const { data, error } = await supabase
         .from("routes")
         .select("id, title, slug, difficulty, duration_hours, distance_km")
@@ -35,6 +54,42 @@ export function AdminRouteBuilder() {
     queryKey: ["admin-route-stops", selectedRouteId],
     queryFn: async () => {
       if (!selectedRouteId) return [];
+
+      if (HAS_BACKEND_SESSION) {
+        try {
+          const routeRes = await fetchApi<{ data: { checkpoints?: any[] } }>(`/gamification/routes/${selectedRouteId}`);
+          if (routeRes.data?.checkpoints) {
+            return routeRes.data.checkpoints.map((c: any) => ({
+              id: c.id,
+              route_id: selectedRouteId,
+              stop_order: c.order ?? 1,
+              destination_id: c.destination_id,
+              place_name: c.name || "Punto de control",
+              latitude: c.lat !== undefined && c.lat !== null ? Number(c.lat) : undefined,
+              longitude: c.lng !== undefined && c.lng !== null ? Number(c.lng) : undefined,
+              notes: c.description || c.notes,
+            })).sort((a: any, b: any) => a.stop_order - b.stop_order);
+          }
+        } catch {
+          // Fallback a listado administrativo
+        }
+
+        const res = await adminListEntities<any[]>("route_checkpoints", { search: selectedRouteId, limit: 100 });
+        return (res.data || [])
+          .filter((c: any) => c.route_id === selectedRouteId)
+          .map((c: any) => ({
+            id: c.id,
+            route_id: c.route_id,
+            stop_order: c.checkpoint_order ?? 1,
+            destination_id: c.destination_id,
+            place_name: c.checkpoint_name || "Punto de control",
+            latitude: c.latitude ? Number(c.latitude) : undefined,
+            longitude: c.longitude ? Number(c.longitude) : undefined,
+            notes: c.checkpoint_description || c.notes,
+          }))
+          .sort((a: any, b: any) => a.stop_order - b.stop_order);
+      }
+
       const { data, error } = await supabase
         .from("route_stops")
         .select(`
@@ -59,6 +114,20 @@ export function AdminRouteBuilder() {
   const { data: destinations } = useQuery({
     queryKey: ["admin-destinations-lookup"],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        const res = await adminListEntities<any[]>("destinations", { limit: 100 });
+        const list = (res.data || []).map((d: any) => ({
+          id: d.id,
+          name: d.name || d.title,
+          latitude: d.latitude,
+          longitude: d.longitude,
+        }));
+        if (list.length > 0 && !selectedDestinationId) {
+          setSelectedDestinationId(list[0].id);
+        }
+        return list;
+      }
+
       const { data, error } = await supabase
         .from("destinations")
         .select("id, name, latitude, longitude")
@@ -74,6 +143,19 @@ export function AdminRouteBuilder() {
 
   const addStopMutation = useMutation({
     mutationFn: async (newStop: { route_id: string; stop_order: number; destination_id: string; place_name: string; latitude?: number; longitude?: number; notes?: string }) => {
+      if (HAS_BACKEND_SESSION) {
+        return await adminCreateEntity("route_checkpoints", {
+          route_id: newStop.route_id,
+          checkpoint_order: newStop.stop_order,
+          checkpoint_name: newStop.place_name,
+          checkpoint_type: "destination",
+          destination_id: newStop.destination_id,
+          latitude: newStop.latitude,
+          longitude: newStop.longitude,
+          checkpoint_description: newStop.notes,
+        });
+      }
+
       const { data, error } = await supabase
         .from("route_stops")
         .insert([newStop])
@@ -94,6 +176,11 @@ export function AdminRouteBuilder() {
 
   const deleteStopMutation = useMutation({
     mutationFn: async (stopId: string) => {
+      if (HAS_BACKEND_SESSION) {
+        await adminDeleteEntity("route_checkpoints", stopId);
+        return;
+      }
+
       const { error } = await supabase
         .from("route_stops")
         .delete()
@@ -113,6 +200,11 @@ export function AdminRouteBuilder() {
 
   const reorderStopMutation = useMutation({
     mutationFn: async ({ id, newOrder }: { id: string; newOrder: number }) => {
+      if (HAS_BACKEND_SESSION) {
+        await adminUpdateEntity("route_checkpoints", id, { checkpoint_order: newOrder });
+        return;
+      }
+
       const { error } = await supabase
         .from("route_stops")
         .update({ stop_order: newOrder })

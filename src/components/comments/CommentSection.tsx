@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,10 @@ import { MessageSquare, Star, Flag, ThumbsUp, Send, AlertTriangle, ShieldCheck }
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi } from "@/lib/gamificationApi";
+import { fetchApi } from "@/lib/fastifyClient";
 
 export interface CommentItem {
   id: string;
@@ -65,6 +69,27 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
   const [page, setPage] = useState(1);
   const perPage = 3;
 
+  useEffect(() => {
+    if (!HAS_BACKEND_SESSION || !contentId) return;
+    if (contentType === "post") {
+      gamificationApi.getPostComments(contentId).then((items) => {
+        if (Array.isArray(items) && items.length > 0) {
+          setComments(items.map((it) => ({
+            id: it.id,
+            author_name: it.author_name || "Explorador",
+            author_avatar: it.author_avatar || undefined,
+            rating: 5,
+            content: it.content,
+            created_at: new Date(it.created_at).toLocaleDateString(),
+            likes_count: 0,
+          })));
+        }
+      }).catch((err: any) => {
+        toast.error("Error al cargar comentarios", { description: err.message });
+      });
+    }
+  }, [contentId, contentType]);
+
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) {
@@ -84,7 +109,46 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
       likes_count: 0
     };
 
-    // Try saving in Supabase if table exists
+    if (HAS_BACKEND_SESSION) {
+      if (!user) {
+        toast.error("Inicia sesión para compartir tu experiencia.");
+        setIsSubmitting(false);
+        return;
+      }
+      try {
+        if (contentType === "post") {
+          await gamificationApi.addPostComment(contentId || "general", newComment.trim());
+        } else {
+          const TYPE_ALIAS: Record<string, string> = {
+            general: "destination",
+            playa: "beach",
+            parque: "park",
+            rio: "destination",
+            actividad: "tour",
+            activity: "tour",
+          };
+          const mappedType = TYPE_ALIAS[contentType] || contentType;
+          await fetchApi("/reviews", {
+            method: "POST",
+            body: JSON.stringify({
+              entity_type: mappedType,
+              entity_id: contentId,
+              rating: rating,
+              comment: newComment.trim().length >= 10 ? newComment.trim() : `${newComment.trim()} (opinión verificado)`,
+            }),
+          });
+        }
+        setComments([newEntry, ...comments]);
+        setNewComment("");
+        toast.success("✨ ¡Comentario publicado con éxito!");
+      } catch (err: any) {
+        toast.error("No se pudo publicar el comentario", { description: err.message });
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
     try {
       await supabase.from("comments" as any).insert({
         content_id: contentId,
@@ -94,17 +158,34 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
         content: newComment.trim(),
         user_id: user?.id || null
       });
-    } catch {
-      // Graceful fallback for mock/offline state
+      setComments([newEntry, ...comments]);
+      setNewComment("");
+      toast.success("✨ ¡Comentario publicado con éxito!");
+    } catch (err: any) {
+      toast.error("Error al publicar el comentario", { description: err.message });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setComments([newEntry, ...comments]);
-    setNewComment("");
-    setIsSubmitting(false);
-    toast.success("✨ ¡Comentario publicado con éxito!");
   };
 
   const handleReportSpam = async (commentId: string) => {
+    if (HAS_BACKEND_SESSION) {
+      try {
+        await fetchApi("/ugc/reports", {
+          method: "POST",
+          body: JSON.stringify({
+            target_id: commentId,
+            target_type: "comment",
+            reason: "Spam / Contenido inapropiado",
+          }),
+        });
+        toast.info("🚨 Reporte enviado a moderación. Gracias por mantener la comunidad segura.");
+      } catch (err: any) {
+        toast.error("Error al enviar el reporte", { description: err.message });
+      }
+      return;
+    }
+
     try {
       await supabase.from("ugc_reports" as any).insert({
         target_id: commentId,
@@ -113,10 +194,10 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
         reason: "Spam / Contenido inapropiado",
         created_at: new Date().toISOString()
       });
-    } catch {
-      // Fallback
+      toast.info("🚨 Reporte enviado a moderación. Gracias por mantener la comunidad segura.");
+    } catch (err: any) {
+      toast.error("Error al enviar el reporte", { description: err.message });
     }
-    toast.info("🚨 Reporte enviado a moderación. Gracias por mantener la comunidad segura.");
   };
 
   const handleLike = (commentId: string) => {

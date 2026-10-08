@@ -8,6 +8,7 @@ import { PRICING_PLANS } from "@/data/pricingPlansData";
 import { PricingPlanCard } from "@/components/pricing/PricingPlanCard";
 import { PricingValueProps } from "@/components/pricing/PricingValueProps";
 import { PricingFaqSection } from "@/components/pricing/PricingFaqSection";
+import { B2BROICalculator } from "@/components/pricing/B2BROICalculator";
 
 export default function PricingPlan() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("annual");
@@ -66,7 +67,7 @@ export default function PricingPlan() {
           </section>
 
           {/* Pricing Cards Grid */}
-          <section className="container mx-auto px-4 lg:px-8 max-w-6xl py-8">
+          <section id="planes-precios" className="container mx-auto px-4 lg:px-8 max-w-6xl py-8 scroll-mt-28">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
               {PRICING_PLANS.map((plan) => (
                 <PricingPlanCard
@@ -77,6 +78,9 @@ export default function PricingPlan() {
               ))}
             </div>
           </section>
+
+          {/* Interactive B2B ROI Calculator */}
+          <B2BROICalculator />
 
           {/* Value Props & Direct ROI */}
           <PricingValueProps />

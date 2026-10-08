@@ -345,4 +345,62 @@ export async function adminCmsRoutes(app: FastifyInstance) {
       return { data: { dry_run: dry, inserted, updated } };
     });
   }
+
+  // ---------- Eventos propuestos por organizadores (decisión B5) ----------
+  // Cualquier cuenta puede proponer un evento. Se guarda como registro de la colección de eventos, en revisión
+  // y sin publicar; un administrador lo aprueba con `POST /admin/events/:id/publish` o lo archiva.
+  const eventsDef = COLLECTIONS.find((c) => c.table === "events");
+  if (eventsDef) {
+    const rl = (max: number, timeWindow: string) => ({ rateLimit: app.env.AUTH_RATE_LIMIT_ENABLED ? { max, timeWindow } : { max: 1_000_000, timeWindow: "1 minute" } });
+    const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha en formato AAAA-MM-DD");
+    const submission = z.object({
+      title: z.string().trim().min(3).max(160),
+      start_date: day,
+      end_date: day.optional(),
+      location: z.string().trim().min(3).max(200),
+      description: z.string().trim().min(20).max(5000),
+      category: z.string().trim().max(60).optional(),
+      image_url: z.string().url().max(500).optional(),
+      destination_id: z.string().uuid().optional(),
+      organizer_name: z.string().trim().min(2).max(120),
+      organizer_email: z.string().trim().email().max(254).optional(),
+      organizer_phone: z.string().trim().min(7).max(30).optional(),
+      /** Cómo se entra: gratis con pase del portal, boletería en otro sitio, o sin entrada. */
+      ticket_mode: z.enum(["none", "free_pass", "external"]).default("none"),
+      ticket_url: z.string().url().max(500).optional(),
+      start_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Hora en formato HH:MM").optional(),
+      price_info: z.string().trim().max(120).optional(),
+    }).strict();
+    const mine = "id, title, slug, status, start_date::text AS start_date, end_date::text AS end_date, location, category, created_at, published_at";
+
+    r.post("/events/submissions", {
+      onRequest: app.authenticate, config: rl(10, "1 hour"),
+      schema: { tags: ["eventos"], summary: "Propone un evento: queda en revisión hasta que un administrador lo apruebe", security: bearer, body: submission, response: { 201: z.object({ data: z.any() }) } },
+    }, async (req, reply) => {
+      const b = req.body;
+      const today = new Date().toISOString().slice(0, 10);
+      if (b.start_date < today) throw AppError.validation("La fecha de inicio ya pasó");
+      if (b.end_date && b.end_date < b.start_date) throw AppError.validation("La fecha de fin es anterior a la de inicio");
+      if (b.ticket_mode === "external" && !b.ticket_url) throw AppError.validation("Indica el enlace de la boletería");
+      const userId = req.user!.id;
+      const id = await tx(async (c) => {
+        const row = await create(eventsDef, {
+          title: b.title, start_date: b.start_date, end_date: b.end_date, location: b.location, description: b.description, category: b.category, image_url: b.image_url, destination_id: b.destination_id,
+          extras: { submission: { organizer_name: b.organizer_name, organizer_email: b.organizer_email ?? null, organizer_phone: b.organizer_phone ?? null, ticket_mode: b.ticket_mode, ticket_url: b.ticket_url ?? null, start_time: b.start_time ?? null, price_info: b.price_info ?? null, submitted_by: userId } },
+        }, userId, c, "create");
+        await transition(eventsDef, row.id, "submit-review", userId, c);
+        return row.id as string;
+      });
+      await audit(db, { actor: userId, action: "cms.events.submitted", entity: "events", id, ip: req.ip });
+      reply.code(201);
+      return { data: (await db.query(`SELECT ${mine} FROM ${Q(eventsDef.table)} WHERE id = $1`, [id])).rows[0] };
+    });
+
+    r.get("/me/events/submissions", {
+      onRequest: app.authenticate,
+      schema: { tags: ["eventos"], summary: "Mis eventos propuestos y su estado", security: bearer, response: { 200: z.object({ data: z.any() }) } },
+    }, async (req) => ({
+      data: (await db.query(`SELECT ${mine} FROM ${Q(eventsDef.table)} WHERE created_by = $1 AND deleted_at IS NULL AND extras ? 'submission' ORDER BY created_at DESC LIMIT 50`, [req.user!.id])).rows,
+    }));
+  }
 }

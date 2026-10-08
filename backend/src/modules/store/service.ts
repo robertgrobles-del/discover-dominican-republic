@@ -240,7 +240,14 @@ export class StoreService {
   }
 
   // ---------- Pedidos ----------
-  private orderSelect = "id, user_id, customer_name, customer_email, phone, address, city, province, notes, subtotal, discount, shipping, tax, total, currency, coupon_code, status, payment_status, amount_paid, refund_amount, courier_name, tracking_number, shipped_at, delivered_at, cancelled_at, cancel_reason, return_requested_at, return_reason, created_at, access_hash, fx_rate";
+  private orderSelect = "id, user_id, customer_name, customer_email, phone, address, city, province, notes, subtotal, discount, shipping, tax, total, currency, coupon_code, status, payment_status, amount_paid, refund_amount, courier_name, tracking_number, shipped_at, delivered_at, cancelled_at, cancel_reason, return_requested_at, return_reason, created_at, access_hash, fx_rate, payment_method, transfer_expires_at";
+  /** Cuentas donde se puede depositar el pago de un pedido (las activas, en el orden que fijó el administrador). */
+  async bankAccounts(c: Db | PoolClient = this.db) {
+    return (await c.query<{ id: string; bank_name: string; account_type: string; account_number: string; holder_name: string; holder_document: string | null; currency: string; notes: string | null }>(
+      "SELECT id, bank_name, account_type, account_number, holder_name, holder_document, currency, notes FROM store_bank_accounts WHERE is_active ORDER BY sort_order, bank_name",
+    )).rows;
+  }
+
   private async orderDto(id: string, c: Db | PoolClient = this.db) {
     const o = (await c.query(`SELECT ${this.orderSelect} FROM store_orders WHERE id = $1`, [id])).rows[0];
     if (!o) return null;
@@ -248,16 +255,20 @@ export class StoreService {
     const { access_hash: _h, user_id: _u, ...rest } = o;
     void _h; void _u;
     const n = (v: unknown) => Number(v);
-    return { ...rest, subtotal: n(o.subtotal), discount: n(o.discount), shipping: n(o.shipping), tax: n(o.tax), total: n(o.total), amount_paid: n(o.amount_paid), refund_amount: n(o.refund_amount), fx_rate: o.fx_rate === null ? null : n(o.fx_rate), items, return_window_open: o.status === "delivered" && !!o.delivered_at && Date.now() - new Date(o.delivered_at).getTime() < RETURN_WINDOW_HOURS * 3_600_000 };
+    const awaitingTransfer = o.payment_method === "transfer" && o.status === "pending";
+    const accounts = awaitingTransfer ? await this.bankAccounts(c) : [];
+    return { ...rest, subtotal: n(o.subtotal), discount: n(o.discount), shipping: n(o.shipping), tax: n(o.tax), total: n(o.total), amount_paid: n(o.amount_paid), refund_amount: n(o.refund_amount), fx_rate: o.fx_rate === null ? null : n(o.fx_rate), items, transfer: awaitingTransfer ? { accounts, instructions: this.env.STORE_TRANSFER_INSTRUCTIONS ?? null, reference: o.id, amount: n(o.total), currency: o.currency, expires_at: o.transfer_expires_at } : null, return_window_open: o.status === "delivered" && !!o.delivered_at && Date.now() - new Date(o.delivered_at).getTime() < RETURN_WINDOW_HOURS * 3_600_000 };
   }
 
-  async createOrder(input: { actor: Actor; contact: { name: string; email: string; phone?: string }; shipping: { address: string; city: string; province?: string; notes?: string }; couponCode?: string; paymentToken?: string; idempotencyKey: string; locale?: "es" | "en"; refCode?: string | null }) {
+  async createOrder(input: { actor: Actor; contact: { name: string; email: string; phone?: string }; shipping: { address: string; city: string; province?: string; notes?: string }; couponCode?: string; paymentToken?: string; paymentMethod?: "card" | "transfer"; idempotencyKey: string; locale?: "es" | "en"; refCode?: string | null }) {
     const email = input.contact.email.trim().toLowerCase();
     const idemScope = input.actor.userId ?? email;
     const prev = (await this.db.query<{ id: string; customer_email: string }>("SELECT id, customer_email FROM store_orders WHERE coalesce(user_id::text, lower(customer_email)) = $1 AND idempotency_key = $2", [idemScope, input.idempotencyKey])).rows[0];
     if (prev) return { order: (await this.orderDto(prev.id))!, accessToken: null as string | null, replayed: true };
-    if (this.gateway.name === "none") throw new AppError("SERVICE_UNAVAILABLE", "Los pagos en línea no están habilitados todavía");
-    if (!input.paymentToken) throw AppError.validation("Falta payment_method_token");
+    const byTransfer = input.paymentMethod === "transfer";
+    if (byTransfer && !this.env.STORE_TRANSFER_INSTRUCTIONS && !(await this.bankAccounts()).length) throw new AppError("SERVICE_UNAVAILABLE", "El pago por depósito o transferencia no está disponible en este momento");
+    if (!byTransfer && this.gateway.name === "none") throw new AppError("SERVICE_UNAVAILABLE", "Los pagos con tarjeta no están habilitados todavía; elige depósito o transferencia");
+    if (!byTransfer && !input.paymentToken) throw AppError.validation("Falta payment_method_token");
 
     const accessToken = randomBytes(24).toString("base64url");
     const orderId = newOrderId();
@@ -278,10 +289,10 @@ export class StoreService {
         priced = await this.price(c, lines, input.couponCode ?? cart.coupon_code, input.actor.userId ?? email, true);
         if (input.couponCode && !priced.coupon?.applied) throw new AppError("BUSINESS_RULE", priced.coupon?.reason ?? "El cupón no aplica", { code: "COUPON_INVALID" });
         await c.query(
-          `INSERT INTO store_orders (id, user_id, customer_name, customer_email, phone, address, city, province, notes, subtotal, discount, shipping, tax, total, coupon_code, status, payment_status, fx_rate, access_hash, idempotency_key, items, ref_code)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'pending','unpaid',$16,$17,$18,'[]',$19)`,
+          `INSERT INTO store_orders (id, user_id, customer_name, customer_email, phone, address, city, province, notes, subtotal, discount, shipping, tax, total, coupon_code, status, payment_status, fx_rate, access_hash, idempotency_key, items, ref_code, payment_method, transfer_expires_at)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'pending','unpaid',$16,$17,$18,'[]',$19,$20, CASE WHEN $20 = 'transfer' THEN now() + make_interval(hours => $21) END)`,
           [orderId, input.actor.userId ?? null, input.contact.name.trim(), email, input.contact.phone?.trim() ?? null, input.shipping.address.trim(), input.shipping.city.trim(), input.shipping.province?.trim() ?? null, input.shipping.notes?.trim() ?? null,
-            priced.subtotal, priced.discount, priced.shipping, priced.tax_included, priced.total, priced._coupon ? priced._coupon.code : null, priced.usd_rate, sha(accessToken), input.idempotencyKey, refCode],
+            priced.subtotal, priced.discount, priced.shipping, priced.tax_included, priced.total, priced._coupon ? priced._coupon.code : null, priced.usd_rate, sha(accessToken), input.idempotencyKey, refCode, byTransfer ? "transfer" : "card", this.env.STORE_TRANSFER_HOLD_HOURS],
         );
         for (const l of priced.lines) {
           await c.query("INSERT INTO store_order_items (order_id, product_id, name, size, color, unit_price, quantity, line_total) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)", [orderId, l.product_id, l.name, l.size || null, l.color || null, l.unit_price, l.quantity, l.line_total]);
@@ -302,12 +313,25 @@ export class StoreService {
       throw e;
     }
 
+    // ----- Depósito o transferencia: no hay cobro en línea; el pedido espera la confirmación de un administrador -----
+    if (byTransfer && priced.total > 0) {
+      const cartT = await this.cartFor(input.actor, false);
+      if (cartT) { await this.db.query("DELETE FROM store_cart_items WHERE cart_id = $1", [cartT.id]); await this.db.query("UPDATE store_carts SET coupon_code = NULL, updated_at = now() WHERE id = $1", [cartT.id]); }
+      const pending = (await this.orderDto(orderId))!;
+      const accounts = await this.bankAccounts();
+      const how = accounts.length
+        ? `Cuentas para el pago: ${accounts.map((a) => `${a.bank_name}, cuenta ${a.account_type} ${a.account_number} (${a.currency}), a nombre de ${a.holder_name}`).join("; ")}.`
+        : this.env.STORE_TRANSFER_INSTRUCTIONS ? `Datos para el pago: ${this.env.STORE_TRANSFER_INSTRUCTIONS}.` : "Te enviaremos los datos de la cuenta por correo.";
+      await this.notify({ customer_email: email, customer_name: input.contact.name, id: orderId }, "Tu pedido espera tu pago", `Reservamos tus artículos durante ${this.env.STORE_TRANSFER_HOLD_HOURS} horas. Total a pagar: ${money(priced.total)}. Usa ${orderId} como concepto. ${how}`).catch((err) => this.log.error({ err, orderId }, "No se pudo avisar del pedido por transferencia"));
+      return { order: pending, accessToken, replayed: false };
+    }
+
     // ----- Cobro (fuera de la transacción) -----
     const charge = this.chargeAmounts(priced.total, priced.usd_rate);
     if (priced.total > 0) {
       let result;
       try {
-        result = await this.gateway.charge({ amount: charge.amount, currency: charge.currency, token: input.paymentToken, reference: orderId, idempotencyKey: `${orderId}:full:${sha(input.paymentToken).slice(0, 12)}`, metadata: { order_id: orderId, kind: "full" } });
+        result = await this.gateway.charge({ amount: charge.amount, currency: charge.currency, token: input.paymentToken!, reference: orderId, idempotencyKey: `${orderId}:full:${sha(input.paymentToken!).slice(0, 12)}`, metadata: { order_id: orderId, kind: "full" } });
       } catch (err) {
         await this.abandon(orderId, "payment_provider_error");
         this.log.error({ err, orderId }, "Falló la pasarela de pago de la tienda");
@@ -381,7 +405,7 @@ export class StoreService {
 
   /** Pedidos sin cobrar pasado el plazo: liberan stock y cupón (trabajo `orders.auto_cancel`). */
   async cancelUnpaid(olderThanMinutes = 60) {
-    const { rows } = await this.db.query<{ id: string }>("SELECT id FROM store_orders WHERE status = 'pending' AND payment_status = 'unpaid' AND created_at < now() - make_interval(mins => $1) LIMIT 200", [olderThanMinutes]);
+    const { rows } = await this.db.query<{ id: string }>("SELECT id FROM store_orders WHERE status = 'pending' AND payment_status = 'unpaid' AND ((payment_method <> 'transfer' AND created_at < now() - make_interval(mins => $1)) OR (payment_method = 'transfer' AND transfer_expires_at < now())) LIMIT 200", [olderThanMinutes]);
     let n = 0;
     for (const r of rows) if (await this.abandon(r.id, "payment_timeout")) n++;
     return n;
@@ -463,6 +487,20 @@ export class StoreService {
     return { rows: await Promise.all(rows.map((r) => this.orderDto(r.id))), total };
   }
   async adminGet(id: string) { const o = await this.orderDto(id); if (!o) throw AppError.notFound("Pedido"); return o; }
+
+  /** Un administrador confirma que el depósito llegó: se registra el pago y el pedido pasa a pagado. */
+  async adminConfirmTransfer(id: string, input: { reference: string; amount?: number }) {
+    const o = (await this.db.query<{ status: string; payment_method: string; total: string; currency: string; customer_email: string; customer_name: string }>("SELECT status, payment_method, total, currency, customer_email, customer_name FROM store_orders WHERE id = $1", [id])).rows[0];
+    if (!o) throw AppError.notFound("Pedido");
+    if (o.payment_method !== "transfer") throw new AppError("BUSINESS_RULE", "Este pedido no se paga por transferencia", { code: "NOT_TRANSFER" });
+    if (o.status !== "pending") throw new AppError("BUSINESS_RULE", "El pedido ya no está pendiente de pago", { code: "INVALID_STATE", status: o.status });
+    const amount = input.amount ?? Number(o.total);
+    if (amount < Number(o.total)) throw new AppError("BUSINESS_RULE", "El monto recibido no cubre el total del pedido", { code: "AMOUNT_TOO_LOW", total: Number(o.total) });
+    const res = await this.recordPayment(id, { amount: Number(o.total), chargedAmount: amount, chargedCurrency: o.currency, provider: "transfer", ref: input.reference });
+    if (res === "duplicate") throw new AppError("CONFLICT", "Esa referencia de depósito ya está registrada");
+    await this.notify({ customer_email: o.customer_email, customer_name: o.customer_name, id }, "Recibimos tu pago", "Confirmamos tu depósito y ya estamos preparando tu pedido.").catch((err) => this.log.error({ err, id }, "No se pudo avisar del pago confirmado"));
+    return (await this.orderDto(id))!;
+  }
 
   async adminSetStatus(id: string, status: "processing" | "shipped" | "delivered" | "cancelled", opts: { courier_name?: string; tracking_number?: string; reason?: string }) {
     const cur = (await this.db.query<{ status: string }>("SELECT status FROM store_orders WHERE id = $1", [id])).rows[0];

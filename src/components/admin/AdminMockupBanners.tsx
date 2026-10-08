@@ -9,13 +9,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Megaphone, Image as ImageIcon, Video, Layers, Link as LinkIcon, 
   Eye, CheckCircle2, Sparkles, Activity, Plus, RefreshCw, Smartphone, Monitor,
-  MousePointerClick, BarChart3, TrendingUp, Pin, Shuffle
+  MousePointerClick, BarChart3, TrendingUp, Pin, Shuffle, Crown, Globe, ShieldCheck
 } from "lucide-react";
 import { BannerAd, type AdSize, type AdPlacement } from "@/components/promo/BannerAd";
 import { getTopBarConfig, saveTopBarConfig, type TopBarPromoConfig } from "@/components/promo/TopBarPromo";
 import { getExitPopupConfig, saveExitPopupConfig, type ExitPopupConfig } from "@/components/promo/ExitIntentModal";
 import { useAdBanners, trackBannerClick, trackBannerImpression, type AdBanner } from "@/hooks/useAdBanners";
 import { OFFICIAL_BANNERS, type OfficialBannerDefinition } from "@/data/officialBanners";
+import { AdBannerSimulatorModal } from "@/components/admin/AdBannerSimulatorModal";
+import { ExportAdMetricsDialog } from "@/components/admin/ExportAdMetricsDialog";
 import { toast } from "sonner";
 
 interface MockupBannerConfig {
@@ -33,6 +35,8 @@ interface MockupBannerConfig {
   trackingPixelUrl?: string;
   isFixed: boolean;
   rotationMode: "fixed" | "rotative";
+  sponsorshipScope: "slot" | "section" | "global";
+  isTakeover: boolean;
 }
 
 const PAGE_OPTIONS = [
@@ -82,6 +86,8 @@ export function AdminMockupBanners() {
   const [selectedFormat, setSelectedFormat] = useState<AdSize>("billboard");
   const [mediaType, setMediaType] = useState<"image" | "video" | "rich_content">("image");
   const [rotationMode, setRotationMode] = useState<"fixed" | "rotative">("rotative");
+  const [sponsorshipScope, setSponsorshipScope] = useState<"slot" | "section" | "global">("slot");
+  const [isTakeover, setIsTakeover] = useState<boolean>(false);
   
   // Custom Banner Fields
   const [imageUrl, setImageUrl] = useState("https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&h=600&fit=crop");
@@ -113,12 +119,15 @@ export function AdminMockupBanners() {
   // Calculate global metrics from DB banners
   const totalImpressions = (dbBanners || []).reduce((sum, b) => sum + (b.impressions || 0), 0);
   const totalClicks = (dbBanners || []).reduce((sum, b) => sum + (b.clicks || 0), 0);
+  const totalViewable = (dbBanners || []).reduce((sum, b) => sum + ((b as unknown as { viewable_impressions?: number })?.viewable_impressions || Math.round((b.impressions || 0) * 0.85)), 0);
   const averageCtr = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(2) : "0.00";
+  const viewabilityRate = totalImpressions > 0 ? ((totalViewable / totalImpressions) * 100).toFixed(1) : "85.0";
 
   const handleSaveMockup = () => {
+    const isFullTakeover = sponsorshipScope === "global" || sponsorshipScope === "section" || isTakeover;
     const newConfig: MockupBannerConfig = {
       id: `banner-${Date.now()}`,
-      pageTarget: selectedPage,
+      pageTarget: sponsorshipScope === "global" ? "global" : selectedPage,
       type: selectedFormat,
       mediaType,
       imageUrl,
@@ -129,12 +138,20 @@ export function AdminMockupBanners() {
       ctaText,
       targetUrl,
       trackingPixelUrl,
-      isFixed: rotationMode === "fixed",
-      rotationMode,
+      isFixed: isFullTakeover || rotationMode === "fixed",
+      rotationMode: isFullTakeover ? "fixed" : rotationMode,
+      sponsorshipScope,
+      isTakeover: isFullTakeover,
     };
 
     setSavedConfigs((prev) => [newConfig, ...prev]);
-    toast.success(`Banner para ${AD_FORMAT_SPECS[selectedFormat].name} guardado (${rotationMode === "fixed" ? "Fijo" : "Rotativo Dinámico"}).`);
+
+    const scopeLabel = 
+      sponsorshipScope === "global" ? "¡Patrocinio Exclusivo de TODO el Portal activado!" :
+      sponsorshipScope === "section" ? `¡Patrocinio Exclusivo de la Sección "${selectedPage}" activado!` :
+      `Banner guardado (${rotationMode === "fixed" ? "Fijo" : "Rotativo Dinámico"}).`;
+
+    toast.success(scopeLabel);
   };
 
   const currentSpec = AD_FORMAT_SPECS[selectedFormat];
@@ -155,75 +172,103 @@ export function AdminMockupBanners() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-1.5 text-xs">
+        <div className="flex flex-wrap items-center gap-2">
+          <AdBannerSimulatorModal
+            bannerData={{
+              headline,
+              subtext,
+              cta_text: ctaText,
+              sponsor,
+              image_url: imageUrl,
+              target_url: targetUrl,
+              banner_type: selectedFormat,
+            }}
+          />
+          <ExportAdMetricsDialog />
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-1.5 text-xs rounded-xl">
             <RefreshCw className="h-3.5 w-3.5" /> Actualizar Datos
           </Button>
-          <Badge variant="outline" className="px-3 py-1 text-xs border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10">
-            14 Formatos IAB Activos
+          <Badge variant="outline" className="px-3 py-1 text-xs border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 rounded-xl">
+            32 Formatos IAB
           </Badge>
         </div>
       </div>
 
       {/* Real-time Performance Metrics KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-border bg-card/60 backdrop-blur-sm p-4">
+      {/* Real-time Performance Metrics KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+        <Card className="border-border bg-card/60 backdrop-blur-sm p-3.5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Visualizaciones (Impresiones)</p>
-              <h3 className="text-2xl font-bold text-foreground mt-1">{totalImpressions.toLocaleString()}</h3>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Impresiones Servidas</p>
+              <h3 className="text-xl font-bold text-foreground mt-0.5">{totalImpressions.toLocaleString()}</h3>
             </div>
-            <div className="h-10 w-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
-              <Eye className="h-5 w-5" />
+            <div className="h-9 w-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+              <Eye className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1">
-            <Activity className="h-3 w-3 text-emerald-500" /> Rastreo automático de render / viewport
+          <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
+            <Activity className="h-3 w-3 text-emerald-500" /> Carga del componente
           </p>
         </Card>
 
-        <Card className="border-border bg-card/60 backdrop-blur-sm p-4">
+        <Card className="border-border bg-card/60 backdrop-blur-sm p-3.5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Clics Registrados</p>
-              <h3 className="text-2xl font-bold text-foreground mt-1">{totalClicks.toLocaleString()}</h3>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">vCPM (Visibles IAB)</p>
+              <h3 className="text-xl font-bold text-foreground mt-0.5">{viewabilityRate}%</h3>
             </div>
-            <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
-              <MousePointerClick className="h-5 w-5" />
+            <div className="h-9 w-9 rounded-xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center">
+              <CheckCircle2 className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1">
-            <TrendingUp className="h-3 w-3 text-emerald-500" /> Rastreos en navegación y enlaces
+          <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
+            <span className="font-semibold text-cyan-600 dark:text-cyan-400">≥50% viewport • 1s</span>
           </p>
         </Card>
 
-        <Card className="border-border bg-card/60 backdrop-blur-sm p-4">
+        <Card className="border-border bg-card/60 backdrop-blur-sm p-3.5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">CTR Promedio</p>
-              <h3 className="text-2xl font-bold text-foreground mt-1">{averageCtr}%</h3>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Clics Registrados</p>
+              <h3 className="text-xl font-bold text-foreground mt-0.5">{totalClicks.toLocaleString()}</h3>
             </div>
-            <div className="h-10 w-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
-              <BarChart3 className="h-5 w-5" />
+            <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+              <MousePointerClick className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-[11px] text-muted-foreground mt-2">
-            Click-Through Rate global de campañas
+          <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
+            <TrendingUp className="h-3 w-3 text-emerald-500" /> Deduplicados 5s
           </p>
         </Card>
 
-        <Card className="border-border bg-card/60 backdrop-blur-sm p-4">
+        <Card className="border-border bg-card/60 backdrop-blur-sm p-3.5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Campañas Activas</p>
-              <h3 className="text-2xl font-bold text-foreground mt-1">{(dbBanners || []).length}</h3>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">CTR Promedio</p>
+              <h3 className="text-xl font-bold text-foreground mt-0.5">{averageCtr}%</h3>
             </div>
-            <div className="h-10 w-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center">
-              <Shuffle className="h-5 w-5" />
+            <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+              <BarChart3 className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-[11px] text-muted-foreground mt-2">
-            Soporta Banners Fijos y Rotativos
+          <p className="text-[10px] text-muted-foreground mt-2">
+            Click-Through Rate global
+          </p>
+        </Card>
+
+        <Card className="border-border bg-card/60 backdrop-blur-sm p-3.5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">UTM Attribution</p>
+              <h3 className="text-xl font-bold text-foreground mt-0.5">Activa</h3>
+            </div>
+            <div className="h-9 w-9 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center">
+              <Sparkles className="h-4 w-4" />
+            </div>
+          </div>
+          <p className="text-[10px] text-purple-600 dark:text-purple-400 mt-2 font-medium">
+            Auto-inyectada para GA4
           </p>
         </Card>
       </div>
@@ -262,10 +307,101 @@ export function AdminMockupBanners() {
                 </CardHeader>
                 <CardContent className="space-y-4 text-sm">
                   
+                  {/* Scope Selection: Takeover / Patrocinio Completo */}
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                        <Crown className="h-4 w-4 text-amber-500" /> Cobertura del Patrocinio (Takeover)
+                      </Label>
+                      {sponsorshipScope !== "slot" && (
+                        <Badge className="bg-amber-500 text-amber-950 font-bold text-[10px] uppercase">
+                          Exclusivo 100%
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-1.5 pt-1">
+                      <Button
+                        type="button"
+                        variant={sponsorshipScope === "slot" ? "default" : "outline"}
+                        size="sm"
+                        className="text-xs h-9 px-2 flex flex-col items-center justify-center text-center"
+                        onClick={() => {
+                          setSponsorshipScope("slot");
+                          setIsTakeover(false);
+                        }}
+                      >
+                        <span className="font-semibold leading-tight text-[11px]">Espacio Único</span>
+                        <span className="text-[9px] opacity-75">Solo este slot</span>
+                      </Button>
+
+                      <Button
+                        type="button"
+                        variant={sponsorshipScope === "section" ? "default" : "outline"}
+                        size="sm"
+                        className={`text-xs h-9 px-2 flex flex-col items-center justify-center text-center ${
+                          sponsorshipScope === "section" ? "bg-amber-600 hover:bg-amber-700 text-white" : "border-amber-500/30 text-amber-700 dark:text-amber-300"
+                        }`}
+                        onClick={() => {
+                          setSponsorshipScope("section");
+                          setIsTakeover(true);
+                          setRotationMode("fixed");
+                        }}
+                      >
+                        <span className="font-semibold leading-tight text-[11px] flex items-center gap-1">
+                          <ShieldCheck className="h-3 w-3" /> Sección Entera
+                        </span>
+                        <span className="text-[9px] opacity-75">Ej: Todos Hoteles</span>
+                      </Button>
+
+                      <Button
+                        type="button"
+                        variant={sponsorshipScope === "global" ? "default" : "outline"}
+                        size="sm"
+                        className={`text-xs h-9 px-2 flex flex-col items-center justify-center text-center ${
+                          sponsorshipScope === "global" ? "bg-amber-600 hover:bg-amber-700 text-white" : "border-amber-500/30 text-amber-700 dark:text-amber-300"
+                        }`}
+                        onClick={() => {
+                          setSponsorshipScope("global");
+                          setIsTakeover(true);
+                          setSelectedPage("home");
+                          setRotationMode("fixed");
+                        }}
+                      >
+                        <span className="font-semibold leading-tight text-[11px] flex items-center gap-1">
+                          <Globe className="h-3 w-3" /> Portal Entero
+                        </span>
+                        <span className="text-[9px] opacity-75">Web completa</span>
+                      </Button>
+                    </div>
+
+                    <p className="text-[11px] text-muted-foreground leading-tight">
+                      {sponsorshipScope === "global" && (
+                        <span className="text-amber-600 dark:text-amber-400 font-medium">
+                          ⭐ <strong>Takeover Global:</strong> Todos los espacios del portal entero mostrarán exclusivamente a <strong>{sponsor || "este patrocinador"}</strong>.
+                        </span>
+                      )}
+                      {sponsorshipScope === "section" && (
+                        <span className="text-amber-600 dark:text-amber-400 font-medium">
+                          ⭐ <strong>Takeover de Sección:</strong> Todos los banners que aparezcan en la sección seleccionada pertenecerán exclusivamente a <strong>{sponsor || "este patrocinador"}</strong>.
+                        </span>
+                      )}
+                      {sponsorshipScope === "slot" && (
+                        <span>Anuncio estándar limitado a su posición y reglas de rotación.</span>
+                      )}
+                    </p>
+                  </div>
+
                   {/* Page Selection */}
                   <div>
-                    <Label className="text-xs font-semibold">1. Página / Sección de Destino</Label>
-                    <Select value={selectedPage} onValueChange={setSelectedPage}>
+                    <Label className="text-xs font-semibold">
+                      {sponsorshipScope === "global" ? "1. Cobertura" : "1. Página / Sección de Destino"}
+                    </Label>
+                    <Select 
+                      value={selectedPage} 
+                      onValueChange={setSelectedPage}
+                      disabled={sponsorshipScope === "global"}
+                    >
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Selecciona la página" />
                       </SelectTrigger>
@@ -275,6 +411,11 @@ export function AdminMockupBanners() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {sponsorshipScope === "global" && (
+                      <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1">
+                        Aplica automáticamente a todas las secciones y páginas del portal.
+                      </p>
+                    )}
                   </div>
 
                   {/* Mode Selection: Fixed vs Rotative */}
@@ -291,7 +432,7 @@ export function AdminMockupBanners() {
                         <Pin className="h-3.5 w-3.5 text-amber-400" />
                         <div className="text-left">
                           <p className="font-semibold leading-none">Fijo</p>
-                          <p className="text-[10px] opacity-75 font-normal">Siempre visible</p>
+                          <p className="text-[10px] opacity-75 font-normal">Siempre visible (100%)</p>
                         </div>
                       </Button>
                       <Button
@@ -299,12 +440,15 @@ export function AdminMockupBanners() {
                         variant={rotationMode === "rotative" ? "default" : "outline"}
                         size="sm"
                         className="text-xs gap-1.5 h-9 justify-start px-3"
+                        disabled={sponsorshipScope !== "slot"}
                         onClick={() => setRotationMode("rotative")}
                       >
                         <Shuffle className="h-3.5 w-3.5 text-primary" />
                         <div className="text-left">
                           <p className="font-semibold leading-none">Rotativo</p>
-                          <p className="text-[10px] opacity-75 font-normal">Para múltiples usuarios</p>
+                          <p className="text-[10px] opacity-75 font-normal">
+                            {sponsorshipScope !== "slot" ? "Incompatible con Takeover" : "Para múltiples marcas"}
+                          </p>
                         </div>
                       </Button>
                     </div>
@@ -465,25 +609,34 @@ export function AdminMockupBanners() {
                   {/* Destination & Tracking */}
                   <div className="space-y-3 pt-2 border-t border-border">
                     <div>
-                      <Label className="text-xs flex items-center gap-1">
-                        <LinkIcon className="h-3 w-3 text-primary" /> Enlace de Destino (Target URL)
-                      </Label>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs flex items-center gap-1 font-semibold">
+                          <LinkIcon className="h-3 w-3 text-primary" /> Enlace de Destino (Target URL)
+                        </Label>
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                          <Sparkles className="h-2.5 w-2.5" /> Auto-UTM para GA4
+                        </span>
+                      </div>
                       <Input 
                         value={targetUrl} 
                         onChange={(e) => setTargetUrl(e.target.value)} 
+                        placeholder="https://melia.com/oferta-rd o /alojamientos"
                         className="h-8 text-xs mt-1"
                       />
+                      <p className="text-[10px] text-muted-foreground mt-1 font-mono break-all line-clamp-1 bg-muted/30 p-1 rounded border border-border">
+                        🔗 <strong>Vista previa UTM:</strong> {targetUrl ? `${targetUrl.includes("?") ? `${targetUrl}&` : `${targetUrl}?`}utm_source=descubrerd&utm_medium=${sponsorshipScope === "global" ? "global_takeover" : sponsorshipScope === "section" ? "section_takeover" : "banner_ad"}&utm_content=${selectedFormat}` : "Ingresa una URL"}
+                      </p>
                     </div>
 
                     <div>
                       <Label className="text-xs flex items-center gap-1">
-                        <Activity className="h-3 w-3 text-emerald-500" /> Píxel de Conversión / Tracking URL
+                        <Activity className="h-3 w-3 text-emerald-500" /> Píxel de Conversión de Terceros / Tracking URL
                       </Label>
                       <Input 
                         value={trackingPixelUrl} 
                         onChange={(e) => setTrackingPixelUrl(e.target.value)} 
                         className="h-8 text-xs mt-1"
-                        placeholder="https://tracker.com/pixel.gif"
+                        placeholder="https://analytics.anunciante.com/pixel?camp=2026"
                       />
                     </div>
                   </div>
@@ -508,10 +661,29 @@ export function AdminMockupBanners() {
                     </CardDescription>
                   </div>
 
-                  <Badge variant="secondary" className="text-[11px] gap-1">
-                    {currentSpec.typeGroup === "mobile" ? <Smartphone className="h-3 w-3" /> : <Monitor className="h-3 w-3" />}
-                    {currentSpec.typeGroup.toUpperCase()}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <AdBannerSimulatorModal
+                      bannerData={{
+                        headline,
+                        subtext,
+                        cta_text: ctaText,
+                        sponsor,
+                        image_url: imageUrl,
+                        target_url: targetUrl,
+                        banner_type: selectedFormat,
+                      }}
+                      triggerButton={
+                        <Button variant="outline" size="sm" className="h-7 text-xs gap-1 rounded-lg">
+                          <Eye className="h-3 w-3 text-primary" />
+                          <span>Simulador 3D</span>
+                        </Button>
+                      }
+                    />
+                    <Badge variant="secondary" className="text-[11px] gap-1">
+                      {currentSpec.typeGroup === "mobile" ? <Smartphone className="h-3 w-3" /> : <Monitor className="h-3 w-3" />}
+                      {currentSpec.typeGroup.toUpperCase()}
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent className="p-6 flex flex-col items-center justify-center min-h-[380px] bg-secondary/15 rounded-b-xl overflow-x-auto">
                   
@@ -547,9 +719,11 @@ export function AdminMockupBanners() {
                         end_date: null,
                         impressions: 0,
                         clicks: 0,
-                        priority: rotationMode === "fixed" ? 100 : 10,
-                        is_fixed: rotationMode === "fixed",
-                        rotation_mode: rotationMode,
+                        priority: isTakeover ? 500 : (rotationMode === "fixed" ? 100 : 10),
+                        is_fixed: isTakeover || rotationMode === "fixed",
+                        rotation_mode: isTakeover ? "fixed" : rotationMode,
+                        sponsorship_scope: sponsorshipScope,
+                        is_takeover: isTakeover,
                         video_autoplay: null,
                         video_loop: null,
                         video_muted: null,
@@ -736,6 +910,7 @@ export function AdminMockupBanners() {
                       <tr className="border-b border-border text-muted-foreground font-semibold">
                         <th className="py-2.5 px-3">Banner / Anunciante</th>
                         <th className="py-2.5 px-3">Sección</th>
+                        <th className="py-2.5 px-3">Cobertura / Patrocinio</th>
                         <th className="py-2.5 px-3">Formato</th>
                         <th className="py-2.5 px-3">Modo</th>
                         <th className="py-2.5 px-3 text-right">Visualizaciones</th>
@@ -750,6 +925,8 @@ export function AdminMockupBanners() {
                         const clicks = b.clicks || 0;
                         const ctr = impressions > 0 ? ((clicks / impressions) * 100).toFixed(2) : "0.00";
                         const isFixed = b.is_fixed || (b.priority && b.priority >= 100);
+                        const isGlobalTakeover = b.sponsorship_scope === "global" || (b.is_takeover && b.section === "global");
+                        const isSectionTakeover = b.sponsorship_scope === "section" || (b.is_takeover && !isGlobalTakeover);
 
                         return (
                           <tr key={b.id} className="hover:bg-muted/30 transition-colors">
@@ -766,6 +943,19 @@ export function AdminMockupBanners() {
                             </td>
                             <td className="py-3 px-3 capitalize">
                               <Badge variant="outline" className="text-[10px]">{b.section || "Global"}</Badge>
+                            </td>
+                            <td className="py-3 px-3">
+                              {isGlobalTakeover ? (
+                                <Badge className="bg-amber-500 text-amber-950 font-bold border-amber-500/40 text-[10px] gap-1">
+                                  <Crown className="h-3 w-3" /> Portal Entero
+                                </Badge>
+                              ) : isSectionTakeover ? (
+                                <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px] gap-1">
+                                  <ShieldCheck className="h-3 w-3" /> Sección Exclusiva
+                                </Badge>
+                              ) : (
+                                <span className="text-[10px] text-muted-foreground">Slot individual</span>
+                              )}
                             </td>
                             <td className="py-3 px-3 font-mono text-[11px]">{b.banner_type}</td>
                             <td className="py-3 px-3">

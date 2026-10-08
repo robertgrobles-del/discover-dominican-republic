@@ -16,6 +16,9 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { EntityList } from "@/components/admin/EntityList";
 import { readValidatedTextFile } from "@/lib/forms";
 import { EntityType as AdminEntityType } from "@/hooks/useAdminEntities";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { AdminApiError, adminListEntities } from "@/lib/adminApi";
+import { importCmsCollection } from "@/lib/adminImportsApi";
 import {
   EntityType,
   EntityConfig,
@@ -37,6 +40,16 @@ export function EntityImportManager() {
       const counts: Record<EntityType, number> = {} as Record<EntityType, number>;
 
       for (const entity of Object.keys(entityConfigs) as EntityType[]) {
+        if (HAS_BACKEND_SESSION) {
+          try {
+            const res = await adminListEntities(entity, { limit: 1 });
+            counts[entity] = res.total;
+          } catch (error) {
+            // Solo se tolera «no expuesta» (404): se omite ese recuento. Cualquier otro fallo se propaga.
+            if (!(error instanceof AdminApiError) || error.kind !== "not_exposed") throw error;
+          }
+          continue;
+        }
         const { count } = await (supabase as any)
           .from(entity)
           .select('*', { count: 'exact', head: true });
@@ -46,7 +59,7 @@ export function EntityImportManager() {
       setEntityCounts(counts);
     };
 
-    fetchEntityCounts();
+    fetchEntityCounts().catch((error) => console.error("No se pudieron contar las colecciones:", error));
   }, []);
 
   const parseCSV = (text: string): Record<string, string>[] => {
@@ -128,6 +141,42 @@ export function EntityImportManager() {
 
     setUploading(true);
     setUploadProgress({ success: 0, failed: 0 });
+
+    if (HAS_BACKEND_SESSION) {
+      const processedRows = csvData.map((row) => processData(row, selectedEntity));
+      const BATCH_SIZE = 250;
+      let totalInserted = 0;
+      let totalUpdated = 0;
+      try {
+        for (let i = 0; i < processedRows.length; i += BATCH_SIZE) {
+          const chunk = processedRows.slice(i, i + BATCH_SIZE);
+          const res = await importCmsCollection(selectedEntity, chunk, false);
+          totalInserted += res.inserted;
+          totalUpdated += res.updated;
+          setUploadProgress({ success: totalInserted + totalUpdated, failed: 0 });
+        }
+        toast({
+          title: "Importación completada",
+          description: `${totalInserted} registros nuevos, ${totalUpdated} actualizados en el servidor.`,
+        });
+      } catch (error: any) {
+        toast({
+          title: "Error al importar",
+          description: error?.message || "No se pudo procesar la importación en el servidor.",
+          variant: "destructive",
+        });
+      } finally {
+        setUploading(false);
+        setCsvData([]);
+        try {
+          const res = await adminListEntities(selectedEntity, { limit: 1 });
+          setEntityCounts((prev) => ({ ...prev, [selectedEntity]: res.total }));
+        } catch {
+          // fallback silencioso
+        }
+      }
+      return;
+    }
 
     let successCount = 0;
     let failedCount = 0;

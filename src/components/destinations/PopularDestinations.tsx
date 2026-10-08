@@ -41,25 +41,42 @@ export function PopularDestinations({ destinations }: PopularDestinationsProps) 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: index * 0.08 }}
             >
               <Link
                 to={`/destino/${dest.slug}`}
-                className="group block relative rounded-2xl overflow-hidden aspect-[4/3] cursor-pointer"
+                className="card-taste block relative overflow-hidden aspect-[4/3] group shadow-md"
               >
-                <img src={dest.imageUrl || "/placeholder.svg"} alt={dest.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                <div className="absolute top-4 left-4 w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold text-primary-foreground text-lg">#{index + 1}</div>
+                <img 
+                  src={dest.imageUrl || "/placeholder.svg"} 
+                  alt={dest.name} 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-108" 
+                  loading="lazy" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+                <div className="absolute top-4 left-4 w-9 h-9 rounded-xl bg-primary/90 backdrop-blur-md flex items-center justify-center font-bold text-primary-foreground text-sm shadow-md">
+                  #{index + 1}
+                </div>
                 <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <div className="flex items-center gap-2 text-white/80 text-sm mb-2">
-                    <MapPin className="h-4 w-4" />
+                  <div className="flex items-center gap-1.5 text-white/90 text-xs font-semibold mb-1.5 drop-shadow-sm">
+                    <MapPin className="h-3.5 w-3.5 text-primary" />
                     <span>{dest.province || dest.region}</span>
                   </div>
-                  <h3 className="font-display text-2xl font-bold text-white group-hover:text-primary transition-colors">{dest.name}</h3>
-                  {dest.shortDescription && <p className="text-white/70 text-sm mt-2 line-clamp-2">{dest.shortDescription}</p>}
+                  <h3 className="font-display text-2xl font-bold text-white group-hover:text-primary transition-colors drop-shadow-sm">
+                    {dest.name}
+                  </h3>
+                  {dest.shortDescription && (
+                    <p className="text-white/80 text-xs mt-1.5 line-clamp-2 leading-relaxed font-normal">
+                      {dest.shortDescription}
+                    </p>
+                  )}
                   {dest.highlights && dest.highlights.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {dest.highlights.slice(0, 2).map((h, i) => <Badge key={i} className="bg-white/20 text-white text-xs">{h}</Badge>)}
+                    <div className="flex flex-wrap gap-1.5 mt-3">
+                      {dest.highlights.slice(0, 2).map((h, i) => (
+                        <Badge key={i} className="bg-black/40 backdrop-blur-md text-white/90 border border-white/10 text-[11px] font-medium">
+                          {h}
+                        </Badge>
+                      ))}
                     </div>
                   )}
                 </div>

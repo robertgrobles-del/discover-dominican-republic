@@ -32,6 +32,9 @@ const categoryIcons: Record<string, string> = {
   special: "⭐",
 };
 
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi } from "@/lib/gamificationApi";
+
 export default function MisLogros() {
   const { user } = useAuth();
   const { userGamification, getCurrentLevel, getNextLevel, getXpProgress } = useGamification();
@@ -44,21 +47,35 @@ export default function MisLogros() {
   useEffect(() => {
     const fetch = async () => {
       setLoading(true);
-      const { data: achData } = await supabase
-        .from("achievements")
-        .select("*")
-        .eq("is_active", true)
-        .order("display_order", { ascending: true });
-      if (achData) setAchievements(achData);
+      try {
+        if (HAS_BACKEND_SESSION) {
+          const [allAch, myAch] = await Promise.all([
+            gamificationApi.getAchievements(),
+            user ? gamificationApi.getMyAchievements().catch(() => []) : Promise.resolve([]),
+          ]);
+          setAchievements(allAch);
+          setUserAchievements((myAch || []).map((a: any) => ({ achievement_id: a.id, ...a })));
+        } else {
+          const { data: achData } = await supabase
+            .from("achievements")
+            .select("*")
+            .eq("is_active", true)
+            .order("display_order", { ascending: true });
+          if (achData) setAchievements(achData);
 
-      if (user) {
-        const { data: uaData } = await supabase
-          .from("user_achievements")
-          .select("*")
-          .eq("user_id", user.id);
-        if (uaData) setUserAchievements(uaData);
+          if (user) {
+            const { data: uaData } = await supabase
+              .from("user_achievements")
+              .select("*")
+              .eq("user_id", user.id);
+            if (uaData) setUserAchievements(uaData);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching achievements in MisLogros:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetch();
   }, [user]);

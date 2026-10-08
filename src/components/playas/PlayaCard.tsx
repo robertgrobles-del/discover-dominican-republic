@@ -48,7 +48,7 @@ export function PlayaCard({ playa, index, t }: PlayaCardProps) {
     >
       <Link
         to={`/playa/${slug}`}
-        className="group relative overflow-hidden rounded-2xl bg-card border border-border/70 hover:border-primary/50 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-full"
+        className="group card-taste relative overflow-hidden flex flex-col justify-between h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <div>
           <div className="relative aspect-[4/3] overflow-hidden bg-muted">

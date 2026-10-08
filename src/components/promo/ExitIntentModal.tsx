@@ -11,6 +11,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
+import { AppStorage } from "@/lib/storage";
+
 export interface ExitPopupConfig {
   enabled: boolean;
   title: string;
@@ -30,6 +32,7 @@ const DEFAULT_EXIT_CONFIG: ExitPopupConfig = {
 };
 
 export const EXIT_POPUP_STORAGE_KEY = "descubrerd_exit_popup_config";
+export const USER_REGISTERED_STORAGE_KEY = "dr_user_has_account";
 const EXIT_POPUP_SHOWN_KEY = "descubrerd_exit_popup_shown_session";
 
 export function getExitPopupConfig(): ExitPopupConfig {
@@ -51,6 +54,13 @@ export function saveExitPopupConfig(config: ExitPopupConfig) {
   } catch (e) {
     console.error("Error saving exit popup config", e);
   }
+}
+
+export function markUserAsRegistered() {
+  AppStorage.set(USER_REGISTERED_STORAGE_KEY, true);
+  try {
+    localStorage.setItem("descubrerd_user_registered", "true");
+  } catch {}
 }
 
 export function ExitIntentModal() {
@@ -77,8 +87,17 @@ export function ExitIntentModal() {
   }, []);
 
   useEffect(() => {
-    // Only activate for visitors who are not logged in
-    if (user || !config.enabled) return;
+    // Si el usuario está autenticado, registrar la marca en localStorage para futuras visitas
+    if (user) {
+      markUserAsRegistered();
+      return;
+    }
+
+    // Verificar si alguien en este dispositivo ya está registrado (incluso si no ha iniciado sesión)
+    const hasRegistered = AppStorage.get(USER_REGISTERED_STORAGE_KEY, false) || 
+      (typeof localStorage !== "undefined" && localStorage.getItem("descubrerd_user_registered") === "true");
+
+    if (hasRegistered || !config.enabled) return;
 
     // Check if shown in current browser session
     const hasBeenShown = sessionStorage.getItem(EXIT_POPUP_SHOWN_KEY) === "true";
@@ -128,6 +147,7 @@ export function ExitIntentModal() {
       if (error) {
         toast.error(`Error: ${error.message}`);
       } else {
+        markUserAsRegistered();
         setSuccessRegistered(true);
         toast.success(`🎉 ¡Felicidades ${name}! Has ganado ${config.xpReward} XP y acceso completo a Descubre RD.`);
         setTimeout(() => {
@@ -140,6 +160,12 @@ export function ExitIntentModal() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAlreadyRegistered = () => {
+    markUserAsRegistered();
+    setOpen(false);
+    navigate("/login");
   };
 
   if (!config.enabled || user) return null;
@@ -273,6 +299,16 @@ export function ExitIntentModal() {
                 {loading ? "Generando Pasaporte..." : "Reclamar Mis 100 Monedas y Guía VIP"}
                 <ArrowRight className="h-4 w-4" />
               </Button>
+
+              <div className="text-center pt-1">
+                <button
+                  type="button"
+                  onClick={handleAlreadyRegistered}
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors underline"
+                >
+                  ¿Ya tienes cuenta registrada? Iniciar sesión
+                </button>
+              </div>
             </form>
           )}
 

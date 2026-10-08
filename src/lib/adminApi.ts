@@ -1,5 +1,6 @@
 import { fetchApi } from "@/lib/fastifyClient";
 import { HttpError } from "@/lib/httpClient";
+import { getAccessToken } from "@/lib/accessToken";
 
 /**
  * Capa de datos de administración contra Fastify (Plan de accesos, punto 3).
@@ -40,18 +41,10 @@ export class AdminApiError extends Error {
 }
 
 /**
- * De dónde sale el token de sesión. El portal todavía autentica con el cliente simulado
- * (`localStorage`), que es el único que existe hasta cerrar la migración D-01/D-02; cuando llegue la
- * autenticación real contra Fastify basta con reemplazar este proveedor desde un único punto
- * (`setAdminAccessTokenProvider`).
+ * De dónde sale el token de sesión: el de la sesión real contra Fastify, que vive en memoria. Si todavía
+ * no lo hay (recién recargada la página), `fetchApi` lo recupera con la cookie de refresco.
  */
-let accessTokenProvider: () => string | null = () => {
-  try {
-    return localStorage.getItem("sb-token");
-  } catch {
-    return null;
-  }
-};
+let accessTokenProvider: () => string | null = () => getAccessToken();
 
 export function setAdminAccessTokenProvider(provider: () => string | null): void {
   accessTokenProvider = provider;
@@ -71,6 +64,58 @@ export function translateFilters(filters: AdminEntityFilters = {}): { query: Rec
   if (filters.search) query.q = filters.search;
   const unsupported = (["destination_id", "is_active", "is_featured"] as const).filter((key) => filters[key] !== undefined);
   return { query, unsupported };
+}
+
+/**
+ * El panel nombra las colecciones por su tabla; el CMS del backend las publica por su ruta
+ * (`backend/src/contracts/content-collections.ts`). Solo se listan las que no coinciden.
+ */
+const ADMIN_PATH_BY_TABLE: Record<string, string> = {
+  protected_areas: "protected-areas", hot_springs: "hot-springs", bird_species: "bird-species",
+  offset_projects: "offset-projects", toll_routes: "toll-routes", airbnb_listings: "airbnb-listings",
+  spas_wellness: "spas", tour_packages: "tours", ports_marinas: "ports", theme_parks: "theme-parks",
+  golf_courses: "golf-courses", shopping_centers: "shopping-centers", artisanal_workshops: "artisan-workshops",
+  coffee_experiences: "coffee-experiences", tour_guides: "tour-guides", travel_agencies: "travel-agencies",
+  tour_operators: "tour-operators", historical_figures: "historical-figures", historical_events: "historical-events",
+  audio_guides: "audio-guides", job_vacancies: "job-vacancies", emergency_contacts: "emergency-contacts",
+};
+
+/**
+ * Columnas que gestiona el servidor (`MANAGED` en `backend/src/modules/admin/cms.ts`). El cuerpo es estricto:
+ * el formulario reenvía el registro completo, así que se quitan aquí. `version` sí viaja al editar (bloqueo
+ * optimista) y `is_active` sobra donde la publicación la decide `status`.
+ */
+const SERVER_MANAGED = ["id", "created_at", "updated_at", "status", "published_at", "unpublished_at", "slug_history", "created_by", "updated_by", "reviewed_by", "deleted_at"];
+
+export function toWritableBody(data: Record<string, unknown>, action: "create" | "update"): Record<string, unknown> {
+  const out = { ...data };
+  if ("status" in out) delete out.is_active;
+  for (const key of SERVER_MANAGED) delete out[key];
+  if (action === "create") delete out.version;
+  return out;
+}
+
+export const adminPathOf =(entity: string): string => ADMIN_PATH_BY_TABLE[entity] ?? entity;
+
+/** Traducciones de una entidad del catálogo: `{ idioma: { campo: texto } }`. El español es el propio registro. */
+export async function adminGetTranslations(entityType: string, entityId: string): Promise<Record<string, Record<string, string>>> {
+  const response = await fetchApi<{ data?: { locale: string; field_name: string; text: string }[] }>(
+    `/admin/translations?${new URLSearchParams({ entity_type: entityType, entity_id: entityId, per_page: "200" })}`,
+  );
+  const out: Record<string, Record<string, string>> = {};
+  for (const row of response?.data ?? []) (out[row.locale] ??= {})[row.field_name] = row.text;
+  return out;
+}
+
+/** Guarda las traducciones por idioma. Un texto vacío borra esa traducción en el servidor. */
+export async function adminSaveTranslations(entityType: string, entityId: string, translations: Record<string, Record<string, string>>): Promise<void> {
+  for (const [locale, fields] of Object.entries(translations)) {
+    if (locale === "es" || !Object.keys(fields).length) continue;
+    await fetchApi(`/admin/translations/${entityType}/${entityId}/${locale}`, {
+      method: "PUT",
+      body: JSON.stringify({ fields: Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, v ?? ""])) }),
+    });
+  }
 }
 
 function toAdminApiError(error: unknown, entity: string): AdminApiError {
@@ -95,10 +140,8 @@ async function request<T>(
   options: { id?: string; data?: Record<string, unknown>; filters?: AdminEntityFilters } = {},
 ): Promise<AdminListResult<T>> {
   const token = accessTokenProvider();
-  if (!token) throw new AdminApiError("No hay sesión activa.", 401, "unauthorized");
-
-  const base = `/admin/${entity}`;
-  const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
+  const base = `/admin/${adminPathOf(entity)}`;
+  const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
   let url = base;
   let method = "GET";
   let body: string | undefined;
@@ -114,12 +157,12 @@ async function request<T>(
       break;
     case "create":
       method = "POST";
-      body = JSON.stringify(options.data ?? {});
+      body = JSON.stringify(toWritableBody(options.data ?? {}, "create"));
       break;
     case "update":
       method = "PATCH";
       url = `${base}/${options.id}`;
-      body = JSON.stringify(options.data ?? {});
+      body = JSON.stringify(toWritableBody(options.data ?? {}, "update"));
       break;
     case "delete":
       method = "DELETE";

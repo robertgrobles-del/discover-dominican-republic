@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi } from "@/lib/gamificationApi";
+
 const LEAGUE_CONFIG: Record<string, { icon: string; color: string; gradient: string; glow: string }> = {
   bronze:   { icon: "🥉", color: "text-amber-700", gradient: "from-amber-700/20 to-amber-600/10", glow: "shadow-amber-700/20" },
   silver:   { icon: "🥈", color: "text-gray-400",  gradient: "from-gray-400/20 to-gray-300/10",  glow: "shadow-gray-400/20" },
@@ -54,6 +57,10 @@ export function LeagueWidget() {
   const { data: season } = useQuery<Season>({
     queryKey: ["active-season"],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        const res = await gamificationApi.getCurrentSeason();
+        return res as Season;
+      }
       const { data } = await supabase
         .from("gamification_seasons" as any)
         .select("*")
@@ -67,6 +74,19 @@ export function LeagueWidget() {
   const { data: leaderboard = [], isLoading } = useQuery<LeaderboardEntry[]>({
     queryKey: ["season-leaderboard"],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        const res = await gamificationApi.getLeaderboard("season", 10);
+        return (res.rows || []).map((r, i) => ({
+          rank: r.rank || i + 1,
+          user_id: r.user_id,
+          display_name: r.display_name,
+          avatar_url: r.avatar_url,
+          xp_season: r.total_xp,
+          league_slug: "gold",
+          level_icon: "🌱",
+          missions: 0,
+        }));
+      }
       const { data } = await supabase.rpc("get_season_leaderboard" as any, { p_limit: 10 });
       return (data || []) as LeaderboardEntry[];
     },
@@ -77,6 +97,13 @@ export function LeagueWidget() {
     queryKey: ["my-league-stats", user?.id],
     queryFn: async () => {
       if (!user) return null;
+      if (HAS_BACKEND_SESSION) {
+        const state = await gamificationApi.getMyState();
+        return {
+          league_slug: state.league?.slug || "gold",
+          xp_this_season: state.total_xp,
+        };
+      }
       const { data } = await supabase
         .from("user_league_stats" as any)
         .select("*")

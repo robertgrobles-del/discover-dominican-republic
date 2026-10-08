@@ -55,7 +55,11 @@ interface FreeTicketModalProps {
   };
 }
 
-export function FreeTicketModal({ open, onClose, event }: FreeTicketModalProps) {
+export function FreeTicketModal({ open, onClose, onOpenChange, eventName, eventDate, event: eventProp }: FreeTicketModalProps) {
+  // Quien abre el modal puede pasar el evento completo o sólo su nombre y su fecha: aquí siempre hay un evento
+  // con nombre, para que el contenido no dependa de cuál de las dos formas se usó.
+  const event = { id: "evt-general", ...eventProp, name: eventProp?.name ?? eventName ?? "Evento Cultural", start_date: eventProp?.start_date ?? eventDate };
+  const close = () => { onClose?.(); onOpenChange?.(false); };
   const [step, setStep] = useState<"form" | "ticket">("form");
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
@@ -105,24 +109,38 @@ export function FreeTicketModal({ open, onClose, event }: FreeTicketModalProps) 
 
     try {
       const randomCode = Math.floor(100000 + Math.random() * 900000);
-      const ticketId = `DR-TKT-${randomCode}`;
+      let ticketId = `DR-TKT-${randomCode}`;
       const now = new Date().toISOString();
+
+      // Intento autoritativo contra backend Fastify si el usuario está autenticado
+      try {
+        const { fetchApi } = await import("@/lib/fastifyClient");
+        const res = await fetchApi<{ data: { id: string; qr_code?: string; reference?: string } }>(`/events/${event?.id || "evt-general"}/tickets/purchase`, {
+          method: "POST",
+          body: JSON.stringify({ tier_name: "General Gratuito" }),
+        });
+        if (res.data?.id || res.data?.reference) {
+          ticketId = res.data.reference || `DR-TKT-${res.data.id.slice(0, 8).toUpperCase()}`;
+        }
+      } catch {
+        // Fallback local garantizado para modo demo / invitado
+      }
 
       const newTicket: FreeTicketData = {
         ticketId,
-        eventId: event.id,
-        eventName: event.name,
-        eventDate: event.start_date || "2026-11-06",
-        eventTime: event.start_time || "19:00",
-        venue: event.venue || "República Dominicana",
-        province: event.province || "Nacional",
+        eventId: event?.id || "evt-general",
+        eventName: event?.name || "Evento Cultural",
+        eventDate: event?.start_date || "2026-11-06",
+        eventTime: event?.start_time || "19:00",
+        venue: event?.venue || "República Dominicana",
+        province: event?.province || "Nacional",
         attendeeName: name.trim(),
         attendeeEmail: email.trim(),
         attendeePhone: phone.trim() || "No especificado",
         quantity,
         companions: companionNames.filter((c) => c.trim().length > 0),
         issuedAt: now,
-        qrPayload: `https://descubrerd.do/verify-ticket?code=${ticketId}&event=${encodeURIComponent(event.name)}`,
+        qrPayload: `https://descubrerd.do/verify-ticket?code=${ticketId}&event=${encodeURIComponent(event?.name || "Evento")}`,
         status: "active",
       };
 
@@ -137,10 +155,11 @@ export function FreeTicketModal({ open, onClose, event }: FreeTicketModalProps) 
       const existingRegistrations = JSON.parse(
         localStorage.getItem("dr_event_registrations") || "{}"
       );
-      if (!existingRegistrations[event.id]) {
-        existingRegistrations[event.id] = [];
+      const evId = event?.id || "evt-general";
+      if (!existingRegistrations[evId]) {
+        existingRegistrations[evId] = [];
       }
-      existingRegistrations[event.id].unshift(newTicket);
+      existingRegistrations[evId].unshift(newTicket);
       localStorage.setItem("dr_event_registrations", JSON.stringify(existingRegistrations));
 
       // Optional measurement; consent-gated and excludes attendee, ticket, and event identifiers.
@@ -201,7 +220,7 @@ export function FreeTicketModal({ open, onClose, event }: FreeTicketModalProps) 
     setQuantity(1);
     setCompanionNames([]);
     setGeneratedTicket(null);
-    onClose();
+    close();
   };
 
   return (

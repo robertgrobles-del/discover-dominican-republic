@@ -78,13 +78,13 @@ async function seedMembershipPlans() {
 async function seedSponsorshipSlots() {
   console.log("📢 Sembrando slots de patrocinio (Ad Server)...");
   const slots = [
-    { id: "slot-billboard-desktop",  name: "Billboard Desktop",      slot_type: "billboard",       max_active_creatives: 3, recommended_dimensions: "980x120" },
-    { id: "slot-leaderboard",        name: "Leaderboard Estandar",   slot_type: "leaderboard",     max_active_creatives: 5, recommended_dimensions: "728x90" },
-    { id: "slot-mpu-medium-rect",    name: "Medium Rectangle / MPU", slot_type: "mpu",             max_active_creatives: 5, recommended_dimensions: "300x250" },
-    { id: "slot-half-page",          name: "Half-Page",              slot_type: "half_page",       max_active_creatives: 2, recommended_dimensions: "300x600" },
-    { id: "slot-mobile-sticky",      name: "Mobile Sticky Footer",   slot_type: "mobile_sticky",   max_active_creatives: 2, recommended_dimensions: "320x50" },
-    { id: "slot-skyscraper",         name: "Skyscraper Lateral",     slot_type: "skyscraper",      max_active_creatives: 3, recommended_dimensions: "160x600" },
-    { id: "slot-panoramico",         name: "Full-Width Panoramico",  slot_type: "panoramic",       max_active_creatives: 2, recommended_dimensions: "1920x250" },
+    { id: "slot-billboard-desktop",  name: "Billboard Desktop",      slot_type: "banner",          max_active_creatives: 3, recommended_dimensions: "980x120" },
+    { id: "slot-leaderboard",        name: "Leaderboard Estandar",   slot_type: "banner",          max_active_creatives: 5, recommended_dimensions: "728x90" },
+    { id: "slot-mpu-medium-rect",    name: "Medium Rectangle / MPU", slot_type: "banner",          max_active_creatives: 5, recommended_dimensions: "300x250" },
+    { id: "slot-half-page",          name: "Half-Page",              slot_type: "banner",          max_active_creatives: 2, recommended_dimensions: "300x600" },
+    { id: "slot-mobile-sticky",      name: "Mobile Sticky Footer",   slot_type: "banner",          max_active_creatives: 2, recommended_dimensions: "320x50" },
+    { id: "slot-skyscraper",         name: "Skyscraper Lateral",     slot_type: "banner",          max_active_creatives: 3, recommended_dimensions: "160x600" },
+    { id: "slot-panoramico",         name: "Full-Width Panoramico",  slot_type: "banner",          max_active_creatives: 2, recommended_dimensions: "1920x250" },
     { id: "slot-search-top",         name: "Posicion Patrocinada #1", slot_type: "search_position", max_active_creatives: 3, recommended_dimensions: null },
   ];
   for (const s of slots) {

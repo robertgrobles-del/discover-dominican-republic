@@ -1,16 +1,41 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { adminGamificationStatsApi } from "@/lib/adminGamificationStatsApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, Target, Gift, Users, TrendingUp } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Trophy, Target, Gift, Users, TrendingUp, Sparkles, Coins, UserCheck, ShieldAlert } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 export function GamificationStats() {
-  // Obtener conteos
+  // Estadísticas reales del backend
+  const { data: backendStats } = useQuery({
+    queryKey: ["admin-gamification-backend-stats"],
+    queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        return await adminGamificationStatsApi.getStats();
+      }
+      return null;
+    },
+    staleTime: 60_000,
+    enabled: HAS_BACKEND_SESSION,
+  });
+
+  // Obtener conteos (simulados / fallback)
   const { data: counts } = useQuery({
     queryKey: ["gamification-counts"],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION && backendStats) {
+        return {
+          achievements: 0,
+          missions: 0,
+          prizes: backendStats.redemptions.total,
+          routes: 0,
+          seasons: 1,
+        };
+      }
       const [achievements, missions, prizes, routes, seasons] = await Promise.all([
         supabase.from("achievements").select("id", { count: "exact", head: true }),
         supabase.from("gamification_missions").select("id", { count: "exact", head: true }),
@@ -102,47 +127,87 @@ export function GamificationStats() {
   return (
     <div className="space-y-6">
       {/* Tarjetas de estadísticas */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card>
-          <CardContent className="p-4 flex flex-col items-center text-center gap-1">
-            <Trophy className="h-6 w-6 text-primary" />
-            <span className="text-2xl font-bold">{counts?.achievements || 0}</span>
-            <span className="text-xs text-muted-foreground">Logros</span>
-          </CardContent>
-        </Card>
+      {HAS_BACKEND_SESSION && backendStats ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          <Card className="hover:shadow-md transition-shadow">
+            <CardContent className="p-4 flex flex-col items-center text-center gap-1">
+              <Users className="h-6 w-6 text-primary" />
+              <span className="text-2xl font-bold">{backendStats.players}</span>
+              <span className="text-xs text-muted-foreground">Jugadores Totales</span>
+            </CardContent>
+          </Card>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardContent className="p-4 flex flex-col items-center text-center gap-1">
+              <UserCheck className="h-6 w-6 text-emerald-500" />
+              <span className="text-2xl font-bold">{backendStats.active_7d}</span>
+              <span className="text-xs text-muted-foreground">Activos (7 días)</span>
+            </CardContent>
+          </Card>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardContent className="p-4 flex flex-col items-center text-center gap-1">
+              <Sparkles className="h-6 w-6 text-amber-500" />
+              <span className="text-2xl font-bold">{backendStats.xp_issued_30d.toLocaleString()}</span>
+              <span className="text-xs text-muted-foreground">XP Emitido (30d)</span>
+            </CardContent>
+          </Card>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardContent className="p-4 flex flex-col items-center text-center gap-1">
+              <Coins className="h-6 w-6 text-amber-600" />
+              <span className="text-2xl font-bold">{backendStats.coins_issued_30d.toLocaleString()}</span>
+              <span className="text-xs text-muted-foreground">Monedas Emitidas (30d)</span>
+            </CardContent>
+          </Card>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardContent className="p-4 flex flex-col items-center text-center gap-1">
+              <Gift className="h-6 w-6 text-indigo-500" />
+              <span className="text-2xl font-bold">{backendStats.redemptions.total}</span>
+              <span className="text-xs text-muted-foreground">Canjes ({backendStats.redemptions.pending_shipments} envíos pend.)</span>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <Card>
+            <CardContent className="p-4 flex flex-col items-center text-center gap-1">
+              <Trophy className="h-6 w-6 text-primary" />
+              <span className="text-2xl font-bold">{counts?.achievements || 0}</span>
+              <span className="text-xs text-muted-foreground">Logros</span>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-4 flex flex-col items-center text-center gap-1">
-            <Target className="h-6 w-6 text-accent-foreground" />
-            <span className="text-2xl font-bold">{counts?.missions || 0}</span>
-            <span className="text-xs text-muted-foreground">Misiones</span>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardContent className="p-4 flex flex-col items-center text-center gap-1">
+              <Target className="h-6 w-6 text-accent-foreground" />
+              <span className="text-2xl font-bold">{counts?.missions || 0}</span>
+              <span className="text-xs text-muted-foreground">Misiones</span>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-4 flex flex-col items-center text-center gap-1">
-            <Gift className="h-6 w-6 text-primary" />
-            <span className="text-2xl font-bold">{counts?.prizes || 0}</span>
-            <span className="text-xs text-muted-foreground">Premios</span>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardContent className="p-4 flex flex-col items-center text-center gap-1">
+              <Gift className="h-6 w-6 text-primary" />
+              <span className="text-2xl font-bold">{counts?.prizes || 0}</span>
+              <span className="text-xs text-muted-foreground">Premios</span>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-4 flex flex-col items-center text-center gap-1">
-            <TrendingUp className="h-6 w-6 text-accent-foreground" />
-            <span className="text-2xl font-bold">{counts?.routes || 0}</span>
-            <span className="text-xs text-muted-foreground">Rutas</span>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardContent className="p-4 flex flex-col items-center text-center gap-1">
+              <TrendingUp className="h-6 w-6 text-accent-foreground" />
+              <span className="text-2xl font-bold">{counts?.routes || 0}</span>
+              <span className="text-xs text-muted-foreground">Rutas</span>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardContent className="p-4 flex flex-col items-center text-center gap-1">
-            <Users className="h-6 w-6 text-primary" />
-            <span className="text-2xl font-bold">{counts?.seasons || 0}</span>
-            <span className="text-xs text-muted-foreground">Temporadas</span>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardContent className="p-4 flex flex-col items-center text-center gap-1">
+              <Users className="h-6 w-6 text-primary" />
+              <span className="text-2xl font-bold">{counts?.seasons || 0}</span>
+              <span className="text-xs text-muted-foreground">Temporadas</span>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Gráficos y datos */}
       <div className="grid md:grid-cols-2 gap-6">

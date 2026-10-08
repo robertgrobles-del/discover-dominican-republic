@@ -3,7 +3,7 @@
 > Generado automáticamente por `npm run docs:api` a partir de las rutas que el servidor registra. **No se edita a mano**: si una ruta cambia, se regenera (CI verifica con `npm run docs:api -- --check`).
 > `docs/BACKEND_API.md` es el diseño original; donde difiera, esta lista describe lo que existe. Detalle de cada módulo, reglas y ejemplos: `backend/README.md`. Contrato completo (esquemas de entrada y salida): `/docs` (Swagger) del servidor.
 
-Versión 0.1.0 · 1007 operaciones en 47 grupos.
+Versión 0.1.0 · 1031 operaciones en 47 grupos.
 
 Convenciones: todas las rutas cuelgan de `/api/v1`. Errores con la forma `{ error: { code, message, details, request_id } }`. **Sesión** = `Authorization: Bearer <jwt>`; **Opcional** = funciona sin sesión y, con ella, personaliza.
 
@@ -110,7 +110,8 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | POST | `/admin/ad_slots` | Personal / admin | Espacios publicitarios: crear |
 | PATCH | `/admin/ad_slots/{id}` | Personal / admin | Espacios publicitarios: editar |
 | DELETE | `/admin/ad_slots/{id}` | Personal / admin | Espacios publicitarios: borrar |
-| GET | `/admin/ads/reports` | Personal / admin | Vistas, clics y CTR por banner y por anunciante |
+| POST | `/admin/ads/{id}/postback-key` | Personal / admin | Genera o rota la clave HMAC para Server-to-Server tracking del banner |
+| GET | `/admin/ads/reports` | Personal / admin | Vistas, clics, conversiones S2S e ingresos por banner y por anunciante |
 | GET | `/admin/affiliate_offers` | Personal / admin | Ofertas de afiliados: lista |
 | POST | `/admin/affiliate_offers` | Personal / admin | Ofertas de afiliados: crear |
 | PATCH | `/admin/affiliate_offers/{id}` | Personal / admin | Ofertas de afiliados: editar |
@@ -141,6 +142,7 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/admin/audit` | Personal / admin | Bitácora de auditoría |
 | GET | `/admin/audit-logs` | Personal / admin | Auditoría con filtros por actor, entidad, acción y fechas (?format=csv exporta) |
 | GET | `/admin/audit/verify` | Personal / admin | Verifica la cadena de hash de la bitácora (detecta manipulación) |
+| GET | `/admin/bookings` | Personal / admin | Todas las reservas del sistema (filtros por estado, operador, servicio, origen y fecha) |
 | GET | `/admin/calculators/defaults` | Personal / admin | Cifras por defecto y vigentes de las calculadoras (se ajustan con site_settings `calculators.<nombre>`) |
 | GET | `/admin/capability-grants` | Personal / admin | Permisos acotados concedidos, con su alcance y vigencia |
 | POST | `/admin/capability-grants` | Personal / admin | Concede un permiso acotado (colecciones del catálogo, registros concretos con vencimiento, o analítica de sólo lectura) |
@@ -175,6 +177,7 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/admin/discount_coupons` | Personal / admin | Cupones de descuento |
 | POST | `/admin/discount_coupons` | Personal / admin | Crea un cupón (porcentaje o monto fijo) |
 | PATCH | `/admin/discount_coupons/{id}` | Personal / admin | Edita o desactiva un cupón |
+| DELETE | `/admin/discount_coupons/{id}` | Personal / admin | Elimina un cupón de descuento |
 | GET | `/admin/email/log` | Personal / admin | Bitácora de correos (sin el contenido ni los datos personales del mensaje) |
 | POST | `/admin/email/log/{id}/resend` | Personal / admin | Reenvía un correo (crea uno nuevo enlazado al original). No aplica a direcciones suprimidas |
 | GET | `/admin/email/stats` | Personal / admin | Correos por estado en las últimas 24 h y 7 días |
@@ -243,7 +246,9 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/admin/gamification/sponsored-rewards` | Personal / admin | Lista premios ofrecidos por negocios para el Club de Recompensas |
 | PATCH | `/admin/gamification/sponsored-rewards/{id}/review` | Personal / admin | Aprueba o rechaza un premio del Club ofrecido por un negocio |
 | GET | `/admin/gamification/stats` | Personal / admin | XP emitido, jugadores activos, canjes y distribución por nivel |
+| GET | `/admin/gamification/users` | Personal / admin | Progreso del juego de varias cuentas (XP, monedas, nivel, racha) |
 | POST | `/admin/gamification/users/{id}/adjust` | Personal / admin | Ajuste manual de XP y monedas, también negativo (sin bajar de cero), con motivo; queda en la bitácora del juego |
+| GET | `/admin/gamification/users/{id}/transactions` | Personal / admin | Últimos movimientos de XP y monedas de una cuenta |
 | GET | `/admin/gamified_routes` | Personal / admin | Rutas gamificadas: lista |
 | POST | `/admin/gamified_routes` | Personal / admin | Rutas gamificadas: crear |
 | PATCH | `/admin/gamified_routes/{id}` | Personal / admin | Rutas gamificadas: editar |
@@ -301,6 +306,9 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | DELETE | `/admin/media/licenses/offers/{id}` | Personal / admin | Retira una oferta (las licencias ya concedidas siguen vigentes) |
 | GET | `/admin/media/licenses/requests` | Personal / admin | Solicitudes de licencia |
 | POST | `/admin/media/licenses/requests/{id}/decide` | Personal / admin | Aprueba (anotando el comprobante del pago) o rechaza una solicitud de licencia |
+| GET | `/admin/memberships/plans` | Personal / admin | Listado completo de planes de membresía para administración (B8) |
+| POST | `/admin/memberships/plans` | Personal / admin | Crea un plan de membresía Pasaporte RD (B8) |
+| PATCH | `/admin/memberships/plans/{id}` | Personal / admin | Edita un plan de membresía Pasaporte RD (B8) |
 | POST | `/admin/moderation/{type}/{id}/{action}` | Personal / admin | Aprueba, rechaza o retira un contenido (rechazar y retirar exigen motivo). Avisa a la persona y queda auditado |
 | GET | `/admin/moderation/appeals` | Personal / admin | Apelaciones pendientes de creadores, con contexto limitado (sin correo ni datos de pago) |
 | POST | `/admin/moderation/appeals/{id}/resolve` | Personal / admin | Resuelve la apelación de un creador: aceptarla devuelve la publicación a revisión |
@@ -326,6 +334,10 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | POST | `/admin/place-qr` | Personal / admin | Genera el código QR de un lugar (se muestra una sola vez; sólo se guarda su hash) |
 | GET | `/admin/reviews` | Personal / admin | Cola de moderación de reseñas |
 | PATCH | `/admin/reviews/{id}` | Personal / admin | Aprueba o rechaza una reseña |
+| GET | `/admin/reward_inventory` | Personal / admin | Inventario de Premios: lista |
+| POST | `/admin/reward_inventory` | Personal / admin | Inventario de Premios: crear |
+| PATCH | `/admin/reward_inventory/{id}` | Personal / admin | Inventario de Premios: editar |
+| DELETE | `/admin/reward_inventory/{id}` | Personal / admin | Inventario de Premios: borrar |
 | GET | `/admin/route_checkpoints` | Personal / admin | Puntos de ruta: lista |
 | POST | `/admin/route_checkpoints` | Personal / admin | Puntos de ruta: crear |
 | PATCH | `/admin/route_checkpoints/{id}` | Personal / admin | Puntos de ruta: editar |
@@ -348,9 +360,14 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/admin/staff-invitations` | Personal / admin | Invitaciones de personal abiertas y recientes |
 | POST | `/admin/staff-invitations` | Personal / admin | Invita por correo a un editor o moderador (vence a los 7 días) |
 | DELETE | `/admin/staff-invitations/{id}` | Personal / admin | Revoca una invitación abierta |
+| GET | `/admin/store_bank_accounts` | Personal / admin | Cuentas bancarias de la tienda: lista |
+| POST | `/admin/store_bank_accounts` | Personal / admin | Cuentas bancarias de la tienda: crear |
+| PATCH | `/admin/store_bank_accounts/{id}` | Personal / admin | Cuentas bancarias de la tienda: editar |
+| DELETE | `/admin/store_bank_accounts/{id}` | Personal / admin | Cuentas bancarias de la tienda: borrar |
 | GET | `/admin/store/orders` | Personal / admin | Pedidos de la tienda |
 | GET | `/admin/store/orders/{id}` | Personal / admin | Detalle de un pedido |
 | PATCH | `/admin/store/orders/{id}` | Personal / admin | Cambia el estado (processing → shipped con guía → delivered; cancelar reembolsa) |
+| POST | `/admin/store/orders/{id}/confirm-transfer` | Personal / admin | Confirma el depósito o la transferencia de un pedido pendiente y lo marca como pagado |
 | POST | `/admin/store/orders/{id}/refund` | Personal / admin | Reembolso total o parcial (con o sin devolver el stock) |
 | GET | `/admin/store/products` | Personal / admin | Catálogo completo (incluye inactivos) |
 | POST | `/admin/store/products` | Personal / admin | Crea un producto |
@@ -555,7 +572,9 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 |---|---|---|---|
 | GET | `/articles` | Público | Listado de artículos |
 | GET | `/articles/{idOrSlug}` | Público | Detalle de artículos por id (uuid) o slug |
+| POST | `/articles/{idOrSlug}/react` | Público | Reacciona a un artículo |
 | GET | `/articles/{idOrSlug}/related` | Público | Artículos relacionados |
+| GET | `/articles/{idOrSlug}/reviews` | Público | Reseñas aprobadas de artículos |
 | GET | `/articles/facets` | Público | Facetas de artículos |
 | GET | `/audio-guides` | Público | Listado de audioguías |
 | GET | `/audio-guides/{idOrSlug}` | Público | Detalle de audioguías por id (uuid) o slug |
@@ -598,6 +617,8 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/events/{idOrSlug}/related` | Público | Eventos relacionados |
 | GET | `/events/{idOrSlug}/reviews` | Público | Reseñas aprobadas de eventos |
 | GET | `/events/facets` | Público | Facetas de eventos |
+| POST | `/events/submissions` | Sesión | Propone un evento: queda en revisión hasta que un administrador lo apruebe |
+| GET | `/me/events/submissions` | Sesión | Mis eventos propuestos y su estado |
 
 ## explorar
 
@@ -983,10 +1004,12 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
 | GET | `/ads` | Público | Banners vigentes de un espacio, con rotación ponderada por prioridad |
-| GET | `/ads/{id}/click` | Público | Cuenta el clic y redirige al destino del anunciante |
+| GET | `/ads/{id}/click` | Público | Cuenta el clic y redirige al destino del anunciante con click_id para Server-to-Server tracking |
 | POST | `/ads/{id}/impression` | Público | Registra una vista |
 | POST | `/ads/impressions` | Público | Registra vistas en lote (deduplicadas por sesión y hora) |
-| GET | `/ads/slots` | Público | Espacios publicitarios y sus dimensiones |
+| GET | `/ads/postback` | Público | Recepción de conversión S2S (Postback) desde la web del anunciante |
+| POST | `/ads/postback` | Público | Recepción de conversión S2S (Postback) desde la web del anunciante |
+| GET | `/ads/slots` | Público | Espacios publicitarios, dimensiones, capacidad de rotación y esquema de precios |
 | POST | `/advertisers/requests` | Público | Solicitud de publicidad (crea un lead y un ticket) |
 | POST | `/offers/{id}/redeem` | Sesión | Canjea una oferta vigente (una vez por persona) y devuelve su código de descuento |
 
@@ -1252,6 +1275,7 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/orders/{id}` | Opcional (sesión) | Detalle y seguimiento (token de invitado o sesión del titular) |
 | POST | `/orders/{id}/cancel` | Opcional (sesión) | Cancela un pedido que aún no salió; reembolsa lo cobrado |
 | POST | `/orders/{id}/return-request` | Opcional (sesión) | Solicita una devolución dentro de las 72 h de la entrega |
+| GET | `/store/bank-accounts` | Público | Cuentas bancarias activas para pagar un pedido por depósito o transferencia |
 | GET | `/store/categories` | Público | Categorías con productos |
 | GET | `/store/products` | Público | Catálogo de la tienda oficial |
 | GET | `/store/products/{slug}` | Público | Detalle de un producto (precio en DOP y USD) |

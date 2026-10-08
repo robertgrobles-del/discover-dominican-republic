@@ -27,7 +27,7 @@ export function BannerMediaContent({
     return (
       <BannerContentSlider
         items={items}
-        interval={banner.slider_interval || 5000}
+        interval={banner.slider_interval || 12000}
         height={height}
       />
     );

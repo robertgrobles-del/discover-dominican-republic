@@ -14,6 +14,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi } from "@/lib/gamificationApi";
+import { apiMessage } from "@/lib/fastifyClient";
+
 interface Post {
   id: string;
   user_id: string;
@@ -49,53 +53,79 @@ export default function FeedSocial() {
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
-    const { data: postsData } = await supabase
-      .from("social_posts")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(50);
-
-    if (postsData && postsData.length > 0) {
-      const userIds = [...new Set(postsData.map((p: any) => p.user_id))];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, display_name")
-        .in("id", userIds);
-      const profileMap = new Map(profiles?.map((p: any) => [p.id, p.display_name]) || []);
-
-      let likedSet = new Set<string>();
-      if (user) {
-        const { data: likes } = await supabase
-          .from("social_likes")
-          .select("post_id")
-          .eq("user_id", user.id);
-        likedSet = new Set(likes?.map((l: any) => l.post_id) || []);
+    try {
+      if (HAS_BACKEND_SESSION) {
+        const res = await gamificationApi.getSocialFeed(1, 50);
+        setPosts(
+          (res.data || []).map((p) => ({
+            id: p.id,
+            user_id: p.user_id,
+            content: p.content,
+            image_url: p.image_url,
+            location: p.location_name,
+            likes_count: p.likes_count,
+            comments_count: p.comments_count,
+            created_at: p.created_at,
+            author_name: p.author_name || "Viajero",
+            liked_by_me: p.is_liked,
+          }))
+        );
+        return;
       }
 
-      setPosts(
-        postsData.map((p: any) => ({
-          ...p,
-          author_name: profileMap.get(p.user_id) || "Viajero",
-          liked_by_me: likedSet.has(p.id),
-        }))
-      );
-    } else {
-      setPosts([]);
+      const { data: postsData } = await supabase
+        .from("social_posts")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (postsData && postsData.length > 0) {
+        const userIds = [...new Set(postsData.map((p: any) => p.user_id))];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, display_name")
+          .in("id", userIds);
+        const profileMap = new Map(profiles?.map((p: any) => [p.id, p.display_name]) || []);
+
+        let likedSet = new Set<string>();
+        if (user) {
+          const { data: likes } = await supabase
+            .from("social_likes")
+            .select("post_id")
+            .eq("user_id", user.id);
+          likedSet = new Set(likes?.map((l: any) => l.post_id) || []);
+        }
+
+        setPosts(
+          postsData.map((p: any) => ({
+            ...p,
+            author_name: profileMap.get(p.user_id) || "Viajero",
+            liked_by_me: likedSet.has(p.id),
+          }))
+        );
+      } else {
+        setPosts([]);
+      }
+    } catch (err) {
+      console.error("Error fetching social posts:", err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [user]);
 
   useEffect(() => {
     fetchPosts();
 
-    const channel = supabase
-      .channel("social-feed")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "social_posts" }, () => {
-        fetchPosts();
-      })
-      .subscribe();
+    if (!HAS_BACKEND_SESSION) {
+      const channel = supabase
+        .channel("social-feed")
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "social_posts" }, () => {
+          fetchPosts();
+        })
+        .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+      return () => { supabase.removeChannel(channel); };
+    }
   }, [fetchPosts]);
 
   const handlePost = async () => {
@@ -103,62 +133,106 @@ export default function FeedSocial() {
     if (!newContent.trim() && !newImageUrl.trim()) return;
 
     setPosting(true);
-    const { error } = await supabase.from("social_posts").insert({
-      user_id: user.id,
-      content: newContent.trim() || null,
-      image_url: newImageUrl.trim() || null,
-      location: newLocation.trim() || null,
-    } as any);
+    try {
+      if (HAS_BACKEND_SESSION) {
+        await gamificationApi.createSocialPost({
+          content: newContent.trim(),
+          image_url: newImageUrl.trim() || undefined,
+          location_name: newLocation.trim() || undefined,
+        });
+        setNewContent("");
+        setNewImageUrl("");
+        setNewLocation("");
+        toast.success("¡Publicado!");
+        await fetchPosts();
+        return;
+      }
 
-    if (error) {
-      toast.error("Error al publicar");
-    } else {
-      setNewContent("");
-      setNewImageUrl("");
-      setNewLocation("");
-      toast.success("¡Publicado!");
-      fetchPosts();
+      const { error } = await supabase.from("social_posts").insert({
+        user_id: user.id,
+        content: newContent.trim() || null,
+        image_url: newImageUrl.trim() || null,
+        location: newLocation.trim() || null,
+      } as any);
+
+      if (error) {
+        toast.error("Error al publicar");
+      } else {
+        setNewContent("");
+        setNewImageUrl("");
+        setNewLocation("");
+        toast.success("¡Publicado!");
+        fetchPosts();
+      }
+    } catch (err) {
+      toast.error(apiMessage(err, "Error al publicar"));
+    } finally {
+      setPosting(false);
     }
-    setPosting(false);
   };
 
   const handleLike = async (postId: string, isLiked: boolean) => {
     if (!user) { toast.error("Inicia sesión para dar like"); return; }
 
-    if (isLiked) {
-      await supabase.from("social_likes").delete().eq("user_id", user.id).eq("post_id", postId);
-      await supabase.from("social_posts").update({ likes_count: Math.max(0, (posts.find(p => p.id === postId)?.likes_count || 1) - 1) } as any).eq("id", postId);
-    } else {
-      await supabase.from("social_likes").insert({ user_id: user.id, post_id: postId } as any);
-      await supabase.from("social_posts").update({ likes_count: (posts.find(p => p.id === postId)?.likes_count || 0) + 1 } as any).eq("id", postId);
-    }
+    try {
+      if (HAS_BACKEND_SESSION) {
+        await gamificationApi.togglePostLike(postId, isLiked);
+      } else {
+        if (isLiked) {
+          await supabase.from("social_likes").delete().eq("user_id", user.id).eq("post_id", postId);
+          await supabase.from("social_posts").update({ likes_count: Math.max(0, (posts.find(p => p.id === postId)?.likes_count || 1) - 1) } as any).eq("id", postId);
+        } else {
+          await supabase.from("social_likes").insert({ user_id: user.id, post_id: postId } as any);
+          await supabase.from("social_posts").update({ likes_count: (posts.find(p => p.id === postId)?.likes_count || 0) + 1 } as any).eq("id", postId);
+        }
+      }
 
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === postId
-          ? { ...p, liked_by_me: !isLiked, likes_count: isLiked ? Math.max(0, p.likes_count - 1) : p.likes_count + 1 }
-          : p
-      )
-    );
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId
+            ? { ...p, liked_by_me: !isLiked, likes_count: isLiked ? Math.max(0, p.likes_count - 1) : p.likes_count + 1 }
+            : p
+        )
+      );
+    } catch (err) {
+      toast.error(apiMessage(err, "Error al actualizar like"));
+    }
   };
 
   const loadComments = async (postId: string) => {
     setShowComments(postId);
-    const { data } = await supabase
-      .from("social_comments")
-      .select("*")
-      .eq("post_id", postId)
-      .order("created_at", { ascending: true });
+    try {
+      if (HAS_BACKEND_SESSION) {
+        const commList = await gamificationApi.getPostComments(postId);
+        setComments(commList.map((c) => ({
+          id: c.id,
+          user_id: c.user_id,
+          content: c.content,
+          created_at: c.created_at,
+          author_name: c.author_name || "Viajero",
+        })));
+        return;
+      }
 
-    if (data && data.length > 0) {
-      const userIds = [...new Set(data.map((c: any) => c.user_id))];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, display_name")
-        .in("id", userIds);
-      const profileMap = new Map(profiles?.map((p: any) => [p.id, p.display_name]) || []);
-      setComments(data.map((c: any) => ({ ...c, author_name: profileMap.get(c.user_id) || "Viajero" })));
-    } else {
+      const { data } = await supabase
+        .from("social_comments")
+        .select("*")
+        .eq("post_id", postId)
+        .order("created_at", { ascending: true });
+
+      if (data && data.length > 0) {
+        const userIds = [...new Set(data.map((c: any) => c.user_id))];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, display_name")
+          .in("id", userIds);
+        const profileMap = new Map(profiles?.map((p: any) => [p.id, p.display_name]) || []);
+        setComments(data.map((c: any) => ({ ...c, author_name: profileMap.get(c.user_id) || "Viajero" })));
+      } else {
+        setComments([]);
+      }
+    } catch (err) {
+      console.error("Error loading comments:", err);
       setComments([]);
     }
   };
@@ -167,17 +241,25 @@ export default function FeedSocial() {
     if (!user) { toast.error("Inicia sesión para comentar"); return; }
     if (!newComment.trim()) return;
 
-    await supabase.from("social_comments").insert({
-      user_id: user.id,
-      post_id: postId,
-      content: newComment.trim(),
-    } as any);
+    try {
+      if (HAS_BACKEND_SESSION) {
+        await gamificationApi.addPostComment(postId, newComment.trim());
+      } else {
+        await supabase.from("social_comments").insert({
+          user_id: user.id,
+          post_id: postId,
+          content: newComment.trim(),
+        } as any);
 
-    await supabase.from("social_posts").update({ comments_count: (posts.find(p => p.id === postId)?.comments_count || 0) + 1 } as any).eq("id", postId);
+        await supabase.from("social_posts").update({ comments_count: (posts.find(p => p.id === postId)?.comments_count || 0) + 1 } as any).eq("id", postId);
+      }
 
-    setPosts(prev => prev.map(p => p.id === postId ? { ...p, comments_count: p.comments_count + 1 } : p));
-    setNewComment("");
-    loadComments(postId);
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, comments_count: p.comments_count + 1 } : p));
+      setNewComment("");
+      loadComments(postId);
+    } catch (err) {
+      toast.error(apiMessage(err, "Error al comentar"));
+    }
   };
 
   const timeAgo = (date: string) => {

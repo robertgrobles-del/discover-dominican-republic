@@ -385,6 +385,22 @@
   "extras": {
    "type": "jsonb",
    "nullable": false
+  },
+  "live_flights_config": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "eticket_guide_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "ground_transit_fares": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "daily_flights_count": {
+   "type": "integer",
+   "nullable": true
   }
  },
  "articles": {
@@ -511,6 +527,42 @@
   "extras": {
    "type": "jsonb",
    "nullable": false
+  },
+  "publication_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "read_time_min": {
+   "type": "integer",
+   "nullable": true
+  },
+  "author_role": {
+   "type": "text",
+   "nullable": true
+  },
+  "author_avatar": {
+   "type": "text",
+   "nullable": true
+  },
+  "is_trending": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "reactions_count": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "press_partner_name": {
+   "type": "text",
+   "nullable": true
+  },
+  "press_contact_email": {
+   "type": "text",
+   "nullable": true
+  },
+  "press_source_url": {
+   "type": "text",
+   "nullable": true
   }
  },
  "artisanal_workshops": {
@@ -1845,6 +1897,50 @@
   "extras": {
    "type": "jsonb",
    "nullable": false
+  },
+  "altitude_m": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "hidden_gems": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "itineraries": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "seasonal_highlights": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "transit_options": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "narrative_quote": {
+   "type": "text",
+   "nullable": true
+  },
+  "narrative_author": {
+   "type": "text",
+   "nullable": true
+  },
+  "local_story": {
+   "type": "text",
+   "nullable": true
+  },
+  "curated_gallery": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "day_timeline": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "quick_facts": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "emergency_contacts": {
@@ -3029,6 +3125,30 @@
    "nullable": false
   },
   "extras": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "tour_360_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "guest_timeline": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "room_types": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "whatsapp_phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "direct_booking_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "eco_guidelines": {
    "type": "jsonb",
    "nullable": false
   }
@@ -4509,6 +4629,14 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "emergency_contacts": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "weather_forecast": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "recipes": {
@@ -4849,6 +4977,22 @@
   "extras": {
    "type": "jsonb",
    "nullable": false
+  },
+  "menu_highlights": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "dietary_options": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "chef_recommendations": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "reservation_phone": {
+   "type": "text",
+   "nullable": true
   }
  },
  "reviews": {

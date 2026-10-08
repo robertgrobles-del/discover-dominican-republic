@@ -24,6 +24,7 @@ export function BannerContentAnimation({ imageSrc, alt, animationType }: BannerC
         alt={alt}
         className={cn("w-full h-full object-cover", animationClasses[animationType] || "")}
         loading="lazy"
+        decoding="async"
       />
       {animationType === "shimmer" && (
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer-overlay_2.5s_linear_infinite]" />

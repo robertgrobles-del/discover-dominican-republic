@@ -358,6 +358,44 @@ function registerCollection(app: FastifyInstance, d: CollectionDef) {
       };
     });
   }
+
+  // ---------- Reacciones de artículos (likes, love, fire) ----------
+  if (d.path === "articles") {
+    // Contador anónimo: no hay sesión ni un voto por persona, así que se limita por IP para que no se pueda inflar.
+    r.post(`${base}/:idOrSlug/react`, {
+      config: { rateLimit: app.env.AUTH_RATE_LIMIT_ENABLED ? { max: 20, timeWindow: "1 minute" } : { max: 1_000_000, timeWindow: "1 minute" } },
+      schema: {
+        tags: [d.tag], summary: "Reacciona a un artículo", params: idOrSlug,
+        body: z.object({
+          reaction: z.enum(["likes", "love", "fire"]).default("likes"),
+          delta: z.number().int().min(-1).max(1).default(1),
+        }),
+        response: {
+          200: z.object({
+            data: z.object({
+              reactions_count: z.record(z.string(), z.number()),
+            }),
+          }),
+        },
+      },
+    }, async (req) => {
+      const cur = await fetchOne(req.params.idOrSlug, { select: Q("id") });
+      if (!cur) throw AppError.notFound(d.label.replace(/s$/, ""));
+      const { reaction, delta } = req.body;
+      const res = await app.db.query<{ reactions_count: Record<string, number> }>(
+        `UPDATE articles
+         SET reactions_count = jsonb_set(
+           COALESCE(reactions_count, '{"likes": 0, "love": 0, "fire": 0}'::jsonb),
+           ARRAY[$1],
+           to_jsonb(GREATEST(0, COALESCE((reactions_count->>$1)::int, 0) + $2))
+         )
+         WHERE id = $3
+         RETURNING reactions_count`,
+        [reaction, delta, cur.id]
+      );
+      return { data: { reactions_count: res.rows[0]?.reactions_count ?? { likes: 0, love: 0, fire: 0 } } };
+    });
+  }
 }
 
 export { listColumns, manifest };

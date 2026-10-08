@@ -10,6 +10,7 @@ import { unsubscribeToken } from "../../lib/unsubscribe-token.js";
 import type { JobRegistrar } from "../../contracts/jobs.js";
 import { todayInSantoDomingo } from "../../lib/dates.js";
 import { audit } from "../../lib/audit.js";
+import { newClickId, newPostbackSecret, verifyPostback } from "../../lib/ad-postback.js";
 
 const ok = z.object({ data: z.any() });
 const bearer = [{ bearerAuth: [] }];
@@ -37,9 +38,19 @@ export async function marketingRoutes(app: FastifyInstance) {
   const tag = ["publicidad"];
 
   // ---------- Servidor de anuncios ----------
-  r.get("/ads/slots", { schema: { tags: tag, summary: "Espacios publicitarios y sus dimensiones", response: { 200: ok } } }, async (_q, reply) => {
+  r.get("/ads/slots", { schema: { tags: tag, summary: "Espacios publicitarios, dimensiones, capacidad de rotación y esquema de precios", response: { 200: ok } } }, async (_q, reply) => {
     reply.header("cache-control", "public, max-age=300");
-    return { data: (await db.query("SELECT placement, label, width_pct, height_px, max_items FROM ad_slots WHERE is_active ORDER BY placement")).rows };
+    return {
+      data: (await db.query(
+        "SELECT placement, label, width_pct, height_px, max_items, base_price_monthly, exclusive_multiplier FROM ad_slots WHERE is_active ORDER BY placement"
+      )).rows.map((row) => ({
+        ...row,
+        base_price_monthly: Number(row.base_price_monthly),
+        exclusive_multiplier: Number(row.exclusive_multiplier),
+        exclusive_price_monthly: Number(row.base_price_monthly) * Number(row.exclusive_multiplier),
+        rotation_mode: row.max_items > 1 ? `Rotativo (hasta ${row.max_items} anuncios)` : "Exclusivo (1 solo anuncio)",
+      })),
+    };
   });
 
   /** Elige `n` elementos sin repetir con probabilidad proporcional a su peso (prioridad + 1): rotación ponderada. */
@@ -92,14 +103,99 @@ export async function marketingRoutes(app: FastifyInstance) {
     reply.code(204);
     return null;
   });
-  r.get("/ads/:id/click", { config: rl(120, "1 minute"), schema: { tags: tag, summary: "Cuenta el clic y redirige al destino del anunciante", params: uuid, querystring: z.object({ s: sessionId.optional() }) } }, async (req, reply) => {
-    const b = (await db.query<{ target_url: string | null; name: string; slug: string | null; placement: string | null }>("SELECT target_url, name, slug, placement FROM ad_banners WHERE id = $1 AND status = 'published' AND deleted_at IS NULL", [req.params.id])).rows[0];
+  r.get("/ads/:id/click", { config: rl(120, "1 minute"), schema: { tags: tag, summary: "Cuenta el clic y redirige al destino del anunciante con click_id para Server-to-Server tracking", params: uuid, querystring: z.object({ s: sessionId.optional() }) } }, async (req, reply) => {
+    const b = (await db.query<{ target_url: string | null; name: string; slug: string | null; placement: string | null; click_id_param: string }>("SELECT target_url, name, slug, placement, coalesce(click_id_param, 'click_id') AS click_id_param FROM ad_banners WHERE id = $1 AND status = 'published' AND deleted_at IS NULL", [req.params.id])).rows[0];
     if (!b?.target_url) throw AppError.notFound("Banner");
     await count(req.params.id, req.query.s ?? `${req.ip}:${req.headers["user-agent"] ?? ""}`, "click");
-    // Sólo se redirige a https o a rutas propias (nunca a esquemas raros ni a "//dominio").
     const url = b.target_url;
     if (!(url.startsWith("https://") || (url.startsWith("/") && !url.startsWith("//")))) throw AppError.notFound("Banner");
-    return reply.redirect(withUtm(url, { source: "descubrerd", medium: "banner", campaign: b.slug ?? b.name, content: b.placement }), 302);
+    
+    // Si es destino externo https://, generamos un click_id único para Server-to-Server tracking (Postback)
+    let extra: Record<string, string> | undefined;
+    if (url.startsWith("https://")) {
+      const cid = newClickId();
+      await db.query("INSERT INTO ad_clicks (click_id, banner_id) VALUES ($1, $2)", [cid, req.params.id]);
+      extra = { [b.click_id_param || "click_id"]: cid };
+    }
+    return reply.redirect(withUtm(url, { source: "descubrerd", medium: "banner", campaign: b.slug ?? b.name, content: b.placement, extra }), 302);
+  });
+
+  /** Webhook / Postback de conversión Server-to-Server enviado por el anunciante */
+  const postbackSchema = {
+    tags: tag,
+    summary: "Recepción de conversión S2S (Postback) desde la web del anunciante",
+    body: z.object({
+      t: z.coerce.number().int().min(1000000000),
+      click_id: z.string().min(16).max(64),
+      order_id: z.string().trim().min(1).max(100),
+      value: z.coerce.number().min(0),
+      currency: z.string().length(3).default("USD"),
+      signature: z.string().min(1),
+    }).nullish(),
+    querystring: z.object({
+      t: z.coerce.number().int().optional(),
+      click_id: z.string().optional(),
+      order_id: z.string().optional(),
+      value: z.coerce.number().optional(),
+      currency: z.string().optional(),
+      signature: z.string().optional(),
+    }).nullish(),
+    response: { 200: ok },
+  };
+
+  const handlePostback = async (req: FastifyRequest) => {
+    const raw = (req.body || req.query || {}) as Record<string, unknown>;
+    const t = Number(raw.t);
+    const click_id = String(raw.click_id || "");
+    const order_id = String(raw.order_id || "");
+    const valueStr = String(raw.value ?? "");
+    const value = Number(valueStr);
+    const currency = String(raw.currency || "USD").toUpperCase();
+    const signature = String(raw.signature || "");
+
+    if (!t || !click_id || !order_id || !valueStr || isNaN(value) || !signature) {
+      throw AppError.validation("Parámetros obligatorios faltantes o inválidos: t, click_id, order_id, value, signature");
+    }
+
+    const clickRow = (await db.query<{ banner_id: string }>("SELECT banner_id FROM ad_clicks WHERE click_id = $1", [click_id])).rows[0];
+    if (!clickRow) throw AppError.notFound("Click ID inválido o expirado");
+
+    const keyRow = (await db.query<{ secret: string }>("SELECT secret FROM ad_postback_keys WHERE banner_id = $1", [clickRow.banner_id])).rows[0];
+    if (!keyRow?.secret) throw new AppError("FORBIDDEN", "El banner no tiene clave de firma activada");
+
+    const valid = verifyPostback(keyRow.secret, { t, click_id, order_id, value: valueStr, currency }, signature);
+    if (!valid) throw new AppError("UNAUTHENTICATED", "Firma HMAC del postback inválida o fuera de la ventana de tolerancia");
+
+    const res = await db.query(
+      `INSERT INTO ad_conversions (click_id, banner_id, external_order_id, value, currency)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (banner_id, external_order_id) DO NOTHING RETURNING id`,
+      [click_id, clickRow.banner_id, order_id, value, currency],
+    );
+
+    return { data: { success: true, processed: !!res.rowCount, message: res.rowCount ? "Conversión registrada con éxito" : "Conversión ya registrada previamente" } };
+  };
+
+  r.post("/ads/postback", { config: rl(60, "1 minute"), schema: postbackSchema }, handlePostback);
+  // Fastify no admite esquema de cuerpo en GET: la variante por URL valida sólo la cadena de consulta.
+  const { body: _postbackBody, ...postbackQuerySchema } = postbackSchema;
+  r.get("/ads/postback", { config: rl(60, "1 minute"), schema: postbackQuerySchema }, handlePostback);
+
+  // Administración de clave de firma para el anunciante
+  r.post("/admin/ads/:id/postback-key", {
+    onRequest: admin,
+    schema: { tags: ["admin"], summary: "Genera o rota la clave HMAC para Server-to-Server tracking del banner", params: uuid, security: bearer, response: { 200: ok } },
+  }, async (req) => {
+    const banner = (await db.query("SELECT id FROM ad_banners WHERE id = $1 AND deleted_at IS NULL", [req.params.id])).rows[0];
+    if (!banner) throw AppError.notFound("Banner");
+    const secret = newPostbackSecret();
+    await db.query(
+      `INSERT INTO ad_postback_keys (banner_id, secret) VALUES ($1, $2)
+       ON CONFLICT (banner_id) DO UPDATE SET secret = EXCLUDED.secret, rotated_at = now()`,
+      [req.params.id, secret],
+    );
+    await audit(db, { actor: req.user!.id, action: "banner.postback_key_rotate", entity: "ad_banner", id: req.params.id, ip: req.ip });
+    return { data: { banner_id: req.params.id, secret, message: "Guarda esta clave: no se volverá a mostrar completa por seguridad." } };
   });
 
   r.post("/advertisers/requests", {
@@ -117,16 +213,47 @@ export async function marketingRoutes(app: FastifyInstance) {
 
   r.get("/admin/ads/reports", {
     onRequest: admin,
-    schema: { tags: ["admin"], summary: "Vistas, clics y CTR por banner y por anunciante", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } },
+    schema: { tags: ["admin"], summary: "Vistas, clics, conversiones S2S e ingresos por banner y por anunciante", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional() }), response: { 200: ok } },
   }, async (req) => {
     const to = req.query.to ?? todayInSantoDomingo(), from = req.query.from ?? new Date(Date.parse(`${to}T00:00:00Z`) - 29 * 86_400_000).toISOString().slice(0, 10);
     const rows = (await db.query(
-      `SELECT b.id, b.name, b.sponsor, b.placement, coalesce(sum(s.impressions), 0)::int AS impressions, coalesce(sum(s.clicks), 0)::int AS clicks
-         FROM ad_banners b LEFT JOIN ad_stats s ON s.banner_id = b.id AND s.day BETWEEN $1::date AND $2::date WHERE b.deleted_at IS NULL GROUP BY b.id ORDER BY impressions DESC, b.name`, [from, to],
-    )).rows.map((x) => ({ ...x, ctr: x.impressions ? Math.round((x.clicks / x.impressions) * 10_000) / 100 : 0 }));
-    const sponsors = new Map<string, { sponsor: string; impressions: number; clicks: number }>();
-    for (const x of rows) { const k = x.sponsor ?? "(sin anunciante)"; const s = sponsors.get(k) ?? { sponsor: k, impressions: 0, clicks: 0 }; s.impressions += x.impressions; s.clicks += x.clicks; sponsors.set(k, s); }
-    return { data: { range: { from, to }, banners: rows, sponsors: [...sponsors.values()].map((s) => ({ ...s, ctr: s.impressions ? Math.round((s.clicks / s.impressions) * 10_000) / 100 : 0 })).sort((a, b) => b.impressions - a.impressions) } };
+      `SELECT b.id, b.name, b.sponsor, b.placement,
+              coalesce(sum(s.impressions), 0)::int AS impressions,
+              coalesce(sum(s.clicks), 0)::int AS clicks,
+              (SELECT count(*)::int FROM ad_conversions c WHERE c.banner_id = b.id AND c.created_at::date BETWEEN $1::date AND $2::date) AS conversions,
+              coalesce((SELECT sum(c.value) FROM ad_conversions c WHERE c.banner_id = b.id AND c.created_at::date BETWEEN $1::date AND $2::date), 0)::numeric(12,2) AS total_revenue_usd
+         FROM ad_banners b
+         LEFT JOIN ad_stats s ON s.banner_id = b.id AND s.day BETWEEN $1::date AND $2::date
+        WHERE b.deleted_at IS NULL
+        GROUP BY b.id
+        ORDER BY impressions DESC, b.name`, [from, to],
+    )).rows.map((x) => ({
+      ...x,
+      total_revenue_usd: Number(x.total_revenue_usd),
+      ctr: x.impressions ? Math.round((x.clicks / x.impressions) * 10_000) / 100 : 0,
+      conversion_rate: x.clicks ? Math.round((x.conversions / x.clicks) * 10_000) / 100 : 0,
+    }));
+    const sponsors = new Map<string, { sponsor: string; impressions: number; clicks: number; conversions: number; total_revenue_usd: number }>();
+    for (const x of rows) {
+      const k = x.sponsor ?? "(sin anunciante)";
+      const s = sponsors.get(k) ?? { sponsor: k, impressions: 0, clicks: 0, conversions: 0, total_revenue_usd: 0 };
+      s.impressions += x.impressions;
+      s.clicks += x.clicks;
+      s.conversions += x.conversions;
+      s.total_revenue_usd += x.total_revenue_usd;
+      sponsors.set(k, s);
+    }
+    return {
+      data: {
+        range: { from, to },
+        banners: rows,
+        sponsors: [...sponsors.values()].map((s) => ({
+          ...s,
+          ctr: s.impressions ? Math.round((s.clicks / s.impressions) * 10_000) / 100 : 0,
+          conversion_rate: s.clicks ? Math.round((s.conversions / s.clicks) * 10_000) / 100 : 0,
+        })).sort((a, b) => b.impressions - a.impressions),
+      },
+    };
   });
   await tableAdminRoutes(app, TABLES, ["admin", "editor"]);
 

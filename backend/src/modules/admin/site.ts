@@ -159,7 +159,21 @@ export async function adminSiteRoutes(app: FastifyInstance) {
       content[d.path] = Object.fromEntries(rows.map((x) => [x.status, x.n]));
     }
     const inReview = Object.entries(content).map(([path, s]) => ({ path, n: s.in_review ?? 0 })).filter((x) => x.n > 0);
-    return { data: { users: { active: users, new_7d: newUsers }, bookings: { last_30d: bookings30, collected_usd_30d: revenue30 }, pending: { reviews: pendingReviews, ugc_reports: pendingReports, reported_posts: reportedPosts, ugc_media: pendingMedia, support_tickets: openTickets, operators_to_verify: pendingOrgs, payouts: pendingPayouts, establishment_requests: pendingEstablishments, content_in_review: inReview }, health: { failed_jobs: failedJobs }, content } };
+    return {
+      data: {
+        users: { active: users, new_7d: newUsers },
+        bookings: { last_30d: bookings30, collected_usd_30d: revenue30 },
+        totals: {
+          reviews: Number((await db.query<{ n: string }>("SELECT count(*) AS n FROM reviews WHERE status = 'approved'")).rows[0]?.n || 0),
+          posts: Number((await db.query<{ n: string }>("SELECT count(*) AS n FROM social_posts WHERE is_active AND deleted_at IS NULL")).rows[0]?.n || 0),
+          banners: Number((await db.query<{ n: string }>("SELECT count(*) AS n FROM ad_banners WHERE status = 'published' AND is_active AND deleted_at IS NULL")).rows[0]?.n || 0),
+          low_stock_rewards: Number((await db.query<{ n: string }>("SELECT count(*) AS n FROM reward_inventory WHERE stock <= 5")).rows[0]?.n || 0),
+        },
+        pending: { reviews: pendingReviews, ugc_reports: pendingReports, reported_posts: reportedPosts, ugc_media: pendingMedia, support_tickets: openTickets, operators_to_verify: pendingOrgs, payouts: pendingPayouts, establishment_requests: pendingEstablishments, content_in_review: inReview },
+        health: { failed_jobs: failedJobs },
+        content,
+      },
+    };
   });
 
   r.get("/admin/system/health", { onRequest: admin, schema: { tags: ["admin"], summary: "Estado de la base de datos, la cola de correo y los trabajos", security: bearer, response: { 200: ok } } }, async () => {

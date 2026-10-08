@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy, Award, Shield } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Trophy, Award, Shield, Calendar, Sparkles } from "lucide-react";
 import { LEAGUES_TIERS } from "@/services/gamificationEngine";
+import type { GamificationSeason } from "@/hooks/useGamification";
 
 interface LeaderboardEntry {
   user_id: string;
@@ -23,17 +25,55 @@ interface RankingTabProps {
   onActiveRankingRegionChange: (region: string) => void;
   loadingLeaderboard: boolean;
   localLeaderboard: LeaderboardEntry[];
+  seasons?: GamificationSeason[];
+  selectedSeasonId?: string;
+  onSeasonChange?: (seasonId: string) => void;
 }
 
 export function RankingTab({
-  user, regions, activeRankingRegion, onActiveRankingRegionChange, loadingLeaderboard, localLeaderboard,
+  user,
+  regions,
+  activeRankingRegion,
+  onActiveRankingRegionChange,
+  loadingLeaderboard,
+  localLeaderboard,
+  seasons = [],
+  selectedSeasonId = "all",
+  onSeasonChange,
 }: RankingTabProps) {
+  const activeSeasonObj = seasons.find((s) => s.id === selectedSeasonId);
+
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="text-center mb-8">
+      <div className="text-center mb-6">
         <h2 className="text-2xl font-bold text-foreground mb-2">Ranking de Exploradores</h2>
         <p className="text-muted-foreground">Los mejores descubridores de República Dominicana</p>
       </div>
+
+      {/* Season Selector Bar if available */}
+      {seasons.length > 0 && onSeasonChange && (
+        <div className="mb-6 p-3 bg-muted/40 rounded-2xl border border-border flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-primary" />
+            <span className="text-xs font-bold text-foreground">
+              {selectedSeasonId === "all" ? "Histórico Global" : activeSeasonObj?.name || "Temporada"}
+            </span>
+          </div>
+          <Select value={selectedSeasonId} onValueChange={onSeasonChange}>
+            <SelectTrigger className="h-8 w-[210px] text-xs rounded-xl bg-card">
+              <SelectValue placeholder="Temporada" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">🏆 Todas las temporadas</SelectItem>
+              {seasons.map((s) => (
+                <SelectItem key={s.id} value={s.id} className="text-xs">
+                  {s.is_active ? "🟢 " : "⚪ "} {s.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Region Filter Buttons */}
       <div className="flex gap-2 mb-8 overflow-x-auto pb-1 justify-center">

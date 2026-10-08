@@ -113,35 +113,39 @@ export default function HistoriaRD() {
               <Crown className="h-6 w-6 text-primary" /> Personajes Destacados
             </h2>
             {/* Single-row horizontal scroll */}
-            <div className="flex gap-5 overflow-x-auto pb-3 no-scrollbar">
+            <div className="flex gap-5 overflow-x-auto pb-4 no-scrollbar">
               {randomFigures.map((figure, i) => (
                 <Link key={figure.id} to={`/historia/personaje/${figure.slug}`}
-                  className={`animate-fade-in flex-shrink-0 w-[220px] md:w-[240px] figure-link-${figure.id}`}
+                  className={`animate-fade-in flex-shrink-0 w-[220px] md:w-[250px] figure-link-${figure.id}`}
                 >
                   <style>{`.figure-link-${figure.id} { animation-delay: ${i * 80}ms; }`}</style>
-                  <div className="bg-card rounded-2xl border border-border overflow-hidden group hover:border-primary/30 transition-all hover:shadow-lg h-full">
-                    <div className="relative h-44 overflow-hidden">
-                      <LazyImage
-                        src={figure.image_url || "/placeholder.svg"}
-                        alt={figure.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        containerClassName="w-full h-full"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
-                      {figure.era && (
-                        <Badge className={`absolute top-3 right-3 text-xs ${eraColors[figure.era] || "bg-muted"}`}>
-                          {figure.era}
-                        </Badge>
-                      )}
+                  <div className="card-taste overflow-hidden group h-full flex flex-col justify-between shadow-sm">
+                    <div>
+                      <div className="relative h-48 overflow-hidden">
+                        <LazyImage
+                          src={figure.image_url || "/placeholder.svg"}
+                          alt={figure.name}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          containerClassName="w-full h-full"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-transparent to-transparent" />
+                        {figure.era && (
+                          <Badge className={`absolute top-3 right-3 text-xs shadow-xs font-semibold ${eraColors[figure.era] || "bg-muted"}`}>
+                            {figure.era}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <p className="text-xs text-primary font-bold uppercase tracking-wider mb-1">{figure.title}</p>
+                        <h3 className="font-display font-bold text-base text-foreground group-hover:text-primary transition-colors">
+                          {figure.name}
+                        </h3>
+                        <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">{figure.short_description}</p>
+                      </div>
                     </div>
-                    <div className="p-4">
-                      <p className="text-xs text-primary font-semibold uppercase tracking-wider mb-1">{figure.title}</p>
-                      <h3 className="font-display font-bold text-base text-foreground group-hover:text-primary transition-colors">
-                        {figure.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">{figure.short_description}</p>
-                      <div className="flex items-center gap-1.5 mt-3 text-xs text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
+                    <div className="p-4 pt-0">
+                      <div className="flex items-center gap-1.5 pt-2 border-t border-border/60 text-xs text-muted-foreground font-medium">
+                        <Calendar className="h-3 w-3 text-primary" />
                         <span>{figure.birth_date}</span>
                         {figure.death_date && (
                           <>

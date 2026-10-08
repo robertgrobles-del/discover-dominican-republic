@@ -1,7 +1,8 @@
+import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Gift, MapPin, CheckCircle, ShieldCheck, Users } from "lucide-react";
+import { Gift, MapPin, CheckCircle, ShieldCheck, Users, Sparkles, ArrowRight } from "lucide-react";
 import { creatorsPool, Creator, SponsoredOpportunity } from "@/data/creatorsData";
 
 interface CreatorsSponsorshipsTabProps {
@@ -35,9 +36,15 @@ export function CreatorsSponsorshipsTab({
               Estadías Todo Incluido para Creación de Contenido
             </h2>
             <p className="text-xs text-muted-foreground max-w-2xl mt-1">
-              Las tarjetas que siguen son ejemplos ilustrativos. Las convocatorias reales y la selección de creadores aún no están conectadas al backend.
+              Colabora con cadenas hoteleras y eco-lodges de República Dominicana. Aplica a estancias abiertas o recibe invitaciones directas.
             </p>
           </div>
+
+          <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl text-xs gap-1.5 shrink-0 shadow-md">
+            <Link to="/creadores/estancias">
+              <Sparkles className="h-3.5 w-3.5" /> Portal de Estancias en Vivo <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -118,11 +125,13 @@ export function CreatorsSponsorshipsTab({
 
               <div className="p-5 pt-0">
                 {opp.status === "Abierta" ? (
-                    <Button
-                    disabled
+                  <Button
+                    asChild
                     className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-xs gap-1.5"
                   >
-                    <Users className="h-4 w-4" /> Convocatoria de ejemplo
+                    <Link to="/creadores/estancias">
+                      <Sparkles className="h-4 w-4" /> Postularme a esta Estancia
+                    </Link>
                   </Button>
                 ) : (
                   <Button variant="outline" disabled className="w-full rounded-xl text-xs">

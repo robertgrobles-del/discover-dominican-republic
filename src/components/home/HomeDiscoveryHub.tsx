@@ -87,33 +87,33 @@ export function HomeDiscoveryHub() {
       <div id="inspiracion" className="scroll-mt-24 space-y-5">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Colecciones editoriales</p>
-            <h2 className="mt-1 text-2xl font-bold text-foreground md:text-3xl">Inspírate por temporada</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Colecciones por temporada</p>
+            <h2 className="mt-1 font-display text-2xl font-bold tracking-tight text-foreground md:text-3xl">El mejor momento para cada rincón</h2>
           </div>
-          <p className="max-w-lg text-sm text-muted-foreground">Ideas para empezar a planificar; confirma horarios, clima y disponibilidad antes de viajar.</p>
+          <p className="max-w-lg text-sm text-muted-foreground leading-relaxed">Recomendaciones basadas en clima, temporadas de fauna marina y festivales culturales tradicionales.</p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {seasonalIdeas.map(({ period, title, description, href, icon: Icon }, index) => (
             <Link
               key={period}
               to={href}
-              className={`group rounded-card border p-5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+              className={`group card-taste p-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 index === currentSeason
-                  ? "border-primary/45 bg-surface-elevated"
-                  : "border-border bg-surface-editorial hover:border-primary/40"
+                  ? "border-primary/50 bg-surface-elevated ring-1 ring-primary/20"
+                  : "bg-surface-editorial"
               }`}
-                aria-current={index === currentSeason ? "true" : undefined}
+              aria-current={index === currentSeason ? "true" : undefined}
             >
               <span className="flex items-center justify-between gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary" aria-hidden="true">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-transform group-hover:scale-110" aria-hidden="true">
                   <Icon className="h-5 w-5" />
                 </span>
-                {index === currentSeason && <span className="text-[11px] font-semibold text-primary">Ahora</span>}
+                {index === currentSeason && <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-[11px] font-bold text-primary">Temporada Actual</span>}
               </span>
-              <span className="mt-4 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">{period}</span>
-              <span className="mt-1 block font-semibold text-foreground group-hover:text-primary">{title}</span>
-              <span className="mt-2 block text-sm leading-relaxed text-muted-foreground">{description}</span>
+              <span className="mt-4 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">{period}</span>
+              <span className="mt-1 block font-display text-base font-bold text-foreground group-hover:text-primary transition-colors">{title}</span>
+              <span className="mt-2 block text-xs md:text-sm leading-relaxed text-muted-foreground/90">{description}</span>
             </Link>
           ))}
         </div>
@@ -122,22 +122,24 @@ export function HomeDiscoveryHub() {
       <div className="grid gap-8 lg:grid-cols-2">
         <div id="regiones" className="scroll-mt-24 space-y-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Explora por zona</p>
-            <h2 className="mt-1 text-xl font-bold text-foreground">Accesos a las regiones</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Macro-regiones turísticas</p>
+            <h2 className="mt-1 font-display text-xl font-bold text-foreground md:text-2xl">Descubre Quisqueya por zonas</h2>
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-3">
             {regions.map((region) => (
               <Link
                 key={region.slug}
                 to={`/destinos/region/${region.slug}`}
-                className="group flex items-center gap-3 rounded-xl border border-border bg-surface-editorial p-4 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="group card-taste flex items-center gap-3.5 p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                  <MapPin className="h-5 w-5" aria-hidden="true" />
+                </div>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-semibold text-foreground">{region.name}</span>
+                  <span className="block font-display text-sm md:text-base font-bold text-foreground group-hover:text-primary transition-colors">{region.name}</span>
                   <span className="mt-0.5 block text-xs text-muted-foreground">{region.detail}</span>
                 </span>
-                <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" aria-hidden="true" />
+                <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1.5 group-hover:text-primary" aria-hidden="true" />
               </Link>
             ))}
           </div>
@@ -145,26 +147,28 @@ export function HomeDiscoveryHub() {
 
         <div id="preparacion" className="scroll-mt-24 space-y-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Información práctica</p>
-            <h2 className="mt-1 text-xl font-bold text-foreground">Antes de salir</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Consulta las condiciones relevantes para tu fecha y destino.</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Herramientas útiles</p>
+            <h2 className="mt-1 font-display text-xl font-bold text-foreground md:text-2xl">Prepara tu viaje con datos reales</h2>
+            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">Información actualizada sobre clima, sargazo, transporte interurbano y documentación.</p>
           </div>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             {preparationLinks.map(({ label, href, icon: Icon }) => (
               <Link
                 key={href}
                 to={href}
-                className="flex min-h-20 items-center gap-3 rounded-xl border border-border bg-surface-editorial p-4 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="group card-taste flex min-h-20 items-center gap-3.5 p-4 text-sm font-semibold text-foreground hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <Icon className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                <span>{label}</span>
-                <ArrowRight className="ml-auto h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                </div>
+                <span className="font-display font-medium text-xs md:text-sm">{label}</span>
+                <ArrowRight className="ml-auto h-4 w-4 shrink-0 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" aria-hidden="true" />
               </Link>
             ))}
           </div>
-          <Link to="/mapa-interactivo" className="inline-flex items-center gap-2 text-sm font-semibold text-primary underline-offset-4 hover:underline">
+          <Link to="/mapa-interactivo" className="inline-flex items-center gap-2 pt-2 text-sm font-semibold text-primary underline-offset-4 hover:underline">
             <Map className="h-4 w-4" aria-hidden="true" />
-            Explora los lugares en el mapa
+            Ver todos los destinos en el mapa interactivo satelital
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>

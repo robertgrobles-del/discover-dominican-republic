@@ -6,55 +6,20 @@ import { Badge } from "@/components/ui/badge";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { BannerAd } from "@/components/promo";
 import { useTranslation } from "@/hooks/useI18n";
-import carnivalImg from "@/assets/carnival.jpg";
-import whaleSamanaImg from "@/assets/whale-samana.jpg";
-import gastronomyImg from "@/assets/gastronomy.jpg";
 import heroBeachImg from "@/assets/hero-beach.jpg";
-
-const news = [
-  {
-    id: "temporada-ballenas-2026",
-    title: "Temporada de Ballenas Jorobadas 2026",
-    excerpt: "La bahía de Samaná se prepara para recibir a miles de ballenas jorobadas entre enero y marzo.",
-    image: whaleSamanaImg,
-    category: "Naturaleza",
-    date: "5 Feb 2026",
-    readTime: "3 min",
-    featured: true,
-  },
-  {
-    id: "carnaval-dominicano",
-    title: "Carnaval Dominicano: Las mejores rutas",
-    excerpt: "Guía completa para disfrutar del carnaval más colorido del Caribe en La Vega y Santiago.",
-    image: carnivalImg,
-    category: "Cultura",
-    date: "2 Feb 2026",
-    readTime: "5 min",
-  },
-  {
-    id: "nuevos-restaurantes",
-    title: "5 Nuevos restaurantes imperdibles en Punta Cana",
-    excerpt: "Descubre las últimas aperturas gastronómicas que están revolucionando la escena culinaria.",
-    image: gastronomyImg,
-    category: "Gastronomía",
-    date: "28 Ene 2026",
-    readTime: "4 min",
-  },
-  {
-    id: "playas-secretas",
-    title: "10 Playas secretas que debes conocer",
-    excerpt: "Escapa de las multitudes y descubre rincones paradisíacos poco conocidos del país.",
-    image: heroBeachImg,
-    category: "Playas",
-    date: "25 Ene 2026",
-    readTime: "6 min",
-  },
-];
+import { channelLabel, formatEditorialDate, useEditorialArticles } from "@/lib/editorialApi";
 
 export function NewsSection() {
   const { t } = useTranslation();
-  const featuredNews = news.find(n => n.featured);
-  const regularNews = news.filter(n => !n.featured);
+  // Las mismas publicaciones que la revista: la destacada (o la más reciente) y las tres siguientes.
+  const { data: articles = [] } = useEditorialArticles();
+  const news = articles.map((a) => ({
+    id: a.id, href: a.href, title: a.title, excerpt: a.excerpt, image: a.image ?? heroBeachImg, category: channelLabel(a.channel),
+    date: formatEditorialDate(a.publishedAt), readTime: a.readMinutes ? `${a.readMinutes} min` : "", featured: a.featured,
+  }));
+  const featuredNews = news.find(n => n.featured) ?? news[0];
+  const regularNews = news.filter(n => n.id !== featuredNews?.id).slice(0, 3);
+  if (!featuredNews) return null;
 
   return (
     <section className="py-16 bg-card">
@@ -101,7 +66,7 @@ export function NewsSection() {
               viewport={{ once: true }}
               className="lg:col-span-2 group"
             >
-              <Link to={`/articulo/${featuredNews.id}`} className="block">
+              <Link to={featuredNews.href} className="block">
                 <div className="relative aspect-[16/9] rounded-2xl overflow-hidden mb-4">
                   <LazyImage
                     src={featuredNews.image}
@@ -145,7 +110,7 @@ export function NewsSection() {
                 transition={{ delay: index * 0.1 }}
                 className="group"
               >
-                <Link to={`/articulo/${article.id}`} className="flex gap-4">
+                <Link to={article.href} className="flex gap-4">
                   <div className="relative w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden">
                     <LazyImage
                       src={article.image}

@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { trackEvent } from "@/hooks/useAnalytics";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchApi } from "@/lib/fastifyClient";
+import { IS_MOCK_DATA } from "@/lib/dataSource";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -42,6 +45,8 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
   const { user } = useAuth();
   const [step, setStep] = useState<"billing" | "payment" | "processing" | "success">("billing");
   const [loading, setLoading] = useState(false);
+  // La reserva se guardó sólo en la demostración local: no hubo cobro y no debe anunciarse como pagada.
+  const [demoBooking, setDemoBooking] = useState(false);
 
   // Form states
   const [fullName, setFullName] = useState("");
@@ -52,6 +57,8 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
   const [cvc, setCvc] = useState("");
   const [donationAmount, setDonationAmount] = useState<number>(0);
   const [insuranceOptIn, setInsuranceOptIn] = useState(false);
+  const [bookingDate, setBookingDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [adultsCount, setAdultsCount] = useState(1);
 
   if (!item) return null;
 
@@ -100,6 +107,7 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
   };
 
   const validatePayment = () => {
+    if (HAS_BACKEND_SESSION) return true;
     const rawCard = cardNumber.replace(/\s/g, "");
     if (rawCard.length < 16) {
       toast.error("Número de tarjeta inválido. Debe tener 16 dígitos.");
@@ -131,40 +139,110 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
     setStep("processing");
     setLoading(true);
 
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const isOperatorType = ["hotel", "tour", "restaurante", "experiencia"].includes(item.type.toLowerCase());
+    const isRealOperatorListing = isOperatorType && UUID_REGEX.test(item.id);
+
     try {
-      // Wait 2 seconds to simulate payment authorization
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      const reservationData = {
-        user_id: user?.id || "00000000-0000-0000-0000-000000000000", // Fallback for guest checkout (admin/null user)
-        item_id: item.id,
-        item_name: item.name,
-        item_type: item.type,
-        item_image: item.image || null,
-        guests: 1,
-        total_price: totalPrice,
-        currency: "USD",
-        status: "pending",
-        contact_name: fullName,
-        contact_email: email,
-        contact_phone: phone,
-        check_in: new Date().toISOString(),
-        check_out: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        notes: `Pago con tarjeta terminada en ${cardNumber.substring(cardNumber.length - 4)}.${donationAmount > 0 ? ` Incluye donación de $${donationAmount} USD a Parques Nacionales.` : ""}${insuranceOptIn ? " Incluye Seguro de Cancelación Protegida." : ""} Comisión aplicable: $${commission} USD.`
-      };
-
-      // 1. Save reservation in Supabase
-      const { error } = await supabase.from("reservations").insert(reservationData);
-
-      if (error) {
-        throw new Error(error.message);
+      const idempotencyKey = crypto.randomUUID();
+      let demo = false;
+      
+      if (isRealOperatorListing) {
+        // Llamada autoritativa a la API de Fastify para anuncios reales de operadores
+        await fetchApi("/bookings", {
+          method: "POST",
+          headers: {
+            "Idempotency-Key": idempotencyKey,
+          },
+          body: JSON.stringify({
+            request: {
+              listing_id: item.id,
+              date: bookingDate,
+              adults: adultsCount,
+              children: 0,
+              infants: 0,
+            },
+            contact: {
+              name: fullName.trim(),
+              email: email.trim().toLowerCase(),
+              phone: phone.trim() || undefined,
+            },
+            payment_mode: HAS_BACKEND_SESSION ? "pay_later" : "pay_now",
+            payment_method_token: HAS_BACKEND_SESSION ? undefined : `pm_sim_${cardNumber.replace(/\s/g, "").slice(-4)}`,
+            notes: `${donationAmount > 0 ? `Donación: $${donationAmount} USD. ` : ""}${insuranceOptIn ? "Seguro incluido. " : ""}`,
+          }),
+        }).catch(async (apiError) => {
+          // Con el backend real un fallo es un fallo: no se cobra ni se confirma nada
+          if (HAS_BACKEND_SESSION) throw apiError;
+          demo = true;
+          await supabase.from("reservations").insert({
+            user_id: user?.id || "00000000-0000-0000-0000-000000000000",
+            item_id: item.id,
+            item_name: item.name,
+            item_type: item.type,
+            item_image: item.image || null,
+            guests: adultsCount,
+            total_price: totalPrice,
+            currency: "USD",
+            status: "pending",
+            contact_name: fullName,
+            contact_email: email,
+            contact_phone: phone,
+            check_in: new Date(bookingDate).toISOString(),
+            check_out: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            notes: `Reserva de demostración, sin cobro. ${donationAmount > 0 ? `Donación: $${donationAmount} USD. ` : ""}${insuranceOptIn ? "Seguro incluido." : ""}`,
+          });
+        });
+      } else {
+        // El elemento no es un listing con UUID (es esim, producto de tienda, tarjeta prepago, donación o mock)
+        demo = true;
+        await supabase.from("reservations").insert({
+          user_id: user?.id || "00000000-0000-0000-0000-000000000000",
+          item_id: item.id,
+          item_name: item.name,
+          item_type: item.type,
+          item_image: item.image || null,
+          guests: adultsCount,
+          total_price: totalPrice,
+          currency: "USD",
+          status: "pending",
+          contact_name: fullName,
+          contact_email: email,
+          contact_phone: phone,
+          check_in: new Date(bookingDate).toISOString(),
+          check_out: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          notes: `Solicitud de servicio (${item.type}), sin cobro en pasarela. ${donationAmount > 0 ? `Donación: $${donationAmount} USD. ` : ""}${insuranceOptIn ? "Seguro incluido." : ""}`,
+        }).catch(() => {});
       }
 
+      // Track ambassador sale if referral code is present in session
+      const affiliateRef = localStorage.getItem("affiliate_ref");
+      if (affiliateRef && totalPrice > 0 && !demo) {
+        try {
+          await supabase.rpc("track_ambassador_sale", {
+            ref_code: affiliateRef,
+            purchase_amount: totalPrice,
+            buyer_email: email.trim().toLowerCase(),
+          });
+        } catch {
+          // Silent catch for resilience
+        }
+      }
+
+      setDemoBooking(demo);
       setStep("success");
-      trackEvent("booking_complete", { type: item.type, total: totalPrice });
-      toast.success("¡Pago procesado con éxito!");
+      if (!demo) trackEvent("booking_complete", { type: item.type, total: totalPrice, has_referral: !!affiliateRef });
+      if (demo) {
+        if (!isOperatorType) {
+          toast.success(`Solicitud de ${item.name} registrada (modo demostración / confirmación directa).`);
+        } else {
+          toast.success("Reserva de demostración registrada. No se realizó ningún cobro.");
+        }
+      } else {
+        toast.success("¡Reserva confirmada con el operador con éxito!");
+      }
     } catch (err: any) {
-      toast.error(`Error al procesar el pago: ${err.message || "Por favor intente nuevamente."}`);
+      toast.error(`Error al procesar la reserva: ${err.message || "Por favor intente nuevamente."}`);
       setStep("payment");
     } finally {
       setLoading(false);
@@ -196,7 +274,7 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
           </DialogTitle>
           <DialogDescription>
             {step === "success"
-              ? "Tu pago ha sido procesado. Guarda tu recibo con código QR."
+              ? demoBooking ? "Reserva de demostración: no se realizó ningún cobro." : "Tu pago ha sido procesado. Guarda tu recibo con código QR."
               : "Checkout directo y seguro procesado por Stripe."}
           </DialogDescription>
         </DialogHeader>
@@ -308,6 +386,31 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
                       </div>
                     </label>
                   </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="bookingDate">Fecha deseada</Label>
+                      <Input
+                        id="bookingDate"
+                        type="date"
+                        min={new Date().toISOString().slice(0, 10)}
+                        value={bookingDate}
+                        onChange={(e) => setBookingDate(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="adultsCount">Personas</Label>
+                      <Input
+                        id="adultsCount"
+                        type="number"
+                        min={1}
+                        max={20}
+                        value={adultsCount}
+                        onChange={(e) => setAdultsCount(Math.max(1, parseInt(e.target.value) || 1))}
+                        required
+                      />
+                    </div>
+                  </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="fullName">Nombre Completo</Label>
@@ -350,7 +453,7 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
                 </motion.div>
               )}
 
-              {/* STEP 2: CREDIT CARD PAYMENT */}
+              {/* STEP 2: CONFIRMATION / PAYMENT */}
               {step === "payment" && (
                 <motion.div
                   key="payment"
@@ -360,64 +463,88 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
                   className="space-y-4"
                 >
                   <div className="flex justify-between items-center bg-primary/5 rounded-lg p-3 text-sm border border-primary/10">
-                    <span className="font-medium">Monto a cargar:</span>
+                    <span className="font-medium">Total de la reserva:</span>
                     <span className="font-bold text-primary">${totalPrice} USD</span>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="cardNum">Número de Tarjeta</Label>
-                    <div className="relative">
-                      <Input
-                        id="cardNum"
-                        placeholder="4111 2222 3333 4444"
-                        value={cardNumber}
-                        onChange={handleCardNumberChange}
-                        className="pr-10 font-mono"
-                        required
-                      />
-                      <CreditCard className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
-                    </div>
-                  </div>
+                  {HAS_BACKEND_SESSION ? (
+                    <div className="space-y-4">
+                      <div className="bg-emerald-500/10 border border-emerald-500/25 rounded-xl p-4 text-xs text-emerald-950 dark:text-emerald-200 space-y-1.5">
+                        <p className="font-bold text-sm flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300">
+                          <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Confirmación Directa con el Operador
+                        </p>
+                        <p className="leading-relaxed">
+                          Tu reserva se emitirá directamente en el sistema oficial del destino. La liquidación se realiza al presentarte en el establecimiento o según las políticas del operador, sin requerir datos de tarjeta de crédito en línea.
+                        </p>
+                      </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="expiry">Vencimiento</Label>
-                      <Input
-                        id="expiry"
-                        placeholder="MM/AA"
-                        value={expiry}
-                        onChange={handleExpiryChange}
-                        className="font-mono text-center"
-                        required
-                      />
+                      <div className="flex gap-2 pt-2">
+                        <Button type="button" variant="outline" className="w-1/3" onClick={() => setStep("billing")}>
+                          Atrás
+                        </Button>
+                        <Button type="submit" className="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white">
+                          Confirmar Reserva
+                        </Button>
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="cvc">CVC</Label>
-                      <Input
-                        id="cvc"
-                        placeholder="123"
-                        type="password"
-                        value={cvc}
-                        onChange={handleCvcChange}
-                        className="font-mono text-center"
-                        required
-                      />
-                    </div>
-                  </div>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="cardNum">Número de Tarjeta (Modo Demostración)</Label>
+                        <div className="relative">
+                          <Input
+                            id="cardNum"
+                            placeholder="4111 2222 3333 4444"
+                            value={cardNumber}
+                            onChange={handleCardNumberChange}
+                            className="pr-10 font-mono"
+                            required
+                          />
+                          <CreditCard className="absolute right-3 top-3 h-4 w-4 text-muted-foreground" />
+                        </div>
+                      </div>
 
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted p-3 rounded-lg mt-2">
-                    <ShieldCheck className="h-5 w-5 text-emerald-500 flex-shrink-0" />
-                    <span>Tus datos de pago están cifrados de extremo a extremo. Cumple con la normativa PCI-DSS.</span>
-                  </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="expiry">Vencimiento</Label>
+                          <Input
+                            id="expiry"
+                            placeholder="MM/AA"
+                            value={expiry}
+                            onChange={handleExpiryChange}
+                            className="font-mono text-center"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="cvc">CVC</Label>
+                          <Input
+                            id="cvc"
+                            placeholder="123"
+                            type="password"
+                            value={cvc}
+                            onChange={handleCvcChange}
+                            className="font-mono text-center"
+                            required
+                          />
+                        </div>
+                      </div>
 
-                  <div className="flex gap-2 pt-2">
-                    <Button type="button" variant="outline" className="w-1/3" onClick={() => setStep("billing")}>
-                      Atrás
-                    </Button>
-                    <Button type="submit" className="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white">
-                      Pagar Ahora
-                    </Button>
-                  </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted p-3 rounded-lg mt-2">
+                        <ShieldCheck className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+                        <span>Demostración local. No se realizará ningún cargo real.</span>
+                      </div>
+
+                      <div className="flex gap-2 pt-2">
+                        <Button type="button" variant="outline" className="w-1/3" onClick={() => setStep("billing")}>
+                          Atrás
+                        </Button>
+                        <Button type="submit" className="w-2/3 bg-emerald-600 hover:bg-emerald-700 text-white">
+                          Confirmar Demo
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </motion.div>
               )}
 

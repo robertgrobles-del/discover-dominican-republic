@@ -1,10 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { adminDashboardApi, type AdminRecentArticle, type AdminRecentReview } from "@/lib/adminDashboardApi";
+import { adminListEntities } from "@/lib/adminApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Hotel, UtensilsCrossed, MapPin, Waves, Calendar, Users,
-  Eye, TrendingUp, Star, FileText, ShoppingBag, MessageCircle
+  Star, FileText, ShoppingBag, MessageCircle, AlertTriangle,
+  ShieldCheck, MessageSquare, HelpCircle
 } from "lucide-react";
 
 interface StatCard {
@@ -15,9 +19,39 @@ interface StatCard {
 }
 
 export function AdminDashboard() {
+  const { data: dashboardData } = useQuery({
+    queryKey: ["admin-dashboard-kpis"],
+    queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        return await adminDashboardApi.getDashboard();
+      }
+      return null;
+    },
+    staleTime: 60_000,
+    enabled: HAS_BACKEND_SESSION,
+  });
+
   const { data: stats } = useQuery({
     queryKey: ["admin-dashboard-stats"],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        const d = dashboardData ?? (await adminDashboardApi.getDashboard());
+        const c = d?.content || {};
+        const t = (d?.totals || {}) as Record<string, number>;
+        return {
+          destinations: c["destinations"]?.published ?? c["destinations"]?.active ?? 0,
+          hotels: c["hotels"]?.published ?? c["hotels"]?.active ?? 0,
+          restaurants: c["restaurants"]?.published ?? c["restaurants"]?.active ?? 0,
+          beaches: c["beaches"]?.published ?? c["beaches"]?.active ?? 0,
+          events: c["events"]?.published ?? c["events"]?.active ?? 0,
+          articles: c["articles"]?.published ?? c["articles"]?.active ?? 0,
+          reviews: t.reviews ?? 0,
+          posts: t.posts ?? 0,
+          users: d?.users?.active ?? 0,
+          banners: t.banners ?? 0,
+        };
+      }
+
       const counts = await Promise.all([
         supabase.from("destinations").select("id", { count: "exact", head: true }),
         supabase.from("hotels").select("id", { count: "exact", head: true }).eq("is_active", true),
@@ -32,16 +66,16 @@ export function AdminDashboard() {
       ]);
 
       return {
-        destinations: counts[0].count || 0,
-        hotels: counts[1].count || 0,
-        restaurants: counts[2].count || 0,
-        beaches: counts[3].count || 0,
-        events: counts[4].count || 0,
-        articles: counts[5].count || 0,
-        reviews: counts[6].count || 0,
-        posts: counts[7].count || 0,
-        users: counts[8].count || 0,
-        banners: counts[9].count || 0,
+        destinations: counts[0].count ?? 0,
+        hotels: counts[1].count ?? 0,
+        restaurants: counts[2].count ?? 0,
+        beaches: counts[3].count ?? 0,
+        events: counts[4].count ?? 0,
+        articles: counts[5].count ?? 0,
+        reviews: counts[6].count ?? 0,
+        posts: counts[7].count ?? 0,
+        users: counts[8].count ?? 0,
+        banners: counts[9].count ?? 0,
       };
     },
     staleTime: 60_000,
@@ -50,6 +84,16 @@ export function AdminDashboard() {
   const { data: lowStockItems } = useQuery({
     queryKey: ["admin-low-stock-alert"],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        const res = await adminListEntities<{ id: string; title: string; stock_quantity?: number; stock?: number }>("reward_inventory", { limit: 50 });
+        return (res.data || [])
+          .map((r) => ({
+            id: r.id,
+            title: r.title,
+            stock_quantity: r.stock_quantity ?? r.stock ?? 0,
+          }))
+          .filter((r) => r.stock_quantity <= 5);
+      }
       const { data } = await (supabase as any)
         .from("reward_inventory")
         .select("id, title, stock_quantity")
@@ -64,6 +108,9 @@ export function AdminDashboard() {
   const { data: recentReviews } = useQuery({
     queryKey: ["admin-recent-reviews"],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        return await adminDashboardApi.getPendingReviews(5);
+      }
       const { data } = await supabase.from("reviews").select("*").order("created_at", { ascending: false }).limit(5);
       return data || [];
     },
@@ -72,6 +119,9 @@ export function AdminDashboard() {
   const { data: recentArticles } = useQuery({
     queryKey: ["admin-recent-articles"],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        return await adminDashboardApi.getRecentArticles(5);
+      }
       const { data } = await supabase.from("articles").select("id, title, is_published, created_at, category").order("created_at", { ascending: false }).limit(5);
       return data || [];
     },
@@ -84,10 +134,10 @@ export function AdminDashboard() {
     { label: "Playas", value: stats?.beaches || 0, icon: Waves, color: "text-cyan-500" },
     { label: "Eventos", value: stats?.events || 0, icon: Calendar, color: "text-purple-500" },
     { label: "Artículos", value: stats?.articles || 0, icon: FileText, color: "text-blue-500" },
-    { label: "Reseñas", value: stats?.reviews || 0, icon: Star, color: "text-yellow-500" },
-    { label: "Posts Social", value: stats?.posts || 0, icon: MessageCircle, color: "text-pink-500" },
+    { label: "Reseñas", value: HAS_BACKEND_SESSION ? (dashboardData?.totals?.reviews ?? 0) : (stats?.reviews || 0), icon: Star, color: "text-yellow-500" },
+    { label: "Posts Social", value: HAS_BACKEND_SESSION ? (dashboardData?.totals?.posts ?? 0) : (stats?.posts || 0), icon: MessageCircle, color: "text-pink-500" },
     { label: "Usuarios", value: stats?.users || 0, icon: Users, color: "text-teal-500" },
-    { label: "Banners", value: stats?.banners || 0, icon: ShoppingBag, color: "text-orange-500" },
+    { label: "Banners Activos", value: HAS_BACKEND_SESSION ? (dashboardData?.totals?.banners ?? 0) : (stats?.banners || 0), icon: ShoppingBag, color: "text-orange-500" },
   ];
 
   return (
@@ -105,8 +155,70 @@ export function AdminDashboard() {
         ))}
       </div>
 
+      {/* Alertas de Moderación y Operaciones Pendientes (GET /admin/dashboard) */}
+      {HAS_BACKEND_SESSION && dashboardData?.pending && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <Card className="border-amber-500/30 bg-amber-500/5">
+            <CardContent className="p-3.5 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Star className="h-5 w-5 text-amber-500" />
+                <div>
+                  <p className="text-xs font-semibold">Reseñas Pendientes</p>
+                  <p className="text-[11px] text-muted-foreground">Esperando moderación</p>
+                </div>
+              </div>
+              <Badge variant={dashboardData.pending.reviews > 0 ? "destructive" : "secondary"}>
+                {dashboardData.pending.reviews}
+              </Badge>
+            </CardContent>
+          </Card>
+          <Card className="border-rose-500/30 bg-rose-500/5">
+            <CardContent className="p-3.5 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <AlertTriangle className="h-5 w-5 text-rose-500" />
+                <div>
+                  <p className="text-xs font-semibold">Reportes UGC</p>
+                  <p className="text-[11px] text-muted-foreground">Contenido reportado</p>
+                </div>
+              </div>
+              <Badge variant={dashboardData.pending.ugc_reports > 0 ? "destructive" : "secondary"}>
+                {dashboardData.pending.ugc_reports}
+              </Badge>
+            </CardContent>
+          </Card>
+          <Card className="border-blue-500/30 bg-blue-500/5">
+            <CardContent className="p-3.5 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <HelpCircle className="h-5 w-5 text-blue-500" />
+                <div>
+                  <p className="text-xs font-semibold">Tickets de Soporte</p>
+                  <p className="text-[11px] text-muted-foreground">Casos abiertos</p>
+                </div>
+              </div>
+              <Badge variant={dashboardData.pending.support_tickets > 0 ? "default" : "secondary"}>
+                {dashboardData.pending.support_tickets}
+              </Badge>
+            </CardContent>
+          </Card>
+          <Card className="border-emerald-500/30 bg-emerald-500/5">
+            <CardContent className="p-3.5 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="h-5 w-5 text-emerald-500" />
+                <div>
+                  <p className="text-xs font-semibold">Operadores por Verificar</p>
+                  <p className="text-[11px] text-muted-foreground">Solicitudes de alta</p>
+                </div>
+              </div>
+              <Badge variant={dashboardData.pending.operators_to_verify > 0 ? "default" : "secondary"}>
+                {dashboardData.pending.operators_to_verify}
+              </Badge>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Critical Stock Alert Banner */}
-      {lowStockItems && lowStockItems.length > 0 && (
+      {((HAS_BACKEND_SESSION && (dashboardData?.totals?.low_stock_rewards ?? 0) > 0) || (!HAS_BACKEND_SESSION && lowStockItems && lowStockItems.length > 0)) && (
         <Card className="border-amber-500/40 bg-amber-500/10">
           <CardContent className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -114,9 +226,12 @@ export function AdminDashboard() {
                 <ShoppingBag className="h-5 w-5" />
               </div>
               <div>
-                <p className="font-semibold text-sm text-foreground">Alerta de Stock Crítico en Recompensas (&le; 5 unidades)</p>
+                <p className="font-semibold text-sm text-foreground">Alerta de Stock Crítico en Recompensas</p>
                 <p className="text-xs text-muted-foreground">
-                  {lowStockItems.map((item: any) => `${item.title} (${item.stock_quantity} disp.)`).join(" • ")}
+                  {HAS_BACKEND_SESSION 
+                    ? `${dashboardData?.totals?.low_stock_rewards} ítems del inventario están en su nivel mínimo o agotados.`
+                    : lowStockItems.map((item: any) => `${item.title} (${item.stock_quantity} disp.)`).join(" • ")
+                  }
                 </p>
               </div>
             </div>
@@ -138,7 +253,7 @@ export function AdminDashboard() {
           </CardHeader>
           <CardContent className="space-y-3">
             {recentReviews?.length === 0 && <p className="text-sm text-muted-foreground">Sin reseñas aún</p>}
-            {recentReviews?.map((r: any) => (
+            {recentReviews?.map((r: AdminRecentReview) => (
               <div key={r.id} className="flex items-start gap-2 text-sm">
                 <div className="flex gap-0.5 shrink-0 mt-0.5">
                   {Array.from({ length: r.rating }, (_, i) => (
@@ -146,8 +261,8 @@ export function AdminDashboard() {
                   ))}
                 </div>
                 <div className="min-w-0">
-                  <p className="font-medium truncate">{r.title}</p>
-                  <p className="text-xs text-muted-foreground">por {r.author_name} · {r.category}</p>
+                  <p className="font-medium truncate">{r.title || "Reseña de usuario"}</p>
+                  <p className="text-xs text-muted-foreground">por {r.author_name || "Viajero"} · {r.target_type}</p>
                 </div>
               </div>
             ))}
@@ -163,17 +278,20 @@ export function AdminDashboard() {
           </CardHeader>
           <CardContent className="space-y-3">
             {recentArticles?.length === 0 && <p className="text-sm text-muted-foreground">Sin artículos aún</p>}
-            {recentArticles?.map((a: any) => (
-              <div key={a.id} className="flex items-center justify-between text-sm">
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium truncate">{a.title}</p>
-                  <p className="text-xs text-muted-foreground">{a.category}</p>
+            {recentArticles?.map((a: AdminRecentArticle & { is_published?: boolean }) => {
+              const isPub = a.status === "published" || Boolean(a.is_published);
+              return (
+                <div key={a.id} className="flex items-center justify-between text-sm">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium truncate">{a.title}</p>
+                    <p className="text-xs text-muted-foreground">{a.category || "Editorial"}</p>
+                  </div>
+                  <Badge variant={isPub ? "default" : "secondary"} className="text-[10px] shrink-0">
+                    {isPub ? "Publicado" : "Borrador"}
+                  </Badge>
                 </div>
-                <Badge variant={a.is_published ? "default" : "secondary"} className="text-[10px] shrink-0">
-                  {a.is_published ? "Publicado" : "Borrador"}
-                </Badge>
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
       </div>

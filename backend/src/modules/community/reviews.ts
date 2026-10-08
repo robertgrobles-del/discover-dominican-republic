@@ -93,10 +93,23 @@ export async function reviewRoutes(app: FastifyInstance) {
 
   r.post("/reviews", {
     onRequest: app.authenticate, config: rl(20, "1 hour"),
-    schema: { tags: ["reseñas"], summary: "Deja una reseña (una por entidad; pasa por moderación automática)", security: bearer, body: reviewBody.extend({ entity_type: z.enum(TYPES), entity_id: z.string().uuid() }), response: { 201: ok } },
+    schema: { tags: ["reseñas"], summary: "Deja una reseña (una por entidad; pasa por moderación automática)", security: bearer, body: reviewBody.extend({ entity_type: z.enum(TYPES), entity_id: z.string().trim().min(1).max(120) }), response: { 201: ok } },
   }, async (req, reply) => {
     const b = req.body;
-    if (!(await entityExists(b.entity_type, b.entity_id))) throw AppError.notFound("Lugar o servicio");
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(b.entity_id);
+    let resolvedId: string | null = null;
+    if (isUuid) {
+      if (await entityExists(b.entity_type, b.entity_id)) resolvedId = b.entity_id;
+    } else {
+      const def = REVIEWABLE.get(b.entity_type);
+      if (def) {
+        const cols = manifest[def.table] ?? {};
+        const extra = [cols.status ? "status = 'published'" : "", cols.deleted_at ? "deleted_at IS NULL" : "", def.visible ?? ""].filter(Boolean).join(" AND ");
+        const r = await db.query<{ id: string }>(`SELECT id FROM "${def.table}" WHERE slug = $1${extra ? ` AND ${extra}` : ""}`, [b.entity_id]);
+        if (r.rowCount) resolvedId = r.rows[0]!.id;
+      }
+    }
+    if (!resolvedId) throw AppError.notFound("Lugar o servicio");
     const verified = !!(await db.query("SELECT 1 FROM users WHERE id = $1 AND email_verified_at IS NOT NULL", [req.user!.id])).rowCount;
     const reasons = screenReview(`${b.title ?? ""} ${b.comment ?? ""}`);
     if (!verified) reasons.push("email_not_verified");
@@ -104,7 +117,7 @@ export async function reviewRoutes(app: FastifyInstance) {
     try {
       const row = (await db.query<{ id: string }>(
         `INSERT INTO reviews (user_id, entity_type, entity_id, rating, title, comment, visit_date, status, is_approved, moderation_note) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`,
-        [req.user!.id, b.entity_type, b.entity_id, b.rating, b.title ?? null, b.comment ?? null, b.visit_date ?? null, status, status === "approved", reasons.join(",") || null],
+        [req.user!.id, b.entity_type, resolvedId, b.rating, b.title ?? null, b.comment ?? null, b.visit_date ?? null, status, status === "approved", reasons.join(",") || null],
       )).rows[0]!;
       if (status === "approved") { await refresh(b.entity_type, b.entity_id); await app.game.safeGrant({ userId: req.user!.id, action: "review_created", ref: row.id, description: "Reseña publicada" }, req.log); }
       reply.code(201);

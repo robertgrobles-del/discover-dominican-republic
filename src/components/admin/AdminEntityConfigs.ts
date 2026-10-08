@@ -39,10 +39,13 @@ import {
   Ticket,
   Droplet,
   Star,
+  Plane,
+  HelpCircle,
 } from "lucide-react";
 
 export type EntityType = 
   | 'provinces' 
+  | 'airports' 
   | 'destinations' 
   | 'hotels' 
   | 'restaurants' 
@@ -117,7 +120,9 @@ export type EntityType =
   | 'hot_springs'
   | 'offset_projects'
   | 'toll_routes'
-  | 'marine_reports';
+  | 'marine_reports'
+  | 'articles'
+  | 'trivia_questions';
 
 export interface EntityConfig {
   name: string;
@@ -139,21 +144,21 @@ export const entityConfigs: Record<EntityType, EntityConfig> = {
     name: "Destinos",
     icon: React.createElement(Map, { className: "h-5 w-5" }),
     description: "Destinos turísticos",
-    fields: ["name", "slug", "province_id", "description", "short_description", "image_url", "gallery", "highlights", "typical_dishes", "latitude", "longitude", "weather_info", "best_time_to_visit", "how_to_get_there"],
+    fields: ["name", "slug", "province_id", "description", "short_description", "image_url", "gallery", "highlights", "typical_dishes", "latitude", "longitude", "weather_info", "best_time_to_visit", "how_to_get_there", "altitude_m", "hidden_gems", "itineraries", "seasonal_highlights", "transit_options", "narrative_quote", "narrative_author", "local_story", "curated_gallery", "day_timeline", "quick_facts"],
     requiredFields: ["name"]
   },
   hotels: {
     name: "Hoteles",
     icon: React.createElement(Hotel, { className: "h-5 w-5" }),
     description: "Alojamientos y resorts",
-    fields: ["name", "slug", "destination_id", "category", "stars", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "price_range", "amenities", "latitude", "longitude", "rating", "is_featured"],
+    fields: ["name", "slug", "destination_id", "category", "stars", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "price_range", "amenities", "latitude", "longitude", "rating", "is_featured", "tour_360_url", "whatsapp_phone", "direct_booking_url", "room_types", "guest_timeline", "eco_guidelines"],
     requiredFields: ["name"]
   },
   restaurants: {
     name: "Restaurantes",
     icon: React.createElement(UtensilsCrossed, { className: "h-5 w-5" }),
     description: "Restaurantes y gastronomía",
-    fields: ["name", "slug", "destination_id", "category", "cuisine_type", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "price_range", "opening_hours", "services", "signature_dishes", "latitude", "longitude", "rating", "is_featured"],
+    fields: ["name", "slug", "destination_id", "category", "cuisine_type", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "price_range", "opening_hours", "services", "signature_dishes", "latitude", "longitude", "rating", "is_featured", "menu_highlights", "dietary_options", "chef_recommendations", "reservation_phone"],
     requiredFields: ["name"]
   },
   bars: {
@@ -272,7 +277,7 @@ export const entityConfigs: Record<EntityType, EntityConfig> = {
     name: "Banners Publicitarios",
     icon: React.createElement(Image, { className: "h-5 w-5" }),
     description: "Gestión de banners y publicidad",
-    fields: ["name", "slug", "image_url", "alt_text", "target_url", "headline", "subtext", "cta_text", "sponsor", "banner_type", "placement", "section", "page", "start_date", "end_date", "priority", "is_active", "is_featured"],
+    fields: ["name", "slug", "image_url", "alt_text", "target_url", "headline", "subtext", "cta_text", "sponsor", "banner_type", "placement", "section", "page", "start_date", "end_date", "priority", "is_active", "is_featured", "sponsorship_scope", "is_takeover", "utm_campaign", "utm_source", "utm_medium", "utm_content", "target_section", "target_page"],
     requiredFields: ["name", "banner_type", "placement"]
   },
   historical_figures: {
@@ -659,6 +664,27 @@ export const entityConfigs: Record<EntityType, EntityConfig> = {
     description: "Condiciones de oleaje y viento para deportes acuáticos",
     fields: ["location", "wind_speed", "wind_direction", "wave_height", "wave_period", "water_temp", "condition_rating", "recommendation"],
     requiredFields: ["location", "wind_speed", "wave_height", "condition_rating"]
+  },
+  airports: {
+    name: "Aeropuertos",
+    icon: React.createElement(Plane, { className: "h-5 w-5" }),
+    description: "Aeropuertos y terminales aéreas internacionales",
+    fields: ["name", "slug", "code", "icao", "city", "province_id", "airport_type", "short_description", "description", "image_url", "gallery", "latitude", "longitude", "phone", "website", "rating", "is_featured", "daily_flights_count", "eticket_guide_url", "terminals", "airlines", "services", "transportation"],
+    requiredFields: ["name", "code"]
+  },
+  articles: {
+    name: "Editorial & Magazine (Artículos)",
+    icon: React.createElement(BookOpen, { className: "h-5 w-5" }),
+    description: "Gestión unificada de noticias, reportajes, magazine, PR y notas de blog",
+    fields: ["title", "slug", "publication_type", "category", "excerpt", "content", "image_url", "author_name", "author_role", "read_time_min", "is_featured", "is_trending", "is_published", "published_at", "tags", "press_partner_name", "press_source_url"],
+    requiredFields: ["title"]
+  },
+  trivia_questions: {
+    name: "Preguntas de Trivia Turística",
+    icon: React.createElement(HelpCircle, { className: "h-5 w-5" }),
+    description: "Banco interactivo de preguntas y respuestas culturales sobre RD",
+    fields: ["question", "category", "difficulty", "correct_index", "xp_reward", "explanation", "options", "image_url", "is_active"],
+    requiredFields: ["question", "options", "correct_index"]
   }
 };
 
@@ -669,6 +695,12 @@ export const fieldTypeMap: Record<string, 'text' | 'textarea' | 'number' | 'bool
   slug: 'text',
   description: 'textarea',
   short_description: 'textarea',
+  narrative_quote: 'textarea',
+  narrative_author: 'text',
+  local_story: 'textarea',
+  curated_gallery: 'array',
+  day_timeline: 'array',
+  quick_facts: 'array',
   image_url: 'url',
   gallery: 'array',
   address: 'text',
@@ -963,10 +995,18 @@ export const fieldTypeMap: Record<string, 'text' | 'textarea' | 'number' | 'bool
   wave_period: 'number',
   water_temp: 'number',
   condition_rating: 'text',
-  recommendation: 'textarea'
+  recommendation: 'textarea',
+  question: 'text',
+  options: 'array',
+  correct_index: 'number',
+  explanation: 'textarea'
 };
 
 export const labelMap: Record<string, string> = {
+  question: 'Pregunta',
+  options: 'Opciones de respuesta (Array)',
+  correct_index: 'Índice de la respuesta correcta (0, 1, 2...)',
+  explanation: 'Explicación didáctica',
   id: 'ID de Fila / Usuario',
   name: 'Nombre',
   slug: 'Slug (URL)',
@@ -1293,7 +1333,19 @@ export const labelMap: Record<string, string> = {
   wave_period: 'Período de Olas (Segundos)',
   water_temp: 'Temperatura del Agua (°C)',
   condition_rating: 'Calificación de Condiciones',
-  recommendation: 'Recomendación Deportiva'
+  recommendation: 'Recomendación Deportiva',
+  narrative_quote: 'Cita Narrativa / Esencia del Destino',
+  narrative_author: 'Autor de la Cita / Viajero Local',
+  local_story: 'Relato del Destino / Historia Viva',
+  curated_gallery: 'Galería Curada Bento (JSON)',
+  day_timeline: 'Itinerario de 1 Día Bento (JSON)',
+  quick_facts: 'Datos Rápidos e Insignias (JSON)',
+  publication_type: 'Tipo de Publicación (Magazine/Noticia/Prensa/Blog/Reportaje)',
+  read_time_min: 'Tiempo de Lectura (Minutos)',
+  is_trending: '¿Es Tendencia Destacada?',
+  press_partner_name: 'Institución / Aliado PR',
+  press_contact_email: 'Email de Contacto de Prensa',
+  press_source_url: 'Enlace Oficial a Fuente / Nota'
 };
 
 // Configuración de campos para el formulario CRUD
@@ -1304,6 +1356,6 @@ export const getFieldsConfig = (entity: EntityType) => {
     label: labelMap[field] || field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
     type: fieldTypeMap[field] || 'text',
     required: config.requiredFields.includes(field),
-    showInList: ['rating', 'category', 'price_range', 'is_featured', 'status', 'tipo_establecimiento', 'responsable', 'company_name', 'placement', 'job_type', 'era', 'key', 'email', 'title', 'level_number', 'referral_code', 'location', 'scientific_name'].includes(field)
+    showInList: ['rating', 'category', 'price_range', 'is_featured', 'status', 'tipo_establecimiento', 'responsable', 'company_name', 'placement', 'job_type', 'era', 'key', 'email', 'title', 'level_number', 'referral_code', 'location', 'scientific_name', 'question', 'difficulty'].includes(field)
   }));
 };

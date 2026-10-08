@@ -156,7 +156,7 @@ services:
   # Buzón de pruebas: los correos salen a http://localhost:8025 y nunca a destinatarios reales.
   mailpit:
     image: axllent/mailpit:latest
-    ports: ["1025:1025", "8025:8025"]
+    ports: ["1025:1025", "8026:8025"]
 
 volumes:
   pgdata:

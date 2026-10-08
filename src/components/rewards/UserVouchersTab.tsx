@@ -4,15 +4,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import type { RedeemedVoucher } from "@/data/rewardsData";
+import type { UserRewardShipment } from "@/lib/gamificationApi";
+import { Package, Truck, CheckCircle } from "lucide-react";
 
 interface UserVouchersTabProps {
   vouchers: RedeemedVoucher[];
+  shipments?: UserRewardShipment[];
   onOpenQR: (voucher: RedeemedVoucher) => void;
   onExploreCatalog: () => void;
 }
 
 export const UserVouchersTab: React.FC<UserVouchersTabProps> = ({
   vouchers,
+  shipments = [],
   onOpenQR,
   onExploreCatalog,
 }) => {
@@ -122,6 +126,44 @@ export const UserVouchersTab: React.FC<UserVouchersTabProps> = ({
           </div>
         )}
       </div>
+
+      {shipments.length > 0 && (
+        <div className="space-y-4 pt-4 border-t border-border/60">
+          <h4 className="font-display text-base font-bold text-foreground flex items-center gap-2">
+            <Truck className="h-4 w-4 text-primary" /> Envíos de Premios Físicos ({shipments.length})
+          </h4>
+          <div className="grid md:grid-cols-2 gap-4">
+            {shipments.map((s) => (
+              <div key={s.id} className="p-4 rounded-2xl bg-card border border-border/70 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-sm text-foreground flex items-center gap-1.5">
+                    <Package className="h-4 w-4 text-muted-foreground" /> {s.prize || "Premio Físico"}
+                  </span>
+                  <Badge className={
+                    s.status === "delivered" ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" :
+                    s.status === "shipped" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" :
+                    s.status === "packed" ? "bg-amber-500/15 text-amber-600 dark:text-amber-400" :
+                    "bg-muted text-muted-foreground"
+                  }>
+                    {s.status === "delivered" ? "Entregado" :
+                     s.status === "shipped" ? "En camino" :
+                     s.status === "packed" ? "Empacado" : "Pendiente"}
+                  </Badge>
+                </div>
+                {s.courier_name && (
+                  <p className="text-xs text-muted-foreground">
+                    Transporte: <span className="font-medium text-foreground">{s.courier_name}</span>
+                    {s.tracking_number && ` — Guía: ${s.tracking_number}`}
+                  </p>
+                )}
+                <p className="text-[10px] text-muted-foreground">
+                  Solicitado: {new Date(s.created_at).toLocaleDateString("es-DO")}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

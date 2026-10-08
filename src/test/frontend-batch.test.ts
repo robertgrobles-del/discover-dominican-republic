@@ -35,14 +35,14 @@ describe("precarga de rutas (mejoras 95 y 128)", () => {
   it("precarga una ruta principal una sola vez y ignora las desconocidas", async () => {
     const { prefetchRoute } = await import("@/lib/routePrefetch");
     expect(prefetchRoute("/ruta-que-no-existe")).toBe(false);
-    expect(prefetchRoute("/blog")).toBe(true);
-    expect(prefetchRoute("/blog")).toBe(false);
+    expect(prefetchRoute("/revista")).toBe(true);
+    expect(prefetchRoute("/revista")).toBe(false);
   });
 
   it("no adelanta descargas con ahorro de datos", async () => {
     vi.stubGlobal("navigator", { ...navigator, connection: { saveData: true } });
     const { prefetchRoute } = await import("@/lib/routePrefetch");
-    expect(prefetchRoute("/blog")).toBe(false);
+    expect(prefetchRoute("/revista")).toBe(false);
     vi.unstubAllGlobals();
   });
 

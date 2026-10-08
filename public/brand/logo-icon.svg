@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Turquoise Caribbean Gradient -->
+    <linearGradient id="caribbeanGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E5FF" />
+      <stop offset="100%" stop-color="#00A3C4" />
+    </linearGradient>
+
+    <!-- Coral Sunset Gradient -->
+    <linearGradient id="coralSun" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF7A59" />
+      <stop offset="100%" stop-color="#FF5238" />
+    </linearGradient>
+
+    <!-- Golden Sand Accent -->
+    <linearGradient id="goldenSand" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D" />
+      <stop offset="100%" stop-color="#F59E0B" />
+    </linearGradient>
+
+    <!-- Subtle Glow Filter -->
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Outer Compass Ring (Subtle Guide) -->
+  <circle cx="60" cy="60" r="48" stroke="#00E5FF" stroke-width="1.5" stroke-opacity="0.3" stroke-dasharray="2 4" />
+
+  <!-- Diagonal Compass Points (NW, NE, SE, SW) -->
+  <path d="M60 60 L40 40 L60 48 L60 60 Z" fill="#00E5FF" fill-opacity="0.6" />
+  <path d="M60 60 L80 40 L60 48 L60 60 Z" fill="#00E5FF" fill-opacity="0.35" />
+  
+  <path d="M60 60 L80 80 L60 72 L60 60 Z" fill="#00E5FF" fill-opacity="0.6" />
+  <path d="M60 60 L40 80 L60 72 L60 60 Z" fill="#00E5FF" fill-opacity="0.35" />
+
+  <!-- Cardinal Compass Points (N, S, E, W) -->
+  <!-- North Point (Pointing Up) -->
+  <polygon points="60,6 66,45 60,40" fill="#00E5FF" filter="url(#softGlow)" />
+  <polygon points="60,6 54,45 60,40" fill="#00A3C4" />
+
+  <!-- South Point (Pointing Down) -->
+  <polygon points="60,114 66,75 60,80" fill="#00A3C4" />
+  <polygon points="60,114 54,75 60,80" fill="#00E5FF" filter="url(#softGlow)" />
+
+  <!-- East Point (Pointing Right) -->
+  <polygon points="114,60 75,66 80,60" fill="#00E5FF" filter="url(#softGlow)" />
+  <polygon points="114,60 75,54 80,60" fill="#00A3C4" />
+
+  <!-- West Point (Pointing Left) -->
+  <polygon points="6,60 45,66 40,60" fill="#00A3C4" />
+  <polygon points="6,60 45,54 40,60" fill="#00E5FF" filter="url(#softGlow)" />
+
+  <!-- Central Ring Housing -->
+  <circle cx="60" cy="60" r="29" fill="#0B1317" stroke="#00E5FF" stroke-width="2.5" />
+
+  <!-- Solar Corona Rays / Taíno Sun Arc (Upper Half) -->
+  <g id="sunCorona">
+    <!-- Sun Ray Teeth -->
+    <path d="M43 45 L40 38 L47 42 Z" fill="url(#coralSun)" />
+    <path d="M52 38 L51 31 L57 37 Z" fill="url(#coralSun)" />
+    <path d="M60 36 L60 29 L64 36 Z" fill="url(#goldenSand)" />
+    <path d="M68 38 L72 31 L71 39 Z" fill="url(#coralSun)" />
+    <path d="M77 45 L83 39 L78 47 Z" fill="url(#coralSun)" />
+    <!-- Sun Half Disc Ring -->
+    <path d="M37 57 A24 24 0 0 1 83 57" fill="none" stroke="url(#coralSun)" stroke-width="4.5" stroke-linecap="round" />
+  </g>
+
+  <!-- Dynamic Caribbean Wave (Lower Half & Flow) -->
+  <!-- Back wave depth -->
+  <path d="M36 60 Q 48 50, 60 62 T 84 58 C 84 72, 72 84, 60 84 C 48 84, 37 73, 36 60 Z" fill="#007791" fill-opacity="0.4" />
+
+  <!-- Crest Wave (Main Turquoise) -->
+  <path d="M35 63 C 44 52, 53 54, 62 65 C 69 74, 76 72, 85 62 C 84 75, 73 85, 60 85 C 47 85, 36 75, 35 63 Z" fill="url(#caribbeanGlow)" />
+
+  <!-- Wave Accent Foam Line -->
+  <path d="M35 64 Q 48 53, 61 66 T 84 62" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-opacity="0.9" />
+
+  <!-- Central Navigator Star Core -->
+  <circle cx="60" cy="60" r="3" fill="#FFFFFF" filter="url(#softGlow)" />
+</svg>

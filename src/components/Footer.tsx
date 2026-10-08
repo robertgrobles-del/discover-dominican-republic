@@ -1,4 +1,4 @@
-﻿import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { 
   Instagram, Facebook, Twitter, Youtube, Mail, 
   MapPin, Phone, Shield, Heart,
@@ -92,10 +92,11 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
         { name: "Tienda oficial", href: "/tienda" },
         { name: "Programa de Creadores", href: "/creadores" },
         { name: "Gamificación & Premios", href: "/gamificacion-turistica" },
-        { name: t("footer.press"), href: "/prensa" },
+        { name: "Sala de Prensa (PR)", href: "/revista?canal=prensa" },
         { name: "Boletín institucional", href: "/newsletter-subscribe" },
         { name: "Estadisticas turisticas", href: "/estadisticas" },
         { name: "Inversión Turística", href: "/inversion" },
+        { name: "Panel de Administración", href: "/admin" },
         { name: t("footer.privacy"), href: "/terminos" },
         { name: t("footer.terms"), href: "/terminos" },
         { name: t("footer.contact"), href: "/sobre-nosotros#contacto" },
@@ -104,7 +105,9 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
     editorial: {
       title: "Revista, cultura y comunidad",
       links: [
-        { name: "Revista y artículos", href: "/revista" },
+        { name: "Revista y Magazine RD", href: "/revista" },
+        { name: "Blog de Viajes y Rutas", href: "/revista?canal=experiencias" },
+        { name: "Noticias del Sector", href: "/revista?canal=noticias" },
         { name: "Podcast y cine RD", href: "/podcast" },
         { name: "Historia y patrimonio", href: "/museos-monumentos" },
         { name: "Sabores y oficios", href: "/rutas-sabor" },

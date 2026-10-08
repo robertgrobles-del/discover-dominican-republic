@@ -17,9 +17,9 @@ const CULTURAL_CATEGORIES = [
     icon: "🏛️",
     desc: "Visita sitios declarados patrimonio y deja reseñas",
     actions: [
-      { label: "Ver museos y monumentos", href: "/cultura", xp: 25 },
+      { label: "Ver museos y monumentos", href: "/museos-monumentos", xp: 25 },
       { label: "Zona Colonial", href: "/destino/zona-colonial", xp: 30 },
-      { label: "Fortaleza Ozama", href: "/destinos", xp: 30 },
+      { label: "Fortaleza Ozama", href: "/patrimonio", xp: 30 },
     ],
   },
   {

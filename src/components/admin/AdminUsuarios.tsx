@@ -2,6 +2,8 @@ import { useState, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { adjustAdminUserXp, listAdminUserTransactions, listAdminUsers, setAdminUserRole, setAdminUserSuspended } from "@/lib/adminUsersApi";
 import {
   Users, Search, Shield, Crown, Zap, Flame, ChevronDown,
   Ban, CheckCircle2, Plus, Minus, ArrowUpDown, Eye, X,
@@ -80,6 +82,14 @@ export function AdminUsuarios() {
   const { data: users = [], isLoading } = useQuery<AdminUser[]>({
     queryKey: ["admin-users", sortBy, sortDir],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        const rows = await listAdminUsers();
+        const dir = sortDir === "asc" ? 1 : -1;
+        return rows.sort((a, b) => {
+          const x = a[sortBy] ?? "", y = b[sortBy] ?? "";
+          return (x < y ? -1 : x > y ? 1 : 0) * dir;
+        });
+      }
       const { data, error } = await supabase
         .from("user_admin_view" as any)
         .select("*")
@@ -95,6 +105,7 @@ export function AdminUsuarios() {
     queryKey: ["admin-user-tx", txModal?.id],
     queryFn: async () => {
       if (!txModal) return [];
+      if (HAS_BACKEND_SESSION) return listAdminUserTransactions(txModal.id);
       const { data } = await supabase
         .from("gamification_transactions")
         .select("*")
@@ -113,6 +124,7 @@ export function AdminUsuarios() {
   // Mutations
   const updateRole = useMutation({
     mutationFn: async ({ userId, role, reason }: { userId: string; role: string; reason?: string }) => {
+      if (HAS_BACKEND_SESSION) return setAdminUserRole(userId, role);
       const { data, error } = await supabase.rpc("admin_update_user_role" as any, {
         p_user_id: userId, p_new_role: role, p_reason: reason || null
       });
@@ -125,11 +137,12 @@ export function AdminUsuarios() {
       setRoleModal(null);
       setRoleReason("");
     },
-    onError: () => toast.error("Error al actualizar rol"),
+    onError: (e: Error) => toast.error("Error al actualizar rol", { description: e.message }),
   });
 
   const toggleSuspend = useMutation({
     mutationFn: async ({ userId, suspended, reason }: { userId: string; suspended: boolean; reason?: string }) => {
+      if (HAS_BACKEND_SESSION) return setAdminUserSuspended(userId, suspended, reason);
       const { data, error } = await supabase.rpc("admin_toggle_user_suspended" as any, {
         p_user_id: userId, p_suspended: suspended, p_reason: reason || null
       });
@@ -142,11 +155,12 @@ export function AdminUsuarios() {
       setSuspendModal(null);
       setSuspendReason("");
     },
-    onError: () => toast.error("Error al cambiar estado"),
+    onError: (e: Error) => toast.error("Error al cambiar estado", { description: e.message }),
   });
 
   const awardXp = useMutation({
     mutationFn: async ({ userId, xp, coins, reason }: { userId: string; xp: number; coins: number; reason: string }) => {
+      if (HAS_BACKEND_SESSION) return adjustAdminUserXp(userId, xp, coins, reason);
       const { data, error } = await supabase.rpc("admin_award_xp_to_user" as any, {
         p_user_id: userId,
         p_xp_amount: xp,
@@ -164,7 +178,7 @@ export function AdminUsuarios() {
       setCoinAmount("0");
       setXpReason("");
     },
-    onError: () => toast.error("Error al otorgar XP"),
+    onError: (e: Error) => toast.error("Error al otorgar XP", { description: e.message }),
   });
 
   // Filter + search

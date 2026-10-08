@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useMemo } from "react";
 import { BetweenSectionsAd, CompactInlineAd } from "@/components/promo";
-import { supabase } from "@/integrations/supabase/client";
+import { CatalogService } from "@/services/catalogService";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "@/hooks/useI18n";
 import { 
@@ -23,34 +23,28 @@ export default function Experiencias() {
   const [activeCategory, setActiveCategory] = useState("todos");
   const { t } = useTranslation();
 
-  // Fetch experiences from DB to merge
-  const { data: dbExperiences } = useQuery({
+  // Fetch experiences via CatalogService (Strapi / Fastify / fallback)
+  const { data: catalogExperiences } = useQuery({
     queryKey: ["all-experiences-list"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("experiences")
-        .select("id, name, description, image_url, category, slug")
-        .limit(20);
-      return data || [];
-    },
+    queryFn: () => CatalogService.getExperiences(),
     staleTime: 1000 * 60 * 10,
   });
 
-  // Merge static + dynamic DB experiences
+  // Merge static + dynamic experiences
   const experiencias: StaticExperienceItem[] = useMemo(() => {
-    if (!dbExperiences || dbExperiences.length === 0) return staticExperiencias;
-    const dbMapped: StaticExperienceItem[] = dbExperiences.map(e => ({
+    if (!catalogExperiences || catalogExperiences.length === 0) return staticExperiencias;
+    const mapped: StaticExperienceItem[] = catalogExperiences.map((e: any) => ({
       id: e.slug || e.id,
-      nombre: e.name,
-      imagen: e.image_url || "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop",
+      nombre: e.title || e.name || "",
+      imagen: e.image || e.image_url || "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=400&fit=crop",
       desc: e.description || "Descubre esta increíble experiencia en República Dominicana.",
-      cat: e.category ? e.category.toLowerCase() : "aventura",
+      cat: e.category ? String(e.category).toLowerCase() : "aventura",
       link: `/experiencia/${e.slug || e.id}`
     }));
     const staticIds = new Set(staticExperiencias.map(s => s.id));
-    const uniqueDb = dbMapped.filter(d => !staticIds.has(d.id));
-    return [...staticExperiencias, ...uniqueDb];
-  }, [dbExperiences]);
+    const uniqueDynamic = mapped.filter(d => !staticIds.has(d.id));
+    return [...staticExperiencias, ...uniqueDynamic];
+  }, [catalogExperiences]);
 
   const filteredExperiencias = useMemo(() => {
     return experiencias.filter((exp) => {

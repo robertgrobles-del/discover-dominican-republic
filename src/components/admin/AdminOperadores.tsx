@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { adminOperatorsApi } from "@/lib/adminOperatorsApi";
 import { toast } from "sonner";
 import {
   Building2, Search, CheckCircle2, XCircle, Shield, Star,
@@ -86,6 +88,30 @@ function OperatorTable({
   const { data: operators = [], isLoading } = useQuery<Operator[]>({
     queryKey: ["admin-operators", type, sortBy, sortDir],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        const res = await adminOperatorsApi.listOrgs({ per_page: 100 });
+        return res.data.map((o) => ({
+          id: o.id,
+          name: o.business_name,
+          slug: o.slug || null,
+          description: o.description || null,
+          short_description: null,
+          image_url: null,
+          logo_url: o.logo_url || null,
+          address: o.province || null,
+          phone: o.phone || null,
+          email: o.email || null,
+          website: null,
+          rating: null,
+          is_featured: false,
+          is_active: true,
+          is_verified: o.verification === "verified",
+          verification_status: o.verification,
+          verified_at: null,
+          verification_notes: null,
+          created_at: o.created_at,
+        })) as Operator[];
+      }
       const { data, error } = await supabase
         .from(table as any)
         .select("*")
@@ -98,6 +124,10 @@ function OperatorTable({
 
   const toggleVerify = useMutation({
     mutationFn: async ({ op, verified, notes }: { op: Operator; verified: boolean; notes?: string }) => {
+      if (HAS_BACKEND_SESSION) {
+        await adminOperatorsApi.setVerification(op.id, verified ? "verified" : "rejected");
+        return;
+      }
       const { data, error } = await supabase.rpc("admin_toggle_operator_verified" as any, {
         p_operator_id: op.id,
         p_type: type,
@@ -113,7 +143,7 @@ function OperatorTable({
       setVerifyModal(null);
       setRejectNotes("");
     },
-    onError: () => toast.error("Error al actualizar verificación"),
+    onError: (e: any) => toast.error(e?.message || "Error al actualizar verificación"),
   });
 
   const toggleActive = useMutation({

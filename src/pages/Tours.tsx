@@ -246,7 +246,7 @@ export default function Tours() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: Math.min(i * 0.08, 0.4) }}
-                    className="surface-commercial rounded-card border border-border overflow-hidden shadow-lg hover:border-primary/40 transition-all duration-300 flex flex-col justify-between group"
+                    className="card-taste overflow-hidden flex flex-col justify-between group shadow-md"
                   >
                     <div>
                       {/* IMAGEN Y BADGES */}
@@ -259,7 +259,7 @@ export default function Tours() {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                         
                         <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-                          <Badge className={`${cat.color} backdrop-blur-md bg-black/40 text-xs`}>
+                          <Badge className={`${cat.color} backdrop-blur-md bg-black/40 text-xs shadow-xs`}>
                             <CatIcon className="h-3 w-3 mr-1" /> {cat.label}
                           </Badge>
                           {pkg.difficulty && (
@@ -329,7 +329,7 @@ export default function Tours() {
                         <div className="flex items-center gap-2">
                           <Button
                             onClick={() => handleQuickLead(pkg.name)}
-                            className="bg-primary hover:bg-primary/90 text-white font-semibold py-5 px-6 rounded-xl shadow-lg shadow-primary/20 gap-2 flex-1 sm:flex-initial"
+                            className="btn-cta-magnetic bg-primary hover:bg-primary/90 text-white font-semibold py-5 px-6 rounded-xl shadow-lg shadow-primary/20 gap-2 flex-1 sm:flex-initial"
                           >
                             <Calendar className="h-4 w-4" /> Solicitar Disponibilidad
                           </Button>

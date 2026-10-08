@@ -17,6 +17,9 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useActionTracker } from "@/hooks/useActionTracker";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi, type TriviaSessionData } from "@/lib/gamificationApi";
+import { apiMessage } from "@/lib/accountApi";
 import { toast } from "sonner";
 import { PanoramaAd } from "@/components/promo";
 import { GamificationSoundEngine } from "@/services/gamificationEngine";
@@ -65,10 +68,15 @@ export default function TriviaTuristica() {
   const [totalXpEarned, setTotalXpEarned] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
+  const [backendSession, setBackendSession] = useState<TriviaSessionData | null>(null);
 
   // Fetch questions from DB
   useEffect(() => {
     const fetchQuestions = async () => {
+      if (HAS_BACKEND_SESSION) {
+        setLoadingQuestions(false);
+        return;
+      }
       setLoadingQuestions(true);
       const { data } = await supabase
         .from("trivia_questions")
@@ -101,22 +109,22 @@ export default function TriviaTuristica() {
           },
           {
             id: "t3",
-            question: "¿Qué plato tradicional dominicano es apodado 'La Bandera'?",
-            options: ["Sancocho de siete carnes", "Arroz blanco, habichuelas y carne guisada", "Mangú con los tres golpes", "Chivo liniero"],
+            question: "¿Qué piedra semipreciosa pectolita azul es endémica exclusivamente de Barahona?",
+            options: ["Ámbar", "Larimar", "Turquesa", "Jade caribeño"],
             correct_index: 1,
-            category: "Gastronomía",
+            category: "Geografía",
             difficulty: "easy",
-            explanation: "La combinación de arroz blanco, habichuelas rojas y carne guisada emula los colores patrios.",
+            explanation: "El Larimar es una variedad rara de pectolita azul que sólo se encuentra en la provincia de Barahona.",
             xp_reward: 25
           },
           {
             id: "t4",
-            question: "¿En qué provincia se encuentra Bahía de las Águilas, célebre por su arena blanca y aguas turquesas?",
-            options: ["Barahona", "Pedernales", "Montecristi", "Samaná"],
-            correct_index: 1,
-            category: "Naturaleza",
+            question: "¿Cuál es el plato insignia dominicano conocido popularmente como «La Bandera»?",
+            options: ["Sancocho y Aguacate", "Mangú con los Tres Golpes", "Arroz, Habichuelas y Carne", "Chivo Liniero con Yuca"],
+            correct_index: 2,
+            category: "Gastronomía",
             difficulty: "medium",
-            explanation: "Bahía de las Águilas se ubica en el Parque Nacional Jaragua, en la provincia de Pedernales.",
+            explanation: "La Bandera Dominicana consiste en arroz blanco, habichuelas guisadas rojas y carne de res o pollo.",
             xp_reward: 35
           },
           {
@@ -138,7 +146,40 @@ export default function TriviaTuristica() {
 
   const categories = ["all", ...Array.from(new Set(allQuestions.map(q => q.category)))];
 
-  const startGame = useCallback(() => {
+  const startGame = useCallback(async () => {
+    if (HAS_BACKEND_SESSION) {
+      try {
+        const session = await gamificationApi.startTriviaSession();
+        if (session && session.questions && session.questions.length > 0) {
+          setBackendSession(session);
+          setQuestions(
+            session.questions.map((q) => ({
+              id: q.id,
+              question: q.question,
+              options: q.choices,
+              correct_index: -1,
+              category: q.category,
+              difficulty: q.difficulty,
+              explanation: q.explanation || "",
+              xp_reward: 30,
+            }))
+          );
+          setCurrentQ(0);
+          setSelected(null);
+          setScore(0);
+          setStreak(0);
+          setMaxStreak(0);
+          setTimeLeft(20);
+          setAnswers([]);
+          setTotalXpEarned(0);
+          setGameState("playing");
+          return;
+        }
+      } catch (err) {
+        toast.error(apiMessage(err, "No se pudo iniciar la sesión de trivia en el servidor."));
+      }
+    }
+
     let pool = [...allQuestions];
     if (selectedCategory !== "all") pool = pool.filter(q => q.category === selectedCategory);
     if (selectedDifficulty !== "all") pool = pool.filter(q => q.difficulty === selectedDifficulty);
@@ -167,21 +208,43 @@ export default function TriviaTuristica() {
     return () => clearTimeout(t);
   }, [timeLeft, gameState, selected]);
 
-  const handleAnswer = (idx: number) => {
+  const handleAnswer = async (idx: number) => {
     if (selected !== null) return;
     setSelected(idx);
-    const correct = questions[currentQ]?.correct_index;
-    const isCorrect = idx === correct;
-    if (isCorrect) {
-      GamificationSoundEngine.playCorrectAnswerSound();
-      const bonus = Math.max(0, timeLeft) * 5;
-      setScore(s => s + 100 + bonus);
-      setTotalXpEarned(x => x + (questions[currentQ]?.xp_reward || 25));
-      setStreak(s => { const n = s + 1; setMaxStreak(m => Math.max(m, n)); return n; });
+
+    if (HAS_BACKEND_SESSION && backendSession && questions[currentQ]) {
+      try {
+        const result = await gamificationApi.answerTrivia(
+          backendSession.id,
+          questions[currentQ].id,
+          idx >= 0 ? idx : 0
+        );
+        if (result.correct) {
+          GamificationSoundEngine.playCorrectAnswerSound();
+          setScore(s => s + 100 + Math.max(0, timeLeft) * 5);
+          setStreak(s => { const n = s + 1; setMaxStreak(m => Math.max(m, n)); return n; });
+        } else {
+          GamificationSoundEngine.playStampSound();
+          setStreak(0);
+        }
+      } catch {
+        // ignore
+      }
     } else {
-      GamificationSoundEngine.playStampSound();
-      setStreak(0);
+      const correct = questions[currentQ]?.correct_index;
+      const isCorrect = idx === correct;
+      if (isCorrect) {
+        GamificationSoundEngine.playCorrectAnswerSound();
+        const bonus = Math.max(0, timeLeft) * 5;
+        setScore(s => s + 100 + bonus);
+        setTotalXpEarned(x => x + (questions[currentQ]?.xp_reward || 25));
+        setStreak(s => { const n = s + 1; setMaxStreak(m => Math.max(m, n)); return n; });
+      } else {
+        GamificationSoundEngine.playStampSound();
+        setStreak(0);
+      }
     }
+
     setAnswers(a => [...a, idx]);
 
     setTimeout(() => {
@@ -200,6 +263,21 @@ export default function TriviaTuristica() {
     const correctCount = answers.filter((a, i) => a === questions[i]?.correct_index).length;
 
     const saveSession = async () => {
+      if (HAS_BACKEND_SESSION) {
+        if (backendSession) {
+          try {
+            const res = await gamificationApi.finishTrivia(backendSession.id);
+            setTotalXpEarned(res.xp_awarded || 0);
+            toast.success("🏆 ¡Trivia completada!", {
+              description: `+${res.xp_awarded} XP, +${res.coins_awarded} monedas ganadas en esta partida`,
+            });
+          } catch (err: any) {
+            toast.error("Error al finalizar la trivia", { description: err.message });
+          }
+        }
+        return;
+      }
+
       try {
         await supabase.from("trivia_sessions").insert({
           user_id: user.id,
@@ -248,220 +326,246 @@ export default function TriviaTuristica() {
                 <Compass className="h-3.5 w-3.5 text-primary" /> Gamificación Turística
               </Link>
               <ChevronRight className="h-3 w-3" />
-              <span className="text-foreground font-bold">Trivia Dominicana</span>
+              <span className="text-foreground font-medium">Trivia Dominicana</span>
             </div>
-
-            <div className="flex items-center gap-2">
-              <Link to="/gamificacion-turistica/retos" className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1">
-                <Target className="h-3 w-3 text-emerald-500" /> Retos
-              </Link>
-              <span className="text-muted-foreground/40">•</span>
-              <Link to="/gamificacion-turistica/mapa" className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1">
-                <MapPin className="h-3 w-3 text-blue-500" /> Mapa
-              </Link>
-            </div>
+            <Link to="/perfil-jugador" className="text-xs text-primary font-medium hover:underline flex items-center gap-1">
+              Mi Perfil <ArrowRight className="h-3 w-3" />
+            </Link>
           </div>
         </div>
 
-        <main className="container mx-auto px-4 max-w-3xl py-12 flex-1 flex flex-col justify-center">
-          {loadingQuestions ? (
-            <div className="text-center py-20 space-y-4">
-              <Skeleton className="h-20 w-20 rounded-full mx-auto" />
-              <Skeleton className="h-8 w-64 mx-auto" />
-              <Skeleton className="h-4 w-96 mx-auto" />
-            </div>
-          ) : (
-            <AnimatePresence mode="wait">
-              {/* MENU STATE */}
-              {gameState === "menu" && (
-                <motion.div
-                  key="menu"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  className="rounded-3xl bg-card border border-border p-6 sm:p-10 shadow-sm text-center space-y-6"
-                >
-                  <div className="w-20 h-20 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto text-primary shadow-inner">
-                    <Brain className="h-10 w-10" />
-                  </div>
+        <main className="flex-1 py-10">
+          <div className="container mx-auto px-4 max-w-3xl">
 
-                  <div>
-                    <Badge className="mb-2 bg-primary/15 text-primary border-primary/30">
-                      <Sparkles className="h-3 w-3 mr-1" /> Desafío de Sabiduría Turística
+            {/* STATE: MENU */}
+            {gameState === "menu" && (
+              <div className="space-y-8">
+                {/* Hero Banner */}
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-500/20 via-primary/15 to-purple-500/10 border border-amber-500/30 p-8 text-center shadow-lg">
+                  <div className="inline-flex p-4 rounded-2xl bg-amber-500/20 text-amber-500 mb-4 shadow-inner">
+                    <Brain className="h-10 w-10 animate-pulse" />
+                  </div>
+                  <h1 className="font-display text-3xl sm:text-4xl font-black tracking-tight text-foreground mb-2">
+                    Trivia Turística Quisqueyana
+                  </h1>
+                  <p className="text-muted-foreground max-w-lg mx-auto text-sm sm:text-base leading-relaxed">
+                    Demuestra cuánto sabes sobre las 32 provincias, la historia libertadora, los parques nacionales y la gastronomía criolla.
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
+                    <Badge variant="secondary" className="gap-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 py-1 px-3">
+                      <Zap className="h-3.5 w-3.5" /> +100 XP por respuesta correcta
                     </Badge>
-                    <h1 className="font-display text-3xl md:text-4xl font-black text-foreground tracking-tight">
-                      Trivia Dominicana
-                    </h1>
-                    <p className="text-xs md:text-sm text-muted-foreground mt-2 max-w-lg mx-auto leading-relaxed">
-                      5 preguntas aleatorias de geografía, cultura, gastronomía y patrimonio patrio. Tienes 20 segundos por pregunta. ¡Acierta y gana puntos XP!
-                    </p>
+                    <Badge variant="secondary" className="gap-1 bg-primary/10 text-primary border-primary/20 py-1 px-3">
+                      <Flame className="h-3.5 w-3.5" /> Bonos por racha consecutiva
+                    </Badge>
                   </div>
+                </div>
 
-                  {/* Category Filter Pills */}
-                  <div className="space-y-2 pt-2">
-                    <p className="text-xs font-bold text-muted-foreground uppercase">Elige una Categoría</p>
-                    <div className="flex flex-wrap justify-center gap-2">
-                      {categories.map((c) => (
-                        <Button
-                          key={c}
-                          variant={selectedCategory === c ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedCategory(c)}
-                          className="rounded-xl text-xs h-8"
+                {/* Filters */}
+                <div className="bg-card border border-border/60 rounded-2xl p-6 shadow-sm space-y-5">
+                  <h2 className="font-bold text-base flex items-center gap-2 text-foreground">
+                    <Target className="h-4 w-4 text-primary" /> Configura tu Partida
+                  </h2>
+
+                  {/* Category Filter */}
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground block mb-2">
+                      Categoría Temática
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {categories.map((cat) => (
+                        <button
+                          key={cat}
+                          onClick={() => setSelectedCategory(cat)}
+                          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                            selectedCategory === cat
+                              ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                              : "bg-muted/40 text-muted-foreground border-border hover:bg-muted"
+                          }`}
                         >
-                          {c === "all" ? "🎯 Todas las Categorías" : c}
-                        </Button>
+                          {cat === "all" ? "🌐 Todas las Categorías" : cat}
+                        </button>
                       ))}
                     </div>
                   </div>
 
-                  <div className="pt-4 flex flex-col sm:flex-row justify-center gap-3">
-                    <Button onClick={startGame} className="font-bold rounded-2xl h-11 px-8 text-xs sm:text-sm shadow-md shadow-primary/20 gap-2">
-                      <Zap className="h-4 w-4" /> Comenzar Ronda de Trivia
-                    </Button>
-                    <Button asChild variant="outline" className="rounded-2xl h-11 px-6 text-xs sm:text-sm">
-                      <Link to="/gamificacion-turistica">Volver al Pasaporte</Link>
-                    </Button>
+                  {/* Difficulty Filter */}
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground block mb-2">
+                      Nivel de Dificultad
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {["all", "easy", "medium", "hard"].map((diff) => (
+                        <button
+                          key={diff}
+                          onClick={() => setSelectedDifficulty(diff)}
+                          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                            selectedDifficulty === diff
+                              ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                              : "bg-muted/40 text-muted-foreground border-border hover:bg-muted"
+                          }`}
+                        >
+                          {diff === "all" ? "🎯 Todos los Niveles" : difficultyLabels[diff]}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </motion.div>
-              )}
 
-              {/* PLAYING STATE */}
-              {gameState === "playing" && q && (
-                <motion.div
-                  key={`q-${currentQ}`}
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.98 }}
-                  className="rounded-3xl bg-card border border-border p-6 sm:p-8 shadow-sm space-y-6"
-                >
-                  {/* Top Bar */}
-                  <div className="flex items-center justify-between gap-2 border-b border-border/60 pb-4">
-                    <div className="flex items-center gap-2">
-                      <Badge className={categoryColors[q.category] || "bg-primary/10 text-primary"}>
-                        {q.category}
+                  <Button
+                    onClick={startGame}
+                    disabled={loadingQuestions || allQuestions.length === 0}
+                    size="lg"
+                    className="w-full gap-2 font-bold text-base bg-gradient-to-r from-primary to-amber-500 hover:from-primary/90 hover:to-amber-500/90 text-white shadow-lg py-6 rounded-2xl"
+                  >
+                    <Sparkles className="h-5 w-5" /> Comenzar Trivia (5 Preguntas)
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* STATE: PLAYING */}
+            {gameState === "playing" && q && (
+              <div className="space-y-6">
+                {/* Header Stats Bar */}
+                <div className="flex items-center justify-between bg-card border border-border/60 rounded-2xl p-4 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-muted-foreground">
+                      Pregunta {currentQ + 1} de {questions.length}
+                    </span>
+                    <Badge variant="outline" className={`text-[11px] font-semibold py-0.5 px-2.5 ${categoryColors[q.category] || "border-border"}`}>
+                      {q.category}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    {streak > 1 && (
+                      <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 gap-1 font-bold animate-pulse">
+                        <Flame className="h-3.5 w-3.5" /> Racha: {streak}x
                       </Badge>
-                      <span className="text-xs text-muted-foreground font-semibold">
-                        Pregunta {currentQ + 1} de {questions.length}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      {streak > 1 && (
-                        <Badge className="bg-orange-500/15 text-orange-500 border-orange-500/30 gap-1 text-xs">
-                          <Flame className="h-3 w-3 fill-orange-500" /> x{streak}
-                        </Badge>
-                      )}
-                      <div className="flex items-center gap-1.5 font-mono text-xs font-bold text-foreground bg-muted px-3 py-1 rounded-xl">
-                        <Clock className={`h-3.5 w-3.5 ${timeLeft <= 5 ? "text-destructive animate-pulse" : "text-primary"}`} />
-                        <span>{timeLeft}s</span>
-                      </div>
+                    )}
+                    <div className="flex items-center gap-1.5 font-mono text-sm font-bold text-foreground">
+                      <Clock className={`h-4 w-4 ${timeLeft <= 5 ? "text-destructive animate-spin" : "text-primary"}`} />
+                      <span className={timeLeft <= 5 ? "text-destructive font-black" : ""}>{timeLeft}s</span>
                     </div>
                   </div>
+                </div>
 
-                  {/* Question */}
-                  <h3 className="font-display font-bold text-lg md:text-xl text-foreground leading-snug">
+                {/* Progress bar */}
+                <Progress value={((currentQ + 1) / questions.length) * 100} className="h-2 rounded-full" />
+
+                {/* Question Box */}
+                <div className="bg-card border border-border/60 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+                  <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground leading-snug">
                     {q.question}
-                  </h3>
+                  </h2>
 
                   {/* Options */}
-                  <div className="grid gap-3">
+                  <div className="grid grid-cols-1 gap-3">
                     {q.options.map((opt, idx) => {
                       const isSelected = selected === idx;
-                      const isCorrect = idx === q.correct_index;
-                      const showResult = selected !== null;
-
-                      let btnStyle = "bg-muted/40 border-border hover:bg-muted/70";
-                      if (showResult) {
-                        if (isCorrect) btnStyle = "bg-emerald-500/15 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold";
-                        else if (isSelected) btnStyle = "bg-destructive/15 border-destructive text-destructive font-bold";
-                        else btnStyle = "bg-muted/20 border-border opacity-50";
+                      let btnStyle = "bg-muted/30 hover:bg-muted/60 border-border/80 text-foreground";
+                      if (selected !== null) {
+                        if (idx === q.correct_index) {
+                          btnStyle = "bg-emerald-500/20 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold shadow-sm";
+                        } else if (isSelected) {
+                          btnStyle = "bg-destructive/20 border-destructive text-destructive font-bold";
+                        } else {
+                          btnStyle = "bg-muted/10 border-border/40 text-muted-foreground opacity-50";
+                        }
                       }
 
                       return (
                         <button
                           key={idx}
-                          onClick={() => handleAnswer(idx)}
                           disabled={selected !== null}
-                          className={`w-full p-4 rounded-2xl border text-left text-xs md:text-sm font-medium transition-all flex items-center justify-between gap-3 ${btnStyle}`}
+                          onClick={() => handleAnswer(idx)}
+                          className={`p-4 rounded-2xl border text-left text-sm sm:text-base font-medium transition-all flex items-center justify-between ${btnStyle}`}
                         >
-                          <div className="flex items-center gap-3">
-                            <span className="w-7 h-7 rounded-xl bg-background border border-border flex items-center justify-center font-bold text-xs shrink-0">
-                              {String.fromCharCode(65 + idx)}
-                            </span>
-                            <span>{opt}</span>
-                          </div>
-                          {showResult && isCorrect && <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />}
-                          {showResult && isSelected && !isCorrect && <XCircle className="h-4 w-4 text-destructive shrink-0" />}
+                          <span>{opt}</span>
+                          {selected !== null && idx === q.correct_index && (
+                            <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
+                          )}
+                          {selected !== null && isSelected && idx !== q.correct_index && (
+                            <XCircle className="h-5 w-5 text-destructive shrink-0" />
+                          )}
                         </button>
                       );
                     })}
                   </div>
 
-                  {/* Explanation feedback */}
-                  {selected !== null && (
-                    <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="p-3.5 rounded-2xl bg-primary/5 border border-primary/20 text-xs text-foreground leading-relaxed">
-                      <strong>Dato clave:</strong> {q.explanation}
+                  {/* Explanation reveal */}
+                  {selected !== null && q.explanation && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-4 rounded-2xl bg-primary/5 border border-primary/20 text-xs sm:text-sm text-foreground space-y-1"
+                    >
+                      <strong className="text-primary block">💡 ¿Sabías qué?</strong>
+                      <p className="text-muted-foreground leading-relaxed">{q.explanation}</p>
                     </motion.div>
                   )}
-                </motion.div>
-              )}
+                </div>
+              </div>
+            )}
 
-              {/* RESULT STATE */}
-              {gameState === "result" && (
-                <motion.div
-                  key="result"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="rounded-3xl bg-card border border-border p-6 sm:p-10 shadow-sm text-center space-y-6"
-                >
-                  <div className="w-20 h-20 rounded-3xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-500 shadow-inner">
-                    <Trophy className="h-10 w-10" />
+            {/* STATE: RESULT */}
+            {gameState === "result" && (
+              <div className="space-y-6">
+                <div className="bg-card border border-border/60 rounded-3xl p-8 text-center shadow-lg space-y-6">
+                  <div className="inline-flex p-4 rounded-3xl bg-amber-500/20 text-amber-500 shadow-inner">
+                    <Trophy className="h-12 w-12" />
                   </div>
 
                   <div>
-                    <h2 className="font-display text-3xl font-black text-foreground">¡Ronda Finalizada!</h2>
-                    <p className="text-xs md:text-sm text-muted-foreground mt-1">
-                      Has completado el cuestionario de sabiduría dominicana.
+                    <h2 className="font-display text-2xl sm:text-3xl font-black text-foreground mb-1">
+                      ¡Trivia Finalizada!
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      Puntaje obtenido: <strong className="text-foreground">{score} puntos</strong>
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-lg mx-auto">
-                    <div className="p-3.5 rounded-2xl bg-muted/40 border border-border">
-                      <p className="text-2xl font-black text-primary">{score}</p>
-                      <p className="text-[10px] text-muted-foreground uppercase font-bold mt-0.5">Puntos</p>
-                    </div>
-                    <div className="p-3.5 rounded-2xl bg-muted/40 border border-border">
-                      <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                  {/* Rewards summary */}
+                  <div className="grid grid-cols-3 gap-3 p-4 bg-muted/20 rounded-2xl border border-border/60">
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Aciertos</span>
+                      <strong className="text-lg font-bold text-foreground">
                         {answers.filter((a, i) => a === questions[i]?.correct_index).length}/{questions.length}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground uppercase font-bold mt-0.5">Aciertos</p>
+                      </strong>
                     </div>
-                    <div className="p-3.5 rounded-2xl bg-muted/40 border border-border">
-                      <p className="text-2xl font-black text-orange-500">{maxStreak}</p>
-                      <p className="text-[10px] text-muted-foreground uppercase font-bold mt-0.5">Mejor Racha</p>
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">XP Ganado</span>
+                      <strong className="text-lg font-bold text-primary">+{totalXpEarned} XP</strong>
                     </div>
-                    <div className="p-3.5 rounded-2xl bg-muted/40 border border-border">
-                      <p className="text-2xl font-black text-amber-500">+{totalXpEarned}</p>
-                      <p className="text-[10px] text-muted-foreground uppercase font-bold mt-0.5">XP Ganados</p>
+                    <div>
+                      <span className="text-[11px] text-muted-foreground block">Max Racha</span>
+                      <strong className="text-lg font-bold text-amber-500">{maxStreak}x</strong>
                     </div>
                   </div>
 
-                  <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">
-                    <Button onClick={startGame} className="font-bold rounded-2xl h-11 px-6 text-xs gap-2">
-                      <RotateCcw className="h-4 w-4" /> Jugar Otra Ronda
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                    <Button
+                      onClick={startGame}
+                      size="lg"
+                      className="flex-1 gap-2 rounded-2xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground"
+                    >
+                      <RotateCcw className="h-4 w-4" /> Jugar Otra Vez
                     </Button>
-                    <Button asChild variant="outline" className="rounded-2xl h-11 px-6 text-xs">
-                      <Link to="/gamificacion-turistica">Volver al Hub de Gamificación</Link>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="lg"
+                      className="flex-1 gap-2 rounded-2xl font-bold border-border"
+                    >
+                      <Link to="/perfil-jugador">
+                        <Award className="h-4 w-4 text-amber-500" /> Ver Mi Perfil
+                      </Link>
                     </Button>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          )}
+                </div>
+              </div>
+            )}
 
-          <div className="mt-12">
-            <PanoramaAd showDemo />
           </div>
         </main>
 

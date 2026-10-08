@@ -91,6 +91,11 @@ const INITIAL_GUILDS: Guild[] = [
   },
 ];
 
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi } from "@/lib/gamificationApi";
+import { apiMessage } from "@/lib/fastifyClient";
+import { useEffect } from "react";
+
 export function ExplorerGuilds() {
   const [guilds, setGuilds] = useState<Guild[]>(() => {
     return getStoredJSON("explorer_guilds_data", INITIAL_GUILDS);
@@ -108,23 +113,69 @@ export function ExplorerGuilds() {
     badgeEmoji: "🌴",
   });
 
-  const handleJoinGuild = (guild: Guild) => {
+  useEffect(() => {
+    if (!HAS_BACKEND_SESSION) return;
+    gamificationApi.getGuilds()
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped: Guild[] = data.map((g) => ({
+            id: g.id,
+            name: g.name,
+            tag: g.slug.substring(0, 4).toUpperCase(),
+            description: g.description,
+            leader: "Capitán",
+            membersCount: g.member_count || 1,
+            maxMembers: 50,
+            totalXp: g.total_xp || 0,
+            level: Math.floor((g.total_xp || 0) / 1000) + 1,
+            badgeEmoji: g.badge_icon || "🛡️",
+            activeQuest: {
+              title: "Meta comunitaria mensual",
+              progress: 5,
+              target: 20,
+              rewardXp: 1500,
+              rewardBadge: "Vanguardia",
+            },
+          }));
+          setGuilds(mapped);
+          const myGuild = data.find((g) => g.is_member);
+          if (myGuild) setJoinedGuildId(myGuild.id);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleJoinGuild = async (guild: Guild) => {
     if (joinedGuildId === guild.id) {
       // Leave
-      setJoinedGuildId(null);
-      localStorage.removeItem("my_explorer_guild_id");
-      const updated = guilds.map(g => g.id === guild.id ? { ...g, membersCount: g.membersCount - 1 } : g);
-      setGuilds(updated);
-      localStorage.setItem("explorer_guilds_data", JSON.stringify(updated));
-      toast.info(`Has salido del gremio ${guild.name}`);
+      try {
+        if (HAS_BACKEND_SESSION) {
+          await gamificationApi.leaveGuild(guild.id);
+        }
+        setJoinedGuildId(null);
+        localStorage.removeItem("my_explorer_guild_id");
+        const updated = guilds.map(g => g.id === guild.id ? { ...g, membersCount: Math.max(0, g.membersCount - 1) } : g);
+        setGuilds(updated);
+        localStorage.setItem("explorer_guilds_data", JSON.stringify(updated));
+        toast.info(`Has salido del gremio ${guild.name}`);
+      } catch (err) {
+        toast.error(apiMessage(err, "Error al salir del gremio"));
+      }
     } else {
       // Join
-      setJoinedGuildId(guild.id);
-      localStorage.setItem("my_explorer_guild_id", guild.id);
-      const updated = guilds.map(g => g.id === guild.id ? { ...g, membersCount: g.membersCount + 1 } : g);
-      setGuilds(updated);
-      localStorage.setItem("explorer_guilds_data", JSON.stringify(updated));
-      toast.success(`🎉 ¡Bienvenido a ${guild.name}! Ahora colaboras en las metas comunitarias.`);
+      try {
+        if (HAS_BACKEND_SESSION) {
+          await gamificationApi.joinGuild(guild.id);
+        }
+        setJoinedGuildId(guild.id);
+        localStorage.setItem("my_explorer_guild_id", guild.id);
+        const updated = guilds.map(g => g.id === guild.id ? { ...g, membersCount: g.membersCount + 1 } : g);
+        setGuilds(updated);
+        localStorage.setItem("explorer_guilds_data", JSON.stringify(updated));
+        toast.success(`🎉 ¡Bienvenido a ${guild.name}! Ahora colaboras en las metas comunitarias.`);
+      } catch (err) {
+        toast.error(apiMessage(err, "Error al unirte al gremio"));
+      }
     }
   };
 

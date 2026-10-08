@@ -16,10 +16,14 @@ import { AccommodationSpa } from "@/components/accommodation/AccommodationSpa";
 import { AccommodationBookingCard } from "@/components/accommodation/AccommodationBookingCard";
 import { HotelHeroSlider } from "@/components/hotel/HotelHeroSlider";
 import { HotelHighlights } from "@/components/hotel/HotelHighlights";
+import { HotelExperienceBento } from "@/components/hotel/HotelExperienceBento";
 import { HotelFaqSection } from "@/components/hotel/HotelFaqSection";
 import { DetailFloatingBar } from "@/components/detail/DetailFloatingBar";
 import { CommentSection } from "@/components/comments/CommentSection";
 import { ClaimBusinessModal } from "@/components/business/ClaimBusinessModal";
+import { SelloVerificadoBadge } from "@/components/ui/SelloVerificadoBadge";
+import { WhatsAppPulseButton } from "@/components/ui/WhatsAppPulseButton";
+import { SocialShareBar } from "@/components/social/SocialShareBar";
 import { ParticipationInvite } from "@/components/gamificacion/ParticipationInvite";
 import { useHotelData } from "@/hooks/useHotelData";
 import { toast } from "sonner";
@@ -148,29 +152,25 @@ export default function AlojamientoDetalle() {
       <section className="container mx-auto px-4 lg:px-8 pt-6 pb-2">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2.5 py-0.5 rounded-full text-xs font-semibold w-fit">
-              <ShieldCheck className="h-3.5 w-3.5" /> Alojamiento Verificado por MITUR
-            </div>
+            <SelloVerificadoBadge variant="full" size="sm" licenseNumber="MITUR-HOT-2026" />
             <ClaimBusinessModal
               businessName={hotelName}
               businessType="hotel"
               businessId={dbHotel?.id || staticHotel?.id || id}
             />
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 rounded-xl border-border/80 hover:border-primary/50 w-fit"
-            onClick={() => {
-              if (navigator.share) navigator.share({ title: hotelName, url: window.location.href });
-              else {
-                navigator.clipboard.writeText(window.location.href);
-                toast.success("Enlace copiado al portapapeles");
-              }
-            }}
-          >
-            <Share2 className="h-4 w-4" /> Compartir
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <WhatsAppPulseButton
+              businessName={hotelName}
+              phone={dbHotel?.phone || "+18095550198"}
+              size="sm"
+            />
+            <SocialShareBar
+              title={hotelName}
+              description={hotelShortDesc}
+              variant="compact"
+            />
+          </div>
         </div>
       </section>
 
@@ -210,6 +210,15 @@ export default function AlojamientoDetalle() {
                 ))}
               </div>
             </div>
+
+            {/* Experiencia Inmersiva Bento & Cronograma de Huésped */}
+            <HotelExperienceBento
+              hotelName={hotelName}
+              tour360Url={(dbHotel as any)?.tour_360_url || undefined}
+              images={hotelImages}
+              guestTimeline={(dbHotel as any)?.guest_timeline?.length ? (dbHotel as any).guest_timeline : undefined}
+              ecoGuidelines={(dbHotel as any)?.eco_guidelines?.length ? (dbHotel as any).eco_guidelines : undefined}
+            />
 
             {/* Room & Suite Selector */}
             <AccommodationRooms

@@ -1,8 +1,11 @@
-// Capa de datos del módulo Operadores RD. Habla con el cliente Supabase (mock en
-// memoria + persistencia local para estas tablas) y mantiene la forma de las
-// tablas alineada con el esquema SQL de supabase/migrations/…operator_hub.sql.
+// Capa de datos del módulo Operadores RD.
+// Con sesión real (`HAS_BACKEND_SESSION`) se comunica directamente con la API REST de Fastify
+// (`/api/v1/orgs`, `/api/v1/org/*`); con sesión simulada utiliza el cliente Supabase local.
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchApi } from "@/lib/fastifyClient";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { slugify } from "./constants";
 import type {
   Booking, BookingStatus, Listing, OperatorMessage, OperatorOrg, OperatorReview, Promotion,
@@ -18,8 +21,19 @@ async function rows<T>(q: PromiseLike<{ data: any; error: any }>): Promise<T[]> 
   return (data || []) as T[];
 }
 
-// ---------- Organizaciones (partner_profiles) ----------
+// ---------- Organizaciones (partner_profiles / orgs) ----------
 export async function fetchOrgByUser(userId: string, email?: string | null): Promise<OperatorOrg | null> {
+  if (HAS_BACKEND_SESSION) {
+    try {
+      const res = await fetchApi<{ data: { org: any; role: string; listing_ids?: string[] } }>("/orgs/me");
+      if (res?.data?.org) {
+        return normalizeOrg(res.data.org);
+      }
+    } catch {
+      return null;
+    }
+  }
+
   const list = await rows<any>(from("partner_profiles").select("*").eq("id", userId));
   if (list[0]) return normalizeOrg(list[0]);
   // Miembro de equipo: la organización que lo invitó por correo.
@@ -31,11 +45,27 @@ export async function fetchOrgByUser(userId: string, email?: string | null): Pro
 }
 
 export async function fetchOrgBySlug(slug: string): Promise<OperatorOrg | null> {
+  if (HAS_BACKEND_SESSION) {
+    try {
+      const res = await fetchApi<{ data: any }>(`/operators/${encodeURIComponent(slug)}`);
+      if (res?.data) return normalizeOrg(res.data);
+    } catch {
+      // continuar a fallback si aplica
+    }
+  }
   const list = await rows<any>(from("partner_profiles").select("*").eq("slug", slug));
   return list[0] ? normalizeOrg(list[0]) : null;
 }
 
 export async function fetchOrgs(): Promise<OperatorOrg[]> {
+  if (HAS_BACKEND_SESSION) {
+    try {
+      const res = await fetchApi<{ data: any[] }>("/operators?per_page=100");
+      if (Array.isArray(res?.data)) return res.data.map(normalizeOrg);
+    } catch {
+      // fallback
+    }
+  }
   return (await rows<any>(from("partner_profiles").select("*"))).map(normalizeOrg);
 }
 
@@ -50,6 +80,14 @@ function normalizeOrg(r: any): OperatorOrg {
 }
 
 export async function createOrg(userId: string, input: { business_name: string; email?: string; business_type?: string }) {
+  if (HAS_BACKEND_SESSION) {
+    const res = await fetchApi<{ data: any }>("/orgs", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+    return normalizeOrg(res.data);
+  }
+
   const slugBase = slugify(input.business_name) || "operador";
   const existing = await fetchOrgBySlug(slugBase);
   const org = {
@@ -69,16 +107,39 @@ export async function createOrg(userId: string, input: { business_name: string; 
 }
 
 export async function updateOrg(id: string, patch: Partial<OperatorOrg>) {
+  if (HAS_BACKEND_SESSION) {
+    await fetchApi("/orgs/me", {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    });
+    return;
+  }
   const { error } = await from("partner_profiles").update(patch).eq("id", id);
   if (error) throw new Error(error.message);
 }
 
-// ---------- Servicios ----------
+// ---------- Servicios (listings) ----------
 export async function fetchListings(orgId: string): Promise<Listing[]> {
+  if (HAS_BACKEND_SESSION) {
+    try {
+      const res = await fetchApi<{ data: Listing[] }>("/org/listings");
+      if (Array.isArray(res?.data)) return res.data;
+    } catch {
+      // fallback
+    }
+  }
   return rows<Listing>(from("operator_listings").select("*").eq("org_id", orgId).order("created_at", { ascending: false }));
 }
 
 export async function fetchPublishedListings(): Promise<Listing[]> {
+  if (HAS_BACKEND_SESSION) {
+    try {
+      const res = await fetchApi<{ data: Listing[] }>("/org/listings?status=published");
+      if (Array.isArray(res?.data)) return res.data;
+    } catch {
+      // fallback
+    }
+  }
   const [listings, orgs] = await Promise.all([
     rows<Listing>(from("operator_listings").select("*").eq("status", "published")),
     fetchOrgs(),
@@ -88,11 +149,35 @@ export async function fetchPublishedListings(): Promise<Listing[]> {
 }
 
 export async function fetchListingBySlug(orgId: string, slug: string): Promise<Listing | null> {
+  if (HAS_BACKEND_SESSION) {
+    try {
+      const res = await fetchApi<{ data: Listing }>(`/org/listings/${encodeURIComponent(slug)}`);
+      if (res?.data) return res.data;
+    } catch {
+      // fallback
+    }
+  }
   const list = await rows<Listing>(from("operator_listings").select("*").eq("org_id", orgId).eq("slug", slug));
   return list[0] || null;
 }
 
 export async function saveListing(input: Partial<Listing> & { org_id: string; title: string }) {
+  if (HAS_BACKEND_SESSION) {
+    if (input.id) {
+      const { id, ...patch } = input;
+      const res = await fetchApi<{ data: any }>(`/org/listings/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify(patch),
+      });
+      return res.data?.id || id;
+    }
+    const res = await fetchApi<{ data: any }>("/org/listings", {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+    return res.data?.id || uid("lst");
+  }
+
   if (input.id) {
     const { id, ...patch } = input;
     const { error } = await from("operator_listings").update(patch).eq("id", id);
@@ -111,6 +196,10 @@ export async function saveListing(input: Partial<Listing> & { org_id: string; ti
 }
 
 export async function deleteListing(id: string) {
+  if (HAS_BACKEND_SESSION) {
+    await fetchApi(`/org/listings/${encodeURIComponent(id)}`, { method: "DELETE" });
+    return;
+  }
   const { error } = await from("operator_listings").delete().eq("id", id);
   if (error) throw new Error(error.message);
 }
@@ -118,14 +207,32 @@ export async function deleteListing(id: string) {
 // ---------- Reservas (reservations) ----------
 function toBooking(r: any): Booking {
   return {
-    id: r.id, org_id: r.org_id, listing_id: r.listing_id, listing_title: r.listing_title,
-    contact_name: r.contact_name || "Viajero", contact_email: r.contact_email || "",
-    contact_phone: r.contact_phone, date: r.date || (r.check_in ? String(r.check_in).split("T")[0] : ""),
-    time: r.time, guests: Number(r.guests ?? 1), total_price: Number(r.total_price ?? 0),
-    currency: r.currency || "USD", status: (["pending", "confirmed", "in_progress", "completed", "cancelled"].includes(r.status) ? r.status : "pending") as BookingStatus,
-    extras: Array.isArray(r.extras) ? r.extras : undefined, guest_mix: r.guest_mix || undefined, notified: r.notified || undefined, payment_status: r.payment_status || "unpaid", amount_paid: r.amount_paid != null ? Number(r.amount_paid) : undefined, promo_code: r.promo_code, notes: r.notes,
-    room_id: r.room_id, room_name: r.room_name, check_out: r.room_id && r.check_out ? String(r.check_out).split("T")[0] : undefined,
-    source: r.source || "web", review_pending: r.review_pending, created_at: r.created_at || iso(),
+    id: r.id,
+    org_id: r.org_id,
+    listing_id: r.listing_id || (r.listing?.id ?? ""),
+    listing_title: r.listing_title || r.listing?.title || "Servicio Turístico",
+    contact_name: r.contact_name || r.contact?.name || "Viajero",
+    contact_email: r.contact_email || r.contact?.email || "",
+    contact_phone: r.contact_phone || r.contact?.phone,
+    date: r.date || (r.check_in ? String(r.check_in).split("T")[0] : ""),
+    time: r.time,
+    guests: Number(r.guests ?? (r.adults ? r.adults + (r.children || 0) : 1)),
+    total_price: Number(r.total_price ?? 0),
+    currency: r.currency || "USD",
+    status: (["pending", "confirmed", "in_progress", "completed", "cancelled"].includes(r.status) ? r.status : "pending") as BookingStatus,
+    extras: Array.isArray(r.extras) ? r.extras : undefined,
+    guest_mix: r.guest_mix || undefined,
+    notified: r.notified || undefined,
+    payment_status: r.payment_status || "unpaid",
+    amount_paid: r.amount_paid != null ? Number(r.amount_paid) : undefined,
+    promo_code: r.promo_code,
+    notes: r.notes,
+    room_id: r.room_id,
+    room_name: r.room_name,
+    check_out: r.check_out ? String(r.check_out).split("T")[0] : undefined,
+    source: r.source || "web",
+    review_pending: r.review_pending,
+    created_at: r.created_at || iso(),
   };
 }
 
@@ -136,22 +243,65 @@ export const balanceDue = (b: Pick<Booking, "payment_status" | "amount_paid" | "
   b.status === "cancelled" ? 0 : Math.max(0, b.total_price - paidAmount(b));
 
 export async function fetchBookings(orgId: string): Promise<Booking[]> {
+  if (HAS_BACKEND_SESSION) {
+    try {
+      const res = await fetchApi<{ data: any[] }>("/org/bookings?per_page=100");
+      if (Array.isArray(res?.data)) return res.data.map(toBooking);
+    } catch {
+      // fallback
+    }
+  }
   const list = await rows<any>(from("reservations").select("*").eq("org_id", orgId).order("created_at", { ascending: false }));
   return list.map(toBooking);
 }
 
 export async function fetchAllBookings(): Promise<Booking[]> {
+  if (HAS_BACKEND_SESSION) {
+    try {
+      const res = await fetchApi<{ data: any[] }>("/org/bookings?per_page=100");
+      if (Array.isArray(res?.data)) return res.data.map(toBooking);
+    } catch {
+      // fallback
+    }
+  }
   const list = await rows<any>(from("reservations").select("*"));
   return list.filter((r) => r.org_id).map(toBooking);
 }
 
 export async function createBooking(input: Omit<Booking, "id" | "created_at" | "status" | "payment_status"> & Partial<Pick<Booking, "status" | "payment_status">>) {
+  if (HAS_BACKEND_SESSION) {
+    const payload = {
+      request: {
+        listing_id: input.listing_id,
+        room_id: input.room_id,
+        date: input.date,
+        check_out: input.check_out,
+        time: input.time,
+        adults: input.guests || 1,
+        children: 0,
+        extras: input.extras?.map((e) => (typeof e === "string" ? e : e.id)) ?? [],
+        promo_code: input.promo_code,
+      },
+      contact: {
+        name: input.contact_name,
+        email: input.contact_email,
+        phone: input.contact_phone,
+      },
+      notes: input.notes,
+    };
+    const res = await fetchApi<{ data: any }>("/org/bookings", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return res.data?.id || uid("bk");
+  }
+
   const row = {
     ...input,
     id: uid("bk"),
     status: input.status || "pending",
     payment_status: input.payment_status || "unpaid",
-    check_in: input.date, // compatibilidad con PartnerDashboard existente
+    check_in: input.date,
     check_out: input.check_out || input.date,
     created_at: iso(),
   };
@@ -161,6 +311,21 @@ export async function createBooking(input: Omit<Booking, "id" | "created_at" | "
 }
 
 export async function updateBooking(id: string, patch: Partial<Booking>) {
+  if (HAS_BACKEND_SESSION) {
+    if (patch.status && ["confirmed", "in_progress", "completed", "cancelled"].includes(patch.status)) {
+      await fetchApi(`/org/bookings/${encodeURIComponent(id)}/status`, {
+        method: "PUT",
+        body: JSON.stringify({ status: patch.status }),
+      });
+    }
+    if (patch.notes !== undefined) {
+      await fetchApi(`/org/bookings/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify({ notes: patch.notes }),
+      });
+    }
+    return;
+  }
   const { error } = await from("reservations").update(patch).eq("id", id);
   if (error) throw new Error(error.message);
 }
@@ -198,8 +363,17 @@ export async function markThreadRead(orgId: string, threadId: string) {
 
 // ---------- Promociones ----------
 export async function fetchPromotions(orgId: string): Promise<Promotion[]> {
+  if (HAS_BACKEND_SESSION) {
+    try {
+      const res = await fetchApi<{ data: Promotion[] }>("/org/promotions");
+      if (Array.isArray(res?.data)) return res.data;
+    } catch {
+      // fallback
+    }
+  }
   return rows<Promotion>(from("operator_promotions").select("*").eq("org_id", orgId).order("created_at", { ascending: false }));
 }
+
 export async function findPromotion(orgId: string, code: string): Promise<Promotion | null> {
   const list = await fetchPromotions(orgId);
   const p = list.find((x) => x.code.toLowerCase() === code.trim().toLowerCase() && x.active);
@@ -209,7 +383,24 @@ export async function findPromotion(orgId: string, code: string): Promise<Promot
   if (p.ends_at && p.ends_at < today) return null;
   return p;
 }
+
 export async function savePromotion(p: Partial<Promotion> & { org_id: string; code: string }) {
+  if (HAS_BACKEND_SESSION) {
+    if (p.id) {
+      const { id, ...patch } = p;
+      await fetchApi(`/org/promotions/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        body: JSON.stringify(patch),
+      });
+      return;
+    }
+    await fetchApi("/org/promotions", {
+      method: "POST",
+      body: JSON.stringify(p),
+    });
+    return;
+  }
+
   if (p.id) {
     const { id, ...patch } = p;
     const { error } = await from("operator_promotions").update(patch).eq("id", id);
@@ -219,9 +410,15 @@ export async function savePromotion(p: Partial<Promotion> & { org_id: string; co
   const { error } = await from("operator_promotions").insert({ type: "percent", value: 10, uses: 0, active: true, ...p, id: uid("promo"), created_at: iso() });
   if (error) throw new Error(error.message);
 }
+
 export async function deletePromotion(id: string) {
+  if (HAS_BACKEND_SESSION) {
+    await fetchApi(`/org/promotions/${encodeURIComponent(id)}`, { method: "DELETE" });
+    return;
+  }
   await from("operator_promotions").delete().eq("id", id);
 }
+
 export async function bumpPromotionUse(id: string, uses: number) {
   await from("operator_promotions").update({ uses: uses + 1 }).eq("id", id);
 }
@@ -230,6 +427,7 @@ export async function bumpPromotionUse(id: string, uses: number) {
 export async function fetchReviews(orgId: string): Promise<OperatorReview[]> {
   return rows<OperatorReview>(from("operator_reviews").select("*").eq("org_id", orgId).order("created_at", { ascending: false }));
 }
+
 export async function replyReview(id: string, reply: string) {
   const { error } = await from("operator_reviews").update({ reply }).eq("id", id);
   if (error) throw new Error(error.message);

@@ -440,7 +440,7 @@ export default function Perfil() {
     );
   }
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login?returnTo=/perfil" replace />;
 
   return (
     <PageTransition>

@@ -8,7 +8,7 @@ Cuando dos sistemas tienen el mismo dato, manda el que figura aquí; el resto es
 - **Estado actual:** `backend/` (Fastify 5 + PostgreSQL 16) es la fuente de verdad de los dominios transaccionales y del contenido editorial. Hoy se despliega como monolito modular.
 - **Arquitectura objetivo:** extraer los dominios a microservicios con propiedad de datos independiente detrás de una entrada API/gateway estable. Hasta que una extracción cumpla sus criterios de salida, el módulo de `backend/` sigue siendo autoritativo para ese dominio. El plan está en [`ARQUITECTURA_MICROSERVICIOS.md`](ARQUITECTURA_MICROSERVICIOS.md).
 - El frontend nunca decide precios, estados de pago, roles, monedas ni premios: los recalcula el servidor (AGENTS.md).
-- `docs/BACKEND_API.md` (generado con `npm run docs:api`) es el contrato público; el CI bloquea su drift (`docs:api -- --check`).
+- `docs/BACKEND_API_IMPLEMENTADO.md` (generado con `npm run docs:api`) es el contrato público de lo que existe; el CI bloquea su drift (`docs:api -- --check`). `docs/BACKEND_API.md` es el diseño original al que remiten las notas «docs §» del código.
 
 ## Dominios
 

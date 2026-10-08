@@ -15,7 +15,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
 import { trackEvent } from "@/hooks/useAnalytics";
 import { isValidEmail } from "@/lib/security";
-import { DOP_PER_USD, FREE_SHIPPING_FROM, SHIPPING_FLAT, createOrder, formatDop } from "../api";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { useQuery } from "@tanstack/react-query";
+import { DOP_PER_USD, FREE_SHIPPING_FROM, SHIPPING_FLAT, createOrder, createTransferOrder, fetchBankAccounts, fetchQuote, formatDop, type TransferPayment } from "../api";
 
 export default function TiendaCheckout() {
   const { user } = useAuth();
@@ -25,23 +27,47 @@ export default function TiendaCheckout() {
   const [busy, setBusy] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
 
-  // El carrito guarda precios en US$ (ver CartDrawer); aquí se muestran en RD$.
-  const subtotal = Math.round(items.reduce((n, i) => n + i.price * i.quantity, 0) * DOP_PER_USD);
-  const shipping = subtotal === 0 || subtotal >= FREE_SHIPPING_FROM ? 0 : SHIPPING_FLAT;
-  const total = subtotal + shipping;
+  // Cotización autoritativa desde backend con sesión real (P6)
+  const { data: serverQuote } = useQuery({
+    queryKey: ["store-checkout-quote", items.map(i => `${i.product_id}:${i.quantity}`).join(",")],
+    queryFn: () => fetchQuote(),
+    enabled: HAS_BACKEND_SESSION && items.length > 0,
+    staleTime: 30_000,
+  });
 
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "transfer">("card");
+  // El carrito guarda precios en US$; aquí se muestran en RD$ o según cotización del servidor
+  const subtotal = serverQuote ? serverQuote.subtotal : Math.round(items.reduce((n, i) => n + i.price * i.quantity, 0) * DOP_PER_USD);
+  const shipping = serverQuote ? serverQuote.shipping : (subtotal === 0 || subtotal >= FREE_SHIPPING_FROM ? 0 : SHIPPING_FLAT);
+  const discount = serverQuote?.discount ?? 0;
+  const total = serverQuote ? serverQuote.total : (subtotal + shipping);
+
+  // Con sesión real solo se puede pagar por depósito o transferencia: el cobro con tarjeta espera a la pasarela.
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "transfer">(HAS_BACKEND_SESSION ? "transfer" : "card");
+  const [transfer, setTransfer] = useState<TransferPayment | null>(null);
+  const { data: bankAccounts = [], isLoading: loadingAccounts } = useQuery({ queryKey: ["store-bank-accounts"], queryFn: fetchBankAccounts, enabled: HAS_BACKEND_SESSION, staleTime: 60_000 });
+  /** Con sesión real y sin cuentas activas no hay forma de pagar todavía. */
+  const transferUnavailable = HAS_BACKEND_SESSION && !loadingAccounts && bankAccounts.length === 0;
 
   const pay = async () => {
+    if (transferUnavailable) return toast.error("El pago por depósito o transferencia no está disponible en este momento.");
     if (items.length === 0) return toast.error("Tu carrito está vacío.");
     if (f.name.trim().length < 3) return toast.error("Escribe tu nombre completo.");
     if (!isValidEmail(f.email)) return toast.error("Ingresa un correo válido.");
-    if (f.address.trim().length < 6 || f.city.trim().length < 2) return toast.error("Completa la dirección de entrega.");
+    if (f.address.trim().length < 8 || f.city.trim().length < 2) return toast.error("Completa la dirección de entrega.");
     if (!f.phone.trim() || f.phone.trim().length < 7) return toast.error("Ingresa un número de contacto válido.");
 
     trackEvent("checkout_start", { method: paymentMethod, items: items.length, total });
     setBusy(true);
     try {
+      if (HAS_BACKEND_SESSION) {
+        const order = await createTransferOrder({ name: f.name.trim(), email: f.email.trim(), phone: f.phone.trim(), address: f.address.trim(), city: f.city.trim() });
+        setTransfer(order.transfer);
+        qc.invalidateQueries({ queryKey: ["store"] });
+        await clearCart(); // el servidor ya vació el carrito; esto refresca la copia local
+        setOrderId(order.id);
+        trackEvent("purchase", { method: "transfer", items: items.length, total });
+        return;
+      }
       const id = await createOrder({
         user_id: user?.id ?? null,
         customer_name: f.name.trim(),
@@ -74,19 +100,33 @@ export default function TiendaCheckout() {
   if (orderId) {
     return (
       <PageTransition>
-        <SEOHead title="Pedido confirmado — Tienda Descubre RD" description="Tu pedido fue confirmado." />
+        <SEOHead title="Pedido recibido — Tienda Descubre RD" description="Recibimos tu pedido." />
         <Header variant="white" />
         <main className="pt-32 pb-20 container mx-auto px-4 max-w-xl text-center space-y-4">
           <CheckCircle2 className="h-14 w-14 text-emerald-500 mx-auto" />
-          <h1 className="font-display text-3xl font-bold">¡Gracias por tu compra!</h1>
+          <h1 className="font-display text-3xl font-bold">{paymentMethod === "transfer" ? "Recibimos tu pedido" : "¡Gracias por tu compra!"}</h1>
           <p className="text-muted-foreground">Te enviaremos los detalles y confirmación de entrega por correo a <strong>{f.email}</strong>.</p>
           <p className="rounded-lg bg-muted p-3 font-mono text-sm">Número de Orden: {orderId}</p>
           {paymentMethod === "transfer" && (
-            <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl text-left text-xs text-amber-900 dark:text-amber-300 space-y-1">
-              <p className="font-semibold text-sm">Instrucciones para Transferencia Bancaria:</p>
-              <p>Banco: Banco Popular Dominicano / Banreservas</p>
-              <p>Cuenta Corriente: 7890-12345-6 (Descubre RD S.R.L.)</p>
-              <p>Envía tu comprobante con el número de orden por WhatsApp para despacho inmediato.</p>
+            <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl text-left text-sm text-amber-900 dark:text-amber-300 space-y-1.5">
+              <p className="font-semibold">Tu pedido está reservado: falta tu depósito o transferencia</p>
+              {transfer && <p>Monto a pagar: <strong>{formatDop(transfer.amount)}</strong>. Usa <strong className="font-mono">{transfer.reference}</strong> como concepto del pago.</p>}
+              {transfer && transfer.accounts.length > 0 ? (
+                <ul className="space-y-2 py-1">
+                  {transfer.accounts.map((account) => (
+                    <li key={account.id} className="rounded-lg bg-background/60 p-3">
+                      <p className="font-semibold">{account.bank_name} · cuenta {account.account_type} ({account.currency})</p>
+                      <p className="font-mono text-base">{account.account_number}</p>
+                      <p>{account.holder_name}{account.holder_document ? ` · ${account.holder_document}` : ""}</p>
+                      {account.notes && <p className="text-xs opacity-80">{account.notes}</p>}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>{transfer?.instructions ?? "Te enviaremos los datos de la cuenta bancaria por correo."}</p>
+              )}
+              {transfer?.expires_at && <p>Guardamos tus artículos hasta el {new Date(transfer.expires_at).toLocaleDateString("es-DO", { day: "numeric", month: "long" })}. Pasada esa fecha el pedido se cancela solo.</p>}
+              <p>Cuando confirmemos el pago te avisaremos por correo y prepararemos el envío.</p>
             </div>
           )}
           <Button asChild><Link to="/tienda">Seguir comprando</Link></Button>
@@ -127,15 +167,17 @@ export default function TiendaCheckout() {
                   <div className="grid sm:grid-cols-2 gap-3">
                     <button
                       type="button"
+                      disabled={HAS_BACKEND_SESSION}
+                      aria-disabled={HAS_BACKEND_SESSION}
                       onClick={() => setPaymentMethod("card")}
-                      className={`surface-commercial p-4 rounded-card border text-left transition-all ${
+                      className={`surface-commercial p-4 rounded-card border text-left transition-all disabled:opacity-60 disabled:cursor-not-allowed ${
                         paymentMethod === "card" 
                           ? "border-primary bg-primary/5 ring-1 ring-primary" 
                           : "border-border hover:border-border/80"
                       }`}
                     >
                       <p className="font-semibold text-sm">Tarjeta de Crédito / Débito</p>
-                      <p className="text-xs text-muted-foreground mt-1">Visa, Mastercard, Amex a través de pasarela bancaria segura.</p>
+                      <p className="text-xs text-muted-foreground mt-1">{HAS_BACKEND_SESSION ? "Próximamente. Por ahora paga por depósito o transferencia." : "Visa, Mastercard, Amex a través de pasarela bancaria segura."}</p>
                     </button>
 
                     <button
@@ -147,14 +189,14 @@ export default function TiendaCheckout() {
                           : "border-border hover:border-border/80"
                       }`}
                     >
-                      <p className="font-semibold text-sm">Transferencia Local</p>
-                      <p className="text-xs text-muted-foreground mt-1">Pago directo vía Banco Popular o Banreservas con comprobante.</p>
+                      <p className="font-semibold text-sm">Depósito o transferencia</p>
+                      <p className="text-xs text-muted-foreground mt-1">{transferUnavailable ? "No disponible por ahora." : bankAccounts.length > 0 ? `Reservamos tu pedido y lo despachamos al confirmar tu pago. Bancos: ${bankAccounts.map((a) => a.bank_name).join(", ")}.` : "Reservamos tu pedido y lo despachamos al confirmar tu pago."}</p>
                     </button>
                   </div>
 
                   <div className="rounded-lg bg-muted/60 p-3.5 text-xs text-muted-foreground space-y-1.5 border border-border/50">
-                    <p className="font-medium text-foreground">🔒 Seguridad Garantizada (Cumplimiento PCI-DSS):</p>
-                    <p>Descubre RD no almacena datos sensibles de tarjetas de crédito en sus servidores. Las transacciones se procesan mediante túneles bancarios encriptados.</p>
+                    <p className="font-medium text-foreground">Cómo funciona el pago por transferencia</p>
+                    <p>Al confirmar, reservamos tus artículos y te mostramos el monto y el concepto del pago. No pedimos ni guardamos datos de tarjeta.</p>
                   </div>
                 </CardContent>
               </Card>
@@ -172,13 +214,22 @@ export default function TiendaCheckout() {
               </ul>
               <div className="border-t border-border pt-2 text-sm space-y-1">
                 <div className="flex justify-between"><span>Subtotal</span><span>{formatDop(subtotal)}</span></div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-emerald-600"><span>Descuento</span><span>-{formatDop(discount)}</span></div>
+                )}
                 <div className="flex justify-between"><span>Envío</span><span>{shipping ? formatDop(shipping) : "Gratis (Compras > RD$ 2,500)"}</span></div>
                 <div className="flex justify-between font-bold text-base pt-1 border-t border-border/40">
                   <span>Total</span><span>{formatDop(total)}</span>
                 </div>
               </div>
+              {HAS_BACKEND_SESSION && (
+                <div className="bg-primary/10 border border-primary/20 p-3 rounded-xl text-foreground text-xs space-y-1">
+                  <p className="font-semibold text-primary">Modalidad: Depósito directo / Transferencia bancaria</p>
+                  <p className="text-muted-foreground">Al confirmar, tus artículos quedan reservados en el servidor y recibirás las instrucciones bancarias oficiales para completar tu pago.</p>
+                </div>
+              )}
               <Button className="w-full text-base font-semibold" size="lg" disabled={busy} onClick={pay}>
-                {busy ? "Procesando orden..." : `Confirmar Pedido · ${formatDop(total)}`}
+                {busy ? "Procesando pedido..." : paymentMethod === "transfer" ? `Confirmar Pedido por Transferencia · ${formatDop(total)}` : `Confirmar Pedido · ${formatDop(total)}`}
               </Button>
               <p className="text-[11px] text-muted-foreground text-center">Garantía oficial y soporte directo por WhatsApp.</p>
             </CardContent></Card>

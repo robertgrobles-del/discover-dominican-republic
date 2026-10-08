@@ -8,6 +8,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi } from "@/lib/gamificationApi";
+import { apiMessage } from "@/lib/fastifyClient";
 import {
   PartyPopper, Gift, Send, ChevronRight, Clock, CheckCircle,
   Hotel, UtensilsCrossed, Compass, DollarSign, Plane, Heart,
@@ -153,19 +156,30 @@ export const SurveyModule: React.FC<SurveyModuleProps> = ({ survey, onCompleted,
           onClick={async () => {
             if (!email) { toast.error("Ingresa tu email para participar"); return; }
             setLoading(true);
-            const { error } = await supabase.from("survey_responses").insert({
-              survey_id: survey.id,
-              email,
-              respuestas: respuestas,
-            });
-            setLoading(false);
-            if (error) {
-              // Si falla por tabla inexistente o RLS, dar feedback amigable
-              console.warn("Error guardando encuesta en backend:", error);
+            try {
+              if (HAS_BACKEND_SESSION) {
+                await gamificationApi.submitSurveyResponse(survey.id, {
+                  email,
+                  ...respuestas,
+                });
+              } else {
+                const { error } = await supabase.from("survey_responses").insert({
+                  survey_id: survey.id,
+                  email,
+                  respuestas: respuestas,
+                });
+                if (error) {
+                  console.warn("Error guardando encuesta en backend:", error);
+                }
+              }
+              setEnviado(true);
+              toast.success("🎉 ¡Encuesta enviada! Ya participas en el sorteo.");
+              if (onCompleted) onCompleted();
+            } catch (err) {
+              toast.error(apiMessage(err, "Error al enviar la encuesta"));
+            } finally {
+              setLoading(false);
             }
-            setEnviado(true);
-            toast.success("🎉 ¡Encuesta enviada! Ya participas en el sorteo.");
-            if (onCompleted) onCompleted();
           }}
         >
           <Send className="h-4 w-4" /> {loading ? "Enviando..." : "Enviar y participar en sorteo"}

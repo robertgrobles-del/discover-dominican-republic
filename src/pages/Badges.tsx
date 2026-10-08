@@ -14,6 +14,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi } from "@/lib/gamificationApi";
+import { toast } from "sonner";
+
 const rarityConfig: Record<string, { gradient: string; label: string; color: string }> = {
   common: { gradient: "from-slate-400 to-slate-500", label: "Común", color: "bg-muted-foreground" },
   rare: { gradient: "from-blue-400 to-blue-600", label: "Raro", color: "bg-blue-500" },
@@ -30,6 +34,22 @@ export default function Badges() {
   useEffect(() => {
     const fetch = async () => {
       setLoading(true);
+      if (HAS_BACKEND_SESSION) {
+        try {
+          const [allAch, myAch] = await Promise.all([
+            gamificationApi.getAchievements(),
+            user ? gamificationApi.getMyAchievements() : Promise.resolve([]),
+          ]);
+          setAchievements(allAch);
+          setUserAchievements(myAch.map((a: any) => ({ achievement_id: a.id, ...a })));
+        } catch (err: any) {
+          toast.error("Error al cargar logros", { description: err.message });
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+
       const { data: achData } = await supabase
         .from("achievements")
         .select("*")
@@ -116,7 +136,7 @@ export default function Badges() {
                     <div className="text-center py-12 bg-card rounded-xl border border-border">
                       <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
                       <p className="text-muted-foreground">Aún no has desbloqueado badges. ¡Comienza a explorar!</p>
-                      <Button className="mt-4" asChild><Link to="/club-recompensas">Ver Misiones</Link></Button>
+                      <Button className="mt-4" asChild><Link to="/mapa-misiones">Ver Misiones</Link></Button>
                     </div>
                   ) : (
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

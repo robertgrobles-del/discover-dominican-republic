@@ -3,9 +3,11 @@ import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { TripPlanner } from "@/components/TripPlanner";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useAuth } from "@/hooks/useAuth";
+import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Bookmark, MapPin, Star, ChevronRight, Calendar, Settings, Award, Sparkles, Heart, Route } from "lucide-react";
+import { Bookmark, MapPin, Star, ChevronRight, Calendar, Settings, Award, Sparkles, Heart, Route, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,6 +17,37 @@ import puntaCana from "@/assets/punta-cana.jpg";
 
 export default function MiViaje() {
   const { favorites, getFavoritesByType, totalCount } = useFavorites();
+  const { user, loading: authLoading } = useAuth();
+
+  if (authLoading) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  }
+
+  // El planificador guarda itinerarios y favoritos en la cuenta: sin sesión se pide entrar o registrarse.
+  if (!user) {
+    return (
+      <PageTransition>
+        <SEOHead title="Mi Viaje: Planificador e Itinerario Personal" description="Inicia sesión o crea una cuenta para planificar tu viaje a República Dominicana y guardar tu itinerario." />
+        <div className="min-h-screen bg-background flex flex-col">
+          <Header />
+          <main className="flex-1 flex items-center justify-center px-4 pt-28 pb-16">
+            <Card className="max-w-md mx-auto">
+              <CardContent className="p-8 text-center space-y-4">
+                <Route className="h-12 w-12 mx-auto text-primary" />
+                <h1 className="font-display text-2xl font-bold">Inicia sesión para planificar tu viaje</h1>
+                <p className="text-muted-foreground">Con una cuenta puedes armar tu itinerario, guardar tus lugares favoritos y retomarlo desde cualquier dispositivo.</p>
+                <div className="flex gap-3 justify-center">
+                  <Button asChild><Link to="/login?returnTo=/mi-viaje">Iniciar sesión</Link></Button>
+                  <Button variant="outline" asChild><Link to="/registro">Crear una cuenta</Link></Button>
+                </div>
+              </CardContent>
+            </Card>
+          </main>
+          <Footer />
+        </div>
+      </PageTransition>
+    );
+  }
 
   const stats = [
     { icon: Bookmark, value: totalCount, label: "Lugares Guardados" },

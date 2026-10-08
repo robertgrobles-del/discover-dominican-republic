@@ -421,26 +421,26 @@ export default function GuiaGastronomica() {
                   key={r.id}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
+                  transition={{ delay: i * 0.08 }}
                   viewport={{ once: true }}
                 >
-                  <div className="block bg-card rounded-xl overflow-hidden border border-border group hover:shadow-lg transition-all h-full flex flex-col justify-between">
+                  <div className="card-taste overflow-hidden group h-full flex flex-col justify-between">
                     <div>
                       <div className="aspect-[4/3] relative overflow-hidden">
                         <img src={r.imageUrl} alt={r.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                        <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full">
+                        <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-full shadow-xs">
                           <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
-                          <span className="text-xs font-medium">{r.rating}</span>
+                          <span className="text-xs font-semibold">{r.rating}</span>
                         </div>
-                        <Badge className="absolute top-3 left-3 bg-emerald-600/90 backdrop-blur-sm text-white text-[10px]">
+                        <Badge className="absolute top-3 left-3 bg-emerald-600/90 backdrop-blur-sm text-white text-[10px] shadow-xs">
                           Carta Disponible
                         </Badge>
                       </div>
                       <div className="p-4">
-                        <Badge variant="secondary" className="mb-2 text-xs">{r.priceRange} · {r.cuisineType[0]}</Badge>
-                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{r.name}</h3>
-                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                          <MapPin className="h-3 w-3" /> {r.destinationName}
+                        <Badge variant="secondary" className="mb-2 text-xs bg-secondary/70">{r.priceRange} · {r.cuisineType[0]}</Badge>
+                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors text-base">{r.name}</h3>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1 font-medium">
+                          <MapPin className="h-3 w-3 text-primary" /> {r.destinationName}
                         </p>
                       </div>
                     </div>
@@ -449,14 +449,14 @@ export default function GuiaGastronomica() {
                       <Button 
                         variant="default" 
                         size="sm" 
-                        className="w-full text-xs gap-1.5"
+                        className="w-full btn-cta-magnetic text-xs gap-1.5 rounded-xl font-semibold"
                         onClick={() => openMenuForSlug(r.slug, r.name)}
                       >
                         <Utensils className="w-3.5 h-3.5" />
                         Consultar Menú
                       </Button>
                       <Link to={`/restaurante/${r.slug}`} className="w-auto">
-                        <Button variant="outline" size="sm" className="text-xs px-2.5" title="Ver ficha completa">
+                        <Button variant="outline" size="sm" className="text-xs px-2.5 rounded-xl" title="Ver ficha completa">
                           <ChevronRight className="w-3.5 h-3.5" />
                         </Button>
                       </Link>
@@ -472,14 +472,14 @@ export default function GuiaGastronomica() {
       <BetweenSectionsAd showDemo />
 
       {/* Gastronomic Routes */}
-      <section className="py-16 bg-card">
+      <section className="py-16 bg-card/40 border-y border-border/60">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">Rutas</Badge>
             <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
               Rutas Gastronómicas
             </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
+            <p className="text-muted-foreground max-w-xl mx-auto text-sm">
               Itinerarios curados para explorar los mejores sabores de cada región dominicana.
             </p>
           </div>
@@ -490,27 +490,31 @@ export default function GuiaGastronomica() {
                 key={route.id}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
+                transition={{ delay: i * 0.08 }}
                 viewport={{ once: true }}
               >
-                <Card className="overflow-hidden group hover:shadow-lg transition-all h-full">
-                  <div className="aspect-[16/10] relative overflow-hidden">
-                    <img src={route.image} alt={route.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    <div className="absolute bottom-3 left-3 flex gap-2">
-                      <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">{route.stops} paradas</Badge>
-                      <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">{route.duration}</Badge>
+                <div className="card-taste overflow-hidden group h-full flex flex-col justify-between">
+                  <div>
+                    <div className="aspect-[16/10] relative overflow-hidden">
+                      <img src={route.image} alt={route.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <div className="absolute bottom-3 left-3 flex gap-2">
+                        <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm text-xs">{route.stops} paradas</Badge>
+                        <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm text-xs">{route.duration}</Badge>
+                      </div>
+                    </div>
+                    <div className="p-5">
+                      <h3 className="font-display text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                        {route.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">{route.description}</p>
                     </div>
                   </div>
-                  <CardContent className="p-5">
-                    <h3 className="font-display text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
-                      {route.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">{route.description}</p>
-                    <Button variant="outline" size="sm" className="gap-1 w-full">
-                      Explorar ruta <ArrowRight className="h-3 w-3" />
+                  <div className="p-5 pt-0">
+                    <Button variant="outline" size="sm" className="gap-1.5 w-full rounded-xl text-xs font-semibold hover:text-primary hover:border-primary">
+                      Explorar ruta <ArrowRight className="h-3.5 w-3.5" />
                     </Button>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>

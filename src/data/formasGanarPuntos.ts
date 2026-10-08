@@ -255,7 +255,7 @@ export const FORMAS_GANAR_PUNTOS: FormaGanarPuntos[] = [
       "Desbloquea la Insignia Guardián Verde"
     ],
     actionLabel: "Calcular Huella",
-    actionRoute: "/turismo-sostenible",
+    actionRoute: "/sostenible",
     isPopular: false
   },
   {

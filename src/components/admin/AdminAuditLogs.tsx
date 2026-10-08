@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { adminAuditApi } from "@/lib/adminAuditApi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -31,6 +33,24 @@ export function AdminAuditLogs() {
   const { data: logs, isLoading } = useQuery<AuditLog[]>({
     queryKey: ["admin-audit-logs"],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        const res = await adminAuditApi.listLogs({ per_page: 100 });
+        return res.data.map((l) => ({
+          id: String(l.id),
+          action_type: l.action,
+          entity_name: l.entity_type,
+          entity_id: l.entity_id,
+          ip_address: l.ip || "127.0.0.1",
+          user_agent: "Sistema",
+          old_data: null,
+          new_data: l.meta,
+          created_at: l.created_at,
+          profiles: {
+            display_name: l.actor_id ? `Admin (${l.actor_id.slice(0, 8)})` : "Sistema",
+          },
+        }));
+      }
+
       const { data, error } = await supabase
         .from("admin_activity_logs" as any)
         .select(`

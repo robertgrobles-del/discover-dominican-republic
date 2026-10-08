@@ -6,6 +6,7 @@ import { pageMeta } from "../../lib/pagination.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
 import { audit } from "../../lib/audit.js";
 import { StoreService, type Actor } from "./service.js";
+import { tableAdminRoutes } from "../../lib/table-admin.js";
 
 declare module "fastify" { interface FastifyInstance { store: StoreService } }
 
@@ -69,7 +70,7 @@ export async function storeRoutes(app: FastifyInstance) {
       body: z.object({
         contact: z.object({ name: z.string().trim().min(2).max(100), email, phone: z.string().trim().min(7).max(30).optional() }),
         shipping: z.object({ address: z.string().trim().min(8).max(300), city: z.string().trim().min(2).max(80), province: z.string().trim().max(60).optional(), notes: z.string().trim().max(500).optional() }),
-        coupon_code: z.string().trim().max(40).optional(), ref_code: z.string().trim().max(30).optional(), payment_method_token: z.string().max(200), locale: z.enum(["es", "en"]).optional(),
+        coupon_code: z.string().trim().max(40).optional(), ref_code: z.string().trim().max(30).optional(), payment_method: z.enum(["card", "transfer"]).default("card"), payment_method_token: z.string().max(200).optional(), locale: z.enum(["es", "en"]).optional(),
       }),
       response: { 200: ok, 201: ok },
     },
@@ -77,7 +78,7 @@ export async function storeRoutes(app: FastifyInstance) {
     const key = req.headers["idempotency-key"];
     if (typeof key !== "string" || key.length < 8 || key.length > 100) throw AppError.validation("Falta el encabezado Idempotency-Key (8–100 caracteres, único por intento de compra)");
     const b = req.body;
-    const res = await store.createOrder({ actor: actor(req), contact: b.contact, shipping: b.shipping, couponCode: b.coupon_code, paymentToken: b.payment_method_token, idempotencyKey: key, locale: b.locale, refCode: await app.ambassadors.resolve(b.ref_code, { userId: req.user?.id, email: b.contact.email }) });
+    const res = await store.createOrder({ actor: actor(req), contact: b.contact, shipping: b.shipping, couponCode: b.coupon_code, paymentToken: b.payment_method_token, paymentMethod: b.payment_method, idempotencyKey: key, locale: b.locale, refCode: await app.ambassadors.resolve(b.ref_code, { userId: req.user?.id, email: b.contact.email }) });
     reply.code(res.replayed ? 200 : 201);
     return { data: { order: res.order, access_token: res.accessToken, replayed: res.replayed } };
   });
@@ -106,6 +107,15 @@ export async function storeRoutes(app: FastifyInstance) {
   r.patch("/admin/store/orders/:id", { onRequest: admin, schema: { tags: ["admin"], summary: "Cambia el estado (processing → shipped con guía → delivered; cancelar reembolsa)", security: bearer, params: orderId, body: z.object({ status: z.enum(["processing", "shipped", "delivered", "cancelled"]), courier_name: z.string().trim().max(80).optional(), tracking_number: z.string().trim().max(80).optional(), reason: z.string().trim().max(300).optional() }), response: { 200: ok } } }, async (req) => {
     const data = await store.adminSetStatus(req.params.id, req.body.status, req.body);
     await audit(db, { actor: req.user!.id, action: `store.order_${req.body.status}`, entity: "store_order", id: req.params.id, ip: req.ip });
+    return { data };
+  });
+  // Cuentas para depósito o transferencia: públicas (el checkout las muestra) y gestionadas por un administrador.
+  r.get("/store/bank-accounts", { schema: { tags: ["tienda"], summary: "Cuentas bancarias activas para pagar un pedido por depósito o transferencia", response: { 200: ok } } }, async () => ({ data: await store.bankAccounts() }));
+  await tableAdminRoutes(app, [{ table: "store_bank_accounts", pk: "id", readonly: ["id", "created_at"], order: "sort_order, bank_name", label: "Cuentas bancarias de la tienda" }], ["admin"]);
+
+  r.post("/admin/store/orders/:id/confirm-transfer", { onRequest: admin, schema: { tags: ["admin"], summary: "Confirma el depósito o la transferencia de un pedido pendiente y lo marca como pagado", security: bearer, params: orderId, body: z.object({ reference: z.string().trim().min(3).max(100), amount: z.number().gt(0).optional() }), response: { 200: ok } } }, async (req) => {
+    const data = await store.adminConfirmTransfer(req.params.id, req.body);
+    await audit(db, { actor: req.user!.id, action: "store.order_transfer_confirmed", entity: "store_order", id: req.params.id, meta: { reference: req.body.reference, amount: req.body.amount ?? "total" }, ip: req.ip });
     return { data };
   });
   r.post("/admin/store/orders/:id/refund", { onRequest: admin, schema: { tags: ["admin"], summary: "Reembolso total o parcial (con o sin devolver el stock)", security: bearer, params: orderId, body: z.object({ amount: z.number().gt(0).optional(), restock: z.boolean().default(false), reason: z.string().trim().min(3).max(300) }), response: { 200: ok } } }, async (req) => {
@@ -168,6 +178,12 @@ export async function storeRoutes(app: FastifyInstance) {
     if (!entries.length) throw AppError.validation("No hay cambios que guardar");
     if (!(await db.query(`UPDATE discount_coupons SET ${entries.map(([k], i) => `"${k}" = $${i + 2}`).join(", ")} WHERE id = $1`, [req.params.id, ...entries.map(([, v]) => v)])).rowCount) throw AppError.notFound("Cupón");
     await audit(db, { actor: req.user!.id, action: "store.coupon_updated", entity: "coupon", id: req.params.id, ip: req.ip });
+    reply.code(204);
+    return null;
+  });
+  r.delete("/admin/discount_coupons/:id", { onRequest: admin, schema: { tags: ["admin"], summary: "Elimina un cupón de descuento", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
+    if (!(await db.query("DELETE FROM discount_coupons WHERE id = $1", [req.params.id])).rowCount) throw AppError.notFound("Cupón");
+    await audit(db, { actor: req.user!.id, action: "store.coupon_deleted", entity: "coupon", id: req.params.id, ip: req.ip });
     reply.code(204);
     return null;
   });

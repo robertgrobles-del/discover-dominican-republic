@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { gamificationApi } from "@/lib/gamificationApi";
 import { 
   sanitizeInput, 
   detectSQLiPatterns, 
@@ -48,6 +50,15 @@ export default function RDSocial() {
   // Load current comment stats on mount
   const loadCommentStats = useCallback(async () => {
     if (!user) return;
+    if (HAS_BACKEND_SESSION) {
+      try {
+        const stats = await gamificationApi.getMyCommentStats();
+        setPostsCommentedToday(stats.posts_today);
+      } catch (err: any) {
+        toast.error("Error al obtener estadísticas de comentarios", { description: err.message });
+      }
+      return;
+    }
     const { data } = await supabase.rpc("get_my_comment_stats");
     if (data) {
       const stats = data as { posts_today: number; total_comments: number };
@@ -121,6 +132,18 @@ export default function RDSocial() {
 
     setSubmitting(postId);
     try {
+      if (HAS_BACKEND_SESSION) {
+        await gamificationApi.addPostComment(postIdStr, cleanText);
+        setCommentedPosts((prev) => new Set([...prev, postIdStr]));
+        const newCount = postsCommentedToday + 1;
+        setPostsCommentedToday(newCount);
+        setCommentText((prev) => ({ ...prev, [postId]: "" }));
+        toast.success("¡Comentario publicado en el backend!", {
+          description: `${DAILY_LIMIT - newCount} posts más disponibles hoy`,
+        });
+        return;
+      }
+
       const { data, error } = await supabase.rpc("post_comment", {
         p_post_id: postIdStr,
         p_content: cleanText
@@ -148,9 +171,9 @@ export default function RDSocial() {
       toast.success(`¡Comentario publicado! +${result.xp_awarded} XP +${result.coins_awarded} 🪙`, {
         description: `${DAILY_LIMIT - (result.posts_today ?? 0)} posts más disponibles hoy`
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error posting comment:", err);
-      toast.error("Error al publicar el comentario. Intenta de nuevo.");
+      toast.error(err.message || "Error al publicar el comentario. Intenta de nuevo.");
     } finally {
       setSubmitting(null);
     }

@@ -18,9 +18,22 @@ import {
   Share2,
   Download,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchApi } from "@/lib/fastifyClient";
+import { CATALOG_SOURCE } from "@/lib/catalogSource";
 
-const featuredEpisode = {
+interface AudioGuideApi {
+  id: string;
+  title: string;
+  description: string | null;
+  audio_url: string;
+  duration_seconds: number | null;
+  language: string | null;
+  created_at?: string;
+}
+
+const defaultFeaturedEpisode = {
   title: "Los secretos del merengue",
   description: "Un viaje sonoro por la historia del ritmo que define a República Dominicana, desde sus raíces africanas hasta su reconocimiento como Patrimonio de la Humanidad.",
   duration: "45:20",
@@ -29,9 +42,9 @@ const featuredEpisode = {
   listens: "12.5K",
 };
 
-const episodes = [
+const defaultEpisodes = [
   {
-    id: 1,
+    id: "1",
     title: "Café de las montañas",
     series: "Sabores Dominicanos",
     duration: "32:15",
@@ -39,7 +52,7 @@ const episodes = [
     image: "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=200",
   },
   {
-    id: 2,
+    id: "2",
     title: "Las ballenas de Samaná",
     series: "Naturaleza RD",
     duration: "28:40",
@@ -47,7 +60,7 @@ const episodes = [
     image: "https://images.unsplash.com/photo-1568430462989-44163eb1752f?w=200",
   },
   {
-    id: 3,
+    id: "3",
     title: "Leyendas taínas",
     series: "Historia Viva",
     duration: "38:55",
@@ -55,7 +68,7 @@ const episodes = [
     image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=200",
   },
   {
-    id: 4,
+    id: "4",
     title: "La vida en el Malecón",
     series: "Gente de RD",
     duration: "41:10",
@@ -73,6 +86,55 @@ const series = [
 
 export default function PodcastRD() {
   const [isPlaying, setIsPlaying] = useState(false);
+
+  // Consulta autoritativa a la colección de audioguías del backend
+  const { data: apiAudios = [] } = useQuery<AudioGuideApi[]>({
+    queryKey: ["podcast-audio-guides", CATALOG_SOURCE],
+    queryFn: async () => {
+      try {
+        const res = await fetchApi<{ data: AudioGuideApi[] }>("/audio-guides?per_page=20");
+        return Array.isArray(res?.data) ? res.data : [];
+      } catch {
+        return [];
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const episodes = useMemo(() => {
+    if (apiAudios.length > 0) {
+      return apiAudios.map((a, idx) => {
+        const mins = a.duration_seconds ? Math.floor(a.duration_seconds / 60) : 15;
+        const secs = a.duration_seconds ? (a.duration_seconds % 60).toString().padStart(2, "0") : "00";
+        return {
+          id: a.id,
+          title: a.title,
+          series: "Audioguías Oficiales",
+          duration: `${mins}:${secs}`,
+          date: a.created_at ? new Date(a.created_at).toLocaleDateString("es-DO", { day: "numeric", month: "short", year: "numeric" }) : "Reciente",
+          image: defaultEpisodes[idx % defaultEpisodes.length]?.image || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200",
+        };
+      });
+    }
+    return defaultEpisodes;
+  }, [apiAudios]);
+
+  const featuredEpisode = useMemo(() => {
+    if (apiAudios.length > 0 && apiAudios[0]) {
+      const top = apiAudios[0];
+      const mins = top.duration_seconds ? Math.floor(top.duration_seconds / 60) : 25;
+      const secs = top.duration_seconds ? (top.duration_seconds % 60).toString().padStart(2, "0") : "00";
+      return {
+        title: top.title,
+        description: top.description || defaultFeaturedEpisode.description,
+        duration: `${mins}:${secs}`,
+        date: top.created_at ? new Date(top.created_at).toLocaleDateString("es-DO", { day: "numeric", month: "short", year: "numeric" }) : defaultFeaturedEpisode.date,
+        image: defaultFeaturedEpisode.image,
+        listens: "Oficial MITUR",
+      };
+    }
+    return defaultFeaturedEpisode;
+  }, [apiAudios]);
 
   return (
     <PageTransition>
