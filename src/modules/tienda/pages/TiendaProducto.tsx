@@ -11,8 +11,33 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useCart } from "@/hooks/useCart";
-import { CATEGORY_LABEL, FREE_SHIPPING_FROM, SHIPPING_FLAT, dopToUsd, formatDop, useProduct, useProducts } from "../api";
+import { categoryLabel, FREE_SHIPPING_FROM, SHIPPING_FLAT, dopToUsd, formatDop, useProduct, useProducts } from "../api";
 import { ProductArt } from "../ProductArt";
+import type { StoreProduct } from "../api";
+
+/** Foto principal y miniaturas. Con una sola foto (o ninguna) se muestra como antes. */
+function ProductGallery({ product }: { product: StoreProduct }) {
+  const images = product.images ?? [];
+  const [selected, setSelected] = useState(0);
+  const current = images[Math.min(selected, Math.max(images.length - 1, 0))];
+  return (
+    <div className="space-y-3">
+      <ProductArt key={current ?? "sin-foto"} product={current ? { ...product, imageUrl: current } : product} className="aspect-square rounded-card" />
+      {images.length > 1 && (
+        <ul className="grid grid-cols-5 gap-2 sm:grid-cols-6" aria-label="Fotos del producto">
+          {images.map((url, index) => (
+            <li key={url}>
+              <button type="button" onClick={() => setSelected(index)} aria-label={`Ver la foto ${index + 1} de ${images.length}`} aria-pressed={index === selected}
+                className={`block aspect-square w-full overflow-hidden rounded-lg border-2 transition-colors ${index === selected ? "border-primary" : "border-transparent hover:border-border"}`}>
+                <img src={url} alt="" loading="lazy" className="h-full w-full object-cover" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 export default function TiendaProducto() {
   const { slug } = useParams();
@@ -74,9 +99,9 @@ export default function TiendaProducto() {
       <Header variant="white" />
       <main className="pt-28 pb-16">
         <div className="container mx-auto px-4">
-          <nav className="text-sm text-muted-foreground mb-4"><Link to="/tienda" className="hover:text-primary">Tienda</Link> / {CATEGORY_LABEL[product.category]}</nav>
+          <nav className="text-sm text-muted-foreground mb-4"><Link to="/tienda" className="hover:text-primary">Tienda</Link> / {categoryLabel(product)}</nav>
           <div className="grid gap-10 lg:grid-cols-2">
-            <ProductArt product={product} className="aspect-square rounded-card" />
+            <ProductGallery product={product} />
             <div className="space-y-5">
               <h1 className="font-display text-3xl md:text-4xl font-bold">{product.name}</h1>
               <p className="text-2xl font-semibold">{formatDop(product.price)} <span className="text-sm font-normal text-muted-foreground">≈ US$ {dopToUsd(product.price).toFixed(2)}</span></p>
@@ -105,7 +130,7 @@ export default function TiendaProducto() {
                 <div><p className="font-semibold text-foreground mb-1">✨ ¿Qué incluye?</p><ul className="list-disc pl-5 space-y-0.5">{product.includes.map((i) => <li key={i}>{i}</li>)}</ul></div>
                 <div><p className="font-semibold text-foreground mb-1">🚚 Entrega (costos no incluidos)</p>
                   <ul className="list-disc pl-5 space-y-0.5"><li>Envíos a todo el país.</li><li>Ciudad principal: 2 a 3 días hábiles. Otras ciudades: 4 a 7 días hábiles.</li><li>Envío {formatDop(SHIPPING_FLAT)}; gratis desde {formatDop(FREE_SHIPPING_FROM)}.</li></ul></div>
-                <div><p className="font-semibold text-foreground mb-1">💳 Métodos de pago</p><ul className="list-disc pl-5"><li>Tarjeta de débito</li><li>Tarjeta de crédito</li></ul></div>
+                <div><p className="font-semibold text-foreground mb-1">💳 Métodos de pago</p><ul className="list-disc pl-5"><li>Depósito o transferencia bancaria</li><li>Tarjeta: próximamente</li></ul></div>
                 <div><p className="font-semibold text-foreground mb-1">↩️ Política de devolución</p><p>Tienes 72 horas desde que recibes tu pedido para solicitar una devolución. Los reembolsos aplican a productos defectuosos.</p></div>
               </div>
               <Button variant="ghost" size="sm" className="gap-2" onClick={share}><Share2 className="h-4 w-4" /> Compartir</Button>

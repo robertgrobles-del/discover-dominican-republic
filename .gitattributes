@@ -1,0 +1,2 @@
+# Las migraciones se entregan siempre con fin de línea Unix: su huella no debe depender del sistema.
+backend/migrations/*.sql text eol=lf

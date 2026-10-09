@@ -53,8 +53,13 @@ export class StoreService {
   }
 
   // ---------- Catálogo ----------
-  dto(p: Product, rate: number) {
-    return { id: p.id, slug: p.slug, name: p.name, category: p.category, price: p.price, currency: p.currency, price_usd: Math.round((p.price / rate) * 100) / 100, in_stock: p.stock > 0, low_stock: p.stock > 0 && p.stock <= 5 ? p.stock : null, featured: p.featured, emoji: p.emoji, tone: p.tone, sizes: p.sizes, colors: p.colors, tagline: p.tagline, description: p.description, includes: p.includes, images: p.images };
+  /** Nombre visible de cada tipo de producto, por slug. */
+  private async categoryNames(): Promise<Map<string, string>> {
+    return new Map((await this.db.query<{ slug: string; name: string }>("SELECT slug, name FROM store_product_categories")).rows.map((c) => [c.slug, c.name]));
+  }
+
+  dto(p: Product, rate: number, names?: Map<string, string>) {
+    return { id: p.id, slug: p.slug, name: p.name, category: p.category, category_name: names?.get(p.category) ?? p.category, price: p.price, currency: p.currency, price_usd: Math.round((p.price / rate) * 100) / 100, in_stock: p.stock > 0, low_stock: p.stock > 0 && p.stock <= 5 ? p.stock : null, featured: p.featured, emoji: p.emoji, tone: p.tone, sizes: p.sizes, colors: p.colors, tagline: p.tagline, description: p.description, includes: p.includes, images: p.images };
   }
 
   async products(f: { category?: string; featured?: boolean; q?: string; page: number; per_page: number }) {
@@ -66,16 +71,21 @@ export class StoreService {
     const w = where.join(" AND ");
     const total = (await this.db.query<{ n: number }>(`SELECT count(*)::int AS n FROM store_products WHERE ${w}`, params)).rows[0]!.n;
     const { rows } = await this.db.query(`SELECT ${PRODUCT_COLS} FROM store_products WHERE ${w} ORDER BY featured DESC, sort_order, name LIMIT ${f.per_page} OFFSET ${(f.page - 1) * f.per_page}`, params);
-    const rate = await this.usdRate();
-    return { rows: rows.map((r) => this.dto(toProduct(r), rate)), total };
+    const [rate, names] = await Promise.all([this.usdRate(), this.categoryNames()]);
+    return { rows: rows.map((r) => this.dto(toProduct(r), rate, names)), total };
   }
   async product(slug: string) {
     const r = (await this.db.query(`SELECT ${PRODUCT_COLS} FROM store_products WHERE slug = $1 AND active AND deleted_at IS NULL`, [slug])).rows[0];
     if (!r) throw AppError.notFound("Producto");
-    return this.dto(toProduct(r), await this.usdRate());
+    return this.dto(toProduct(r), await this.usdRate(), await this.categoryNames());
   }
+  /** Tipos activos que tienen al menos un producto a la venta, en el orden que fijó el administrador. */
   async categories() {
-    return (await this.db.query("SELECT category, count(*)::int AS products FROM store_products WHERE active AND deleted_at IS NULL GROUP BY category ORDER BY category")).rows;
+    return (await this.db.query(
+      `SELECT c.slug AS category, c.name, count(p.id)::int AS products
+         FROM store_product_categories c JOIN store_products p ON p.category = c.slug AND p.active AND p.deleted_at IS NULL
+        WHERE c.is_active GROUP BY c.slug, c.name, c.sort_order ORDER BY c.sort_order, c.name`,
+    )).rows;
   }
 
   // ---------- Carrito ----------

@@ -26,11 +26,16 @@ export async function migrate(pool: Pool, opts: { reset?: boolean; dir?: string;
     const done = new Map((await pool.query<{ name: string; checksum: string }>("SELECT name, checksum FROM schema_migrations")).rows.map((r) => [r.name, r.checksum]));
     const result: MigrationResult = { applied: [], skipped: [] };
     for (const file of readdirSync(dir).filter((f) => f.endsWith(".sql")).sort()) {
-      const sql = readFileSync(join(dir, file), "utf8");
-      const checksum = createHash("sha256").update(sql).digest("hex");
+      const raw = readFileSync(join(dir, file), "utf8");
+      // La huella se calcula sobre el texto con fin de línea Unix: git puede entregar el mismo archivo con CRLF en
+      // Windows y con LF en Linux, y eso no es un cambio de contenido.
+      const sql = raw.replace(/\r\n/g, "\n");
+      const sha = (text: string) => createHash("sha256").update(text).digest("hex");
+      const checksum = sha(sql);
       const prev = done.get(file);
       if (prev) {
-        if (prev !== checksum) throw new Error(`La migración ${file} ya se aplicó y su contenido cambió. Crea una migración nueva en lugar de editarla.`);
+        // Se aceptan también las huellas guardadas antes de esta regla (archivo tal cual, o su variante CRLF).
+        if (prev !== checksum && prev !== sha(raw) && prev !== sha(sql.replace(/\n/g, "\r\n"))) throw new Error(`La migración ${file} ya se aplicó y su contenido cambió. Crea una migración nueva en lugar de editarla.`);
         result.skipped.push(file);
         continue;
       }

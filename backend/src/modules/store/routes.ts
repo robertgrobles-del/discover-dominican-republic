@@ -13,7 +13,8 @@ declare module "fastify" { interface FastifyInstance { store: StoreService } }
 const ok = z.object({ data: z.any() });
 const paged = z.object({ data: z.any(), meta: z.any() });
 const bearer = [{ bearerAuth: [] }];
-const CATEGORIES = ["poster", "ropa", "accesorios", "hogar", "bolsos"] as const;
+/** El tipo de producto es el slug de una fila de `store_product_categories`; que exista lo garantiza la clave foránea. */
+const categorySlug = z.string().trim().min(2).max(40).regex(/^[a-z0-9]+(-[a-z0-9]+)*$/);
 const email = z.string().trim().toLowerCase().pipe(z.email().max(254));
 const orderId = z.object({ id: z.string().regex(/^ORD-[A-Z2-9]{8}$/) });
 const uuid = z.object({ id: z.string().uuid() });
@@ -31,7 +32,7 @@ export async function storeRoutes(app: FastifyInstance) {
   const soft = { security: [{}, ...bearer] };
 
   // ---------- Catálogo ----------
-  r.get("/store/products", { schema: { tags: ["tienda"], summary: "Catálogo de la tienda oficial", querystring: z.object({ ...pageQ, category: z.enum(CATEGORIES).optional(), featured: z.enum(["true", "false"]).optional(), q: z.string().trim().max(100).optional() }), response: { 200: paged } } }, async (req, reply) => {
+  r.get("/store/products", { schema: { tags: ["tienda"], summary: "Catálogo de la tienda oficial", querystring: z.object({ ...pageQ, category: categorySlug.optional(), featured: z.enum(["true", "false"]).optional(), q: z.string().trim().max(100).optional() }), response: { 200: paged } } }, async (req, reply) => {
     const { rows, total } = await store.products({ category: req.query.category, featured: req.query.featured === "true", q: req.query.q, page: req.query.page, per_page: req.query.per_page });
     reply.header("cache-control", PUBLIC_CACHE);
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
@@ -93,9 +94,9 @@ export async function storeRoutes(app: FastifyInstance) {
   // ================= Administración =================
   const admin = app.requireRole("admin");
   const productBody = z.object({
-    slug: z.string().trim().min(2).max(80).regex(/^[a-z0-9]+(-[a-z0-9]+)*$/), name: z.string().trim().min(2).max(120), category: z.enum(CATEGORIES), price: z.number().min(0).max(1_000_000), stock: z.number().int().min(0).max(100_000),
+    slug: z.string().trim().min(2).max(80).regex(/^[a-z0-9]+(-[a-z0-9]+)*$/), name: z.string().trim().min(2).max(120), category: categorySlug, price: z.number().min(0).max(1_000_000), stock: z.number().int().min(0).max(100_000),
     active: z.boolean(), featured: z.boolean(), emoji: z.string().max(8).nullable(), tone: z.string().max(30).nullable(), sizes: z.array(z.string().max(20)).max(12), colors: z.array(z.string().max(30)).max(12),
-    tagline: z.string().max(200).nullable(), description: z.string().max(4000).nullable(), includes: z.array(z.string().max(120)).max(20), images: z.array(z.string().url().max(500)).max(10), sort_order: z.number().int().min(-1000).max(1000),
+    tagline: z.string().max(200).nullable(), description: z.string().max(4000).nullable(), includes: z.array(z.string().max(120)).max(20), images: z.array(z.string().url().max(500)).max(30), sort_order: z.number().int().min(-1000).max(1000),
   });
   const db = app.db;
 
@@ -111,7 +112,10 @@ export async function storeRoutes(app: FastifyInstance) {
   });
   // Cuentas para depósito o transferencia: públicas (el checkout las muestra) y gestionadas por un administrador.
   r.get("/store/bank-accounts", { schema: { tags: ["tienda"], summary: "Cuentas bancarias activas para pagar un pedido por depósito o transferencia", response: { 200: ok } } }, async () => ({ data: await store.bankAccounts() }));
-  await tableAdminRoutes(app, [{ table: "store_bank_accounts", pk: "id", readonly: ["id", "created_at"], order: "sort_order, bank_name", label: "Cuentas bancarias de la tienda" }], ["admin"]);
+  await tableAdminRoutes(app, [
+    { table: "store_bank_accounts", pk: "id", readonly: ["id", "created_at"], order: "sort_order, bank_name", label: "Cuentas bancarias de la tienda" },
+    { table: "store_product_categories", pk: "id", readonly: ["id", "created_at"], order: "sort_order, name", label: "Tipos de producto de la tienda" },
+  ], ["admin"]);
 
   r.post("/admin/store/orders/:id/confirm-transfer", { onRequest: admin, schema: { tags: ["admin"], summary: "Confirma el depósito o la transferencia de un pedido pendiente y lo marca como pagado", security: bearer, params: orderId, body: z.object({ reference: z.string().trim().min(3).max(100), amount: z.number().gt(0).optional() }), response: { 200: ok } } }, async (req) => {
     const data = await store.adminConfirmTransfer(req.params.id, req.body);
@@ -141,7 +145,7 @@ export async function storeRoutes(app: FastifyInstance) {
       await audit(db, { actor: req.user!.id, action: "store.product_created", entity: "store_product", id: row.id, ip: req.ip });
       reply.code(201);
       return { data: { ...row, price: Number(row.price) } };
-    } catch (e) { if ((e as { code?: string }).code === "23505") throw new AppError("CONFLICT", "Ya existe un producto con ese slug", { reason: "SLUG_TAKEN" }); throw e; }
+    } catch (e) { if ((e as { code?: string }).code === "23505") throw new AppError("CONFLICT", "Ya existe un producto con ese slug", { reason: "SLUG_TAKEN" }); if ((e as { code?: string }).code === "23503") throw AppError.validation("Ese tipo de producto no existe"); throw e; }
   });
   r.patch("/admin/store/products/:id", { onRequest: admin, schema: { tags: ["admin"], summary: "Edita un producto (precio, stock, variantes, destacados…)", security: bearer, params: z.object({ id: z.string().max(80) }), body: productBody.partial().strict(), response: { 200: ok } } }, async (req) => {
     const entries = Object.entries(req.body).filter(([, v]) => v !== undefined);
@@ -151,7 +155,7 @@ export async function storeRoutes(app: FastifyInstance) {
       if (!row) throw AppError.notFound("Producto");
       await audit(db, { actor: req.user!.id, action: "store.product_updated", entity: "store_product", id: req.params.id, meta: { fields: entries.map(([k]) => k) }, ip: req.ip });
       return { data: { ...row, price: Number(row.price) } };
-    } catch (e) { if ((e as { code?: string }).code === "23505") throw new AppError("CONFLICT", "Ya existe un producto con ese slug", { reason: "SLUG_TAKEN" }); throw e; }
+    } catch (e) { if ((e as { code?: string }).code === "23505") throw new AppError("CONFLICT", "Ya existe un producto con ese slug", { reason: "SLUG_TAKEN" }); if ((e as { code?: string }).code === "23503") throw AppError.validation("Ese tipo de producto no existe"); throw e; }
   });
   r.delete("/admin/store/products/:id", { onRequest: admin, schema: { tags: ["admin"], summary: "Retira un producto del catálogo (borrado lógico; los pedidos conservan su instantánea)", security: bearer, params: z.object({ id: z.string().max(80) }), response: { 204: z.null() } } }, async (req, reply) => {
     if (!(await db.query("UPDATE store_products SET deleted_at = now(), active = false, updated_at = now() WHERE id = $1 AND deleted_at IS NULL", [req.params.id])).rowCount) throw AppError.notFound("Producto");

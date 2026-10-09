@@ -3,7 +3,7 @@
 > Generado automáticamente por `npm run docs:api` a partir de las rutas que el servidor registra. **No se edita a mano**: si una ruta cambia, se regenera (CI verifica con `npm run docs:api -- --check`).
 > `docs/BACKEND_API.md` es el diseño original; donde difiera, esta lista describe lo que existe. Detalle de cada módulo, reglas y ejemplos: `backend/README.md`. Contrato completo (esquemas de entrada y salida): `/docs` (Swagger) del servidor.
 
-Versión 0.1.0 · 1031 operaciones en 47 grupos.
+Versión 0.1.0 · 1035 operaciones en 47 grupos.
 
 Convenciones: todas las rutas cuelgan de `/api/v1`. Errores con la forma `{ error: { code, message, details, request_id } }`. **Sesión** = `Authorization: Bearer <jwt>`; **Opcional** = funciona sin sesión y, con ella, personaliza.
 
@@ -364,6 +364,10 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | POST | `/admin/store_bank_accounts` | Personal / admin | Cuentas bancarias de la tienda: crear |
 | PATCH | `/admin/store_bank_accounts/{id}` | Personal / admin | Cuentas bancarias de la tienda: editar |
 | DELETE | `/admin/store_bank_accounts/{id}` | Personal / admin | Cuentas bancarias de la tienda: borrar |
+| GET | `/admin/store_product_categories` | Personal / admin | Tipos de producto de la tienda: lista |
+| POST | `/admin/store_product_categories` | Personal / admin | Tipos de producto de la tienda: crear |
+| PATCH | `/admin/store_product_categories/{id}` | Personal / admin | Tipos de producto de la tienda: editar |
+| DELETE | `/admin/store_product_categories/{id}` | Personal / admin | Tipos de producto de la tienda: borrar |
 | GET | `/admin/store/orders` | Personal / admin | Pedidos de la tienda |
 | GET | `/admin/store/orders/{id}` | Personal / admin | Detalle de un pedido |
 | PATCH | `/admin/store/orders/{id}` | Personal / admin | Cambia el estado (processing → shipped con guía → delivered; cancelar reembolsa) |

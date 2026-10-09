@@ -19,13 +19,13 @@ import { useQuery } from "@tanstack/react-query";
 import { adminDashboardApi } from "@/lib/adminDashboardApi";
 import {
   Users, Building2, Shield, ShieldCheck, Megaphone, Coins, Sparkles, KeyRound,
-  Loader2, FileText, Store, BookOpen, LayoutDashboard, BarChart3, TrendingUp,
+  Loader2, FileText, BookOpen, LayoutDashboard, BarChart3, TrendingUp,
   Layers, MessageSquare, Route, UploadCloud, Trophy, Smile, Boxes, ScrollText,
-  CalendarCheck, Search, Menu, X, ChevronRight, Ticket, Server, Banknote, ExternalLink, LogOut
+  CalendarCheck, Search, Menu, X, ChevronRight, Ticket, Server, Banknote, Package, ExternalLink, LogOut,
+  Headphones, Gift, ClipboardList, Settings, Image as ImageIcon, Award, Target, Languages
 } from "lucide-react";
 import { AdminEditorialManager } from "@/components/admin/AdminEditorialManager";
 import { AdminFinanceLotteryManager } from "@/components/admin/AdminFinanceLotteryManager";
-import { AdminStoreMarketplace } from "@/components/admin/AdminStoreMarketplace";
 import { EntityImportManager } from "@/components/admin/EntityImportManager";
 import { UGCModerationPanel } from "@/components/admin/UGCModerationPanel";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
@@ -49,9 +49,18 @@ import { AdminCreatorCampaigns } from "@/components/admin/AdminCreatorCampaigns"
 import { SupportImpersonationBanner } from "@/components/admin/SupportImpersonationBanner";
 import { AdminCouponsManager } from "@/components/admin/AdminCouponsManager";
 import { AdminStoreOrders } from "@/components/admin/AdminStoreOrders";
+import { AdminStoreProducts } from "@/components/admin/AdminStoreProducts";
 import { AdminEventApprovals } from "@/components/admin/AdminEventApprovals";
 import { AdminSystemConsole } from "@/components/admin/AdminSystemConsole";
 import { AdminMembershipPlans } from "@/components/admin/AdminMembershipPlans";
+import AdminSupportTickets from "@/components/admin/AdminSupportTickets";
+import AdminContestsManager from "@/components/admin/AdminContestsManager";
+import AdminSurveysManager from "@/components/admin/AdminSurveysManager";
+import AdminSiteSettings from "@/components/admin/AdminSiteSettings";
+import AdminMediaLibrary from "@/components/admin/AdminMediaLibrary";
+import AdminAmbassadorsManager from "@/components/admin/AdminAmbassadorsManager";
+import AdminLeadsManager from "@/components/admin/AdminLeadsManager";
+import AdminTranslationsManager from "@/components/admin/AdminTranslationsManager";
 
 type TabCategory = "overview" | "content" | "community" | "commerce" | "system";
 
@@ -84,11 +93,15 @@ const ADMIN_TABS: AdminTab[] = [
   { value: "analytics", label: "Analítica web", category: "overview", capability: "editorial.content", icon: BarChart3, iconClass: "text-blue-500", render: () => <AdminAnalytics /> },
   { value: "indicadores", label: "Indicadores y finanzas", category: "overview", capability: "admin.finance", icon: TrendingUp, iconClass: "text-emerald-500", render: () => <AdminInsightsPanel /> },
   { value: "nps", label: "Satisfacción (NPS)", category: "overview", capability: "editorial.content", icon: Smile, iconClass: "text-amber-500", render: () => <AdminNpsAnalytics /> },
+  { value: "encuestas", label: "Encuestas de viajeros", category: "overview", capability: "editorial.content", icon: ClipboardList, iconClass: "text-indigo-500", render: () => <AdminSurveysManager /> },
 
   // Editorial & Contenido
   { value: "editorial", label: "Revista y publicaciones", category: "content", capability: "editorial.content", icon: BookOpen, iconClass: "text-primary", render: () => <AdminEditorialManager /> },
   { value: "contenido", label: "Contenido del sitio", category: "content", capability: "editorial.content", icon: Layers, iconClass: "text-indigo-500", render: () => <AdminContentDocuments /> },
   { value: "paginas-fijas", label: "Páginas fijas y legales", category: "content", capability: "editorial.content", icon: FileText, iconClass: "text-slate-500", render: () => <AdminStaticPagesManager /> },
+  { value: "sorteos", label: "Sorteos y concursos", category: "content", capability: "editorial.content", icon: Gift, iconClass: "text-pink-500", render: () => <AdminContestsManager /> },
+  { value: "medios", label: "Biblioteca de medios", category: "content", capability: "admin.content_ops", icon: ImageIcon, iconClass: "text-cyan-500", render: () => <AdminMediaLibrary /> },
+  { value: "traducciones", label: "Traducciones e idiomas", category: "content", capability: "admin.content_ops", icon: Languages, iconClass: "text-indigo-500", render: () => <AdminTranslationsManager /> },
   { value: "banners", label: "Banners y anuncios", category: "content", capability: "editorial.content", icon: Megaphone, iconClass: "text-primary", demoOnly: true, render: () => (
     <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
       <LazyMockupBanners />
@@ -100,6 +113,9 @@ const ADMIN_TABS: AdminTab[] = [
   // Comunidad & Operadores
   { value: "usuarios", label: "Usuarios y roles", category: "community", capability: "admin.accounts", icon: Users, iconClass: "text-sky-500", render: () => <AdminUsuarios /> },
   { value: "operadores", label: "Negocios y operadores", category: "community", capability: "admin.accounts", icon: Building2, iconClass: "text-orange-500", render: () => <AdminOperadores /> },
+  { value: "embajadores", label: "Embajadores y afiliados", category: "community", capability: "admin.accounts", icon: Award, iconClass: "text-purple-500", render: () => <AdminAmbassadorsManager /> },
+  { value: "leads", label: "Leads y prospectos", category: "community", capability: "admin.accounts", icon: Target, iconClass: "text-rose-500", render: () => <AdminLeadsManager /> },
+  { value: "soporte", label: "Mesa de ayuda y soporte", category: "community", capability: "moderation.queue", icon: Headphones, iconClass: "text-primary", render: () => <AdminSupportTickets /> },
   { value: "reservas-directas", label: "Reservas", category: "community", capability: "admin.finance", icon: CalendarCheck, iconClass: "text-emerald-500", render: () => <AdminReservasDirectas /> },
   { value: "gobernanza", label: "Accesos por aprobar", category: "community", capability: "admin.accounts", icon: ShieldCheck, iconClass: "text-primary", render: () => <AccessGovernancePanel /> },
   { value: "campanas-creadores", label: "Campañas de creadores", category: "community", capability: "admin.accounts", icon: Megaphone, iconClass: "text-pink-500", render: () => <AdminCreatorCampaigns /> },
@@ -110,13 +126,14 @@ const ADMIN_TABS: AdminTab[] = [
   // Comercio & Fidelización
   { value: "gamificacion", label: "Gamificación y pasaporte", category: "commerce", capability: "admin.global_config", icon: Trophy, iconClass: "text-amber-500", render: () => <AdminGamificationTab /> },
   { value: "stock", label: "Envíos de premios", category: "commerce", capability: "admin.finance", icon: Boxes, iconClass: "text-cyan-500", render: () => <AdminStockConsole /> },
+  { value: "productos", label: "Productos de la tienda", category: "commerce", capability: "admin.finance", icon: Package, iconClass: "text-emerald-500", render: () => <AdminStoreProducts /> },
   { value: "pedidos", label: "Pedidos y depósitos", category: "commerce", capability: "admin.finance", icon: Banknote, iconClass: "text-emerald-500", render: () => <AdminStoreOrders /> },
-  { value: "marketplace", label: "Tienda (maqueta)", category: "commerce", capability: "admin.finance", icon: Store, iconClass: "text-emerald-500", demoOnly: true, render: () => <AdminStoreMarketplace /> },
   { value: "cupones", label: "Cupones", category: "commerce", capability: "admin.finance", icon: Ticket, iconClass: "text-pink-500", render: () => <AdminCouponsManager /> },
   { value: "membresias", label: "Planes de membresía", category: "commerce", capability: "admin.global_config", icon: ShieldCheck, iconClass: "text-purple-500", render: () => <AdminMembershipPlans /> },
   { value: "finance_lottery", label: "Loterías y tasas", category: "commerce", capability: "admin.finance", icon: Coins, iconClass: "text-amber-500", render: () => <AdminFinanceLotteryManager /> },
 
   // Sistema & Auditoría
+  { value: "ajustes", label: "Ajustes del sitio", category: "system", capability: "admin.global_config", icon: Settings, iconClass: "text-primary", render: () => <AdminSiteSettings /> },
   { value: "system_console", label: "Sistema y tareas", category: "system", capability: "admin.content_ops", icon: Server, iconClass: "text-emerald-500", render: () => <AdminSystemConsole /> },
   { value: "import", label: "Importar establecimientos", category: "system", capability: "admin.content_ops", icon: UploadCloud, iconClass: "text-indigo-500", render: () => <AdminImportEstablecimientos /> },
   { value: "entidades", label: "Catálogo", category: "system", capability: "admin.content_ops", icon: Boxes, iconClass: "text-cyan-500", render: () => <EntityImportManager /> },
@@ -158,7 +175,9 @@ export default function AdminPanel() {
     const p = dashboard?.pending;
     if (!p) return {};
     return {
-      moderacion: (p.reviews ?? 0) + (p.ugc_reports ?? 0) + (p.reported_posts ?? 0) + (p.ugc_media ?? 0),
+      moderacion: (p.reviews ?? 0) + (p.ugc_reports ?? 0) + (p.reported_posts ?? 0),
+      medios: p.ugc_media ?? 0,
+      soporte: p.support_tickets ?? 0,
       operadores: p.operators_to_verify ?? 0,
       "eventos-propuestos": p.content_in_review?.find((c) => c.path === "events")?.n ?? 0,
     };

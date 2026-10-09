@@ -9,7 +9,9 @@ export interface BackendProductDto {
   id: string;
   slug: string;
   name: string;
-  category: "poster" | "ropa" | "accesorios" | "hogar" | "bolsos" | "playa";
+  category: string;
+  /** Nombre visible del tipo de producto. */
+  category_name?: string;
   price: number;
   currency: string;
   price_usd: number;
@@ -30,7 +32,9 @@ export interface StoreProduct {
   id: string;
   slug: string;
   name: string;
-  category: "poster" | "ropa" | "accesorios" | "hogar" | "bolsos" | "playa";
+  category: string;
+  /** Nombre visible del tipo; lo envía el servidor. */
+  categoryName?: string;
   price: number; // DOP
   currency: "DOP";
   price_usd?: number;
@@ -96,14 +100,26 @@ export interface StoreQuote {
 export const DOP_PER_USD = 59.8;
 export const FREE_SHIPPING_FROM = 2500; // RD$
 export const SHIPPING_FLAT = 250; // RD$
-export const CATEGORY_LABEL: Record<StoreProduct["category"], string> = {
+export const CATEGORY_LABEL: Record<string, string> = {
   poster: "Pósters", ropa: "Ropa", accesorios: "Accesorios", hogar: "Hogar", bolsos: "Bolsos", playa: "Playa & Aventura",
 };
+
+/** Nombre de un tipo de producto: el que envía el servidor; si no, el de la lista local o el propio identificador. */
+export function categoryLabel(product: Pick<StoreProduct, "category" | "categoryName">): string {
+  if (product.categoryName) return product.categoryName;
+  if (CATEGORY_LABEL[product.category]) return CATEGORY_LABEL[product.category];
+  const text = product.category.replace(/-/g, " ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** Las fotos subidas al panel viven en la API; se sirven por su ruta para que carguen desde el mismo origen que el sitio. */
+const sameOriginMedia = (url: string) => { const at = url.indexOf("/api/v1/media/files/"); return at >= 0 ? url.slice(at) : url; };
 export const ORDER_STATUS_LABEL: Record<StoreOrder["status"], string> = {
   pending: "Pendiente", paid: "Pagado", shipped: "Enviado", delivered: "Entregado", cancelled: "Cancelado",
 };
 
-export const formatDop = (n: number) => `RD$ ${n.toLocaleString("es-DO", { maximumFractionDigits: 0 })}`;
+/** Pesos dominicanos; los centavos solo se muestran cuando el monto los tiene. */
+export const formatDop = (n: number) => `RD$ ${n.toLocaleString("es-DO", Number.isInteger(n) ? { maximumFractionDigits: 0 } : { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 export const dopToUsd = (n: number) => Math.round((n / DOP_PER_USD) * 100) / 100;
 
 export const DEFAULT_PRODUCT_IMAGES: Record<string, string> = {
@@ -125,12 +141,14 @@ export function resolveProductImage(p: { imageUrl?: string; slug?: string; categ
 }
 
 export function mapBackendProduct(p: BackendProductDto): StoreProduct {
-  const primaryImage = Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : undefined;
+  const images = Array.isArray(p.images) ? p.images.map(sameOriginMedia) : [];
+  const primaryImage = images[0];
   return {
     id: p.id,
     slug: p.slug,
     name: p.name,
-    category: p.category || "ropa",
+    category: p.category,
+    categoryName: p.category_name,
     price: p.price ?? 0,
     currency: "DOP",
     price_usd: p.price_usd,
@@ -145,7 +163,7 @@ export function mapBackendProduct(p: BackendProductDto): StoreProduct {
     tagline: p.tagline || "",
     description: p.description || "",
     includes: p.includes || [],
-    images: p.images || [],
+    images,
     imageUrl: primaryImage || resolveProductImage(p),
     created_at: new Date().toISOString(),
   };
@@ -155,8 +173,13 @@ const from = (t: string) => supabase.from(t);
 
 export async function fetchProducts(): Promise<StoreProduct[]> {
   if (HAS_BACKEND_SESSION) {
-    const res = await fetchApi<{ data: BackendProductDto[] }>("/store/products");
-    return (res.data || []).map(mapBackendProduct);
+    const all: BackendProductDto[] = [];
+    for (let page = 1; page <= 20; page++) {
+      const res = await fetchApi<{ data: BackendProductDto[]; meta?: { total_pages?: number } }>(`/store/products?per_page=100&page=${page}`);
+      all.push(...(res.data || []));
+      if (page >= (res.meta?.total_pages ?? 1)) break;
+    }
+    return all.map(mapBackendProduct);
   }
   const { data, error } = await from("store_products").select("*");
   if (error) throw new Error(error.message);

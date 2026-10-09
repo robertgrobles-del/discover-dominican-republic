@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useCart } from "@/hooks/useCart";
-import { CATEGORY_LABEL, FREE_SHIPPING_FROM, dopToUsd, formatDop, useProducts, type StoreProduct } from "../api";
+import { categoryLabel, FREE_SHIPPING_FROM, dopToUsd, formatDop, useProducts, type StoreProduct } from "../api";
 import { ProductArt } from "../ProductArt";
 
 export default function TiendaHome() {
@@ -57,7 +57,7 @@ export default function TiendaHome() {
           <h2 className="font-display text-2xl font-bold mb-4">¡Viaja con estas chulerías de productos!</h2>
           <div className="flex flex-wrap gap-2 mb-6">
             <Button size="sm" className="rounded-full" variant={cat === "all" ? "default" : "outline"} onClick={() => setCat("all")}>Todos</Button>
-            {cats.map((c) => <Button key={c} size="sm" className="rounded-full" variant={cat === c ? "default" : "outline"} onClick={() => setCat(c)}>{CATEGORY_LABEL[c]}</Button>)}
+            {cats.map((c) => <Button key={c} size="sm" className="rounded-full" variant={cat === c ? "default" : "outline"} onClick={() => setCat(c)}>{categoryLabel(products.find((p) => p.category === c) ?? { category: c })}</Button>)}
           </div>
 
           {isError ? (
@@ -78,7 +78,7 @@ export default function TiendaHome() {
                   </Link>
                   <div className="p-3 flex flex-col gap-1 flex-1">
                     <Link to={`/tienda/${p.slug}`} className="text-sm font-medium leading-snug hover:text-primary">{p.name}</Link>
-                    <p className="text-xs text-muted-foreground">{CATEGORY_LABEL[p.category]}</p>
+                    <p className="text-xs text-muted-foreground">{categoryLabel(p)}</p>
                     <p className="font-semibold">{formatDop(p.price)}</p>
                     <div className="mt-auto pt-2">
                       {!p.in_stock ? <Button size="sm" variant="outline" className="w-full" disabled>Agotado</Button>

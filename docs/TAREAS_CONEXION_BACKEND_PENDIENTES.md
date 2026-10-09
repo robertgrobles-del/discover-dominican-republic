@@ -937,3 +937,37 @@ Proponer eventos: solo `POST /events/submissions` (sección 16).
    `newsletter_subscribers`, `marketing_leads`…): quitarlas de la lista o usar sus rutas reales.
 5. `AdminStoreMarketplace.tsx` (maqueta) debería sustituirse por pantallas reales de productos.
 6. Sin comprobar: canje de premios, comentarios sociales, las acciones que escriben en «Sistema y tareas», y el panel en móvil.
+
+---
+
+## 19. Productos de la tienda desde el panel (2026-10-08, 18:45). NO DUPLICAR
+
+### Qué hay
+- Sección **Productos de la tienda** (`AdminStoreProducts.tsx`, `src/lib/adminProductsApi.ts`), con dos pestañas:
+  - *Productos*: tabla con búsqueda y filtro por tipo; crear, editar, poner o quitar de la venta y retirar. Cada producto lleva nombre,
+    tipo, precio en RD$, existencias, frase corta, descripción, tallas y colores opcionales, destacado y **hasta 30 fotos**.
+  - *Tipos*: crear, renombrar, activar o desactivar y eliminar tipos de producto.
+- Fotos: se suben varias a la vez desde el equipo (o se pegan por enlace), se reordenan y se quitan; la primera es la portada.
+  La subida usa el flujo de medios del backend (`POST /media/upload-url` → `PUT` → `POST /media/:id/complete`, propósito `cms`).
+- Backend: migración `0087_store_product_categories.sql` (los tipos dejan de ser cinco valores fijos y pasan a una tabla con clave foránea),
+  CRUD en `/admin/store_product_categories`, `category_name` en los productos públicos, `GET /store/categories` con nombre y orden,
+  y el tope de fotos sube de 10 a 30. El CRUD de productos (`/admin/store/products`) ya existía.
+- Tienda pública: la ficha del producto muestra una galería con miniaturas; el listado trae todos los productos (antes solo los 24 primeros);
+  los tipos nuevos aparecen con su nombre; los precios con centavos ya no se redondean; «Métodos de pago» dice depósito o transferencia.
+
+### Probado
+- API: tipo inexistente rechazado, producto creado con 3 fotos, visible en público con `category_name`, tipo con productos no se puede borrar (409).
+- Navegador (Playwright): crear un tipo y un producto subiendo dos fotos reales desde el panel; el producto aparece en `/tienda/<slug>` con
+  galería y las dos fotos cargadas. Sin errores de página ni llamadas fallidas.
+- Backend: `tsc` 0 errores; tienda, seguridad y migraciones 55 de 55; `architecture:tables` pasa. Frontend: `tsc` 0 errores; Vitest 192 de 192.
+
+### Arreglo de fondo: huella de las migraciones
+Tras el commit, git dejó las migraciones con fin de línea de Windows y `db:migrate` las daba por «cambiadas». El migrador calcula ahora la
+huella sobre el texto con fin de línea Unix (y acepta las huellas antiguas), y `.gitattributes` fija `eol=lf` para `backend/migrations/*.sql`.
+
+### A tener en cuenta
+- Los 22 productos que ya existían no tienen fotos: muestran una imagen genérica hasta que se les carguen.
+- Un tipo no se puede eliminar mientras tenga productos, incluidos los retirados: se desactiva.
+- La dirección de cada foto se guarda con `PUBLIC_BASE_URL`; en producción esa variable debe ser el dominio real de la API.
+- Las fotos quitadas de un producto no se borran del almacenamiento.
+- `AdminStoreMarketplace.tsx` (la maqueta) ya no hace falta: se puede borrar.
