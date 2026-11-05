@@ -23,7 +23,10 @@ const [cmd, ...args] = process.argv.slice(2);
 if (cmd === "build") {
   rmSync(SQLITE, { force: true });
   const db = createClient({ url: `file:${SQLITE}` });
+  // Turso solo acepta subir bases en modo WAL; el modo queda grabado en la cabecera del archivo.
+  await db.execute("PRAGMA journal_mode = WAL");
   await db.executeMultiple(schema);
+  await db.execute("PRAGMA wal_checkpoint(TRUNCATE)"); // todo dentro del .sqlite, sin depender del -wal
   const tables = (await db.execute("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")).rows.map((r) => r.name);
   db.close();
   console.log(`Creado ${SQLITE}\nTablas: ${tables.join(", ")}`);
