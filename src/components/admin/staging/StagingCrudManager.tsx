@@ -21,6 +21,8 @@ export type FieldDef = {
   options?: { value: string; label: string }[];
   placeholder?: string;
   hint?: string;
+  /** Longitud recomendada: muestra un contador (en ámbar si se pasa). */
+  recommended?: number;
 };
 
 type Row = Record<string, unknown> & { id: string };
@@ -111,7 +113,12 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun }: 
               ) : (
                 <Input {...common} type={f.type === "url" ? "url" : f.type === "number" ? "number" : "text"} step={f.type === "number" ? "any" : undefined} onChange={(e) => set(f.key, e.target.value)} />
               )}
-              {f.hint && <p className="text-xs text-muted-foreground">{f.hint}</p>}
+              {(f.hint || f.recommended) && (
+                <p className="flex justify-between gap-3 text-xs text-muted-foreground">
+                  <span>{f.hint}</span>
+                  {f.recommended && <span className={(form[f.key] ?? "").length > f.recommended ? "font-semibold text-amber-600" : ""}>{(form[f.key] ?? "").length}/{f.recommended}</span>}
+                </p>
+              )}
             </div>
           );
         })}
@@ -232,7 +239,7 @@ export function StagingNewsManager() {
       noun="noticia"
       fields={[
         { key: "title", label: "Título", required: true },
-        { key: "slug", label: "Slug (URL)", required: true, hint: "Se genera del título; solo minúsculas, números y guiones." },
+        { key: "slug", label: "Slug (URL)", required: true, hint: "Se genera del título. No lo cambies tras publicar: los enlaces ya compartidos dejarían de funcionar." },
         { key: "category_id", label: "Categoría", type: "select", options: [{ value: "", label: "Sin categoría" }, ...categories.map((c) => ({ value: c.id, label: String(c.name) }))] },
         { key: "excerpt", label: "Antetítulo (resumen)", hint: "Una o dos frases que resumen la noticia; aparece en las tarjetas de la portada." },
         { key: "body", label: "Cuerpo", type: "markdown" },
@@ -242,6 +249,8 @@ export function StagingNewsManager() {
         { key: "province_id", label: "Provincia", type: "select", options: [{ value: "", label: "Ninguna" }, ...provinces.map((p) => ({ value: p.id, label: String(p.name) }))] },
         { key: "author", label: "Autor", placeholder: "Redacción Descubre RD" },
         { key: "source_url", label: "Fuente (enlace a la nota original)", type: "url", placeholder: "https://…" },
+        { key: "seo_title", label: "Título para buscadores (opcional)", recommended: 60, hint: "Si lo dejas vacío se usa el título. Lo que Google muestra en azul." },
+        { key: "seo_description", label: "Descripción para buscadores (opcional)", recommended: 155, hint: "Si la dejas vacía se usa el antetítulo. El texto bajo el título en Google." },
         { key: "featured", label: "Destacada en la portada", type: "checkbox" },
         STATUS,
       ]}

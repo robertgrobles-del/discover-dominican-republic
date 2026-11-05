@@ -1,12 +1,40 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
-  "buildCommand": "VITE_AUTH_SOURCE=api VITE_DATA_SOURCE=mock VITE_ALLOW_MOCK_BUILD=true npx vite build",
+  "buildCommand": "VITE_AUTH_SOURCE=api VITE_DATA_SOURCE=mock VITE_ALLOW_MOCK_BUILD=true VITE_STAGING_API=true npx vite build",
   "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/api/v1/:path*",
       "destination": "/api?route=:path*"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api?route=sitemap.xml"
+    },
+    {
+      "source": "/noticias/rss.xml",
+      "destination": "/api?route=rss.xml"
+    },
+    {
+      "source": "/llms.txt",
+      "destination": "/api?route=llms.txt"
+    },
+    {
+      "source": "/llms-full.txt",
+      "destination": "/api?route=llms-full.txt"
+    },
+    {
+      "source": "/noticias/:slug([a-z0-9-]+)\\.md",
+      "destination": "/api?route=md/noticias/:slug"
+    },
+    {
+      "source": "/noticias",
+      "destination": "/api?route=render/noticias"
+    },
+    {
+      "source": "/noticias/:slug",
+      "destination": "/api?route=render/noticias/:slug"
     },
     {
       "source": "/((?!api/).*)",
@@ -28,7 +56,12 @@
         {
           "key": "X-Frame-Options",
           "value": "DENY"
-        },
+        }
+      ]
+    },
+    {
+      "source": "/(admin|login)(.*)",
+      "headers": [
         {
           "key": "X-Robots-Tag",
           "value": "noindex, nofollow"

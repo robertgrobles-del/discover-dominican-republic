@@ -56,6 +56,19 @@ Las variables del frontend (`VITE_AUTH_SOURCE=api`, `VITE_DATA_SOURCE=mock`, `VI
 datos locales y sesión real) ya van en el `buildCommand` de `vercel.json`. No pongas `VITE_API_URL`: el frontend usa
 `/api/v1` en el mismo dominio.
 
+## Noticias públicas, SEO y agentes de IA
+
+- `/noticias` y `/noticias/<slug>` las sirve la función con el `index.html` del sitio y los metadatos de cada
+  página ya escritos (título, descripción, canónica, Open Graph, Twitter, JSON-LD `NewsArticle` y migas): así las
+  ven también WhatsApp, Facebook, X y los buscadores que no ejecutan JavaScript. Caché de 60 s en la CDN.
+- `/sitemap.xml` y `/noticias/rss.xml` se generan con lo publicado. `robots.txt` apunta al sitemap.
+- Para agentes de IA: `/llms.txt` (índice, https://llmstxt.org), `/llms-full.txt` (todas las noticias) y
+  `/noticias/<slug>.md` (cada noticia en Markdown, anunciada con `<link rel="alternate" type="text/markdown">`).
+  `robots.txt` da acceso explícito a los rastreadores de IA conocidos.
+- Dominio: `SITE_URL` (variable de entorno opcional; por defecto `https://www.descubrerepdom.com`).
+- `/admin` y `/login` llevan `X-Robots-Tag: noindex`; el resto del sitio es indexable.
+- Con `VITE_STAGING_API=true` (en el `buildCommand`) el frontend no llama a rutas que el mini backend no tiene.
+
 ## Endpoints
 
 `POST /api/v1/auth/login`, `/auth/refresh`, `/auth/logout`, `GET /auth/me`, y

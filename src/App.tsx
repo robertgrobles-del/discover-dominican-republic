@@ -24,21 +24,30 @@ import { useEffect } from "react";
 const Index = lazy(() => import("./pages/Index"));
 const Login = lazy(() => import("./pages/Login"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+const NoticiasLista = lazy(() => import("./pages/staging/NoticiasLista"));
+const NoticiaDetalle = lazy(() => import("./pages/staging/NoticiaDetalle"));
+
+/** Páginas públicas que existen en staging: la landing y las noticias. */
+const isPublishedPath = (path: string) => path === "/" || path === "/noticias" || path.startsWith("/noticias/");
 
 /**
- * En la landing de staging ningún enlace navega: el resto del sitio no está publicado.
+ * Staging solo publica la landing y las noticias: los enlaces internos a otras secciones no navegan.
+ * Los externos solo funcionan dentro de una noticia (la fuente original, enlaces del cuerpo).
  * Se intercepta en captura para cubrir también los enlaces de widgets fuera de la página (pie, banners).
  */
-function DisableLandingLinks() {
+function DisableUnpublishedLinks() {
   const { pathname } = useLocation();
   useEffect(() => {
-    if (pathname !== "/") return;
-    const block = (e: MouseEvent) => {
-      if ((e.target as Element | null)?.closest?.("a[href]")) { e.preventDefault(); e.stopPropagation(); }
+    if (!isPublishedPath(pathname)) return; // /login y /admin navegan con normalidad
+    const blocked = (target: EventTarget | null) => {
+      const a = (target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!a) return false;
+      const url = new URL(a.href, window.location.href);
+      if (url.origin === window.location.origin) return !isPublishedPath(url.pathname);
+      return !(pathname.startsWith("/noticias/") && a.closest("article"));
     };
-    const blockKey = (e: KeyboardEvent) => {
-      if (e.key === "Enter" && (e.target as Element | null)?.closest?.("a[href]")) { e.preventDefault(); e.stopPropagation(); }
-    };
+    const block = (e: MouseEvent) => { if (blocked(e.target)) { e.preventDefault(); e.stopPropagation(); } };
+    const blockKey = (e: KeyboardEvent) => { if (e.key === "Enter" && blocked(e.target)) { e.preventDefault(); e.stopPropagation(); } };
     document.addEventListener("click", block, true);
     document.addEventListener("keydown", blockKey, true);
     document.documentElement.classList.add("staging-links-off");
@@ -105,6 +114,8 @@ function AnimatedRoutes() {
             {/* Homepage */}
             <Route path="/" element={<Index />} />
 
+            <Route path="/noticias" element={<NoticiasLista />} />
+            <Route path="/noticias/:slug" element={<NoticiaDetalle />} />
             <Route path="/login" element={<Login />} />
             <Route path="/admin" element={<AdminPanel />} />
 
@@ -131,7 +142,7 @@ const App = () => (
                 <NetworkStatusNotice />
                 <ScrollToTop />
                 <SessionExpiryGuard />
-                <DisableLandingLinks />
+                <DisableUnpublishedLinks />
                 <AnimatedRoutes />
                 <Suspense fallback={null}>
                   <PublicSiteWidgets />

@@ -1,15 +1,27 @@
+# Buscadores y agentes de IA son bienvenidos: el contenido para ellos está en /llms.txt.
 User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /login
-Disallow: /registro
-Disallow: /reset-password
-Disallow: /perfil
-Disallow: /reservas
-Disallow: /checkout
-Disallow: /panel
-Disallow: /panel-empresa
-Disallow: /panel-negocio
-Disallow: /partner
+Disallow: /api/
+Allow: /api/v1/media/
 
-Sitemap: https://descubrerd.com/sitemap.xml
+# Rastreadores de IA (búsqueda y respuestas generativas): acceso explícito.
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: CCBot
+Allow: /
+Disallow: /admin
+Disallow: /login
+Disallow: /api/
+Allow: /api/v1/media/
+
+Sitemap: https://www.descubrerepdom.com/sitemap.xml

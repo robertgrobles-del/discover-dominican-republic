@@ -25,8 +25,18 @@ export const queryClient = new QueryClient({
   },
 });
 
+/**
+ * Rama staging (solo con VITE_STAGING_API=true): el mini backend (api/index.ts) solo tiene estas rutas. Las demás se rechazan sin salir a la red,
+ * como un 404: cada pantalla ya trata ese fallo usando su contenido local, y la landing se ahorra ~12 peticiones
+ * en la cadena crítica (datasets, clima, gamificación, favoritos, carrito…).
+ */
+const STAGING_API = /^\/(auth\/|public\/|admin\/(provinces|news|news-categories|users|media)\b|ads\/catalog\b|media\/)/;
+
 export async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = endpoint.startsWith("http") ? endpoint : `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
+  if (import.meta.env.VITE_STAGING_API === "true" && !endpoint.startsWith("http") && !STAGING_API.test(endpoint.startsWith("/") ? endpoint : `/${endpoint}`)) {
+    throw new HttpError("Ruta no disponible en staging", 404);
+  }
+  const url =endpoint.startsWith("http") ? endpoint : `${API_BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
   const isAnalytics = endpoint.includes("/analytics/");
   const isAuthEndpoint = endpoint.startsWith("/auth/");
   const callerSetAuth = new Headers(options?.headers).has("Authorization");

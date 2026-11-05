@@ -52,7 +52,7 @@ jobs:
           TURSO_DATABASE_URL="file:$RUNNER_TEMP/ci.sqlite" node staging/db.mjs admin ci@example.com "clave-de-ci-123456" admin
 
       - name: Build igual que en Vercel
-        run: VITE_AUTH_SOURCE=api VITE_DATA_SOURCE=mock VITE_ALLOW_MOCK_BUILD=true npx vite build
+        run: VITE_AUTH_SOURCE=api VITE_DATA_SOURCE=mock VITE_ALLOW_MOCK_BUILD=true VITE_STAGING_API=true npx vite build
 
       - name: El bundle no contiene credenciales de servicio
         run: npm run check:client-secrets

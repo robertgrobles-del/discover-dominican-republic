@@ -181,3 +181,70 @@ describe("categorías, campos editoriales e imágenes", () => {
     expect((await call("GET", "/media/no-es-un-id.webp")).status).toBe(404);
   });
 });
+
+describe("SEO de noticias", () => {
+  const SHELL = `<!doctype html><html><head><title>Genérico</title><meta name="description" content="landing" />
+    <meta property="og:title" content="landing" /><link rel="canonical" href="https://otro.com" />
+    <script type="application/ld+json">{"@type":"WebSite"}</script></head><body><div id="root"></div></body></html>`;
+  const render = (path: string) =>
+    handle({ method: "GET", path: `/api/v1${path}`, headers: { host: "x.test" }, body: undefined } as ApiRequest, db, SECRET, false, async () => SHELL);
+  const html = (r: Res) => Buffer.from(r.raw!).toString("utf8");
+
+  it("sirve la noticia con metadatos propios, datos estructurados y texto escapado", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    await call("POST", "/admin/news", {
+      slug: "ballenas-seo", title: "Ballenas <script>alert(1)</script> en Samaná", excerpt: "Llegan en enero.",
+      body: "## Temporada\n\nLas **ballenas** jorobadas llegan a la bahía. ![foto](https://x.do/a.webp)",
+      category_id: "cat-naturaleza", seo_description: "Guía de la temporada de ballenas en Samaná.", status: "published",
+    }, auth);
+
+    const r = await render("/render/noticias/ballenas-seo");
+    expect(r.status).toBe(200);
+    expect(r.headers?.["Content-Type"]).toContain("text/html");
+    const page = html(r);
+    expect(page).not.toContain("<script>alert(1)</script>");
+    expect(page).toContain("&lt;script&gt;");
+    expect(page).toContain('<link rel="canonical" href="https://www.descubrerepdom.com/noticias/ballenas-seo" />');
+    expect(page).toContain('content="Guía de la temporada de ballenas en Samaná."');
+    expect(page).toContain('"@type":"NewsArticle"');
+    expect(page).toContain('"articleSection":"Naturaleza"');
+    expect(page).toContain('"@type":"WebSite"');           // los JSON-LD del sitio se conservan
+    expect(page).not.toContain("https://otro.com");         // la canónica genérica se sustituye
+    expect(page.match(/<title>/g)).toHaveLength(1);
+    expect(page).toContain("Las ballenas jorobadas llegan a la bahía."); // resumen sin Markdown en #root
+  });
+
+  it("404 con noindex, listado, sitemap, RSS y detalle en JSON", async () => {
+    const miss = await render("/render/noticias/no-existe");
+    expect(miss.status).toBe(404);
+    expect(html(miss)).toContain('content="noindex, follow"');
+
+    expect(html(await render("/render/noticias"))).toContain('href="/noticias/ballenas-seo"');
+    const map = html(await render("/sitemap.xml"));
+    expect(map).toContain("<loc>https://www.descubrerepdom.com/noticias/ballenas-seo</loc>");
+    expect(map).not.toContain("nota-borrador");
+    expect(html(await render("/rss.xml"))).toContain("<category>Naturaleza</category>");
+
+    expect(data(await call("GET", "/public/news/ballenas-seo"))).toMatchObject({ slug: "ballenas-seo", category_name: "Naturaleza" });
+    expect((await call("GET", "/public/news/nota-borrador")).status).toBe(404);
+  });
+
+  it("agentes de IA: llms.txt, Markdown de cada noticia con URLs absolutas y enlace alternativo", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    const img = "/api/v1/media/11111111-2222-3333-4444-555555555555.webp";
+    await call("POST", "/admin/news", { slug: "para-ia", title: "Para IA", excerpt: "Resumen.", body: "Texto ![a](" + img + ")", status: "published" }, auth);
+
+    const llms = html(await render("/llms.txt"));
+    expect(llms.startsWith("# Descubre RD\n\n> ")).toBe(true);
+    expect(llms).toContain("](https://www.descubrerepdom.com/noticias/para-ia.md): Resumen.");
+    expect(llms).not.toContain("nota-borrador");
+
+    const md = await render("/md/noticias/para-ia");
+    expect(md.headers?.["Content-Type"]).toContain("text/markdown");
+    expect(html(md)).toContain("](https://www.descubrerepdom.com" + img + ")");
+    expect(html(md)).toContain("- URL: https://www.descubrerepdom.com/noticias/para-ia");
+    expect(html(await render("/llms-full.txt"))).toContain("# Para IA");
+    expect(html(await render("/render/noticias/para-ia"))).toContain('type="text/markdown" href="https://www.descubrerepdom.com/noticias/para-ia.md"');
+    expect((await render("/md/noticias/no-existe")).status).toBe(404);
+  });
+});

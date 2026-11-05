@@ -166,6 +166,8 @@ const newsSpec = (b: Fields) => ({
   author: () => str(b, "author", 120),
   source_url: () => url(b, "source_url"),
   featured: () => bool(b, "featured"),
+  seo_title: () => str(b, "seo_title", 90),
+  seo_description: () => str(b, "seo_description", 200),
   status: () => oneOf(b, "status", STATUSES, "draft"),
 });
 
@@ -331,14 +333,13 @@ async function publicApi(db: Client, path: string): Promise<ApiResponse | null> 
       FROM provinces WHERE status = 'published' ORDER BY name COLLATE NOCASE`);
     return { status: 200, body: { data: r.rows }, headers: PUBLIC_CACHE };
   }
+  const detail = path.match(/^\/public\/news\/([^/]+)$/);
+  if (detail) {
+    const n = SLUG.test(detail[1]) ? await findNews(db, detail[1]) : null;
+    return n ? { status: 200, body: { data: n }, headers: PUBLIC_CACHE } : err(404, "No encontrada");
+  }
   if (path === "/public/news") {
-    const r = await db.execute(`SELECT n.id, n.slug, n.title, n.excerpt, n.body, n.cover_url, n.image_alt, n.image_credit, n.author, n.source_url,
-        n.featured, n.published_at, p.name AS province_name, c.name AS category_name, c.slug AS category_slug
-      FROM news n
-      LEFT JOIN provinces p ON p.id = n.province_id AND p.status = 'published'
-      LEFT JOIN news_categories c ON c.id = n.category_id
-      WHERE n.status = 'published' ORDER BY n.featured DESC, n.published_at DESC LIMIT 50`);
-    return { status: 200, body: { data: r.rows }, headers: PUBLIC_CACHE };
+    return { status: 200, body: { data: (await listNews(db)).slice(0, 50) }, headers: PUBLIC_CACHE };
   }
   return null;
 }
@@ -376,8 +377,271 @@ async function serveMedia(db: Client, id: string): Promise<ApiResponse> {
   return { status: 200, raw: new Uint8Array(row.bytes as ArrayBuffer), headers: { "Content-Type": "image/webp", "Cache-Control": "public, max-age=31536000, immutable" } };
 }
 
+// ---------- SEO: páginas de noticias con metadatos en el HTML, sitemap y RSS ----------
+// Google ejecuta JavaScript, pero las vistas previas de WhatsApp, Facebook o X y otros buscadores no: por eso
+// /noticias y /noticias/<slug> se sirven desde aquí con el index.html del sitio y sus metadatos ya escritos.
+// React sustituye después el resumen legible del #root por la página completa.
+export const siteUrl = () => (process.env.SITE_URL || "https://www.descubrerepdom.com").replace(/\/+$/, "");
+const SITE_NAME = "Descubre RD";
+const DEFAULT_IMAGE = "/og-default.jpg";
+const HTML_CACHE = { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=600" };
+
+const esc = (v: unknown) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+// JSON-LD dentro de <script>: "<" escapado para que un texto nunca cierre la etiqueta.
+const ldJson = (o: unknown) => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, "\\u003c")}</script>`;
+const absolute = (u: string | null | undefined) => (!u ? `${siteUrl()}${DEFAULT_IMAGE}` : /^https?:\/\//.test(u) ? u : `${siteUrl()}${u}`);
+
+/** Texto plano a partir del Markdown del cuerpo (para descripciones y el resumen sin JavaScript). */
+export function plainText(md: string | null | undefined): string {
+  return String(md ?? "")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")          // imágenes
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")          // enlaces → su texto
+    .replace(/^\s{0,3}(#{1,6}|>|[-*+]|\d+\.)\s+/gm, "") // encabezados, citas y listas
+    .replace(/[*_`~]|^-{3,}$/gm, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Recorta en el último espacio antes del límite, sin cortar palabras. */
+export function clip(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max - 1);
+  return `${cut.slice(0, Math.max(cut.lastIndexOf(" "), max * 0.6)).trimEnd()}…`;
+}
+
+interface NewsRow {
+  id: string; slug: string; title: string; excerpt: string | null; body: string | null; cover_url: string | null;
+  image_alt: string | null; image_credit: string | null; author: string | null; source_url: string | null;
+  featured: number; published_at: string | null; updated_at: string; seo_title: string | null; seo_description: string | null;
+  province_name: string | null; category_name: string | null; category_slug: string | null;
+  cover_width: number | null; cover_height: number | null;
+}
+
+const NEWS_SELECT = `SELECT n.id, n.slug, n.title, n.excerpt, n.body, n.cover_url, n.image_alt, n.image_credit, n.author, n.source_url,
+    n.featured, n.published_at, n.updated_at, n.seo_title, n.seo_description,
+    p.name AS province_name, c.name AS category_name, c.slug AS category_slug, m.width AS cover_width, m.height AS cover_height
+  FROM news n
+  LEFT JOIN provinces p ON p.id = n.province_id AND p.status = 'published'
+  LEFT JOIN news_categories c ON c.id = n.category_id
+  LEFT JOIN media m ON n.cover_url = '/api/v1/media/' || m.id || '.webp'
+  WHERE n.status = 'published'`;
+
+const listNews = async (db: Client) =>
+  (await db.execute(`${NEWS_SELECT} ORDER BY n.featured DESC, n.published_at DESC LIMIT 200`)).rows as unknown as NewsRow[];
+const findNews = async (db: Client, slug: string) =>
+  ((await db.execute({ sql: `${NEWS_SELECT} AND n.slug = ?`, args: [slug] })).rows[0] as unknown as NewsRow) ?? null;
+
+export const newsDescription = (n: NewsRow) => clip(n.seo_description || n.excerpt || plainText(n.body) || n.title, 160);
+export const newsTitle = (n: NewsRow) => clip(n.seo_title || n.title, 70);
+
+interface PageMeta {
+  title: string; description: string; path: string; image?: string | null; imageAlt?: string | null;
+  imageWidth?: number | null; imageHeight?: number | null; type?: "website" | "article"; noindex?: boolean;
+  published?: string | null; modified?: string | null; section?: string | null; jsonLd?: unknown[]; body: string;
+  markdown?: string; // versión para agentes de IA
+}
+
+/** Sustituye en el index.html los metadatos genéricos por los de la página y escribe su resumen en #root. */
+export function renderShell(shell: string, m: PageMeta): string {
+  const url = `${siteUrl()}${m.path}`;
+  const image = absolute(m.image);
+  const tags = [
+    `<title>${esc(m.title)}</title>`,
+    `<meta name="description" content="${esc(m.description)}" />`,
+    `<meta name="robots" content="${m.noindex ? "noindex, follow" : "index, follow, max-image-preview:large, max-snippet:-1"}" />`,
+    `<link rel="canonical" href="${esc(url)}" />`,
+    `<link rel="alternate" type="application/rss+xml" title="${SITE_NAME}: noticias" href="${siteUrl()}/noticias/rss.xml" />`,
+    m.markdown ? `<link rel="alternate" type="text/markdown" href="${siteUrl()}${m.markdown}" />` : "",
+    `<meta property="og:site_name" content="${SITE_NAME}" />`,
+    `<meta property="og:locale" content="es_DO" />`,
+    `<meta property="og:type" content="${m.type ?? "website"}" />`,
+    `<meta property="og:title" content="${esc(m.title)}" />`,
+    `<meta property="og:description" content="${esc(m.description)}" />`,
+    `<meta property="og:url" content="${esc(url)}" />`,
+    `<meta property="og:image" content="${esc(image)}" />`,
+    m.imageAlt ? `<meta property="og:image:alt" content="${esc(m.imageAlt)}" />` : "",
+    m.imageWidth ? `<meta property="og:image:width" content="${m.imageWidth}" />` : "",
+    m.imageHeight ? `<meta property="og:image:height" content="${m.imageHeight}" />` : "",
+    m.published ? `<meta property="article:published_time" content="${esc(m.published)}" />` : "",
+    m.modified ? `<meta property="article:modified_time" content="${esc(m.modified)}" />` : "",
+    m.section ? `<meta property="article:section" content="${esc(m.section)}" />` : "",
+    `<meta name="twitter:card" content="summary_large_image" />`,
+    `<meta name="twitter:title" content="${esc(m.title)}" />`,
+    `<meta name="twitter:description" content="${esc(m.description)}" />`,
+    `<meta name="twitter:image" content="${esc(image)}" />`,
+    ...(m.jsonLd ?? []).map(ldJson),
+  ].filter(Boolean).join("\n    ");
+
+  return shell
+    // Fuera los genéricos de la landing que esta página reemplaza (los JSON-LD del sitio se conservan).
+    .replace(/<title>[\s\S]*?<\/title>\s*/i, "")
+    .replace(/<meta\s+(?:name|property)="(?:description|robots|keywords|og:[^"]+|twitter:[^"]+|article:[^"]+)"[^>]*>\s*/gi, "")
+    .replace(/<link\s+rel="canonical"[^>]*>\s*/gi, "")
+    .replace("</head>", `    ${tags}\n  </head>`)
+    .replace(/<div id="root"><\/div>/, `<div id="root">${m.body}</div>`);
+}
+
+const publisher = () => ({ "@type": "Organization", name: SITE_NAME, url: siteUrl(), logo: { "@type": "ImageObject", url: `${siteUrl()}/favicon.ico` } });
+const breadcrumb = (items: [string, string][]) => ({
+  "@context": "https://schema.org", "@type": "BreadcrumbList",
+  itemListElement: items.map(([name, path], i) => ({ "@type": "ListItem", position: i + 1, name, item: `${siteUrl()}${path}` })),
+});
+
+function newsPage(n: NewsRow): PageMeta {
+  const path = `/noticias/${n.slug}`;
+  const description = newsDescription(n);
+  const image = absolute(n.cover_url);
+  return {
+    title: `${newsTitle(n)} | ${SITE_NAME}`, description, path, image: n.cover_url, imageAlt: n.image_alt || n.title,
+    imageWidth: n.cover_width, imageHeight: n.cover_height, type: "article",
+    published: n.published_at, modified: n.updated_at, section: n.category_name, markdown: `${path}.md`,
+    jsonLd: [
+      {
+        "@context": "https://schema.org", "@type": "NewsArticle",
+        headline: clip(n.title, 110), description, image: [image], inLanguage: "es-DO",
+        datePublished: n.published_at, dateModified: n.updated_at || n.published_at,
+        author: n.author ? { "@type": "Person", name: n.author } : publisher(),
+        publisher: publisher(), mainEntityOfPage: { "@type": "WebPage", "@id": `${siteUrl()}${path}` },
+        ...(n.category_name ? { articleSection: n.category_name } : {}),
+        ...(n.province_name ? { contentLocation: { "@type": "Place", name: `${n.province_name}, República Dominicana` } } : {}),
+        ...(n.source_url ? { isBasedOn: n.source_url } : {}),
+      },
+      breadcrumb([["Inicio", "/"], ["Noticias", "/noticias"], [n.title, path]]),
+    ],
+    body: `<article><p>${esc(n.category_name ?? "Noticias")}</p><h1>${esc(n.title)}</h1>${n.excerpt ? `<p>${esc(n.excerpt)}</p>` : ""}`
+      + `<p>${esc(clip(plainText(n.body), 600))}</p><p><a href="/noticias">Más noticias</a></p></article>`,
+  };
+}
+
+function newsListPage(rows: NewsRow[]): PageMeta {
+  const title = `Noticias de turismo en República Dominicana | ${SITE_NAME}`;
+  const description = "Actualidad del turismo dominicano: eventos, cultura, gastronomía, naturaleza y avisos para viajeros.";
+  return {
+    title, description, path: "/noticias", image: rows[0]?.cover_url,
+    jsonLd: [
+      {
+        "@context": "https://schema.org", "@type": "CollectionPage", name: "Noticias", description, url: `${siteUrl()}/noticias`,
+        mainEntity: { "@type": "ItemList", itemListElement: rows.slice(0, 50).map((n, i) => ({ "@type": "ListItem", position: i + 1, url: `${siteUrl()}/noticias/${n.slug}`, name: n.title })) },
+      },
+      breadcrumb([["Inicio", "/"], ["Noticias", "/noticias"]]),
+    ],
+    body: `<main><h1>Noticias</h1><ul>${rows.map((n) => `<li><a href="/noticias/${esc(n.slug)}">${esc(n.title)}</a>${n.excerpt ? ` — ${esc(n.excerpt)}` : ""}</li>`).join("")}</ul></main>`,
+  };
+}
+
+const xmlEsc = (v: unknown) => esc(v).replace(/&#39;/g, "&apos;");
+
+function sitemap(rows: NewsRow[]): string {
+  const url = (loc: string, lastmod?: string | null, extra = "") =>
+    `<url><loc>${xmlEsc(`${siteUrl()}${loc}`)}</loc>${lastmod ? `<lastmod>${xmlEsc(lastmod)}</lastmod>` : ""}${extra}</url>`;
+  const newest = rows.map((r) => r.updated_at).sort().at(-1);
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">`
+    + url("/") + url("/noticias", newest)
+    + rows.map((n) => url(`/noticias/${n.slug}`, n.updated_at || n.published_at,
+      n.cover_url ? `<image:image><image:loc>${xmlEsc(absolute(n.cover_url))}</image:loc></image:image>` : "")).join("")
+    + "</urlset>";
+}
+
+function rss(rows: NewsRow[]): string {
+  const items = [...rows].sort((a, b) => String(b.published_at).localeCompare(String(a.published_at))).slice(0, 50).map((n) => {
+    const link = `${siteUrl()}/noticias/${n.slug}`;
+    return `<item><title>${xmlEsc(n.title)}</title><link>${xmlEsc(link)}</link><guid isPermaLink="true">${xmlEsc(link)}</guid>`
+      + (n.published_at ? `<pubDate>${new Date(n.published_at).toUTCString()}</pubDate>` : "")
+      + (n.category_name ? `<category>${xmlEsc(n.category_name)}</category>` : "")
+      + `<description>${xmlEsc(newsDescription(n))}</description></item>`;
+  }).join("");
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel>`
+    + `<title>${SITE_NAME}: noticias</title><link>${siteUrl()}/noticias</link><language>es-DO</language>`
+    + `<description>Actualidad del turismo en República Dominicana.</description>`
+    + `<atom:link href="${siteUrl()}/noticias/rss.xml" rel="self" type="application/rss+xml" />${items}</channel></rss>`;
+}
+
+/** index.html del despliegue actual; se pide al propio sitio una vez por instancia. */
+let shellCache: string | null = null;
+export type ShellLoader = (host: string | undefined) => Promise<string>;
+const fetchShell: ShellLoader = async (host) => {
+  if (shellCache) return shellCache;
+  const origin = host ? `https://${host}` : siteUrl();
+  const res = await fetch(`${origin}/index.html`);
+  if (!res.ok) throw new Error(`No se pudo leer index.html (${res.status})`);
+  return (shellCache = await res.text());
+};
+
+async function seoRoute(db: Client, path: string, host: string | undefined, loadShell: ShellLoader): Promise<ApiResponse | null> {
+  const enc = (text: string) => new TextEncoder().encode(text);
+  if (path === "/sitemap.xml") {
+    return { status: 200, raw: enc(sitemap(await listNews(db))), headers: { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": HTML_CACHE["Cache-Control"] } };
+  }
+  if (path === "/rss.xml") {
+    return { status: 200, raw: enc(rss(await listNews(db))), headers: { "Content-Type": "application/rss+xml; charset=utf-8", "Cache-Control": HTML_CACHE["Cache-Control"] } };
+  }
+  if (path === "/render/noticias") return { status: 200, raw: enc(renderShell(await loadShell(host), newsListPage(await listNews(db)))), headers: HTML_CACHE };
+  const one = path.match(/^\/render\/noticias\/([^/]+)$/);
+  if (one) {
+    const n = SLUG.test(one[1]) ? await findNews(db, one[1]) : null;
+    if (n) return { status: 200, raw: enc(renderShell(await loadShell(host), newsPage(n))), headers: HTML_CACHE };
+    const notFound: PageMeta = {
+      title: `Noticia no encontrada | ${SITE_NAME}`, description: "La noticia que buscas no existe o ya no está publicada.",
+      path: `/noticias/${one[1]}`, noindex: true, body: `<main><h1>Noticia no encontrada</h1><p><a href="/noticias">Ver todas las noticias</a></p></main>`,
+    };
+    return { status: 404, raw: enc(renderShell(await loadShell(host), notFound)), headers: { ...HTML_CACHE, "Cache-Control": "public, max-age=0, s-maxage=30" } };
+  }
+  return null;
+}
+
+// ---------- agentes de IA: llms.txt y versión Markdown de cada noticia ----------
+// Los agentes (ChatGPT, Claude, Perplexity, Gemini…) leen mejor texto plano que una SPA: /llms.txt es el índice
+// (https://llmstxt.org), /noticias/<slug>.md cada noticia limpia y /llms-full.txt todas juntas.
+const SITE_SUMMARY = "Portal de turismo de República Dominicana: noticias de actualidad turística (eventos, cultura, "
+  + "gastronomía, naturaleza, infraestructura y avisos al viajero) y guía de sus provincias y destinos.";
+
+/** Las URLs relativas del cuerpo (imágenes subidas) pasan a absolutas: el Markdown se lee fuera del sitio. */
+const absoluteMarkdown = (md: string) => md.replace(/\]\((\/[^)\s]+)/g, (_m, u: string) => `](${siteUrl()}${u}`);
+
+export function newsMarkdown(n: NewsRow): string {
+  const meta = [
+    `- URL: ${siteUrl()}/noticias/${n.slug}`,
+    n.published_at ? `- Publicada: ${n.published_at.slice(0, 10)}` : "",
+    n.updated_at && n.updated_at !== n.published_at ? `- Actualizada: ${n.updated_at.slice(0, 10)}` : "",
+    n.category_name ? `- Categoría: ${n.category_name}` : "",
+    n.province_name ? `- Provincia: ${n.province_name}, República Dominicana` : "",
+    `- Autor: ${n.author || "Redacción Descubre RD"}`,
+    n.source_url ? `- Fuente original: ${n.source_url}` : "",
+  ].filter(Boolean).join("\n");
+  const cover = n.cover_url ? `\n\n![${n.image_alt || n.title}](${absolute(n.cover_url)})${n.image_credit ? `\n\n_${n.image_credit}_` : ""}` : "";
+  return `# ${n.title}\n\n${n.excerpt ? `> ${n.excerpt}\n\n` : ""}${meta}${cover}\n\n${absoluteMarkdown(n.body ?? "").trim()}\n`;
+}
+
+function llmsTxt(rows: NewsRow[]): string {
+  const items = rows.map((n) => `- [${n.title}](${siteUrl()}/noticias/${n.slug}.md): ${newsDescription(n)}`).join("\n");
+  return `# ${SITE_NAME}\n\n> ${SITE_SUMMARY}\n\n`
+    + "Contenido en español de República Dominicana. Cada noticia tiene una versión en Markdown (enlaces de abajo) "
+    + `y una página web en ${siteUrl()}/noticias/<slug>. Los datos estructurados de cada página siguen schema.org (NewsArticle).\n\n`
+    + `## Noticias\n\n${items || "- Todavía no hay noticias publicadas."}\n\n`
+    + `## Opcional\n\n- [Todas las noticias en un solo archivo](${siteUrl()}/llms-full.txt)\n`
+    + `- [Listado de noticias](${siteUrl()}/noticias)\n- [Feed RSS](${siteUrl()}/noticias/rss.xml)\n- [Sitemap](${siteUrl()}/sitemap.xml)\n`;
+}
+
+const TEXT_HEADERS = (type: string) => ({ "Content-Type": `${type}; charset=utf-8`, "Cache-Control": HTML_CACHE["Cache-Control"], "X-Robots-Tag": "noindex" });
+
+async function llmRoute(db: Client, path: string): Promise<ApiResponse | null> {
+  const enc = (text: string) => new TextEncoder().encode(text);
+  if (path === "/llms.txt") return { status: 200, raw: enc(llmsTxt(await listNews(db))), headers: TEXT_HEADERS("text/plain") };
+  if (path === "/llms-full.txt") {
+    const rows = (await listNews(db)).slice(0, 100);
+    const text = `# ${SITE_NAME}: noticias completas\n\n> ${SITE_SUMMARY}\n\n${rows.map(newsMarkdown).join("\n---\n\n")}`;
+    return { status: 200, raw: enc(text), headers: TEXT_HEADERS("text/plain") };
+  }
+  const md = path.match(/^\/md\/noticias\/([^/]+)$/);
+  if (md) {
+    const n = SLUG.test(md[1]) ? await findNews(db, md[1]) : null;
+    return n ? { status: 200, raw: enc(newsMarkdown(n)), headers: TEXT_HEADERS("text/markdown") } : err(404, "No encontrada");
+  }
+  return null;
+}
+
 // ---------- router ----------
-export async function handle(req: ApiRequest, db: Client, secret: string, secureCookies = true): Promise<ApiResponse> {
+export async function handle(req: ApiRequest, db: Client, secret: string, secureCookies = true, loadShell: ShellLoader = fetchShell): Promise<ApiResponse> {
   const path = req.path.replace(/^\/api\/v1/, "").replace(/\/+$/, "") || "/";
   const body = (req.body && typeof req.body === "object" ? req.body : {}) as Fields;
   const m = req.method.toUpperCase();
@@ -386,6 +650,10 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   if (m === "GET" && path.startsWith("/public/")) return (await publicApi(db, path)) ?? err(404, "Ruta no encontrada");
   const media = m === "GET" && path.match(/^\/media\/([^/]+)\.webp$/); // el id se valida en serveMedia
   if (media) return serveMedia(db, media[1]);
+  if (m === "GET") {
+    const seo = (await seoRoute(db, path, req.headers["x-forwarded-host"] ?? req.headers.host, loadShell)) ?? (await llmRoute(db, path));
+    if (seo) return seo;
+  }
   // La landing pide el catálogo de anuncios del backend completo; staging no tiene anuncios.
   if (m === "GET" && path === "/ads/catalog") return { status: 200, body: { data: [] }, headers: PUBLIC_CACHE };
 

@@ -100,7 +100,7 @@ function fromPublicNews(n: PublicNews, featured: boolean): EditorialArticle {
   return {
     id: n.id, slug: n.slug, title: n.title, excerpt: n.excerpt ?? "", channel: "noticias", category: n.category_name ?? "Noticias", image: n.cover_url,
     publishedAt: n.published_at, readMinutes: n.body ? Math.max(1, Math.round(n.body.split(/\s+/).length / 200)) : null, authorName: n.author || "Redacción Descubre RD", authorRole: null, authorAvatar: null,
-    tags: n.province_name ? [n.province_name] : [], featured, trending: false, pressPartner: null, href: hrefOf("noticias", n.slug),
+    tags: n.province_name ? [n.province_name] : [], featured, trending: false, pressPartner: null, href: `/noticias/${n.slug}`,
   };
 }
 
