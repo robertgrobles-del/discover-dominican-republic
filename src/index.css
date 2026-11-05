@@ -767,3 +767,6 @@ body.font-dyslexic a {
 
 /* Imagen ocultada desde el panel («Textos e imágenes de páginas»): sin dirección no se muestra. */
 img[src=""] { display: none; }
+
+/* Rama staging: los enlaces de la landing no navegan (ver DisableLandingLinks en App.tsx) */
+.staging-links-off a[href] { cursor: default; }

@@ -17,53 +17,8 @@ import { MockDataNotice } from "@/components/MockDataNotice";
 import { Navigate, Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { adminDashboardApi } from "@/lib/adminDashboardApi";
-import {
-  Users, Building2, Shield, ShieldCheck, Megaphone, Coins, Sparkles, KeyRound,
-  Loader2, FileText, BookOpen, LayoutDashboard, BarChart3, TrendingUp,
-  Layers, MessageSquare, Route, UploadCloud, Trophy, Smile, Boxes, ScrollText,
-  CalendarCheck, Search, Menu, X, ChevronRight, Ticket, Server, Banknote, Package, ExternalLink, LogOut,
-  Headphones, Gift, ClipboardList, Settings, Image as ImageIcon, Award, Target, Languages
-} from "lucide-react";
-import { AdminEditorialManager } from "@/components/admin/AdminEditorialManager";
-import { AdminFinanceLotteryManager } from "@/components/admin/AdminFinanceLotteryManager";
-import { EntityImportManager } from "@/components/admin/EntityImportManager";
-import { UGCModerationPanel } from "@/components/admin/UGCModerationPanel";
-import { AdminDashboard } from "@/components/admin/AdminDashboard";
-import { AdminImportEstablecimientos } from "@/components/admin/AdminImportEstablecimientos";
-import { AdminAnalytics } from "@/components/admin/AdminAnalytics";
-import { AdminContentDocuments } from "@/components/admin/AdminContentDocuments";
-import { AdminPageContentEditor } from "@/components/admin/AdminPageContentEditor";
-import { AdminInsightsPanel } from "@/components/admin/AdminInsightsPanel";
-import { AdminGamificationTab } from "@/components/admin/AdminGamificationTab";
-import { AdminUsuarios } from "@/components/admin/AdminUsuarios";
-import { AdminOperadores } from "@/components/admin/AdminOperadores";
-import { AdminNpsAnalytics } from "@/components/admin/AdminNpsAnalytics";
-import { AdminStockConsole } from "@/components/admin/AdminStockConsole";
-import { AdminRouteBuilder } from "@/components/admin/AdminRouteBuilder";
-import { AdminAiGenerator } from "@/components/admin/AdminAiGenerator";
-import { AdminAuditLogs } from "@/components/admin/AdminAuditLogs";
-import { AdminReservasDirectas } from "@/components/admin/AdminReservasDirectas";
-import { PermissionAuditPanel } from "@/components/admin/PermissionAuditPanel";
-import { AccessGovernancePanel } from "@/components/admin/AccessGovernancePanel";
-import { AdminCreatorCampaigns } from "@/components/admin/AdminCreatorCampaigns";
-import { AdminCreatorsDirectory } from "@/components/admin/AdminCreatorsDirectory";
-import { SupportImpersonationBanner } from "@/components/admin/SupportImpersonationBanner";
-import { AdminCouponsManager } from "@/components/admin/AdminCouponsManager";
-import { AdminStoreOrders } from "@/components/admin/AdminStoreOrders";
-import { AdminStoreProducts } from "@/components/admin/AdminStoreProducts";
-import { AdminEventApprovals } from "@/components/admin/AdminEventApprovals";
-import { AdminSystemConsole } from "@/components/admin/AdminSystemConsole";
-import { AdminMembershipPlans } from "@/components/admin/AdminMembershipPlans";
-import AdminSupportTickets from "@/components/admin/AdminSupportTickets";
-import AdminContestsManager from "@/components/admin/AdminContestsManager";
-import AdminSurveysManager from "@/components/admin/AdminSurveysManager";
-import AdminSiteSettings from "@/components/admin/AdminSiteSettings";
-import AdminMediaLibrary from "@/components/admin/AdminMediaLibrary";
-import AdminAmbassadorsManager from "@/components/admin/AdminAmbassadorsManager";
-import AdminLeadsManager from "@/components/admin/AdminLeadsManager";
-import AdminTranslationsManager from "@/components/admin/AdminTranslationsManager";
-import { AdminEstablecimientosManager } from "@/components/admin/AdminEstablecimientosManager";
-import { AdminAdsManager } from "@/components/admin/AdminAdsManager";
+import { StagingNewsManager, StagingProvincesManager } from "@/components/admin/staging/StagingCrudManager";
+import { Shield, Loader2, Search, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper } from "lucide-react";
 
 type TabCategory = "erp" | "crm" | "cms" | "system";
 
@@ -130,62 +85,13 @@ const CATEGORY_CONFIG: Record<TabCategory, { label: string; badge: string; descr
   system: { label: "Sistema & Seguridad", badge: "CORE", description: "Gobernanza, auditoría y configuración", order: 4 },
 };
 
-const LazyMockupBanners = lazy(() =>
-  import("@/components/admin/AdminMockupBanners").then((m) => ({ default: m.AdminMockupBanners })),
-);
 
+// Rama staging: el panel solo gestiona provincias y noticias contra el mini backend (api/_core.ts).
+// La capacidad no existe a propósito: el acceso lo da el rol real de la sesión (allowRoles), no el contexto
+// de demostración que se carga con la landing en datos locales.
 const ADMIN_TABS: AdminTab[] = [
-  // ERP & Operaciones Financieras / Comerciales
-  { value: "dashboard", label: "Resumen ERP/KPIs", category: "erp", capability: "editorial.content", icon: LayoutDashboard, iconClass: "text-primary", render: () => <AdminDashboard /> },
-  { value: "pedidos", label: "Órdenes y depósitos", category: "erp", capability: "admin.finance", icon: Banknote, iconClass: "text-emerald-500", render: () => <AdminStoreOrders /> },
-  { value: "productos", label: "Inventario y tienda", category: "erp", capability: "admin.finance", icon: Package, iconClass: "text-emerald-500", render: () => <AdminStoreProducts /> },
-  { value: "reservas-directas", label: "Control de reservas", category: "erp", capability: "admin.finance", icon: CalendarCheck, iconClass: "text-emerald-500", render: () => <AdminReservasDirectas /> },
-  { value: "indicadores", label: "Finanzas e ingresos", category: "erp", capability: "admin.finance", icon: TrendingUp, iconClass: "text-emerald-500", render: () => <AdminInsightsPanel /> },
-  { value: "publicidad", label: "Publicidad: clientes, banners y facturas", category: "erp", capability: "admin.finance", icon: Megaphone, iconClass: "text-primary", render: () => <AdminAdsManager /> },
-  { value: "stock", label: "Logística de envíos", category: "erp", capability: "admin.finance", icon: Boxes, iconClass: "text-cyan-500", render: () => <AdminStockConsole /> },
-  { value: "cupones", label: "Cupones y descuentos", category: "erp", capability: "admin.finance", icon: Ticket, iconClass: "text-pink-500", render: () => <AdminCouponsManager /> },
-  { value: "membresias", label: "Planes de membresía", category: "erp", capability: "admin.global_config", icon: ShieldCheck, iconClass: "text-purple-500", render: () => <AdminMembershipPlans /> },
-  { value: "finance_lottery", label: "Loterías y tasas", category: "erp", capability: "admin.finance", icon: Coins, iconClass: "text-amber-500", render: () => <AdminFinanceLotteryManager /> },
-
-  // CRM & Gestión de Usuarios y Relaciones
-  { value: "usuarios", label: "Usuarios y roles", category: "crm", capability: "admin.accounts", icon: Users, iconClass: "text-sky-500", render: () => <AdminUsuarios /> },
-  { value: "operadores", label: "Directorio de socios", category: "crm", capability: "admin.accounts", icon: Building2, iconClass: "text-orange-500", render: () => <AdminOperadores /> },
-  { value: "leads", label: "Pipeline de leads", category: "crm", capability: "admin.accounts", icon: Target, iconClass: "text-rose-500", render: () => <AdminLeadsManager /> },
-  { value: "soporte", label: "Helpdesk y tickets", category: "crm", capability: "moderation.queue", icon: Headphones, iconClass: "text-primary", render: () => <AdminSupportTickets /> },
-  { value: "embajadores", label: "Embajadores y afiliados", category: "crm", capability: "admin.accounts", icon: Award, iconClass: "text-purple-500", render: () => <AdminAmbassadorsManager /> },
-  { value: "creadores", label: "Directorio de creadores", category: "crm", capability: "admin.accounts", icon: Users, iconClass: "text-pink-500", render: () => <AdminCreatorsDirectory /> },
-  { value: "campanas-creadores", label: "Relaciones con creadores", category: "crm", capability: "admin.accounts", icon: Megaphone, iconClass: "text-pink-500", render: () => <AdminCreatorCampaigns /> },
-  { value: "encuestas", label: "Feedback y encuestas", category: "crm", capability: "editorial.content", icon: ClipboardList, iconClass: "text-indigo-500", render: () => <AdminSurveysManager /> },
-  { value: "nps", label: "Satisfacción cliente (NPS)", category: "crm", capability: "editorial.content", icon: Smile, iconClass: "text-amber-500", render: () => <AdminNpsAnalytics /> },
-
-  // CMS & Publicación de Contenidos
-  { value: "establecimientos", label: "Establecimientos", category: "cms", capability: "editorial.content", allowRoles: ["admin", "editor", "partner"], icon: Building2, iconClass: "text-amber-500", render: () => <AdminEstablecimientosManager /> },
-  { value: "editorial", label: "Revista y artículos", category: "cms", capability: "editorial.content", icon: BookOpen, iconClass: "text-primary", render: () => <AdminEditorialManager /> },
-  { value: "contenido", label: "Datasets y catálogo", category: "cms", capability: "editorial.content", icon: Layers, iconClass: "text-indigo-500", render: () => <AdminContentDocuments /> },
-  { value: "medios", label: "Media assets", category: "cms", capability: "admin.content_ops", icon: ImageIcon, iconClass: "text-cyan-500", render: () => <AdminMediaLibrary /> },
-  { value: "traducciones", label: "Localización y traducciones", category: "cms", capability: "admin.content_ops", icon: Languages, iconClass: "text-indigo-500", render: () => <AdminTranslationsManager /> },
-  { value: "eventos-propuestos", label: "Aprobación de eventos", category: "cms", capability: "editorial.content", icon: CalendarCheck, iconClass: "text-emerald-500", render: () => <AdminEventApprovals /> },
-  { value: "sorteos", label: "Concursos y sorteos", category: "cms", capability: "editorial.content", icon: Gift, iconClass: "text-pink-500", render: () => <AdminContestsManager /> },
-  { value: "routebuilder", label: "Rutas turísticas", category: "cms", capability: "editorial.content", icon: Route, iconClass: "text-teal-500", render: () => <AdminRouteBuilder /> },
-  { value: "gamificacion", label: "Gamificación y pasaporte", category: "cms", capability: "admin.global_config", icon: Trophy, iconClass: "text-amber-500", render: () => <AdminGamificationTab /> },
-  { value: "aigenerator", label: "Copys y redacción IA", category: "cms", capability: "admin.content_ops", icon: Sparkles, iconClass: "text-amber-500", render: () => <AdminAiGenerator /> },
-  { value: "paginas-fijas", label: "Textos e imágenes de páginas", category: "cms", capability: "editorial.content", icon: FileText, iconClass: "text-slate-500", render: () => <AdminPageContentEditor /> },
-  { value: "banners", label: "Publicidad y banners", category: "cms", capability: "editorial.content", icon: Megaphone, iconClass: "text-primary", demoOnly: true, render: () => (
-    <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
-      <LazyMockupBanners />
-    </Suspense>
-  ) },
-
-  // Sistema, Auditoría & Gobernanza
-  { value: "analytics", label: "Métricas de tráfico", category: "system", capability: "editorial.content", icon: BarChart3, iconClass: "text-blue-500", render: () => <AdminAnalytics /> },
-  { value: "gobernanza", label: "Control de accesos y roles", category: "system", capability: "admin.accounts", icon: ShieldCheck, iconClass: "text-primary", render: () => <AccessGovernancePanel /> },
-  { value: "moderacion", label: "Moderación de contenidos", category: "system", capability: "moderation.queue", icon: MessageSquare, iconClass: "text-red-500", render: () => <UGCModerationPanel /> },
-  { value: "accesos", label: "Auditoría de seguridad", category: "system", capability: "admin.access_catalog", icon: KeyRound, iconClass: "text-primary", render: () => <PermissionAuditPanel /> },
-  { value: "audit", label: "Registro de actividad", category: "system", capability: "admin.audit_read", icon: ScrollText, iconClass: "text-violet-500", render: () => <AdminAuditLogs /> },
-  { value: "system_console", label: "Salud del sistema y cron", category: "system", capability: "admin.content_ops", icon: Server, iconClass: "text-emerald-500", render: () => <AdminSystemConsole /> },
-  { value: "import", label: "Importación masiva", category: "system", capability: "admin.content_ops", icon: UploadCloud, iconClass: "text-indigo-500", render: () => <AdminImportEstablecimientos /> },
-  { value: "entidades", label: "Explorador de tablas", category: "system", capability: "admin.content_ops", icon: Boxes, iconClass: "text-cyan-500", render: () => <EntityImportManager /> },
-  { value: "ajustes", label: "Parámetros globales", category: "system", capability: "admin.global_config", icon: Settings, iconClass: "text-primary", render: () => <AdminSiteSettings /> },
+  { value: "provincias", label: "Provincias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: MapPin, iconClass: "text-emerald-500", render: () => <StagingProvincesManager /> },
+  { value: "noticias", label: "Noticias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Newspaper, iconClass: "text-primary", render: () => <StagingNewsManager /> },
 ];
 
 export default function AdminPanel() {
@@ -221,7 +127,7 @@ export default function AdminPanel() {
   const { data: dashboard } = useQuery({
     queryKey: ["admin-dashboard-kpis"],
     queryFn: async () => (HAS_BACKEND_SESSION ? await adminDashboardApi.getDashboard() : null),
-    enabled: HAS_BACKEND_SESSION && Boolean(user),
+    enabled: false, // staging: el mini backend no tiene /admin/dashboard
     staleTime: 60_000,
   });
   const pendingByTab = useMemo<Record<string, number>>(() => {
@@ -402,7 +308,6 @@ export default function AdminPanel() {
 
         <div className="flex min-w-0 flex-1 flex-col">
           {!HAS_BACKEND_SESSION && <MockDataNotice />}
-          <SupportImpersonationBanner />
 
           <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-border/60 bg-background/95 px-4 backdrop-blur lg:px-8">
             <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileMenuOpen(true)} aria-label="Abrir menú"><Menu className="h-5 w-5" /></Button>

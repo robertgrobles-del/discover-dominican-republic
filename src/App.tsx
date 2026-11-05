@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { DeferredWidget } from "@/components/DeferredWidget";
@@ -20,17 +20,36 @@ import { usePageTracking } from "@/hooks/useAnalytics";
 import { captureAndStoreUtmParams } from "@/utils/utm";
 import { useEffect } from "react";
 
-// Route modules
-import { touristRoutes } from "@/routes/touristRoutes";
-import { planningRoutes } from "@/routes/planningRoutes";
-import { operatorRoutes } from "@/routes/operatorRoutes";
-import { storeRoutes } from "@/routes/storeRoutes";
-import { userAccountRoutes } from "@/routes/userAccountRoutes";
-import { institutionalRoutes } from "@/routes/institutionalRoutes";
-
-// Core pages
+// Rama staging: solo la landing (sin enlaces activos), el acceso y el panel de administración.
 const Index = lazy(() => import("./pages/Index"));
-import NotFound from "./pages/NotFound";
+const Login = lazy(() => import("./pages/Login"));
+const AdminPanel = lazy(() => import("./pages/AdminPanel"));
+
+/**
+ * En la landing de staging ningún enlace navega: el resto del sitio no está publicado.
+ * Se intercepta en captura para cubrir también los enlaces de widgets fuera de la página (pie, banners).
+ */
+function DisableLandingLinks() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    if (pathname !== "/") return;
+    const block = (e: MouseEvent) => {
+      if ((e.target as Element | null)?.closest?.("a[href]")) { e.preventDefault(); e.stopPropagation(); }
+    };
+    const blockKey = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && (e.target as Element | null)?.closest?.("a[href]")) { e.preventDefault(); e.stopPropagation(); }
+    };
+    document.addEventListener("click", block, true);
+    document.addEventListener("keydown", blockKey, true);
+    document.documentElement.classList.add("staging-links-off");
+    return () => {
+      document.removeEventListener("click", block, true);
+      document.removeEventListener("keydown", blockKey, true);
+      document.documentElement.classList.remove("staging-links-off");
+    };
+  }, [pathname]);
+  return null;
+}
 
 // Lazy load non-critical global UI
 const BackToTop = lazy(() => import("@/components/BackToTop").then(m => ({ default: m.BackToTop })));
@@ -86,16 +105,11 @@ function AnimatedRoutes() {
             {/* Homepage */}
             <Route path="/" element={<Index />} />
 
-            {/* Submódulos de Rutas */}
-            {touristRoutes}
-            {planningRoutes}
-            {operatorRoutes}
-            {storeRoutes}
-            {userAccountRoutes}
-            {institutionalRoutes}
+            <Route path="/login" element={<Login />} />
+            <Route path="/admin" element={<AdminPanel />} />
 
-            {/* Catch-All 404 */}
-            <Route path="*" element={<NotFound />} />
+            {/* Lo demás no existe en staging: vuelve a la landing */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </RouteErrorBoundary>
       </Suspense>
@@ -117,6 +131,7 @@ const App = () => (
                 <NetworkStatusNotice />
                 <ScrollToTop />
                 <SessionExpiryGuard />
+                <DisableLandingLinks />
                 <AnimatedRoutes />
                 <Suspense fallback={null}>
                   <PublicSiteWidgets />
