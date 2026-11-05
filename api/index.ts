@@ -1,7 +1,9 @@
 // Función de Vercel: recibe todo /api/v1/* (ver rewrites en vercel.json) y lo pasa a _core.ts.
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { createClient, type Client } from "@libsql/client";
-import { handle } from "./_core";
+// Cliente web: habla con Turso por HTTP, sin el módulo nativo de SQLite que no hace falta en Vercel.
+import { createClient, type Client } from "@libsql/client/web";
+// La extensión .js es obligatoria: el proyecto es ESM ("type": "module") y Node no resuelve imports sin ella.
+import { handle } from "./_core.js";
 
 let db: Client | null = null;
 
