@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 
 import heroBeach from "@/assets/hero-beach.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const hitos = [
   {
@@ -73,6 +74,9 @@ const equipoPortal = [
 ];
 
 export default function SobreNosotros() {
+  const pc = usePageContent("sobre-nosotros");
+  const hitos = pc.data("hitos", __pcData.hitos);
+  const equipoPortal = pc.data("equipoPortal", __pcData.equipoPortal);
   const [heroLoaded, setHeroLoaded] = useState(false);
 
   return (
@@ -84,8 +88,8 @@ export default function SobreNosotros() {
         <section className="relative h-[70vh] flex items-center justify-center overflow-hidden">
           {!heroLoaded && <Skeleton className="absolute inset-0" />}
           <img
-            src={heroBeach}
-            alt="República Dominicana"
+            src={pc.img("img.src.1", heroBeach)}
+            alt={pc.t("img.alt.1", "República Dominicana")}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
               heroLoaded ? "opacity-100" : "opacity-0"
             }`}
@@ -94,16 +98,11 @@ export default function SobreNosotros() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/50 to-black/85" />
           
           <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-            <Badge className="mb-6 bg-primary/20 text-primary border-primary/30">
-              NUESTRA MISIÓN
-            </Badge>
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">
-              La esencia de<br />
-              <span className="text-gradient">República Dominicana</span>
+            <Badge className="mb-6 bg-primary/20 text-primary border-primary/30">{pc.tx("Badge.1", "NUESTRA MISIÓN")}</Badge>
+            <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">{pc.tx("h1.1", "La esencia de")}<br />
+              <span className="text-gradient">{pc.tx("span.1", "República Dominicana")}</span>
             </h1>
-            <p className="text-lg text-white/90 max-w-2xl mx-auto">
-              Información oficial de turismo hecha por dominicanos, para que planifiques tu viaje sin sorpresas.
-            </p>
+            <p className="text-lg text-white/90 max-w-2xl mx-auto">{pc.tx("p.1", "Información oficial de turismo hecha por dominicanos, para que planifiques tu viaje sin sorpresas.")}</p>
           </div>
 
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
@@ -120,28 +119,21 @@ export default function SobreNosotros() {
                   <path d="M24 4L6 12v12c0 11.1 7.7 21.5 18 24 10.3-2.5 18-12.9 18-24V12L24 4z"/>
                 </svg>
               </div>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-                Nuestra Evolución
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Desde la fundación de la primera ciudad colonial del Nuevo Mundo hasta convertirnos en el destino líder del Caribe, 
-                nuestra historia es una de reinvención constante, hospitalidad inigualable y un profundo respeto por nuestra naturaleza exuberante.
-              </p>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">{pc.tx("h2.1", "Nuestra Evolución")}</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.2", "Desde la fundación de la primera ciudad colonial del Nuevo Mundo hasta convertirnos en el destino líder del Caribe, nuestra historia es una de reinvención constante, hospitalidad inigualable y un profundo respeto por nuestra naturaleza exuberante.")}</p>
             </div>
 
             {/* Quote */}
             <div className="max-w-3xl mx-auto mb-20">
               <div className="bg-card rounded-2xl p-8 border border-border relative">
                 <Quote className="absolute top-6 left-6 w-8 h-8 text-primary/20" />
-                <p className="text-xl md:text-2xl font-display italic text-foreground text-center">
-                  "El turismo es el motor de nuestro orgullo"
-                </p>
+                <p className="text-xl md:text-2xl font-display italic text-foreground text-center">{pc.tx("p.3", "\"El turismo es el motor de nuestro orgullo\"")}</p>
               </div>
             </div>
 
             {/* Timeline */}
             <div className="max-w-3xl mx-auto">
-              <h3 className="text-2xl font-display font-bold text-foreground mb-12">Hitos Históricos</h3>
+              <h3 className="text-2xl font-display font-bold text-foreground mb-12">{pc.tx("h3.1", "Hitos Históricos")}</h3>
               <div className="space-y-0">
                 {hitos.map((hito, index) => (
                   <div key={hito.año} className="relative pl-12 pb-12 last:pb-0">
@@ -178,15 +170,9 @@ export default function SobreNosotros() {
         <section className="py-20 bg-card/40 border-y border-border/40">
           <div className="container mx-auto px-4 max-w-6xl">
             <div className="text-center mb-14">
-              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
-                INNOVACIÓN & DESARROLLO
-              </Badge>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
-                Equipo Detrás de Descubre RD
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
-                Profesionales de la ingeniería web, diseño interactivo, periodismo y hospitalidad dedicados a crear la plataforma turística digital más completa e interactiva de República Dominicana.
-              </p>
+              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">{pc.tx("Badge.2", "INNOVACIÓN & DESARROLLO")}</Badge>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">{pc.tx("h2.2", "Equipo Detrás de Descubre RD")}</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">{pc.tx("p.4", "Profesionales de la ingeniería web, diseño interactivo, periodismo y hospitalidad dedicados a crear la plataforma turística digital más completa e interactiva de República Dominicana.")}</p>
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -207,7 +193,7 @@ export default function SobreNosotros() {
                   <h3 className="font-display font-bold text-base md:text-lg text-foreground group-hover:text-primary transition-colors">
                     {persona.nombre}
                   </h3>
-                  <p className="text-[11px] font-bold text-primary tracking-wider uppercase mt-1">
+                  <p className="text-2xs font-bold text-primary tracking-wider uppercase mt-1">
                     {persona.cargo}
                   </p>
                   <p className="text-xs text-muted-foreground font-medium mt-1 mb-3">
@@ -248,22 +234,14 @@ export default function SobreNosotros() {
         {/* CTA */}
         <section className="py-20 bg-gradient-to-b from-primary/10 to-transparent">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-              ¿Listo para vivir la historia?
-            </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto mb-8">
-              Descubre por qué República Dominicana lo tiene todo. Planifica tu próxima aventura con nosotros.
-            </p>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">{pc.tx("h2.3", "¿Listo para vivir la historia?")}</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto mb-8">{pc.tx("p.5", "Descubre por qué República Dominicana lo tiene todo. Planifica tu próxima aventura con nosotros.")}</p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link to="/destinos">
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  Explorar Destinos
-                </Button>
+                <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">{pc.tx("Button.1", "Explorar Destinos")}</Button>
               </Link>
               <Link to="/ayuda">
-                <Button size="lg" variant="outline">
-                  Contactar Oficina
-                </Button>
+                <Button size="lg" variant="outline">{pc.tx("Button.2", "Contactar Oficina")}</Button>
               </Link>
             </div>
           </div>
@@ -274,3 +252,6 @@ export default function SobreNosotros() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { hitos, equipoPortal };

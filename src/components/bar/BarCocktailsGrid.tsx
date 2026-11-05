@@ -37,7 +37,7 @@ export function BarCocktailsGrid({ cocktails }: BarCocktailsGridProps) {
           <div key={idx} className="bg-card rounded-3xl p-5 border border-border hover:border-primary/40 transition-colors flex flex-col justify-between shadow-xs">
             <div>
               <div className="flex items-center justify-between gap-2 mb-2">
-                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-3xs">
                   {drink.strength}
                 </Badge>
                 <span className="font-bold text-sm text-foreground bg-muted/60 px-2.5 py-0.5 rounded-md">
@@ -47,7 +47,7 @@ export function BarCocktailsGrid({ cocktails }: BarCocktailsGridProps) {
               <h4 className="font-display text-base font-bold text-foreground mb-1">{drink.name}</h4>
               <p className="text-xs text-muted-foreground leading-relaxed">{drink.desc}</p>
             </div>
-            <div className="pt-3 mt-3 border-t border-border/50 text-[11px] text-primary flex items-center gap-1">
+            <div className="pt-3 mt-3 border-t border-border/50 text-2xs text-primary flex items-center gap-1">
               <Sparkles className="h-3 w-3" /> Preparado al momento con ingredientes frescos
             </div>
           </div>

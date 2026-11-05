@@ -60,9 +60,9 @@ export function CreatorsEarningsTab() {
             {data.by_source.map((s) => (
               <Card key={`${s.source}-${s.currency}`}>
                 <CardContent className="space-y-1 p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{s.label}</p>
+                  <p className="text-2xs font-semibold uppercase tracking-wide text-muted-foreground">{s.label}</p>
                   <p className="text-xl font-black">{money(s.confirmed, s.currency)}</p>
-                  <p className="text-[11px] text-muted-foreground">confirmado{s.estimated !== 0 && <> · <span className="text-amber-600">{money(s.estimated, s.currency)} estimado</span></>}</p>
+                  <p className="text-2xs text-muted-foreground">confirmado{s.estimated !== 0 && <> · <span className="text-amber-600">{money(s.estimated, s.currency)} estimado</span></>}</p>
                 </CardContent>
               </Card>
             ))}
@@ -86,8 +86,8 @@ export function CreatorsEarningsTab() {
                     </TableCell>
                     <TableCell className={`whitespace-nowrap text-right text-xs font-semibold ${Number(e.amount) < 0 ? "text-destructive" : ""}`}>{money(e.amount, e.currency)}</TableCell>
                     <TableCell className="text-xs">
-                      <Badge variant="outline" className="text-[10px]">{LEDGER_STATUS_LABEL[e.status]}</Badge>
-                      {e.status === "estimated" && e.confirms_at && <span className="mt-1 block text-[10px] text-muted-foreground">se confirma el {when(e.confirms_at)}</span>}
+                      <Badge variant="outline" className="text-3xs">{LEDGER_STATUS_LABEL[e.status]}</Badge>
+                      {e.status === "estimated" && e.confirms_at && <span className="mt-1 block text-3xs text-muted-foreground">se confirma el {when(e.confirms_at)}</span>}
                     </TableCell>
                     <TableCell><Button size="sm" variant="ghost" className="h-8 rounded-xl text-xs" onClick={() => { setDisputing(e); setDraft({ reason: "", label: "", url: "" }); }}>Disputar</Button></TableCell>
                   </TableRow>
@@ -103,15 +103,15 @@ export function CreatorsEarningsTab() {
           <CardHeader><CardTitle className="text-base">Disputar: {disputing.origin} ({money(disputing.amount, disputing.currency)})</CardTitle><CardDescription className="text-xs">Sólo tú y el equipo verán esta disputa.</CardDescription></CardHeader>
           <CardContent className="grid gap-3 text-xs md:grid-cols-2">
             <div className="md:col-span-2">
-              <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="dispute-reason">Qué ocurrió (mínimo 10 caracteres)</label>
+              <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="dispute-reason">Qué ocurrió (mínimo 10 caracteres)</label>
               <Input id="dispute-reason" value={draft.reason} maxLength={500} onChange={(e) => setDraft({ ...draft, reason: e.target.value })} className="h-9 text-xs" />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="dispute-label">Evidencia: qué es (opcional)</label>
+              <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="dispute-label">Evidencia: qué es (opcional)</label>
               <Input id="dispute-label" value={draft.label} onChange={(e) => setDraft({ ...draft, label: e.target.value })} placeholder="Captura de la entrega" className="h-9 text-xs" />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="dispute-url">Evidencia: enlace https</label>
+              <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="dispute-url">Evidencia: enlace https</label>
               <Input id="dispute-url" value={draft.url} onChange={(e) => setDraft({ ...draft, url: e.target.value })} placeholder="https://…" className="h-9 text-xs" />
             </div>
             <div className="flex gap-2 md:col-span-2">
@@ -131,7 +131,7 @@ export function CreatorsEarningsTab() {
             <div key={d.id} className="rounded-xl border border-border p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-semibold">{d.reason}</span>
-                <Badge variant="outline" className="text-[10px]">{DISPUTE_STATUS_LABEL[d.status]}</Badge>
+                <Badge variant="outline" className="text-3xs">{DISPUTE_STATUS_LABEL[d.status]}</Badge>
               </div>
               <p className="mt-1 text-muted-foreground">
                 Abierta el {when(d.created_at)}{d.status === "open" && <> · respuesta antes del {when(d.due_at)}</>}

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Tag, ArrowRight, X, Copy, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { useBanner, trackBannerClick, trackBannerImpression } from "@/hooks/useAdBanners";
 
 export interface TopBarPromoConfig {
   enabled: boolean;
@@ -49,7 +50,14 @@ export function saveTopBarConfig(config: TopBarPromoConfig) {
 }
 
 export function TopBarPromo() {
-  const [config, setConfig] = useState<TopBarPromoConfig>(getTopBarConfig);
+  const [savedConfig, setConfig] = useState<TopBarPromoConfig>(getTopBarConfig);
+  // El admin de anuncios manda (banner_type "topbar", placement "topbar"): headline = etiqueta, subtext = texto,
+  // cta_text / target_url = botón y animation_config.coupon_code = cupón. Sin banner vigente queda la configuración local.
+  const banner = useBanner({ bannerType: "topbar", placement: "topbar" });
+  const config: TopBarPromoConfig = banner
+    ? { enabled: true, badge: banner.headline || "", text: banner.subtext || banner.name, ctaText: banner.cta_text || "Ver oferta", ctaUrl: banner.target_url || "/", couponCode: (banner.animation_config as { coupon_code?: string } | null)?.coupon_code, bgGradient: savedConfig.bgGradient }
+    : savedConfig;
+  useEffect(() => { if (banner) void trackBannerImpression(banner.id); }, [banner?.id]);
   const [isDismissed, setIsDismissed] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -101,7 +109,7 @@ export function TopBarPromo() {
         <div className="container mx-auto px-4 py-2 flex flex-wrap items-center justify-between gap-2 md:gap-4">
           {/* Promo Message & Badge */}
           <div className="flex items-center gap-2 flex-1 min-w-0 justify-center md:justify-start">
-            <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider text-[10px] text-white shadow-xs shrink-0">
+            <span className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider text-3xs text-white shadow-xs shrink-0">
               <Sparkles className="h-3 w-3 animate-pulse text-amber-300" />
               {config.badge}
             </span>
@@ -116,7 +124,7 @@ export function TopBarPromo() {
               <button
                 type="button"
                 onClick={handleCopyCoupon}
-                className="flex items-center gap-1.5 bg-black/30 hover:bg-black/40 text-amber-200 border border-amber-300/40 px-2.5 py-1 rounded-md text-[11px] font-mono font-bold transition-all"
+                className="flex items-center gap-1.5 bg-black/30 hover:bg-black/40 text-amber-200 border border-amber-300/40 px-2.5 py-1 rounded-md text-2xs font-mono font-bold transition-all"
                 title="Copiar cupón de descuento"
               >
                 <Tag className="h-3 w-3" />
@@ -127,7 +135,8 @@ export function TopBarPromo() {
 
             <Link
               to={config.ctaUrl || "/alojamientos"}
-              className="inline-flex items-center gap-1 bg-white text-slate-950 hover:bg-white/90 font-bold px-3 py-1 rounded-md text-[11px] transition-colors shadow-xs"
+              onClick={() => { if (banner) void trackBannerClick(banner.id); }}
+              className="inline-flex items-center gap-1 bg-white text-slate-950 hover:bg-white/90 font-bold px-3 py-1 rounded-md text-2xs transition-colors shadow-xs"
             >
               <span>{config.ctaText || "Ver Oferta"}</span>
               <ArrowRight className="h-3 w-3" />

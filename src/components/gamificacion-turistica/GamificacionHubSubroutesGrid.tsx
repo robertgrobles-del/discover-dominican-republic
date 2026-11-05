@@ -43,7 +43,7 @@ export function GamificacionHubSubroutesGrid() {
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${sub.bg} ${sub.color}`}>
                       <IconComponent className="h-5 w-5" />
                     </div>
-                    <Badge variant="outline" className="text-[10px] font-semibold">
+                    <Badge variant="outline" className="text-3xs font-semibold">
                       {sub.tag}
                     </Badge>
                   </div>

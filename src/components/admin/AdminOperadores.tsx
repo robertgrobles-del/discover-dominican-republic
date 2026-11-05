@@ -523,7 +523,7 @@ function BusinessClaimsTable({
                     <td className="p-3 font-semibold text-foreground">
                       {claim.business_name}
                       {claim.notes && (
-                        <p className="text-[10px] text-muted-foreground font-normal line-clamp-1 mt-0.5">
+                        <p className="text-3xs text-muted-foreground font-normal line-clamp-1 mt-0.5">
                           {claim.notes}
                         </p>
                       )}
@@ -531,30 +531,30 @@ function BusinessClaimsTable({
                     <td className="p-3 capitalize text-muted-foreground">{claim.business_type}</td>
                     <td className="p-3">
                       <p className="font-medium text-foreground">{claim.applicant_name}</p>
-                      <p className="text-[10px] text-muted-foreground">{claim.role}</p>
+                      <p className="text-3xs text-muted-foreground">{claim.role}</p>
                     </td>
                     <td className="p-3">
                       <a href={`mailto:${claim.applicant_email}`} className="text-primary hover:underline block">
                         {claim.applicant_email}
                       </a>
-                      <span className="text-[10px] text-muted-foreground">{claim.applicant_phone}</span>
+                      <span className="text-3xs text-muted-foreground">{claim.applicant_phone}</span>
                     </td>
-                    <td className="p-3 font-mono text-[11px]">
+                    <td className="p-3 font-mono text-2xs">
                       {claim.rnc || claim.mitur_license || <span className="text-muted-foreground">N/D</span>}
                     </td>
                     <td className="p-3">
                       {claim.status === "aprobado" && (
-                        <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-300 text-[10px] gap-1">
+                        <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-300 text-3xs gap-1">
                           <CheckCircle2 className="h-3 w-3" /> Aprobado
                         </Badge>
                       )}
                       {claim.status === "pendiente" && (
-                        <Badge className="bg-amber-500/10 text-amber-600 border-amber-300 text-[10px] gap-1">
+                        <Badge className="bg-amber-500/10 text-amber-600 border-amber-300 text-3xs gap-1">
                           <Clock className="h-3 w-3" /> Pendiente
                         </Badge>
                       )}
                       {claim.status === "rechazado" && (
-                        <Badge className="bg-rose-500/10 text-rose-600 border-rose-300 text-[10px] gap-1">
+                        <Badge className="bg-rose-500/10 text-rose-600 border-rose-300 text-3xs gap-1">
                           <XCircle className="h-3 w-3" /> Rechazado
                         </Badge>
                       )}

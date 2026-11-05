@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { HOME_SECTION_FRAME, SectionWithSideAds } from "@/components/SectionWithSideAds";
 import { motion } from "framer-motion";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,8 @@ import puertoPlataImg from "@/assets/puerto-plata.jpg";
 import laRomanaImg from "@/assets/la-romana.jpg";
 import divingImg from "@/assets/diving.jpg";
 import raftingImg from "@/assets/rafting.jpg";
+import { AdSlotTag } from "@/components/promo/AdSlotTag";
+import { useTrackedBanner } from "@/hooks/useAdBanners";
 
 const staticDestinations = [
   { id: "punta-cana", name: "Punta Cana", description: "Playas de arena blanca y aguas cristalinas con resorts de clase mundial.", image: puntaCanaImg },
@@ -46,6 +49,8 @@ interface DisplayDestination {
 
 export function DestinationsSection() {
   const { t } = useTranslation();
+  // Tarjeta nativa 350×460 dentro del carrusel: banner_type "native-card", placement "native", section "home-destinos".
+  const { banner: ad, trackClick: trackAdClick } = useTrackedBanner({ section: "home-destinos", bannerType: "native-card", placement: "native" });
   const [destinations, setDestinations] = useState<DisplayDestination[]>(staticDestinations);
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start", slidesToScroll: 1 });
   const [canScrollPrev, setCanScrollPrev] = useState(false);
@@ -100,7 +105,7 @@ export function DestinationsSection() {
 
   return (
     <section className="bg-background py-16">
-      <div className="container mx-auto px-4 lg:px-8">
+      <div className={HOME_SECTION_FRAME}>
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
           <motion.div
@@ -145,6 +150,7 @@ export function DestinationsSection() {
         </div>
 
         {/* Carousel */}
+        <SectionWithSideAds section="home-destinos">
         <div className="overflow-hidden" ref={emblaRef}>
           <div className="flex gap-4">
             {destinations.map((destination, index) => (
@@ -159,37 +165,32 @@ export function DestinationsSection() {
                     className="flex-shrink-0 w-[280px] md:w-[320px] lg:w-[350px]"
                   >
                     <div className="group relative aspect-[3/4] rounded-xl overflow-hidden border-2 border-amber-500/50 shadow-xl">
-                      <Link to="/alojamientos" className="block h-full">
+                      <Link to={ad?.target_url || "/alojamientos"} onClick={trackAdClick} className="block h-full">
                         <img
-                          src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=80"
-                          alt="Hard Rock Hotel Punta Cana Publicidad"
+                          src={ad?.image_url || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=80"}
+                          alt={ad?.alt_text || ad?.name || "Hard Rock Hotel Punta Cana Publicidad"}
                           className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
                         
                         {/* Top Sponsor Badge */}
                         <div className="absolute top-4 left-4 z-10">
-                          <SponsoredBadge label="Hotel patrocinado" className="text-xs uppercase tracking-wider shadow-sm" />
+                          <SponsoredBadge label={ad?.sponsor || "Hotel patrocinado"} className="text-xs uppercase tracking-wider shadow-sm" />
                         </div>
 
                         {/* Red Centered Indicator Badge */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none w-auto max-w-[92%] text-center">
-                          <div className="bg-red-600 text-white font-mono font-black text-[10px] sm:text-xs px-3.5 py-1.5 rounded-xl border-2 border-white shadow-2xl shadow-red-950/90 uppercase tracking-wider animate-pulse flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-white animate-ping shrink-0" />
-                            <span className="whitespace-nowrap">SLIDER 350×460 • ESPACIO DISPONIBLE</span>
-                          </div>
-                        </div>
+                        <AdSlotTag size="350×460" className="left-4 top-12" />
 
                         <div className="absolute inset-x-0 bottom-0 p-6 z-10">
-                          <span className="text-xs uppercase font-bold text-amber-300">Punta Cana • 5 Estrellas</span>
+                          <span className="text-xs uppercase font-bold text-amber-300">{ad ? ad.sponsor : "Punta Cana • 5 Estrellas"}</span>
                           <h3 className="font-display text-2xl font-bold text-white mb-1 group-hover:text-amber-300 transition-colors">
-                            Hard Rock Hotel & Casino
+                            {ad?.headline || ad?.name || "Hard Rock Hotel & Casino"}
                           </h3>
                           <p className="text-sm text-slate-200 line-clamp-2 mb-4">
-                            Todo Incluido de Lujo con 13 piscinas, campo de golf Nicklaus y acceso exclusivo al casino.
+                            {ad?.subtext ?? "Todo Incluido de Lujo con 13 piscinas, campo de golf Nicklaus y acceso exclusivo al casino."}
                           </p>
                           <div className="flex items-center gap-1 text-amber-400 text-sm font-semibold group-hover:gap-2 transition-all">
-                            <span>Ver Ofertas & Reserva</span>
+                            <span>{ad?.cta_text || "Ver Ofertas & Reserva"}</span>
                             <ChevronRight className="h-4 w-4" />
                           </div>
                         </div>
@@ -241,6 +242,7 @@ export function DestinationsSection() {
             ))}
           </div>
         </div>
+        </SectionWithSideAds>
       </div>
     </section>
   );

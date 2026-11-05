@@ -110,7 +110,7 @@ export function ProvinceMonuments({ provinceId, provinceName, fallbackItems = []
                     )}
 
                     <div className="absolute bottom-3 left-3 right-3">
-                      <Badge variant="secondary" className="text-[11px] bg-white/90 dark:bg-black/80 text-foreground font-medium backdrop-blur-sm">
+                      <Badge variant="secondary" className="text-2xs bg-white/90 dark:bg-black/80 text-foreground font-medium backdrop-blur-sm">
                         {monument.monument_type}
                       </Badge>
                     </div>
@@ -135,7 +135,7 @@ export function ProvinceMonuments({ provinceId, provinceName, fallbackItems = []
                       </p>
                     )}
 
-                    <div className="space-y-1.5 pt-2 border-t border-border/50 text-[11px] text-muted-foreground">
+                    <div className="space-y-1.5 pt-2 border-t border-border/50 text-2xs text-muted-foreground">
                       {monument.address && (
                         <p className="flex items-center gap-1.5 line-clamp-1">
                           <MapPin className="h-3.5 w-3.5 text-primary flex-shrink-0" />

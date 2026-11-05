@@ -6,7 +6,7 @@ import { resolveLocale } from "../../lib/i18n.js";
 import { pageMeta } from "../../lib/pagination.js";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
 import { BookingService, CLAIM_HOURS, type BookingDto } from "./bookings.js";
-import { CatalogService, CATEGORIES, type Membership, type OrgRole } from "./catalog.js";
+import { CatalogService, CATEGORIES, ORG_TYPES, type Membership, type OrgRole } from "./catalog.js";
 import type { PaymentGateway } from "./gateway.js";
 import { AutomationService } from "./automations.js";
 import { EngagementService } from "./engagement.js";
@@ -104,7 +104,7 @@ export async function operatorRoutes(app: FastifyInstance) {
   };
 
   // ================= Público =================
-  r.get("/operators", { schema: { tags: ["operadores"], summary: "Directorio de operadores verificados", querystring: z.object({ ...pageQ, q: z.string().max(100).optional(), category: z.enum(CATEGORIES).optional(), destination: z.string().max(80).optional() }), response: { 200: paged } } }, async (req, reply) => {
+  r.get("/operators", { schema: { tags: ["operadores"], summary: "Directorio de operadores verificados", querystring: z.object({ ...pageQ, q: z.string().max(100).optional(), category: z.enum(CATEGORIES).optional(), business_type: z.enum(ORG_TYPES).optional(), destination: z.string().max(80).optional() }), response: { 200: paged } } }, async (req, reply) => {
     const { rows, total } = await catalog.directory(req.query);
     reply.header("cache-control", PUBLIC_CACHE);
     return { data: rows, meta: pageMeta(req.query.page, req.query.per_page, total) };
@@ -204,9 +204,21 @@ export async function operatorRoutes(app: FastifyInstance) {
     return { data: await catalog.createOrg(req.user!.id, u.rows[0]!.email, req.body) };
   });
   r.get("/orgs/me", { onRequest: org(), schema: { tags: ["operadores"], summary: "Mi organización y mi rol", security: bearer, response: { 200: ok } } }, async (req) => ({ data: { org: await catalog.orgById(req.member!.org_id), role: req.member!.role, listing_ids: req.member!.listing_ids } }));
-  r.patch("/orgs/me", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Actualiza mi organización", security: bearer, body: z.object({ business_name: z.string().trim().min(2).max(120), phone: z.string().max(30), description: z.string().max(2000), province: z.string().max(60), logo_url: z.string().max(500).nullable(), cover_url: z.string().max(500).nullable(), payout_method: z.string().max(200).nullable(), website_enabled: z.boolean() }).partial(), response: { 200: ok } } }, async (req) => ({ data: await catalog.updateOrg(req.member!.org_id, req.body as never) }));
+  r.patch("/orgs/me", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Actualiza mi organización", security: bearer, body: z.object({ business_type: z.string().max(40), business_name: z.string().trim().min(2).max(120), phone: z.string().max(30), description: z.string().max(2000), province: z.string().max(60), logo_url: z.string().max(500).nullable(), cover_url: z.string().max(500).nullable(), payout_method: z.string().max(200).nullable(), website_enabled: z.boolean() }).partial(), response: { 200: ok } } }, async (req) => {
+    // El perfil reenvía el tipo actual: uno heredado que ya no se ofrece (p. ej. «operador») se conserva sin bloquear el resto.
+    const { business_type, ...patch } = req.body;
+    const type = (ORG_TYPES as readonly string[]).includes(business_type ?? "") ? { business_type } : {};
+    return { data: await catalog.updateOrg(req.member!.org_id, { ...patch, ...type } as never) };
+  });
 
   // ---- Anuncios ----
+  // Retos patrocinados que la empresa valida en persona escaneando el QR del viajero (cualquier miembro del equipo).
+  r.get("/org/missions", { onRequest: org(), schema: { tags: ["operadores"], summary: "Retos que patrocina mi organización", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await app.game.sponsorMissions(req.member!.org_id) }));
+  r.post("/org/missions/validate", { onRequest: org(), config: rl(30, "1 minute"), schema: { tags: ["operadores"], summary: "Valida el QR de un viajero y completa su reto", security: bearer, body: z.object({ code: z.string().trim().min(6).max(40) }), response: { 200: ok } } }, async (req) => {
+    const out = await app.game.validateCode(req.member!.org_id, req.user!.id, req.body.code);
+    await audit(app.db, { actor: req.user!.id, action: "gamification.mission_validated", entity: "mission", id: req.member!.org_id, meta: { mission: out.mission }, ip: req.ip });
+    return { data: out };
+  });
   r.get("/org/listings", { onRequest: org(), schema: { tags: ["operadores"], summary: "Mis servicios", security: bearer, querystring: z.object({ status: z.enum(["draft", "published", "paused"]).optional() }), response: { 200: ok } } }, async (req) => ({ data: await catalog.listListings(req.member!.org_id, { status: req.query.status, only: only(req.member!) }) }));
   r.post("/org/listings", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Crea un servicio (borrador)", security: bearer, body: listingBody, response: { 201: ok } } }, async (req, reply) => { reply.code(201); return { data: await catalog.createListing(req.member!.org_id, req.body as never) }; });
   r.get("/org/listings/:id", { onRequest: org(), schema: { tags: ["operadores"], summary: "Detalle de un servicio", security: bearer, params: id, response: { 200: ok } } }, async (req) => {
@@ -257,7 +269,10 @@ export async function operatorRoutes(app: FastifyInstance) {
     if (req.member!.role === "guia" && req.body.status !== "in_progress" && req.body.status !== "completed") throw new AppError("FORBIDDEN", "Tu rol no permite esta acción");
     const updated = await bookings.setStatus(req.member!.org_id, req.params.id, req.body.status, { reason: req.body.reason });
     if (updated.status === "completed") {
-      const uid = (await app.db.query<{ user_id: string | null }>("SELECT user_id FROM bookings WHERE id = $1", [req.params.id])).rows[0]?.user_id;
+      // Sólo premia reservas web de viajeros ajenos a la organización: una reserva manual o del propio equipo no da XP ni monedas.
+      const uid = (await app.db.query<{ user_id: string | null }>(
+        `SELECT b.user_id FROM bookings b WHERE b.id = $1 AND b.source = 'web'
+            AND NOT EXISTS (SELECT 1 FROM org_members m WHERE m.org_id = b.org_id AND m.user_id = b.user_id)`, [req.params.id])).rows[0]?.user_id;
       if (uid) await app.game.safeGrant({ userId: uid, action: "booking_completed", ref: req.params.id, description: "Reserva completada" }, req.log);
     }
     return { data: updated };
@@ -407,7 +422,7 @@ export async function operatorRoutes(app: FastifyInstance) {
     const { rows, total, pending } = await app.payouts.listForOrg(req.member!.org_id, req.query);
     return { data: rows, meta: { ...pageMeta(req.query.page, req.query.per_page, total), pending } };
   });
-  r.get("/org/payouts/:id/items", { onRequest: org("owner"), schema: { tags: ["operadores"], summary: "Reservas incluidas en una liquidación", security: bearer, params: memberId, response: { 200: ok } } }, async (req) => ({ data: await app.payouts.items(req.params.id, req.member!.org_id) }));
+  r.get("/org/payouts/:id/items", { onRequest: org("owner"), schema: { tags: ["operadores"], summary: "Reservas incluidas en una liquidación", security: bearer, params: memberId, response: { 200: z.object({ data: any, adjustments: any }) } } }, async (req) => ({ data: await app.payouts.items(req.params.id, req.member!.org_id), adjustments: await app.payouts.adjustments(req.params.id, req.member!.org_id) }));
 
   // ---- Suscripciones y Planes de Operador (#3) ----
   r.get("/org/subscription", { onRequest: org("owner", "admin"), schema: { tags: ["operadores"], summary: "Estado y plan de suscripción del operador", security: bearer, response: { 200: ok } } }, async (req) => {
@@ -430,6 +445,8 @@ export async function operatorRoutes(app: FastifyInstance) {
       response: { 201: ok },
     },
   }, async (req, reply) => {
+    // Sin integración de cobro: sólo el proveedor de pruebas puede activarlo, para no dar por pagado algo que nadie cobró.
+    if (app.env.PAYMENT_PROVIDER !== "fake") throw new AppError("SERVICE_UNAVAILABLE", "El cambio de plan no está disponible todavía: falta conectar el cobro");
     const { plan_tier, billing_cycle, price, currency } = req.body;
     const priority = plan_tier === "corporativo" ? 300 : plan_tier === "premium_partner" ? 200 : 100;
     const months = billing_cycle === "yearly" ? 12 : 1;

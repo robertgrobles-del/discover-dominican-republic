@@ -12,6 +12,7 @@ import {
 import { Link } from "react-router-dom";
 
 import history from "@/assets/history.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const casasProductoras = [
   {
@@ -73,11 +74,16 @@ const maridajes = [
 ];
 
 export default function CulturaTabaco() {
+  const pc = usePageContent("cultura-tabaco");
+  const casasProductoras = pc.data("casasProductoras", __pcData.casasProductoras);
+  const procesosProduccion = pc.data("procesosProduccion", __pcData.procesosProduccion);
+  const experienciasTours = pc.data("experienciasTours", __pcData.experienciasTours);
+  const maridajes = pc.data("maridajes", __pcData.maridajes);
   return (
     <PageTransition>
       <SEOHead
-        title="Cultura del Tabaco - Ruta del Cigarro Premium en República Dominicana"
-        description="Descubre la tradición del cigarro premium dominicano. Tours de fábricas, casas productoras legendarias y experiencias de maridaje en Santiago de los Caballeros."
+        title={pc.t("SEOHead.title.1", "Cultura del Tabaco - Ruta del Cigarro Premium en República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Descubre la tradición del cigarro premium dominicano. Tours de fábricas, casas productoras legendarias y experiencias de maridaje en Santiago de los Caballeros.")}
         keywords="cigarros dominicanos, tabaco premium, La Aurora, Arturo Fuente, Davidoff, ruta del tabaco, Santiago"
       />
       <div className="min-h-screen flex flex-col bg-background">
@@ -87,8 +93,8 @@ export default function CulturaTabaco() {
         <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center">
           <div className="absolute inset-0">
             <img
-              src={history}
-              alt="Cultura del Tabaco"
+              src={pc.img("img.src.1", history)}
+              alt={pc.t("img.alt.1", "Cultura del Tabaco")}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-amber-950/70 via-amber-900/50 to-background" />
@@ -96,25 +102,16 @@ export default function CulturaTabaco() {
           
           <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
             <div className="inline-flex items-center justify-center gap-2 text-amber-400 uppercase tracking-[0.2em] text-sm font-bold mb-4">
-              <span className="w-8 h-[1px] bg-amber-400"></span>
-              Santiago de los Caballeros
-              <span className="w-8 h-[1px] bg-amber-400"></span>
+              <span className="w-8 h-[1px] bg-amber-400"></span>{pc.tx("div.1", "Santiago de los Caballeros")}<span className="w-8 h-[1px] bg-amber-400"></span>
             </div>
-            <h1 className="font-display text-4xl md:text-6xl font-black text-white mb-6 leading-tight">
-              El Alma de Santiago:
-              <br />
-              <span className="italic text-amber-400">Tabaco Premium</span>
+            <h1 className="font-display text-4xl md:text-6xl font-black text-white mb-6 leading-tight">{pc.tx("h1.1", "El Alma de Santiago:")}<br />
+              <span className="italic text-amber-400">{pc.tx("span.1", "Tabaco Premium")}</span>
             </h1>
-            <p className="text-lg text-white/80 max-w-2xl mx-auto mb-8">
-              Un viaje sensorial por la tierra del mejor cigarro del mundo, donde la tradición se encuentra con la excelencia de las manos dominicanas.
-            </p>
+            <p className="text-lg text-white/80 max-w-2xl mx-auto mb-8">{pc.tx("p.1", "Un viaje sensorial por la tierra del mejor cigarro del mundo, donde la tradición se encuentra con la excelencia de las manos dominicanas.")}</p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="gap-2 bg-amber-600 hover:bg-amber-700">
-                Explorar la Ruta
-              </Button>
+              <Button size="lg" className="gap-2 bg-amber-600 hover:bg-amber-700">{pc.tx("Button.1", "Explorar la Ruta")}</Button>
               <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                <Play className="h-4 w-4" /> Ver Video
-              </Button>
+                <Play className="h-4 w-4" />{" "}{pc.tx("Button.2", "Ver Video")}</Button>
             </div>
           </div>
         </section>
@@ -125,43 +122,32 @@ export default function CulturaTabaco() {
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div>
                 <div className="flex items-center gap-2 text-amber-500 font-bold uppercase tracking-wider text-sm mb-4">
-                  <MapPin className="h-4 w-4" />
-                  Destino Mundial
-                </div>
-                <h2 className="font-display text-4xl font-bold text-foreground mb-6">La Ruta del Tabaco</h2>
-                <p className="text-muted-foreground text-lg mb-6">
-                  Santiago no es solo una ciudad, es el epicentro mundial del cigarro premium. Nuestra ruta interactiva le permite visitar las plantaciones donde nace la hoja y las fábricas donde se convierte en arte.
-                </p>
+                  <MapPin className="h-4 w-4" />{pc.tx("div.2", "Destino Mundial")}</div>
+                <h2 className="font-display text-4xl font-bold text-foreground mb-6">{pc.tx("h2.1", "La Ruta del Tabaco")}</h2>
+                <p className="text-muted-foreground text-lg mb-6">{pc.tx("p.2", "Santiago no es solo una ciudad, es el epicentro mundial del cigarro premium. Nuestra ruta interactiva le permite visitar las plantaciones donde nace la hoja y las fábricas donde se convierte en arte.")}</p>
                 <ul className="space-y-4 mb-8">
                   <li className="flex items-center gap-3 text-muted-foreground">
                     <span className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500/20 text-amber-500">
                       <Leaf className="h-4 w-4" />
-                    </span>
-                    Visitas a campos de cultivo en Villa González
-                  </li>
+                    </span>{pc.tx("li.1", "Visitas a campos de cultivo en Villa González")}</li>
                   <li className="flex items-center gap-3 text-muted-foreground">
                     <span className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500/20 text-amber-500">
                       <Factory className="h-4 w-4" />
-                    </span>
-                    Tours privados en fábricas legendarias
-                  </li>
+                    </span>{pc.tx("li.2", "Tours privados en fábricas legendarias")}</li>
                   <li className="flex items-center gap-3 text-muted-foreground">
                     <span className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500/20 text-amber-500">
                       <Store className="h-4 w-4" />
-                    </span>
-                    Catas exclusivas en cigar lounges
-                  </li>
+                    </span>{pc.tx("li.3", "Catas exclusivas en cigar lounges")}</li>
                 </ul>
                 <Button className="gap-2 bg-amber-600 hover:bg-amber-700">
-                  <MapPin className="h-4 w-4" /> Abrir Mapa Interactivo
-                </Button>
+                  <MapPin className="h-4 w-4" />{" "}{pc.tx("Button.3", "Abrir Mapa Interactivo")}</Button>
               </div>
 
               <div className="relative">
                 <div className="aspect-[4/3] rounded-xl overflow-hidden shadow-2xl">
                   <img
                     src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800"
-                    alt="Mapa de la Ruta del Tabaco"
+                    alt={pc.t("img.alt.2", "Mapa de la Ruta del Tabaco")}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -174,13 +160,9 @@ export default function CulturaTabaco() {
         <section className="py-20 bg-card">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
-              <Badge className="mb-4 bg-amber-500/20 text-amber-400 border-amber-500/30">
-                LEGADO Y TRADICIÓN
-              </Badge>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">Casas Productoras</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Conozca las familias que han mantenido viva la llama de la excelencia durante generaciones.
-              </p>
+              <Badge className="mb-4 bg-amber-500/20 text-amber-400 border-amber-500/30">{pc.tx("Badge.1", "LEGADO Y TRADICIÓN")}</Badge>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">{pc.tx("h2.2", "Casas Productoras")}</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.3", "Conozca las familias que han mantenido viva la llama de la excelencia durante generaciones.")}</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
@@ -206,8 +188,7 @@ export default function CulturaTabaco() {
                       <Badge variant="outline" className="text-xs">{casa.fundacion}</Badge>
                     </div>
                     <p className="text-muted-foreground text-sm mb-4">{casa.descripcion}</p>
-                    <Button variant="link" className="text-amber-500 p-0 gap-1">
-                      Leer Historia <ChevronRight className="h-4 w-4" />
+                    <Button variant="link" className="text-amber-500 p-0 gap-1">{pc.tx("Button.4", "Leer Historia")}{" "}<ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
                 </motion.div>
@@ -221,16 +202,11 @@ export default function CulturaTabaco() {
           <div className="container mx-auto px-4">
             <div className="grid lg:grid-cols-3 gap-12">
               <div>
-                <Badge className="mb-4 bg-amber-500/20 text-amber-400 border-amber-500/30">
-                  ARTE MANUAL
-                </Badge>
-                <h2 className="font-display text-3xl font-bold text-foreground mb-6">De la Semilla al Humidor</h2>
-                <p className="text-muted-foreground mb-8">
-                  Cada cigarro premium pasa por más de 300 pares de manos antes de llegar a usted. Es un proceso de paciencia, dedicación y pura artesanía.
-                </p>
+                <Badge className="mb-4 bg-amber-500/20 text-amber-400 border-amber-500/30">{pc.tx("Badge.2", "ARTE MANUAL")}</Badge>
+                <h2 className="font-display text-3xl font-bold text-foreground mb-6">{pc.tx("h2.3", "De la Semilla al Humidor")}</h2>
+                <p className="text-muted-foreground mb-8">{pc.tx("p.4", "Cada cigarro premium pasa por más de 300 pares de manos antes de llegar a usted. Es un proceso de paciencia, dedicación y pura artesanía.")}</p>
                 <Button variant="outline" className="gap-2">
-                  <Play className="h-4 w-4" /> Ver Documental
-                </Button>
+                  <Play className="h-4 w-4" />{" "}{pc.tx("Button.5", "Ver Documental")}</Button>
               </div>
 
               <div className="lg:col-span-2 grid sm:grid-cols-2 gap-6">
@@ -247,7 +223,7 @@ export default function CulturaTabaco() {
                       <proceso.icono className="h-8 w-8" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-foreground">{proceso.titulo}</h4>
+                      <h3 className="h4 font-bold text-foreground">{proceso.titulo}</h3>
                       <p className="text-muted-foreground text-sm mt-1">{proceso.descripcion}</p>
                     </div>
                   </motion.div>
@@ -261,12 +237,9 @@ export default function CulturaTabaco() {
         <section className="py-20 bg-card">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-                Experiencias y <span className="text-amber-500">Tours</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">{pc.tx("h2.4", "Experiencias y")}{" "}<span className="text-amber-500">{pc.tx("span.2", "Tours")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Reserve su experiencia exclusiva en el mundo del tabaco premium.
-              </p>
+              <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.5", "Reserve su experiencia exclusiva en el mundo del tabaco premium.")}</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -299,7 +272,7 @@ export default function CulturaTabaco() {
                       </li>
                     ))}
                   </ul>
-                  <Button className="w-full bg-amber-600 hover:bg-amber-700">Reservar Ahora</Button>
+                  <Button className="w-full bg-amber-600 hover:bg-amber-700">{pc.tx("Button.6", "Reservar Ahora")}</Button>
                 </motion.div>
               ))}
             </div>
@@ -311,12 +284,8 @@ export default function CulturaTabaco() {
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <Badge className="mb-4 bg-amber-500/20 text-amber-400 border-amber-500/30">
-                <Wine className="h-3 w-3 mr-1" />
-                ARTE DEL MARIDAJE
-              </Badge>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
-                Combinaciones Perfectas
-              </h2>
+                <Wine className="h-3 w-3 mr-1" />{pc.tx("Badge.3", "ARTE DEL MARIDAJE")}</Badge>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">{pc.tx("h2.5", "Combinaciones Perfectas")}</h2>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -330,7 +299,7 @@ export default function CulturaTabaco() {
                   className="bg-card rounded-xl border border-border p-6 text-center"
                 >
                   <Wine className="h-8 w-8 text-amber-500 mx-auto mb-4" />
-                  <h4 className="font-bold text-foreground mb-1">{item.bebida}</h4>
+                  <h3 className="h4 font-bold text-foreground mb-1">{item.bebida}</h3>
                   <p className="text-sm text-primary mb-3">+ {item.cigarro}</p>
                   <p className="text-xs text-muted-foreground">{item.nota}</p>
                 </motion.div>
@@ -343,20 +312,12 @@ export default function CulturaTabaco() {
         <section className="py-20 bg-gradient-to-r from-amber-900 to-amber-800">
           <div className="container mx-auto px-4 text-center">
             <Flame className="h-12 w-12 text-amber-300 mx-auto mb-4" />
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-              ¿Listo para una experiencia premium?
-            </h2>
-            <p className="text-white/80 mb-8 max-w-xl mx-auto">
-              Planifique su visita al corazón del tabaco dominicano. Tours personalizados disponibles.
-            </p>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">{pc.tx("h2.6", "¿Listo para una experiencia premium?")}</h2>
+            <p className="text-white/80 mb-8 max-w-xl mx-auto">{pc.tx("p.6", "Planifique su visita al corazón del tabaco dominicano. Tours personalizados disponibles.")}</p>
             <div className="flex flex-wrap justify-center gap-4">
               <Button size="lg" className="gap-2 bg-white text-amber-900 hover:bg-white/90">
-                <Calendar className="h-4 w-4" />
-                Planificar Visita
-              </Button>
-              <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                Contactar Guía
-              </Button>
+                <Calendar className="h-4 w-4" />{pc.tx("Button.7", "Planificar Visita")}</Button>
+              <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.8", "Contactar Guía")}</Button>
             </div>
           </div>
         </section>
@@ -366,3 +327,6 @@ export default function CulturaTabaco() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { casasProductoras, procesosProduccion, experienciasTours, maridajes };

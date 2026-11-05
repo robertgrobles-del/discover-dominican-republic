@@ -1,3 +1,8 @@
+import { SectionIndex } from "@/components/SectionIndex";
+import { DiccionarioSection } from "@/components/idioma/DiccionarioSection";
+import { TraductorSection } from "@/components/idioma/TraductorSection";
+import { EtiquetaSection } from "@/components/idioma/EtiquetaSection";
+import { EscuelaViajeroSection } from "@/components/idioma/EscuelaViajeroSection";
 import { motion } from "framer-motion";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -16,6 +21,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { useState } from "react";
+import { usePageContent } from "@/lib/pageContent";
 
 const levels = [
   { name: "Básico", lessons: 12, completed: 8, color: "bg-green-500" },
@@ -69,6 +75,11 @@ const dominicanSlang = [
 ];
 
 export default function EspanolViajero() {
+  const pc = usePageContent("espanol-viajero");
+  const levels = pc.data("levels", __pcData.levels);
+  const categories = pc.data("categories", __pcData.categories);
+  const featuredPhrases = pc.data("featuredPhrases", __pcData.featuredPhrases);
+  const dominicanSlang = pc.data("dominicanSlang", __pcData.dominicanSlang);
   const [playingPhrase, setPlayingPhrase] = useState<string | null>(null);
 
   return (
@@ -87,29 +98,20 @@ export default function EspanolViajero() {
               className="max-w-3xl mx-auto text-center"
             >
               <Badge className="mb-4 bg-sky-500/20 text-sky-200 border-sky-400/30">
-                <Languages className="h-3 w-3 mr-1" />
-                APRENDE ESPAÑOL
-              </Badge>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-6">
-                Español para el <span className="text-sky-400">Viajero</span>
+                <Languages className="h-3 w-3 mr-1" />{pc.tx("Badge.1", "APRENDE ESPAÑOL")}</Badge>
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-6">{pc.tx("h1.1", "Español para el")}{" "}<span className="text-sky-400">{pc.tx("span.1", "Viajero")}</span>
               </h1>
-              <p className="text-xl text-white/80 mb-8">
-                Aprende frases esenciales, jerga dominicana y expresiones locales 
-                para comunicarte mejor durante tu viaje.
-              </p>
+              <p className="text-xl text-white/80 mb-8">{pc.tx("p.1", "Aprende frases esenciales, jerga dominicana y expresiones locales para comunicarte mejor durante tu viaje.")}</p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button size="lg" className="gap-2 bg-white text-sky-900 hover:bg-white/90">
-                  <BookOpen className="h-4 w-4" />
-                  Comenzar Curso
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Frases Rápidas
-                  <ChevronRight className="h-4 w-4" />
+                  <BookOpen className="h-4 w-4" />{pc.tx("Button.1", "Comenzar Curso")}</Button>
+                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.2", "Frases Rápidas")}<ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </motion.div>
           </div>
         </section>
+        <SectionIndex items={[{ id: "diccionario", label: "Diccionario" }, { id: "traductor", label: "Traductor" }, { id: "etiqueta", label: "Etiqueta" }, { id: "escuela", label: "Escuela del viajero" }]} />
 
         {/* Progress */}
         <section className="py-12 bg-card border-b border-border">
@@ -121,8 +123,7 @@ export default function EspanolViajero() {
                   <div>
                     <p className="font-medium text-foreground">{level.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {level.completed}/{level.lessons} lecciones
-                    </p>
+                      {level.completed}/{level.lessons}{" "}{pc.tx("p.2", "lecciones")}</p>
                   </div>
                   <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
                     <div 
@@ -145,12 +146,9 @@ export default function EspanolViajero() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Aprende por <span className="text-gradient">Situación</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.1", "Aprende por")}{" "}<span className="text-gradient">{pc.tx("span.2", "Situación")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Frases organizadas por contexto para que encuentres lo que necesitas rápidamente.
-              </p>
+              <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.3", "Frases organizadas por contexto para que encuentres lo que necesitas rápidamente.")}</p>
             </motion.div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -166,7 +164,7 @@ export default function EspanolViajero() {
                   <span className="text-4xl">{cat.icon}</span>
                   <div className="text-center">
                     <p className="font-medium text-foreground">{cat.name}</p>
-                    <p className="text-xs text-muted-foreground">{cat.phrases} frases</p>
+                    <p className="text-xs text-muted-foreground">{cat.phrases}{" "}{pc.tx("p.4", "frases")}</p>
                   </div>
                 </motion.button>
               ))}
@@ -183,8 +181,7 @@ export default function EspanolViajero() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Frases <span className="text-gradient">Esenciales</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.2", "Frases")}{" "}<span className="text-gradient">{pc.tx("span.3", "Esenciales")}</span>
               </h2>
             </motion.div>
 
@@ -227,12 +224,9 @@ export default function EspanolViajero() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Jerga <span className="text-gradient">Dominicana</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.3", "Jerga")}{" "}<span className="text-gradient">{pc.tx("span.4", "Dominicana")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Expresiones locales que escucharás en la calle. ¡Sorprende a los locales!
-              </p>
+              <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.5", "Expresiones locales que escucharás en la calle. ¡Sorprende a los locales!")}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
@@ -264,17 +258,10 @@ export default function EspanolViajero() {
             >
               <div className="bg-gradient-to-r from-sky-900 to-blue-900 rounded-3xl p-8 md:p-12 text-center">
                 <MessageCircle className="h-16 w-16 text-sky-300 mx-auto mb-6" />
-                <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-                  Practica con el Chatbot
-                </h2>
-                <p className="text-white/80 mb-8">
-                  Conversa con nuestro asistente de IA para practicar tu español 
-                  en situaciones reales de viaje.
-                </p>
+                <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">{pc.tx("h2.4", "Practica con el Chatbot")}</h2>
+                <p className="text-white/80 mb-8">{pc.tx("p.6", "Conversa con nuestro asistente de IA para practicar tu español en situaciones reales de viaje.")}</p>
                 <Button size="lg" className="gap-2 bg-white text-sky-900 hover:bg-white/90">
-                  <Play className="h-4 w-4" />
-                  Iniciar Práctica
-                </Button>
+                  <Play className="h-4 w-4" />{pc.tx("Button.3", "Iniciar Práctica")}</Button>
               </div>
             </motion.div>
           </div>
@@ -289,8 +276,7 @@ export default function EspanolViajero() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Tus <span className="text-gradient">Logros</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.5", "Tus")}{" "}<span className="text-gradient">{pc.tx("span.5", "Logros")}</span>
               </h2>
             </motion.div>
 
@@ -300,8 +286,8 @@ export default function EspanolViajero() {
                   <Trophy className="h-6 w-6 text-amber-500" />
                 </div>
                 <div>
-                  <p className="font-bold text-foreground">Primera Lección</p>
-                  <p className="text-xs text-muted-foreground">Completada</p>
+                  <p className="font-bold text-foreground">{pc.tx("p.7", "Primera Lección")}</p>
+                  <p className="text-xs text-muted-foreground">{pc.tx("p.8", "Completada")}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4 bg-card rounded-full px-6 py-4 border border-border opacity-50">
@@ -309,8 +295,8 @@ export default function EspanolViajero() {
                   <Star className="h-6 w-6 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="font-bold text-foreground">Nivel Básico</p>
-                  <p className="text-xs text-muted-foreground">4 lecciones restantes</p>
+                  <p className="font-bold text-foreground">{pc.tx("p.9", "Nivel Básico")}</p>
+                  <p className="text-xs text-muted-foreground">{pc.tx("p.10", "4 lecciones restantes")}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4 bg-card rounded-full px-6 py-4 border border-border opacity-50">
@@ -318,16 +304,23 @@ export default function EspanolViajero() {
                   <MessageCircle className="h-6 w-6 text-muted-foreground" />
                 </div>
                 <div>
-                  <p className="font-bold text-foreground">Conversador</p>
-                  <p className="text-xs text-muted-foreground">10 prácticas</p>
+                  <p className="font-bold text-foreground">{pc.tx("p.11", "Conversador")}</p>
+                  <p className="text-xs text-muted-foreground">{pc.tx("p.12", "10 prácticas")}</p>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
+        <DiccionarioSection />
+        <TraductorSection />
+        <EtiquetaSection />
+        <EscuelaViajeroSection />
         <Footer />
       </div>
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { levels, categories, featuredPhrases, dominicanSlang };

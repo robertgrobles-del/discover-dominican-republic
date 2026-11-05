@@ -188,6 +188,35 @@ describe("medios", () => {
     expect((await pool.query("SELECT 1 FROM audit_log WHERE action = 'media.reject' AND entity_id = $1", [bad.id])).rowCount).toBe(1);
   });
 
+  it("la cola de moderación no rechaza ni retira imágenes publicadas del CMS (sus archivos siguen)", async () => {
+    const cms = await upload(editor, png(), "image/png", "cms");
+    expect(json(cms.done).data.status).toBe("ready");
+    for (const action of ["reject", "remove"]) {
+      const r = await call("POST", `/admin/moderation/media/${cms.id}/${action}`, { token: moderator.token, payload: { reason: "prueba" } });
+      expect(r.statusCode).toBe(422);
+    }
+    expect((await call("GET", `/media/files/${cms.id}`)).statusCode).toBe(200);
+    expect((await pool.query("SELECT status FROM media_assets WHERE id = $1", [cms.id])).rows[0].status).toBe("ready");
+  });
+
+  it("dos PUT simultáneos con la misma URL: sólo uno escribe el archivo", async () => {
+    const file = png();
+    const u = json(await ask(user.token, { size: file.length })).data;
+    const filler = Buffer.alloc(file.length, 0x41);
+    const [a, b] = await Promise.all([
+      call("PUT", u.upload.url, { payload: file, headers: { "content-type": "image/png" } }),
+      call("PUT", u.upload.url, { payload: filler, headers: { "content-type": "image/png" } }),
+    ]);
+    expect([a.statusCode, b.statusCode].sort()).toEqual([204, 409]);
+    const row = (await pool.query("SELECT sha256 FROM media_assets WHERE id = $1", [u.asset_id])).rows[0];
+    const { createHash } = await import("node:crypto");
+    const winner = a.statusCode === 204 ? file : filler;
+    expect(row.sha256).toBe(createHash("sha256").update(winner).digest("hex"));
+    // Lo guardado es lo del PUT que ganó (no lo pisó el otro).
+    const late = await call("PUT", u.upload.url, { payload: filler, headers: { "content-type": "image/png" } });
+    expect(late.statusCode).toBe(409);
+  });
+
   it("las imágenes que sube el equipo se publican directo", async () => {
     const up = await upload(editor, png(), "image/png", "ugc");
     expect(json(up.done).data.status).toBe("ready");

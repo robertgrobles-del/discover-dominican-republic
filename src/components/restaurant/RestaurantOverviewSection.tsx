@@ -13,22 +13,22 @@ export function RestaurantOverviewSection({ restaurant }: RestaurantOverviewSect
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="bg-card rounded-2xl p-4 border border-border text-center shadow-xs">
           <Utensils className="h-5 w-5 text-primary mx-auto mb-1.5" />
-          <p className="text-[10px] text-muted-foreground uppercase font-bold">Tipo de Cocina</p>
+          <p className="text-3xs text-muted-foreground uppercase font-bold">Tipo de Cocina</p>
           <p className="text-sm font-bold text-foreground truncate">{restaurant.cuisineType[0] || 'Gourmet'}</p>
         </div>
         <div className="bg-card rounded-2xl p-4 border border-border text-center shadow-xs">
           <DollarSign className="h-5 w-5 text-primary mx-auto mb-1.5" />
-          <p className="text-[10px] text-muted-foreground uppercase font-bold">Rango de Precio</p>
+          <p className="text-3xs text-muted-foreground uppercase font-bold">Rango de Precio</p>
           <p className="text-sm font-bold text-foreground">{restaurant.priceRange} Premium</p>
         </div>
         <div className="bg-card rounded-2xl p-4 border border-border text-center shadow-xs">
           <Clock className="h-5 w-5 text-primary mx-auto mb-1.5" />
-          <p className="text-[10px] text-muted-foreground uppercase font-bold">Horario</p>
+          <p className="text-3xs text-muted-foreground uppercase font-bold">Horario</p>
           <p className="text-sm font-bold text-foreground truncate">{restaurant.openingHours || '12:00 - 23:00'}</p>
         </div>
         <div className="bg-card rounded-2xl p-4 border border-border text-center shadow-xs">
           <Star className="h-5 w-5 text-amber-400 fill-amber-400 mx-auto mb-1.5" />
-          <p className="text-[10px] text-muted-foreground uppercase font-bold">Calificación</p>
+          <p className="text-3xs text-muted-foreground uppercase font-bold">Calificación</p>
           <p className="text-sm font-bold text-foreground">{restaurant.rating} / 5.0</p>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { Sparkles, Trophy, Gift, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { getStoredJSON } from "@/lib/safeStorage";
 
+import { activateOnKey } from "@/lib/a11y";
 interface ScratchCardProps {
   onRewardClaimed?: (reward: { title: string; xp: number; coins: number }) => void;
 }
@@ -71,7 +72,7 @@ export const ScratchCard: React.FC<ScratchCardProps> = ({ onRewardClaimed }) => 
       </CardHeader>
 
       <CardContent className="p-6 text-center">
-        <div
+        <div role="button" tabIndex={0} onKeyDown={activateOnKey}
           onClick={handleReveal}
           className={`relative h-44 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all duration-300 select-none overflow-hidden ${
             isRevealed
@@ -84,13 +85,13 @@ export const ScratchCard: React.FC<ScratchCardProps> = ({ onRewardClaimed }) => 
               <span className="text-4xl">{reward.icon}</span>
               <h4 className="font-bold text-foreground text-sm leading-tight">{reward.title}</h4>
               <div className="flex items-center justify-center gap-2 pt-1">
-                <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">
+                <Badge variant="outline" className="text-3xs bg-primary/10 text-primary border-primary/30">
                   +{reward.xp} XP
                 </Badge>
-                <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-500 border-amber-500/30">
+                <Badge variant="outline" className="text-3xs bg-amber-500/10 text-amber-500 border-amber-500/30">
                   +{reward.coins} Monedas
                 </Badge>
-                <Badge variant="secondary" className="text-[10px]">
+                <Badge variant="secondary" className="text-3xs">
                   {reward.rarity}
                 </Badge>
               </div>
@@ -101,7 +102,7 @@ export const ScratchCard: React.FC<ScratchCardProps> = ({ onRewardClaimed }) => 
               <p className="text-sm font-semibold tracking-wide uppercase">
                 {isScratching ? "Raspando tarjeta..." : "Haz clic o toca para raspar"}
               </p>
-              <p className="text-[11px] text-slate-400">Premios garantizados todos los días</p>
+              <p className="text-2xs text-slate-400">Premios garantizados todos los días</p>
             </div>
           )}
         </div>

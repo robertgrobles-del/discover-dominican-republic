@@ -5,6 +5,7 @@ import { PostgresProfileStore } from "../modules/me/profile-store.js";
 import { AuthService, STAFF_ROLES } from "../modules/auth/service.js";
 import { createTokenService, type TokenService } from "../modules/auth/tokens.js";
 import { Mailer } from "../modules/mailer/mailer.js";
+import { policyPaths } from "./ip-rules.js";
 
 export interface AuthUser { id: string; roles: string[]; locale: string; sid: string; mfa: boolean; /** Admin que está mirando esta cuenta en una sesión de soporte (sólo lectura). */ imp?: string }
 
@@ -20,6 +21,12 @@ declare module "fastify" {
     oauth: OAuthService;
     /** onRequest: exige `Authorization: Bearer <jwt>` válido y deja `req.user`. */
     authenticate: (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    /**
+     * onRequest: como `authenticate`, para rutas abiertas a cualquier usuario cuyo handler concede poderes de personal según `req.user.roles`.
+     * Con REQUIRE_2FA_FOR_STAFF activa y sin segundo factor en la sesión, los roles de personal se retiran de `req.user` en esta petición:
+     * la cuenta sigue pudiendo hacer lo propio, pero no moderar ni administrar lo ajeno.
+     */
+    authenticateStaffMfa: (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
     /** onRequest: como `authenticate`, pero además exige alguno de los roles indicados (docs §7.3). Expone `.roles` para el inventario de seguridad. */
     requireRole: (...roles: string[]) => ((req: FastifyRequest, reply: FastifyReply) => Promise<void>) & { roles: string[] };
     /**
@@ -65,12 +72,17 @@ export async function registerAuth(app: FastifyInstance) {
     req.user = { id: c.sub, roles: c.roles, locale: c.locale, sid: c.sid, mfa: c.mfa, ...(c.imp ? { imp: c.imp } : {}) };
     if (c.imp) {
       // Sesión de soporte: sólo lectura y sin lo sensible. La única escritura permitida es cerrarla.
-      const path = req.url.split("?")[0]!;
-      if (!["GET", "HEAD", "OPTIONS"].includes(req.method) && !(req.method === "POST" && path === "/api/v1/auth/impersonation/end")) throw new AppError("FORBIDDEN", "Esta es una sesión de soporte de sólo lectura", { code: "IMPERSONATION_READONLY" });
-      if (SUPPORT_DENIED.some((p) => path === p || path.startsWith(`${p}/`))) throw new AppError("FORBIDDEN", "Una sesión de soporte no puede ver esto", { code: "IMPERSONATION_RESTRICTED" });
+      // Se comparan la ruta que eligió el router y la URL decodificada como la decodifica él: `/me/%65xport` no esquiva la lista.
+      const paths = policyPaths(req);
+      if (!["GET", "HEAD", "OPTIONS"].includes(req.method) && !(req.method === "POST" && paths.every((path) => path === "/api/v1/auth/impersonation/end"))) throw new AppError("FORBIDDEN", "Esta es una sesión de soporte de sólo lectura", { code: "IMPERSONATION_READONLY" });
+      if (paths.some((path) => SUPPORT_DENIED.some((p) => path === p || path.startsWith(`${p}/`)))) throw new AppError("FORBIDDEN", "Una sesión de soporte no puede ver esto", { code: "IMPERSONATION_RESTRICTED" });
     }
   };
   app.decorate("authenticate", authenticate);
+  app.decorate("authenticateStaffMfa", async (req: FastifyRequest) => {
+    await authenticate(req);
+    if (app.env.REQUIRE_2FA_FOR_STAFF && !req.user!.mfa) req.user!.roles = req.user!.roles.filter((r) => !STAFF_ROLES.includes(r));
+  });
   // Cada petición hecha en una sesión de soporte queda auditada (método, ruta y resultado; nunca el cuerpo).
   app.addHook("onResponse", async (req, reply) => {
     if (!req.user?.imp) return;

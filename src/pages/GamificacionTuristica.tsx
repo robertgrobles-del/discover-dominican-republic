@@ -36,7 +36,14 @@ import { ComoGanarPuntosSection } from "@/components/gamificacion/ComoGanarPunto
 
 import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { gamificationApi } from "@/lib/gamificationApi";
+import { currentPosition } from "@/lib/geoDistance";
 import { apiMessage } from "@/lib/fastifyClient";
+
+/**
+ * Misiones comunitarias («384 de 500 visitas»). Apagadas: el progreso que muestran es de muestra, no hay backend
+ * que lo calcule. El componente se conserva para encenderlo cuando exista el endpoint.
+ */
+const COMMUNITY_MISSIONS_ENABLED = false;
 
 export default function GamificacionTuristica() {
   const { user } = useAuth();
@@ -75,14 +82,15 @@ export default function GamificacionTuristica() {
     try {
       if (HAS_BACKEND_SESSION) {
         const res = await gamificationApi.getLeaderboard("season", 20);
+        // El ranking público sólo expone posición, XP y nombre abreviado: nivel, monedas y racha son datos privados.
         setLocalLeaderboard((res.rows || []).map(d => ({
-          user_id: d.user_id,
-          total_xp: d.total_xp,
-          current_level: d.level,
-          coins: d.coins || 0,
-          streak_days: d.streak_days || 0,
-          display_name: d.display_name || "Viajero Anónimo",
-          avatar_url: d.avatar_url || null,
+          user_id: d.user.id,
+          total_xp: d.xp,
+          current_level: null,
+          coins: null,
+          streak_days: null,
+          display_name: d.user.name,
+          avatar_url: d.user.avatar_url,
           level_icon: "🌱",
           level_title: "Explorador"
         })));
@@ -169,14 +177,13 @@ export default function GamificacionTuristica() {
         const [allAch, myAch, provList] = await Promise.all([
           gamificationApi.getAchievements(),
           gamificationApi.getMyAchievements(),
-          gamificationApi.getProvinces().catch(() => []),
+          gamificationApi.getProvinces().catch(() => null),
         ]);
         setAchievements(allAch);
         setUserAchievements(myAch.map(a => ({ achievement_id: a.id, ...a })));
-        if (provList && Array.isArray(provList)) {
-          const visited = provList.filter((p: any) => p.visited);
-          setTotalProvinces(visited.length);
-          setVisitedProvinces(new Set(visited.map((p: any) => p.name || p.slug)));
+        if (provList) {
+          setTotalProvinces(provList.visited);
+          setVisitedProvinces(new Set(provList.provinces.filter((p) => p.visited).map((p) => p.name)));
         }
         return;
       }
@@ -206,12 +213,13 @@ export default function GamificacionTuristica() {
     setRecordingVisit(province);
     try {
       if (HAS_BACKEND_SESSION) {
-        const result = await gamificationApi.recordProvinceVisit(province);
+        // El servidor comprueba que estés en la provincia: la visita lleva tu ubicación.
+        const result = await gamificationApi.recordProvinceVisit(province, await currentPosition());
         GamificationSoundEngine.playStampSound();
         GamificationSoundEngine.playCoinSound();
         setVisitedProvinces(prev => new Set([...prev, province]));
-        setTotalProvinces(result?.total_provinces ?? totalProvinces + 1);
-        toast.success(`¡${province} registrada! +${result?.xp_awarded ?? 50} XP 🗺️`);
+        setTotalProvinces(result.total_provinces);
+        toast.success(`¡${province} registrada! +${result.xp_awarded} XP 🗺️`);
         await refresh();
         return;
       }
@@ -303,12 +311,6 @@ export default function GamificacionTuristica() {
       <div className="min-h-screen bg-background flex flex-col">
         <Header />
 
-        {/* Editorial Top Billboard Ad */}
-        <div className="border-b border-border/40 bg-muted/20 py-3 hidden md:block">
-          <div className="container mx-auto px-4 max-w-6xl flex justify-center">
-            <BannerAd placement="header" size="billboard" showDemo className="w-full !max-w-none shadow-sm" />
-          </div>
-        </div>
 
         {/* Hero Section */}
         <section className="pt-12 pb-14 relative overflow-hidden border-b border-border/60">
@@ -339,112 +341,128 @@ export default function GamificacionTuristica() {
                 </p>
 
                 <div className="flex flex-wrap gap-3 pt-2">
-                  <Button 
-                    onClick={() => handleTabChange("pasaporte")} 
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-2xl h-12 px-6 gap-2 text-xs md:text-sm shadow-md"
-                  >
-                    <MapIcon className="h-4 w-4" /> Abrir Mi Pasaporte
-                  </Button>
-                  <Button 
-                    onClick={() => setPuntosModalOpen(true)}
-                    variant="outline"
-                    className="rounded-2xl h-12 px-5 gap-2 text-xs md:text-sm border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold hover:bg-amber-500/20"
-                  >
-                    <Sparkles className="h-4 w-4 text-amber-500" /> 14 Formas de Ganar Puntos
-                  </Button>
-                  <Button 
-                    asChild 
-                    variant="outline" 
-                    className="rounded-2xl h-12 px-6 gap-2 text-xs md:text-sm border-border bg-card"
-                  >
+                  {user ? (
+                    <Button
+                      onClick={() => handleTabChange("pasaporte")}
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-2xl h-12 px-6 gap-2 text-xs md:text-sm shadow-md"
+                    >
+                      <MapIcon className="h-4 w-4" /> Abrir mi pasaporte
+                    </Button>
+                  ) : (
+                    <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-2xl h-12 px-6 gap-2 text-xs md:text-sm shadow-md">
+                      <Link to="/registro?returnTo=/gamificacion-turistica"><MapIcon className="h-4 w-4" /> Crear mi pasaporte gratis</Link>
+                    </Button>
+                  )}
+                  <Button asChild variant="outline" className="rounded-2xl h-12 px-6 gap-2 text-xs md:text-sm border-border bg-card">
                     <Link to="/gamificacion-turistica/retos">
-                      <Target className="h-4 w-4 text-emerald-500" /> Ver Retos & Misiones
+                      <Target className="h-4 w-4 text-emerald-500" /> Ver retos y misiones
                     </Link>
                   </Button>
-                  <Button
-                    onClick={() => setCertModalOpen(true)}
-                    variant="ghost"
-                    className="rounded-2xl h-12 px-4 gap-2 text-xs text-amber-600 dark:text-amber-400 font-bold hover:bg-amber-500/10"
-                  >
-                    <Award className="h-4 w-4 text-amber-500" /> Diploma de Conquistador
-                  </Button>
+                </div>
+                {/* Acciones secundarias: enlaces, para no competir con las dos principales */}
+                <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold">
+                  <button type="button" onClick={() => setPuntosModalOpen(true)} className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 hover:underline underline-offset-4">
+                    <Sparkles className="h-3.5 w-3.5" /> 14 formas de ganar puntos
+                  </button>
+                  {user && (
+                    <button type="button" onClick={() => setCertModalOpen(true)} className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 hover:underline underline-offset-4">
+                      <Award className="h-3.5 w-3.5" /> Diploma de conquistador
+                    </button>
+                  )}
                 </div>
               </div>
 
               {/* Right Column: Hero Live Passport Teaser Card */}
               <div className="lg:col-span-5">
-                <div className="relative rounded-3xl p-6 bg-gradient-to-br from-card via-card to-primary/10 border-2 border-primary/30 shadow-xl overflow-hidden backdrop-blur-md">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-2xl pointer-events-none" />
-                  
-                  <div className="flex items-center justify-between border-b border-border/60 pb-4 mb-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-2xl border border-primary/30 shadow-inner">
-                        {currentMilestone?.icon || "🇩🇴"}
+                {user ? (
+                  <div className="relative rounded-3xl p-6 bg-gradient-to-br from-card via-card to-primary/10 border-2 border-primary/30 shadow-xl overflow-hidden backdrop-blur-md">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-2xl pointer-events-none" />
+                    
+                    <div className="flex items-center justify-between border-b border-border/60 pb-4 mb-5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-2xl border border-primary/30 shadow-inner">
+                          {currentMilestone?.icon || "🇩🇴"}
+                        </div>
+                        <div>
+                          <p className="text-3xs text-muted-foreground font-bold uppercase tracking-widest">Pasaporte Nacional</p>
+                          <h3 className="font-bold text-base text-foreground">
+                            {user ? (currentMilestone?.label || "Explorador Iniciado") : "Viajero Invitado"}
+                          </h3>
+                        </div>
                       </div>
+                      <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs">
+                        Nivel {userGamification?.current_level || 1}
+                      </Badge>
+                    </div>
+  
+                    <div className="space-y-4">
                       <div>
-                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">Pasaporte Nacional</p>
-                        <h3 className="font-bold text-base text-foreground">
-                          {user ? (currentMilestone?.label || "Explorador Iniciado") : "Viajero Invitado"}
-                        </h3>
+                        <div className="flex items-center justify-between text-xs mb-1.5 font-semibold">
+                          <span className="text-muted-foreground">Progreso de Provincias</span>
+                          <span className="text-primary font-bold">{totalProvinces} de 32 ({(totalProvinces / 32 * 100).toFixed(0)}%)</span>
+                        </div>
+                        <Progress value={(totalProvinces / 32) * 100} className="h-2.5 bg-muted" />
                       </div>
-                    </div>
-                    <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs">
-                      Nivel {userGamification?.current_level || 1}
-                    </Badge>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex items-center justify-between text-xs mb-1.5 font-semibold">
-                        <span className="text-muted-foreground">Progreso de Provincias</span>
-                        <span className="text-primary font-bold">{totalProvinces} de 32 ({(totalProvinces / 32 * 100).toFixed(0)}%)</span>
+  
+                      <div className="grid grid-cols-3 gap-2.5 text-center">
+                        <div className="p-2.5 rounded-2xl bg-muted/40 border border-border/60">
+                          <p className="text-3xs text-muted-foreground font-semibold uppercase">Puntos XP</p>
+                          <p className="text-sm font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                            {(userGamification?.total_xp || 0).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="p-2.5 rounded-2xl bg-muted/40 border border-border/60">
+                          <p className="text-3xs text-muted-foreground font-semibold uppercase">Monedas</p>
+                          <p className="text-sm font-black text-amber-500 mt-0.5 flex items-center justify-center gap-1">
+                            <Coins className="h-3 w-3" /> {userGamification?.coins || 0}
+                          </p>
+                        </div>
+                        <div className="p-2.5 rounded-2xl bg-muted/40 border border-border/60">
+                          <p className="text-3xs text-muted-foreground font-semibold uppercase">Racha</p>
+                          <p className="text-sm font-black text-orange-500 mt-0.5 flex items-center justify-center gap-0.5">
+                            <Flame className="h-3 w-3 fill-orange-500" /> {userGamification?.streak_days || 0}d
+                          </p>
+                        </div>
                       </div>
-                      <Progress value={(totalProvinces / 32) * 100} className="h-2.5 bg-muted" />
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2.5 text-center">
-                      <div className="p-2.5 rounded-2xl bg-muted/40 border border-border/60">
-                        <p className="text-[10px] text-muted-foreground font-semibold uppercase">Puntos XP</p>
-                        <p className="text-sm font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
-                          {(userGamification?.total_xp || 0).toLocaleString()}
-                        </p>
+  
+                      <div className="p-3 rounded-2xl bg-primary/5 border border-primary/20 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-xs">
+                          <Crown className="h-4 w-4 text-amber-500 shrink-0" />
+                          <span className="text-muted-foreground text-2xs">Tu tarjeta de explorador, insignias e historial</span>
+                        </div>
+                        <Link to="/gamificacion-turistica/perfil" className="text-primary text-2xs font-bold hover:underline flex items-center gap-0.5">
+                          Perfil <ChevronRight className="h-3 w-3" />
+                        </Link>
                       </div>
-                      <div className="p-2.5 rounded-2xl bg-muted/40 border border-border/60">
-                        <p className="text-[10px] text-muted-foreground font-semibold uppercase">Monedas</p>
-                        <p className="text-sm font-black text-amber-500 mt-0.5 flex items-center justify-center gap-1">
-                          <Coins className="h-3 w-3" /> {userGamification?.coins || 0}
-                        </p>
-                      </div>
-                      <div className="p-2.5 rounded-2xl bg-muted/40 border border-border/60">
-                        <p className="text-[10px] text-muted-foreground font-semibold uppercase">Racha</p>
-                        <p className="text-sm font-black text-orange-500 mt-0.5 flex items-center justify-center gap-0.5">
-                          <Flame className="h-3 w-3 fill-orange-500" /> {userGamification?.streak_days || 0}d
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="p-3 rounded-2xl bg-primary/5 border border-primary/20 flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-xs">
-                        <Crown className="h-4 w-4 text-amber-500 shrink-0" />
-                        <span className="text-muted-foreground text-[11px]">Gremio Activo:</span>
-                        <strong className="text-foreground text-[11px]">Guardianes del Caribe</strong>
-                      </div>
-                      <Link to="/gamificacion-turistica/perfil" className="text-primary text-[11px] font-bold hover:underline flex items-center gap-0.5">
-                        Perfil <ChevronRight className="h-3 w-3" />
-                      </Link>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="relative rounded-3xl p-6 bg-gradient-to-br from-card via-card to-primary/10 border-2 border-primary/30 shadow-xl overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-2xl pointer-events-none" />
+                    <p className="text-3xs text-muted-foreground font-bold uppercase tracking-widest">Pasaporte Nacional</p>
+                    <h2 className="h3 mt-1 font-display text-xl font-bold text-foreground">Tu pasaporte te está esperando</h2>
+                    <p className="mt-2 text-sm text-muted-foreground leading-relaxed">Es gratis. Con tu cuenta, cada visita que registres queda guardada y suma para insignias y recompensas.</p>
+                    <ul className="mt-4 space-y-2.5 text-sm text-foreground">
+                      <li className="flex items-center gap-2.5"><MapPin className="h-4 w-4 shrink-0 text-primary" /> Un sello por cada una de las 32 provincias</li>
+                      <li className="flex items-center gap-2.5"><Award className="h-4 w-4 shrink-0 text-amber-500" /> Insignias por retos y rutas completadas</li>
+                      <li className="flex items-center gap-2.5"><Coins className="h-4 w-4 shrink-0 text-emerald-500" /> Puntos que se canjean por recompensas</li>
+                    </ul>
+                    <div className="mt-5 flex flex-wrap items-center gap-3">
+                      <Button asChild className="rounded-xl font-bold"><Link to="/registro?returnTo=/gamificacion-turistica">Crear cuenta</Link></Button>
+                      <Link to="/login?returnTo=/gamificacion-turistica" className="text-sm font-semibold text-primary hover:underline underline-offset-4">Ya tengo cuenta</Link>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Quick Metrics Strip */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
+            {user && <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
               {[
                 { icon: MapPin, value: `${totalProvinces}/32`, label: "Provincias Conquistadas", color: "text-primary", bg: "bg-primary/10 border-primary/20" },
                 { icon: Award, value: `${userAchievements.length} Ganadas`, label: "Insignias y Trofeos", color: "text-amber-500", bg: "bg-amber-500/10 border-amber-500/20" },
                 { icon: Zap, value: `${(userGamification?.total_xp || 0).toLocaleString()} XP`, label: "Experiencia Acumulada", color: "text-emerald-500", bg: "bg-emerald-500/10 border-emerald-500/20" },
-                { icon: Users, value: `${localLeaderboard.length > 0 ? localLeaderboard.length : '150+'} Activos`, label: "Exploradores en Ranking", color: "text-purple-500", bg: "bg-purple-500/10 border-purple-500/20" },
+                { icon: Users, value: localLeaderboard.length > 0 ? `${localLeaderboard.length} Activos` : "—", label: "Exploradores en Ranking", color: "text-purple-500", bg: "bg-purple-500/10 border-purple-500/20" },
               ].map((stat, i) => (
                 <div key={i} className={`p-4 rounded-2xl border ${stat.bg} bg-card/80 backdrop-blur-sm flex items-center gap-3.5 shadow-sm`}>
                   <div className={`p-2.5 rounded-xl ${stat.bg} ${stat.color}`}>
@@ -452,11 +470,11 @@ export default function GamificacionTuristica() {
                   </div>
                   <div>
                     <h4 className={`text-base md:text-lg font-black ${stat.color}`}>{stat.value}</h4>
-                    <p className="text-[11px] text-muted-foreground font-medium leading-none mt-0.5">{stat.label}</p>
+                    <p className="text-2xs text-muted-foreground font-medium leading-none mt-0.5">{stat.label}</p>
                   </div>
                 </div>
               ))}
-            </div>
+            </div>}
           </div>
         </section>
 
@@ -466,12 +484,12 @@ export default function GamificacionTuristica() {
         {/* Main Tabs Area */}
         <main className="container mx-auto px-4 max-w-6xl py-10 flex-1 space-y-10">
           {/* Community Missions Widget */}
-          <CommunityMissionsWidget />
+          {COMMUNITY_MISSIONS_ENABLED && <CommunityMissionsWidget />}
 
           <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-8">
             {/* Standard Non-Sticky Modern Tab Navigation */}
             <div className="py-2 border-b border-border/60">
-              <TabsList className="bg-card p-1.5 rounded-2xl border border-border flex overflow-x-auto scrollbar-none h-auto gap-1">
+              <TabsList className="bg-card p-1.5 rounded-2xl border border-border flex justify-start overflow-x-auto scrollbar-none h-auto gap-1">
                 <TabsTrigger value="pasaporte" className="rounded-xl text-xs md:text-sm font-semibold gap-2 py-2.5 px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm">
                   <MapIcon className="h-4 w-4" /> Pasaporte Digital
                 </TabsTrigger>
@@ -508,10 +526,6 @@ export default function GamificacionTuristica() {
                 onGoToProvincias={() => handleTabChange("provincias")}
               />
 
-              {/* Contextual In-feed Sponsorship Banner */}
-              <div className="pt-4">
-                <BannerAd placement="between-sections" size="billboard" showDemo />
-              </div>
             </TabsContent>
 
             {/* TAB 2: Provincias */}

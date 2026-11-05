@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Check,
 } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
 
 const accessibilityFeatures = [
   { icon: ZoomIn, title: "Texto Ajustable", description: "Aumenta o reduce el tamaño del texto" },
@@ -87,6 +88,10 @@ const accessibleDestinations = [
 ];
 
 export default function TurismoSensorial() {
+  const pc = usePageContent("turismo-sensorial");
+  const accessibilityFeatures = pc.data("accessibilityFeatures", __pcData.accessibilityFeatures);
+  const sensoryExperiences = pc.data("sensoryExperiences", __pcData.sensoryExperiences);
+  const accessibleDestinations = pc.data("accessibleDestinations", __pcData.accessibleDestinations);
   return (
     <PageTransition>
       <div className="min-h-screen bg-background">
@@ -95,17 +100,15 @@ export default function TurismoSensorial() {
         {/* Accessibility Toolbar */}
         <div className="bg-card border-b border-border px-4 py-2 flex justify-between items-center">
           <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-            <Accessibility className="h-4 w-4 text-primary" />
-            Modo Accesible
-          </span>
+            <Accessibility className="h-4 w-4 text-primary" />{pc.tx("span.1", "Modo Accesible")}</span>
           <div className="flex gap-4">
             <button className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors">
               <ZoomIn className="h-4 w-4" />
-              <span className="hidden sm:inline">Aumentar Texto</span>
+              <span className="hidden sm:inline">{pc.tx("span.2", "Aumentar Texto")}</span>
             </button>
             <button className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors">
               <Contrast className="h-4 w-4" />
-              <span className="hidden sm:inline">Alto Contraste</span>
+              <span className="hidden sm:inline">{pc.tx("span.3", "Alto Contraste")}</span>
             </button>
           </div>
         </div>
@@ -121,24 +124,14 @@ export default function TurismoSensorial() {
               className="max-w-3xl mx-auto text-center"
             >
               <Badge className="mb-4 bg-purple-500/20 text-purple-200 border-purple-400/30">
-                <Accessibility className="h-3 w-3 mr-1" />
-                TURISMO INCLUSIVO
-              </Badge>
-              <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">
-                RD para <span className="text-purple-400">Sentir</span>
+                <Accessibility className="h-3 w-3 mr-1" />{pc.tx("Badge.1", "TURISMO INCLUSIVO")}</Badge>
+              <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">{pc.tx("h1.1", "RD para")}{" "}<span className="text-purple-400">{pc.tx("span.4", "Sentir")}</span>
               </h1>
-              <p className="text-xl text-white/80 mb-8">
-                Experiencias turísticas diseñadas para todos los sentidos. 
-                República Dominicana accesible e inclusiva para cada viajero.
-              </p>
+              <p className="text-xl text-white/80 mb-8">{pc.tx("p.1", "Experiencias turísticas diseñadas para todos los sentidos. República Dominicana accesible e inclusiva para cada viajero.")}</p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button size="lg" className="gap-2 bg-white text-purple-900 hover:bg-white/90">
-                  <Heart className="h-4 w-4" />
-                  Explorar Experiencias
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Guía de Accesibilidad
-                  <ChevronRight className="h-4 w-4" />
+                  <Heart className="h-4 w-4" />{pc.tx("Button.1", "Explorar Experiencias")}</Button>
+                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.2", "Guía de Accesibilidad")}<ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </motion.div>
@@ -161,7 +154,7 @@ export default function TurismoSensorial() {
                   <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                     <feature.icon className="h-7 w-7 text-primary" />
                   </div>
-                  <h3 className="font-display font-bold text-foreground mb-2">{feature.title}</h3>
+                  <h2 className="h3 font-display font-bold text-foreground mb-2">{feature.title}</h2>
                   <p className="text-sm text-muted-foreground">{feature.description}</p>
                 </motion.div>
               ))}
@@ -178,13 +171,9 @@ export default function TurismoSensorial() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Experiencias <span className="text-gradient">Sensoriales</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.1", "Experiencias")}{" "}<span className="text-gradient">{pc.tx("span.5", "Sensoriales")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Descubre la República Dominicana a través de todos tus sentidos con experiencias 
-                diseñadas para maximizar cada percepción.
-              </p>
+              <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.2", "Descubre la República Dominicana a través de todos tus sentidos con experiencias diseñadas para maximizar cada percepción.")}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -218,9 +207,7 @@ export default function TurismoSensorial() {
                         <MapPin className="h-4 w-4" />
                         {exp.locations.join(", ")}
                       </div>
-                      <Button variant="outline" size="sm" className="gap-1">
-                        Explorar
-                        <ChevronRight className="h-4 w-4" />
+                      <Button variant="outline" size="sm" className="gap-1">{pc.tx("Button.3", "Explorar")}<ChevronRight className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -239,12 +226,9 @@ export default function TurismoSensorial() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Destinos <span className="text-gradient">Accesibles</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.2", "Destinos")}{" "}<span className="text-gradient">{pc.tx("span.6", "Accesibles")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Lugares certificados con infraestructura adaptada y servicios inclusivos.
-              </p>
+              <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.3", "Lugares certificados con infraestructura adaptada y servicios inclusivos.")}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -269,9 +253,7 @@ export default function TurismoSensorial() {
                     </div>
                     <div className="absolute top-4 left-4">
                       <Badge className="bg-green-500/90 text-white">
-                        <Accessibility className="h-3 w-3 mr-1" />
-                        Accesible
-                      </Badge>
+                        <Accessibility className="h-3 w-3 mr-1" />{pc.tx("Badge.2", "Accesible")}</Badge>
                     </div>
                   </div>
                   <div className="p-5">
@@ -288,9 +270,7 @@ export default function TurismoSensorial() {
                         </span>
                       ))}
                     </div>
-                    <Button className="w-full" variant="outline">
-                      Ver Detalles
-                    </Button>
+                    <Button className="w-full" variant="outline">{pc.tx("Button.4", "Ver Detalles")}</Button>
                   </div>
                 </motion.div>
               ))}
@@ -307,20 +287,11 @@ export default function TurismoSensorial() {
               viewport={{ once: true }}
             >
               <Accessibility className="h-16 w-16 text-purple-300 mx-auto mb-6" />
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-                Turismo sin Barreras
-              </h2>
-              <p className="text-white/80 mb-8 max-w-xl mx-auto">
-                Contamos con guías especializados y servicios adaptados para que cada viajero 
-                disfrute de una experiencia inolvidable.
-              </p>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">{pc.tx("h2.3", "Turismo sin Barreras")}</h2>
+              <p className="text-white/80 mb-8 max-w-xl mx-auto">{pc.tx("p.4", "Contamos con guías especializados y servicios adaptados para que cada viajero disfrute de una experiencia inolvidable.")}</p>
               <div className="flex flex-wrap justify-center gap-4">
-                <Button size="lg" className="gap-2 bg-white text-purple-900 hover:bg-white/90">
-                  Solicitar Asistencia
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Descargar Guía
-                </Button>
+                <Button size="lg" className="gap-2 bg-white text-purple-900 hover:bg-white/90">{pc.tx("Button.5", "Solicitar Asistencia")}</Button>
+                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.6", "Descargar Guía")}</Button>
               </div>
             </motion.div>
           </div>
@@ -331,3 +302,6 @@ export default function TurismoSensorial() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { accessibilityFeatures, sensoryExperiences, accessibleDestinations };

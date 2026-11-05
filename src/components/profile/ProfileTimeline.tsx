@@ -37,8 +37,8 @@ export function ProfileTimeline({
         <CardContent>
           <form onSubmit={handleAddTimelineEvent} className="space-y-3">
             <div>
-              <label className="text-xs text-muted-foreground font-semibold">Destino</label>
-              <Input
+              <label htmlFor="profile-timeline-f3" className="text-xs text-muted-foreground font-semibold">Destino</label>
+              <Input id="profile-timeline-f3"
                 placeholder="Ej. Jarabacoa, Las Terrenas..."
                 value={newTimelineDest}
                 onChange={(e) => setNewTimelineDest(e.target.value)}
@@ -47,8 +47,8 @@ export function ProfileTimeline({
               />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground font-semibold">Fecha del Viaje</label>
-              <Input
+              <label htmlFor="profile-timeline-f2" className="text-xs text-muted-foreground font-semibold">Fecha del Viaje</label>
+              <Input id="profile-timeline-f2"
                 type="date"
                 value={newTimelineDate}
                 onChange={(e) => setNewTimelineDate(e.target.value)}
@@ -57,8 +57,8 @@ export function ProfileTimeline({
               />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground font-semibold">Notas del viaje</label>
-              <Textarea
+              <label htmlFor="profile-timeline-f1" className="text-xs text-muted-foreground font-semibold">Notas del viaje</label>
+              <Textarea id="profile-timeline-f1"
                 placeholder="Describe brevemente tus mejores recuerdos..."
                 value={newTimelineNotes}
                 onChange={(e) => setNewTimelineNotes(e.target.value)}
@@ -92,9 +92,9 @@ export function ProfileTimeline({
                   <div className="absolute -left-[21px] top-1 w-3.5 h-3.5 rounded-full bg-primary border-2 border-background shadow-sm" />
                   <div>
                     <p className="text-xs font-bold text-foreground">{event.name}</p>
-                    <p className="text-[9px] text-muted-foreground font-mono">{event.date}</p>
+                    <p className="text-3xs text-muted-foreground font-mono">{event.date}</p>
                     {event.notes && (
-                      <p className="text-[11px] text-muted-foreground mt-1 bg-secondary/30 p-2 rounded-lg border border-border/50 italic leading-relaxed">
+                      <p className="text-2xs text-muted-foreground mt-1 bg-secondary/30 p-2 rounded-lg border border-border/50 italic leading-relaxed">
                         {event.notes}
                       </p>
                     )}

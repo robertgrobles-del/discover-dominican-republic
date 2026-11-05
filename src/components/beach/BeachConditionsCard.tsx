@@ -61,49 +61,49 @@ export const BeachConditionsCard: React.FC<BeachConditionsCardProps> = ({
       <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
         {/* Oleaje */}
         <div className="p-4 rounded-2xl bg-muted/30 border border-border/60 space-y-1.5">
-          <span className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1">
+          <span className="text-3xs text-muted-foreground uppercase font-bold flex items-center gap-1">
             <Waves className="h-3.5 w-3.5 text-cyan-500" /> Dinámica del Oleaje
           </span>
           <p className="font-bold text-sm text-foreground">{wave.label}</p>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">{wave.desc}</p>
+          <p className="text-2xs text-muted-foreground leading-relaxed">{wave.desc}</p>
         </div>
 
         {/* Tipo de Arena */}
         <div className="p-4 rounded-2xl bg-muted/30 border border-border/60 space-y-1.5">
-          <span className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1">
+          <span className="text-3xs text-muted-foreground uppercase font-bold flex items-center gap-1">
             <Sun className="h-3.5 w-3.5 text-amber-500" /> Tipo de Arena
           </span>
           <p className="font-bold text-sm text-foreground">{sandType}</p>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">Textura suave ideal para caminatas y descanso.</p>
+          <p className="text-2xs text-muted-foreground leading-relaxed">Textura suave ideal para caminatas y descanso.</p>
         </div>
 
         {/* Tonalidad del Agua */}
         <div className="p-4 rounded-2xl bg-muted/30 border border-border/60 space-y-1.5">
-          <span className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1">
+          <span className="text-3xs text-muted-foreground uppercase font-bold flex items-center gap-1">
             <Droplets className="h-3.5 w-3.5 text-blue-500" /> Color del Agua
           </span>
           <p className="font-bold text-sm text-foreground">{waterColor}</p>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">Gran visibilidad para snorkel y fotografía acuática.</p>
+          <p className="text-2xs text-muted-foreground leading-relaxed">Gran visibilidad para snorkel y fotografía acuática.</p>
         </div>
 
         {/* Afluencia de Visitantes */}
         <div className="p-4 rounded-2xl bg-muted/30 border border-border/60 space-y-1.5">
-          <span className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1">
+          <span className="text-3xs text-muted-foreground uppercase font-bold flex items-center gap-1">
             <Users className="h-3.5 w-3.5 text-indigo-500" /> Nivel de Afluencia
           </span>
           <p className="font-bold text-sm text-foreground">{crowd.label}</p>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">{crowd.desc}</p>
+          <p className="text-2xs text-muted-foreground leading-relaxed">{crowd.desc}</p>
         </div>
 
         {/* Seguridad / Salvavidas */}
         <div className="p-4 rounded-2xl bg-muted/30 border border-border/60 space-y-1.5">
-          <span className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1">
+          <span className="text-3xs text-muted-foreground uppercase font-bold flex items-center gap-1">
             <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" /> Salvavidas en Servicio
           </span>
           <p className="font-bold text-sm text-foreground">
             {lifeguardOnDuty ? "✓ Puesto de Guardavidas Activo" : "✕ No cuenta con salvavidas"}
           </p>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">
+          <p className="text-2xs text-muted-foreground leading-relaxed">
             {lifeguardOnDuty ? "Supervisión disponible en horarios diurnos." : "Se recomienda nadar con precaución y en grupo."}
           </p>
         </div>
@@ -111,11 +111,11 @@ export const BeachConditionsCard: React.FC<BeachConditionsCardProps> = ({
         {/* Mejor Época */}
         {bestTimeToVisit && (
           <div className="p-4 rounded-2xl bg-muted/30 border border-border/60 space-y-1.5">
-            <span className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1">
+            <span className="text-3xs text-muted-foreground uppercase font-bold flex items-center gap-1">
               <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Mejor Época para Visitar
             </span>
             <p className="font-bold text-sm text-foreground">Temporada Recomendada</p>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">{bestTimeToVisit}</p>
+            <p className="text-2xs text-muted-foreground leading-relaxed">{bestTimeToVisit}</p>
           </div>
         )}
       </div>

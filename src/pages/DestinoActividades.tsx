@@ -10,9 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { fetchApi } from "@/lib/fastifyClient";
 import { categoryKey, categoryLabel, groupByCategory, useDestinationActivities } from "@/lib/destinationActivities";
+import { usePageContent } from "@/lib/pageContent";
 
 /** Todas las actividades de un destino, con filtro por categoría (`?categoria=`). */
 export default function DestinoActividades() {
+  const pc = usePageContent("destino-actividades");
   const { slug } = useParams<{ slug: string }>();
   const [params, setParams] = useSearchParams();
   const selected = categoryKey(params.get("categoria"));
@@ -42,7 +44,7 @@ export default function DestinoActividades() {
       <main className="min-h-screen bg-background pt-28 pb-20">
         <div className="container mx-auto px-4">
           <Button variant="ghost" size="sm" asChild className="mb-4 -ml-2">
-            <Link to={`/destino/${slug}`}><ArrowLeft className="h-4 w-4 mr-1" /> Volver a {name}</Link>
+            <Link to={`/destino/${slug}`}><ArrowLeft className="h-4 w-4 mr-1" />{" "}{pc.tx("Link.1", "Volver a")}{" "}{name}</Link>
           </Button>
           <h1 className="font-display text-3xl md:text-5xl font-bold text-foreground">
             {active ? `${active.label} en ${name}` : `Actividades en ${name}`}
@@ -53,9 +55,8 @@ export default function DestinoActividades() {
           </p>
 
           {categories.length > 0 && (
-            <div className="mt-6 flex flex-wrap gap-2" role="group" aria-label="Filtrar por categoría">
-              <Button size="sm" variant={active ? "outline" : "default"} onClick={() => selectCategory(null)} aria-pressed={!active}>
-                Todas ({activities.length})
+            <div className="mt-6 flex flex-wrap gap-2" role="group" aria-label={pc.t("div.aria-label.1", "Filtrar por categoría")}>
+              <Button size="sm" variant={active ? "outline" : "default"} onClick={() => selectCategory(null)} aria-pressed={!active}>{pc.tx("Button.1", "Todas (")}{activities.length})
               </Button>
               {categories.map((category) => (
                 <Button
@@ -75,16 +76,16 @@ export default function DestinoActividades() {
 
           {isError && (
             <Card className="mt-10"><CardContent className="py-16 text-center">
-              <p className="font-semibold">No se pudieron cargar las actividades.</p>
-              <p className="text-sm text-muted-foreground mt-1">Inténtalo de nuevo en unos minutos.</p>
+              <p className="font-semibold">{pc.tx("p.1", "No se pudieron cargar las actividades.")}</p>
+              <p className="text-sm text-muted-foreground mt-1">{pc.tx("p.2", "Inténtalo de nuevo en unos minutos.")}</p>
             </CardContent></Card>
           )}
 
           {!isLoading && !isError && activities.length === 0 && (
             <Card className="mt-10"><CardContent className="py-16 text-center space-y-3">
               <Compass className="h-10 w-10 mx-auto text-muted-foreground" />
-              <p className="font-semibold">Todavía no hay actividades registradas en {name}.</p>
-              <Button variant="outline" asChild><Link to="/experiencias">Ver experiencias de todo el país</Link></Button>
+              <p className="font-semibold">{pc.tx("p.3", "Todavía no hay actividades registradas en")}{" "}{name}.</p>
+              <Button variant="outline" asChild><Link to="/experiencias">{pc.tx("Link.2", "Ver experiencias de todo el país")}</Link></Button>
             </CardContent></Card>
           )}
 
@@ -111,8 +112,7 @@ export default function DestinoActividades() {
                       <span className="inline-flex items-center gap-1 text-muted-foreground">
                         {activity.duration && <><Clock className="h-4 w-4" /> {activity.duration}</>}
                       </span>
-                      <span className="inline-flex items-center gap-1 font-semibold text-primary">
-                        Ver detalles <ChevronRight className="h-4 w-4" />
+                      <span className="inline-flex items-center gap-1 font-semibold text-primary">{pc.tx("span.1", "Ver detalles")}{" "}<ChevronRight className="h-4 w-4" />
                       </span>
                     </div>
                   </div>

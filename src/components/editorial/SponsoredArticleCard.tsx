@@ -36,7 +36,7 @@ export function SponsoredArticleCard({
       {/* Top Banner Tag */}
       <div className="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-amber-500/20">
         <div className="flex items-center gap-2">
-          <Badge className="bg-amber-500 text-slate-950 font-black text-[10px] tracking-wider uppercase px-2.5 py-0.5 rounded-full">
+          <Badge className="bg-amber-500 text-slate-950 font-black text-3xs tracking-wider uppercase px-2.5 py-0.5 rounded-full">
             ● Reportaje Patrocinado
           </Badge>
           <span className="text-xs font-semibold text-muted-foreground">{sponsorCategory}</span>

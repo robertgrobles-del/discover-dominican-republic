@@ -57,6 +57,7 @@ export function GamificationStats() {
   // Distribución de logros por rareza
   const { data: achievementsByRarity } = useQuery({
     queryKey: ["achievements-by-rarity"],
+    enabled: !HAS_BACKEND_SESSION,
     queryFn: async () => {
       const { data } = await supabase
         .from("achievements")
@@ -75,6 +76,7 @@ export function GamificationStats() {
   // Misiones por tipo
   const { data: missionsByType } = useQuery({
     queryKey: ["missions-by-type"],
+    enabled: !HAS_BACKEND_SESSION,
     queryFn: async () => {
       const { data } = await supabase
         .from("gamification_missions")
@@ -93,6 +95,7 @@ export function GamificationStats() {
   // Top usuarios por XP
   const { data: topUsers } = useQuery({
     queryKey: ["top-users-xp"],
+    enabled: !HAS_BACKEND_SESSION,
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
@@ -107,6 +110,7 @@ export function GamificationStats() {
   // Canjes recientes de premios
   const { data: recentRedemptions } = useQuery({
     queryKey: ["recent-redemptions"],
+    enabled: !HAS_BACKEND_SESSION,
     queryFn: async () => {
       const { data } = await supabase
         .from("user_prize_redemptions")

@@ -30,13 +30,13 @@ export function AccommodationNightlife({ nightlife }: AccommodationNightlifeProp
         {nightlife.map((n) => (
           <div key={n.name} className="bg-card rounded-3xl p-5 border border-border hover:border-primary/40 transition-colors flex flex-col justify-between shadow-xs">
             <div>
-              <Badge className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 text-[10px] mb-2">
+              <Badge className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 text-3xs mb-2">
                 {n.type}
               </Badge>
               <h3 className="font-display text-base font-bold text-foreground mb-1.5">{n.name}</h3>
               <p className="text-xs text-muted-foreground leading-relaxed mb-3">{n.description}</p>
             </div>
-            <div className="pt-3 border-t border-border/60 flex items-center justify-between text-[11px] text-muted-foreground">
+            <div className="pt-3 border-t border-border/60 flex items-center justify-between text-2xs text-muted-foreground">
               <span className="flex items-center gap-1"><Clock className="h-3 w-3 text-primary" /> {n.hours}</span>
               <span className="flex items-center gap-1"><Music className="h-3 w-3 text-primary" /> {n.music}</span>
             </div>

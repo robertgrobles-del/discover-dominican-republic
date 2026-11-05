@@ -14,8 +14,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SEOHead } from "@/components/SEOHead";
 
 import puntaCana from "@/assets/punta-cana.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function MiViaje() {
+  const pc = usePageContent("mi-viaje");
   const { favorites, getFavoritesByType, totalCount } = useFavorites();
   const { user, loading: authLoading } = useAuth();
 
@@ -27,18 +29,18 @@ export default function MiViaje() {
   if (!user) {
     return (
       <PageTransition>
-        <SEOHead title="Mi Viaje: Planificador e Itinerario Personal" description="Inicia sesión o crea una cuenta para planificar tu viaje a República Dominicana y guardar tu itinerario." />
+        <SEOHead title={pc.t("SEOHead.title.1", "Mi Viaje: Planificador e Itinerario Personal")} description={pc.t("SEOHead.description.1", "Inicia sesión o crea una cuenta para planificar tu viaje a República Dominicana y guardar tu itinerario.")} />
         <div className="min-h-screen bg-background flex flex-col">
           <Header />
           <main className="flex-1 flex items-center justify-center px-4 pt-28 pb-16">
             <Card className="max-w-md mx-auto">
               <CardContent className="p-8 text-center space-y-4">
                 <Route className="h-12 w-12 mx-auto text-primary" />
-                <h1 className="font-display text-2xl font-bold">Inicia sesión para planificar tu viaje</h1>
-                <p className="text-muted-foreground">Con una cuenta puedes armar tu itinerario, guardar tus lugares favoritos y retomarlo desde cualquier dispositivo.</p>
+                <h1 className="font-display text-2xl font-bold">{pc.tx("h1.1", "Inicia sesión para planificar tu viaje")}</h1>
+                <p className="text-muted-foreground">{pc.tx("p.1", "Con una cuenta puedes armar tu itinerario, guardar tus lugares favoritos y retomarlo desde cualquier dispositivo.")}</p>
                 <div className="flex gap-3 justify-center">
-                  <Button asChild><Link to="/login?returnTo=/mi-viaje">Iniciar sesión</Link></Button>
-                  <Button variant="outline" asChild><Link to="/registro">Crear una cuenta</Link></Button>
+                  <Button asChild><Link to="/login?returnTo=/mi-viaje">{pc.tx("Link.1", "Iniciar sesión")}</Link></Button>
+                  <Button variant="outline" asChild><Link to="/registro">{pc.tx("Link.2", "Crear una cuenta")}</Link></Button>
                 </div>
               </CardContent>
             </Card>
@@ -56,7 +58,7 @@ export default function MiViaje() {
   ];
 
   const recommendations = [
-    { id: "cap-cana", name: "Cap Cana", desc: "Lujo y exclusividad a solo minutos del aeropuerto.", image: puntaCana },
+    { id: "cap-cana", name: "Cap Cana", desc: "Lujo y exclusividad a solo minutos del aeropuerto.", image: pc.img("asset.puntaCana", puntaCana) },
     { id: "puerto-plata", name: "Puerto Plata", desc: "Historia, teleférico y playas doradas.", image: "https://images.unsplash.com/photo-1590523278191-995cbcda646b?w=200&h=150&fit=crop" },
     { id: "bayahibe", name: "Bayahíbe", desc: "El mejor atardecer y puerta a Isla Saona.", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&h=150&fit=crop" },
   ];
@@ -64,8 +66,8 @@ export default function MiViaje() {
   return (
     <PageTransition>
       <SEOHead
-        title="Mi Viaje: Planificador e Itinerario Personal"
-        description="Organiza tu viaje a República Dominicana: planifica tu itinerario, guarda tus destinos, hoteles y experiencias favoritas, y recibe recomendaciones personalizadas."
+        title={pc.t("SEOHead.title.2", "Mi Viaje: Planificador e Itinerario Personal")}
+        description={pc.t("SEOHead.description.2", "Organiza tu viaje a República Dominicana: planifica tu itinerario, guarda tus destinos, hoteles y experiencias favoritas, y recibe recomendaciones personalizadas.")}
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
@@ -78,21 +80,16 @@ export default function MiViaje() {
                 <span className="text-3xl">👋</span>
               </div>
               <div className="text-center md:text-left flex-1">
-                <h1 className="font-display text-3xl font-bold text-foreground mb-1">
-                  Hola, Viajero 
-                </h1>
-                <p className="text-muted-foreground mb-2">
-                  Explorador entusiasta | Próxima parada: República Dominicana
-                </p>
+                <h1 className="font-display text-3xl font-bold text-foreground mb-1">{pc.tx("h1.2", "Hola, Viajero")}</h1>
+                <p className="text-muted-foreground mb-2">{pc.tx("p.2", "Explorador entusiasta | Próxima parada: República Dominicana")}</p>
                 <div className="flex items-center justify-center md:justify-start gap-2">
-                  <Badge className="bg-primary/20 text-primary">Miembro VIP</Badge>
-                  <span className="text-sm text-muted-foreground">Desde 2024</span>
+                  <Badge className="bg-primary/20 text-primary">{pc.tx("Badge.1", "Miembro VIP")}</Badge>
+                  <span className="text-sm text-muted-foreground">{pc.tx("span.1", "Desde 2024")}</span>
                 </div>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="gap-2">
-                  <Settings className="h-4 w-4" /> Editar Perfil
-                </Button>
+                  <Settings className="h-4 w-4" />{" "}{pc.tx("Button.1", "Editar Perfil")}</Button>
               </div>
             </div>
 
@@ -119,11 +116,9 @@ export default function MiViaje() {
             <Tabs defaultValue="itinerario" className="w-full">
               <TabsList className="bg-card border border-border mb-8">
                 <TabsTrigger value="itinerario" className="gap-2">
-                  <Calendar className="h-4 w-4" /> Planificador
-                </TabsTrigger>
+                  <Calendar className="h-4 w-4" />{" "}{pc.tx("TabsTrigger.1", "Planificador")}</TabsTrigger>
                 <TabsTrigger value="favoritos" className="gap-2">
-                  <Heart className="h-4 w-4" /> Mis Favoritos
-                </TabsTrigger>
+                  <Heart className="h-4 w-4" />{" "}{pc.tx("TabsTrigger.2", "Mis Favoritos")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="itinerario">
@@ -135,18 +130,18 @@ export default function MiViaje() {
                   <div className="lg:col-span-2">
                     <Tabs defaultValue="destinos">
                       <TabsList className="mb-6">
-                        <TabsTrigger value="destinos">Destinos</TabsTrigger>
-                        <TabsTrigger value="hoteles">Hoteles</TabsTrigger>
-                        <TabsTrigger value="experiencias">Experiencias</TabsTrigger>
+                        <TabsTrigger value="destinos">{pc.tx("TabsTrigger.3", "Destinos")}</TabsTrigger>
+                        <TabsTrigger value="hoteles">{pc.tx("TabsTrigger.4", "Hoteles")}</TabsTrigger>
+                        <TabsTrigger value="experiencias">{pc.tx("TabsTrigger.5", "Experiencias")}</TabsTrigger>
                       </TabsList>
 
                       <TabsContent value="destinos">
                         {getFavoritesByType("destino").length === 0 ? (
                           <div className="text-center py-12 bg-card rounded-xl border border-border">
                             <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                            <p className="text-muted-foreground mb-4">Aún no tienes destinos favoritos</p>
+                            <p className="text-muted-foreground mb-4">{pc.tx("p.3", "Aún no tienes destinos favoritos")}</p>
                             <Link to="/destinos">
-                              <Button variant="outline">Explorar Destinos</Button>
+                              <Button variant="outline">{pc.tx("Button.2", "Explorar Destinos")}</Button>
                             </Link>
                           </div>
                         ) : (
@@ -163,14 +158,13 @@ export default function MiViaje() {
                                     className="w-32 h-28 object-cover"
                                   />
                                   <div className="p-4 flex-1">
-                                    <h3 className="font-semibold text-foreground">{item.name}</h3>
+                                    <h2 className="h3 font-semibold text-foreground">{item.name}</h2>
                                     {item.location && (
                                       <p className="text-sm text-muted-foreground flex items-center gap-1">
                                         <MapPin className="h-3 w-3" /> {item.location}
                                       </p>
                                     )}
-                                    <Button size="sm" variant="link" className="px-0 mt-2 text-primary gap-1">
-                                      Ver Detalles <ChevronRight className="h-3 w-3" />
+                                    <Button size="sm" variant="link" className="px-0 mt-2 text-primary gap-1">{pc.tx("Button.3", "Ver Detalles")}{" "}<ChevronRight className="h-3 w-3" />
                                     </Button>
                                   </div>
                                 </motion.div>
@@ -184,9 +178,9 @@ export default function MiViaje() {
                         {getFavoritesByType("hotel").length === 0 ? (
                           <div className="text-center py-12 bg-card rounded-xl border border-border">
                             <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                            <p className="text-muted-foreground mb-4">Aún no tienes hoteles favoritos</p>
+                            <p className="text-muted-foreground mb-4">{pc.tx("p.4", "Aún no tienes hoteles favoritos")}</p>
                             <Link to="/alojamientos">
-                              <Button variant="outline">Explorar Hoteles</Button>
+                              <Button variant="outline">{pc.tx("Button.4", "Explorar Hoteles")}</Button>
                             </Link>
                           </div>
                         ) : (
@@ -199,7 +193,7 @@ export default function MiViaje() {
                                 >
                                   <img src={item.image} alt={item.name} className="w-32 h-28 object-cover" />
                                   <div className="p-4 flex-1">
-                                    <h3 className="font-semibold text-foreground">{item.name}</h3>
+                                    <h2 className="h3 font-semibold text-foreground">{item.name}</h2>
                                     {item.location && (
                                       <p className="text-sm text-muted-foreground">{item.location}</p>
                                     )}
@@ -215,9 +209,9 @@ export default function MiViaje() {
                         {getFavoritesByType("experiencia").length === 0 ? (
                           <div className="text-center py-12 bg-card rounded-xl border border-border">
                             <Heart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                            <p className="text-muted-foreground mb-4">Aún no tienes experiencias favoritas</p>
+                            <p className="text-muted-foreground mb-4">{pc.tx("p.5", "Aún no tienes experiencias favoritas")}</p>
                             <Link to="/experiencias">
-                              <Button variant="outline">Explorar Experiencias</Button>
+                              <Button variant="outline">{pc.tx("Button.5", "Explorar Experiencias")}</Button>
                             </Link>
                           </div>
                         ) : (
@@ -230,7 +224,7 @@ export default function MiViaje() {
                                 >
                                   <img src={item.image} alt={item.name} className="w-32 h-28 object-cover" />
                                   <div className="p-4 flex-1">
-                                    <h3 className="font-semibold text-foreground">{item.name}</h3>
+                                    <h2 className="h3 font-semibold text-foreground">{item.name}</h2>
                                   </div>
                                 </motion.div>
                               </Link>
@@ -246,10 +240,9 @@ export default function MiViaje() {
                     <div className="bg-card rounded-xl border border-border p-5 sticky top-24">
                       <div className="flex items-center gap-2 mb-4">
                         <Sparkles className="h-5 w-5 text-primary" />
-                        <h3 className="font-semibold text-foreground">Para Ti</h3>
+                        <h2 className="h3 font-semibold text-foreground">{pc.tx("h3.1", "Para Ti")}</h2>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Porque te gustó <span className="text-primary">Punta Cana</span>
+                      <p className="text-sm text-muted-foreground mb-4">{pc.tx("p.6", "Porque te gustó")}{" "}<span className="text-primary">{pc.tx("span.2", "Punta Cana")}</span>
                       </p>
 
                       <div className="space-y-3">
@@ -270,8 +263,7 @@ export default function MiViaje() {
                         ))}
                       </div>
 
-                      <Button variant="link" className="w-full mt-4 text-primary gap-1">
-                        Ver más sugerencias <ChevronRight className="h-4 w-4" />
+                      <Button variant="link" className="w-full mt-4 text-primary gap-1">{pc.tx("Button.6", "Ver más sugerencias")}{" "}<ChevronRight className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>

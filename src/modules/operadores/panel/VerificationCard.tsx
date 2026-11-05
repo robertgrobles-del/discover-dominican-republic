@@ -51,14 +51,14 @@ export function VerificationCard() {
         {apps.map((a) => (
           <div key={a.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border p-3">
             <span>{a.business_name} · solicitada el {day(a.created_at)}{a.badge_expires_at && <> · vigente hasta el {day(a.badge_expires_at)}</>}{a.status === "rejected" && a.audit_notes && <span className="block text-xs text-muted-foreground">Motivo: {a.audit_notes}</span>}</span>
-            <Badge variant="outline" className="text-[10px]">{VERIFICATION_STATUS_LABEL[a.status]}{a.contract_id && (a.contract_accepted_at ? " · contrato aceptado" : " · contrato por aceptar")}</Badge>
+            <Badge variant="outline" className="text-3xs">{VERIFICATION_STATUS_LABEL[a.status]}{a.contract_id && (a.contract_accepted_at ? " · contrato aceptado" : " · contrato por aceptar")}</Badge>
           </div>
         ))}
 
         {toSign && (
           <div className="space-y-3 rounded-xl border border-primary/40 p-3">
             <p className="font-semibold">Contrato de términos comerciales (versión {toSign.terms_version})</p>
-            <pre className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded-lg bg-muted p-3 font-sans text-xs leading-relaxed" tabIndex={0}>{toSign.body}</pre>
+            <pre role="region" aria-label="Texto del contrato" className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded-lg bg-muted p-3 font-sans text-xs leading-relaxed" tabIndex={0}>{toSign.body}</pre>
             <label className="flex items-start gap-2 text-xs"><Checkbox checked={read} onCheckedChange={(v) => setRead(v === true)} className="mt-0.5" /> Leí el contrato completo y lo acepto en nombre de {toSign.business_name}.</label>
             <Button size="sm" className="h-9 text-xs" disabled={!read || accept.isPending} onClick={() => accept.mutate(toSign)}>Aceptar contrato</Button>
           </div>

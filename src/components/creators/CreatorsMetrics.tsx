@@ -36,8 +36,8 @@ export function CreatorsMetrics({ profile, loading, error }: CreatorsMetricsProp
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
       {metrics.map(({ label, value, note, icon: Icon }) => <Card key={label} className="bg-card border-border"><CardContent className="p-4">
         <p className="text-xs text-muted-foreground font-semibold uppercase">{label}</p>
-        <h3 className="text-xl font-black text-foreground mt-1 flex items-center gap-1.5"><Icon className="h-5 w-5 text-primary" />{loading ? "Cargando…" : value}</h3>
-        <span className="text-[10px] text-muted-foreground">{note}</span>
+        <h2 className="h3 text-xl font-black text-foreground mt-1 flex items-center gap-1.5"><Icon className="h-5 w-5 text-primary" />{loading ? "Cargando…" : value}</h2>
+        <span className="text-3xs text-muted-foreground">{note}</span>
       </CardContent></Card>)}
     </div>
   </div>;

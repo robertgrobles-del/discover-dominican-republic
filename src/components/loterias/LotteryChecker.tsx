@@ -76,7 +76,7 @@ export function LotteryChecker({
                   {checkResult.matches.map((m, idx) => (
                     <div key={idx} className="flex items-center justify-between text-xs">
                       <span className="font-semibold text-foreground">{m.draw}</span>
-                      <Badge className="bg-emerald-500 text-slate-950 text-[10px] font-black">
+                      <Badge className="bg-emerald-500 text-slate-950 text-3xs font-black">
                         {m.position}ª Posición
                       </Badge>
                     </div>
@@ -86,7 +86,7 @@ export function LotteryChecker({
             ) : (
               <div className="text-center space-y-1">
                 <p className="font-bold text-foreground">El número {checkNumber} no ha salido hoy</p>
-                <p className="text-[11px] text-muted-foreground">¡Sigue probando tu suerte en los próximos sorteos!</p>
+                <p className="text-2xs text-muted-foreground">¡Sigue probando tu suerte en los próximos sorteos!</p>
               </div>
             )}
           </div>

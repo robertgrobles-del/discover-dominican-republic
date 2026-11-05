@@ -16,6 +16,8 @@ export interface OrgRow {
 export interface Membership { org_id: string; role: OrgRole; listing_ids: string[]; verification: string; business_name: string; slug: string }
 
 export const CATEGORIES = ["experiencia", "voluntariado", "alojamiento", "transporte", "paquete"] as const;
+/** Tipos de negocio que se eligen en el perfil del operador (las agencias de viajes publican sobre todo «paquete»). */
+export const ORG_TYPES = ["tour_operator", "guide", "agency", "hotel", "transport", "restaurant"] as const;
 const ORG_COLUMNS = "id, business_name, slug, business_type, email, phone, description, province, logo_url, cover_url, verification, commission_rate, payout_method, website_enabled, created_at";
 const LISTING_COLS = ["id", "org_id", "category", "title", "slug", "summary", "description", "destination", "price", "currency", "duration", "capacity", "min_age", "languages", "includes", "meeting_point",
   "cancellation_policy", "images", "time_slots", "status", "rating", "reviews_count", "deposit_percent", "extras", "child_price", "infants_free", "min_guests", "days", "itinerary", "components", "created_at", "updated_at"];
@@ -95,7 +97,7 @@ export class CatalogService {
     return this.orgDto(rows[0]);
   }
 
-  async updateOrg(id: string, patch: Partial<Pick<OrgRow, "business_name" | "phone" | "description" | "province" | "logo_url" | "cover_url" | "payout_method" | "website_enabled" | "email">>) {
+  async updateOrg(id: string, patch: Partial<Pick<OrgRow, "business_type" | "business_name" | "phone" | "description" | "province" | "logo_url" | "cover_url" | "payout_method" | "website_enabled" | "email">>) {
     const keys = Object.keys(patch) as (keyof typeof patch)[];
     if (!keys.length) return this.orgById(id);
     const sets = keys.map((k, i) => `"${k}" = $${i + 2}`);
@@ -104,20 +106,25 @@ export class CatalogService {
   }
 
   /** Directorio público: sólo organizaciones verificadas con sitio activo y al menos un anuncio publicado. */
-  async directory(q: { q?: string; category?: string; destination?: string; page: number; per_page: number }) {
+  async directory(q: { q?: string; category?: string; destination?: string; business_type?: string; page: number; per_page: number }) {
     const params: unknown[] = [];
     const where = ["p.verification = 'verified'", "p.website_enabled", "EXISTS (SELECT 1 FROM operator_listings l WHERE l.org_id = p.id AND l.status = 'published')"];
     if (q.q) { params.push(`%${q.q.replace(/[\\%_]/g, "\\$&")}%`); where.push(`(lower(f_unaccent(p.business_name)) LIKE lower(f_unaccent($${params.length})) ESCAPE '\\' OR lower(f_unaccent(coalesce(p.description, ''))) LIKE lower(f_unaccent($${params.length})) ESCAPE '\\')`); }
     if (q.category) { params.push(q.category); where.push(`EXISTS (SELECT 1 FROM operator_listings l WHERE l.org_id = p.id AND l.status = 'published' AND l.category = $${params.length})`); }
+    if (q.business_type) { params.push(q.business_type); where.push(`p.business_type = $${params.length}`); }
     if (q.destination) { params.push(q.destination); where.push(`EXISTS (SELECT 1 FROM operator_listings l WHERE l.org_id = p.id AND l.status = 'published' AND lower(f_unaccent(l.destination)) = lower(f_unaccent($${params.length})))`); }
     const w = where.join(" AND ");
     const total = (await this.db.query<{ n: number }>(`SELECT count(*)::int AS n FROM partner_profiles p WHERE ${w}`, params)).rows[0]!.n;
+    // El plan sólo cuenta mientras esté vigente: vencido, la organización vuelve a 'free' sin prioridad (la copia en partner_profiles no se limpia sola).
     const { rows } = await this.db.query(
-      `SELECT p.id, p.business_name, p.slug, p.description, p.province, p.logo_url, p.cover_url,
-              p.subscription_tier, p.verified_badge, p.priority_score,
+      `SELECT * FROM (SELECT p.id, p.business_name, p.slug, p.description, p.province, p.logo_url, p.cover_url,
+              CASE WHEN p.subscription_expires_at IS NULL OR p.subscription_expires_at > now() THEN p.subscription_tier ELSE 'free' END AS subscription_tier,
+              p.verified_badge,
+              CASE WHEN p.subscription_expires_at IS NULL OR p.subscription_expires_at > now() THEN p.priority_score ELSE 0 END AS priority_score,
               (SELECT count(*)::int FROM operator_listings l WHERE l.org_id = p.id AND l.status = 'published') AS listings,
               (SELECT array_agg(DISTINCT l.category) FROM operator_listings l WHERE l.org_id = p.id AND l.status = 'published') AS categories
-         FROM partner_profiles p WHERE ${w} ORDER BY p.priority_score DESC, (CASE p.subscription_tier WHEN 'corporativo' THEN 1 WHEN 'premium_partner' THEN 2 WHEN 'destacado' THEN 3 ELSE 4 END), p.business_name, p.id LIMIT ${q.per_page} OFFSET ${(q.page - 1) * q.per_page}`, params,
+         FROM partner_profiles p WHERE ${w}) d
+       ORDER BY d.priority_score DESC, (CASE d.subscription_tier WHEN 'corporativo' THEN 1 WHEN 'premium_partner' THEN 2 WHEN 'destacado' THEN 3 ELSE 4 END), d.business_name, d.id LIMIT ${q.per_page} OFFSET ${(q.page - 1) * q.per_page}`, params,
     );
     return { rows, total };
   }

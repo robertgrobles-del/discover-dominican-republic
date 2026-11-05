@@ -337,7 +337,7 @@ export function FreeTicketModal({ open, onClose, onOpenChange, eventName, eventD
                 {/* Companions fields if > 1 */}
                 {quantity > 1 && (
                   <div className="p-3.5 rounded-2xl bg-secondary/30 border border-border/80 space-y-2.5">
-                    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block">
+                    <span className="text-2xs font-bold text-muted-foreground uppercase tracking-wider block">
                       Nombres de los Acompañantes (Opcional)
                     </span>
                     {Array.from({ length: quantity - 1 }).map((_, idx) => (
@@ -405,10 +405,10 @@ export function FreeTicketModal({ open, onClose, onOpenChange, eventName, eventD
                     <span className="text-xl">🇩🇴</span>
                     <div>
                       <span className="font-display text-sm font-black tracking-wide text-white">DESCUBRE RD</span>
-                      <span className="block text-[9px] uppercase font-bold text-primary tracking-widest">Pase Oficial de Acceso</span>
+                      <span className="block text-3xs uppercase font-bold text-primary tracking-widest">Pase Oficial de Acceso</span>
                     </div>
                   </div>
-                  <Badge className="bg-emerald-500 text-slate-950 font-black text-[10px] uppercase px-2.5 py-0.5">
+                  <Badge className="bg-emerald-500 text-slate-950 font-black text-3xs uppercase px-2.5 py-0.5">
                     Entrada Válida
                   </Badge>
                 </div>
@@ -416,7 +416,7 @@ export function FreeTicketModal({ open, onClose, onOpenChange, eventName, eventD
                 {/* Event Title & Details */}
                 <div className="space-y-4">
                   <div>
-                    <span className="text-[10px] uppercase tracking-wider text-primary font-bold">Evento</span>
+                    <span className="text-3xs uppercase tracking-wider text-primary font-bold">Evento</span>
                     <h3 className="font-display text-xl sm:text-2xl font-black text-white leading-tight">
                       {generatedTicket.eventName}
                     </h3>
@@ -424,21 +424,21 @@ export function FreeTicketModal({ open, onClose, onOpenChange, eventName, eventD
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                     <div>
-                      <span className="text-[10px] uppercase text-slate-400 font-semibold block">Fecha</span>
+                      <span className="text-3xs uppercase text-slate-400 font-semibold block">Fecha</span>
                       <span className="font-bold text-slate-100">{generatedTicket.eventDate}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] uppercase text-slate-400 font-semibold block">Hora</span>
+                      <span className="text-3xs uppercase text-slate-400 font-semibold block">Hora</span>
                       <span className="font-bold text-slate-100">{generatedTicket.eventTime}</span>
                     </div>
                     <div className="col-span-2 sm:col-span-1">
-                      <span className="text-[10px] uppercase text-slate-400 font-semibold block">Entradas</span>
+                      <span className="text-3xs uppercase text-slate-400 font-semibold block">Entradas</span>
                       <span className="font-bold text-primary">{generatedTicket.quantity} {generatedTicket.quantity === 1 ? "Persona" : "Personas"}</span>
                     </div>
                   </div>
 
                   <div>
-                    <span className="text-[10px] uppercase text-slate-400 font-semibold block">Ubicación / Recinto</span>
+                    <span className="text-3xs uppercase text-slate-400 font-semibold block">Ubicación / Recinto</span>
                     <span className="font-bold text-slate-200 text-xs flex items-center gap-1 mt-0.5">
                       <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
                       {generatedTicket.venue}, {generatedTicket.province}
@@ -447,11 +447,11 @@ export function FreeTicketModal({ open, onClose, onOpenChange, eventName, eventD
 
                   <div className="border-t border-dashed border-white/20 pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div>
-                      <span className="text-[10px] uppercase text-slate-400 font-semibold block">Titular del Pase</span>
+                      <span className="text-3xs uppercase text-slate-400 font-semibold block">Titular del Pase</span>
                       <span className="font-black text-sm text-white">{generatedTicket.attendeeName}</span>
-                      <span className="block text-[11px] text-slate-400">{generatedTicket.attendeeEmail}</span>
+                      <span className="block text-2xs text-slate-400">{generatedTicket.attendeeEmail}</span>
                       {generatedTicket.companions.length > 0 && (
-                        <span className="block text-[10px] text-slate-400 mt-1 italic">
+                        <span className="block text-3xs text-slate-400 mt-1 italic">
                           Acompañantes: {generatedTicket.companions.join(", ")}
                         </span>
                       )}
@@ -500,14 +500,14 @@ export function FreeTicketModal({ open, onClose, onOpenChange, eventName, eventD
                         <rect x="54" y="80" width="8" height="8" fill="black" />
                         <rect x="44" y="84" width="6" height="6" fill="black" />
                       </svg>
-                      <span className="font-mono text-[10px] font-black tracking-widest mt-1 text-slate-900">
+                      <span className="font-mono text-3xs font-black tracking-widest mt-1 text-slate-900">
                         {generatedTicket.ticketId}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[10px] text-slate-400">
+                <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-3xs text-slate-400">
                   <span className="flex items-center gap-1">
                     <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" /> Pase Digital Oficial No Transferible
                   </span>

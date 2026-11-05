@@ -19,7 +19,7 @@ export function SelloVerificadoBadge({
   showTooltip = true,
 }: SelloVerificadoBadgeProps) {
   const sizeClasses = {
-    sm: "text-[10px] px-2 py-0.5 gap-1",
+    sm: "text-3xs px-2 py-0.5 gap-1",
     md: "text-xs px-2.5 py-1 gap-1.5",
     lg: "text-sm px-3.5 py-1.5 gap-2",
   };
@@ -52,7 +52,7 @@ export function SelloVerificadoBadge({
       ) : (
         <span className="font-extrabold uppercase flex items-center gap-1">
           <span>Verificado MITUR</span>
-          {licenseNumber && <span className="opacity-75 font-mono text-[9px]">#{licenseNumber}</span>}
+          {licenseNumber && <span className="opacity-75 font-mono text-3xs">#{licenseNumber}</span>}
         </span>
       )}
     </div>
@@ -73,11 +73,11 @@ export function SelloVerificadoBadge({
             <CheckCircle2 className="h-4 w-4" />
             <span>Sello Oficial de Confianza Turística</span>
           </div>
-          <p className="text-slate-300 text-[11px] leading-relaxed">
+          <p className="text-slate-300 text-2xs leading-relaxed">
             Este establecimiento ha sido auditado y cuenta con Licencia Oficial activa emitida por el Ministerio de Turismo (MITUR).
           </p>
           {licenseNumber && (
-            <div className="pt-1 text-[10px] text-amber-300/90 font-mono border-t border-white/10">
+            <div className="pt-1 text-3xs text-amber-300/90 font-mono border-t border-white/10">
               Licencia No: {licenseNumber} · Registro SIGTUR
             </div>
           )}

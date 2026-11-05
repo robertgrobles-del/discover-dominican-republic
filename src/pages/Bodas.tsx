@@ -240,7 +240,7 @@ export default function Bodas() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                       
-                      <Badge className="absolute top-3 left-3 bg-rose-500 text-white text-[10px] font-semibold">
+                      <Badge className="absolute top-3 left-3 bg-rose-500 text-white text-3xs font-semibold">
                         {venue.tipo}
                       </Badge>
 
@@ -256,7 +256,7 @@ export default function Bodas() {
                       <p className="text-xs text-muted-foreground leading-relaxed">
                         {venue.destacados}
                       </p>
-                      <div className="pt-2 border-t border-border/50 text-[11px] font-medium text-foreground flex items-center justify-between">
+                      <div className="pt-2 border-t border-border/50 text-2xs font-medium text-foreground flex items-center justify-between">
                         <span>Capacidad:</span>
                         <span className="font-bold text-rose-500">{venue.capacidad}</span>
                       </div>
@@ -294,8 +294,8 @@ export default function Bodas() {
                         {org.nombre[0]}
                       </div>
                       <h3 className="font-bold text-foreground text-sm">{org.nombre}</h3>
-                      <p className="text-[11px] text-rose-500 font-medium mt-0.5">{org.especialidad}</p>
-                      <p className="text-[10px] text-muted-foreground mt-1 flex items-center justify-center gap-1">
+                      <p className="text-2xs text-rose-500 font-medium mt-0.5">{org.especialidad}</p>
+                      <p className="text-3xs text-muted-foreground mt-1 flex items-center justify-center gap-1">
                         <MapPin className="h-3 w-3" /> {org.ubicacion}
                       </p>
                     </div>
@@ -395,7 +395,7 @@ export default function Bodas() {
                   <div>
                     <div className="relative aspect-[16/10] overflow-hidden">
                       <img src={paquete.imagen} alt={paquete.nombre} className="w-full h-full object-cover" />
-                      <Badge className="absolute top-3 left-3 bg-rose-500 text-white text-[10px]">
+                      <Badge className="absolute top-3 left-3 bg-rose-500 text-white text-3xs">
                         {paquete.tipo}
                       </Badge>
                     </div>
@@ -409,7 +409,7 @@ export default function Bodas() {
 
                   <div className="p-5 pt-0 border-t border-border/50 flex items-center justify-between mt-3">
                     <div>
-                      <span className="text-[10px] text-muted-foreground block uppercase">Paquete Pareja Desde</span>
+                      <span className="text-3xs text-muted-foreground block uppercase">Paquete Pareja Desde</span>
                       <span className="text-lg font-bold font-mono text-foreground">${paquete.precio.toLocaleString()} USD</span>
                     </div>
                     <Button size="sm" className="bg-rose-500 hover:bg-rose-600 text-white text-xs font-semibold">

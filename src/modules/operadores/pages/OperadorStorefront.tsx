@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { fetchListings, fetchOrgBySlug } from "../api";
+import { fetchStorefront } from "../api";
 import { ListingCard } from "../components/ListingCard";
 import { CATEGORY_META } from "../constants";
 import type { ListingCategory } from "../types";
@@ -18,10 +18,11 @@ import type { ListingCategory } from "../types";
 export default function OperadorStorefront() {
   const { slug = "" } = useParams();
   const { user } = useAuth();
-  const orgQ = useQuery({ queryKey: ["op", "org-slug", slug], queryFn: () => fetchOrgBySlug(slug) });
-  const org = orgQ.data;
-  const listingsQ = useQuery({ queryKey: ["op", "listings", org?.id], queryFn: () => fetchListings(org!.id), enabled: !!org });
-  const isOwner = !!org && user?.id === org.id;
+  // Rutas públicas para visitantes; el dueño ve una vista previa de su sitio aún no publicado.
+  const siteQ = useQuery({ queryKey: ["op", "storefront", slug, user?.id], queryFn: () => fetchStorefront(slug, user?.id, user?.email) });
+  const orgQ = siteQ;
+  const org = siteQ.data?.org;
+  const isOwner = !!siteQ.data?.isOwner;
   const live = !!org && org.verification === "verified" && org.website_enabled;
 
   if (orgQ.isLoading) return <div className="min-h-screen" />;
@@ -41,7 +42,7 @@ export default function OperadorStorefront() {
     );
   }
 
-  const listings = (listingsQ.data || []).filter((l) => (isOwner && !live ? true : l.status === "published"));
+  const listings = (siteQ.data?.listings || []).filter((l) => (isOwner && !live ? true : l.status === "published"));
   const cats = [...new Set(listings.map((l) => l.category))] as ListingCategory[];
 
   return (

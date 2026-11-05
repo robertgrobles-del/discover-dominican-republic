@@ -1,290 +1,362 @@
-// Componente reutilizable para mostrar la página de detalle de un destino estático
+// Página de detalle de un destino del catálogo. Estructura según el mockup de «detalle de destino» (2026-10):
+// encabezado a dos columnas, navegación por secciones, resumen con datos clave, lo más destacado, zonas, eventos,
+// información práctica, hoteles, dónde comer y vida nocturna, sabores, artículos, destinos cercanos y preguntas.
+// Cada sección sale de los datos del destino: la que no tiene datos no se muestra.
+import { useRef } from "react";
+import type React from "react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Calendar, ChevronLeft, ChevronRight, Hotel, MapPin, Plane, Sparkles, Star, Thermometer, Wallet } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
+import { destinationTheme } from "@/lib/destinationTheme";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, Calendar, Thermometer, Utensils, Star, ChevronRight, Hotel, UtensilsCrossed, Wine, Compass, Users } from "lucide-react";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import { DistancesFromCities } from "@/components/destination/DistancesFromCities";
 import { DestinationAboutTabs } from "@/components/destination/DestinationAboutTabs";
 import { DestinationLocalGastronomy } from "@/components/destination/DestinationLocalGastronomy";
-import { DestinationHeroSlider } from "@/components/destination/DestinationHeroSlider";
-import { DestinationArrivalGuide } from "@/components/destination/DestinationArrivalGuide";
-import { DestinationConsultantBanner } from "@/components/destination/DestinationConsultantBanner";
-import { DestinationHighlightCards } from "@/components/destination/DestinationHighlightCards";
-import { DestinationEssentials } from "@/components/destination/DestinationEssentials";
-import { DestinationMustSee } from "@/components/destination/DestinationMustSee";
 import { DestinationZonesGrid } from "@/components/destination/DestinationZonesGrid";
-import { DestinationEditorialSections } from "@/components/destination/DestinationEditorialSections";
 import { RelatedBlogPosts } from "@/components/destination/RelatedBlogPosts";
 import { ParticipationInvite } from "@/components/gamificacion/ParticipationInvite";
-import { Link } from "react-router-dom";
 import { DetailPageSidebarAd } from "@/components/promo/DetailPageSidebarAd";
-import { BetweenSectionsAd } from "@/components/promo/BannerAd";
-import { Destination, getDestinationsByProvince } from "@/data/destinations";
+import { BetweenSectionsAd, PanoramaAd } from "@/components/promo/BannerAd";
+import { Destination, getDestinationsByProvince, getDestinationsByRegion } from "@/data/destinations";
 import { hotels as allHotels, getHotelsByDestination, getHotelsByProvince } from "@/data/hotels";
 import { restaurants as allRestaurants, getRestaurantsByDestination, getRestaurantsByProvince } from "@/data/restaurants";
 import { bars as allBars, getBarsByDestination, getBarsByProvince } from "@/data/bars";
-import { experiences as allExperiences, getExperiencesByDestination, getExperiencesByProvince } from "@/data/experiences";
+import { staticEventos } from "@/data/eventosData";
+import { usePageContent } from "@/lib/pageContent";
 
 interface StaticDestinationPageProps {
   destination: Destination;
 }
 
+const REGION_LABEL: Record<Destination["region"], string> = { norte: "Costa norte", sur: "Región sur", este: "Costa este", "santo-domingo": "Santo Domingo" };
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+/** Del destino, de su provincia y, si aún faltan, los mejor valorados: nunca una sección con uno o dos elementos. */
+function fill<T>(own: T[], province: T[], all: T[], min = 3): T[] {
+  const merged = Array.from(new Set([...own, ...province]));
+  return merged.length >= min ? merged : Array.from(new Set([...merged, ...all.slice(0, 4)]));
+}
+
+function SectionHeader({ title, description, link }: { title: string; description?: string; link?: { to: string; label: string } }) {
+  return (
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{title}</h2>
+        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+      </div>
+      {link && (
+        <Link to={link.to} className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline underline-offset-4">
+          {link.label} <ArrowRight className="h-4 w-4" />
+        </Link>
+      )}
+    </div>
+  );
+}
+
 export function StaticDestinationPage({ destination }: StaticDestinationPageProps) {
-  // Query by destination first, enrich with province or top-rated if less than 3
-  const destHotels = getHotelsByDestination(destination.id);
-  const provHotels = destination.province ? getHotelsByProvince(destination.province) : [];
-  const combinedHotels = Array.from(new Set([...destHotels, ...provHotels]));
-  const hotels = combinedHotels.length >= 3 ? combinedHotels : Array.from(new Set([...combinedHotels, ...allHotels.slice(0, 4)]));
-
-  const destRestaurants = getRestaurantsByDestination(destination.id);
-  const provRestaurants = destination.province ? getRestaurantsByProvince(destination.province) : [];
-  const combinedRestaurants = Array.from(new Set([...destRestaurants, ...provRestaurants]));
-  const restaurants = combinedRestaurants.length >= 3 ? combinedRestaurants : Array.from(new Set([...combinedRestaurants, ...allRestaurants.slice(0, 4)]));
-
-  const destBars = getBarsByDestination(destination.id);
-  const provBars = destination.province ? getBarsByProvince(destination.province) : [];
-  const combinedBars = Array.from(new Set([...destBars, ...provBars]));
-  const bars = combinedBars.length >= 3 ? combinedBars : Array.from(new Set([...combinedBars, ...allBars.slice(0, 4)]));
-
-  const destExperiences = getExperiencesByDestination(destination.id);
-  const provExperiences = destination.province ? getExperiencesByProvince(destination.province) : [];
-  const combinedExperiences = Array.from(new Set([...destExperiences, ...provExperiences]));
-  const experiences = combinedExperiences.length >= 3 ? combinedExperiences : Array.from(new Set([...combinedExperiences, ...allExperiences.slice(0, 4)]));
-
-  const subDestinations = destination.type === 'provincia' ? getDestinationsByProvince(destination.slug) : [];
+  const pc = usePageContent("static-destination-page");
+  const REGION_LABEL = pc.data("REGION_LABEL", __pcData.REGION_LABEL);
+  const d = destination;
+  const hotels = fill(getHotelsByDestination(d.id), d.province ? getHotelsByProvince(d.province) : [], allHotels);
+  const restaurants = fill(getRestaurantsByDestination(d.id), d.province ? getRestaurantsByProvince(d.province) : [], allRestaurants);
+  const bars = fill(getBarsByDestination(d.id), d.province ? getBarsByProvince(d.province) : [], allBars);
+  const subDestinations = d.type === "provincia" ? getDestinationsByProvince(d.slug) : [];
+  const nearby = (subDestinations.length ? subDestinations : getDestinationsByRegion(d.region).filter((x) => x.id !== d.id && x.type !== "municipio")).slice(0, 4);
+  const place = [d.province && d.province !== d.name ? d.province : null, REGION_LABEL[d.region]].filter(Boolean).join(" · ");
+  const match = (s?: string) => !!s && [d.name, d.province].filter(Boolean).some((n) => s.toLowerCase().includes(n!.toLowerCase()));
+  const events = staticEventos.filter((e) => match(e.ubicacion) || match(e.provincia)).slice(0, 4);
+  const photos = [d.imageUrl, ...d.gallery].filter(Boolean);
+  const photo = (i: number) => photos[i % photos.length]!;
+  // Lo más destacado: atracciones con su descripción; si el destino no las detalla, sus puntos fuertes.
+  const highlights = (d.attractions?.length
+    ? d.attractions.map((a) => ({ name: a.name, tag: cap(a.type), text: a.description }))
+    : d.highlights.map((h) => ({ name: h, tag: "Imprescindible", text: undefined as string | undefined }))).slice(0, 5);
+  const facts = [
+    { label: "Mejor época", value: d.bestTimeToVisit, icon: Calendar },
+    { label: "Clima", value: d.weatherInfo, icon: Thermometer },
+    { label: "Aeropuerto", value: [d.nearbyAirport, d.distanceFromAirport].filter(Boolean).join(" · "), icon: Plane },
+    { label: "Presupuesto medio", value: d.averageBudget?.mid, icon: Wallet },
+  ].filter((f) => f.value);
+  const practical = [
+    { label: "Entrada", value: "Formulario E-Ticket", to: "/e-ticket" },
+    { label: "Estadía sugerida", value: d.idealDays ? `${d.minimumDays ? `${d.minimumDays}–` : ""}${d.idealDays} días` : undefined },
+    { label: "Moneda", value: d.currency ?? "Peso dominicano (DOP)", to: "/conversor-moneda#tasas" },
+    { label: "Idioma", value: d.language },
+    { label: "Cómo llegar", value: d.nearbyAirport, to: "/como-llegar" },
+    { label: "Asistencia", value: "POLITUR · 911", to: "/info/seguridad#emergencias" },
+  ].filter((p) => p.value);
+  const faqs = [
+    { q: `¿Es seguro visitar ${d.name}?`, a: d.safetyInfo },
+    { q: "¿Cuál es la mejor época para visitar?", a: d.bestTimeToVisit && `${d.bestTimeToVisit}. ${d.weatherInfo ?? ""}`.trim() },
+    { q: "¿Cómo se llega?", a: d.howToGetThere },
+    { q: "¿Cuántos días hacen falta?", a: d.idealDays ? `Lo ideal son ${d.idealDays} días${d.minimumDays ? `; como mínimo, ${d.minimumDays}` : ""}.` : undefined },
+    { q: "¿Para quién es este destino?", a: d.bestFor?.length ? `Es ideal para ${d.bestFor.join(", ").toLowerCase()}.${d.notRecommendedFor?.length ? ` Menos recomendable para ${d.notRecommendedFor.join(", ").toLowerCase()}.` : ""}` : undefined },
+  ].filter((f) => f.a);
+  // Mosaico de destacados: uno grande y el resto repartido sin dejar huecos, haya 2, 3, 4 o 5.
+  const tile = (i: number, n: number) => i === 0 ? (n === 1 ? "min-h-[16rem] md:col-span-4" : "min-h-[16rem] md:col-span-2 md:row-span-2")
+    : n === 2 ? "min-h-[11rem] md:col-span-2 md:row-span-2" : n === 3 ? "min-h-[11rem] md:col-span-2" : n === 4 && i === 3 ? "min-h-[11rem] md:col-span-2" : "min-h-[11rem]";
+  // Una foto que no carga se sustituye por la del destino: nunca un recuadro roto.
+  const onImgError = (e: React.SyntheticEvent<HTMLImageElement>) => { if (e.currentTarget.src !== d.imageUrl && !e.currentTarget.dataset.fallback) { e.currentTarget.dataset.fallback = "1"; e.currentTarget.src = d.imageUrl; } };
+  const hotelRail = useRef<HTMLDivElement>(null);
+  const slide = (dir: number) => hotelRail.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
 
   return (
     <PageTransition>
-      <SEOHead 
-        title={`${destination.name} - Turismo República Dominicana`}
-        description={destination.shortDescription}
-      />
+      <div {...destinationTheme(d.slug, d.provinceSlug)}>
+      <SEOHead title={`${d.name} - Guía de viaje`} description={d.shortDescription} image={d.imageUrl} />
       <Header />
 
-      {/* Hero Section */}
-      <DestinationHeroSlider destination={destination} hotels={hotels} restaurants={restaurants} />
-
-      {/* 1. SOBRE EL DESTINO & LO MÁS DESTACADO (PRIMERA SECCIÓN VISIBLE TRAS EL HERO) */}
-      <section className="py-14 bg-background border-b border-border/60">
-        <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-3 gap-10 items-start">
-            {/* Main Editorial Description */}
-            <div className="lg:col-span-2 space-y-6">
-              <div className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold uppercase tracking-wider">
-                Destino Estrella del Caribe
-              </div>
-              <h2 className="font-display text-3xl md:text-5xl font-black text-foreground tracking-tight leading-tight">
-                Donde la arena de coral nunca quema y el mar es un santuario turquesa.
-              </h2>
-              <p className="text-muted-foreground leading-relaxed text-lg md:text-xl font-normal">
-                {destination.description}
-              </p>
-
-              {/* Lo más destacado Grid con Cards Clickleables */}
-              {destination.highlights && destination.highlights.length > 0 && (
-                <DestinationHighlightCards
-                  destinationSlug={destination.slug}
-                  destinationName={destination.name}
-                  highlights={destination.highlights}
-                />
-              )}
-            </div>
-
-            {/* Right Column: Practical Info Card + Sidebar Promo Ad */}
-            <div className="space-y-6">
-              {/* Quick Practical Info Card */}
-              <div className="bg-card rounded-3xl p-6 border border-border shadow-md space-y-5">
-                <div>
-                  <h3 className="font-display text-lg font-bold text-foreground">
-                    Información Práctica
-                  </h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Recomendaciones oficiales para tu estancia
-                  </p>
-                </div>
-
-                <div className="space-y-4 text-sm">
-                  <div className="flex items-start gap-3">
-                    <Calendar className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                    <div>
-                      <p className="font-semibold text-foreground text-xs uppercase tracking-wider">Mejor época para visitar</p>
-                      <p className="text-muted-foreground text-xs mt-0.5">{destination.bestTimeToVisit}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <Thermometer className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                    <div>
-                      <p className="font-semibold text-foreground text-xs uppercase tracking-wider">Clima y Temperatura</p>
-                      <p className="text-muted-foreground text-xs mt-0.5">{destination.weatherInfo}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                    <div>
-                      <p className="font-semibold text-foreground text-xs uppercase tracking-wider">Aeropuerto Internacional &amp; Acceso</p>
-                      <p className="text-muted-foreground text-xs mt-0.5">{destination.howToGetThere}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {destination.typicalDishes && destination.typicalDishes.length > 0 && (
-                  <div className="pt-4 border-t border-border">
-                    <p className="font-semibold text-foreground text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                      <Utensils className="h-4 w-4 text-primary" /> Platos Recomendados
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {destination.typicalDishes.map((dish, idx) => (
-                        <span key={idx} className="text-xs bg-muted px-2.5 py-1 rounded-md text-foreground font-medium">
-                          {dish}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Banner Publicitario Oficial 1 (Hoteles & Resorts de Lujo) */}
-              <div className="rounded-3xl overflow-hidden shadow-sm border border-border/60">
-                <DetailPageSidebarAd showDemo={true} variant="standard" industry="hotels" />
-              </div>
-
-              {/* Banner Publicitario Oficial 2 (Vuelos & Aerolíneas Internacionales) */}
-              <div className="rounded-3xl overflow-hidden shadow-sm border border-border/60">
-                <DetailPageSidebarAd showDemo={true} variant="standard" industry="airlines" />
-              </div>
-
-              {/* Banner Publicitario Oficial 3 (Transporte, Rent a Car & Movilidad - Mitad de altura / Compacto) */}
-              <div className="rounded-2xl overflow-hidden shadow-sm border border-border/60">
-                <DetailPageSidebarAd showDemo={true} variant="compact" industry="rentcar" />
-              </div>
+      {/* Encabezado: texto y acciones a la izquierda, foto a la derecha */}
+      <section className="border-b border-border bg-gradient-to-br from-primary/15 via-background to-background pt-24 pb-10">
+        <div className="container mx-auto grid items-center gap-8 px-4 lg:grid-cols-2 lg:px-8">
+          <div>
+            <nav aria-label={pc.t("nav.aria-label.1", "Migas de pan")} className="mb-4 text-sm text-muted-foreground">
+              <Link to="/destinos" className="inline-flex items-center gap-1 hover:text-foreground"><ChevronLeft className="h-4 w-4" />{" "}{pc.tx("Link.1", "Destinos")}</Link>
+            </nav>
+            <ul className="mb-3 flex flex-wrap gap-2" aria-label={pc.t("ul.aria-label.1", "Tipo de destino")}>
+              {d.categories.map((c) => <li key={c}><Badge variant="secondary" className="rounded-full">{cap(c)}</Badge></li>)}
+            </ul>
+            <h1 className="font-display text-4xl md:text-6xl font-bold tracking-tight text-foreground">{d.name}</h1>
+            {place && <p className="mt-2 flex items-center gap-1.5 text-muted-foreground"><MapPin className="h-4 w-4 text-primary" /> {place}</p>}
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Button asChild size="lg" className="rounded-xl font-bold"><a href="#hoteles"><Hotel className="mr-2 h-4 w-4" />{" "}{pc.tx("a.1", "Ver hoteles")}</a></Button>
+              <Button asChild size="lg" variant="outline" className="rounded-xl"><Link to="/itinerario-ia"><Sparkles className="mr-2 h-4 w-4" />{" "}{pc.tx("Link.2", "Planificar con IA")}</Link></Button>
+              <FavoriteButton id={d.id} type="destino" name={d.name} image={d.imageUrl} location={place} variant="button" size="lg" />
             </div>
           </div>
-          <div className="mt-10"><ParticipationInvite placeName={destination.name} /></div>
+          <div className="overflow-hidden rounded-3xl border border-border shadow-xl">
+            <img src={d.imageUrl} alt={`Vista de ${d.name}`} className="aspect-[4/3] w-full object-cover" />
+          </div>
         </div>
       </section>
 
-      {/* 2. LO ESENCIAL PARA EL VIAJERO */}
-      <DestinationEssentials
-        destinoNombre={destination.name}
-        region={destination.province || destination.region || "República Dominicana"}
-        aeropuertoCercano={destination.howToGetThere}
-      />
-
-      {/* 3. LO QUE NO TE PUEDES PERDER */}
-      <DestinationMustSee destinoNombre={destination.name} slug={destination.slug} />
-
-      {/* 4. PLANIFICA TU LLEGADA & RUTAS TERRESTRES */}
-      <DestinationArrivalGuide
-        destinationName={destination.name}
-        provinceName={destination.province}
-        airportInfo={destination.howToGetThere}
-      />
-
-      {/* 5. EXPLORA POR ZONAS Y MICRO-DESTINOS */}
-      <DestinationZonesGrid slug={destination.slug} destinoNombre={destination.name} />
-
-      {/* BANNER PUBLICITARIO HORIZONTAL 1 (Entre Secciones - Patrocinador Oficial) */}
-      <div className="my-6">
-        <BetweenSectionsAd showDemo={true} section="destination-mid-1" industry="hotels" />
-      </div>
-
-      {/* 6. SECCIONES EDITORIALES COMPLETAS: HOTELES, RESTAURANTES Y BARES */}
-      <div className="container mx-auto px-4">
-        <DestinationEditorialSections
-          destinoNombre={destination.name}
-          hotels={hotels}
-          restaurants={restaurants}
-          bars={bars}
-          experiences={experiences}
-        />
-      </div>
-
-      {/* 7. BANNER DE CONSULTOR LOCAL & GARANTÍA OFICIAL */}
-      <DestinationConsultantBanner destinoNombre={destination.name} />
-
-      {/* BANNER PUBLICITARIO HORIZONTAL 2 (Entre Secciones - Gastronomía & Experiencias) */}
-      <div className="my-6">
-        <BetweenSectionsAd showDemo={true} section="destination-mid-2" industry="restaurants" />
-      </div>
-
-      {/* Main Content Extra Sections */}
-      <main className="container mx-auto px-4 py-8">
-        <div className="space-y-16">
-          {/* Sub-destinations for provinces */}
-          {subDestinations.length > 0 && (
-            <section className="bg-card rounded-3xl p-8 border border-border">
-              <h3 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
-                <Users className="h-6 w-6 text-primary" />
-                Destinos y Municipios en {destination.name}
-              </h3>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {subDestinations.map(sub => (
-                  <Link 
-                    key={sub.id}
-                    to={`/destino/${sub.slug}`}
-                    className="group relative overflow-hidden rounded-2xl aspect-[4/3] shadow-md"
-                  >
-                    <img 
-                      src={sub.imageUrl}
-                      alt={sub.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-5">
-                      <h4 className="font-bold text-lg text-white group-hover:text-primary transition-colors">{sub.name}</h4>
-                      <p className="text-white/80 text-xs line-clamp-2 mt-1">{sub.shortDescription}</p>
-                    </div>
-                  </Link>
-                ))}
+      <main className="container mx-auto space-y-16 px-4 py-12 lg:px-8">
+        {/* Resumen: texto y fotos a la izquierda; datos clave y anuncio a la derecha */}
+        <section id="resumen" className="grid scroll-mt-32 gap-8 lg:grid-cols-[1fr_20rem]">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-primary">{d.isFeatured ? "Destino estrella del Caribe" : d.isPopular ? "Destino popular" : "Guía del destino"}</p>
+            <h2 className="mt-2 font-display text-2xl md:text-4xl font-bold leading-tight text-foreground">{d.shortDescription}</h2>
+            <p className="mt-4 whitespace-pre-line text-base leading-relaxed text-muted-foreground">{d.description}</p>
+            {photos.length > 1 && (
+              <div className="mt-6 grid grid-cols-5 gap-3">
+                <figure className="col-span-3 overflow-hidden rounded-2xl"><img src={photo(1)} alt={`${d.name}: ${d.highlights[0] ?? "paisaje"}`} loading="lazy" onError={onImgError} className="aspect-[4/3] h-full w-full object-cover" /></figure>
+                <figure className="col-span-2 overflow-hidden rounded-2xl"><img src={photo(2)} alt={`${d.name}: ${d.highlights[1] ?? "ambiente"}`} loading="lazy" onError={onImgError} className="aspect-[3/4] h-full w-full object-cover" /></figure>
               </div>
-            </section>
-          )}
-
-          {/* Gastronomía Local: Chivo guisado, Pescado frito, Casabe con enlace a recetas */}
-          <DestinationLocalGastronomy destinoNombre={destination.name} />
-
-          {/* About Tabs */}
-          {destination.about && (
-            <DestinationAboutTabs name={destination.name} data={destination.about} />
-          )}
-
-          {/* Related Blog Posts */}
-          <RelatedBlogPosts destinationName={destination.name} destinationSlug={destination.slug} />
-
-          {/* Call to Action Bar */}
-          <div className="bg-gradient-to-r from-primary to-primary/80 rounded-3xl p-8 md:p-12 text-primary-foreground flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
-            <div>
-              <h3 className="font-display text-2xl md:text-3xl font-black">
-                ¿Listo para explorar {destination.name}?
-              </h3>
-              <p className="text-primary-foreground/90 text-sm md:text-base mt-2 max-w-xl">
-                Crea tu itinerario inteligente con IA hora por hora o descarga la guía oficial de viaje.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Button size="lg" variant="secondary" className="rounded-xl font-bold" asChild>
-                <Link to="/itinerario-ia">
-                  Itinerario con IA <ChevronRight className="h-4 w-4 ml-1" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" className="rounded-xl font-bold bg-white/10 hover:bg-white/20 border-white/30 text-white" asChild>
-                <Link to="/planifica">
-                  Planificador Manual
-                </Link>
-              </Button>
-            </div>
+            )}
           </div>
-        </div>
+          <aside className="space-y-6">
+            {facts.length > 0 && (
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <h3 className="mb-4 font-display text-lg font-bold">{pc.tx("h3.1", "Datos clave")}</h3>
+                <dl className="space-y-4">
+                  {facts.map((f) => (
+                    <div key={f.label} className="flex gap-3">
+                      <f.icon className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                      <div><dt className="text-xs text-muted-foreground">{f.label}</dt><dd className="text-sm font-semibold text-foreground">{f.value}</dd></div>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )}
+            <div className="lg:sticky lg:top-32"><DetailPageSidebarAd showDemo variant="standard" industry="hotels" /></div>
+          </aside>
+        </section>
+
+        {/* Lo más destacado: un bloque grande y cuatro medianos */}
+        {highlights.length > 0 && (
+          <section id="destacados" className="scroll-mt-32">
+            <SectionHeader title={`Lo más destacado de ${d.name}`} link={{ to: `/destino/${d.slug}/actividades`, label: "Ver todos los lugares" }} />
+            <div className="grid gap-3 md:grid-cols-4 md:grid-rows-2">
+              {highlights.map((h, i) => (
+                <article key={h.name} className={`group relative overflow-hidden rounded-2xl ${tile(i, highlights.length)}`}>
+                  <img src={photo(i + 1)} alt="" loading="lazy" onError={onImgError} className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-4">
+                    <p className="text-3xs font-bold uppercase tracking-widest text-white/75">{h.tag}</p>
+                    <h3 className={`font-display font-bold text-white ${i === 0 ? "text-2xl" : "text-base"}`}>{h.name}</h3>
+                    {i === 0 && h.text && <p className="mt-1 max-w-md text-sm text-white/85">{h.text}</p>}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <BetweenSectionsAd showDemo section="destination-mid-1" industry="hotels" className="!py-0" />
+
+        {/* Zonas y distancias */}
+        <section id="zonas" className="scroll-mt-32 space-y-8">
+          <DestinationZonesGrid slug={d.slug} destinoNombre={d.name} />
+          {d.latitude && d.longitude && <DistancesFromCities latitude={d.latitude} longitude={d.longitude} destinationName={d.name} />}
+        </section>
+
+        {/* Próximos eventos */}
+        {events.length > 0 && (
+          <section id="eventos" className="scroll-mt-32">
+            <SectionHeader title={`Próximos eventos en ${d.name}`} description={pc.t("SectionHeader.description.1", "Festivales, torneos y fiestas para planificar tu fecha.")} link={{ to: "/eventos", label: "Ver agenda completa" }} />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {events.map((e) => (
+                <Link key={e.id} to={`/evento/${e.id}`} className="group overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-primary/50">
+                  <div className="relative"><img src={e.imagen} alt="" loading="lazy" onError={onImgError} className="aspect-[16/10] w-full object-cover" /><Badge className="absolute left-3 top-3">{e.fecha}</Badge></div>
+                  <div className="p-4">
+                    <p className="text-3xs font-bold uppercase tracking-widest text-primary">{e.categoria}</p>
+                    <h3 className="mt-1 font-semibold text-foreground group-hover:text-primary">{e.titulo}</h3>
+                    <p className="mt-1 text-xs text-muted-foreground">{e.ubicacion}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Información práctica */}
+        <section id="info" className="scroll-mt-32">
+          <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-3 lg:grid-cols-6">
+            {practical.map((p) => (
+              <div key={p.label} className="bg-card p-4">
+                <dt className="text-xs text-muted-foreground">{p.label}</dt>
+                <dd className="mt-1 text-sm font-semibold text-foreground">{p.to ? <Link to={p.to} className="hover:text-primary hover:underline underline-offset-4">{p.value}</Link> : p.value}</dd>
+              </div>
+            ))}
+          </dl>
+          <Link to="/requisitos-viaje#guia-practica" className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline underline-offset-4">{pc.tx("Link.3", "Guía completa para viajar a República Dominicana")}{" "}<ArrowRight className="h-4 w-4" /></Link>
+        </section>
+
+        {/* Hoteles recomendados */}
+        {hotels.length > 0 && (
+          <section id="hoteles" className="scroll-mt-32">
+            <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h2.1", "Hoteles recomendados en")}{" "}{d.name}</h2>
+              <div className="flex items-center gap-2">
+                <Link to="/alojamientos" className="mr-2 text-sm font-semibold text-primary hover:underline underline-offset-4">{pc.tx("Link.4", "Ver todos (")}{hotels.length})</Link>
+                <Button variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => slide(-1)} aria-label={pc.t("Button.aria-label.1", "Hoteles anteriores")}><ChevronLeft className="h-4 w-4" /></Button>
+                <Button variant="outline" size="icon" className="h-9 w-9 rounded-full" onClick={() => slide(1)} aria-label={pc.t("Button.aria-label.2", "Hoteles siguientes")}><ChevronRight className="h-4 w-4" /></Button>
+              </div>
+            </div>
+            <div ref={hotelRail} className="flex snap-x gap-4 overflow-x-auto pb-2 scrollbar-none">
+              {hotels.slice(0, 8).map((h) => (
+                <article key={h.id} className="w-72 shrink-0 snap-start overflow-hidden rounded-2xl border border-border bg-card">
+                  <div className="relative"><img src={h.imageUrl} alt="" loading="lazy" onError={onImgError} className="aspect-[4/3] w-full object-cover" /><Badge variant="secondary" className="absolute left-3 top-3 capitalize">{h.category.replace("-", " ")}</Badge></div>
+                  <div className="p-4">
+                    <p className="text-xs text-muted-foreground">{h.destinationName}</p>
+                    <h3 className="font-semibold text-foreground">{h.name}</h3>
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      <p className="flex items-center gap-2 text-sm"><span className="font-bold text-primary">{h.priceRange}</span><span className="flex items-center gap-0.5 text-muted-foreground"><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />{h.rating}</span></p>
+                      <Button asChild size="sm" className="rounded-lg"><Link to={`/alojamiento/${h.slug}`}>{pc.tx("Link.5", "Ver detalles")}</Link></Button>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <BetweenSectionsAd showDemo section="destination-mid-2" industry="restaurants" className="!py-0" />
+
+        {/* Dónde comer y vida nocturna */}
+        {restaurants.length + bars.length > 0 && (
+          <section id="comer" className="grid scroll-mt-32 gap-10 lg:grid-cols-[3fr_2fr]">
+            {restaurants.length > 0 && (
+              <div>
+                <SectionHeader title={pc.t("SectionHeader.title.1", "Dónde comer")} link={{ to: "/restaurantes", label: "Ver todos" }} />
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {restaurants.slice(0, 3).map((r) => (
+                    <Link key={r.id} to={`/restaurante/${r.slug}`} className="group overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-primary/50">
+                      <img src={r.imageUrl} alt="" loading="lazy" onError={onImgError} className="aspect-[4/3] w-full object-cover" />
+                      <div className="p-3">
+                        <h3 className="font-semibold text-foreground group-hover:text-primary">{r.name}</h3>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{[r.cuisineType?.[0], r.destinationName, r.priceRange].filter(Boolean).join(" · ")}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+            {bars.length > 0 && (
+              <div>
+                <SectionHeader title={pc.t("SectionHeader.title.2", "Vida nocturna")} link={{ to: "/vida-nocturna", label: "Ver todos" }} />
+                <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+                  {bars.slice(0, 4).map((b) => (
+                    <li key={b.id}>
+                      <Link to={`/bar/${b.slug}`} className="flex items-center gap-3 p-3 transition-colors hover:bg-muted/50">
+                        <img src={b.imageUrl} alt="" loading="lazy" onError={onImgError} className="h-12 w-12 shrink-0 rounded-lg object-cover" />
+                        <div className="min-w-0"><p className="truncate font-semibold text-foreground">{b.name}</p><p className="truncate text-xs capitalize text-muted-foreground">{[b.barType?.replace("-", " "), b.destinationName].filter(Boolean).join(" · ")}</p></div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Sabores dominicanos para probar aquí */}
+        <DestinationLocalGastronomy destinoNombre={d.name} />
+
+        {/* Llamada a planificar */}
+        <section className="flex flex-col items-start justify-between gap-6 rounded-3xl bg-gradient-to-r from-primary to-primary/80 p-8 text-primary-foreground md:flex-row md:items-center md:p-10">
+          <div>
+            <h2 className="font-display text-2xl md:text-3xl font-bold">{pc.tx("h2.2", "¿Listo para explorar")}{" "}{d.name}?</h2>
+            <p className="mt-1 text-primary-foreground/85">{pc.tx("p.1", "Arma tu itinerario en minutos o habla con un experto local.")}</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Button asChild size="lg" variant="secondary" className="rounded-xl font-bold"><Link to="/itinerario-ia">{pc.tx("Link.6", "Crear itinerario con IA")}</Link></Button>
+            <Button asChild size="lg" variant="outline" className="rounded-xl border-white/30 bg-white/10 font-bold text-white hover:bg-white/20 hover:text-white"><Link to="/planifica">{pc.tx("Link.7", "Planificar mi viaje")}</Link></Button>
+          </div>
+        </section>
+
+        {/* Artículos, historia y cultura */}
+        <RelatedBlogPosts destinationName={d.name} destinationSlug={d.slug} />
+        {d.about && <DestinationAboutTabs name={d.name} data={d.about} />}
+
+        {/* Destinos cercanos y preguntas frecuentes */}
+        {(nearby.length > 0 || faqs.length > 0) && (
+          <section className="grid gap-10 lg:grid-cols-2">
+            {nearby.length > 0 && (
+              <div>
+                <SectionHeader title={subDestinations.length ? `Destinos en ${d.name}` : "Destinos cercanos"} />
+                <div className="grid grid-cols-2 gap-3">
+                  {nearby.map((n) => (
+                    <Link key={n.id} to={`/destino/${n.slug}`} className="group relative overflow-hidden rounded-2xl">
+                      <img src={n.imageUrl} alt="" loading="lazy" onError={onImgError} className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                      <div className="absolute inset-x-0 bottom-0 p-3"><h3 className="font-bold text-white">{n.name}</h3><p className="line-clamp-1 text-xs text-white/80">{n.shortDescription}</p></div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+            {faqs.length > 0 && (
+              <div>
+                <SectionHeader title={pc.t("SectionHeader.title.3", "Preguntas frecuentes")} />
+                <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+                  {faqs.map((f) => (
+                    <details key={f.q} className="group p-4">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-semibold text-foreground">{f.q}<ChevronRight className="h-4 w-4 shrink-0 transition-transform group-open:rotate-90" /></summary>
+                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.a}</p>
+                    </details>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Pasaporte digital */}
+        <ParticipationInvite placeName={d.name} />
+
+        <PanoramaAd showDemo />
       </main>
 
       <Footer />
+      </div>
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { REGION_LABEL };

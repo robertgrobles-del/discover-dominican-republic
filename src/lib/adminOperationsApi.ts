@@ -40,9 +40,9 @@ export interface SupportMessage {
   created_at: string;
 }
 
-export interface SupportTicketDetail extends SupportTicketItem {
-  messages: any;
-  messages_list?: SupportMessage[];
+/** `GET /admin/support/tickets/:id` (forms/support-desk.ts): la conversación completa, notas internas incluidas. */
+export interface SupportTicketDetail extends Omit<SupportTicketItem, "messages"> {
+  messages: SupportMessage[];
 }
 
 export interface SupportStats {
@@ -77,7 +77,7 @@ export async function getAdminSupportTickets(params: {
 }
 
 export async function getAdminSupportTicket(id: string): Promise<SupportTicketDetail> {
-  const res = await fetchApi<{ data: any }>(`/admin/support/tickets/${id}`);
+  const res = await fetchApi<{ data: SupportTicketDetail }>(`/admin/support/tickets/${id}`);
   return res.data;
 }
 
@@ -138,9 +138,11 @@ export interface ContestRegistration {
   created_at: string;
 }
 
+/** Todos los concursos (la ruta pública no devuelve borradores). «current» = sin terminar; «past» = ya terminados. */
 export async function getAdminContests(include: "current" | "past" = "current"): Promise<AdminContest[]> {
-  const res = await fetchApi<{ data: AdminContest[] }>(`/contests?include=${include}`);
-  return res.data;
+  const res = await fetchApi<{ data: AdminContest[] }>("/admin/contests");
+  const now = Date.now();
+  return res.data.filter((c) => (new Date(c.ends_at).getTime() > now) === (include === "current"));
 }
 
 export async function createAdminContest(data: {
@@ -189,7 +191,8 @@ export async function drawAdminContestWinners(
 // ==========================================
 export interface SurveyQuestion {
   id: string;
-  text: string;
+  /** Enunciado de la pregunta (así lo llama la API). */
+  label: string;
   type: "rating" | "choice" | "multi" | "text" | "nps";
   options?: string[];
   required?: boolean;
@@ -223,8 +226,9 @@ export interface SurveyResults {
   }>;
 }
 
+/** Todas las encuestas, activas o no. */
 export async function getPublicSurveys(): Promise<AdminSurvey[]> {
-  const res = await fetchApi<{ data: AdminSurvey[] }>("/surveys");
+  const res = await fetchApi<{ data: AdminSurvey[] }>("/admin/surveys");
   return res.data;
 }
 
@@ -262,7 +266,8 @@ export async function getAdminSurveyResults(slug: string): Promise<SurveyResults
 // ==========================================
 export interface SiteSettingItem {
   key: string;
-  value: any;
+  /** JSON libre: cada ajuste define su forma (texto, número, objeto). */
+  value: unknown;
   description: string | null;
   is_public: boolean;
   updated_at: string;
@@ -275,7 +280,7 @@ export async function getAdminSiteSettings(): Promise<SiteSettingItem[]> {
 
 export async function saveAdminSiteSetting(
   key: string,
-  data: { value: any; is_public?: boolean; description?: string }
+  data: { value: unknown; is_public?: boolean; description?: string }
 ): Promise<SiteSettingItem> {
   const res = await fetchApi<{ data: SiteSettingItem }>(`/admin/settings/${key}`, {
     method: "PUT",
@@ -306,6 +311,8 @@ export interface MediaAssetItem {
   moderation_note: string | null;
   created_at: string;
   url?: string;
+  /** Versiones reducidas (webp). El original de una imagen bajo licencia no es público; estas sí. */
+  variants?: { original: string; thumb: string; medium: string; large: string };
 }
 
 export async function getAdminMediaList(params: {
@@ -355,30 +362,34 @@ export async function importAdminMediaUrl(data: {
 // ==========================================
 export type AmbassadorStatus = "pending" | "approved" | "rejected" | "suspended";
 
+/** Fila de `GET /admin/ambassadors` (backend/src/modules/ambassadors/service.ts). */
 export interface AmbassadorItem {
   id: string;
-  user_id: string;
-  full_name: string;
   email: string;
+  display_name: string | null;
   referral_code: string;
   status: AmbassadorStatus;
+  tier: string | null;
+  sales_count: number;
+  total_earned: number;
+  pending_payout: number;
+  clicks: number;
   commission_override: number | null;
-  total_earnings: number;
-  pending_balance: number;
-  note: string | null;
   created_at: string;
 }
 
+/** Fila de `GET /admin/ambassadors/payouts`. */
 export interface AmbassadorPayoutItem {
   id: string;
   ambassador_id: string;
-  ambassador_name?: string;
+  email: string;
   amount: number;
   status: "pending" | "paid" | "failed";
+  payout_method: string | null;
   reference: string | null;
   note: string | null;
+  processed_at: string | null;
   created_at: string;
-  settled_at: string | null;
 }
 
 export async function getAdminAmbassadors(params: {

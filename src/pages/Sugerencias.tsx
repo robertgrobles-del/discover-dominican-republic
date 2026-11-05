@@ -17,6 +17,7 @@ import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import laRomanaImg from "@/assets/la-romana.jpg";
 import gastronomiImg from "@/assets/gastronomy.jpg";
 import adventureImg from "@/assets/adventure.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 interface Suggestion {
   id: string;
@@ -172,6 +173,12 @@ function SuggestionCard({ suggestion }: { suggestion: Suggestion }) {
 }
 
 export default function Sugerencias() {
+  const pc = usePageContent("sugerencias");
+  const userStats = pc.data("userStats", __pcData.userStats);
+  const filterOptions = pc.data("filterOptions", __pcData.filterOptions);
+  const becauseSamana = pc.data("becauseSamana", __pcData.becauseSamana);
+  const becauseEcoturismo = pc.data("becauseEcoturismo", __pcData.becauseEcoturismo);
+  const personalizedExperiences = pc.data("personalizedExperiences", __pcData.personalizedExperiences);
   const [activeFilters, setActiveFilters] = useState(["ai"]);
 
   const toggleFilter = (id: string) => {
@@ -198,16 +205,11 @@ export default function Sugerencias() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
             <div className="flex flex-col gap-2 max-w-2xl">
               <Badge className="w-fit bg-primary/10 text-primary border-primary/20">
-                <Sparkles className="h-3 w-3 mr-1" />
-                Recomendaciones IA
-              </Badge>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground leading-tight">
-                Hola, Alex. <br />
-                <span className="text-gradient">Tu viaje ideal te espera.</span>
+                <Sparkles className="h-3 w-3 mr-1" />{pc.tx("Badge.1", "Recomendaciones IA")}</Badge>
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground leading-tight">{pc.tx("h1.1", "Hola, Alex.")}{" "}<br />
+                <span className="text-gradient">{pc.tx("span.1", "Tu viaje ideal te espera.")}</span>
               </h1>
-              <p className="text-muted-foreground text-lg mt-2">
-                Hemos analizado tus últimas interacciones. Basado en tu visita a <strong>Samaná</strong> y tu búsqueda de <strong>ecoturismo</strong>, aquí tienes sugerencias personalizadas.
-              </p>
+              <p className="text-muted-foreground text-lg mt-2">{pc.tx("p.1", "Hemos analizado tus últimas interacciones. Basado en tu visita a")}{" "}<strong>{pc.tx("strong.1", "Samaná")}</strong>{" "}{pc.tx("p.2", "y tu búsqueda de")}{" "}<strong>{pc.tx("strong.2", "ecoturismo")}</strong>{pc.tx("p.3", ", aquí tienes sugerencias personalizadas.")}</p>
             </div>
 
             {/* Stats Cards */}
@@ -215,18 +217,18 @@ export default function Sugerencias() {
               <div className="bg-card p-4 rounded-xl border border-border shadow-sm min-w-[140px]">
                 <div className="flex justify-between items-start mb-2">
                   <Award className="h-5 w-5 text-amber-500" />
-                  <span className="text-xs font-bold text-muted-foreground">STATUS</span>
+                  <span className="text-xs font-bold text-muted-foreground">{pc.tx("span.2", "STATUS")}</span>
                 </div>
-                <p className="text-2xl font-bold text-foreground">Nivel {userStats.level}</p>
+                <p className="text-2xl font-bold text-foreground">{pc.tx("p.4", "Nivel")}{" "}{userStats.level}</p>
                 <p className="text-sm text-muted-foreground">{userStats.levelName}</p>
               </div>
               <div className="bg-card p-4 rounded-xl border border-border shadow-sm min-w-[140px]">
                 <div className="flex justify-between items-start mb-2">
                   <Sparkles className="h-5 w-5 text-primary" />
-                  <span className="text-xs font-bold text-muted-foreground">MATCH</span>
+                  <span className="text-xs font-bold text-muted-foreground">{pc.tx("span.3", "MATCH")}</span>
                 </div>
                 <p className="text-2xl font-bold text-foreground">{userStats.matchPercent}%</p>
-                <p className="text-sm text-muted-foreground">Afinidad {userStats.matchType}</p>
+                <p className="text-sm text-muted-foreground">{pc.tx("p.5", "Afinidad")}{" "}{userStats.matchType}</p>
               </div>
             </div>
           </div>
@@ -246,9 +248,7 @@ export default function Sugerencias() {
               </Button>
             ))}
             <div className="ml-auto hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
-              <Filter className="h-4 w-4" />
-              Personalizar filtros
-            </div>
+              <Filter className="h-4 w-4" />{pc.tx("div.1", "Personalizar filtros")}</div>
           </div>
         </section>
 
@@ -256,12 +256,9 @@ export default function Sugerencias() {
         <section className="px-4 md:px-8 lg:px-12 pb-16 max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
-                Porque te gustó <span className="text-primary underline decoration-2 underline-offset-4">Samaná</span>
+              <h2 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">{pc.tx("h2.1", "Porque te gustó")}{" "}<span className="text-primary underline decoration-2 underline-offset-4">{pc.tx("span.4", "Samaná")}</span>
               </h2>
-              <p className="text-muted-foreground text-sm mt-1">
-                Destinos similares con playas vírgenes y naturaleza exuberante.
-              </p>
+              <p className="text-muted-foreground text-sm mt-1">{pc.tx("p.6", "Destinos similares con playas vírgenes y naturaleza exuberante.")}</p>
             </div>
             <div className="flex gap-2">
               <Button variant="outline" size="icon" className="rounded-full">
@@ -284,12 +281,9 @@ export default function Sugerencias() {
         <section className="px-4 md:px-8 lg:px-12 pb-16 max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">
-                Porque amas el <span className="text-primary underline decoration-2 underline-offset-4">ecoturismo</span>
+              <h2 className="text-2xl font-display font-bold text-foreground flex items-center gap-2">{pc.tx("h2.2", "Porque amas el")}{" "}<span className="text-primary underline decoration-2 underline-offset-4">{pc.tx("span.5", "ecoturismo")}</span>
               </h2>
-              <p className="text-muted-foreground text-sm mt-1">
-                Aventuras en la naturaleza que encajan con tu espíritu explorador.
-              </p>
+              <p className="text-muted-foreground text-sm mt-1">{pc.tx("p.7", "Aventuras en la naturaleza que encajan con tu espíritu explorador.")}</p>
             </div>
           </div>
 
@@ -303,12 +297,8 @@ export default function Sugerencias() {
         {/* Section 3: Personalized Experiences */}
         <section className="px-4 md:px-8 lg:px-12 pb-16 max-w-7xl mx-auto">
           <div className="mb-6">
-            <h2 className="text-2xl font-display font-bold text-foreground">
-              Experiencias Personalizadas para Ti
-            </h2>
-            <p className="text-muted-foreground text-sm mt-1">
-              Basadas en tus intereses en gastronomía y cultura local.
-            </p>
+            <h2 className="text-2xl font-display font-bold text-foreground">{pc.tx("h2.3", "Experiencias Personalizadas para Ti")}</h2>
+            <p className="text-muted-foreground text-sm mt-1">{pc.tx("p.8", "Basadas en tus intereses en gastronomía y cultura local.")}</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
@@ -342,9 +332,9 @@ export default function Sugerencias() {
                   </p>
                   <div className="mt-auto flex items-center justify-between">
                     <span className="font-bold text-foreground">
-                      ${exp.price} <span className="text-sm font-normal text-muted-foreground">USD</span>
+                      ${exp.price} <span className="text-sm font-normal text-muted-foreground">{pc.tx("span.6", "USD")}</span>
                     </span>
-                    <Button size="sm">Reservar</Button>
+                    <Button size="sm">{pc.tx("Button.1", "Reservar")}</Button>
                   </div>
                 </div>
               </motion.div>
@@ -357,3 +347,6 @@ export default function Sugerencias() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { userStats, filterOptions, becauseSamana, becauseEcoturismo, personalizedExperiences };

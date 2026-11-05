@@ -15,7 +15,10 @@ export class PostgresIdentityAdmin implements IdentityAdminPort {
   }
 
   async revokeSessions(userId: string, c: Db | PoolClient = this.db) {
-    await c.query("UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL", [userId]);
+    // También las sesiones de soporte que esta persona abrió sobre otras cuentas (guardadas con user_id = destino):
+    // si pierde su autoridad (cambio de roles, revisión de accesos, vencimiento) no puede seguir leyendo esas cuentas.
+    await c.query("UPDATE refresh_tokens SET revoked_at = now() WHERE (user_id = $1 OR impersonated_by = $1) AND revoked_at IS NULL", [userId]);
+    await c.query("UPDATE support_sessions SET ended_at = now() WHERE admin_id = $1 AND ended_at IS NULL", [userId]);
   }
 
   async revokeSessionFamily(familyId: string, c: Db | PoolClient = this.db) {

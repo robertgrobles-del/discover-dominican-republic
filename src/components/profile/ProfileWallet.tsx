@@ -42,7 +42,7 @@ export function ProfileWallet({
               {/* Card Header */}
               <div className="flex justify-between items-start">
                 <div>
-                  <Badge className="bg-white/20 hover:bg-white/30 text-white border-none font-mono text-[9px] uppercase tracking-wider">
+                  <Badge className="bg-white/20 hover:bg-white/30 text-white border-none font-mono text-3xs uppercase tracking-wider">
                     RD Pass Prepago
                   </Badge>
                   <h3 className="text-xs text-white/70 font-semibold tracking-widest uppercase mt-2">Descubre República Dominicana</h3>
@@ -58,7 +58,7 @@ export function ProfileWallet({
               {/* Card Chip & Balance */}
               <div className="flex justify-between items-end pt-4">
                 <div className="space-y-1">
-                  <p className="text-[10px] text-white/60 uppercase tracking-wider">Balance Disponible</p>
+                  <p className="text-3xs text-white/60 uppercase tracking-wider">Balance Disponible</p>
                   <h2 className="text-3xl md:text-4xl font-mono font-extrabold text-white">
                     RD$ {rdPassBalance.toLocaleString("es-DO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </h2>
@@ -78,11 +78,11 @@ export function ProfileWallet({
               {/* Card Footer */}
               <div className="flex justify-between items-end pt-4 border-t border-white/10">
                 <div>
-                  <p className="text-[8px] text-white/50 uppercase tracking-widest">Titular</p>
+                  <p className="text-3xs text-white/50 uppercase tracking-widest">Titular</p>
                   <p className="text-sm font-semibold tracking-wide">{profile.display_name || "Turista Invitado"}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[8px] text-white/50 uppercase tracking-widest">Número de Cuenta</p>
+                  <p className="text-3xs text-white/50 uppercase tracking-widest">Número de Cuenta</p>
                   <p className="text-sm font-mono tracking-widest">•••• •••• •••• 8290</p>
                 </div>
               </div>
@@ -151,21 +151,21 @@ export function ProfileWallet({
                 <div className="p-4 flex justify-between items-center text-xs">
                   <div>
                     <p className="font-semibold text-foreground">Texaco - Combustible</p>
-                    <p className="text-[10px] text-muted-foreground">Hace 2 horas • Bayahíbe, RD</p>
+                    <p className="text-3xs text-muted-foreground">Hace 2 horas • Bayahíbe, RD</p>
                   </div>
                   <span className="font-mono font-bold text-red-500">- RD$ 800.00</span>
                 </div>
                 <div className="p-4 flex justify-between items-center text-xs">
                   <div>
                     <p className="font-semibold text-foreground">eSIM Turista - Descubre RD</p>
-                    <p className="text-[10px] text-muted-foreground">Hace 1 día • Tienda App</p>
+                    <p className="text-3xs text-muted-foreground">Hace 1 día • Tienda App</p>
                   </div>
                   <span className="font-mono font-bold text-red-500">- RD$ 450.00</span>
                 </div>
                 <div className="p-4 flex justify-between items-center text-xs">
                   <div>
                     <p className="font-semibold text-foreground">Bono Cashback - Reserva de Hotel</p>
-                    <p className="text-[10px] text-muted-foreground">Hace 2 días • Recompensa</p>
+                    <p className="text-3xs text-muted-foreground">Hace 2 días • Recompensa</p>
                   </div>
                   <span className="font-mono font-bold text-emerald-500">+ RD$ 250.00</span>
                 </div>
@@ -190,7 +190,7 @@ export function ProfileWallet({
               <div className="bg-muted/40 p-4 rounded-xl border space-y-3">
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-muted-foreground">Operadora:</span>
-                  <Badge className="bg-emerald-500/20 text-emerald-400 border-none text-[10px]">Claro RD LTE</Badge>
+                  <Badge className="bg-emerald-500/20 text-emerald-400 border-none text-3xs">Claro RD LTE</Badge>
                 </div>
                 <div className="flex justify-between items-center text-xs">
                   <span className="text-muted-foreground font-sans">Estado:</span>
@@ -200,7 +200,7 @@ export function ProfileWallet({
                 </div>
                 
                 <div className="space-y-1.5 pt-2">
-                  <div className="flex justify-between text-[11px]">
+                  <div className="flex justify-between text-2xs">
                     <span className="text-muted-foreground">Datos Consumidos:</span>
                     <span className="font-bold text-foreground">2.4 GB / 10 GB</span>
                   </div>
@@ -238,20 +238,20 @@ export function ProfileWallet({
               <div className="p-3 bg-muted/30 border border-border/80 rounded-xl space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <Badge className="bg-primary/20 text-primary border-primary/20 text-[9px] uppercase">
+                    <Badge className="bg-primary/20 text-primary border-primary/20 text-3xs uppercase">
                       Béisbol Invernal LIDOM
                     </Badge>
                     <h4 className="font-bold text-xs text-foreground mt-1.5">Licey vs. Águilas Cibaeñas</h4>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">Estadio Quisqueya • Sto Dgo, RD</p>
+                    <p className="text-3xs text-muted-foreground mt-0.5">Estadio Quisqueya • Sto Dgo, RD</p>
                   </div>
                 </div>
-                <div className="flex justify-between items-center text-[10px] text-muted-foreground border-t border-border/60 pt-2">
+                <div className="flex justify-between items-center text-3xs text-muted-foreground border-t border-border/60 pt-2">
                   <span>Preferencia C • Fila 4, As. 12</span>
                   <span>Hoy, 19:30</span>
                 </div>
                 <Button 
                   size="sm" 
-                  className="w-full text-[11px] font-bold gap-1.5 h-8"
+                  className="w-full text-2xs font-bold gap-1.5 h-8"
                   onClick={() => setSelectedTicket({
                     title: "Licey vs. Águilas (LIDOM)",
                     type: "Boleto de Entrada Estadio",
@@ -266,21 +266,21 @@ export function ProfileWallet({
               <div className="p-3 bg-muted/30 border border-border/80 rounded-xl space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <Badge className="bg-emerald-500/10 text-emerald-400 border-none text-[9px] uppercase">
+                    <Badge className="bg-emerald-500/10 text-emerald-400 border-none text-3xs uppercase">
                       Excursión Certificada
                     </Badge>
                     <h4 className="font-bold text-xs text-foreground mt-1.5">Tour Express - Cayo Arena</h4>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">Operado por Runners Adventures</p>
+                    <p className="text-3xs text-muted-foreground mt-0.5">Operado por Runners Adventures</p>
                   </div>
                 </div>
-                <div className="flex justify-between items-center text-[10px] text-muted-foreground border-t border-border/60 pt-2">
+                <div className="flex justify-between items-center text-3xs text-muted-foreground border-t border-border/60 pt-2">
                   <span>Punto: Muelle Punta Rucia</span>
                   <span>Mañana, 08:00 AM</span>
                 </div>
                 <Button 
                   size="sm" 
                   variant="outline"
-                  className="w-full text-[11px] font-bold gap-1.5 h-8"
+                  className="w-full text-2xs font-bold gap-1.5 h-8"
                   onClick={() => setSelectedTicket({
                     title: "Tour Express Cayo Arena",
                     type: "Voucher de Excursión",

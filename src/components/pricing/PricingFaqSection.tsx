@@ -6,27 +6,27 @@ export function PricingFaqSection() {
       </h2>
       <div className="space-y-4">
         <div className="bg-card border border-border p-5 rounded-2xl">
-          <h4 className="font-bold text-sm text-foreground mb-1">
+          <h3 className="h4 font-bold text-sm text-foreground mb-1">
             ¿Cómo reclamo un negocio que ya aparece en el portal?
-          </h4>
+          </h3>
           <p className="text-xs text-muted-foreground leading-relaxed">
             Busca la ficha de tu hotel, restaurante o bar en el directorio y haz clic en el botón <strong>"¿Eres el propietario? Reclama tu ficha"</strong>. Tras validar tus datos y titularidad con el RNC o licencia comercial, recibirás acceso a tu panel.
           </p>
         </div>
 
         <div className="bg-card border border-border p-5 rounded-2xl">
-          <h4 className="font-bold text-sm text-foreground mb-1">
+          <h3 className="h4 font-bold text-sm text-foreground mb-1">
             ¿Emiten comprobante fiscal (NCF) en República Dominicana?
-          </h4>
+          </h3>
           <p className="text-xs text-muted-foreground leading-relaxed">
             Sí. Todas nuestras suscripciones y planes publicitarios cuentan con factura electrónica fiscal (B01 con valor fiscal o B02 consumidor final) autorizada por la DGII.
           </p>
         </div>
 
         <div className="bg-card border border-border p-5 rounded-2xl">
-          <h4 className="font-bold text-sm text-foreground mb-1">
+          <h3 className="h4 font-bold text-sm text-foreground mb-1">
             ¿Puedo cambiar de plan o cancelar en cualquier momento?
-          </h4>
+          </h3>
           <p className="text-xs text-muted-foreground leading-relaxed">
             Totalmente. Los planes no tienen permanencia forzosa. Puedes actualizar a Destacado o volver al plan básico gratuito cuando lo desees desde tu panel.
           </p>

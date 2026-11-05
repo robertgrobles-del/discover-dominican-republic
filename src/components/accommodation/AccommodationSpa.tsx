@@ -67,9 +67,9 @@ export function AccommodationSpa({ spa }: AccommodationSpaProps) {
 
         <div className="grid md:grid-cols-2 gap-6">
           <div className="space-y-3">
-            <h4 className="font-display text-base font-bold text-foreground flex items-center gap-2">
+            <h3 className="h4 font-display text-base font-bold text-foreground flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" /> Tratamientos Exclusivos
-            </h4>
+            </h3>
             <div className="grid gap-2">
               {treatments.map((t, idx) => (
                 <div key={idx} className="p-3 bg-muted/40 rounded-xl text-xs font-medium text-foreground flex items-center gap-2">
@@ -81,9 +81,9 @@ export function AccommodationSpa({ spa }: AccommodationSpaProps) {
           </div>
 
           <div className="space-y-3">
-            <h4 className="font-display text-base font-bold text-foreground flex items-center gap-2">
+            <h3 className="h4 font-display text-base font-bold text-foreground flex items-center gap-2">
               <HeartPulse className="h-4 w-4 text-primary" /> Circuito Termal & Aguas
-            </h4>
+            </h3>
             <div className="grid gap-2">
               {hydrotherapy.map((h, idx) => (
                 <div key={idx} className="p-3 bg-muted/40 rounded-xl text-xs font-medium text-foreground flex items-center gap-2">

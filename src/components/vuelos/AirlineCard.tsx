@@ -49,10 +49,10 @@ export function AirlineCard({ airline }: AirlineCardProps) {
 
         {/* Direct Routes / Cities */}
         <div className="pt-6">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
+          <h3 className="h4 text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
             <Globe className="w-3.5 h-3.5 text-primary" />
             Rutas Directas Disponibles
-          </h4>
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {airline.directOrigins.map((route, i) => (
               <div
@@ -61,13 +61,13 @@ export function AirlineCard({ airline }: AirlineCardProps) {
               >
                 <div>
                   <div className="font-semibold text-sm">{route.city}</div>
-                  <div className="text-[11px] text-muted-foreground">{route.country}</div>
+                  <div className="text-2xs text-muted-foreground">{route.country}</div>
                 </div>
                 <div className="text-right">
                   <span className="text-xs font-mono font-bold text-primary block">
                     {route.flightDuration}
                   </span>
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-3xs text-muted-foreground">
                     Vía {route.airportsRD.join("/")}
                   </span>
                 </div>

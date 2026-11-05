@@ -3,7 +3,7 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { AppError } from "../../lib/errors.js";
 import { pageMeta } from "../../lib/pagination.js";
-import { audit, auditChainVerify } from "../../lib/audit.js";
+import { audit, auditChainVerify, auditInsert } from "../../lib/audit.js";
 
 /** Administración transversal: restablecer 2FA de una cuenta y consultar la bitácora de auditoría. */
 export async function adminRoutes(app: FastifyInstance) {
@@ -20,10 +20,16 @@ export async function adminRoutes(app: FastifyInstance) {
     const u = (await app.db.query<{ email: string; totp: Date | null; name: string | null }>("SELECT u.email, u.totp_enabled_at AS totp, p.display_name AS name FROM users u LEFT JOIN profiles p ON p.id = u.id WHERE u.id = $1", [req.params.id])).rows[0];
     if (!u) throw AppError.notFound("Usuario");
     if (!u.totp) throw new AppError("BUSINESS_RULE", "Esa cuenta no tiene 2FA activo");
-    await app.identity.resetTwoFactor(req.params.id);
-    await app.identity.revokeSessions(req.params.id);
-    await audit(app.db, { actor: req.user!.id, action: "user.2fa_reset", entity: "user", id: req.params.id, meta: { reason: req.body.reason }, ip: req.ip });
-    await app.mailer.send({ to: u.email, template: "auth.two_factor_reset", locale: "es", data: { name: u.name ?? u.email } });
+    // Restablecimiento, revocación, auditoría y aviso al dueño en una sola transacción: si la auditoría falla no queda nada aplicado.
+    const c = await app.db.connect();
+    try {
+      await c.query("BEGIN");
+      await app.identity.resetTwoFactor(req.params.id, c);
+      await app.identity.revokeSessions(req.params.id, c);
+      await auditInsert(c, { actor: req.user!.id, action: "user.2fa_reset", entity: "user", id: req.params.id, meta: { reason: req.body.reason }, ip: req.ip });
+      await app.mailer.send({ to: u.email, template: "auth.two_factor_reset", locale: "es", data: { name: u.name ?? u.email } }, c);
+      await c.query("COMMIT");
+    } catch (e) { await c.query("ROLLBACK").catch(() => undefined); throw e; } finally { c.release(); }
     reply.code(204);
     return null;
   });
@@ -75,7 +81,7 @@ export async function adminRoutes(app: FastifyInstance) {
     reply.code(201);
     return { data };
   });
-  r.get("/admin/payouts/:id/items", { onRequest: admin, schema: { tags: ["admin"], summary: "Reservas de una liquidación", security: bearer, params: uuid, response: { 200: z.object({ data: any }) } } }, async (req) => ({ data: await app.payouts.items(req.params.id) }));
+  r.get("/admin/payouts/:id/items", { onRequest: admin, schema: { tags: ["admin"], summary: "Reservas y ajustes (reembolsos posteriores) de una liquidación", security: bearer, params: uuid, response: { 200: z.object({ data: any, adjustments: any }) } } }, async (req) => ({ data: await app.payouts.items(req.params.id), adjustments: await app.payouts.adjustments(req.params.id) }));
   r.post("/admin/payouts/:id/mark-paid", { onRequest: admin, schema: { tags: ["admin"], summary: "Marca una liquidación como pagada (comprobante obligatorio) y avisa al operador", security: bearer, params: uuid, body: z.object({ reference: z.string().trim().min(3).max(120) }), response: { 204: z.null() } } }, async (req, reply) => {
     app.approvals.assertDirectAllowed("payout_mark_paid");
     await app.payouts.markPaid(req.params.id, req.user!.id, req.body, req.ip);

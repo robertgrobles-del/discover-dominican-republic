@@ -1,65 +1,56 @@
 import { useState, useEffect } from "react";
-import { Cloud, Sun, CloudRain, Droplets, Wind } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Cloud, Sun, CloudRain, CloudLightning, Droplets, Wind } from "lucide-react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { fetchApi } from "@/lib/fastifyClient";
 
-interface WeatherData {
-  city: string;
-  temp: number;
-  condition: "sunny" | "cloudy" | "rainy" | "partly-cloudy";
-  humidity: number;
-  wind: number;
+/** Ciudad de `GET /live/weather` (backend/src/modules/weather/service.ts). */
+interface LiveWeather {
+  location: string;
+  name: string;
+  temperature_c: number | null;
+  feels_like_c: number | null;
+  humidity: number | null;
+  wind_kmh: number | null;
+  /** Texto del proveedor (p. ej. «nubes dispersas»). */
+  condition: string;
+  /** Código de icono de OpenWeather (`01d`, `10n`…). */
+  icon: string | null;
+  observed_at: string;
+  /** Observación de hace más de 3 horas. */
+  stale: boolean;
 }
 
-const mockWeatherData: WeatherData[] = [
-  { city: "Santo Domingo", temp: 28, condition: "sunny", humidity: 65, wind: 12 },
-  { city: "Punta Cana", temp: 30, condition: "sunny", humidity: 70, wind: 15 },
-  { city: "Puerto Plata", temp: 27, condition: "partly-cloudy", humidity: 68, wind: 18 },
-  { city: "Samaná", temp: 26, condition: "partly-cloudy", humidity: 72, wind: 10 },
-];
-
-const getWeatherIcon = (condition: WeatherData["condition"], className: string) => {
-  switch (condition) {
-    case "sunny":
-      return <Sun className={className} />;
-    case "cloudy":
-      return <Cloud className={className} />;
-    case "rainy":
-      return <CloudRain className={className} />;
-    case "partly-cloudy":
-      return <Cloud className={className} />;
-    default:
-      return <Sun className={className} />;
-  }
+/** Icono según el código de OpenWeather: 01 despejado, 02–04 nubes, 09/10 lluvia, 11 tormenta. */
+const getWeatherIcon = (icon: string | null, className: string) => {
+  const code = icon?.slice(0, 2);
+  if (code === "01") return <Sun className={className} />;
+  if (code === "09" || code === "10") return <CloudRain className={className} />;
+  if (code === "11") return <CloudLightning className={className} />;
+  return <Cloud className={className} />;
 };
 
-const getConditionLabel = (condition: WeatherData["condition"]) => {
-  switch (condition) {
-    case "sunny":
-      return "Soleado";
-    case "cloudy":
-      return "Nublado";
-    case "rainy":
-      return "Lluvioso";
-    case "partly-cloudy":
-      return "Parcialmente nublado";
-    default:
-      return "Soleado";
-  }
-};
+const temp = (c: number | null) => (c === null ? "—" : `${Math.round(c)}°`);
 
 export function WeatherWidget() {
   const [selectedCity, setSelectedCity] = useState(0);
-  const weather = mockWeatherData[selectedCity];
   const [rdTime, setRdTime] = useState("");
   const [showTimeMode, setShowTimeMode] = useState(false);
 
+  const { data: cities = [] } = useQuery({
+    queryKey: ["live-weather"],
+    queryFn: async () => (await fetchApi<{ data: LiveWeather[] }>("/live/weather")).data.filter((c) => c.temperature_c !== null),
+    staleTime: 10 * 60_000,
+    retry: false,
+  });
+  const weather = cities.length ? cities[selectedCity % cities.length] : null;
+
   useEffect(() => {
     const updateTime = () => {
-      const now = new Date();
       // Formato oficial hora RD (America/Santo_Domingo UTC-4)
       const formatter = new Intl.DateTimeFormat("es-DO", {
         timeZone: "America/Santo_Domingo",
@@ -67,7 +58,7 @@ export function WeatherWidget() {
         minute: "2-digit",
         hour12: true
       });
-      setRdTime(formatter.format(now));
+      setRdTime(formatter.format(new Date()));
     };
 
     updateTime();
@@ -75,32 +66,29 @@ export function WeatherWidget() {
     return () => clearInterval(timer);
   }, []);
 
-  // Alternar: Clima de la ciudad actual -> Hora oficial RD -> Siguiente ciudad Clima -> Hora oficial RD...
+  // Alternar: clima de una ciudad -> hora oficial RD -> siguiente ciudad... Sin datos de clima sólo se muestra la hora.
   useEffect(() => {
+    if (!cities.length) return;
     const interval = setInterval(() => {
       setShowTimeMode((prev) => {
-        if (!prev) {
-          // Si estaba mostrando clima, ahora muestra la hora
-          return true;
-        } else {
-          // Si estaba mostrando la hora, avanza a la siguiente ciudad y muestra su clima
-          setSelectedCity((c) => (c + 1) % mockWeatherData.length);
-          return false;
-        }
+        if (prev) setSelectedCity((c) => (c + 1) % cities.length);
+        return !prev;
       });
     }, 4000); // 4 segundos cada estado para lectura cómoda
 
     return () => clearInterval(interval);
-  }, []);
+  }, [cities.length]);
+
+  const timeOnly = showTimeMode || !weather;
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button 
+        <button
           className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/35 hover:bg-black/50 border border-white/20 transition-all text-xs text-white shadow-xs backdrop-blur-sm cursor-pointer select-none min-w-[130px] justify-center"
-          title="Ver hora oficial y referencias de clima de RD"
+          title="Ver hora oficial y clima de RD"
         >
-          {showTimeMode ? (
+          {timeOnly ? (
             <div className="flex items-center gap-1.5 animate-fadeIn">
               <span className="text-amber-400 text-xs">🕒</span>
               <span className="font-semibold text-white tracking-wide">RD:</span>
@@ -108,59 +96,63 @@ export function WeatherWidget() {
             </div>
           ) : (
             <div className="flex items-center gap-1.5 animate-fadeIn">
-              {getWeatherIcon(weather.condition, "h-3.5 w-3.5 text-amber-400 shrink-0")}
-              <span className="font-bold text-white">Ejemplo</span>
-              <span className="text-white/90 text-[11px] font-medium truncate max-w-[85px]">{weather.city}</span>
+              {getWeatherIcon(weather.icon, "h-3.5 w-3.5 text-amber-400 shrink-0")}
+              <span className="font-bold text-white">{temp(weather.temperature_c)}</span>
+              <span className="text-white/90 text-2xs font-medium truncate max-w-[85px]">{weather.name}</span>
             </div>
           )}
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-4" align="end">
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-display font-bold text-foreground">Clima referencial y hora RD</h4>
-              {rdTime && <p className="text-xs text-amber-500 font-medium">Hora local RD: {rdTime} (GMT-4)</p>}
-            </div>
-            <span className="rounded-full bg-muted px-2 py-1 text-[10px] font-medium text-muted-foreground">Datos de ejemplo</span>
+          <div>
+            <h4 className="font-display font-bold text-foreground">Clima y hora RD</h4>
+            {rdTime && <p className="text-xs text-amber-500 font-medium">Hora local RD: {rdTime} (GMT-4)</p>}
           </div>
-          
-          <div className="grid grid-cols-2 gap-2">
-            {mockWeatherData.map((city, index) => (
-              <button
-                key={city.city}
-                onClick={() => setSelectedCity(index)}
-                className={`p-3 rounded-lg transition-colors text-left ${
-                  selectedCity === index
-                    ? "bg-primary/10 border border-primary/30"
-                    : "bg-secondary/50 hover:bg-secondary border border-transparent"
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  {getWeatherIcon(city.condition, "h-4 w-4 text-primary")}
-                  <span className="font-semibold text-foreground text-lg">{city.temp}°</span>
+
+          {weather ? (
+            <>
+              <div className="grid grid-cols-2 gap-2">
+                {cities.map((city, index) => (
+                  <button
+                    key={city.location}
+                    onClick={() => setSelectedCity(index)}
+                    className={`p-3 rounded-lg transition-colors text-left ${
+                      weather.location === city.location
+                        ? "bg-primary/10 border border-primary/30"
+                        : "bg-secondary/50 hover:bg-secondary border border-transparent"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      {getWeatherIcon(city.icon, "h-4 w-4 text-primary")}
+                      <span className="font-semibold text-foreground text-lg">{temp(city.temperature_c)}</span>
+                    </div>
+                    <p className="text-sm font-medium text-foreground">{city.name}</p>
+                    <p className="text-xs text-muted-foreground first-letter:uppercase">{city.condition}</p>
+                  </button>
+                ))}
+              </div>
+
+              <div className="pt-3 border-t border-border space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Droplets className="h-4 w-4" />
+                    <span>Humedad: {weather.humidity ?? "—"}%</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Wind className="h-4 w-4" />
+                    <span>Viento: {weather.wind_kmh === null ? "—" : Math.round(weather.wind_kmh)} km/h</span>
+                  </div>
                 </div>
-                <p className="text-sm font-medium text-foreground">{city.city}</p>
-                <p className="text-xs text-muted-foreground">{getConditionLabel(city.condition)}</p>
-              </button>
-            ))}
-          </div>
-          
-          <div className="pt-3 border-t border-border">
-            <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
-              Estas temperaturas son ilustrativas y no representan un pronóstico actual. Consulta las condiciones locales antes de viajar.
-            </p>
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Droplets className="h-4 w-4" />
-                <span>Humedad: {weather.humidity}%</span>
+                <p className="text-xs text-muted-foreground">
+                  {weather.stale ? "Datos de hace más de 3 horas; " : ""}observado a las{" "}
+                  {new Date(weather.observed_at).toLocaleTimeString("es-DO", { timeZone: "America/Santo_Domingo", hour: "numeric", minute: "2-digit" })}.
+                </p>
               </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Wind className="h-4 w-4" />
-                <span>Viento: {weather.wind} km/h</span>
-              </div>
-            </div>
-          </div>
+            </>
+          ) : (
+            <p className="text-xs leading-relaxed text-muted-foreground">El clima no está disponible en este momento. Consulta las condiciones locales antes de viajar.</p>
+          )}
         </div>
       </PopoverContent>
     </Popover>

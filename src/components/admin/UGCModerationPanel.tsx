@@ -172,10 +172,10 @@ export function UGCModerationPanel() {
                       <span className="text-2xl">{item.avatar || "👤"}</span>
                       <div>
                         <p className="font-semibold text-xs text-foreground">{item.author || "Usuario"}</p>
-                        <p className="text-[10px] text-muted-foreground">{item.date || "Pendiente"}</p>
+                        <p className="text-3xs text-muted-foreground">{item.date || "Pendiente"}</p>
                       </div>
                     </div>
-                    <Badge variant="outline" className="text-[9px] uppercase font-bold tracking-wider">
+                    <Badge variant="outline" className="text-3xs uppercase font-bold tracking-wider">
                       {item.type === "pin" ? "Joya de Mapa" : item.type === "review" ? "Reseña" : "Foto Concurso"}
                     </Badge>
                   </div>
@@ -184,7 +184,7 @@ export function UGCModerationPanel() {
                     <div className="space-y-2">
                       <h4 className="font-bold text-sm text-foreground">{item.name}</h4>
                       <p className="text-xs text-muted-foreground">{item.description || "Sin descripción proporcionada."}</p>
-                      <div className="p-2 bg-secondary/50 rounded-lg text-[10px] font-mono text-primary flex items-center gap-1">
+                      <div className="p-2 bg-secondary/50 rounded-lg text-3xs font-mono text-primary flex items-center gap-1">
                         <MapPin className="h-3 w-3" /> Coordenadas: {item.lat?.toFixed(5)}, {item.lng?.toFixed(5)}
                       </div>
                     </div>

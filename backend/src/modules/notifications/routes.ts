@@ -35,33 +35,40 @@ export async function notificationRoutes(app: FastifyInstance) {
   r.delete("/me/push-subscriptions/:id", { onRequest: auth, schema: { tags: tag, summary: "Quita un dispositivo", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => { await svc.removePush(req.user!.id, req.params.id); reply.code(204); return null; });
 
   // ---------- Tiempo real ----------
-  r.post("/notifications/stream-ticket", { onRequest: auth, config: rl(60, "1 minute"), schema: { tags: tag, summary: "Ticket de un minuto para abrir el flujo SSE (un EventSource no puede enviar el encabezado Authorization)", security: bearer, response: { 200: ok } } }, async (req) => ({ data: svc.createTicket(req.user!.id) }));
+  r.post("/notifications/stream-ticket", { onRequest: auth, config: rl(60, "1 minute"), schema: { tags: tag, summary: "Ticket de un minuto para abrir el flujo SSE (un EventSource no puede enviar el encabezado Authorization)", security: bearer, response: { 200: ok } } }, async (req) => ({ data: svc.createTicket(req.user!.id, req.user!.sid) }));
 
+  /** Misma regla que `authenticate`: la sesión (familia de refresh) sigue abierta. */
+  const sessionAlive = async (sid: string, userId: string) =>
+    !!(await app.db.query("SELECT 1 FROM refresh_tokens WHERE family_id = $1 AND user_id = $2 AND revoked_at IS NULL AND expires_at > now() LIMIT 1", [sid, userId])).rowCount;
   /** El flujo acepta el ticket (navegador) o el encabezado Authorization (otros clientes). */
   const streamAuth = async (req: FastifyRequest) => {
     const ticket = (req.query as { ticket?: string }).ticket;
     if (ticket) {
-      const id = svc.verifyTicket(ticket);
-      if (!id) throw new AppError("UNAUTHENTICATED", "El ticket no es válido o venció");
-      req.user = { id, roles: [], locale: "es", sid: "stream", mfa: false };
+      const t = svc.verifyTicketSession(ticket);
+      if (!t?.sid || !(await sessionAlive(t.sid, t.userId))) throw new AppError("UNAUTHENTICATED", "El ticket no es válido o venció");
+      req.user = { id: t.userId, roles: [], locale: "es", sid: t.sid, mfa: false };
       return;
     }
     await app.authenticate(req, undefined as never);
+    // Una sesión de soporte dura 15 minutos y se audita por petición: un flujo abierto sin fin no encaja en ese modelo.
+    if (req.user?.imp) throw new AppError("FORBIDDEN", "Una sesión de soporte no puede ver esto", { code: "IMPERSONATION_RESTRICTED" });
   };
   r.get("/notifications/stream", {
     onRequest: streamAuth,
     schema: { tags: tag, summary: "Notificaciones en tiempo real (SSE): `event: ready`, luego `event: notification` con cada aviso nuevo; latido cada 25 s. Máximo 5 conexiones por persona", security: [{}, ...bearer], querystring: z.object({ ticket: z.string().max(300).optional() }) },
   }, async (req, reply) => {
-    const userId = req.user!.id;
+    const userId = req.user!.id, sid = req.user!.sid;
     reply.hijack();
     const raw = reply.raw;
     raw.writeHead(200, { ...reply.getHeaders(), "content-type": "text/event-stream; charset=utf-8", "cache-control": "no-cache, no-transform", connection: "keep-alive", "x-accel-buffering": "no" } as never);
     const write = (s: string) => { if (!raw.destroyed && !raw.writableEnded) raw.write(s); };
     let done = false;
     let unsubscribe = () => undefined as void;
-    const beat = setInterval(() => write(": latido\n\n"), HEARTBEAT_MS);
+    // Si la sesión se cierra (logout, suspensión, cambio de contraseña…) el flujo también: se revisa en cada latido y antes de cada aviso.
+    const alive = async () => { if (done) return false; const ok = await sessionAlive(sid, userId).catch(() => false); if (!ok) close(); return ok && !done; };
+    const beat = setInterval(() => { void alive().then((ok) => { if (ok) write(": latido\n\n"); }); }, HEARTBEAT_MS);
     const close = () => { if (done) return; done = true; clearInterval(beat); unsubscribe(); if (!raw.writableEnded) raw.end(); };
-    unsubscribe = svc.subscribe(userId, (n) => write(`event: notification\nid: ${n.id}\ndata: ${JSON.stringify(n)}\n\n`), close);
+    unsubscribe = svc.subscribe(userId, (n) => { void alive().then((ok) => { if (ok) write(`event: notification\nid: ${n.id}\ndata: ${JSON.stringify(n)}\n\n`); }); }, close);
     await svc.ensureListening();     // «ready» significa que ya se puede recibir: no se pierde nada de lo que ocurra después
     write(`retry: 5000\nevent: ready\ndata: ${JSON.stringify({ unread: (await app.db.query<{ n: number }>("SELECT count(*)::int AS n FROM notifications WHERE user_id = $1 AND NOT is_read", [userId])).rows[0]!.n })}\n\n`);
     req.raw.on("close", close);

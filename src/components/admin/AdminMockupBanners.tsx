@@ -200,14 +200,14 @@ export function AdminMockupBanners() {
         <Card className="border-border bg-card/60 backdrop-blur-sm p-3.5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Impresiones Servidas</p>
+              <p className="text-2xs font-semibold text-muted-foreground uppercase tracking-wider">Impresiones Servidas</p>
               <h3 className="text-xl font-bold text-foreground mt-0.5">{totalImpressions.toLocaleString()}</h3>
             </div>
             <div className="h-9 w-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
               <Eye className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
+          <p className="text-3xs text-muted-foreground mt-2 flex items-center gap-1">
             <Activity className="h-3 w-3 text-emerald-500" /> Carga del componente
           </p>
         </Card>
@@ -215,14 +215,14 @@ export function AdminMockupBanners() {
         <Card className="border-border bg-card/60 backdrop-blur-sm p-3.5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">vCPM (Visibles IAB)</p>
+              <p className="text-2xs font-semibold text-muted-foreground uppercase tracking-wider">vCPM (Visibles IAB)</p>
               <h3 className="text-xl font-bold text-foreground mt-0.5">{viewabilityRate}%</h3>
             </div>
             <div className="h-9 w-9 rounded-xl bg-cyan-500/10 text-cyan-500 flex items-center justify-center">
               <CheckCircle2 className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
+          <p className="text-3xs text-muted-foreground mt-2 flex items-center gap-1">
             <span className="font-semibold text-cyan-600 dark:text-cyan-400">≥50% viewport • 1s</span>
           </p>
         </Card>
@@ -230,14 +230,14 @@ export function AdminMockupBanners() {
         <Card className="border-border bg-card/60 backdrop-blur-sm p-3.5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Clics Registrados</p>
+              <p className="text-2xs font-semibold text-muted-foreground uppercase tracking-wider">Clics Registrados</p>
               <h3 className="text-xl font-bold text-foreground mt-0.5">{totalClicks.toLocaleString()}</h3>
             </div>
             <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
               <MousePointerClick className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
+          <p className="text-3xs text-muted-foreground mt-2 flex items-center gap-1">
             <TrendingUp className="h-3 w-3 text-emerald-500" /> Deduplicados 5s
           </p>
         </Card>
@@ -245,14 +245,14 @@ export function AdminMockupBanners() {
         <Card className="border-border bg-card/60 backdrop-blur-sm p-3.5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">CTR Promedio</p>
+              <p className="text-2xs font-semibold text-muted-foreground uppercase tracking-wider">CTR Promedio</p>
               <h3 className="text-xl font-bold text-foreground mt-0.5">{averageCtr}%</h3>
             </div>
             <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
               <BarChart3 className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-[10px] text-muted-foreground mt-2">
+          <p className="text-3xs text-muted-foreground mt-2">
             Click-Through Rate global
           </p>
         </Card>
@@ -260,14 +260,14 @@ export function AdminMockupBanners() {
         <Card className="border-border bg-card/60 backdrop-blur-sm p-3.5">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">UTM Attribution</p>
+              <p className="text-2xs font-semibold text-muted-foreground uppercase tracking-wider">UTM Attribution</p>
               <h3 className="text-xl font-bold text-foreground mt-0.5">Activa</h3>
             </div>
             <div className="h-9 w-9 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center">
               <Sparkles className="h-4 w-4" />
             </div>
           </div>
-          <p className="text-[10px] text-purple-600 dark:text-purple-400 mt-2 font-medium">
+          <p className="text-3xs text-purple-600 dark:text-purple-400 mt-2 font-medium">
             Auto-inyectada para GA4
           </p>
         </Card>
@@ -314,7 +314,7 @@ export function AdminMockupBanners() {
                         <Crown className="h-4 w-4 text-amber-500" /> Cobertura del Patrocinio (Takeover)
                       </Label>
                       {sponsorshipScope !== "slot" && (
-                        <Badge className="bg-amber-500 text-amber-950 font-bold text-[10px] uppercase">
+                        <Badge className="bg-amber-500 text-amber-950 font-bold text-3xs uppercase">
                           Exclusivo 100%
                         </Badge>
                       )}
@@ -331,8 +331,8 @@ export function AdminMockupBanners() {
                           setIsTakeover(false);
                         }}
                       >
-                        <span className="font-semibold leading-tight text-[11px]">Espacio Único</span>
-                        <span className="text-[9px] opacity-75">Solo este slot</span>
+                        <span className="font-semibold leading-tight text-2xs">Espacio Único</span>
+                        <span className="text-3xs opacity-75">Solo este slot</span>
                       </Button>
 
                       <Button
@@ -348,10 +348,10 @@ export function AdminMockupBanners() {
                           setRotationMode("fixed");
                         }}
                       >
-                        <span className="font-semibold leading-tight text-[11px] flex items-center gap-1">
+                        <span className="font-semibold leading-tight text-2xs flex items-center gap-1">
                           <ShieldCheck className="h-3 w-3" /> Sección Entera
                         </span>
-                        <span className="text-[9px] opacity-75">Ej: Todos Hoteles</span>
+                        <span className="text-3xs opacity-75">Ej: Todos Hoteles</span>
                       </Button>
 
                       <Button
@@ -368,14 +368,14 @@ export function AdminMockupBanners() {
                           setRotationMode("fixed");
                         }}
                       >
-                        <span className="font-semibold leading-tight text-[11px] flex items-center gap-1">
+                        <span className="font-semibold leading-tight text-2xs flex items-center gap-1">
                           <Globe className="h-3 w-3" /> Portal Entero
                         </span>
-                        <span className="text-[9px] opacity-75">Web completa</span>
+                        <span className="text-3xs opacity-75">Web completa</span>
                       </Button>
                     </div>
 
-                    <p className="text-[11px] text-muted-foreground leading-tight">
+                    <p className="text-2xs text-muted-foreground leading-tight">
                       {sponsorshipScope === "global" && (
                         <span className="text-amber-600 dark:text-amber-400 font-medium">
                           ⭐ <strong>Takeover Global:</strong> Todos los espacios del portal entero mostrarán exclusivamente a <strong>{sponsor || "este patrocinador"}</strong>.
@@ -412,7 +412,7 @@ export function AdminMockupBanners() {
                       </SelectContent>
                     </Select>
                     {sponsorshipScope === "global" && (
-                      <p className="text-[10px] text-amber-600 dark:text-amber-400 mt-1">
+                      <p className="text-3xs text-amber-600 dark:text-amber-400 mt-1">
                         Aplica automáticamente a todas las secciones y páginas del portal.
                       </p>
                     )}
@@ -432,7 +432,7 @@ export function AdminMockupBanners() {
                         <Pin className="h-3.5 w-3.5 text-amber-400" />
                         <div className="text-left">
                           <p className="font-semibold leading-none">Fijo</p>
-                          <p className="text-[10px] opacity-75 font-normal">Siempre visible (100%)</p>
+                          <p className="text-3xs opacity-75 font-normal">Siempre visible (100%)</p>
                         </div>
                       </Button>
                       <Button
@@ -446,7 +446,7 @@ export function AdminMockupBanners() {
                         <Shuffle className="h-3.5 w-3.5 text-primary" />
                         <div className="text-left">
                           <p className="font-semibold leading-none">Rotativo</p>
-                          <p className="text-[10px] opacity-75 font-normal">
+                          <p className="text-3xs opacity-75 font-normal">
                             {sponsorshipScope !== "slot" ? "Incompatible con Takeover" : "Para múltiples marcas"}
                           </p>
                         </div>
@@ -469,7 +469,7 @@ export function AdminMockupBanners() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="text-[11px] text-muted-foreground mt-1">
+                    <p className="text-2xs text-muted-foreground mt-1">
                       Uso recomendado: <strong>{currentSpec.bestFor}</strong>
                     </p>
                   </div>
@@ -513,7 +513,7 @@ export function AdminMockupBanners() {
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <Label className="text-xs">Banners Oficiales RD (30 Formatos PNG)</Label>
-                        <span className="text-[10px] text-primary font-medium">public/banners</span>
+                        <span className="text-3xs text-primary font-medium">public/banners</span>
                       </div>
                       <Select 
                         onValueChange={(val) => {
@@ -613,7 +613,7 @@ export function AdminMockupBanners() {
                         <Label className="text-xs flex items-center gap-1 font-semibold">
                           <LinkIcon className="h-3 w-3 text-primary" /> Enlace de Destino (Target URL)
                         </Label>
-                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                        <span className="text-3xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
                           <Sparkles className="h-2.5 w-2.5" /> Auto-UTM para GA4
                         </span>
                       </div>
@@ -623,7 +623,7 @@ export function AdminMockupBanners() {
                         placeholder="https://melia.com/oferta-rd o /alojamientos"
                         className="h-8 text-xs mt-1"
                       />
-                      <p className="text-[10px] text-muted-foreground mt-1 font-mono break-all line-clamp-1 bg-muted/30 p-1 rounded border border-border">
+                      <p className="text-3xs text-muted-foreground mt-1 font-mono break-all line-clamp-1 bg-muted/30 p-1 rounded border border-border">
                         🔗 <strong>Vista previa UTM:</strong> {targetUrl ? `${targetUrl.includes("?") ? `${targetUrl}&` : `${targetUrl}?`}utm_source=descubrerd&utm_medium=${sponsorshipScope === "global" ? "global_takeover" : sponsorshipScope === "section" ? "section_takeover" : "banner_ad"}&utm_content=${selectedFormat}` : "Ingresa una URL"}
                       </p>
                     </div>
@@ -679,7 +679,7 @@ export function AdminMockupBanners() {
                         </Button>
                       }
                     />
-                    <Badge variant="secondary" className="text-[11px] gap-1">
+                    <Badge variant="secondary" className="text-2xs gap-1">
                       {currentSpec.typeGroup === "mobile" ? <Smartphone className="h-3 w-3" /> : <Monitor className="h-3 w-3" />}
                       {currentSpec.typeGroup.toUpperCase()}
                     </Badge>
@@ -764,8 +764,8 @@ export function AdminMockupBanners() {
                         }`}
                       >
                         <p className="font-bold text-xs text-foreground">{spec.name}</p>
-                        <p className="text-[11px] font-mono text-primary mt-0.5">{spec.dims}</p>
-                        <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1">{spec.bestFor}</p>
+                        <p className="text-2xs font-mono text-primary mt-0.5">{spec.dims}</p>
+                        <p className="text-3xs text-muted-foreground mt-1 line-clamp-1">{spec.bestFor}</p>
                       </button>
                     ))}
                   </div>
@@ -786,7 +786,7 @@ export function AdminMockupBanners() {
                     <ImageIcon className="h-4 w-4 text-primary" /> Inventario de Banners Oficiales de Descubre RD (30 Formatos)
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    Imágenes pre-renderizadas ubicadas en <code className="text-primary font-mono text-[11px]">public/banners/</code> listas para vinculación publicitaria
+                    Imágenes pre-renderizadas ubicadas en <code className="text-primary font-mono text-2xs">public/banners/</code> listas para vinculación publicitaria
                   </CardDescription>
                 </div>
                 <Badge variant="outline" className="text-xs py-1 border-primary/30 text-primary w-fit">
@@ -820,14 +820,14 @@ export function AdminMockupBanners() {
                         >
                           <div className="p-3 bg-muted/20 border-b border-border/50">
                             <div className="flex items-center justify-between gap-2">
-                              <span className="font-mono text-[11px] font-bold text-primary">
+                              <span className="font-mono text-2xs font-bold text-primary">
                                 {banner.width} × {banner.height}
                               </span>
-                              <Badge variant="secondary" className="text-[10px] py-0 px-1.5">
+                              <Badge variant="secondary" className="text-3xs py-0 px-1.5">
                                 {banner.name}
                               </Badge>
                             </div>
-                            <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1">
+                            <p className="text-3xs text-muted-foreground mt-1 line-clamp-1">
                               {banner.description}
                             </p>
                           </div>
@@ -848,7 +848,7 @@ export function AdminMockupBanners() {
                               type="button"
                               variant="outline"
                               size="sm"
-                              className="h-7 text-[11px] px-2 flex-1 rounded-lg"
+                              className="h-7 text-2xs px-2 flex-1 rounded-lg"
                               onClick={() => {
                                 navigator.clipboard.writeText(banner.src);
                                 toast.success(`Ruta copiada: ${banner.src}`);
@@ -859,7 +859,7 @@ export function AdminMockupBanners() {
                             <Button
                               type="button"
                               size="sm"
-                              className="h-7 text-[11px] px-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
+                              className="h-7 text-2xs px-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
                               onClick={() => {
                                 setImageUrl(banner.src);
                                 if (banner.matchingAdSize && Object.keys(AD_FORMAT_SPECS).includes(banner.matchingAdSize)) {
@@ -937,34 +937,34 @@ export function AdminMockupBanners() {
                                 )}
                                 <div>
                                   <p className="font-semibold text-foreground line-clamp-1">{b.headline || b.name}</p>
-                                  <p className="text-[10px] text-muted-foreground">{b.sponsor || "Sin patrocinador"}</p>
+                                  <p className="text-3xs text-muted-foreground">{b.sponsor || "Sin patrocinador"}</p>
                                 </div>
                               </div>
                             </td>
                             <td className="py-3 px-3 capitalize">
-                              <Badge variant="outline" className="text-[10px]">{b.section || "Global"}</Badge>
+                              <Badge variant="outline" className="text-3xs">{b.section || "Global"}</Badge>
                             </td>
                             <td className="py-3 px-3">
                               {isGlobalTakeover ? (
-                                <Badge className="bg-amber-500 text-amber-950 font-bold border-amber-500/40 text-[10px] gap-1">
+                                <Badge className="bg-amber-500 text-amber-950 font-bold border-amber-500/40 text-3xs gap-1">
                                   <Crown className="h-3 w-3" /> Portal Entero
                                 </Badge>
                               ) : isSectionTakeover ? (
-                                <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px] gap-1">
+                                <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30 text-3xs gap-1">
                                   <ShieldCheck className="h-3 w-3" /> Sección Exclusiva
                                 </Badge>
                               ) : (
-                                <span className="text-[10px] text-muted-foreground">Slot individual</span>
+                                <span className="text-3xs text-muted-foreground">Slot individual</span>
                               )}
                             </td>
-                            <td className="py-3 px-3 font-mono text-[11px]">{b.banner_type}</td>
+                            <td className="py-3 px-3 font-mono text-2xs">{b.banner_type}</td>
                             <td className="py-3 px-3">
                               {isFixed ? (
-                                <Badge className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-[10px] gap-1">
+                                <Badge className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-3xs gap-1">
                                   <Pin className="h-2.5 w-2.5" /> Fijo
                                 </Badge>
                               ) : (
-                                <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 text-[10px] gap-1">
+                                <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 text-3xs gap-1">
                                   <Shuffle className="h-2.5 w-2.5" /> Rotativo
                                 </Badge>
                               )}
@@ -982,7 +982,7 @@ export function AdminMockupBanners() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-7 text-[11px] gap-1"
+                                className="h-7 text-2xs gap-1"
                                 onClick={() => {
                                   trackBannerImpression(b.id);
                                   toast.info(`Simulada visualización para "${b.headline || b.name}"`);

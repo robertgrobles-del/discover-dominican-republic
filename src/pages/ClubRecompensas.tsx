@@ -18,8 +18,8 @@ import { VipAuctionModal } from "@/components/gamification/VipAuctionModal";
 import { ComoGanarPuntosModal } from "@/components/gamificacion/ComoGanarPuntosModal";
 import { ComoGanarPuntosSection } from "@/components/gamificacion/ComoGanarPuntosSection";
 import { useGamification } from "@/hooks/useGamification";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { apiClient } from "@/lib/api";
 import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { gamificationApi, type UserRewardShipment } from "@/lib/gamificationApi";
 
@@ -42,79 +42,39 @@ export default function ClubRecompensas() {
     userGamification, levels, referralCode,
     getCurrentLevel, getNextLevel, getXpProgress, redeemPrize
   } = useGamification();
+  const { user } = useAuth();
 
   const [activeTab, setActiveTab] = useState<"catalog" | "my-vouchers" | "levels" | "how-it-works" | "partners">("catalog");
   const [rewardsList, setRewardsList] = useState<CatalogReward[]>(initialRewards);
-  const [myVouchers, setMyVouchers] = useState<RedeemedVoucher[]>(mockInitialVouchers);
+  // Con la API real se ven sólo los canjes de la cuenta; los vouchers de ejemplo son del modo demo.
+  const [myVouchers, setMyVouchers] = useState<RedeemedVoucher[]>(HAS_BACKEND_SESSION ? [] : mockInitialVouchers);
   const [myShipments, setMyShipments] = useState<UserRewardShipment[]>([]);
 
   useEffect(() => {
-    if (HAS_BACKEND_SESSION) {
-      gamificationApi.getMyRedemptions().then((reds) => {
-        if (Array.isArray(reds) && reds.length > 0) {
-          const mappedVouchers: RedeemedVoucher[] = reds.map((r: any) => ({
-            id: r.id,
-            code: r.code || r.redemption_code || `RD-${r.id.slice(0, 6).toUpperCase()}`,
-            prizeName: r.prize_name || r.prize?.name || "Premio Canjeado",
-            sponsor: r.sponsor || "Empresa Aliada",
-            location: "República Dominicana",
-            category: r.category || "experience",
-            redeemedDate: new Date(r.created_at || Date.now()).toLocaleDateString("es-DO"),
-            expiryDate: "90 días",
-            status: r.status === "used" ? "used" : r.status === "expired" ? "expired" : "active",
-            qrData: `DESCUBRERD-VOUCHER-${r.code || r.id}-AUTHENTICATED`,
-            instructions: "Presentar este voucher digital al proveedor o en el establecimiento.",
-          }));
-          setMyVouchers(mappedVouchers);
-        }
-      }).catch((err) => {
-        toast.error("Error al cargar vouchers canjeados", { description: err.message });
-      });
+    // Canjes y envíos son de la cuenta: sin sesión no se piden (responderían 401).
+    if (!HAS_BACKEND_SESSION || !user) return;
+    gamificationApi.getMyRedemptions().then((reds) => {
+      setMyVouchers(reds.map((r) => ({
+        id: r.id,
+        code: r.code,
+        prizeName: r.prize,
+        sponsor: "Descubre RD",
+        location: "República Dominicana",
+        category: r.prize_type === "physical" || r.prize_type === "merchandise" ? "product" : "experience",
+        redeemedDate: new Date(r.created_at).toLocaleDateString("es-DO"),
+        expiryDate: "90 días",
+        status: r.status === "used" ? "used" : r.status === "expired" ? "expired" : "active",
+        qrData: `DESCUBRERD-VOUCHER-${r.code}`,
+        instructions: "Presentar este voucher digital al proveedor o en el establecimiento.",
+      })));
+    }).catch((err) => {
+      toast.error("Error al cargar vouchers canjeados", { description: err.message });
+    });
 
-      gamificationApi.getMyShipments().then((ships) => {
-        if (Array.isArray(ships)) {
-          setMyShipments(ships);
-        }
-      }).catch((err) => {
-        toast.error("Error al cargar envíos de premios", { description: err.message });
-      });
-    }
-
-    apiClient.get<any[]>("/operators/sponsorship/rewards")
-      .then((res) => {
-        if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-          const mapped: CatalogReward[] = res.data.map((r) => ({
-            id: r.id,
-            name: r.prize_name,
-            description: r.terms_conditions || "Premio exclusivo patrocinado por empresa asociada.",
-            sponsor: r.operator_name || "Empresa Aliada",
-            location: r.location || "República Dominicana",
-            category: r.category || "resort",
-            coin_cost: r.coin_price || 300,
-            estimated_value_dop: (r.coin_price || 300) * 25,
-            estimated_value_usd: Math.round(((r.coin_price || 300) * 25) / 60),
-            prize_type: r.category === "product" ? "product" : "experience",
-            min_level: 1,
-            quantity_available: r.stock_total - (r.stock_claimed || 0),
-            quantity_redeemed: r.stock_claimed || 0,
-            is_featured: true,
-            image_url: r.image_url || "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&auto=format&fit=crop&q=80",
-            validity_days: 90,
-            includes: ["Beneficio exclusivo verificado", "Atención preferencial para exploradores"],
-            isPartnerCustom: true,
-          }));
-
-          setRewardsList((prev) => {
-            const existingIds = new Set(prev.map((p) => p.id));
-            const newItems = mapped.filter((m) => !existingIds.has(m.id));
-            return [...newItems, ...prev];
-          });
-        }
-      })
-      .catch((err) => {
-        console.warn("Could not load dynamic sponsor rewards:", err?.message || err);
-      });
-  }, []);
+    gamificationApi.getMyShipments().then(setMyShipments).catch((err) => {
+      toast.error("Error al cargar envíos de premios", { description: err.message });
+    });
+  }, [user]);
 
   // Modals state
   const [selectedDetailPrize, setSelectedDetailPrize] = useState<CatalogReward | null>(null);
@@ -134,7 +94,33 @@ export default function ClubRecompensas() {
   };
 
   const handleRedeemDigitalPrize = async (prize: CatalogReward) => {
-    const newCode = `RD-${prize.location.substring(0, 3).toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}`;
+    if (HAS_BACKEND_SESSION) {
+      try {
+        const res = await gamificationApi.redeemPrize(prize.id);
+        const serverCode = res.code;
+        const realVoucher: RedeemedVoucher = {
+          id: res.redemption_id,
+          code: serverCode,
+          prizeName: prize.name,
+          sponsor: prize.sponsor,
+          location: prize.location,
+          category: prize.category,
+          redeemedDate: "Hoy",
+          expiryDate: `En ${prize.validity_days} días`,
+          status: "active",
+          qrData: `DESCUBRERD-VOUCHER-${serverCode}-AUTHENTICATED`,
+          instructions: `Presentar este voucher al momento de llegar a ${prize.sponsor}. Se recomienda confirmar con 24-48h de antelación.`
+        };
+        setMyVouchers((prev) => [realVoucher, ...prev]);
+        setActiveGeneratedVoucher(realVoucher);
+        toast.success(`🎉 ¡Recompensa canjeada con éxito! Se ha generado tu Voucher ${serverCode}.`);
+      } catch (err: any) {
+        toast.error("Error al canjear la recompensa", { description: err.message });
+      }
+      return;
+    }
+
+    const newCode = `RD-${prize.location.substring(0, 3).toUpperCase()}-DEMO`;
     const newVoucher: RedeemedVoucher = {
       id: `vouch-${Date.now()}`,
       code: newCode,
@@ -148,18 +134,6 @@ export default function ClubRecompensas() {
       qrData: `DESCUBRERD-VOUCHER-${newCode}-AUTHENTICATED`,
       instructions: `Presentar este voucher al momento de llegar a ${prize.sponsor}. Se recomienda confirmar con 24-48h de antelación.`
     };
-
-    if (HAS_BACKEND_SESSION) {
-      try {
-        await gamificationApi.redeemPrize(prize.id);
-        setMyVouchers((prev) => [newVoucher, ...prev]);
-        setActiveGeneratedVoucher(newVoucher);
-        toast.success(`🎉 ¡Recompensa canjeada con éxito! Se ha generado tu Voucher ${newCode}.`);
-      } catch (err: any) {
-        toast.error("Error al canjear la recompensa", { description: err.message });
-      }
-      return;
-    }
 
     setMyVouchers((prev) => [newVoucher, ...prev]);
     setActiveGeneratedVoucher(newVoucher);
@@ -280,15 +254,15 @@ export default function ClubRecompensas() {
                 {/* Global Metrics Bar */}
                 <div className="grid grid-cols-3 gap-3 pt-2 max-w-lg">
                   <div className="p-3 rounded-2xl bg-card/60 backdrop-blur-sm border border-border">
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Premios Disponibles</p>
+                    <p className="text-3xs text-muted-foreground uppercase font-bold">Premios Disponibles</p>
                     <p className="text-lg font-black text-foreground mt-0.5">{rewardsList.length} Recompensas</p>
                   </div>
                   <div className="p-3 rounded-2xl bg-card/60 backdrop-blur-sm border border-border">
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Empresas Verificadas</p>
+                    <p className="text-3xs text-muted-foreground uppercase font-bold">Empresas Verificadas</p>
                     <p className="text-lg font-black text-foreground mt-0.5">52 Aliados</p>
                   </div>
                   <div className="p-3 rounded-2xl bg-card/60 backdrop-blur-sm border border-border">
-                    <p className="text-[10px] text-muted-foreground uppercase font-bold">Valor Promedio</p>
+                    <p className="text-3xs text-muted-foreground uppercase font-bold">Valor Promedio</p>
                     <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 mt-0.5">$85 USD</p>
                   </div>
                 </div>
@@ -342,8 +316,8 @@ export default function ClubRecompensas() {
                         {currentLevel?.icon || "🧭"}
                       </div>
                       <div>
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Tu Billetera de Explorador</p>
-                        <h4 className="text-sm font-bold text-foreground">{currentLevel?.title || "Explorador Turístico"}</h4>
+                        <p className="text-3xs text-muted-foreground uppercase font-bold tracking-wider">Tu Billetera de Explorador</p>
+                        <h2 className="h4 text-sm font-bold text-foreground">{currentLevel?.title || "Explorador Turístico"}</h2>
                       </div>
                     </div>
                     <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-xs font-bold px-2.5 py-0.5">
@@ -353,13 +327,13 @@ export default function ClubRecompensas() {
 
                   <div className="grid grid-cols-2 gap-3 text-center">
                     <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/60">
-                      <span className="text-[10px] text-muted-foreground uppercase font-bold">Monedas Canjeables</span>
+                      <span className="text-3xs text-muted-foreground uppercase font-bold">Monedas Canjeables</span>
                       <p className="text-2xl sm:text-3xl font-black text-amber-500 mt-0.5 flex items-center justify-center gap-1.5">
                         <Crown className="h-5 w-5" /> {(userGamification?.coins || 280).toLocaleString()}
                       </p>
                     </div>
                     <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/60">
-                      <span className="text-[10px] text-muted-foreground uppercase font-bold">Puntos XP Totales</span>
+                      <span className="text-3xs text-muted-foreground uppercase font-bold">Puntos XP Totales</span>
                       <p className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5 flex items-center justify-center gap-1.5">
                         <Zap className="h-5 w-5" /> {(userGamification?.total_xp || 640).toLocaleString()}
                       </p>
@@ -368,14 +342,14 @@ export default function ClubRecompensas() {
 
                   {nextLevel ? (
                     <div className="space-y-1.5">
-                      <div className="flex justify-between text-[11px] text-muted-foreground">
+                      <div className="flex justify-between text-2xs text-muted-foreground">
                         <span>Progreso hacia <strong className="text-foreground">{nextLevel.title}</strong></span>
                         <span className="font-bold text-foreground">{xpProgress}%</span>
                       </div>
                       <Progress value={xpProgress} className="h-2 bg-muted" />
                     </div>
                   ) : (
-                    <div className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold">
+                    <div className="text-2xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold">
                       <CheckCircle className="h-3.5 w-3.5" /> Has alcanzado el rango máximo de Explorador.
                     </div>
                   )}
@@ -383,10 +357,10 @@ export default function ClubRecompensas() {
                   {/* Referral invitation */}
                   <div className="p-3 rounded-2xl bg-primary/5 border border-primary/20 flex items-center justify-between text-xs gap-2">
                     <div>
-                      <p className="font-bold text-foreground text-[11px] flex items-center gap-1">
+                      <p className="font-bold text-foreground text-2xs flex items-center gap-1">
                         <Sparkles className="h-3 w-3 text-amber-500" /> ¿Necesitas más monedas?
                       </p>
-                      <p className="text-[10px] text-muted-foreground">+50 monedas por cada amigo que se una con tu enlace.</p>
+                      <p className="text-3xs text-muted-foreground">+50 monedas por cada amigo que se una con tu enlace.</p>
                     </div>
                     <Button size="sm" variant="outline" onClick={copyReferralCode} className="h-8 rounded-xl text-xs gap-1 shrink-0 font-semibold bg-card border-primary/30">
                       <Share2 className="h-3 w-3 text-primary" /> Invitar
@@ -402,7 +376,7 @@ export default function ClubRecompensas() {
         <main className="container mx-auto px-4 max-w-7xl py-10 flex-1">
           <Tabs value={activeTab} onValueChange={(val: any) => setActiveTab(val)} className="space-y-8">
             {/* Tab Bar */}
-            <div className="sticky top-16 z-30 bg-background/90 backdrop-blur-md py-2 border-b border-border/60">
+            <div className="bg-background/90 backdrop-blur-md py-2 border-b border-border/60">
               <TabsList className="bg-card p-1.5 rounded-2xl border border-border flex overflow-x-auto scrollbar-none h-auto gap-1">
                 <TabsTrigger value="catalog" className="rounded-xl text-xs sm:text-sm font-semibold gap-2 py-2 px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground shadow-sm">
                   <Gift className="h-4 w-4" /> Catálogo de Premios ({rewardsList.length})

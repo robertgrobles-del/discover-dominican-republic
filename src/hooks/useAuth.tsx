@@ -5,6 +5,7 @@ import { getAccessToken, refreshAccessToken } from "@/lib/accessToken";
 import { AUTH_SOURCE } from "@/lib/authSource";
 import * as backendAuth from "@/lib/backendAuth";
 import { SESSION_EXPIRED_EVENT } from "@/lib/session";
+import { clearUserQueryCache } from "@/lib/authLifecycle";
 
 interface AuthContextType {
   user: User | null;
@@ -115,8 +116,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    if (AUTH_SOURCE === "api") { await backendAuth.signOut(); apply(null); return; }
-    await supabase.auth.signOut();
+    try {
+      if (AUTH_SOURCE === "api") { await backendAuth.signOut(); apply(null); return; }
+      await supabase.auth.signOut();
+    } finally {
+      // Lo cacheado pertenece a la cuenta que sale: no debe verlo la siguiente.
+      await clearUserQueryCache().catch(() => undefined);
+    }
   };
 
   return (

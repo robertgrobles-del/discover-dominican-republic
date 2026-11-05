@@ -11,8 +11,10 @@ import { MarketplaceCatalog } from "@/features/marketplace/MarketplaceCatalog";
 import { VendorProfile } from "@/features/marketplace/VendorProfile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ShoppingBag, Users } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function Marketplace() {
+  const pc = usePageContent("marketplace");
   const [searchProd, setSearchProd] = useState("");
   const [searchServ, setSearchServ] = useState("");
   const [catProd, setCatProd] = useState("Todos");
@@ -100,8 +102,8 @@ export default function Marketplace() {
   return (
     <PageTransition>
       <SEOHead
-        title="Marketplace Turístico & Artesanal | Descubre República Dominicana"
-        description="Mercado oficial de productos criollos, artesanía certificada de larimar y ámbar, dulces tradicionales, café orgánico y excursiones locales."
+        title={pc.t("SEOHead.title.1", "Marketplace Turístico & Artesanal | Descubre República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Mercado oficial de productos criollos, artesanía certificada de larimar y ámbar, dulces tradicionales, café orgánico y excursiones locales.")}
       />
       <Header />
 
@@ -109,24 +111,16 @@ export default function Marketplace() {
         <div className="container mx-auto px-4 max-w-7xl space-y-8">
           {/* Hero Header */}
           <div className="text-center space-y-3 max-w-3xl mx-auto">
-            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600 bg-clip-text text-transparent">
-              Marketplace Turístico RD
-            </h1>
-            <p className="text-base text-muted-foreground">
-              Mercado directo de artesanos, productores y experiencias locales auténticas de la República Dominicana.
-            </p>
+            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600 bg-clip-text text-transparent">{pc.tx("h1.1", "Marketplace Turístico RD")}</h1>
+            <p className="text-base text-muted-foreground">{pc.tx("p.1", "Mercado directo de artesanos, productores y experiencias locales auténticas de la República Dominicana.")}</p>
           </div>
 
           <Tabs defaultValue="catalog" className="w-full space-y-6">
             <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
               <TabsTrigger value="catalog" className="flex items-center gap-2">
-                <ShoppingBag className="w-4 h-4" />
-                Catálogo Principal
-              </TabsTrigger>
+                <ShoppingBag className="w-4 h-4" />{pc.tx("TabsTrigger.1", "Catálogo Principal")}</TabsTrigger>
               <TabsTrigger value="vendors" className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Artesanos & Talleres
-              </TabsTrigger>
+                <Users className="w-4 h-4" />{pc.tx("TabsTrigger.2", "Artesanos & Talleres")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="catalog">

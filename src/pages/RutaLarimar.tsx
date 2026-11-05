@@ -10,6 +10,7 @@ import {
   Gem, MapPin, Compass, Hammer, ShieldAlert, ShoppingBag, 
   ChevronRight, Sparkles, Phone, Eye
 } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
 
 interface ItineraryStep {
   step: number;
@@ -48,13 +49,15 @@ const itinerary: ItineraryStep[] = [
 ];
 
 export default function RutaLarimar() {
+  const pc = usePageContent("ruta-larimar");
+  const itinerary = pc.data("itinerary", __pcData.itinerary);
   const [activeStep, setActiveStep] = useState(1);
 
   return (
     <PageTransition>
       <SEOHead
-        title="Ruta Histórica y Natural del Larimar - Barahona"
-        description="Recorre los yacimientos de la única gema azul pectolita del mundo en Barahona, República Dominicana. Aprende sobre minería artesanal y compra joyería local."
+        title={pc.t("SEOHead.title.1", "Ruta Histórica y Natural del Larimar - Barahona")}
+        description={pc.t("SEOHead.description.1", "Recorre los yacimientos de la única gema azul pectolita del mundo en Barahona, República Dominicana. Aprende sobre minería artesanal y compra joyería local.")}
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -64,14 +67,9 @@ export default function RutaLarimar() {
           <section className="relative py-16 bg-gradient-to-br from-cyan-500/10 via-teal-500/5 to-transparent border-b border-border">
             <div className="container mx-auto px-4 text-center">
               <Badge variant="secondary" className="mb-4 bg-cyan-500/10 text-cyan-600 border-cyan-500/20 gap-1">
-                <Gem className="h-3.5 w-3.5" /> Ecoturismo Barahona
-              </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display">
-                Ruta del Larimar
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Descubre el secreto de la gema azul que solo nace en las entrañas de las montañas del sur dominicano. Un viaje de geología, aventura y artesanía.
-              </p>
+                <Gem className="h-3.5 w-3.5" />{" "}{pc.tx("Badge.1", "Ecoturismo Barahona")}</Badge>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display">{pc.tx("h1.1", "Ruta del Larimar")}</h1>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.1", "Descubre el secreto de la gema azul que solo nace en las entrañas de las montañas del sur dominicano. Un viaje de geología, aventura y artesanía.")}</p>
             </div>
           </section>
 
@@ -86,21 +84,13 @@ export default function RutaLarimar() {
                   {/* Gem overview */}
                   <Card>
                     <CardHeader className="pb-3">
-                      <CardTitle className="text-xl flex items-center gap-2">
-                        <Sparkles className="h-5 w-5 text-cyan-500" />
-                        ¿Qué es el Larimar?
-                      </CardTitle>
+                      <CardTitle as="h2" className="text-xl flex items-center gap-2">
+                        <Sparkles className="h-5 w-5 text-cyan-500" />{pc.tx("CardTitle.1", "¿Qué es el Larimar?")}</CardTitle>
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground space-y-4">
-                      <p>
-                        El larimar es una variedad rara de <strong>pectolita azul</strong> de origen volcánico. Su color varía desde el azul profundo, azul cielo, hasta tonos turquesa y blanco lechoso.
-                      </p>
-                      <p>
-                        Fue descubierto originalmente en 1916 en Barahona, pero no fue hasta 1974 cuando Miguel Méndez y Norman Rilling redescubrieron los yacimientos. Méndez bautizó la gema uniendo el nombre de su hija <strong>Lari</strong> (Larissa) y la palabra <strong>Mar</strong>, reflejando la similitud cromática con las aguas del Mar Caribe.
-                      </p>
-                      <Badge variant="outline" className="text-xs border-cyan-500/30 text-cyan-600">
-                        Declarada Piedra Nacional de RD (1916/2011)
-                      </Badge>
+                      <p>{pc.tx("p.2", "El larimar es una variedad rara de")}{" "}<strong>{pc.tx("strong.1", "pectolita azul")}</strong>{" "}{pc.tx("p.3", "de origen volcánico. Su color varía desde el azul profundo, azul cielo, hasta tonos turquesa y blanco lechoso.")}</p>
+                      <p>{pc.tx("p.4", "Fue descubierto originalmente en 1916 en Barahona, pero no fue hasta 1974 cuando Miguel Méndez y Norman Rilling redescubrieron los yacimientos. Méndez bautizó la gema uniendo el nombre de su hija")}{" "}<strong>{pc.tx("strong.2", "Lari")}</strong>{" "}{pc.tx("p.5", "(Larissa) y la palabra")}{" "}<strong>{pc.tx("strong.3", "Mar")}</strong>{pc.tx("p.6", ", reflejando la similitud cromática con las aguas del Mar Caribe.")}</p>
+                      <Badge variant="outline" className="text-xs border-cyan-500/30 text-cyan-600">{pc.tx("Badge.2", "Declarada Piedra Nacional de RD (1916/2011)")}</Badge>
                     </CardContent>
                   </Card>
 
@@ -108,16 +98,14 @@ export default function RutaLarimar() {
                   <Card className="border-red-500/20 bg-red-500/5">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-md flex items-center gap-2 text-red-500">
-                        <ShieldAlert className="h-5 w-5" />
-                        Recomendaciones de Seguridad
-                      </CardTitle>
+                        <ShieldAlert className="h-5 w-5" />{pc.tx("CardTitle.2", "Recomendaciones de Seguridad")}</CardTitle>
                     </CardHeader>
                     <CardContent className="text-xs space-y-2 text-muted-foreground">
                       <ul className="list-disc list-inside space-y-1">
-                        <li>Realizar la ruta a las minas únicamente con <strong>guías ecológicos acreditados</strong>.</li>
-                        <li>Utilizar calzado cerrado con suela antideslizante y ropa cómoda.</li>
-                        <li>Llevar casco protector y linterna provistos por el tour operador al ingresar a los miradores de los túneles.</li>
-                        <li>Mantenerse hidratado (clima cálido y húmedo en la montaña).</li>
+                        <li>{pc.tx("li.1", "Realizar la ruta a las minas únicamente con")}{" "}<strong>{pc.tx("strong.4", "guías ecológicos acreditados")}</strong>.</li>
+                        <li>{pc.tx("li.2", "Utilizar calzado cerrado con suela antideslizante y ropa cómoda.")}</li>
+                        <li>{pc.tx("li.3", "Llevar casco protector y linterna provistos por el tour operador al ingresar a los miradores de los túneles.")}</li>
+                        <li>{pc.tx("li.4", "Mantenerse hidratado (clima cálido y húmedo en la montaña).")}</li>
                       </ul>
                     </CardContent>
                   </Card>
@@ -129,10 +117,8 @@ export default function RutaLarimar() {
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-xl flex items-center gap-2">
-                        <Compass className="h-5 w-5 text-primary" />
-                        Itinerario de la Ruta
-                      </CardTitle>
-                      <CardDescription>Paso a paso de la excursión ecológica</CardDescription>
+                        <Compass className="h-5 w-5 text-primary" />{pc.tx("CardTitle.3", "Itinerario de la Ruta")}</CardTitle>
+                      <CardDescription>{pc.tx("CardDescription.1", "Paso a paso de la excursión ecológica")}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       
@@ -146,7 +132,7 @@ export default function RutaLarimar() {
                             onClick={() => setActiveStep(item.step)}
                             className="gap-2 shrink-0"
                           >
-                            <span>Paso {item.step}</span>
+                            <span>{pc.tx("span.1", "Paso")}{" "}{item.step}</span>
                           </Button>
                         ))}
                       </div>
@@ -162,9 +148,9 @@ export default function RutaLarimar() {
                                 <StepIcon className="h-6 w-6" />
                               </div>
                               <div>
-                                <h3 className="font-bold text-lg">{item.title}</h3>
+                                <h2 className="h3 font-bold text-lg">{item.title}</h2>
                                 <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <MapPin className="h-3.5 w-3.5 text-primary" /> {item.location} • Duración: {item.duration}
+                                  <MapPin className="h-3.5 w-3.5 text-primary" /> {item.location}{" "}{pc.tx("p.7", "• Duración:")}{" "}{item.duration}
                                 </p>
                               </div>
                             </div>
@@ -174,9 +160,9 @@ export default function RutaLarimar() {
                             </p>
 
                             <div className="p-4 bg-muted/40 rounded-lg space-y-2 border border-border">
-                              <h4 className="font-semibold text-xs uppercase tracking-wider text-foreground">Contacto de Guías Locales Autorizados</h4>
+                              <h3 className="h4 font-semibold text-xs uppercase tracking-wider text-foreground">{pc.tx("h4.1", "Contacto de Guías Locales Autorizados")}</h3>
                               <div className="flex items-center justify-between text-xs">
-                                <span>Asociación de Mineros y Artesanos de Bahoruco</span>
+                                <span>{pc.tx("span.2", "Asociación de Mineros y Artesanos de Bahoruco")}</span>
                                 <a href="tel:+18095551234" className="flex items-center gap-1 text-primary hover:underline">
                                   <Phone className="h-3.5 w-3.5" /> +1 (809) 555-1234
                                 </a>
@@ -188,15 +174,15 @@ export default function RutaLarimar() {
 
                       {/* Workshop directory list */}
                       <div className="pt-4 border-t border-border">
-                        <h4 className="font-bold text-sm mb-3">Talleres Locales Recomendados</h4>
+                        <h3 className="h4 font-bold text-sm mb-3">{pc.tx("h4.2", "Talleres Locales Recomendados")}</h3>
                         <div className="grid sm:grid-cols-2 gap-3 text-xs">
                           <div className="p-3 border border-border rounded-lg">
-                            <span className="font-semibold block">Taller Hermanos Méndez</span>
-                            <span className="text-muted-foreground">Bahoruco • Artesanía y platería fina</span>
+                            <span className="font-semibold block">{pc.tx("span.3", "Taller Hermanos Méndez")}</span>
+                            <span className="text-muted-foreground">{pc.tx("span.4", "Bahoruco • Artesanía y platería fina")}</span>
                           </div>
                           <div className="p-3 border border-border rounded-lg">
-                            <span className="font-semibold block">Taller Doña Patria</span>
-                            <span className="text-muted-foreground">La Ciénaga • Diseños rústicos y piedras pulidas</span>
+                            <span className="font-semibold block">{pc.tx("span.5", "Taller Doña Patria")}</span>
+                            <span className="text-muted-foreground">{pc.tx("span.6", "La Ciénaga • Diseños rústicos y piedras pulidas")}</span>
                           </div>
                         </div>
                       </div>
@@ -215,3 +201,6 @@ export default function RutaLarimar() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { itinerary };

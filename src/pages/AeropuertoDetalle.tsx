@@ -12,8 +12,10 @@ import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { useTranslation } from "@/i18n";
 import { getAirportBySlug } from "@/data/airports";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function AeropuertoDetalle() {
+  const pc = usePageContent("aeropuerto-detalle");
   const { t } = useTranslation();
   const { slug } = useParams<{ slug: string }>();
   const airport = slug ? getAirportBySlug(slug) : undefined;
@@ -26,7 +28,7 @@ export default function AeropuertoDetalle() {
           <div className="container mx-auto px-4 py-32 text-center">
             <Plane className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h1 className="text-3xl font-bold mb-4">{t("common.noResults") || "Aeropuerto no encontrado"}</h1>
-            <p className="text-muted-foreground mb-8">El aeropuerto que buscas no existe o está en actualización.</p>
+            <p className="text-muted-foreground mb-8">{pc.tx("p.1", "El aeropuerto que buscas no existe o está en actualización.")}</p>
             <Link to="/como-llegar"><Button>{t("common.viewAll") || "Ver cómo llegar"}</Button></Link>
           </div>
           <Footer />
@@ -78,15 +80,14 @@ export default function AeropuertoDetalle() {
             <div className="lg:col-span-2 space-y-10">
               {/* About */}
               <div>
-                <h2 className="font-display text-2xl font-bold text-foreground mb-4">Sobre el Aeropuerto</h2>
+                <h2 className="font-display text-2xl font-bold text-foreground mb-4">{pc.tx("h2.1", "Sobre el Aeropuerto")}</h2>
                 <p className="text-muted-foreground leading-relaxed">{airport.description}</p>
               </div>
 
               {/* Airlines */}
               <div>
                 <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                  <Plane className="h-5 w-5 text-primary" /> Aerolíneas
-                </h2>
+                  <Plane className="h-5 w-5 text-primary" />{" "}{pc.tx("h2.2", "Aerolíneas")}</h2>
                 <div className="flex flex-wrap gap-2">
                   {airport.airlines.map((a, i) => (
                     <Badge key={i} variant="secondary">{a}</Badge>
@@ -96,7 +97,7 @@ export default function AeropuertoDetalle() {
 
               {/* Destinations */}
               <div>
-                <h2 className="font-display text-xl font-bold text-foreground mb-4">Destinos Principales</h2>
+                <h2 className="font-display text-xl font-bold text-foreground mb-4">{pc.tx("h2.3", "Destinos Principales")}</h2>
                 <div className="flex flex-wrap gap-2">
                   {airport.destinations.map((d, i) => (
                     <Badge key={i} variant="outline">{d}</Badge>
@@ -106,7 +107,7 @@ export default function AeropuertoDetalle() {
 
               {/* Services */}
               <div>
-                <h2 className="font-display text-xl font-bold text-foreground mb-4">Servicios</h2>
+                <h2 className="font-display text-xl font-bold text-foreground mb-4">{pc.tx("h2.4", "Servicios")}</h2>
                 <div className="grid md:grid-cols-2 gap-4">
                   {airport.services.map((s, i) => (
                     <div key={i} className="p-4 rounded-xl bg-card border border-border">
@@ -120,8 +121,7 @@ export default function AeropuertoDetalle() {
               {/* Transportation */}
               <div>
                 <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                  <Car className="h-5 w-5 text-primary" /> Transporte desde el Aeropuerto
-                </h2>
+                  <Car className="h-5 w-5 text-primary" />{" "}{pc.tx("h2.5", "Transporte desde el Aeropuerto")}</h2>
                 <div className="space-y-3">
                   {airport.transportation.map((t, i) => (
                     <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-card border border-border">
@@ -138,7 +138,7 @@ export default function AeropuertoDetalle() {
               {/* Gallery */}
               {airport.gallery.length > 0 && (
                 <div>
-                  <h2 className="font-display text-xl font-bold text-foreground mb-4">Galería</h2>
+                  <h2 className="font-display text-xl font-bold text-foreground mb-4">{pc.tx("h2.6", "Galería")}</h2>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {airport.gallery.map((img, i) => (
                       <div key={i} className="aspect-video rounded-xl overflow-hidden">
@@ -154,33 +154,33 @@ export default function AeropuertoDetalle() {
             <div className="space-y-6">
               {/* Info Card */}
               <div className="p-6 rounded-2xl bg-card border border-border">
-                <h3 className="font-display text-lg font-bold text-foreground mb-4">Información</h3>
+                <h3 className="font-display text-lg font-bold text-foreground mb-4">{pc.tx("h3.1", "Información")}</h3>
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <PlaneTakeoff className="h-5 w-5 text-primary mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-foreground">Código IATA / ICAO</p>
+                      <p className="text-sm font-medium text-foreground">{pc.tx("p.2", "Código IATA / ICAO")}</p>
                       <p className="text-sm text-muted-foreground">{airport.code} / {airport.icao}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Navigation className="h-5 w-5 text-primary mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-foreground">Terminales</p>
+                      <p className="text-sm font-medium text-foreground">{pc.tx("p.3", "Terminales")}</p>
                       <p className="text-sm text-muted-foreground">{airport.terminals.join(', ')}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Phone className="h-5 w-5 text-primary mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-foreground">Teléfono</p>
+                      <p className="text-sm font-medium text-foreground">{pc.tx("p.4", "Teléfono")}</p>
                       <p className="text-sm text-muted-foreground">{airport.phone}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Globe className="h-5 w-5 text-primary mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-foreground">Sitio Web</p>
+                      <p className="text-sm font-medium text-foreground">{pc.tx("p.5", "Sitio Web")}</p>
                       <a href={airport.website} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">{airport.website.replace('https://', '')}</a>
                     </div>
                   </div>
@@ -189,7 +189,7 @@ export default function AeropuertoDetalle() {
 
               {/* Nearby Destinations */}
               <div className="p-6 rounded-2xl bg-card border border-border">
-                <h3 className="font-display text-lg font-bold text-foreground mb-4">Destinos Cercanos</h3>
+                <h3 className="font-display text-lg font-bold text-foreground mb-4">{pc.tx("h3.2", "Destinos Cercanos")}</h3>
                 <div className="space-y-2">
                   {airport.nearbyDestinations.map((d, i) => (
                     <Link key={i} to={`/destino/${d.slug}`} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors">
@@ -205,7 +205,7 @@ export default function AeropuertoDetalle() {
 
               {/* Map placeholder */}
               <div className="p-6 rounded-2xl bg-card border border-border">
-                <h3 className="font-display text-lg font-bold text-foreground mb-4">Ubicación</h3>
+                <h3 className="font-display text-lg font-bold text-foreground mb-4">{pc.tx("h3.3", "Ubicación")}</h3>
                 <div className="aspect-square bg-muted rounded-xl flex items-center justify-center">
                   <div className="text-center">
                     <Navigation className="h-8 w-8 text-primary mx-auto mb-2" />

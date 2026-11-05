@@ -19,8 +19,10 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { isValidEmail } from "@/lib/security";
 import {
-  availableRooms, availableSpots, bumpPromotionUse, fetchListings, nightsBetween, createBooking, fetchAllBookings, fetchListingBySlug, fetchOrgBySlug, findPromotion, sendMessage,
+  availableRooms, availableSpots, bumpPromotionUse, nightsBetween, createBooking, createPublicBooking, fetchAllBookings, fetchListingBySlug, fetchPublicListing, fetchStorefront, findPromotion, quoteBooking, sendMessage,
+  type BookingRequest,
 } from "../api";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { CANCELLATION_POLICIES, CATEGORY_META, EXTRA_UNIT_LABEL, formatMoney } from "../constants";
 import { runAutomation } from "../automation";
 import { addDays, quoteStay } from "../pricing";
@@ -31,13 +33,19 @@ export default function OperadorServicio() {
   const { user } = useAuth();
   const [search, setSearch] = useSearchParams();
   const qc = useQueryClient();
-  const orgQ = useQuery({ queryKey: ["op", "org-slug", slug], queryFn: () => fetchOrgBySlug(slug) });
-  const org = orgQ.data;
-  const listingQ = useQuery({ queryKey: ["op", "listing", org?.id, listingSlug], queryFn: () => fetchListingBySlug(org!.id, listingSlug), enabled: !!org });
+  // Con la API real el visitante usa sólo rutas públicas: el servidor cotiza, cuenta cupos y valida códigos.
+  const server = HAS_BACKEND_SESSION;
+  const siteQ = useQuery({ queryKey: ["op", "storefront", slug, user?.id], queryFn: () => fetchStorefront(slug, user?.id, user?.email) });
+  const orgQ = siteQ;
+  const org = siteQ.data?.org;
+  const listingQ = useQuery({
+    queryKey: ["op", "listing", slug, listingSlug],
+    queryFn: () => (server && !siteQ.data?.isOwner ? fetchPublicListing(slug, listingSlug) : fetchListingBySlug(org!.id, listingSlug)),
+    enabled: !!org,
+  });
   const listing = listingQ.data;
-  const allListingsQ = useQuery({ queryKey: ["op", "listings-of", org?.id], queryFn: () => fetchListings(org!.id), enabled: !!org });
-  const allListings = allListingsQ.data || [];
-  const bookingsQ = useQuery({ queryKey: ["op", "all-bookings"], queryFn: fetchAllBookings });
+  const allListings = siteQ.data?.listings || [];
+  const bookingsQ = useQuery({ queryKey: ["op", "all-bookings"], queryFn: fetchAllBookings, enabled: !server });
 
   const today = new Date().toISOString().slice(0, 10);
   const [date, setDate] = useState(today);
@@ -54,16 +62,32 @@ export default function OperadorServicio() {
   const [done, setDone] = useState<{ id: string; paid: boolean; deposit: number; balance: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [picked, setPicked] = useState<string[]>([]);
+  // Una clave por intento de compra: si la red falla y se reintenta, el servidor no duplica la reserva.
+  const [idemKey] = useState(() => crypto.randomUUID());
 
-  const isOwner = !!org && user?.id === org.id;
+  const isOwner = !!siteQ.data?.isOwner;
   const selectedTime = time || listing?.time_slots?.[0] || "";
-  const spots = useMemo(() => (listing ? availableSpots(listing, bookingsQ.data || [], date, selectedTime) : 0), [listing, bookingsQ.data, date, selectedTime]);
 
   const isStay = listing?.category === "alojamiento" && !!listing.rooms?.length;
   const roomId = search.get("habitacion") || "";
-  const room = isStay ? listing!.rooms!.find((r) => r.id === roomId) || (roomId ? undefined : undefined) : undefined;
+  const room = isStay ? listing!.rooms!.find((r) => r.id === roomId) : undefined;
   const nights = nightsBetween(date, checkOut);
-  const roomsFree = useMemo(() => (listing && room ? availableRooms(listing, room.id, bookingsQ.data || [], date, checkOut) : 0), [listing, room, bookingsQ.data, date, checkOut]);
+
+  // Solicitud tal como la cotiza y la reserva el servidor.
+  const request: BookingRequest | null = listing ? {
+    listing_id: listing.id, room_id: room?.id, date, check_out: isStay ? checkOut : undefined, time: isStay ? undefined : selectedTime || undefined,
+    adults: guests, children: !isStay && listing.child_price != null ? children : 0, infants: !isStay && listing.infants_free ? infants : 0,
+    extras: picked, promo_code: server && promo ? promo.code : undefined,
+  } : null;
+  const quoteQ = useQuery({
+    queryKey: ["op", "quote", request],
+    queryFn: () => quoteBooking(request!),
+    enabled: server && !!request && (!isStay || !!room),
+    placeholderData: (prev) => prev,
+  });
+  const sq = server ? quoteQ.data : undefined;
+  const spots = useMemo(() => (sq ? sq.remaining ?? 0 : listing && !server ? availableSpots(listing, bookingsQ.data || [], date, selectedTime) : 0), [sq, listing, server, bookingsQ.data, date, selectedTime]);
+  const roomsFree = useMemo(() => (sq ? sq.remaining ?? 0 : listing && room && !server ? availableRooms(listing, room.id, bookingsQ.data || [], date, checkOut) : 0), [sq, listing, room, server, bookingsQ.data, date, checkOut]);
 
   if (orgQ.isLoading || (org && listingQ.isLoading)) return <div className="min-h-screen" />;
   if (!org || !listing || (listing.status !== "published" && !isOwner)) {
@@ -98,11 +122,22 @@ export default function OperadorServicio() {
   });
   const extrasTotal = extraLines.reduce((n, x) => n + x.qty * x.price, 0);
   const subtotal = base + extrasTotal;
-  const discount = promo ? (promo.type === "percent" ? (subtotal * promo.value) / 100 : Math.min(promo.value, subtotal)) : 0;
-  const total = Math.max(0, subtotal - discount);
+  const localDiscount = promo ? (promo.type === "percent" ? (subtotal * promo.value) / 100 : Math.min(promo.value, subtotal)) : 0;
+  // Con la API real manda la cotización del servidor (el cálculo local es sólo del modo demo).
+  const discount = sq ? sq.discount : localDiscount;
+  const total = sq ? sq.total : Math.max(0, subtotal - discount);
+  const serverIssue = sq && !sq.bookable ? sq.issues.map((i) => i.message).join(" ") : "";
   const policy = CANCELLATION_POLICIES.find((p) => p.value === listing.cancellation_policy);
 
   const applyCode = async () => {
+    if (server) {
+      // El servidor valida el código al cotizar (quote.promo).
+      const q = request ? await quoteBooking({ ...request, promo_code: code.trim() }) : null;
+      const ok = !!q?.promo?.applied;
+      setPromo(ok ? { id: "", org_id: "", code: q!.promo!.code, type: "fixed", value: 0, uses: 0, active: true, created_at: "" } as Promotion : null);
+      toast[ok ? "success" : "error"](ok ? `Código aplicado: ${q!.promo!.code}` : q?.promo?.reason || "Código no válido o vencido");
+      return;
+    }
     const p = await findPromotion(org.id, code);
     setPromo(p);
     toast[p ? "success" : "error"](p ? `Código aplicado: ${p.code}` : "Código no válido o vencido");
@@ -122,8 +157,18 @@ export default function OperadorServicio() {
       if (guests > room.guests) return toast.error(`Esta habitación admite hasta ${room.guests} huéspedes.`);
       if (roomsFree < 1) return toast.error("Esta habitación no está disponible en esas fechas.");
     } else if (seats < 1 || seats > spots) return toast.error(spots === 0 ? "No hay cupos para esa fecha y horario." : `Solo quedan ${spots} cupos.`);
+    if (serverIssue) return toast.error(serverIssue);
     setBusy(true);
     try {
+      if (server) {
+        const b = await createPublicBooking({
+          request: request!, contact: { name: f.name.trim(), email: f.email.trim(), phone: f.phone.trim() || undefined },
+          notes: f.notes.trim() || undefined, idempotencyKey: idemKey,
+        });
+        qc.invalidateQueries({ queryKey: ["op", "quote"] });
+        setDone({ id: b.reference, paid: false, deposit: 0, balance: 0 });
+        return;
+      }
       const id = await createBooking({
         org_id: org.id, listing_id: listing.id, listing_title: room ? `${listing.title} — ${room.name}` : listing.title, room_id: room?.id, room_name: room?.name, check_out: isStay ? checkOut : endDate, extras: extraLines.length ? extraLines : undefined, contact_name: f.name.trim(), contact_email: f.email.trim(),
         contact_phone: f.phone.trim() || undefined, date, time: isStay ? undefined : selectedTime, guests: isStay ? guests : seats, guest_mix: !isStay && (kids || babies) ? { adults: guests, children: kids, infants: babies } : undefined, total_price: total, currency: listing.currency,
@@ -257,7 +302,7 @@ export default function OperadorServicio() {
                 ) : (
                   <>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1"><Label htmlFor="b-date">{packDays > 1 ? "Fecha de inicio" : "Fecha"}</Label><Input id="b-date" type="date" min={today} value={date} onChange={(e) => setDate(e.target.value)} />{endDate && <p className="text-[11px] text-muted-foreground">Termina el {endDate}</p>}</div>
+                      <div className="space-y-1"><Label htmlFor="b-date">{packDays > 1 ? "Fecha de inicio" : "Fecha"}</Label><Input id="b-date" type="date" min={today} value={date} onChange={(e) => setDate(e.target.value)} />{endDate && <p className="text-2xs text-muted-foreground">Termina el {endDate}</p>}</div>
                       <div className="space-y-1"><Label>Horario</Label>
                         <Select value={selectedTime} onValueChange={setTime}><SelectTrigger><SelectValue /></SelectTrigger>
                           <SelectContent>{listing.time_slots.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent></Select></div>
@@ -302,14 +347,15 @@ export default function OperadorServicio() {
                       {babies > 0 && <div className="flex justify-between text-emerald-600"><span>Bebés × {babies}</span><span>Gratis</span></div>}
                     </>}
                   {extraLines.map((x) => <div key={x.id} className="flex justify-between"><span>{x.name} × {x.qty}</span><span>{formatMoney(x.price * x.qty, listing.currency)}</span></div>)}
-                  {quote?.issue && <p className="text-xs text-destructive">{quote.issue}</p>}
+                  {quote?.issue && !server && <p className="text-xs text-destructive">{quote.issue}</p>}
+                  {serverIssue && <p className="text-xs text-destructive">{serverIssue}</p>}
                   {discount > 0 && <div className="flex justify-between text-emerald-600"><span>Descuento {promo?.code}</span><span>− {formatMoney(discount, listing.currency)}</span></div>}
                   <div className="flex justify-between font-bold text-base pt-1 border-t border-border"><span>Total</span><span>{formatMoney(total, listing.currency)}</span></div>
                 </div>
-                <Button className="w-full" size="lg" disabled={busy || (isStay ? !room || roomsFree < 1 || nights < 1 || !!quote?.issue : spots === 0)} onClick={() => submit(true)}>Reservar y pagar ahora</Button>
-                {depositPct > 0 && <Button className="w-full" variant="secondary" disabled={busy || (isStay ? !room || roomsFree < 1 || nights < 1 || !!quote?.issue : spots === 0)} onClick={() => submit(true, true)}>Reservar con depósito de {formatMoney(depositAmount, listing.currency)} ({depositPct} %)</Button>}
+                {!server && <Button className="w-full" size="lg" disabled={busy || (isStay ? !room || roomsFree < 1 || nights < 1 || !!quote?.issue : spots === 0)} onClick={() => submit(true)}>Reservar y pagar ahora</Button>}
+                {!server && depositPct > 0 && <Button className="w-full" variant="secondary" disabled={busy || (isStay ? !room || roomsFree < 1 || nights < 1 || !!quote?.issue : spots === 0)} onClick={() => submit(true, true)}>Reservar con depósito de {formatMoney(depositAmount, listing.currency)} ({depositPct} %)</Button>}
                 <Button className="w-full" variant="outline" disabled={busy || (isStay ? !room || roomsFree < 1 || nights < 1 || !!quote?.issue : spots === 0)} onClick={() => submit(false)}>Solicitar reserva (pagar después)</Button>
-                <p className="text-[11px] text-muted-foreground text-center">Pago simulado en este entorno de demostración. {org.business_name} recibe tu reserva de forma directa.</p>
+                <p className="text-2xs text-muted-foreground text-center">{server ? `El pago con tarjeta estará disponible próximamente. ${org.business_name} confirma tu reserva y te indica cómo pagar.` : `Pago simulado en este entorno de demostración. ${org.business_name} recibe tu reserva de forma directa.`}</p>
               </CardContent></Card>
             </aside>
           </div>

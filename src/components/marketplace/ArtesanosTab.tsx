@@ -20,7 +20,7 @@ export function ArtesanosTab({ artesanos, onChat }: ArtesanosTabProps) {
               <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground text-xs gap-1">
                 <CheckCircle className="h-3 w-3" /> Taller Verificado
               </Badge>
-              <Badge className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm border-white/10 text-[9px] uppercase font-bold tracking-wider">
+              <Badge className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm border-white/10 text-3xs uppercase font-bold tracking-wider">
                 {art.especialidad}
               </Badge>
             </div>

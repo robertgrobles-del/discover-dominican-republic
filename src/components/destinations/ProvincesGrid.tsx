@@ -41,7 +41,7 @@ export function ProvincesGrid({ provinces }: ProvincesGridProps) {
                   <img src={getSafeCoverImage(province.imageUrl, "province", province.slug)} alt={province.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" loading="lazy" />
                   {province.region && (
                     <div className="absolute top-2 right-2">
-                      <span className="text-[10px] font-medium bg-black/50 backdrop-blur-sm text-white px-2 py-0.5 rounded-full capitalize">{province.region}</span>
+                      <span className="text-3xs font-medium bg-black/50 backdrop-blur-sm text-white px-2 py-0.5 rounded-full capitalize">{province.region}</span>
                     </div>
                   )}
                 </div>

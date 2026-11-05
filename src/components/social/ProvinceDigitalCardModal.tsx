@@ -94,7 +94,7 @@ export function ProvinceDigitalCardModal({
           <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
             <div className="flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
               <span className="text-base">🇩🇴</span>
-              <span className="font-mono font-bold text-[10px] text-white tracking-widest uppercase">
+              <span className="font-mono font-bold text-3xs text-white tracking-widest uppercase">
                 Descubre República Dominicana
               </span>
             </div>
@@ -104,10 +104,10 @@ export function ProvinceDigitalCardModal({
           {/* Bottom Card Content */}
           <div className="absolute bottom-4 left-4 right-4 z-10 space-y-2">
             <div className="flex items-center gap-2">
-              <Badge className="bg-amber-400 text-slate-950 font-black text-[10px] uppercase px-2.5 py-0.5 rounded-full">
+              <Badge className="bg-amber-400 text-slate-950 font-black text-3xs uppercase px-2.5 py-0.5 rounded-full">
                 <MapPin className="h-3 w-3 mr-1" /> {region}
               </Badge>
-              <Badge variant="outline" className="bg-slate-950/60 text-white border-white/30 text-[10px]">
+              <Badge variant="outline" className="bg-slate-950/60 text-white border-white/30 text-3xs">
                 <Sun className="h-3 w-3 mr-1 text-amber-400" /> {climate}
               </Badge>
             </div>
@@ -121,7 +121,7 @@ export function ProvinceDigitalCardModal({
               {highlights.slice(0, 3).map((h, i) => (
                 <span
                   key={i}
-                  className="bg-white/15 backdrop-blur-md text-white text-[10px] font-semibold px-2.5 py-0.5 rounded-lg border border-white/10"
+                  className="bg-white/15 backdrop-blur-md text-white text-3xs font-semibold px-2.5 py-0.5 rounded-lg border border-white/10"
                 >
                   ✨ {h}
                 </span>

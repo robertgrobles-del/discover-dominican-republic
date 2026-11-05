@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Clock, Users, Ticket, Radio, Filter, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { CheckoutModal } from "@/components/CheckoutModal";
+import { usePageContent } from "@/lib/pageContent";
 
 interface Evento {
   id: string;
@@ -107,6 +108,9 @@ const categoryLabels = {
 };
 
 export default function EventosVivo() {
+  const pc = usePageContent("eventos-vivo");
+  const mockEvents = pc.data("mockEvents", __pcData.mockEvents);
+  const categoryLabels = pc.data("categoryLabels", __pcData.categoryLabels);
   const [selectedCity, setSelectedCity] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   
@@ -134,8 +138,8 @@ export default function EventosVivo() {
   return (
     <PageTransition>
       <SEOHead
-        title="Eventos en Vivo Ahora mismo en RD"
-        description="Descubre conciertos, fiestas, juegos de béisbol y eventos culturales pasando esta noche en cada ciudad de la República Dominicana."
+        title={pc.t("SEOHead.title.1", "Eventos en Vivo Ahora mismo en RD")}
+        description={pc.t("SEOHead.description.1", "Descubre conciertos, fiestas, juegos de béisbol y eventos culturales pasando esta noche en cada ciudad de la República Dominicana.")}
       />
       <div className="min-h-screen bg-background flex flex-col justify-between">
         <Header />
@@ -150,21 +154,15 @@ export default function EventosVivo() {
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                  </span>
-                  En Vivo Ahora
-                </Badge>
-                <h1 className="font-display text-3xl md:text-5xl font-bold text-foreground">
-                  ¿Qué pasa esta noche en la Isla?
-                </h1>
-                <p className="text-muted-foreground mt-2 max-w-xl">
-                  Explora las actividades y espectáculos nocturnos en tiempo real. ¡No te quedes en el hotel!
-                </p>
+                  </span>{pc.tx("Badge.1", "En Vivo Ahora")}</Badge>
+                <h1 className="font-display text-3xl md:text-5xl font-bold text-foreground">{pc.tx("h1.1", "¿Qué pasa esta noche en la Isla?")}</h1>
+                <p className="text-muted-foreground mt-2 max-w-xl">{pc.tx("p.1", "Explora las actividades y espectáculos nocturnos en tiempo real. ¡No te quedes en el hotel!")}</p>
               </div>
               
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground bg-secondary/50 rounded-lg py-1 px-3">
                   <Radio className="h-4 w-4 text-red-500 animate-pulse" />
-                  <span>24/7 Live Stream</span>
+                  <span>{pc.tx("span.1", "24/7 Live Stream")}</span>
                 </div>
               </div>
             </div>
@@ -173,7 +171,7 @@ export default function EventosVivo() {
             <div className="flex flex-wrap items-center gap-4 mb-8 bg-card/40 backdrop-blur-md p-4 rounded-xl border border-border">
               <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mr-2">
                 <Filter className="h-4 w-4" />
-                <span>Filtrar por:</span>
+                <span>{pc.tx("span.2", "Filtrar por:")}</span>
               </div>
               
               {/* City selector */}
@@ -233,23 +231,17 @@ export default function EventosVivo() {
                           
                           {/* Live/Scheduled status badge */}
                           {event.status === "live" && (
-                            <Badge className="absolute top-3 right-3 bg-red-500 text-white gap-1.5 font-bold uppercase tracking-wider text-[10px]">
+                            <Badge className="absolute top-3 right-3 bg-red-500 text-white gap-1.5 font-bold uppercase tracking-wider text-3xs">
                               <span className="relative flex h-1.5 w-1.5">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-200 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
-                              </span>
-                              En Vivo
-                            </Badge>
+                              </span>{pc.tx("Badge.2", "En Vivo")}</Badge>
                           )}
                           {event.status === "scheduled" && (
-                            <Badge className="absolute top-3 right-3 bg-amber-500 text-white gap-1.5 font-bold uppercase tracking-wider text-[10px]">
-                              Próximamente
-                            </Badge>
+                            <Badge className="absolute top-3 right-3 bg-amber-500 text-white gap-1.5 font-bold uppercase tracking-wider text-3xs">{pc.tx("Badge.3", "Próximamente")}</Badge>
                           )}
                           {event.status === "ended" && (
-                            <Badge className="absolute top-3 right-3 bg-slate-700 text-slate-300 gap-1.5 font-bold uppercase tracking-wider text-[10px]">
-                              Terminado
-                            </Badge>
+                            <Badge className="absolute top-3 right-3 bg-slate-700 text-slate-300 gap-1.5 font-bold uppercase tracking-wider text-3xs">{pc.tx("Badge.4", "Terminado")}</Badge>
                           )}
 
                           {/* City tag */}
@@ -264,9 +256,9 @@ export default function EventosVivo() {
                           <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">
                             {categoryLabels[event.category]}
                           </p>
-                          <h3 className="font-display font-bold text-lg text-foreground group-hover:text-primary transition-colors leading-snug line-clamp-1">
+                          <h2 className="h3 font-display font-bold text-lg text-foreground group-hover:text-primary transition-colors leading-snug line-clamp-1">
                             {event.title}
-                          </h3>
+                          </h2>
 
                           <div className="mt-4 space-y-2 text-sm text-muted-foreground">
                             <div className="flex items-center gap-2">
@@ -279,7 +271,7 @@ export default function EventosVivo() {
                             </div>
                             <div className="flex items-center gap-2">
                               <Users className="h-4 w-4 text-primary/60 flex-shrink-0" />
-                              <span>{event.attendees.toLocaleString()} asistiendo esta noche</span>
+                              <span>{event.attendees.toLocaleString()}{" "}{pc.tx("span.3", "asistiendo esta noche")}</span>
                             </div>
                           </div>
                         </div>
@@ -288,7 +280,7 @@ export default function EventosVivo() {
                       {/* Footer Actions */}
                       <div className="p-5 pt-0 border-t border-border/40 mt-4 flex items-center justify-between">
                         <div>
-                          <p className="text-[11px] text-muted-foreground">Entrada</p>
+                          <p className="text-2xs text-muted-foreground">{pc.tx("p.2", "Entrada")}</p>
                           <p className="font-display font-bold text-foreground">
                             {event.price === 0 ? "Gratis" : `RD$ ${event.price.toLocaleString()}`}
                           </p>
@@ -311,8 +303,8 @@ export default function EventosVivo() {
               {filteredEvents.length === 0 && (
                 <div className="col-span-full py-16 text-center">
                   <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-bold text-foreground mb-1">No hay eventos activos</h3>
-                  <p className="text-muted-foreground">No encontramos espectáculos en vivo en la ciudad o categoría seleccionada.</p>
+                  <h2 className="h3 text-lg font-bold text-foreground mb-1">{pc.tx("h3.1", "No hay eventos activos")}</h2>
+                  <p className="text-muted-foreground">{pc.tx("p.3", "No encontramos espectáculos en vivo en la ciudad o categoría seleccionada.")}</p>
                 </div>
               )}
             </div>
@@ -331,3 +323,6 @@ export default function EventosVivo() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { mockEvents, categoryLabels };

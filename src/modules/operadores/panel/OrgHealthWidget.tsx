@@ -101,11 +101,11 @@ export function OrgHealthWidget({
                 )}
                 <div className="min-w-0">
                   <p className="font-semibold text-foreground truncate">{item.label}</p>
-                  <p className="text-[11px] text-muted-foreground truncate">{item.desc}</p>
+                  <p className="text-2xs text-muted-foreground truncate">{item.desc}</p>
                 </div>
               </div>
               {!item.done && (
-                <Button variant="ghost" size="sm" asChild className="h-7 text-[11px] gap-1 shrink-0">
+                <Button variant="ghost" size="sm" asChild className="h-7 text-2xs gap-1 shrink-0">
                   <Link to={item.to}>
                     Completar <ArrowRight className="h-3 w-3" />
                   </Link>

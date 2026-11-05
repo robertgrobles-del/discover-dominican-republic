@@ -142,14 +142,16 @@ export function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Stats grid */}
+      {/* ERP Master Metrics Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
         {statCards.map((s) => (
-          <Card key={s.label} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-4 flex flex-col items-center text-center gap-1">
-              <s.icon className={`h-6 w-6 ${s.color}`} />
-              <span className="text-2xl font-bold">{s.value}</span>
-              <span className="text-xs text-muted-foreground">{s.label}</span>
+          <Card key={s.label} className="border-border/60 bg-card/60 backdrop-blur-xs shadow-xs hover:border-border hover:shadow-sm transition-all rounded-xl">
+            <CardContent className="p-3.5 flex flex-col items-center text-center gap-1.5">
+              <div className="w-8 h-8 rounded-lg bg-muted/60 flex items-center justify-center shrink-0">
+                <s.icon className={`h-4.5 w-4.5 ${s.color}`} />
+              </div>
+              <span className="text-xl font-bold tracking-tight text-foreground">{s.value.toLocaleString()}</span>
+              <span className="text-2xs font-medium text-muted-foreground">{s.label}</span>
             </CardContent>
           </Card>
         ))}
@@ -164,7 +166,7 @@ export function AdminDashboard() {
                 <Star className="h-5 w-5 text-amber-500" />
                 <div>
                   <p className="text-xs font-semibold">Reseñas Pendientes</p>
-                  <p className="text-[11px] text-muted-foreground">Esperando moderación</p>
+                  <p className="text-2xs text-muted-foreground">Esperando moderación</p>
                 </div>
               </div>
               <Badge variant={dashboardData.pending.reviews > 0 ? "destructive" : "secondary"}>
@@ -178,7 +180,7 @@ export function AdminDashboard() {
                 <AlertTriangle className="h-5 w-5 text-rose-500" />
                 <div>
                   <p className="text-xs font-semibold">Reportes UGC</p>
-                  <p className="text-[11px] text-muted-foreground">Contenido reportado</p>
+                  <p className="text-2xs text-muted-foreground">Contenido reportado</p>
                 </div>
               </div>
               <Badge variant={dashboardData.pending.ugc_reports > 0 ? "destructive" : "secondary"}>
@@ -192,7 +194,7 @@ export function AdminDashboard() {
                 <HelpCircle className="h-5 w-5 text-blue-500" />
                 <div>
                   <p className="text-xs font-semibold">Tickets de Soporte</p>
-                  <p className="text-[11px] text-muted-foreground">Casos abiertos</p>
+                  <p className="text-2xs text-muted-foreground">Casos abiertos</p>
                 </div>
               </div>
               <Badge variant={dashboardData.pending.support_tickets > 0 ? "default" : "secondary"}>
@@ -206,7 +208,7 @@ export function AdminDashboard() {
                 <ShieldCheck className="h-5 w-5 text-emerald-500" />
                 <div>
                   <p className="text-xs font-semibold">Operadores por Verificar</p>
-                  <p className="text-[11px] text-muted-foreground">Solicitudes de alta</p>
+                  <p className="text-2xs text-muted-foreground">Solicitudes de alta</p>
                 </div>
               </div>
               <Badge variant={dashboardData.pending.operators_to_verify > 0 ? "default" : "secondary"}>
@@ -286,7 +288,7 @@ export function AdminDashboard() {
                     <p className="font-medium truncate">{a.title}</p>
                     <p className="text-xs text-muted-foreground">{a.category || "Editorial"}</p>
                   </div>
-                  <Badge variant={isPub ? "default" : "secondary"} className="text-[10px] shrink-0">
+                  <Badge variant={isPub ? "default" : "secondary"} className="text-3xs shrink-0">
                     {isPub ? "Publicado" : "Borrador"}
                   </Badge>
                 </div>

@@ -133,6 +133,7 @@ describe("Operadores RD fase B", () => {
     const rv = (payload: object) => call("POST", `/bookings/${b.booking.id}/review?token=${b.access_token}`, { payload });
     expect((await rv({ rating: 5 })).statusCode).toBe(422);
     await call("PUT", `/org/bookings/${b.booking.id}/status`, { token: owner.token, payload: { status: "confirmed" } });
+    await pool.query("UPDATE bookings SET date = current_date - 1, check_out = CASE WHEN check_out IS NULL THEN NULL ELSE current_date END WHERE id = $1", [b.booking.id]); // ya pasó la fecha del servicio
     await call("PUT", `/org/bookings/${b.booking.id}/status`, { token: owner.token, payload: { status: "completed" } });
     expect((await rv({ rating: 9 })).statusCode).toBe(400);
     expect((await rv({ rating: 4, comment: "Muy bien" })).statusCode).toBe(201);
@@ -196,6 +197,7 @@ describe("Operadores RD fase B", () => {
     await app.mailer.drain();
     expect(app.mailer.outbox.length).toBe(sentBefore);
 
+    await pool.query("UPDATE bookings SET date = current_date - 1, check_out = CASE WHEN check_out IS NULL THEN NULL ELSE current_date END WHERE id = $1", [b.booking.id]); // ya pasó la fecha del servicio
     await call("PUT", `/org/bookings/${b.booking.id}/status`, { token: owner.token, payload: { status: "completed" } });
     expect((await app.automations.run()).review_requests).toBeGreaterThanOrEqual(1);
     await app.mailer.drain();

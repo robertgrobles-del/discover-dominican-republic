@@ -79,6 +79,9 @@ export async function campaignRoutes(app: FastifyInstance) {
     return { data: { received: true } };
   });
 
+  r.get("/admin/surveys", { onRequest: admin, schema: { tags: ["admin"], summary: "Todas las encuestas, activas o no, con su número de respuestas", security: bearer, response: { 200: ok } } }, async () => ({
+    data: (await db.query("SELECT t.id, t.slug, t.title, t.kind, t.questions, t.is_active, t.created_at, (SELECT count(*)::int FROM survey_responses r WHERE r.template_id = t.id) AS responses FROM survey_templates t ORDER BY t.created_at DESC")).rows,
+  }));
   r.post("/admin/surveys", { onRequest: admin, schema: { tags: ["admin"], summary: "Crea una encuesta", security: bearer, body: z.object({ slug, title: z.string().trim().min(3).max(150), kind: z.enum(["general", "post_trip", "nps"]).default("general"), questions: z.array(question).min(1).max(40), is_active: z.boolean().default(true) }), response: { 201: ok } } }, async (req, reply) => {
     const ids = req.body.questions.map((q) => q.id);
     if (new Set(ids).size !== ids.length) throw AppError.validation("Hay ids de pregunta repetidos");
@@ -153,6 +156,9 @@ export async function campaignRoutes(app: FastifyInstance) {
   });
 
   const contestBody = z.object({ slug, title: z.string().trim().min(3).max(150), description: z.string().max(4000).optional(), rules: z.string().max(8000).optional(), prize: z.string().max(300).optional(), image_url: z.string().url().max(500).optional(), starts_at: z.string().datetime(), ends_at: z.string().datetime(), status: z.enum(["draft", "published"]).default("draft"), max_entries: z.number().int().min(1).optional(), min_age: z.number().int().min(1).max(99).optional() });
+  r.get("/admin/contests", { onRequest: admin, schema: { tags: ["admin"], summary: "Todos los concursos, incluidos los borradores y los cerrados", security: bearer, response: { 200: ok } } }, async () => ({
+    data: (await db.query("SELECT c.slug, c.title, c.description, c.rules, c.prize, c.image_url, c.starts_at, c.ends_at, c.status, c.max_entries, c.min_age, (c.starts_at <= now() AND c.ends_at > now() AND c.status = 'published') AS open, (SELECT count(*)::int FROM contest_registrations r WHERE r.contest_id = c.id) AS registrations FROM contests c ORDER BY c.ends_at DESC")).rows,
+  }));
   r.post("/admin/contests", { onRequest: admin, schema: { tags: ["admin"], summary: "Crea un concurso", security: bearer, body: contestBody, response: { 201: ok } } }, async (req, reply) => {
     const b = req.body;
     if (b.ends_at <= b.starts_at) throw AppError.validation("La fecha final debe ser posterior a la inicial");

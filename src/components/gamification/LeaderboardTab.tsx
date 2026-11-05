@@ -148,9 +148,11 @@ export function LeaderboardTab({
                     <CardTitle className="text-lg">
                       {entry.display_name || "Viajero Anónimo"}
                     </CardTitle>
-                    <CardDescription>
-                      Nivel {entry.current_level}
-                    </CardDescription>
+                    {entry.current_level != null && (
+                      <CardDescription>
+                        Nivel {entry.current_level}
+                      </CardDescription>
+                    )}
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <div className="text-center">
@@ -159,7 +161,7 @@ export function LeaderboardTab({
                       </div>
                       <p className="text-xs text-muted-foreground">Experiencia Total</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 pt-2 border-t text-center text-xs">
+                    {entry.coins != null && <div className="grid grid-cols-2 gap-2 pt-2 border-t text-center text-xs">
                       <div>
                         <div className="font-semibold">{entry.coins}</div>
                         <div className="text-muted-foreground">Monedas</div>
@@ -168,7 +170,7 @@ export function LeaderboardTab({
                         <div className="font-semibold">{entry.total_missions_completed}</div>
                         <div className="text-muted-foreground">Misiones</div>
                       </div>
-                    </div>
+                    </div>}
                   </CardContent>
                 </Card>
               </motion.div>
@@ -223,9 +225,11 @@ export function LeaderboardTab({
                         <div className="font-semibold truncate">
                           {entry.display_name || "Viajero Anónimo"}
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          Nivel {entry.current_level}
-                        </div>
+                        {entry.current_level != null && (
+                          <div className="text-sm text-muted-foreground">
+                            Nivel {entry.current_level}
+                          </div>
+                        )}
                       </div>
 
                       <div className="text-right">
@@ -235,14 +239,14 @@ export function LeaderboardTab({
                         <div className="text-xs text-muted-foreground">XP</div>
                       </div>
 
-                      <div className="hidden md:flex items-center gap-4 text-sm">
+                      {entry.coins != null && <div className="hidden md:flex items-center gap-4 text-sm">
                         <Badge variant="secondary">
                           💰 {entry.coins}
                         </Badge>
                         <Badge variant="outline">
                           🎯 {entry.total_missions_completed}
                         </Badge>
-                      </div>
+                      </div>}
                     </CardContent>
                   </Card>
                 </motion.div>

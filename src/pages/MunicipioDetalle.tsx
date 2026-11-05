@@ -17,11 +17,14 @@ import { DestinationAboutTabs } from "@/components/destination/DestinationAboutT
 import { RelatedBlogPosts } from "@/components/destination/RelatedBlogPosts";
 
 import { destinations, getDestinationBySlug } from "@/data/destinations";
+import { destinationTheme } from "@/lib/destinationTheme";
 import { hotels } from "@/data/hotels";
 import { restaurants } from "@/data/restaurants";
 import { bars } from "@/data/bars";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function MunicipioDetalle() {
+  const pc = usePageContent("municipio-detalle");
   const { slug } = useParams<{ slug: string }>();
   
   // Find municipality data from static destinations
@@ -36,10 +39,8 @@ export default function MunicipioDetalle() {
         <Header />
         <main className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Municipio no encontrado</h1>
-            <Link to="/destinos" className="text-primary hover:underline">
-              Volver a destinos
-            </Link>
+            <h1 className="text-2xl font-bold mb-4">{pc.tx("h1.1", "Municipio no encontrado")}</h1>
+            <Link to="/destinos" className="text-primary hover:underline">{pc.tx("Link.1", "Volver a destinos")}</Link>
           </div>
         </main>
         <Footer />
@@ -93,16 +94,14 @@ export default function MunicipioDetalle() {
 
       <Header />
 
-      <main className="min-h-screen bg-background">
+      <main className={`min-h-screen bg-background ${destinationTheme(municipality.slug, municipality.provinceSlug).className ?? ""}`} style={destinationTheme(municipality.slug, municipality.provinceSlug).style}>
         {/* Breadcrumb */}
         <div className="container mx-auto px-4 pt-4">
           <nav className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
             <Link to="/" className="hover:text-primary flex items-center gap-1">
-              <Home className="h-4 w-4" />
-              Inicio
-            </Link>
+              <Home className="h-4 w-4" />{pc.tx("Link.2", "Inicio")}</Link>
             <ChevronRight className="h-4 w-4" />
-            <Link to="/destinos" className="hover:text-primary">Destinos</Link>
+            <Link to="/destinos" className="hover:text-primary">{pc.tx("Link.3", "Destinos")}</Link>
             {municipality.provinceSlug && (
               <>
                 <ChevronRight className="h-4 w-4" />
@@ -166,7 +165,7 @@ export default function MunicipioDetalle() {
               {municipality.bestTimeToVisit && (
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-semibold mb-2">🗓️ Mejor época</h3>
+                    <h3 className="font-semibold mb-2">{pc.tx("h3.1", "🗓️ Mejor época")}</h3>
                     <p className="text-sm text-muted-foreground">{municipality.bestTimeToVisit}</p>
                   </CardContent>
                 </Card>
@@ -174,7 +173,7 @@ export default function MunicipioDetalle() {
               {municipality.howToGetThere && (
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-semibold mb-2">✈️ Cómo llegar</h3>
+                    <h3 className="font-semibold mb-2">{pc.tx("h3.2", "✈️ Cómo llegar")}</h3>
                     <p className="text-sm text-muted-foreground">{municipality.howToGetThere}</p>
                   </CardContent>
                 </Card>
@@ -182,7 +181,7 @@ export default function MunicipioDetalle() {
               {municipality.weatherInfo && (
                 <Card>
                   <CardContent className="p-6">
-                    <h3 className="font-semibold mb-2">🌤️ Clima</h3>
+                    <h3 className="font-semibold mb-2">{pc.tx("h3.3", "🌤️ Clima")}</h3>
                     <p className="text-sm text-muted-foreground">{municipality.weatherInfo}</p>
                   </CardContent>
                 </Card>
@@ -195,7 +194,7 @@ export default function MunicipioDetalle() {
         {municipality.highlights && municipality.highlights.length > 0 && (
           <section className="py-12">
             <div className="container mx-auto px-4">
-              <h2 className="font-display text-2xl font-bold mb-6">Lo más destacado</h2>
+              <h2 className="font-display text-2xl font-bold mb-6">{pc.tx("h2.1", "Lo más destacado")}</h2>
               <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {municipality.highlights.map((highlight, index) => (
                   <motion.div
@@ -244,7 +243,7 @@ export default function MunicipioDetalle() {
         {municipalityHotels.length > 0 && (
           <ProvinceFeaturedSection
             title={`Dónde hospedarse en ${municipality.name}`}
-            subtitle="Alojamiento"
+            subtitle={pc.t("ProvinceFeaturedSection.subtitle.1", "Alojamiento")}
             icon={<Building2 className="h-5 w-5" />}
             items={municipalityHotels}
             linkPrefix="/alojamiento"
@@ -257,7 +256,7 @@ export default function MunicipioDetalle() {
           <div className="bg-muted/30">
             <ProvinceFeaturedSection
               title={`Dónde comer en ${municipality.name}`}
-              subtitle="Gastronomía"
+              subtitle={pc.t("ProvinceFeaturedSection.subtitle.2", "Gastronomía")}
               icon={<Utensils className="h-5 w-5" />}
               items={municipalityRestaurants}
               linkPrefix="/restaurante"
@@ -270,7 +269,7 @@ export default function MunicipioDetalle() {
         {municipality.typicalDishes && municipality.typicalDishes.length > 0 && (
           <section className="py-12">
             <div className="container mx-auto px-4">
-              <h2 className="font-display text-2xl font-bold mb-6">🍽️ Platos típicos</h2>
+              <h2 className="font-display text-2xl font-bold mb-6">{pc.tx("h2.2", "🍽️ Platos típicos")}</h2>
               <div className="flex flex-wrap gap-3">
                 {municipality.typicalDishes.map((dish, index) => (
                   <Badge key={index} variant="secondary" className="text-base py-2 px-4">
@@ -285,18 +284,15 @@ export default function MunicipioDetalle() {
         {/* CTA */}
         <section className="py-16 bg-primary/5">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="font-display text-3xl font-bold mb-4">
-              ¿Listo para explorar {municipality.name}?
+            <h2 className="font-display text-3xl font-bold mb-4">{pc.tx("h2.3", "¿Listo para explorar")}{" "}{municipality.name}?
             </h2>
-            <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Planifica tu viaje y descubre todo lo que este destino tiene para ofrecer
-            </p>
+            <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">{pc.tx("p.1", "Planifica tu viaje y descubre todo lo que este destino tiene para ofrecer")}</p>
             <div className="flex justify-center gap-4 flex-wrap">
               <Link to="/mi-viaje">
-                <Button size="lg">Agregar a mi viaje</Button>
+                <Button size="lg">{pc.tx("Button.1", "Agregar a mi viaje")}</Button>
               </Link>
               <Link to={`/actividades?destino=${municipality.slug}`}>
-                <Button size="lg" variant="outline">Ver actividades</Button>
+                <Button size="lg" variant="outline">{pc.tx("Button.2", "Ver actividades")}</Button>
               </Link>
             </div>
           </div>

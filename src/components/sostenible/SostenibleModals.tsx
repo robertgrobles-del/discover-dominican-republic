@@ -61,7 +61,7 @@ export function SostenibleModals({
               </div>
 
               <div className="pb-3 border-b border-border space-y-1">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                <span className="text-3xs font-bold text-muted-foreground uppercase">
                   Establecimiento
                 </span>
                 <h4 className="text-lg font-extrabold text-foreground">
@@ -71,7 +71,7 @@ export function SostenibleModals({
               </div>
 
               <div className="space-y-2">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase block">
+                <span className="text-3xs font-bold text-muted-foreground uppercase block">
                   Resultados de Auditoría:
                 </span>
                 {selectedEcoBusiness.criteria.map((c, i) => (
@@ -88,7 +88,7 @@ export function SostenibleModals({
                 ))}
               </div>
 
-              <div className="bg-emerald-500/10 border border-emerald-500/25 p-3 rounded-lg text-[10px] text-center text-emerald-600 font-bold uppercase tracking-wider">
+              <div className="bg-emerald-500/10 border border-emerald-500/25 p-3 rounded-lg text-3xs text-center text-emerald-600 font-bold uppercase tracking-wider">
                 Sello Verde Nº: EV-{selectedEcoBusiness.id.toUpperCase()}-2026
               </div>
             </div>
@@ -143,10 +143,10 @@ export function SostenibleModals({
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase">
+                <label htmlFor="sostenible-modals-f3" className="text-xs font-bold text-muted-foreground uppercase">
                   Nombre Completo
                 </label>
-                <Input
+                <Input id="sostenible-modals-f3"
                   type="text"
                   placeholder="Juan Pérez"
                   value={volunteerName}
@@ -157,10 +157,10 @@ export function SostenibleModals({
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase">
+                <label htmlFor="sostenible-modals-f2" className="text-xs font-bold text-muted-foreground uppercase">
                   Correo Electrónico
                 </label>
-                <Input
+                <Input id="sostenible-modals-f2"
                   type="email"
                   placeholder="juan@ejemplo.com"
                   value={volunteerEmail}
@@ -171,10 +171,10 @@ export function SostenibleModals({
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-muted-foreground uppercase">
+                <label htmlFor="sostenible-modals-f1" className="text-xs font-bold text-muted-foreground uppercase">
                   Teléfono móvil
                 </label>
-                <Input
+                <Input id="sostenible-modals-f1"
                   type="tel"
                   placeholder="+1 (809) 555-0123"
                   value={volunteerPhone}

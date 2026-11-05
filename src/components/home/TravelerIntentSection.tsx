@@ -1,5 +1,6 @@
 import { ArrowUpRight, Landmark, Mountain, Users, Waves } from "lucide-react";
 import { Link } from "react-router-dom";
+import { usePageContent } from "@/lib/pageContent";
 
 const travelIntents = [
   {
@@ -29,20 +30,16 @@ const travelIntents = [
 ];
 
 export function TravelerIntentSection() {
+  const pc = usePageContent("traveler-intent-section");
+  const travelIntents = pc.data("travelIntents", __pcData.travelIntents);
   return (
     <section aria-labelledby="traveler-intent-title" className="container mx-auto px-4 py-10 md:py-14 lg:px-8">
       <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-            Inspiración a tu medida
-          </p>
-          <h2 id="traveler-intent-title" className="font-display text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl text-foreground">
-            ¿Qué tipo de viaje estás buscando?
-          </h2>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">{pc.tx("p.1", "Inspiración a tu medida")}</p>
+          <h2 id="traveler-intent-title" className="font-display text-2xl font-bold tracking-tight md:text-3xl lg:text-4xl text-foreground">{pc.tx("h2.1", "¿Qué tipo de viaje estás buscando?")}</h2>
         </div>
-        <p className="max-w-md text-sm text-muted-foreground leading-relaxed">
-          Selecciona tu estilo de exploración favorito y descubre rutas, establecimientos y consejos locales verificados.
-        </p>
+        <p className="max-w-md text-sm text-muted-foreground leading-relaxed">{pc.tx("p.2", "Selecciona tu estilo de exploración favorito y descubre rutas, establecimientos y consejos locales verificados.")}</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -68,3 +65,6 @@ export function TravelerIntentSection() {
     </section>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { travelIntents };

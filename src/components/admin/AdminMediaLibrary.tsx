@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { displayImageUrl } from "@/lib/adminProductsApi";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getAdminMediaList,
@@ -14,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Image, CheckCircle, XCircle, Download, Search, RefreshCw, Eye, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
+import { activateOnKey } from "@/lib/a11y";
 export default function AdminMediaLibrary() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -68,11 +70,11 @@ export default function AdminMediaLibrary() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+          <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <Image className="w-6 h-6 text-cyan-500" />
             Biblioteca de Medios y Moderación
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             Imágenes de contenidos, fotos de usuarios por moderar e importación de recursos multimedia.
           </p>
         </div>
@@ -89,7 +91,7 @@ export default function AdminMediaLibrary() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center bg-card border rounded-xl p-3">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
           <Input
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
@@ -125,43 +127,43 @@ export default function AdminMediaLibrary() {
 
       {/* Grid */}
       {isLoading ? (
-        <div className="text-center py-12 text-slate-400">Cargando biblioteca de medios...</div>
+        <div className="text-center py-12 text-muted-foreground">Cargando biblioteca de medios...</div>
       ) : items.length === 0 ? (
-        <div className="text-center py-12 text-slate-400 bg-card border rounded-xl">
+        <div className="text-center py-12 text-muted-foreground bg-card border rounded-xl">
           No hay elementos multimedia que coincidan con la búsqueda.
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {items.map((item) => (
-            <div
+            <div role="button" tabIndex={0} onKeyDown={activateOnKey}
               key={item.id}
               onClick={() => setSelectedAsset(item)}
               className="group relative bg-card border rounded-xl overflow-hidden shadow-2xs cursor-pointer hover:border-primary transition-all flex flex-col"
             >
-              <div className="aspect-square bg-slate-100 dark:bg-slate-900 overflow-hidden relative">
+              <div className="aspect-square bg-muted/50 overflow-hidden relative">
                 {item.url || item.source_url ? (
                   <img
-                    src={item.url || item.source_url || ""}
+                    src={displayImageUrl(item.variants?.thumb || item.url || item.source_url || "")}
                     alt={item.alt || ""}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     loading="lazy"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-400">
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                     <Image className="w-8 h-8 opacity-40" />
                   </div>
                 )}
                 {item.status === "in_review" && (
                   <div className="absolute top-1.5 left-1.5">
-                    <Badge className="bg-amber-500 text-white text-[10px] px-1.5 py-0 shadow">Por moderar</Badge>
+                    <Badge className="bg-amber-500 text-white text-3xs px-1.5 py-0 shadow">Por moderar</Badge>
                   </div>
                 )}
               </div>
-              <div className="p-2 text-[11px] space-y-0.5">
-                <div className="font-semibold text-slate-900 dark:text-white truncate">
+              <div className="p-2 text-2xs space-y-0.5">
+                <div className="font-semibold text-foreground truncate">
                   {item.alt || item.credit || "Sin título"}
                 </div>
-                <div className="text-slate-500 text-[10px] flex justify-between">
+                <div className="text-muted-foreground text-3xs flex justify-between">
                   <span>{item.purpose}</span>
                   <span>{item.width}x{item.height}</span>
                 </div>
@@ -173,7 +175,7 @@ export default function AdminMediaLibrary() {
 
       {/* Pagination */}
       {meta && meta.total_pages > 1 && (
-        <div className="flex items-center justify-between p-3 border-t text-xs text-slate-500">
+        <div className="flex items-center justify-between p-3 border-t text-xs text-muted-foreground">
           <span>Página {meta.page} de {meta.total_pages} ({meta.total} archivos)</span>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage(page - 1)}>
@@ -194,21 +196,21 @@ export default function AdminMediaLibrary() {
           </DialogHeader>
           {selectedAsset && (
             <div className="space-y-4 text-sm">
-              <div className="aspect-video bg-slate-950 rounded-lg overflow-hidden flex items-center justify-center">
+              <div className="aspect-video bg-background rounded-lg overflow-hidden flex items-center justify-center">
                 <img
-                  src={selectedAsset.url || selectedAsset.source_url || ""}
+                  src={displayImageUrl(selectedAsset.variants?.medium || selectedAsset.url || selectedAsset.source_url || "")}
                   alt={selectedAsset.alt || ""}
                   className="max-h-full max-w-full object-contain"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-slate-900 p-3 rounded-lg">
-                <div><span className="text-slate-500">Dimensiones:</span> {selectedAsset.width} × {selectedAsset.height} px</div>
-                <div><span className="text-slate-500">Formato:</span> {selectedAsset.mime}</div>
-                <div><span className="text-slate-500">Propósito:</span> {selectedAsset.purpose}</div>
-                <div><span className="text-slate-500">Estado:</span> <Badge variant="outline" className="text-[10px] ml-1">{selectedAsset.status}</Badge></div>
+              <div className="grid grid-cols-2 gap-2 text-xs bg-muted/50 p-3 rounded-lg">
+                <div><span className="text-muted-foreground">Dimensiones:</span> {selectedAsset.width} × {selectedAsset.height} px</div>
+                <div><span className="text-muted-foreground">Formato:</span> {selectedAsset.mime}</div>
+                <div><span className="text-muted-foreground">Propósito:</span> {selectedAsset.purpose}</div>
+                <div><span className="text-muted-foreground">Estado:</span> <Badge variant="outline" className="text-3xs ml-1">{selectedAsset.status}</Badge></div>
                 {selectedAsset.credit && (
-                  <div className="col-span-2"><span className="text-slate-500">Crédito / Autor:</span> {selectedAsset.credit}</div>
+                  <div className="col-span-2"><span className="text-muted-foreground">Crédito / Autor:</span> {selectedAsset.credit}</div>
                 )}
               </div>
 
@@ -245,8 +247,8 @@ export default function AdminMediaLibrary() {
           </DialogHeader>
           <div className="space-y-3 py-2 text-sm">
             <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">URL de la imagen (HTTPS)</label>
-              <Input
+              <label htmlFor="admin-media-library-f2" className="text-xs font-semibold text-foreground">URL de la imagen (HTTPS)</label>
+              <Input id="admin-media-library-f2"
                 value={importUrl}
                 onChange={(e) => setImportUrl(e.target.value)}
                 placeholder="https://ejemplo.com/foto.jpg"
@@ -254,8 +256,8 @@ export default function AdminMediaLibrary() {
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Texto Alternativo (Alt)</label>
-              <Input
+              <label htmlFor="admin-media-library-f1" className="text-xs font-semibold text-foreground">Texto Alternativo (Alt)</label>
+              <Input id="admin-media-library-f1"
                 value={importAlt}
                 onChange={(e) => setImportAlt(e.target.value)}
                 placeholder="Descripción visual de la imagen"

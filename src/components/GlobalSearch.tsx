@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SearchResultsAd } from "@/components/promo";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { fetchApi } from "@/lib/fastifyClient";
 
 import puntaCana from "@/assets/punta-cana.jpg";
 import santoDomingo from "@/assets/santo-domingo.jpg";
@@ -149,7 +151,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
         .map(ev => ({ ...ev, category: "Eventos", icon: Calendar })),
     ];
 
-    // Query Supabase live database if query present
+    // Query live database or Fastify search API if query present
     const searchDb = async () => {
       if (!q) {
         setResults(localResults);
@@ -158,6 +160,53 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
       }
 
       try {
+        if (HAS_BACKEND_SESSION) {
+          const res = await fetchApi<{ data: Array<{ type: string; id: string; slug: string | null; title: string; subtitle: string | null; image: string | null }> }>(
+            `/search?q=${encodeURIComponent(q)}&limit=15`
+          );
+          const apiHits = res.data || [];
+          const dbResults: any[] = [];
+
+          apiHits.forEach((hit) => {
+            if (!localResults.some((lr) => lr.nombre.toLowerCase() === hit.title.toLowerCase())) {
+              let category = "Destinos";
+              let icon = MapPin;
+              let href = `/destino/${hit.slug || hit.id}`;
+
+              if (hit.type === "hotel" || hit.type === "hotels") {
+                category = "Hoteles";
+                icon = Building2;
+                href = `/alojamiento/${hit.slug || hit.id}`;
+              } else if (hit.type === "beach" || hit.type === "beaches") {
+                category = "Playas";
+                icon = Waves;
+                href = `/playa/${hit.slug || hit.id}`;
+              } else if (hit.type === "restaurant" || hit.type === "restaurants") {
+                category = "Restaurantes";
+                icon = Utensils;
+                href = `/restaurante/${hit.slug || hit.id}`;
+              } else if (hit.type === "article" || hit.type === "articles") {
+                category = "Artículos";
+                icon = FileText;
+                href = `/articulos/${hit.slug || hit.id}`;
+              }
+
+              dbResults.push({
+                id: hit.id,
+                nombre: hit.title,
+                desc: hit.subtitle || `Resultado oficial de ${category.toLowerCase()}`,
+                image: hit.image,
+                href,
+                category,
+                icon,
+              });
+            }
+          });
+
+          setResults([...localResults, ...dbResults]);
+          return;
+        }
+
         const [destRes, hotelRes, beachRes] = await Promise.all([
           supabase.from("destinations").select("id, name, slug, image_url").ilike("name", `%${q}%`).limit(5),
           supabase.from("hotels").select("id, name, slug, image_url").ilike("name", `%${q}%`).eq("is_active", true).limit(5),
@@ -340,7 +389,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                   <button
                     type="button"
                     onClick={resetFilters}
-                    className="text-[11px] font-semibold text-primary hover:underline whitespace-nowrap self-end md:self-auto"
+                    className="text-2xs font-semibold text-primary hover:underline whitespace-nowrap self-end md:self-auto"
                   >
                     Limpiar
                   </button>
@@ -419,7 +468,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
                     {Object.entries(groupedResults).map(([category, items]) => (
                       <div key={category} className="space-y-2">
                         <div className="flex items-center gap-2 px-1">
-                          <Badge variant="secondary" className="text-[11px] font-semibold tracking-wide uppercase px-2.5 py-0.5">
+                          <Badge variant="secondary" className="text-2xs font-semibold tracking-wide uppercase px-2.5 py-0.5">
                             {category} ({(items as any[]).length})
                           </Badge>
                         </div>
@@ -486,7 +535,7 @@ export function GlobalSearch({ isOpen, onClose }: GlobalSearchProps) {
               {/* Modal Footer */}
               <div className="p-3.5 border-t border-border/80 bg-secondary/20 flex items-center justify-between text-xs text-muted-foreground">
                 <span className="hidden sm:inline">
-                  Presiona <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border/60 font-mono text-[10px]">ESC</kbd> para cerrar
+                  Presiona <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border/60 font-mono text-3xs">ESC</kbd> para cerrar
                 </span>
                 <div className="flex items-center gap-2 ml-auto">
                   {isSearching && <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />}

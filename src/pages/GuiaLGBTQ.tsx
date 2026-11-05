@@ -17,6 +17,7 @@ import puertoPlataImg from "@/assets/puerto-plata.jpg";
 import samanaImg from "@/assets/samana.jpg";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 import laRomanaImg from "@/assets/la-romana.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const destinos = [
   { 
@@ -75,11 +76,15 @@ const consejos = [
 ];
 
 export default function GuiaLGBTQ() {
+  const pc = usePageContent("guia-lgbtq");
+  const consejos = pc.data("consejos", __pcData.consejos);
+  const destinos = pc.data("destinos", __pcData.destinos);
+  const hotelesFriendly = pc.data("hotelesFriendly", __pcData.hotelesFriendly);
   return (
     <PageTransition>
       <SEOHead
-        title="Guía LGBTQ+ de República Dominicana - Destinos Inclusivos"
-        description="Descubre los mejores destinos gay friendly en República Dominicana: Zona Colonial, Cabarete, Punta Cana, hoteles inclusivos, vida nocturna y consejos de viaje."
+        title={pc.t("SEOHead.title.1", "Guía LGBTQ+ de República Dominicana - Destinos Inclusivos")}
+        description={pc.t("SEOHead.description.1", "Descubre los mejores destinos gay friendly en República Dominicana: Zona Colonial, Cabarete, Punta Cana, hoteles inclusivos, vida nocturna y consejos de viaje.")}
         keywords="LGBTQ dominicana, viaje gay caribe, hoteles gay friendly punta cana, bodas same sex dominicana, turismo inclusivo rd"
       />
       <div className="min-h-screen flex flex-col bg-background">
@@ -89,20 +94,15 @@ export default function GuiaLGBTQ() {
           {/* Hero Banner */}
           <section className="relative min-h-[42vh] flex items-center overflow-hidden border-b border-border/60">
             <div className="absolute inset-0">
-              <img src={relaxBeach} alt="Turismo Inclusivo en República Dominicana" className="w-full h-full object-cover" />
+              <img src={pc.img("img.src.1", relaxBeach)} alt={pc.t("img.alt.1", "Turismo Inclusivo en República Dominicana")} className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-transparent" />
             </div>
             <div className="container mx-auto px-4 relative z-10 py-14">
               <div className="max-w-2xl">
-                <Badge className="mb-3 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-blue-500/20 text-foreground border-purple-500/30 backdrop-blur-md">
-                  🏳️‍🌈 Guía de Turismo Inclusivo
-                </Badge>
-                <h1 className="font-display text-3xl md:text-5xl font-black text-foreground tracking-tight mb-3">
-                  Viajes & Experiencias <span className="text-primary">LGBTQ+ Friendly</span>
+                <Badge className="mb-3 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-blue-500/20 text-foreground border-purple-500/30 backdrop-blur-md">{pc.tx("Badge.1", "🏳️‍🌈 Guía de Turismo Inclusivo")}</Badge>
+                <h1 className="font-display text-3xl md:text-5xl font-black text-foreground tracking-tight mb-3">{pc.tx("h1.1", "Viajes & Experiencias")}{" "}<span className="text-primary">{pc.tx("span.1", "LGBTQ+ Friendly")}</span>
                 </h1>
-                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                  Destinos seguros y cosmopolitas, resorts con políticas de no discriminación, bodas simbólicas y las mejores recomendaciones para disfrutar de la hospitalidad dominicana con total tranquilidad.
-                </p>
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{pc.tx("p.1", "Destinos seguros y cosmopolitas, resorts con políticas de no discriminación, bodas simbólicas y las mejores recomendaciones para disfrutar de la hospitalidad dominicana con total tranquilidad.")}</p>
               </div>
             </div>
           </section>
@@ -111,9 +111,9 @@ export default function GuiaLGBTQ() {
           <section className="py-12">
             <div className="container mx-auto px-4 max-w-6xl">
               <div className="text-center max-w-2xl mx-auto mb-10">
-                <Badge variant="outline" className="mb-2 text-xs">Información Clave</Badge>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">Lo que Debes Saber Antes de Viajar</h2>
-                <p className="text-xs text-muted-foreground mt-1">Recomendaciones culturales, legales y de hospitalidad en República Dominicana</p>
+                <Badge variant="outline" className="mb-2 text-xs">{pc.tx("Badge.2", "Información Clave")}</Badge>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h2.1", "Lo que Debes Saber Antes de Viajar")}</h2>
+                <p className="text-xs text-muted-foreground mt-1">{pc.tx("p.2", "Recomendaciones culturales, legales y de hospitalidad en República Dominicana")}</p>
               </div>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -136,9 +136,9 @@ export default function GuiaLGBTQ() {
           <section className="py-12 bg-card/40 border-y border-border">
             <div className="container mx-auto px-4 max-w-6xl">
               <div className="text-center max-w-2xl mx-auto mb-10">
-                <Badge variant="outline" className="mb-2 text-xs">Polos Turísticos</Badge>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">🌈 Destinos Recomendados</h2>
-                <p className="text-xs text-muted-foreground mt-1">Zonas del país con la mayor apertura y ambiente cosmopolita</p>
+                <Badge variant="outline" className="mb-2 text-xs">{pc.tx("Badge.3", "Polos Turísticos")}</Badge>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h2.2", "🌈 Destinos Recomendados")}</h2>
+                <p className="text-xs text-muted-foreground mt-1">{pc.tx("p.3", "Zonas del país con la mayor apertura y ambiente cosmopolita")}</p>
               </div>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -152,7 +152,7 @@ export default function GuiaLGBTQ() {
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                        <Badge className="absolute top-3 right-3 bg-white/20 backdrop-blur-md text-white text-[10px] font-bold border-none">
+                        <Badge className="absolute top-3 right-3 bg-white/20 backdrop-blur-md text-white text-3xs font-bold border-none">
                           {d.rating}
                         </Badge>
                         <h3 className="absolute bottom-3 left-3 font-display font-bold text-white text-base">
@@ -183,9 +183,9 @@ export default function GuiaLGBTQ() {
           <section className="py-12">
             <div className="container mx-auto px-4 max-w-6xl">
               <div className="text-center max-w-2xl mx-auto mb-10">
-                <Badge variant="outline" className="mb-2 text-xs">Hospedaje de Calidad</Badge>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">Hoteles & Resorts Inclusivos</h2>
-                <p className="text-xs text-muted-foreground mt-1">Establecimientos con políticas certificadas de hospitalidad y bodas same-sex</p>
+                <Badge variant="outline" className="mb-2 text-xs">{pc.tx("Badge.4", "Hospedaje de Calidad")}</Badge>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h2.3", "Hoteles & Resorts Inclusivos")}</h2>
+                <p className="text-xs text-muted-foreground mt-1">{pc.tx("p.4", "Establecimientos con políticas certificadas de hospitalidad y bodas same-sex")}</p>
               </div>
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -194,9 +194,9 @@ export default function GuiaLGBTQ() {
                     <div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
                         <span className="flex items-center gap-1"><MapPin className="h-3 w-3 text-primary" /> {h.ubicacion}</span>
-                        <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary border-none">{h.tipo}</Badge>
+                        <Badge variant="secondary" className="text-3xs bg-primary/10 text-primary border-none">{h.tipo}</Badge>
                       </div>
-                      <h4 className="font-display font-bold text-foreground text-base mb-2">{h.nombre}</h4>
+                      <h3 className="h4 font-display font-bold text-foreground text-base mb-2">{h.nombre}</h3>
                       <p className="text-xs text-muted-foreground leading-relaxed">{h.nota}</p>
                     </div>
                   </div>
@@ -216,3 +216,6 @@ export default function GuiaLGBTQ() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { consejos, destinos, hotelesFriendly };

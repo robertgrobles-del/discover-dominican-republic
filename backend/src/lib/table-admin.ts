@@ -21,9 +21,12 @@ const bearer = [{ bearerAuth: [] }];
 
 function pgError(e: unknown): never {
   const err = e as { code?: string; column?: string; constraint?: string };
-  if (err.code === "23502") throw AppError.validation(`Falta el campo "${err.column}"`, { field: err.column });
-  if (err.code === "23505") throw new AppError("CONFLICT", "Ya existe un registro con ese valor único", { reason: "UNIQUE_VIOLATION", constraint: err.constraint });
-  if (err.code === "23503") throw new AppError("CONFLICT", "Este registro se usa en otro lugar y no se puede borrar o apuntar así", { reason: "IN_USE", constraint: err.constraint });
+  // Los triggers de negocio lanzan su propio mensaje en español: se muestra tal cual.
+  const own = (e as Error).message && !/^(null value|insert or update|update or delete|duplicate key|new row)/.test((e as Error).message) ? (e as Error).message : null;
+  if (err.code === "23502") throw AppError.validation(own ?? `Falta el campo "${err.column}"`, { field: err.column });
+  if (err.code === "23505") throw new AppError("CONFLICT", err.constraint === "uq_ad_clients_rnc" ? "Ya hay un cliente con ese RNC o cédula" : "Ya existe un registro con ese valor único", { reason: "UNIQUE_VIOLATION", constraint: err.constraint });
+  if (err.code === "23503") throw new AppError("CONFLICT", own ?? "Este registro se usa en otro lugar y no se puede borrar o apuntar así", { reason: "IN_USE", constraint: err.constraint });
+  if (err.code === "23P01") throw new AppError("CONFLICT", (e as Error).message, { reason: "SLOT_TAKEN", constraint: err.constraint });
   if (err.code === "23514" || err.code === "22P02") throw AppError.validation("Un valor no cumple las reglas de la base de datos", { constraint: err.constraint });
   throw e;
 }

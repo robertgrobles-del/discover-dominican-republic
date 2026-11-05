@@ -39,8 +39,8 @@ describe("subasta de posiciones patrocinadas", () => {
   const advertiser = async (name: string, approve = true) => {
     const a = await account();
     const campaign = json(await call("POST", "/sponsorship/campaigns", { token: a.token, payload: { advertiser_name: name, advertiser_email: "ads@test.local", campaign_name: `Campaña ${name}`, billing_type: "flat", starts_at: new Date(Date.now() - 86_400_000).toISOString(), ends_at: new Date(Date.now() + 90 * 86_400_000).toISOString() } })).data.id as string;
-    if (approve) await call("PATCH", `/admin/sponsorship/campaigns/${campaign}/status`, { token: admin, payload: { status: "active" } });
     const creative = json(await call("POST", `/sponsorship/campaigns/${campaign}/creatives`, { token: a.token, payload: { slot_id: SLOT, title: `Anuncio ${name}`, target_url: "https://anunciante.example/oferta" } })).data.id as string;
+    if (approve) await call("PATCH", `/admin/sponsorship/campaigns/${campaign}/status`, { token: admin, payload: { status: "active" } });
     return { ...a, campaign, creative };
   };
   const bid = (a: { token: string; creative: string }, amount: number, over: object = {}) => call("POST", "/sponsorship/bids", { token: a.token, payload: { slot_id: SLOT, creative_id: a.creative, period_start: week, amount, ...over } });

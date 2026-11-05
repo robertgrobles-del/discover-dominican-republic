@@ -30,12 +30,12 @@ export function ReviewsSidebar({
   return (
     <aside className="w-full lg:w-72 flex-shrink-0 space-y-8">
       <div className="bg-card p-6 rounded-2xl border border-border sticky top-24">
-        <h3 className="font-bold text-lg mb-4 text-foreground">Filtrar por</h3>
+        <h2 className="h3 font-bold text-lg mb-4 text-foreground">Filtrar por</h2>
 
         <div className="mb-6">
-          <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
+          <h3 className="h4 text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
             Tipo de Viajero
-          </h4>
+          </h3>
           <div className="flex flex-wrap gap-2">
             {travelerTypes.map((type) => (
               <button

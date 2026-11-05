@@ -18,14 +18,13 @@ const any = z.any();
 const ok = z.object({ data: any });
 const bearer = [{ bearerAuth: [] }];
 const ncfType = z.enum(["B01", "B02", "B14", "B15", "E31", "E32", "E44", "E45"]);
-const referenceType = z.enum(["membership", "booking", "store_order", "sponsorship", "ticket"]);
+const referenceType = z.enum(["membership", "booking", "store_order", "sponsorship", "advertising", "ticket"]);
 const referenceId = z.string().min(1).max(64);
 const money = z.number().min(0).max(99_999_999);
 
 /** Comprobantes fiscales NCF/e-CF (DGII) (#4) */
 export async function fiscalInvoiceRoutes(app: FastifyInstance) {
   const r = app.withTypeProvider<ZodTypeProvider>();
-  const auth = app.authenticate;
   const admin = app.requireRole("admin");
   const rl = (max: number, timeWindow: string) => ({ rateLimit: app.env.AUTH_RATE_LIMIT_ENABLED ? { max, timeWindow } : { max: 1_000_000, timeWindow: "1 minute" } });
 
@@ -73,9 +72,10 @@ export async function fiscalInvoiceRoutes(app: FastifyInstance) {
     return { data: invoice };
   });
 
-  // Consultar comprobante fiscal por NCF — exige sesión: expone datos del comprador (nombre, RNC/cédula, montos).
+  // Consultar comprobante fiscal por NCF — sólo personal admin: expone datos del comprador (nombre, RNC/cédula, montos)
+  // y la tabla no guarda dueño; los NCF son secuenciales, así que una simple sesión permitía recorrerlos todos.
   r.get("/invoices/:ncf", {
-    onRequest: auth,
+    onRequest: admin,
     schema: {
       tags: ["billing"],
       summary: "Consulta un comprobante fiscal por su NCF (#4)",
@@ -89,9 +89,9 @@ export async function fiscalInvoiceRoutes(app: FastifyInstance) {
     return { data: invoice };
   });
 
-  // Consultar comprobantes vinculados a una orden o reserva — exige sesión (misma razón que arriba).
+  // Consultar comprobantes vinculados a una orden o reserva — sólo personal admin (misma razón que arriba).
   r.get("/invoices", {
-    onRequest: auth,
+    onRequest: admin,
     schema: {
       tags: ["billing"],
       summary: "Lista los comprobantes fiscales vinculados a una referencia (#4)",

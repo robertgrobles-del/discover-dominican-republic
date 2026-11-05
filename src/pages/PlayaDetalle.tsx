@@ -21,6 +21,7 @@ import { CommentSection } from "@/components/comments/CommentSection";
 import { toast } from "sonner";
 import { getSafeCoverImage } from "@/lib/imageCovers";
 import { ParticipationInvite } from "@/components/gamificacion/ParticipationInvite";
+import { NearbyStayEat } from "@/components/detail/NearbyStayEat";
 
 import { DetailHeroHeader } from "@/components/detail/DetailHeroHeader";
 import { DetailAmenitiesGrid } from "@/components/detail/DetailAmenitiesGrid";
@@ -28,7 +29,9 @@ import { DetailLocationMapCard } from "@/components/detail/DetailLocationMapCard
 import { DetailFloatingBar } from "@/components/detail/DetailFloatingBar";
 import { BeachConditionsCard } from "@/components/beach/BeachConditionsCard";
 import { useState } from "react";
+import { usePageContent } from "@/lib/pageContent";
 
+import { activateOnKey } from "@/lib/a11y";
 const beachTypeLabels: Record<string, string> = {
   "arena-blanca": "Arena Blanca",
   "arena-dorada": "Arena Dorada",
@@ -77,6 +80,8 @@ function useBeachData(slug: string | undefined): { beach: BeachSource | undefine
 }
 
 export default function PlayaDetalle() {
+  const pc = usePageContent("playa-detalle");
+  const beachTypeLabels = pc.data("beachTypeLabels", __pcData.beachTypeLabels);
   const { slug } = useParams<{ slug: string }>();
   const { beach: rawBeach, isLoading } = useBeachData(slug);
   const [isSaved, setIsSaved] = useState(false);
@@ -134,12 +139,10 @@ export default function PlayaDetalle() {
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
               <Waves className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="font-display text-3xl font-bold mb-4">Playa no encontrada</h1>
-            <p className="text-muted-foreground mb-8">
-              La playa que buscas no existe o ha sido reubicada en nuestro catálogo.
-            </p>
+            <h1 className="font-display text-3xl font-bold mb-4">{pc.tx("h1.1", "Playa no encontrada")}</h1>
+            <p className="text-muted-foreground mb-8">{pc.tx("p.1", "La playa que buscas no existe o ha sido reubicada en nuestro catálogo.")}</p>
             <Link to="/playas">
-              <Button className="rounded-xl">Explorar todas las playas</Button>
+              <Button className="rounded-xl">{pc.tx("Button.1", "Explorar todas las playas")}</Button>
             </Link>
           </div>
           <Footer />
@@ -231,14 +234,12 @@ export default function PlayaDetalle() {
 
         {/* Main Content Layout */}
         <main className="container mx-auto px-4 max-w-7xl py-10">
-          <div className="mb-10"><ParticipationInvite placeName={beach.name} /></div>
           <div className="grid lg:grid-cols-12 gap-8">
             {/* Left Column: 8 cols */}
             <div className="lg:col-span-8 space-y-8">
               {/* Description Card */}
               <div className="p-6 md:p-8 rounded-3xl bg-card border border-border shadow-sm space-y-4">
-                <h2 className="font-display font-bold text-xl text-foreground">
-                  Sobre {beach.name}
+                <h2 className="font-display font-bold text-xl text-foreground">{pc.tx("h2.1", "Sobre")}{" "}{beach.name}
                 </h2>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {beach.description || beach.shortDescription}
@@ -258,7 +259,7 @@ export default function PlayaDetalle() {
 
               {/* Amenities Grid Component */}
               <DetailAmenitiesGrid
-                title="Servicios e Instalaciones en Playa"
+                title={pc.t("DetailAmenitiesGrid.title.1", "Servicios e Instalaciones en Playa")}
                 amenities={beach.amenities}
               />
 
@@ -272,14 +273,6 @@ export default function PlayaDetalle() {
                 howToGetThereNotes={beach.howToGetThere}
               />
 
-              {/* Community Reviews & Ratings */}
-              <div className="p-6 md:p-8 rounded-3xl bg-card border border-border shadow-sm space-y-4">
-                <CommentSection
-                  targetId={beach.id || beach.slug}
-                  targetType="destination"
-                  targetName={beach.name}
-                />
-              </div>
             </div>
 
             {/* Right Column: 4 cols Sidebar */}
@@ -287,35 +280,33 @@ export default function PlayaDetalle() {
               {/* Quick Summary Card */}
               <div className="p-6 rounded-3xl bg-card border border-border shadow-sm space-y-4 sticky top-24">
                 <h3 className="font-display font-bold text-base text-foreground flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" /> Resumen Rápido de Visita
-                </h3>
+                  <Sparkles className="h-4 w-4 text-primary" />{" "}{pc.tx("h3.1", "Resumen Rápido de Visita")}</h3>
 
                 <div className="space-y-3 text-xs">
                   <div className="flex justify-between py-1.5 border-b border-border/60">
-                    <span className="text-muted-foreground">Provincia</span>
+                    <span className="text-muted-foreground">{pc.tx("span.1", "Provincia")}</span>
                     <span className="font-bold text-foreground">{beach.province}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-border/60">
-                    <span className="text-muted-foreground">Tipo de Arena</span>
+                    <span className="text-muted-foreground">{pc.tx("span.2", "Tipo de Arena")}</span>
                     <span className="font-bold text-foreground">{beach.sandType}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-border/60">
-                    <span className="text-muted-foreground">Oleaje</span>
+                    <span className="text-muted-foreground">{pc.tx("span.3", "Oleaje")}</span>
                     <span className="font-bold text-foreground capitalize">{beach.waveIntensity}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-border/60">
-                    <span className="text-muted-foreground">Parqueo</span>
+                    <span className="text-muted-foreground">{pc.tx("span.4", "Parqueo")}</span>
                     <span className="font-bold text-foreground">{beach.parkingAvailable ? "Disponible y Vigilado" : "Borde de carretera"}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-border/60">
-                    <span className="text-muted-foreground">Acceso de Transporte</span>
+                    <span className="text-muted-foreground">{pc.tx("span.5", "Acceso de Transporte")}</span>
                     <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                      <Bus className="h-3 w-3" /> Guagua / Carro estándar
-                    </span>
+                      <Bus className="h-3 w-3" />{" "}{pc.tx("span.6", "Guagua / Carro estándar")}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-border/60">
-                    <span className="text-muted-foreground">Servicios en Orilla</span>
-                    <span className="font-bold text-foreground">Baños, Sombrillas & Comida</span>
+                    <span className="text-muted-foreground">{pc.tx("span.7", "Servicios en Orilla")}</span>
+                    <span className="font-bold text-foreground">{pc.tx("span.8", "Baños, Sombrillas & Comida")}</span>
                   </div>
                 </div>
 
@@ -326,8 +317,7 @@ export default function PlayaDetalle() {
                   className="block pt-2"
                 >
                   <Button className="w-full rounded-2xl font-bold text-xs h-10 shadow-md gap-1.5">
-                    <Navigation className="h-4 w-4" /> Cómo Llegar con GPS
-                  </Button>
+                    <Navigation className="h-4 w-4" />{" "}{pc.tx("Button.2", "Cómo Llegar con GPS")}</Button>
                 </a>
               </div>
 
@@ -343,18 +333,15 @@ export default function PlayaDetalle() {
             <section className="mt-14 space-y-6 pt-10 border-t border-border/60">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-display text-2xl font-black text-foreground">
-                    Galería Fotográfica de {beach.name}
+                  <h3 className="font-display text-2xl font-black text-foreground">{pc.tx("h3.2", "Galería Fotográfica de")}{" "}{beach.name}
                   </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Postales en alta definición del oleaje, arena y vistas panorámicas. Haz clic para ampliar.
-                  </p>
+                  <p className="text-xs text-muted-foreground">{pc.tx("p.2", "Postales en alta definición del oleaje, arena y vistas panorámicas. Haz clic para ampliar.")}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {allImages.map((img, i) => (
-                  <div
+                  <div role="button" tabIndex={0} onKeyDown={activateOnKey}
                     key={i}
                     className="relative aspect-[4/3] cursor-pointer overflow-hidden bg-muted group rounded-2xl border border-border/70 shadow-xs"
                     onClick={() => openLightbox(i)}
@@ -372,22 +359,32 @@ export default function PlayaDetalle() {
             </section>
           )}
 
+          {/* Opiniones de la comunidad, después de las fotos */}
+          <section className="mt-14">
+            {/* Community Reviews & Ratings */}
+            <div className="p-6 md:p-8 rounded-3xl bg-card border border-border shadow-sm space-y-4">
+              <CommentSection
+                targetId={beach.id || beach.slug}
+                targetType="destination"
+                targetName={beach.name}
+              />
+            </div>
+          </section>
+
+          {/* Dónde alojarte y dónde comer */}
+          <NearbyStayEat placeName={beach.name} destinationId={(beach as { destinationId?: string }).destinationId} province={beach.province} />
+
           {/* Related Beaches in same region */}
           {relatedBeaches.length > 0 && (
             <section className="mt-14 space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-display text-2xl font-black text-foreground">
-                    Otras Playas Cercanas en {beach.province}
+                  <h3 className="font-display text-2xl font-black text-foreground">{pc.tx("h3.3", "Otras Playas Cercanas en")}{" "}{beach.province}
                   </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Completa tu ruta de sol y arena explorando estas costas vecinas.
-                  </p>
+                  <p className="text-xs text-muted-foreground">{pc.tx("p.3", "Completa tu ruta de sol y arena explorando estas costas vecinas.")}</p>
                 </div>
                 <Link to="/playas">
-                  <Button variant="outline" size="sm" className="rounded-xl text-xs">
-                    Ver todas las playas
-                  </Button>
+                  <Button variant="outline" size="sm" className="rounded-xl text-xs">{pc.tx("Button.3", "Ver todas las playas")}</Button>
                 </Link>
               </div>
 
@@ -405,7 +402,7 @@ export default function PlayaDetalle() {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         loading="lazy"
                       />
-                      <Badge className="absolute top-3 left-3 bg-black/60 text-white backdrop-blur-md text-[10px]">
+                      <Badge className="absolute top-3 left-3 bg-black/60 text-white backdrop-blur-md text-3xs">
                         {beachTypeLabels[rb.beachType] || rb.beachType}
                       </Badge>
                     </div>
@@ -422,6 +419,9 @@ export default function PlayaDetalle() {
               </div>
             </section>
           )}
+
+          {/* Pasaporte: casi al final */}
+          <div className="mt-14"><ParticipationInvite placeName={beach.name} /></div>
 
           {/* Billboard Ad */}
           <div className="mt-14">
@@ -456,3 +456,6 @@ export default function PlayaDetalle() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { beachTypeLabels };

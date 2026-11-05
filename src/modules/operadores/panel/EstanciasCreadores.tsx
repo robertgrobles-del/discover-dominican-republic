@@ -287,7 +287,7 @@ export default function EstanciasCreadores() {
           ) : stays.length === 0 ? (
             <Card className="p-8 text-center border-dashed">
               <Hotel className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-40" />
-              <h3 className="font-semibold text-lg mb-1">Sin estancias activas para creadores</h3>
+              <h2 className="h3 font-semibold text-lg mb-1">Sin estancias activas para creadores</h2>
               <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
                 Publica noches en tu hotel para recibir aplicaciones de creadores de contenido de turismo verificados.
               </p>
@@ -303,10 +303,10 @@ export default function EstanciasCreadores() {
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <div className="flex items-center gap-2 mb-1.5">
-                          <Badge variant="outline" className="text-[10px] uppercase border-primary/30 text-primary">
+                          <Badge variant="outline" className="text-3xs uppercase border-primary/30 text-primary">
                             <MapPin className="h-3 w-3 mr-1" /> {s.destination}
                           </Badge>
-                          <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 text-[10px]">
+                          <Badge className="bg-emerald-500/15 text-emerald-600 border-emerald-500/30 text-3xs">
                             {s.nights_count} noches · {s.guests_allowed} personas
                           </Badge>
                         </div>
@@ -363,7 +363,7 @@ export default function EstanciasCreadores() {
                         <p className="text-xs text-muted-foreground">{cr.social_profiles?.instagram || "@creador"}</p>
                       </div>
                     </div>
-                    <Badge variant="outline" className="text-[10px] text-primary border-primary/30">
+                    <Badge variant="outline" className="text-3xs text-primary border-primary/30">
                       {cr.social_profiles?.followers || "10k+"} seguidores
                     </Badge>
                   </div>
@@ -372,7 +372,7 @@ export default function EstanciasCreadores() {
                 <CardContent className="p-5 pt-0 space-y-3">
                   <div className="flex flex-wrap gap-1.5">
                     {(cr.niches || ["Turismo"]).map((n: string, i: number) => (
-                      <Badge key={i} variant="secondary" className="text-[10px]">{n}</Badge>
+                      <Badge key={i} variant="secondary" className="text-3xs">{n}</Badge>
                     ))}
                   </div>
 

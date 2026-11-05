@@ -108,7 +108,7 @@ export function BadgeCard({ badge, size = "md", showProgress = true, showDetails
       {size !== "sm" && (
         <div className="flex justify-center gap-0.5 mb-2">
           {Array.from({ length: 5 }).map((_, i) => (
-            <span key={i} className={`text-[8px] ${i < cfg.stars ? "text-amber-400" : "text-border"}`}>★</span>
+            <span key={i} className={`text-3xs ${i < cfg.stars ? "text-amber-400" : "text-border"}`}>★</span>
           ))}
         </div>
       )}
@@ -119,13 +119,13 @@ export function BadgeCard({ badge, size = "md", showProgress = true, showDetails
       </h3>
 
       {showDetails && !badge.isSecret && (
-        <p className={`text-muted-foreground mb-2 ${size === "sm" ? "text-[9px]" : "text-xs"}`}>
+        <p className={`text-muted-foreground mb-2 ${size === "sm" ? "text-3xs" : "text-xs"}`}>
           {badge.desc}
         </p>
       )}
 
       {/* Rarity badge */}
-      <Badge className={`text-[9px] px-1.5 py-0.5 mb-2 ${cfg.badgeClass}`}>
+      <Badge className={`text-3xs px-1.5 py-0.5 mb-2 ${cfg.badgeClass}`}>
         {badge.isSecret && !badge.earned ? "Secreto" : cfg.label}
       </Badge>
 
@@ -141,7 +141,7 @@ export function BadgeCard({ badge, size = "md", showProgress = true, showDetails
       {/* Progress bar */}
       {showProgress && !badge.earned && badge.progress !== undefined && badge.progress > 0 && !badge.isSecret && (
         <div className="mb-3">
-          <div className="flex items-center justify-between text-[9px] text-muted-foreground mb-1">
+          <div className="flex items-center justify-between text-3xs text-muted-foreground mb-1">
             <span>Progreso</span>
             <span>{badge.progressLabel || `${badge.progress}%`}</span>
           </div>

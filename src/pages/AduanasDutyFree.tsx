@@ -15,6 +15,7 @@ import {
   Plane, Scale, HelpCircle, ArrowRight
 } from "lucide-react";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 interface ItemPermitido {
   item: string;
@@ -136,6 +137,10 @@ const tiendasDutyFree = [
 ];
 
 export default function AduanasDutyFree() {
+  const pc = usePageContent("aduanas-duty-free");
+  const permitidos = pc.data("permitidos", __pcData.permitidos);
+  const articulosProhibidos = pc.data("articulosProhibidos", __pcData.articulosProhibidos);
+  const tiendasDutyFree = pc.data("tiendasDutyFree", __pcData.tiendasDutyFree);
   const [activeTab, setActiveTab] = useState<"permitido" | "prohibido" | "dutyfree" | "calculadora">("permitido");
   
   // Calculadora interactiva de franquicias
@@ -177,8 +182,8 @@ export default function AduanasDutyFree() {
   return (
     <PageTransition>
       <SEOHead
-        title="Guía de Aduanas y Tiendas Duty-Free en RD | Descubre República Dominicana"
-        description="Todo sobre las regulaciones aduaneras de República Dominicana: límites de ron, tabaco, café, divisas, qué artículos están prohibidos y tiendas Duty Free en los aeropuertos."
+        title={pc.t("SEOHead.title.1", "Guía de Aduanas y Tiendas Duty-Free en RD | Descubre República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Todo sobre las regulaciones aduaneras de República Dominicana: límites de ron, tabaco, café, divisas, qué artículos están prohibidos y tiendas Duty Free en los aeropuertos.")}
         keywords="aduanas republica dominicana, duty free punta cana, limite alcohol aduana rd, comprar puros dominicana aduana, franquicia equipaje dga"
       />
       
@@ -190,8 +195,8 @@ export default function AduanasDutyFree() {
           <section className="relative min-h-[45vh] flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0">
               <img 
-                src={santoDomingoImg} 
-                alt="Aeropuerto y compras en República Dominicana" 
+                src={pc.img("img.src.1", santoDomingoImg)} 
+                alt={pc.t("img.alt.1", "Aeropuerto y compras en República Dominicana")} 
                 className="w-full h-full object-cover" 
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-black/60 to-black/30" />
@@ -199,14 +204,10 @@ export default function AduanasDutyFree() {
 
             <div className="container relative z-10 mx-auto px-4 py-16 text-center max-w-4xl text-white">
               <Badge className="mb-4 bg-primary/20 text-white border-primary/40 backdrop-blur-md px-3 py-1 font-semibold">
-                <Package className="h-3.5 w-3.5 mr-1.5 text-primary" /> Dirección General de Aduanas (DGA)
-              </Badge>
-              <h1 className="text-4xl md:text-5xl font-display font-extrabold tracking-tight mb-4 drop-shadow-md">
-                Guía de Aduanas y <span className="text-primary italic">Duty-Free</span>
+                <Package className="h-3.5 w-3.5 mr-1.5 text-primary" />{" "}{pc.tx("Badge.1", "Dirección General de Aduanas (DGA)")}</Badge>
+              <h1 className="text-4xl md:text-5xl font-display font-extrabold tracking-tight mb-4 drop-shadow-md">{pc.tx("h1.1", "Guía de Aduanas y")}{" "}<span className="text-primary italic">{pc.tx("span.1", "Duty-Free")}</span>
               </h1>
-              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed drop-shadow">
-                Conoce los límites permitidos de ron, puros, artesanías y divisas, junto a los mejores consejos de compras libres de impuestos en aeropuertos dominicanos.
-              </p>
+              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed drop-shadow">{pc.tx("p.1", "Conoce los límites permitidos de ron, puros, artesanías y divisas, junto a los mejores consejos de compras libres de impuestos en aeropuertos dominicanos.")}</p>
             </div>
           </section>
 
@@ -221,8 +222,7 @@ export default function AduanasDutyFree() {
                     : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                 }`}
               >
-                <CheckCircle2 className="h-4 w-4" /> Permitidos & Souvenirs
-              </button>
+                <CheckCircle2 className="h-4 w-4" />{" "}{pc.tx("button.1", "Permitidos & Souvenirs")}</button>
               <button
                 onClick={() => setActiveTab("prohibido")}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
@@ -231,8 +231,7 @@ export default function AduanasDutyFree() {
                     : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                 }`}
               >
-                <ShieldAlert className="h-4 w-4" /> Restringidos & Multas
-              </button>
+                <ShieldAlert className="h-4 w-4" />{" "}{pc.tx("button.2", "Restringidos & Multas")}</button>
               <button
                 onClick={() => setActiveTab("calculadora")}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
@@ -241,8 +240,7 @@ export default function AduanasDutyFree() {
                     : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                 }`}
               >
-                <Scale className="h-4 w-4" /> Calculadora de Franquicia
-              </button>
+                <Scale className="h-4 w-4" />{" "}{pc.tx("button.3", "Calculadora de Franquicia")}</button>
               <button
                 onClick={() => setActiveTab("dutyfree")}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
@@ -251,8 +249,7 @@ export default function AduanasDutyFree() {
                     : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                 }`}
               >
-                <ShoppingBag className="h-4 w-4" /> Tiendas Duty-Free
-              </button>
+                <ShoppingBag className="h-4 w-4" />{" "}{pc.tx("button.4", "Tiendas Duty-Free")}</button>
             </div>
           </section>
 
@@ -261,12 +258,8 @@ export default function AduanasDutyFree() {
             {activeTab === "permitido" && (
               <div className="space-y-6 animate-in fade-in duration-300">
                 <div className="text-center max-w-2xl mx-auto mb-8">
-                  <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground">
-                    Artículos Permitidos y Recomendados
-                  </h2>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Productos tradicionales dominicanos que puedes llevar en tu equipaje facturado o de mano cumpliendo las normativas.
-                  </p>
+                  <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground">{pc.tx("h2.1", "Artículos Permitidos y Recomendados")}</h2>
+                  <p className="text-sm text-muted-foreground mt-2">{pc.tx("p.2", "Productos tradicionales dominicanos que puedes llevar en tu equipaje facturado o de mano cumpliendo las normativas.")}</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -282,14 +275,14 @@ export default function AduanasDutyFree() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-2 mb-1">
                                 <h3 className="font-bold text-foreground text-base">{p.item}</h3>
-                                <Badge variant="secondary" className="text-[10px] uppercase font-bold">{p.categoria}</Badge>
+                                <Badge variant="secondary" className="text-3xs uppercase font-bold">{p.categoria}</Badge>
                               </div>
                               <p className="text-xs text-primary font-semibold mb-2">{p.limite}</p>
                               <p className="text-xs text-muted-foreground leading-relaxed mb-4">{p.notas}</p>
                               
-                              <div className="bg-muted/30 rounded-xl p-3 space-y-1.5 text-[11px] border border-border/40">
-                                <p><strong className="text-foreground">🇩🇴 Aduana RD:</strong> {p.aduanasRD}</p>
-                                <p><strong className="text-foreground">✈️ Al regresar:</strong> {p.alRegresar}</p>
+                              <div className="bg-muted/30 rounded-xl p-3 space-y-1.5 text-2xs border border-border/40">
+                                <p><strong className="text-foreground">{pc.tx("strong.1", "🇩🇴 Aduana RD:")}</strong> {p.aduanasRD}</p>
+                                <p><strong className="text-foreground">{pc.tx("strong.2", "✈️ Al regresar:")}</strong> {p.alRegresar}</p>
                               </div>
                             </div>
                           </div>
@@ -304,12 +297,8 @@ export default function AduanasDutyFree() {
             {activeTab === "prohibido" && (
               <div className="space-y-6 animate-in fade-in duration-300">
                 <div className="text-center max-w-2xl mx-auto mb-8">
-                  <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground">
-                    Artículos Prohibidos y Leyes Aduaneras
-                  </h2>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Evita retrasos graves, confiscaciones o sanciones penales conociendo los productos no autorizados.
-                  </p>
+                  <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground">{pc.tx("h2.2", "Artículos Prohibidos y Leyes Aduaneras")}</h2>
+                  <p className="text-sm text-muted-foreground mt-2">{pc.tx("p.3", "Evita retrasos graves, confiscaciones o sanciones penales conociendo los productos no autorizados.")}</p>
                 </div>
 
                 <div className="space-y-4">
@@ -325,7 +314,7 @@ export default function AduanasDutyFree() {
                         <div>
                           <div className="flex items-center gap-2">
                             <h3 className="font-bold text-foreground text-sm">{item.item}</h3>
-                            <Badge className="bg-destructive/10 text-destructive border-destructive/20 text-[10px]">
+                            <Badge className="bg-destructive/10 text-destructive border-destructive/20 text-3xs">
                               {item.severidad}
                             </Badge>
                           </div>
@@ -342,9 +331,8 @@ export default function AduanasDutyFree() {
                   <div className="flex items-start gap-4">
                     <AlertTriangle className="h-6 w-6 text-amber-500 shrink-0 mt-1" />
                     <div>
-                      <h4 className="font-bold text-foreground text-sm">Declaración Electrónica de Entrada/Salida (E-Ticket)</h4>
-                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                        Todos los pasajeros deben completar obligatoriamente el formulario digital gratuito de la Dirección General de Migración y Aduanas antes de embarcar en su vuelo (<span className="text-foreground font-semibold">eticket.migracion.gob.do</span>).
+                      <h4 className="font-bold text-foreground text-sm">{pc.tx("h4.1", "Declaración Electrónica de Entrada/Salida (E-Ticket)")}</h4>
+                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{pc.tx("p.4", "Todos los pasajeros deben completar obligatoriamente el formulario digital gratuito de la Dirección General de Migración y Aduanas antes de embarcar en su vuelo (")}<span className="text-foreground font-semibold">{pc.tx("span.2", "eticket.migracion.gob.do")}</span>).
                       </p>
                     </div>
                   </div>
@@ -355,24 +343,20 @@ export default function AduanasDutyFree() {
             {activeTab === "calculadora" && (
               <div className="space-y-6 animate-in fade-in duration-300">
                 <div className="text-center max-w-2xl mx-auto mb-8">
-                  <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground">
-                    Calculadora de Franquicia Aduanera
-                  </h2>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Estima si las compras y souvenirs de tu viaje caben dentro de los límites libres de impuestos para tu país de destino.
-                  </p>
+                  <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground">{pc.tx("h2.3", "Calculadora de Franquicia Aduanera")}</h2>
+                  <p className="text-sm text-muted-foreground mt-2">{pc.tx("p.5", "Estima si las compras y souvenirs de tu viaje caben dentro de los límites libres de impuestos para tu país de destino.")}</p>
                 </div>
 
                 <Card className="border border-border/80 shadow-md">
                   <CardHeader className="bg-muted/20 border-b">
-                    <CardTitle className="text-lg font-bold">Simula tus Compras de Viaje</CardTitle>
-                    <CardDescription>Ajusta las cantidades para ver el diagnóstico aduanero de tu país.</CardDescription>
+                    <CardTitle className="text-lg font-bold">{pc.tx("CardTitle.1", "Simula tus Compras de Viaje")}</CardTitle>
+                    <CardDescription>{pc.tx("CardDescription.1", "Ajusta las cantidades para ver el diagnóstico aduanero de tu país.")}</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <div>
-                          <Label className="text-xs font-bold text-muted-foreground">País de Residencia / Regreso</Label>
+                          <Label className="text-xs font-bold text-muted-foreground">{pc.tx("Label.1", "País de Residencia / Regreso")}</Label>
                           <div className="grid grid-cols-3 gap-2 mt-1.5">
                             <Button
                               type="button"
@@ -380,32 +364,26 @@ export default function AduanasDutyFree() {
                               size="sm"
                               onClick={() => setCountryTarget("usa")}
                               className="text-xs font-semibold"
-                            >
-                              🇺🇸 EE.UU.
-                            </Button>
+                            >{pc.tx("Button.1", "🇺🇸 EE.UU.")}</Button>
                             <Button
                               type="button"
                               variant={countryTarget === "canada" ? "default" : "outline"}
                               size="sm"
                               onClick={() => setCountryTarget("canada")}
                               className="text-xs font-semibold"
-                            >
-                              🇨🇦 Canadá
-                            </Button>
+                            >{pc.tx("Button.2", "🇨🇦 Canadá")}</Button>
                             <Button
                               type="button"
                               variant={countryTarget === "europe" ? "default" : "outline"}
                               size="sm"
                               onClick={() => setCountryTarget("europe")}
                               className="text-xs font-semibold"
-                            >
-                              🇪🇺 Europa
-                            </Button>
+                            >{pc.tx("Button.3", "🇪🇺 Europa")}</Button>
                           </div>
                         </div>
 
                         <div>
-                          <Label className="text-xs font-bold text-muted-foreground">Botellas de Ron / Licores (750ml c/u)</Label>
+                          <Label className="text-xs font-bold text-muted-foreground">{pc.tx("Label.2", "Botellas de Ron / Licores (750ml c/u)")}</Label>
                           <Input 
                             type="number" 
                             min="0" 
@@ -417,7 +395,7 @@ export default function AduanasDutyFree() {
                         </div>
 
                         <div>
-                          <Label className="text-xs font-bold text-muted-foreground">Cantidad de Puros / Tabacos</Label>
+                          <Label className="text-xs font-bold text-muted-foreground">{pc.tx("Label.3", "Cantidad de Puros / Tabacos")}</Label>
                           <Input 
                             type="number" 
                             min="0" 
@@ -429,7 +407,7 @@ export default function AduanasDutyFree() {
                         </div>
 
                         <div>
-                          <Label className="text-xs font-bold text-muted-foreground">Efectivo Total Transportado (USD)</Label>
+                          <Label className="text-xs font-bold text-muted-foreground">{pc.tx("Label.4", "Efectivo Total Transportado (USD)")}</Label>
                           <Input 
                             type="number" 
                             min="0" 
@@ -445,32 +423,28 @@ export default function AduanasDutyFree() {
                       <div className="bg-muted/30 border border-border/80 rounded-2xl p-6 flex flex-col justify-between">
                         <div>
                           <h4 className="font-bold text-foreground text-sm uppercase tracking-wide flex items-center gap-2 mb-4">
-                            <Scale className="h-4 w-4 text-primary" /> Diagnóstico de Franquicia
-                          </h4>
+                            <Scale className="h-4 w-4 text-primary" />{" "}{pc.tx("h4.2", "Diagnóstico de Franquicia")}</h4>
 
                           <div className="space-y-4 text-xs">
                             <div className="p-3 bg-background rounded-xl border border-border/60">
-                              <span className="font-bold text-foreground block mb-0.5">🥃 Licores y Ron:</span>
+                              <span className="font-bold text-foreground block mb-0.5">{pc.tx("span.3", "🥃 Licores y Ron:")}</span>
                               <span className="text-muted-foreground">{getLiquorStatus()}</span>
                             </div>
 
                             <div className="p-3 bg-background rounded-xl border border-border/60">
-                              <span className="font-bold text-foreground block mb-0.5">🚬 Puros y Tabaco:</span>
+                              <span className="font-bold text-foreground block mb-0.5">{pc.tx("span.4", "🚬 Puros y Tabaco:")}</span>
                               <span className="text-muted-foreground">{getCigarStatus()}</span>
                             </div>
 
                             <div className="p-3 bg-background rounded-xl border border-border/60">
-                              <span className="font-bold text-foreground block mb-0.5">💵 Declaración de Divisas:</span>
+                              <span className="font-bold text-foreground block mb-0.5">{pc.tx("span.5", "💵 Declaración de Divisas:")}</span>
                               <span className={`font-semibold ${getCashStatus().color}`}>
-                                {getCashStatus().text} (${cashAmount.toLocaleString()} USD)
-                              </span>
+                                {getCashStatus().text} (${cashAmount.toLocaleString()}{" "}{pc.tx("span.6", "USD)")}</span>
                             </div>
                           </div>
                         </div>
 
-                        <p className="text-[10px] text-muted-foreground mt-6 leading-relaxed border-t border-border/60 pt-3">
-                          * Nota: Los valores son informativos con base en las regulaciones de CBP (EE.UU.), CBSA (Canadá) y Aduanas UE. Las exenciones por valor total de compras rondan entre US$800 (EE.UU.) y €430 (UE).
-                        </p>
+                        <p className="text-3xs text-muted-foreground mt-6 leading-relaxed border-t border-border/60 pt-3">{pc.tx("p.6", "* Nota: Los valores son informativos con base en las regulaciones de CBP (EE.UU.), CBSA (Canadá) y Aduanas UE. Las exenciones por valor total de compras rondan entre US$800 (EE.UU.) y €430 (UE).")}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -481,12 +455,8 @@ export default function AduanasDutyFree() {
             {activeTab === "dutyfree" && (
               <div className="space-y-6 animate-in fade-in duration-300">
                 <div className="text-center max-w-2xl mx-auto mb-8">
-                  <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground">
-                    Tiendas Duty-Free en Aeropuertos
-                  </h2>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Aprovecha tus compras libres de impuestos en las áreas de salidas y llegadas internacionales de República Dominicana.
-                  </p>
+                  <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground">{pc.tx("h2.4", "Tiendas Duty-Free en Aeropuertos")}</h2>
+                  <p className="text-sm text-muted-foreground mt-2">{pc.tx("p.7", "Aprovecha tus compras libres de impuestos en las áreas de salidas y llegadas internacionales de República Dominicana.")}</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -503,8 +473,8 @@ export default function AduanasDutyFree() {
                         <p className="text-xs text-muted-foreground leading-relaxed">
                           {shop.destacados}
                         </p>
-                        <div className="pt-3 border-t border-border/40 text-[11px] text-muted-foreground flex items-center justify-between">
-                          <span className="font-semibold text-foreground">Horario:</span>
+                        <div className="pt-3 border-t border-border/40 text-2xs text-muted-foreground flex items-center justify-between">
+                          <span className="font-semibold text-foreground">{pc.tx("span.7", "Horario:")}</span>
                           <span>{shop.horario}</span>
                         </div>
                       </CardContent>
@@ -526,3 +496,6 @@ export default function AduanasDutyFree() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { permitidos, articulosProhibidos, tiendasDutyFree };

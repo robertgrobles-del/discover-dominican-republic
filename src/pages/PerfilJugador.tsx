@@ -75,7 +75,7 @@ export default function PerfilJugador() {
     if (!user) return;
     if (HAS_BACKEND_SESSION) {
       gamificationApi.getTransactions(50).then((res) => {
-        setTransactions(res.data as Transaction[]);
+        setTransactions(res.data.map((t) => ({ id: t.id, transaction_type: t.type, xp_amount: t.xp, coin_amount: t.coins, description: t.description, source_type: t.action, created_at: t.created_at })));
         setLoadingTx(false);
       }).catch((err) => {
         setLoadingTx(false);

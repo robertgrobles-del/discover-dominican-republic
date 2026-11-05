@@ -30,10 +30,12 @@ import hotelRoomSuite from "@/assets/hotel-room-suite.jpg";
 import { 
   Hotel, Airbnb, FALLBACK_HOTELS, FALLBACK_AIRBNBS 
 } from "@/data/fallbackAccommodations";
+import { usePageContent } from "@/lib/pageContent";
 
 export type AccommodationType = "all" | "hotel" | "airbnb";
 
 export default function Alojamientos() {
+  const pc = usePageContent("alojamientos");
   const [type, setType] = useState<AccommodationType>("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -193,7 +195,7 @@ export default function Alojamientos() {
         title={t("alojamientos.seoTitle")}
         description={t("alojamientos.seoDesc")}
         keywords="hoteles República Dominicana, Airbnb Punta Cana, resorts Santo Domingo, alojamiento Caribe"
-        image={hotelRoomSuite}
+        image={pc.img("SEOHead.image.1", hotelRoomSuite)}
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
@@ -202,7 +204,7 @@ export default function Alojamientos() {
         <section className="relative h-[50vh] min-h-[400px] flex items-end">
           <div className="absolute inset-0">
             <img
-              src={hotelRoomSuite}
+              src={pc.img("img.src.1", hotelRoomSuite)}
               alt={t("alojamientos.seoTitle")}
               className="w-full h-full object-cover"
             />
@@ -248,9 +250,7 @@ export default function Alojamientos() {
                       {t("alojamientos.hotels")}
                     </TabsTrigger>
                     <TabsTrigger value="airbnb" className="gap-2">
-                      <Home className="h-4 w-4" />
-                      Airbnb
-                    </TabsTrigger>
+                      <Home className="h-4 w-4" />{pc.tx("TabsTrigger.1", "Airbnb")}</TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
@@ -258,7 +258,7 @@ export default function Alojamientos() {
               <div className="flex flex-wrap gap-2 items-center">
                 <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                   <SelectTrigger className="w-[190px]">
-                    <SelectValue placeholder="Categoría" />
+                    <SelectValue placeholder={pc.t("SelectValue.placeholder.1", "Categoría")} />
                   </SelectTrigger>
                   <SelectContent>
                     {accommodationCategories.map((cat) => (
@@ -323,7 +323,7 @@ export default function Alojamientos() {
                     ))}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Rating mínimo:</span>
+                    <span className="text-sm text-muted-foreground">{pc.tx("span.1", "Rating mínimo:")}</span>
                     {[3, 3.5, 4, 4.5].map((r) => (
                       <Button
                         key={r}
@@ -388,7 +388,7 @@ export default function Alojamientos() {
                           <div>
                             <div className="aspect-[4/3] relative overflow-hidden bg-muted">
                               <img
-                                src={hotel.image_url || hotelRoomSuite}
+                                src={hotel.image_url || pc.img("asset.hotelRoomSuite", hotelRoomSuite)}
                                 alt={hotel.name}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                 loading="lazy"
@@ -403,9 +403,9 @@ export default function Alojamientos() {
                                 />
                               </div>
                               {hotel.is_sponsored ? (
-                                <SponsoredBadge label={t("alojamientos.sponsored")} className="absolute top-3 left-3 text-[11px] shadow-sm" />
+                                <SponsoredBadge label={t("alojamientos.sponsored")} className="absolute top-3 left-3 text-2xs shadow-sm" />
                               ) : hotel.stars ? (
-                                <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground text-[11px] shadow-sm font-semibold">
+                                <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground text-2xs shadow-sm font-semibold">
                                   {hotel.stars} ★
                                 </Badge>
                               ) : null}
@@ -413,9 +413,9 @@ export default function Alojamientos() {
                             <CardContent className="p-4 pb-2">
                               {/* Title & Rating */}
                               <div className="flex items-start justify-between gap-2 mb-1.5 min-h-[28px]">
-                                <h3 className="font-semibold text-foreground text-sm line-clamp-1 group-hover:text-primary transition-colors">
+                                <h2 className="h3 font-semibold text-foreground text-sm line-clamp-1 group-hover:text-primary transition-colors">
                                   {hotel.name}
-                                </h3>
+                                </h2>
                                 <div className="flex items-center gap-1 text-xs shrink-0 bg-secondary/80 px-2 py-0.5 rounded-md">
                                   <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
                                   <span className="font-bold">{hotel.rating || 4.5}</span>
@@ -440,9 +440,7 @@ export default function Alojamientos() {
                           {/* Uniform Bottom Footer */}
                           <div className="p-4 pt-3 border-t border-border/60 flex items-center justify-between mt-2">
                             <Badge variant="secondary" className="text-xs font-medium">
-                              <Building2 className="h-3 w-3 mr-1 text-primary" />
-                              Hotel
-                            </Badge>
+                              <Building2 className="h-3 w-3 mr-1 text-primary" />{pc.tx("Badge.1", "Hotel")}</Badge>
                             <span className="text-sm font-bold text-primary">
                               {hotel.price_range || "$$$"}
                             </span>
@@ -466,7 +464,7 @@ export default function Alojamientos() {
                           <div>
                             <div className="aspect-[4/3] relative overflow-hidden bg-muted">
                               <img
-                                src={airbnb.image_url || hotelRoomSuite}
+                                src={airbnb.image_url || pc.img("asset.hotelRoomSuite", hotelRoomSuite)}
                                 alt={airbnb.name}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                 loading="lazy"
@@ -481,19 +479,17 @@ export default function Alojamientos() {
                                 />
                               </div>
                               {airbnb.is_sponsored ? (
-                                <SponsoredBadge label={t("alojamientos.sponsored")} className="absolute top-3 left-3 text-[11px] shadow-sm" />
+                                <SponsoredBadge label={t("alojamientos.sponsored")} className="absolute top-3 left-3 text-2xs shadow-sm" />
                               ) : airbnb.is_superhost ? (
-                                <Badge className="absolute top-3 left-3 bg-rose-500 text-white text-[11px] shadow-sm font-semibold">
-                                  Superhost
-                                </Badge>
+                                <Badge className="absolute top-3 left-3 bg-rose-500 text-white text-2xs shadow-sm font-semibold">{pc.tx("Badge.2", "Superhost")}</Badge>
                               ) : null}
                             </div>
                             <CardContent className="p-4 pb-2">
                               {/* Title & Rating */}
                               <div className="flex items-start justify-between gap-2 mb-1.5 min-h-[28px]">
-                                <h3 className="font-semibold text-foreground text-sm line-clamp-1 group-hover:text-primary transition-colors">
+                                <h2 className="h3 font-semibold text-foreground text-sm line-clamp-1 group-hover:text-primary transition-colors">
                                   {airbnb.name}
-                                </h3>
+                                </h2>
                                 <div className="flex items-center gap-1 text-xs shrink-0 bg-secondary/80 px-2 py-0.5 rounded-md">
                                   <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
                                   <span className="font-bold">{airbnb.rating || 4.8}</span>
@@ -512,8 +508,7 @@ export default function Alojamientos() {
                               <div className="h-5 flex items-center gap-3 text-xs text-muted-foreground">
                                 <span className="flex items-center gap-1">
                                   <Users className="h-3 w-3" />
-                                  {airbnb.guests || 2} huéspedes
-                                </span>
+                                  {airbnb.guests || 2}{" "}{pc.tx("span.2", "huéspedes")}</span>
                                 <span className="flex items-center gap-1">
                                   <Bed className="h-3 w-3" />
                                   {airbnb.bedrooms || 1} {t("alojamientos.rooms")}
@@ -542,7 +537,7 @@ export default function Alojamientos() {
                 {!loading && totalResults === 0 && (
                   <div className="text-center py-16">
                     <Bed className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-foreground mb-2">{t("alojamientos.noResults")}</h3>
+                    <h2 className="h3 text-xl font-semibold text-foreground mb-2">{t("alojamientos.noResults")}</h2>
                     <p className="text-muted-foreground mb-4">{t("alojamientos.noResultsDesc")}</p>
                     <Button onClick={clearFilters}>{t("alojamientos.clearFilters")}</Button>
                   </div>
@@ -553,9 +548,7 @@ export default function Alojamientos() {
               <div className="hidden lg:block lg:col-span-4 xl:col-span-3 space-y-6">
                 <div className="sticky top-28 space-y-6">
                   <div className="bg-card/90 rounded-3xl border border-border/80 p-4 shadow-xl flex flex-col items-center">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-3">
-                      Patrocinador Destacado
-                    </span>
+                    <span className="text-3xs font-bold uppercase tracking-wider text-muted-foreground mb-3">{pc.tx("span.3", "Patrocinador Destacado")}</span>
                     <BannerAd 
                       size="wide-skyscraper" 
                       placement="sidebar" 

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { usePageContent } from "@/lib/pageContent";
 
 const eraColors: Record<string, string> = {
   Colonial: "bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30",
@@ -58,6 +59,8 @@ function useRelatedFigures(category: string | null, currentId: string | undefine
 }
 
 export default function PersonajeHistorico() {
+  const pc = usePageContent("personaje-historico");
+  const eraColors = pc.data("eraColors", __pcData.eraColors);
   const { slug } = useParams<{ slug: string }>();
   const { data: figure, isLoading } = useFigure(slug);
   const { data: related } = useRelatedFigures(figure?.category, figure?.id);
@@ -84,8 +87,8 @@ export default function PersonajeHistorico() {
           <Header />
           <div className="container mx-auto px-4 py-32 text-center">
             <Crown className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h1 className="text-3xl font-bold mb-4">Personaje no encontrado</h1>
-            <Link to="/historia"><Button>Ver Historia de RD</Button></Link>
+            <h1 className="text-3xl font-bold mb-4">{pc.tx("h1.1", "Personaje no encontrado")}</h1>
+            <Link to="/historia"><Button>{pc.tx("Button.1", "Ver Historia de RD")}</Button></Link>
           </div>
           <Footer />
         </div>
@@ -107,9 +110,9 @@ export default function PersonajeHistorico() {
         <div className="bg-muted/30 border-b border-border">
           <div className="container mx-auto px-4 py-3">
             <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
+              <Link to="/" className="hover:text-primary transition-colors">{pc.tx("Link.1", "Inicio")}</Link>
               <ChevronRight className="h-4 w-4" />
-              <Link to="/historia" className="hover:text-primary transition-colors">Historia</Link>
+              <Link to="/historia" className="hover:text-primary transition-colors">{pc.tx("Link.2", "Historia")}</Link>
               <ChevronRight className="h-4 w-4" />
               <span className="text-foreground font-medium">{figure.name}</span>
             </nav>
@@ -129,7 +132,7 @@ export default function PersonajeHistorico() {
               <div className="flex-1 animate-fade-in">
                 <div className="flex items-center gap-3 mb-3">
                   {figure.era && <Badge className={eraColors[figure.era] || "bg-muted"}>{figure.era}</Badge>}
-                  {figure.is_featured && <Badge className="bg-primary/20 text-primary border-primary/30">⭐ Destacado</Badge>}
+                  {figure.is_featured && <Badge className="bg-primary/20 text-primary border-primary/30">{pc.tx("Badge.1", "⭐ Destacado")}</Badge>}
                 </div>
                 <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-1">{figure.title}</p>
                 <h1 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-4">{figure.name}</h1>
@@ -152,8 +155,7 @@ export default function PersonajeHistorico() {
               {figure.biography && (
                 <section className="animate-fade-in">
                   <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-primary" /> Biografía
-                  </h2>
+                    <BookOpen className="h-5 w-5 text-primary" />{" "}{pc.tx("h2.1", "Biografía")}</h2>
                   <div className="prose prose-lg max-w-none text-muted-foreground leading-relaxed whitespace-pre-line">
                     {figure.biography}
                   </div>
@@ -164,8 +166,7 @@ export default function PersonajeHistorico() {
               {figure.achievements && figure.achievements.length > 0 && (
                 <section>
                   <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                    <Award className="h-5 w-5 text-primary" /> Logros y Legado
-                  </h2>
+                    <Award className="h-5 w-5 text-primary" />{" "}{pc.tx("h2.2", "Logros y Legado")}</h2>
                   <ul className="space-y-3">
                     {figure.achievements.map((a, i) => (
                       <li key={i} className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
@@ -183,8 +184,7 @@ export default function PersonajeHistorico() {
               {figure.quotes && figure.quotes.length > 0 && (
                 <section>
                   <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                    <Quote className="h-5 w-5 text-primary" /> Frases Célebres
-                  </h2>
+                    <Quote className="h-5 w-5 text-primary" />{" "}{pc.tx("h2.3", "Frases Célebres")}</h2>
                   <div className="space-y-4">
                     {figure.quotes.map((q, i) => (
                       <div key={i} className="bg-card rounded-xl border border-border p-6 relative animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
@@ -199,9 +199,7 @@ export default function PersonajeHistorico() {
               {/* Gallery */}
               {figure.gallery && figure.gallery.length > 0 && (
                 <section>
-                  <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                    📷 Galería
-                  </h2>
+                  <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">{pc.tx("h2.4", "📷 Galería")}</h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {figure.gallery.map((img, i) => (
                       <div key={i} className="aspect-square rounded-xl overflow-hidden border border-border">
@@ -222,24 +220,23 @@ export default function PersonajeHistorico() {
             <div className="space-y-6">
               <div className="sticky top-32 space-y-6">
                 <Button variant="outline" className="w-full gap-2" onClick={() => navigator.share?.({ title: figure.name, url: window.location.href })}>
-                  <Share2 className="h-4 w-4" /> Compartir
-                </Button>
+                  <Share2 className="h-4 w-4" />{" "}{pc.tx("Button.2", "Compartir")}</Button>
 
                 {/* Info card */}
                 <div className="bg-card rounded-2xl border border-border p-6 animate-fade-in">
-                  <h3 className="font-display font-bold text-foreground mb-4">Datos</h3>
+                  <h3 className="font-display font-bold text-foreground mb-4">{pc.tx("h3.1", "Datos")}</h3>
                   <div className="space-y-3 text-sm">
-                    <div className="flex justify-between"><span className="text-muted-foreground">Nacimiento</span><span className="font-medium text-foreground">{figure.birth_date}</span></div>
-                    {figure.death_date && <div className="flex justify-between"><span className="text-muted-foreground">Fallecimiento</span><span className="font-medium text-foreground">{figure.death_date}</span></div>}
-                    <div className="flex justify-between"><span className="text-muted-foreground">Lugar</span><span className="font-medium text-foreground">{figure.birth_place}</span></div>
-                    {figure.era && <div className="flex justify-between"><span className="text-muted-foreground">Época</span><Badge className={`text-xs ${eraColors[figure.era] || ""}`}>{figure.era}</Badge></div>}
+                    <div className="flex justify-between"><span className="text-muted-foreground">{pc.tx("span.1", "Nacimiento")}</span><span className="font-medium text-foreground">{figure.birth_date}</span></div>
+                    {figure.death_date && <div className="flex justify-between"><span className="text-muted-foreground">{pc.tx("span.2", "Fallecimiento")}</span><span className="font-medium text-foreground">{figure.death_date}</span></div>}
+                    <div className="flex justify-between"><span className="text-muted-foreground">{pc.tx("span.3", "Lugar")}</span><span className="font-medium text-foreground">{figure.birth_place}</span></div>
+                    {figure.era && <div className="flex justify-between"><span className="text-muted-foreground">{pc.tx("span.4", "Época")}</span><Badge className={`text-xs ${eraColors[figure.era] || ""}`}>{figure.era}</Badge></div>}
                   </div>
                 </div>
 
                 {/* Related */}
                 {related && related.length > 0 && (
                   <div className="bg-card rounded-2xl border border-border p-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
-                    <h3 className="font-display font-bold text-foreground mb-4">Personajes Relacionados</h3>
+                    <h3 className="font-display font-bold text-foreground mb-4">{pc.tx("h3.2", "Personajes Relacionados")}</h3>
                     <div className="space-y-3">
                       {related.map((r) => (
                         <Link key={r.id} to={`/historia/personaje/${r.slug}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors group">
@@ -264,7 +261,7 @@ export default function PersonajeHistorico() {
         </div>
 
         <div className="container mx-auto px-4 pb-12">
-          <Link to="/historia"><Button variant="outline" className="gap-2"><ArrowLeft className="h-4 w-4" /> Ver toda la historia</Button></Link>
+          <Link to="/historia"><Button variant="outline" className="gap-2"><ArrowLeft className="h-4 w-4" />{" "}{pc.tx("Button.3", "Ver toda la historia")}</Button></Link>
         </div>
 
         <Footer />
@@ -272,3 +269,6 @@ export default function PersonajeHistorico() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { eraColors };

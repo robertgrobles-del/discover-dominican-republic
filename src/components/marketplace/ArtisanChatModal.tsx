@@ -30,7 +30,7 @@ export function ArtisanChatModal({
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
             {artesano?.nombre}
           </DialogTitle>
-          <DialogDescription className="text-[10px]">Chat simulado directo con el taller artesanal.</DialogDescription>
+          <DialogDescription className="text-3xs">Chat simulado directo con el taller artesanal.</DialogDescription>
         </DialogHeader>
 
         {/* Chat History */}

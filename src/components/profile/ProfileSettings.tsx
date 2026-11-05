@@ -40,21 +40,21 @@ export function ProfileSettings({
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-foreground">Email</label>
-            <Input value={user?.email || ""} disabled className="mt-1" />
+            <label htmlFor="profile-settings-f4" className="text-sm font-medium text-foreground">Email</label>
+            <Input id="profile-settings-f4" value={user?.email || ""} disabled className="mt-1" />
             <p className="text-xs text-muted-foreground mt-1">El email no puede ser modificado</p>
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground">Nombre para mostrar</label>
-            <Input
+            <label htmlFor="profile-settings-f3" className="text-sm font-medium text-foreground">Nombre para mostrar</label>
+            <Input id="profile-settings-f3"
               value={profile.display_name || ""}
               onChange={(e) => setProfile((p: any) => ({ ...p, display_name: e.target.value }))}
               className="mt-1"
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground">Bio</label>
-            <Textarea
+            <label htmlFor="profile-settings-f2" className="text-sm font-medium text-foreground">Bio</label>
+            <Textarea id="profile-settings-f2"
               value={profile.bio || ""}
               onChange={(e) => setProfile((p: any) => ({ ...p, bio: e.target.value }))}
               placeholder="Cuéntanos sobre ti como viajero..."
@@ -63,10 +63,10 @@ export function ProfileSettings({
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-foreground flex items-center gap-1">
+            <label htmlFor="profile-settings-f1" className="text-sm font-medium text-foreground flex items-center gap-1">
               <Globe className="h-3 w-3" /> Idioma preferido
             </label>
-            <select
+            <select id="profile-settings-f1"
               value={profile.preferred_language || "es"}
               onChange={(e) => setProfile((p: any) => ({ ...p, preferred_language: e.target.value }))}
               className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none"

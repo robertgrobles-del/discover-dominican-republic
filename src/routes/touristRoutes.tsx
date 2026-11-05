@@ -31,7 +31,6 @@ const MuseosMonumentos = lazy(() => import("@/pages/MuseosMonumentos"));
 const Patrimonio = lazy(() => import("@/pages/Patrimonio"));
 const HistoriaIndex = lazy(() => import("@/pages/HistoriaIndex"));
 const HistoriaDetalle = lazy(() => import("@/pages/HistoriaDetalle"));
-const HistoriaRD = lazy(() => import("@/pages/HistoriaRD"));
 const PersonajeHistorico = lazy(() => import("@/pages/PersonajeHistorico"));
 const EventoHistorico = lazy(() => import("@/pages/EventoHistorico"));
 const HistoriaVivaAR = lazy(() => import("@/pages/HistoriaVivaAR"));
@@ -52,7 +51,6 @@ const BarDetalle = lazy(() => import("@/pages/BarDetalle"));
 const ParquesTematicos = lazy(() => import("@/pages/ParquesTematicos"));
 const ParqueDetalle = lazy(() => import("@/pages/ParqueDetalle"));
 const ParqueNacionalDetalle = lazy(() => import("@/pages/ParqueNacionalDetalle"));
-const ReservasNaturales = lazy(() => import("@/pages/ReservasNaturales"));
 const AreasProtegidas = lazy(() => import("@/pages/AreasProtegidas"));
 const Montanas = lazy(() => import("@/pages/Montanas"));
 const MontanaDetalle = lazy(() => import("@/pages/MontanaDetalle"));
@@ -76,13 +74,11 @@ const RutaHermanasMirabal = lazy(() => import("@/pages/RutaHermanasMirabal"));
 const TalleresArtesanales = lazy(() => import("@/pages/TalleresArtesanales"));
 const EscuelaRitmos = lazy(() => import("@/pages/EscuelaRitmos"));
 const LIDOM = lazy(() => import("@/pages/LIDOM"));
-const SpasWellness = lazy(() => import("@/pages/SpasWellness"));
 const SpaDetalle = lazy(() => import("@/pages/SpaDetalle"));
 const TurismoMedico = lazy(() => import("@/pages/TurismoMedico"));
 const ObservatorioSargazo = lazy(() => import("@/pages/ObservatorioSargazo"));
 const ReporteOlasViento = lazy(() => import("@/pages/ReporteOlasViento"));
 const Webcams = lazy(() => import("@/pages/Webcams"));
-const DiccionarioDominicano = lazy(() => import("@/pages/DiccionarioDominicano"));
 const GuiasLocales = lazy(() => import("@/pages/GuiasLocales"));
 const FotografosLocales = lazy(() => import("@/pages/FotografosLocales"));
 const DescubrimientoLocal = lazy(() => import("@/pages/DescubrimientoLocal"));
@@ -113,6 +109,7 @@ const CentroComercialDetalle = lazy(() => import("@/pages/CentroComercialDetalle
 const EstadioDetalle = lazy(() => import("@/pages/EstadioDetalle"));
 const ClinicaDetalle = lazy(() => import("@/pages/ClinicaDetalle"));
 const SelloCalidad = lazy(() => import("@/pages/SelloCalidad"));
+const Wellness = lazy(() => import("@/pages/Wellness"));
 
 export const touristRoutes = (
   <>
@@ -142,7 +139,6 @@ export const touristRoutes = (
     <Route path="/parques-tematicos" element={<ParquesTematicos />} />
     <Route path="/parque/:slug" element={<ParqueDetalle />} />
     <Route path="/parque-nacional/:slug" element={<ParqueNacionalDetalle />} />
-    <Route path="/reservas-naturales" element={<ReservasNaturales />} />
     <Route path="/areas-protegidas" element={<AreasProtegidas />} />
     <Route path="/montanas" element={<Montanas />} />
     <Route path="/montana/:slug" element={<MontanaDetalle />} />
@@ -181,7 +177,6 @@ export const touristRoutes = (
     <Route path="/historia" element={<HistoriaIndex />} />
     <Route path="/historia/:slug" element={<HistoriaDetalle />} />
     <Route path="/historia-rd" element={<Navigate to="/historia" replace />} />
-    <Route path="/historia-cronologia" element={<HistoriaRD />} />
     <Route path="/historia/personaje/:slug" element={<PersonajeHistorico />} />
     <Route path="/historia/evento/:slug" element={<EventoHistorico />} />
     <Route path="/historia-viva-ar" element={<HistoriaVivaAR />} />
@@ -198,7 +193,6 @@ export const touristRoutes = (
     <Route path="/escuela-ritmos" element={<EscuelaRitmos />} />
     <Route path="/cine-rd" element={<CineRD />} />
     <Route path="/podcast" element={<PodcastRD />} />
-    <Route path="/diccionario" element={<DiccionarioDominicano />} />
     <Route path="/hecho-en-rd" element={<HechoEnRD />} />
 
     {/* Actividades, Tours & Experiencias */}
@@ -235,9 +229,7 @@ export const touristRoutes = (
     <Route path="/teatro/:slug" element={<EstadioDetalle />} />
 
     {/* Wellness, Salud & Clima */}
-    <Route path="/wellness" element={<Navigate to="/spas-wellness" replace />} />
-    <Route path="/spas" element={<SpasWellness />} />
-    <Route path="/spas-wellness" element={<SpasWellness />} />
+    <Route path="/wellness" element={<Wellness />} />
     <Route path="/spa/:slug" element={<SpaDetalle />} />
     <Route path="/turismo-medico" element={<TurismoMedico />} />
     <Route path="/clinica/:slug" element={<ClinicaDetalle />} />

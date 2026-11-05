@@ -12,11 +12,20 @@ import { HAS_BACKEND_SESSION } from '@/lib/authSource';
 import { adminGetTranslations } from '@/lib/adminApi';
 import { type EntityType } from '@/hooks/useAdminEntities';
 import { LocationSelector, type LocationValue } from './LocationSelector';
+import { ObjectEditor, ObjectListEditor } from './StructuredFieldEditor';
+import { AdClientSelect } from './AdClientSelect';
+
+/** De `extras` sólo se editan aquí estas claves; el resto de la ficha completa se conserva tal cual. */
+const EXTRAS_KEYS: Partial<Record<string, string[]>> = {
+  hotels: ['day_pass', 'kids_policy', 'nightlife_summary', 'experience_tags'],
+  // Lo que la ficha de destino muestra y no tiene columna propia.
+  destinations: ['region', 'categories', 'isFeatured', 'isPopular', 'isRecommended', 'attractions', 'activities', 'tips', 'bestFor', 'notRecommendedFor', 'idealDays', 'minimumDays', 'averageBudget', 'nearbyAirport', 'distanceFromAirport', 'safetyInfo', 'currency', 'language', 'about'],
+};
 
 interface FieldConfig {
   name: string;
   label: string;
-  type: 'text' | 'textarea' | 'number' | 'boolean' | 'array' | 'url' | 'email' | 'date' | 'time';
+  type: 'text' | 'textarea' | 'number' | 'boolean' | 'array' | 'url' | 'email' | 'date' | 'time' | 'objectlist' | 'object';
   required?: boolean;
   placeholder?: string;
 }
@@ -132,6 +141,8 @@ export function EntityFormDialog({
   const renderField = (field: FieldConfig) => {
     const value = formData[field.name];
 
+    if (field.name === 'client_id') return <AdClientSelect id={field.name} value={(value as string) || null} onChange={(v) => handleChange(field.name, v)} />;
+
     switch (field.type) {
       case 'textarea':
         return (
@@ -169,6 +180,19 @@ export function EntityFormDialog({
             />
             <p className="text-xs text-muted-foreground">Separa los valores con |</p>
           </div>
+        );
+
+      case 'objectlist':
+        return <ObjectListEditor name={field.name} value={Array.isArray(value) ? (value as never[]) : []} onChange={(v) => handleChange(field.name, v)} />;
+
+      case 'object':
+        return (
+          <ObjectEditor
+            name={field.name}
+            value={value && typeof value === 'object' && !Array.isArray(value) ? (value as never) : {}}
+            onChange={(v) => handleChange(field.name, v)}
+            only={field.name === 'extras' ? EXTRAS_KEYS[entity] : undefined}
+          />
         );
 
       case 'number':

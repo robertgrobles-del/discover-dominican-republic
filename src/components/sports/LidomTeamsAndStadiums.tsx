@@ -59,11 +59,11 @@ export function LidomTeamsAndStadiums() {
 
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <div className="p-3 rounded-2xl bg-muted/60 border border-border">
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold block">Campeonatos LIDOM</span>
+                  <span className="text-3xs text-muted-foreground uppercase font-bold block">Campeonatos LIDOM</span>
                   <span className="text-xl font-black text-foreground">{selectedTeam.championships} Coronas</span>
                 </div>
                 <div className="p-3 rounded-2xl bg-muted/60 border border-border">
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold block">Series del Caribe</span>
+                  <span className="text-3xs text-muted-foreground uppercase font-bold block">Series del Caribe</span>
                   <span className="text-xl font-black text-amber-500">{selectedTeam.caribbeanSeries} Títulos</span>
                 </div>
               </div>
@@ -83,7 +83,7 @@ export function LidomTeamsAndStadiums() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent p-6 flex flex-col justify-end text-white">
-                  <Badge className="bg-primary text-slate-950 font-bold text-[10px] w-fit mb-1">
+                  <Badge className="bg-primary text-slate-950 font-bold text-3xs w-fit mb-1">
                     Fanaticada Oficial
                   </Badge>
                   <h4 className="font-display text-xl font-bold text-white">{selectedTeam.stadium}</h4>
@@ -113,7 +113,7 @@ export function LidomTeamsAndStadiums() {
               <div className="aspect-video relative overflow-hidden">
                 <img src={stad.image} alt={stad.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                 <div className="absolute top-3 left-3">
-                  <Badge className="bg-slate-950/80 backdrop-blur-md text-white text-[10px]">
+                  <Badge className="bg-slate-950/80 backdrop-blur-md text-white text-3xs">
                     {stad.capacity}
                   </Badge>
                 </div>
@@ -131,8 +131,8 @@ export function LidomTeamsAndStadiums() {
                   <p className="font-bold flex items-center gap-1.5">
                     <Utensils className="h-3.5 w-3.5 text-amber-600" /> Qué comer en el play:
                   </p>
-                  <p className="text-[11px] text-muted-foreground">{stad.chimiSpot}</p>
-                  <p className="text-[11px] text-muted-foreground"><strong>Bebida recomendada:</strong> {stad.beverage}</p>
+                  <p className="text-2xs text-muted-foreground">{stad.chimiSpot}</p>
+                  <p className="text-2xs text-muted-foreground"><strong>Bebida recomendada:</strong> {stad.beverage}</p>
                 </div>
 
                 <p className="text-xs text-muted-foreground leading-relaxed italic">

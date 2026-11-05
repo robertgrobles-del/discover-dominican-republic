@@ -361,27 +361,27 @@ export default function ContratarInfluencers() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">Empresa / Marca *</label>
-                  <Input value={formData.empresa} onChange={(e) => setFormData({ ...formData, empresa: e.target.value })} placeholder="Nombre del negocio" required />
+                  <label htmlFor="contratar-influencers-f5" className="text-sm font-medium text-foreground mb-1 block">Empresa / Marca *</label>
+                  <Input id="contratar-influencers-f5" value={formData.empresa} onChange={(e) => setFormData({ ...formData, empresa: e.target.value })} placeholder="Nombre del negocio" required />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">Persona de contacto</label>
-                  <Input value={formData.contacto} onChange={(e) => setFormData({ ...formData, contacto: e.target.value })} placeholder="Tu nombre" />
+                  <label htmlFor="contratar-influencers-f4" className="text-sm font-medium text-foreground mb-1 block">Persona de contacto</label>
+                  <Input id="contratar-influencers-f4" value={formData.contacto} onChange={(e) => setFormData({ ...formData, contacto: e.target.value })} placeholder="Tu nombre" />
                 </div>
               </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">Email *</label>
-                  <Input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="email@empresa.com" required />
+                  <label htmlFor="contratar-influencers-f3" className="text-sm font-medium text-foreground mb-1 block">Email *</label>
+                  <Input id="contratar-influencers-f3" type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="email@empresa.com" required />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">Teléfono</label>
-                  <Input value={formData.telefono} onChange={(e) => setFormData({ ...formData, telefono: e.target.value })} placeholder="+1 809-000-0000" />
+                  <label htmlFor="contratar-influencers-f2" className="text-sm font-medium text-foreground mb-1 block">Teléfono</label>
+                  <Input id="contratar-influencers-f2" value={formData.telefono} onChange={(e) => setFormData({ ...formData, telefono: e.target.value })} placeholder="+1 809-000-0000" />
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-foreground mb-1 block">¿Qué quieres promocionar?</label>
-                <Textarea value={formData.descripcion} onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} placeholder="Describe tu negocio, objetivos y presupuesto estimado..." rows={4} />
+                <label htmlFor="contratar-influencers-f1" className="text-sm font-medium text-foreground mb-1 block">¿Qué quieres promocionar?</label>
+                <Textarea id="contratar-influencers-f1" value={formData.descripcion} onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} placeholder="Describe tu negocio, objetivos y presupuesto estimado..." rows={4} />
               </div>
               <Button type="submit" size="lg" className="w-full gap-2">
                 <Send className="h-4 w-4" /> Enviar solicitud

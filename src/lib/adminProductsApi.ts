@@ -1,4 +1,5 @@
 import { fetchApi } from "@/lib/fastifyClient";
+import { uploadMedia } from "@/lib/mediaApi";
 import { HttpError } from "@/lib/httpClient";
 import type { PageMeta } from "@/lib/adminStoreApi";
 
@@ -70,28 +71,14 @@ export const isInUseError = (error: unknown): boolean => error instanceof HttpEr
 
 // ---------- Fotos ----------
 
-export const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+export { ACCEPTED_IMAGE_TYPES } from "@/lib/mediaApi";
 export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
-/**
- * Sube una foto en tres pasos (pedir la dirección firmada, enviar el archivo, confirmar) y devuelve su dirección
- * pública. El servidor valida que sea una imagen real, la analiza y le quita los metadatos.
- */
+/** Sube una foto del catálogo y devuelve su dirección pública. */
 export async function uploadProductImage(file: File): Promise<string> {
-  if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) throw new Error(`«${file.name}» no es JPG, PNG, WebP ni GIF.`);
-  if (file.size > MAX_IMAGE_BYTES) throw new Error(`«${file.name}» pesa más de 10 MB.`);
-
-  const ticket = await fetchApi<{ data: { asset_id: string; upload: { url: string; headers: Record<string, string> } } }>("/media/upload-url", {
-    method: "POST",
-    body: JSON.stringify({ mime: file.type, size: file.size, purpose: "cms", alt: file.name.replace(/\.[^.]+$/, "").slice(0, 200) }),
-  });
-  // La dirección firmada autoriza por sí sola: el archivo va crudo, sin sesión ni JSON.
-  const put = await fetch(ticket.data.upload.url, { method: "PUT", headers: ticket.data.upload.headers, body: file });
-  if (!put.ok) throw new Error(`No se pudo subir «${file.name}» (${put.status}).`);
-
-  const done = await fetchApi<{ data: { status: string; url?: string } }>(`/media/${ticket.data.asset_id}/complete`, { method: "POST" });
-  if (!done.data.url) throw new Error(`«${file.name}» quedó en estado «${done.data.status}» y no se puede usar todavía.`);
-  return done.data.url;
+  const done = await uploadMedia(file, "cms");
+  if (!done.url) throw new Error(`«${file.name}» quedó en estado «${done.status}» y no se puede usar todavía.`);
+  return done.url;
 }
 
 /**

@@ -45,6 +45,19 @@ export interface Mission {
   target_action: string;
   is_featured: boolean;
   min_level: number;
+  image_url?: string | null;
+  place_name?: string | null;
+  province?: string | null;
+  difficulty?: "facil" | "media" | "exigente" | null;
+  estimated_minutes?: number | null;
+  ends_on?: string | null;
+  spots_left?: number | null;
+  requires_validation?: boolean;
+  is_sponsored?: boolean;
+  sponsor_name?: string | null;
+  sponsor_reward_text?: string | null;
+  target_url?: string | null;
+  target_label?: string | null;
 }
 
 export interface UserMission {
@@ -85,10 +98,10 @@ export interface GamificationSeason {
 export interface LeaderboardEntry {
   user_id: string;
   total_xp: number;
-  current_level: number;
-  coins: number;
-  streak_days: number;
-  total_missions_completed: number;
+  current_level: number | null;
+  coins: number | null;
+  streak_days: number | null;
+  total_missions_completed: number | null;
   display_name?: string;
   league_slug?: string;
   season_id?: string;
@@ -113,7 +126,7 @@ export function useGamification() {
       try {
         const season = await gamificationApi.getCurrentSeason();
         if (season) {
-          setSeasons([season]);
+          setSeasons([{ ...season, is_active: true, top_rewards: season.top_rewards as GamificationSeason["top_rewards"] }]);
         }
       } catch (err: any) {
         console.warn("Error cargando temporada en backend:", err?.message || err);
@@ -247,10 +260,10 @@ export function useGamification() {
           list.map((m) => ({
             id: m.id,
             name: m.name,
-            description: m.description,
-            short_description: m.short_description || m.description.slice(0, 80),
+            description: m.description ?? "",
+            short_description: (m.description ?? "").slice(0, 80),
             mission_type: m.mission_type || "daily",
-            category: m.category || "exploracion",
+            category: "exploracion",
             icon: m.icon || "🎯",
             xp_reward: m.xp_reward,
             coin_reward: m.coin_reward,
@@ -258,6 +271,9 @@ export function useGamification() {
             target_action: m.target_action || "action",
             is_featured: !!m.is_featured,
             min_level: m.min_level || 1,
+            image_url: m.image_url, place_name: m.place_name, province: m.province, difficulty: m.difficulty as Mission["difficulty"], estimated_minutes: m.estimated_minutes,
+            ends_on: m.ends_on, spots_left: m.spots_left, requires_validation: !!m.requires_validation, is_sponsored: !!m.is_sponsored,
+            sponsor_name: m.sponsor_name, sponsor_reward_text: m.sponsor_reward_text, target_url: m.target_url, target_label: m.target_label,
           }))
         );
       } catch (err: any) {
@@ -287,7 +303,7 @@ export function useGamification() {
             mission_id: m.id,
             progress: m.progress,
             is_completed: m.completed,
-            completed_at: m.completed_at,
+            completed_at: null, // la API sólo dice si está completada, no cuándo
           }))
         );
       } catch (err: any) {
@@ -312,14 +328,15 @@ export function useGamification() {
           list.map((p) => ({
             id: p.id,
             name: p.name,
-            description: p.description,
-            short_description: p.short_description || p.description.slice(0, 80),
+            description: p.description ?? "",
+            short_description: p.short_description || (p.description ?? "").slice(0, 80),
             image_url: p.image_url || "",
             prize_type: p.prize_type || "digital",
             coin_cost: p.coin_cost,
             min_level: p.min_level || 1,
-            quantity_available: p.quantity_available,
-            quantity_redeemed: p.quantity_redeemed || 0,
+            // La API da las unidades que quedan (`remaining`), no el total ni lo canjeado.
+            quantity_available: p.remaining,
+            quantity_redeemed: 0,
             is_featured: !!p.is_featured,
             sponsor: p.sponsor || "Descubre RD",
             valid_until: p.valid_until,
@@ -348,16 +365,17 @@ export function useGamification() {
       if (HAS_BACKEND_SESSION) {
         try {
           const scope = targetSeason === "week" ? "week" : targetSeason === "all" ? "all" : "season";
-          const res = await gamificationApi.getLeaderboard(scope as any, 20);
+          const res = await gamificationApi.getLeaderboard(scope, 20);
+          // El ranking público sólo expone posición, XP y nombre abreviado.
           setLeaderboard(
             res.rows.map((d) => ({
-              user_id: d.user_id,
-              total_xp: d.total_xp,
-              current_level: d.level,
-              coins: d.coins || 0,
-              streak_days: d.streak_days || 0,
-              total_missions_completed: 0,
-              display_name: d.display_name,
+              user_id: d.user.id,
+              total_xp: d.xp,
+              current_level: null,
+              coins: null,
+              streak_days: null,
+              total_missions_completed: null,
+              display_name: d.user.name,
             }))
           );
         } catch (err: any) {
@@ -436,10 +454,8 @@ export function useGamification() {
 
     if (HAS_BACKEND_SESSION) {
       try {
-        const data = await gamificationApi.getMyReferrals();
-        if (data?.referral_code) {
-          setReferralCode(data.referral_code);
-        }
+        const data = await gamificationApi.getMyReferral();
+        setReferralCode(data.code);
       } catch (err: any) {
         console.warn("Error cargando código de referido en backend:", err?.message || err);
       }
@@ -559,7 +575,7 @@ export function useGamification() {
       if (HAS_BACKEND_SESSION) {
         try {
           const res = await gamificationApi.redeemPrize(prizeId);
-          toast.success(`🎁 ¡Premio canjeado! Código: ${res.code || res.id || "CONFIRMADO"}`);
+          toast.success(`🎁 ¡Premio canjeado! Código: ${res.code}`);
           await fetchUserProfile();
           return true;
         } catch (err) {

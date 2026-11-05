@@ -87,9 +87,9 @@ export function PassportOverviewTab({ recentStamps, leaderboard }: PassportOverv
                       {index + 1}
                     </span>
                     <div className="flex-1">
-                      <p className="font-medium text-sm">{entry.display_name}</p>
+                      <p className="font-medium text-sm">{entry.display_name ?? (entry as { user?: { name?: string } }).user?.name ?? "Explorador"}</p>
                       <p className="text-xs text-muted-foreground">
-                        {entry.total_xp.toLocaleString()} XP
+                        {Number(entry.total_xp ?? (entry as { xp?: number }).xp ?? 0).toLocaleString()} XP
                       </p>
                     </div>
                   </div>

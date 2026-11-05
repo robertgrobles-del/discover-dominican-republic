@@ -118,7 +118,7 @@ export function RestaurantListCard({ restaurant, labels, priority = false }: Res
         <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3">
           <ul className="flex min-w-0 flex-wrap gap-1.5" aria-label="Servicios">
             {services.map((service) => (
-              <li key={service} className="rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">{service}</li>
+              <li key={service} className="rounded-md bg-muted px-2 py-0.5 text-2xs font-medium text-muted-foreground">{service}</li>
             ))}
           </ul>
           <span className="flex shrink-0 items-center gap-1 text-sm font-semibold text-primary" aria-hidden="true">
@@ -126,7 +126,7 @@ export function RestaurantListCard({ restaurant, labels, priority = false }: Res
           </span>
         </div>
 
-        {restaurant.imageNote && <p className="text-[11px] italic text-muted-foreground">Imagen de referencia.</p>}
+        {restaurant.imageNote && <p className="text-2xs italic text-muted-foreground">Imagen de referencia.</p>}
       </div>
     </article>
   );

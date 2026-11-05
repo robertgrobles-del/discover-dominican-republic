@@ -36,4 +36,4 @@ Cuando dos sistemas tienen el mismo dato, manda el que figura aquí; el resto es
 
 ## Cómo se cambia esta declaración
 
-Cualquier dominio nuevo o movimiento de fuente de verdad se registra aquí en el mismo PR que lo implementa; el CI de cadena de suministro (`supply-chain.yml`) y el de backend vigilarán que ni `cms/` ni `server/` crezcan en responsabilidad.
+Cualquier dominio nuevo o movimiento de fuente de verdad se registra aquí en el mismo PR que lo implementa; `cms/` y `server/` ya no se versionan (por eso se retiró el workflow `supply-chain.yml`, que sólo los auditaba); el CI de backend y frontend vigila el resto.

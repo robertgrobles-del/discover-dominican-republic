@@ -1,3 +1,5 @@
+import { SectionIndex } from "@/components/SectionIndex";
+import { PresupuestoSection } from "@/components/costos/PresupuestoSection";
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -121,20 +123,60 @@ const costosDetallados = [
   },
 ];
 
+import { useEffect } from "react";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { fetchApi } from "@/lib/fastifyClient";
+import { usePageContent } from "@/lib/pageContent";
+
 export default function CostosViaje() {
+  const pc = usePageContent("costos-viaje");
+  const presupuestosPorTipo = pc.data("presupuestosPorTipo", __pcData.presupuestosPorTipo);
+  const costosDetallados = pc.data("costosDetallados", __pcData.costosDetallados);
   const [dias, setDias] = useState([7]);
   const [viajeros, setViajeros] = useState([2]);
   const [tipoSeleccionado, setTipoSeleccionado] = useState("moderado");
+  const [serverBudget, setServerBudget] = useState<{ total: number; total_dop: number; usd_rate: number } | null>(null);
+
+  // Mapear tipos a estilo del backend: mochilero, estandar, lujo
+  const backendStyle = tipoSeleccionado === "economico" ? "mochilero" : tipoSeleccionado === "lujo" ? "lujo" : "estandar";
+
+  useEffect(() => {
+    if (!HAS_BACKEND_SESSION) return;
+    const controller = new AbortController();
+
+    fetchApi<{ data: { total: number; total_dop: number; usd_rate: number } }>("/calculators/budget", {
+      method: "POST",
+      body: JSON.stringify({
+        days: dias[0],
+        travelers: viajeros[0],
+        style: backendStyle,
+        exclude: ["vuelos"] // CostosViaje indica "Sin incluir vuelos"
+      }),
+      signal: controller.signal
+    })
+      .then((res) => {
+        if (res?.data) {
+          setServerBudget(res.data);
+        }
+      })
+      .catch((err) => {
+        if (err.name !== "AbortError") {
+          console.error("Error al obtener cálculo de presupuesto en Fastify:", err);
+        }
+      });
+
+    return () => controller.abort();
+  }, [dias, viajeros, backendStyle]);
 
   const presupuesto = presupuestosPorTipo[tipoSeleccionado as keyof typeof presupuestosPorTipo];
-  const costoMinTotal = presupuesto.diario.min * dias[0] * viajeros[0];
-  const costoMaxTotal = presupuesto.diario.max * dias[0] * viajeros[0];
+  const costoMinTotal = serverBudget ? Math.round(serverBudget.total * 0.85) : presupuesto.diario.min * dias[0] * viajeros[0];
+  const costoMaxTotal = serverBudget ? Math.round(serverBudget.total * 1.15) : presupuesto.diario.max * dias[0] * viajeros[0];
 
   return (
     <PageTransition>
       <SEOHead
-        title="Costos de Viaje a República Dominicana - Guía de Presupuesto"
-        description="Descubre cuánto cuesta viajar a RD. Presupuestos por tipo de viajero, costos detallados y calculadora interactiva."
+        title={pc.t("SEOHead.title.1", "Costos de Viaje a República Dominicana - Guía de Presupuesto")}
+        description={pc.t("SEOHead.description.1", "Descubre cuánto cuesta viajar a RD. Presupuestos por tipo de viajero, costos detallados y calculadora interactiva.")}
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -144,25 +186,24 @@ export default function CostosViaje() {
           <section className="relative py-20 bg-gradient-to-br from-cyan-500/10 to-blue-500/10">
             <div className="container mx-auto px-4 text-center">
               <Calculator className="h-16 w-16 text-primary mx-auto mb-4" />
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">Costos de Viaje</h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                ¿Cuánto cuesta viajar a República Dominicana?
-              </p>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">{pc.tx("h1.1", "Costos de Viaje")}</h1>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.1", "¿Cuánto cuesta viajar a República Dominicana?")}</p>
             </div>
           </section>
+        <SectionIndex items={[{ id: "calculadora", label: "Calculadora de presupuesto" }]} />
 
           {/* Quick Calculator */}
           <section className="py-16">
             <div className="container mx-auto px-4 max-w-5xl">
               <Card className="mb-12">
                 <CardHeader>
-                  <CardTitle>Calculadora Rápida de Presupuesto</CardTitle>
-                  <CardDescription>Ajusta los parámetros para estimar tu gasto</CardDescription>
+                  <CardTitle as="h2">{pc.tx("CardTitle.1", "Calculadora Rápida de Presupuesto")}</CardTitle>
+                  <CardDescription>{pc.tx("CardDescription.1", "Ajusta los parámetros para estimar tu gasto")}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
                   {/* Budget Type */}
                   <div className="space-y-4">
-                    <label className="text-sm font-medium">Tipo de viaje</label>
+                    <label className="text-sm font-medium">{pc.tx("label.1", "Tipo de viaje")}</label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       {Object.entries(presupuestosPorTipo).map(([key, data]) => (
                         <Card 
@@ -178,8 +219,7 @@ export default function CostosViaje() {
                             <div className={`w-3 h-3 rounded-full ${data.color} mx-auto mb-2`} />
                             <p className="font-semibold">{data.label}</p>
                             <p className="text-xs text-muted-foreground">
-                              ${data.diario.min}-${data.diario.max}/día
-                            </p>
+                              ${data.diario.min}-${data.diario.max}{pc.tx("p.2", "/día")}</p>
                           </CardContent>
                         </Card>
                       ))}
@@ -190,8 +230,8 @@ export default function CostosViaje() {
                   {/* Days Slider */}
                   <div className="space-y-4">
                     <div className="flex justify-between">
-                      <label className="text-sm font-medium">Duración del viaje</label>
-                      <span className="text-sm font-bold text-primary">{dias[0]} días</span>
+                      <label className="text-sm font-medium">{pc.tx("label.2", "Duración del viaje")}</label>
+                      <span className="text-sm font-bold text-primary">{dias[0]}{" "}{pc.tx("span.1", "días")}</span>
                     </div>
                     <Slider
                       value={dias}
@@ -205,8 +245,8 @@ export default function CostosViaje() {
                   {/* Travelers Slider */}
                   <div className="space-y-4">
                     <div className="flex justify-between">
-                      <label className="text-sm font-medium">Número de viajeros</label>
-                      <span className="text-sm font-bold text-primary">{viajeros[0]} personas</span>
+                      <label className="text-sm font-medium">{pc.tx("label.3", "Número de viajeros")}</label>
+                      <span className="text-sm font-bold text-primary">{viajeros[0]}{" "}{pc.tx("span.2", "personas")}</span>
                     </div>
                     <Slider
                       value={viajeros}
@@ -220,17 +260,15 @@ export default function CostosViaje() {
                   {/* Result */}
                   <div className="bg-primary/5 rounded-xl p-6">
                     <div className="text-center">
-                      <p className="text-sm text-muted-foreground mb-2">Presupuesto estimado total</p>
+                      <p className="text-sm text-muted-foreground mb-2">{pc.tx("p.3", "Presupuesto estimado total")}</p>
                       <div className="flex items-center justify-center gap-2">
                         <DollarSign className="h-8 w-8 text-primary" />
                         <span className="text-4xl font-bold text-primary">
                           {costoMinTotal.toLocaleString()} - {costoMaxTotal.toLocaleString()}
                         </span>
-                        <span className="text-lg text-muted-foreground">USD</span>
+                        <span className="text-lg text-muted-foreground">{pc.tx("span.3", "USD")}</span>
                       </div>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Sin incluir vuelos • {viajeros[0]} personas • {dias[0]} días
-                      </p>
+                      <p className="text-sm text-muted-foreground mt-2">{pc.tx("p.4", "Sin incluir vuelos •")}{" "}{viajeros[0]}{" "}{pc.tx("p.5", "personas •")}{" "}{dias[0]}{" "}{pc.tx("p.6", "días")}</p>
                     </div>
 
                     {/* Breakdown */}
@@ -250,7 +288,7 @@ export default function CostosViaje() {
 
               {/* Detailed Costs */}
               <div className="space-y-8 mt-12">
-                <h2 className="text-2xl font-bold text-center mb-8">Costos Detallados</h2>
+                <h2 className="text-2xl font-bold text-center mb-8">{pc.tx("h2.1", "Costos Detallados")}</h2>
                 
                 {costosDetallados.map((categoria) => (
                   <Card key={categoria.categoria}>
@@ -290,31 +328,29 @@ export default function CostosViaje() {
               <Card className="mt-12">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Info className="h-5 w-5" />
-                    Tips para Ahorrar
-                  </CardTitle>
+                    <Info className="h-5 w-5" />{pc.tx("CardTitle.2", "Tips para Ahorrar")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-3">
                     <li className="flex items-start gap-2">
                       <TrendingUp className="h-5 w-5 text-green-500 mt-0.5" />
-                      <span><strong>Temporada baja (May-Nov):</strong> Precios hasta 40% más bajos en alojamiento</span>
+                      <span><strong>{pc.tx("strong.1", "Temporada baja (May-Nov):")}</strong>{" "}{pc.tx("span.4", "Precios hasta 40% más bajos en alojamiento")}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <TrendingUp className="h-5 w-5 text-green-500 mt-0.5" />
-                      <span><strong>All-Inclusive:</strong> Puede ser más económico para familias y estancias largas</span>
+                      <span><strong>{pc.tx("strong.2", "All-Inclusive:")}</strong>{" "}{pc.tx("span.5", "Puede ser más económico para familias y estancias largas")}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <TrendingUp className="h-5 w-5 text-green-500 mt-0.5" />
-                      <span><strong>Come local:</strong> Los comedores dominicanos ofrecen comida excelente a $3-5 USD</span>
+                      <span><strong>{pc.tx("strong.3", "Come local:")}</strong>{" "}{pc.tx("span.6", "Los comedores dominicanos ofrecen comida excelente a $3-5 USD")}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <TrendingUp className="h-5 w-5 text-green-500 mt-0.5" />
-                      <span><strong>Transporte público:</strong> Las guaguas son seguras y muy económicas entre ciudades</span>
+                      <span><strong>{pc.tx("strong.4", "Transporte público:")}</strong>{" "}{pc.tx("span.7", "Las guaguas son seguras y muy económicas entre ciudades")}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <TrendingUp className="h-5 w-5 text-green-500 mt-0.5" />
-                      <span><strong>Negocia:</strong> En mercados y con taxistas es común regatear un poco</span>
+                      <span><strong>{pc.tx("strong.5", "Negocia:")}</strong>{" "}{pc.tx("span.8", "En mercados y con taxistas es común regatear un poco")}</span>
                     </li>
                   </ul>
                 </CardContent>
@@ -323,8 +359,12 @@ export default function CostosViaje() {
           </section>
         </main>
 
+        <PresupuestoSection />
         <Footer />
       </div>
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { presupuestosPorTipo, costosDetallados };

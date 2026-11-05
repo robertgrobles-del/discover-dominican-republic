@@ -479,7 +479,7 @@ export interface SpaceDefinition {
 export const SPACES: SpaceDefinition[] = [
   { key: "viajero", label: "Viajero", description: "Mi cuenta, mis viajes, mis reservas y mi pasaporte", route: "/perfil", source: "rol_global" },
   { key: "empresa", label: "Empresa", description: "Reservas, equipo y ficha de la organización activa", route: "/operadores/panel", source: "pertenencia_organizacion" },
-  { key: "creador", label: "Creador", description: "Contenido, métricas, licencias y cobros propios", route: "/creadores", source: "perfil_de_producto" },
+  { key: "creador", label: "Creador", description: "Contenido, métricas, licencias y cobros propios", route: "/creadores/panel", source: "perfil_de_producto" },
   { key: "embajador", label: "Embajador", description: "Código de referencia, comisiones y retiros", route: "/creadores?panel=embajador", source: "perfil_de_producto" },
   { key: "editorial", label: "Editorial", description: "Mesa editorial: borradores, revisiones y publicación", route: "/admin", source: "rol_global" },
   { key: "moderacion", label: "Moderación", description: "Cola de contenido de usuarios y apelaciones", route: "/admin", source: "rol_global" },

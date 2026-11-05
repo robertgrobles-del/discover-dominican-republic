@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
+import { activateOnKey } from "@/lib/a11y";
 export interface MenuItem {
   id: string;
   name: string;
@@ -196,7 +197,7 @@ export const RestaurantInteractiveMenuPos: React.FC<RestaurantInteractiveMenuPos
         {filteredItems.map(dish => {
           const inCartCount = orderCart[dish.id] || 0;
           return (
-            <div
+            <div role="button" tabIndex={0} onKeyDown={activateOnKey}
               key={dish.id}
               onClick={() => setActiveItemModal(dish)}
               className="bg-muted/30 hover:bg-muted/60 border border-border/70 hover:border-primary/40 rounded-3xl p-4 transition-all duration-300 flex flex-col justify-between group cursor-pointer shadow-2xs"
@@ -211,7 +212,7 @@ export const RestaurantInteractiveMenuPos: React.FC<RestaurantInteractiveMenuPos
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                   
                   {dish.isChefSpecial && (
-                    <Badge className="absolute top-2.5 left-2.5 bg-amber-500 text-slate-950 font-bold text-[10px] border-none shadow-xs">
+                    <Badge className="absolute top-2.5 left-2.5 bg-amber-500 text-slate-950 font-bold text-3xs border-none shadow-xs">
                       <Flame className="h-3 w-3 mr-0.5" /> Recomendación del Chef
                     </Badge>
                   )}
@@ -221,7 +222,7 @@ export const RestaurantInteractiveMenuPos: React.FC<RestaurantInteractiveMenuPos
                       {currency} {dish.price}
                     </span>
                     {dish.prepTime && (
-                      <span className="text-[10px] font-mono flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-lg">
+                      <span className="text-3xs font-mono flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-lg">
                         <Clock className="h-3 w-3" /> {dish.prepTime}
                       </span>
                     )}
@@ -240,13 +241,13 @@ export const RestaurantInteractiveMenuPos: React.FC<RestaurantInteractiveMenuPos
               <div className="pt-3 border-t border-border/60 flex items-center justify-between">
                 <div className="flex gap-1">
                   {dish.dietary?.map(diet => (
-                    <span key={diet} className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-muted text-muted-foreground">
+                    <span key={diet} className="text-3xs font-mono px-2 py-0.5 rounded-md bg-muted text-muted-foreground">
                       {diet}
                     </span>
                   ))}
                 </div>
 
-                <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                <div role="presentation" className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
                   {inCartCount > 0 ? (
                     <div className="flex items-center gap-1 bg-primary/10 rounded-xl p-0.5 border border-primary/20">
                       <button 
@@ -311,11 +312,11 @@ export const RestaurantInteractiveMenuPos: React.FC<RestaurantInteractiveMenuPos
 
                 <div className="grid grid-cols-2 gap-3 p-3 rounded-2xl bg-muted/40 border border-border text-xs">
                   <div>
-                    <span className="text-[10px] text-muted-foreground block font-mono">Calorías Aprox.</span>
+                    <span className="text-3xs text-muted-foreground block font-mono">Calorías Aprox.</span>
                     <span className="font-semibold text-foreground">{activeItemModal.calories || "450 kcal"}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-muted-foreground block font-mono">Tiempo de Marcha</span>
+                    <span className="text-3xs text-muted-foreground block font-mono">Tiempo de Marcha</span>
                     <span className="font-semibold text-foreground">{activeItemModal.prepTime || "15 min"}</span>
                   </div>
                 </div>
@@ -355,7 +356,7 @@ export const RestaurantInteractiveMenuPos: React.FC<RestaurantInteractiveMenuPos
                 <div key={id} className="flex items-center justify-between p-2.5 rounded-2xl bg-muted/40 border border-border/60 text-xs">
                   <div className="min-w-0 flex-1 pr-2">
                     <span className="font-bold text-foreground block truncate">{dish.name}</span>
-                    <span className="text-[10px] text-muted-foreground">{currency} {dish.price} c/u</span>
+                    <span className="text-3xs text-muted-foreground">{currency} {dish.price} c/u</span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="font-mono font-bold text-primary">x{count}</span>

@@ -107,12 +107,12 @@ export function ThreadList({
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-xs">@{r.author}</span>
                   {r.isLocal && (
-                    <Badge className="bg-emerald-600/10 text-emerald-600 hover:bg-emerald-600/20 border-emerald-600/20 text-[10px] py-0">
+                    <Badge className="bg-emerald-600/10 text-emerald-600 hover:bg-emerald-600/20 border-emerald-600/20 text-3xs py-0">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       Local Certificado
                     </Badge>
                   )}
-                  <span className="text-[10px] text-muted-foreground">{r.date}</span>
+                  <span className="text-3xs text-muted-foreground">{r.date}</span>
                 </div>
 
                 <Button

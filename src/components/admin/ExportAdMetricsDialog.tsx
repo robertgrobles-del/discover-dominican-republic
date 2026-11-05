@@ -115,9 +115,9 @@ export function ExportAdMetricsDialog({ triggerButton }: { triggerButton?: React
         <div className="space-y-4 my-3">
           {/* Format selection */}
           <div className="space-y-1.5">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Formato de Archivo:
-            </label>
+            </p>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"

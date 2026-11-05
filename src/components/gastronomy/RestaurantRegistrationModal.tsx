@@ -19,6 +19,8 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { fetchApi } from "@/lib/fastifyClient";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 
 export interface MenuItem {
   id: string;
@@ -216,7 +218,9 @@ export function RestaurantRegistrationModal({
     setMenuItems(prev => prev.filter(item => item.id !== id));
   };
 
-  const handleFinalSubmit = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleFinalSubmit = async () => {
     if (!acceptTerms) {
       toast.error("Debes aceptar los Términos y Condiciones del Directorio Gastronómico.");
       return;
@@ -233,6 +237,46 @@ export function RestaurantRegistrationModal({
       acceptTerms,
       subscribeNewsletter
     };
+
+    if (HAS_BACKEND_SESSION) {
+      setIsSubmitting(true);
+      try {
+        await fetchApi("/establishments/register", {
+          method: "POST",
+          body: JSON.stringify({
+            type: "restaurante",
+            name: basicForm.name.trim(),
+            contact_name: basicForm.name.trim(),
+            email: basicForm.email.trim().toLowerCase(),
+            phone: basicForm.phone.trim(),
+            address: basicForm.address.trim(),
+            province: basicForm.province.trim(),
+            website: basicForm.website?.trim() || undefined,
+            description: `Tipo de cocina: ${basicForm.cuisineType}. Modo de menú: ${menuMode}.`,
+            rnc: basicForm.rnc?.trim() || undefined,
+            details: {
+              cuisineType: basicForm.cuisineType,
+              menuMode,
+              menuPdfUrl: menuMode === "pdf" ? menuPdfUrl : null,
+              menuItems: menuMode === "items" ? menuItems : [],
+              advertising: advertisingForm,
+            },
+          }),
+        });
+
+        if (onRestaurantRegistered) {
+          onRestaurantRegistered(restaurantData);
+        }
+        toast.success(`🎉 ¡Restaurante "${basicForm.name}" registrado con éxito en la Guía Gastronómica de RD!`);
+        setCurrentStep("complete");
+      } catch (err: any) {
+        console.error("Error al registrar restaurante:", err);
+        toast.error(err?.message || "No se pudo registrar el restaurante en el servidor. Intenta de nuevo.");
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
 
     if (onRestaurantRegistered) {
       onRestaurantRegistered(restaurantData);
@@ -262,12 +306,12 @@ export function RestaurantRegistrationModal({
             </div>
 
             {isVerified && (
-              <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px] font-bold">
+              <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-3xs font-bold">
                 ✓ Verificado por OTP
               </Badge>
             )}
             {isManualReviewPending && (
-              <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px] font-bold">
+              <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 text-3xs font-bold">
                 ⏳ Pyme en Revisión Manual
               </Badge>
             )}
@@ -280,28 +324,28 @@ export function RestaurantRegistrationModal({
             onClick={() => setCurrentStep("info")}
             className={`flex items-center gap-1.5 ${currentStep === "info" ? "text-primary font-bold" : "text-muted-foreground"}`}
           >
-            <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px]">1</span> Datos
+            <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-3xs">1</span> Datos
           </button>
           <span className="text-muted-foreground/40">→</span>
           <button
             onClick={() => setCurrentStep("verification")}
             className={`flex items-center gap-1.5 ${currentStep === "verification" ? "text-primary font-bold" : "text-muted-foreground"}`}
           >
-            <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px]">2</span> Verificación
+            <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-3xs">2</span> Verificación
           </button>
           <span className="text-muted-foreground/40">→</span>
           <button
             onClick={() => setCurrentStep("menu")}
             className={`flex items-center gap-1.5 ${currentStep === "menu" ? "text-primary font-bold" : "text-muted-foreground"}`}
           >
-            <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px]">3</span> Menú (PDF/Items)
+            <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-3xs">3</span> Menú (PDF/Items)
           </button>
           <span className="text-muted-foreground/40">→</span>
           <button
             onClick={() => setCurrentStep("advertising")}
             className={`flex items-center gap-1.5 ${currentStep === "advertising" ? "text-primary font-bold" : "text-muted-foreground"}`}
           >
-            <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px]">4</span> Publicidad & Rifas
+            <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-3xs">4</span> Publicidad & Rifas
           </button>
         </div>
 
@@ -362,7 +406,7 @@ export function RestaurantRegistrationModal({
                   onChange={(e) => handleEmailChange(e.target.value)}
                   className="text-xs rounded-xl mt-1 h-9 bg-card border-border"
                 />
-                <span className="text-[10px] text-muted-foreground mt-0.5 block">
+                <span className="text-3xs text-muted-foreground mt-0.5 block">
                   {isCorporateEmail ? "✓ Dominio corporativo detectado (Validación instantánea por OTP)" : "ℹ️ Correo genérico detectado (Pyme: requerirá verificación manual)"}
                 </span>
               </div>
@@ -429,7 +473,7 @@ export function RestaurantRegistrationModal({
                         {verifyingOtp ? "Verificando..." : "Validar Código"}
                       </Button>
                     </div>
-                    <span className="text-[10px] text-muted-foreground">Código de demostración: <strong>774920</strong></span>
+                    <span className="text-3xs text-muted-foreground">Código de demostración: <strong>774920</strong></span>
                   </div>
                 )}
               </div>
@@ -542,7 +586,7 @@ export function RestaurantRegistrationModal({
                     <FileText className="h-4 w-4 text-primary" />
                     <span className="font-medium text-foreground">{menuPdfFileName}</span>
                   </div>
-                  <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-none text-[10px]">
+                  <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-none text-3xs">
                     Listo para Visualización
                   </Badge>
                 </div>
@@ -559,11 +603,11 @@ export function RestaurantRegistrationModal({
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-foreground text-xs">{item.name}</span>
-                          <Badge variant="outline" className="text-[9px]">{item.category}</Badge>
-                          {item.isChefSpecial && <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-400 border-none text-[9px]">Especialidad</Badge>}
+                          <Badge variant="outline" className="text-3xs">{item.category}</Badge>
+                          {item.isChefSpecial && <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-400 border-none text-3xs">Especialidad</Badge>}
                         </div>
-                        <p className="text-[11px] text-muted-foreground leading-relaxed">{item.description}</p>
-                        <div className="flex gap-2 text-[10px] text-muted-foreground">
+                        <p className="text-2xs text-muted-foreground leading-relaxed">{item.description}</p>
+                        <div className="flex gap-2 text-3xs text-muted-foreground">
                           <span className="font-black text-emerald-600">RD$ {item.priceDop.toLocaleString()}</span>
                           <span>(~${item.priceUsd} USD)</span>
                         </div>
@@ -626,7 +670,7 @@ export function RestaurantRegistrationModal({
                       className="text-xs rounded-xl h-8 bg-card border-border"
                     />
 
-                    <div className="flex items-center gap-3 md:col-span-2 text-[11px]">
+                    <div className="flex items-center gap-3 md:col-span-2 text-2xs">
                       <label className="flex items-center gap-1 cursor-pointer">
                         <input
                           type="checkbox"
@@ -694,7 +738,7 @@ export function RestaurantRegistrationModal({
                     className="hidden"
                   />
                   <p className="text-xs">Banner Billboard</p>
-                  <span className="text-[10px] text-muted-foreground">Cabecera de Guía Gastronómica</span>
+                  <span className="text-3xs text-muted-foreground">Cabecera de Guía Gastronómica</span>
                 </label>
 
                 <label className={`p-3 rounded-xl border text-center cursor-pointer space-y-1 ${
@@ -709,7 +753,7 @@ export function RestaurantRegistrationModal({
                     className="hidden"
                   />
                   <p className="text-xs">Tarjeta In-Feed</p>
-                  <span className="text-[10px] text-muted-foreground">Destacado entre restaurantes</span>
+                  <span className="text-3xs text-muted-foreground">Destacado entre restaurantes</span>
                 </label>
 
                 <label className={`p-3 rounded-xl border text-center cursor-pointer space-y-1 ${
@@ -724,7 +768,7 @@ export function RestaurantRegistrationModal({
                     className="hidden"
                   />
                   <p className="text-xs">Newsletter Semanal</p>
-                  <span className="text-[10px] text-muted-foreground">Mención en 'Escapadas RD'</span>
+                  <span className="text-3xs text-muted-foreground">Mención en 'Escapadas RD'</span>
                 </label>
               </div>
             </div>

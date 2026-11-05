@@ -109,10 +109,10 @@ export const HotelExperienceBento: React.FC<HotelExperienceBentoProps> = ({
           <div className="bg-gradient-to-br from-amber-500/10 via-card to-card border border-amber-500/30 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] uppercase font-mono tracking-wider text-amber-600 dark:text-amber-400 font-bold">
+                <span className="text-3xs uppercase font-mono tracking-wider text-amber-600 dark:text-amber-400 font-bold">
                   Sin Necesidad de Estadía
                 </span>
-                <Badge variant="outline" className="border-amber-500/40 text-amber-600 dark:text-amber-400 text-[10px]">
+                <Badge variant="outline" className="border-amber-500/40 text-amber-600 dark:text-amber-400 text-3xs">
                   Pase Todo Incluido
                 </Badge>
               </div>
@@ -127,7 +127,7 @@ export const HotelExperienceBento: React.FC<HotelExperienceBentoProps> = ({
 
             <div className="flex items-center justify-between pt-3 border-t border-border">
               <div>
-                <span className="text-[10px] text-muted-foreground block font-mono">Tarifa por persona</span>
+                <span className="text-3xs text-muted-foreground block font-mono">Tarifa por persona</span>
                 <span className="text-lg font-extrabold text-foreground font-display">US$ {dayPassPrice}</span>
               </div>
               <Button size="sm" variant="outline" className="rounded-full text-xs font-semibold">
@@ -156,7 +156,7 @@ export const HotelExperienceBento: React.FC<HotelExperienceBentoProps> = ({
               </ul>
             </div>
 
-            <span className="text-[11px] font-mono text-muted-foreground block pt-3 border-t border-border mt-3">
+            <span className="text-2xs font-mono text-muted-foreground block pt-3 border-t border-border mt-3">
               🌱 Avalado por estándares ambientales de hotelería dominicana
             </span>
           </div>
@@ -188,7 +188,7 @@ export const HotelExperienceBento: React.FC<HotelExperienceBentoProps> = ({
                 className="bg-muted/40 hover:bg-muted/70 transition-colors rounded-2xl p-4 border border-border/60 flex flex-col justify-between"
               >
                 <div>
-                  <span className="text-[11px] font-mono font-bold text-primary px-2.5 py-0.5 rounded-full bg-primary/10 inline-block mb-2">
+                  <span className="text-2xs font-mono font-bold text-primary px-2.5 py-0.5 rounded-full bg-primary/10 inline-block mb-2">
                     {item.time}
                   </span>
                   <h5 className="font-bold text-sm text-foreground mb-1 leading-snug">

@@ -30,7 +30,7 @@ export function EcoVerifiedDirectory({
   return (
     <div className="pt-8 border-t border-border space-y-6">
       <div>
-        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] font-bold">
+        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-3xs font-bold">
           AUDITORÍA VERDE
         </Badge>
         <h2 className="text-2xl font-bold text-foreground mt-2">
@@ -50,7 +50,7 @@ export function EcoVerifiedDirectory({
             <CardContent className="p-5 space-y-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <Badge className="bg-emerald-600/15 text-emerald-500 border-emerald-500/25 font-extrabold text-[10px]">
+                  <Badge className="bg-emerald-600/15 text-emerald-500 border-emerald-500/25 font-extrabold text-3xs">
                     {bus.category}
                   </Badge>
                   <h3 className="font-display font-bold text-base text-foreground mt-2">{bus.name}</h3>
@@ -63,7 +63,7 @@ export function EcoVerifiedDirectory({
               <p className="text-xs text-muted-foreground leading-normal">{bus.description}</p>
 
               <div className="border-t border-border/60 pt-3">
-                <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2">
+                <p className="text-3xs uppercase font-bold text-muted-foreground mb-2">
                   Criterios Auditados:
                 </p>
                 <div className="space-y-1">

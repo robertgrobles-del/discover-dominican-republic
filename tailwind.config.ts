@@ -14,6 +14,11 @@ export default {
       },
     },
     extend: {
+      // Escala de micro-texto: el mínimo del sistema es 10px (3xs), sólo para badges y metadatos.
+      fontSize: {
+        "3xs": "0.625rem",
+        "2xs": "0.6875rem",
+      },
       fontFamily: {
         display: ["Plus Jakarta Sans", "sans-serif"],
         body: ["Noto Sans", "sans-serif"],
@@ -25,6 +30,11 @@ export default {
         "brand-sand": "hsl(var(--brand-sand))",
         "brand-coral": "hsl(var(--brand-coral))",
         "brand-forest": "hsl(var(--brand-forest))",
+        // Fondos oscuros de campañas (gamificación, Guardián del Caribe, banner de consultoría)
+        "brand-lagoon": "#0b3c36",
+        "brand-night": "#051114",
+        "brand-navy": { light: "#004e92", DEFAULT: "#003366", dark: "#001f3f" },
+        "brand-cta": { DEFAULT: "#ff5a5f", hover: "#ff444a" },
         "surface-editorial": "hsl(var(--surface-editorial))",
         "surface-commercial": "hsl(var(--surface-commercial))",
         "border-strong": "hsl(var(--border-strong))",

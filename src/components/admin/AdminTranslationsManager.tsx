@@ -63,11 +63,11 @@ export default function AdminTranslationsManager() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+          <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <Languages className="w-6 h-6 text-indigo-500" />
             Gestor de Traducciones e Idiomas
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             Control de calidad editorial para contenidos traducidos automáticamente o revisados por humanos.
           </p>
         </div>
@@ -120,7 +120,7 @@ export default function AdminTranslationsManager() {
       <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 dark:bg-slate-900 border-b text-slate-500 font-medium">
+            <thead className="bg-muted/50 border-b text-muted-foreground font-medium">
               <tr>
                 <th className="p-3">Colección & Campo</th>
                 <th className="p-3">Idioma</th>
@@ -132,14 +132,14 @@ export default function AdminTranslationsManager() {
             </thead>
             <tbody className="divide-y">
               {isLoading ? (
-                <tr><td colSpan={6} className="text-center py-10 text-slate-400">Cargando traducciones...</td></tr>
+                <tr><td colSpan={6} className="text-center py-10 text-muted-foreground">Cargando traducciones...</td></tr>
               ) : items.length === 0 ? (
-                <tr><td colSpan={6} className="text-center py-10 text-slate-400">No hay traducciones registradas.</td></tr>
+                <tr><td colSpan={6} className="text-center py-10 text-muted-foreground">No hay traducciones registradas.</td></tr>
               ) : (
                 items.map((t, idx) => (
-                  <tr key={`${t.entity_type}-${t.entity_id}-${t.locale}-${t.field_name}-${idx}`} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                  <tr key={`${t.entity_type}-${t.entity_id}-${t.locale}-${t.field_name}-${idx}`} className="hover:bg-muted/30 dark:hover:bg-muted/50">
                     <td className="p-3">
-                      <div className="font-semibold text-slate-900 dark:text-white capitalize">{t.entity_type}</div>
+                      <div className="font-semibold text-foreground capitalize">{t.entity_type}</div>
                       <div className="text-xs font-mono text-indigo-600">{t.field_name}</div>
                     </td>
                     <td className="p-3 font-mono text-xs uppercase font-bold">{t.locale}</td>
@@ -148,19 +148,19 @@ export default function AdminTranslationsManager() {
                         variant="outline"
                         className={
                           t.status === "reviewed"
-                            ? "bg-emerald-500/10 text-emerald-700 border-emerald-200"
+                            ? "bg-emerald-500/10 text-emerald-500 border-emerald-200"
                             : t.status === "human"
-                            ? "bg-blue-500/10 text-blue-700 border-blue-200"
-                            : "bg-amber-500/10 text-amber-700 border-amber-200"
+                            ? "bg-blue-500/10 text-blue-500 border-blue-200"
+                            : "bg-amber-500/10 text-amber-500 border-amber-200"
                         }
                       >
                         {t.status === "reviewed" ? "Revisada" : t.status === "human" ? "Humana" : "IA (Machine)"}
                       </Badge>
                     </td>
                     <td className="p-3 max-w-md">
-                      <p className="text-xs text-slate-700 dark:text-slate-300 line-clamp-2">{t.text}</p>
+                      <p className="text-xs text-foreground line-clamp-2">{t.text}</p>
                     </td>
-                    <td className="p-3 text-xs text-slate-500 whitespace-nowrap">
+                    <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">
                       {new Date(t.updated_at).toLocaleDateString()}
                     </td>
                     <td className="p-3 text-right">
@@ -185,7 +185,7 @@ export default function AdminTranslationsManager() {
 
         {/* Pagination */}
         {meta && meta.total_pages > 1 && (
-          <div className="flex items-center justify-between p-3 border-t text-xs text-slate-500">
+          <div className="flex items-center justify-between p-3 border-t text-xs text-muted-foreground">
             <span>Página {meta.page} de {meta.total_pages} ({meta.total} campos)</span>
             <div className="flex gap-2">
               <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage(page - 1)}>
@@ -209,13 +209,13 @@ export default function AdminTranslationsManager() {
           </DialogHeader>
           {editingItem && (
             <div className="space-y-3 py-2 text-sm">
-              <div className="text-xs bg-slate-50 dark:bg-slate-900 p-2.5 rounded">
-                <span className="text-slate-500">Colección:</span> <strong className="capitalize">{editingItem.entity_type}</strong> | <span className="text-slate-500">Campo:</span> <strong className="font-mono">{editingItem.field_name}</strong>
+              <div className="text-xs bg-muted/50 p-2.5 rounded">
+                <span className="text-muted-foreground">Colección:</span> <strong className="capitalize">{editingItem.entity_type}</strong> | <span className="text-muted-foreground">Campo:</span> <strong className="font-mono">{editingItem.field_name}</strong>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Texto Traducido</label>
-                <Textarea
+                <label htmlFor="admin-translations-manager-f1" className="text-xs font-semibold text-foreground">Texto Traducido</label>
+                <Textarea id="admin-translations-manager-f1"
                   value={editedText}
                   onChange={(e) => setEditedText(e.target.value)}
                   rows={6}
@@ -236,7 +236,7 @@ export default function AdminTranslationsManager() {
                       text: editedText.trim(),
                     })
                   }
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5"
+                  className="gap-1.5"
                 >
                   <UserCheck className="w-4 h-4" /> Guardar y Aprobar
                 </Button>

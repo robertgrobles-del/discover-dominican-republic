@@ -151,6 +151,7 @@ export async function gameRoutes(app: FastifyInstance) {
   });
   r.get("/gamification/achievements", { onRequest: optionalUser, schema: { tags: ["gamificación"], summary: "Catálogo de logros (los secretos se ocultan hasta desbloquearse)", security: [{}, ...bearer], response: { 200: ok } } }, async (req) => ({ data: await game.achievements(req.user?.id ?? null) }));
   r.get("/gamification/achievements/me", { onRequest: auth, schema: { tags: ["gamificación"], summary: "Mis insignias", security: bearer, response: { 200: ok } } }, async (req) => ({ data: (await game.achievements(req.user!.id)).filter((a) => a.unlocked) }));
+  r.post("/gamification/missions/:id/validation-code", { onRequest: auth, config: rl(20, "1 minute"), schema: { tags: ["gamificación"], summary: "Código (para mostrar como QR) con el que la empresa patrocinadora valida un reto presencial", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => ({ data: await game.issueValidationCode(req.user!.id, req.params.id) }));
   r.post("/gamification/achievements/:id/unlock", { onRequest: auth, config: rl(30, "1 minute"), schema: { tags: ["gamificación"], summary: "Pide desbloquear un logro; el servidor comprueba la condición", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => ({ data: await game.unlockAchievement(req.user!.id, req.params.id) }));
 
   // ---------- Premios ----------
@@ -245,6 +246,10 @@ export async function gameRoutes(app: FastifyInstance) {
     return null;
   });
 
+  r.get("/admin/gamification/sponsor-orgs", { onRequest: admin, schema: { tags: ["admin", "gamificación"], summary: "Empresas del panel de Operadores que pueden patrocinar (y validar) un reto", security: bearer, response: { 200: ok } } }, async () => ({
+    data: (await db.query("SELECT p.id, p.business_name, p.slug FROM partner_profiles p WHERE EXISTS (SELECT 1 FROM org_members m WHERE m.org_id = p.id) ORDER BY p.business_name")).rows,
+  }));
+
   r.post("/admin/gamification/missions", {
     onRequest: admin,
     schema: {
@@ -267,18 +272,45 @@ export async function gameRoutes(app: FastifyInstance) {
         sponsor_logo_url: z.string().url().max(500).optional(),
         sponsor_reward_text: z.string().max(200).optional(),
         is_sponsored: z.boolean().default(false),
+        target_url: z.string().trim().max(500).regex(/^(\/|https:\/\/)/, "Debe ser una ruta del portal (/...) o un enlace https://").optional(),
+        target_label: z.string().trim().max(80).optional(),
+        starts_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        ends_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+        max_completions: z.number().int().min(1).max(1_000_000).optional(),
+        image_url: z.string().trim().max(500).regex(/^(\/|https?:\/\/)/, "La imagen debe ser una ruta del portal o un enlace web").optional(),
+        place_name: z.string().trim().max(120).optional(),
+        province: z.string().trim().max(60).optional(),
+        difficulty: z.enum(["facil", "media", "exigente"]).optional(),
+        estimated_minutes: z.number().int().min(1).max(10_080).optional(),
+        requires_validation: z.boolean().default(false),
       }),
       response: { 201: ok },
     },
   }, async (req, reply) => {
     const b = req.body;
-    const isSponsored = b.is_sponsored || !!b.sponsor_id || !!b.sponsor_name;
+    if (b.starts_on && b.ends_on && b.ends_on < b.starts_on) throw AppError.validation("La fecha de fin es anterior a la de inicio", [{ field: "ends_on", issue: "before_start" }]);
+    // Lo valida una empresa del panel de Operadores: tiene que existir y su nombre es el que ve el viajero.
+    let sponsorName = b.sponsor_name ?? null;
+    if (b.sponsor_id) {
+      const org = (await db.query<{ business_name: string }>("SELECT business_name FROM partner_profiles WHERE id = $1", [b.sponsor_id])).rows[0];
+      if (!org) throw AppError.validation("La empresa patrocinadora no existe", [{ field: "sponsor_id", issue: "not_found" }]);
+      sponsorName ??= org.business_name;
+    }
+    if (b.requires_validation && !b.sponsor_id) throw AppError.validation("Para validar con QR elige la empresa patrocinadora", [{ field: "sponsor_id", issue: "required" }]);
+    // Sin validación, la misión sólo avanza con acciones que el servidor registra; con otra nunca podría completarse.
+    const action = b.requires_validation ? "sponsor_validated" : b.target_action;
+    const rule = (await db.query("SELECT 1 FROM gamification_rules WHERE action = $1 AND is_active", [action])).rowCount;
+    if (!rule) throw AppError.validation("La actividad no existe o está desactivada", [{ field: "target_action", issue: "unknown_action" }]);
+    if (b.is_sponsored && !b.sponsor_id && !sponsorName) throw AppError.validation("Indica el patrocinador", [{ field: "sponsor_name", issue: "required" }]);
+    const isSponsored = b.is_sponsored || !!b.sponsor_id || !!sponsorName;
     const ins = await db.query(
       `INSERT INTO gamification_missions
-        (name, description, target_action, target_count, xp_reward, coin_reward, mission_type, is_featured, min_level, icon, sponsor_id, sponsor_name, sponsor_logo_url, sponsor_reward_text, is_sponsored)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+        (name, description, target_action, target_count, xp_reward, coin_reward, mission_type, is_featured, min_level, icon, sponsor_id, sponsor_name, sponsor_logo_url, sponsor_reward_text, is_sponsored, target_url, target_label,
+         starts_on, ends_on, max_completions, image_url, place_name, province, difficulty, estimated_minutes, requires_validation)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
        RETURNING *`,
-      [b.name, b.description ?? null, b.target_action, b.target_count, b.xp_reward, b.coin_reward, b.mission_type, b.is_featured, b.min_level, b.icon ?? null, b.sponsor_id ?? null, b.sponsor_name ?? null, b.sponsor_logo_url ?? null, b.sponsor_reward_text ?? null, isSponsored],
+      [b.name, b.description ?? null, action, b.requires_validation ? 1 : b.target_count, b.xp_reward, b.coin_reward, b.mission_type, b.is_featured, b.min_level, b.icon ?? null, b.sponsor_id ?? null, sponsorName, b.sponsor_logo_url ?? null, b.sponsor_reward_text ?? null, isSponsored, b.target_url ?? null, b.target_label ?? null,
+        b.starts_on ?? null, b.ends_on ?? null, b.max_completions ?? null, b.image_url ?? null, b.place_name ?? null, b.province ?? null, b.difficulty ?? null, b.estimated_minutes ?? null, b.requires_validation],
     );
     await audit(db, { actor: req.user!.id, action: "gamification.mission_create", entity: "mission", id: ins.rows[0].id, meta: { is_sponsored: isSponsored, sponsor_name: b.sponsor_name }, ip: req.ip });
     reply.code(201);

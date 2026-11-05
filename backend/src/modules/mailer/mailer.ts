@@ -16,6 +16,12 @@ export type SendInput<K extends TemplateKey> = SendEmailInput<K>;
 interface QueuedRow { id: string; to_email: string; template: TemplateKey; locale: Locale; payload: { data: TemplateData[TemplateKey]; test_override?: TemplateOverride; subject_prefix?: string }; attempts: number }
 
 /** Espera antes de reintentar, en segundos, según el número de intentos ya hechos (1.º fallo → 1 min …). */
+/**
+ * Plantillas cuyo contenido lleva un enlace con un token en claro (su única otra copia es un hash). El payload se borra al
+ * entregarse o al descartarse: no debe quedar en la bitácora ni en los respaldos mientras el enlace siga vigente.
+ */
+const SECRET_PAYLOAD_TEMPLATES = new Set(["auth.reset_password", "auth.verify_email", "booking.claim", "booking.review_request", "org.invitation", "newsletter.confirm"]);
+
 const BACKOFF_SECONDS = [60, 300, 1800, 7200, 43_200];
 const STUCK_AFTER = "5 minutes";
 
@@ -150,15 +156,15 @@ export class Mailer implements MailerPort {
         // Transporte "log": el cuerpo de texto incluye los enlaces, útil en desarrollo sin servidor SMTP.
         this.log.info({ to: row.to_email, subject: r.subject, template: row.template }, `📧 ${r.subject}\n${r.text}`);
       }
-      await this.db.query("UPDATE email_log SET status = 'sent', sent_at = now(), locked_at = NULL, provider_id = $2, error = NULL WHERE id = $1", [row.id, providerId]);
+      await this.db.query("UPDATE email_log SET status = 'sent', sent_at = now(), locked_at = NULL, provider_id = $2, error = NULL, payload = CASE WHEN $3 THEN NULL ELSE payload END WHERE id = $1", [row.id, providerId, SECRET_PAYLOAD_TEMPLATES.has(row.template)]);
     } catch (err) {
       const message = (err as Error).message.slice(0, 300);
       const final = row.attempts >= this.env.MAIL_MAX_ATTEMPTS;
       const wait = BACKOFF_SECONDS[Math.min(row.attempts - 1, BACKOFF_SECONDS.length - 1)]!;
       this.log.warn({ id: row.id, template: row.template, attempt: row.attempts, final, err: message }, final ? "Correo descartado tras agotar los intentos" : "Falló el envío; se reintentará");
       await this.db.query(
-        "UPDATE email_log SET status = $2, locked_at = NULL, error = $3, next_attempt_at = now() + make_interval(secs => $4) WHERE id = $1",
-        [row.id, final ? "failed" : "queued", message, wait],
+        "UPDATE email_log SET status = $2, locked_at = NULL, error = $3, next_attempt_at = now() + make_interval(secs => $4), payload = CASE WHEN $5 THEN NULL ELSE payload END WHERE id = $1",
+        [row.id, final ? "failed" : "queued", message, wait, final && SECRET_PAYLOAD_TEMPLATES.has(row.template)],
       );
     }
   }

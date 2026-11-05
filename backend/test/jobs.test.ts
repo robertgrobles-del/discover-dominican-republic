@@ -115,7 +115,15 @@ describe("ejecutor de trabajos", () => {
       const mr = await call("POST", "/org/bookings", { token: owner.token, payload: { request: { listing_id: tour, date: soon(32), time: "09:00", adults: 1 }, contact: { name: "Mostrador", email: "m@test.local" } } });
       const manual = json(mr).data;
       await call("POST", `/org/bookings/${manual.id}/payments`, { token: owner.token, payload: { amount: 100 } });
-      for (const id of [paid.id, manual.id]) await status(id, "completed");
+      // No se completa antes de la fecha del servicio.
+      const early = await status(paid.id, "completed");
+      expect(early.statusCode).toBe(422);
+      expect(json(early).error.details.code).toBe("SERVICE_NOT_DUE");
+      const ago = (id: string, days: number) => pool.query("UPDATE bookings SET date = $2::date WHERE id = $1", [id, soon(-days)]);
+      for (const id of [paid.id, manual.id]) { await ago(id, 3); expect((await status(id, "completed")).statusCode).toBe(200); }
+      // Dentro de la retención (7 días tras el servicio) todavía no se liquida.
+      expect(json(await call("POST", "/admin/payouts", { token: admin, payload: { org_id: orgId } })).data.payouts).toBe(0);
+      for (const id of [paid.id, manual.id]) await ago(id, 8);
 
       expect(json(await call("GET", "/org/payouts", { token: owner.token })).data).toEqual([]);
       const first = json(await call("POST", "/admin/payouts", { token: admin, payload: { org_id: orgId } })).data;
@@ -132,6 +140,7 @@ describe("ejecutor de trabajos", () => {
       expect(items[0].booking_id).toBe(paid.id); // ni la pendiente ni la manual
 
       await status(notDone.id, "confirmed");
+      await ago(notDone.id, 8);
       await status(notDone.id, "completed");
       expect(json(await call("POST", "/admin/payouts", { token: admin })).data.payouts).toBe(1);
 
@@ -143,6 +152,27 @@ describe("ejecutor de trabajos", () => {
       await app.mailer.drain();
       expect(app.mailer.outbox.some((m) => m.subject.startsWith("Liquidación enviada") && m.text.includes("TRF-2026-001"))).toBe(true);
       expect(json(await call("GET", "/org/payouts?status=paid", { token: owner.token })).data[0].reference).toBe("TRF-2026-001");
+
+      // Reembolso tras liquidar: ajuste negativo (con la comisión devuelta) que se arrastra mientras el saldo no cubra.
+      const refund = (id: string, amount: number) => pool.query("INSERT INTO booking_payments (booking_id, amount, kind, status, provider, currency) VALUES ($1, $2, 'refund', 'succeeded', 'fake', 'USD')", [id, amount]);
+      await refund(paid.id, 200);
+      const r1 = json(await call("POST", "/admin/payouts", { token: admin, payload: { org_id: orgId } })).data;
+      expect(r1).toMatchObject({ payouts: 0, adjustments: 1 });
+      const adj = (await pool.query("SELECT gross::float, commission::float, net::float, payout_id FROM payout_adjustments WHERE booking_id = $1", [paid.id])).rows;
+      expect(adj).toEqual([{ gross: -200, commission: -16, net: -184, payout_id: null }]);
+      // Repetir la corrida no duplica el ajuste.
+      expect(json(await call("POST", "/admin/payouts", { token: admin, payload: { org_id: orgId } })).data.adjustments).toBe(0);
+      // Una reserva nueva de 300 (neto 276) se paga descontando el ajuste: 276 − 184 = 92.
+      const big = json(await book({ date: soon(33), adults: 3 }, "pay_now")).data.booking;
+      await status(big.id, "confirmed");
+      await ago(big.id, 9);
+      await status(big.id, "completed");
+      const r2 = json(await call("POST", "/admin/payouts", { token: admin, payload: { org_id: orgId } })).data;
+      expect(r2.payouts).toBe(1);
+      const last = json(await call("GET", `/org/payouts/${r2.ids[0]}/items`, { token: owner.token }));
+      expect(last.data.map((i: { booking_id: string }) => i.booking_id)).toEqual([big.id]);
+      expect(last.adjustments).toHaveLength(1);
+      expect((await pool.query("SELECT net::float FROM payouts WHERE id = $1", [r2.ids[0]])).rows[0].net).toBe(92);
     });
 
     it("el panel lista los trabajos, los ejecuta y los configura (sólo admin)", async () => {

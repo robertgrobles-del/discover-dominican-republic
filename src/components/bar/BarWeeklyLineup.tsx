@@ -38,17 +38,17 @@ export function BarWeeklyLineup({ lineup }: BarWeeklyLineupProps) {
           <div key={index} className="bg-card rounded-3xl p-5 border border-border hover:border-primary/40 transition-colors flex flex-col justify-between shadow-xs">
             <div>
               <div className="flex items-center justify-between gap-2 mb-2">
-                <Badge className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 text-[10px]">
+                <Badge className="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 text-3xs">
                   {event.day} • {event.badge}
                 </Badge>
-                <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                <span className="text-2xs text-muted-foreground flex items-center gap-1">
                   <Clock className="h-3 w-3 text-primary" /> {event.time}
                 </span>
               </div>
               <h4 className="font-display text-base font-bold text-foreground mb-1">{event.title}</h4>
               <p className="text-xs text-muted-foreground leading-relaxed">{event.desc}</p>
             </div>
-            <div className="pt-3 mt-3 border-t border-border/50 text-[11px] text-primary flex items-center gap-1 font-semibold">
+            <div className="pt-3 mt-3 border-t border-border/50 text-2xs text-primary flex items-center gap-1 font-semibold">
               <Sparkles className="h-3 w-3" /> Acceso sin cover con reserva VIP previa
             </div>
           </div>

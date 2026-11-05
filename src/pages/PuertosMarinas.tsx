@@ -9,13 +9,15 @@ import { cruisePorts, marinasList } from "@/data/portsData";
 import { PortCard } from "@/components/puertos/PortCard";
 import { MarinaCard } from "@/components/puertos/MarinaCard";
 import { CruiseCTA } from "@/components/puertos/CruiseCTA";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function PuertosMarinas() {
+  const pc = usePageContent("puertos-marinas");
   return (
     <PageTransition>
       <SEOHead
-        title="Puertos de Cruceros y Marinas | Turismo RD"
-        description="Descubre los principales puertos de cruceros y marinas de República Dominicana. Información sobre líneas, facilidades y actividades cercanas."
+        title={pc.t("SEOHead.title.1", "Puertos de Cruceros y Marinas | Turismo RD")}
+        description={pc.t("SEOHead.description.1", "Descubre los principales puertos de cruceros y marinas de República Dominicana. Información sobre líneas, facilidades y actividades cercanas.")}
         keywords="puertos, cruceros, marinas, República Dominicana, náutica, yates"
       />
       <div className="min-h-screen bg-background">
@@ -31,14 +33,10 @@ export default function PuertosMarinas() {
             >
               <div className="inline-flex items-center gap-2 bg-primary/20 text-primary px-4 py-2 rounded-full mb-6">
                 <Anchor className="h-5 w-5" />
-                <span className="font-medium">Puertos y Marinas</span>
+                <span className="font-medium">{pc.tx("span.1", "Puertos y Marinas")}</span>
               </div>
-              <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
-                Puertos de <span className="text-primary">Cruceros</span> y Marinas
-              </h1>
-              <p className="text-muted-foreground text-lg mb-8">
-                República Dominicana te recibe por mar con puertos de clase mundial y marinas de lujo.
-              </p>
+              <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">{pc.tx("h1.1", "Puertos de")}{" "}<span className="text-primary">{pc.tx("span.2", "Cruceros")}</span>{" "}{pc.tx("h1.2", "y Marinas")}</h1>
+              <p className="text-muted-foreground text-lg mb-8">{pc.tx("p.1", "República Dominicana te recibe por mar con puertos de clase mundial y marinas de lujo.")}</p>
             </motion.div>
           </div>
         </section>
@@ -49,13 +47,9 @@ export default function PuertosMarinas() {
             <Tabs defaultValue="cruceros" className="space-y-8">
               <TabsList className="w-full justify-center">
                 <TabsTrigger value="cruceros" className="gap-2">
-                  <Ship className="h-4 w-4" />
-                  Puertos de Cruceros
-                </TabsTrigger>
+                  <Ship className="h-4 w-4" />{pc.tx("TabsTrigger.1", "Puertos de Cruceros")}</TabsTrigger>
                 <TabsTrigger value="marinas" className="gap-2">
-                  <Anchor className="h-4 w-4" />
-                  Marinas
-                </TabsTrigger>
+                  <Anchor className="h-4 w-4" />{pc.tx("TabsTrigger.2", "Marinas")}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="cruceros">

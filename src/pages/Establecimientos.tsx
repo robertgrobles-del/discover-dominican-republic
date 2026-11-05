@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search, MapPin, Phone, Mail, Building2, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
 
 interface Establecimiento {
   id: string;
@@ -45,6 +46,7 @@ const licenciaColor = (status: string | null) => {
 };
 
 export default function Establecimientos() {
+  const pc = usePageContent("establecimientos");
   const [data, setData] = useState<Establecimiento[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -89,8 +91,8 @@ export default function Establecimientos() {
   return (
     <>
       <SEOHead
-        title="Directorio de Establecimientos Turísticos | DescubreRD"
-        description="Directorio oficial de establecimientos turísticos registrados en República Dominicana: hoteles, restaurantes, agencias de viajes, tiendas y más."
+        title={pc.t("SEOHead.title.1", "Directorio de Establecimientos Turísticos | DescubreRD")}
+        description={pc.t("SEOHead.description.1", "Directorio oficial de establecimientos turísticos registrados en República Dominicana: hoteles, restaurantes, agencias de viajes, tiendas y más.")}
       />
       <Header />
       <main className="min-h-screen bg-background pt-20">
@@ -98,12 +100,8 @@ export default function Establecimientos() {
         <section className="bg-gradient-to-br from-primary/10 via-background to-accent/10 py-16">
           <div className="container mx-auto px-4 text-center">
             <Building2 className="mx-auto h-12 w-12 text-primary mb-4" />
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Directorio de Establecimientos
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Registro oficial de {data.length.toLocaleString()} establecimientos turísticos en República Dominicana
-            </p>
+            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Directorio de Establecimientos")}</h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.1", "Registro oficial de")}{" "}{data.length.toLocaleString()}{" "}{pc.tx("p.2", "establecimientos turísticos en República Dominicana")}</p>
           </div>
         </section>
 
@@ -113,7 +111,7 @@ export default function Establecimientos() {
             <div className="relative lg:col-span-2">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por nombre o zona..."
+                placeholder={pc.t("Input.placeholder.1", "Buscar por nombre o zona...")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-10"
@@ -122,10 +120,10 @@ export default function Establecimientos() {
             <Select value={subsectorFilter} onValueChange={setSubsectorFilter}>
               <SelectTrigger>
                 <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Subsector" />
+                <SelectValue placeholder={pc.t("SelectValue.placeholder.1", "Subsector")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los subsectores</SelectItem>
+                <SelectItem value="all">{pc.tx("SelectItem.1", "Todos los subsectores")}</SelectItem>
                 {subsectors.map((s) => (
                   <SelectItem key={s} value={s}>{s}</SelectItem>
                 ))}
@@ -134,10 +132,10 @@ export default function Establecimientos() {
             <Select value={provinciaFilter} onValueChange={setProvinciaFilter}>
               <SelectTrigger>
                 <MapPin className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Provincia" />
+                <SelectValue placeholder={pc.t("SelectValue.placeholder.2", "Provincia")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas las provincias</SelectItem>
+                <SelectItem value="all">{pc.tx("SelectItem.2", "Todas las provincias")}</SelectItem>
                 {provincias.map((p) => (
                   <SelectItem key={p} value={p}>{p}</SelectItem>
                 ))}
@@ -145,19 +143,17 @@ export default function Establecimientos() {
             </Select>
             <Select value={estatusFilter} onValueChange={setEstatusFilter}>
               <SelectTrigger>
-                <SelectValue placeholder="Estatus" />
+                <SelectValue placeholder={pc.t("SelectValue.placeholder.3", "Estatus")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos los estatus</SelectItem>
-                <SelectItem value="Abierto">Abierto</SelectItem>
-                <SelectItem value="Cerrado">Cerrado</SelectItem>
+                <SelectItem value="all">{pc.tx("SelectItem.3", "Todos los estatus")}</SelectItem>
+                <SelectItem value="Abierto">{pc.tx("SelectItem.4", "Abierto")}</SelectItem>
+                <SelectItem value="Cerrado">{pc.tx("SelectItem.5", "Cerrado")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <p className="text-sm text-muted-foreground mb-4">
-            Mostrando {paginated.length} de {filtered.length.toLocaleString()} resultados
-          </p>
+          <p className="text-sm text-muted-foreground mb-4">{pc.tx("p.3", "Mostrando")}{" "}{paginated.length}{" "}{pc.tx("p.4", "de")}{" "}{filtered.length.toLocaleString()}{" "}{pc.tx("p.5", "resultados")}</p>
 
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -178,9 +174,9 @@ export default function Establecimientos() {
                   <Card key={est.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-5">
                       <div className="flex items-start justify-between gap-2 mb-3">
-                        <h3 className="font-semibold text-foreground leading-tight line-clamp-2">
+                        <h2 className="h3 font-semibold text-foreground leading-tight line-clamp-2">
                           {est.nombre}
-                        </h3>
+                        </h2>
                         <Badge variant={statusColor(est.estatus_establecimiento)} className="shrink-0 text-xs">
                           {est.estatus_establecimiento || "N/A"}
                         </Badge>
@@ -214,8 +210,7 @@ export default function Establecimientos() {
                       </div>
 
                       <div className="flex gap-2 mt-3 flex-wrap">
-                        <Badge variant={licenciaColor(est.estatus_licencia)} className="text-xs">
-                          Licencia: {est.estatus_licencia || "N/A"}
+                        <Badge variant={licenciaColor(est.estatus_licencia)} className="text-xs">{pc.tx("Badge.1", "Licencia:")}{" "}{est.estatus_licencia || "N/A"}
                         </Badge>
                         {est.rut && (
                           <Badge variant="outline" className="text-xs font-mono">
@@ -237,18 +232,15 @@ export default function Establecimientos() {
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                     disabled={page === 0}
                   >
-                    <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
-                  </Button>
-                  <span className="text-sm text-muted-foreground">
-                    Página {page + 1} de {totalPages}
+                    <ChevronLeft className="h-4 w-4 mr-1" />{" "}{pc.tx("Button.1", "Anterior")}</Button>
+                  <span className="text-sm text-muted-foreground">{pc.tx("span.1", "Página")}{" "}{page + 1}{" "}{pc.tx("span.2", "de")}{" "}{totalPages}
                   </span>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                     disabled={page >= totalPages - 1}
-                  >
-                    Siguiente <ChevronRight className="h-4 w-4 ml-1" />
+                  >{pc.tx("Button.2", "Siguiente")}{" "}<ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
               )}

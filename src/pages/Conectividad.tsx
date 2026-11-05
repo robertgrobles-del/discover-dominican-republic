@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
+import { usePageContent } from "@/lib/pageContent";
+import { ESimSection } from "@/components/conectividad/ESimSection";
 
 const simProviders = [
   {
@@ -67,11 +69,15 @@ const tips = [
 ];
 
 export default function Conectividad() {
+  const pc = usePageContent("conectividad");
+  const tips = pc.data("tips", __pcData.tips);
+  const simProviders = pc.data("simProviders", __pcData.simProviders);
+  const wifiZones = pc.data("wifiZones", __pcData.wifiZones);
   return (
     <PageTransition>
       <SEOHead
-        title="Guía de Conectividad e Internet | Turismo RD"
-        description="Todo lo que necesitas saber sobre Internet, SIM cards y WiFi en República Dominicana para turistas."
+        title={pc.t("SEOHead.title.1", "Guía de Conectividad e Internet | Turismo RD")}
+        description={pc.t("SEOHead.description.1", "Todo lo que necesitas saber sobre Internet, SIM cards y WiFi en República Dominicana para turistas.")}
         keywords="internet, wifi, sim card, conectividad, República Dominicana, turista"
       />
       <div className="min-h-screen bg-background">
@@ -87,14 +93,10 @@ export default function Conectividad() {
             >
               <div className="inline-flex items-center gap-2 bg-primary/20 text-primary px-4 py-2 rounded-full mb-6">
                 <Wifi className="h-5 w-5" />
-                <span className="font-medium">Guía de Conectividad</span>
+                <span className="font-medium">{pc.tx("span.1", "Guía de Conectividad")}</span>
               </div>
-              <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
-                Mantente <span className="text-primary">Conectado</span> en RD
-              </h1>
-              <p className="text-muted-foreground text-lg">
-                Guía completa de SIM cards, planes de datos y WiFi para turistas en República Dominicana.
-              </p>
+              <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">{pc.tx("h1.1", "Mantente")}{" "}<span className="text-primary">{pc.tx("span.2", "Conectado")}</span>{" "}{pc.tx("h1.2", "en RD")}</h1>
+              <p className="text-muted-foreground text-lg">{pc.tx("p.1", "Guía completa de SIM cards, planes de datos y WiFi para turistas en República Dominicana.")}</p>
             </motion.div>
           </div>
         </section>
@@ -116,7 +118,7 @@ export default function Conectividad() {
                     <tip.icon className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-bold mb-1">{tip.title}</h3>
+                    <h2 className="h3 font-bold mb-1">{tip.title}</h2>
                     <p className="text-sm text-muted-foreground">{tip.description}</p>
                   </div>
                 </motion.div>
@@ -134,12 +136,9 @@ export default function Conectividad() {
               viewport={{ once: true }}
               className="mb-12"
             >
-              <h2 className="font-display text-3xl font-bold mb-4">
-                Operadores de <span className="text-primary">SIM Card</span>
+              <h2 className="font-display text-3xl font-bold mb-4">{pc.tx("h2.1", "Operadores de")}{" "}<span className="text-primary">{pc.tx("span.3", "SIM Card")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl">
-                Compara los principales operadores móviles y elige el plan perfecto para tu estadía.
-              </p>
+              <p className="text-muted-foreground max-w-2xl">{pc.tx("p.2", "Compara los principales operadores móviles y elige el plan perfecto para tu estadía.")}</p>
             </motion.div>
 
             <div className="grid lg:grid-cols-3 gap-8">
@@ -158,7 +157,7 @@ export default function Conectividad() {
                           <span className="text-4xl">{provider.logo}</span>
                           <div>
                             <CardTitle>{provider.name}</CardTitle>
-                            <p className="text-sm text-muted-foreground">Cobertura: {provider.coverage}</p>
+                            <p className="text-sm text-muted-foreground">{pc.tx("p.3", "Cobertura:")}{" "}{provider.coverage}</p>
                           </div>
                         </div>
                         <Badge>{provider.speed}</Badge>
@@ -167,7 +166,7 @@ export default function Conectividad() {
                     <CardContent className="space-y-6">
                       {/* Plans */}
                       <div className="space-y-3">
-                        <h4 className="font-semibold text-sm text-muted-foreground uppercase">Planes Turista</h4>
+                        <h4 className="font-semibold text-sm text-muted-foreground uppercase">{pc.tx("h4.1", "Planes Turista")}</h4>
                         {provider.plans.map((plan) => (
                           <div key={plan.name} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                             <div>
@@ -181,7 +180,7 @@ export default function Conectividad() {
 
                       {/* Pros */}
                       <div className="space-y-2">
-                        <h4 className="font-semibold text-sm text-muted-foreground uppercase">Ventajas</h4>
+                        <h4 className="font-semibold text-sm text-muted-foreground uppercase">{pc.tx("h4.2", "Ventajas")}</h4>
                         {provider.pros.map((pro) => (
                           <div key={pro} className="flex items-center gap-2 text-sm">
                             <CheckCircle className="h-4 w-4 text-green-500" />
@@ -192,7 +191,7 @@ export default function Conectividad() {
 
                       {/* Where to buy */}
                       <div>
-                        <h4 className="font-semibold text-sm text-muted-foreground uppercase mb-2">Dónde comprar</h4>
+                        <h4 className="font-semibold text-sm text-muted-foreground uppercase mb-2">{pc.tx("h4.3", "Dónde comprar")}</h4>
                         <div className="flex flex-wrap gap-2">
                           {provider.purchaseLocations.map((loc) => (
                             <Badge key={loc} variant="outline" className="text-xs">
@@ -219,12 +218,9 @@ export default function Conectividad() {
               viewport={{ once: true }}
               className="mb-12"
             >
-              <h2 className="font-display text-3xl font-bold mb-4">
-                Zonas <span className="text-primary">WiFi Gratis</span>
+              <h2 className="font-display text-3xl font-bold mb-4">{pc.tx("h2.2", "Zonas")}{" "}<span className="text-primary">{pc.tx("span.4", "WiFi Gratis")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl">
-                Encuentra puntos de acceso WiFi gratuitos en toda la isla.
-              </p>
+              <p className="text-muted-foreground max-w-2xl">{pc.tx("p.4", "Encuentra puntos de acceso WiFi gratuitos en toda la isla.")}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -244,11 +240,11 @@ export default function Conectividad() {
                     <h3 className="font-medium">{zone.location}</h3>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge variant="secondary" className="text-xs">{zone.type}</Badge>
-                      <span className="text-xs text-muted-foreground">Velocidad: {zone.speed}</span>
+                      <span className="text-xs text-muted-foreground">{pc.tx("span.5", "Velocidad:")}{" "}{zone.speed}</span>
                     </div>
                   </div>
                   {zone.free && (
-                    <Badge className="bg-green-500/20 text-green-600">Gratis</Badge>
+                    <Badge className="bg-green-500/20 text-green-600">{pc.tx("Badge.1", "Gratis")}</Badge>
                   )}
                 </motion.div>
               ))}
@@ -266,27 +262,27 @@ export default function Conectividad() {
                     <Smartphone className="h-12 w-12 text-primary" />
                   </div>
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="font-display text-2xl font-bold mb-2">¿Tu teléfono soporta eSIM?</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Si tienes un iPhone XS o superior, o un Android compatible, puedes comprar una eSIM antes de viajar
-                      y tener datos desde el momento que aterrices.
-                    </p>
+                    <h3 className="font-display text-2xl font-bold mb-2">{pc.tx("h3.1", "¿Tu teléfono soporta eSIM?")}</h3>
+                    <p className="text-muted-foreground mb-4">{pc.tx("p.5", "Si tienes un iPhone XS o superior, o un Android compatible, puedes comprar una eSIM antes de viajar y tener datos desde el momento que aterrices.")}</p>
                     <div className="flex items-center gap-3 justify-center lg:justify-start">
                       <AlertCircle className="h-5 w-5 text-amber-500" />
-                      <span className="text-sm text-muted-foreground">
-                        Verifica la compatibilidad de tu dispositivo antes de comprar.
-                      </span>
+                      <span className="text-sm text-muted-foreground">{pc.tx("span.6", "Verifica la compatibilidad de tu dispositivo antes de comprar.")}</span>
                     </div>
                   </div>
-                  <Button size="lg">Ver opciones de eSIM</Button>
+                  <Button size="lg" asChild><a href="#esim">{pc.tx("Button.1", "Ver opciones de eSIM")}</a></Button>
                 </div>
               </CardContent>
             </Card>
           </div>
         </section>
 
+        <ESimSection />
+
         <Footer />
       </div>
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { tips, simProviders, wifiZones };

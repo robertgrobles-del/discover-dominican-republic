@@ -8,6 +8,7 @@ import type { MailerPort } from "../../contracts/email.js";
 import type { NotifyFn } from "../../contracts/notifications.js";
 import type { IdentityAdminPort } from "../../contracts/identity.js";
 import { fromCents, toCents } from "../../lib/money.js";
+import type { CreatorAffiliateService } from "../creators/affiliate.js";
 
 export const HOLD_DAYS = 7;                 // la comisión queda en espera por si hay devolución
 export const MIN_PAYOUT = 1000;             // RD$
@@ -35,6 +36,8 @@ export class AmbassadorService {
 
   /** Aviso en la bandeja del embajador (lo asigna el arranque de la app). */
   notifyUser?: NotifyFn;
+  /** Enlaces de afiliado de los creadores: comparten el `?ref=`; los códigos que no son de un embajador se consultan aquí. */
+  creatorLinks?: CreatorAffiliateService;
 
   private async tx<T>(fn: (c: PoolClient) => Promise<T>): Promise<T> {
     const c = await this.db.connect();
@@ -47,14 +50,16 @@ export class AmbassadorService {
   /** Valida el código de un enlace. Sólo cuenta el clic si el embajador está aprobado. */
   async track(ref: string) {
     const r = await this.db.query("UPDATE ambassadors SET clicks = clicks + 1 WHERE upper(referral_code) = upper($1) AND status = 'approved' AND is_active RETURNING referral_code", [ref.trim()]);
-    return r.rows[0] ? { valid: true, ref: r.rows[0].referral_code as string, cookie_days: COOKIE_DAYS } : { valid: false, ref: null, cookie_days: 0 };
+    if (r.rows[0]) return { valid: true, ref: r.rows[0].referral_code as string, cookie_days: COOKIE_DAYS };
+    if (await this.creatorLinks?.track(ref)) return { valid: true, ref: ref.trim().toUpperCase(), cookie_days: COOKIE_DAYS };
+    return { valid: false, ref: null, cookie_days: 0 };
   }
 
   /** Código que se puede guardar en un pedido: existe, está aprobado y no es una autocompra. Un código inválido se ignora sin bloquear la compra. */
   async resolve(code: string | null | undefined, buyer: { userId?: string | null; email?: string | null }): Promise<string | null> {
     if (!code) return null;
     const a = (await this.db.query<{ id: string; referral_code: string; email: string }>("SELECT a.id, a.referral_code, u.email FROM ambassadors a JOIN users u ON u.id = a.id WHERE upper(a.referral_code) = upper($1) AND a.status = 'approved' AND a.is_active", [code.trim()])).rows[0];
-    if (!a) return null;
+    if (!a) return this.creatorLinks ? this.creatorLinks.resolve(code, buyer) : null;
     if (buyer.userId && buyer.userId === a.id) return null;
     if (buyer.email && buyer.email.trim().toLowerCase() === a.email.toLowerCase()) return null;
     return a.referral_code;
@@ -88,16 +93,23 @@ export class AmbassadorService {
         const o = await this.orderBase(c, type, orderId);
         if (!o?.ref) return;
         const amb = (await c.query<{ id: string }>("SELECT id FROM ambassadors WHERE upper(referral_code) = upper($1) FOR UPDATE", [o.ref])).rows[0];
-        if (!amb) return;
-        const cur = (await c.query<{ id: string; status: string; rate: string | null }>("SELECT id, status, rate FROM ambassador_referrals WHERE source_type = $1 AND source_id = $2 FOR UPDATE", [type, orderId])).rows[0];
-        if (cur && ["requested", "paid"].includes(cur.status)) return;   // ya en una solicitud de pago: no se toca (un contracargo posterior se ve en el panel)
+        if (!amb) { await this.creatorLinks?.syncOrder(c, type, orderId, o); return; }
+        const cur = (await c.query<{ id: string; status: string; rate: string | null; payout_id: string | null }>("SELECT id, status, rate, payout_id FROM ambassador_referrals WHERE source_type = $1 AND source_id = $2 FOR UPDATE", [type, orderId])).rows[0];
+        if (cur?.status === "paid") return;   // ya pagada: no se toca (un contracargo posterior se ve en el panel)
+        // Si está en una solicitud de pago aún pendiente, el reembolso también la ajusta: no se paga comisión sobre lo devuelto.
+        const payoutId = cur?.status === "requested" ? cur.payout_id : null;
         if (!o.live || o.base <= 0) {
-          if (cur && cur.status !== "reversed") await c.query("UPDATE ambassador_referrals SET status = 'reversed', sale_amount = $2, commission_earned = 0, updated_at = now() WHERE id = $1", [cur.id, o.base]);
+          if (cur && cur.status !== "reversed") await c.query("UPDATE ambassador_referrals SET status = 'reversed', sale_amount = $2, commission_earned = 0, payout_id = NULL, updated_at = now() WHERE id = $1", [cur.id, o.base]);
         } else {
           const rate = cur?.rate !== null && cur?.rate !== undefined ? Number(cur.rate) : await this.rateOf(c, amb.id);
           const commission = fromCents(Math.round((toCents(o.base) * rate) / 100));
           if (cur) await c.query("UPDATE ambassador_referrals SET sale_amount = $2, commission_earned = $3, status = CASE WHEN status = 'reversed' THEN 'pending' ELSE status END, updated_at = now() WHERE id = $1", [cur.id, o.base, commission]);
           else await c.query("INSERT INTO ambassador_referrals (ambassador_id, referred_email, sale_amount, commission_earned, status, source_type, source_id, rate, hold_until) VALUES ($1,$2,$3,$4,'pending',$5,$6,$7, now() + make_interval(days => $8))", [amb.id, o.email.toLowerCase(), o.base, commission, type, orderId, rate, HOLD_DAYS]);
+        }
+        if (payoutId) {
+          // El monto de la solicitud se vuelve a sumar de sus comisiones; si ya no queda nada, la solicitud se cierra como fallida.
+          await c.query("UPDATE ambassador_payouts SET amount = (SELECT coalesce(sum(commission_earned), 0) FROM ambassador_referrals WHERE payout_id = $1) WHERE id = $1 AND status = 'pending'", [payoutId]);
+          await c.query("UPDATE ambassador_payouts SET status = 'failed', note = 'Comisiones revertidas por reembolso', processed_at = now() WHERE id = $1 AND status = 'pending' AND amount <= 0", [payoutId]);
         }
         await this.recompute(c, amb.id);
       });
@@ -253,6 +265,9 @@ export class AmbassadorService {
   /** Marca el pago como enviado, o como fallido (las comisiones vuelven a estar disponibles para pedirlas de nuevo). */
   async adminSettlePayout(id: string, input: { status: "paid" | "failed"; reference?: string; note?: string }) {
     const done = await this.tx(async (c) => {
+      // Mismo orden de bloqueo que syncOrder (embajador y luego pago) para no cruzarse con un reembolso simultáneo.
+      const owner = (await c.query<{ ambassador_id: string }>("SELECT ambassador_id FROM ambassador_payouts WHERE id = $1", [id])).rows[0];
+      if (owner) await c.query("SELECT 1 FROM ambassadors WHERE id = $1 FOR UPDATE", [owner.ambassador_id]);
       const p = (await c.query<{ ambassador_id: string; status: string; amount: string }>("SELECT ambassador_id, status, amount FROM ambassador_payouts WHERE id = $1 FOR UPDATE", [id])).rows[0];
       if (!p) throw AppError.notFound("Pago");
       if (p.status !== "pending") throw new AppError("BUSINESS_RULE", `El pago ya está en estado "${p.status}"`, { code: "INVALID_STATE" });

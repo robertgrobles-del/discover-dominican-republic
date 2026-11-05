@@ -59,13 +59,16 @@ export async function authRoutes(app: FastifyInstance) {
       body: z.object({
         email, password, display_name: z.string().trim().min(1).max(80).optional(), locale: locale.optional(), marketing_opt_in: z.boolean().optional(),
         accept_terms: z.literal(true, { error: "Debes aceptar los términos y la política de privacidad" }),
+        // Código de referido o de enlace de creador con el que llegó; se aplica al verificar el correo.
+        ref_code: z.string().trim().min(4).max(30).optional(),
       }),
       response: { 201: sessionResponse },
     },
     config: limit(10, "1 hour"),
   }, async (req, reply) => {
-    const { accept_terms: _t, ...input } = req.body;
+    const { accept_terms: _t, ref_code, ...input } = req.body;
     const { user: u, session } = await app.auth.register(input, ctx(req));
+    if (ref_code) await app.db.query("UPDATE users SET signup_ref_code = $2 WHERE id = $1", [u.id, ref_code.toUpperCase()]);
     return reply.code(201).send({ data: { user: u, tokens: tokensOut(req, reply, session) } });
   });
 

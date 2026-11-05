@@ -41,8 +41,10 @@ export async function buildApp(opts: BuildOptions = {}) {
   const app = Fastify({
     logger: env.NODE_ENV === "test" ? false : { level: env.LOG_LEVEL, redact: ["req.headers.authorization", "req.headers.cookie"] },
     trustProxy: parseTrustProxy(env.TRUST_PROXY),
-    requestIdHeader: "x-request-id",
-    genReqId: () => randomUUID(),
+    // El X-Request-Id del cliente se adopta sólo si tiene forma de identificador (llega a logs, Sentry, avisos al equipo y proveedores);
+    // si no, se genera uno. Fastify no llama a genReqId cuando requestIdHeader está activo, por eso se lee aquí.
+    requestIdHeader: false,
+    genReqId: (req) => { const h = req.headers["x-request-id"]; return typeof h === "string" && /^[A-Za-z0-9._:-]{1,128}$/.test(h) ? h : randomUUID(); },
     bodyLimit: 1_048_576,
   }).withTypeProvider<ZodTypeProvider>();
 

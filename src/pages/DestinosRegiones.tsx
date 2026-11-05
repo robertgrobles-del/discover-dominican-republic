@@ -15,6 +15,7 @@ import santoDomingo from "@/assets/santo-domingo.jpg";
 import puertoPlata from "@/assets/puerto-plata.jpg";
 import laRomana from "@/assets/la-romana.jpg";
 import whaleSamana from "@/assets/whale-samana.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const regiones = [
   { id: "cibao", nombre: "Cibao Norte", icon: "⛰️" },
@@ -69,6 +70,12 @@ const laRomanaInfo = {
 };
 
 export default function DestinosRegiones() {
+  const pc = usePageContent("destinos-regiones");
+  const regiones = pc.data("regiones", __pcData.regiones);
+  const zonasTuristicas = pc.data("zonasTuristicas", __pcData.zonasTuristicas);
+  const destinosPremiun = pc.data("destinosPremiun", __pcData.destinosPremiun);
+  const destinosPatrimonio = pc.data("destinosPatrimonio", __pcData.destinosPatrimonio);
+  const laRomanaInfo = pc.data("laRomanaInfo", __pcData.laRomanaInfo);
   const [activeRegion, setActiveRegion] = useState("cibao");
   const [heroLoaded, setHeroLoaded] = useState(false);
 
@@ -81,8 +88,8 @@ export default function DestinosRegiones() {
         <section className="relative h-[65vh] min-h-[500px] flex flex-col justify-center items-center overflow-hidden">
           {!heroLoaded && <Skeleton className="absolute inset-0" />}
           <img
-            src={heroBeach}
-            alt="Destinos de República Dominicana"
+            src={pc.img("img.src.1", heroBeach)}
+            alt={pc.t("img.alt.1", "Destinos de República Dominicana")}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
               heroLoaded ? "opacity-100" : "opacity-0"
             }`}
@@ -91,16 +98,11 @@ export default function DestinosRegiones() {
           <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/50 to-black/85" />
 
           <div className="relative z-10 text-center px-4">
-            <Badge className="mb-6 bg-primary/20 text-primary border-primary/30">
-              ORGANIZACIÓN TERRITORIAL
-            </Badge>
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-4 italic">
-              Explora por<br />
-              <span className="text-gradient not-italic">Regiones</span>
+            <Badge className="mb-6 bg-primary/20 text-primary border-primary/30">{pc.tx("Badge.1", "ORGANIZACIÓN TERRITORIAL")}</Badge>
+            <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-4 italic">{pc.tx("h1.1", "Explora por")}<br />
+              <span className="text-gradient not-italic">{pc.tx("span.1", "Regiones")}</span>
             </h1>
-            <p className="text-lg text-white/90 max-w-xl mx-auto">
-              Cibao, Sur, Este y Santo Domingo: elige una región para ver sus destinos.
-            </p>
+            <p className="text-lg text-white/90 max-w-xl mx-auto">{pc.tx("p.1", "Cibao, Sur, Este y Santo Domingo: elige una región para ver sus destinos.")}</p>
           </div>
         </section>
 
@@ -128,7 +130,7 @@ export default function DestinosRegiones() {
                       {region.nombre}
                     </p>
                     {activeRegion === region.id && (
-                      <span className="text-xs text-primary uppercase tracking-wider">SELECCIONADO</span>
+                      <span className="text-xs text-primary uppercase tracking-wider">{pc.tx("span.2", "SELECCIONADO")}</span>
                     )}
                   </div>
                 </button>
@@ -143,20 +145,19 @@ export default function DestinosRegiones() {
             <div className="flex flex-col md:flex-row gap-8">
               {/* Filters */}
               <aside className="w-full md:w-48 space-y-4">
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">NIVEL ADMINISTRATIVO</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">{pc.tx("p.2", "NIVEL ADMINISTRATIVO")}</p>
                 <nav className="space-y-2">
-                  <button className="block text-sm text-muted-foreground hover:text-foreground">Provincias</button>
-                  <button className="block text-sm text-muted-foreground hover:text-foreground">Municipios</button>
-                  <button className="block text-sm text-primary font-medium">Zonas Turísticas</button>
+                  <button className="block text-sm text-muted-foreground hover:text-foreground">{pc.tx("button.1", "Provincias")}</button>
+                  <button className="block text-sm text-muted-foreground hover:text-foreground">{pc.tx("button.2", "Municipios")}</button>
+                  <button className="block text-sm text-primary font-medium">{pc.tx("button.3", "Zonas Turísticas")}</button>
                 </nav>
               </aside>
 
               {/* Content */}
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="font-display text-xl font-bold text-foreground">Zonas Turísticas Destacadas</h2>
-                  <Link to="/destinos" className="text-primary text-sm font-medium flex items-center gap-1 hover:underline">
-                    Ver mapa completo <ChevronRight className="h-4 w-4" />
+                  <h2 className="font-display text-xl font-bold text-foreground">{pc.tx("h2.1", "Zonas Turísticas Destacadas")}</h2>
+                  <Link to="/destinos" className="text-primary text-sm font-medium flex items-center gap-1 hover:underline">{pc.tx("Link.1", "Ver mapa completo")}{" "}<ChevronRight className="h-4 w-4" />
                   </Link>
                 </div>
 
@@ -173,9 +174,7 @@ export default function DestinosRegiones() {
                   ))}
                 </div>
 
-                <p className="text-muted-foreground italic mb-8">
-                  "La región norte, conocida como El Cibao, es el corazón fértil y montañoso del país, hogar de las cumbres más altas del Caribe y costas de ámbar."
-                </p>
+                <p className="text-muted-foreground italic mb-8">{pc.tx("p.3", "\"La región norte, conocida como El Cibao, es el corazón fértil y montañoso del país, hogar de las cumbres más altas del Caribe y costas de ámbar.\"")}</p>
               </div>
             </div>
           </div>
@@ -184,9 +183,7 @@ export default function DestinosRegiones() {
         {/* Experiencias Premium */}
         <section className="py-16">
           <div className="container mx-auto px-4">
-            <p className="text-center text-xs text-muted-foreground uppercase tracking-widest mb-12">
-              EXPERIENCIAS PREMIUM
-            </p>
+            <p className="text-center text-xs text-muted-foreground uppercase tracking-widest mb-12">{pc.tx("p.4", "EXPERIENCIAS PREMIUM")}</p>
 
             {/* Bento Grid */}
             <div className="grid md:grid-cols-3 gap-6 mb-12">
@@ -226,8 +223,7 @@ export default function DestinosRegiones() {
                 <h3 className="font-display text-3xl font-bold text-foreground mt-2 mb-4">{destinosPatrimonio.nombre}</h3>
                 <p className="text-muted-foreground italic mb-6">{destinosPatrimonio.descripcion}</p>
                 <Link to="/destino/santo-domingo">
-                  <Button variant="outline" className="gap-2">
-                    DESCUBRIR HISTORIA <ArrowRight className="h-4 w-4" />
+                  <Button variant="outline" className="gap-2">{pc.tx("Button.1", "DESCUBRIR HISTORIA")}{" "}<ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
               </div>
@@ -256,7 +252,7 @@ export default function DestinosRegiones() {
                 <h3 className="font-display text-3xl font-bold text-foreground mb-4">{laRomanaInfo.nombre}</h3>
                 <p className="text-muted-foreground mb-6">{laRomanaInfo.descripcion}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">REGIÓN ESTE</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">{pc.tx("span.3", "REGIÓN ESTE")}</span>
                   <ArrowRight className="h-5 w-5 text-primary" />
                 </div>
               </div>
@@ -264,8 +260,7 @@ export default function DestinosRegiones() {
 
             {/* Explorar más */}
             <div className="text-center mt-12">
-              <Button variant="outline" size="lg" className="gap-2">
-                EXPLORAR MÁS DESTINOS <ChevronRight className="h-5 w-5" />
+              <Button variant="outline" size="lg" className="gap-2">{pc.tx("Button.2", "EXPLORAR MÁS DESTINOS")}{" "}<ChevronRight className="h-5 w-5" />
               </Button>
             </div>
           </div>
@@ -274,15 +269,9 @@ export default function DestinosRegiones() {
         {/* CTA */}
         <section className="py-20 bg-gradient-to-b from-card/50 to-transparent">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4 italic">
-              ¿Tu alma viajera busca inspiración?
-            </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto mb-8">
-              Déjanos diseñar una ruta personalizada basada en tus deseos más profundos de exploración.
-            </p>
-            <Button size="lg" className="gap-2">
-              COMENZAR EXPERIENCIA
-            </Button>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4 italic">{pc.tx("h2.2", "¿Tu alma viajera busca inspiración?")}</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto mb-8">{pc.tx("p.5", "Déjanos diseñar una ruta personalizada basada en tus deseos más profundos de exploración.")}</p>
+            <Button size="lg" className="gap-2">{pc.tx("Button.3", "COMENZAR EXPERIENCIA")}</Button>
           </div>
         </section>
 
@@ -291,3 +280,6 @@ export default function DestinosRegiones() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { regiones, zonasTuristicas, destinosPremiun, destinosPatrimonio, laRomanaInfo };

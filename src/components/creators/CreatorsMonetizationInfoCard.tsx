@@ -2,12 +2,16 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DollarSign, Award, Sparkles, TrendingUp, ShieldCheck, Video } from "lucide-react";
+import puntaCanaImg from "@/assets/punta-cana.jpg";
+import divingImg from "@/assets/diving.jpg";
+import merengueImg from "@/assets/merengue-dance.jpg";
 
 export function CreatorsMonetizationInfoCard() {
   const layers = [
     {
       icon: DollarSign,
       title: "Comisión por conversión atribuida",
+      img: puntaCanaImg,
       color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
       description: "El servicio puede registrar una comisión cuando una venta se atribuye a un video. La tasa se configura por perfil; no hay una tasa universal garantizada.",
       when: "Cuando una compra elegible queda atribuida al contenido."
@@ -15,6 +19,7 @@ export function CreatorsMonetizationInfoCard() {
     {
       icon: Award,
       title: "Licencia de uso de contenido",
+      img: divingImg,
       color: "text-purple-500 bg-purple-500/10 border-purple-500/20",
       description: "Cada video puede incluir una tarifa de licencia propuesta. El uso comercial requiere acordar alcance, canales, plazo y pago antes de publicar la campaña.",
       when: "Sólo cuando exista una licencia acordada para una campaña."
@@ -22,6 +27,7 @@ export function CreatorsMonetizationInfoCard() {
     {
       icon: TrendingUp,
       title: "Fondo de creadores",
+      img: merengueImg,
       color: "text-blue-500 bg-blue-500/10 border-blue-500/20",
       description: "El sistema permite registrar pagos del fondo a creadores. No hay una fórmula pública de reparto ni un pago automático por vistas o interacciones.",
       when: "Cuando el equipo apruebe y registre una asignación."
@@ -48,17 +54,23 @@ export function CreatorsMonetizationInfoCard() {
           {layers.map((layer) => {
             const Icon = layer.icon;
             return (
-              <div key={layer.title} className="p-4 rounded-xl bg-card border border-border flex flex-col justify-between space-y-3">
-                <div className="space-y-2">
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center border ${layer.color}`}>
+              <div key={layer.title} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                <div className="relative h-32 overflow-hidden">
+                  <img src={layer.img} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className={`absolute bottom-3 left-3 flex h-10 w-10 items-center justify-center rounded-xl border bg-card/95 backdrop-blur ${layer.color}`}>
                     <Icon className="h-5 w-5" />
                   </div>
-                  <h4 className="font-semibold text-sm text-foreground">{layer.title}</h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{layer.description}</p>
                 </div>
-                <div className="pt-2 border-t border-border/50">
-                  <span className="text-[11px] font-semibold text-primary block">¿Cuándo aplica?</span>
-                  <span className="text-[11px] text-muted-foreground">{layer.when}</span>
+                <div className="flex flex-1 flex-col justify-between space-y-3 p-4">
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm text-foreground">{layer.title}</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{layer.description}</p>
+                  </div>
+                  <div className="pt-2 border-t border-border/50">
+                    <span className="text-2xs font-semibold text-primary block">¿Cuándo aplica?</span>
+                    <span className="text-2xs text-muted-foreground">{layer.when}</span>
+                  </div>
                 </div>
               </div>
             );

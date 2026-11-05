@@ -21,21 +21,21 @@ export function MobileStickyFooterAd({ className, showDemo = false }: MobileStic
         className
       )}
     >
-      <div className="relative flex justify-center py-2 px-3">
+      <div className="flex items-center gap-2 py-2 px-3">
         <Button
           variant="secondary"
           size="icon"
           aria-label="Cerrar anuncio flotante"
-          className="absolute -top-3 right-3 h-6 w-6 rounded-full bg-card border border-border shadow-md hover:bg-destructive hover:text-white transition-colors z-20"
+          className="order-last h-8 w-8 shrink-0 rounded-full bg-card border border-border shadow-md hover:bg-destructive hover:text-white transition-colors"
           onClick={() => setIsDismissed(true)}
         >
-          <X className="h-3 w-3" aria-hidden="true" />
+          <X className="h-4 w-4" aria-hidden="true" />
         </Button>
         <BannerAd 
           size="mobile-banner" 
           placement="sticky" 
           showDemo={showDemo}
-          className="!w-full !max-w-full"
+          className="!w-full !max-w-full min-w-0 flex-1"
         />
       </div>
     </div>

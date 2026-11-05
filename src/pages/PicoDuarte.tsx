@@ -13,7 +13,9 @@ import {
 } from "lucide-react";
 import { PanoramaAd } from "@/components/promo";
 import adventureImg from "@/assets/adventure.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
+import { activateOnKey } from "@/lib/a11y";
 interface RouteDetails {
   name: string;
   startPoint: string;
@@ -69,6 +71,8 @@ const routes: RouteDetails[] = [
 ];
 
 export default function PicoDuarte() {
+  const pc = usePageContent("pico-duarte");
+  const routes = pc.data("routes", __pcData.routes);
   const [selectedRoute, setSelectedRoute] = useState<number>(0);
   const [checklist, setChecklist] = useState([
     { id: 1, item: "Mochila técnica de montaña ergonómica (50L a 70L)", checked: false },
@@ -91,8 +95,8 @@ export default function PicoDuarte() {
   return (
     <PageTransition>
       <SEOHead
-        title="Guía Oficial de Ascenso al Pico Duarte (3,098 m) | Descubre RD"
-        description="Planifica tu expedición a la cumbre más alta de las Antillas. Rutas desde Jarabacoa, San José de las Matas y San Juan, clima, refugios, guías oficiales y lista de equipo."
+        title={pc.t("SEOHead.title.1", "Guía Oficial de Ascenso al Pico Duarte (3,098 m) | Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Planifica tu expedición a la cumbre más alta de las Antillas. Rutas desde Jarabacoa, San José de las Matas y San Juan, clima, refugios, guías oficiales y lista de equipo.")}
         keywords="pico duarte republica dominicana, ascenso pico duarte rutas, senderismo jarabacoa pico duarte, parque armando bermudez, guias la cienaga"
       />
       
@@ -104,8 +108,8 @@ export default function PicoDuarte() {
           <section className="relative min-h-[50vh] flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0">
               <img 
-                src={adventureImg} 
-                alt="Expedición al Pico Duarte y Cordillera Central Dominicana" 
+                src={pc.img("img.src.1", adventureImg)} 
+                alt={pc.t("img.alt.1", "Expedición al Pico Duarte y Cordillera Central Dominicana")} 
                 className="w-full h-full object-cover" 
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-black/60 to-black/35" />
@@ -113,14 +117,10 @@ export default function PicoDuarte() {
 
             <div className="container relative z-10 mx-auto px-4 py-16 text-center max-w-4xl text-white">
               <Badge className="mb-4 bg-emerald-500/30 text-emerald-200 border-emerald-400/40 backdrop-blur-md px-3 py-1 font-semibold">
-                <Mountain className="h-3.5 w-3.5 mr-1.5 text-emerald-300" /> El Techo del Caribe • 3,098 msnm
-              </Badge>
-              <h1 className="text-4xl md:text-6xl font-display font-extrabold tracking-tight mb-4 drop-shadow-md">
-                Expedición al <span className="text-emerald-400 italic">Pico Duarte</span>
+                <Mountain className="h-3.5 w-3.5 mr-1.5 text-emerald-300" />{" "}{pc.tx("Badge.1", "El Techo del Caribe • 3,098 msnm")}</Badge>
+              <h1 className="text-4xl md:text-6xl font-display font-extrabold tracking-tight mb-4 drop-shadow-md">{pc.tx("h1.1", "Expedición al")}{" "}<span className="text-emerald-400 italic">{pc.tx("span.1", "Pico Duarte")}</span>
               </h1>
-              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed drop-shadow">
-                Conquista la cumbre más alta de todas las islas del Caribe. Bosques nublados de pino criollo, heladas nocturnas y vistas infinitas sobre la Cordillera Central.
-              </p>
+              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed drop-shadow">{pc.tx("p.1", "Conquista la cumbre más alta de todas las islas del Caribe. Bosques nublados de pino criollo, heladas nocturnas y vistas infinitas sobre la Cordillera Central.")}</p>
             </div>
           </section>
 
@@ -133,9 +133,9 @@ export default function PicoDuarte() {
                     <Thermometer className="h-6 w-6" />
                   </div>
                   <div>
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Clima Nocturno</span>
+                    <span className="text-3xs text-muted-foreground uppercase font-bold block">{pc.tx("span.2", "Clima Nocturno")}</span>
                     <span className="font-extrabold text-sm text-foreground">0°C a 8°C</span>
-                    <span className="text-[10px] text-muted-foreground block">Heladas en invierno</span>
+                    <span className="text-3xs text-muted-foreground block">{pc.tx("span.3", "Heladas en invierno")}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -146,9 +146,9 @@ export default function PicoDuarte() {
                     <Mountain className="h-6 w-6" />
                   </div>
                   <div>
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Altitud Oficial</span>
-                    <span className="font-extrabold text-sm text-foreground">3,098 metros</span>
-                    <span className="text-[10px] text-muted-foreground block">Cumbre de las Antillas</span>
+                    <span className="text-3xs text-muted-foreground uppercase font-bold block">{pc.tx("span.4", "Altitud Oficial")}</span>
+                    <span className="font-extrabold text-sm text-foreground">{pc.tx("span.5", "3,098 metros")}</span>
+                    <span className="text-3xs text-muted-foreground block">{pc.tx("span.6", "Cumbre de las Antillas")}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -159,9 +159,9 @@ export default function PicoDuarte() {
                     <Calendar className="h-6 w-6" />
                   </div>
                   <div>
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Mejor Temporada</span>
-                    <span className="font-extrabold text-sm text-foreground">Noviembre - Abril</span>
-                    <span className="text-[10px] text-muted-foreground block">Menor probabilidad lluvia</span>
+                    <span className="text-3xs text-muted-foreground uppercase font-bold block">{pc.tx("span.7", "Mejor Temporada")}</span>
+                    <span className="font-extrabold text-sm text-foreground">{pc.tx("span.8", "Noviembre - Abril")}</span>
+                    <span className="text-3xs text-muted-foreground block">{pc.tx("span.9", "Menor probabilidad lluvia")}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -172,9 +172,9 @@ export default function PicoDuarte() {
                     <Trees className="h-6 w-6" />
                   </div>
                   <div>
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold block">Área Protegida</span>
-                    <span className="font-extrabold text-sm text-foreground">P.N. Bermúdez & Ramírez</span>
-                    <span className="text-[10px] text-muted-foreground block">Permiso oficial obligatorio</span>
+                    <span className="text-3xs text-muted-foreground uppercase font-bold block">{pc.tx("span.10", "Área Protegida")}</span>
+                    <span className="font-extrabold text-sm text-foreground">{pc.tx("span.11", "P.N. Bermúdez & Ramírez")}</span>
+                    <span className="text-3xs text-muted-foreground block">{pc.tx("span.12", "Permiso oficial obligatorio")}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -189,13 +189,11 @@ export default function PicoDuarte() {
               <div className="lg:col-span-7 space-y-6">
                 <Card className="border border-border/80 shadow-sm">
                   <CardHeader className="bg-muted/15 border-b pb-4">
-                    <CardTitle className="text-xl font-bold flex items-center gap-2">
+                    <CardTitle as="h2" className="text-xl font-bold flex items-center gap-2">
                       <Compass className="h-5 w-5 text-primary" />
-                      <span>Rutas Oficiales de Ascenso</span>
+                      <span>{pc.tx("span.13", "Rutas Oficiales de Ascenso")}</span>
                     </CardTitle>
-                    <CardDescription>
-                      Selecciona una de las 4 rutas autorizadas por el Ministerio de Medio Ambiente.
-                    </CardDescription>
+                    <CardDescription>{pc.tx("CardDescription.1", "Selecciona una de las 4 rutas autorizadas por el Ministerio de Medio Ambiente.")}</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6 space-y-6">
                     <div className="flex gap-2 overflow-x-auto pb-2 border-b border-border/60">
@@ -214,7 +212,7 @@ export default function PicoDuarte() {
 
                     <div className="space-y-4">
                       <div className="flex flex-wrap gap-2 items-center justify-between">
-                        <h3 className="font-bold text-lg text-foreground">{routes[selectedRoute].name}</h3>
+                        <h2 className="h3 font-bold text-lg text-foreground">{routes[selectedRoute].name}</h2>
                         <Badge variant="destructive" className="text-xs font-bold">{routes[selectedRoute].difficulty}</Badge>
                       </div>
 
@@ -224,19 +222,19 @@ export default function PicoDuarte() {
 
                       <div className="grid grid-cols-3 gap-3 text-xs bg-muted/30 p-4 rounded-xl border border-border/50">
                         <div>
-                          <span className="text-muted-foreground text-[10px] font-bold uppercase block">Punto de Partida:</span>
+                          <span className="text-muted-foreground text-3xs font-bold uppercase block">{pc.tx("span.14", "Punto de Partida:")}</span>
                           <span className="font-semibold text-foreground flex items-center gap-1 mt-0.5">
                             <MapPin className="h-3 w-3 text-primary shrink-0" /> {routes[selectedRoute].startPoint}
                           </span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground text-[10px] font-bold uppercase block">Distancia & Desnivel:</span>
+                          <span className="text-muted-foreground text-3xs font-bold uppercase block">{pc.tx("span.15", "Distancia & Desnivel:")}</span>
                           <span className="font-semibold text-foreground block mt-0.5">
                             {routes[selectedRoute].distance} ({routes[selectedRoute].elevationGain})
                           </span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground text-[10px] font-bold uppercase block">Tiempo Estimado:</span>
+                          <span className="text-muted-foreground text-3xs font-bold uppercase block">{pc.tx("span.16", "Tiempo Estimado:")}</span>
                           <span className="font-semibold text-foreground block mt-0.5">
                             {routes[selectedRoute].duration}
                           </span>
@@ -245,12 +243,10 @@ export default function PicoDuarte() {
 
                       {/* Campamentos en ruta */}
                       <div>
-                        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider block mb-2">
-                          Campamentos y Refugios en el Trayecto:
-                        </span>
+                        <span className="text-2xs font-bold text-muted-foreground uppercase tracking-wider block mb-2">{pc.tx("span.17", "Campamentos y Refugios en el Trayecto:")}</span>
                         <div className="flex flex-wrap gap-1.5">
                           {routes[selectedRoute].camps.map((camp, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-[11px] bg-background border">
+                            <Badge key={idx} variant="secondary" className="text-2xs bg-background border">
                               ⛺ {camp}
                             </Badge>
                           ))}
@@ -261,55 +257,52 @@ export default function PicoDuarte() {
                       <div className="p-4 bg-muted/50 rounded-2xl border border-border/80 space-y-3">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center gap-1.5">
-                            <Mountain className="h-4 w-4 text-emerald-500" /> Perfil de Relieve y Altimetría
-                          </span>
-                          <span className="text-[10px] text-muted-foreground font-mono">0 a 3,098 msnm</span>
+                            <Mountain className="h-4 w-4 text-emerald-500" />{" "}{pc.tx("span.18", "Perfil de Relieve y Altimetría")}</span>
+                          <span className="text-3xs text-muted-foreground font-mono">{pc.tx("span.19", "0 a 3,098 msnm")}</span>
                         </div>
 
-                        <div className="relative h-28 bg-gradient-to-t from-emerald-950/20 via-primary/10 to-transparent rounded-xl border border-border/40 p-3 flex items-end justify-between text-[10px]">
+                        <div className="relative h-28 bg-gradient-to-t from-emerald-950/20 via-primary/10 to-transparent rounded-xl border border-border/40 p-3 flex items-end justify-between text-3xs">
                           {/* Tramo 1 */}
                           <div className="flex flex-col items-center gap-1">
                             <span className="font-bold text-foreground">1,110m</span>
-                            <div className="w-8 h-8 bg-emerald-600/80 rounded-t-md" title="Inicio: La Ciénaga" />
-                            <span className="text-muted-foreground text-[9px] truncate max-w-[50px]">Partida</span>
+                            <div className="w-8 h-8 bg-emerald-600/80 rounded-t-md" title={pc.t("div.title.1", "Inicio: La Ciénaga")} />
+                            <span className="text-muted-foreground text-3xs truncate max-w-[50px]">{pc.tx("span.20", "Partida")}</span>
                           </div>
 
                           {/* Tramo 2 */}
                           <div className="flex flex-col items-center gap-1">
                             <span className="font-bold text-foreground">1,500m</span>
-                            <div className="w-8 h-12 bg-emerald-600 rounded-t-md" title="Refugio La Cotorra" />
-                            <span className="text-muted-foreground text-[9px] truncate max-w-[50px]">Cotorra</span>
+                            <div className="w-8 h-12 bg-emerald-600 rounded-t-md" title={pc.t("div.title.2", "Refugio La Cotorra")} />
+                            <span className="text-muted-foreground text-3xs truncate max-w-[50px]">{pc.tx("span.21", "Cotorra")}</span>
                           </div>
 
                           {/* Tramo 3 */}
                           <div className="flex flex-col items-center gap-1">
                             <span className="font-bold text-foreground">1,980m</span>
-                            <div className="w-8 h-16 bg-primary/70 rounded-t-md" title="El Cruce / Laguna" />
-                            <span className="text-muted-foreground text-[9px] truncate max-w-[50px]">Laguna</span>
+                            <div className="w-8 h-16 bg-primary/70 rounded-t-md" title={pc.t("div.title.3", "El Cruce / Laguna")} />
+                            <span className="text-muted-foreground text-3xs truncate max-w-[50px]">{pc.tx("span.22", "Laguna")}</span>
                           </div>
 
                           {/* Tramo 4 */}
                           <div className="flex flex-col items-center gap-1">
                             <span className="font-bold text-amber-500">2,450m</span>
-                            <div className="w-8 h-20 bg-amber-500/80 rounded-t-md relative" title="Campamento Base Compartición">
-                              <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[9px]">⛺</span>
+                            <div className="w-8 h-20 bg-amber-500/80 rounded-t-md relative" title={pc.t("div.title.4", "Campamento Base Compartición")}>
+                              <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-3xs">⛺</span>
                             </div>
-                            <span className="text-muted-foreground text-[9px] truncate max-w-[50px]">Base</span>
+                            <span className="text-muted-foreground text-3xs truncate max-w-[50px]">{pc.tx("span.23", "Base")}</span>
                           </div>
 
                           {/* Cumbre */}
                           <div className="flex flex-col items-center gap-1">
                             <span className="font-black text-primary">3,098m</span>
-                            <div className="w-8 h-24 bg-primary rounded-t-md relative shadow-md shadow-primary/30" title="Busto de Duarte (Cumbre)">
-                              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-[10px]">🚩</span>
+                            <div className="w-8 h-24 bg-primary rounded-t-md relative shadow-md shadow-primary/30" title={pc.t("div.title.5", "Busto de Duarte (Cumbre)")}>
+                              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-3xs">🚩</span>
                             </div>
-                            <span className="text-primary font-bold text-[9px]">Cumbre</span>
+                            <span className="text-primary font-bold text-3xs">{pc.tx("span.24", "Cumbre")}</span>
                           </div>
                         </div>
 
-                        <p className="text-[11px] text-muted-foreground italic">
-                          El ascenso acumulado presenta un gradiente sostenido. El refugio de Compartición cuenta con letrinas secas y fuente de agua natural filtrable.
-                        </p>
+                        <p className="text-2xs text-muted-foreground italic">{pc.tx("p.2", "El ascenso acumulado presenta un gradiente sostenido. El refugio de Compartición cuenta con letrinas secas y fuente de agua natural filtrable.")}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -320,17 +313,15 @@ export default function PicoDuarte() {
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base font-bold flex items-center gap-2">
                       <PhoneCall className="h-4 w-4 text-primary" />
-                      <span>Guías y Muleros Oficiales Obligatorios</span>
+                      <span>{pc.tx("span.25", "Guías y Muleros Oficiales Obligatorios")}</span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="text-xs space-y-3 text-muted-foreground leading-relaxed">
-                    <p>
-                      Por regulación del Parque Nacional, <strong>está prohibido ascender sin un guía local certificado</strong> y al menos un mulo de soporte por grupo para carga y emergencias. Esto garantiza la preservación de los senderos y genera sustento directo a las familias de Manabao y La Ciénaga.
-                    </p>
+                    <p>{pc.tx("p.3", "Por regulación del Parque Nacional,")}{" "}<strong>{pc.tx("strong.1", "está prohibido ascender sin un guía local certificado")}</strong>{" "}{pc.tx("p.4", "y al menos un mulo de soporte por grupo para carga y emergencias. Esto garantiza la preservación de los senderos y genera sustento directo a las familias de Manabao y La Ciénaga.")}</p>
                     <div className="p-4 bg-muted/40 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border border-border/60">
                       <div>
-                        <span className="font-bold text-foreground block text-sm">Centro de Visitantes La Ciénaga</span>
-                        <span className="text-[11px] text-muted-foreground">Registro de expedición, guías y alquiler de mulos</span>
+                        <span className="font-bold text-foreground block text-sm">{pc.tx("span.26", "Centro de Visitantes La Ciénaga")}</span>
+                        <span className="text-2xs text-muted-foreground">{pc.tx("span.27", "Registro de expedición, guías y alquiler de mulos")}</span>
                       </div>
                       <a href="tel:+18095746320" className="inline-flex items-center gap-1.5 font-bold text-primary text-xs bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors">
                         <PhoneCall className="h-3.5 w-3.5" /> +1 (809) 574-6320
@@ -349,19 +340,16 @@ export default function PicoDuarte() {
                     <div className="flex justify-between items-center">
                       <CardTitle className="text-base font-bold flex items-center gap-2">
                         <CheckSquare className="h-4 w-4 text-primary" />
-                        <span>Mochila y Equipo Esencial</span>
+                        <span>{pc.tx("span.28", "Mochila y Equipo Esencial")}</span>
                       </CardTitle>
                       <Badge variant="secondary" className="font-mono text-xs">
-                        {checkedCount}/{checklist.length} Listo
-                      </Badge>
+                        {checkedCount}/{checklist.length}{" "}{pc.tx("Badge.2", "Listo")}</Badge>
                     </div>
-                    <CardDescription className="text-xs">
-                      Haz clic en cada artículo según prepares tu mochila.
-                    </CardDescription>
+                    <CardDescription className="text-xs">{pc.tx("CardDescription.2", "Haz clic en cada artículo según prepares tu mochila.")}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     {checklist.map((item) => (
-                      <div 
+                      <div role="button" tabIndex={0} onKeyDown={activateOnKey} 
                         key={item.id} 
                         onClick={() => toggleCheck(item.id)}
                         className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all border text-xs ${
@@ -386,12 +374,9 @@ export default function PicoDuarte() {
 
                 {/* Preparación Física */}
                 <div className="p-5 bg-amber-500/10 border border-amber-500/20 rounded-2xl space-y-2 text-xs">
-                  <h4 className="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5 text-sm">
-                    <HeartPulse className="h-4 w-4" /> Preparación Física Recomendada
-                  </h4>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Aunque no se requiere técnica de escalada en roca, la expedición demanda entre <strong>6 y 9 horas diarias de caminata</strong> con pendientes pronunciadas. Se aconseja entrenar cardio y fortalecimiento de piernas al menos 4 a 6 semanas antes de la fecha.
-                  </p>
+                  <h3 className="h4 font-bold text-amber-700 dark:text-amber-400 flex items-center gap-1.5 text-sm">
+                    <HeartPulse className="h-4 w-4" />{" "}{pc.tx("h4.1", "Preparación Física Recomendada")}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{pc.tx("p.5", "Aunque no se requiere técnica de escalada en roca, la expedición demanda entre")}{" "}<strong>{pc.tx("strong.2", "6 y 9 horas diarias de caminata")}</strong>{" "}{pc.tx("p.6", "con pendientes pronunciadas. Se aconseja entrenar cardio y fortalecimiento de piernas al menos 4 a 6 semanas antes de la fecha.")}</p>
                 </div>
               </div>
 
@@ -409,3 +394,6 @@ export default function PicoDuarte() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { routes };

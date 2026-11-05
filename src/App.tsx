@@ -38,6 +38,11 @@ const ChatbotTuristico = lazy(() => import("@/components/ChatbotTuristico").then
 const GamificationToastOverlay = lazy(() => import("@/components/gamification/GamificationToast").then(m => ({ default: m.GamificationToastOverlay })));
 const ExitIntentModal = lazy(() => import("@/components/promo/ExitIntentModal").then(m => ({ default: m.ExitIntentModal })));
 const CookieConsentBanner = lazy(() => import("@/components/privacy/CookieConsentBanner").then(m => ({ default: m.CookieConsentBanner })));
+/**
+ * Aviso flotante «Fulano reservó…». Apagado: hoy muestra reservas de ejemplo, no reales. El componente se conserva
+ * para encenderlo cuando lea reservas confirmadas del backend (con consentimiento del cliente y datos anonimizados).
+ */
+const SOCIAL_PROOF_ENABLED = false;
 const SocialProofNotifications = lazy(() => import("@/components/social/SocialProofNotifications").then(m => ({ default: m.SocialProofNotifications })));
 
 // Loading fallback component
@@ -60,7 +65,7 @@ function PublicSiteWidgets() {
       <DeferredWidget><ChatbotTuristico /></DeferredWidget>
       <DeferredWidget><GamificationToastOverlay /></DeferredWidget>
       <DeferredWidget><ExitIntentModal /></DeferredWidget>
-      <DeferredWidget delayMs={3000}><SocialProofNotifications /></DeferredWidget>
+      {SOCIAL_PROOF_ENABLED && <DeferredWidget delayMs={3000}><SocialProofNotifications /></DeferredWidget>}
     </>
   );
 }

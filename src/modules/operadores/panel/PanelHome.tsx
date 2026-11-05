@@ -86,7 +86,7 @@ export default function PanelHome() {
               <div className="space-y-1">
                 <div className="font-semibold flex items-center gap-2 text-foreground group-hover:text-primary transition-colors">
                   Retos y Premios Patrocinados
-                  <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500/30">Gamificación</Badge>
+                  <Badge variant="outline" className="text-3xs text-amber-600 border-amber-500/30">Gamificación</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Crea retos interactivos o añade premios al Club de Recompensas para que los turistas ganen puntos y visiten tu negocio.
@@ -105,7 +105,7 @@ export default function PanelHome() {
               <div className="space-y-1">
                 <div className="font-semibold flex items-center gap-2 text-foreground group-hover:text-primary transition-colors">
                   Estancias con Creadores
-                  <Badge variant="outline" className="text-[10px] text-purple-600 border-purple-500/30">Influencers UGC</Badge>
+                  <Badge variant="outline" className="text-3xs text-purple-600 border-purple-500/30">Influencers UGC</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Publica estancias para creadores de viajes o invita perfiles verificados directamente a cambio de Reels y cobertura.

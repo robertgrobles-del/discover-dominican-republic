@@ -257,7 +257,7 @@ export function ExplorerGuilds() {
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="font-bold text-foreground text-base">{guild.name}</h3>
-                        <Badge variant="secondary" className="font-mono text-[10px]">
+                        <Badge variant="secondary" className="font-mono text-3xs">
                           [{guild.tag}]
                         </Badge>
                       </div>
@@ -282,9 +282,9 @@ export function ExplorerGuilds() {
                     </span>
                     <span className="text-primary font-bold">+{guild.activeQuest.rewardXp} XP</span>
                   </div>
-                  <p className="text-[11px] text-muted-foreground">{guild.activeQuest.title}</p>
+                  <p className="text-2xs text-muted-foreground">{guild.activeQuest.title}</p>
                   <div className="space-y-1">
-                    <div className="flex justify-between text-[10px] text-muted-foreground">
+                    <div className="flex justify-between text-3xs text-muted-foreground">
                       <span>Progreso del Gremio</span>
                       <span>{guild.activeQuest.progress} / {guild.activeQuest.target}</span>
                     </div>

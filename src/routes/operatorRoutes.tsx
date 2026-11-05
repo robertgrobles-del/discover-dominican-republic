@@ -9,7 +9,6 @@ const OperadorStorefront = lazy(() => import("@/modules/operadores/pages/Operado
 const OperadorServicio = lazy(() => import("@/modules/operadores/pages/OperadorServicio"));
 const OperatorPanel = lazy(() => import("@/modules/operadores/panel/OperatorPanel"));
 const PricingPlan = lazy(() => import("@/pages/PricingPlan"));
-const PartnerLogin = lazy(() => import("@/pages/PartnerLogin"));
 const DirectorioAgencias = lazy(() => import("@/pages/DirectorioAgencias"));
 const AgenciaDetalle = lazy(() => import("@/pages/AgenciaDetalle"));
 const Inversion = lazy(() => import("@/pages/Inversion"));
@@ -17,10 +16,13 @@ const ProyectosInversion = lazy(() => import("@/pages/ProyectosInversion"));
 const BienesRaices = lazy(() => import("@/pages/BienesRaices"));
 const CalculadoraCONFOTUR = lazy(() => import("@/pages/CalculadoraCONFOTUR"));
 const CalculadoraTributaria = lazy(() => import("@/pages/CalculadoraTributaria"));
-const MICEBodas = lazy(() => import("@/pages/MICEBodas"));
+const Bodas = lazy(() => import("@/pages/Bodas"));
+const MICE = lazy(() => import("@/pages/MICE"));
 const EventosGrupo = lazy(() => import("@/pages/EventosGrupo"));
 const ProgramaCreadores = lazy(() => import("@/pages/ProgramaCreadores"));
 const EstanciasCreadores = lazy(() => import("@/pages/EstanciasCreadores"));
+const CreadorRegistro = lazy(() => import("@/pages/CreadorRegistro"));
+const CreadorPanel = lazy(() => import("@/pages/CreadorPanel"));
 const ContratarInfluencers = lazy(() => import("@/pages/ContratarInfluencers"));
 const AutorInvitado = lazy(() => import("@/pages/AutorInvitado"));
 const SistemaAfiliados = lazy(() => import("@/pages/SistemaAfiliados"));
@@ -37,7 +39,7 @@ export const operatorRoutes = (
     <Route path="/operadores/panel/*" element={<OperatorPanel />} />
     <Route path="/operador/:slug" element={<OperadorStorefront />} />
     <Route path="/operador/:slug/:listing" element={<OperadorServicio />} />
-    <Route path="/partner/login" element={<PartnerLogin />} />
+    <Route path="/partner/login" element={<Navigate to="/login?returnTo=/operadores/panel" replace />} />
     <Route path="/partner/dashboard" element={<Navigate to="/operadores/panel" replace />} />
     <Route path="/panel-empresa" element={<Navigate to="/operadores/panel" replace />} />
     <Route path="/panel-negocio" element={<Navigate to="/operadores/panel" replace />} />
@@ -61,15 +63,18 @@ export const operatorRoutes = (
     <Route path="/calculadora-tributaria" element={<CalculadoraTributaria />} />
 
     {/* MICE, Congresos y Bodas */}
-    <Route path="/mice-bodas" element={<MICEBodas />} />
-    <Route path="/bodas" element={<MICEBodas />} />
-    <Route path="/mice" element={<MICEBodas />} />
+    <Route path="/mice-bodas" element={<Navigate to="/mice" replace />} />
+    <Route path="/bodas" element={<Bodas />} />
+    <Route path="/mice" element={<MICE />} />
+    <Route path="/congresos-convenciones" element={<MICE />} />
     <Route path="/eventos-grupo" element={<EventosGrupo />} />
 
     {/* Creadores de Contenido y Afiliados */}
     <Route path="/creadores" element={<ProgramaCreadores />} />
-    <Route path="/panel-creador" element={<Navigate to="/creadores" replace />} />
-    <Route path="/panel-embajador" element={<Navigate to="/creadores" replace />} />
+    <Route path="/creadores/registro" element={<CreadorRegistro />} />
+    <Route path="/creadores/panel" element={<CreadorPanel />} />
+    <Route path="/panel-creador" element={<Navigate to="/creadores/panel" replace />} />
+    <Route path="/panel-embajador" element={<Navigate to="/creadores/panel" replace />} />
     <Route path="/creadores/estancias" element={<EstanciasCreadores />} />
     <Route path="/estancias-creadores" element={<EstanciasCreadores />} />
     <Route path="/contratar-influencers" element={<ContratarInfluencers />} />

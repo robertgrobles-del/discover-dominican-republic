@@ -173,6 +173,7 @@ describe("motor de reservas de operadores", () => {
     const paid = json(await call("POST", `/org/bookings/${mb.id}/payments`, { token: owner.token, payload: { amount: 200, method: "cash" } })).data;
     expect(paid.payment_status).toBe("paid");
     expect((await call("POST", `/org/bookings/${mb.id}/payments`, { token: owner.token, payload: { amount: 1 } })).statusCode).toBe(422);
+    await pool.query("UPDATE bookings SET date = current_date - 1, check_out = CASE WHEN check_out IS NULL THEN NULL ELSE current_date END WHERE id = $1", [mb.id]); // ya pasó la fecha del servicio
     expect(json(await call("PUT", `/org/bookings/${mb.id}/status`, { token: owner.token, payload: { status: "completed" } })).data.status).toBe("completed");
 
     const income = json(await call("GET", "/org/income", { token: owner.token })).data;

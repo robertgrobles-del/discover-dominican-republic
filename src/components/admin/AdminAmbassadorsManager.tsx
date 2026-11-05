@@ -18,10 +18,10 @@ import { Award, DollarSign, CheckCircle2, XCircle, Search, RefreshCw, AlertCircl
 import { toast } from "sonner";
 
 const STATUS_CONFIG: Record<AmbassadorStatus, { label: string; badge: string }> = {
-  pending: { label: "Pendiente", badge: "bg-amber-500/10 text-amber-700 border-amber-200" },
-  approved: { label: "Aprobado", badge: "bg-emerald-500/10 text-emerald-700 border-emerald-200" },
-  rejected: { label: "Rechazado", badge: "bg-red-500/10 text-red-700 border-red-200" },
-  suspended: { label: "Suspendido", badge: "bg-slate-500/10 text-slate-700 border-slate-200" },
+  pending: { label: "Pendiente", badge: "bg-amber-500/10 text-amber-500 border-amber-200" },
+  approved: { label: "Aprobado", badge: "bg-emerald-500/10 text-emerald-500 border-emerald-200" },
+  rejected: { label: "Rechazado", badge: "bg-red-500/10 text-red-500 border-red-200" },
+  suspended: { label: "Suspendido", badge: "bg-muted text-foreground border-border" },
 };
 
 export default function AdminAmbassadorsManager() {
@@ -84,11 +84,11 @@ export default function AdminAmbassadorsManager() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+          <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <Award className="w-6 h-6 text-purple-500" />
             Programa de Embajadores y Afiliados
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             Aprobación de creadores y promotores, comisiones por referidos y liquidación de pagos.
           </p>
         </div>
@@ -127,7 +127,7 @@ export default function AdminAmbassadorsManager() {
           {/* Filters */}
           <div className="flex flex-wrap gap-3 items-center bg-card border rounded-xl p-3">
             <div className="relative flex-1 min-w-[200px]">
-              <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
               <Input
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
@@ -153,7 +153,7 @@ export default function AdminAmbassadorsManager() {
           <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="bg-slate-50 dark:bg-slate-900 border-b text-slate-500 font-medium">
+                <thead className="bg-muted/50 border-b text-muted-foreground font-medium">
                   <tr>
                     <th className="p-3">Embajador</th>
                     <th className="p-3">Código</th>
@@ -165,15 +165,15 @@ export default function AdminAmbassadorsManager() {
                 </thead>
                 <tbody className="divide-y">
                   {loadingAmbassadors ? (
-                    <tr><td colSpan={6} className="text-center py-10 text-slate-400">Cargando embajadores...</td></tr>
+                    <tr><td colSpan={6} className="text-center py-10 text-muted-foreground">Cargando embajadores...</td></tr>
                   ) : ambassadors.length === 0 ? (
-                    <tr><td colSpan={6} className="text-center py-10 text-slate-400">No hay embajadores registrados.</td></tr>
+                    <tr><td colSpan={6} className="text-center py-10 text-muted-foreground">No hay embajadores registrados.</td></tr>
                   ) : (
                     ambassadors.map((a) => (
-                      <tr key={a.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                      <tr key={a.id} className="hover:bg-muted/30 dark:hover:bg-muted/50">
                         <td className="p-3">
-                          <div className="font-semibold text-slate-900 dark:text-white">{a.full_name}</div>
-                          <div className="text-xs text-slate-500">{a.email}</div>
+                          <div className="font-semibold text-foreground">{a.display_name || a.email}</div>
+                          <div className="text-xs text-muted-foreground">{a.email}</div>
                         </td>
                         <td className="p-3 font-mono font-bold text-xs text-purple-600">{a.referral_code}</td>
                         <td className="p-3">
@@ -181,8 +181,8 @@ export default function AdminAmbassadorsManager() {
                             {STATUS_CONFIG[a.status]?.label || a.status}
                           </Badge>
                         </td>
-                        <td className="p-3 font-semibold text-emerald-600">RD$ {a.total_earnings.toLocaleString()}</td>
-                        <td className="p-3 font-semibold text-amber-600">RD$ {a.pending_balance.toLocaleString()}</td>
+                        <td className="p-3 font-semibold text-emerald-600">RD$ {Number(a.total_earned ?? 0).toLocaleString()}</td>
+                        <td className="p-3 font-semibold text-amber-600">RD$ {Number(a.pending_payout ?? 0).toLocaleString()}</td>
                         <td className="p-3 text-right">
                           <Button size="sm" variant="outline" onClick={() => setSelectedAmbassador(a)}>
                             Administrar
@@ -201,7 +201,7 @@ export default function AdminAmbassadorsManager() {
         <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 dark:bg-slate-900 border-b text-slate-500 font-medium">
+              <thead className="bg-muted/50 border-b text-muted-foreground font-medium">
                 <tr>
                   <th className="p-3">Embajador</th>
                   <th className="p-3">Monto</th>
@@ -213,21 +213,21 @@ export default function AdminAmbassadorsManager() {
               </thead>
               <tbody className="divide-y">
                 {loadingPayouts ? (
-                  <tr><td colSpan={6} className="text-center py-10 text-slate-400">Cargando liquidaciones...</td></tr>
+                  <tr><td colSpan={6} className="text-center py-10 text-muted-foreground">Cargando liquidaciones...</td></tr>
                 ) : payouts.length === 0 ? (
-                  <tr><td colSpan={6} className="text-center py-10 text-slate-400">No hay pagos pendientes.</td></tr>
+                  <tr><td colSpan={6} className="text-center py-10 text-muted-foreground">No hay pagos pendientes.</td></tr>
                 ) : (
                   payouts.map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
-                      <td className="p-3 font-medium">{p.ambassador_name || p.ambassador_id}</td>
+                    <tr key={p.id} className="hover:bg-muted/30 dark:hover:bg-muted/50">
+                      <td className="p-3 font-medium">{p.email}</td>
                       <td className="p-3 font-bold text-emerald-600">RD$ {p.amount.toLocaleString()}</td>
                       <td className="p-3">
-                        <Badge variant="outline" className={p.status === "paid" ? "bg-emerald-500/10 text-emerald-700" : p.status === "failed" ? "bg-red-500/10 text-red-700" : "bg-amber-500/10 text-amber-700"}>
+                        <Badge variant="outline" className={p.status === "paid" ? "bg-emerald-500/10 text-emerald-500" : p.status === "failed" ? "bg-red-500/10 text-red-500" : "bg-amber-500/10 text-amber-500"}>
                           {p.status === "paid" ? "Pagado" : p.status === "failed" ? "Fallido" : "Pendiente"}
                         </Badge>
                       </td>
                       <td className="p-3 font-mono text-xs">{p.reference || "—"}</td>
-                      <td className="p-3 text-xs text-slate-500">{new Date(p.created_at).toLocaleDateString()}</td>
+                      <td className="p-3 text-xs text-muted-foreground">{new Date(p.created_at).toLocaleDateString()}</td>
                       <td className="p-3 text-right">
                         {p.status === "pending" && (
                           <Button size="sm" className="bg-emerald-600 text-white" onClick={() => setSelectedPayout(p)}>
@@ -252,14 +252,14 @@ export default function AdminAmbassadorsManager() {
           </DialogHeader>
           {selectedAmbassador && (
             <div className="space-y-4 text-sm">
-              <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                <div className="font-bold text-slate-900 dark:text-white">{selectedAmbassador.full_name}</div>
-                <div className="text-xs text-slate-500">{selectedAmbassador.email}</div>
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <div className="font-bold text-foreground">{selectedAmbassador.display_name || selectedAmbassador.email}</div>
+                <div className="text-xs text-muted-foreground">{selectedAmbassador.email}</div>
                 <div className="text-xs font-mono text-purple-600 mt-1">Código: {selectedAmbassador.referral_code}</div>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Estado de la cuenta</label>
+                <label htmlFor="ambassador-status" className="text-xs font-semibold text-foreground">Estado de la cuenta</label>
                 <Select
                   defaultValue={selectedAmbassador.status}
                   onValueChange={(val: any) =>
@@ -269,7 +269,7 @@ export default function AdminAmbassadorsManager() {
                     })
                   }
                 >
-                  <SelectTrigger className="mt-1">
+                  <SelectTrigger id="ambassador-status" className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -297,12 +297,12 @@ export default function AdminAmbassadorsManager() {
           </DialogHeader>
           {selectedPayout && (
             <div className="space-y-3 py-2 text-sm">
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-muted-foreground">
                 Vas a marcar como enviado el pago por <strong>RD$ {selectedPayout.amount.toLocaleString()}</strong>.
               </p>
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Número de Referencia Bancaria / Comprobante</label>
-                <Input
+                <label htmlFor="admin-ambassadors-manager-f1" className="text-xs font-semibold text-foreground">Número de Referencia Bancaria / Comprobante</label>
+                <Input id="admin-ambassadors-manager-f1"
                   value={payoutRef}
                   onChange={(e) => setPayoutRef(e.target.value)}
                   placeholder="ej. ACH-98234123"

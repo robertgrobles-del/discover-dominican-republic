@@ -26,7 +26,7 @@ export default function AdminSurveysManager() {
   const [formTitle, setFormTitle] = useState("");
   const [formKind, setFormKind] = useState<"general" | "post_trip" | "nps">("general");
   const [questions, setQuestions] = useState<SurveyQuestion[]>([
-    { id: "q1", text: "¿Cómo calificarías tu experiencia general en República Dominicana?", type: "nps" },
+    { id: "q1", label: "¿Cómo calificarías tu experiencia general en República Dominicana?", type: "nps" },
   ]);
 
   const { data: surveys = [], isLoading, refetch } = useQuery({
@@ -48,7 +48,7 @@ export default function AdminSurveysManager() {
       queryClient.invalidateQueries({ queryKey: ["admin-surveys"] });
       setFormSlug("");
       setFormTitle("");
-      setQuestions([{ id: "q1", text: "¿Cómo calificarías tu experiencia general?", type: "nps" }]);
+      setQuestions([{ id: "q1", label: "¿Cómo calificarías tu experiencia general?", type: "nps" }]);
     },
     onError: (err: any) => toast.error(`Error: ${err.message}`),
   });
@@ -65,7 +65,7 @@ export default function AdminSurveysManager() {
 
   const addQuestion = () => {
     const nextId = `q${questions.length + 1}`;
-    setQuestions([...questions, { id: nextId, text: "", type: "rating" }]);
+    setQuestions([...questions, { id: nextId, label: "", type: "rating" }]);
   };
 
   const removeQuestion = (index: number) => {
@@ -81,11 +81,11 @@ export default function AdminSurveysManager() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+          <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <ClipboardList className="w-6 h-6 text-indigo-500" />
             Encuestas y Métricas de Satisfacción
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             Diseña cuestionarios para viajeros, calcula el NPS oficial y visualiza respuestas agregadas.
           </p>
         </div>
@@ -93,7 +93,7 @@ export default function AdminSurveysManager() {
           <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
             <RefreshCw className="w-4 h-4" /> Refrescar
           </Button>
-          <Button size="sm" onClick={() => setIsCreateOpen(true)} className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white">
+          <Button size="sm" onClick={() => setIsCreateOpen(true)} className="gap-2">
             <Plus className="w-4 h-4" /> Nueva Encuesta
           </Button>
         </div>
@@ -102,9 +102,9 @@ export default function AdminSurveysManager() {
       {/* Surveys List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {isLoading ? (
-          <div className="col-span-full text-center py-12 text-slate-400">Cargando encuestas...</div>
+          <div className="col-span-full text-center py-12 text-muted-foreground">Cargando encuestas...</div>
         ) : surveys.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-slate-400 bg-card border rounded-xl">
+          <div className="col-span-full text-center py-12 text-muted-foreground bg-card border rounded-xl">
             No hay encuestas configuradas.
           </div>
         ) : (
@@ -112,14 +112,14 @@ export default function AdminSurveysManager() {
             <div key={s.slug} className="bg-card border rounded-xl p-4 shadow-sm flex flex-col justify-between space-y-3">
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <Badge variant="outline" className={s.is_active ? "bg-emerald-500/10 text-emerald-700 border-emerald-200" : "bg-slate-500/10 text-slate-600"}>
+                  <Badge variant="outline" className={s.is_active ? "bg-emerald-500/10 text-emerald-500 border-emerald-200" : "bg-muted text-muted-foreground"}>
                     {s.is_active ? "Activa" : "Inactiva"}
                   </Badge>
-                  <span className="text-xs text-slate-500 uppercase font-mono">{s.kind}</span>
+                  <span className="text-xs text-muted-foreground uppercase font-mono">{s.kind}</span>
                 </div>
-                <h3 className="font-bold text-slate-900 dark:text-white">{s.title}</h3>
-                <p className="text-xs text-slate-500 font-mono">/{s.slug}</p>
-                <p className="text-xs text-slate-600 dark:text-slate-400">
+                <h3 className="font-bold text-foreground">{s.title}</h3>
+                <p className="text-xs text-muted-foreground font-mono">/{s.slug}</p>
+                <p className="text-xs text-muted-foreground">
                   {s.questions?.length ?? 0} preguntas configuradas
                 </p>
               </div>
@@ -158,37 +158,37 @@ export default function AdminSurveysManager() {
 
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {loadingResults ? (
-              <div className="text-center py-8 text-slate-400">Calculando métricas y NPS...</div>
+              <div className="text-center py-8 text-muted-foreground">Calculando métricas y NPS...</div>
             ) : !surveyResults ? (
-              <div className="text-center py-8 text-slate-400">No se pudieron cargar los resultados.</div>
+              <div className="text-center py-8 text-muted-foreground">No se pudieron cargar los resultados.</div>
             ) : (
               <>
                 {/* NPS Summary */}
                 {surveyResults.nps && (
                   <div className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/40 dark:to-blue-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4 flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-semibold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider">
+                      <p className="text-xs font-semibold text-indigo-500 uppercase tracking-wider">
                         Net Promoter Score (NPS)
                       </p>
-                      <p className="text-3xl font-extrabold text-indigo-900 dark:text-indigo-100 mt-1">
+                      <p className="text-3xl font-extrabold text-indigo-500 mt-1">
                         {surveyResults.nps.score > 0 ? `+${surveyResults.nps.score}` : surveyResults.nps.score}
                       </p>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         Basado en {surveyResults.nps.count} respuestas
                       </p>
                     </div>
                     <div className="flex gap-4 text-center text-xs">
                       <div>
                         <div className="font-bold text-emerald-600 text-lg">{surveyResults.nps.promoters}</div>
-                        <div className="text-slate-500">Promotores (9-10)</div>
+                        <div className="text-muted-foreground">Promotores (9-10)</div>
                       </div>
                       <div>
                         <div className="font-bold text-amber-600 text-lg">{surveyResults.nps.passives}</div>
-                        <div className="text-slate-500">Pasivos (7-8)</div>
+                        <div className="text-muted-foreground">Pasivos (7-8)</div>
                       </div>
                       <div>
                         <div className="font-bold text-red-600 text-lg">{surveyResults.nps.detractors}</div>
-                        <div className="text-slate-500">Detractores (0-6)</div>
+                        <div className="text-muted-foreground">Detractores (0-6)</div>
                       </div>
                     </div>
                   </div>
@@ -196,26 +196,26 @@ export default function AdminSurveysManager() {
 
                 {/* Questions Breakdown */}
                 <div className="space-y-3">
-                  <h4 className="font-bold text-sm text-slate-900 dark:text-white">
+                  <h4 className="font-bold text-sm text-foreground">
                     Desglose por Pregunta ({surveyResults.responses} respuestas totales)
                   </h4>
                   {surveyResults.questions.map((q) => (
                     <div key={q.id} className="bg-card border rounded-lg p-3 space-y-1.5 text-sm">
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">
+                        <span className="font-semibold text-foreground">
                           {q.id} ({q.type})
                         </span>
-                        <span className="text-xs text-slate-500">{q.answers} respuestas</span>
+                        <span className="text-xs text-muted-foreground">{q.answers} respuestas</span>
                       </div>
                       {q.average != null && (
-                        <p className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold">
+                        <p className="text-xs text-indigo-600 font-semibold">
                           Promedio: {q.average} / 5
                         </p>
                       )}
                       {q.distribution && (
                         <div className="grid grid-cols-2 gap-2 text-xs pt-1">
                           {Object.entries(q.distribution).map(([opt, count]) => (
-                            <div key={opt} className="flex justify-between bg-slate-50 dark:bg-slate-900 p-1.5 rounded">
+                            <div key={opt} className="flex justify-between bg-muted/50 p-1.5 rounded">
                               <span className="truncate">{opt}</span>
                               <span className="font-bold text-primary">{count}</span>
                             </div>
@@ -240,8 +240,8 @@ export default function AdminSurveysManager() {
           <div className="space-y-4 py-2 text-sm">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Slug</label>
-                <Input
+                <label htmlFor="admin-surveys-manager-f3" className="text-xs font-semibold text-foreground">Slug</label>
+                <Input id="admin-surveys-manager-f3"
                   value={formSlug}
                   onChange={(e) => setFormSlug(e.target.value.toLowerCase().replace(/\s+/g, "-"))}
                   placeholder="ej. satisfaccion-general"
@@ -249,9 +249,9 @@ export default function AdminSurveysManager() {
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Tipo de encuesta</label>
+                <label htmlFor="admin-surveys-manager-f2" className="text-xs font-semibold text-foreground">Tipo de encuesta</label>
                 <Select value={formKind} onValueChange={(v: any) => setFormKind(v)}>
-                  <SelectTrigger className="mt-1">
+                  <SelectTrigger id="admin-surveys-manager-f2" className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -264,8 +264,8 @@ export default function AdminSurveysManager() {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Título de la Encuesta</label>
-              <Input
+              <label htmlFor="admin-surveys-manager-f1" className="text-xs font-semibold text-foreground">Título de la Encuesta</label>
+              <Input id="admin-surveys-manager-f1"
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
                 placeholder="ej. Encuesta de Experiencia y Calidad Turística"
@@ -276,19 +276,19 @@ export default function AdminSurveysManager() {
             {/* Questions Builder */}
             <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Preguntas</label>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Preguntas</p>
                 <Button size="sm" variant="outline" onClick={addQuestion} className="h-7 text-xs gap-1">
                   <Plus className="w-3 h-3" /> Agregar Pregunta
                 </Button>
               </div>
 
               {questions.map((q, idx) => (
-                <div key={idx} className="bg-slate-50 dark:bg-slate-900 border rounded-lg p-3 space-y-2">
+                <div key={idx} className="bg-muted/50 border rounded-lg p-3 space-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs text-slate-400 font-bold">{q.id}</span>
+                    <span className="font-mono text-xs text-muted-foreground font-bold">{q.id}</span>
                     <Input
-                      value={q.text}
-                      onChange={(e) => updateQuestion(idx, { text: e.target.value })}
+                      value={q.label}
+                      onChange={(e) => updateQuestion(idx, { label: e.target.value })}
                       placeholder="Texto de la pregunta..."
                       className="flex-1 h-8 text-xs bg-card"
                     />
@@ -319,7 +319,7 @@ export default function AdminSurveysManager() {
             <div className="flex justify-end gap-2 pt-3 border-t">
               <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
               <Button
-                disabled={!formSlug || !formTitle || questions.some((q) => !q.text.trim()) || createMutation.isPending}
+                disabled={!formSlug || !formTitle || questions.some((q) => !q.label.trim()) || createMutation.isPending}
                 onClick={() =>
                   createMutation.mutate({
                     slug: formSlug,
@@ -329,7 +329,7 @@ export default function AdminSurveysManager() {
                     is_active: true,
                   })
                 }
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                className=""
               >
                 {createMutation.isPending ? "Guardando..." : "Guardar Encuesta"}
               </Button>

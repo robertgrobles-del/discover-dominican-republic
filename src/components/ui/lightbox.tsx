@@ -137,7 +137,7 @@ export function Lightbox({ images, initialIndex = 0, isOpen, open, onClose, alt 
           className="relative max-w-[90vw] max-h-[90vh]"
           onClick={(e) => e.stopPropagation()}
         >
-          <img
+          <img role="presentation"
             src={images[currentIndex]}
             alt={`${alt} ${currentIndex + 1}`}
             className={`max-w-full max-h-[85vh] object-contain rounded-lg transition-transform duration-300 ${

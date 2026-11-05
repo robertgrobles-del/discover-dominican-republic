@@ -100,7 +100,7 @@ export default function GuardianCaribe() {
               alt="Océano Dominicano"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#051114] via-[#051114]/80 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-brand-night via-brand-night/80 to-transparent" />
           </div>
           
           <div className="container mx-auto px-4 lg:px-8 relative z-10">
@@ -155,7 +155,7 @@ export default function GuardianCaribe() {
         </section>
 
         {/* Stats */}
-        <section className="py-16 bg-gradient-to-b from-[#051114] to-background">
+        <section className="py-16 bg-gradient-to-b from-brand-night to-background">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
               {stats.map((stat, index) => (
@@ -294,7 +294,7 @@ export default function GuardianCaribe() {
                 alt="Océano"
                 className="absolute inset-0 w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#051114]/95 to-[#051114]/70" />
+              <div className="absolute inset-0 bg-gradient-to-r from-brand-night/95 to-brand-night/70" />
               
               <div className="relative z-10 p-12 md:p-16 text-center">
                 <Camera className="h-12 w-12 text-cyan-400 mx-auto mb-6" />

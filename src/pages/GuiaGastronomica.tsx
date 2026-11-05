@@ -13,6 +13,7 @@ import { getFeaturedRestaurants } from "@/data/restaurants";
 import { SEOHead } from "@/components/SEOHead";
 import { RestaurantRegistrationModal } from "@/components/gastronomy/RestaurantRegistrationModal";
 import { RestaurantMenuViewer, RestaurantMenuData } from "@/components/gastronomy/RestaurantMenuViewer";
+import { usePageContent } from "@/lib/pageContent";
 
 const sampleMenus: Record<string, RestaurantMenuData> = {
   "pat-e-palo": {
@@ -230,6 +231,11 @@ const recommendations = [
 ];
 
 export default function GuiaGastronomica() {
+  const pc = usePageContent("guia-gastronomica");
+  const sampleMenus = pc.data("sampleMenus", __pcData.sampleMenus);
+  const recommendations = pc.data("recommendations", __pcData.recommendations);
+  const gastronomicRoutes = pc.data("gastronomicRoutes", __pcData.gastronomicRoutes);
+  const blogPosts = pc.data("blogPosts", __pcData.blogPosts);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [activeMenuViewer, setActiveMenuViewer] = useState<RestaurantMenuData | null>(null);
   const featuredRestaurants = getFeaturedRestaurants().slice(0, 4);
@@ -278,8 +284,8 @@ export default function GuiaGastronomica() {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="Guía Gastronómica de República Dominicana - Sabores, Cartas y Rutas Culinarias"
-        description="Descubre los platos típicos dominicanos, menús oficiales en PDF o platos detallados, rutas gastronómicas y da de alta tu restaurante."
+        title={pc.t("SEOHead.title.1", "Guía Gastronómica de República Dominicana - Sabores, Cartas y Rutas Culinarias")}
+        description={pc.t("SEOHead.description.1", "Descubre los platos típicos dominicanos, menús oficiales en PDF o platos detallados, rutas gastronómicas y da de alta tu restaurante.")}
         keywords="gastronomia dominicana, comida dominicana, restaurantes punta cana, mangu dominicano, platos tipicos republica dominicana, cartas restaurantes rd"
         image="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&h=630&fit=crop"
         type="website"
@@ -303,7 +309,7 @@ export default function GuiaGastronomica() {
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1920&h=600&fit=crop"
-            alt="Gastronomía Dominicana"
+            alt={pc.t("img.alt.1", "Gastronomía Dominicana")}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-background/60" />
@@ -312,25 +318,16 @@ export default function GuiaGastronomica() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <div className="flex items-center justify-center gap-2 mb-4">
               <Badge className="bg-primary/20 text-primary border-primary/30">
-                <BookOpen className="h-3 w-3 mr-1" /> Guía Gastronómica
-              </Badge>
-              <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30">
-                ⭐ Portal Restaurantes & Menús Digitales
-              </Badge>
+                <BookOpen className="h-3 w-3 mr-1" />{" "}{pc.tx("Badge.1", "Guía Gastronómica")}</Badge>
+              <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30">{pc.tx("Badge.2", "⭐ Portal Restaurantes & Menús Digitales")}</Badge>
             </div>
 
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-4">
-              Sabores de República Dominicana
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Tu portal gastronómico interactivo: consulta menús en PDF o platos detallados, rutas del cacao y marisco, o afilia tu restaurante para patrocinar regalos y rifas.
-            </p>
+            <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Sabores de República Dominicana")}</h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">{pc.tx("p.1", "Tu portal gastronómico interactivo: consulta menús en PDF o platos detallados, rutas del cacao y marisco, o afilia tu restaurante para patrocinar regalos y rifas.")}</p>
             <div className="flex flex-wrap gap-4 justify-center items-center">
               <Link to="/restaurante">
                 <Button size="lg" className="gap-2 shadow-lg">
-                  <Utensils className="h-4 w-4" />
-                  Ver todos los restaurantes
-                </Button>
+                  <Utensils className="h-4 w-4" />{pc.tx("Button.1", "Ver todos los restaurantes")}</Button>
               </Link>
               
               <Button 
@@ -339,9 +336,7 @@ export default function GuiaGastronomica() {
                 onClick={() => setIsRegisterModalOpen(true)}
                 className="gap-2 bg-background/80 hover:bg-background border-primary/40 text-primary hover:text-primary font-semibold shadow-sm"
               >
-                <PlusCircle className="h-4 w-4 text-primary" />
-                Dar de Alta Mi Restaurante
-              </Button>
+                <PlusCircle className="h-4 w-4 text-primary" />{pc.tx("Button.2", "Dar de Alta Mi Restaurante")}</Button>
             </div>
           </motion.div>
         </div>
@@ -352,12 +347,8 @@ export default function GuiaGastronomica() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
             <div>
-              <h2 className="font-display text-xl font-bold text-foreground">
-                Recomendaciones Rápidas y Cartas Activas
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                Haz clic para ver la carta gastronómica verificada en PDF o formato detallado
-              </p>
+              <h2 className="font-display text-xl font-bold text-foreground">{pc.tx("h2.1", "Recomendaciones Rápidas y Cartas Activas")}</h2>
+              <p className="text-xs text-muted-foreground">{pc.tx("p.2", "Haz clic para ver la carta gastronómica verificada en PDF o formato detallado")}</p>
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -370,9 +361,8 @@ export default function GuiaGastronomica() {
                 <span className="text-2xl block mb-2">{rec.emoji}</span>
                 <p className="text-xs text-muted-foreground mb-1">{rec.label}</p>
                 <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{rec.name}</p>
-                <div className="mt-2 text-[11px] text-primary/80 group-hover:text-primary flex items-center gap-1 font-medium">
-                  <FileText className="w-3 h-3" /> Ver Carta
-                </div>
+                <div className="mt-2 text-2xs text-primary/80 group-hover:text-primary flex items-center gap-1 font-medium">
+                  <FileText className="w-3 h-3" />{" "}{pc.tx("div.1", "Ver Carta")}</div>
               </button>
             ))}
           </div>
@@ -381,9 +371,7 @@ export default function GuiaGastronomica() {
 
       {/* Featured Restaurants with Direct Menu Access & Skyscraper Side Banners */}
       <SectionWithSideAds 
-        showAds 
-        leftAdSize="skyscraper" 
-        rightAdSize="skyscraper" 
+        showAds section="guia-gastronomica" 
         className="container mx-auto"
       >
         <section className="py-16">
@@ -392,11 +380,9 @@ export default function GuiaGastronomica() {
               <div>
                 <div className="flex items-center gap-2 text-primary mb-2">
                   <Crown className="h-5 w-5" />
-                  <span className="text-sm font-semibold uppercase tracking-wider">Selección del Editor & Cartas Verificadas</span>
+                  <span className="text-sm font-semibold uppercase tracking-wider">{pc.tx("span.1", "Selección del Editor & Cartas Verificadas")}</span>
                 </div>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                  Restaurantes Destacados
-                </h2>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h2.2", "Restaurantes Destacados")}</h2>
               </div>
               <div className="flex items-center gap-3">
                 <Button 
@@ -405,11 +391,9 @@ export default function GuiaGastronomica() {
                   onClick={() => setIsRegisterModalOpen(true)}
                   className="hidden sm:flex gap-1.5 border-primary/40 text-primary"
                 >
-                  <PlusCircle className="h-4 w-4" /> Registrar Local
-                </Button>
+                  <PlusCircle className="h-4 w-4" />{" "}{pc.tx("Button.3", "Registrar Local")}</Button>
                 <Link to="/restaurante">
-                  <Button variant="outline" size="sm" className="gap-1">
-                    Ver todos <ChevronRight className="h-4 w-4" />
+                  <Button variant="outline" size="sm" className="gap-1">{pc.tx("Button.4", "Ver todos")}{" "}<ChevronRight className="h-4 w-4" />
                   </Button>
                 </Link>
               </div>
@@ -432,9 +416,7 @@ export default function GuiaGastronomica() {
                           <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
                           <span className="text-xs font-semibold">{r.rating}</span>
                         </div>
-                        <Badge className="absolute top-3 left-3 bg-emerald-600/90 backdrop-blur-sm text-white text-[10px] shadow-xs">
-                          Carta Disponible
-                        </Badge>
+                        <Badge className="absolute top-3 left-3 bg-emerald-600/90 backdrop-blur-sm text-white text-3xs shadow-xs">{pc.tx("Badge.3", "Carta Disponible")}</Badge>
                       </div>
                       <div className="p-4">
                         <Badge variant="secondary" className="mb-2 text-xs bg-secondary/70">{r.priceRange} · {r.cuisineType[0]}</Badge>
@@ -452,11 +434,9 @@ export default function GuiaGastronomica() {
                         className="w-full btn-cta-magnetic text-xs gap-1.5 rounded-xl font-semibold"
                         onClick={() => openMenuForSlug(r.slug, r.name)}
                       >
-                        <Utensils className="w-3.5 h-3.5" />
-                        Consultar Menú
-                      </Button>
+                        <Utensils className="w-3.5 h-3.5" />{pc.tx("Button.5", "Consultar Menú")}</Button>
                       <Link to={`/restaurante/${r.slug}`} className="w-auto">
-                        <Button variant="outline" size="sm" className="text-xs px-2.5 rounded-xl" title="Ver ficha completa">
+                        <Button variant="outline" size="sm" className="text-xs px-2.5 rounded-xl" title={pc.t("Button.title.1", "Ver ficha completa")}>
                           <ChevronRight className="w-3.5 h-3.5" />
                         </Button>
                       </Link>
@@ -475,13 +455,9 @@ export default function GuiaGastronomica() {
       <section className="py-16 bg-card/40 border-y border-border/60">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">Rutas</Badge>
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
-              Rutas Gastronómicas
-            </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto text-sm">
-              Itinerarios curados para explorar los mejores sabores de cada región dominicana.
-            </p>
+            <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">{pc.tx("Badge.4", "Rutas")}</Badge>
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">{pc.tx("h2.3", "Rutas Gastronómicas")}</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto text-sm">{pc.tx("p.3", "Itinerarios curados para explorar los mejores sabores de cada región dominicana.")}</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -498,7 +474,7 @@ export default function GuiaGastronomica() {
                     <div className="aspect-[16/10] relative overflow-hidden">
                       <img src={route.image} alt={route.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       <div className="absolute bottom-3 left-3 flex gap-2">
-                        <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm text-xs">{route.stops} paradas</Badge>
+                        <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm text-xs">{route.stops}{" "}{pc.tx("Badge.5", "paradas")}</Badge>
                         <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm text-xs">{route.duration}</Badge>
                       </div>
                     </div>
@@ -510,8 +486,7 @@ export default function GuiaGastronomica() {
                     </div>
                   </div>
                   <div className="p-5 pt-0">
-                    <Button variant="outline" size="sm" className="gap-1.5 w-full rounded-xl text-xs font-semibold hover:text-primary hover:border-primary">
-                      Explorar ruta <ArrowRight className="h-3.5 w-3.5" />
+                    <Button variant="outline" size="sm" className="gap-1.5 w-full rounded-xl text-xs font-semibold hover:text-primary hover:border-primary">{pc.tx("Button.6", "Explorar ruta")}{" "}<ArrowRight className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </div>
@@ -525,13 +500,9 @@ export default function GuiaGastronomica() {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">Blog</Badge>
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
-              Artículos sobre Gastronomía
-            </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Historias, recetas y secretos de la cocina dominicana contados por expertos locales.
-            </p>
+            <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">{pc.tx("Badge.6", "Blog")}</Badge>
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">{pc.tx("h2.4", "Artículos sobre Gastronomía")}</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">{pc.tx("p.4", "Historias, recetas y secretos de la cocina dominicana contados por expertos locales.")}</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
@@ -553,7 +524,7 @@ export default function GuiaGastronomica() {
                   <div className="p-4 sm:p-5 flex flex-col justify-center">
                     <div className="flex items-center gap-2 mb-2">
                       <Badge variant="secondary" className="text-xs">{post.category}</Badge>
-                      <span className="text-xs text-muted-foreground">{post.readTime} lectura</span>
+                      <span className="text-xs text-muted-foreground">{post.readTime}{" "}{pc.tx("span.2", "lectura")}</span>
                     </div>
                     <h3 className="font-display font-bold text-foreground group-hover:text-primary transition-colors mb-2">
                       {post.title}
@@ -580,20 +551,13 @@ export default function GuiaGastronomica() {
           <div className="max-w-3xl mx-auto text-center">
             <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
               <BookOpen className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">
-                Descarga la Guía Gastronómica Completa
-              </h2>
-              <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-                Más de 50 páginas con restaurantes, recetas, rutas culinarias y recomendaciones de chefs locales. Disponible en PDF para llevar en tu viaje.
-              </p>
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">{pc.tx("h2.5", "Descarga la Guía Gastronómica Completa")}</h2>
+              <p className="text-muted-foreground mb-8 max-w-xl mx-auto">{pc.tx("p.5", "Más de 50 páginas con restaurantes, recetas, rutas culinarias y recomendaciones de chefs locales. Disponible en PDF para llevar en tu viaje.")}</p>
               <div className="flex flex-wrap gap-4 justify-center">
                 <Button size="lg" className="gap-2">
-                  <Download className="h-4 w-4" />
-                  Descargar Gratis (PDF)
-                </Button>
+                  <Download className="h-4 w-4" />{pc.tx("Button.7", "Descargar Gratis (PDF)")}</Button>
                 <Link to="/restaurante">
-                  <Button size="lg" variant="outline" className="gap-2">
-                    Explorar restaurantes <ArrowRight className="h-4 w-4" />
+                  <Button size="lg" variant="outline" className="gap-2">{pc.tx("Button.8", "Explorar restaurantes")}{" "}<ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
               </div>
@@ -625,3 +589,5 @@ export default function GuiaGastronomica() {
   );
 }
 
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { sampleMenus, recommendations, gastronomicRoutes, blogPosts };

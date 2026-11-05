@@ -3,6 +3,7 @@ import { Clock, Compass, MapPin, Sparkles, Coffee, Utensils, Waves, ArrowRight }
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { usePageContent } from "@/lib/pageContent";
 
 interface QuickPlan {
   id: string;
@@ -17,6 +18,7 @@ interface QuickPlan {
 }
 
 export function QuickThreeHoursSection() {
+  const pc = usePageContent("quick-three-hours-section");
   const [selectedTimeOfDay, setSelectedTimeOfDay] = useState<"todos" | "Mañana" | "Tarde" | "Noche">("todos");
 
   const plans: QuickPlan[] = [
@@ -93,15 +95,10 @@ export function QuickThreeHoursSection() {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 font-semibold">
-                <Clock className="w-3.5 h-3.5 mr-1" /> Mejora 721 · Planes Espontáneos
-              </Badge>
+                <Clock className="w-3.5 h-3.5 mr-1" />{" "}{pc.tx("Badge.1", "Planes espontáneos")}</Badge>
             </div>
-            <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground">
-              "Tengo 3 Horas Libres": ¿Qué puedo hacer ya mismo?
-            </h2>
-            <p className="text-muted-foreground text-sm mt-1 max-w-xl">
-              Micro-itinerarios diseñados para escalas, tardes libres de conferencias o descansos entre tours sin tener que planificar todo el día.
-            </p>
+            <h2 className="text-2xl md:text-3xl font-display font-bold text-foreground">{pc.tx("h2.1", "\"Tengo 3 Horas Libres\": ¿Qué puedo hacer ya mismo?")}</h2>
+            <p className="text-muted-foreground text-sm mt-1 max-w-xl">{pc.tx("p.1", "Micro-itinerarios diseñados para escalas, tardes libres de conferencias o descansos entre tours sin tener que planificar todo el día.")}</p>
           </div>
 
           {/* Time of day pill selectors */}
@@ -133,7 +130,7 @@ export function QuickThreeHoursSection() {
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className="text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary px-2.5 py-0.5 rounded-full">
+                    <span className="text-3xs font-bold uppercase tracking-wider bg-primary/10 text-primary px-2.5 py-0.5 rounded-full">
                       {plan.tiempo}
                     </span>
                     <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1">
@@ -158,13 +155,11 @@ export function QuickThreeHoursSection() {
                 </div>
 
                 <div className="pt-3 border-t border-border/50 space-y-2">
-                  <p className="text-[11px] font-bold text-foreground/90 uppercase tracking-wider">
-                    Paso a paso express:
-                  </p>
-                  <ul className="space-y-1.5 text-[11px] text-muted-foreground">
+                  <p className="text-2xs font-bold text-foreground/90 uppercase tracking-wider">{pc.tx("p.2", "Paso a paso express:")}</p>
+                  <ul className="space-y-1.5 text-2xs text-muted-foreground">
                     {plan.pasos.map((paso, pidx) => (
                       <li key={pidx} className="flex items-start gap-1.5">
-                        <span className="font-mono text-primary font-bold text-[10px] shrink-0">{pidx + 1}.</span>
+                        <span className="font-mono text-primary font-bold text-3xs shrink-0">{pidx + 1}.</span>
                         <span>{paso}</span>
                       </li>
                     ))}

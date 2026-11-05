@@ -114,7 +114,7 @@ export function DestinationLocalGastronomy({
                   
                   {/* Top Badges */}
                   <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                    <Badge className="bg-primary/90 hover:bg-primary text-primary-foreground font-semibold text-[11px] backdrop-blur-md shadow-md">
+                    <Badge className="bg-primary/90 hover:bg-primary text-primary-foreground font-semibold text-2xs backdrop-blur-md shadow-md">
                       {dish.highlightTag}
                     </Badge>
                   </div>

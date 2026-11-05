@@ -34,3 +34,10 @@ server/.env
 
 # Datos del Registro Nacional Turístico: contienen datos personales y se conectarán por API, no por archivo.
 docs/Registro Nacional Tur*.txt
+
+# Cachés y reportes generados: no se versionan
+.pnpm-store/
+.temp_skills/
+playwright-report/
+test-results/
+backend/loadtest-report.json

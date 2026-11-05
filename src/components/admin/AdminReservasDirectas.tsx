@@ -23,7 +23,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  ORDER_STATUS_LABEL, formatDop, updateOrderStatus, updateProduct, useOrders, useProducts,
+  ORDER_STATUS_LABEL, formatDop, updateProduct, useOrders, useProducts,
   useAdminOrders, adminConfirmTransfer, adminUpdateOrderStatus, type StoreOrder,
 } from "@/modules/tienda/api";
 
@@ -174,10 +174,9 @@ function BookingsDemo() {
 function Store() {
   const { data: products = [] } = useProducts();
   const { data: orders = [], refetch: refetchOrders } = useAdminOrders();
-  const prodMut = useOpMutation(({ id, p }: { id: string; p: any }) => updateProduct(id, p), [["store"]]);
+  const prodMut = useOpMutation(({ id, p }: { id: string; p: any }) => adminUpdateOrderStatus(id, p), [["store"]]);
   const ordMut = useOpMutation(
-    ({ id, s }: { id: string; s: StoreOrder["status"] }) =>
-      HAS_BACKEND_SESSION ? adminUpdateOrderStatus(id, s) : updateOrderStatus(id, s),
+    ({ id, s }: { id: string; s: StoreOrder["status"] }) => adminUpdateOrderStatus(id, s),
     [["store"]]
   );
 
@@ -237,7 +236,7 @@ function Store() {
               <div className="flex justify-between items-start gap-2">
                 <div>
                   <span className="font-semibold block truncate">{o.customer_name} · {o.city}</span>
-                  <span className="text-[11px] text-muted-foreground block">
+                  <span className="text-2xs text-muted-foreground block">
                     {isTransfer ? "🏦 Depósito / Transferencia" : "💳 Tarjeta"} · {new Date(o.created_at).toLocaleDateString("es-DO")}
                   </span>
                 </div>
@@ -289,10 +288,10 @@ function Store() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">
+                <label htmlFor="admin-reservas-directas-f2" className="text-xs font-semibold text-foreground">
                   Número de Referencia o Comprobante <span className="text-destructive">*</span>
                 </label>
-                <Input
+                <Input id="admin-reservas-directas-f2"
                   placeholder="Ej: DEP-894210 o Ref Bancaria"
                   value={transferRef}
                   onChange={(e) => setTransferRef(e.target.value)}
@@ -301,17 +300,17 @@ function Store() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground">
+                <label htmlFor="admin-reservas-directas-f1" className="text-xs font-semibold text-foreground">
                   Monto Verificado (DOP)
                 </label>
-                <Input
+                <Input id="admin-reservas-directas-f1"
                   type="number"
                   placeholder={String(confirmModalOrder.total)}
                   value={transferAmountInput}
                   onChange={(e) => setTransferAmountInput(e.target.value)}
                   className="h-9"
                 />
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-2xs text-muted-foreground">
                   Debe ser igual o mayor a {formatDop(confirmModalOrder.total)}.
                 </p>
               </div>

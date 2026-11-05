@@ -17,6 +17,7 @@ import {
   type LucideIcon
 } from "lucide-react";
 
+import { activateOnKey } from "@/lib/a11y";
 export type SurveyId = "experiencia" | "estadia" | "gastronomia" | "gastos" | "transporte" | "atencion";
 
 export interface SurveyConfig {
@@ -213,7 +214,7 @@ export const SurveyModule: React.FC<SurveyModuleProps> = ({ survey, onCompleted,
           className="space-y-3"
         >
           {preguntaActual.opciones.map(opt => (
-            <div
+            <div role="button" tabIndex={0} onKeyDown={activateOnKey}
               key={opt}
               onClick={() => setRespuestas({ ...respuestas, [`q${step}`]: opt })}
               className="flex items-center space-x-3 p-3.5 rounded-xl border border-border hover:border-primary/40 hover:bg-accent/50 transition-colors cursor-pointer"

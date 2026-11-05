@@ -5,6 +5,7 @@ import { Calendar, Clock, Ticket, Trophy } from "lucide-react";
 import { LotteryResultRelational } from "@/types/lotteryRelational";
 import { LotteryBall } from "@/components/loterias/LotteryBall";
 
+import { activateOnKey } from "@/lib/a11y";
 export function LotteryRelationalCard({
   result,
   onClick,
@@ -20,7 +21,7 @@ export function LotteryRelationalCard({
   if (!draw || !lottery) return null;
 
   return (
-    <div
+    <div role="button" tabIndex={0} onKeyDown={activateOnKey}
       onClick={onClick}
       className="bg-card rounded-2xl border border-border overflow-hidden group hover:border-primary/40 transition-all hover:shadow-md cursor-pointer flex flex-col justify-between active:scale-[0.99]"
     >
@@ -40,14 +41,14 @@ export function LotteryRelationalCard({
                 <h3 className="font-display font-bold text-foreground leading-tight group-hover:text-primary transition-colors">
                   {lottery.name}
                 </h3>
-                <span className="text-[10px] bg-muted border px-1.5 py-0.5 rounded text-muted-foreground">
+                <span className="text-3xs bg-muted border px-1.5 py-0.5 rounded text-muted-foreground">
                   {lottery.country}
                 </span>
               </div>
               <p className="text-xs font-semibold text-primary">{draw.name}</p>
             </div>
           </div>
-          <Badge variant="outline" className="text-[11px] text-muted-foreground capitalize flex items-center gap-1 bg-background">
+          <Badge variant="outline" className="text-2xs text-muted-foreground capitalize flex items-center gap-1 bg-background">
             <Calendar className="h-3 w-3" /> {formattedDate}
             <span className="mx-1">·</span>
             <Clock className="h-3 w-3" /> {draw.draw_time.substring(0, 5)}
@@ -56,7 +57,7 @@ export function LotteryRelationalCard({
 
         {/* Numbers */}
         <div className="px-5 py-5">
-          <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center justify-between">
+          <div className="text-2xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center justify-between">
             <span>Números ganadores</span>
             <span className="normal-case text-muted-foreground/80 font-normal">
               Rango: {draw.ball_range_min}-{draw.ball_range_max} | Cantidad: {draw.number_of_balls}
@@ -80,16 +81,16 @@ export function LotteryRelationalCard({
       <div className="px-5 pb-4 pt-3 border-t border-border/50 bg-muted/10 flex flex-wrap gap-2 items-center justify-between mt-auto">
         <div className="flex gap-1.5">
           {draw.tombolas_count > 1 && (
-            <Badge variant="secondary" className="text-[10px] px-2 py-0.5">
+            <Badge variant="secondary" className="text-3xs px-2 py-0.5">
               {draw.tombolas_count} Tómbolas
             </Badge>
           )}
           {draw.has_bonus && (
-            <Badge variant="secondary" className="text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 px-2 py-0.5">
+            <Badge variant="secondary" className="text-3xs bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20 px-2 py-0.5">
               Bolo Extra
             </Badge>
           )}
-          <span className="text-[10px] text-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="text-3xs text-primary font-bold opacity-0 group-hover:opacity-100 transition-opacity">
             Ver historial →
           </span>
         </div>
@@ -97,12 +98,12 @@ export function LotteryRelationalCard({
           <div className="flex items-center gap-1.5 bg-primary/10 rounded-lg px-2.5 py-1 border border-primary/20">
             <Trophy className="h-3.5 w-3.5 text-amber-500" />
             <div>
-              <p className="text-[9px] text-muted-foreground uppercase leading-none">Acumulado</p>
+              <p className="text-3xs text-muted-foreground uppercase leading-none">Acumulado</p>
               <p className="font-bold text-primary text-xs mt-0.5">{result.jackpot_amount}</p>
             </div>
           </div>
         ) : (
-          <span className="text-[11px] text-muted-foreground italic">Sorteo Completado</span>
+          <span className="text-2xs text-muted-foreground italic">Sorteo Completado</span>
         )}
       </div>
     </div>

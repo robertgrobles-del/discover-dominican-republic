@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { fetchApi } from "@/lib/fastifyClient";
 import { getHotelBySlug } from "@/data/hotels";
 import { getEnrichedHotelBySlug } from "@/data/provinceEnrichment";
 
@@ -42,6 +44,15 @@ export function useHotelData(id: string | undefined) {
         return;
       }
       try {
+        if (HAS_BACKEND_SESSION) {
+          const res = await fetchApi<{ data: any }>(`/hotels/${encodeURIComponent(id)}?include=destination`);
+          if (res?.data) {
+            setDbHotel(res.data);
+            setLoading(false);
+            return;
+          }
+        }
+
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/.test(id);
         const query = supabase.from("hotels").select("*, destinations(name, slug)");
         if (isUuid) {

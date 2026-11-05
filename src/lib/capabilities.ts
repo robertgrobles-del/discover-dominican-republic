@@ -87,7 +87,7 @@ export const DEMO_CAPABILITIES: CapabilityGrant[] = [
 export const DEMO_SPACES: AccessSpace[] = [
   { key: "viajero", label: "Viajero", description: "Mi cuenta, mis viajes, mis reservas y mi pasaporte", route: "/perfil", available: true, context: null },
   { key: "empresa", label: "Empresa", description: "Reservas, equipo y ficha de la organización activa", route: "/operadores/panel", available: true, context: { organizations: [{ id: "demo-org", name: "Hotel Demo Samaná", role: "owner" }], requires_choice: false } },
-  { key: "creador", label: "Creador", description: "Contenido, métricas, licencias y cobros propios", route: "/creadores", available: true, context: { status: "active" } },
+  { key: "creador", label: "Creador", description: "Contenido, métricas, licencias y cobros propios", route: "/creadores/panel", available: true, context: { status: "active" } },
   { key: "embajador", label: "Embajador", description: "Código de referencia, comisiones y retiros", route: "/creadores?panel=embajador", available: true, context: { status: "approved", referral_code: "DEMO-RD" } },
   { key: "editorial", label: "Editorial", description: "Mesa editorial: borradores, revisiones y publicación", route: "/admin", available: true, context: null },
   { key: "moderacion", label: "Moderación", description: "Cola de contenido de usuarios y apelaciones", route: "/admin", available: true, context: null },

@@ -30,6 +30,7 @@ import { SostenibleModals } from "@/components/sostenible/SostenibleModals";
 import adventureImg from "@/assets/adventure.jpg";
 import samanaImg from "@/assets/samana.jpg";
 import divingImg from "@/assets/diving.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const pillars = [
   {
@@ -172,6 +173,11 @@ const cleanupCampaigns = [
 ];
 
 export default function Sostenible() {
+  const pc = usePageContent("sostenible");
+  const pillars = pc.data("pillars", __pcData.pillars);
+  const ecoBusinesses = pc.data("ecoBusinesses", __pcData.ecoBusinesses);
+  const cleanupCampaigns = pc.data("cleanupCampaigns", __pcData.cleanupCampaigns);
+  const conservationProjects = pc.data("conservationProjects", __pcData.conservationProjects);
   const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
 
   // Carbon Calculator States
@@ -230,7 +236,7 @@ export default function Sostenible() {
       name: `Compensación de CO2 - Reforestación Montecristi (${co2Calculation.tons} Tons)`,
       type: "producto",
       price: co2Calculation.offsetCost,
-      image: adventureImg
+      image: pc.img("asset.adventureImg", adventureImg)
     });
     setCheckoutOpen(true);
   };
@@ -248,8 +254,8 @@ export default function Sostenible() {
   return (
     <PageTransition>
       <SEOHead
-        title="Turismo Sostenible en RD | Descubre RD"
-        description="Calcula tu huella de carbono de viaje, apoya la reforestación de manglares, conoce hoteles con sello Eco-Verified y participa como voluntario en limpiezas de playa."
+        title={pc.t("SEOHead.title.1", "Turismo Sostenible en RD | Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Calcula tu huella de carbono de viaje, apoya la reforestación de manglares, conoce hoteles con sello Eco-Verified y participa como voluntario en limpiezas de playa.")}
       />
       <div className="min-h-screen bg-background flex flex-col">
         <Header />
@@ -258,8 +264,8 @@ export default function Sostenible() {
         <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0">
             <img
-              src={adventureImg}
-              alt="Naturaleza RD"
+              src={pc.img("img.src.1", adventureImg)}
+              alt={pc.t("img.alt.1", "Naturaleza RD")}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-background/60" />
@@ -267,30 +273,22 @@ export default function Sostenible() {
 
           <div className="relative z-10 container mx-auto px-4 lg:px-8 text-center py-24">
             <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 mb-4 py-1 px-3 text-xs gap-1.5 uppercase font-bold tracking-wider">
-              <Leaf className="h-4 w-4" /> RD Sostenible
-            </Badge>
+              <Leaf className="h-4 w-4" />{" "}{pc.tx("Badge.1", "RD Sostenible")}</Badge>
             
-            <h1 className="font-display text-4xl md:text-6xl font-bold mb-6 text-foreground">
-              Protegiendo Nuestro <span className="text-emerald-400">Paraíso Costero</span>
+            <h1 className="font-display text-4xl md:text-6xl font-bold mb-6 text-foreground">{pc.tx("h1.1", "Protegiendo Nuestro")}{" "}<span className="text-emerald-400">{pc.tx("span.1", "Paraíso Costero")}</span>
             </h1>
             
-            <p className="text-muted-foreground text-sm md:text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
-              Descubre y participa activamente en el ecoturismo de República Dominicana. Calcula tu huella, hospédate en hoteles Eco-Verified y súmate a la limpieza de nuestras playas.
-            </p>
+            <p className="text-muted-foreground text-sm md:text-lg max-w-2xl mx-auto mb-8 leading-relaxed">{pc.tx("p.1", "Descubre y participa activamente en el ecoturismo de República Dominicana. Calcula tu huella, hospédate en hoteles Eco-Verified y súmate a la limpieza de nuestras playas.")}</p>
 
             <div className="flex flex-wrap justify-center gap-4">
               <Button size="lg" className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold" onClick={() => {
                 const el = document.getElementById("calculadora");
                 el?.scrollIntoView({ behavior: "smooth" });
-              }}>
-                Calcular Huella CO2
-              </Button>
+              }}>{pc.tx("Button.1", "Calcular Huella CO2")}</Button>
               <Button size="lg" variant="outline" className="gap-2 border-emerald-500/20 hover:bg-emerald-500/5" onClick={() => {
                 const el = document.getElementById("voluntariado");
                 el?.scrollIntoView({ behavior: "smooth" });
-              }}>
-                Unirse a Limpieza de Playas
-              </Button>
+              }}>{pc.tx("Button.2", "Unirse a Limpieza de Playas")}</Button>
             </div>
           </div>
         </section>
@@ -301,8 +299,8 @@ export default function Sostenible() {
             {/* Pillars Section */}
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl md:text-3xl font-extrabold text-foreground">Pilares de Conservación Dominicana</h2>
-                <p className="text-xs text-muted-foreground mt-1">Estrategias y compromisos institucionales y locales para proteger nuestra riqueza natural.</p>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-foreground">{pc.tx("h2.1", "Pilares de Conservación Dominicana")}</h2>
+                <p className="text-xs text-muted-foreground mt-1">{pc.tx("p.2", "Estrategias y compromisos institucionales y locales para proteger nuestra riqueza natural.")}</p>
               </div>
 
               <div className="grid md:grid-cols-3 gap-6">
@@ -360,8 +358,8 @@ export default function Sostenible() {
             <div className="pt-8 border-t border-border space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-foreground">Proyectos Ecológicos Activos</h2>
-                  <p className="text-xs text-muted-foreground mt-1">Iniciativas para restaurar la biodiversidad costera y terrestre de la isla.</p>
+                  <h2 className="text-2xl font-bold text-foreground">{pc.tx("h2.2", "Proyectos Ecológicos Activos")}</h2>
+                  <p className="text-xs text-muted-foreground mt-1">{pc.tx("p.3", "Iniciativas para restaurar la biodiversidad costera y terrestre de la isla.")}</p>
                 </div>
               </div>
 
@@ -422,3 +420,6 @@ export default function Sostenible() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { pillars, ecoBusinesses, cleanupCampaigns, conservationProjects };

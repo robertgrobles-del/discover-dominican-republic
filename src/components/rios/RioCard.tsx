@@ -71,7 +71,7 @@ export function RioCard({ rio, index }: RioCardProps) {
                 {riverTypeLabels[rio.riverType] || rio.riverType}
               </Badge>
               {rio.isFeatured && (
-                <Badge className="bg-amber-500 text-slate-950 font-bold text-[10px] shadow-md">
+                <Badge className="bg-amber-500 text-slate-950 font-bold text-3xs shadow-md">
                   Destacado
                 </Badge>
               )}
@@ -112,11 +112,11 @@ export function RioCard({ rio, index }: RioCardProps) {
             </p>
 
             <div className="flex flex-wrap gap-1.5 mb-3">
-              <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${diff.color}`}>
+              <span className={`text-2xs font-semibold px-2.5 py-0.5 rounded-full border ${diff.color}`}>
                 {diff.label}
               </span>
               {rio.waterTemperature && (
-                <span className="text-[11px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 px-2.5 py-0.5 rounded-full">
+                <span className="text-2xs font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 px-2.5 py-0.5 rounded-full">
                   💧 Agua {rio.waterTemperature}
                 </span>
               )}
@@ -125,12 +125,12 @@ export function RioCard({ rio, index }: RioCardProps) {
             {rio.activities && rio.activities.length > 0 && (
               <div className="flex flex-wrap gap-1 pt-2 border-t border-border/50">
                 {rio.activities.slice(0, 3).map((act) => (
-                  <span key={act} className="text-[10px] bg-secondary/70 text-secondary-foreground px-2 py-0.5 rounded font-medium">
+                  <span key={act} className="text-3xs bg-secondary/70 text-secondary-foreground px-2 py-0.5 rounded font-medium">
                     {act}
                   </span>
                 ))}
                 {rio.activities.length > 3 && (
-                  <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
+                  <span className="text-3xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded">
                     +{rio.activities.length - 3}
                   </span>
                 )}
@@ -143,7 +143,7 @@ export function RioCard({ rio, index }: RioCardProps) {
           <span className="group-hover:underline flex items-center gap-1">
             Explorar balneario <ChevronRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
           </span>
-          <span className="text-[11px] text-muted-foreground">RD</span>
+          <span className="text-2xs text-muted-foreground">RD</span>
         </div>
       </Link>
     </motion.div>

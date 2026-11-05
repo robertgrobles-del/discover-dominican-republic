@@ -20,6 +20,7 @@ import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 import { useTranslation } from "@/hooks/useI18n";
 import heroBeach from "@/assets/hero-beach.jpg";
 import { toast } from "sonner";
+import { usePageContent } from "@/lib/pageContent";
 
 const categoryConfig: Record<string, { label: string; icon: typeof Compass; color: string }> = {
   adventure: { label: "Aventura Extrema", icon: Mountain, color: "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30" },
@@ -51,7 +52,7 @@ const CURATED_FALLBACK_PACKAGES = [
     short_description: "Travesía completa al Sur Profundo: lancha rápida hacia Bahía de las Águilas, noche bajo las estrellas en glamping ecológico, Laguna de Oviedo y pozos de Romeo.",
     image_url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop&q=80",
     is_featured: true,
-    is_sponsored: true,
+    is_sponsored: false, // contenido de respaldo: sólo un paquete contratado puede ir como patrocinado
     highlights: ["Transporte 4x4 todo incluido", "Noche en carpas safari frente al mar", "Comida típica sureña y chivo liniero", "Guía biólogo certificado"]
   },
   {
@@ -85,7 +86,7 @@ const CURATED_FALLBACK_PACKAGES = [
     short_description: "La excursión ecológica #1 de la isla: avistamiento de cetáceos en catamarán, cabalgata o senderismo por selva hasta la cascada de 50 metros y almuerzo frente al mar.",
     image_url: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&auto=format&fit=crop&q=80",
     is_featured: false,
-    is_sponsored: true,
+    is_sponsored: false,
     highlights: ["Catamarán con biólogo marino a bordo", "Almuerzo buffet campestre dominicano", "Acceso exclusivo a Cayo Levantado (Isla Bacardí)", "Seguro médico de accidentes incluido"]
   },
   {
@@ -108,6 +109,10 @@ const CURATED_FALLBACK_PACKAGES = [
 ];
 
 export default function Tours() {
+  const pc = usePageContent("tours");
+  const CURATED_FALLBACK_PACKAGES = pc.data("CURATED_FALLBACK_PACKAGES", __pcData.CURATED_FALLBACK_PACKAGES);
+  const categoryConfig = pc.data("categoryConfig", __pcData.categoryConfig);
+  const difficultyColors = pc.data("difficultyColors", __pcData.difficultyColors);
   const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState("all");
   const [leadModalOpen, setLeadModalOpen] = useState(false);
@@ -154,8 +159,8 @@ export default function Tours() {
   return (
     <PageTransition>
       <SEOHead
-        title="Tours y Paquetes Turísticos en República Dominicana | Descubre RD"
-        description="Encuentra las mejores excursiones y paquetes organizados: Bahía de las Águilas, Ascenso al Pico Duarte, Avistamiento de Ballenas en Samaná y Ciudad Colonial."
+        title={pc.t("SEOHead.title.1", "Tours y Paquetes Turísticos en República Dominicana | Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Encuentra las mejores excursiones y paquetes organizados: Bahía de las Águilas, Ascenso al Pico Duarte, Avistamiento de Ballenas en Samaná y Ciudad Colonial.")}
         keywords="tours republica dominicana, paquetes excursiones rd, bahia de las aguilas tour, pico duarte excursion, tours samana ballenas"
       />
       <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary selection:text-white">
@@ -164,26 +169,21 @@ export default function Tours() {
         {/* HERO EDITORIAL DE TOURS */}
         <section className="relative h-[60vh] min-h-[480px] flex items-end overflow-hidden">
           <div className="absolute inset-0">
-            <img src={heroBeach} alt="Tours y Paquetes Turísticos en República Dominicana" className="w-full h-full object-cover" />
+            <img src={pc.img("img.src.1", heroBeach)} alt={pc.t("img.alt.1", "Tours y Paquetes Turísticos en República Dominicana")} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-black/40" />
           </div>
           <div className="relative container mx-auto px-4 pb-16 max-w-6xl">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl">
-              <Badge className="bg-primary/20 text-primary border-primary/30 mb-4 px-4 py-1.5 text-xs font-mono uppercase tracking-widest backdrop-blur-md">
-                🗺️ OPERADORES CERTIFICADOS MITUR
-              </Badge>
-              <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black text-foreground mb-4 tracking-tight">
-                Tours & <span className="text-gradient">Expediciones</span>
+              <Badge className="bg-primary/20 text-primary border-primary/30 mb-4 px-4 py-1.5 text-xs font-mono uppercase tracking-widest backdrop-blur-md">{pc.tx("Badge.1", "🗺️ OPERADORES CERTIFICADOS MITUR")}</Badge>
+              <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black text-foreground mb-4 tracking-tight">{pc.tx("h1.1", "Tours &")}{" "}<span className="text-gradient">{pc.tx("span.1", "Expediciones")}</span>
               </h1>
-              <p className="text-muted-foreground text-lg sm:text-xl font-light leading-relaxed">
-                Circuitos organizados con guías expertos, seguro médico, transporte oficial y logística impecable en los 4 puntos cardinales de la isla.
-              </p>
+              <p className="text-muted-foreground text-lg sm:text-xl font-light leading-relaxed">{pc.tx("p.1", "Circuitos organizados con guías expertos, seguro médico, transporte oficial y logística impecable en los 4 puntos cardinales de la isla.")}</p>
             </motion.div>
           </div>
         </section>
 
         {/* FILTROS INTERACTIVOS */}
-        <section className="sticky top-16 bg-background/95 backdrop-blur-md border-b border-border z-30 py-3">
+        <section className="bg-background/95 backdrop-blur-md border-b border-border py-3">
           <div className="container mx-auto px-4 max-w-6xl">
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
               <button
@@ -193,8 +193,7 @@ export default function Tours() {
                     ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
                     : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
-              >
-                Todos los Paquetes ({allPackages.length})
+              >{pc.tx("button.1", "Todos los Paquetes (")}{allPackages.length})
               </button>
               {Object.entries(categoryConfig).map(([key, { label, icon: Icon }]) => {
                 const count = allPackages.filter(p => p.category === key).length;
@@ -211,7 +210,7 @@ export default function Tours() {
                   >
                     <Icon className="h-3.5 w-3.5" />
                     <span>{label}</span>
-                    <span className="text-[10px] opacity-70">({count})</span>
+                    <span className="text-3xs opacity-70">({count})</span>
                   </button>
                 );
               })}
@@ -230,9 +229,9 @@ export default function Tours() {
           ) : filtered.length === 0 ? (
             <div className="text-center py-24 bg-card rounded-3xl border border-dashed border-border max-w-md mx-auto">
               <Compass className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-foreground mb-2">No hay tours en esta categoría</h2>
-              <p className="text-muted-foreground text-sm mb-6">Prueba seleccionando otra categoría o contacta a un asesor.</p>
-              <Button onClick={() => setActiveCategory("all")}>Ver todos los tours</Button>
+              <h2 className="text-2xl font-bold text-foreground mb-2">{pc.tx("h2.1", "No hay tours en esta categoría")}</h2>
+              <p className="text-muted-foreground text-sm mb-6">{pc.tx("p.2", "Prueba seleccionando otra categoría o contacta a un asesor.")}</p>
+              <Button onClick={() => setActiveCategory("all")}>{pc.tx("Button.1", "Ver todos los tours")}</Button>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 gap-8">
@@ -252,7 +251,7 @@ export default function Tours() {
                       {/* IMAGEN Y BADGES */}
                       <div className="relative aspect-[16/10] overflow-hidden bg-muted">
                         <img
-                          src={pkg.image_url || heroBeach}
+                          src={pkg.image_url || pc.img("asset.heroBeach", heroBeach)}
                           alt={pkg.name}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         />
@@ -270,7 +269,7 @@ export default function Tours() {
                         </div>
 
                         {pkg.is_sponsored && (
-                          <SponsoredBadge label="Patrocinado oficial" className="absolute top-4 right-4 text-xs" />
+                          <SponsoredBadge label={pc.t("SponsoredBadge.label.1", "Patrocinado oficial")} className="absolute top-4 right-4 text-xs" />
                         )}
 
                         <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white text-xs">
@@ -289,9 +288,9 @@ export default function Tours() {
 
                       {/* CONTENIDO Y HIGHLIGHTS */}
                       <div className="p-6 sm:p-8">
-                        <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors leading-snug">
+                        <h2 className="h3 font-display text-xl sm:text-2xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors leading-snug">
                           {pkg.name}
-                        </h3>
+                        </h2>
                         <p className="text-muted-foreground text-sm leading-relaxed mb-6">
                           {pkg.short_description}
                         </p>
@@ -299,9 +298,7 @@ export default function Tours() {
                         {/* QUÉ INCLUYE (HIGHLIGHTS) */}
                         {pkg.highlights && (
                           <div className="space-y-2 mb-6 bg-muted/30 p-4 rounded-2xl border border-border/60">
-                            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                              Servicios destacados:
-                            </p>
+                            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{pc.tx("p.3", "Servicios destacados:")}</p>
                             <div className="grid sm:grid-cols-2 gap-2">
                               {pkg.highlights.map((h: string, idx: number) => (
                                 <div key={idx} className="flex items-start gap-1.5 text-xs text-foreground font-medium">
@@ -319,7 +316,7 @@ export default function Tours() {
                     <div className="p-6 sm:p-8 pt-0 border-t border-border/50 mt-auto bg-card">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4">
                         <div>
-                          <span className="text-xs text-muted-foreground block">Precio por persona desde</span>
+                          <span className="text-xs text-muted-foreground block">{pc.tx("span.2", "Precio por persona desde")}</span>
                           <p className="text-3xl font-black text-foreground">
                             ${pkg.price_from}{" "}
                             <span className="text-xs font-normal text-muted-foreground">{pkg.price_currency || "USD"}</span>
@@ -331,8 +328,7 @@ export default function Tours() {
                             onClick={() => handleQuickLead(pkg.name)}
                             className="btn-cta-magnetic bg-primary hover:bg-primary/90 text-white font-semibold py-5 px-6 rounded-xl shadow-lg shadow-primary/20 gap-2 flex-1 sm:flex-initial"
                           >
-                            <Calendar className="h-4 w-4" /> Solicitar Disponibilidad
-                          </Button>
+                            <Calendar className="h-4 w-4" />{" "}{pc.tx("Button.2", "Solicitar Disponibilidad")}</Button>
                         </div>
                       </div>
                     </div>
@@ -345,24 +341,16 @@ export default function Tours() {
           {/* BANNER DE ASESORÍA PERSONALIZADA */}
           <div className="bg-gradient-to-r from-primary/15 via-primary/5 to-card rounded-3xl p-8 sm:p-12 border border-primary/20 flex flex-col md:flex-row items-center justify-between gap-8">
             <div className="space-y-3 max-w-xl text-center md:text-left">
-              <Badge className="bg-primary/20 text-primary border-primary/30">
-                PLANES PRIVADOS Y A MEDIDA
-              </Badge>
-              <h3 className="font-display text-2xl sm:text-3xl font-bold">
-                ¿Viajas en grupo familiar o corporativo?
-              </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Diseñamos expediciones privadas exclusivas con chofer particular, chef de campo y guías certificados por el Ministerio de Turismo.
-              </p>
+              <Badge className="bg-primary/20 text-primary border-primary/30">{pc.tx("Badge.2", "PLANES PRIVADOS Y A MEDIDA")}</Badge>
+              <h3 className="font-display text-2xl sm:text-3xl font-bold">{pc.tx("h3.1", "¿Viajas en grupo familiar o corporativo?")}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{pc.tx("p.4", "Diseñamos expediciones privadas exclusivas con chofer particular, chef de campo y guías certificados por el Ministerio de Turismo.")}</p>
             </div>
             <Button
               onClick={() => handleQuickLead("Tour Privado a Medida")}
               size="lg"
               className="bg-primary text-white font-semibold px-8 py-6 rounded-xl shadow-xl shadow-primary/25 shrink-0"
             >
-              <PhoneCall className="h-4 w-4 mr-2" />
-              Hablar con un Especialista
-            </Button>
+              <PhoneCall className="h-4 w-4 mr-2" />{pc.tx("Button.3", "Hablar con un Especialista")}</Button>
           </div>
 
         </main>
@@ -378,12 +366,8 @@ export default function Tours() {
               className="bg-card rounded-3xl p-6 sm:p-8 max-w-md w-full border border-border shadow-2xl space-y-6"
             >
               <div>
-                <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mb-2">
-                  CONFIRMACIÓN INMEDIATA
-                </Badge>
-                <h3 className="font-display text-2xl font-bold text-foreground">
-                  Solicitar Plaza
-                </h3>
+                <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mb-2">{pc.tx("Badge.3", "CONFIRMACIÓN INMEDIATA")}</Badge>
+                <h3 className="font-display text-2xl font-bold text-foreground">{pc.tx("h3.2", "Solicitar Plaza")}</h3>
                 <p className="text-xs text-muted-foreground mt-1">
                   {selectedTourName}
                 </p>
@@ -398,16 +382,16 @@ export default function Tours() {
                 className="space-y-4"
               >
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground block mb-1">Nombre Completo</label>
+                  <label className="text-xs font-bold text-muted-foreground block mb-1">{pc.tx("label.1", "Nombre Completo")}</label>
                   <input
                     required
-                    placeholder="Ej. Carlos Rodríguez"
+                    placeholder={pc.t("input.placeholder.1", "Ej. Carlos Rodríguez")}
                     className="w-full px-4 py-2.5 rounded-xl bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground block mb-1">WhatsApp / Teléfono</label>
+                  <label className="text-xs font-bold text-muted-foreground block mb-1">{pc.tx("label.2", "WhatsApp / Teléfono")}</label>
                   <input
                     required
                     type="tel"
@@ -418,7 +402,7 @@ export default function Tours() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-bold text-muted-foreground block mb-1">Fecha Deseada</label>
+                    <label className="text-xs font-bold text-muted-foreground block mb-1">{pc.tx("label.3", "Fecha Deseada")}</label>
                     <input
                       type="date"
                       required
@@ -426,28 +410,24 @@ export default function Tours() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-muted-foreground block mb-1">Viajeros</label>
+                    <label className="text-xs font-bold text-muted-foreground block mb-1">{pc.tx("label.4", "Viajeros")}</label>
                     <select className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-xs focus:outline-none focus:ring-2 focus:ring-primary">
-                      <option>2 Personas</option>
-                      <option>1 Persona</option>
-                      <option>4 Personas</option>
-                      <option>6+ Personas</option>
+                      <option>{pc.tx("option.1", "2 Personas")}</option>
+                      <option>{pc.tx("option.2", "1 Persona")}</option>
+                      <option>{pc.tx("option.3", "4 Personas")}</option>
+                      <option>{pc.tx("option.4", "6+ Personas")}</option>
                     </select>
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full py-5 rounded-xl bg-primary text-white font-semibold">
-                  Confirmar y Recibir Itinerario
-                </Button>
+                <Button type="submit" className="w-full py-5 rounded-xl bg-primary text-white font-semibold">{pc.tx("Button.4", "Confirmar y Recibir Itinerario")}</Button>
 
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={() => setLeadModalOpen(false)}
                   className="w-full text-xs text-muted-foreground"
-                >
-                  Cancelar
-                </Button>
+                >{pc.tx("Button.5", "Cancelar")}</Button>
               </form>
             </motion.div>
           </div>
@@ -458,3 +438,6 @@ export default function Tours() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { CURATED_FALLBACK_PACKAGES, categoryConfig, difficultyColors };

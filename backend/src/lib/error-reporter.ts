@@ -121,7 +121,7 @@ export function createErrorReporter(options: ErrorReporterOptions): ErrorReporte
       event_id: eventId, timestamp: at / 1000, platform: "node", level: ctx.level ?? "error",
       environment: options.environment, release: options.release, server_name: serverName,
       exception: { values: [{ type: error.name, value: clip(error.message, 1000), stacktrace: { frames: parseStack(error.stack) } }] },
-      tags: { ...(ctx.tags ?? {}), ...(ctx.source ? { source: ctx.source } : {}), ...(ctx.requestId ? { request_id: ctx.requestId } : {}), ...(ctx.route ? { route: ctx.route } : {}), ...(ctx.method ? { method: ctx.method } : {}) },
+      tags: { ...(ctx.tags ?? {}), ...(ctx.source ? { source: ctx.source } : {}), ...(ctx.requestId ? { request_id: clip(ctx.requestId, 128) } : {}), ...(ctx.route ? { route: ctx.route } : {}), ...(ctx.method ? { method: ctx.method } : {}) },
       ...(ctx.route ? { transaction: `${ctx.method ?? ""} ${ctx.route}`.trim() } : {}),
       ...(ctx.userId ? { user: { id: ctx.userId } } : {}),
       fingerprint: [fingerprint(error, ctx)],
@@ -135,7 +135,7 @@ export function createErrorReporter(options: ErrorReporterOptions): ErrorReporte
     const lines = [
       `${ctx.level === "fatal" ? "🔴 La API se detuvo" : "⚠️ Error en la API"} · ${options.environment}${options.release ? ` · ${options.release}` : ""}`,
       `${error.name}: ${clip(error.message, 300)}`,
-      [ctx.source, where, ctx.requestId ? `petición ${ctx.requestId}` : ""].filter(Boolean).join(" · "),
+      [ctx.source, where, ctx.requestId ? `petición ${clip(ctx.requestId.replace(/[^A-Za-z0-9._:-]/g, "_"), 128)}` : ""].filter(Boolean).join(" · "),
       suppressed > 0 ? `(${suppressed} repeticiones más desde el último aviso)` : "",
     ].filter(Boolean);
     const text = lines.join("\n");

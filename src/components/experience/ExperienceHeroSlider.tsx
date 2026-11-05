@@ -73,7 +73,7 @@ export function ExperienceHeroSlider({
     const diff = touchStartX.current - e.changedTouches[0].clientX;
     if (Math.abs(diff) > 45) {
       setIsAutoPlaying(false);
-      diff > 0 ? nextSlide() : prevSlide();
+      if (diff > 0) nextSlide(); else prevSlide();
     }
     touchStartX.current = null;
   };

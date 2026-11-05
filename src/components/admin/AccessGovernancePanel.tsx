@@ -110,7 +110,7 @@ function ApprovalsTab() {
         <CardHeader><CardTitle className="text-sm">Nueva solicitud</CardTitle></CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2">
           <div>
-            <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="approval-kind">Operación</label>
+            <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="approval-kind">Operación</label>
             <Select value={draft.kind} onValueChange={(v) => setDraft({ ...draft, kind: v as ApprovalKind })}>
               <SelectTrigger id="approval-kind" className="h-9 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -119,23 +119,23 @@ function ApprovalsTab() {
             </Select>
           </div>
           <div>
-            <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="approval-target">{draft.kind === "payout_mark_paid" ? "Id de la liquidación" : "Id de la cuenta"}</label>
+            <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="approval-target">{draft.kind === "payout_mark_paid" ? "Id de la liquidación" : "Id de la cuenta"}</label>
             <Input id="approval-target" value={draft.target} onChange={(e) => setDraft({ ...draft, target: e.target.value })} placeholder="00000000-0000-4000-8000-000000000000" className="h-9 font-mono text-xs" />
           </div>
           {draft.kind === "grant_admin" && (
             <div>
-              <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="approval-hours">Duración en horas (vacío: permanente)</label>
+              <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="approval-hours">Duración en horas (vacío: permanente)</label>
               <Input id="approval-hours" type="number" min={1} max={720} value={draft.hours} onChange={(e) => setDraft({ ...draft, hours: e.target.value })} className="h-9 text-xs" />
             </div>
           )}
           {draft.kind === "payout_mark_paid" && (
             <div>
-              <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="approval-reference">Referencia del pago</label>
+              <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="approval-reference">Referencia del pago</label>
               <Input id="approval-reference" value={draft.reference} onChange={(e) => setDraft({ ...draft, reference: e.target.value })} className="h-9 text-xs" />
             </div>
           )}
           <div className="md:col-span-2">
-            <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="approval-reason">Motivo (mínimo 10 caracteres)</label>
+            <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="approval-reason">Motivo (mínimo 10 caracteres)</label>
             <Input id="approval-reason" value={draft.reason} onChange={(e) => setDraft({ ...draft, reason: e.target.value })} maxLength={300} className="h-9 text-xs" />
           </div>
           <div className="md:col-span-2">
@@ -173,13 +173,13 @@ function ApprovalsTab() {
               {query.data?.data.map((row: ApprovalRequest) => (
                 <TableRow key={row.id}>
                   <TableCell className="text-xs font-semibold">{APPROVAL_KIND_LABEL[row.kind]}{typeof row.payload.hours === "number" && <span className="block font-normal text-muted-foreground">{row.payload.hours} h</span>}</TableCell>
-                  <TableCell className="font-mono text-[11px]">{shortId(row.target_id)}</TableCell>
+                  <TableCell className="font-mono text-2xs">{shortId(row.target_id)}</TableCell>
                   <TableCell className="max-w-[18rem] text-xs">{row.reason}</TableCell>
                   <TableCell className="text-xs"><span className="font-mono">{shortId(row.requested_by)}</span><span className="block text-muted-foreground">{when(row.created_at)}</span></TableCell>
                   <TableCell className="text-xs">
-                    <Badge variant={row.status === "pending" ? "default" : "outline"} className="text-[10px]">{APPROVAL_STATUS_LABEL[row.status]}</Badge>
-                    {row.status === "pending" && <span className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground"><Clock className="h-3 w-3" aria-hidden /> vence {when(row.expires_at)}</span>}
-                    {row.decision_note && <span className="mt-1 block text-[10px] text-muted-foreground">{row.decision_note}</span>}
+                    <Badge variant={row.status === "pending" ? "default" : "outline"} className="text-3xs">{APPROVAL_STATUS_LABEL[row.status]}</Badge>
+                    {row.status === "pending" && <span className="mt-1 flex items-center gap-1 text-3xs text-muted-foreground"><Clock className="h-3 w-3" aria-hidden /> vence {when(row.expires_at)}</span>}
+                    {row.decision_note && <span className="mt-1 block text-3xs text-muted-foreground">{row.decision_note}</span>}
                   </TableCell>
                   <TableCell className="text-xs">
                     {row.status !== "pending" ? <span className="text-muted-foreground">{row.decided_by ? `${shortId(row.decided_by)} · ${when(row.decided_at)}` : "—"}</span> : row.can_decide ? (
@@ -266,7 +266,7 @@ function ReviewsTab() {
                 {review.items.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="text-xs"><span className="font-semibold">{item.display_name ?? item.email}</span><span className="block text-muted-foreground">{item.email}</span></TableCell>
-                    <TableCell className="text-xs"><Badge variant="outline" className="font-mono text-[10px]">{item.role}</Badge>{item.expires_at && <span className="mt-1 block text-[10px] text-muted-foreground">vence {when(item.expires_at)}</span>}</TableCell>
+                    <TableCell className="text-xs"><Badge variant="outline" className="font-mono text-3xs">{item.role}</Badge>{item.expires_at && <span className="mt-1 block text-3xs text-muted-foreground">vence {when(item.expires_at)}</span>}</TableCell>
                     <TableCell className="text-xs">{item.last_session_at ? when(item.last_session_at) : <span className="text-amber-600">Nunca inició sesión</span>}</TableCell>
                     <TableCell className="text-xs">
                       {item.decision ? (
@@ -317,7 +317,7 @@ function PersonTab() {
       <Card>
         <CardContent className="flex flex-wrap items-end gap-3 p-4">
           <div className="min-w-[16rem] flex-1">
-            <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="timeline-user">Id de la cuenta</label>
+            <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="timeline-user">Id de la cuenta</label>
             <Input id="timeline-user" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && UUID_PATTERN.test(input.trim())) setUserId(input.trim()); }} placeholder="Cópialo desde Usuarios & Roles" className="h-9 font-mono text-xs" />
           </div>
           <Button size="sm" className="h-9 gap-1.5 rounded-xl text-xs" disabled={!UUID_PATTERN.test(input.trim())} onClick={() => setUserId(input.trim())}><History className="h-3.5 w-3.5" aria-hidden /> Ver accesos</Button>
@@ -336,7 +336,7 @@ function PersonTab() {
               <CardContent className="space-y-2">
                 {data.roles.map((r) => (
                   <div key={r.role} className="flex items-start justify-between gap-3 text-xs">
-                    <Badge variant="outline" className="font-mono text-[10px]">{r.role}</Badge>
+                    <Badge variant="outline" className="font-mono text-3xs">{r.role}</Badge>
                     <span className="text-right text-muted-foreground">{r.expires_at ? `Temporal · vence ${when(r.expires_at)}` : "Permanente"}{r.grant_reason && <span className="block">{r.grant_reason}</span>}</span>
                   </div>
                 ))}
@@ -360,22 +360,22 @@ function PersonTab() {
             <CardHeader><CardTitle className="text-sm">Conceder un rol temporal</CardTitle></CardHeader>
             <CardContent className="flex flex-wrap items-end gap-3">
               <div className="w-[10rem]">
-                <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="grant-role">Rol</label>
+                <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="grant-role">Rol</label>
                 <Select value={grant.role} onValueChange={(v) => setGrant({ ...grant, role: v })}>
                   <SelectTrigger id="grant-role" className="h-9 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>{TEMPORARY_ROLES.map((r) => <SelectItem key={r} value={r} className="text-xs">{r}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="w-[8rem]">
-                <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="grant-hours">Horas (1–720)</label>
+                <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="grant-hours">Horas (1–720)</label>
                 <Input id="grant-hours" type="number" min={1} max={720} value={grant.hours} onChange={(e) => setGrant({ ...grant, hours: e.target.value })} className="h-9 text-xs" />
               </div>
               <div className="min-w-[14rem] flex-1">
-                <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="grant-reason">Motivo (mínimo 10 caracteres)</label>
+                <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="grant-reason">Motivo (mínimo 10 caracteres)</label>
                 <Input id="grant-reason" value={grant.reason} onChange={(e) => setGrant({ ...grant, reason: e.target.value })} maxLength={300} className="h-9 text-xs" />
               </div>
               <Button size="sm" className="h-9 rounded-xl text-xs" disabled={grantRole.isPending || grant.reason.trim().length < 10 || !Number.isInteger(hours) || hours < 1 || hours > 720} onClick={() => grantRole.mutate()}>Conceder</Button>
-              <p className="basis-full text-[11px] text-muted-foreground">La administración no se concede aquí: va por una solicitud con doble aprobación.</p>
+              <p className="basis-full text-2xs text-muted-foreground">La administración no se concede aquí: va por una solicitud con doble aprobación.</p>
             </CardContent>
           </Card>
 
@@ -389,7 +389,7 @@ function PersonTab() {
                     <TableRow key={`${e.at}-${i}`}>
                       <TableCell className="whitespace-nowrap text-xs">{when(e.at)}</TableCell>
                       <TableCell className="text-xs font-semibold">{accessEventLabel(e.action)}</TableCell>
-                      <TableCell className="font-mono text-[11px]">{e.actor_id ? shortId(e.actor_id) : "sistema"}</TableCell>
+                      <TableCell className="font-mono text-2xs">{e.actor_id ? shortId(e.actor_id) : "sistema"}</TableCell>
                       <TableCell className="max-w-[24rem] text-xs text-muted-foreground">{Object.entries(e.meta).filter(([, v]) => v !== null && typeof v !== "object").map(([k, v]) => `${k}: ${String(v)}`).join(" · ") || "—"}</TableCell>
                     </TableRow>
                   ))}

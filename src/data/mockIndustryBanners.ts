@@ -161,7 +161,7 @@ export const INDUSTRY_BANNERS_DEMO: IndustryBannerDemo[] = [
     headline: "Conquista las 32 Provincias con Kilometraje Ilimitado",
     subtext: "Recogida express en los aeropuertos de Santo Domingo, Punta Cana y Santiago. Seguro total y asistencia en carretera 24/7.",
     ctaText: "Cotizar Auto Ahora",
-    targetUrl: "/info/transporte",
+    targetUrl: "/transporte-urbano#recorre",
     imageUrl: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1200&auto=format&fit=crop&q=80",
     badgeColor: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
   },

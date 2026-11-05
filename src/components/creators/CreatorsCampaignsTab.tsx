@@ -56,8 +56,8 @@ export function CreatorsCampaignsTab({ videos }: Props) {
                 <CardDescription className="text-xs">{c.sponsor ? `Marca: ${c.sponsor} · ` : ""}Términos versión {c.version}</CardDescription>
               </div>
               {c.needs_acceptance
-                ? <Badge variant="outline" className="border-amber-500/40 text-amber-600 text-[10px]">{c.accepted_version ? `Cambiaron desde la versión ${c.accepted_version} que aceptaste` : "Pendiente de aceptar"}</Badge>
-                : <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 text-[10px]"><BadgeCheck className="mr-1 h-3 w-3" aria-hidden /> Aceptaste la versión {c.version}</Badge>}
+                ? <Badge variant="outline" className="border-amber-500/40 text-amber-600 text-3xs">{c.accepted_version ? `Cambiaron desde la versión ${c.accepted_version} que aceptaste` : "Pendiente de aceptar"}</Badge>
+                : <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 text-3xs"><BadgeCheck className="mr-1 h-3 w-3" aria-hidden /> Aceptaste la versión {c.version}</Badge>}
             </div>
           </CardHeader>
           <CardContent className="space-y-4 text-xs">
@@ -81,7 +81,7 @@ export function CreatorsCampaignsTab({ videos }: Props) {
             ) : (
               <div className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-muted/40 p-3">
                 <div className="min-w-[14rem] flex-1">
-                  <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor={`piece-${c.id}`}>Pieza a entregar</label>
+                  <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor={`piece-${c.id}`}>Pieza a entregar</label>
                   <Select value={pieces[c.id] ?? ""} onValueChange={(v) => setPieces({ ...pieces, [c.id]: v })}>
                     <SelectTrigger id={`piece-${c.id}`} className="h-9 text-xs"><SelectValue placeholder={videos.length ? "Elige una de tus piezas" : "Aún no tienes piezas publicadas"} /></SelectTrigger>
                     <SelectContent>{videos.map((v) => <SelectItem key={v.id} value={v.id} className="text-xs">{v.title}</SelectItem>)}</SelectContent>
@@ -130,7 +130,7 @@ function RightsCard({ videos }: Props) {
       </CardHeader>
       <CardContent className="space-y-4 text-xs">
         <div className="max-w-md">
-          <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="rights-piece">Pieza</label>
+          <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="rights-piece">Pieza</label>
           <Select value={videoId} onValueChange={setVideoId}>
             <SelectTrigger id="rights-piece" className="h-9 text-xs"><SelectValue placeholder={videos.length ? "Elige una pieza" : "Aún no tienes piezas"} /></SelectTrigger>
             <SelectContent>{videos.map((v) => <SelectItem key={v.id} value={v.id} className="text-xs">{v.title}</SelectItem>)}</SelectContent>
@@ -143,7 +143,7 @@ function RightsCard({ videos }: Props) {
           <div key={l.id} className="rounded-xl border border-border p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="font-semibold">{l.license_type === "campaign" ? `Campaña: ${l.campaign_title ?? "—"}` : "Difusión en la plataforma"}</span>
-              <Badge variant="outline" className="text-[10px]">{LICENSE_STATUS[l.status]}</Badge>
+              <Badge variant="outline" className="text-3xs">{LICENSE_STATUS[l.status]}</Badge>
             </div>
             <p className="mt-1 text-muted-foreground">
               {l.exclusive ? "Exclusiva" : "No exclusiva"} · {l.territory} · medios: {l.media.join(", ")} · usos: {l.approved_uses.join(", ")} · vence {day(l.expires_at)}

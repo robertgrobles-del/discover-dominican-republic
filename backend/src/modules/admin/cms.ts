@@ -11,6 +11,8 @@ import type { ColType } from "../../lib/db-types.js";
 import { audit } from "../../lib/audit.js";
 
 /** Columnas que gobierna el sistema (flujo editorial y trazabilidad): no se editan directamente. */
+/** Tablas de establecimientos que un propietario ('partner') registra y gestiona desde el panel (sólo los suyos). */
+export const PARTNER_TABLES = new Set(["hotels", "restaurants", "bars", "spas_wellness", "coffee_experiences", "artisanal_workshops", "clinics", "airbnb_listings", "shopping_centers"]);
 const MANAGED = new Set(["id", "created_at", "updated_at", "version", "status", "published_at", "unpublished_at", "slug_history", "created_by", "updated_by", "reviewed_by", "deleted_at"]);
 const Q = (c: string) => `"${c}"`;
 const bearer = [{ bearerAuth: [] }];
@@ -177,14 +179,19 @@ export async function adminCmsRoutes(app: FastifyInstance) {
       return audit(db, { actor: actorOf(req), action: `cms.${action}`, entity: t, id, meta: extra, ip: req.ip });
     };
 
-    // Quien tiene un permiso acotado sobre esta colección puede leer, crear, editar, borrar (lógico) y enviar a revisión.
-    // Publicar, restaurar, importar, exportar y las acciones masivas siguen siendo sólo de editor o admin.
-    const scoped = app.requireRoleOrGrant(["admin", "editor"], "catalog.manage", d.path);
+    // Personal (admin/editor), quien tenga un permiso 'catalog.manage' sobre esta colección y, en las tablas de
+    // establecimientos, los propietarios ('partner'). Un partner sólo ve y toca lo que él creó (checkOwnership y el
+    // filtro del listado); lo que crea nace en borrador y sólo puede enviarlo a revisión: publicar, restaurar, importar,
+    // exportar y las acciones masivas siguen siendo del personal.
+    const scoped = PARTNER_TABLES.has(t) && hasCol(t, "created_by")
+      ? app.requireRoleOrGrant(["admin", "editor", "partner"], "catalog.manage", d.path)
+      : app.requireRoleOrGrant(["admin", "editor"], "catalog.manage", d.path);
     /** Con un permiso limitado a registros concretos (p. ej. un evento delegado), sólo se tocan esos. */
     const scopedTo = (req: { grant?: { record_ids: string[] } }, id?: string) => {
       const ids = req.grant?.record_ids ?? [];
       if (ids.length && (!id || !ids.includes(id))) throw new AppError("FORBIDDEN", "Tu permiso sólo cubre registros concretos de esta colección", { code: "OUT_OF_GRANT_SCOPE" });
     };
+    const isStaff = (req: { user?: { roles: string[] } }) => req.user?.roles.some((r) => ["admin", "editor"].includes(r)) ?? false;
 
     r.get(`${base}/schema`, { onRequest: scoped, schema: { ...hide, summary: `Definición de campos de ${d.label}` } }, async () => ({
       data: {
@@ -204,6 +211,11 @@ export async function adminCmsRoutes(app: FastifyInstance) {
       if (hasCol(t, "deleted_at")) where.push(qs.deleted === "true" ? "deleted_at IS NOT NULL" : "deleted_at IS NULL");
       if (qs.status && hasCol(t, "status")) where.push(`status = ${bind(qs.status)}`);
       if (qs.q && d.search.length) { const ph = bind(`%${qs.q.replace(/[\\%_]/g, "\\$&")}%`); where.push(`(${d.search.filter((c) => hasCol(t, c)).map((c) => `lower(f_unaccent(${Q(c)}::text)) LIKE lower(f_unaccent(${ph})) ESCAPE '\\'`).join(" OR ")})`); }
+      // Aislamiento por usuario: si no es admin/editor y la tabla tiene trazabilidad por created_by, sólo ve sus registros
+      // (un permiso acotado a registros concretos ya limita por id y no se filtra por autor)
+      if (!isStaff(req) && !req.grant?.record_ids?.length && hasCol(t, "created_by")) {
+        where.push(`created_by = ${bind(actorOf(req))}`);
+      }
       for (const [k, v] of Object.entries(qs)) {
         const m = k.match(/^filter\[([a-z_0-9]+)\]$/);
         if (!m) continue;
@@ -229,8 +241,19 @@ export async function adminCmsRoutes(app: FastifyInstance) {
       return [names.join(","), ...rows.map((row) => names.map((n) => csvCell(row[n])).join(","))].join("\r\n");
     });
 
+    const checkOwnership = async (req: { user?: { id: string; roles: string[] }; grant?: { record_ids: string[] } }, id: string) => {
+      // Personal y permisos acotados a registros concretos (ya validados por scopedTo) no dependen del autor.
+      if (isStaff(req) || req.grant?.record_ids?.length || !hasCol(t, "created_by")) return;
+      const cur = (await db.query(`SELECT created_by FROM ${Q(t)} WHERE id = $1`, [id])).rows[0];
+      // Un registro sin autor (cargado por el personal o importado) tampoco es del usuario.
+      if (cur && cur.created_by !== actorOf(req)) {
+        throw new AppError("FORBIDDEN", "Solo el propietario puede gestionar este establecimiento");
+      }
+    };
+
     r.get(`${base}/:id`, { onRequest: scoped, schema: { ...hide, summary: `Detalle de ${d.label}`, params: idp } }, async (req) => {
       scopedTo(req, req.params.id);
+      await checkOwnership(req, req.params.id);
       const row = (await db.query(`SELECT * FROM ${Q(t)} WHERE id = $1`, [req.params.id])).rows[0];
       if (!row) throw AppError.notFound("Registro");
       return { data: row };
@@ -246,6 +269,7 @@ export async function adminCmsRoutes(app: FastifyInstance) {
 
     r.patch(`${base}/:id`, { onRequest: scoped, schema: { ...hide, summary: `Edita ${d.label} (con version)`, params: idp, body: (hasCol(t, "version") ? body.extend({ version: z.number().int().min(1) }) : body) } }, async (req) => {
       scopedTo(req, req.params.id);
+      await checkOwnership(req, req.params.id);
       const { version, ...data } = req.body as Record<string, unknown> & { version?: number };
       const row = await tx((c) => update(d, req.params.id, data, version, actorOf(req), c));
       await done(req, "update", req.params.id, { version: row.version });
@@ -254,6 +278,7 @@ export async function adminCmsRoutes(app: FastifyInstance) {
 
     r.delete(`${base}/:id`, { onRequest: scoped, schema: { ...hide, summary: `Borra ${d.label} (lógico; ?hard=true sólo admin)`, params: idp, querystring: z.object({ hard: z.enum(["true", "false"]).default("false") }) } }, async (req, reply) => {
       scopedTo(req, req.params.id);
+      await checkOwnership(req, req.params.id);
       const hard = req.query.hard === "true";
       if (hard && !req.user!.roles.includes("admin")) throw new AppError("FORBIDDEN", "El borrado definitivo es sólo para administradores");
       await tx((c) => softDelete(d, req.params.id, actorOf(req), c, hard));
@@ -268,6 +293,7 @@ export async function adminCmsRoutes(app: FastifyInstance) {
         schema: { ...hide, summary: `${kind} en ${d.label}`, params: idp, body: z.object({ publish_at: z.string().datetime({ offset: true }).optional() }).nullish() },
       }, async (req) => {
         scopedTo(req, req.params.id);
+        if (kind === "submit-review") await checkOwnership(req, req.params.id);
         const row = await tx((c) => transition(d, req.params.id, kind, actorOf(req), c, kind === "publish" ? req.body?.publish_at : undefined));
         await done(req, kind, req.params.id, { status: row.status });
         return { data: row };

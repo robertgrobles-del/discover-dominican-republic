@@ -323,7 +323,7 @@ export function CreatorsIdentityTab() {
           <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300">
             demo
           </Badge>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-2xs text-muted-foreground">
             Datos de demostración: el entorno corre con datos simulados y los endpoints de identidad aún no
             existen. Nada de lo que ves aquí proviene de un servidor.
           </p>
@@ -376,12 +376,12 @@ export function CreatorsIdentityTab() {
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {(bundle.identity.categories ?? []).map((category) => (
-                  <Badge key={category} variant="outline" className="text-[10px] font-semibold">
+                  <Badge key={category} variant="outline" className="text-3xs font-semibold">
                     <Sparkles className="h-3 w-3 mr-1" /> {category}
                   </Badge>
                 ))}
                 {(bundle.identity.languages ?? []).map((language) => (
-                  <Badge key={language} variant="secondary" className="text-[10px] font-semibold">
+                  <Badge key={language} variant="secondary" className="text-3xs font-semibold">
                     {language}
                   </Badge>
                 ))}
@@ -393,21 +393,21 @@ export function CreatorsIdentityTab() {
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="rounded-xl bg-muted/40 p-3 text-center">
-              <p className="text-[10px] font-bold uppercase text-muted-foreground">Seguidores</p>
+              <p className="text-3xs font-bold uppercase text-muted-foreground">Seguidores</p>
               <p className="text-sm font-black text-foreground">{formatNumber(metrics.followers)}</p>
             </div>
             <div className="rounded-xl bg-muted/40 p-3 text-center">
-              <p className="text-[10px] font-bold uppercase text-muted-foreground">Reproducciones</p>
+              <p className="text-3xs font-bold uppercase text-muted-foreground">Reproducciones</p>
               <p className="text-sm font-black text-foreground">{formatNumber(metrics.views)}</p>
             </div>
             <div className="rounded-xl bg-muted/40 p-3 text-center">
-              <p className="text-[10px] font-bold uppercase text-muted-foreground">Engagement</p>
+              <p className="text-3xs font-bold uppercase text-muted-foreground">Engagement</p>
               <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">
                 {formatPercent(metrics.engagement_rate)}
               </p>
             </div>
             <div className="rounded-xl bg-muted/40 p-3 text-center">
-              <p className="text-[10px] font-bold uppercase text-muted-foreground">Reputación</p>
+              <p className="text-3xs font-bold uppercase text-muted-foreground">Reputación</p>
               <p className="text-sm font-black text-primary flex items-center justify-center gap-1">
                 <TrendingUp className="h-3.5 w-3.5" />
                 {typeof reputationScore === "number" ? `${reputationScore}/100` : "—"}
@@ -434,7 +434,7 @@ export function CreatorsIdentityTab() {
                       : 0;
                   return (
                     <li key={factor.key} className="space-y-1">
-                      <div className="flex items-center justify-between text-[11px]">
+                      <div className="flex items-center justify-between text-2xs">
                         <span className="text-foreground font-semibold">{factor.label}</span>
                         <span className="text-muted-foreground font-mono">
                           {factor.points}/{factor.max_points}
@@ -455,7 +455,7 @@ export function CreatorsIdentityTab() {
                 })}
               </ul>
             ) : (
-              <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+              <p className="text-2xs text-muted-foreground flex items-center gap-1.5">
                 <AlertCircle className="h-3.5 w-3.5" />
                 El servidor no publica el desglose por factores de tu reputación; solo la puntuación total.
               </p>
@@ -492,7 +492,7 @@ export function CreatorsIdentityTab() {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className="text-sm font-bold text-foreground">{definition.label}</p>
-                      <p className="text-[11px] text-muted-foreground">{definition.purpose}</p>
+                      <p className="text-2xs text-muted-foreground">{definition.purpose}</p>
                     </div>
                     {seal ? (
                       <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 shrink-0">
@@ -505,13 +505,13 @@ export function CreatorsIdentityTab() {
                     )}
                   </div>
                   <div className="rounded-xl bg-background/70 border border-border/60 p-2.5">
-                    <p className="text-[10px] font-bold uppercase text-muted-foreground">
+                    <p className="text-3xs font-bold uppercase text-muted-foreground">
                       Criterios publicados
                     </p>
-                    <p className="text-[11px] text-foreground/90 leading-relaxed">{definition.criteria}</p>
+                    <p className="text-2xs text-foreground/90 leading-relaxed">{definition.criteria}</p>
                   </div>
                   {seal ? (
-                    <div className="space-y-1 text-[11px] text-muted-foreground">
+                    <div className="space-y-1 text-2xs text-muted-foreground">
                       <p>
                         <span className="font-semibold text-foreground">Otorgado:</span>{" "}
                         {awardedAt ?? "fecha no disponible"}
@@ -524,7 +524,7 @@ export function CreatorsIdentityTab() {
                       )}
                     </div>
                   ) : (
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-2xs text-muted-foreground">
                       Aún no cumples los criterios publicados. Cuando los cumplas, la auditoría otorga el
                       sello automáticamente.
                     </p>
@@ -561,7 +561,7 @@ export function CreatorsIdentityTab() {
                       variant={selected ? "default" : "outline"}
                       aria-pressed={selected}
                       onClick={() => toggleCategory(option)}
-                      className="rounded-full text-[11px] h-7"
+                      className="rounded-full text-2xs h-7"
                     >
                       {option}
                     </Button>
@@ -583,7 +583,7 @@ export function CreatorsIdentityTab() {
                       variant={selected ? "default" : "outline"}
                       aria-pressed={selected}
                       onClick={() => toggleLanguage(option)}
-                      className="rounded-full text-[11px] h-7"
+                      className="rounded-full text-2xs h-7"
                     >
                       {option}
                     </Button>
@@ -595,7 +595,7 @@ export function CreatorsIdentityTab() {
             <div className="flex items-center justify-between gap-4 rounded-xl border border-border p-3">
               <div>
                 <p className="text-xs font-bold text-foreground">Perfil visible en el directorio</p>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-2xs text-muted-foreground">
                   Si lo desactivas, tu ficha deja de mostrarse a hoteles y visitantes.
                 </p>
               </div>
@@ -623,7 +623,7 @@ export function CreatorsIdentityTab() {
                 placeholder="Cuenta qué tipo de contenido creas y qué destinos dominicanos cubres."
               />
               <p
-                className={`text-[11px] ${
+                className={`text-2xs ${
                   bio.trim().length > CREATOR_BIO_MAX_LENGTH ? "text-destructive" : "text-muted-foreground"
                 }`}
               >
@@ -632,7 +632,7 @@ export function CreatorsIdentityTab() {
             </div>
 
             {formError && (
-              <p className="text-[11px] text-destructive flex items-center gap-1.5" role="alert">
+              <p className="text-2xs text-destructive flex items-center gap-1.5" role="alert">
                 <AlertCircle className="h-3.5 w-3.5" /> {formError}
               </p>
             )}

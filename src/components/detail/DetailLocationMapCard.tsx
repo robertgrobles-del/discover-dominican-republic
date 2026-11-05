@@ -96,13 +96,13 @@ export const DetailLocationMapCard: React.FC<DetailLocationMapCardProps> = ({
       {(parkingNotes || howToGetThereNotes) && (
         <div className="p-3.5 rounded-2xl bg-muted/30 border border-border/60 text-xs text-muted-foreground space-y-1.5">
           {parkingNotes && (
-            <p className="flex items-start gap-1.5 text-[11px]">
+            <p className="flex items-start gap-1.5 text-2xs">
               <Car className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
               <span><strong>Parqueo:</strong> {parkingNotes}</span>
             </p>
           )}
           {howToGetThereNotes && (
-            <p className="flex items-start gap-1.5 text-[11px]">
+            <p className="flex items-start gap-1.5 text-2xs">
               <Navigation className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
               <span><strong>Acceso:</strong> {howToGetThereNotes}</span>
             </p>

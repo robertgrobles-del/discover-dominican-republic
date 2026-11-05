@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { HOME_SECTION_FRAME, SectionWithSideAds } from "@/components/SectionWithSideAds";
 import { Star, ChevronRight, Home, Users, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -8,27 +9,17 @@ import { Badge } from "@/components/ui/badge";
 import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { fetchApi } from "@/lib/fastifyClient";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useTranslation } from "@/hooks/useI18n";
+import { useTrackedBanner } from "@/hooks/useAdBanners";
 import hotelEdenRocImg from "@/assets/hotel-eden-roc.jpg";
 import hotelClareVerdeImg from "@/assets/hotel-clare-verde.jpg";
 import hotelBilliniImg from "@/assets/hotel-billini.jpg";
 
 // Hotel patrocinado destacado
-const sponsoredHotel = {
-  id: "sponsored-hotel",
-  name: "Secrets Cap Cana Resort & Spa",
-  rating: 4.9,
-  location: "Cap Cana, Punta Cana",
-  description: "Resort todo incluido solo para adultos. Suites de lujo frente al mar con servicio personalizado y gastronomía de clase mundial.",
-  price: 520,
-  originalPrice: 650,
-  image: "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800",
-  tags: ["Todo Incluido", "Solo Adultos"],
-  isSponsored: true,
-};
-
 const staticHotels = [
   {
     id: "eden-roc-cap-cana",
@@ -93,6 +84,8 @@ interface AccommodationItem {
   guests?: number;
   host?: string;
   isSponsored?: boolean;
+  adUrl?: string;
+  onAdClick?: () => void;
 }
 
 interface AccommodationCardProps {
@@ -141,10 +134,10 @@ function AccommodationCard({ item, type, t }: AccommodationCardProps) {
               Superhost
             </div>
           )}
-          <div className="flex items-center gap-1 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded">
+          {item.rating > 0 && (<div className="flex items-center gap-1 bg-accent text-accent-foreground text-xs font-bold px-2 py-1 rounded">
             <Star className="h-3 w-3 fill-current" />
             {item.rating}
-          </div>
+          </div>)}
           <FavoriteButton
             id={item.id}
             type="hotel"
@@ -181,7 +174,7 @@ function AccommodationCard({ item, type, t }: AccommodationCardProps) {
         </p>
 
         <div className="flex items-center justify-between pt-4 border-t border-border">
-          <div>
+          {item.price > 0 ? <div>
             {item.originalPrice && (
               <span className="text-sm text-muted-foreground line-through mr-2">
                 ${item.originalPrice}
@@ -189,8 +182,8 @@ function AccommodationCard({ item, type, t }: AccommodationCardProps) {
             )}
             <span className="text-xl font-bold text-foreground">${item.price}</span>
             <span className="text-sm text-muted-foreground">{t("accommodations.perNight")}</span>
-          </div>
-          <Link to={`/alojamiento/${item.id}`}>
+          </div> : <div />}
+          <Link to={item.adUrl || `/alojamiento/${item.id}`} onClick={item.onAdClick}>
             <Button size="sm" variant={isAirbnb ? "default" : "outline"}>
               {isAirbnb ? t("accommodations.book") : t("accommodations.checkAvailability")}
             </Button>
@@ -203,9 +196,20 @@ function AccommodationCard({ item, type, t }: AccommodationCardProps) {
 
 export function AccommodationsSection() {
   const { t } = useTranslation();
+  // Tarjetas patrocinadas: sólo con campaña en el admin (banner_type "native-card", placement "native"); sin ella la
+  // posición la ocupa un alojamiento normal. Nunca se marca como patrocinado a quien no ha contratado.
+  const hotelAd = useTrackedBanner({ section: "home-alojamientos-hotel", bannerType: "native-card", placement: "native" });
+  const airbnbAd = useTrackedBanner({ section: "home-alojamientos-airbnb", bannerType: "native-card", placement: "native" });
+  const toAdItem = (ad: typeof hotelAd): AccommodationItem | null => ad.banner && ad.banner.image_url ? { id: `ad-${ad.banner.id}`, name: ad.banner.headline || ad.banner.name, rating: 0, location: ad.banner.sponsor || "", description: ad.banner.subtext || "", price: 0, image: ad.banner.image_url, tags: [], isSponsored: true, adUrl: ad.banner.target_url || undefined, onAdClick: ad.trackClick } : null;
+  const adHotel = toAdItem(hotelAd);
+  const adAirbnb = toAdItem(airbnbAd);
   const { data: dbHotels } = useQuery({
     queryKey: ['home-hotels'],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        const res = await fetchApi<{ data: any[] }>('/hotels?per_page=6');
+        return res.data || [];
+      }
       const { data } = await supabase.from('hotels').select('*').eq('is_active', true).order('is_featured', { ascending: false }).limit(6);
       return data || [];
     },
@@ -214,6 +218,10 @@ export function AccommodationsSection() {
   const { data: dbAirbnbs } = useQuery({
     queryKey: ['home-airbnbs'],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        const res = await fetchApi<{ data: any[] }>('/airbnb-listings?per_page=6');
+        return res.data || [];
+      }
       const { data } = await supabase.from('airbnb_listings').select('*').eq('is_active', true).order('is_featured', { ascending: false }).limit(6);
       return data || [];
     },
@@ -261,23 +269,9 @@ export function AccommodationsSection() {
     return items;
   }, [dbAirbnbs]);
 
-  const sponsoredAirbnb = {
-    id: "sponsored-airbnb",
-    name: "Penthouse Oceanview",
-    rating: 4.98,
-    location: "Cap Cana, Punta Cana",
-    description: "Penthouse de lujo con terraza privada de 200m², piscina infinita y vistas panorámicas al océano.",
-    price: 650,
-    image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800",
-    tags: ["Penthouse", "Océano"],
-    guests: 6,
-    host: "Superhost",
-    isSponsored: true,
-  };
-
   return (
     <section className="relative bg-card py-16">
-      <div className="container mx-auto px-4 lg:px-8">
+      <div className={HOME_SECTION_FRAME}>
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
           <motion.div
@@ -312,6 +306,7 @@ export function AccommodationsSection() {
         </div>
 
         {/* Tabs */}
+        <SectionWithSideAds section="home-alojamientos">
         <Tabs defaultValue="todos" className="w-full">
           <TabsList className="mb-8">
             <TabsTrigger value="todos">{t("accommodations.all")}</TabsTrigger>
@@ -324,7 +319,7 @@ export function AccommodationsSection() {
 
           <TabsContent value="todos">
             <div className="grid md:grid-cols-3 gap-6">
-              {[sponsoredHotel, hotels[0], airbnbs[0]].filter(Boolean).map((item) => (
+              {[adHotel ?? hotels[1], hotels[0], airbnbs[0]].filter(Boolean).map((item) => (
                 <AccommodationCard
                   key={item.id}
                   item={item}
@@ -337,7 +332,7 @@ export function AccommodationsSection() {
 
           <TabsContent value="hoteles">
             <div className="grid md:grid-cols-3 gap-6">
-              {[sponsoredHotel, ...hotels].map((hotel) => (
+              {[...(adHotel ? [adHotel] : []), ...hotels].map((hotel) => (
                 <AccommodationCard key={hotel.id} item={hotel} type="hotel" t={t} />
               ))}
             </div>
@@ -345,12 +340,13 @@ export function AccommodationsSection() {
 
           <TabsContent value="airbnb">
             <div className="grid md:grid-cols-3 gap-6">
-              {[sponsoredAirbnb, ...airbnbs].map((airbnb) => (
+              {[...(adAirbnb ? [adAirbnb] : []), ...airbnbs].map((airbnb) => (
                 <AccommodationCard key={airbnb.id} item={airbnb} type="airbnb" t={t} />
               ))}
             </div>
           </TabsContent>
         </Tabs>
+        </SectionWithSideAds>
       </div>
     </section>
   );

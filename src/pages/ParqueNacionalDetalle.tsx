@@ -10,8 +10,10 @@ import { getEnrichedParkBySlug } from "@/data/provinceEnrichment";
 import { parquesNacionalesData, ParqueNacionalData } from "@/data/parquesNacionalesData";
 import { ParqueNacionalContent } from "@/components/ecoturismo/ParqueNacionalContent";
 import { ParqueNacionalSidebar } from "@/components/ecoturismo/ParqueNacionalSidebar";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function ParqueNacionalDetalle() {
+  const pc = usePageContent("parque-nacional-detalle");
   const { slug } = useParams<{ slug: string }>();
 
   // 1. Check local static dictionary
@@ -64,10 +66,10 @@ export default function ParqueNacionalDetalle() {
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <TreeDeciduous className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-foreground mb-2">Parque no encontrado</h1>
-              <p className="text-muted-foreground mb-6">El parque que buscas no existe o ha sido removido.</p>
+              <h1 className="text-2xl font-bold text-foreground mb-2">{pc.tx("h1.1", "Parque no encontrado")}</h1>
+              <p className="text-muted-foreground mb-6">{pc.tx("p.1", "El parque que buscas no existe o ha sido removido.")}</p>
               <Link to="/ecoturismo">
-                <Button>Volver a Ecoturismo</Button>
+                <Button>{pc.tx("Button.1", "Volver a Ecoturismo")}</Button>
               </Link>
             </div>
           </div>
@@ -103,9 +105,9 @@ export default function ParqueNacionalDetalle() {
           {/* Breadcrumb */}
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Link to="/" className="hover:text-primary">Inicio</Link>
+              <Link to="/" className="hover:text-primary">{pc.tx("Link.1", "Inicio")}</Link>
               <ChevronRight className="h-4 w-4" />
-              <Link to="/ecoturismo" className="hover:text-primary">Ecoturismo</Link>
+              <Link to="/ecoturismo" className="hover:text-primary">{pc.tx("Link.2", "Ecoturismo")}</Link>
               <ChevronRight className="h-4 w-4" />
               <span className="text-foreground">{parque.nombre}</span>
             </div>

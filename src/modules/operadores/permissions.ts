@@ -19,13 +19,13 @@ export const ROLE_DESC: Record<Exclude<PanelRole, "owner">, string> = {
 const ALL = [
   "", "calendario", "tarifas", "automatizaciones", "anuncios", 
   "recompensas", "creadores", "mensajes", "reservas", "solicitudes", 
-  "ingresos", "informacion", "promocion", "comunidades", "reportes"
+  "ingresos", "informacion", "promocion", "comunidades", "reportes", "validar-retos"
 ];
 export const ALLOWED: Record<PanelRole, string[]> = {
   owner: [...ALL, "perfil", "sucursales", "equipo"],
   admin: [...ALL, "sucursales"],
-  recepcion: ["", "calendario", "reservas", "solicitudes", "mensajes"],
-  guia: ["", "calendario", "reservas"],
+  recepcion: ["", "calendario", "reservas", "solicitudes", "mensajes", "validar-retos"],
+  guia: ["", "calendario", "reservas", "validar-retos"],
 };
 
 const norm = (s?: string | null) => (s || "").trim().toLowerCase();

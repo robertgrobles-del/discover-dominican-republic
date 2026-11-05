@@ -42,7 +42,7 @@ export function PartnerEmbedBadge({
             Sello Digital Oficial para tu Sitio Web
           </h4>
         </div>
-        <Badge className="bg-primary/15 text-primary border-primary/30 text-[10px]">
+        <Badge className="bg-primary/15 text-primary border-primary/30 text-3xs">
           HTML / Iframe Embebible
         </Badge>
       </div>
@@ -57,7 +57,7 @@ export function PartnerEmbedBadge({
           <span className="text-xl">🇩🇴</span>
           <div>
             <div className="font-bold text-xs">{partnerName || "Grand Paradise Resort"}</div>
-            <div className="text-sky-400 text-[10px] font-medium flex items-center gap-1">
+            <div className="text-sky-400 text-3xs font-medium flex items-center gap-1">
               ✓ Empresa Aliada Acreditada • RNC {rnc || "1-31-88492-3"}
             </div>
           </div>
@@ -66,7 +66,7 @@ export function PartnerEmbedBadge({
 
       {/* Code Snippet Box */}
       <div className="relative">
-        <pre className="p-3.5 rounded-2xl bg-slate-950 text-slate-300 text-[11px] font-mono overflow-x-auto border border-border/60">
+        <pre className="p-3.5 rounded-2xl bg-slate-950 text-slate-300 text-2xs font-mono overflow-x-auto border border-border/60">
           {embedCode}
         </pre>
         <Button

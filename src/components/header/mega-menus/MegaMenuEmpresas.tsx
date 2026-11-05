@@ -1,8 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { MegaMenuAdCard } from "./MegaMenuAdCard";
 import { 
   Building2, Layers, MapPin, Trophy, Camera, TrendingUp, 
-  Calendar, DollarSign, ShieldCheck, Briefcase, ChevronRight 
+  Calendar, DollarSign, ShieldCheck, Briefcase, ChevronRight, Heart 
 } from "lucide-react";
 import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 
@@ -21,7 +22,8 @@ export function MegaMenuEmpresas({ onClose, adLuxuryHotelImg }: MegaMenuEmpresas
 
   const growthLinks = [
     { name: "Publicidad en el Portal", desc: "Destaca tu oferta a nivel global", href: "/anunciate", icon: TrendingUp },
-    { name: "Congresos, MICE & Bodas", desc: "Espacios y servicios de eventos", href: "/mice-bodas", icon: Calendar },
+    { name: "Congresos y MICE", desc: "Convenciones y viajes de incentivo", href: "/mice", icon: Calendar },
+    { name: "Bodas de destino", desc: "Sedes y servicios para casarse en RD", href: "/bodas", icon: Heart },
     { name: "Inversión Turística", desc: "Oportunidades de inversión en RD", href: "/inversion", icon: DollarSign },
     { name: "Sello de Calidad Oficial", desc: "Certificación y buenas prácticas", href: "/sello-calidad", icon: ShieldCheck },
   ];
@@ -55,7 +57,7 @@ export function MegaMenuEmpresas({ onClose, adLuxuryHotelImg }: MegaMenuEmpresas
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-foreground group-hover:text-primary transition-colors text-xs truncate leading-tight">{item.name}</p>
-                <p className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5">{item.desc}</p>
+                <p className="text-2xs text-muted-foreground truncate leading-tight mt-0.5">{item.desc}</p>
               </div>
             </Link>
           ))}
@@ -71,8 +73,8 @@ export function MegaMenuEmpresas({ onClose, adLuxuryHotelImg }: MegaMenuEmpresas
             </div>
             <h4 className="text-xs uppercase tracking-wider text-foreground font-bold font-display">Crecimiento & Alianzas</h4>
           </div>
-          <Link to="/mice-bodas" onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground font-medium">
-            MICE & Bodas →
+          <Link to="/mice" onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground font-medium">
+            Congresos y MICE →
           </Link>
         </div>
 
@@ -89,7 +91,7 @@ export function MegaMenuEmpresas({ onClose, adLuxuryHotelImg }: MegaMenuEmpresas
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-foreground group-hover:text-primary transition-colors text-xs truncate leading-tight">{item.name}</p>
-                <p className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5">{item.desc}</p>
+                <p className="text-2xs text-muted-foreground truncate leading-tight mt-0.5">{item.desc}</p>
               </div>
             </Link>
           ))}
@@ -98,15 +100,7 @@ export function MegaMenuEmpresas({ onClose, adLuxuryHotelImg }: MegaMenuEmpresas
 
       {/* Col 3: Publicidad & Panel CTA (4 cols) */}
       <div className="lg:col-span-4 flex flex-col gap-3 justify-between">
-        <Link to="/anunciate" onClick={onClose} className="block group relative rounded-2xl overflow-hidden h-36 shadow-md">
-          <img src={adLuxuryHotelImg} alt="Promoción para Empresas" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-3.5">
-            <SponsoredBadge sponsor="Portal Oficial B2B" className="mb-1 text-[10px]" />
-            <h4 className="font-display text-sm font-bold text-white leading-tight">Posiciona tu Negocio en RD</h4>
-            <p className="text-white/85 text-xs">Capta reservas directas de millones de turistas</p>
-          </div>
-        </Link>
+        <MegaMenuAdCard section="megamenu-empresas" onClose={onClose} fallback={{ to: "/anunciate", img: adLuxuryHotelImg, alt: "Promoción para Empresas", sponsor: "Portal Oficial B2B", title: "Posiciona tu Negocio en RD", text: "Capta reservas directas de millones de turistas" }} />
 
         <Link 
           to="/operadores/panel" 
@@ -119,7 +113,7 @@ export function MegaMenuEmpresas({ onClose, adLuxuryHotelImg }: MegaMenuEmpresas
             </div>
             <div>
               <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">Ingresar al Panel de Negocios</p>
-              <p className="text-[10px] text-muted-foreground">Acceso verificado para operadores y hoteles</p>
+              <p className="text-3xs text-muted-foreground">Acceso verificado para operadores y hoteles</p>
             </div>
           </div>
           <ChevronRight className="h-4 w-4 text-blue-600 group-hover:translate-x-1 transition-transform" />

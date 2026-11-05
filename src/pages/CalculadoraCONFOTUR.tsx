@@ -13,30 +13,75 @@ import {
   HelpCircle, Landmark, TrendingUp, Info, DollarSign
 } from "lucide-react";
 import { toast } from "sonner";
+import { useEffect } from "react";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { fetchApi } from "@/lib/fastifyClient";
+
+interface ConfoturBackendResult {
+  years: number;
+  transfer_tax_savings: number;
+  ipi_savings_per_year: number;
+  isr_savings_per_year: number;
+  assets_tax_savings_per_year: number;
+  savings_per_year: number;
+  total_savings: number;
+  rates?: {
+    transfer_pct: number;
+    ipi_pct: number;
+    isr_pct: number;
+    assets_pct: number;
+  };
+}
 
 export default function CalculadoraCONFOTUR() {
   const [propertyValue, setPropertyValue] = useState<number>(250000);
   const [rentalIncome, setRentalIncome] = useState<number>(1800); // mensual estimado
   const [isB2B, setIsB2B] = useState<boolean>(false);
+  const [backendData, setBackendData] = useState<ConfoturBackendResult | null>(null);
+
+  // Consultar cálculo al backend oficial de Fastify
+  useEffect(() => {
+    if (!HAS_BACKEND_SESSION) return;
+    const controller = new AbortController();
+    const annualRental = rentalIncome * 12;
+
+    fetchApi<{ data: ConfoturBackendResult }>("/calculators/confotur", {
+      method: "POST",
+      body: JSON.stringify({
+        property_value: propertyValue,
+        annual_rental_income: annualRental,
+        is_company: isB2B,
+        years: 15
+      }),
+      signal: controller.signal
+    })
+      .then((res) => {
+        if (res?.data) {
+          setBackendData(res.data);
+        }
+      })
+      .catch((err) => {
+        if (err.name !== "AbortError") {
+          console.error("Error al calcular CONFOTUR en backend:", err);
+        }
+      });
+
+    return () => controller.abort();
+  }, [propertyValue, rentalIncome, isB2B]);
 
   // Umbral exento IPI (Impuesto a la Propiedad Inmobiliaria) en RD es aprox. 9,500,000 DOP (~165,000 USD)
   const ipiThresholdUSD = 165000;
   
-  // Beneficios CONFOTUR:
-  // 1. Exención del Impuesto de Transferencia de Propiedad (3% del valor)
-  const transferTaxSavings = propertyValue * 0.03;
-  
-  // 2. Exención del IPI (1% anual del valor del inmueble, por 15 años)
-  // Bajo CONFOTUR la exención es total del 1% del valor catastral/declarado
-  const annualIpiSavings = propertyValue * 0.01;
+  // Beneficios CONFOTUR: Usar cálculo oficial de backend o fallback local consistente
+  const transferTaxSavings = backendData ? backendData.transfer_tax_savings : propertyValue * 0.03;
+  const annualIpiSavings = backendData ? backendData.ipi_savings_per_year : propertyValue * 0.01;
   const totalIpiSavings15Years = annualIpiSavings * 15;
   
-  // 3. Exención del Impuesto sobre la Renta (ISR) por alquileres (20% del ingreso bruto estimado)
   const annualRentalIncome = rentalIncome * 12;
-  const annualIsrSavings = annualRentalIncome * 0.20; // 20% tasa efectiva aproximada
+  const annualIsrSavings = backendData ? backendData.isr_savings_per_year : annualRentalIncome * 0.20;
   const totalIsrSavings15Years = annualIsrSavings * 15;
 
-  const grandTotalSavings = transferTaxSavings + totalIpiSavings15Years + totalIsrSavings15Years;
+  const grandTotalSavings = backendData ? backendData.total_savings : (transferTaxSavings + totalIpiSavings15Years + totalIsrSavings15Years);
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -77,17 +122,17 @@ export default function CalculadoraCONFOTUR() {
                 <div className="lg:col-span-5 space-y-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-xl">Datos del Inmueble</CardTitle>
+                      <CardTitle as="h2" className="text-xl">Datos del Inmueble</CardTitle>
                       <CardDescription>Ajusta los valores para simular tu inversión</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {/* Property Value Slider & Input */}
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <label className="text-sm font-medium">Valor del Inmueble (USD)</label>
+                          <label htmlFor="calculadora-confotur-f2" className="text-sm font-medium">Valor del Inmueble (USD)</label>
                           <span className="font-bold text-primary font-mono">${propertyValue.toLocaleString()}</span>
                         </div>
-                        <Slider 
+                        <Slider id="calculadora-confotur-f2" 
                           value={[propertyValue]} 
                           onValueChange={(val) => setPropertyValue(val[0])} 
                           min={50000} 
@@ -109,10 +154,10 @@ export default function CalculadoraCONFOTUR() {
                       {/* Estimated Rental Income Slider & Input */}
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
-                          <label className="text-sm font-medium">Renta Mensual Estimada (USD)</label>
+                          <label htmlFor="calculadora-confotur-f1" className="text-sm font-medium">Renta Mensual Estimada (USD)</label>
                           <span className="font-bold text-primary font-mono">${rentalIncome.toLocaleString()}</span>
                         </div>
-                        <Slider 
+                        <Slider id="calculadora-confotur-f1" 
                           value={[rentalIncome]} 
                           onValueChange={(val) => setRentalIncome(val[0])} 
                           min={200} 
@@ -227,7 +272,7 @@ export default function CalculadoraCONFOTUR() {
                           </div>
                           <div className="text-right">
                             <span className="font-mono font-bold text-foreground">${totalIpiSavings15Years.toLocaleString()}</span>
-                            <p className="text-[10px] text-muted-foreground">${annualIpiSavings.toLocaleString()}/año</p>
+                            <p className="text-3xs text-muted-foreground">${annualIpiSavings.toLocaleString()}/año</p>
                           </div>
                         </div>
 
@@ -244,7 +289,7 @@ export default function CalculadoraCONFOTUR() {
                           </div>
                           <div className="text-right">
                             <span className="font-mono font-bold text-foreground">${totalIsrSavings15Years.toLocaleString()}</span>
-                            <p className="text-[10px] text-muted-foreground">${annualIsrSavings.toLocaleString()}/año</p>
+                            <p className="text-3xs text-muted-foreground">${annualIsrSavings.toLocaleString()}/año</p>
                           </div>
                         </div>
 
@@ -267,10 +312,10 @@ export default function CalculadoraCONFOTUR() {
 
                       {/* ROI Projection */}
                       <div className="p-4 bg-muted/50 rounded-xl space-y-2 border border-border">
-                        <h4 className="font-semibold text-sm flex items-center gap-2">
+                        <h2 className="h4 font-semibold text-sm flex items-center gap-2">
                           <Info className="h-4 w-4 text-primary" />
                           Retorno de Inversión (ROI) Estimado con CONFOTUR
-                        </h4>
+                        </h2>
                         <p className="text-xs text-muted-foreground leading-relaxed">
                           Sin CONFOTUR, tu retorno neto anual por alquileres se vería reducido por el pago del IPI y del ISR. Con esta ley, el ahorro acumulado de <strong>${grandTotalSavings.toLocaleString(undefined, { maximumFractionDigits: 0 })} USD</strong> en 15 años representa un incremento directo de aproximadamente <strong>{((grandTotalSavings / propertyValue) * 100 / 15).toFixed(1)}% anual adicional</strong> sobre tu tasa de rendimiento original.
                         </p>

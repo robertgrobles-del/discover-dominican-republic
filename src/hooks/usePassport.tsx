@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { HAS_BACKEND_SESSION } from "@/lib/authSource";
-import { gamificationApi, type PassportStampItem, type CollectibleItem } from "@/lib/gamificationApi";
+import { gamificationApi, type PassportStampItem, type CollectibleItem, type MyCollectibleItem } from "@/lib/gamificationApi";
 import { apiMessage } from "@/lib/accountApi";
 import { toast } from "sonner";
 
@@ -149,16 +149,17 @@ export function usePassport() {
             res.stamps.map((s: PassportStampItem) => ({
               id: s.id,
               user_id: user.id,
-              stamp_type: 'destination',
-              stamp_name: s.stamp_title || s.stamp_name || "Sello Oficial",
-              stamp_location: "República Dominicana",
-              stamp_image: s.badge_url || undefined,
-              visited_at: s.created_at,
-              verification_method: (s.verification_method as any) || 'qr_scan',
-              xp_earned: 50,
-              coins_earned: 25,
+              stamp_type: s.type as PassportStamp["stamp_type"],
+              stamp_name: s.name,
+              stamp_image: s.image || undefined,
+              visited_at: s.visited_at,
+              verification_method: s.verified_by as PassportStamp["verification_method"],
+              xp_earned: s.xp_earned,
+              coins_earned: s.coins_earned,
+              rating: s.rating ?? undefined,
+              notes: s.notes ?? undefined,
               is_verified: true,
-              created_at: s.created_at,
+              created_at: s.visited_at,
             }))
           );
         }
@@ -181,9 +182,19 @@ export function usePassport() {
     if (HAS_BACKEND_SESSION) {
       try {
         const list = await gamificationApi.getRoutes();
-        if (Array.isArray(list)) {
-          setRoutes(list as unknown as GamifiedRoute[]);
-        }
+        setRoutes(list.map((r) => ({
+          id: r.id, name: r.name, slug: r.slug, short_description: r.short_description ?? undefined,
+          route_type: r.route_type as GamifiedRoute["route_type"], difficulty: (r.difficulty ?? undefined) as GamifiedRoute["difficulty"],
+          duration_days: r.duration_days ?? undefined, distance_km: r.distance_km ?? undefined,
+          total_xp_reward: r.total_xp_reward ?? 0, total_coin_reward: r.total_coin_reward ?? 0, image_url: r.image_url ?? undefined,
+          min_level: r.min_level, is_featured: r.is_featured, is_active: true, created_at: "", updated_at: "",
+        })));
+        // El avance viene dentro de cada ruta: se separa en la forma que usan las pantallas.
+        if (user) setUserRouteProgress(list.filter((r) => r.progress).map((r) => ({
+          id: `urp-${r.id}`, user_id: user.id, route_id: r.id, started_at: "", current_checkpoint: r.progress!.checkpoints_completed,
+          checkpoints_completed: r.progress!.checkpoints_completed, total_checkpoints: r.checkpoints, total_xp_earned: 0, total_coins_earned: 0,
+          is_completed: r.progress!.completed, completion_percentage: r.progress!.percent, created_at: "", updated_at: "",
+        })));
       } catch (err: any) {
         console.warn("Error cargando rutas en backend:", err?.message || err);
       }
@@ -196,7 +207,7 @@ export function usePassport() {
       .eq("is_active", true)
       .order("is_featured", { ascending: false });
     if (data) setRoutes(data as unknown as GamifiedRoute[]);
-  }, []);
+  }, [user]);
 
   // Fetch user's route progress
   const fetchUserRouteProgress = useCallback(async () => {
@@ -223,17 +234,22 @@ export function usePassport() {
             list.map((c: CollectibleItem) => ({
               id: c.id,
               name: c.name,
-              description: c.description,
-              collectible_type: 'culture',
-              rarity: (c.rarity as any) || 'common',
-              image_url: c.image_url,
-              current_supply: 100,
-              xp_value: 100,
-              coin_value: 50,
-              is_tradeable: false,
+              slug: c.slug,
+              short_description: c.short_description ?? undefined,
+              collectible_type: c.type as DigitalCollectible["collectible_type"],
+              rarity: c.rarity as DigitalCollectible["rarity"],
+              image_url: c.image_url ?? undefined,
+              thumbnail_url: c.thumbnail_url ?? undefined,
+              unlock_condition: c.unlock_condition ?? undefined,
+              total_supply: c.total_supply ?? undefined,
+              current_supply: c.total_supply != null && c.remaining != null ? c.total_supply - c.remaining : 0,
+              xp_value: c.xp_value,
+              coin_value: c.coin_value,
+              is_tradeable: c.is_tradeable,
               is_active: true,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
+              season: c.season ?? undefined,
+              created_at: "",
+              updated_at: "",
             }))
           );
         }
@@ -260,13 +276,15 @@ export function usePassport() {
         const list = await gamificationApi.getMyCollectibles();
         if (Array.isArray(list)) {
           setUserCollectibles(
-            list.map((c: CollectibleItem) => ({
-              id: `uc-${c.id}`,
+            list.map((c: MyCollectibleItem) => ({
+              id: c.ownership_id,
               user_id: user.id,
               collectible_id: c.id,
-              acquired_at: c.claimed_at || new Date().toISOString(),
-              is_favorite: false,
-              created_at: c.claimed_at || new Date().toISOString(),
+              acquired_at: c.acquired_at,
+              acquisition_method: c.acquisition_method as UserCollectible["acquisition_method"],
+              is_favorite: c.is_favorite,
+              display_order: c.display_order ?? undefined,
+              created_at: c.acquired_at,
             }))
           );
         }
@@ -303,7 +321,7 @@ export function usePassport() {
       if (stampData.verification_data?.qr_token) {
         try {
           const res = await gamificationApi.scanPassportQR(stampData.verification_data.qr_token);
-          toast.success(res.message || `✅ Sello oficial obtenido: ${res.stamp?.stamp_title}`);
+          toast.success(res.message || `✅ Sello oficial obtenido: ${res.stamp.stamp_name}`);
           await fetchStamps();
           return true;
         } catch (err) {

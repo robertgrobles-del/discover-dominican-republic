@@ -13,6 +13,7 @@ import santoDomingo from "@/assets/santo-domingo.jpg";
 import colonialDoor from "@/assets/colonial-door.jpg";
 import history from "@/assets/history.jpg";
 import { historyArticles, getHistoryArticlesByMonumentSlug } from "@/data/historyArticles";
+import { usePageContent } from "@/lib/pageContent";
 
 const categorias = ["Todo", "Ciudad Colonial", "Santiago", "Religioso", "Museos Estatales"];
 
@@ -104,13 +105,16 @@ const monumentos = [
 ];
 
 export default function Patrimonio() {
+  const pc = usePageContent("patrimonio");
+  const categorias = pc.data("categorias", __pcData.categorias);
+  const monumentos = pc.data("monumentos", __pcData.monumentos);
   const [selectedCategoria, setSelectedCategoria] = useState("Todo");
 
   return (
     <PageTransition>
       <SEOHead 
-        title="Monumentos y Patrimonio Histórico de RD | Descubre República Dominicana"
-        description="Explora los monumentos, fortalezas, museos coloniales y sitios patrimoniales de República Dominicana, conectados con sus crónicas históricas oficiales."
+        title={pc.t("SEOHead.title.1", "Monumentos y Patrimonio Histórico de RD | Descubre República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Explora los monumentos, fortalezas, museos coloniales y sitios patrimoniales de República Dominicana, conectados con sus crónicas históricas oficiales.")}
         keywords="monumentos republica dominicana, alcazar de colon, fortaleza ozama, catedral primada, monumento santiago, historia dominicana"
       />
       <div className="min-h-screen flex flex-col bg-background">
@@ -120,25 +124,19 @@ export default function Patrimonio() {
         <section className="relative h-[50vh] min-h-[400px] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent z-10" />
           <img 
-            src={colonialDoor} 
-            alt="Patrimonio y Monumentos Históricos de República Dominicana" 
+            src={pc.img("img.src.1", colonialDoor)} 
+            alt={pc.t("img.alt.1", "Patrimonio y Monumentos Históricos de República Dominicana")} 
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="container mx-auto px-4 relative z-20 text-white">
             <Badge className="mb-4 bg-amber-500/90 text-white hover:bg-amber-600 border-none">
-              <Landmark className="h-3.5 w-3.5 mr-1" /> Ciudad Primada de América & Monumentos Nacionales
-            </Badge>
-            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4 tracking-tight">
-              Patrimonio y Monumentos
-            </h1>
-            <p className="text-lg md:text-xl text-gray-200 max-w-2xl font-light mb-6">
-              Recorre 500 años de historia viva. Cada monumento cuenta con su crónica histórica conectada a nuestro archivo oficial de próceres y gestas patrias.
-            </p>
+              <Landmark className="h-3.5 w-3.5 mr-1" />{" "}{pc.tx("Badge.1", "Ciudad Primada de América & Monumentos Nacionales")}</Badge>
+            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4 tracking-tight">{pc.tx("h1.1", "Patrimonio y Monumentos")}</h1>
+            <p className="text-lg md:text-xl text-gray-200 max-w-2xl font-light mb-6">{pc.tx("p.1", "Recorre 500 años de historia viva. Cada monumento cuenta con su crónica histórica conectada a nuestro archivo oficial de próceres y gestas patrias.")}</p>
             <div className="flex flex-wrap gap-3">
               <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 rounded-xl">
                 <Link to="/historia">
-                  <BookOpen className="h-4 w-4" /> Ver Archivo Histórico Completo
-                </Link>
+                  <BookOpen className="h-4 w-4" />{" "}{pc.tx("Link.1", "Ver Archivo Histórico Completo")}</Link>
               </Button>
             </div>
           </div>
@@ -152,20 +150,19 @@ export default function Patrimonio() {
                 <BookOpen className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-foreground">Conexión con el Archivo Histórico Nacional (CMS)</h4>
-                <p className="text-xs text-muted-foreground">Accede a las biografías de Juan Pablo Duarte, Mella, la Independencia Efímera y la Restauración asociadas a cada monumento.</p>
+                <h2 className="h4 text-sm font-bold text-foreground">{pc.tx("h4.1", "Conexión con el Archivo Histórico Nacional (CMS)")}</h2>
+                <p className="text-xs text-muted-foreground">{pc.tx("p.2", "Accede a las biografías de Juan Pablo Duarte, Mella, la Independencia Efímera y la Restauración asociadas a cada monumento.")}</p>
               </div>
             </div>
             <Button asChild variant="outline" size="sm" className="rounded-xl border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 text-xs shrink-0">
-              <Link to="/historia" className="gap-1.5 flex items-center">
-                Explorar Crónicas <ChevronRight className="h-3.5 w-3.5" />
+              <Link to="/historia" className="gap-1.5 flex items-center">{pc.tx("Link.2", "Explorar Crónicas")}{" "}<ChevronRight className="h-3.5 w-3.5" />
               </Link>
             </Button>
           </div>
         </section>
 
         {/* Categorías */}
-        <section className="py-6 border-b border-border bg-card/50 sticky top-16 z-30 backdrop-blur-md">
+        <section className="py-6 border-b border-border bg-card/50 backdrop-blur-md">
           <div className="container mx-auto px-4">
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
               {categorias.map((cat) => (
@@ -188,10 +185,8 @@ export default function Patrimonio() {
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                  Monumentos Emblemáticos
-                </h2>
-                <p className="text-sm text-muted-foreground">Selecciona un monumento para conocer su valor histórico y ubicación.</p>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h2.1", "Monumentos Emblemáticos")}</h2>
+                <p className="text-sm text-muted-foreground">{pc.tx("p.3", "Selecciona un monumento para conocer su valor histórico y ubicación.")}</p>
               </div>
             </div>
 
@@ -245,13 +240,11 @@ export default function Patrimonio() {
                           <div className="mb-4 p-2.5 rounded-xl bg-muted/50 border border-border/60">
                             <div className="flex items-center justify-between text-xs">
                               <span className="text-muted-foreground flex items-center gap-1.5 font-medium">
-                                <BookOpen className="h-3.5 w-3.5 text-amber-500" /> Crónica Histórica:
-                              </span>
+                                <BookOpen className="h-3.5 w-3.5 text-amber-500" />{" "}{pc.tx("span.1", "Crónica Histórica:")}</span>
                               <Link 
                                 to={`/historia/${monumento.historySlug}`}
                                 className="text-primary hover:underline font-semibold flex items-center gap-0.5"
-                              >
-                                Leer historia <ChevronRight className="h-3 w-3" />
+                              >{pc.tx("Link.3", "Leer historia")}{" "}<ChevronRight className="h-3 w-3" />
                               </Link>
                             </div>
                           </div>
@@ -260,9 +253,7 @@ export default function Patrimonio() {
 
                       <div className="flex items-center gap-2 pt-2 border-t border-border/50">
                         <Button asChild variant="outline" className="flex-1 rounded-xl text-xs h-9">
-                          <Link to={`/historia/${monumento.historySlug || 'juan-pablo-duarte'}`}>
-                            Ver Contexto Histórico
-                          </Link>
+                          <Link to={`/historia/${monumento.historySlug || 'juan-pablo-duarte'}`}>{pc.tx("Link.4", "Ver Contexto Histórico")}</Link>
                         </Button>
                       </div>
                     </div>
@@ -280,17 +271,11 @@ export default function Patrimonio() {
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div>
                   <Badge className="mb-3 bg-primary/20 text-primary border-primary/30">
-                    <Sparkles className="h-3.5 w-3.5 mr-1" /> Realidad Aumentada & 3D
-                  </Badge>
-                  <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">
-                    Vive la historia con Realidad Aumentada
-                  </h2>
-                  <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-                    Apunta tu cámara a cualquier monumento marcado con el icono AR y descubre cómo se veía en los siglos XVI, XIX y en sus momentos cumbres.
-                  </p>
+                    <Sparkles className="h-3.5 w-3.5 mr-1" />{" "}{pc.tx("Badge.2", "Realidad Aumentada & 3D")}</Badge>
+                  <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-3">{pc.tx("h2.2", "Vive la historia con Realidad Aumentada")}</h2>
+                  <p className="text-sm text-muted-foreground mb-6 leading-relaxed">{pc.tx("p.4", "Apunta tu cámara a cualquier monumento marcado con el icono AR y descubre cómo se veía en los siglos XVI, XIX y en sus momentos cumbres.")}</p>
                   <Button variant="default" className="gap-2 rounded-xl">
-                    <Download className="h-4 w-4" /> Descargar Guía AR Móvil
-                  </Button>
+                    <Download className="h-4 w-4" />{" "}{pc.tx("Button.1", "Descargar Guía AR Móvil")}</Button>
                 </div>
                 <div className="flex justify-center">
                   <div className="w-36 h-36 rounded-full bg-primary/10 border-2 border-dashed border-primary/30 flex items-center justify-center shadow-inner">
@@ -313,3 +298,6 @@ export default function Patrimonio() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { categorias, monumentos };

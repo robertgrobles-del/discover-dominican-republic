@@ -141,7 +141,7 @@ export default function CheckInDigital() {
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div>
-                          <CardTitle className="flex items-center gap-2">
+                          <CardTitle as="h2" className="flex items-center gap-2">
                             {location.name}
                             {location.checkedIn && (
                               <CheckCircle2 className="h-5 w-5 text-green-500" />

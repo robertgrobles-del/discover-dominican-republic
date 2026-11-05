@@ -12,9 +12,9 @@ export function ETicketAssistant() {
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-xl sm:text-2xl font-black text-foreground">
+              <h2 className="h3 text-xl sm:text-2xl font-black text-foreground">
                 E-Ticket República Dominicana
-              </h3>
+              </h2>
               <Badge className="bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/40 text-xs">
                 Obligatorio para Entrada y Salida
               </Badge>
@@ -54,7 +54,7 @@ export function ETicketAssistant() {
               <ExternalLink className="w-4 h-4" />
             </Button>
           </a>
-          <span className="text-[11px] text-muted-foreground text-center">
+          <span className="text-2xs text-muted-foreground text-center">
             Sitio oficial de Migración y Aduanas de RD
           </span>
         </div>

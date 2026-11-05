@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useId } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ChevronLeft, ChevronRight, MapPin, Users, Ruler, Sparkles, 
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 import { Link } from "react-router-dom";
 import { useTranslation } from "@/hooks/useI18n";
+import { useAdBannerList, trackBannerClick, trackBannerImpression } from "@/hooks/useAdBanners";
 
 export interface ProvinceSlide {
   id: string | number;
@@ -22,6 +23,7 @@ export interface ProvinceSlide {
   sponsorName?: string;
   ctaText?: string;
   ctaLink?: string;
+  adId?: string;
   highlights?: string[];
   stats?: { label: string; value: string; icon?: React.ComponentType<{ className?: string }> }[];
 }
@@ -39,6 +41,8 @@ interface ProvinceHeroProps {
   provinceSlug?: string;
   destinations?: { name: string; shortDescription?: string; imageUrl?: string; slug?: string }[];
   hotels?: { name: string; priceRange?: string; rating?: number; imageUrl?: string; slug?: string }[];
+  /** "strips": la foto se ve a través de franjas diagonales sobre un degradado del color de la provincia. */
+  variant?: "default" | "strips";
 }
 
 export function ProvinceHero({
@@ -54,8 +58,11 @@ export function ProvinceHero({
   provinceSlug,
   destinations = [],
   hotels = [],
+  variant = "default",
 }: ProvinceHeroProps) {
+  const clipId = useId();
   const { t } = useTranslation();
+  const provinceAds = useAdBannerList("hero-slide", `provincia-${provinceSlug}`);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -68,12 +75,12 @@ export function ProvinceHero({
 
   // Build rich slides dynamically if custom slides are not passed
   const activeSlides: ProvinceSlide[] = useMemo(() => {
-    if (customSlides && customSlides.length > 0) {
-      return customSlides;
-    }
-
-    const generated: ProvinceSlide[] = [];
+    // Los slides propios de la provincia sustituyen a los generados, pero el espacio patrocinado (paso 4) se mantiene.
+    const hasCustom = !!customSlides?.length;
+    const generated: ProvinceSlide[] = hasCustom ? [...customSlides!] : [];
     const imageList = images && images.length > 0 ? images : ["/placeholder.svg"];
+
+    if (!hasCustom) {
 
     // 1. Slide Principal: Presentación de la Provincia
     generated.push({
@@ -133,29 +140,27 @@ export function ProvinceHero({
         ]
       });
     }
+    }
 
-    // 4. Slide Publicitario / Patrocinio Turístico de la Provincia (Ad Slider)
-    const featuredHotel = hotels[0];
-    generated.push({
-      id: "slide-sponsor-ad",
-      image: featuredHotel?.imageUrl || imageList[3 % imageList.length] || imageList[0],
-      tag: "Espacio Patrocinado",
-      tagVariant: "sponsored",
-      isSponsored: true,
-      sponsorName: featuredHotel?.name || `Promoción Turística de ${name}`,
-      title: featuredHotel ? featuredHotel.name : `Hospédate en ${name}`,
-      subtitle: featuredHotel ? `Reserva tu estadía con tarifas exclusivas (${featuredHotel.priceRange || "$$"})` : "Hoteles boutique, villas y resorts certificados",
-      description: `Planifica tu estadía perfecta en ${name}. Conexión directa con los alojamientos más valorados y operadores turísticos certificados.`,
-      ctaText: featuredHotel?.slug ? "Ver Alojamiento & Tarifas" : "Explorar Hoteles en RD",
-      ctaLink: featuredHotel?.slug ? `/alojamiento/${featuredHotel.slug}` : "/alojamientos",
-      stats: [
-        { label: "Calificación", value: featuredHotel?.rating ? `${featuredHotel.rating} / 5.0` : "4.9 ★", icon: Award },
-        { label: "Garantía", value: "Reserva Oficial", icon: ShieldCheck }
-      ]
-    });
+    // 4. Diapositivas patrocinadas: sólo las del admin (banner_type "hero-slide", section "provincia-<slug>" o "global").
+    // Sin campaña queda el espacio "Anuncia aquí"; nunca se marca como patrocinado a un hotel que no ha contratado.
+    if (provinceAds.some((b) => b.image_url)) {
+      provinceAds.filter((b) => b.image_url).forEach((b) => generated.push({
+        id: `ad-${b.id}`, adId: b.id, image: b.image_url!, tag: "Espacio Patrocinado", tagVariant: "sponsored", isSponsored: true,
+        sponsorName: b.sponsor || undefined, title: b.headline || b.name, subtitle: b.subtext || undefined, description: b.alt_text || "",
+        ctaText: b.cta_text || "Ver más", ctaLink: b.target_url || "/",
+        stats: (b.slide_details?.stats ?? []).filter((s) => s.value).slice(0, 3),
+      }));
+    } else {
+      generated.push({
+        id: "slide-sponsor-ad", image: imageList[3 % imageList.length] || imageList[0], tag: "Espacio Disponible", tagVariant: "sponsored", isSponsored: true,
+        title: `Anuncia tu negocio en ${name}`, subtitle: "Llega a los viajeros que planifican su visita",
+        description: `Hoteles, restaurantes y operadores: aparece aquí ante quienes exploran ${name}.`, ctaText: "Conviértete en Patrocinador", ctaLink: "/partners",
+      });
+    }
 
     return generated;
-  }, [customSlides, images, name, region, capital, population, areaKm2, description, highlights, destinations, hotels, regionLabels, t]);
+  }, [customSlides, images, name, region, capital, population, areaKm2, description, highlights, destinations, hotels, regionLabels, t, provinceAds]);
 
   const slideCount = activeSlides.length;
 
@@ -178,10 +183,12 @@ export function ProvinceHero({
   }, [slideCount, isPaused, nextSlide]);
 
   const current = activeSlides[currentSlide] || activeSlides[0];
+  useEffect(() => { if (current?.adId) void trackBannerImpression(current.adId); }, [current?.adId]);
 
   return (
     <section 
       className="relative h-[85vh] min-h-[620px] max-h-[820px] w-full overflow-hidden bg-slate-950 text-white select-none"
+      style={variant === "strips" ? { background: "linear-gradient(115deg, hsl(215 45% 7%) 0%, hsl(var(--primary) / 0.75) 55%, hsl(var(--primary) / 0.35) 100%)" } : undefined}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       aria-label={`Presentación de ${name}`}
@@ -196,14 +203,20 @@ export function ProvinceHero({
           transition={{ duration: 1, ease: "easeOut" }}
           className="absolute inset-0 z-0"
         >
-          <img
-            src={current.image || "/placeholder.svg"}
-            alt={current.title}
-            className="w-full h-full object-cover object-center"
-          />
-          {/* Rich Dark Vignette & Gradient Overlays */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-slate-950/40" />
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/50 to-transparent" />
+          {variant === "strips" ? (
+            <StripsImage src={current.image || "/placeholder.svg"} alt={current.title} clipId={clipId} />
+          ) : (
+            <>
+              <img
+                src={current.image || "/placeholder.svg"}
+                alt={current.title}
+                className="w-full h-full object-cover object-center"
+              />
+              {/* Rich Dark Vignette & Gradient Overlays */}
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-slate-950/40" />
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/50 to-transparent" />
+            </>
+          )}
         </motion.div>
       </AnimatePresence>
 
@@ -228,7 +241,7 @@ export function ProvinceHero({
 
       {/* Main Slide Content Area */}
       <div className="relative z-10 container mx-auto px-4 h-full flex items-center">
-        <div className="max-w-3xl pt-8 pb-14">
+        <div className={`${variant === "strips" ? "max-w-xl" : "max-w-3xl"} pt-8 pb-14`}>
           <AnimatePresence mode="wait">
             <motion.div
               key={current.id || currentSlide}
@@ -280,7 +293,7 @@ export function ProvinceHero({
                       >
                         <IconComp className="h-4 w-4 text-primary shrink-0" />
                         <div className="leading-tight">
-                          <span className="text-[10px] uppercase font-semibold text-slate-400 block tracking-wider">
+                          <span className="text-3xs uppercase font-semibold text-slate-400 block tracking-wider">
                             {st.label}
                           </span>
                           <span className="text-xs sm:text-sm font-bold text-white">
@@ -328,7 +341,7 @@ export function ProvinceHero({
                       size="lg" 
                       className="rounded-2xl font-bold shadow-lg shadow-primary/25 hover:scale-105 transition-all gap-2"
                     >
-                      <Link to={current.ctaLink || "#"}>
+                      <Link to={current.ctaLink || "#"} onClick={() => { if (current.adId) void trackBannerClick(current.adId); }}>
                         <span>{current.ctaText}</span>
                         <ArrowRight className="h-4 w-4" />
                       </Link>
@@ -373,7 +386,7 @@ export function ProvinceHero({
                 key={index}
                 onClick={() => goToSlide(index)}
                 aria-label={`Ir al slide ${index + 1}: ${slide.title}`}
-                className={`transition-all duration-300 rounded-full flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-semibold ${
+                className={`transition-all duration-300 rounded-full flex items-center gap-1.5 px-2 py-0.5 text-2xs font-semibold ${
                   index === currentSlide
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-slate-300 hover:text-white hover:bg-white/10"
@@ -389,5 +402,44 @@ export function ProvinceHero({
         </>
       )}
     </section>
+  );
+}
+
+// Franjas en un lienzo de 1000×800, giradas -50°: [desplazamiento a lo largo, posición transversal, largo].
+const STRIPS: [number, number, number][] = [
+  [560, 40, 440], [470, 200, 600], [400, 360, 800], [260, 520, 700], [520, 680, 520], [640, 840, 360],
+];
+
+function StripsImage({ src, alt, clipId }: { src: string; alt: string; clipId: string }) {
+  return (
+    <>
+      {/* La misma foto de fondo, teñida con el color de la provincia; las franjas la muestran nítida. */}
+      <img src={src} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover" />
+      <div
+        className="absolute inset-0"
+        style={{ background: "linear-gradient(115deg, hsl(215 45% 7% / 0.95) 0%, hsl(var(--primary) / 0.8) 50%, hsl(var(--primary) / 0.55) 100%)" }}
+      />
+      <svg
+        role="img"
+        aria-label={alt}
+        viewBox="0 0 1000 800"
+        preserveAspectRatio="xMidYMid slice"
+        className="absolute inset-y-0 right-0 h-full w-full lg:w-[68%]"
+      >
+        <defs>
+          <clipPath id={clipId}>
+            <g transform="rotate(-50 500 400)">
+              {STRIPS.map(([x, y, w], i) => (
+                <rect key={i} x={x - 250} y={y - 120} width={w} height={130} rx={65} />
+              ))}
+            </g>
+          </clipPath>
+        </defs>
+        <image href={src} width="1000" height="800" preserveAspectRatio="xMidYMid slice" clipPath={`url(#${clipId})`} />
+      </svg>
+      {/* En móvil las franjas quedan detrás del texto: se oscurecen para que se lea. */}
+      <div className="absolute inset-0 bg-slate-950/55 lg:hidden" />
+      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
+    </>
   );
 }

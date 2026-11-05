@@ -28,7 +28,7 @@
     --accent-foreground: 195 22% 10%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive-foreground: 0 0% 8%; /* texto oscuro: el rojo claro con blanco no llega a 4.5:1 */
 
     --border: 195 15% 22%;
     --input: 195 15% 22%;
@@ -44,7 +44,7 @@
     --brand-forest: 160 84% 39%;
     --surface-editorial: 195 18% 13%;
     --surface-commercial: 195 16% 15%;
-    --border-strong: 195 15% 34%;
+    --border-strong: 195 15% 44%;
     --focus-ring: 193 86% 50%;
     --sponsored-bg: 45 70% 20%;
     --sponsored-fg: 45 93% 76%;
@@ -84,7 +84,7 @@
   .light {
     --surface-editorial: 0 0% 100%;
     --surface-commercial: 180 15% 97%;
-    --border-strong: 200 15% 65%;
+    --border-strong: 200 15% 50%;
     --focus-ring: 193 86% 38%;
     --sponsored-bg: 45 100% 94%;
     --sponsored-fg: 32 80% 25%;
@@ -95,13 +95,15 @@
     --card-foreground: 200 30% 12%;
     --popover: 0 0% 100%;
     --popover-foreground: 200 30% 12%;
-    --primary: 193 86% 45%;
+    --primary: 193 86% 30%;
     --primary-foreground: 0 0% 100%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
     --secondary: 195 15% 92%;
     --secondary-foreground: 200 30% 12%;
     --muted: 195 15% 92%;
     --muted-foreground: 200 15% 40%;
-    --accent: 193 86% 45%;
+    --accent: 193 86% 30%;
     --accent-foreground: 0 0% 100%;
     --border: 200 15% 85%;
     --input: 200 15% 85%;
@@ -593,6 +595,10 @@ html[data-contrast="high"] body.sol-de-playa * {
 }
 
 /* Lightbox styles */
+/* Identidad por destino: la página fija --dest-hs ("H S%") y cada tema pone la luminosidad */
+.dest-theme { --primary: var(--dest-hs) 50%; --ring: var(--dest-hs) 50%; }
+.light .dest-theme { --primary: var(--dest-hs) 30%; --ring: var(--dest-hs) 45%; --primary-foreground: 0 0% 100%; }
+
 .lightbox-overlay {
   background: hsl(var(--background) / 0.95);
   -webkit-backdrop-filter: blur(8px);
@@ -758,3 +764,6 @@ body.font-dyslexic a {
 }
 
 
+
+/* Imagen ocultada desde el panel («Textos e imágenes de páginas»): sin dirección no se muestra. */
+img[src=""] { display: none; }

@@ -11,6 +11,7 @@ import { SEOHead } from "@/components/SEOHead";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 import samanaImg from "@/assets/samana.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const photographers = [
   {
@@ -70,6 +71,9 @@ const photographers = [
 const categories = ["Todos", "Bodas", "Naturaleza", "Retratos", "Aventura", "Submarino", "Comercial"];
 
 export default function FotografosLocales() {
+  const pc = usePageContent("fotografos-locales");
+  const photographers = pc.data("photographers", __pcData.photographers);
+  const categories = pc.data("categories", __pcData.categories);
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPhotographer, setSelectedPhotographer] = useState<typeof photographers[0] | null>(null);
@@ -84,8 +88,8 @@ export default function FotografosLocales() {
   return (
     <PageTransition>
       <SEOHead
-        title="CapturaRD - Fotógrafos Locales | Turismo RD"
-        description="Encuentra los mejores fotógrafos profesionales de República Dominicana para capturar tus momentos especiales."
+        title={pc.t("SEOHead.title.1", "CapturaRD - Fotógrafos Locales | Turismo RD")}
+        description={pc.t("SEOHead.description.1", "Encuentra los mejores fotógrafos profesionales de República Dominicana para capturar tus momentos especiales.")}
         keywords="fotógrafos, República Dominicana, bodas, retratos, fotografía profesional"
       />
       <div className="min-h-screen bg-background">
@@ -101,20 +105,17 @@ export default function FotografosLocales() {
             >
               <div className="inline-flex items-center gap-2 bg-primary/20 text-primary px-4 py-2 rounded-full mb-6">
                 <Camera className="h-5 w-5" />
-                <span className="font-medium">CapturaRD</span>
+                <span className="font-medium">{pc.tx("span.1", "CapturaRD")}</span>
               </div>
-              <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
-                Fotógrafos Locales <span className="text-primary">Profesionales</span>
+              <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">{pc.tx("h1.1", "Fotógrafos Locales")}{" "}<span className="text-primary">{pc.tx("span.2", "Profesionales")}</span>
               </h1>
-              <p className="text-muted-foreground text-lg mb-8">
-                Conecta con los mejores talentos visuales de la isla para capturar tus momentos más especiales.
-              </p>
+              <p className="text-muted-foreground text-lg mb-8">{pc.tx("p.1", "Conecta con los mejores talentos visuales de la isla para capturar tus momentos más especiales.")}</p>
 
               {/* Search */}
               <div className="relative max-w-xl mx-auto">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por nombre o ubicación..."
+                  placeholder={pc.t("Input.placeholder.1", "Buscar por nombre o ubicación...")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-12 h-14 text-lg rounded-full"
@@ -181,11 +182,9 @@ export default function FotografosLocales() {
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-display font-bold truncate">{photographer.name}</h3>
+                          <h2 className="h3 font-display font-bold truncate">{photographer.name}</h2>
                           {photographer.verified && (
-                            <Badge variant="secondary" className="bg-primary/20 text-primary text-xs">
-                              Verificado
-                            </Badge>
+                            <Badge variant="secondary" className="bg-primary/20 text-primary text-xs">{pc.tx("Badge.1", "Verificado")}</Badge>
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground">{photographer.specialty}</p>
@@ -217,9 +216,7 @@ export default function FotografosLocales() {
                       <Button 
                         size="sm"
                         onClick={() => setSelectedPhotographer(photographer)}
-                      >
-                        Ver Perfil y Cotizar
-                      </Button>
+                      >{pc.tx("Button.1", "Ver Perfil y Cotizar")}</Button>
                     </div>
                   </div>
                 </motion.div>
@@ -272,7 +269,7 @@ export default function FotografosLocales() {
                       <div className="flex items-center gap-1">
                         <Star className="h-5 w-5 fill-yellow-500 text-yellow-500" />
                         <span className="font-bold">{selectedPhotographer.rating}</span>
-                        <span className="text-muted-foreground">({selectedPhotographer.reviews} reseñas)</span>
+                        <span className="text-muted-foreground">({selectedPhotographer.reviews}{" "}{pc.tx("span.3", "reseñas)")}</span>
                       </div>
                       <div className="flex items-center gap-1 text-muted-foreground">
                         <MapPin className="h-5 w-5" />
@@ -300,9 +297,7 @@ export default function FotografosLocales() {
                     rel="noopener noreferrer"
                   >
                     <Button className="gap-2">
-                      <Mail className="h-4 w-4" />
-                      Solicitar Disponibilidad
-                    </Button>
+                      <Mail className="h-4 w-4" />{pc.tx("Button.2", "Solicitar Disponibilidad")}</Button>
                   </a>
                   <a
                     href="https://instagram.com"
@@ -310,9 +305,7 @@ export default function FotografosLocales() {
                     rel="noopener noreferrer"
                   >
                     <Button variant="outline" className="gap-2">
-                      <Instagram className="h-4 w-4" />
-                      Instagram
-                    </Button>
+                      <Instagram className="h-4 w-4" />{pc.tx("Button.3", "Instagram")}</Button>
                   </a>
                 </div>
               </div>
@@ -325,3 +318,6 @@ export default function FotografosLocales() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { photographers, categories };

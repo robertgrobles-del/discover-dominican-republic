@@ -27,7 +27,7 @@ export function NativeSponsoredCard({ creative, page }: { creative: NativeCreati
         {creative.image_url && <img src={creative.image_url} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />}
       </div>
       <div className="space-y-1 p-4">
-        <span className="inline-block rounded-full border px-2 py-0.5 text-[11px] font-semibold" style={{ backgroundColor: "hsl(var(--sponsored-bg))", color: "hsl(var(--sponsored-fg))", borderColor: "hsl(var(--sponsored-border))" }}>{creative.badge_label || "Patrocinado"}</span>
+        <span className="inline-block rounded-full border px-2 py-0.5 text-2xs font-semibold" style={{ backgroundColor: "hsl(var(--sponsored-bg))", color: "hsl(var(--sponsored-fg))", borderColor: "hsl(var(--sponsored-border))" }}>{creative.badge_label || "Patrocinado"}</span>
         <h3 className="font-display text-lg font-bold leading-snug">{creative.headline || creative.title}</h3>
         {creative.body_text && <p className="line-clamp-2 text-sm text-muted-foreground">{creative.body_text}</p>}
       </div>

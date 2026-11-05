@@ -1,3 +1,4 @@
+import { AerolineasSection } from "@/components/vuelos/AerolineasSection";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -14,6 +15,7 @@ import { FlightConnectionSearch } from "@/components/airports/FlightConnectionSe
 import { DigitalBoardingPassCard } from "@/components/airports/DigitalBoardingPassCard";
 import { LiveFlightStatusBoard } from "@/components/airports/LiveFlightStatusBoard";
 import { ETicketAssistant } from "@/components/airports/ETicketAssistant";
+import { usePageContent } from "@/lib/pageContent";
 
 const ALL_AIRPORTS = [
   {
@@ -89,13 +91,15 @@ const ALL_AIRPORTS = [
 ];
 
 export default function Aeropuerto() {
+  const pc = usePageContent("aeropuerto");
+  const ALL_AIRPORTS = pc.data("ALL_AIRPORTS", __pcData.ALL_AIRPORTS);
   const [selectedTab, setSelectedTab] = useState<"board" | "card" | "network">("board");
 
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="Aeropuertos y Conectividad Aérea de República Dominicana - Vuelos en Vivo"
-        description="Consulta vuelos en tiempo real, itinerarios, terminales, el formulario oficial de E-Ticket y conexiones hacia todos los aeropuertos internacionales de República Dominicana."
+        title={pc.t("SEOHead.title.1", "Aeropuertos y Conectividad Aérea de República Dominicana - Vuelos en Vivo")}
+        description={pc.t("SEOHead.description.1", "Consulta vuelos en tiempo real, itinerarios, terminales, el formulario oficial de E-Ticket y conexiones hacia todos los aeropuertos internacionales de República Dominicana.")}
       />
       <Header />
 
@@ -104,7 +108,7 @@ export default function Aeropuerto() {
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1920&h=1000&fit=crop"
-            alt="Conectividad Aérea República Dominicana"
+            alt={pc.t("img.alt.1", "Conectividad Aérea República Dominicana")}
             className="w-full h-full object-cover scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-black/40" />
@@ -112,15 +116,10 @@ export default function Aeropuerto() {
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center mt-[-40px]">
           <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-black uppercase tracking-widest mb-4 border border-white/25">
-            <Plane className="w-3.5 h-3.5 text-sky-300" />
-            El Hub Aéreo Mejor Conectado del Caribe
-          </span>
-          <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-tight drop-shadow-md">
-            Aeropuertos y Vuelos en <span className="text-sky-300">República Dominicana</span>
+            <Plane className="w-3.5 h-3.5 text-sky-300" />{pc.tx("span.1", "El Hub Aéreo Mejor Conectado del Caribe")}</span>
+          <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-tight drop-shadow-md">{pc.tx("h1.1", "Aeropuertos y Vuelos en")}{" "}<span className="text-sky-300">{pc.tx("span.2", "República Dominicana")}</span>
           </h1>
-          <p className="text-base sm:text-lg text-white/90 mt-3 max-w-2xl mx-auto font-medium drop-shadow-xs">
-            Planifica tu llegada a la isla, monitorea vuelos en vivo y conoce los 8 aeropuertos internacionales que conectan con el paraíso.
-          </p>
+          <p className="text-base sm:text-lg text-white/90 mt-3 max-w-2xl mx-auto font-medium drop-shadow-xs">{pc.tx("p.1", "Planifica tu llegada a la isla, monitorea vuelos en vivo y conoce los 8 aeropuertos internacionales que conectan con el paraíso.")}</p>
         </div>
       </section>
 
@@ -140,12 +139,8 @@ export default function Aeropuerto() {
         {/* Muestra interactiva de Boarding Pass Digital */}
         <div className="my-14 text-center">
           <div className="max-w-xl mx-auto mb-6">
-            <h2 className="text-2xl sm:text-3xl font-black text-foreground">
-              Tu Pase de Abordar Digital
-            </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-              Guarda tus rutas aéreas preferidas y accede fácilmente a tu pase de abordaje vinculado con el E-Ticket de aduanas.
-            </p>
+            <h2 className="text-2xl sm:text-3xl font-black text-foreground">{pc.tx("h2.1", "Tu Pase de Abordar Digital")}</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">{pc.tx("p.2", "Guarda tus rutas aéreas preferidas y accede fácilmente a tu pase de abordaje vinculado con el E-Ticket de aduanas.")}</p>
           </div>
           <DigitalBoardingPassCard />
         </div>
@@ -154,16 +149,10 @@ export default function Aeropuerto() {
         <div className="my-16">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-primary">
-                Red Aeroportuaria Nacional
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-foreground mt-1">
-                Los Aeropuertos Internacionales de RD
-              </h2>
+              <span className="text-xs font-bold uppercase tracking-wider text-primary">{pc.tx("span.3", "Red Aeroportuaria Nacional")}</span>
+              <h2 className="text-2xl sm:text-3xl font-black text-foreground mt-1">{pc.tx("h2.2", "Los Aeropuertos Internacionales de RD")}</h2>
             </div>
-            <span className="text-xs text-muted-foreground font-medium">
-              Más de 600 vuelos diarios internacionales y regionales
-            </span>
+            <span className="text-xs text-muted-foreground font-medium">{pc.tx("span.4", "Más de 600 vuelos diarios internacionales y regionales")}</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -186,7 +175,7 @@ export default function Aeropuerto() {
                   </div>
 
                   <div className="absolute bottom-3 left-3 right-3 text-white">
-                    <p className="text-[11px] font-semibold text-sky-300 flex items-center gap-1">
+                    <p className="text-2xs font-semibold text-sky-300 flex items-center gap-1">
                       <MapPin className="w-3 h-3" /> {airport.province}
                     </p>
                     <h3 className="font-bold text-base leading-tight mt-0.5 truncate">
@@ -200,7 +189,7 @@ export default function Aeropuerto() {
                     {airport.tags.map((tag, tIdx) => (
                       <span
                         key={tIdx}
-                        className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-muted text-muted-foreground"
+                        className="text-3xs font-bold px-2 py-0.5 rounded-md bg-muted text-muted-foreground"
                       >
                         {tag}
                       </span>
@@ -209,13 +198,11 @@ export default function Aeropuerto() {
 
                   <div className="pt-3 border-t border-border/60 flex items-center justify-between">
                     <span className="text-xs text-muted-foreground font-semibold">
-                      ~{airport.flightsDay} vuelos / día
-                    </span>
+                      ~{airport.flightsDay}{" "}{pc.tx("span.5", "vuelos / día")}</span>
                     <Link
                       to={`/aeropuerto/${airport.slug}`}
                       className="inline-flex items-center gap-1 text-xs font-bold text-primary group-hover:translate-x-1 transition-transform"
-                    >
-                      Ver Terminal <ChevronRight className="w-3.5 h-3.5" />
+                    >{pc.tx("Link.1", "Ver Terminal")}{" "}<ChevronRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
                 </div>
@@ -232,10 +219,8 @@ export default function Aeropuerto() {
                 <Car className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-sm text-foreground">Transporte Autorizado</h4>
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                  Utiliza taxis autorizados con tarifas fijas visibles o servicios de rent-a-car con mostrador oficial dentro de la terminal.
-                </p>
+                <h4 className="font-bold text-sm text-foreground">{pc.tx("h4.1", "Transporte Autorizado")}</h4>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{pc.tx("p.3", "Utiliza taxis autorizados con tarifas fijas visibles o servicios de rent-a-car con mostrador oficial dentro de la terminal.")}</p>
               </div>
             </div>
 
@@ -244,10 +229,8 @@ export default function Aeropuerto() {
                 <Clock className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-sm text-foreground">Tiempo de Llegada</h4>
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                  Llega 3 horas antes para vuelos internacionales y 1 hora antes para vuelos chárter o conexiones domésticas.
-                </p>
+                <h4 className="font-bold text-sm text-foreground">{pc.tx("h4.2", "Tiempo de Llegada")}</h4>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{pc.tx("p.4", "Llega 3 horas antes para vuelos internacionales y 1 hora antes para vuelos chárter o conexiones domésticas.")}</p>
               </div>
             </div>
 
@@ -256,17 +239,20 @@ export default function Aeropuerto() {
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-bold text-sm text-foreground">Asistencia al Turista</h4>
-                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                  Oficinas de POLITUR y mostradores de MITUR están disponibles 24/7 en todas las terminales internacionales.
-                </p>
+                <h4 className="font-bold text-sm text-foreground">{pc.tx("h4.3", "Asistencia al Turista")}</h4>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{pc.tx("p.5", "Oficinas de POLITUR y mostradores de MITUR están disponibles 24/7 en todas las terminales internacionales.")}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
+      <AerolineasSection />
+
       <Footer />
     </div>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { ALL_AIRPORTS };

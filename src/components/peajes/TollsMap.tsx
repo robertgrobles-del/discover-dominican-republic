@@ -222,7 +222,7 @@ export const TollsMap: React.FC<TollsMapProps> = ({ selectedRouteId, vehicleCate
                     <span>Tu Categoría ({vehicleCategory}):</span>
                     <span>RD$ {getPriceByCat(station)}</span>
                   </div>
-                  <div className="text-[10px] text-slate-500 border-t border-slate-200 pt-1">
+                  <div className="text-3xs text-slate-500 border-t border-slate-200 pt-1">
                     <div>Cat 1 (Livianos): RD$ {station.prices.cat1}</div>
                     <div>Cat 2 (Minibús): RD$ {station.prices.cat2}</div>
                     <div>Cat 3/4 (Pesados): RD$ {station.prices.cat3} - {station.prices.cat4}</div>

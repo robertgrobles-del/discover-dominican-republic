@@ -54,9 +54,9 @@ export function B2BROICalculator() {
         <CardContent className="p-6 sm:p-8 space-y-8">
           {/* Category selection */}
           <div className="space-y-3">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Tipo de Negocio Turístico:
-            </label>
+            </p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {(Object.keys(categoryPresets) as Array<keyof typeof categoryPresets>).map((cat) => (
                 <button
@@ -92,7 +92,7 @@ export function B2BROICalculator() {
                 className="w-full accent-primary cursor-pointer"
                 aria-label="Ticket Promedio por Cliente en dólares"
               />
-              <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
+              <div className="flex justify-between text-3xs text-muted-foreground font-mono">
                 <span>US$ 15</span>
                 <span>US$ 500</span>
               </div>
@@ -113,7 +113,7 @@ export function B2BROICalculator() {
                 className="w-full accent-primary cursor-pointer"
                 aria-label="Visitas mensuales estimadas"
               />
-              <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
+              <div className="flex justify-between text-3xs text-muted-foreground font-mono">
                 <span>500 visitas</span>
                 <span>15,000 visitas</span>
               </div>
@@ -128,7 +128,7 @@ export function B2BROICalculator() {
               </div>
               <p className="text-xs text-muted-foreground font-medium">Contactos Directos / WhatsApp</p>
               <p className="text-2xl sm:text-3xl font-black text-primary font-mono">{directLeadsEstimated}</p>
-              <p className="text-[10px] text-muted-foreground">leads mensuales estimados</p>
+              <p className="text-3xs text-muted-foreground">leads mensuales estimados</p>
             </div>
 
             <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-center space-y-1">
@@ -137,7 +137,7 @@ export function B2BROICalculator() {
               </div>
               <p className="text-xs text-muted-foreground font-medium">Clientes Cerrados Directos</p>
               <p className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono">{estimatedClients}</p>
-              <p className="text-[10px] text-muted-foreground">≈ US$ {estimatedGrossRevenue.toLocaleString()} facturados</p>
+              <p className="text-3xs text-muted-foreground">≈ US$ {estimatedGrossRevenue.toLocaleString()} facturados</p>
             </div>
 
             <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-center space-y-1">
@@ -146,7 +146,7 @@ export function B2BROICalculator() {
               </div>
               <p className="text-xs text-muted-foreground font-medium">Ahorro en Comisiones OTAs</p>
               <p className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400 font-mono">US$ {otaCommissionsSaved.toLocaleString()}</p>
-              <p className="text-[10px] text-muted-foreground">18% no pagado a intermediarios</p>
+              <p className="text-3xs text-muted-foreground">18% no pagado a intermediarios</p>
             </div>
           </div>
 

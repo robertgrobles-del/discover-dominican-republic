@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/hooks/useI18n";
 
+import { activateOnKey } from "@/lib/a11y";
 interface AccommodationGalleryProps {
   images: string[];
   name: string;
@@ -21,7 +22,7 @@ export function AccommodationGallery({ images, name }: AccommodationGalleryProps
     <>
       <div className="grid grid-cols-4 grid-rows-2 gap-3 h-[400px] md:h-[500px]">
         {/* Main Image */}
-        <div 
+        <div role="button" tabIndex={0} onKeyDown={activateOnKey} 
           className="col-span-2 row-span-2 relative rounded-l-2xl overflow-hidden cursor-pointer group"
           onClick={() => setIsFullscreen(true)}
         >

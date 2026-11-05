@@ -37,8 +37,13 @@ const AcceptInvitation = lazy(() => import("@/pages/AcceptInvitation"));
 
 export const userAccountRoutes = (
   <>
-    {/* Autenticación & Cuenta */}
+    {/* Autenticación, Comunidad & Gamificación */}
     <Route path="/login" element={<Login />} />
+    <Route path="/foro" element={<Navigate to="/comunidad" replace />} />
+    <Route path="/foro-destino" element={<Navigate to="/comunidad" replace />} />
+    <Route path="/comunidad/foro" element={<Navigate to="/comunidad" replace />} />
+    <Route path="/gamificacion-hub" element={<Navigate to="/gamificacion" replace />} />
+    <Route path="/juegos-misiones" element={<Navigate to="/gamificacion" replace />} />
     <Route path="/registro" element={<Registro />} />
     <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="/perfil" element={<Perfil />} />

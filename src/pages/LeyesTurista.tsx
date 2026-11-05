@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const leyesCategorizadas = [
   {
@@ -86,6 +87,10 @@ const numerosUtiles = [
 ];
 
 export default function LeyesTurista() {
+  const pc = usePageContent("leyes-turista");
+  const leyesCategorizadas = pc.data("leyesCategorizadas", __pcData.leyesCategorizadas);
+  const derechosTurista = pc.data("derechosTurista", __pcData.derechosTurista);
+  const numerosUtiles = pc.data("numerosUtiles", __pcData.numerosUtiles);
   const [selectedCat, setSelectedCat] = useState<string>("todas");
 
   const filteredLeyes = selectedCat === "todas"
@@ -95,8 +100,8 @@ export default function LeyesTurista() {
   return (
     <PageTransition>
       <SEOHead
-        title="Leyes y Normas para Turistas en República Dominicana | Guía Legal y Seguridad RD"
-        description="Conoce las leyes clave para viajeros en RD: uso de drones, normas de tránsito, leyes sobre estupefacientes, aduanas, derechos del turista y teléfonos de POLITUR."
+        title={pc.t("SEOHead.title.1", "Leyes y Normas para Turistas en República Dominicana | Guía Legal y Seguridad RD")}
+        description={pc.t("SEOHead.description.1", "Conoce las leyes clave para viajeros en RD: uso de drones, normas de tránsito, leyes sobre estupefacientes, aduanas, derechos del turista y teléfonos de POLITUR.")}
         keywords="leyes turista dominicana, normas viajero rd, drones republica dominicana ley, politur telefono emergencia, conducir en dominicana turista"
       />
       <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -105,32 +110,27 @@ export default function LeyesTurista() {
         {/* Hero Section */}
         <section className="relative h-[60vh] min-h-[460px] flex items-end overflow-hidden">
           <img
-            src={santoDomingoImg}
-            alt="Leyes y Seguridad para Turistas en República Dominicana"
+            src={pc.img("img.src.1", santoDomingoImg)}
+            alt={pc.t("img.alt.1", "Leyes y Seguridad para Turistas en República Dominicana")}
             className="absolute inset-0 w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/75 to-black/35" />
 
           <div className="relative z-10 container mx-auto px-4 lg:px-8 pb-12">
             <nav className="flex items-center gap-2 text-xs md:text-sm text-white/80 mb-4">
-              <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
+              <Link to="/" className="hover:text-primary transition-colors">{pc.tx("Link.1", "Inicio")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <Link to="/planifica" className="hover:text-primary transition-colors">Planifica</Link>
+              <Link to="/planifica" className="hover:text-primary transition-colors">{pc.tx("Link.2", "Planifica")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <span className="text-white font-medium">Leyes y Normas para el Turista</span>
+              <span className="text-white font-medium">{pc.tx("span.1", "Leyes y Normas para el Turista")}</span>
             </nav>
 
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div>
                 <Badge className="mb-3 bg-amber-500/20 text-amber-300 border-amber-500/30 text-xs px-3 py-1 font-semibold">
-                  <Scale className="h-3.5 w-3.5 mr-1.5" /> INFORMACIÓN LEGAL Y SEGURIDAD
-                </Badge>
-                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">
-                  Leyes & Normas para el Turista
-                </h1>
-                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">
-                  Todo lo que necesitas saber sobre normativas locales, uso de drones, aduanas, tránsito y tus derechos garantizados durante tu estadía en República Dominicana.
-                </p>
+                  <Scale className="h-3.5 w-3.5 mr-1.5" />{" "}{pc.tx("Badge.1", "INFORMACIÓN LEGAL Y SEGURIDAD")}</Badge>
+                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">{pc.tx("h1.1", "Leyes & Normas para el Turista")}</h1>
+                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">{pc.tx("p.1", "Todo lo que necesitas saber sobre normativas locales, uso de drones, aduanas, tránsito y tus derechos garantizados durante tu estadía en República Dominicana.")}</p>
               </div>
 
               {/* Politur badge */}
@@ -139,7 +139,7 @@ export default function LeyesTurista() {
                   <ShieldCheck className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-xs text-white/70 font-medium">Línea de Ayuda POLITUR</p>
+                  <p className="text-xs text-white/70 font-medium">{pc.tx("p.2", "Línea de Ayuda POLITUR")}</p>
                   <a href="tel:8092003500" className="text-sm font-bold text-primary hover:underline">
                     809-200-3500 (24h)
                   </a>
@@ -152,15 +152,9 @@ export default function LeyesTurista() {
         {/* Laws Grid */}
         <section className="py-16 container mx-auto px-4 lg:px-8 max-w-6xl">
           <div className="text-center mb-12">
-            <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
-              NORMATIVAS VIGENTES
-            </Badge>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
-              Regulaciones Clave que Debes Conocer
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
-              Mantente informado para disfrutar de unas vacaciones seguras y sin contratiempos.
-            </p>
+            <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">{pc.tx("Badge.2", "NORMATIVAS VIGENTES")}</Badge>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">{pc.tx("h2.1", "Regulaciones Clave que Debes Conocer")}</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">{pc.tx("p.3", "Mantente informado para disfrutar de unas vacaciones seguras y sin contratiempos.")}</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 mb-16">
@@ -174,7 +168,7 @@ export default function LeyesTurista() {
                       </div>
                       <h3 className="font-display font-bold text-lg text-foreground">{ley.titulo}</h3>
                     </div>
-                    <Badge variant={ley.severidad.includes("Severa") ? "destructive" : "secondary"} className="text-[10px] shrink-0">
+                    <Badge variant={ley.severidad.includes("Severa") ? "destructive" : "secondary"} className="text-3xs shrink-0">
                       {ley.severidad}
                     </Badge>
                   </div>
@@ -184,7 +178,7 @@ export default function LeyesTurista() {
                   </p>
 
                   <div className="p-3 bg-primary/5 rounded-xl border border-primary/20 text-xs text-primary leading-relaxed">
-                    <strong>💡 Consejo práctico:</strong> {ley.consejo}
+                    <strong>{pc.tx("strong.1", "💡 Consejo práctico:")}</strong> {ley.consejo}
                   </div>
                 </CardContent>
               </Card>
@@ -194,12 +188,8 @@ export default function LeyesTurista() {
           {/* Tourist Rights */}
           <div className="bg-card border border-border rounded-2xl p-6 md:p-10 mb-16">
             <div className="text-center mb-8">
-              <Badge className="mb-2 bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-                TUS GARANTÍAS
-              </Badge>
-              <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                Tus Derechos como Visitante en RD
-              </h3>
+              <Badge className="mb-2 bg-emerald-500/20 text-emerald-400 border-emerald-500/30">{pc.tx("Badge.3", "TUS GARANTÍAS")}</Badge>
+              <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h3.1", "Tus Derechos como Visitante en RD")}</h3>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-4">
@@ -215,8 +205,7 @@ export default function LeyesTurista() {
           {/* Useful Emergency Numbers */}
           <div className="max-w-3xl mx-auto">
             <h3 className="font-display text-2xl font-bold text-foreground mb-6 text-center flex items-center justify-center gap-2">
-              <Phone className="h-5 w-5 text-primary" /> Teléfonos Útiles de Asistencia Inmediata
-            </h3>
+              <Phone className="h-5 w-5 text-primary" />{" "}{pc.tx("h3.2", "Teléfonos Útiles de Asistencia Inmediata")}</h3>
             <div className="space-y-3">
               {numerosUtiles.map((num) => (
                 <div key={num.servicio} className="p-4 bg-card rounded-xl border border-border flex items-center justify-between gap-4">
@@ -248,3 +237,6 @@ export default function LeyesTurista() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { leyesCategorizadas, derechosTurista, numerosUtiles };

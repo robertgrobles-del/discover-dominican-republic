@@ -56,6 +56,7 @@ export type EntityType =
   | 'experiences' 
   | 'events' 
   | 'clinics' 
+  | 'shopping_centers'
   | 'ports_marinas' 
   | 'stadiums'
   | 'theme_parks'
@@ -68,53 +69,27 @@ export type EntityType =
   | 'beaches'
   | 'spas_wellness'
   | 'ad_banners'
+  | 'ad_clients'
   | 'historical_figures'
   | 'historical_events'
   | 'tour_packages'
   | 'job_vacancies'
-  | 'establishment_registrations'
-  | 'site_settings'
-  | 'newsletter_subscribers'
-  | 'marketing_leads'
   | 'offers'
   | 'ambassadors'
-  | 'ambassador_referrals'
   | 'achievements'
   | 'gamification_levels'
-  | 'profiles'
-  | 'partner_profiles'
   | 'routes'
-  | 'route_stops'
   | 'audio_guides'
-  | 'ugc_reports'
-  | 'event_tickets'
   | 'reward_inventory'
-  | 'reward_shipments'
-  | 'survey_templates'
-  | 'survey_responses'
-  | 'admin_activity_logs'
   | 'seo_redirections'
-  | 'system_webhooks'
-  | 'ugc_media'
-  | 'user_suspensions'
-  | 'support_tickets'
-  | 'support_messages'
-  | 'marketing_campaigns'
-  | 'points_transactions'
-  | 'marketplace_orders'
-  | 'marketplace_order_items'
-  | 'vendor_payments'
   | 'discount_coupons'
   | 'weather_alerts'
   | 'emergency_contacts'
-  | 'system_cron_jobs'
-  | 'ip_rules'
   | 'lotteries'
   | 'lottery_draws'
   | 'lottery_results'
   | 'exchange_rates'
   | 'fuel_prices'
-  | 'reservations'
   | 'protected_areas'
   | 'bird_species'
   | 'hot_springs'
@@ -132,6 +107,10 @@ export interface EntityConfig {
   requiredFields: string[];
 }
 
+/**
+ * Sólo colecciones que la API de administración publica como colección genérica (`/admin/<ruta>`). Lo que tiene pantalla
+ * propia en el panel (soporte, leads, encuestas, pedidos, ajustes, usuarios…) no va aquí: esas tablas no se editan por fila.
+ */
 export const entityConfigs: Record<EntityType, EntityConfig> = {
   provinces: {
     name: "Provincias",
@@ -144,14 +123,14 @@ export const entityConfigs: Record<EntityType, EntityConfig> = {
     name: "Destinos",
     icon: React.createElement(Map, { className: "h-5 w-5" }),
     description: "Destinos turísticos",
-    fields: ["name", "slug", "province_id", "description", "short_description", "image_url", "gallery", "highlights", "typical_dishes", "latitude", "longitude", "weather_info", "best_time_to_visit", "how_to_get_there", "altitude_m", "hidden_gems", "itineraries", "seasonal_highlights", "transit_options", "narrative_quote", "narrative_author", "local_story", "curated_gallery", "day_timeline", "quick_facts"],
+    fields: ["name", "slug", "province_id", "description", "short_description", "image_url", "gallery", "highlights", "typical_dishes", "latitude", "longitude", "weather_info", "best_time_to_visit", "how_to_get_there", "altitude_m", "hidden_gems", "itineraries", "seasonal_highlights", "transit_options", "narrative_quote", "narrative_author", "local_story", "curated_gallery", "day_timeline", "quick_facts", "extras"],
     requiredFields: ["name"]
   },
   hotels: {
     name: "Hoteles",
     icon: React.createElement(Hotel, { className: "h-5 w-5" }),
     description: "Alojamientos y resorts",
-    fields: ["name", "slug", "destination_id", "category", "stars", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "price_range", "amenities", "latitude", "longitude", "rating", "is_featured", "tour_360_url", "whatsapp_phone", "direct_booking_url", "room_types", "guest_timeline", "eco_guidelines"],
+    fields: ["name", "slug", "destination_id", "category", "stars", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "price_range", "amenities", "latitude", "longitude", "rating", "is_featured", "tour_360_url", "whatsapp_phone", "direct_booking_url", "room_types", "guest_timeline", "eco_guidelines", "check_in_time", "check_out_time", "policies", "pools", "dining", "bars_lounges", "nightlife", "spa_info", "faqs", "extras"],
     requiredFields: ["name"]
   },
   restaurants: {
@@ -165,7 +144,7 @@ export const entityConfigs: Record<EntityType, EntityConfig> = {
     name: "Bares y Discotecas",
     icon: React.createElement(Wine, { className: "h-5 w-5" }),
     description: "Vida nocturna",
-    fields: ["name", "slug", "destination_id", "bar_type", "ambiance", "music_style", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "price_range", "opening_hours", "dress_code", "minimum_age", "services", "latitude", "longitude", "rating", "is_featured"],
+    fields: ["name", "slug", "destination_id", "bar_type", "ambiance", "music_style", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "price_range", "opening_hours", "dress_code", "minimum_age", "cover_price", "instagram", "features", "services", "latitude", "longitude", "rating", "is_featured"],
     requiredFields: ["name"]
   },
   tour_guides: {
@@ -208,6 +187,13 @@ export const entityConfigs: Record<EntityType, EntityConfig> = {
     icon: React.createElement(Stethoscope, { className: "h-5 w-5" }),
     description: "Clínicas y centros médicos",
     fields: ["name", "slug", "destination_id", "clinic_type", "specialties", "description", "short_description", "image_url", "gallery", "address", "phone", "emergency_phone", "email", "website", "opening_hours", "services", "certifications", "insurance_accepted", "languages", "latitude", "longitude", "rating", "is_24_hours", "is_featured"],
+    requiredFields: ["name"]
+  },
+  shopping_centers: {
+    name: "Centros Comerciales",
+    icon: React.createElement(Building2, { className: "h-5 w-5" }),
+    description: "Plazas y centros comerciales",
+    fields: ["name", "slug", "destination_id", "mall_type", "description", "short_description", "image_url", "gallery", "address", "phone", "email", "website", "opening_hours", "floors", "store_count", "brands", "services", "highlights", "has_cinema", "has_food_court", "has_supermarket", "parking", "latitude", "longitude", "rating", "is_featured"],
     requiredFields: ["name"]
   },
   ports_marinas: {
@@ -277,8 +263,15 @@ export const entityConfigs: Record<EntityType, EntityConfig> = {
     name: "Banners Publicitarios",
     icon: React.createElement(Image, { className: "h-5 w-5" }),
     description: "Gestión de banners y publicidad",
-    fields: ["name", "slug", "image_url", "alt_text", "target_url", "headline", "subtext", "cta_text", "sponsor", "banner_type", "placement", "section", "page", "start_date", "end_date", "priority", "is_active", "is_featured", "sponsorship_scope", "is_takeover", "utm_campaign", "utm_source", "utm_medium", "utm_content", "target_section", "target_page"],
-    requiredFields: ["name", "banner_type", "placement"]
+    fields: ["client_id", "name", "slug", "image_url", "image_url_right", "alt_text", "target_url", "headline", "subtext", "cta_text", "sponsor", "slide_details", "animation_config", "custom_price_monthly", "banner_type", "placement", "section", "page", "start_date", "end_date", "priority", "is_active", "is_featured", "sponsorship_scope", "is_takeover", "utm_campaign", "utm_source", "utm_medium", "utm_content", "target_section", "target_page"],
+    requiredFields: ["client_id", "name", "banner_type", "placement"]
+  },
+  ad_clients: {
+    name: "Clientes publicitarios",
+    icon: React.createElement(Briefcase, { className: "h-5 w-5" }),
+    description: "Empresas y personas a las que se facturan los banners",
+    fields: ["kind", "legal_name", "trade_name", "rnc_cedula", "default_ncf_type", "email", "phone", "contact_name", "address", "notes", "is_active"],
+    requiredFields: ["kind", "legal_name", "email"]
   },
   historical_figures: {
     name: "Personajes Históricos",
@@ -308,13 +301,6 @@ export const entityConfigs: Record<EntityType, EntityConfig> = {
     fields: ["title", "slug", "company_name", "company_logo", "company_description", "description", "short_description", "location", "address", "province", "salary_range", "salary_min", "salary_max", "job_type", "experience_level", "education", "category", "department", "languages", "responsibilities", "requirements", "benefits", "skills", "application_url", "application_email", "deadline", "is_urgent", "is_remote", "is_featured"],
     requiredFields: ["title", "company_name"]
   },
-  establishment_registrations: {
-    name: "Registros de Negocios (Leads B2B)",
-    icon: React.createElement(Building2, { className: "h-5 w-5" }),
-    description: "Solicitudes de registro de establecimientos turísticos",
-    fields: ["nombre", "responsable", "email", "telefono", "direccion", "provincia", "tipo_establecimiento", "website", "foto_url", "descripcion", "rnc", "horario", "detalles", "status"],
-    requiredFields: ["nombre", "responsable", "email", "telefono", "direccion", "provincia", "tipo_establecimiento", "descripcion"]
-  },
   beaches: {
     name: "Playas",
     icon: React.createElement(Waves, { className: "h-5 w-5" }),
@@ -328,27 +314,6 @@ export const entityConfigs: Record<EntityType, EntityConfig> = {
     description: "Centros de bienestar, spas y retiros espirituales",
     fields: ["name", "slug", "destination_id", "spa_type", "description", "short_description", "image_url", "gallery", "services", "treatments", "amenities", "address", "phone", "email", "website", "opening_hours", "price_range", "latitude", "longitude", "rating", "is_featured", "is_active"],
     requiredFields: ["name"]
-  },
-  site_settings: {
-    name: "Configuraciones",
-    icon: React.createElement(Shield, { className: "h-5 w-5" }),
-    description: "Configuración global del portal y variables generales",
-    fields: ["key", "value", "description"],
-    requiredFields: ["key", "value"]
-  },
-  newsletter_subscribers: {
-    name: "Suscriptores",
-    icon: React.createElement(Users, { className: "h-5 w-5" }),
-    description: "Suscriptores del boletín y campañas de marketing",
-    fields: ["email", "nombre", "intereses", "frecuencia", "is_active"],
-    requiredFields: ["email"]
-  },
-  marketing_leads: {
-    name: "Leads y Campañas",
-    icon: React.createElement(Briefcase, { className: "h-5 w-5" }),
-    description: "Leads comerciales y contactos del portal",
-    fields: ["nombre", "email", "telefono", "empresa", "mensaje", "source", "status"],
-    requiredFields: ["nombre", "email"]
   },
   offers: {
     name: "Ofertas Especiales",
@@ -364,13 +329,6 @@ export const entityConfigs: Record<EntityType, EntityConfig> = {
     fields: ["id", "referral_code", "clicks_count", "sales_count", "total_earned", "pending_payout", "tier"],
     requiredFields: ["id", "referral_code"]
   },
-  ambassador_referrals: {
-    name: "Conversiones / Comisiones",
-    icon: React.createElement(Compass, { className: "h-5 w-5" }),
-    description: "Ventas y comisiones generadas por afiliados",
-    fields: ["ambassador_id", "referred_email", "sale_amount", "commission_earned", "status"],
-    requiredFields: ["ambassador_id", "referred_email", "sale_amount", "commission_earned"]
-  },
   achievements: {
     name: "Gamificación (Medallas)",
     icon: React.createElement(Trophy, { className: "h-5 w-5" }),
@@ -385,33 +343,12 @@ export const entityConfigs: Record<EntityType, EntityConfig> = {
     fields: ["level_number", "title", "icon", "color", "xp_required", "marketplace_discount", "perks"],
     requiredFields: ["level_number", "title", "xp_required"]
   },
-  profiles: {
-    name: "Usuarios (Viajeros)",
-    icon: React.createElement(Users, { className: "h-5 w-5" }),
-    description: "Perfiles generales de viajeros registrados",
-    fields: ["id", "display_name", "avatar_url", "bio", "travel_interests"],
-    requiredFields: ["id", "display_name"]
-  },
-  partner_profiles: {
-    name: "Usuarios (Socios B2B)",
-    icon: React.createElement(Crown, { className: "h-5 w-5" }),
-    description: "Perfiles comerciales y afiliados comerciales",
-    fields: ["id", "business_name", "business_type", "phone", "email", "description", "rating"],
-    requiredFields: ["id", "business_name", "business_type", "email"]
-  },
   routes: {
     name: "Rutas y Circuitos",
     icon: React.createElement(Compass, { className: "h-5 w-5" }),
     description: "Circuitos turísticos sugeridos",
     fields: ["title", "slug", "description", "duration_hours", "distance_km", "difficulty", "gpx_track_url", "is_active"],
     requiredFields: ["title", "slug"]
-  },
-  route_stops: {
-    name: "Paradas de Rutas",
-    icon: React.createElement(MapPin, { className: "h-5 w-5" }),
-    description: "Paradas intermedias de los circuitos turísticos",
-    fields: ["route_id", "stop_order", "destination_id", "place_name", "latitude", "longitude", "notes"],
-    requiredFields: ["route_id", "stop_order", "place_name"]
   },
   audio_guides: {
     name: "Audioguías",
@@ -420,20 +357,6 @@ export const entityConfigs: Record<EntityType, EntityConfig> = {
     fields: ["title", "description", "audio_url", "language", "associated_entity_type", "associated_entity_id", "duration_seconds"],
     requiredFields: ["title", "audio_url", "associated_entity_type", "associated_entity_id"]
   },
-  ugc_reports: {
-    name: "Reportes UGC (Denuncias)",
-    icon: React.createElement(AlertTriangle, { className: "h-5 w-5" }),
-    description: "Denuncias de reseñas o fotos falsas",
-    fields: ["user_id", "target_type", "target_id", "reason", "status"],
-    requiredFields: ["target_type", "target_id", "reason"]
-  },
-  event_tickets: {
-    name: "Entradas Digitales (Tickets)",
-    icon: React.createElement(Calendar, { className: "h-5 w-5" }),
-    description: "Pases y entradas digitales generadas",
-    fields: ["reservation_id", "ticket_code", "status", "scanned_at"],
-    requiredFields: ["reservation_id", "ticket_code"]
-  },
   reward_inventory: {
     name: "Premios del Club",
     icon: React.createElement(Trophy, { className: "h-5 w-5" }),
@@ -441,110 +364,12 @@ export const entityConfigs: Record<EntityType, EntityConfig> = {
     fields: ["title", "description", "coins_cost", "stock", "is_physical", "image_url"],
     requiredFields: ["title", "coins_cost"]
   },
-  reward_shipments: {
-    name: "Envíos de Premios",
-    icon: React.createElement(Briefcase, { className: "h-5 w-5" }),
-    description: "Logística y entrega de regalos físicos canjeados",
-    fields: ["user_id", "reward_id", "recipient_name", "recipient_phone", "shipping_address", "courier_name", "tracking_number", "status", "shipped_at"],
-    requiredFields: ["user_id", "reward_id", "recipient_name", "recipient_phone", "shipping_address"]
-  },
-  survey_templates: {
-    name: "Plantillas de Encuesta",
-    icon: React.createElement(List, { className: "h-5 w-5" }),
-    description: "Configuración de encuestas de calidad",
-    fields: ["title", "questions", "is_active"],
-    requiredFields: ["title", "questions"]
-  },
-  survey_responses: {
-    name: "Respuestas de Encuestas",
-    icon: React.createElement(List, { className: "h-5 w-5" }),
-    description: "Respuestas y opiniones enviadas por viajeros",
-    fields: ["template_id", "user_id", "reservation_id", "nps_score", "answers"],
-    requiredFields: ["template_id", "answers"]
-  },
-  admin_activity_logs: {
-    name: "Auditoría (Logs)",
-    icon: React.createElement(Shield, { className: "h-5 w-5" }),
-    description: "Historial inmutable de acciones administrativas",
-    fields: ["admin_id", "action_type", "entity_name", "entity_id", "ip_address", "user_agent", "old_data", "new_data"],
-    requiredFields: ["action_type", "entity_name"]
-  },
   seo_redirections: {
     name: "Redirecciones SEO",
     icon: React.createElement(Compass, { className: "h-5 w-5" }),
     description: "Gestor de redirecciones 301/302 para buscadores",
     fields: ["source_path", "target_path", "redirect_type", "is_active"],
     requiredFields: ["source_path", "target_path"]
-  },
-  system_webhooks: {
-    name: "Webhooks del Sistema",
-    icon: React.createElement(Compass, { className: "h-5 w-5" }),
-    description: "Integraciones de datos hacia herramientas externas",
-    fields: ["url", "event_type", "secret_token", "is_active"],
-    requiredFields: ["url", "event_type"]
-  },
-  ugc_media: {
-    name: "UGC Media (Aprobación)",
-    icon: React.createElement(Image, { className: "h-5 w-5" }),
-    description: "Fotos y videos aportados por viajeros con control de estado",
-    fields: ["user_id", "media_url", "media_type", "associated_entity_type", "associated_entity_id", "status"],
-    requiredFields: ["media_url", "media_type", "associated_entity_type", "associated_entity_id"]
-  },
-  user_suspensions: {
-    name: "Suspensiones de Usuarios",
-    icon: React.createElement(Shield, { className: "h-5 w-5" }),
-    description: "Bloqueos y suspensiones de cuentas de usuario",
-    fields: ["user_id", "reason", "suspended_by", "expires_at", "is_active"],
-    requiredFields: ["user_id", "reason"]
-  },
-  support_tickets: {
-    name: "Tickets de Soporte",
-    icon: React.createElement(List, { className: "h-5 w-5" }),
-    description: "Tickets de soporte y ayuda abiertos por usuarios",
-    fields: ["user_id", "subject", "description", "status", "priority", "assigned_to"],
-    requiredFields: ["subject", "description"]
-  },
-  support_messages: {
-    name: "Respuestas de Soporte",
-    icon: React.createElement(MessageSquare, { className: "h-5 w-5" }),
-    description: "Mensajes y comunicación dentro de los tickets de soporte",
-    fields: ["ticket_id", "sender_id", "message", "is_admin_reply"],
-    requiredFields: ["ticket_id", "message"]
-  },
-  marketing_campaigns: {
-    name: "Campañas de Marketing",
-    icon: React.createElement(Mail, { className: "h-5 w-5" }),
-    description: "Planificación y envío de boletines y promociones",
-    fields: ["title", "subject", "body_template", "segment_interests", "sent_count", "status", "scheduled_for"],
-    requiredFields: ["title", "subject", "body_template"]
-  },
-  points_transactions: {
-    name: "Transacciones de Puntos",
-    icon: React.createElement(Activity, { className: "h-5 w-5" }),
-    description: "Historial y libro contable de XP y Monedas del club",
-    fields: ["user_id", "transaction_type", "amount", "reason", "reference_entity_type", "reference_entity_id"],
-    requiredFields: ["user_id", "transaction_type", "amount", "reason"]
-  },
-  marketplace_orders: {
-    name: "Órdenes de Marketplace",
-    icon: React.createElement(ShoppingBag, { className: "h-5 w-5" }),
-    description: "Órdenes de compra del marketplace de excursiones y tours",
-    fields: ["user_id", "total_amount", "status", "payment_method", "payment_intent_id"],
-    requiredFields: ["total_amount"]
-  },
-  marketplace_order_items: {
-    name: "Ítems de Órdenes",
-    icon: React.createElement(List, { className: "h-5 w-5" }),
-    description: "Detalle de los artículos comprados en las órdenes",
-    fields: ["order_id", "item_type", "item_id", "quantity", "price_unit"],
-    requiredFields: ["order_id", "item_type", "item_id", "quantity", "price_unit"]
-  },
-  vendor_payments: {
-    name: "Pagos a Proveedores",
-    icon: React.createElement(DollarSign, { className: "h-5 w-5" }),
-    description: "Liquidaciones y comisiones a socios locales (B2B)",
-    fields: ["partner_id", "amount", "status", "payout_method", "payout_reference", "paid_at"],
-    requiredFields: ["partner_id", "amount"]
   },
   discount_coupons: {
     name: "Cupones de Descuento",
@@ -566,20 +391,6 @@ export const entityConfigs: Record<EntityType, EntityConfig> = {
     description: "Directorio de emergencias y primeros auxilios locales",
     fields: ["province_id", "institution", "phone_number", "address", "latitude", "longitude"],
     requiredFields: ["institution", "phone_number"]
-  },
-  system_cron_jobs: {
-    name: "Tareas Automatizadas (Cron)",
-    icon: React.createElement(Clock, { className: "h-5 w-5" }),
-    description: "Registro y control de tareas programadas del sistema",
-    fields: ["job_name", "schedule_cron", "last_run_at", "next_run_at", "status", "error_log"],
-    requiredFields: ["job_name", "schedule_cron"]
-  },
-  ip_rules: {
-    name: "Reglas de Firewall (IP)",
-    icon: React.createElement(Lock, { className: "h-5 w-5" }),
-    description: "Lista negra y blanca de direcciones IP para antispam",
-    fields: ["ip_address", "rule_type", "notes"],
-    requiredFields: ["ip_address", "rule_type"]
   },
   lotteries: {
     name: "Loterías",
@@ -615,13 +426,6 @@ export const entityConfigs: Record<EntityType, EntityConfig> = {
     description: "Registro de precios de combustibles por semana",
     fields: ["effective_date", "gasolina_premium", "gasolina_regular", "gasoil_optimo", "gasoil_regular", "glp", "gnv"],
     requiredFields: ["effective_date", "gasolina_premium", "gasolina_regular", "gasoil_optimo", "gasoil_regular", "glp", "gnv"]
-  },
-  reservations: {
-    name: "Reservas de Viajeros",
-    icon: React.createElement(ShoppingBag, { className: "h-5 w-5" }),
-    description: "Reservas y bookings de viajeros en establecimientos",
-    fields: ["partner_id", "user_id", "entity_type", "entity_id", "contact_name", "contact_email", "contact_phone", "check_in", "check_out", "total_price", "status", "notes"],
-    requiredFields: ["entity_type", "entity_id", "contact_name", "contact_email", "check_in", "total_price"]
   },
   protected_areas: {
     name: "Áreas Protegidas",
@@ -689,7 +493,15 @@ export const entityConfigs: Record<EntityType, EntityConfig> = {
 };
 
 // Mapeo global de tipos de campos para formularios CRUD y procesamiento CSV
-export const fieldTypeMap: Record<string, 'text' | 'textarea' | 'number' | 'boolean' | 'array' | 'url' | 'email' | 'date' | 'time'> = {
+export const fieldTypeMap: Record<string, 'text' | 'textarea' | 'number' | 'boolean' | 'array' | 'url' | 'email' | 'date' | 'time' | 'objectlist' | 'object'> = {
+  client_id: "text",
+  slide_details: "object",
+  animation_config: "object",
+  custom_price_monthly: "number",
+  legal_name: "text",
+  trade_name: "text",
+  rnc_cedula: "text",
+  default_ncf_type: "text",
   id: 'text',
   name: 'text',
   slug: 'text',
@@ -790,8 +602,8 @@ export const fieldTypeMap: Record<string, 'text' | 'textarea' | 'number' | 'bool
   deadline: 'date',
   start_time: 'time',
   end_time: 'time',
-  check_in_time: 'time',
-  check_out_time: 'time',
+  check_in_time: 'text',
+  check_out_time: 'text',
   biography: 'textarea',
   significance: 'textarea',
   company_description: 'textarea',
@@ -855,6 +667,26 @@ export const fieldTypeMap: Record<string, 'text' | 'textarea' | 'number' | 'bool
   how_to_get_there: 'text',
   best_time_to_visit: 'text',
   spa_type: 'text',
+  policies: 'object',
+  pools: 'objectlist',
+  dining: 'objectlist',
+  bars_lounges: 'objectlist',
+  nightlife: 'objectlist',
+  spa_info: 'object',
+  faqs: 'objectlist',
+  room_types: 'objectlist',
+  extras: 'object',
+  cover_price: 'number',
+  instagram: 'url',
+  features: 'array',
+  mall_type: 'text',
+  floors: 'number',
+  store_count: 'number',
+  brands: 'array',
+  has_cinema: 'boolean',
+  has_food_court: 'boolean',
+  has_supermarket: 'boolean',
+  parking: 'text',
   treatments: 'array',
   is_popular: 'boolean',
   duration_hours: 'number',
@@ -1003,6 +835,16 @@ export const fieldTypeMap: Record<string, 'text' | 'textarea' | 'number' | 'bool
 };
 
 export const labelMap: Record<string, string> = {
+  client_id: "Cliente (a quien se factura)",
+  slide_details: "Datos de portada (sólo carruseles: tag, location, season, rating, badge, stats)",
+  animation_config: "Extras del formato (cinta: coupon_code · ventana de salida: badge_text, xp_reward)",
+  custom_price_monthly: "Precio mensual (sin ITBIS)",
+  image_url_right: "Imagen derecha (pareja de skyscrapers)",
+  kind: "Tipo (empresa / persona)",
+  legal_name: "Razón social o nombre completo",
+  trade_name: "Nombre comercial",
+  rnc_cedula: "RNC o cédula (sin guiones)",
+  default_ncf_type: "Comprobante por defecto (B01, B02…)",
   question: 'Pregunta',
   options: 'Opciones de respuesta (Array)',
   correct_index: 'Índice de la respuesta correcta (0, 1, 2...)',
@@ -1194,6 +1036,27 @@ export const labelMap: Record<string, string> = {
   lifeguard_on_duty: 'Salvavidas en Servicio',
   is_popular: 'Es Popular',
   spa_type: 'Tipo de Spa',
+  check_in_time: 'Hora de entrada (check-in)',
+  check_out_time: 'Hora de salida (check-out)',
+  policies: 'Políticas del hotel',
+  pools: 'Piscinas',
+  dining: 'Restaurantes del hotel',
+  bars_lounges: 'Bares y lounges del hotel',
+  nightlife: 'Entretenimiento nocturno',
+  spa_info: 'Spa del hotel',
+  faqs: 'Preguntas frecuentes',
+  extras: 'Más datos de la ficha',
+  cover_price: 'Precio de entrada (cover)',
+  instagram: 'Instagram',
+  features: 'Características',
+  mall_type: 'Tipo de centro comercial',
+  floors: 'Número de pisos',
+  store_count: 'Número de tiendas',
+  brands: 'Marcas principales',
+  has_cinema: 'Tiene cine',
+  has_food_court: 'Tiene food court',
+  has_supermarket: 'Tiene supermercado',
+  parking: 'Estacionamiento',
   treatments: 'Tratamientos Disponibles',
   duration_hours: 'Duración (Horas)',
   distance_km: 'Distancia (KM)',

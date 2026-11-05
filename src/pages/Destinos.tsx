@@ -10,6 +10,7 @@ import { useTranslation } from "@/hooks/useI18n";
 
 import { PopularDestinations } from "@/components/destinations/PopularDestinations";
 import { RegionsSection } from "@/components/destinations/RegionsSection";
+import { HomeDiscoveryHub } from "@/components/home/HomeDiscoveryHub";
 import { RecommendedDestinations } from "@/components/destinations/RecommendedDestinations";
 import { ProvincesGrid } from "@/components/destinations/ProvincesGrid";
 import { MunicipalitiesSection } from "@/components/destinations/MunicipalitiesSection";
@@ -23,8 +24,10 @@ import {
 } from "@/data/destinations";
 
 import heroBeach from "@/assets/hero-beach.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function Destinos() {
+  const pc = usePageContent("destinos");
   const { t } = useTranslation();
   const popularDestinations = getPopularDestinations();
   const recommendedDestinations = getRecommendedDestinations();
@@ -46,7 +49,7 @@ export default function Destinos() {
         <section className="relative h-[70vh] min-h-[500px] w-full flex flex-col justify-center items-center">
           <div className="absolute inset-0 z-0">
             <img
-              src={heroBeach}
+              src={pc.img("img.src.1", heroBeach)}
               alt={t("destinos.heroAlt")}
               className="h-full w-full object-cover"
             />
@@ -86,13 +89,13 @@ export default function Destinos() {
         </section>
 
         <PopularDestinations destinations={popularDestinations} />
+        {/* Cuándo ir, regiones y herramientas para preparar el viaje (antes en la portada) */}
+        <HomeDiscoveryHub />
         <BetweenSectionsAd showDemo />
         <RegionsSection />
         
         <SectionWithSideAds 
-          showAds 
-          leftAdSize="skyscraper" 
-          rightAdSize="skyscraper" 
+          showAds section="destinos" 
           className="container mx-auto"
         >
           <RecommendedDestinations destinations={recommendedDestinations} />

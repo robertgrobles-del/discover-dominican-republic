@@ -5,6 +5,8 @@ import type { MailerPort } from "../../contracts/email.js";
 import { audit } from "../../lib/audit.js";
 import { fromCents, toCents } from "./domain/money.js";
 
+/** Días con saldo negativo sin cubrir antes de avisar a administración. */
+const OVERDUE_DAYS = 90;
 const PAYOUT_COLS = "id, org_id, currency, gross, commission, net, status, method, reference, created_at, paid_at";
 const dto = (r: Record<string, unknown>) => ({ ...r, gross: Number(r.gross), commission: Number(r.commission), net: Number(r.net) });
 
@@ -13,7 +15,7 @@ const dto = (r: Record<string, unknown>) => ({ ...r, gross: Number(r.gross), com
  * cobros manuales) de reservas `completed`, menos reembolsos y la comisión. Cada reserva entra en un solo lote (`payout_items.booking_id` único).
  */
 export class PayoutService implements SettlementReaderPort {
-  constructor(private readonly db: Db, private readonly mailer: MailerPort) {}
+  constructor(private readonly db: Db, private readonly mailer: MailerPort, private readonly opts: { holdDays: number } = { holdDays: 7 }) {}
 
   async unsettledBookings(from: string, to: string, limit: number): Promise<UnsettledBooking[]> {
     const { rows } = await this.db.query<{ id: string; reference: string; currency: string; amount_paid: string }>(
@@ -25,41 +27,110 @@ export class PayoutService implements SettlementReaderPort {
     return rows.map((r) => ({ ...r, amount_paid: Number(r.amount_paid) }));
   }
 
-  /** Genera un lote por organización y moneda con todo lo liquidable. Idempotente: lo ya liquidado no se repite. */
+  /**
+   * Genera un lote por organización y moneda con todo lo liquidable. Idempotente: lo ya liquidado no se repite.
+   * - Retención: sólo entran reservas cuya fecha de servicio (check-out en estancias) pasó hace `holdDays` días.
+   * - Ajustes: si una reserva ya liquidada se reembolsó después, la diferencia se anota como ajuste negativo (con la
+   *   comisión proporcional devuelta) y se descuenta del siguiente pago. Con saldo ≤ 0 no se paga nada y el ajuste se
+   *   arrastra; si sigue sin cubrirse a los OVERDUE_DAYS días se avisa una vez a administración (auditoría).
+   */
   async generate(opts: { orgId?: string } = {}) {
-    const { rows } = await this.db.query<{ id: string; org_id: string; currency: string; net: string; rate: string; method: string | null }>(
-      `SELECT b.id, b.org_id, b.currency, p.commission_rate AS rate, p.payout_method AS method,
-              coalesce(sum(CASE WHEN pay.kind = 'refund' THEN -pay.amount ELSE pay.amount END), 0) AS net
-         FROM bookings b JOIN partner_profiles p ON p.id = b.org_id JOIN booking_payments pay ON pay.booking_id = b.id AND pay.status = 'succeeded' AND pay.provider <> 'manual'
-        WHERE b.status = 'completed' AND b.source = 'web' AND ($1::uuid IS NULL OR b.org_id = $1)
-          AND NOT EXISTS (SELECT 1 FROM payout_items i WHERE i.booking_id = b.id)
-        GROUP BY b.id, p.commission_rate, p.payout_method HAVING coalesce(sum(CASE WHEN pay.kind = 'refund' THEN -pay.amount ELSE pay.amount END), 0) > 0`, [opts.orgId ?? null],
-    );
-    const groups = new Map<string, { org_id: string; currency: string; method: string | null; items: { booking_id: string; gross: number; commission: number }[] }>();
-    for (const r of rows) {
-      const gross = toCents(Number(r.net));
-      const g = groups.get(`${r.org_id}|${r.currency}`) ?? { org_id: r.org_id, currency: r.currency, method: r.method, items: [] };
-      g.items.push({ booking_id: r.id, gross, commission: Math.round((gross * Number(r.rate)) / 100) });
-      groups.set(`${r.org_id}|${r.currency}`, g);
-    }
+    const org = opts.orgId ?? null;
     const created: string[] = [];
-    for (const g of groups.values()) {
-      const gross = g.items.reduce((s, i) => s + i.gross, 0), commission = g.items.reduce((s, i) => s + i.commission, 0);
-      if (gross - commission <= 0) continue;
-      const c = await this.db.connect();
-      try {
-        await c.query("BEGIN");
+    const overdue: { org_id: string; currency: string; net: number }[] = [];
+    let adjustments = 0;
+    const c = await this.db.connect();
+    try {
+      await c.query("BEGIN");
+      // Una sola corrida a la vez: la conciliación compara lo cobrado con lo liquidado y no debe duplicar ajustes.
+      await c.query("SELECT pg_advisory_xact_lock(hashtext('operators.payouts.generate'))");
+
+      // 1) Conciliación de lo ya liquidado contra lo cobrado hoy.
+      const drift = await c.query<{ booking_id: string; org_id: string; currency: string; settled_gross: string; settled_commission: string; current_gross: string; adjusted: string }>(
+        `WITH cur AS (SELECT booking_id, sum(CASE WHEN kind = 'refund' THEN -amount ELSE amount END) AS gross
+                        FROM booking_payments WHERE status = 'succeeded' AND provider <> 'manual' GROUP BY booking_id),
+              adj AS (SELECT booking_id, sum(gross) AS gross FROM payout_adjustments GROUP BY booking_id)
+         SELECT i.booking_id, p.org_id, p.currency, i.gross AS settled_gross, i.commission AS settled_commission,
+                coalesce(cur.gross, 0) AS current_gross, coalesce(adj.gross, 0) AS adjusted
+           FROM payout_items i JOIN payouts p ON p.id = i.payout_id
+           LEFT JOIN cur ON cur.booking_id = i.booking_id LEFT JOIN adj ON adj.booking_id = i.booking_id
+          WHERE ($1::uuid IS NULL OR p.org_id = $1) AND coalesce(cur.gross, 0) < i.gross + coalesce(adj.gross, 0)`, [org],
+      );
+      for (const d of drift.rows) {
+        const settled = toCents(Number(d.settled_gross));
+        const delta = toCents(Number(d.current_gross)) - settled - toCents(Number(d.adjusted)); // negativo
+        const commission = settled > 0 ? Math.round((delta * toCents(Number(d.settled_commission))) / settled) : 0;
+        await c.query("INSERT INTO payout_adjustments (org_id, booking_id, currency, gross, commission, net) VALUES ($1,$2,$3,$4,$5,$6)",
+          [d.org_id, d.booking_id, d.currency, fromCents(delta), fromCents(commission), fromCents(delta - commission)]);
+        adjustments++;
+      }
+
+      // 2) Reservas nuevas liquidables: completadas, cobradas en línea y fuera del plazo de retención.
+      const { rows } = await c.query<{ id: string; org_id: string; currency: string; net: string; rate: string; method: string | null }>(
+        `SELECT b.id, b.org_id, b.currency, p.commission_rate AS rate, p.payout_method AS method,
+                coalesce(sum(CASE WHEN pay.kind = 'refund' THEN -pay.amount ELSE pay.amount END), 0) AS net
+           FROM bookings b JOIN partner_profiles p ON p.id = b.org_id JOIN booking_payments pay ON pay.booking_id = b.id AND pay.status = 'succeeded' AND pay.provider <> 'manual'
+          WHERE b.status = 'completed' AND b.source = 'web' AND ($1::uuid IS NULL OR b.org_id = $1)
+            AND coalesce(b.check_out, b.date) <= (now() AT TIME ZONE 'America/Santo_Domingo')::date - $2::int
+            AND NOT EXISTS (SELECT 1 FROM payout_items i WHERE i.booking_id = b.id)
+          GROUP BY b.id, p.commission_rate, p.payout_method HAVING coalesce(sum(CASE WHEN pay.kind = 'refund' THEN -pay.amount ELSE pay.amount END), 0) > 0`, [org, this.opts.holdDays],
+      );
+      type Line = { gross: number; commission: number };
+      type Group = { org_id: string; currency: string; method: string | null; items: (Line & { booking_id: string })[]; adj: (Line & { id: string; old: boolean; alerted: boolean })[] };
+      const groups = new Map<string, Group>();
+      const group = (org_id: string, currency: string) => {
+        const k = `${org_id}|${currency}`;
+        let g = groups.get(k);
+        if (!g) groups.set(k, (g = { org_id, currency, method: null, items: [], adj: [] }));
+        return g;
+      };
+      for (const r of rows) {
+        const gross = toCents(Number(r.net));
+        const g = group(r.org_id, r.currency);
+        g.method ??= r.method;
+        g.items.push({ booking_id: r.id, gross, commission: Math.round((gross * Number(r.rate)) / 100) });
+      }
+
+      // 3) Ajustes pendientes de descontar.
+      const pend = await c.query<{ id: string; org_id: string; currency: string; gross: string; commission: string; old: boolean; alerted: boolean }>(
+        `SELECT id, org_id, currency, gross, commission, created_at < now() - make_interval(days => $2::int) AS old, alerted_at IS NOT NULL AS alerted
+           FROM payout_adjustments WHERE payout_id IS NULL AND ($1::uuid IS NULL OR org_id = $1) FOR UPDATE`, [org, OVERDUE_DAYS],
+      );
+      for (const a of pend.rows) group(a.org_id, a.currency).adj.push({ id: a.id, gross: toCents(Number(a.gross)), commission: toCents(Number(a.commission)), old: a.old, alerted: a.alerted });
+
+      for (const g of groups.values()) {
+        const lines: Line[] = [...g.items, ...g.adj];
+        const gross = lines.reduce((s, i) => s + i.gross, 0), commission = lines.reduce((s, i) => s + i.commission, 0);
+        if (gross - commission <= 0) {
+          // Saldo negativo: se arrastra. Aviso único si lleva demasiado tiempo sin cubrirse.
+          const late = g.adj.filter((a) => a.old && !a.alerted);
+          if (late.length) {
+            await c.query("UPDATE payout_adjustments SET alerted_at = now() WHERE id = ANY($1::uuid[])", [late.map((a) => a.id)]);
+            overdue.push({ org_id: g.org_id, currency: g.currency, net: fromCents(gross - commission) });
+          }
+          continue;
+        }
         const p = await c.query<{ id: string }>("INSERT INTO payouts (org_id, currency, gross, commission, net, method) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id", [g.org_id, g.currency, fromCents(gross), fromCents(commission), fromCents(gross - commission), g.method]);
         for (const i of g.items) await c.query("INSERT INTO payout_items (payout_id, booking_id, gross, commission, net) VALUES ($1,$2,$3,$4,$5)", [p.rows[0]!.id, i.booking_id, fromCents(i.gross), fromCents(i.commission), fromCents(i.gross - i.commission)]);
-        await c.query("COMMIT");
+        if (g.adj.length) await c.query("UPDATE payout_adjustments SET payout_id = $1 WHERE id = ANY($2::uuid[])", [p.rows[0]!.id, g.adj.map((a) => a.id)]);
         created.push(p.rows[0]!.id);
-      } catch (e) {
-        await c.query("ROLLBACK");
-        // Otra instancia liquidó alguna de estas reservas a la vez: se omite este grupo, la próxima corrida lo reintenta.
-        if ((e as { code?: string }).code !== "23505") throw e;
-      } finally { c.release(); }
-    }
-    return { payouts: created.length, ids: created };
+      }
+      await c.query("COMMIT");
+    } catch (e) {
+      await c.query("ROLLBACK");
+      throw e;
+    } finally { c.release(); }
+    for (const o of overdue) await audit(this.db, { actor: null, action: "payout.negative_balance_overdue", entity: "partner", id: o.org_id, org: o.org_id, meta: { currency: o.currency, net: o.net } });
+    return { payouts: created.length, ids: created, adjustments, overdue };
+  }
+
+  /** Ajustes (reembolsos posteriores a la liquidación) descontados en un lote. */
+  async adjustments(payoutId: string, orgId?: string) {
+    const { rows } = await this.db.query(
+      `SELECT a.booking_id, b.reference, a.gross, a.commission, a.net, a.reason, a.created_at FROM payout_adjustments a JOIN bookings b ON b.id = a.booking_id
+        WHERE a.payout_id = $1 AND ($2::uuid IS NULL OR a.org_id = $2) ORDER BY a.created_at`, [payoutId, orgId ?? null],
+    );
+    return rows.map((r) => ({ ...r, gross: Number(r.gross), commission: Number(r.commission), net: Number(r.net) }));
   }
 
   async listForOrg(orgId: string, opts: { status?: string; page: number; per_page: number }) {

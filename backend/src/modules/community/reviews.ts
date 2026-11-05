@@ -85,6 +85,7 @@ export async function reviewRoutes(app: FastifyInstance) {
     return !!(await db.query(`SELECT 1 FROM "${def.table}" WHERE id = $1${extra ? ` AND ${extra}` : ""}`, [id])).rowCount;
   };
 
+  const isVerified = async (userId: string) => !!(await db.query("SELECT 1 FROM users WHERE id = $1 AND email_verified_at IS NOT NULL", [userId])).rowCount;
   const own = async (userId: string, id: string) => {
     const row = (await db.query("SELECT id, entity_type, entity_id, rating, title, comment, status, created_at FROM reviews WHERE id = $1 AND user_id = $2", [id, userId])).rows[0];
     if (!row) throw AppError.notFound("Reseña");
@@ -136,9 +137,13 @@ export async function reviewRoutes(app: FastifyInstance) {
     const b = req.body;
     const title = b.title ?? cur.title, comment = b.comment ?? cur.comment;
     const reasons = screenReview(`${title ?? ""} ${comment ?? ""}`);
-    const status = reasons.length ? "pending" : cur.status === "rejected" ? "pending" : "approved";
+    const verified = !!(await db.query("SELECT 1 FROM users WHERE id = $1 AND email_verified_at IS NOT NULL", [req.user!.id])).rowCount;
+    if (!verified) reasons.push("email_not_verified");
+    // Solo una reseña ya aprobada puede seguir aprobada al editarla: una retenida (correo sin verificar,
+    // reportes de la comunidad o rechazo) la libera un moderador, no su autor.
+    const status = reasons.length || cur.status !== "approved" ? "pending" : "approved";
     await db.query(
-      "UPDATE reviews SET rating = coalesce($2, rating), title = $3, comment = $4, visit_date = coalesce($5, visit_date), status = $6, is_approved = ($6 = 'approved'), moderation_note = $7, updated_at = now() WHERE id = $1",
+      "UPDATE reviews SET rating = coalesce($2, rating), title = $3, comment = $4, visit_date = coalesce($5, visit_date), status = $6, is_approved = ($6 = 'approved'), moderation_note = CASE WHEN $7::text IS NOT NULL THEN $7 WHEN $6 = 'approved' THEN NULL ELSE moderation_note END, updated_at = now() WHERE id = $1",
       [cur.id, b.rating ?? null, title, comment, b.visit_date ?? null, status, reasons.join(",") || null],
     );
     await refresh(cur.entity_type, cur.entity_id);
@@ -157,6 +162,7 @@ export async function reviewRoutes(app: FastifyInstance) {
     const rev = (await db.query<{ user_id: string }>("SELECT user_id FROM reviews WHERE id = $1 AND is_approved", [req.params.id])).rows[0];
     if (!rev) throw AppError.notFound("Reseña");
     if (rev.user_id === req.user!.id) throw AppError.validation("No puedes votar tu propia reseña");
+    if (!(await isVerified(req.user!.id))) throw new AppError("FORBIDDEN", "Verifica tu correo para votar reseñas", { code: "EMAIL_NOT_VERIFIED" });
     const ins = await db.query("INSERT INTO review_votes (review_id, user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING", [req.params.id, req.user!.id]);
     if (ins.rowCount) await db.query("UPDATE reviews SET helpful_count = helpful_count + 1 WHERE id = $1", [req.params.id]);
     reply.code(204);
@@ -170,7 +176,8 @@ export async function reviewRoutes(app: FastifyInstance) {
     const rev = (await db.query<{ entity_type: string; entity_id: string }>("SELECT entity_type, entity_id FROM reviews WHERE id = $1 AND is_approved", [req.params.id])).rows[0];
     if (!rev) throw AppError.notFound("Reseña");
     const ins = await db.query("INSERT INTO review_reports (review_id, user_id, reason, detail) VALUES ($1,$2,$3,$4) ON CONFLICT DO NOTHING", [req.params.id, req.user!.id, req.body.reason, req.body.detail ?? null]);
-    if (ins.rowCount) {
+    // Solo los reportes de cuentas con correo verificado cuentan para el ocultamiento automático.
+    if (ins.rowCount && (await isVerified(req.user!.id))) {
       const n = (await db.query<{ report_count: number }>("UPDATE reviews SET report_count = report_count + 1 WHERE id = $1 RETURNING report_count", [req.params.id])).rows[0]!.report_count;
       if (n >= 3) {
         await db.query("UPDATE reviews SET status = 'pending', is_approved = false, moderation_note = 'reported' WHERE id = $1", [req.params.id]);
@@ -216,7 +223,7 @@ export async function reviewRoutes(app: FastifyInstance) {
 
   // ---- Respuesta oficial del establecimiento ----
   r.post("/reviews/:id/reply", {
-    onRequest: app.authenticate,
+    onRequest: app.authenticateStaffMfa,
     schema: { tags: ["reseñas"], summary: "Respuesta oficial (editor/admin, o el operador dueño del servicio)", security: bearer, params: uuid, body: z.object({ reply: z.string().trim().min(1).max(1000) }), response: { 204: z.null() } },
   }, async (req, reply) => {
     const rev = (await db.query<{ entity_type: string; entity_id: string }>("SELECT entity_type, entity_id FROM reviews WHERE id = $1 AND is_approved", [req.params.id])).rows[0];

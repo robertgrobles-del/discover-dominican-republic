@@ -74,7 +74,7 @@ export default function GanaConDescubreRD() {
       <div className="min-h-screen bg-background text-foreground">
         <Header />
         <main>
-          <section className="relative isolate overflow-hidden border-b border-border bg-[#0b3c36] text-white">
+          <section className="relative isolate overflow-hidden border-b border-border bg-brand-lagoon text-white">
             <div className="absolute inset-0 -z-10 opacity-25" aria-hidden="true">
               <div className="absolute -right-24 -top-48 h-[34rem] w-[34rem] rounded-full border border-emerald-200/50" />
               <div className="absolute -right-6 -top-28 h-[27rem] w-[27rem] rounded-full border border-emerald-200/40" />
@@ -110,7 +110,7 @@ export default function GanaConDescubreRD() {
                     ["04", "Crea", "Cuenta tu propia historia"],
                   ].map(([number, title, text]) => (
                     <div key={number} className="relative flex items-center gap-4 rounded-2xl border border-white/15 bg-white/[0.07] p-4 backdrop-blur-sm">
-                      <span className="z-10 grid h-9 w-9 shrink-0 place-items-center rounded-full border border-amber-300/70 bg-[#0b3c36] font-mono text-xs text-amber-200">{number}</span>
+                      <span className="z-10 grid h-9 w-9 shrink-0 place-items-center rounded-full border border-amber-300/70 bg-brand-lagoon font-mono text-xs text-amber-200">{number}</span>
                       <div><p className="font-semibold">{title}</p><p className="text-sm text-emerald-50/70">{text}</p></div>
                     </div>
                   ))}

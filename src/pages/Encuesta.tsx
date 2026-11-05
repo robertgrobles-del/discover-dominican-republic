@@ -13,7 +13,9 @@ import {
   Hotel,
   Mountain,
   Sun,
-  Building
+  Building,
+  Moon,
+  Wrench
 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -21,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PageTransition } from "@/components/PageTransition";
 import heroBeachImg from "@/assets/hero-beach.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const experienceOptions = [
   { id: "playas", label: "Playas", icon: Palmtree },
@@ -30,7 +33,11 @@ const experienceOptions = [
   { id: "naturaleza", label: "Naturaleza", icon: Mountain },
   { id: "clima", label: "Clima", icon: Sun },
   { id: "cultura", label: "Historia y Cultura", icon: Building },
+  { id: "vida-nocturna", label: "Vida Nocturna", icon: Moon },
 ];
+
+// Antes en /encuesta-post-viaje.
+const mejoraOptions = ["Transporte", "Señalización", "Limpieza", "Precios", "Seguridad", "Información turística"];
 
 const ratings = [
   { value: 1, label: "Mala", icon: Frown, color: "text-red-500" },
@@ -41,6 +48,9 @@ const ratings = [
 ];
 
 export default function Encuesta() {
+  const pc = usePageContent("encuesta");
+  const ratings = pc.data("ratings", __pcData.ratings);
+  const experienceOptions = pc.data("experienceOptions", __pcData.experienceOptions);
   const [searchParams] = useSearchParams();
   const requestedSource = searchParams.get("from") ?? "";
   const sourcePage = requestedSource.startsWith("/") && !requestedSource.startsWith("//")
@@ -51,6 +61,8 @@ export default function Encuesta() {
   const [selectedExperiences, setSelectedExperiences] = useState<string[]>([]);
   const [recommendation, setRecommendation] = useState(7);
   const [comments, setComments] = useState("");
+  const mejoraOptions = pc.data("mejoraOptions", __pcData.mejoraOptions);
+  const [mejoras, setMejoras] = useState<string[]>([]);
 
   const toggleExperience = (id: string) => {
     setSelectedExperiences((prev) =>
@@ -64,6 +76,7 @@ export default function Encuesta() {
       selectedExperiences,
       recommendation,
       comments,
+      mejoras,
       sourcePage,
     });
     // Submit logic here
@@ -79,7 +92,7 @@ export default function Encuesta() {
         <section className="relative py-16 overflow-hidden">
           <div 
             className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${heroBeachImg})` }}
+            style={{ backgroundImage: `url(${pc.img("asset.heroBeachImg", heroBeachImg)})` }}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/60" />
           
@@ -89,17 +102,10 @@ export default function Encuesta() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <span className="inline-block bg-primary/20 text-primary text-sm font-medium px-4 py-2 rounded-full mb-4">
-                ENCUESTA DE SATISFACCIÓN
-              </span>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-                ¡Gracias por visitarnos!
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-                Tu opinión es vital para mejorar el turismo en nuestro país.
-                Solo tomará 2 minutos.
-              </p>
-              {sourcePage && <p className="mt-3 text-sm text-muted-foreground">Encuesta abierta desde: <span className="font-medium">{sourcePage}</span></p>}
+              <span className="inline-block bg-primary/20 text-primary text-sm font-medium px-4 py-2 rounded-full mb-4">{pc.tx("span.1", "ENCUESTA DE SATISFACCIÓN")}</span>
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{pc.tx("h1.1", "¡Gracias por visitarnos!")}</h1>
+              <p className="text-lg text-muted-foreground max-w-xl mx-auto">{pc.tx("p.1", "Tu opinión es vital para mejorar el turismo en nuestro país. Solo tomará 2 minutos.")}</p>
+              {sourcePage && <p className="mt-3 text-sm text-muted-foreground">{pc.tx("p.2", "Encuesta abierta desde:")}{" "}<span className="font-medium">{sourcePage}</span></p>}
             </motion.div>
           </div>
         </section>
@@ -110,8 +116,8 @@ export default function Encuesta() {
             <div className="max-w-2xl mx-auto bg-card rounded-2xl border border-border p-8">
               {/* Progress */}
               <div className="flex items-center justify-between mb-8">
-                <h2 className="font-display font-bold text-foreground">TU EXPERIENCIA</h2>
-                <span className="text-sm text-muted-foreground">Paso {step} de 2</span>
+                <h2 className="font-display font-bold text-foreground">{pc.tx("h2.1", "TU EXPERIENCIA")}</h2>
+                <span className="text-sm text-muted-foreground">{pc.tx("span.2", "Paso")}{" "}{step}{" "}{pc.tx("span.3", "de 2")}</span>
               </div>
               <div className="h-2 bg-secondary rounded-full mb-8">
                 <div 
@@ -133,12 +139,8 @@ export default function Encuesta() {
                         1
                       </span>
                       <div>
-                        <h3 className="font-display font-bold text-foreground">
-                          ¿Cómo calificarías tu experiencia general?
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          Selecciona la carita que mejor represente tu viaje.
-                        </p>
+                        <h3 className="font-display font-bold text-foreground">{pc.tx("h3.1", "¿Cómo calificarías tu experiencia general?")}</h3>
+                        <p className="text-sm text-muted-foreground">{pc.tx("p.3", "Selecciona la carita que mejor represente tu viaje.")}</p>
                       </div>
                     </div>
                     <div className="flex justify-center gap-4">
@@ -168,12 +170,8 @@ export default function Encuesta() {
                         2
                       </span>
                       <div>
-                        <h3 className="font-display font-bold text-foreground">
-                          ¿Qué fue lo que más disfrutaste?
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          Selecciona todas las opciones que apliquen.
-                        </p>
+                        <h3 className="font-display font-bold text-foreground">{pc.tx("h3.2", "¿Qué fue lo que más disfrutaste?")}</h3>
+                        <p className="text-sm text-muted-foreground">{pc.tx("p.4", "Selecciona todas las opciones que apliquen.")}</p>
                       </div>
                     </div>
                     <div className="flex flex-wrap justify-center gap-3">
@@ -200,9 +198,7 @@ export default function Encuesta() {
                       <span className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
                         3
                       </span>
-                      <h3 className="font-display font-bold text-foreground">
-                        ¿Qué tan probable es que recomiendes RD?
-                      </h3>
+                      <h3 className="font-display font-bold text-foreground">{pc.tx("h3.3", "¿Qué tan probable es que recomiendes RD?")}</h3>
                     </div>
                     <div className="space-y-4">
                       <input
@@ -214,16 +210,14 @@ export default function Encuesta() {
                         className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
                       />
                       <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>NADA PROBABLE</span>
+                        <span>{pc.tx("span.4", "NADA PROBABLE")}</span>
                         <span className="text-primary font-bold text-lg">{recommendation}</span>
-                        <span>MUY PROBABLE</span>
+                        <span>{pc.tx("span.5", "MUY PROBABLE")}</span>
                       </div>
                     </div>
                   </div>
 
-                  <Button onClick={() => setStep(2)} className="w-full">
-                    Continuar
-                  </Button>
+                  <Button onClick={() => setStep(2)} className="w-full">{pc.tx("Button.1", "Continuar")}</Button>
                 </motion.div>
               )}
 
@@ -233,18 +227,41 @@ export default function Encuesta() {
                   animate={{ opacity: 1, x: 0 }}
                   className="space-y-8"
                 >
+                  {/* Qué mejorar (antes en /encuesta-post-viaje) */}
+                  <fieldset>
+                    <legend className="flex items-center gap-3 mb-4">
+                      <Wrench className="h-5 w-5 text-primary" aria-hidden="true" />
+                      <span className="font-display font-bold text-foreground">{pc.tx("h3.5", "¿Qué podríamos mejorar?")}</span>
+                    </legend>
+                    <div className="flex flex-wrap gap-2">
+                      {mejoraOptions.map((m) => {
+                        const activa = mejoras.includes(m);
+                        return (
+                          <Button
+                            key={m}
+                            type="button"
+                            variant={activa ? "default" : "outline"}
+                            size="sm"
+                            aria-pressed={activa}
+                            onClick={() => setMejoras((prev) => (activa ? prev.filter((x) => x !== m) : [...prev, m]))}
+                          >
+                            {m}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </fieldset>
+
                   {/* Comments */}
                   <div>
                     <div className="flex items-center gap-3 mb-4">
                       <Send className="h-5 w-5 text-primary" />
                       <div>
-                        <h3 className="font-display font-bold text-foreground">
-                          ¿Alguna sugerencia o comentario adicional? (Opcional)
-                        </h3>
+                        <h3 className="font-display font-bold text-foreground">{pc.tx("h3.4", "¿Alguna sugerencia o comentario adicional? (Opcional)")}</h3>
                       </div>
                     </div>
                     <Textarea
-                      placeholder="Cuéntanos tu momento favorito o cómo podemos mejorar..."
+                      placeholder={pc.t("Textarea.placeholder.1", "Cuéntanos tu momento favorito o cómo podemos mejorar...")}
                       value={comments}
                       onChange={(e) => setComments(e.target.value)}
                       rows={5}
@@ -253,11 +270,8 @@ export default function Encuesta() {
                   </div>
 
                   <div className="flex gap-4">
-                    <Button variant="outline" onClick={() => setStep(1)} className="flex-1">
-                      Volver
-                    </Button>
-                    <Button onClick={handleSubmit} className="flex-1 gap-2">
-                      Enviar Encuesta <Send className="h-4 w-4" />
+                    <Button variant="outline" onClick={() => setStep(1)} className="flex-1">{pc.tx("Button.2", "Volver")}</Button>
+                    <Button onClick={handleSubmit} className="flex-1 gap-2">{pc.tx("Button.3", "Enviar Encuesta")}{" "}<Send className="h-4 w-4" />
                     </Button>
                   </div>
                 </motion.div>
@@ -266,7 +280,7 @@ export default function Encuesta() {
               {/* Privacy Notice */}
               <div className="flex items-center justify-center gap-2 mt-8 text-xs text-muted-foreground">
                 <Lock className="h-3 w-3" />
-                <span>Sus respuestas son anónimas y seguras.</span>
+                <span>{pc.tx("span.6", "Sus respuestas son anónimas y seguras.")}</span>
               </div>
             </div>
           </div>
@@ -278,21 +292,18 @@ export default function Encuesta() {
             <div className="flex justify-center gap-8">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-xs font-bold text-primary">MT</span>
+                  <span className="text-xs font-bold text-primary">{pc.tx("span.7", "MT")}</span>
                 </div>
-                <span className="text-sm font-medium text-foreground">MITUR</span>
+                <span className="text-sm font-medium text-foreground">{pc.tx("span.8", "MITUR")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-xs font-bold text-primary">ONE</span>
+                  <span className="text-xs font-bold text-primary">{pc.tx("span.9", "ONE")}</span>
                 </div>
-                <span className="text-sm font-medium text-foreground">ONE</span>
+                <span className="text-sm font-medium text-foreground">{pc.tx("span.10", "ONE")}</span>
               </div>
             </div>
-            <p className="text-center text-xs text-muted-foreground mt-4">
-              © 2024 Ministerio de Turismo de la República Dominicana.<br />
-              Todos los derechos reservados.
-            </p>
+            <p className="text-center text-xs text-muted-foreground mt-4">{pc.tx("p.5", "© 2024 Ministerio de Turismo de la República Dominicana.")}<br />{pc.tx("p.6", "Todos los derechos reservados.")}</p>
           </div>
         </section>
 
@@ -301,3 +312,6 @@ export default function Encuesta() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { ratings, experienceOptions, mejoraOptions };

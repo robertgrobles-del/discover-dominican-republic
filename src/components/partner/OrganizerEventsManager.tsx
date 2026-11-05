@@ -371,7 +371,7 @@ export function OrganizerEventsManager() {
             <div>
               <span className="text-xs text-muted-foreground font-medium">Eventos Administrados</span>
               <p className="text-2xl font-black text-foreground mt-1">{totalEventsCount}</p>
-              <span className="text-[11px] text-emerald-500 font-semibold">{freeEventsCount} con Acceso Libre</span>
+              <span className="text-2xs text-emerald-500 font-semibold">{freeEventsCount} con Acceso Libre</span>
             </div>
             <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
               <Calendar className="h-6 w-6" />
@@ -384,7 +384,7 @@ export function OrganizerEventsManager() {
             <div>
               <span className="text-xs text-muted-foreground font-medium">Boletas / Pases Emitidos</span>
               <p className="text-2xl font-black text-emerald-500 mt-1">{totalTicketsIssued}</p>
-              <span className="text-[11px] text-muted-foreground">Registros digitales completados</span>
+              <span className="text-2xs text-muted-foreground">Registros digitales completados</span>
             </div>
             <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
               <Ticket className="h-6 w-6" />
@@ -397,7 +397,7 @@ export function OrganizerEventsManager() {
             <div>
               <span className="text-xs text-muted-foreground font-medium">Capacidad Total Estimada</span>
               <p className="text-2xl font-black text-primary mt-1">8,700+</p>
-              <span className="text-[11px] text-muted-foreground">Turistas y público local</span>
+              <span className="text-2xs text-muted-foreground">Turistas y público local</span>
             </div>
             <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
               <Users className="h-6 w-6" />
@@ -486,13 +486,13 @@ export function OrganizerEventsManager() {
 
                     <div className="space-y-1.5">
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px] font-bold">
+                        <Badge className="bg-primary/10 text-primary border-primary/20 text-3xs font-bold">
                           {evt.event_type}
                         </Badge>
-                        <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                        <Badge variant="outline" className="text-3xs text-muted-foreground">
                           {evt.province}
                         </Badge>
-                        <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px] font-bold">
+                        <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-3xs font-bold">
                           {evt.price_range}
                         </Badge>
                       </div>
@@ -515,7 +515,7 @@ export function OrganizerEventsManager() {
                   {/* Right stats & action buttons */}
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full lg:w-auto gap-4 pt-3 lg:pt-0 border-t lg:border-t-0 border-border/60">
                     <div className="bg-muted/60 px-4 py-2 rounded-2xl border border-border/60 text-center sm:text-left min-w-[140px]">
-                      <span className="text-[10px] uppercase font-bold text-muted-foreground block">Boletas Emitidas</span>
+                      <span className="text-3xs uppercase font-bold text-muted-foreground block">Boletas Emitidas</span>
                       <div className="flex items-baseline gap-1.5">
                         <span className="font-display text-xl font-black text-primary">{evt.total_registered}</span>
                         <span className="text-xs text-muted-foreground">/ {evt.max_capacity || "Sin límite"}</span>
@@ -596,7 +596,7 @@ export function OrganizerEventsManager() {
           {/* Attendees Table */}
           <div className="overflow-x-auto rounded-2xl border border-border">
             <table className="w-full text-xs text-left text-muted-foreground">
-              <thead className="bg-muted/80 text-foreground font-bold uppercase text-[10px] tracking-wider border-b border-border">
+              <thead className="bg-muted/80 text-foreground font-bold uppercase text-3xs tracking-wider border-b border-border">
                 <tr>
                   <th className="py-3 px-4">Código Pase</th>
                   <th className="py-3 px-4">Titular / Email</th>
@@ -620,13 +620,13 @@ export function OrganizerEventsManager() {
                       </td>
                       <td className="py-3.5 px-4">
                         <div className="font-bold text-foreground">{att.attendeeName}</div>
-                        <div className="text-[11px] text-muted-foreground">{att.attendeeEmail}</div>
+                        <div className="text-2xs text-muted-foreground">{att.attendeeEmail}</div>
                         {att.attendeePhone && (
-                          <div className="text-[10px] text-muted-foreground/80">{att.attendeePhone}</div>
+                          <div className="text-3xs text-muted-foreground/80">{att.attendeePhone}</div>
                         )}
                       </td>
                       <td className="py-3.5 px-4">
-                        <Badge variant="outline" className="text-[10px] font-bold">
+                        <Badge variant="outline" className="text-3xs font-bold">
                           {att.quantity} {att.quantity === 1 ? "Entrada" : "Entradas"}
                         </Badge>
                       </td>
@@ -635,7 +635,7 @@ export function OrganizerEventsManager() {
                       </td>
                       <td className="py-3.5 px-4">
                         <Badge
-                          className={`text-[10px] font-bold ${
+                          className={`text-3xs font-bold ${
                             att.status === "used"
                               ? "bg-muted text-muted-foreground"
                               : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
@@ -649,7 +649,7 @@ export function OrganizerEventsManager() {
                           size="sm"
                           variant={att.status === "used" ? "outline" : "default"}
                           onClick={() => handleToggleCheckIn(att.ticketId)}
-                          className={`rounded-xl text-[11px] h-7 px-2.5 font-bold ${
+                          className={`rounded-xl text-2xs h-7 px-2.5 font-bold ${
                             att.status !== "used" ? "bg-primary text-slate-950 hover:bg-primary/90" : ""
                           }`}
                         >

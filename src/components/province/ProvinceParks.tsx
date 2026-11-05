@@ -113,11 +113,11 @@ export function ProvinceParks({ provinceId, provinceName, fallbackItems = [] }: 
 
                       <div className="absolute bottom-3 left-3 right-3">
                         <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="secondary" className="text-[11px] bg-emerald-950/80 text-emerald-200 border border-emerald-500/30 font-medium backdrop-blur-sm">
+                          <Badge variant="secondary" className="text-2xs bg-emerald-950/80 text-emerald-200 border border-emerald-500/30 font-medium backdrop-blur-sm">
                             {park.park_type}
                           </Badge>
                           {park.area_km2 && (
-                            <span className="text-[11px] text-white/90 flex items-center gap-1 font-medium bg-black/40 px-2 py-0.5 rounded backdrop-blur-xs">
+                            <span className="text-2xs text-white/90 flex items-center gap-1 font-medium bg-black/40 px-2 py-0.5 rounded backdrop-blur-xs">
                               <Mountain className="h-3 w-3 text-emerald-400" />
                               {Number(park.area_km2).toLocaleString()} km²
                             </span>
@@ -135,7 +135,7 @@ export function ProvinceParks({ provinceId, provinceName, fallbackItems = [] }: 
                           <Star className="h-3.5 w-3.5 fill-amber-500" />
                           <span className="text-xs font-bold">{Number(park.rating || 4.9).toFixed(1)}</span>
                         </div>
-                        <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                        <span className="text-2xs text-muted-foreground flex items-center gap-1">
                           <Compass className="h-3 w-3 text-emerald-500" /> Acceso Controlado
                         </span>
                       </div>
@@ -148,12 +148,12 @@ export function ProvinceParks({ provinceId, provinceName, fallbackItems = [] }: 
 
                       {park.activities && park.activities.length > 0 && (
                         <div className="pt-3 border-t border-border/50">
-                          <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider block mb-1.5">
+                          <span className="text-3xs uppercase font-bold text-muted-foreground tracking-wider block mb-1.5">
                             Experiencias Disponibles
                           </span>
                           <div className="flex flex-wrap gap-1.5 mb-3">
                             {park.activities.slice(0, 3).map((act, i) => (
-                              <Badge key={i} variant="outline" className="text-[11px] bg-muted/40 font-normal py-0">
+                              <Badge key={i} variant="outline" className="text-2xs bg-muted/40 font-normal py-0">
                                 {act}
                               </Badge>
                             ))}

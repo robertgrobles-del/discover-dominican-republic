@@ -253,9 +253,9 @@ export function CurrencyExchangeSection() {
               Banca Múltiple de la República Dominicana
             </Badge>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-bold font-display text-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold font-display text-foreground">
             Tasas de Cambio de Monedas & Comparador Bancario
-          </h2>
+          </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl">
             Compara en tiempo real los precios de compra y venta del Dólar (USD), Euro (EUR), Dólar Canadiense (CAD) y Libra Esterlina (GBP) frente al Peso Dominicano (DOP).
           </p>
@@ -302,7 +302,7 @@ export function CurrencyExchangeSection() {
             <span className="font-mono font-bold text-emerald-500">
               RD$ {bestBuyBank.currencies[selectedCurrency].buy.toFixed(2)}
             </span>
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+            <Badge variant="outline" className="text-3xs px-1.5 py-0">
               {bestBuyBank.shortName}
             </Badge>
           </div>
@@ -312,7 +312,7 @@ export function CurrencyExchangeSection() {
             <span className="font-mono font-bold text-primary">
               RD$ {bestSellBank.currencies[selectedCurrency].sell.toFixed(2)}
             </span>
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+            <Badge variant="outline" className="text-3xs px-1.5 py-0">
               {bestSellBank.shortName}
             </Badge>
           </div>
@@ -325,16 +325,16 @@ export function CurrencyExchangeSection() {
         {/* Left Column: Bank Comparison Table (7 cols) */}
         <div className="lg:col-span-7 space-y-4 min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-            <h3 className="font-display text-xl font-bold text-foreground flex items-center gap-2">
+            <h2 className="h3 font-display text-xl font-bold text-foreground flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />
               Comparativa por Entidad Bancaria
-            </h3>
+            </h2>
             <span className="text-xs text-muted-foreground">Valores en Pesos Dominicanos (DOP)</span>
           </div>
 
           <div className="rounded-3xl border border-border bg-card shadow-sm overflow-x-auto">
             <table className="w-full text-xs text-left text-muted-foreground">
-              <thead className="bg-muted text-foreground font-bold uppercase text-[10px] tracking-wider border-b border-border">
+              <thead className="bg-muted text-foreground font-bold uppercase text-3xs tracking-wider border-b border-border">
                 <tr>
                   <th className="py-3 px-4">Banco / Entidad</th>
                   <th className="py-3 px-3 text-center">Compra (RD$)</th>
@@ -358,11 +358,11 @@ export function CurrencyExchangeSection() {
                           <div>
                             <span className="text-foreground">{bank.shortName}</span>
                             {bank.isOfficial && (
-                              <Badge className="ml-2 bg-primary text-slate-950 text-[9px] font-black py-0">
+                              <Badge className="ml-2 bg-primary text-slate-950 text-3xs font-black py-0">
                                 OFICIAL BCRD
                               </Badge>
                             )}
-                            <span className="block text-[10px] text-muted-foreground font-normal">{bank.lastUpdated}</span>
+                            <span className="block text-3xs text-muted-foreground font-normal">{bank.lastUpdated}</span>
                           </div>
                         </div>
                       </td>
@@ -473,14 +473,14 @@ export function CurrencyExchangeSection() {
 
               {/* Result Preview Box */}
               <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-1 text-center">
-                <span className="text-[11px] font-bold text-muted-foreground uppercase">
+                <span className="text-2xs font-bold text-muted-foreground uppercase">
                   {calcDirection === "foreign_to_dop" ? "Recibirás en Pesos Dominicanos:" : `Recibirás en ${selectedCurrency}:`}
                 </span>
                 <p className="font-mono text-2xl sm:text-3xl font-black text-primary">
                   {calcDirection === "foreign_to_dop" ? "RD$ " : `${selectedCurrency} `}
                   {calculatedResult.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
-                <span className="text-[10px] text-muted-foreground block">
+                <span className="text-3xs text-muted-foreground block">
                   Tasa: 1 {selectedCurrency} = RD$ {(calcDirection === "foreign_to_dop" ? currentRateObj.buy : currentRateObj.sell).toFixed(2)} ({activeBank.shortName})
                 </span>
               </div>
@@ -495,7 +495,7 @@ export function CurrencyExchangeSection() {
                   <TrendingUp className="h-4 w-4 text-emerald-500" />
                   Evolución Histórica ({selectedCurrency}/DOP)
                 </CardTitle>
-                <Badge variant="outline" className="text-[10px]">
+                <Badge variant="outline" className="text-3xs">
                   Últimos 30 Días
                 </Badge>
               </div>

@@ -185,15 +185,15 @@ export function ComoGanarPuntosSection({ onOpenModal, className = "" }: ComoGana
                       <span className="w-6 h-6 rounded-lg bg-muted text-xs font-mono font-bold text-foreground flex items-center justify-center">
                         {item.num}
                       </span>
-                      <Badge variant="outline" className={`text-[10px] font-semibold uppercase tracking-wider ${item.badgeColor}`}>
+                      <Badge variant="outline" className={`text-3xs font-semibold uppercase tracking-wider ${item.badgeColor}`}>
                         {item.badgeText}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md">
+                      <span className="inline-flex items-center gap-1 text-2xs font-bold text-cyan-600 dark:text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-md">
                         <Zap className="w-3 h-3" /> +{item.xpReward} XP
                       </span>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">
+                      <span className="inline-flex items-center gap-1 text-2xs font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">
                         <Coins className="w-3 h-3" /> +{item.coinReward}
                       </span>
                     </div>
@@ -208,7 +208,7 @@ export function ComoGanarPuntosSection({ onOpenModal, className = "" }: ComoGana
                       <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">
                         {item.title}
                       </h3>
-                      <span className="text-[11px] text-muted-foreground font-medium">
+                      <span className="text-2xs text-muted-foreground font-medium">
                         {item.categoryLabel} • {item.frequency}
                       </span>
                     </div>
@@ -222,7 +222,7 @@ export function ComoGanarPuntosSection({ onOpenModal, className = "" }: ComoGana
                   {/* Requirements */}
                   <div className="space-y-1.5 border-t border-border/60 pt-3 mb-4">
                     {item.requirements.map((req, idx) => (
-                      <div key={idx} className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                      <div key={idx} className="text-2xs text-muted-foreground flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                         <span className="line-clamp-1">{req}</span>
                       </div>

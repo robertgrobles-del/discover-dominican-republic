@@ -224,7 +224,7 @@ export default function GamificacionHub() {
                   {pushSubscribed ? <BellRing className="h-5 w-5 text-emerald-500 animate-bounce" /> : <Bell className="h-5 w-5" />}
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm text-foreground">Alertas de Racha & Descenso de Liga</h4>
+                  <h3 className="h4 font-semibold text-sm text-foreground">Alertas de Racha & Descenso de Liga</h3>
                   <p className="text-xs text-muted-foreground">
                     {pushSubscribed
                       ? "Notificaciones push activas. Te avisaremos antes de que expire tu racha."

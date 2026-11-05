@@ -28,8 +28,10 @@ import { FestivalesTabContent } from "@/components/events/FestivalesTabContent";
 import carnival from "@/assets/carnival.jpg";
 import jazzFestival from "@/assets/jazz-festival.jpg";
 import gastronomy from "@/assets/gastronomy.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function Eventos() {
+  const pc = usePageContent("eventos");
   const { t, locale } = useTranslation();
   const [selectedCategoria, setSelectedCategoria] = useState("Todo");
   const [selectedGenero, setSelectedGenero] = useState("Todos");
@@ -59,7 +61,7 @@ export default function Eventos() {
         titulo: e.name,
         fecha: e.start_date ? formatDate(e.start_date, locale, { day: "numeric", month: "short" }).toLocaleUpperCase() : "",
         categoria: e.event_type || "Evento",
-        imagen: e.image_url || carnival,
+        imagen: e.image_url || pc.img("asset.carnival", carnival),
         descripcion: e.short_description || e.description || "",
         ubicacion: e.address || "",
         provincia: e.province || undefined,
@@ -136,7 +138,7 @@ export default function Eventos() {
         <section className="relative h-[50vh] flex items-center justify-center overflow-hidden pt-16">
           {!heroLoaded && <Skeleton className="absolute inset-0" />}
           <img
-            src={carnival}
+            src={pc.img("img.src.1", carnival)}
             alt={t("eventos.heroAlt")}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
               heroLoaded ? "opacity-100" : "opacity-0"
@@ -162,8 +164,7 @@ export default function Eventos() {
                 onClick={() => setIsRegisterEventModalOpen(true)}
                 className="gap-2 bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-md"
               >
-                <PlusCircle className="h-5 w-5 text-primary" /> Registrar mi Evento
-              </Button>
+                <PlusCircle className="h-5 w-5 text-primary" />{" "}{pc.tx("Button.1", "Registrar mi Evento")}</Button>
             </div>
           </div>
         </section>
@@ -242,7 +243,7 @@ export default function Eventos() {
               </Link>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              {[carnival, jazzFestival, gastronomy].map((img, i) => (
+              {[pc.img("asset.carnival", carnival), pc.img("asset.jazzFestival", jazzFestival), pc.img("asset.gastronomy", gastronomy)].map((img, i) => (
                 <div key={i} className="rounded-xl overflow-hidden aspect-[4/3]">
                   <img src={img} alt={`Memoria ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" loading="lazy" />
                 </div>
@@ -257,23 +258,16 @@ export default function Eventos() {
             <div className="rounded-3xl p-8 md:p-10 bg-gradient-to-r from-primary/10 via-card to-purple-500/10 border border-primary/20 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
               <div className="space-y-2 text-center md:text-left">
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/20 text-primary rounded-full text-xs font-semibold">
-                  <Building2 className="h-3.5 w-3.5" /> Productoras & Organizadores de Eventos
-                </div>
-                <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                  ¿Organizas un concierto, festival o evento en RD?
-                </h3>
-                <p className="text-xs md:text-sm text-muted-foreground max-w-2xl leading-relaxed">
-                  Publica tu evento en la agenda oficial de Descubre RD. Conecta con miles de turistas y dominicanos, redirige hacia tu boletería oficial o activa la venta de taquillas.
-                </p>
+                  <Building2 className="h-3.5 w-3.5" />{" "}{pc.tx("div.1", "Productoras & Organizadores de Eventos")}</div>
+                <h3 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h3.1", "¿Organizas un concierto, festival o evento en RD?")}</h3>
+                <p className="text-xs md:text-sm text-muted-foreground max-w-2xl leading-relaxed">{pc.tx("p.1", "Publica tu evento en la agenda oficial de Descubre RD. Conecta con miles de turistas y dominicanos, redirige hacia tu boletería oficial o activa la venta de taquillas.")}</p>
               </div>
               <Button
                 size="lg"
                 onClick={() => setIsRegisterEventModalOpen(true)}
                 className="shrink-0 rounded-2xl h-12 px-6 font-bold text-xs gap-2 shadow-lg shadow-primary/20"
               >
-                <PlusCircle className="h-4 w-4" />
-                Registrar mi Evento Gratis
-              </Button>
+                <PlusCircle className="h-4 w-4" />{pc.tx("Button.2", "Registrar mi Evento Gratis")}</Button>
             </div>
           </div>
         </section>

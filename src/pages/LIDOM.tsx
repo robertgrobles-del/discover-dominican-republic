@@ -15,8 +15,10 @@ import { toast } from "sonner";
 import { AdminDeportesManager, DEFAULT_GAMES, DEFAULT_TOURNAMENTS, SportGame, SportTournament } from "@/components/sports/AdminDeportesManager";
 import { LidomStandingsAndLeaders } from "@/components/sports/LidomStandingsAndLeaders";
 import { LidomTeamsAndStadiums } from "@/components/sports/LidomTeamsAndStadiums";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function LIDOM() {
+  const pc = usePageContent("lidom");
   const [tournaments, setTournaments] = useState<SportTournament[]>(DEFAULT_TOURNAMENTS);
   const [games, setGames] = useState<SportGame[]>(DEFAULT_GAMES);
   const [selectedTournament, setSelectedTournament] = useState<string>("lidom-2026");
@@ -72,8 +74,8 @@ export default function LIDOM() {
   return (
     <PageTransition>
       <SEOHead
-        title="LIDOM Béisbol Dominicano & Deportes - Calendario y Boletas | Descubre República Dominicana"
-        description="Guía oficial de béisbol invernal LIDOM y deportes dominicanos. Consulta calendarios en vivo, estados del clima, estadios, equipos y compra de boletas."
+        title={pc.t("SEOHead.title.1", "LIDOM Béisbol Dominicano & Deportes - Calendario y Boletas | Descubre República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Guía oficial de béisbol invernal LIDOM y deportes dominicanos. Consulta calendarios en vivo, estados del clima, estadios, equipos y compra de boletas.")}
       />
       <div className="min-h-screen bg-background flex flex-col justify-between">
         <Header />
@@ -88,27 +90,18 @@ export default function LIDOM() {
 
               <div className="relative z-10 max-w-3xl space-y-4">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="bg-blue-600 text-white font-extrabold uppercase tracking-widest text-[10px] px-3 py-1">
-                    ⚾ Pasión Nacional Dominicana
-                  </Badge>
-                  <Badge variant="outline" className="text-white/80 border-white/20 text-[10px]">
-                    Temporada 2025-2026
-                  </Badge>
+                  <Badge className="bg-blue-600 text-white font-extrabold uppercase tracking-widest text-3xs px-3 py-1">{pc.tx("Badge.1", "⚾ Pasión Nacional Dominicana")}</Badge>
+                  <Badge variant="outline" className="text-white/80 border-white/20 text-3xs">{pc.tx("Badge.2", "Temporada 2025-2026")}</Badge>
                   <button
                     onClick={() => setIsAdminOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold border border-white/20 backdrop-blur-md transition-all cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-3xs font-bold border border-white/20 backdrop-blur-md transition-all cursor-pointer"
                   >
-                    <Settings className="h-3 w-3 text-primary" /> Panel de Control Deportivo
-                  </button>
+                    <Settings className="h-3 w-3 text-primary" />{" "}{pc.tx("button.1", "Panel de Control Deportivo")}</button>
                 </div>
 
-                <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight">
-                  Béisbol Invernal <span className="text-blue-400">LIDOM</span> & Multideportes
-                </h1>
+                <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight">{pc.tx("h1.1", "Béisbol Invernal")}{" "}<span className="text-blue-400">{pc.tx("span.1", "LIDOM")}</span>{" "}{pc.tx("h1.2", "& Multideportes")}</h1>
 
-                <p className="text-sm sm:text-base text-slate-200/90 leading-relaxed max-w-2xl">
-                  Vive la experiencia del deporte rey en la República Dominicana. Disfruta de la mejor pelota invernal del mundo, partidos en vivo, gastronomía del play y compra de boletas oficiales.
-                </p>
+                <p className="text-sm sm:text-base text-slate-200/90 leading-relaxed max-w-2xl">{pc.tx("p.1", "Vive la experiencia del deporte rey en la República Dominicana. Disfruta de la mejor pelota invernal del mundo, partidos en vivo, gastronomía del play y compra de boletas oficiales.")}</p>
 
                 {/* Tournament Selector Strip */}
                 <div className="pt-2 flex flex-wrap items-center gap-2">
@@ -133,9 +126,7 @@ export default function LIDOM() {
                         ? "bg-primary text-slate-950 font-black shadow-md"
                         : "bg-white/10 text-slate-300 hover:bg-white/20 border border-white/10"
                     }`}
-                  >
-                    Ver Todo
-                  </button>
+                  >{pc.tx("button.2", "Ver Todo")}</button>
                 </div>
               </div>
             </div>
@@ -148,12 +139,12 @@ export default function LIDOM() {
                     <CloudRain className="h-6 w-6" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-sm flex items-center gap-2">
-                      <span>Aviso Oficial de Clima & Reprogramaciones</span>
-                      <Badge className="bg-amber-500 text-slate-950 text-[10px] font-black">
+                    <h2 className="h3 h4 font-bold text-sm flex items-center gap-2">
+                      <span>{pc.tx("span.2", "Aviso Oficial de Clima & Reprogramaciones")}</span>
+                      <Badge className="bg-amber-500 text-slate-950 text-3xs font-black">
                         {postponedGames.length} {postponedGames.length === 1 ? "Juego Afectado" : "Juegos Afectados"}
                       </Badge>
-                    </h4>
+                    </h2>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {postponedGames[0].statusNote || `${postponedGames[0].homeTeam} vs ${postponedGames[0].awayTeam} en ${postponedGames[0].stadium} ha sido pospuesto por lluvias.`}
                     </p>
@@ -165,9 +156,7 @@ export default function LIDOM() {
                   variant="outline"
                   onClick={() => setIsAdminOpen(true)}
                   className="rounded-xl text-xs font-bold border-amber-500/40 shrink-0"
-                >
-                  Ver Detalles de Reprogramación
-                </Button>
+                >{pc.tx("Button.1", "Ver Detalles de Reprogramación")}</Button>
               </div>
             )}
 
@@ -176,12 +165,8 @@ export default function LIDOM() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3">
                 <div>
                   <h2 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
-                    <Calendar className="h-6 w-6 text-primary" />
-                    Cartelera de Partidos & Marcadores en Vivo
-                  </h2>
-                  <p className="text-xs text-muted-foreground">
-                    Horarios oficiales, transmisiones de televisión y estados del terreno en tiempo real.
-                  </p>
+                    <Calendar className="h-6 w-6 text-primary" />{pc.tx("h2.1", "Cartelera de Partidos & Marcadores en Vivo")}</h2>
+                  <p className="text-xs text-muted-foreground">{pc.tx("p.2", "Horarios oficiales, transmisiones de televisión y estados del terreno en tiempo real.")}</p>
                 </div>
 
                 <Button
@@ -189,8 +174,7 @@ export default function LIDOM() {
                   onClick={() => setIsAdminOpen(true)}
                   className="rounded-xl text-xs gap-1.5 font-bold bg-primary text-slate-950 self-start sm:self-auto"
                 >
-                  <Plus className="h-3.5 w-3.5" /> Calendarizar / Editar Juego
-                </Button>
+                  <Plus className="h-3.5 w-3.5" />{" "}{pc.tx("Button.2", "Calendarizar / Editar Juego")}</Button>
               </div>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -206,26 +190,22 @@ export default function LIDOM() {
                     }`}
                   >
                     <CardHeader className="p-4 sm:p-5 pb-3 border-b border-border/60 flex flex-row items-center justify-between">
-                      <Badge variant="outline" className="text-[10px] font-bold">
+                      <Badge variant="outline" className="text-3xs font-bold">
                         {game.tournamentName} • {game.phase}
                       </Badge>
 
                       {game.status === "live" && (
-                        <Badge className="bg-emerald-500 text-slate-950 font-black text-[10px] gap-1 animate-pulse">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-950" /> EN VIVO
-                        </Badge>
+                        <Badge className="bg-emerald-500 text-slate-950 font-black text-3xs gap-1 animate-pulse">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-950" />{" "}{pc.tx("Badge.3", "EN VIVO")}</Badge>
                       )}
 
                       {game.status === "postponed" && (
-                        <Badge className="bg-amber-500 text-slate-950 font-black text-[10px] gap-1">
-                          <CloudRain className="h-3 w-3" /> POSPUESTO
-                        </Badge>
+                        <Badge className="bg-amber-500 text-slate-950 font-black text-3xs gap-1">
+                          <CloudRain className="h-3 w-3" />{" "}{pc.tx("Badge.4", "POSPUESTO")}</Badge>
                       )}
 
                       {game.status === "cancelled" && (
-                        <Badge className="bg-red-500 text-white font-black text-[10px]">
-                          CANCELADO
-                        </Badge>
+                        <Badge className="bg-red-500 text-white font-black text-3xs">{pc.tx("Badge.5", "CANCELADO")}</Badge>
                       )}
 
                       {game.status === "scheduled" && (
@@ -265,7 +245,7 @@ export default function LIDOM() {
                       )}
 
                       {game.status === "postponed" && game.statusNote && (
-                        <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-800 dark:text-amber-300 leading-tight">
+                        <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-2xs text-amber-800 dark:text-amber-300 leading-tight">
                           🌧️ {game.statusNote}
                         </div>
                       )}
@@ -316,10 +296,8 @@ export default function LIDOM() {
         <DialogContent className="max-w-md rounded-3xl p-6 border-border bg-card">
           <DialogHeader className="mb-4 text-left">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold mb-1 w-fit">
-              <Ticket className="h-3.5 w-3.5" /> Boletería Oficial
-            </div>
-            <DialogTitle className="font-display text-xl font-bold text-foreground">
-              Boletas para {selectedGame?.homeTeam} vs {selectedGame?.awayTeam}
+              <Ticket className="h-3.5 w-3.5" />{" "}{pc.tx("div.1", "Boletería Oficial")}</div>
+            <DialogTitle className="font-display text-xl font-bold text-foreground">{pc.tx("DialogTitle.1", "Boletas para")}{" "}{selectedGame?.homeTeam}{" "}{pc.tx("DialogTitle.2", "vs")}{" "}{selectedGame?.awayTeam}
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
               {selectedGame?.stadium} • {selectedGame?.date} - {selectedGame?.time}
@@ -328,7 +306,7 @@ export default function LIDOM() {
 
           <div className="space-y-4">
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Zona del Estadio</label>
+              <label className="text-xs font-semibold text-foreground mb-1 block">{pc.tx("label.1", "Zona del Estadio")}</label>
               <div className="grid grid-cols-2 gap-2">
                 {["Palcos A", "Palcos AA", "Preferencia", "Bleachers"].map((zone) => (
                   <button
@@ -342,7 +320,7 @@ export default function LIDOM() {
                     }`}
                   >
                     <div>{zone}</div>
-                    <div className="text-[10px] opacity-80">
+                    <div className="text-3xs opacity-80">
                       {zone === "Palcos A" && "RD$ 1,500"}
                       {zone === "Palcos AA" && "RD$ 1,100"}
                       {zone === "Preferencia" && "RD$ 750"}
@@ -354,7 +332,7 @@ export default function LIDOM() {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1 block">Cantidad de Entradas</label>
+              <label className="text-xs font-semibold text-foreground mb-1 block">{pc.tx("label.2", "Cantidad de Entradas")}</label>
               <div className="flex items-center gap-2">
                 {[1, 2, 3, 4, 6].map((num) => (
                   <button
@@ -375,22 +353,17 @@ export default function LIDOM() {
 
             <div className="p-4 rounded-2xl bg-muted/60 border border-border flex items-center justify-between">
               <div>
-                <span className="text-xs text-muted-foreground block">Total a Pagar</span>
-                <span className="font-mono text-xl font-black text-foreground">
-                  RD$ {(getPrice() * ticketQuantity).toLocaleString()}
+                <span className="text-xs text-muted-foreground block">{pc.tx("span.3", "Total a Pagar")}</span>
+                <span className="font-mono text-xl font-black text-foreground">{pc.tx("span.4", "RD$")}{" "}{(getPrice() * ticketQuantity).toLocaleString()}
                 </span>
               </div>
-              <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-xs">
-                E-Ticket QR Inmediato
-              </Badge>
+              <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-xs">{pc.tx("Badge.6", "E-Ticket QR Inmediato")}</Badge>
             </div>
 
             <Button
               onClick={handleCheckoutSuccess}
               className="w-full bg-primary hover:bg-primary/90 text-slate-950 font-black rounded-xl text-sm h-11 shadow-md shadow-primary/20"
-            >
-              Confirmar y Emitir E-Tickets (+50 XP)
-            </Button>
+            >{pc.tx("Button.3", "Confirmar y Emitir E-Tickets (+50 XP)")}</Button>
           </div>
         </DialogContent>
       </Dialog>

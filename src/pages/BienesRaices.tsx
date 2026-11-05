@@ -236,10 +236,10 @@ export default function BienesRaices() {
 
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 bg-background/80 backdrop-blur-md p-4 rounded-2xl border border-border">
                     <div className="space-y-1">
-                      <label className="text-[11px] font-bold text-muted-foreground uppercase">Valor Propiedad (USD)</label>
+                      <label htmlFor="bienes-raices-f4" className="text-2xs font-bold text-muted-foreground uppercase">Valor Propiedad (USD)</label>
                       <div className="relative">
                         <DollarSign className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                        <Input
+                        <Input id="bienes-raices-f4"
                           type="number"
                           step="10000"
                           value={calcAmount}
@@ -252,7 +252,7 @@ export default function BienesRaices() {
                     </div>
 
                     <div className="border-t sm:border-t-0 sm:border-l border-border pt-3 sm:pt-0 sm:pl-4 space-y-1">
-                      <span className="text-[11px] font-bold text-muted-foreground uppercase block">Ahorro Estimado (15 años)</span>
+                      <span className="text-2xs font-bold text-muted-foreground uppercase block">Ahorro Estimado (15 años)</span>
                       <span className="text-xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
                         ${Math.round(total15YearsSaved).toLocaleString()} USD
                       </span>
@@ -280,10 +280,10 @@ export default function BienesRaices() {
                     <CardContent className="space-y-4">
                       {/* Search */}
                       <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-muted-foreground">Palabra Clave o Ubicación</label>
+                        <label htmlFor="bienes-raices-f3" className="text-xs font-semibold text-muted-foreground">Palabra Clave o Ubicación</label>
                         <div className="relative">
                           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                          <Input
+                          <Input id="bienes-raices-f3"
                             className="pl-8 text-xs rounded-xl"
                             placeholder="Ej: Samaná, Punta Cana..."
                             value={searchTerm}
@@ -294,8 +294,8 @@ export default function BienesRaices() {
 
                       {/* Property Type */}
                       <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-muted-foreground">Tipo de Inmueble</label>
-                        <select
+                        <label htmlFor="bienes-raices-f2" className="text-xs font-semibold text-muted-foreground">Tipo de Inmueble</label>
+                        <select id="bienes-raices-f2"
                           className="w-full bg-background border border-input text-xs rounded-xl p-2.5"
                           value={selectedType}
                           onChange={(e) => setSelectedType(e.target.value)}
@@ -312,8 +312,8 @@ export default function BienesRaices() {
 
                       {/* Location */}
                       <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-muted-foreground">Destino Turístico</label>
-                        <select
+                        <label htmlFor="bienes-raices-f1" className="text-xs font-semibold text-muted-foreground">Destino Turístico</label>
+                        <select id="bienes-raices-f1"
                           className="w-full bg-background border border-input text-xs rounded-xl p-2.5"
                           value={selectedLocation}
                           onChange={(e) => setSelectedLocation(e.target.value)}
@@ -370,7 +370,7 @@ export default function BienesRaices() {
                       <ShieldCheck className="h-4 w-4 text-emerald-500" />
                       Garantía Legal & Asesoría
                     </div>
-                    <p className="text-muted-foreground text-[11px] leading-relaxed">
+                    <p className="text-muted-foreground text-2xs leading-relaxed">
                       Todas las propiedades son verificadas a través de fiduciarias y bufetes autorizados por el Ministerio de Turismo (MITUR).
                     </p>
                   </div>
@@ -404,11 +404,11 @@ export default function BienesRaices() {
                               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                               
                               <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                                <Badge className="bg-black/70 text-white text-[11px] backdrop-blur-md border-none capitalize">
+                                <Badge className="bg-black/70 text-white text-2xs backdrop-blur-md border-none capitalize">
                                   {p.type}
                                 </Badge>
                                 {p.hasConfotur && (
-                                  <Badge className="bg-emerald-600 text-white text-[10px] font-bold border-none shadow-md">
+                                  <Badge className="bg-emerald-600 text-white text-3xs font-bold border-none shadow-md">
                                     CONFOTUR ✓
                                   </Badge>
                                 )}
@@ -416,10 +416,10 @@ export default function BienesRaices() {
 
                               <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between text-white">
                                 <div>
-                                  <span className="text-[10px] uppercase font-bold text-white/80 block">Precio de Lista</span>
+                                  <span className="text-3xs uppercase font-bold text-white/80 block">Precio de Lista</span>
                                   <span className="text-2xl font-black font-display tracking-tight">${p.price.toLocaleString()} USD</span>
                                 </div>
-                                <span className="text-[11px] bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-md font-semibold">
+                                <span className="text-2xs bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-md font-semibold">
                                   {p.roiEstimate}
                                 </span>
                               </div>
@@ -456,7 +456,7 @@ export default function BienesRaices() {
                               {/* Features */}
                               <div className="flex flex-wrap gap-1.5 pt-1">
                                 {p.features.map((f, i) => (
-                                  <Badge key={i} variant="secondary" className="text-[10px] bg-muted/60 text-muted-foreground border-none">
+                                  <Badge key={i} variant="secondary" className="text-3xs bg-muted/60 text-muted-foreground border-none">
                                     {f}
                                   </Badge>
                                 ))}

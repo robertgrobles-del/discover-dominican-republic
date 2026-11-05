@@ -1,5 +1,6 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { QuickThreeHoursSection } from "@/components/home/QuickThreeHoursSection";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { Badge } from "@/components/ui/badge";
@@ -9,8 +10,10 @@ import { itinerarios } from "@/data/itinerariosData";
 import { ItinerarioCard } from "@/components/itinerarios/ItinerarioCard";
 import { ItinerarioDetailSection } from "@/components/itinerarios/ItinerarioDetailSection";
 import { EditorialDecisionGuides } from "@/components/itinerarios/EditorialDecisionGuides";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function ItinerariosRecomendados() {
+  const pc = usePageContent("itinerarios-recomendados");
   const [seleccionado, setSeleccionado] = useState<string | null>(null);
 
   const itinerarioActivo = itinerarios.find((i) => i.id === seleccionado);
@@ -18,8 +21,8 @@ export default function ItinerariosRecomendados() {
   return (
     <PageTransition>
       <SEOHead
-        title="Itinerarios de Viaje - 3, 5, 7 y 14 Días | Descubre República Dominicana"
-        description="Itinerarios prediseñados para tu viaje a RD: escapada de 3 días, ruta cultural de 5 días, tour completo de 7 días o gran aventura de 14 días."
+        title={pc.t("SEOHead.title.1", "Itinerarios de Viaje - 3, 5, 7 y 14 Días | Descubre República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Itinerarios prediseñados para tu viaje a RD: escapada de 3 días, ruta cultural de 5 días, tour completo de 7 días o gran aventura de 14 días.")}
         keywords="itinerario viaje dominicana, plan viaje RD, ruta 7 días dominicana, que hacer en dominicana"
       />
       <div className="min-h-screen flex flex-col bg-background">
@@ -28,14 +31,10 @@ export default function ItinerariosRecomendados() {
         <section className="relative py-20 bg-gradient-to-b from-primary/10 to-background">
           <div className="container mx-auto px-4 text-center">
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
-              <Calendar className="h-3 w-3 mr-1" /> Planifica tu Aventura
-            </Badge>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Itinerarios <span className="text-primary">Recomendados</span>
+              <Calendar className="h-3 w-3 mr-1" />{" "}{pc.tx("Badge.1", "Planifica tu Aventura")}</Badge>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Itinerarios")}{" "}<span className="text-primary">{pc.tx("span.1", "Recomendados")}</span>
             </h1>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Elige tu duración y estilo de viaje. Cada itinerario incluye día a día, presupuesto y consejos prácticos.
-            </p>
+            <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.1", "Elige tu duración y estilo de viaje. Cada itinerario incluye día a día, presupuesto y consejos prácticos.")}</p>
           </div>
         </section>
 
@@ -59,6 +58,9 @@ export default function ItinerariosRecomendados() {
         {itinerarioActivo && (
           <ItinerarioDetailSection itinerario={itinerarioActivo} />
         )}
+
+        {/* Micro-itinerarios de 2 a 4 horas (antes en la portada) */}
+        <QuickThreeHoursSection />
 
         {/* Guías Editoriales Comparativas */}
         <EditorialDecisionGuides />

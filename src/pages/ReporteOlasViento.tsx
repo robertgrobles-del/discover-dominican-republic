@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { PanoramaAd } from "@/components/promo";
 import puertoPlataImg from "@/assets/puerto-plata.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 interface MarineReport {
   location: string;
@@ -111,6 +112,8 @@ const spotsList: Record<string, MarineReport> = {
 };
 
 export default function ReporteOlasViento() {
+  const pc = usePageContent("reporte-olas-viento");
+  const spotsList = pc.data("spotsList", __pcData.spotsList);
   const [selectedSpot, setSelectedSpot] = useState<string>("cabarete");
 
   const { data: dbReports } = useQuery({
@@ -150,11 +153,11 @@ export default function ReporteOlasViento() {
   const getRatingBadge = (rating: "Excelente" | "Moderado" | "Pobre") => {
     switch (rating) {
       case "Excelente":
-        return <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold border-none">Excelente</Badge>;
+        return <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold border-none">{pc.tx("Badge.1", "Excelente")}</Badge>;
       case "Moderado":
-        return <Badge className="bg-amber-500 hover:bg-amber-600 text-white font-bold border-none">Moderado</Badge>;
+        return <Badge className="bg-amber-500 hover:bg-amber-600 text-white font-bold border-none">{pc.tx("Badge.2", "Moderado")}</Badge>;
       case "Pobre":
-        return <Badge className="bg-slate-500 hover:bg-slate-600 text-white font-bold border-none">Pobre</Badge>;
+        return <Badge className="bg-slate-500 hover:bg-slate-600 text-white font-bold border-none">{pc.tx("Badge.3", "Pobre")}</Badge>;
       default:
         return null;
     }
@@ -163,8 +166,8 @@ export default function ReporteOlasViento() {
   return (
     <PageTransition>
       <SEOHead
-        title="Reporte de Olas, Viento y Mareas en RD | Descubre República Dominicana"
-        description="Consulta en tiempo real la altura de olas, viento (nudos), temperatura del agua y condiciones para surf y kitesurf en Cabarete, Encuentro, Las Terrenas y Macao."
+        title={pc.t("SEOHead.title.1", "Reporte de Olas, Viento y Mareas en RD | Descubre República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Consulta en tiempo real la altura de olas, viento (nudos), temperatura del agua y condiciones para surf y kitesurf en Cabarete, Encuentro, Las Terrenas y Macao.")}
         keywords="reporte olas dominicana, viento cabarete hoy, surf playa encuentro, kitesurf dominicana mareas, olas punta cana macao"
       />
       
@@ -176,8 +179,8 @@ export default function ReporteOlasViento() {
           <section className="relative min-h-[48vh] flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0">
               <img 
-                src={puertoPlataImg} 
-                alt="Condiciones de oleaje y viento en las playas de República Dominicana" 
+                src={pc.img("img.src.1", puertoPlataImg)} 
+                alt={pc.t("img.alt.1", "Condiciones de oleaje y viento en las playas de República Dominicana")} 
                 className="w-full h-full object-cover" 
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-black/60 to-black/35" />
@@ -185,14 +188,10 @@ export default function ReporteOlasViento() {
 
             <div className="container relative z-10 mx-auto px-4 py-16 text-center max-w-4xl text-white">
               <Badge className="mb-4 bg-cyan-500/30 text-cyan-200 border-cyan-400/40 backdrop-blur-md px-3 py-1 font-semibold">
-                <Waves className="h-3.5 w-3.5 mr-1.5 text-cyan-300" /> Monitoreo Marítimo & Deportes Náuticos
-              </Badge>
-              <h1 className="text-4xl md:text-6xl font-display font-extrabold tracking-tight mb-4 drop-shadow-md">
-                Reporte de <span className="text-cyan-400 italic">Olas y Viento</span>
+                <Waves className="h-3.5 w-3.5 mr-1.5 text-cyan-300" />{" "}{pc.tx("Badge.4", "Monitoreo Marítimo & Deportes Náuticos")}</Badge>
+              <h1 className="text-4xl md:text-6xl font-display font-extrabold tracking-tight mb-4 drop-shadow-md">{pc.tx("h1.1", "Reporte de")}{" "}<span className="text-cyan-400 italic">{pc.tx("span.1", "Olas y Viento")}</span>
               </h1>
-              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed drop-shadow">
-                Condiciones en tiempo real para surf, kitesurf, windsurf y natación en los principales spots costeros de República Dominicana.
-              </p>
+              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed drop-shadow">{pc.tx("p.1", "Condiciones en tiempo real para surf, kitesurf, windsurf y natación en los principales spots costeros de República Dominicana.")}</p>
             </div>
           </section>
 
@@ -234,12 +233,11 @@ export default function ReporteOlasViento() {
                     <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400 uppercase tracking-wider block">
                       {report.regionName}
                     </span>
-                    <h3 className="font-display font-bold text-2xl text-foreground mt-0.5">{report.location}</h3>
+                    <h2 className="h3 font-display font-bold text-2xl text-foreground mt-0.5">{report.location}</h2>
                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed max-w-md">{report.description}</p>
                   </div>
                   <Badge variant="secondary" className="bg-background border text-xs shrink-0 font-mono">
-                    <Clock className="h-3 w-3 mr-1 text-primary" /> Medición 24h
-                  </Badge>
+                    <Clock className="h-3 w-3 mr-1 text-primary" />{" "}{pc.tx("Badge.5", "Medición 24h")}</Badge>
                 </div>
 
                 {/* Grid de Métricas */}
@@ -251,10 +249,10 @@ export default function ReporteOlasViento() {
                         <Wind className="h-6 w-6" />
                       </div>
                       <div>
-                        <span className="text-[10px] text-muted-foreground uppercase font-bold block">Velocidad Viento</span>
+                        <span className="text-3xs text-muted-foreground uppercase font-bold block">{pc.tx("span.2", "Velocidad Viento")}</span>
                         <span className="font-extrabold text-2xl text-foreground font-mono">{report.windSpeed}</span>
-                        <span className="text-xs text-muted-foreground ml-1">Nudos (Knots)</span>
-                        <p className="text-[11px] text-primary font-semibold mt-1 flex items-center gap-1">
+                        <span className="text-xs text-muted-foreground ml-1">{pc.tx("span.3", "Nudos (Knots)")}</span>
+                        <p className="text-2xs text-primary font-semibold mt-1 flex items-center gap-1">
                           <Navigation className="h-3 w-3 rotate-45" /> {report.windDirection}
                         </p>
                       </div>
@@ -268,11 +266,11 @@ export default function ReporteOlasViento() {
                         <Waves className="h-6 w-6" />
                       </div>
                       <div>
-                        <span className="text-[10px] text-muted-foreground uppercase font-bold block">Altura Oleaje</span>
+                        <span className="text-3xs text-muted-foreground uppercase font-bold block">{pc.tx("span.4", "Altura Oleaje")}</span>
                         <span className="font-extrabold text-2xl text-foreground font-mono">{report.waveHeight}m</span>
-                        <span className="text-xs text-muted-foreground ml-1">({report.waveInterval}s período)</span>
-                        <p className="text-[11px] text-cyan-600 font-semibold mt-1 flex items-center gap-1">
-                          <ArrowUpRight className="h-3 w-3" /> Swell: {report.swellDirection}
+                        <span className="text-xs text-muted-foreground ml-1">({report.waveInterval}{pc.tx("span.5", "s período)")}</span>
+                        <p className="text-2xs text-cyan-600 font-semibold mt-1 flex items-center gap-1">
+                          <ArrowUpRight className="h-3 w-3" />{" "}{pc.tx("p.2", "Swell:")}{" "}{report.swellDirection}
                         </p>
                       </div>
                     </CardContent>
@@ -285,10 +283,10 @@ export default function ReporteOlasViento() {
                         <Thermometer className="h-6 w-6" />
                       </div>
                       <div>
-                        <span className="text-[10px] text-muted-foreground uppercase font-bold block">Temperatura Agua</span>
+                        <span className="text-3xs text-muted-foreground uppercase font-bold block">{pc.tx("span.6", "Temperatura Agua")}</span>
                         <span className="font-extrabold text-2xl text-foreground font-mono">{report.waterTemp}°C</span>
                         <span className="text-xs text-muted-foreground ml-1">/ 81°F</span>
-                        <p className="text-[11px] text-muted-foreground mt-1">Sin traje de neopreno</p>
+                        <p className="text-2xs text-muted-foreground mt-1">{pc.tx("p.3", "Sin traje de neopreno")}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -300,11 +298,11 @@ export default function ReporteOlasViento() {
                         {report.swimmingSafe ? <ShieldCheck className="h-6 w-6" /> : <AlertTriangle className="h-6 w-6" />}
                       </div>
                       <div>
-                        <span className="text-[10px] text-muted-foreground uppercase font-bold block">Seguridad Bañistas</span>
+                        <span className="text-3xs text-muted-foreground uppercase font-bold block">{pc.tx("span.7", "Seguridad Bañistas")}</span>
                         <span className="font-bold text-base text-foreground block">
                           {report.swimmingSafe ? 'Apto para Nado' : 'Bandera Roja / Fuerte'}
                         </span>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                        <p className="text-2xs text-muted-foreground mt-0.5">
                           {report.swimmingSafe ? 'Sin corrientes peligrosas' : 'Corrientes de resaca activas'}
                         </p>
                       </div>
@@ -319,17 +317,15 @@ export default function ReporteOlasViento() {
                   <CardHeader className="bg-muted/15 pb-4 border-b">
                     <CardTitle className="text-lg font-bold flex items-center gap-2">
                       <Sparkles className="h-5 w-5 text-cyan-500" />
-                      <span>Diagnóstico Deportivo Hoy</span>
+                      <span>{pc.tx("span.8", "Diagnóstico Deportivo Hoy")}</span>
                     </CardTitle>
-                    <CardDescription className="text-xs">
-                      Evaluación técnica según vientos térmicos y mareas.
-                    </CardDescription>
+                    <CardDescription className="text-xs">{pc.tx("CardDescription.1", "Evaluación técnica según vientos térmicos y mareas.")}</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6 space-y-4">
                     <div className="flex justify-between items-center p-3.5 bg-muted/40 rounded-xl border border-border/50">
                       <div className="flex items-center gap-2.5">
                         <Wind className="h-4 w-4 text-primary" />
-                        <span className="font-bold text-sm text-foreground">Kitesurf / Wingfoil</span>
+                        <span className="font-bold text-sm text-foreground">{pc.tx("span.9", "Kitesurf / Wingfoil")}</span>
                       </div>
                       {getRatingBadge(report.kiteRating)}
                     </div>
@@ -337,13 +333,13 @@ export default function ReporteOlasViento() {
                     <div className="flex justify-between items-center p-3.5 bg-muted/40 rounded-xl border border-border/50">
                       <div className="flex items-center gap-2.5">
                         <Waves className="h-4 w-4 text-cyan-500" />
-                        <span className="font-bold text-sm text-foreground">Surf / Bodyboard</span>
+                        <span className="font-bold text-sm text-foreground">{pc.tx("span.10", "Surf / Bodyboard")}</span>
                       </div>
                       {getRatingBadge(report.surfRating)}
                     </div>
 
                     <div className="p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl space-y-1 text-xs">
-                      <span className="font-bold text-foreground block">⏰ Ventana Óptima de Sesión:</span>
+                      <span className="font-bold text-foreground block">{pc.tx("span.11", "⏰ Ventana Óptima de Sesión:")}</span>
                       <p className="text-muted-foreground leading-relaxed">{report.bestTime}</p>
                     </div>
                   </CardContent>
@@ -364,3 +360,6 @@ export default function ReporteOlasViento() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { spotsList };

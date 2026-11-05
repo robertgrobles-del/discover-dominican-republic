@@ -91,21 +91,21 @@ export function PartnerKpiCards({
             <div className="flex items-center justify-center gap-1 text-emerald-500 font-bold text-lg">
               <MessageCircle className="w-4 h-4" /> 148
             </div>
-            <span className="text-[11px] text-muted-foreground">Clics a WhatsApp</span>
+            <span className="text-2xs text-muted-foreground">Clics a WhatsApp</span>
           </div>
 
           <div className="text-center px-3">
             <div className="flex items-center justify-center gap-1 text-primary font-bold text-lg">
               <PhoneCall className="w-4 h-4" /> 62
             </div>
-            <span className="text-[11px] text-muted-foreground">Llamadas Directas</span>
+            <span className="text-2xs text-muted-foreground">Llamadas Directas</span>
           </div>
 
           <div className="text-center px-3">
             <div className="flex items-center justify-center gap-1 text-sky-500 font-bold text-lg">
               <Navigation className="w-4 h-4" /> 210
             </div>
-            <span className="text-[11px] text-muted-foreground">Rutas en GPS</span>
+            <span className="text-2xs text-muted-foreground">Rutas en GPS</span>
           </div>
         </div>
       </div>

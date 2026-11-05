@@ -19,6 +19,7 @@ import {
   Check,
   Award,
 } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
 
 const impactStats = [
   { number: "15,000+", label: "Voluntarios activos" },
@@ -95,6 +96,11 @@ const testimonials = [
 ];
 
 export default function Volunturismo() {
+  const pc = usePageContent("volunturismo");
+  const impactStats = pc.data("impactStats", __pcData.impactStats);
+  const categories = pc.data("categories", __pcData.categories);
+  const projects = pc.data("projects", __pcData.projects);
+  const testimonials = pc.data("testimonials", __pcData.testimonials);
   return (
     <PageTransition>
       <div className="min-h-screen bg-background">
@@ -111,24 +117,14 @@ export default function Volunturismo() {
               className="max-w-3xl"
             >
               <Badge className="mb-4 bg-emerald-500/20 text-emerald-200 border-emerald-400/30">
-                <Heart className="h-3 w-3 mr-1" />
-                IMPACTO POSITIVO
-              </Badge>
-              <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">
-                Volunturismo en <span className="text-emerald-400">República Dominicana</span>
+                <Heart className="h-3 w-3 mr-1" />{pc.tx("Badge.1", "IMPACTO POSITIVO")}</Badge>
+              <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">{pc.tx("h1.1", "Volunturismo en")}{" "}<span className="text-emerald-400">{pc.tx("span.1", "República Dominicana")}</span>
               </h1>
-              <p className="text-xl text-white/80 mb-8">
-                Viaja con propósito. Combina turismo y voluntariado para crear un impacto 
-                positivo en las comunidades dominicanas mientras vives experiencias únicas.
-              </p>
+              <p className="text-xl text-white/80 mb-8">{pc.tx("p.1", "Viaja con propósito. Combina turismo y voluntariado para crear un impacto positivo en las comunidades dominicanas mientras vives experiencias únicas.")}</p>
               <div className="flex flex-wrap gap-4">
                 <Button size="lg" className="gap-2 bg-white text-emerald-900 hover:bg-white/90">
-                  <Users className="h-4 w-4" />
-                  Ver Proyectos
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Cómo Funciona
-                  <ChevronRight className="h-4 w-4" />
+                  <Users className="h-4 w-4" />{pc.tx("Button.1", "Ver Proyectos")}</Button>
+                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.2", "Cómo Funciona")}<ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </motion.div>
@@ -165,12 +161,9 @@ export default function Volunturismo() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Áreas de <span className="text-gradient">Impacto</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.1", "Áreas de")}{" "}<span className="text-gradient">{pc.tx("span.2", "Impacto")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Encuentra el proyecto que mejor se adapte a tus habilidades e intereses.
-              </p>
+              <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.2", "Encuentra el proyecto que mejor se adapte a tus habilidades e intereses.")}</p>
             </motion.div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
@@ -188,7 +181,7 @@ export default function Volunturismo() {
                   </div>
                   <div className="text-center">
                     <p className="font-semibold text-foreground">{cat.name}</p>
-                    <p className="text-xs text-muted-foreground">{cat.count} proyectos</p>
+                    <p className="text-xs text-muted-foreground">{cat.count}{" "}{pc.tx("p.3", "proyectos")}</p>
                   </div>
                 </motion.button>
               ))}
@@ -206,16 +199,11 @@ export default function Volunturismo() {
               className="flex items-end justify-between mb-12"
             >
               <div>
-                <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                  Proyectos <span className="text-gradient">Destacados</span>
+                <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.2", "Proyectos")}{" "}<span className="text-gradient">{pc.tx("span.3", "Destacados")}</span>
                 </h2>
-                <p className="text-muted-foreground max-w-xl">
-                  Únete a iniciativas que están transformando comunidades en toda la isla.
-                </p>
+                <p className="text-muted-foreground max-w-xl">{pc.tx("p.4", "Únete a iniciativas que están transformando comunidades en toda la isla.")}</p>
               </div>
-              <Button variant="outline" className="hidden md:flex gap-2">
-                Ver todos
-                <ChevronRight className="h-4 w-4" />
+              <Button variant="outline" className="hidden md:flex gap-2">{pc.tx("Button.3", "Ver todos")}<ChevronRight className="h-4 w-4" />
               </Button>
             </motion.div>
 
@@ -262,9 +250,8 @@ export default function Volunturismo() {
                       <div className="flex items-center justify-between pt-4 border-t border-border">
                         <span className="text-xs text-muted-foreground">
                           <Users className="h-3.5 w-3.5 inline mr-1" />
-                          {project.participants} participantes
-                        </span>
-                        <Button size="sm">Aplicar</Button>
+                          {project.participants}{" "}{pc.tx("span.4", "participantes")}</span>
+                        <Button size="sm">{pc.tx("Button.4", "Aplicar")}</Button>
                       </div>
                     </div>
                   </div>
@@ -283,8 +270,7 @@ export default function Volunturismo() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Historias de <span className="text-gradient">Voluntarios</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.3", "Historias de")}{" "}<span className="text-gradient">{pc.tx("span.5", "Voluntarios")}</span>
               </h2>
             </motion.div>
 
@@ -325,21 +311,12 @@ export default function Volunturismo() {
               viewport={{ once: true }}
             >
               <Award className="h-16 w-16 text-emerald-300 mx-auto mb-6" />
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-                ¿Listo para hacer la diferencia?
-              </h2>
-              <p className="text-white/80 mb-8 max-w-xl mx-auto">
-                Únete a nuestra comunidad de voluntarios y vive una experiencia que transformará 
-                tu vida mientras ayudas a otros.
-              </p>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">{pc.tx("h2.4", "¿Listo para hacer la diferencia?")}</h2>
+              <p className="text-white/80 mb-8 max-w-xl mx-auto">{pc.tx("p.5", "Únete a nuestra comunidad de voluntarios y vive una experiencia que transformará tu vida mientras ayudas a otros.")}</p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button size="lg" className="gap-2 bg-white text-emerald-900 hover:bg-white/90">
-                  <Heart className="h-4 w-4" />
-                  Registrarme
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Agregar al Plan de Viaje
-                </Button>
+                  <Heart className="h-4 w-4" />{pc.tx("Button.5", "Registrarme")}</Button>
+                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.6", "Agregar al Plan de Viaje")}</Button>
               </div>
             </motion.div>
           </div>
@@ -350,3 +327,6 @@ export default function Volunturismo() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { impactStats, categories, projects, testimonials };

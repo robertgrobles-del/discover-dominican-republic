@@ -13,10 +13,10 @@ import { Target, Search, RefreshCw, Mail, Phone, Building, MessageSquare } from 
 import { toast } from "sonner";
 
 const STATUS_CONFIG: Record<MarketingLeadStatus, { label: string; badge: string }> = {
-  nuevo: { label: "Nuevo", badge: "bg-blue-500/10 text-blue-700 border-blue-200" },
-  contactado: { label: "Contactado", badge: "bg-amber-500/10 text-amber-700 border-amber-200" },
-  calificado: { label: "Calificado", badge: "bg-emerald-500/10 text-emerald-700 border-emerald-200" },
-  perdido: { label: "Perdido", badge: "bg-slate-500/10 text-slate-700 border-slate-200" },
+  nuevo: { label: "Nuevo", badge: "bg-blue-500/10 text-blue-500 border-blue-200" },
+  contactado: { label: "Contactado", badge: "bg-amber-500/10 text-amber-500 border-amber-200" },
+  calificado: { label: "Calificado", badge: "bg-emerald-500/10 text-emerald-500 border-emerald-200" },
+  perdido: { label: "Perdido", badge: "bg-muted text-foreground border-border" },
 };
 
 export default function AdminLeadsManager() {
@@ -52,11 +52,11 @@ export default function AdminLeadsManager() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+          <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <Target className="w-6 h-6 text-rose-500" />
             Leads y Oportunidades Comerciales
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             Seguimiento de prospectos, solicitudes de contacto B2B y campañas de marketing.
           </p>
         </div>
@@ -85,7 +85,7 @@ export default function AdminLeadsManager() {
       <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 dark:bg-slate-900 border-b text-slate-500 font-medium">
+            <thead className="bg-muted/50 border-b text-muted-foreground font-medium">
               <tr>
                 <th className="p-3">Contacto</th>
                 <th className="p-3">Empresa / Origen</th>
@@ -97,38 +97,38 @@ export default function AdminLeadsManager() {
             </thead>
             <tbody className="divide-y">
               {isLoading ? (
-                <tr><td colSpan={6} className="text-center py-10 text-slate-400">Cargando prospectos...</td></tr>
+                <tr><td colSpan={6} className="text-center py-10 text-muted-foreground">Cargando prospectos...</td></tr>
               ) : leads.length === 0 ? (
-                <tr><td colSpan={6} className="text-center py-10 text-slate-400">No hay prospectos registrados.</td></tr>
+                <tr><td colSpan={6} className="text-center py-10 text-muted-foreground">No hay prospectos registrados.</td></tr>
               ) : (
                 leads.map((lead) => (
-                  <tr key={lead.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                  <tr key={lead.id} className="hover:bg-muted/30 dark:hover:bg-muted/50">
                     <td className="p-3">
-                      <div className="font-semibold text-slate-900 dark:text-white">{lead.name}</div>
-                      <div className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
+                      <div className="font-semibold text-foreground">{lead.name}</div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
                         <Mail className="w-3 h-3" /> {lead.email}
                       </div>
                       {lead.phone && (
-                        <div className="text-xs text-slate-500 flex items-center gap-1.5">
+                        <div className="text-xs text-muted-foreground flex items-center gap-1.5">
                           <Phone className="w-3 h-3" /> {lead.phone}
                         </div>
                       )}
                     </td>
                     <td className="p-3">
-                      <div className="text-xs font-medium text-slate-800 dark:text-slate-200">
+                      <div className="text-xs font-medium text-foreground">
                         {lead.company || "Particular"}
                       </div>
-                      <div className="text-[11px] text-slate-400 font-mono">
+                      <div className="text-2xs text-muted-foreground font-mono">
                         Origen: {lead.source || "web"}
                       </div>
                     </td>
                     <td className="p-3 max-w-xs">
                       {lead.interest && (
-                        <Badge variant="outline" className="text-[10px] mb-1 font-mono">
+                        <Badge variant="outline" className="text-3xs mb-1 font-mono">
                           {lead.interest}
                         </Badge>
                       )}
-                      <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">
+                      <p className="text-xs text-muted-foreground line-clamp-2">
                         {lead.message || "Sin mensaje"}
                       </p>
                     </td>
@@ -137,7 +137,7 @@ export default function AdminLeadsManager() {
                         {STATUS_CONFIG[lead.status]?.label || lead.status}
                       </Badge>
                     </td>
-                    <td className="p-3 text-xs text-slate-500 whitespace-nowrap">
+                    <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">
                       {new Date(lead.created_at).toLocaleDateString()}
                     </td>
                     <td className="p-3 text-right">
@@ -167,7 +167,7 @@ export default function AdminLeadsManager() {
 
         {/* Pagination */}
         {meta && meta.total_pages > 1 && (
-          <div className="flex items-center justify-between p-3 border-t text-xs text-slate-500">
+          <div className="flex items-center justify-between p-3 border-t text-xs text-muted-foreground">
             <span>Página {meta.page} de {meta.total_pages} ({meta.total} leads)</span>
             <div className="flex gap-2">
               <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage(page - 1)}>

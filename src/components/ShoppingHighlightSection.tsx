@@ -46,10 +46,12 @@ export function ShoppingHighlightSection() {
                   <div className="relative h-44 overflow-hidden">
                     <LazyImage
                       src={mall.imagen}
+                      // Si la foto ya no existe, una genérica de tiendas en vez de un recuadro vacío.
+                      onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (!img.dataset.fallback) { img.dataset.fallback = "1"; img.src = "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=800&h=500&fit=crop"; } }}
                       alt={mall.nombre}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    <Badge className="absolute top-3 left-3 bg-background/80 backdrop-blur text-foreground text-[10px]">
+                    <Badge className="absolute top-3 left-3 bg-background/80 backdrop-blur text-foreground text-3xs">
                       {mall.tiendas}+ {t("shoppingMalls.stores")}
                     </Badge>
                   </div>

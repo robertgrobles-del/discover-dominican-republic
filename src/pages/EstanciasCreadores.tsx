@@ -297,12 +297,12 @@ export default function EstanciasCreadoresPage() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                         />
                         <div className="absolute top-3 left-3 flex gap-2">
-                          <Badge className="bg-black/70 backdrop-blur text-white border-0 text-[11px]">
+                          <Badge className="bg-black/70 backdrop-blur text-white border-0 text-2xs">
                             <MapPin className="h-3 w-3 mr-1 text-primary" /> {stay.destination}
                           </Badge>
                         </div>
                         <div className="absolute top-3 right-3">
-                          <Badge className="bg-emerald-600 text-white border-0 text-[11px] font-semibold">
+                          <Badge className="bg-emerald-600 text-white border-0 text-2xs font-semibold">
                             {stay.nights_count} Noches · {stay.guests_allowed} Pers.
                           </Badge>
                         </div>
@@ -328,7 +328,7 @@ export default function EstanciasCreadoresPage() {
                           </div>
                           <div>
                             <span className="font-semibold text-foreground">Audiencia mín: </span>
-                            <Badge variant="outline" className="text-[10px] ml-1">{stay.min_followers_guideline || "5k+"}</Badge>
+                            <Badge variant="outline" className="text-3xs ml-1">{stay.min_followers_guideline || "5k+"}</Badge>
                           </div>
                         </div>
 
@@ -364,9 +364,9 @@ export default function EstanciasCreadoresPage() {
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-sm text-foreground">{app.hotel_name || "Hotel Aliado"}</span>
                           <Badge className={
-                            app.status === "approved" ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30 text-[10px]" :
-                            app.status === "rejected" ? "bg-rose-500/15 text-rose-600 border-rose-500/30 text-[10px]" :
-                            "bg-amber-500/15 text-amber-600 border-amber-500/30 text-[10px]"
+                            app.status === "approved" ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30 text-3xs" :
+                            app.status === "rejected" ? "bg-rose-500/15 text-rose-600 border-rose-500/30 text-3xs" :
+                            "bg-amber-500/15 text-amber-600 border-amber-500/30 text-3xs"
                           }>
                             {app.status === "approved" ? "Aprobada 🎉" : app.status === "rejected" ? "Rechazada" : "En Revisión"}
                           </Badge>
@@ -375,7 +375,7 @@ export default function EstanciasCreadoresPage() {
                           Pitch: "{app.pitch_message}"
                         </p>
                         {app.proposed_dates && (
-                          <p className="text-[11px] text-muted-foreground">Fechas propuestas: {app.proposed_dates}</p>
+                          <p className="text-2xs text-muted-foreground">Fechas propuestas: {app.proposed_dates}</p>
                         )}
                       </div>
 
@@ -414,13 +414,13 @@ export default function EstanciasCreadoresPage() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-sm text-foreground">{inv.hotel_name}</span>
-                          <Badge variant="outline" className="text-amber-600 border-amber-500/30 text-[10px]">
+                          <Badge variant="outline" className="text-amber-600 border-amber-500/30 text-3xs">
                             Invitación Exclusiva
                           </Badge>
                           <Badge className={
-                            inv.status === "accepted" ? "bg-emerald-500/15 text-emerald-600 text-[10px]" :
-                            inv.status === "declined" ? "bg-rose-500/15 text-rose-600 text-[10px]" :
-                            "bg-amber-500/15 text-amber-600 text-[10px]"
+                            inv.status === "accepted" ? "bg-emerald-500/15 text-emerald-600 text-3xs" :
+                            inv.status === "declined" ? "bg-rose-500/15 text-rose-600 text-3xs" :
+                            "bg-amber-500/15 text-amber-600 text-3xs"
                           }>
                             {inv.status === "accepted" ? "Aceptada" : inv.status === "declined" ? "Declinada" : "Pendiente"}
                           </Badge>
@@ -429,7 +429,7 @@ export default function EstanciasCreadoresPage() {
                           "{inv.invitation_message}"
                         </p>
                         {inv.scheduled_dates && (
-                          <p className="text-[11px] text-muted-foreground">Fechas propuestas: {inv.scheduled_dates}</p>
+                          <p className="text-2xs text-muted-foreground">Fechas propuestas: {inv.scheduled_dates}</p>
                         )}
                       </div>
 

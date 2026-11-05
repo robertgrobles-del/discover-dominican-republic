@@ -22,8 +22,10 @@ import { ActivityItineraryTimeline } from "@/components/activities/ActivityItine
 import { DetailInclusionsCard } from "@/components/detail/DetailInclusionsCard";
 import { DetailFloatingBar } from "@/components/detail/DetailFloatingBar";
 import { CommentSection } from "@/components/comments/CommentSection";
+import { usePageContent } from "@/lib/pageContent";
 
 export function ActividadDetalle() {
+  const pc = usePageContent("actividad-detalle");
   const { slug } = useParams<{ slug: string }>();
 
   // Load static activity data
@@ -51,7 +53,7 @@ export function ActividadDetalle() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Skeleton className="h-12 w-12 rounded-full" />
-          <p className="text-muted-foreground text-sm font-medium">Cargando detalles de actividad...</p>
+          <p className="text-muted-foreground text-sm font-medium">{pc.tx("p.1", "Cargando detalles de actividad...")}</p>
         </div>
       </div>
     );
@@ -64,10 +66,10 @@ export function ActividadDetalle() {
         <Header />
         <div className="min-h-screen bg-background flex flex-col items-center justify-center text-center px-4">
           <AlertCircle className="h-16 w-16 text-destructive mb-4" />
-          <h1 className="text-3xl font-display font-bold text-foreground mb-2">Actividad No Encontrada</h1>
-          <p className="text-muted-foreground mb-6 max-w-md">Lo sentimos, la actividad solicitada no se encuentra disponible o ha sido desactivada.</p>
+          <h1 className="text-3xl font-display font-bold text-foreground mb-2">{pc.tx("h1.1", "Actividad No Encontrada")}</h1>
+          <p className="text-muted-foreground mb-6 max-w-md">{pc.tx("p.2", "Lo sentimos, la actividad solicitada no se encuentra disponible o ha sido desactivada.")}</p>
           <Link to="/actividades">
-            <Button className="rounded-xl">Ver Catálogo de Actividades</Button>
+            <Button className="rounded-xl">{pc.tx("Button.1", "Ver Catálogo de Actividades")}</Button>
           </Link>
         </div>
         <Footer />
@@ -157,9 +159,7 @@ export function ActividadDetalle() {
           
           <div className="relative z-10 container mx-auto px-4 pb-12">
             <Link to="/actividades" className="inline-flex items-center text-white/80 hover:text-white mb-4 transition-colors text-sm font-medium">
-              <ArrowLeft className="h-4 w-4 mr-1.5" />
-              Volver a Actividades
-            </Link>
+              <ArrowLeft className="h-4 w-4 mr-1.5" />{pc.tx("Link.1", "Volver a Actividades")}</Link>
             
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="max-w-3xl space-y-2">
@@ -192,8 +192,7 @@ export function ActividadDetalle() {
                   className="gap-2 bg-white/10 backdrop-blur-md border-white/30 text-white hover:bg-white/20"
                   onClick={handleShare}
                 >
-                  <Share2 className="h-4 w-4" /> Compartir
-                </Button>
+                  <Share2 className="h-4 w-4" />{" "}{pc.tx("Button.2", "Compartir")}</Button>
               </div>
             </div>
           </div>
@@ -210,31 +209,30 @@ export function ActividadDetalle() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 bg-card border border-border rounded-2xl shadow-sm">
                 <div className="text-center p-2 border-r border-border last:border-0 sm:border-r">
                   <Clock className="h-5 w-5 text-primary mx-auto mb-1.5" />
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Duración</p>
+                  <p className="text-3xs uppercase font-bold text-muted-foreground tracking-wider">{pc.tx("p.3", "Duración")}</p>
                   <p className="font-bold text-foreground text-sm">{activity.duracion}</p>
                 </div>
                 <div className="text-center p-2 border-r border-border last:border-0 sm:border-r">
                   <Star className="h-5 w-5 text-yellow-400 fill-yellow-400 mx-auto mb-1.5" />
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Valoración</p>
+                  <p className="text-3xs uppercase font-bold text-muted-foreground tracking-wider">{pc.tx("p.4", "Valoración")}</p>
                   <p className="font-bold text-foreground text-sm">{activity.rating} / 5.0</p>
                 </div>
                 <div className="text-center p-2 border-r border-border last:border-0 sm:border-r">
                   <Compass className="h-5 w-5 text-primary mx-auto mb-1.5" />
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Dificultad</p>
+                  <p className="text-3xs uppercase font-bold text-muted-foreground tracking-wider">{pc.tx("p.5", "Dificultad")}</p>
                   <p className="font-bold text-foreground text-sm">{activity.dificultad}</p>
                 </div>
                 <div className="text-center p-2">
                   <Tag className="h-5 w-5 text-emerald-500 mx-auto mb-1.5" />
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Precio Desde</p>
-                  <p className="font-bold text-primary text-sm">${activity.precio} USD</p>
+                  <p className="text-3xs uppercase font-bold text-muted-foreground tracking-wider">{pc.tx("p.6", "Precio Desde")}</p>
+                  <p className="font-bold text-primary text-sm">${activity.precio}{" "}{pc.tx("p.7", "USD")}</p>
                 </div>
               </div>
 
               {/* Description Section */}
               <div className="space-y-4 p-6 sm:p-8 bg-card border border-border rounded-3xl shadow-sm">
                 <h2 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-primary" /> Sobre la Actividad
-                </h2>
+                  <Sparkles className="h-5 w-5 text-primary" />{" "}{pc.tx("h2.1", "Sobre la Actividad")}</h2>
                 <p className="text-muted-foreground text-base sm:text-lg leading-relaxed">
                   {activity.descripcion}
                 </p>
@@ -250,13 +248,13 @@ export function ActividadDetalle() {
               <DetailInclusionsCard 
                 included={activity.incluye}
                 excluded={activity.recomendaciones}
-                title="Detalles y Recomendaciones del Tour"
+                title={pc.t("DetailInclusionsCard.title.1", "Detalles y Recomendaciones del Tour")}
               />
 
               {/* Gallery */}
               {activity.galeria.length > 0 && (
                 <div className="space-y-4">
-                  <h2 className="font-display text-2xl font-bold text-foreground">Galería de Imágenes</h2>
+                  <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.2", "Galería de Imágenes")}</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                     {activity.galeria.map((imgSrc, i) => (
                       <motion.div 
@@ -308,7 +306,7 @@ export function ActividadDetalle() {
           price={`$${activity.precio} USD`}
           pricePeriod="/ persona"
           rating={activity.rating}
-          ctaText="Reservar Actividad"
+          ctaText={pc.t("DetailFloatingBar.ctaText.1", "Reservar Actividad")}
           onCtaClick={() => {
             const bookingElement = document.getElementById("booking-date");
             if (bookingElement) {

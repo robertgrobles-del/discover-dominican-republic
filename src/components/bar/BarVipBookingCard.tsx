@@ -61,11 +61,11 @@ export function BarVipBookingCard({
       <form onSubmit={handleVipBooking} className="space-y-4">
         {/* VIP Zone */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
+          <label htmlFor="bar-vip-booking-card-f2" className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
             <Ticket className="h-3.5 w-3.5 text-primary" /> Zona de Ubicación
           </label>
           <Select value={vipZone} onValueChange={setVipZone}>
-            <SelectTrigger aria-label="Zona de mesa VIP" className="rounded-xl bg-muted/30 border-border">
+            <SelectTrigger id="bar-vip-booking-card-f2" aria-label="Zona de mesa VIP" className="rounded-xl bg-muted/30 border-border">
               <SelectValue placeholder="Selecciona Zona" />
             </SelectTrigger>
             <SelectContent>
@@ -96,11 +96,11 @@ export function BarVipBookingCard({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
+            <label htmlFor="bar-vip-booking-card-f1" className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
               <Users className="h-3.5 w-3.5 text-primary" /> Personas
             </label>
             <Select value={guestCount} onValueChange={setGuestCount}>
-              <SelectTrigger aria-label="Cantidad de personas" className="rounded-xl bg-muted/30 border-border">
+              <SelectTrigger id="bar-vip-booking-card-f1" aria-label="Cantidad de personas" className="rounded-xl bg-muted/30 border-border">
                 <SelectValue placeholder="Personas" />
               </SelectTrigger>
               <SelectContent>

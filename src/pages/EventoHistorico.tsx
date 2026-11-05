@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { usePageContent } from "@/lib/pageContent";
 
 const eraColors: Record<string, string> = {
   Colonial: "bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30",
@@ -58,6 +59,8 @@ function useRelatedEvents(era: string | null, currentId: string | undefined) {
 }
 
 export default function EventoHistorico() {
+  const pc = usePageContent("evento-historico");
+  const eraColors = pc.data("eraColors", __pcData.eraColors);
   const { slug } = useParams<{ slug: string }>();
   const { data: event, isLoading } = useHistoricalEvent(slug);
   const { data: related } = useRelatedEvents(event?.era, event?.id);
@@ -84,8 +87,8 @@ export default function EventoHistorico() {
           <Header />
           <div className="container mx-auto px-4 py-32 text-center">
             <Landmark className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h1 className="text-3xl font-bold mb-4">Evento no encontrado</h1>
-            <Link to="/historia"><Button>Ver Historia de RD</Button></Link>
+            <h1 className="text-3xl font-bold mb-4">{pc.tx("h1.1", "Evento no encontrado")}</h1>
+            <Link to="/historia"><Button>{pc.tx("Button.1", "Ver Historia de RD")}</Button></Link>
           </div>
           <Footer />
         </div>
@@ -107,9 +110,9 @@ export default function EventoHistorico() {
         <div className="bg-muted/30 border-b border-border">
           <div className="container mx-auto px-4 py-3">
             <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
+              <Link to="/" className="hover:text-primary transition-colors">{pc.tx("Link.1", "Inicio")}</Link>
               <ChevronRight className="h-4 w-4" />
-              <Link to="/historia" className="hover:text-primary transition-colors">Historia</Link>
+              <Link to="/historia" className="hover:text-primary transition-colors">{pc.tx("Link.2", "Historia")}</Link>
               <ChevronRight className="h-4 w-4" />
               <span className="text-foreground font-medium">{event.name}</span>
             </nav>
@@ -129,7 +132,7 @@ export default function EventoHistorico() {
             <div className="container mx-auto px-4">
               <div className="flex items-center gap-3 mb-3">
                 {event.era && <Badge className={eraColors[event.era] || "bg-muted"}>{event.era}</Badge>}
-                {event.is_featured && <Badge className="bg-primary/20 text-primary border-primary/30">⭐ Destacado</Badge>}
+                {event.is_featured && <Badge className="bg-primary/20 text-primary border-primary/30">{pc.tx("Badge.1", "⭐ Destacado")}</Badge>}
               </div>
               <h1 className="font-display text-3xl md:text-5xl font-bold text-foreground mb-3">{event.name}</h1>
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
@@ -146,7 +149,7 @@ export default function EventoHistorico() {
             <div className="lg:col-span-2 space-y-10">
               {/* Description */}
               <section className="animate-fade-in">
-                <h2 className="font-display text-xl font-bold text-foreground mb-4">¿Qué sucedió?</h2>
+                <h2 className="font-display text-xl font-bold text-foreground mb-4">{pc.tx("h2.1", "¿Qué sucedió?")}</h2>
                 <p className="text-muted-foreground leading-relaxed text-lg">{event.description}</p>
               </section>
 
@@ -154,8 +157,7 @@ export default function EventoHistorico() {
               {event.significance && (
                 <section className="animate-fade-in" style={{ animationDelay: '100ms' }}>
                   <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-primary" /> Significado Histórico
-                  </h2>
+                    <BookOpen className="h-5 w-5 text-primary" />{" "}{pc.tx("h2.2", "Significado Histórico")}</h2>
                   <div className="bg-primary/5 rounded-xl border border-primary/20 p-6">
                     <p className="text-muted-foreground leading-relaxed">{event.significance}</p>
                   </div>
@@ -166,8 +168,7 @@ export default function EventoHistorico() {
               {event.key_figures && event.key_figures.length > 0 && (
                 <section>
                   <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                    <Users className="h-5 w-5 text-primary" /> Figuras Clave
-                  </h2>
+                    <Users className="h-5 w-5 text-primary" />{" "}{pc.tx("h2.3", "Figuras Clave")}</h2>
                   <div className="flex flex-wrap gap-2">
                     {event.key_figures.map((f) => (
                       <Badge key={f} variant="secondary" className="text-sm py-2 px-4">{f}</Badge>
@@ -180,8 +181,7 @@ export default function EventoHistorico() {
               {event.consequences && event.consequences.length > 0 && (
                 <section>
                   <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-primary" /> Consecuencias
-                  </h2>
+                    <AlertTriangle className="h-5 w-5 text-primary" />{" "}{pc.tx("h2.4", "Consecuencias")}</h2>
                   <ul className="space-y-3">
                     {event.consequences.map((c, i) => (
                       <li key={i} className="flex items-start gap-3 animate-fade-in" style={{ animationDelay: `${i * 50}ms` }}>
@@ -198,9 +198,7 @@ export default function EventoHistorico() {
               {/* Gallery */}
               {event.gallery && event.gallery.length > 0 && (
                 <section>
-                  <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                    📷 Galería
-                  </h2>
+                  <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">{pc.tx("h2.5", "📷 Galería")}</h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {event.gallery.map((img, i) => (
                       <div key={i} className="aspect-video rounded-xl overflow-hidden border border-border">
@@ -220,8 +218,7 @@ export default function EventoHistorico() {
               {event.sources && event.sources.length > 0 && (
                 <section>
                   <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-primary" /> Fuentes
-                  </h2>
+                    <BookOpen className="h-5 w-5 text-primary" />{" "}{pc.tx("h2.6", "Fuentes")}</h2>
                   <ul className="space-y-2">
                     {event.sources.map((s, i) => (
                       <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
@@ -237,22 +234,21 @@ export default function EventoHistorico() {
             <div className="space-y-6">
               <div className="sticky top-32 space-y-6">
                 <Button variant="outline" className="w-full gap-2" onClick={() => navigator.share?.({ title: event.name, url: window.location.href })}>
-                  <Share2 className="h-4 w-4" /> Compartir
-                </Button>
+                  <Share2 className="h-4 w-4" />{" "}{pc.tx("Button.2", "Compartir")}</Button>
 
                 <div className="bg-card rounded-2xl border border-border p-6 animate-fade-in">
-                  <h3 className="font-display font-bold text-foreground mb-4">Datos del Evento</h3>
+                  <h3 className="font-display font-bold text-foreground mb-4">{pc.tx("h3.1", "Datos del Evento")}</h3>
                   <div className="space-y-3 text-sm">
-                    <div className="flex justify-between"><span className="text-muted-foreground">Fecha</span><span className="font-medium text-foreground">{event.event_date}</span></div>
-                    <div className="flex justify-between"><span className="text-muted-foreground">Año</span><span className="font-medium text-foreground">{event.year}</span></div>
-                    {event.location && <div className="flex justify-between"><span className="text-muted-foreground">Lugar</span><span className="font-medium text-foreground text-right max-w-[160px]">{event.location}</span></div>}
-                    {event.era && <div className="flex justify-between"><span className="text-muted-foreground">Época</span><Badge className={`text-xs ${eraColors[event.era] || ""}`}>{event.era}</Badge></div>}
+                    <div className="flex justify-between"><span className="text-muted-foreground">{pc.tx("span.1", "Fecha")}</span><span className="font-medium text-foreground">{event.event_date}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">{pc.tx("span.2", "Año")}</span><span className="font-medium text-foreground">{event.year}</span></div>
+                    {event.location && <div className="flex justify-between"><span className="text-muted-foreground">{pc.tx("span.3", "Lugar")}</span><span className="font-medium text-foreground text-right max-w-[160px]">{event.location}</span></div>}
+                    {event.era && <div className="flex justify-between"><span className="text-muted-foreground">{pc.tx("span.4", "Época")}</span><Badge className={`text-xs ${eraColors[event.era] || ""}`}>{event.era}</Badge></div>}
                   </div>
                 </div>
 
                 {related && related.length > 0 && (
                   <div className="bg-card rounded-2xl border border-border p-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
-                    <h3 className="font-display font-bold text-foreground mb-4">Eventos Relacionados</h3>
+                    <h3 className="font-display font-bold text-foreground mb-4">{pc.tx("h3.2", "Eventos Relacionados")}</h3>
                     <div className="space-y-3">
                       {related.map((r) => (
                         <Link key={r.id} to={`/historia/evento/${r.slug}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors group">
@@ -277,7 +273,7 @@ export default function EventoHistorico() {
         </div>
 
         <div className="container mx-auto px-4 pb-12">
-          <Link to="/historia"><Button variant="outline" className="gap-2"><ArrowLeft className="h-4 w-4" /> Ver toda la historia</Button></Link>
+          <Link to="/historia"><Button variant="outline" className="gap-2"><ArrowLeft className="h-4 w-4" />{" "}{pc.tx("Button.3", "Ver toda la historia")}</Button></Link>
         </div>
 
         <Footer />
@@ -285,3 +281,6 @@ export default function EventoHistorico() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { eraColors };

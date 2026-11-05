@@ -49,7 +49,7 @@ export const UserVouchersTab: React.FC<UserVouchersTabProps> = ({
           >
             <div className="flex items-start justify-between gap-4 border-b border-border/60 pb-4">
               <div>
-                <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px] font-bold mb-1.5">
+                <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-3xs font-bold mb-1.5">
                   ✓ VOUCHER ACTIVO
                 </Badge>
                 <h4 className="font-display font-bold text-base text-foreground">
@@ -67,7 +67,7 @@ export const UserVouchersTab: React.FC<UserVouchersTabProps> = ({
 
             <div className="grid grid-cols-2 gap-3 text-xs bg-muted/30 p-3.5 rounded-2xl border border-border/60">
               <div>
-                <span className="text-[10px] text-muted-foreground uppercase font-bold">
+                <span className="text-3xs text-muted-foreground uppercase font-bold">
                   Código Único
                 </span>
                 <p className="font-mono font-bold text-foreground text-xs mt-0.5">
@@ -75,7 +75,7 @@ export const UserVouchersTab: React.FC<UserVouchersTabProps> = ({
                 </p>
               </div>
               <div>
-                <span className="text-[10px] text-muted-foreground uppercase font-bold">
+                <span className="text-3xs text-muted-foreground uppercase font-bold">
                   Válido Hasta
                 </span>
                 <p className="font-semibold text-foreground text-xs mt-0.5">
@@ -84,7 +84,7 @@ export const UserVouchersTab: React.FC<UserVouchersTabProps> = ({
               </div>
             </div>
 
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
+            <p className="text-2xs text-muted-foreground leading-relaxed">
               {voucher.instructions}
             </p>
 
@@ -156,7 +156,7 @@ export const UserVouchersTab: React.FC<UserVouchersTabProps> = ({
                     {s.tracking_number && ` — Guía: ${s.tracking_number}`}
                   </p>
                 )}
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-3xs text-muted-foreground">
                   Solicitado: {new Date(s.created_at).toLocaleDateString("es-DO")}
                 </p>
               </div>

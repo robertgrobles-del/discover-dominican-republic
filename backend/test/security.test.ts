@@ -3,6 +3,8 @@ import pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { buildApp } from "../src/app.js";
 import { json, makeApp, testEnv } from "./helpers.js";
+import { COLLECTIONS } from "../src/contracts/content-collections.js";
+import { PARTNER_TABLES } from "../src/modules/admin/cms.js";
 
 const PW = "Correcta-Clave-2026!";
 let n = 0;
@@ -63,7 +65,11 @@ describe("seguridad", () => {
       const admin = routes().filter((r) => r.url === "/api/v1/admin" || r.url.startsWith("/api/v1/admin/"));
       // La cota inferior detecta una regresión del inventario: si los guardas dejaran de exponer sus roles, la lista quedaría vacía y el resto de la prueba pasaría en falso.
       expect(admin.length).toBeGreaterThan(50);
-      const bad = admin.filter((r) => !r.roles.length || r.roles.some((role) => !["admin", "editor", "moderator"].includes(role)));
+      // Única excepción: los propietarios (partner) gestionan sus propios establecimientos (leer, crear, editar, borrar
+      // y enviar a revisión); publicar, restaurar, exportar, importar y las acciones masivas siguen siendo del personal.
+      const partnerPaths = COLLECTIONS.filter((c) => PARTNER_TABLES.has(c.table)).map((c) => `/api/v1/admin/${c.path}`);
+      const partnerOk = (r: { method: string; url: string }) => partnerPaths.some((p) => r.url === p || r.url === `${p}/schema` || r.url === `${p}/:id` || (r.method === "POST" && r.url === `${p}/:id/submit-review`));
+      const bad = admin.filter((r) => !r.roles.length || r.roles.some((role) => !["admin", "editor", "moderator"].includes(role) && !(role === "partner" && partnerOk(r))));
       expect(bad.map((r) => `${r.method} ${r.url} [${r.roles.join(",")}]`)).toEqual([]);
     });
 

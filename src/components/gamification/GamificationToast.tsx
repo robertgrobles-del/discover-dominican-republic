@@ -12,7 +12,7 @@ interface GamificationEvent {
   coins?: number;
 }
 
-let eventQueue: GamificationEvent[] = [];
+const eventQueue: GamificationEvent[] = [];
 let listeners: Array<() => void> = [];
 
 export function pushGamificationEvent(event: Omit<GamificationEvent, "id">) {

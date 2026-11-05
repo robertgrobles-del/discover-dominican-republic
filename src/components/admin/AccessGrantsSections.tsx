@@ -31,11 +31,11 @@ export function StaffInvitationsTab() {
         <CardHeader><CardTitle className="text-sm">Invitar a un editor o moderador</CardTitle><CardDescription className="text-xs">El rol se concede cuando la persona acepta con la cuenta de ese correo, ya verificado. La administración no se concede por invitación: va por doble aprobación.</CardDescription></CardHeader>
         <CardContent className="flex flex-wrap items-end gap-3 text-xs">
           <div className="min-w-[16rem] flex-1">
-            <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="invite-email">Correo</label>
+            <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="invite-email">Correo</label>
             <Input id="invite-email" type="email" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} className="h-9 text-xs" />
           </div>
           <div className="w-[10rem]">
-            <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="invite-role">Rol</label>
+            <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="invite-role">Rol</label>
             <Select value={draft.role} onValueChange={(v) => setDraft({ ...draft, role: v })}>
               <SelectTrigger id="invite-role" className="h-9 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent><SelectItem value="editor" className="text-xs">editor</SelectItem><SelectItem value="moderator" className="text-xs">moderator</SelectItem></SelectContent>
@@ -54,7 +54,7 @@ export function StaffInvitationsTab() {
               {query.data?.data.map((i) => (
                 <TableRow key={i.id}>
                   <TableCell className="text-xs">{i.email}</TableCell>
-                  <TableCell><Badge variant="outline" className="font-mono text-[10px]">{i.role}</Badge></TableCell>
+                  <TableCell><Badge variant="outline" className="font-mono text-3xs">{i.role}</Badge></TableCell>
                   <TableCell className="text-xs">{INVITE_STATUS[i.status] ?? i.status}</TableCell>
                   <TableCell className="text-xs">{when(i.expires_at)}</TableCell>
                   <TableCell>{i.status === "open" && <Button size="sm" variant="outline" className="h-8 rounded-xl text-xs" disabled={revoke.isPending} onClick={() => revoke.mutate(i.id)}>Revocar</Button>}</TableCell>
@@ -101,11 +101,11 @@ export function CapabilityGrantsTab() {
         <CardHeader><CardTitle className="text-sm">Conceder un permiso acotado</CardTitle><CardDescription className="text-xs">No cambia el rol de la persona. Gestionar el catálogo permite crear borradores, editar y enviar a revisión; publicar sigue siendo de editor o administración. La analítica es de sólo lectura, sin exportar.</CardDescription></CardHeader>
         <CardContent className="grid gap-3 text-xs md:grid-cols-2">
           <div>
-            <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="grant-user">Id de la cuenta</label>
+            <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="grant-user">Id de la cuenta</label>
             <Input id="grant-user" value={draft.userId} onChange={(e) => setDraft({ ...draft, userId: e.target.value })} className="h-9 font-mono text-xs" />
           </div>
           <div>
-            <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="grant-capability">Permiso</label>
+            <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="grant-capability">Permiso</label>
             <Select value={draft.capability} onValueChange={(v) => setDraft({ ...draft, capability: v })}>
               <SelectTrigger id="grant-capability" className="h-9 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -116,20 +116,20 @@ export function CapabilityGrantsTab() {
           </div>
           {catalog && <>
             <div>
-              <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="grant-collections">Colecciones (separadas por coma)</label>
+              <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="grant-collections">Colecciones (separadas por coma)</label>
               <Input id="grant-collections" value={draft.collections} onChange={(e) => setDraft({ ...draft, collections: e.target.value })} placeholder="events, articles" className="h-9 text-xs" />
             </div>
             <div>
-              <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="grant-records">Sólo estos registros (ids, opcional)</label>
+              <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="grant-records">Sólo estos registros (ids, opcional)</label>
               <Input id="grant-records" value={draft.recordIds} onChange={(e) => setDraft({ ...draft, recordIds: e.target.value })} placeholder="Para delegar un evento concreto" className="h-9 font-mono text-xs" />
             </div>
           </>}
           <div>
-            <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="grant-hours-x">Vence en (horas; vacío: sin vencimiento)</label>
+            <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="grant-hours-x">Vence en (horas; vacío: sin vencimiento)</label>
             <Input id="grant-hours-x" type="number" min={1} value={draft.hours} onChange={(e) => setDraft({ ...draft, hours: e.target.value })} className="h-9 text-xs" />
           </div>
           <div>
-            <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="grant-reason-x">Motivo</label>
+            <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="grant-reason-x">Motivo</label>
             <Input id="grant-reason-x" value={draft.reason} maxLength={300} onChange={(e) => setDraft({ ...draft, reason: e.target.value })} className="h-9 text-xs" />
           </div>
           <div className="flex flex-wrap items-center gap-3 md:col-span-2">

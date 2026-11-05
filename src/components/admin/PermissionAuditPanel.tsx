@@ -116,7 +116,7 @@ export function PermissionAuditPanel() {
               <TableBody>
                 {DEMO_CAPABILITIES.map((c) => (
                   <TableRow key={c.key}>
-                    <TableCell className="font-mono text-[11px]">{c.key}</TableCell>
+                    <TableCell className="font-mono text-2xs">{c.key}</TableCell>
                     <TableCell className="text-xs">{c.panel}</TableCell>
                     <TableCell className="text-xs">{SOURCE_LABEL[c.source] ?? c.source}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">{c.granted_by}</TableCell>
@@ -174,7 +174,7 @@ export function PermissionAuditPanel() {
       <Card>
         <CardContent className="flex flex-wrap items-end gap-3 p-4">
           <div className="min-w-[12rem] flex-1">
-            <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="audit-q">Recurso o rol</label>
+            <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="audit-q">Recurso o rol</label>
             <Input
               id="audit-q"
               value={q}
@@ -185,7 +185,7 @@ export function PermissionAuditPanel() {
             />
           </div>
           <div className="w-[11rem]">
-            <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="audit-panel">Panel</label>
+            <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="audit-panel">Panel</label>
             <Select value={panel} onValueChange={(v) => { setPanel(v); setPage(1); }}>
               <SelectTrigger id="audit-panel" className="h-9 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -194,7 +194,7 @@ export function PermissionAuditPanel() {
             </Select>
           </div>
           <div className="w-[14rem]">
-            <label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor="audit-capability">Capacidad</label>
+            <label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor="audit-capability">Capacidad</label>
             <Select value={capability} onValueChange={(v) => { setCapability(v); setPage(1); }}>
               <SelectTrigger id="audit-capability" className="h-9 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -230,15 +230,15 @@ export function PermissionAuditPanel() {
               )}
               {payload?.rows.map((row) => (
                 <TableRow key={`${row.method}-${row.url}`}>
-                  <TableCell className="font-mono text-[11px] font-bold">{row.method}</TableCell>
-                  <TableCell className="font-mono text-[11px]">{row.url}</TableCell>
+                  <TableCell className="font-mono text-2xs font-bold">{row.method}</TableCell>
+                  <TableCell className="font-mono text-2xs">{row.url}</TableCell>
                   <TableCell className="text-xs">
                     <span className="block font-semibold">{row.capability_label ?? "Sin declarar"}</span>
-                    <span className="block font-mono text-[10px] text-muted-foreground">{row.capability ?? "—"}{row.owner ? ` · ${row.owner}` : ""}</span>
+                    <span className="block font-mono text-3xs text-muted-foreground">{row.capability ?? "—"}{row.owner ? ` · ${row.owner}` : ""}</span>
                   </TableCell>
                   <TableCell className="text-xs">
                     {row.roles.length > 0
-                      ? <span className="flex flex-wrap gap-1">{row.roles.map((r) => <Badge key={r} variant="outline" className="text-[10px] font-mono">{r}</Badge>)}</span>
+                      ? <span className="flex flex-wrap gap-1">{row.roles.map((r) => <Badge key={r} variant="outline" className="text-3xs font-mono">{r}</Badge>)}</span>
                       : <span className="text-muted-foreground">{row.org_scope ? "Según organización" : "Solo sesión válida"}</span>}
                   </TableCell>
                   <TableCell className="text-xs">{SOURCE_LABEL[row.decision_source] ?? row.decision_source}</TableCell>
@@ -275,9 +275,9 @@ function SummaryCard({ title, value, hint, tone = "neutral" }: { title: string; 
   return (
     <Card>
       <CardContent className="space-y-1 p-4">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
+        <p className="text-2xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</p>
         <p className={`text-2xl font-black ${toneClass}`}>{value}</p>
-        <p className="text-[11px] text-muted-foreground">{hint}</p>
+        <p className="text-2xs text-muted-foreground">{hint}</p>
       </CardContent>
     </Card>
   );

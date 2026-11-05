@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from "recharts";
+import { usePageContent } from "@/lib/pageContent";
 
 const monthlyData = [
   { month: "ENE", y2024: 650000, y2023: 580000 },
@@ -57,6 +58,10 @@ const StatCard = ({ icon: Icon, label, value, change, positive = true }: {
 );
 
 export default function Estadisticas() {
+  const pc = usePageContent("estadisticas");
+  const monthlyData = pc.data("monthlyData", __pcData.monthlyData);
+  const procedencia = pc.data("procedencia", __pcData.procedencia);
+  const informes = pc.data("informes", __pcData.informes);
   return (
     <PageTransition>
       <div className="min-h-screen flex flex-col bg-background">
@@ -67,76 +72,68 @@ export default function Estadisticas() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
               <div>
-                <h1 className="text-3xl font-display font-bold text-foreground mb-2">
-                  Estadísticas e Indicadores
-                </h1>
-                <p className="text-muted-foreground">
-                  Tablero de control del sector turismo en República Dominicana
-                </p>
+                <h1 className="text-3xl font-display font-bold text-foreground mb-2">{pc.tx("h1.1", "Estadísticas e Indicadores")}</h1>
+                <p className="text-muted-foreground">{pc.tx("p.1", "Tablero de control del sector turismo en República Dominicana")}</p>
               </div>
-              <Badge className="bg-emerald-500/10 text-emerald-400 self-start">
-                ● Datos actualizados: Hoy, 09:30 AM
-              </Badge>
+              <Badge className="bg-emerald-500/10 text-emerald-400 self-start">{pc.tx("Badge.1", "● Datos actualizados: Hoy, 09:30 AM")}</Badge>
             </div>
 
             {/* Filters */}
             <div className="flex flex-wrap items-center gap-4 mb-8">
               <Select defaultValue="2024">
                 <SelectTrigger className="w-[120px] bg-card">
-                  <SelectValue placeholder="Año" />
+                  <SelectValue placeholder={pc.t("SelectValue.placeholder.1", "Año")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="2024">Año: 2024</SelectItem>
-                  <SelectItem value="2023">Año: 2023</SelectItem>
+                  <SelectItem value="2024">{pc.tx("SelectItem.1", "Año: 2024")}</SelectItem>
+                  <SelectItem value="2023">{pc.tx("SelectItem.2", "Año: 2023")}</SelectItem>
                 </SelectContent>
               </Select>
               <Select defaultValue="octubre">
                 <SelectTrigger className="w-[140px] bg-card">
-                  <SelectValue placeholder="Mes" />
+                  <SelectValue placeholder={pc.t("SelectValue.placeholder.2", "Mes")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="octubre">Mes: Octubre</SelectItem>
-                  <SelectItem value="septiembre">Mes: Septiembre</SelectItem>
+                  <SelectItem value="octubre">{pc.tx("SelectItem.3", "Mes: Octubre")}</SelectItem>
+                  <SelectItem value="septiembre">{pc.tx("SelectItem.4", "Mes: Septiembre")}</SelectItem>
                 </SelectContent>
               </Select>
               <Select defaultValue="todas">
                 <SelectTrigger className="w-[140px] bg-card">
-                  <SelectValue placeholder="Región" />
+                  <SelectValue placeholder={pc.t("SelectValue.placeholder.3", "Región")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todas">Región: Todas</SelectItem>
-                  <SelectItem value="este">Región: Este</SelectItem>
-                  <SelectItem value="norte">Región: Norte</SelectItem>
+                  <SelectItem value="todas">{pc.tx("SelectItem.5", "Región: Todas")}</SelectItem>
+                  <SelectItem value="este">{pc.tx("SelectItem.6", "Región: Este")}</SelectItem>
+                  <SelectItem value="norte">{pc.tx("SelectItem.7", "Región: Norte")}</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="link" className="text-primary ml-auto">
-                Restablecer filtros
-              </Button>
+              <Button variant="link" className="text-primary ml-auto">{pc.tx("Button.1", "Restablecer filtros")}</Button>
             </div>
 
             {/* Stats Grid */}
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <StatCard
                 icon={TrendingUp}
-                label="Llegada de Visitantes"
+                label={pc.t("StatCard.label.1", "Llegada de Visitantes")}
                 value="8,540,210"
                 change="+12%"
               />
               <StatCard
                 icon={Building2}
-                label="Ocupación Hotelera"
+                label={pc.t("StatCard.label.2", "Ocupación Hotelera")}
                 value="78.5%"
                 change="+2.1%"
               />
               <StatCard
                 icon={Calendar}
-                label="Estadía Promedio"
+                label={pc.t("StatCard.label.3", "Estadía Promedio")}
                 value="8.5 noches"
                 change="+0.5%"
               />
               <StatCard
                 icon={Wallet}
-                label="Gasto Promedio"
+                label={pc.t("StatCard.label.4", "Gasto Promedio")}
                 value="$145/día"
                 change="+5%"
               />
@@ -148,8 +145,8 @@ export default function Estadisticas() {
               <div className="lg:col-span-2 bg-card rounded-xl p-6 border border-border">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="font-display font-bold text-foreground">Tendencia Mensual de Llegadas</h3>
-                    <p className="text-sm text-muted-foreground">Comparativo 2023 vs 2024</p>
+                    <h2 className="h3 font-display font-bold text-foreground">{pc.tx("h3.1", "Tendencia Mensual de Llegadas")}</h2>
+                    <p className="text-sm text-muted-foreground">{pc.tx("p.2", "Comparativo 2023 vs 2024")}</p>
                   </div>
                   <div className="flex items-center gap-4 text-sm">
                     <div className="flex items-center gap-2">
@@ -182,7 +179,7 @@ export default function Estadisticas() {
 
               {/* Procedencia */}
               <div className="bg-card rounded-xl p-6 border border-border">
-                <h3 className="font-display font-bold text-foreground mb-6">Procedencia de Visitantes</h3>
+                <h2 className="h3 font-display font-bold text-foreground mb-6">{pc.tx("h3.2", "Procedencia de Visitantes")}</h2>
                 <div className="h-[200px] relative">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -202,8 +199,8 @@ export default function Estadisticas() {
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-xs text-muted-foreground">TOP MERCADO</span>
-                    <span className="text-2xl font-bold text-foreground">EE.UU.</span>
+                    <span className="text-xs text-muted-foreground">{pc.tx("span.1", "TOP MERCADO")}</span>
+                    <span className="text-2xl font-bold text-foreground">{pc.tx("span.2", "EE.UU.")}</span>
                     <span className="text-primary font-semibold">45%</span>
                   </div>
                 </div>
@@ -224,7 +221,7 @@ export default function Estadisticas() {
             {/* Informes */}
             <div className="bg-card rounded-xl p-6 border border-border">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-display font-bold text-foreground">Informes Recientes</h3>
+                <h2 className="h3 font-display font-bold text-foreground">{pc.tx("h3.3", "Informes Recientes")}</h2>
               </div>
               <div className="space-y-3">
                 {informes.map((informe) => (
@@ -250,9 +247,7 @@ export default function Estadisticas() {
                   </div>
                 ))}
               </div>
-              <Button variant="outline" className="w-full mt-4">
-                Ver biblioteca completa
-              </Button>
+              <Button variant="outline" className="w-full mt-4">{pc.tx("Button.2", "Ver biblioteca completa")}</Button>
             </div>
           </div>
         </main>
@@ -262,3 +257,6 @@ export default function Estadisticas() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { monthlyData, procedencia, informes };

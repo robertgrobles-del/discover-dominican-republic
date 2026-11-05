@@ -59,6 +59,7 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
   const [insuranceOptIn, setInsuranceOptIn] = useState(false);
   const [bookingDate, setBookingDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [adultsCount, setAdultsCount] = useState(1);
+  const [bookingRef, setBookingRef] = useState("");
 
   if (!item) return null;
 
@@ -194,30 +195,41 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
           });
         });
       } else {
-        // El elemento no es un listing con UUID (es esim, producto de tienda, tarjeta prepago, donación o mock)
-        demo = true;
-        await supabase.from("reservations").insert({
-          user_id: user?.id || "00000000-0000-0000-0000-000000000000",
-          item_id: item.id,
-          item_name: item.name,
-          item_type: item.type,
-          item_image: item.image || null,
-          guests: adultsCount,
-          total_price: totalPrice,
-          currency: "USD",
-          status: "pending",
-          contact_name: fullName,
-          contact_email: email,
-          contact_phone: phone,
-          check_in: new Date(bookingDate).toISOString(),
-          check_out: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          notes: `Solicitud de servicio (${item.type}), sin cobro en pasarela. ${donationAmount > 0 ? `Donación: $${donationAmount} USD. ` : ""}${insuranceOptIn ? "Seguro incluido." : ""}`,
-        }).catch(() => {});
+        // El elemento no es un listing de operador con UUID (es esim, producto de tienda, tarjeta prepago, donación o mock)
+        if (HAS_BACKEND_SESSION) {
+          // Si el elemento no es un anuncio real con UUID ni una reserva de operador soportada por Fastify,
+          // no fingir éxito en el backend.
+          if (["esim", "prepago", "producto", "donacion", "tarjeta"].includes(item.type.toLowerCase())) {
+            toast.info(`Para adquirir ${item.name}, por favor completa tu orden en la tienda o sección correspondiente.`);
+            setStep("billing");
+            return;
+          }
+          throw new Error("Este servicio no admite reservas automáticas en este momento. Por favor contacta al operador.");
+        } else {
+          demo = true;
+          await supabase.from("reservations").insert({
+            user_id: user?.id || "00000000-0000-0000-0000-000000000000",
+            item_id: item.id,
+            item_name: item.name,
+            item_type: item.type,
+            item_image: item.image || null,
+            guests: adultsCount,
+            total_price: totalPrice,
+            currency: "USD",
+            status: "pending",
+            contact_name: fullName,
+            contact_email: email,
+            contact_phone: phone,
+            check_in: new Date(bookingDate).toISOString(),
+            check_out: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            notes: `Solicitud de servicio (${item.type}), sin cobro en pasarela. ${donationAmount > 0 ? `Donación: $${donationAmount} USD. ` : ""}${insuranceOptIn ? "Seguro incluido." : ""}`,
+          }).catch(() => {});
+        }
       }
 
       // Track ambassador sale if referral code is present in session
       const affiliateRef = localStorage.getItem("affiliate_ref");
-      if (affiliateRef && totalPrice > 0 && !demo) {
+      if (affiliateRef && totalPrice > 0 && !demo && !HAS_BACKEND_SESSION) {
         try {
           await supabase.rpc("track_ambassador_sale", {
             ref_code: affiliateRef,
@@ -229,12 +241,13 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
         }
       }
 
+      setBookingRef(idempotencyKey.slice(0, 8).toUpperCase());
       setDemoBooking(demo);
       setStep("success");
       if (!demo) trackEvent("booking_complete", { type: item.type, total: totalPrice, has_referral: !!affiliateRef });
       if (demo) {
         if (!isOperatorType) {
-          toast.success(`Solicitud de ${item.name} registrada (modo demostración / confirmación directa).`);
+          toast.success(`Solicitud de ${item.name} registrada correctamente.`);
         } else {
           toast.success("Reserva de demostración registrada. No se realizó ningún cobro.");
         }
@@ -343,7 +356,7 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
                       <span className="text-lg">🌱</span>
                       <div>
                         <h4 className="text-xs font-bold text-foreground">Donar a Parques Nacionales (Opcional)</h4>
-                        <p className="text-[11px] text-muted-foreground leading-normal mt-0.5">
+                        <p className="text-2xs text-muted-foreground leading-normal mt-0.5">
                           Apoya la conservación de áreas protegidas dominicanas (Los Haitises, Jaragua, Cotubanamá, etc.).
                         </p>
                       </div>
@@ -369,7 +382,7 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
 
                   {/* Cancellation Insurance Option */}
                   <div className="bg-primary/5 rounded-xl p-4 border border-primary/20 space-y-2 mb-4">
-                    <label className="flex items-start gap-3 cursor-pointer">
+                    <label htmlFor="bookingDate" className="flex items-start gap-3 cursor-pointer">
                       <input 
                         type="checkbox"
                         checked={insuranceOptIn}
@@ -378,9 +391,9 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
                       />
                       <div>
                         <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                          🛡️ Seguro de Cancelación Protegida <span className="text-[10px] text-primary font-mono font-bold">(+$10.00 USD)</span>
+                          🛡️ Seguro de Cancelación Protegida <span className="text-3xs text-primary font-mono font-bold">(+$10.00 USD)</span>
                         </h4>
-                        <p className="text-[11px] text-muted-foreground leading-normal mt-0.5">
+                        <p className="text-2xs text-muted-foreground leading-normal mt-0.5">
                           Recupera el 100% de tu dinero si cancelas hasta 24 horas antes de la reserva.
                         </p>
                       </div>
@@ -603,7 +616,7 @@ export function CheckoutModal({ isOpen, onClose, item }: CheckoutModalProps) {
 
                     <div className="bg-white p-3 rounded-xl flex flex-col items-center justify-center border border-border max-w-[160px] mx-auto">
                       <QrCode className="h-28 w-28 text-black" />
-                      <span className="text-[10px] font-mono text-black/60 mt-1">Check-in ID: {Math.random().toString(36).substring(2, 9).toUpperCase()}</span>
+                      <span className="text-3xs font-mono text-black/60 mt-1">Check-in ID: {bookingRef || "DR-CONFIRMED"}</span>
                     </div>
                   </div>
 

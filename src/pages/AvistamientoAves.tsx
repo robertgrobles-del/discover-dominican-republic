@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { usePageContent } from "@/lib/pageContent";
 
 interface BirdSpecies {
   id: string;
@@ -107,6 +108,9 @@ const mockLocations: BirdLocation[] = [
 ];
 
 export default function AvistamientoAves() {
+  const pc = usePageContent("avistamiento-aves");
+  const mockBirds = pc.data("mockBirds", __pcData.mockBirds);
+  const mockLocations = pc.data("mockLocations", __pcData.mockLocations);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<string>("species");
 
@@ -151,8 +155,8 @@ export default function AvistamientoAves() {
   return (
     <PageTransition>
       <SEOHead
-        title="Guía de Avistamiento de Aves Endémicas - Descubre RD"
-        description="Explora las aves endémicas de La Española, incluyendo la Cigua Palmera y el Barrancolí. Conoce los mejores puntos de observación como Sierra de Bahoruco."
+        title={pc.t("SEOHead.title.1", "Guía de Avistamiento de Aves Endémicas - Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Explora las aves endémicas de La Española, incluyendo la Cigua Palmera y el Barrancolí. Conoce los mejores puntos de observación como Sierra de Bahoruco.")}
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -162,14 +166,9 @@ export default function AvistamientoAves() {
           <section className="relative py-16 bg-gradient-to-br from-green-500/10 via-emerald-500/5 to-transparent border-b border-border">
             <div className="container mx-auto px-4 text-center">
               <Badge variant="secondary" className="mb-4 bg-emerald-500/10 text-emerald-600 border-emerald-500/20 gap-1">
-                <Feather className="h-3.5 w-3.5" /> Ecoturismo Especializado
-              </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display">
-                Avistamiento de Aves (Birdwatching)
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                La Española posee una riqueza ornitológica extraordinaria con más de 30 especies endémicas. Conoce nuestra fauna alada y los santuarios naturales donde encontrarlas.
-              </p>
+                <Feather className="h-3.5 w-3.5" />{" "}{pc.tx("Badge.1", "Ecoturismo Especializado")}</Badge>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display">{pc.tx("h1.1", "Avistamiento de Aves (Birdwatching)")}</h1>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.1", "La Española posee una riqueza ornitológica extraordinaria con más de 30 especies endémicas. Conoce nuestra fauna alada y los santuarios naturales donde encontrarlas.")}</p>
             </div>
           </section>
 
@@ -181,8 +180,8 @@ export default function AvistamientoAves() {
               <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
                   <TabsList className="grid grid-cols-2">
-                    <TabsTrigger value="species" className="text-xs gap-1.5"><Feather className="h-3.5 w-3.5" /> Especies de Aves</TabsTrigger>
-                    <TabsTrigger value="locations" className="text-xs gap-1.5"><MapPin className="h-3.5 w-3.5" /> Puntos de Avistamiento</TabsTrigger>
+                    <TabsTrigger value="species" className="text-xs gap-1.5"><Feather className="h-3.5 w-3.5" />{" "}{pc.tx("TabsTrigger.1", "Especies de Aves")}</TabsTrigger>
+                    <TabsTrigger value="locations" className="text-xs gap-1.5"><MapPin className="h-3.5 w-3.5" />{" "}{pc.tx("TabsTrigger.2", "Puntos de Avistamiento")}</TabsTrigger>
                   </TabsList>
                 </Tabs>
                 
@@ -207,23 +206,19 @@ export default function AvistamientoAves() {
                           <div className="flex gap-3 items-center">
                             <span className="text-3xl p-2 bg-emerald-500/5 rounded-full">{bird.avatar}</span>
                             <div>
-                              <CardTitle className="text-lg font-display">{bird.name}</CardTitle>
+                              <CardTitle as="h2" className="text-lg font-display">{bird.name}</CardTitle>
                               <CardDescription className="text-xs italic font-mono">{bird.scientificName}</CardDescription>
                             </div>
                           </div>
                           <div className="flex flex-col items-end gap-1">
-                            <Badge variant={bird.status === "Endémica" ? "default" : "secondary"} className="text-[9px] py-0.5 px-2">
+                            <Badge variant={bird.status === "Endémica" ? "default" : "secondary"} className="text-3xs py-0.5 px-2">
                               {bird.status}
                             </Badge>
                             {bird.conservation === "En Peligro Crítico" && (
-                              <Badge className="bg-red-500/10 text-red-600 border-red-500/20 text-[9px] py-0.5 px-2">
-                                Peligro Crítico
-                              </Badge>
+                              <Badge className="bg-red-500/10 text-red-600 border-red-500/20 text-3xs py-0.5 px-2">{pc.tx("Badge.2", "Peligro Crítico")}</Badge>
                             )}
                             {bird.conservation === "Vulnerable" && (
-                              <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[9px] py-0.5 px-2">
-                                Vulnerable
-                              </Badge>
+                              <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-3xs py-0.5 px-2">{pc.tx("Badge.3", "Vulnerable")}</Badge>
                             )}
                           </div>
                         </div>
@@ -232,10 +227,10 @@ export default function AvistamientoAves() {
                         <p className="text-xs text-muted-foreground leading-relaxed">{bird.description}</p>
                         
                         <div className="space-y-1">
-                          <span className="text-[10px] uppercase font-bold text-muted-foreground block">Mejores Lugares para Verla:</span>
+                          <span className="text-3xs uppercase font-bold text-muted-foreground block">{pc.tx("span.1", "Mejores Lugares para Verla:")}</span>
                           <div className="flex flex-wrap gap-1">
                             {bird.bestLocations.map(loc => (
-                              <Badge key={loc} variant="outline" className="text-[9px] py-0"><MapPin className="h-2.5 w-2.5 mr-0.5 text-primary" /> {loc}</Badge>
+                              <Badge key={loc} variant="outline" className="text-3xs py-0"><MapPin className="h-2.5 w-2.5 mr-0.5 text-primary" /> {loc}</Badge>
                             ))}
                           </div>
                         </div>
@@ -247,22 +242,20 @@ export default function AvistamientoAves() {
                             className="text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/5 gap-1.5"
                             onClick={() => handleLoggedBird(bird.name)}
                           >
-                            <CheckCircle className="h-3.5 w-3.5" /> Registrar Avistamiento
-                          </Button>
+                            <CheckCircle className="h-3.5 w-3.5" />{" "}{pc.tx("Button.1", "Registrar Avistamiento")}</Button>
                           <Button 
                             size="sm" 
                             variant="outline" 
                             className="text-xs gap-1.5"
                             onClick={() => toast.info(`Información de cantos y archivos de audio próximamente para ${bird.name}.`)}
                           >
-                            <BookOpen className="h-3.5 w-3.5" /> Ficha Técnica
-                          </Button>
+                            <BookOpen className="h-3.5 w-3.5" />{" "}{pc.tx("Button.2", "Ficha Técnica")}</Button>
                         </div>
                       </CardContent>
                     </Card>
                   ))}
                   {filteredBirds.length === 0 && (
-                    <p className="text-center text-xs text-muted-foreground col-span-2 py-12">No se encontraron aves con ese término.</p>
+                    <p className="text-center text-xs text-muted-foreground col-span-2 py-12">{pc.tx("p.2", "No se encontraron aves con ese término.")}</p>
                   )}
                 </div>
               )}
@@ -280,8 +273,7 @@ export default function AvistamientoAves() {
                               <MapPin className="h-3.5 w-3.5" /> {loc.region}
                             </CardDescription>
                           </div>
-                          <Badge variant="outline" className="text-[10px] shrink-0 border-emerald-500/30 text-emerald-600">
-                            Dificultad: {loc.difficulty}
+                          <Badge variant="outline" className="text-3xs shrink-0 border-emerald-500/30 text-emerald-600">{pc.tx("Badge.4", "Dificultad:")}{" "}{loc.difficulty}
                           </Badge>
                         </div>
                       </CardHeader>
@@ -289,10 +281,10 @@ export default function AvistamientoAves() {
                         <p className="text-xs text-muted-foreground leading-relaxed">{loc.description}</p>
                         
                         <div>
-                          <span className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Especies más buscadas aquí:</span>
+                          <span className="text-3xs uppercase font-bold text-muted-foreground block mb-1">{pc.tx("span.2", "Especies más buscadas aquí:")}</span>
                           <div className="flex flex-wrap gap-1.5">
                             {loc.topBirds.map(bird => (
-                              <Badge key={bird} variant="secondary" className="text-[10px]"><Feather className="h-3 w-3 mr-1 text-emerald-600" /> {bird}</Badge>
+                              <Badge key={bird} variant="secondary" className="text-3xs"><Feather className="h-3 w-3 mr-1 text-emerald-600" /> {bird}</Badge>
                             ))}
                           </div>
                         </div>
@@ -306,21 +298,19 @@ export default function AvistamientoAves() {
                               toast.info("Reglas de conservación y código de conducta descargados.");
                             }}
                           >
-                            <AlertCircle className="h-3.5 w-3.5" /> Normativas del Parque
-                          </Button>
+                            <AlertCircle className="h-3.5 w-3.5" />{" "}{pc.tx("Button.3", "Normativas del Parque")}</Button>
                           <Button 
                             size="sm" 
                             className="text-xs gap-1"
                             onClick={() => toast.success(`Cargando mapa topográfico y senderos de ${loc.name}...`)}
                           >
-                            <Map className="h-3.5 w-3.5" /> Ver Mapa de Senderos
-                          </Button>
+                            <Map className="h-3.5 w-3.5" />{" "}{pc.tx("Button.4", "Ver Mapa de Senderos")}</Button>
                         </div>
                       </CardContent>
                     </Card>
                   ))}
                   {filteredLocations.length === 0 && (
-                    <p className="text-center text-xs text-muted-foreground py-12">No se encontraron puntos de observación con ese término.</p>
+                    <p className="text-center text-xs text-muted-foreground py-12">{pc.tx("p.3", "No se encontraron puntos de observación con ese término.")}</p>
                   )}
                 </div>
               )}
@@ -335,10 +325,8 @@ export default function AvistamientoAves() {
                 <CardContent className="p-6 flex flex-col sm:flex-row gap-4 items-center">
                   <Camera className="h-10 w-10 text-emerald-600 shrink-0" />
                   <div className="space-y-1">
-                    <h3 className="text-sm font-bold text-foreground">Código de Ética del Observador de Aves</h3>
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      Respeta siempre el hábitat de las aves. No utilices grabaciones de reclamos (playback) en exceso, mantén una distancia prudente, evita perturbar los nidos y llévate todos tus residuos de vuelta a la ciudad. Preservar la biodiversidad es responsabilidad de todos.
-                    </p>
+                    <h2 className="h3 text-sm font-bold text-foreground">{pc.tx("h3.1", "Código de Ética del Observador de Aves")}</h2>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{pc.tx("p.4", "Respeta siempre el hábitat de las aves. No utilices grabaciones de reclamos (playback) en exceso, mantén una distancia prudente, evita perturbar los nidos y llévate todos tus residuos de vuelta a la ciudad. Preservar la biodiversidad es responsabilidad de todos.")}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -351,3 +339,6 @@ export default function AvistamientoAves() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { mockBirds, mockLocations };

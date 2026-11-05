@@ -38,16 +38,16 @@ export function DemandReportCard() {
         {d && (
           <>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="rounded-xl border border-border p-3"><p className="text-xs text-muted-foreground">Reservas</p><p className="font-display text-2xl font-bold">{d.totals.bookings}</p><p className="text-[11px] text-muted-foreground">{d.previous.growth_pct === null ? "sin comparación" : `${d.previous.growth_pct >= 0 ? "+" : ""}${d.previous.growth_pct} % vs ${d.compared_to}`}</p></div>
-              <div className="rounded-xl border border-border p-3"><p className="text-xs text-muted-foreground">Viajeros</p><p className="font-display text-2xl font-bold">{d.totals.guests}</p><p className="text-[11px] text-muted-foreground">{d.totals.average_party_size} por reserva</p></div>
-              <div className="rounded-xl border border-border p-3"><p className="text-xs text-muted-foreground">Anticipación</p><p className="font-display text-2xl font-bold">{d.totals.average_lead_days ?? "—"}</p><p className="text-[11px] text-muted-foreground">días en promedio</p></div>
-              <div className="rounded-xl border border-border p-3"><p className="text-xs text-muted-foreground">Cancelaciones</p><p className="font-display text-2xl font-bold">{d.totals.cancellation_rate} %</p><p className="text-[11px] text-muted-foreground">{d.totals.cancelled} reservas</p></div>
+              <div className="rounded-xl border border-border p-3"><p className="text-xs text-muted-foreground">Reservas</p><p className="font-display text-2xl font-bold">{d.totals.bookings}</p><p className="text-2xs text-muted-foreground">{d.previous.growth_pct === null ? "sin comparación" : `${d.previous.growth_pct >= 0 ? "+" : ""}${d.previous.growth_pct} % vs ${d.compared_to}`}</p></div>
+              <div className="rounded-xl border border-border p-3"><p className="text-xs text-muted-foreground">Viajeros</p><p className="font-display text-2xl font-bold">{d.totals.guests}</p><p className="text-2xs text-muted-foreground">{d.totals.average_party_size} por reserva</p></div>
+              <div className="rounded-xl border border-border p-3"><p className="text-xs text-muted-foreground">Anticipación</p><p className="font-display text-2xl font-bold">{d.totals.average_lead_days ?? "—"}</p><p className="text-2xs text-muted-foreground">días en promedio</p></div>
+              <div className="rounded-xl border border-border p-3"><p className="text-xs text-muted-foreground">Cancelaciones</p><p className="font-display text-2xl font-bold">{d.totals.cancellation_rate} %</p><p className="text-2xs text-muted-foreground">{d.totals.cancelled} reservas</p></div>
             </div>
             {d.totals.revenue.length > 0 && <p className="text-xs text-muted-foreground">Valor reservado: {d.totals.revenue.map((r) => money(r.booked_value, r.currency)).join(" · ")}</p>}
             <div>
               <p className="mb-1 font-semibold">Hallazgos</p>
               <ul className="list-disc space-y-1 pl-5">{d.findings.map((f) => <li key={f}>{f}</li>)}</ul>
-              <p className="mt-2 text-[11px] text-muted-foreground">Generado por {d.generated_by}.</p>
+              <p className="mt-2 text-2xs text-muted-foreground">Generado por {d.generated_by}.</p>
             </div>
             {d.top_listings.length > 0 && (
               <div>

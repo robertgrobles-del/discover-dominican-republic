@@ -59,7 +59,7 @@ export function AdminEditorialManager() {
             <div>
               <span className="text-xs text-muted-foreground uppercase font-mono font-bold">Total Publicaciones</span>
               <p className="text-2xl font-black font-display text-foreground mt-1">{articlesList.length}</p>
-              <span className="text-[11px] text-emerald-500 font-medium">100% Indexadas</span>
+              <span className="text-2xs text-emerald-500 font-medium">100% Indexadas</span>
             </div>
             <div className="p-3 bg-primary/10 text-primary rounded-2xl">
               <BookOpen className="h-5 w-5" />
@@ -74,7 +74,7 @@ export function AdminEditorialManager() {
               <p className="text-2xl font-black font-display text-foreground mt-1">
                 {articlesList.filter(p => p.category === "prensa").length}
               </p>
-              <span className="text-[11px] text-purple-500 font-medium">Aliados & Hoteles</span>
+              <span className="text-2xs text-purple-500 font-medium">Aliados & Hoteles</span>
             </div>
             <div className="p-3 bg-purple-500/10 text-purple-600 rounded-2xl">
               <Megaphone className="h-5 w-5" />
@@ -89,7 +89,7 @@ export function AdminEditorialManager() {
               <p className="text-2xl font-black font-display text-foreground mt-1">
                 {articlesList.filter(p => p.category === "experiencias").length}
               </p>
-              <span className="text-[11px] text-amber-500 font-medium">Rutas & Ecoturismo</span>
+              <span className="text-2xs text-amber-500 font-medium">Rutas & Ecoturismo</span>
             </div>
             <div className="p-3 bg-amber-500/10 text-amber-600 rounded-2xl">
               <Compass className="h-5 w-5" />
@@ -104,7 +104,7 @@ export function AdminEditorialManager() {
               <p className="text-2xl font-black font-display text-foreground mt-1">
                 {articlesList.filter(p => p.category === "invitados").length}
               </p>
-              <span className="text-[11px] text-blue-500 font-medium">Comunidad Activa</span>
+              <span className="text-2xs text-blue-500 font-medium">Comunidad Activa</span>
             </div>
             <div className="p-3 bg-blue-500/10 text-blue-600 rounded-2xl">
               <PenTool className="h-5 w-5" />

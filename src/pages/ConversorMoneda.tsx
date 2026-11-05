@@ -1,3 +1,4 @@
+import { TasasCambioSection } from "@/components/currency/TasasCambioSection";
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -27,6 +28,7 @@ import {
   preciosReferencia 
 } from "@/data/monedaData";
 import { CurrencyDetailHistoryView } from "@/components/currency/CurrencyDetailHistoryView";
+import { usePageContent } from "@/lib/pageContent";
 
 function useLatestExchangeRates() {
   return useQuery({
@@ -76,6 +78,7 @@ function useHistoricalExchangeRates(filters: { currency: string; date?: string }
 }
 
 export default function ConversorMoneda() {
+  const pc = usePageContent("conversor-moneda");
   const [searchParams, setSearchParams] = useSearchParams();
   const activeCurrency = searchParams.get("currency");
 
@@ -154,8 +157,8 @@ export default function ConversorMoneda() {
   return (
     <PageTransition>
       <SEOHead
-        title="Tasa de Cambio e Histórico de Divisas | Descubre RD"
-        description="Convierte tus divisas a pesos dominicanos (DOP). Consulta el histórico de tasas de compra y venta de Dólar, Euro, Libra y más."
+        title={pc.t("SEOHead.title.1", "Tasa de Cambio e Histórico de Divisas | Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Convierte tus divisas a pesos dominicanos (DOP). Consulta el histórico de tasas de compra y venta de Dólar, Euro, Libra y más.")}
         keywords="tasa de cambio rd, dolar a pesos dominicanos, euro a dop, conversor de divisas republica dominicana, casas de cambio rd"
       />
       <div className="min-h-screen bg-background flex flex-col justify-between">
@@ -167,12 +170,9 @@ export default function ConversorMoneda() {
             <section className="relative py-12 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 mb-8">
               <div className="container mx-auto px-4 text-center">
                 <Badge className="mb-4 bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/30">
-                  <TrendingUp className="h-3.5 w-3.5 mr-1" /> Tasas Oficiales y de Referencia
-                </Badge>
-                <h1 className="text-4xl md:text-5xl font-display font-bold mb-3">Conversor de Moneda</h1>
-                <p className="text-muted-foreground max-w-2xl mx-auto text-base">
-                  Conversiones precisas al Peso Dominicano (DOP). <strong>Haz clic en cualquier moneda</strong> abajo para ver su histórico completo.
-                </p>
+                  <TrendingUp className="h-3.5 w-3.5 mr-1" />{" "}{pc.tx("Badge.1", "Tasas Oficiales y de Referencia")}</Badge>
+                <h1 className="text-4xl md:text-5xl font-display font-bold mb-3">{pc.tx("h1.1", "Conversor de Moneda")}</h1>
+                <p className="text-muted-foreground max-w-2xl mx-auto text-base">{pc.tx("p.1", "Conversiones precisas al Peso Dominicano (DOP).")}{" "}<strong>{pc.tx("strong.1", "Haz clic en cualquier moneda")}</strong>{" "}{pc.tx("p.2", "abajo para ver su histórico completo.")}</p>
               </div>
             </section>
 
@@ -180,9 +180,9 @@ export default function ConversorMoneda() {
             <section className="container mx-auto px-4 mb-12">
               <Tabs defaultValue="converter" className="w-full">
                 <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto mb-8">
-                  <TabsTrigger value="converter">Conversor</TabsTrigger>
-                  <TabsTrigger value="history">Historial</TabsTrigger>
-                  <TabsTrigger value="info">Guía Práctica</TabsTrigger>
+                  <TabsTrigger value="converter">{pc.tx("TabsTrigger.1", "Conversor")}</TabsTrigger>
+                  <TabsTrigger value="history">{pc.tx("TabsTrigger.2", "Historial")}</TabsTrigger>
+                  <TabsTrigger value="info">{pc.tx("TabsTrigger.3", "Guía Práctica")}</TabsTrigger>
                 </TabsList>
 
                 {/* Tab: Converter */}
@@ -190,8 +190,8 @@ export default function ConversorMoneda() {
                   <div className="max-w-4xl mx-auto">
                     <Card>
                       <CardHeader className="pb-4">
-                        <CardTitle className="flex items-center justify-between flex-wrap gap-2 text-xl font-bold">
-                          <span>Calculadora de Divisas</span>
+                        <CardTitle as="h2" className="flex items-center justify-between flex-wrap gap-2 text-xl font-bold">
+                          <span>{pc.tx("span.1", "Calculadora de Divisas")}</span>
                           <Button 
                             variant="outline" 
                             size="sm" 
@@ -199,13 +199,9 @@ export default function ConversorMoneda() {
                             disabled={isFetchingLatest}
                             className="text-xs h-8 gap-1.5"
                           >
-                            <RefreshCw className={`h-3 w-3 ${isFetchingLatest ? "animate-spin" : ""}`} />
-                            Actualizar Tasas
-                          </Button>
+                            <RefreshCw className={`h-3 w-3 ${isFetchingLatest ? "animate-spin" : ""}`} />{pc.tx("Button.1", "Actualizar Tasas")}</Button>
                         </CardTitle>
-                        <CardDescription>
-                          Selecciona una divisa y digita la cantidad para convertir de/a Pesos Dominicanos (DOP).
-                        </CardDescription>
+                        <CardDescription>{pc.tx("CardDescription.1", "Selecciona una divisa y digita la cantidad para convertir de/a Pesos Dominicanos (DOP).")}</CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-6">
                         {/* Currency Selection Buttons */}
@@ -251,7 +247,7 @@ export default function ConversorMoneda() {
                               size="icon" 
                               className="rounded-full h-11 w-11 shadow-sm border"
                               onClick={toggleDireccion}
-                              title="Invertir dirección de cambio"
+                              title={pc.t("Button.title.1", "Invertir dirección de cambio")}
                             >
                               <ArrowRightLeft className="h-5 w-5 text-primary" />
                             </Button>
@@ -280,7 +276,7 @@ export default function ConversorMoneda() {
                           <div className="flex items-center gap-2">
                             <span className="text-lg">🏦</span>
                             <div>
-                              <p className="font-semibold text-foreground">Tasas de Referencia</p>
+                              <p className="font-semibold text-foreground">{pc.tx("p.3", "Tasas de Referencia")}</p>
                               <p className="text-xs text-muted-foreground">
                                 {currentRate.isDb ? "Tasa provista por base de datos" : "Tasa estándar de respaldo"}
                               </p>
@@ -288,12 +284,12 @@ export default function ConversorMoneda() {
                           </div>
                           <div className="flex flex-wrap gap-4 text-xs font-semibold text-muted-foreground">
                             <div className="bg-background border rounded px-3 py-1.5 text-center">
-                              <span className="block text-[10px] uppercase text-muted-foreground">Tasa Compra</span>
-                              <span className="text-sm font-bold text-foreground">RD$ {currentRate.buy_rate.toFixed(2)}</span>
+                              <span className="block text-3xs uppercase text-muted-foreground">{pc.tx("span.2", "Tasa Compra")}</span>
+                              <span className="text-sm font-bold text-foreground">{pc.tx("span.3", "RD$")}{" "}{currentRate.buy_rate.toFixed(2)}</span>
                             </div>
                             <div className="bg-background border rounded px-3 py-1.5 text-center">
-                              <span className="block text-[10px] uppercase text-muted-foreground">Tasa Venta</span>
-                              <span className="text-sm font-bold text-foreground">RD$ {currentRate.sell_rate.toFixed(2)}</span>
+                              <span className="block text-3xs uppercase text-muted-foreground">{pc.tx("span.4", "Tasa Venta")}</span>
+                              <span className="text-sm font-bold text-foreground">{pc.tx("span.5", "RD$")}{" "}{currentRate.sell_rate.toFixed(2)}</span>
                             </div>
                           </div>
                         </div>
@@ -316,16 +312,14 @@ export default function ConversorMoneda() {
                             </div>
                             <CardContent className="p-3 text-xs space-y-1">
                               <div>
-                                <span className="text-muted-foreground block text-[9px] uppercase">Compra</span>
-                                <span className="font-semibold text-foreground">RD$ {data.buy_rate.toFixed(2)}</span>
+                                <span className="text-muted-foreground block text-3xs uppercase">{pc.tx("span.6", "Compra")}</span>
+                                <span className="font-semibold text-foreground">{pc.tx("span.7", "RD$")}{" "}{data.buy_rate.toFixed(2)}</span>
                               </div>
                               <div className="pt-1 border-t border-border/50">
-                                <span className="text-muted-foreground block text-[9px] uppercase">Venta</span>
-                                <span className="font-semibold text-foreground">RD$ {data.sell_rate.toFixed(2)}</span>
+                                <span className="text-muted-foreground block text-3xs uppercase">{pc.tx("span.8", "Venta")}</span>
+                                <span className="font-semibold text-foreground">{pc.tx("span.9", "RD$")}{" "}{data.sell_rate.toFixed(2)}</span>
                               </div>
-                              <div className="pt-1 text-[9px] text-primary/80 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                                Ver histórico →
-                              </div>
+                              <div className="pt-1 text-3xs text-primary/80 font-bold opacity-0 group-hover:opacity-100 transition-opacity">{pc.tx("div.1", "Ver histórico →")}</div>
                             </CardContent>
                           </Card>
                         );
@@ -341,28 +335,24 @@ export default function ConversorMoneda() {
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-xl font-bold">
                           <Calendar className="h-5 w-5 text-primary" />
-                          <span>Historial de Tasas de Cambio</span>
+                          <span>{pc.tx("span.10", "Historial de Tasas de Cambio")}</span>
                         </CardTitle>
-                        <CardDescription>
-                          Filtra y consulta las fluctuaciones de compra y venta de divisas en la base de datos histórica.
-                        </CardDescription>
+                        <CardDescription>{pc.tx("CardDescription.2", "Filtra y consulta las fluctuaciones de compra y venta de divisas en la base de datos histórica.")}</CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-6">
                         {/* Filters */}
                         <div className="bg-muted/30 p-4 border rounded-xl grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1.5">
-                            <Label htmlFor="hist-currency" className="text-xs font-semibold text-muted-foreground">
-                              Filtrar por Divisa
-                            </Label>
+                            <Label htmlFor="hist-currency" className="text-xs font-semibold text-muted-foreground">{pc.tx("Label.1", "Filtrar por Divisa")}</Label>
                             <select
                               id="hist-currency"
                               value={histCurrency}
                               onChange={(e) => setHistCurrency(e.target.value)}
                               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                              title="Filtrar por Divisa"
-                              aria-label="Filtrar por Divisa"
+                              title={pc.t("select.title.1", "Filtrar por Divisa")}
+                              aria-label={pc.t("select.aria-label.1", "Filtrar por Divisa")}
                             >
-                              <option value="all">Todas las Monedas</option>
+                              <option value="all">{pc.tx("option.1", "Todas las Monedas")}</option>
                               {Object.keys(staticTasas).map(code => (
                                 <option key={code} value={code}>{code} - {staticTasas[code as keyof typeof staticTasas].name}</option>
                               ))}
@@ -370,9 +360,7 @@ export default function ConversorMoneda() {
                           </div>
 
                           <div className="space-y-1.5">
-                            <Label htmlFor="hist-date" className="text-xs font-semibold text-muted-foreground">
-                              Buscar Día Específico
-                            </Label>
+                            <Label htmlFor="hist-date" className="text-xs font-semibold text-muted-foreground">{pc.tx("Label.2", "Buscar Día Específico")}</Label>
                             <Input
                               id="hist-date"
                               type="date"
@@ -386,8 +374,7 @@ export default function ConversorMoneda() {
                         {histDate || histCurrency !== "all" ? (
                           <div className="flex justify-end -mt-2">
                             <Button variant="ghost" size="sm" onClick={handleClearHistFilters} className="text-destructive hover:bg-destructive/10 gap-1.5 h-8">
-                              <X className="h-4 w-4" /> Limpiar filtros
-                            </Button>
+                              <X className="h-4 w-4" />{" "}{pc.tx("Button.2", "Limpiar filtros")}</Button>
                           </div>
                         ) : null}
 
@@ -396,20 +383,18 @@ export default function ConversorMoneda() {
                           <Table>
                             <TableHeader className="bg-muted/40">
                               <TableRow>
-                                <TableHead className="font-bold">Fecha</TableHead>
-                                <TableHead className="font-bold text-center">Moneda</TableHead>
-                                <TableHead className="font-bold text-right">Tasa Compra</TableHead>
-                                <TableHead className="font-bold text-right">Tasa Venta</TableHead>
-                                <TableHead className="font-bold text-right">Margen (Spread)</TableHead>
+                                <TableHead className="font-bold">{pc.tx("TableHead.1", "Fecha")}</TableHead>
+                                <TableHead className="font-bold text-center">{pc.tx("TableHead.2", "Moneda")}</TableHead>
+                                <TableHead className="font-bold text-right">{pc.tx("TableHead.3", "Tasa Compra")}</TableHead>
+                                <TableHead className="font-bold text-right">{pc.tx("TableHead.4", "Tasa Venta")}</TableHead>
+                                <TableHead className="font-bold text-right">{pc.tx("TableHead.5", "Margen (Spread)")}</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
                               {isLoadingHist ? (
                                 <TableRow>
                                   <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                                    <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-primary" />
-                                    Cargando historial...
-                                  </TableCell>
+                                    <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-primary" />{pc.tx("TableCell.1", "Cargando historial...")}</TableCell>
                                 </TableRow>
                               ) : historicalRates && historicalRates.length > 0 ? (
                                 historicalRates.map((rate) => {
@@ -427,14 +412,11 @@ export default function ConversorMoneda() {
                                           <span>{rate.currency_code}</span>
                                         </Badge>
                                       </TableCell>
-                                      <TableCell className="text-right text-emerald-600 dark:text-emerald-400 font-semibold">
-                                        RD$ {Number(rate.buy_rate).toFixed(4)}
+                                      <TableCell className="text-right text-emerald-600 dark:text-emerald-400 font-semibold">{pc.tx("TableCell.2", "RD$")}{" "}{Number(rate.buy_rate).toFixed(4)}
                                       </TableCell>
-                                      <TableCell className="text-right text-primary font-semibold">
-                                        RD$ {Number(rate.sell_rate).toFixed(4)}
+                                      <TableCell className="text-right text-primary font-semibold">{pc.tx("TableCell.3", "RD$")}{" "}{Number(rate.sell_rate).toFixed(4)}
                                       </TableCell>
-                                      <TableCell className="text-right text-muted-foreground text-xs">
-                                        RD$ {spread.toFixed(4)}
+                                      <TableCell className="text-right text-muted-foreground text-xs">{pc.tx("TableCell.4", "RD$")}{" "}{spread.toFixed(4)}
                                       </TableCell>
                                     </TableRow>
                                   );
@@ -443,8 +425,8 @@ export default function ConversorMoneda() {
                                 <TableRow>
                                   <TableCell colSpan={5} className="text-center py-12 text-muted-foreground">
                                     <Search className="h-10 w-10 mx-auto mb-3 opacity-30 text-muted-foreground" />
-                                    <h5 className="font-bold text-foreground">No se encontraron registros</h5>
-                                    <p className="text-xs mt-1">No hay tasas de cambio registradas para los filtros especificados.</p>
+                                    <h3 className="h5 font-bold text-foreground">{pc.tx("h5.1", "No se encontraron registros")}</h3>
+                                    <p className="text-xs mt-1">{pc.tx("p.4", "No hay tasas de cambio registradas para los filtros especificados.")}</p>
                                   </TableCell>
                                 </TableRow>
                               )}
@@ -463,11 +445,9 @@ export default function ConversorMoneda() {
                       <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                           <Info className="h-5 w-5 text-primary" />
-                          <span>Consejos para el Cambio en República Dominicana</span>
+                          <span>{pc.tx("span.11", "Consejos para el Cambio en República Dominicana")}</span>
                         </CardTitle>
-                        <CardDescription>
-                          Recomendaciones prácticas para el manejo de efectivo y tarjetas durante tu estadía en el país.
-                        </CardDescription>
+                        <CardDescription>{pc.tx("CardDescription.3", "Recomendaciones prácticas para el manejo de efectivo y tarjetas durante tu estadía en el país.")}</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="grid md:grid-cols-2 gap-4">
@@ -475,7 +455,7 @@ export default function ConversorMoneda() {
                             <div key={idx} className="flex items-start gap-3.5 p-4 bg-muted/40 rounded-xl border">
                               <span className="text-2xl mt-0.5">{consejo.icon}</span>
                               <div>
-                                <h4 className="font-bold text-foreground text-sm">{consejo.titulo}</h4>
+                                <h2 className="h4 font-bold text-foreground text-sm">{consejo.titulo}</h2>
                                 <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{consejo.descripcion}</p>
                               </div>
                             </div>
@@ -486,8 +466,8 @@ export default function ConversorMoneda() {
 
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-lg font-bold">Precios de Referencia Promedio</CardTitle>
-                        <CardDescription>Visualiza el costo estimado de bienes y servicios básicos locales en pesos dominicanos.</CardDescription>
+                        <CardTitle className="text-lg font-bold">{pc.tx("CardTitle.1", "Precios de Referencia Promedio")}</CardTitle>
+                        <CardDescription>{pc.tx("CardDescription.4", "Visualiza el costo estimado de bienes y servicios básicos locales en pesos dominicanos.")}</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -513,6 +493,7 @@ export default function ConversorMoneda() {
           </main>
         </div>
 
+        <TasasCambioSection />
         <Footer />
       </div>
     </PageTransition>

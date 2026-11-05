@@ -76,7 +76,7 @@ export function SponsoredPositionsCard({ businessName }: { businessName: string 
 
         {mine.map((c) => (
           <div key={c.id} className="rounded-xl border border-border p-3">
-            <div className="flex flex-wrap items-center justify-between gap-2"><span className="font-semibold">{c.campaign_name}</span><Badge variant="outline" className="text-[10px]">{CAMPAIGN_STATUS_LABEL[c.status]}</Badge></div>
+            <div className="flex flex-wrap items-center justify-between gap-2"><span className="font-semibold">{c.campaign_name}</span><Badge variant="outline" className="text-3xs">{CAMPAIGN_STATUS_LABEL[c.status]}</Badge></div>
             <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">{c.creatives.map((cr) => <li key={cr.id}>{cr.title} · {slotName(cr.slot_id)} · {cr.impressions} impresiones · {cr.clicks} clics</li>)}</ul>
           </div>
         ))}
@@ -111,7 +111,7 @@ export function SponsoredPositionsCard({ businessName }: { businessName: string 
             <ul className="space-y-1 text-xs">{bids.data!.data.map((b) => (
               <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border px-3 py-2">
                 <span>{b.slot_name} · semana del {day(b.period_start)} · <span className="font-semibold">{money(b.amount, b.currency)}</span></span>
-                <span className="flex items-center gap-2"><Badge variant="outline" className="text-[10px]">{MY_BID_STATUS_LABEL[b.status]}</Badge>{b.status === "open" && <Button size="sm" variant="ghost" className="h-7 text-xs" disabled={withdraw.isPending} onClick={() => withdraw.mutate(b.id)}>Retirar</Button>}</span>
+                <span className="flex items-center gap-2"><Badge variant="outline" className="text-3xs">{MY_BID_STATUS_LABEL[b.status]}</Badge>{b.status === "open" && <Button size="sm" variant="ghost" className="h-7 text-xs" disabled={withdraw.isPending} onClick={() => withdraw.mutate(b.id)}>Retirar</Button>}</span>
               </li>
             ))}</ul>
           </div>

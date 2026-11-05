@@ -77,7 +77,7 @@ export function AdminAuctionsSection() {
                       <TableCell className="text-sm">{b.advertiser_name}<span className="block text-xs text-muted-foreground">{b.campaign_name}</span></TableCell>
                       <TableCell className="text-sm">{b.creative_title}</TableCell>
                       <TableCell className="text-right text-sm font-semibold">{money(b.amount, b.currency)}</TableCell>
-                      <TableCell><Badge variant="outline" className="text-[10px]">{BID_STATUS_LABEL[b.status]}</Badge></TableCell>
+                      <TableCell><Badge variant="outline" className="text-3xs">{BID_STATUS_LABEL[b.status]}</Badge></TableCell>
                     </TableRow>
                   ))}</TableBody>
                 </Table>

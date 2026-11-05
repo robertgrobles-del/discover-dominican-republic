@@ -23,7 +23,7 @@ const Stat = ({ label, value, hint }: { label: string; value: string; hint?: str
   <div className="rounded-xl border border-border p-3">
     <p className="text-xs text-muted-foreground">{label}</p>
     <p className="font-display text-2xl font-bold">{value}</p>
-    {hint && <p className="text-[11px] text-muted-foreground">{hint}</p>}
+    {hint && <p className="text-2xs text-muted-foreground">{hint}</p>}
   </div>
 );
 /** Estados comunes de carga y error; devuelve los datos sólo cuando existen. */
@@ -123,7 +123,7 @@ export function AdminInsightsPanel() {
               <Card>
                 <CardHeader><CardTitle className="text-base">Actividad por día y hora (hora de Santo Domingo)</CardTitle><CardDescription className="text-xs">{d.total_events} eventos{d.peak ? ` · pico: ${WEEKDAYS[d.peak.weekday - 1]} a las ${d.peak.hour}:00 (${d.peak.events})` : ""}</CardDescription></CardHeader>
                 <CardContent className="overflow-x-auto">
-                  <table className="border-separate border-spacing-0.5 text-[10px]">
+                  <table className="border-separate border-spacing-0.5 text-3xs">
                     <thead><tr><td />{Array.from({ length: 24 }, (_, h) => <th key={h} scope="col" className="w-6 font-normal text-muted-foreground">{h}</th>)}</tr></thead>
                     <tbody>{grid.map((row, w) => (
                       <tr key={w}>
@@ -158,7 +158,7 @@ export function AdminInsightsPanel() {
                   {d.discrepancies.length === 0 ? <p className="p-4 text-sm text-muted-foreground">Todo cuadra en este periodo.</p> : (
                     <Table>
                       <TableHeader><TableRow><TableHead>Caso</TableHead><TableHead>Referencia</TableHead><TableHead className="text-right">Cobrado</TableHead><TableHead className="text-right">Facturado</TableHead></TableRow></TableHeader>
-                      <TableBody>{d.discrepancies.map((x) => <TableRow key={`${x.kind}-${x.reference_id}-${x.label}`}><TableCell><Badge variant="outline" className="text-[10px]">{DISCREPANCY_LABEL[x.kind]}</Badge></TableCell><TableCell className="text-sm">{x.label}</TableCell><TableCell className="text-right text-sm">{money(x.collected, x.currency)}</TableCell><TableCell className="text-right text-sm">{money(x.invoiced, x.currency)}</TableCell></TableRow>)}</TableBody>
+                      <TableBody>{d.discrepancies.map((x) => <TableRow key={`${x.kind}-${x.reference_id}-${x.label}`}><TableCell><Badge variant="outline" className="text-3xs">{DISCREPANCY_LABEL[x.kind]}</Badge></TableCell><TableCell className="text-sm">{x.label}</TableCell><TableCell className="text-right text-sm">{money(x.collected, x.currency)}</TableCell><TableCell className="text-right text-sm">{money(x.invoiced, x.currency)}</TableCell></TableRow>)}</TableBody>
                     </Table>
                   )}
                 </CardContent>

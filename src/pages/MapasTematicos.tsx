@@ -14,6 +14,7 @@ import samanaImg from "@/assets/samana.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 import puertoPlataImg from "@/assets/puerto-plata.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 interface ThematicMap {
   id: string;
@@ -162,6 +163,9 @@ function MapCard({ map }: { map: ThematicMap }) {
 }
 
 export default function MapasTematicos() {
+  const pc = usePageContent("mapas-tematicos");
+  const maps = pc.data("maps", __pcData.maps);
+  const categories = pc.data("categories", __pcData.categories);
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [search, setSearch] = useState("");
 
@@ -175,8 +179,8 @@ export default function MapasTematicos() {
   return (
     <PageTransition>
       <SEOHead
-        title="Mapas Temáticos Ilustrados"
-        description="Explora nuestra colección de mapas ilustrados artísticamente. Desde la ruta de la bachata hasta los rincones secretos de nuestras playas."
+        title={pc.t("SEOHead.title.1", "Mapas Temáticos Ilustrados")}
+        description={pc.t("SEOHead.description.1", "Explora nuestra colección de mapas ilustrados artísticamente. Desde la ruta de la bachata hasta los rincones secretos de nuestras playas.")}
         keywords="mapas ilustrados, mapas temáticos, República Dominicana, arte, turismo, rutas"
       />
       <div className="min-h-screen bg-background">
@@ -185,27 +189,19 @@ export default function MapasTematicos() {
         {/* Hero */}
         <section className="relative h-[480px] flex items-center justify-center overflow-hidden">
           <img
-            src={samanaImg}
-            alt="Mapa ilustrado"
+            src={pc.img("img.src.1", samanaImg)}
+            alt={pc.t("img.alt.1", "Mapa ilustrado")}
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/30" />
           <div className="relative z-10 text-center max-w-3xl px-4">
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Descubre la República Dominicana: Un Mapa a la Vez
-            </h1>
-            <p className="text-muted-foreground text-lg mb-8">
-              Explora nuestra colección de mapas ilustrados artísticamente. Desde la ruta de la bachata hasta los rincones secretos de nuestras playas.
-            </p>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Descubre la República Dominicana: Un Mapa a la Vez")}</h1>
+            <p className="text-muted-foreground text-lg mb-8">{pc.tx("p.1", "Explora nuestra colección de mapas ilustrados artísticamente. Desde la ruta de la bachata hasta los rincones secretos de nuestras playas.")}</p>
             <div className="flex gap-3 justify-center flex-wrap">
               <Button className="gap-2">
-                <Map className="h-4 w-4" />
-                Explorar Colección
-              </Button>
+                <Map className="h-4 w-4" />{pc.tx("Button.1", "Explorar Colección")}</Button>
               <Button variant="outline" className="gap-2 bg-card/50 backdrop-blur-sm">
-                <User className="h-4 w-4" />
-                Conoce a los Artistas
-              </Button>
+                <User className="h-4 w-4" />{pc.tx("Button.2", "Conoce a los Artistas")}</Button>
             </div>
           </div>
         </section>
@@ -216,7 +212,7 @@ export default function MapasTematicos() {
             <div className="relative w-full md:w-1/3">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder="Buscar mapa, región o tema..."
+                placeholder={pc.t("Input.placeholder.1", "Buscar mapa, región o tema...")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-10"
@@ -242,8 +238,8 @@ export default function MapasTematicos() {
           {/* Results Header */}
           <div className="flex justify-between items-end mb-8">
             <div>
-              <h2 className="text-2xl font-bold text-foreground">Mapas Temáticos Disponibles</h2>
-              <p className="text-muted-foreground text-sm mt-1">Explora la isla a través de los ojos de nuestros artistas locales</p>
+              <h2 className="text-2xl font-bold text-foreground">{pc.tx("h2.1", "Mapas Temáticos Disponibles")}</h2>
+              <p className="text-muted-foreground text-sm mt-1">{pc.tx("p.2", "Explora la isla a través de los ojos de nuestros artistas locales")}</p>
             </div>
           </div>
 
@@ -257,7 +253,7 @@ export default function MapasTematicos() {
           {filteredMaps.length === 0 && (
             <div className="text-center py-12">
               <Map className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No se encontraron mapas con los filtros seleccionados.</p>
+              <p className="text-muted-foreground">{pc.tx("p.3", "No se encontraron mapas con los filtros seleccionados.")}</p>
             </div>
           )}
         </main>
@@ -267,3 +263,6 @@ export default function MapasTematicos() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { maps, categories };

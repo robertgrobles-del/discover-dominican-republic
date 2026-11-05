@@ -131,7 +131,9 @@ describe("publicidad, ofertas y campañas", () => {
       expect((await pool.query("SELECT source, empresa, consent FROM marketing_leads WHERE email = $1", [mail])).rows[0]).toEqual({ source: "advertiser", empresa: `Empresa ${tag}`, consent: true });
       expect((await pool.query("SELECT category FROM support_tickets WHERE contact_email = $1", [mail])).rows[0].category).toBe("advertising");
       await app.mailer.drain();
+      // Correo sin verificar: el acuse no cita la empresa ni el nombre del remitente.
       expect(app.mailer.last(mail, "support.received")).toBeTruthy();
+      expect(JSON.stringify(app.mailer.last(mail, "support.received"))).not.toMatch(new RegExp(`Empresa ${tag}|Ana`));
       const bot = uniq();
       await call("POST", "/advertisers/requests", { payload: { company: "Bot", contact_name: "Bot Bot", email: bot, message: "mensaje de bot largo", consent: true, website: "http://spam" } });
       expect((await pool.query("SELECT 1 FROM marketing_leads WHERE email = $1", [bot])).rowCount).toBe(0);

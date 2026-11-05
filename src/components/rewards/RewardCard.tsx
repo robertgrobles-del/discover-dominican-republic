@@ -51,22 +51,22 @@ export const RewardCard: React.FC<RewardCardProps> = ({
 
           <div className="absolute top-3 left-3 flex flex-col gap-1">
             {prize.is_featured && (
-              <Badge className="bg-primary text-primary-foreground text-[10px] font-bold shadow-md">
+              <Badge className="bg-primary text-primary-foreground text-3xs font-bold shadow-md">
                 ⭐ Destacado
               </Badge>
             )}
             {prize.isPartnerCustom && (
-              <Badge className="bg-emerald-600 text-white text-[10px] font-bold shadow-md">
+              <Badge className="bg-emerald-600 text-white text-3xs font-bold shadow-md">
                 ✓ Empresa Verificada
               </Badge>
             )}
           </div>
 
-          <Badge className="absolute top-3 right-3 bg-black/60 text-white backdrop-blur-md text-[10px] border-none font-medium">
+          <Badge className="absolute top-3 right-3 bg-black/60 text-white backdrop-blur-md text-3xs border-none font-medium">
             <MapPin className="h-3 w-3 mr-1 text-primary" /> {prize.location}
           </Badge>
 
-          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-[11px]">
+          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-2xs">
             <span className="font-semibold truncate max-w-[200px]">{prize.sponsor}</span>
             <span className="bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-sm">
               Valor: ~RD$ {prize.estimated_value_dop.toLocaleString()}
@@ -91,7 +91,7 @@ export const RewardCard: React.FC<RewardCardProps> = ({
             {prize.includes.slice(0, 2).map((inc, ii) => (
               <span
                 key={ii}
-                className="text-[10px] bg-muted/60 text-muted-foreground px-2 py-0.5 rounded-md flex items-center gap-1"
+                className="text-3xs bg-muted/60 text-muted-foreground px-2 py-0.5 rounded-md flex items-center gap-1"
               >
                 <Check className="h-2.5 w-2.5 text-emerald-500" /> {inc}
               </span>
@@ -99,11 +99,11 @@ export const RewardCard: React.FC<RewardCardProps> = ({
           </div>
 
           {/* Level & Availability status */}
-          <div className="flex items-center gap-2 pt-2 text-[10px]">
+          <div className="flex items-center gap-2 pt-2 text-3xs">
             {prize.min_level > 1 && (
               <Badge
                 variant={meetsLevel ? "secondary" : "destructive"}
-                className="text-[10px] gap-1 font-semibold"
+                className="text-3xs gap-1 font-semibold"
               >
                 {meetsLevel ? <Check className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
                 Requiere Nivel {prize.min_level}+
@@ -124,7 +124,7 @@ export const RewardCard: React.FC<RewardCardProps> = ({
             <span className="text-xs text-amber-500 font-bold">monedas</span>
           </div>
           {prize.original_coin_cost && (
-            <span className="text-[10px] text-muted-foreground line-through">
+            <span className="text-3xs text-muted-foreground line-through">
               {prize.original_coin_cost} monedas
             </span>
           )}

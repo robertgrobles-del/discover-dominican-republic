@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { HOME_SECTION_FRAME, SectionWithSideAds } from "@/components/SectionWithSideAds";
 import { Star, ChevronRight, MapPin, Clock, Wine, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -6,31 +7,19 @@ import { FavoriteButton } from "@/components/FavoriteButton";
 import { Badge } from "@/components/ui/badge";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { fetchApi } from "@/lib/fastifyClient";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useTranslation } from "@/hooks/useI18n";
+import { useTrackedBanner } from "@/hooks/useAdBanners";
 import gastronomyImg from "@/assets/gastronomy.jpg";
 import divingImg from "@/assets/diving.jpg";
 import laBanderaImg from "@/assets/la-bandera.jpg";
 import beachCategoryImg from "@/assets/beach-category.jpg";
-import { BannerAd } from "@/components/promo/BannerAd";
 import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 
 // Restaurante patrocinado destacado
-const sponsoredRestaurant = {
-  id: "sponsored-restaurant",
-  slug: "la-yola-cap-cana",
-  name: "La Casa del Chef",
-  rating: 4.9,
-  location: "Cap Cana, Punta Cana",
-  cuisine: "Alta Cocina Caribeña",
-  priceRange: "$$$$",
-  image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800",
-  openNow: true,
-  speciality: "Menú Degustación 7 Tiempos",
-  isSponsored: true,
-};
-
 const staticRestaurants = [
   {
     id: "sabor-premium",
@@ -59,19 +48,6 @@ const staticRestaurants = [
 ];
 
 // Bar patrocinado destacado
-const sponsoredBar = {
-  id: "sponsored-bar",
-  slug: "oro-nightclub-punta-cana",
-  name: "Oro Lounge",
-  rating: 4.9,
-  location: "Cap Cana, Punta Cana",
-  type: "Premium Lounge",
-  specialty: "Cócteles de Autor",
-  image: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=800",
-  atmosphere: "Ultra Exclusivo",
-  isSponsored: true,
-};
-
 const staticBars = [
   {
     id: "la-terraza-lounge",
@@ -131,13 +107,15 @@ interface RestaurantType {
   openNow: boolean;
   speciality: string;
   isSponsored?: boolean;
+  adUrl?: string;
+  onAdClick?: () => void;
 }
 
 function RestaurantCard({ restaurant, index, t }: { restaurant: RestaurantType; index: number; t: (key: string) => string }) {
   const restaurantLink = restaurant.slug ? `/restaurante/${restaurant.slug}` : '/restaurante';
   
   return (
-    <Link to={restaurantLink}>
+    <Link to={restaurant.adUrl || restaurantLink} onClick={restaurant.onAdClick}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -170,10 +148,10 @@ function RestaurantCard({ restaurant, index, t }: { restaurant: RestaurantType; 
             )}
           </div>
           <div className="absolute top-3 right-3 flex items-center gap-2">
-            <div className="flex items-center gap-1 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
+            {restaurant.rating > 0 && (<div className="flex items-center gap-1 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded">
               <Star className="h-3 w-3 fill-current" />
               {restaurant.rating}
-            </div>
+            </div>)}
             <FavoriteButton
               id={restaurant.id}
               type="restaurante"
@@ -230,13 +208,15 @@ interface BarType {
   image: string;
   atmosphere: string;
   isSponsored?: boolean;
+  adUrl?: string;
+  onAdClick?: () => void;
 }
 
 function BarCard({ bar, index, t }: { bar: BarType; index: number; t: (key: string) => string }) {
   const barLink = bar.slug ? `/bar/${bar.slug}` : '/vida-nocturna';
 
   return (
-    <Link to={barLink} className="block group">
+    <Link to={bar.adUrl || barLink} onClick={bar.onAdClick} className="block group">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -256,22 +236,22 @@ function BarCard({ bar, index, t }: { bar: BarType; index: number; t: (key: stri
         
         <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
           {bar.isSponsored && (
-            <SponsoredBadge label={t("accommodations.sponsored")} className="text-[11px] py-0.5 px-2 w-fit shadow-xs" />
+            <SponsoredBadge label={t("accommodations.sponsored")} className="text-2xs py-0.5 px-2 w-fit shadow-xs" />
           )}
-          <span className="bg-primary/90 backdrop-blur-md text-primary-foreground text-[11px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 w-fit shadow-xs">
+          <span className="bg-primary/90 backdrop-blur-md text-primary-foreground text-2xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 w-fit shadow-xs">
             <Wine className="h-3 w-3" />
             {bar.type}
           </span>
         </div>
 
-        <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-black/60 backdrop-blur-md text-white text-[11px] font-bold px-2 py-0.5 rounded-md border border-white/10 shadow-xs">
+        {bar.rating > 0 && (<div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-black/60 backdrop-blur-md text-white text-2xs font-bold px-2 py-0.5 rounded-md border border-white/10 shadow-xs">
           <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
           {bar.rating}
-        </div>
+        </div>)}
 
         <div className="absolute inset-x-0 bottom-0 p-4 z-10 space-y-2">
           <div>
-            <span className="inline-block bg-white/15 backdrop-blur-md text-slate-200 text-[10px] font-medium px-2 py-0.5 rounded mb-1.5 border border-white/10">
+            <span className="inline-block bg-white/15 backdrop-blur-md text-slate-200 text-3xs font-medium px-2 py-0.5 rounded mb-1.5 border border-white/10">
               {bar.atmosphere}
             </span>
             <h3 className="font-display text-lg font-bold text-white mb-1 group-hover:text-primary transition-colors leading-tight drop-shadow-sm">
@@ -287,11 +267,11 @@ function BarCard({ bar, index, t }: { bar: BarType; index: number; t: (key: stri
           </div>
 
           <div className="flex items-center justify-between pt-2 border-t border-white/15">
-            <span className="text-[11px] font-semibold text-white/90 group-hover:text-primary transition-colors flex items-center gap-1">
+            <span className="text-2xs font-semibold text-white/90 group-hover:text-primary transition-colors flex items-center gap-1">
               Ver Horario & Reservar VIP
               <ChevronRight className="h-3.5 w-3.5" />
             </span>
-            <span className="text-[10px] bg-white/20 text-white px-2 py-0.5 rounded-full">
+            <span className="text-3xs bg-white/20 text-white px-2 py-0.5 rounded-full">
               Entrada 18+
             </span>
           </div>
@@ -303,9 +283,19 @@ function BarCard({ bar, index, t }: { bar: BarType; index: number; t: (key: stri
 
 export function RestaurantsBarsSection() {
   const { t } = useTranslation();
+  // Tarjetas patrocinadas: sólo con campaña en el admin (banner_type "native-card", placement "native"); sin ella la
+  // posición la ocupa un negocio normal. Nunca se marca como patrocinado a quien no ha contratado.
+  const restAd = useTrackedBanner({ section: "home-restaurantes-card", bannerType: "native-card", placement: "native" });
+  const barAd = useTrackedBanner({ section: "home-bares-card", bannerType: "native-card", placement: "native" });
+  const adRestaurant: RestaurantType | null = restAd.banner && restAd.banner.image_url ? { id: `ad-${restAd.banner.id}`, name: restAd.banner.headline || restAd.banner.name, rating: 0, location: restAd.banner.sponsor || "", cuisine: restAd.banner.subtext || "", priceRange: "", image: restAd.banner.image_url, openNow: false, speciality: restAd.banner.cta_text || "", isSponsored: true, adUrl: restAd.banner.target_url || undefined, onAdClick: restAd.trackClick } : null;
+  const adBar: BarType | null = barAd.banner && barAd.banner.image_url ? { id: `ad-${barAd.banner.id}`, name: barAd.banner.headline || barAd.banner.name, rating: 0, location: barAd.banner.sponsor || "", type: barAd.banner.subtext || "", specialty: barAd.banner.cta_text || "", image: barAd.banner.image_url, atmosphere: "", isSponsored: true, adUrl: barAd.banner.target_url || undefined, onAdClick: barAd.trackClick } : null;
   const { data: dbRestaurants } = useQuery({
     queryKey: ['home-restaurants'],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        const res = await fetchApi<{ data: any[] }>('/restaurants?per_page=4');
+        return res.data || [];
+      }
       const { data } = await supabase.from('restaurants').select('*').eq('is_active', true).eq('is_featured', true).limit(4);
       return data || [];
     },
@@ -314,6 +304,10 @@ export function RestaurantsBarsSection() {
   const { data: dbBars } = useQuery({
     queryKey: ['home-bars'],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        const res = await fetchApi<{ data: any[] }>('/bars?per_page=4');
+        return res.data || [];
+      }
       const { data } = await supabase.from('bars').select('*').eq('is_active', true).eq('is_featured', true).limit(4);
       return data || [];
     },
@@ -366,7 +360,7 @@ export function RestaurantsBarsSection() {
     <>
       {/* Restaurants Section */}
       <section className="bg-background py-16">
-        <div className="container mx-auto px-4 lg:px-8">
+        <div className={HOME_SECTION_FRAME}>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -399,17 +393,19 @@ export function RestaurantsBarsSection() {
             </motion.div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {[sponsoredRestaurant, ...restaurants].slice(0, 3).map((restaurant, index) => (
-              <RestaurantCard key={restaurant.id} restaurant={restaurant} index={index} t={t} />
-            ))}
-          </div>
+          <SectionWithSideAds section="home-restaurantes">
+            <div className="grid md:grid-cols-3 gap-6">
+              {[...(adRestaurant ? [adRestaurant] : []), ...restaurants].slice(0, 3).map((restaurant, index) => (
+                <RestaurantCard key={restaurant.id} restaurant={restaurant} index={index} t={t} />
+              ))}
+            </div>
+          </SectionWithSideAds>
         </div>
       </section>
 
       {/* Bars Section (Ocupa el 100vh en escritorio con Skyscrapers laterales de 120x600) */}
       <section className="relative bg-card py-10 lg:py-0 lg:min-h-screen flex flex-col justify-center overflow-hidden border-y border-border/40">
-        <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className={`${HOME_SECTION_FRAME} py-6`}>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -442,35 +438,17 @@ export function RestaurantsBarsSection() {
             </motion.div>
           </div>
 
-          {/* Layout Principal: Skyscraper Izquierdo (120x600) + Cards Centrales + Skyscraper Derecho (120x600) */}
-          <div className="flex items-center justify-between gap-4 xl:gap-8">
-            {/* Skyscraper Izquierdo */}
-            <div className="hidden 2xl:flex shrink-0 w-[120px] items-center justify-center">
-              <BannerAd
-                size="skyscraper-traditional"
-                placement="sidebar"
-                imageUrl="/banners/Escritorio_120x600_Skyscraper.png"
-                className="w-[120px] !h-[600px] shadow-sm rounded-xl overflow-hidden"
-              />
-            </div>
+          {/* Skyscrapers en pareja (120x600) a los lados de las cards */}
+          <SectionWithSideAds section="home-bares">
 
             {/* Cuadrícula Central de Cards de Bares */}
             <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 lg:gap-6 items-center">
-              {[sponsoredBar, ...bars.slice(0, 2)].map((bar, index) => (
+              {[...(adBar ? [adBar] : []), ...bars].slice(0, 3).map((bar, index) => (
                 <BarCard key={bar.id} bar={bar} index={index} t={t} />
               ))}
             </div>
 
-            {/* Skyscraper Derecho */}
-            <div className="hidden 2xl:flex shrink-0 w-[120px] items-center justify-center">
-              <BannerAd
-                size="skyscraper-traditional"
-                placement="sidebar"
-                imageUrl="/banners/Escritorio_120x600_Skyscraper.png"
-                className="w-[120px] !h-[600px] shadow-sm rounded-xl overflow-hidden"
-              />
-            </div>
-          </div>
+          </SectionWithSideAds>
         </div>
       </section>
     </>

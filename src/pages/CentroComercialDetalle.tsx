@@ -15,6 +15,7 @@ import {
   MapPin, Clock, Phone, Globe, Star, Car, Film, UtensilsCrossed,
   ShoppingCart, Store, ChevronRight, Building2, Layers, ExternalLink
 } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
 
 const tipoLabel: Record<string, string> = {
   premium: "Premium",
@@ -24,6 +25,8 @@ const tipoLabel: Record<string, string> = {
 };
 
 export default function CentroComercialDetalle() {
+  const pc = usePageContent("centro-comercial-detalle");
+  const tipoLabel = pc.data("tipoLabel", __pcData.tipoLabel);
   const { slug } = useParams<{ slug: string }>();
   const mall = getMallBySlug(slug || "");
 
@@ -33,9 +36,9 @@ export default function CentroComercialDetalle() {
         <div className="min-h-screen bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32 text-center">
-            <h1 className="text-3xl font-bold text-foreground mb-4">Centro comercial no encontrado</h1>
+            <h1 className="text-3xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Centro comercial no encontrado")}</h1>
             <Link to="/compras">
-              <Button>Volver a Compras</Button>
+              <Button>{pc.tx("Button.1", "Volver a Compras")}</Button>
             </Link>
           </div>
           <Footer />
@@ -90,16 +93,14 @@ export default function CentroComercialDetalle() {
               <div className="flex items-center gap-2 text-sm">
                 <Star className="h-4 w-4 text-amber-500" />
                 <span className="font-semibold text-foreground">{mall.rating}</span>
-                <span className="text-muted-foreground">({mall.reviewCount} reseñas)</span>
+                <span className="text-muted-foreground">({mall.reviewCount}{" "}{pc.tx("span.1", "reseñas)")}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Store className="h-4 w-4 text-primary" />
-                {mall.tiendas}+ tiendas
-              </div>
+                {mall.tiendas}{pc.tx("div.1", "+ tiendas")}</div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Layers className="h-4 w-4 text-primary" />
-                {mall.pisos} pisos
-              </div>
+                {mall.pisos}{" "}{pc.tx("div.2", "pisos")}</div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="h-4 w-4 text-primary" />
                 {mall.horario.split("|")[0]}
@@ -115,13 +116,13 @@ export default function CentroComercialDetalle() {
               {/* Main */}
               <div className="lg:col-span-2 space-y-10">
                 <div>
-                  <h2 className="font-display text-2xl font-bold text-foreground mb-4">Sobre {mall.nombre}</h2>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-4">{pc.tx("h2.1", "Sobre")}{" "}{mall.nombre}</h2>
                   <p className="text-muted-foreground leading-relaxed">{mall.descripcion}</p>
                 </div>
 
                 {/* Highlights */}
                 <div>
-                  <h3 className="font-display text-xl font-bold text-foreground mb-4">Destacados</h3>
+                  <h3 className="font-display text-xl font-bold text-foreground mb-4">{pc.tx("h3.1", "Destacados")}</h3>
                   <div className="grid sm:grid-cols-2 gap-3">
                     {mall.destacados.map((d) => (
                       <div key={d} className="flex items-center gap-3 bg-card rounded-lg border border-border p-3">
@@ -134,7 +135,7 @@ export default function CentroComercialDetalle() {
 
                 {/* Amenities */}
                 <div>
-                  <h3 className="font-display text-xl font-bold text-foreground mb-4">Facilidades</h3>
+                  <h3 className="font-display text-xl font-bold text-foreground mb-4">{pc.tx("h3.2", "Facilidades")}</h3>
                   <div className="flex flex-wrap gap-3">
                     {amenities.map((a) => (
                       <Badge
@@ -150,7 +151,7 @@ export default function CentroComercialDetalle() {
 
                 {/* Brands */}
                 <div>
-                  <h3 className="font-display text-xl font-bold text-foreground mb-4">Marcas Destacadas</h3>
+                  <h3 className="font-display text-xl font-bold text-foreground mb-4">{pc.tx("h3.3", "Marcas Destacadas")}</h3>
                   <div className="flex flex-wrap gap-2">
                     {mall.marcas.map((m) => (
                       <Badge key={m} variant="outline" className="text-sm">{m}</Badge>
@@ -160,7 +161,7 @@ export default function CentroComercialDetalle() {
 
                 {/* Services */}
                 <div>
-                  <h3 className="font-display text-xl font-bold text-foreground mb-4">Servicios</h3>
+                  <h3 className="font-display text-xl font-bold text-foreground mb-4">{pc.tx("h3.4", "Servicios")}</h3>
                   <ul className="grid sm:grid-cols-2 gap-2">
                     {mall.servicios.map((s) => (
                       <li key={s} className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -181,7 +182,7 @@ export default function CentroComercialDetalle() {
               <div className="space-y-6">
                 <Card className="border-border">
                   <CardContent className="p-6 space-y-4">
-                    <h3 className="font-display font-bold text-foreground">Información de Contacto</h3>
+                    <h3 className="font-display font-bold text-foreground">{pc.tx("h3.5", "Información de Contacto")}</h3>
                     <div className="space-y-3 text-sm">
                       <div className="flex items-center gap-3 text-muted-foreground">
                         <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
@@ -197,20 +198,18 @@ export default function CentroComercialDetalle() {
                       </div>
                       {mall.website && (
                         <a href={mall.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-primary hover:underline">
-                          <Globe className="h-4 w-4 flex-shrink-0" />
-                          Sitio Web <ExternalLink className="h-3 w-3" />
+                          <Globe className="h-4 w-4 flex-shrink-0" />{pc.tx("a.1", "Sitio Web")}{" "}<ExternalLink className="h-3 w-3" />
                         </a>
                       )}
                     </div>
                     <Button className="w-full gap-2 mt-4">
-                      <MapPin className="h-4 w-4" /> Cómo Llegar
-                    </Button>
+                      <MapPin className="h-4 w-4" />{" "}{pc.tx("Button.2", "Cómo Llegar")}</Button>
                   </CardContent>
                 </Card>
 
                 <Card className="border-border">
                   <CardContent className="p-6">
-                    <h3 className="font-display font-bold text-foreground mb-3">Ubicación</h3>
+                    <h3 className="font-display font-bold text-foreground mb-3">{pc.tx("h3.6", "Ubicación")}</h3>
                     <div className="aspect-video rounded-lg bg-secondary/30 flex items-center justify-center">
                       <Building2 className="h-8 w-8 text-muted-foreground" />
                     </div>
@@ -227,3 +226,6 @@ export default function CentroComercialDetalle() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { tipoLabel };

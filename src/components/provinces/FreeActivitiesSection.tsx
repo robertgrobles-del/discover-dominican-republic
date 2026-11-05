@@ -141,10 +141,10 @@ export function FreeActivitiesSection() {
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                  <span className="text-3xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
                     Entrada Libre
                   </span>
-                  <span className="text-[11px] text-muted-foreground font-medium">
+                  <span className="text-2xs text-muted-foreground font-medium">
                     {spot.provincia}
                   </span>
                 </div>
@@ -161,11 +161,11 @@ export function FreeActivitiesSection() {
                 </p>
               </div>
 
-              <div className="pt-3 border-t border-border/50 text-[11px] space-y-1 bg-muted/20 -mx-5 -mb-5 p-4 rounded-b-2xl">
+              <div className="pt-3 border-t border-border/50 text-2xs space-y-1 bg-muted/20 -mx-5 -mb-5 p-4 rounded-b-2xl">
                 <p className="text-foreground/90 font-medium">
                   💡 <span className="text-muted-foreground">{spot.consejoAcceso}</span>
                 </p>
-                <p className="text-[10px] text-muted-foreground pt-1">
+                <p className="text-3xs text-muted-foreground pt-1">
                   ⏱️ {spot.horario}
                 </p>
               </div>

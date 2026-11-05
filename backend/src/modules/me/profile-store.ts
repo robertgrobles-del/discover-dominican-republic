@@ -28,6 +28,11 @@ export const eraseProfileData: AccountErasureParticipant = async (c, userId) => 
   await c.query("UPDATE profiles SET display_name = NULL, avatar_url = NULL, bio = NULL, travel_interests = NULL, country = NULL, birth_year = NULL, notification_prefs = '{}' WHERE id = $1", [userId]);
   await c.query("DELETE FROM favorites WHERE user_id = $1", [userId]);
   await c.query("DELETE FROM explorer_follows WHERE follower_id = $1 OR following_id = $1", [userId]);
+  // La fila de `users` se anonimiza en sitio (no se borra), así que el ON DELETE CASCADE de estas tablas nunca se dispara:
+  // credenciales y canales ligados a la cuenta se cierran aquí (llave B2B revocada, identidad OAuth y suscripciones push borradas).
+  await c.query("UPDATE b2b_api_keys SET is_active = false, revoked_at = coalesce(revoked_at, now()) WHERE user_id = $1", [userId]);
+  await c.query("DELETE FROM oauth_identities WHERE user_id = $1", [userId]);
+  await c.query("DELETE FROM push_subscriptions WHERE user_id = $1", [userId]);
 };
 
 declare module "fastify" {

@@ -292,15 +292,15 @@ export function AdminRouteBuilder() {
                 <div className="grid grid-cols-3 gap-2 text-center text-xs">
                   <div className="p-2 bg-background rounded-lg border">
                     <p className="font-bold text-primary">{selectedRoute.duration_hours || 0}h</p>
-                    <p className="text-[10px] text-muted-foreground">Duración</p>
+                    <p className="text-3xs text-muted-foreground">Duración</p>
                   </div>
                   <div className="p-2 bg-background rounded-lg border">
                     <p className="font-bold text-primary">{selectedRoute.distance_km || 0} km</p>
-                    <p className="text-[10px] text-muted-foreground">Distancia</p>
+                    <p className="text-3xs text-muted-foreground">Distancia</p>
                   </div>
                   <div className="p-2 bg-background rounded-lg border">
                     <p className="font-bold text-primary capitalize">{selectedRoute.difficulty || "n/a"}</p>
-                    <p className="text-[10px] text-muted-foreground">Dificultad</p>
+                    <p className="text-3xs text-muted-foreground">Dificultad</p>
                   </div>
                 </div>
               </div>
@@ -374,16 +374,16 @@ export function AdminRouteBuilder() {
                   {stops.map((stop, index) => (
                     <div key={stop.id} className="relative group">
                       {/* Timeline dot */}
-                      <span className="absolute -left-[31px] top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary ring-4 ring-background text-[10px] text-primary-foreground font-bold">
+                      <span className="absolute -left-[31px] top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary ring-4 ring-background text-3xs text-primary-foreground font-bold">
                         {index + 1}
                       </span>
                       
                       <div className="p-3 rounded-xl border bg-secondary/15 hover:border-primary/50 transition-colors flex items-center justify-between gap-4">
                         <div className="space-y-1">
                           <h4 className="font-bold text-xs text-foreground">{stop.place_name}</h4>
-                          {stop.notes && <p className="text-[10px] text-muted-foreground">"{stop.notes}"</p>}
+                          {stop.notes && <p className="text-3xs text-muted-foreground">"{stop.notes}"</p>}
                           {stop.latitude && stop.longitude && (
-                            <span className="text-[9px] font-mono text-muted-foreground block">
+                            <span className="text-3xs font-mono text-muted-foreground block">
                               Lat: {stop.latitude.toFixed(4)} | Lng: {stop.longitude.toFixed(4)}
                             </span>
                           )}

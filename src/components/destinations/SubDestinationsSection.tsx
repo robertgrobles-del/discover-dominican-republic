@@ -88,7 +88,7 @@ export function SubDestinationsSection({
                       {dest.highlights && dest.highlights.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-2">
                           {dest.highlights.slice(0, 2).map((h, i) => (
-                            <Badge key={i} className="bg-white/20 text-white text-[10px]">
+                            <Badge key={i} className="bg-white/20 text-white text-3xs">
                               {h}
                             </Badge>
                           ))}

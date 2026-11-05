@@ -8,8 +8,10 @@ import {
   HelpCircle, Sparkles, Navigation, Globe, Waves, Mountain, BookOpen
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function Sitemap() {
+  const pc = usePageContent("sitemap");
   const sections = [
     {
       title: "Destinos & Provincias",
@@ -88,11 +90,11 @@ export default function Sitemap() {
       links: [
         { name: "Hub de Herramientas de Viaje", href: "/herramientas" },
         { name: "Cómo Llegar y Transporte", href: "/como-llegar" },
-        { name: "Información de Transporte Terrestre", href: "/info/transporte" },
-        { name: "Calculadora de Presupuesto", href: "/calculadora-presupuesto" },
+        { name: "Información de Transporte Terrestre", href: "/transporte-urbano#recorre" },
+        { name: "Calculadora de Presupuesto", href: "/costos-viaje#calculadora" },
         { name: "Conversor de Moneda (DOP/USD/EUR)", href: "/conversor-moneda" },
         { name: "Estado y Clima de Playas en Tiempo Real", href: "/estado-playas" },
-        { name: "Diccionario de Dominicanismos", href: "/diccionario" },
+        { name: "Diccionario de Dominicanismos", href: "/espanol-viajero#diccionario" },
         { name: "Mi Viaje e Itinerario Inteligente", href: "/mi-viaje" },
       ],
     },
@@ -106,7 +108,7 @@ export default function Sitemap() {
         { name: "Turismo Médico y Salud", href: "/turismo-medico" },
         { name: "Nómadas Digitales en RD", href: "/nomadas-digitales" },
         { name: "Directorio de Agencias de Viaje", href: "/directorio-agencias" },
-        { name: "Portal de Partners y Registro", href: "/partner/login" },
+        { name: "Portal de Partners y Registro", href: "/operadores/panel" },
         { name: "Operadores RD: reservas directas", href: "/operadores" },
         { name: "Directorio de operadores verificados", href: "/operadores/directorio" },
         { name: "Panel de operador", href: "/operadores/panel" },
@@ -131,8 +133,8 @@ export default function Sitemap() {
   return (
     <PageTransition>
       <SEOHead
-        title="Mapa del Sitio Completo | Descubre República Dominicana"
-        description="Índice exhaustivo de todas las provincias, playas, ríos, rutas gastronómicas, hoteles y experiencias de República Dominicana."
+        title={pc.t("SEOHead.title.1", "Mapa del Sitio Completo | Descubre República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Índice exhaustivo de todas las provincias, playas, ríos, rutas gastronómicas, hoteles y experiencias de República Dominicana.")}
         keywords="sitemap descubre rd, mapa del sitio turismo republica dominicana, directorio turismo dominicano"
       />
       <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary selection:text-white">
@@ -141,15 +143,10 @@ export default function Sitemap() {
         {/* Hero */}
         <section className="py-16 md:py-20 bg-gradient-to-b from-primary/10 via-background to-background border-b border-border">
           <div className="container mx-auto px-4 max-w-6xl text-center">
-            <Badge className="bg-primary/20 text-primary border-primary/30 mb-4 px-4 py-1.5 text-xs font-mono uppercase tracking-widest">
-              ARQUITECTURA DE INFORMACIÓN
-            </Badge>
-            <h1 className="font-display text-4xl sm:text-5xl font-black mb-4 tracking-tight">
-              Mapa del Sitio <span className="text-gradient">Descubre RD</span>
+            <Badge className="bg-primary/20 text-primary border-primary/30 mb-4 px-4 py-1.5 text-xs font-mono uppercase tracking-widest">{pc.tx("Badge.1", "ARQUITECTURA DE INFORMACIÓN")}</Badge>
+            <h1 className="font-display text-4xl sm:text-5xl font-black mb-4 tracking-tight">{pc.tx("h1.1", "Mapa del Sitio")}{" "}<span className="text-gradient">{pc.tx("span.1", "Descubre RD")}</span>
             </h1>
-            <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">
-              Explora la estructura completa de nuestro portal turístico. Acceso directo a todas las guías, provincias, herramientas y experiencias de la República Dominicana.
-            </p>
+            <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto">{pc.tx("p.1", "Explora la estructura completa de nuestro portal turístico. Acceso directo a todas las guías, provincias, herramientas y experiencias de la República Dominicana.")}</p>
           </div>
         </section>
 
@@ -166,7 +163,7 @@ export default function Sitemap() {
                         <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
                           <Icon className="h-5 w-5" />
                         </div>
-                        <Badge variant="secondary" className="text-[10px] font-mono">
+                        <Badge variant="secondary" className="text-3xs font-mono">
                           {section.badge}
                         </Badge>
                       </div>

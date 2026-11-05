@@ -108,7 +108,7 @@ export async function socialRoutes(app: FastifyInstance) {
     return { data: { id: row.id } };
   });
 
-  r.delete("/social/posts/:id", { onRequest: app.authenticate, schema: { tags: ["social"], summary: "Borra una publicación (dueño o moderador; borrado lógico)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
+  r.delete("/social/posts/:id", { onRequest: app.authenticateStaffMfa, schema: { tags: ["social"], summary: "Borra una publicación (dueño o moderador; borrado lógico)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
     const p = (await db.query<{ user_id: string }>("SELECT user_id FROM social_posts WHERE id = $1 AND deleted_at IS NULL", [req.params.id])).rows[0];
     if (!p) throw AppError.notFound("Publicación");
     const staff = req.user!.roles.some((x) => ["admin", "moderator"].includes(x));
@@ -126,6 +126,7 @@ export async function socialRoutes(app: FastifyInstance) {
 
   r.put("/social/posts/:id/like", { onRequest: app.authenticate, config: rl(200, "1 hour"), schema: { tags: ["social"], summary: "Like (idempotente)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
     await visiblePost(req.params.id);
+    await requireVerified(req.user!.id);
     const ins = await db.query("INSERT INTO social_likes (user_id, post_id) VALUES ($1,$2) ON CONFLICT DO NOTHING", [req.user!.id, req.params.id]);
     if (ins.rowCount) await db.query("UPDATE social_posts SET likes_count = likes_count + 1 WHERE id = $1", [req.params.id]);
     reply.code(204);
@@ -164,7 +165,7 @@ export async function socialRoutes(app: FastifyInstance) {
     return { data: { comment: { id: c.id, content: req.body.content, created_at: c.created_at.toISOString() }, xp_awarded: g?.granted.xp ?? 0, level_up: g?.level_up ?? null } };
   });
 
-  r.delete("/social/comments/:id", { onRequest: app.authenticate, schema: { tags: ["social"], summary: "Borra un comentario (dueño o moderador)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
+  r.delete("/social/comments/:id", { onRequest: app.authenticateStaffMfa, schema: { tags: ["social"], summary: "Borra un comentario (dueño o moderador)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
     const c = (await db.query<{ user_id: string; post_id: string }>("SELECT user_id, post_id FROM social_comments WHERE id = $1 AND is_active", [req.params.id])).rows[0];
     const staff = req.user!.roles.some((x) => ["admin", "moderator"].includes(x));
     if (!c || (c.user_id !== req.user!.id && !staff)) throw AppError.notFound("Comentario");
@@ -191,7 +192,8 @@ export async function socialRoutes(app: FastifyInstance) {
     const table = { post: "social_posts", comment: "social_comments", review: "reviews", ugc_media: "ugc_media", user: "users" }[b.target_type];
     if (!(await db.query(`SELECT 1 FROM ${table} WHERE id = $1`, [b.target_id])).rowCount) throw AppError.notFound("Contenido");
     const ins = await db.query("INSERT INTO ugc_reports (user_id, target_type, target_id, reason, detail) VALUES ($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING", [req.user!.id, b.target_type, b.target_id, b.reason, b.detail ?? null]);
-    if (ins.rowCount && b.target_type === "post") {
+    // Solo los reportes de cuentas con correo verificado cuentan para el ocultamiento automático.
+    if (ins.rowCount && b.target_type === "post" && (await db.query("SELECT 1 FROM users WHERE id = $1 AND email_verified_at IS NOT NULL", [req.user!.id])).rowCount) {
       const n = (await db.query<{ report_count: number }>("UPDATE social_posts SET report_count = report_count + 1 WHERE id = $1 RETURNING report_count", [b.target_id])).rows[0]!.report_count;
       if (n >= REPORTS_TO_HIDE) await db.query("UPDATE social_posts SET is_active = false WHERE id = $1 AND deleted_at IS NULL", [b.target_id]);
     }

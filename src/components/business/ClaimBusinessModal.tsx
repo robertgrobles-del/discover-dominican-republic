@@ -120,10 +120,10 @@ export function ClaimBusinessModal({
           <>
             <DialogHeader className="space-y-2">
               <div className="flex items-center gap-2">
-                <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[11px] font-bold uppercase tracking-wider">
+                <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 text-2xs font-bold uppercase tracking-wider">
                   Verificación de Negocio
                 </Badge>
-                <Badge variant="outline" className="text-[11px] capitalize text-muted-foreground">
+                <Badge variant="outline" className="text-2xs capitalize text-muted-foreground">
                   {businessType}
                 </Badge>
               </div>
@@ -216,7 +216,7 @@ export function ClaimBusinessModal({
                     <Label htmlFor="claim-rnc" className="text-xs font-semibold text-foreground">
                       RNC o Registro Mercantil
                     </Label>
-                    <span className="text-[10px] text-muted-foreground">Opcional</span>
+                    <span className="text-3xs text-muted-foreground">Opcional</span>
                   </div>
                   <Input 
                     id="claim-rnc" 
@@ -233,7 +233,7 @@ export function ClaimBusinessModal({
                     <Label htmlFor="claim-mitur" className="text-xs font-semibold text-foreground">
                       No. Licencia MITUR (SIGTUR)
                     </Label>
-                    <span className="text-[10px] text-amber-500 font-medium">Dato para verificación</span>
+                    <span className="text-3xs text-amber-500 font-medium">Dato para verificación</span>
                   </div>
                   <Input 
                     id="claim-mitur" 

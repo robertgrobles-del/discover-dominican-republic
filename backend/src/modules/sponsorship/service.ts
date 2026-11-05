@@ -109,8 +109,12 @@ export class SponsorshipService {
       `SELECT c.campaign_id, camp.billing_type, camp.cpc_rate, camp.cpm_rate
          FROM sponsorship_creatives c
          JOIN sponsorship_campaigns camp ON camp.id = c.campaign_id
-        WHERE c.id = $1`,
-      [input.creative_id],
+        WHERE c.id = $1 AND c.slot_id = $2
+          -- Sólo se cobra lo que de verdad se puede servir: anuncio y campaña activos, en fechas y con presupuesto.
+          AND c.status = 'active' AND camp.status = 'active'
+          AND now() >= camp.starts_at AND now() <= camp.ends_at
+          AND (camp.budget_total = 0 OR camp.budget_spent < camp.budget_total)`,
+      [input.creative_id, input.slot_id],
     )).rows[0];
 
     if (!creativeInfo) throw AppError.notFound("Creatividad publicitaria");
@@ -119,6 +123,18 @@ export class SponsorshipService {
     const c = await this.db.connect();
     try {
       await c.query("BEGIN");
+      // La telemetría es anónima: un mismo visitante (cuenta o IP) cuenta una vez por anuncio y tipo de evento
+      // dentro de la ventana; las repeticiones no suman contadores ni gastan presupuesto.
+      const actor = input.user_id ? { col: "user_id", val: input.user_id } : ipHash ? { col: "ip_hash", val: ipHash } : null;
+      if (actor) {
+        await c.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`spons-event:${input.creative_id}:${input.event_type}:${actor.val}`]);
+        const window = input.event_type === "impression" ? "30 minutes" : "24 hours";
+        const dup = await c.query(
+          `SELECT 1 FROM sponsorship_events WHERE creative_id = $1 AND event_type = $2 AND ${actor.col} = $3 AND created_at > now() - $4::interval LIMIT 1`,
+          [input.creative_id, input.event_type, actor.val, window],
+        );
+        if (dup.rowCount) { await c.query("ROLLBACK"); return { recorded: false }; }
+      }
       await c.query(
         `INSERT INTO sponsorship_events (creative_id, slot_id, event_type, session_id, user_id, page, ip_hash)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,

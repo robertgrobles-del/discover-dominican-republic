@@ -89,7 +89,7 @@ export const DestinationMobileQuickBar: React.FC<DestinationMobileQuickBarProps>
               <h4 className="text-xs font-bold text-foreground truncate leading-tight">
                 {destinationName}
               </h4>
-              <span className="text-[10px] text-muted-foreground flex items-center gap-1 truncate">
+              <span className="text-3xs text-muted-foreground flex items-center gap-1 truncate">
                 <Sun className="h-2.5 w-2.5 text-amber-500 shrink-0" />
                 {tempCelsius}°C • {regionName}
               </span>

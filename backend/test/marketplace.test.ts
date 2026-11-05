@@ -203,6 +203,19 @@ describe("marketplace y embajadores", () => {
       expect((await call("POST", `/partner/marketplace/order-items/${itemB.id}/cancel`, { token: b.token })).statusCode).toBe(422);
     });
 
+    it("dos cancelaciones simultáneas del mismo pedido reembolsan y reponen una sola vez", async () => {
+      const v = await vendor("Doble cancela");
+      const pa = await product(v, { price: 100, stock: 5 }), pb = await product(v, { price: 100, stock: 5 });
+      const buyer = await account();
+      const o = json(await buy([{ product_id: pa.id, quantity: 1 }, { product_id: pb.id, quantity: 1 }], { token: buyer.token })).data.order;
+      const res = await Promise.all([1, 2].map(() => call("POST", `/marketplace/orders/${o.id}/cancel`, { token: buyer.token })));
+      expect(res.some((r) => r.statusCode === 200)).toBe(true);
+      expect((await pool.query("SELECT count(*)::int AS n FROM marketplace_payments WHERE order_id = $1 AND kind = 'refund'", [o.id])).rows[0].n).toBe(2);
+      expect(Number((await pool.query("SELECT refund_amount FROM marketplace_orders WHERE id = $1", [o.id])).rows[0].refund_amount)).toBe(200);
+      expect(await stockOf(pa.id)).toBe(5);
+      expect(await stockOf(pb.id)).toBe(5);
+    });
+
     it("los pedidos sin cobrar vencen y devuelven el stock", async () => {
       const v = await vendor("Vence");
       const p = await product(v, { stock: 3 });
@@ -379,23 +392,24 @@ describe("marketplace y embajadores", () => {
       me = json(await call("GET", "/ambassadors/me", { token: amb.token })).data;
       expect(me).toMatchObject({ available: 0, requested: 1100, payout_method: "bank_transfer" });
       expect(json(await call("POST", "/ambassadors/me/payouts/request", { token: amb.token, payload: null })).error.details.code).toBe("BELOW_MINIMUM");
-      // Con el pago pendiente, un reembolso no toca lo que ya está en la solicitud.
+      // Con el pago pendiente, un reembolso revierte esa comisión y la saca de la solicitud (no se paga sobre lo devuelto).
       await call("POST", `/admin/store/orders/${o2.id}/refund`, { token: admin, payload: { reason: "Devolución" } });
-      expect((await referral("store", o2.id)).status).toBe("requested");
+      expect((await referral("store", o2.id))).toMatchObject({ status: "reversed", payout_id: null });
+      expect(Number((await referral("store", o2.id)).commission_earned)).toBe(0);
 
       const payout = json(await call("GET", "/admin/ambassadors/payouts?status=pending", { token: admin })).data.find((x: { ambassador_id: string }) => x.ambassador_id === amb.id);
-      expect(payout).toMatchObject({ amount: 1100, status: "pending", payout_method: "bank_transfer" });
+      expect(payout).toMatchObject({ amount: 1000, status: "pending", payout_method: "bank_transfer" });
       expect((await call("PATCH", `/admin/ambassadors/payouts/${payout.id}`, { token: amb.token, payload: { status: "paid", reference: "X-1" } })).statusCode).toBe(403);
       expect((await call("PATCH", `/admin/ambassadors/payouts/${payout.id}`, { token: admin, payload: { status: "paid" } })).statusCode).toBe(400);
       expect((await call("PATCH", `/admin/ambassadors/payouts/${payout.id}`, { token: admin, payload: { status: "failed", note: "Cuenta inválida" } })).statusCode).toBe(200);
       me = json(await call("GET", "/ambassadors/me", { token: amb.token })).data;
-      expect(me).toMatchObject({ available: 1100, requested: 0 });     // vuelve a estar disponible
+      expect(me).toMatchObject({ available: 1000, requested: 0 });     // vuelve a estar disponible, sin la comisión reembolsada
       const again = json(await call("POST", "/ambassadors/me/payouts/request", { token: amb.token, payload: {} })).data;
       const ok = await call("PATCH", `/admin/ambassadors/payouts/${again.id}`, { token: admin, payload: { status: "paid", reference: "TRF-778" } });
       expect(json(ok).data).toMatchObject({ status: "paid", reference: "TRF-778" });
       expect((await call("PATCH", `/admin/ambassadors/payouts/${again.id}`, { token: admin, payload: { status: "failed" } })).statusCode).toBe(422);
       me = json(await call("GET", "/ambassadors/me", { token: amb.token })).data;
-      expect(me).toMatchObject({ paid: 1100, available: 0, requested: 0 });
+      expect(me).toMatchObject({ paid: 1000, available: 0, requested: 0 });
       expect(json(await call("GET", "/ambassadors/me/payouts", { token: amb.token })).data.map((p: { status: string }) => p.status).sort()).toEqual(["failed", "paid"]);
       const mail = (await pool.query("SELECT count(*)::int AS n FROM email_log WHERE template = 'ambassador.payout' AND created_at > now() - interval '1 minute'")).rows[0].n;
       expect(mail).toBeGreaterThanOrEqual(1);

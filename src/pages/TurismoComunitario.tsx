@@ -16,6 +16,7 @@ import gastronomy from "@/assets/gastronomy.jpg";
 import merengue from "@/assets/merengue-dance.jpg";
 import colonialDoor from "@/assets/colonial-door.jpg";
 import relaxBeach from "@/assets/relax-beach.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const comunidades = [
   {
@@ -109,11 +110,15 @@ const principios = [
 ];
 
 export default function TurismoComunitario() {
+  const pc = usePageContent("turismo-comunitario");
+  const impacto = pc.data("impacto", __pcData.impacto);
+  const principios = pc.data("principios", __pcData.principios);
+  const comunidades = pc.data("comunidades", __pcData.comunidades);
   return (
     <PageTransition>
       <SEOHead
-        title="Turismo Comunitario Sostenible en República Dominicana"
-        description="Vive experiencias auténticas con comunidades locales. Alojamiento familiar, gastronomía rural, artesanía y naturaleza en República Dominicana."
+        title={pc.t("SEOHead.title.1", "Turismo Comunitario Sostenible en República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Vive experiencias auténticas con comunidades locales. Alojamiento familiar, gastronomía rural, artesanía y naturaleza en República Dominicana.")}
         keywords="turismo comunitario RD, turismo sostenible, experiencias locales, agroturismo dominicano"
       />
       <div className="min-h-screen flex flex-col bg-background">
@@ -123,14 +128,10 @@ export default function TurismoComunitario() {
         <section className="relative py-20 bg-gradient-to-b from-primary/10 to-background">
           <div className="container mx-auto px-4 text-center">
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
-              <HandHeart className="h-3 w-3 mr-1" /> Turismo con Propósito
-            </Badge>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Turismo Comunitario <span className="text-primary">Sostenible</span>
+              <HandHeart className="h-3 w-3 mr-1" />{" "}{pc.tx("Badge.1", "Turismo con Propósito")}</Badge>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Turismo Comunitario")}{" "}<span className="text-primary">{pc.tx("span.1", "Sostenible")}</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Conecta con la esencia dominicana. Vive con familias locales, aprende oficios ancestrales y contribuye al desarrollo sostenible.
-            </p>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">{pc.tx("p.1", "Conecta con la esencia dominicana. Vive con familias locales, aprende oficios ancestrales y contribuye al desarrollo sostenible.")}</p>
           </div>
         </section>
 
@@ -152,7 +153,7 @@ export default function TurismoComunitario() {
         {/* Principios */}
         <section className="py-16">
           <div className="container mx-auto px-4">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">¿Qué es el Turismo Comunitario?</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.1", "¿Qué es el Turismo Comunitario?")}</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {principios.map((p) => (
                 <div key={p.title} className="bg-card rounded-xl p-6 border border-border hover:border-primary/30 transition-colors">
@@ -168,7 +169,7 @@ export default function TurismoComunitario() {
         {/* Comunidades */}
         <section className="py-16 bg-card/50">
           <div className="container mx-auto px-4">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">Comunidades Participantes</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.2", "Comunidades Participantes")}</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {comunidades.map((c) => (
                 <Card key={c.id} className="group overflow-hidden border-border hover:shadow-xl transition-all">
@@ -190,12 +191,11 @@ export default function TurismoComunitario() {
                     </div>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
                       <span className="flex items-center gap-1"><Star className="h-3 w-3 text-yellow-500" /> {c.rating}</span>
-                      <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {c.familias} familias</span>
+                      <span className="flex items-center gap-1"><Users className="h-3 w-3" /> {c.familias}{" "}{pc.tx("span.2", "familias")}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-semibold text-primary">{c.precio}</span>
-                      <Button size="sm" variant="outline" className="gap-1">
-                        Contactar <ChevronRight className="h-3 w-3" />
+                      <Button size="sm" variant="outline" className="gap-1">{pc.tx("Button.1", "Contactar")}{" "}<ChevronRight className="h-3 w-3" />
                       </Button>
                     </div>
                   </CardContent>
@@ -208,13 +208,10 @@ export default function TurismoComunitario() {
         {/* CTA */}
         <section className="py-16">
           <div className="container mx-auto px-4 text-center max-w-2xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-4">¿Quieres registrar tu comunidad?</h2>
-            <p className="text-muted-foreground mb-6">
-              Si representas una comunidad rural, costera o cultural interesada en recibir visitantes responsables, contáctanos para ser parte de la red.
-            </p>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-4">{pc.tx("h2.3", "¿Quieres registrar tu comunidad?")}</h2>
+            <p className="text-muted-foreground mb-6">{pc.tx("p.2", "Si representas una comunidad rural, costera o cultural interesada en recibir visitantes responsables, contáctanos para ser parte de la red.")}</p>
             <Link to="/sugerencias">
-              <Button size="lg" className="gap-2">
-                Postular mi comunidad <ChevronRight className="h-4 w-4" />
+              <Button size="lg" className="gap-2">{pc.tx("Button.2", "Postular mi comunidad")}{" "}<ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
           </div>
@@ -225,3 +222,6 @@ export default function TurismoComunitario() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { impacto, principios, comunidades };

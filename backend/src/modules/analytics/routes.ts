@@ -25,22 +25,26 @@ const SENSITIVE_KEY = /(mail|phone|tel|pass|token|secret|card|dni|cedula|passpor
 const ok = z.object({ data: z.any() });
 const bearer = [{ bearerAuth: [] }];
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+/** PostgreSQL rechaza U+0000 en `text` y en `jsonb`: se quita de todo lo que llega del cliente para que un evento no tumbe el lote. */
+const noNul = (s: string) => s.replace(/\u0000/g, "");
+/** Conteo de resultados de una búsqueda guardado en `metadata`: sólo si es un entero razonable; si no, 0 (nunca rompe la consulta). */
+const RESULTS_INT = "(CASE WHEN jsonb_typeof(metadata->'results') = 'number' AND (metadata->>'results') ~ '^[0-9]{1,9}$' THEN (metadata->>'results')::int ELSE 0 END)";
 
 /** Ruta sin parámetros ni fragmento (pueden llevar tokens o datos personales). */
 const cleanPage = (p: string | undefined) => {
   if (!p) return null;
-  const path = p.split(/[?#]/)[0]!.slice(0, 200);
+  const path = noNul(p).split(/[?#]/)[0]!.slice(0, 200);
   return /^\/(admin|login|registro|reset-password|perfil|reservas|checkout|panel|partner)(\/|$)/i.test(path) ? null : path;
 };
 /** Sólo el host de origen. */
-const cleanSource = (s: string | undefined) => { if (!s) return null; try { return new URL(s).hostname.slice(0, 100) || null; } catch { return /^[a-z0-9.-]{1,100}$/i.test(s) ? s.toLowerCase() : null; } };
+const cleanSource = (s: string | undefined) => { if (!s) return null; s = noNul(s); try { return new URL(s).hostname.slice(0, 100) || null; } catch { return /^[a-z0-9.-]{1,100}$/i.test(s) ? s.toLowerCase() : null; } };
 /** Quita de las propiedades cualquier campo que parezca un dato personal y limita su tamaño. */
 export function cleanProps(props: Record<string, unknown> | undefined): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(props ?? {}).slice(0, 20)) {
-    if (SENSITIVE_KEY.test(k) || k.length > 40) continue;
+    if (SENSITIVE_KEY.test(k) || k.length > 40 || k.includes("\u0000")) continue;
     // Un valor que parece correo, URL o ruta se descarta; el resto se conserva truncado a 200.
-    if (typeof v === "string" && !["@", ":", "/", "?", "\\"].some((char) => v.includes(char))) out[k] = v.slice(0, 200);
+    if (typeof v === "string" && !["@", ":", "/", "?", "\\"].some((char) => v.includes(char))) out[k] = noNul(v).slice(0, 200);
     else if (typeof v === "number" || typeof v === "boolean" || v === null) out[k] = v;
   }
   return JSON.stringify(out).length > 2000 ? {} : out;
@@ -83,7 +87,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
     const rows = req.body.events.map((e) => {
       // Un reloj de cliente desfasado no puede inventar el pasado ni el futuro: fuera de ±1 día se usa la hora del servidor.
       const t = e.ts && Math.abs(new Date(e.ts).getTime() - now) < 86_400_000 ? e.ts : new Date(now).toISOString();
-      return [e.type, cleanPage(e.page), e.session_id.slice(0, 64), JSON.stringify(cleanProps(e.props)), t, c, cleanSource(e.source)];
+      return [e.type, cleanPage(e.page), noNul(e.session_id).slice(0, 64), JSON.stringify(cleanProps(e.props)), t, c, cleanSource(e.source)];
     });
     // Fase 9.1: con Redis configurado, encolar en vez de insertar en la DB transaccional (un trabajo programado vacía la cola en lotes).
     // Si no hay Redis, o si falló encolar algún evento del lote, se inserta directo como antes (comportamiento sin cambios).
@@ -186,7 +190,7 @@ export async function analyticsRoutes(app: FastifyInstance) {
 
   const searchTerms = async (q: { from?: string; to?: string; limit: number }) => {
     const { from, to } = range(q);
-    return (await db.query("SELECT metadata->>'q' AS term, count(*)::int AS searches FROM analytics_events WHERE event_type = 'search' AND coalesce((metadata->>'results')::int, 0) = 0 AND created_at >= ($1::date::timestamp AT TIME ZONE 'America/Santo_Domingo') AND created_at < (($2::date + 1)::timestamp AT TIME ZONE 'America/Santo_Domingo') GROUP BY 1 ORDER BY searches DESC, term LIMIT $3", [from, to, q.limit])).rows;
+    return (await db.query(`SELECT metadata->>'q' AS term, count(*)::int AS searches FROM analytics_events WHERE event_type = 'search' AND ${RESULTS_INT} = 0 AND created_at >= ($1::date::timestamp AT TIME ZONE 'America/Santo_Domingo') AND created_at < (($2::date + 1)::timestamp AT TIME ZONE 'America/Santo_Domingo') GROUP BY 1 ORDER BY searches DESC, term LIMIT $3`, [from, to, q.limit])).rows;
   };
   r.get("/admin/analytics/search-terms", { onRequest: reader, schema: { tags: ["admin"], summary: "Términos buscados sin resultados", security: bearer, querystring: z.object({ from: date.optional(), to: date.optional(), limit: z.coerce.number().int().min(1).max(200).default(50) }), response: { 200: ok } } }, async (req) => ({ data: await searchTerms(req.query) }));
 
@@ -374,7 +378,11 @@ export async function analyticsRoutes(app: FastifyInstance) {
       throw new AppError("UNAUTHENTICATED", "API Key B2B inválida o ausente en el encabezado X-API-Key");
     }
     const hash = createHash("sha256").update(rawKey).digest("hex");
-    const keyRow = (await db.query<{ id: string; tier: string }>("SELECT id, tier FROM b2b_api_keys WHERE key_hash = $1 AND is_active", [hash])).rows[0];
+    // La llave sólo vale mientras su dueño siga activo: una cuenta suspendida o borrada pierde también el acceso B2B.
+    const keyRow = (await db.query<{ id: string; tier: string }>(
+      `SELECT k.id, k.tier FROM b2b_api_keys k JOIN users u ON u.id = k.user_id LEFT JOIN profiles p ON p.id = k.user_id
+        WHERE k.key_hash = $1 AND k.is_active AND (k.expires_at IS NULL OR k.expires_at > now())
+          AND u.status = 'active' AND NOT coalesce(p.is_suspended, false)`, [hash])).rows[0];
     if (!keyRow) throw new AppError("UNAUTHENTICATED", "API Key no autorizada o revocada");
 
     await db.query("UPDATE b2b_api_keys SET last_used_at = now() WHERE id = $1", [keyRow.id]);
@@ -414,9 +422,16 @@ export function registerAnalyticsJobs(app: FastifyInstance, runner: JobRegistrar
       for (;;) {
         const batch = (await app.telemetryQueue.drain("analytics_events", 500)) as [string, string | null, string, string, string, string | null, string | null][];
         if (batch.length === 0) break;
-        const values = batch.map((_, i) => `($${i * 7 + 1},$${i * 7 + 2},$${i * 7 + 3},$${i * 7 + 4},$${i * 7 + 5},$${i * 7 + 6},$${i * 7 + 7})`).join(",");
-        await app.db.query(`INSERT INTO analytics_events (event_type, page, session_id, metadata, created_at, country, source) VALUES ${values}`, batch.flat());
-        flushed += batch.length;
+        const insert = (rows: typeof batch) => {
+          const values = rows.map((_, i) => `($${i * 7 + 1},$${i * 7 + 2},$${i * 7 + 3},$${i * 7 + 4},$${i * 7 + 5},$${i * 7 + 6},$${i * 7 + 7})`).join(",");
+          return app.db.query(`INSERT INTO analytics_events (event_type, page, session_id, metadata, created_at, country, source) VALUES ${values}`, rows.flat());
+        };
+        // Los eventos ya salieron de Redis: si el lote falla (p. ej. un valor que PostgreSQL rechaza), se reintenta fila
+        // por fila para que un solo evento malo no se lleve consigo los de los demás visitantes.
+        try { await insert(batch); flushed += batch.length; } catch (err) {
+          app.log.warn({ err }, "Lote de analítica rechazado; se inserta evento por evento");
+          for (const row of batch) { try { await insert([row]); flushed++; } catch { /* evento inválido: se descarta sólo ese */ } }
+        }
         if (batch.length < 500) break;
       }
       return { flushed };

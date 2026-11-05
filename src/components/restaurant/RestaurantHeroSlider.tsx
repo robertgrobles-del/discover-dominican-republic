@@ -83,7 +83,7 @@ export function RestaurantHeroSlider({
     const diff = touchStartX.current - e.changedTouches[0].clientX;
     if (Math.abs(diff) > 45) {
       setIsAutoPlaying(false);
-      diff > 0 ? nextSlide() : prevSlide();
+      if (diff > 0) nextSlide(); else prevSlide();
     }
     touchStartX.current = null;
   };
@@ -92,7 +92,7 @@ export function RestaurantHeroSlider({
 
   return (
     <section
-      className="relative h-[65vh] min-h-[500px] md:h-[80vh] w-full overflow-hidden touch-pan-y"
+      className="relative h-[46vh] min-h-[340px] max-h-[520px] md:h-[54vh] w-full overflow-hidden touch-pan-y"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
       onTouchStart={handleTouchStart}
@@ -137,7 +137,7 @@ export function RestaurantHeroSlider({
                   {categoryLabel}
                 </Badge>
                 {isFeatured && (
-                  <Badge className="bg-amber-500 text-slate-950 font-bold border-none text-[11px] uppercase tracking-wider px-2.5 py-0.5 shadow-sm">
+                  <Badge className="bg-amber-500 text-slate-950 font-bold border-none text-2xs uppercase tracking-wider px-2.5 py-0.5 shadow-sm">
                     Recomendado
                   </Badge>
                 )}

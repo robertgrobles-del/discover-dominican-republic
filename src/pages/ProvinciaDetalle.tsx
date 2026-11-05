@@ -8,7 +8,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead, generateDestinationSchema } from "@/components/SEOHead";
-import { useMemo, useState, useEffect } from "react";
+import { Fragment, useMemo, useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -24,6 +24,8 @@ import { BetweenSectionsAd, PanoramaAd } from "@/components/promo";
 import { DistancesFromCities } from "@/components/destination/DistancesFromCities";
 import { DestinationAboutTabs } from "@/components/destination/DestinationAboutTabs";
 import { DestinationGallery } from "@/components/destination/DestinationGallery";
+import { DestinationZonesGrid } from "@/components/destination/DestinationZonesGrid";
+import { ParticipationInvite } from "@/components/gamificacion/ParticipationInvite";
 import { HowToGetThere } from "@/components/destination/HowToGetThere";
 import { RelatedBlogPosts } from "@/components/destination/RelatedBlogPosts";
 import { CommentSection } from "@/components/comments/CommentSection";
@@ -36,10 +38,17 @@ import { restaurants } from "@/data/restaurants";
 import { bars } from "@/data/bars";
 import { CatalogService } from "@/services/catalogService";
 import { useQuery } from "@tanstack/react-query";
+import { usePageContent } from "@/lib/pageContent";
+import { destinationTheme } from "@/lib/destinationTheme";
+import { DEFAULT_PROVINCE_BLOCKS, provinceIdentity, type ProvinceBlock } from "@/data/provinceIdentity";
+import { AtlanticRoute, PhotoCredits, ProvinceIdentityIntro, ProvinceMunicipalities, ProvinceThemes, ProvinceTravelerFilter } from "@/components/province/ProvinceIdentitySections";
+
 
 export default function ProvinciaDetalle() {
+  const pc = usePageContent("provincia-detalle");
   const { slug } = useParams<{ slug: string }>();
   const province = getDestinationBySlug(slug || "");
+  const identity = slug ? provinceIdentity[slug] : undefined;
 
   // Match corresponding static rich destination data if available (e.g., samana, puerto-plata)
   const staticDestino = destinosData[slug || ""] || (slug ? destinosData[provinceToDestinationMap[slug] || ""] : null);
@@ -248,16 +257,278 @@ export default function ProvinciaDetalle() {
         <Header />
         <main className="min-h-screen flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Provincia no encontrada</h1>
-            <Link to="/destinos" className="text-primary hover:underline">
-              Volver a destinos
-            </Link>
+            <h1 className="text-2xl font-bold mb-4">{pc.tx("h1.1", "Provincia no encontrada")}</h1>
+            <Link to="/destinos" className="text-primary hover:underline">{pc.tx("Link.1", "Volver a destinos")}</Link>
           </div>
         </main>
         <Footer />
       </PageTransition>
     );
   }
+
+  const theme = destinationTheme(province.slug);
+  const blocks: Partial<Record<ProvinceBlock, React.ReactNode>> = {
+    "hero": (
+      <>
+        <ProvinceHero
+          name={province.name}
+          region={province.region}
+          capital={(province as any).capital || province.name}
+          population={(province as any).population}
+          areaKm2={(province as any).areaKm2}
+          description={province.description}
+          images={heroImages}
+          highlights={province.highlights}
+          provinceSlug={slug}
+          slides={identity?.slides}
+          variant={identity?.heroStyle}
+          destinations={provinceDestinations}
+          hotels={provinceHotels}
+        />
+      </>
+    ),
+    "ficha": (
+      <>
+        {/* Bento Grid Technical Card */}
+        <ProvinceTechCard
+          name={province.name}
+          capital={(province as any).capital || province.name}
+          population={(province as any).population}
+          areaKm2={(province as any).areaKm2}
+          region={province.region}
+          bestTimeToVisit={province.bestTimeToVisit}
+          weatherInfo={province.weatherInfo}
+          howToGetThere={province.howToGetThere}
+          typicalDishes={province.typicalDishes}
+          latitude={province.latitude}
+          longitude={province.longitude}
+          categories={province.categories}
+        />
+      </>
+    ),
+    "distancias": (
+      <>
+        <DistancesFromCities
+          latitude={province.latitude}
+          longitude={province.longitude}
+          destinationName={province.name}
+        />
+      </>
+    ),
+    "anuncio": (
+      <>
+        <BetweenSectionsAd />
+      </>
+    ),
+    "acerca": (
+      <>
+        {/* About Tabs - History, Geography, Culture */}
+        {province.about && (
+          <DestinationAboutTabs name={province.name} data={province.about} />
+        )}
+      </>
+    ),
+    "actividades": (
+      <>
+        <div id="actividades" className="scroll-mt-20">
+          <ProvinceActivities
+            provinceName={province.name}
+            provinceSlug={province.slug}
+            categories={province.categories}
+          />
+        </div>
+      </>
+    ),
+    "destinos": (
+      <>
+        {provinceDestinations.length > 0 && (
+          <div id="destinos" className="scroll-mt-20">
+            <ProvinceDestinations
+              provinceName={province.name}
+              provinceSlug={province.slug}
+              destinations={provinceDestinations}
+            />
+          </div>
+        )}
+      </>
+    ),
+    "itinerario": (
+      <>
+        {/* Suggested Route / 3-Day Itinerary (Guaranteed for all provinces) */}
+        {displayItinerary && displayItinerary.length > 0 && (
+          <section id="itinerario" className="py-16 bg-muted/25 border-y border-border/60 scroll-mt-20">
+            <div className="container mx-auto px-4">
+              <div className="flex items-center gap-2 text-primary font-semibold text-xs tracking-widest uppercase mb-2">
+                <Route className="h-4 w-4" />
+                <span>{pc.tx("span.1", "Itinerario Recomendado")}</span>
+              </div>
+              <h2 className="font-display text-2xl md:text-4xl font-bold text-foreground mb-2">{pc.tx("h2.1", "Ruta Sugerida:")}{" "}{displayItinerary.length}{" "}{pc.tx("h2.2", "Días Inolvidables en")}{" "}{province.name}
+              </h2>
+              <p className="text-sm md:text-base text-muted-foreground mb-8 max-w-3xl">{pc.tx("p.1", "Diseñado por expertos locales para aprovechar al máximo los atractivos históricos, ecológicos y gastronómicos de la provincia.")}</p>
+              
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+                {displayItinerary.map((dia: any, index: number) => (
+                  <div key={dia.dia || index} className="relative bg-card rounded-2xl p-6 border border-border/70 hover:border-primary/40 transition-all shadow-xs flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <Badge variant="outline" className="text-xs bg-primary/5 text-primary border-primary/20 font-semibold">{pc.tx("Badge.1", "Día")}{" "}{dia.dia}: {dia.titulo}
+                        </Badge>
+                        <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shadow-xs">
+                          {dia.dia}
+                        </div>
+                      </div>
+                      <h3 className="h4 font-display font-bold text-foreground text-lg mb-2">{dia.lugar}</h3>
+                      <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">{dia.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+      </>
+    ),
+    "como-llegar": (
+      <>
+        {/* How to Get There (Independent clean section) */}
+        {displayAirport && (
+          <div id="como-llegar" className="scroll-mt-20 border-b border-border/40">
+            <HowToGetThere 
+              aeropuertoCercano={displayAirport}
+              opciones={displayTransport}
+            />
+          </div>
+        )}
+      </>
+    ),
+    "monumentos": (
+      <>
+        {/* Monuments (With authentic regional fallback) */}
+        <ProvinceMonuments
+          provinceId={province.id || slug || ''}
+          provinceName={province.name}
+          fallbackItems={enrichedData?.monuments}
+        />
+      </>
+    ),
+    "anuncio-2": (
+      <>
+        <BetweenSectionsAd />
+      </>
+    ),
+    "parques": (
+      <>
+        {/* Parks & Protected Areas (With authentic regional fallback) */}
+        <ProvinceParks
+          provinceId={province.id || slug || ''}
+          provinceName={province.name}
+          fallbackItems={enrichedData?.parks}
+        />
+      </>
+    ),
+    "hoteles": (
+      <>
+        {/* Hotels Section */}
+        <div id="hoteles" className="scroll-mt-20">
+          <ProvinceFeaturedSection
+            title={`Dónde Alojarte en ${province.name}`}
+            subtitle={pc.t("ProvinceFeaturedSection.subtitle.1", "Hoteles & Alojamientos Selectos")}
+            icon={<Building2 className="h-5 w-5" />}
+            items={provinceHotels}
+            linkPrefix="/alojamiento"
+            viewAllLink={`/alojamientos?provincia=${province.slug}`}
+            emptyMessage="Hoteles destacados en proceso de curaduría"
+          />
+        </div>
+      </>
+    ),
+    "gastronomia": (
+      <>
+        {/* Gastronomy Section */}
+        <div id="gastronomia" className="bg-muted/30 scroll-mt-20">
+          <ProvinceFeaturedSection
+            title={`Gastronomía & Sabores en ${province.name}`}
+            subtitle={pc.t("ProvinceFeaturedSection.subtitle.2", "Restaurantes Recomendados")}
+            icon={<Utensils className="h-5 w-5" />}
+            items={provinceRestaurants}
+            linkPrefix="/restaurante"
+            viewAllLink={`/guia-gastronomica?provincia=${province.slug}`}
+            emptyMessage="Restaurantes destacados en proceso de curaduría"
+          />
+        </div>
+      </>
+    ),
+    "vida-nocturna": (
+      <>
+        {/* Nightlife Section */}
+        <div id="vida-nocturna" className="scroll-mt-20">
+          <ProvinceNightlife
+            provinceName={province.name}
+            provinceSlug={province.slug}
+            venues={provinceBars}
+          />
+        </div>
+      </>
+    ),
+    "panorama": (
+      <>
+        {/* Panorama Banner Ad */}
+        <section className="py-6">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <PanoramaAd showDemo />
+          </div>
+        </section>
+      </>
+    ),
+    "blog": (
+      <>
+        {/* Related Blog Posts */}
+        <RelatedBlogPosts destinationName={province.name} destinationSlug={province.slug} />
+      </>
+    ),
+    "galeria": (
+      <>
+        {/* Gallery Section - Fotografía & Paisajes */}
+        {displayGallery && displayGallery.length > 0 && (
+          <section className="py-12 bg-card/20 border-t border-border/40">
+            <div className="container mx-auto px-4">
+              <div className="flex items-center gap-2 text-primary font-semibold text-xs tracking-widest uppercase mb-2">
+                <Camera className="h-4 w-4" />
+                <span>{pc.tx("span.2", "Fotografía & Paisajes")}</span>
+              </div>
+              <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-6">{pc.tx("h2.3", "Galería Visual de")}{" "}{province.name}
+              </h2>
+              <DestinationGallery images={displayGallery} />
+            </div>
+          </section>
+        )}
+      </>
+    ),
+    "comentarios": (
+      <>
+        {/* Comments & UGC */}
+        <section className="py-8">
+          <div className="container mx-auto px-4 max-w-5xl">
+            <CommentSection
+              contentId={province.slug}
+              contentType="province"
+              title={`Experiencias y Consejos sobre ${province.name}`}
+            />
+          </div>
+        </section>
+      </>
+    ),
+    ...(identity && {
+      identidad: <ProvinceIdentityIntro name={province.name} identity={identity} />,
+      temas: <ProvinceThemes identity={identity} />,
+      municipios: <ProvinceMunicipalities name={province.name} identity={identity} />,
+      viajero: <ProvinceTravelerFilter identity={identity} />,
+      "ruta-atlantico": <AtlanticRoute currentProvince={province.slug} />,
+      creditos: <PhotoCredits credits={identity.photoCredits} />,
+      zonas: <section className="py-16"><div className="container mx-auto px-4"><DestinationZonesGrid slug={province.slug} destinoNombre={province.name} /></div></section>,
+      pasaporte: <div className="container mx-auto px-4 py-12"><ParticipationInvite placeName={province.name} /></div>,
+    }),
+  };
 
   return (
     <PageTransition>
@@ -276,203 +547,8 @@ export default function ProvinciaDetalle() {
 
       <Header />
 
-      <main className="min-h-screen bg-background">
-        <ProvinceHero
-          name={province.name}
-          region={province.region}
-          capital={(province as any).capital || province.name}
-          population={(province as any).population}
-          areaKm2={(province as any).areaKm2}
-          description={province.description}
-          images={heroImages}
-          highlights={province.highlights}
-          provinceSlug={slug}
-          destinations={provinceDestinations}
-          hotels={provinceHotels}
-        />
-
-
-        {/* Bento Grid Technical Card */}
-        <ProvinceTechCard
-          name={province.name}
-          capital={(province as any).capital || province.name}
-          population={(province as any).population}
-          areaKm2={(province as any).areaKm2}
-          region={province.region}
-          bestTimeToVisit={province.bestTimeToVisit}
-          weatherInfo={province.weatherInfo}
-          howToGetThere={province.howToGetThere}
-          typicalDishes={province.typicalDishes}
-          latitude={province.latitude}
-          longitude={province.longitude}
-          categories={province.categories}
-        />
-
-        <DistancesFromCities
-          latitude={province.latitude}
-          longitude={province.longitude}
-          destinationName={province.name}
-        />
-
-        <BetweenSectionsAd />
-
-        {/* About Tabs - History, Geography, Culture */}
-        {province.about && (
-          <DestinationAboutTabs name={province.name} data={province.about} />
-        )}
-
-        <div id="actividades" className="scroll-mt-20">
-          <ProvinceActivities
-            provinceName={province.name}
-            provinceSlug={province.slug}
-            categories={province.categories}
-          />
-        </div>
-
-        {provinceDestinations.length > 0 && (
-          <div id="destinos" className="scroll-mt-20">
-            <ProvinceDestinations
-              provinceName={province.name}
-              provinceSlug={province.slug}
-              destinations={provinceDestinations}
-            />
-          </div>
-        )}
-
-        {/* Suggested Route / 3-Day Itinerary (Guaranteed for all provinces) */}
-        {displayItinerary && displayItinerary.length > 0 && (
-          <section id="itinerario" className="py-16 bg-muted/25 border-y border-border/60 scroll-mt-20">
-            <div className="container mx-auto px-4">
-              <div className="flex items-center gap-2 text-primary font-semibold text-xs tracking-widest uppercase mb-2">
-                <Route className="h-4 w-4" />
-                <span>Itinerario Recomendado</span>
-              </div>
-              <h2 className="font-display text-2xl md:text-4xl font-bold text-foreground mb-2">
-                Ruta Sugerida: {displayItinerary.length} Días Inolvidables en {province.name}
-              </h2>
-              <p className="text-sm md:text-base text-muted-foreground mb-8 max-w-3xl">
-                Diseñado por expertos locales para aprovechar al máximo los atractivos históricos, ecológicos y gastronómicos de la provincia.
-              </p>
-              
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
-                {displayItinerary.map((dia: any, index: number) => (
-                  <div key={dia.dia || index} className="relative bg-card rounded-2xl p-6 border border-border/70 hover:border-primary/40 transition-all shadow-xs flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between gap-2 mb-3">
-                        <Badge variant="outline" className="text-xs bg-primary/5 text-primary border-primary/20 font-semibold">
-                          Día {dia.dia}: {dia.titulo}
-                        </Badge>
-                        <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shadow-xs">
-                          {dia.dia}
-                        </div>
-                      </div>
-                      <h4 className="font-display font-bold text-foreground text-lg mb-2">{dia.lugar}</h4>
-                      <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">{dia.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* How to Get There (Independent clean section) */}
-        {displayAirport && (
-          <div id="como-llegar" className="scroll-mt-20 border-b border-border/40">
-            <HowToGetThere 
-              aeropuertoCercano={displayAirport}
-              opciones={displayTransport}
-            />
-          </div>
-        )}
-
-        {/* Monuments (With authentic regional fallback) */}
-        <ProvinceMonuments
-          provinceId={province.id || slug || ''}
-          provinceName={province.name}
-          fallbackItems={enrichedData?.monuments}
-        />
-
-        <BetweenSectionsAd />
-
-        {/* Parks & Protected Areas (With authentic regional fallback) */}
-        <ProvinceParks
-          provinceId={province.id || slug || ''}
-          provinceName={province.name}
-          fallbackItems={enrichedData?.parks}
-        />
-
-        {/* Hotels Section */}
-        <div id="hoteles" className="scroll-mt-20">
-          <ProvinceFeaturedSection
-            title={`Dónde Alojarte en ${province.name}`}
-            subtitle="Hoteles & Alojamientos Selectos"
-            icon={<Building2 className="h-5 w-5" />}
-            items={provinceHotels}
-            linkPrefix="/alojamiento"
-            viewAllLink={`/alojamientos?provincia=${province.slug}`}
-            emptyMessage="Hoteles destacados en proceso de curaduría"
-          />
-        </div>
-
-        {/* Gastronomy Section */}
-        <div id="gastronomia" className="bg-muted/30 scroll-mt-20">
-          <ProvinceFeaturedSection
-            title={`Gastronomía & Sabores en ${province.name}`}
-            subtitle="Restaurantes Recomendados"
-            icon={<Utensils className="h-5 w-5" />}
-            items={provinceRestaurants}
-            linkPrefix="/restaurante"
-            viewAllLink={`/guia-gastronomica?provincia=${province.slug}`}
-            emptyMessage="Restaurantes destacados en proceso de curaduría"
-          />
-        </div>
-
-        {/* Nightlife Section */}
-        <div id="vida-nocturna" className="scroll-mt-20">
-          <ProvinceNightlife
-            provinceName={province.name}
-            provinceSlug={province.slug}
-            venues={provinceBars}
-          />
-        </div>
-
-        {/* Panorama Banner Ad */}
-        <section className="py-6">
-          <div className="container mx-auto px-4 max-w-6xl">
-            <PanoramaAd showDemo />
-          </div>
-        </section>
-
-        {/* Related Blog Posts */}
-        <RelatedBlogPosts destinationName={province.name} destinationSlug={province.slug} />
-
-        {/* Gallery Section - Fotografía & Paisajes */}
-        {displayGallery && displayGallery.length > 0 && (
-          <section className="py-12 bg-card/20 border-t border-border/40">
-            <div className="container mx-auto px-4">
-              <div className="flex items-center gap-2 text-primary font-semibold text-xs tracking-widest uppercase mb-2">
-                <Camera className="h-4 w-4" />
-                <span>Fotografía & Paisajes</span>
-              </div>
-              <h2 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground mb-6">
-                Galería Visual de {province.name}
-              </h2>
-              <DestinationGallery images={displayGallery} />
-            </div>
-          </section>
-        )}
-
-        {/* Comments & UGC */}
-        <section className="py-8">
-          <div className="container mx-auto px-4 max-w-5xl">
-            <CommentSection
-              contentId={province.slug}
-              contentType="province"
-              title={`Experiencias y Consejos sobre ${province.name}`}
-            />
-          </div>
-        </section>
+      <main className={`min-h-screen bg-background ${theme.className ?? ""}`} style={theme.style}>
+        {(identity?.blocks ?? DEFAULT_PROVINCE_BLOCKS).map((k) => <Fragment key={k}>{blocks[k]}</Fragment>)}
       </main>
 
       <Footer />

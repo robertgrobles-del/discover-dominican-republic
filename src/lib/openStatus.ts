@@ -42,14 +42,14 @@ export function calculateOpenStatus(hoursString?: string, is24h?: boolean): Open
     const match = hoursString.match(/(\d{1,2}):(\d{2})\s*(?:AM|PM)?\s*[-–]\s*(\d{1,2}):(\d{2})\s*(?:AM|PM)?/i);
 
     if (match) {
-      let openH = parseInt(match[1], 10);
+      const openH = parseInt(match[1], 10);
       const openM = parseInt(match[2], 10);
-      let closeH = parseInt(match[3], 10);
+      const closeH = parseInt(match[3], 10);
       const closeM = parseInt(match[4], 10);
 
       // Conversión inteligente básica si la hora de cierre es menor que la de apertura (ej. discoteca 22:00 a 04:00)
-      let openMinutes = openH * 60 + openM;
-      let closeMinutes = closeH * 60 + closeM;
+      const openMinutes = openH * 60 + openM;
+      const closeMinutes = closeH * 60 + closeM;
 
       if (closeMinutes < openMinutes) {
         // Horario trasnochador

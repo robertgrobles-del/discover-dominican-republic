@@ -120,7 +120,7 @@ export function CreatorsVideosTab({
                           <span>{video.title}</span>
                         </div>
                         {video.ruleCode && (
-                          <p className="mt-1.5 flex items-center gap-1.5 text-[10px] font-normal text-destructive">
+                          <p className="mt-1.5 flex items-center gap-1.5 text-3xs font-normal text-destructive">
                             <ShieldAlert className="h-3 w-3 shrink-0" />
                             Regla aplicable:
                             <span className="font-mono rounded bg-muted px-1.5 py-0.5 text-foreground">
@@ -129,7 +129,7 @@ export function CreatorsVideosTab({
                           </p>
                         )}
                         {video.reviewNotes && (
-                          <p className="mt-1 flex items-start gap-1.5 text-[10px] font-normal text-muted-foreground max-w-xs">
+                          <p className="mt-1 flex items-start gap-1.5 text-3xs font-normal text-muted-foreground max-w-xs">
                             <MessageSquareQuote className="h-3 w-3 shrink-0 mt-0.5" />
                             <span>Motivo de la revisión: {video.reviewNotes}</span>
                           </p>
@@ -149,7 +149,7 @@ export function CreatorsVideosTab({
                             type="button"
                             size="sm"
                             variant="outline"
-                            className="rounded-xl text-[11px] h-7 gap-1.5"
+                            className="rounded-xl text-2xs h-7 gap-1.5"
                             disabled={!appealable}
                             title={disabledReason ?? "Apelar esta decisión de moderación"}
                             onClick={() => openAppealDialog(video)}
@@ -157,22 +157,22 @@ export function CreatorsVideosTab({
                             <Gavel className="h-3 w-3" /> Apelar
                           </Button>
                           {appealStatus === "pending" && (
-                            <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[10px]">
+                            <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-3xs">
                               Apelación en revisión
                             </Badge>
                           )}
                           {appealStatus === "accepted" && (
-                            <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-[10px]">
+                            <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-3xs">
                               Apelación aceptada
                             </Badge>
                           )}
                           {appealStatus === "rejected" && (
-                            <Badge className="bg-destructive/10 text-destructive border-destructive/20 text-[10px]">
+                            <Badge className="bg-destructive/10 text-destructive border-destructive/20 text-3xs">
                               Apelación rechazada
                             </Badge>
                           )}
                           {disabledReason && appealStatus !== "pending" && (
-                            <span className="text-[10px] text-muted-foreground max-w-[11rem]">{disabledReason}</span>
+                            <span className="text-3xs text-muted-foreground max-w-[11rem]">{disabledReason}</span>
                           )}
                         </div>
                       </td>

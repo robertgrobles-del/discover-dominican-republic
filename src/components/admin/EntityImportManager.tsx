@@ -33,33 +33,45 @@ export function EntityImportManager() {
   const [csvData, setCsvData] = useState<Record<string, string>[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ success: 0, failed: 0 });
-  const [entityCounts, setEntityCounts] = useState<Record<EntityType, number>>({} as Record<EntityType, number>);
+  const [entityCounts, setEntityCounts] = useState<Record<EntityType, number | null>>({} as Record<EntityType, number | null>);
 
   useEffect(() => {
-    const fetchEntityCounts = async () => {
-      const counts: Record<EntityType, number> = {} as Record<EntityType, number>;
-
-      for (const entity of Object.keys(entityConfigs) as EntityType[]) {
-        if (HAS_BACKEND_SESSION) {
-          try {
-            const res = await adminListEntities(entity, { limit: 1 });
-            counts[entity] = res.total;
-          } catch (error) {
-            // Solo se tolera «no expuesta» (404): se omite ese recuento. Cualquier otro fallo se propaga.
-            if (!(error instanceof AdminApiError) || error.kind !== "not_exposed") throw error;
-          }
-          continue;
+    let active = true;
+    const fetchSelectedCount = async () => {
+      if (entityCounts[selectedEntity] !== undefined) return;
+      if (HAS_BACKEND_SESSION) {
+        try {
+          const res = await adminListEntities(selectedEntity, { limit: 1 });
+          if (active) setEntityCounts((prev) => ({ ...prev, [selectedEntity]: res.total }));
+        } catch (error) {
+          if (active) setEntityCounts((prev) => ({ ...prev, [selectedEntity]: null }));
         }
-        const { count } = await (supabase as any)
-          .from(entity)
-          .select('*', { count: 'exact', head: true });
-        counts[entity] = count || 0;
+      } else {
+        try {
+          const { count } = await (supabase as any)
+            .from(selectedEntity)
+            .select('*', { count: 'exact', head: true });
+          if (active) setEntityCounts((prev) => ({ ...prev, [selectedEntity]: count ?? 0 }));
+        } catch {
+          if (active) setEntityCounts((prev) => ({ ...prev, [selectedEntity]: null }));
+        }
       }
-
-      setEntityCounts(counts);
     };
 
-    fetchEntityCounts().catch((error) => console.error("No se pudieron contar las colecciones:", error));
+    fetchSelectedCount();
+    return () => { active = false; };
+  }, [selectedEntity, entityCounts]);
+
+  // Las seis tarjetas de arriba siempre están a la vista: sus totales se piden al entrar. El resto, al abrir cada colección.
+  useEffect(() => {
+    if (!HAS_BACKEND_SESSION) return;
+    let active = true;
+    for (const key of (Object.keys(entityConfigs) as EntityType[]).slice(0, 6)) {
+      adminListEntities(key, { limit: 1 })
+        .then((res) => { if (active) setEntityCounts((prev) => ({ ...prev, [key]: res.total })); })
+        .catch(() => undefined);
+    }
+    return () => { active = false; };
   }, []);
 
   const parseCSV = (text: string): Record<string, string>[] => {
@@ -172,7 +184,7 @@ export function EntityImportManager() {
           const res = await adminListEntities(selectedEntity, { limit: 1 });
           setEntityCounts((prev) => ({ ...prev, [selectedEntity]: res.total }));
         } catch {
-          // fallback silencioso
+          setEntityCounts((prev) => ({ ...prev, [selectedEntity]: null }));
         }
       }
       return;
@@ -233,7 +245,7 @@ export function EntityImportManager() {
               <div className="flex justify-center mb-2 text-primary">
                 {config.icon}
               </div>
-              <p className="text-2xl font-bold">{entityCounts[key] || 0}</p>
+              <p className="text-2xl font-bold">{entityCounts[key] ?? "—"}</p>
               <p className="text-xs text-muted-foreground">{config.name}</p>
             </CardContent>
           </Card>
@@ -268,7 +280,11 @@ export function EntityImportManager() {
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm truncate">{config.name}</p>
                         <p className={`text-xs truncate ${selectedEntity === key ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                          {entityCounts[key] || 0} registros
+                          {entityCounts[key] === undefined
+                            ? "Sin consultar"
+                            : entityCounts[key] === null
+                            ? "Error al consultar"
+                            : `${entityCounts[key]} registros`}
                         </p>
                       </div>
                     </button>

@@ -94,7 +94,7 @@ export function FlightConnectionSearch() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 pt-4 items-center">
           {/* Origen */}
           <div className="md:col-span-3 p-3 rounded-2xl bg-muted/30 border border-border/40 hover:border-primary/50 transition-colors">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+            <span className="text-3xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
               <MapPin className="w-3 h-3 text-primary" /> Origen
             </span>
             <select
@@ -131,7 +131,7 @@ export function FlightConnectionSearch() {
 
           {/* Destino */}
           <div className="md:col-span-3 p-3 rounded-2xl bg-muted/30 border border-border/40 hover:border-primary/50 transition-colors">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+            <span className="text-3xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
               <Plane className="w-3 h-3 text-primary" /> Destino en RD
             </span>
             <select
@@ -149,7 +149,7 @@ export function FlightConnectionSearch() {
 
           {/* Fechas */}
           <div className="md:col-span-3 p-3 rounded-2xl bg-muted/30 border border-border/40 hover:border-primary/50 transition-colors">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+            <span className="text-3xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
               <Calendar className="w-3 h-3 text-primary" /> Fechas estimadas
             </span>
             <p className="font-bold text-sm text-foreground mt-1 truncate">
@@ -174,7 +174,7 @@ export function FlightConnectionSearch() {
 
         {/* Chips rápidos de rutas directas populares */}
         <div className="flex items-center gap-2 mt-4 pt-3 border-t border-border/30 overflow-x-auto no-scrollbar">
-          <span className="text-[11px] font-semibold text-muted-foreground shrink-0">
+          <span className="text-2xs font-semibold text-muted-foreground shrink-0">
             Rutas directas más buscadas:
           </span>
           {[
@@ -190,7 +190,7 @@ export function FlightConnectionSearch() {
                 setOrigin(r.o);
                 setDestination(r.d);
               }}
-              className="px-2.5 py-1 rounded-full bg-muted/60 hover:bg-primary/10 hover:text-primary text-[11px] font-medium text-muted-foreground transition-colors shrink-0"
+              className="px-2.5 py-1 rounded-full bg-muted/60 hover:bg-primary/10 hover:text-primary text-2xs font-medium text-muted-foreground transition-colors shrink-0"
             >
               {r.label}
             </button>

@@ -144,7 +144,7 @@ function SeoRedirectsTab() {
             <Card key={r.id} className="border border-border/60">
               <CardContent className="p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-2 font-mono truncate">
-                  <Badge variant="outline" className="font-sans text-[10px]">
+                  <Badge variant="outline" className="font-sans text-3xs">
                     {r.redirect_type}
                   </Badge>
                   <span className="text-foreground font-semibold">{r.source_path}</span>
@@ -154,7 +154,7 @@ function SeoRedirectsTab() {
 
                 <div className="flex items-center gap-3">
                   <label className="flex items-center gap-1.5 cursor-pointer">
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-2xs text-muted-foreground">
                       {r.is_active ? "Activa" : "Inactiva"}
                     </span>
                     <Switch
@@ -347,21 +347,22 @@ function SystemJobsTab() {
                   </div>
                   {j.description && <p className="text-muted-foreground">{j.description}</p>}
                   {j.last_run_at && (
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-2xs text-muted-foreground">
                       Última ejecución: {new Date(j.last_run_at).toLocaleString("es-DO")}
                     </p>
                   )}
-                  {j.error_log && <p className="text-destructive font-mono text-[11px]">{j.error_log}</p>}
+                  {j.error_log && <p className="text-destructive font-mono text-2xs">{j.error_log}</p>}
                 </div>
 
                 <div className="flex items-center gap-3">
                   {HAS_BACKEND_SESSION && (
-                    <label className="flex items-center gap-1.5 cursor-pointer">
+                    <span className="flex items-center gap-1.5">
                       <Switch
                         checked={j.enabled}
+                        aria-label={`Activar ${j.name}`}
                         onCheckedChange={(v) => toggleMutation.mutate({ name: j.name, enabled: v })}
                       />
-                    </label>
+                    </span>
                   )}
                   <Button
                     size="sm"

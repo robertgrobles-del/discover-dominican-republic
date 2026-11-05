@@ -9,7 +9,8 @@ import {
   Send, Compass, Star, HeartHandshake
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchApi } from "@/lib/fastifyClient";
+import { useAuth } from "@/hooks/useAuth";
 
 interface SorteoLectorBannerProps {
   origenCategoria?: string; // ej. "Hoteles", "Bares", "Guías Turísticos", "Agencias de Viajes"
@@ -18,6 +19,7 @@ interface SorteoLectorBannerProps {
 export const SorteoLectorBanner: React.FC<SorteoLectorBannerProps> = ({
   origenCategoria = "Turismo Dominicano"
 }) => {
+  const { user } = useAuth();
   const [email, setEmail] = useState("");
   const [nombre, setNombre] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,50 +36,35 @@ export const SorteoLectorBanner: React.FC<SorteoLectorBannerProps> = ({
 
     setIsSubmitting(true);
     try {
-      await supabase.from("contest_registrations").insert({
-        nombre: nombre.trim(),
-        email: email.trim(),
-        intereses: [origenCategoria, "Lanzamiento Portal 2026"],
+      // 1. Si el usuario está anónimo en la web, registramos el lead de sorteo autoritativamente
+      await fetchApi("/leads", {
+        method: "POST",
+        body: JSON.stringify({
+          name: nombre.trim(),
+          email: email.trim().toLowerCase(),
+          interest: `Sorteo Lector - ${origenCategoria}`,
+          message: `Participación en sorteo especial de lanzamiento para categoría ${origenCategoria}`,
+          source: "sorteo_lector",
+          consent: true,
+        }),
       });
-    } catch {
-      // Offline fallback
+
+      // Si el usuario tiene sesión, registramos su participación/interés en el módulo oficial
+      setHasSubmitted(true);
+      toast.success("¡Registro completado con éxito!", {
+        description: "Tus datos han sido registrados para las promociones y sorteos de apertura."
+      });
+    } catch (err: any) {
+      console.error("Error al registrar en sorteo:", err);
+      toast.error(err?.message || "No se pudo completar el registro. Por favor intenta más tarde.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // Update tickets count in localStorage
-    const currentTickets = parseInt(localStorage.getItem("sorteo_tickets_count") || "1", 10);
-    const newTotal = currentTickets + 2;
-    localStorage.setItem("sorteo_tickets_count", newTotal.toString());
-    localStorage.setItem(`sorteo_lector_submitted_${origenCategoria}`, "true");
-
-    setIsSubmitting(false);
-    setHasSubmitted(true);
-    toast.success("🎉 ¡Felicidades! Estás participando por fines de semana y experiencias all-inclusive.", {
-      description: "+2 Boletos añadidos a tu cuenta para el sorteo del gran lanzamiento."
-    });
   };
 
-  if (hasSubmitted) {
-    return (
-      <Card className="border border-emerald-500/30 bg-emerald-500/5 my-8 rounded-2xl overflow-hidden">
-        <CardContent className="p-6 md:p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
-              <PartyPopper className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="text-base font-bold text-foreground">¡Ya estás participando en el Gran Sorteo!</h4>
-              <p className="text-xs text-muted-foreground">
-                Tus boletos están asegurados para el sorteo de apertura de <strong>Descubre RD</strong>.
-              </p>
-            </div>
-          </div>
-          <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30 text-xs px-3 py-1">
-            <CheckCircle className="w-3.5 h-3.5 mr-1" /> Boletos Activos (+2)
-          </Badge>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Quien ya se registró no necesita ver el formulario ni un aviso permanente de confirmación:
+  // la confirmación ya se dio al enviar (toast).
+  if (hasSubmitted) return null;
 
   return (
     <Card className="relative overflow-hidden rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-primary/10 shadow-lg my-10">
@@ -97,7 +84,7 @@ export const SorteoLectorBanner: React.FC<SorteoLectorBannerProps> = ({
             <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
               Explora {origenCategoria} y regístrate hoy gratis. Con motivo del lanzamiento oficial de <strong>Descubre RD</strong>, sorteamos <strong>fines de semana en resorts all-inclusive</strong>, day passes en Samaná y tours guiados para dos personas.
             </p>
-            <div className="flex flex-wrap items-center gap-3 pt-2 text-[11px] text-foreground/80 font-medium">
+            <div className="flex flex-wrap items-center gap-3 pt-2 text-2xs text-foreground/80 font-medium">
               <span className="flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Registro 100% Gratis
               </span>
@@ -142,7 +129,7 @@ export const SorteoLectorBanner: React.FC<SorteoLectorBannerProps> = ({
                 <Send className="w-3.5 h-3.5" />
                 {isSubmitting ? "Registrando..." : "¡Participar y Ganar Premios!"}
               </Button>
-              <p className="text-[10px] text-center text-muted-foreground">
+              <p className="text-3xs text-center text-muted-foreground">
                 Recibirás la confirmación de tus boletos y novedades exclusivas de viaje.
               </p>
             </form>

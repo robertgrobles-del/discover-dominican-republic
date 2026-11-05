@@ -18,6 +18,7 @@ import samanaImg from "@/assets/samana.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 import puertoPlataImg from "@/assets/puerto-plata.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const destinosSeguros = [
   { 
@@ -109,11 +110,15 @@ const testimoniosViajeras = [
 ];
 
 export default function ViajeraSola() {
+  const pc = usePageContent("viajera-sola");
+  const destinosSeguros = pc.data("destinosSeguros", __pcData.destinosSeguros);
+  const consejosSeguridad = pc.data("consejosSeguridad", __pcData.consejosSeguridad);
+  const testimoniosViajeras = pc.data("testimoniosViajeras", __pcData.testimoniosViajeras);
   return (
     <PageTransition>
       <SEOHead
-        title="Guía para Viajera Sola en República Dominicana | Seguridad y Destinos"
-        description="Guía completa para mujeres que viajan solas a RD: destinos seguros, consejos prácticos de seguridad, hospedajes recomendados y comunidades de viajeras."
+        title={pc.t("SEOHead.title.1", "Guía para Viajera Sola en República Dominicana | Seguridad y Destinos")}
+        description={pc.t("SEOHead.description.1", "Guía completa para mujeres que viajan solas a RD: destinos seguros, consejos prácticos de seguridad, hospedajes recomendados y comunidades de viajeras.")}
         keywords="viajera sola dominicana, mujer viaja sola RD, seguridad mujer turista, destinos seguros dominicana, solo female travel dominican republic"
       />
       <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -122,32 +127,27 @@ export default function ViajeraSola() {
         {/* Hero Section */}
         <section className="relative h-[60vh] min-h-[460px] flex items-end overflow-hidden">
           <img 
-            src={relaxBeach} 
-            alt="Viajera sola disfrutando de la playa en República Dominicana" 
+            src={pc.img("img.src.1", relaxBeach)} 
+            alt={pc.t("img.alt.1", "Viajera sola disfrutando de la playa en República Dominicana")} 
             className="absolute inset-0 w-full h-full object-cover object-center" 
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-black/30" />
 
           <div className="relative z-10 container mx-auto px-4 lg:px-8 pb-12">
             <nav className="flex items-center gap-2 text-xs md:text-sm text-white/80 mb-4">
-              <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
+              <Link to="/" className="hover:text-primary transition-colors">{pc.tx("Link.1", "Inicio")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <Link to="/planifica" className="hover:text-primary transition-colors">Planifica</Link>
+              <Link to="/planifica" className="hover:text-primary transition-colors">{pc.tx("Link.2", "Planifica")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <span className="text-white font-medium">Guía para Viajera Sola</span>
+              <span className="text-white font-medium">{pc.tx("span.1", "Guía para Viajera Sola")}</span>
             </nav>
 
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div>
                 <Badge className="mb-3 bg-pink-500/20 text-pink-300 border-pink-500/30 text-xs px-3 py-1 font-semibold">
-                  <Heart className="h-3.5 w-3.5 mr-1.5 fill-current" /> VIAJERAS INDEPENDIENTES
-                </Badge>
-                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">
-                  Guía para Viajera Sola en RD
-                </h1>
-                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">
-                  Consejos de seguridad, destinos recomendados, comunidades de apoyo y recursos para vivir una experiencia empoderadora, segura y memorable.
-                </p>
+                  <Heart className="h-3.5 w-3.5 mr-1.5 fill-current" />{" "}{pc.tx("Badge.1", "VIAJERAS INDEPENDIENTES")}</Badge>
+                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">{pc.tx("h1.1", "Guía para Viajera Sola en RD")}</h1>
+                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">{pc.tx("p.1", "Consejos de seguridad, destinos recomendados, comunidades de apoyo y recursos para vivir una experiencia empoderadora, segura y memorable.")}</p>
               </div>
 
               {/* Emergency Hotline Box */}
@@ -156,10 +156,8 @@ export default function ViajeraSola() {
                   <ShieldCheck className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-xs text-white/70 font-medium">Asistencia Turística 24/7</p>
-                  <a href="tel:8092003500" className="text-sm font-bold text-primary hover:underline">
-                    POLITUR: 809-200-3500
-                  </a>
+                  <p className="text-xs text-white/70 font-medium">{pc.tx("p.2", "Asistencia Turística 24/7")}</p>
+                  <a href="tel:8092003500" className="text-sm font-bold text-primary hover:underline">{pc.tx("a.1", "POLITUR: 809-200-3500")}</a>
                 </div>
               </div>
             </div>
@@ -169,15 +167,9 @@ export default function ViajeraSola() {
         {/* Destinos Más Seguros */}
         <section className="py-16 container mx-auto px-4 lg:px-8 max-w-6xl">
           <div className="text-center mb-12">
-            <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
-              DESTINOS VERIFICADOS
-            </Badge>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
-              Los Destinos Más Seguros & Recomendados
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
-              Lugares con excelente infraestructura, presencia policial activa, ambiente amigable y comunidades internacionales de apoyo.
-            </p>
+            <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">{pc.tx("Badge.2", "DESTINOS VERIFICADOS")}</Badge>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">{pc.tx("h2.1", "Los Destinos Más Seguros & Recomendados")}</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">{pc.tx("p.3", "Lugares con excelente infraestructura, presencia policial activa, ambiente amigable y comunidades internacionales de apoyo.")}</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -196,8 +188,8 @@ export default function ViajeraSola() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
 
                   <div className="absolute top-3 left-3">
-                    <Badge className="bg-emerald-500 text-white border-none text-[11px] shadow">
-                      <ShieldCheck className="h-3 w-3 mr-1" /> Seguridad {d.seguridad}
+                    <Badge className="bg-emerald-500 text-white border-none text-2xs shadow">
+                      <ShieldCheck className="h-3 w-3 mr-1" />{" "}{pc.tx("Badge.3", "Seguridad")}{" "}{d.seguridad}
                     </Badge>
                   </div>
 
@@ -221,7 +213,7 @@ export default function ViajeraSola() {
 
                   <div className="space-y-1.5 mb-4">
                     {d.tips.map((t) => (
-                      <div key={t} className="flex items-start gap-1.5 text-[11px] text-muted-foreground">
+                      <div key={t} className="flex items-start gap-1.5 text-2xs text-muted-foreground">
                         <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
                         <span>{t}</span>
                       </div>
@@ -229,8 +221,7 @@ export default function ViajeraSola() {
                   </div>
 
                   <Button asChild variant="outline" size="sm" className="w-full gap-1.5 text-xs font-semibold">
-                    <Link to={d.enlace}>
-                      Explorar {d.nombre.split("&")[0]} <ArrowUpRight className="h-3.5 w-3.5" />
+                    <Link to={d.enlace}>{pc.tx("Link.3", "Explorar")}{" "}{d.nombre.split("&")[0]} <ArrowUpRight className="h-3.5 w-3.5" />
                     </Link>
                   </Button>
                 </div>
@@ -243,15 +234,9 @@ export default function ViajeraSola() {
         <section className="py-16 bg-card/40 border-y border-border/50">
           <div className="container mx-auto px-4 lg:px-8 max-w-6xl">
             <div className="text-center mb-12">
-              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
-                TIPS PRÁCTICOS
-              </Badge>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
-                Consejos de Seguridad para tu Viaje
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
-                Buenas prácticas y recomendaciones sencillas para moverte con total libertad y tranquilidad.
-              </p>
+              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">{pc.tx("Badge.4", "TIPS PRÁCTICOS")}</Badge>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">{pc.tx("h2.2", "Consejos de Seguridad para tu Viaje")}</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">{pc.tx("p.4", "Buenas prácticas y recomendaciones sencillas para moverte con total libertad y tranquilidad.")}</p>
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -274,12 +259,8 @@ export default function ViajeraSola() {
         <section className="py-16">
           <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
             <div className="text-center mb-10">
-              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">
-                Experiencias Reales de Viajeras Solas
-              </h2>
-              <p className="text-xs md:text-sm text-muted-foreground">
-                Historias de mujeres que exploraron Quisqueya por su cuenta.
-              </p>
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2">{pc.tx("h2.3", "Experiencias Reales de Viajeras Solas")}</h2>
+              <p className="text-xs md:text-sm text-muted-foreground">{pc.tx("p.5", "Historias de mujeres que exploraron Quisqueya por su cuenta.")}</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -292,8 +273,8 @@ export default function ViajeraSola() {
                   <div className="flex items-center gap-3 pt-3 border-t border-border/60">
                     <img src={item.avatar} alt={item.nombre} className="w-10 h-10 rounded-full object-cover" />
                     <div>
-                      <h4 className="text-sm font-bold text-foreground">{item.nombre} ({item.pais})</h4>
-                      <p className="text-[11px] text-primary">{item.destino}</p>
+                      <h3 className="h4 text-sm font-bold text-foreground">{item.nombre} ({item.pais})</h3>
+                      <p className="text-2xs text-primary">{item.destino}</p>
                     </div>
                   </div>
                 </div>
@@ -314,3 +295,6 @@ export default function ViajeraSola() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { destinosSeguros, consejosSeguridad, testimoniosViajeras };

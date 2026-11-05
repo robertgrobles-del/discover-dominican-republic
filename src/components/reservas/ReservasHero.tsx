@@ -21,9 +21,9 @@ export function ReservasHero({ search, onSearchChange }: ReservasHeroProps) {
         <Badge className="mb-4 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20">
           <TreePine className="h-3 w-3 mr-1" /> Patrimonio Natural
         </Badge>
-        <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
+        <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">
           Reservas Naturales y <span className="text-emerald-600 dark:text-emerald-400">Parques Nacionales</span>
-        </h1>
+        </h2>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
           República Dominicana protege el 25% de su territorio en 128 áreas protegidas con ecosistemas únicos del Caribe.
         </p>

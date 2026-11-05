@@ -1,6 +1,8 @@
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Zap, Crown, Star, Target, Clock, Flame, TrendingUp } from "lucide-react";
+import { Zap, Crown, Star, Clock, Flame, TrendingUp, MapPin, Timer, Users, QrCode, CalendarDays } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MissionQrDialog } from "@/components/gamification/MissionQrDialog";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import type { Mission, UserMission } from "@/hooks/useGamification";
@@ -32,6 +34,10 @@ const categoryConfig: Record<string, { label: string; icon: string; gradient: st
   culture: { label: "Cultura", icon: "🎭", gradient: "from-amber-500/20 to-yellow-500/10" },
 };
 
+/** Dificultad elegida en el panel; si no la hay, se estima por la meta. */
+const namedDifficulty = { facil: difficultyConfig[1], media: difficultyConfig[3], exigente: difficultyConfig[5] };
+const shortDate = (iso: string) => new Date(`${iso}T12:00:00`).toLocaleDateString("es-DO", { day: "numeric", month: "short" });
+
 const typeConfig: Record<string, { label: string; icon: typeof Clock; color: string }> = {
   daily: { label: "Diaria", icon: Clock, color: "text-emerald-500" },
   weekly: { label: "Semanal", icon: Flame, color: "text-orange-500" },
@@ -46,7 +52,9 @@ export const MissionCard = forwardRef<HTMLDivElement, MissionCardProps>(function
   const progressPct = progress ? Math.round((progress.progress / mission.target_count) * 100) : 0;
   const cat = categoryConfig[mission.category] || { label: mission.category, icon: "📌", gradient: "from-muted/30 to-muted/10" };
   const type = typeConfig[mission.mission_type] || typeConfig.one_time;
-  const difficulty = difficultyConfig[mission.target_count <= 1 ? 1 : mission.target_count <= 3 ? 2 : mission.target_count <= 5 ? 3 : mission.target_count <= 10 ? 4 : 5];
+  const [qrOpen, setQrOpen] = useState(false);
+  const place = [mission.place_name, mission.province].filter(Boolean).join(", ");
+  const difficulty = mission.difficulty ? namedDifficulty[mission.difficulty] : difficultyConfig[mission.target_count <= 1 ? 1 : mission.target_count <= 3 ? 2 : mission.target_count <= 5 ? 3 : mission.target_count <= 10 ? 4 : 5];
 
   return (
     <motion.div
@@ -67,6 +75,7 @@ export const MissionCard = forwardRef<HTMLDivElement, MissionCardProps>(function
     >
       {/* Gradient header */}
       <div className={`relative h-28 bg-gradient-to-br ${cat.gradient} flex items-center justify-center overflow-hidden`}>
+        {mission.image_url && <img src={mission.image_url} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />}
         {/* Background pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-2 right-4 text-6xl opacity-30">{cat.icon}</div>
@@ -77,19 +86,19 @@ export const MissionCard = forwardRef<HTMLDivElement, MissionCardProps>(function
           animate={isCompleted ? { scale: [1, 1.1, 1] } : undefined}
           transition={{ repeat: Infinity, duration: 3 }}
         >
-          {isLocked ? "🔒" : mission.icon}
+          {isLocked ? "🔒" : mission.image_url ? null : mission.icon}
         </motion.span>
 
         {/* Top badges */}
         <div className="absolute top-2.5 left-2.5 flex gap-1.5">
-          <Badge variant="secondary" className="text-[10px] bg-card/90 backdrop-blur-sm gap-1 px-2 py-0.5">
+          <Badge variant="secondary" className="text-3xs bg-card/90 backdrop-blur-sm gap-1 px-2 py-0.5">
             {cat.icon} {cat.label}
           </Badge>
         </div>
 
         {/* Type badge */}
         <div className="absolute top-2.5 right-2.5">
-          <Badge variant="outline" className={`text-[10px] bg-card/90 backdrop-blur-sm gap-1 px-2 py-0.5 ${type.color}`}>
+          <Badge variant="outline" className={`text-3xs bg-card/90 backdrop-blur-sm gap-1 px-2 py-0.5 ${type.color}`}>
             <type.icon className="h-3 w-3" /> {type.label}
           </Badge>
         </div>
@@ -109,11 +118,11 @@ export const MissionCard = forwardRef<HTMLDivElement, MissionCardProps>(function
 
         {/* Reward pills */}
         <div className="absolute bottom-2.5 left-2.5 flex gap-1.5">
-          <span className="text-[10px] font-bold bg-amber-500/90 text-white rounded-full px-2 py-0.5 flex items-center gap-1">
+          <span className="text-3xs font-bold bg-amber-500/90 text-white rounded-full px-2 py-0.5 flex items-center gap-1">
             <Zap className="h-3 w-3" /> {mission.xp_reward}
           </span>
           {mission.coin_reward > 0 && (
-            <span className="text-[10px] font-bold bg-primary/90 text-primary-foreground rounded-full px-2 py-0.5 flex items-center gap-1">
+            <span className="text-3xs font-bold bg-primary/90 text-primary-foreground rounded-full px-2 py-0.5 flex items-center gap-1">
               <Crown className="h-3 w-3" /> {mission.coin_reward}
             </span>
           )}
@@ -129,9 +138,19 @@ export const MissionCard = forwardRef<HTMLDivElement, MissionCardProps>(function
           {mission.short_description || mission.description}
         </p>
 
+        {(place || mission.estimated_minutes || mission.ends_on || mission.spots_left != null || mission.sponsor_name) && (
+          <ul className="mb-3 flex flex-wrap gap-x-3 gap-y-1 text-2xs text-muted-foreground">
+            {place && <li className="flex items-center gap-1"><MapPin className="h-3 w-3" />{place}</li>}
+            {mission.estimated_minutes ? <li className="flex items-center gap-1"><Timer className="h-3 w-3" />{mission.estimated_minutes} min</li> : null}
+            {mission.ends_on && <li className="flex items-center gap-1"><CalendarDays className="h-3 w-3" />Hasta el {shortDate(mission.ends_on)}</li>}
+            {mission.spots_left != null && <li className="flex items-center gap-1"><Users className="h-3 w-3" />{mission.spots_left} cupos</li>}
+            {mission.is_sponsored && mission.sponsor_name && <li className="w-full font-medium text-foreground" title={mission.sponsor_reward_text ?? undefined}>Patrocinado por {mission.sponsor_name}{mission.sponsor_reward_text ? ` · ${mission.sponsor_reward_text}` : ""}</li>}
+          </ul>
+        )}
+
         {/* Difficulty dots */}
         <div className="flex items-center gap-2 mb-3">
-          <span className={`text-[10px] font-medium ${difficulty.color}`}>{difficulty.label}</span>
+          <span className={`text-3xs font-medium ${difficulty.color}`}>{difficulty.label}</span>
           <div className="flex gap-0.5">
             {[...Array(3)].map((_, i) => (
               <div
@@ -142,7 +161,7 @@ export const MissionCard = forwardRef<HTMLDivElement, MissionCardProps>(function
               />
             ))}
           </div>
-          <span className="text-[10px] text-muted-foreground ml-auto">
+          <span className="text-3xs text-muted-foreground ml-auto">
             Meta: {mission.target_count}
           </span>
         </div>
@@ -161,9 +180,13 @@ export const MissionCard = forwardRef<HTMLDivElement, MissionCardProps>(function
               </span>
             )}
           </div>
+        ) : mission.requires_validation ? (
+          <Button size="sm" className="w-full gap-2" onClick={(e) => { e.stopPropagation(); setQrOpen(true); }}>
+            <QrCode className="h-4 w-4" />Mostrar mi QR para validar
+          </Button>
         ) : (
           <div className="space-y-1.5">
-            <div className="flex justify-between text-[11px]">
+            <div className="flex justify-between text-2xs">
               <span className="text-muted-foreground">Progreso</span>
               <span className="font-semibold text-primary">{progress?.progress || 0}/{mission.target_count}</span>
             </div>
@@ -177,6 +200,12 @@ export const MissionCard = forwardRef<HTMLDivElement, MissionCardProps>(function
         <div className="absolute -top-px -right-px">
           <div className="w-0 h-0 border-t-[24px] border-r-[24px] border-t-transparent border-r-primary rounded-bl-sm" />
           <Star className="absolute top-0.5 right-0.5 h-3 w-3 text-primary-foreground fill-current" />
+        </div>
+      )}
+      {mission.requires_validation && (
+        // El diálogo se pinta en un portal, pero sus clics suben por el árbol de React hasta la tarjeta.
+        <div role="presentation" onClick={(e) => e.stopPropagation()}>
+          <MissionQrDialog missionId={mission.id} missionName={mission.name} sponsorName={mission.sponsor_name} open={qrOpen} onOpenChange={setQrOpen} />
         </div>
       )}
     </motion.div>

@@ -20,8 +20,10 @@ import {
   Camera,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { usePageContent } from "@/lib/pageContent";
+import { useCollectionList, str, numOr, list } from "@/lib/collectionPage";
 
-const talleres = [
+const talleresLocal = [
   {
     id: "larimar",
     nombre: "Taller de Joyería en Larimar",
@@ -103,7 +105,7 @@ const talleres = [
 ];
 
 const categorias = [
-  { nombre: "Todos", icon: Palette, count: talleres.length },
+  { nombre: "Todos", icon: Palette, count: talleresLocal.length },
   { nombre: "Joyería", icon: Gem, count: 2 },
   { nombre: "Cerámica", icon: Brush, count: 1 },
   { nombre: "Música", icon: Music, count: 1 },
@@ -127,6 +129,15 @@ const testimonios = [
 ];
 
 export default function TalleresArtesanales() {
+  const pc = usePageContent("talleres-artesanales");
+  const categorias = pc.data("categorias", __pcData.categorias);
+  const testimonios = pc.data("testimonios", __pcData.testimonios);
+  // Los talleres salen de la colección «Talleres artesanales» del panel; el arreglo local es el respaldo.
+  const talleres = useCollectionList("artisan-workshops", talleresLocal, (t) => t.id, (r, b) => ({
+    id: str(r.slug, b?.id), nombre: str(r.name, b?.nombre), ubicacion: str(r.address, b?.ubicacion), duracion: str(r.duration, b?.duracion), precio: str(r.price_range, b?.precio),
+    participantes: b?.participantes ?? (r.max_participants ? `Hasta ${r.max_participants} personas` : ""), descripcion: str(r.description, b?.descripcion), imagen: str(r.image_url, b?.imagen),
+    incluye: list(r.includes, b?.incluye), rating: numOr(r.rating, b?.rating), categoria: str(r.workshop_type, b?.categoria),
+  }));
   return (
     <PageTransition>
       <div className="min-h-screen bg-background">
@@ -143,25 +154,15 @@ export default function TalleresArtesanales() {
               className="max-w-3xl"
             >
               <Badge className="mb-4 bg-white/20 text-white border-white/30">
-                <Palette className="w-4 h-4 mr-2" />
-                Experiencias Creativas
-              </Badge>
-              <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">
-                Talleres Artesanales:{" "}
-                <span className="text-orange-300">Crea con tus Manos</span>
+                <Palette className="w-4 h-4 mr-2" />{pc.tx("Badge.1", "Experiencias Creativas")}</Badge>
+              <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">{pc.tx("h1.1", "Talleres Artesanales:")}{" "}
+                <span className="text-orange-300">{pc.tx("span.1", "Crea con tus Manos")}</span>
               </h1>
-              <p className="text-xl text-white/80 mb-8">
-                Sumérgete en la tradición artesanal dominicana. Aprende técnicas ancestrales 
-                y llévate a casa piezas únicas creadas por ti.
-              </p>
+              <p className="text-xl text-white/80 mb-8">{pc.tx("p.1", "Sumérgete en la tradición artesanal dominicana. Aprende técnicas ancestrales y llévate a casa piezas únicas creadas por ti.")}</p>
               <div className="flex flex-wrap gap-4">
                 <Button size="lg" className="gap-2 bg-white text-orange-900 hover:bg-white/90">
-                  <Calendar className="h-4 w-4" />
-                  Ver Talleres
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Reservar Grupo
-                </Button>
+                  <Calendar className="h-4 w-4" />{pc.tx("Button.1", "Ver Talleres")}</Button>
+                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.2", "Reservar Grupo")}</Button>
               </div>
             </motion.div>
           </div>
@@ -195,12 +196,9 @@ export default function TalleresArtesanales() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Experiencias <span className="text-gradient">Disponibles</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.1", "Experiencias")}{" "}<span className="text-gradient">{pc.tx("span.2", "Disponibles")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Reserva tu taller y vive una experiencia inmersiva en la cultura dominicana.
-              </p>
+              <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.2", "Reserva tu taller y vive una experiencia inmersiva en la cultura dominicana.")}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -258,8 +256,7 @@ export default function TalleresArtesanales() {
 
                     <div className="flex items-center justify-between">
                       <span className="text-2xl font-bold text-primary">{taller.precio}</span>
-                      <Button className="gap-2">
-                        Reservar <ChevronRight className="h-4 w-4" />
+                      <Button className="gap-2">{pc.tx("Button.3", "Reservar")}{" "}<ChevronRight className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -278,8 +275,7 @@ export default function TalleresArtesanales() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl font-bold mb-4">
-                Lo que Dicen <span className="text-gradient">Nuestros Artistas</span>
+              <h2 className="font-display text-3xl font-bold mb-4">{pc.tx("h2.2", "Lo que Dicen")}{" "}<span className="text-gradient">{pc.tx("span.3", "Nuestros Artistas")}</span>
               </h2>
             </motion.div>
 
@@ -321,14 +317,9 @@ export default function TalleresArtesanales() {
               viewport={{ once: true }}
             >
               <Palette className="h-12 w-12 text-orange-300 mx-auto mb-4" />
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-                ¿Listo para crear?
-              </h2>
-              <p className="text-white/80 mb-8 max-w-xl mx-auto">
-                Reserva tu experiencia artesanal y llévate un recuerdo único hecho por ti.
-              </p>
-              <Button size="lg" className="gap-2 bg-white text-orange-900 hover:bg-white/90">
-                Ver Calendario de Talleres <ChevronRight className="h-4 w-4" />
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">{pc.tx("h2.3", "¿Listo para crear?")}</h2>
+              <p className="text-white/80 mb-8 max-w-xl mx-auto">{pc.tx("p.3", "Reserva tu experiencia artesanal y llévate un recuerdo único hecho por ti.")}</p>
+              <Button size="lg" className="gap-2 bg-white text-orange-900 hover:bg-white/90">{pc.tx("Button.4", "Ver Calendario de Talleres")}{" "}<ChevronRight className="h-4 w-4" />
               </Button>
             </motion.div>
           </div>
@@ -339,3 +330,6 @@ export default function TalleresArtesanales() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { categorias, testimonios };

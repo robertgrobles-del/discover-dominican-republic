@@ -49,7 +49,7 @@ export default function PasaporteDigital() {
           <div className="container mx-auto px-4 py-24">
             <Card>
               <CardContent className="py-12 text-center">
-                <h2 className="text-2xl font-bold mb-4">Inicia sesión para acceder a tu pasaporte</h2>
+                <h1 className="text-2xl font-bold mb-4">Inicia sesión para acceder a tu pasaporte</h1>
                 <Button onClick={() => navigate("/login")}>Iniciar Sesión</Button>
               </CardContent>
             </Card>

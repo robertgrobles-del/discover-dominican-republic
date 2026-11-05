@@ -44,7 +44,7 @@ export const DetailFloatingBar: React.FC<DetailFloatingBarProps> = ({
         {displayPrice ? (
           <div>
             {priceLabel && (
-              <span className="text-[10px] text-muted-foreground uppercase font-bold block leading-none">
+              <span className="text-3xs text-muted-foreground uppercase font-bold block leading-none">
                 {priceLabel}
               </span>
             )}

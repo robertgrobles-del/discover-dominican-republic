@@ -40,13 +40,15 @@ const keep = Number(args[args.indexOf("--keep") + 1]) || 14;
 const db = new URL(url);
 const dbName = db.pathname.slice(1);
 const conn = (name: string) => { const u = new URL(url); u.pathname = `/${name}`; return u.toString(); };
+// Para pg_dump/pg_restore la URL va sin contraseña: los argumentos de un proceso los ve cualquiera en `ps`; la clave viaja en PGPASSWORD.
+const argConn = (name: string) => { const u = new URL(conn(name)); u.password = ""; return u.toString(); };
 const run = (cmd: string, a: string[]) => execFileSync(cmd, a, { stdio: ["ignore", "pipe", "inherit"], env: { ...process.env, PGPASSWORD: decodeURIComponent(db.password) } }).toString();
 
 mkdirSync(dir, { recursive: true });
 const stamp = new Date().toISOString().replace(/[:.]/g, "-");
 const file = path.join(dir, `${dbName}-${stamp}.dump`);
 console.log(`Respaldando ${dbName} → ${file}`);
-run("pg_dump", ["--format=custom", "--compress=9", "--no-owner", "--no-privileges", "--file", file, conn(dbName)]);
+run("pg_dump", ["--format=custom", "--compress=9", "--no-owner", "--no-privileges", "--file", file, argConn(dbName)]);
 console.log(`Listo (${(statSync(file).size / 1024 / 1024).toFixed(1)} MB)`);
 
 // Rotación: se borran los más antiguos.
@@ -71,7 +73,7 @@ if (verify) {
   try {
     await admin.query(`DROP DATABASE IF EXISTS "${tmp}"`);
     await admin.query(`CREATE DATABASE "${tmp}"`);
-    run("pg_restore", ["--no-owner", "--no-privileges", "--exit-on-error", "--dbname", conn(tmp), file]);
+    run("pg_restore", ["--no-owner", "--no-privileges", "--exit-on-error", "--dbname", argConn(tmp), file]);
     const count = async (name: string) => {
       const c = new pg.Client({ connectionString: conn(name) });
       await c.connect();

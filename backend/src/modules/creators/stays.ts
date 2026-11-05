@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
+import { httpUrl } from "./url.js";
 import { AppError } from "../../lib/errors.js";
 import { audit } from "../../lib/audit.js";
 
@@ -16,8 +17,13 @@ export async function creatorStayRoutes(app: FastifyInstance) {
   const operator = async (req: FastifyRequest) => {
     await app.authenticate(req, undefined as never);
     if (req.user!.roles.some((role) => role === "admin" || role === "partner")) return;
-    const member = await db.query("SELECT 1 FROM org_members WHERE user_id = $1 AND role IN ('owner', 'admin') AND (expires_at IS NULL OR expires_at > now())", [req.user!.id]);
-    if (!member.rowCount) throw new AppError("FORBIDDEN", "Necesitas dirigir una organización de operador para usar esta función");
+    // La organización debe estar verificada: crearla es autoservicio y no basta para publicar ofertas ni ver postulantes.
+    const member = await db.query(
+      `SELECT 1 FROM org_members m JOIN partner_profiles p ON p.id = m.org_id
+       WHERE m.user_id = $1 AND m.role IN ('owner', 'admin') AND (m.expires_at IS NULL OR m.expires_at > now()) AND p.verification = 'verified'`,
+      [req.user!.id],
+    );
+    if (!member.rowCount) throw new AppError("FORBIDDEN", "Necesitas dirigir una organización de operador verificada para usar esta función");
   };
   const admin = app.requireRole("admin");
   const creatorOrUser = app.authenticate;
@@ -43,7 +49,7 @@ export async function creatorStayRoutes(app: FastifyInstance) {
         min_followers_guideline: z.string().max(50).default("10k+"),
         preferred_niches: z.array(z.string().max(50)).default(["Turismo", "Lifestyle"]),
         dates_flexibility: z.string().max(200).default("A coordinar según disponibilidad"),
-        image_url: z.string().url().max(500).optional(),
+        image_url: httpUrl().optional(),
       }),
       response: { 201: ok },
     },
@@ -353,7 +359,7 @@ export async function creatorStayRoutes(app: FastifyInstance) {
       security: bearer,
       params: uuid,
       body: z.object({
-        content_links: z.array(z.string().url().max(500)).min(1),
+        content_links: z.array(httpUrl()).min(1),
       }),
       response: { 200: ok },
     },
@@ -362,11 +368,12 @@ export async function creatorStayRoutes(app: FastifyInstance) {
     const res = await db.query(
       `UPDATE creator_stay_applications
        SET content_links = array_cat(content_links, $2::text[]), status = 'completed', updated_at = now()
-       WHERE id = $1 AND creator_id = $3
+       WHERE id = $1 AND creator_id = $3 AND status = 'approved'
        RETURNING *`,
       [req.params.id, b.content_links, req.user!.id]
     );
-    if (res.rowCount === 0) throw AppError.notFound("Postulación no encontrada");
+    // Sólo una postulación aprobada por el negocio puede cerrarse con entregables; el estado lo decide el operador.
+    if (res.rowCount === 0) throw AppError.notFound("Postulación aprobada no encontrada");
     return { data: res.rows[0] };
   });
 

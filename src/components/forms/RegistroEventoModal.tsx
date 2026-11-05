@@ -21,6 +21,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { fetchApi } from "@/lib/fastifyClient";
 
+import { activateOnKey } from "@/lib/a11y";
 /** Cómo se entra al evento, en el vocabulario del servidor. */
 const TICKET_MODE = { website_redirect: "external", native_checkout: "free_pass", door_only: "none" } as const;
 
@@ -179,10 +180,10 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-foreground mb-1">
+                    <label htmlFor="registro-evento-modal-f12" className="block text-xs font-semibold text-foreground mb-1">
                       Nombre del Evento *
                     </label>
-                    <Input
+                    <Input id="registro-evento-modal-f12"
                       placeholder="Ej. Festival de Jazz Punta Cana 2026 / Concierto Sinfónico"
                       value={eventName}
                       onChange={(e) => setEventName(e.target.value)}
@@ -192,11 +193,11 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-foreground mb-1">
+                    <label htmlFor="registro-evento-modal-f11" className="block text-xs font-semibold text-foreground mb-1">
                       Categoría del Evento
                     </label>
                     <Select value={category} onValueChange={setCategory}>
-                      <SelectTrigger className="rounded-xl text-xs">
+                      <SelectTrigger id="registro-evento-modal-f11" className="rounded-xl text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -211,11 +212,11 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-foreground mb-1">
+                    <label htmlFor="registro-evento-modal-f10" className="block text-xs font-semibold text-foreground mb-1">
                       Destino / Provincia
                     </label>
                     <Select value={destination} onValueChange={setDestination}>
-                      <SelectTrigger className="rounded-xl text-xs">
+                      <SelectTrigger id="registro-evento-modal-f10" className="rounded-xl text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -231,10 +232,10 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-foreground mb-1">
+                    <label htmlFor="registro-evento-modal-f9" className="block text-xs font-semibold text-foreground mb-1">
                       Lugar o Recinto (Venue) *
                     </label>
-                    <Input
+                    <Input id="registro-evento-modal-f9"
                       placeholder="Ej. Estadio Olímpico / Anfiteatro Altos de Chavón"
                       value={venue}
                       onChange={(e) => setVenue(e.target.value)}
@@ -245,10 +246,10 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-xs font-semibold text-foreground mb-1">
+                      <label htmlFor="registro-evento-modal-f8" className="block text-xs font-semibold text-foreground mb-1">
                         Fecha *
                       </label>
-                      <Input
+                      <Input id="registro-evento-modal-f8"
                         type="date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
@@ -257,10 +258,10 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-foreground mb-1">
+                      <label htmlFor="registro-evento-modal-f7" className="block text-xs font-semibold text-foreground mb-1">
                         Hora
                       </label>
-                      <Input
+                      <Input id="registro-evento-modal-f7"
                         type="time"
                         value={startTime}
                         onChange={(e) => setStartTime(e.target.value)}
@@ -278,7 +279,7 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
                 </h4>
 
                 <div className="grid sm:grid-cols-3 gap-3">
-                  <div 
+                  <div role="button" tabIndex={0} onKeyDown={activateOnKey} 
                     onClick={() => setTicketSalesOption("website_redirect")}
                     className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all ${
                       ticketSalesOption === "website_redirect" 
@@ -288,15 +289,15 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <Globe className="h-4 w-4 text-primary" />
-                      <Badge variant="secondary" className="text-[9px]">Recomendado</Badge>
+                      <Badge variant="secondary" className="text-3xs">Recomendado</Badge>
                     </div>
                     <p className="text-xs font-bold text-foreground">Redirección a mi Web / Boletería</p>
-                    <p className="text-[10px] text-muted-foreground mt-1">
+                    <p className="text-3xs text-muted-foreground mt-1">
                       Uea.com, Tuboleta, TuTicket o tu propia web oficial.
                     </p>
                   </div>
 
-                  <div 
+                  <div role="button" tabIndex={0} onKeyDown={activateOnKey} 
                     onClick={() => setTicketSalesOption("native_checkout")}
                     className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all ${
                       ticketSalesOption === "native_checkout" 
@@ -306,15 +307,15 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <Ticket className="h-4 w-4 text-amber-500" />
-                      <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[9px] border-0">Segunda Etapa</Badge>
+                      <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-400 text-3xs border-0">Segunda Etapa</Badge>
                     </div>
                     <p className="text-xs font-bold text-foreground">Comprar Taquillas en Descubre RD</p>
-                    <p className="text-[10px] text-muted-foreground mt-1">
+                    <p className="text-3xs text-muted-foreground mt-1">
                       Venta directa con tarjeta / Apple Pay integrado (Fase 2).
                     </p>
                   </div>
 
-                  <div 
+                  <div role="button" tabIndex={0} onKeyDown={activateOnKey} 
                     onClick={() => setTicketSalesOption("door_only")}
                     className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all ${
                       ticketSalesOption === "door_only" 
@@ -326,7 +327,7 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
                       <Building2 className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <p className="text-xs font-bold text-foreground">Venta Solo en Puerta</p>
-                    <p className="text-[10px] text-muted-foreground mt-1">
+                    <p className="text-3xs text-muted-foreground mt-1">
                       Venta presencial o evento de entrada libre.
                     </p>
                   </div>
@@ -334,10 +335,10 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
 
                 {ticketSalesOption === "website_redirect" && (
                   <div className="animate-in fade-in duration-200">
-                    <label className="block text-xs font-semibold text-foreground mb-1">
+                    <label htmlFor="registro-evento-modal-f6" className="block text-xs font-semibold text-foreground mb-1">
                       Enlace Oficial de Compra / Sitio Web *
                     </label>
-                    <Input
+                    <Input id="registro-evento-modal-f6"
                       type="url"
                       placeholder="https://tuboleta.com.do/evento o https://mifestival.com"
                       value={websiteTicketUrl}
@@ -350,9 +351,9 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
 
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-foreground mb-1">
+                    <p className="block text-xs font-semibold text-foreground mb-1">
                       Tipo de Entrada
-                    </label>
+                    </p>
                     <div className="flex gap-2">
                       <Button
                         type="button"
@@ -377,10 +378,10 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
 
                   {priceType === "paid" && (
                     <div>
-                      <label className="block text-xs font-semibold text-foreground mb-1">
+                      <label htmlFor="registro-evento-modal-f5" className="block text-xs font-semibold text-foreground mb-1">
                         Rango de Precio Estimado
                       </label>
-                      <Input
+                      <Input id="registro-evento-modal-f5"
                         placeholder="Ej. RD$ 1,500 - RD$ 4,500 / US$ 50"
                         value={priceRange}
                         onChange={(e) => setPriceRange(e.target.value)}
@@ -399,10 +400,10 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
 
                 <div className="grid sm:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-foreground mb-1">
+                    <label htmlFor="registro-evento-modal-f4" className="block text-xs font-semibold text-foreground mb-1">
                       Empresa / Productora *
                     </label>
-                    <Input
+                    <Input id="registro-evento-modal-f4"
                       placeholder="Ej. Producciones SD / Hotel Resort"
                       value={organizerName}
                       onChange={(e) => setOrganizerName(e.target.value)}
@@ -411,10 +412,10 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-foreground mb-1">
+                    <label htmlFor="registro-evento-modal-f3" className="block text-xs font-semibold text-foreground mb-1">
                       Email de Contacto *
                     </label>
-                    <Input
+                    <Input id="registro-evento-modal-f3"
                       type="email"
                       placeholder="eventos@tuempresa.com"
                       value={organizerEmail}
@@ -424,10 +425,10 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-foreground mb-1">
+                    <label htmlFor="registro-evento-modal-f2" className="block text-xs font-semibold text-foreground mb-1">
                       Teléfono / WhatsApp *
                     </label>
-                    <Input
+                    <Input id="registro-evento-modal-f2"
                       type="tel"
                       placeholder="+1 (809) 000-0000"
                       value={organizerPhone}
@@ -439,10 +440,10 @@ export function RegistroEventoModal({ open, onClose }: RegistroEventoModalProps)
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-foreground mb-1">
+                  <label htmlFor="registro-evento-modal-f1" className="block text-xs font-semibold text-foreground mb-1">
                     Descripción del Evento & Artistas Invitados
                   </label>
-                  <Textarea
+                  <Textarea id="registro-evento-modal-f1"
                     placeholder="Describe los headliners, experiencia, tipo de público y detalles que enamoren al viajero..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}

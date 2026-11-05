@@ -63,12 +63,8 @@ export async function handlePostRegistration(options: { email: string; displayNa
   }
 
   // 5. Invalidar cachés de TanStack Query para forzar la carga del nuevo perfil y gamificación
-  await queryClient.invalidateQueries({
-    predicate: (query) => {
-      const key = query.queryKey[0];
-      return typeof key === "string" && ["profile", "gamification", "favorites", "cart", "user"].includes(key);
-    },
-  });
+  //    (se vacía todo: una sesión anterior en la misma pestaña pudo dejar datos privados con claves no ligadas a la cuenta)
+  await clearUserQueryCache();
 }
 
 /**
@@ -93,11 +89,17 @@ export async function handlePostLogin(options: PostAuthOptions): Promise<void> {
     // Ignorar excepciones de fondo
   }
 
-  // 3. Invalidar cachés de sesión y datos de usuario en React Query para refrescar la interfaz
-  await queryClient.invalidateQueries({
-    predicate: (query) => {
-      const key = query.queryKey[0];
-      return typeof key === "string" && ["profile", "gamification", "favorites", "cart", "bookings", "user"].includes(key);
-    },
-  });
+  // 3. Vaciar la caché de React Query: muchas claves privadas (creator-*, operator-*…) no llevan el id de la cuenta,
+  //    así que invalidar una lista fija dejaba ver datos de la sesión anterior en la misma pestaña.
+  await clearUserQueryCache();
+}
+
+/**
+ * Descarta todo lo cacheado en React Query (y vuelve a pedir lo que está en pantalla).
+ * Se llama al iniciar sesión y debe llamarse también al cerrarla.
+ */
+export async function clearUserQueryCache(): Promise<void> {
+  await queryClient.cancelQueries();
+  queryClient.removeQueries({ type: "inactive" });
+  await queryClient.resetQueries();
 }

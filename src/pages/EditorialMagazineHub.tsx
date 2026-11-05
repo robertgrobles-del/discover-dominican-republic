@@ -17,6 +17,7 @@ import {
   EDITORIAL_CHANNELS, channelLabel, formatEditorialDate, sendEditorialProposal, useEditorialArticles,
   type EditorialArticle, type EditorialChannelId,
 } from "@/lib/editorialApi";
+import { usePageContent } from "@/lib/pageContent";
 
 /** Nombres de canal de versiones anteriores (`?canal=experiencias`), para que los enlaces viejos sigan funcionando. */
 const LEGACY_CHANNEL: Record<string, EditorialChannelId> = { experiencias: "viajes", blog: "viajes", invitados: "firmas", magazine: "viajes" };
@@ -39,7 +40,7 @@ function Meta({ article, light = false }: { article: EditorialArticle; light?: b
 
 function Kicker({ article, light = false }: { article: EditorialArticle; light?: boolean }) {
   return (
-    <span className={cn("text-[11px] font-bold uppercase tracking-[0.18em]", light ? "text-white" : "text-primary")}>
+    <span className={cn("text-2xs font-bold uppercase tracking-[0.18em]", light ? "text-white" : "text-primary")}>
       {channelLabel(article.channel)}{article.pressPartner ? ` · ${article.pressPartner}` : ""}
     </span>
   );
@@ -86,6 +87,7 @@ function ArticleRow({ article, index }: { article: EditorialArticle; index?: num
 }
 
 export default function EditorialMagazineHub() {
+  const pc = usePageContent("editorial-magazine-hub");
   const [params, setParams] = useSearchParams();
   const active = resolveChannel(params.get("canal") ?? params.get("categoria"));
   const [search, setSearch] = useState("");
@@ -144,7 +146,7 @@ export default function EditorialMagazineHub() {
     <PageTransition>
       <SEOHead
         title={`${activeChannel ? `${activeChannel.label} · ` : ""}Revista Descubre RD: blog, noticias y crónicas`}
-        description="Blog de viajes, noticias del turismo, comunicados, firmas invitadas y crónicas de historia de la República Dominicana, en un solo lugar."
+        description={pc.t("SEOHead.description.1", "Blog de viajes, noticias del turismo, comunicados, firmas invitadas y crónicas de historia de la República Dominicana, en un solo lugar.")}
       />
       <Header />
 
@@ -153,39 +155,25 @@ export default function EditorialMagazineHub() {
         <header className="container mx-auto px-4">
           <div className="flex flex-col gap-6 border-b-2 border-foreground pb-6 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.25em] text-primary">Revista</p>
-              <h1 className="mt-2 font-display text-5xl font-bold leading-none tracking-tight text-foreground md:text-7xl">Descubre RD</h1>
-              <p className="mt-3 max-w-xl text-muted-foreground">Viajes, noticias, voces y memoria de la República Dominicana.</p>
+              <p className="text-xs font-bold uppercase tracking-[0.25em] text-primary">{pc.tx("p.1", "Revista")}</p>
+              <h1 className="mt-2 font-display text-5xl font-bold leading-none tracking-tight text-foreground md:text-7xl">{pc.tx("h1.1", "Descubre RD")}</h1>
+              <p className="mt-3 max-w-xl text-muted-foreground">{pc.tx("p.2", "Viajes, noticias, voces y memoria de la República Dominicana.")}</p>
             </div>
             <div className="relative w-full md:w-80">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar en la revista" aria-label="Buscar en la revista" className="pl-9 pr-9" />
+              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={pc.t("Input.placeholder.1", "Buscar en la revista")} aria-label={pc.t("Input.aria-label.1", "Buscar en la revista")} className="pl-9 pr-9" />
               {search && (
-                <button type="button" onClick={() => setSearch("")} aria-label="Borrar búsqueda" className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground">
+                <button type="button" onClick={() => setSearch("")} aria-label={pc.t("button.aria-label.1", "Borrar búsqueda")} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground">
                   <X className="h-4 w-4" />
                 </button>
               )}
             </div>
           </div>
-
-          {/* Canales */}
-          <nav aria-label="Secciones de la revista" className="-mx-4 flex gap-1 overflow-x-auto px-4 py-3 no-scrollbar">
-            <button type="button" onClick={() => selectChannel(null)} aria-current={!active ? "page" : undefined}
-              className={cn("whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition-colors", !active ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
-              Portada
-            </button>
-            {channels.map((channel) => (
-              <button key={channel.id} type="button" onClick={() => selectChannel(channel.id)} aria-current={active === channel.id ? "page" : undefined}
-                className={cn("whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition-colors", active === channel.id ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
-                {channel.label} <span className="ml-1 text-xs opacity-60">{counts.get(channel.id)}</span>
-              </button>
-            ))}
-          </nav>
         </header>
 
         <div className="container mx-auto px-4">
           {isLoading && (
-            <div className="grid gap-8 py-8 lg:grid-cols-3" aria-busy="true" aria-label="Cargando publicaciones">
+            <div className="grid gap-8 py-8 lg:grid-cols-3" aria-busy="true" aria-label={pc.t("div.aria-label.1", "Cargando publicaciones")}>
               <Skeleton className="aspect-[16/10] rounded-3xl lg:col-span-2" />
               <div className="space-y-4">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>
             </div>
@@ -193,20 +181,20 @@ export default function EditorialMagazineHub() {
 
           {isError && (
             <div className="py-20 text-center space-y-3">
-              <p className="font-display text-2xl font-bold">No pudimos cargar la revista.</p>
-              <p className="text-muted-foreground">Revisa tu conexión e inténtalo otra vez.</p>
-              <Button variant="outline" onClick={() => refetch()}>Reintentar</Button>
+              <p className="font-display text-2xl font-bold">{pc.tx("p.3", "No pudimos cargar la revista.")}</p>
+              <p className="text-muted-foreground">{pc.tx("p.4", "Revisa tu conexión e inténtalo otra vez.")}</p>
+              <Button variant="outline" onClick={() => refetch()}>{pc.tx("Button.1", "Reintentar")}</Button>
             </div>
           )}
 
           {!isLoading && !isError && articles.length === 0 && (
-            <p className="py-20 text-center text-muted-foreground">Todavía no hay publicaciones.</p>
+            <p className="py-20 text-center text-muted-foreground">{pc.tx("p.5", "Todavía no hay publicaciones.")}</p>
           )}
 
           {/* Portada */}
           {!isLoading && !isError && !browsing && lead && (
             <>
-              <section aria-label="En portada" className="grid gap-8 py-8 lg:grid-cols-3">
+              <section aria-label={pc.t("section.aria-label.1", "En portada")} className="grid gap-8 py-8 lg:grid-cols-3">
                 <Link to={lead.href} className="group relative isolate flex min-h-[26rem] flex-col justify-end overflow-hidden rounded-3xl lg:col-span-2">
                   <Cover article={lead} className="absolute inset-0 -z-20" />
                   <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
@@ -225,8 +213,8 @@ export default function EditorialMagazineHub() {
               {latest.length > 0 && (
                 <section aria-labelledby="lo-ultimo" className="grid gap-10 border-t border-border py-10 lg:grid-cols-3">
                   <div>
-                    <h2 id="lo-ultimo" className="font-display text-3xl font-bold">Lo último</h2>
-                    <p className="mt-2 text-sm text-muted-foreground">Las publicaciones más recientes de todas las secciones.</p>
+                    <h2 id="lo-ultimo" className="font-display text-3xl font-bold">{pc.tx("h2.1", "Lo último")}</h2>
+                    <p className="mt-2 text-sm text-muted-foreground">{pc.tx("p.6", "Las publicaciones más recientes de todas las secciones.")}</p>
                   </div>
                   <div className="divide-y divide-border lg:col-span-2">
                     {latest.map((article, index) => <ArticleRow key={article.id} article={article} index={index} />)}
@@ -238,17 +226,10 @@ export default function EditorialMagazineHub() {
                 const items = articles.filter((a) => a.channel === channel.id).slice(0, 3);
                 return (
                   <section key={channel.id} aria-labelledby={`canal-${channel.id}`} className="border-t border-border py-10">
-                    <div className="mb-6 flex items-end justify-between gap-4">
-                      <div>
-                        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">{channel.kicker}</p>
-                        <h2 id={`canal-${channel.id}`} className="font-display text-3xl font-bold">{channel.label}</h2>
-                        <p className="mt-1 text-sm text-muted-foreground">{channel.description}</p>
-                      </div>
-                      {(counts.get(channel.id) ?? 0) > items.length && (
-                        <Button variant="ghost" className="shrink-0" onClick={() => { selectChannel(channel.id); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
-                          Ver todo <ArrowRight className="ml-1 h-4 w-4" />
-                        </Button>
-                      )}
+                    <div className="mb-6">
+                      <p className="text-2xs font-bold uppercase tracking-[0.18em] text-primary">{channel.kicker}</p>
+                      <h2 id={`canal-${channel.id}`} className="font-display text-3xl font-bold">{channel.label}</h2>
+                      <p className="mt-1 text-sm text-muted-foreground">{channel.description}</p>
                     </div>
                     <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                       {items.map((article) => <ArticleCard key={article.id} article={article} />)}
@@ -270,8 +251,8 @@ export default function EditorialMagazineHub() {
               </div>
               {filtered.length === 0 ? (
                 <div className="py-16 text-center space-y-3">
-                  <p className="font-semibold">No encontramos publicaciones.</p>
-                  <Button variant="outline" onClick={() => { setSearch(""); selectChannel(null); }}>Volver a la portada</Button>
+                  <p className="font-semibold">{pc.tx("p.7", "No encontramos publicaciones.")}</p>
+                  <Button variant="outline" onClick={() => { setSearch(""); selectChannel(null); }}>{pc.tx("Button.3", "Volver a la portada")}</Button>
                 </div>
               ) : (
                 <div className="grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
@@ -285,12 +266,12 @@ export default function EditorialMagazineHub() {
           <section className="mt-6 grid gap-6 rounded-3xl bg-foreground p-8 text-background md:grid-cols-[1fr_auto] md:items-center md:p-12">
             <div>
               <PenLine className="mb-3 h-6 w-6" />
-              <h2 className="font-display text-3xl font-bold">Escribe en la revista</h2>
-              <p className="mt-2 max-w-xl opacity-80">Propón un artículo o envía el comunicado de tu institución. El equipo editorial lo revisa antes de publicarlo.</p>
+              <h2 className="font-display text-3xl font-bold">{pc.tx("h2.2", "Escribe en la revista")}</h2>
+              <p className="mt-2 max-w-xl opacity-80">{pc.tx("p.8", "Propón un artículo o envía el comunicado de tu institución. El equipo editorial lo revisa antes de publicarlo.")}</p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Button variant="secondary" onClick={() => setProposalKind("invitado")}>Proponer un artículo <ArrowUpRight className="ml-1 h-4 w-4" /></Button>
-              <Button variant="outline" className="border-background/40 bg-transparent text-background hover:bg-background/10 hover:text-background" onClick={() => setProposalKind("prensa")}>Enviar un comunicado</Button>
+              <Button variant="secondary" onClick={() => setProposalKind("invitado")}>{pc.tx("Button.4", "Proponer un artículo")}{" "}<ArrowUpRight className="ml-1 h-4 w-4" /></Button>
+              <Button variant="outline" className="border-background/40 bg-transparent text-background hover:bg-background/10 hover:text-background" onClick={() => setProposalKind("prensa")}>{pc.tx("Button.5", "Enviar un comunicado")}</Button>
             </div>
           </section>
         </div>
@@ -300,19 +281,19 @@ export default function EditorialMagazineHub() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>{proposalKind === "prensa" ? "Enviar un comunicado" : "Proponer un artículo"}</DialogTitle>
-            <DialogDescription>Llega al equipo editorial. No se publica nada sin revisión.</DialogDescription>
+            <DialogDescription>{pc.tx("DialogDescription.1", "Llega al equipo editorial. No se publica nada sin revisión.")}</DialogDescription>
           </DialogHeader>
           <form onSubmit={submitProposal} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5"><Label htmlFor="p-name">Nombre</Label><Input id="p-name" required minLength={2} maxLength={100} value={proposal.name} onChange={(e) => setProposal({ ...proposal, name: e.target.value })} /></div>
-              <div className="space-y-1.5"><Label htmlFor="p-email">Correo</Label><Input id="p-email" type="email" required value={proposal.email} onChange={(e) => setProposal({ ...proposal, email: e.target.value })} /></div>
+              <div className="space-y-1.5"><Label htmlFor="p-name">{pc.tx("Label.1", "Nombre")}</Label><Input id="p-name" required minLength={2} maxLength={100} value={proposal.name} onChange={(e) => setProposal({ ...proposal, name: e.target.value })} /></div>
+              <div className="space-y-1.5"><Label htmlFor="p-email">{pc.tx("Label.2", "Correo")}</Label><Input id="p-email" type="email" required value={proposal.email} onChange={(e) => setProposal({ ...proposal, email: e.target.value })} /></div>
             </div>
-            <div className="space-y-1.5"><Label htmlFor="p-org">Organización (opcional)</Label><Input id="p-org" maxLength={120} value={proposal.organization} onChange={(e) => setProposal({ ...proposal, organization: e.target.value })} /></div>
-            <div className="space-y-1.5"><Label htmlFor="p-title">Título</Label><Input id="p-title" required minLength={3} maxLength={110} value={proposal.title} onChange={(e) => setProposal({ ...proposal, title: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label htmlFor="p-org">{pc.tx("Label.3", "Organización (opcional)")}</Label><Input id="p-org" maxLength={120} value={proposal.organization} onChange={(e) => setProposal({ ...proposal, organization: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label htmlFor="p-title">{pc.tx("Label.4", "Título")}</Label><Input id="p-title" required minLength={3} maxLength={110} value={proposal.title} onChange={(e) => setProposal({ ...proposal, title: e.target.value })} /></div>
             <div className="space-y-1.5"><Label htmlFor="p-body">{proposalKind === "prensa" ? "Texto del comunicado" : "De qué trata"}</Label><Textarea id="p-body" required rows={5} maxLength={3500} value={proposal.body} onChange={(e) => setProposal({ ...proposal, body: e.target.value })} /></div>
-            <div className="space-y-1.5"><Label htmlFor="p-link">Enlace (opcional)</Label><Input id="p-link" type="url" maxLength={300} value={proposal.link} onChange={(e) => setProposal({ ...proposal, link: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label htmlFor="p-link">{pc.tx("Label.5", "Enlace (opcional)")}</Label><Input id="p-link" type="url" maxLength={300} value={proposal.link} onChange={(e) => setProposal({ ...proposal, link: e.target.value })} /></div>
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" onClick={() => setProposalKind(null)}>Cancelar</Button>
+              <Button type="button" variant="ghost" onClick={() => setProposalKind(null)}>{pc.tx("Button.6", "Cancelar")}</Button>
               <Button type="submit" disabled={sending}>{sending ? "Enviando…" : "Enviar"}</Button>
             </div>
           </form>

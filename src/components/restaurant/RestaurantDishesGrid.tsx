@@ -51,11 +51,11 @@ export function RestaurantDishesGrid({ dishes }: RestaurantDishesGridProps) {
 
               {/* Mejora 635: Escala visual de intensidad de sabor y picante */}
               <div className="flex items-center justify-between text-xs py-2 px-3 bg-muted/30 rounded-xl mb-3 border border-border/40">
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-2xs text-muted-foreground">
                   Sabor: <strong className="text-foreground">{dish.flavorIntensity || "Equilibrado"}</strong>
                 </span>
                 <div className="flex items-center gap-1" title={`Nivel de Picante: ${dish.spiceLevel ?? 0} de 3`}>
-                  <span className="text-[10px] text-muted-foreground mr-1">Picante:</span>
+                  <span className="text-3xs text-muted-foreground mr-1">Picante:</span>
                   {[1, 2, 3].map((lvl) => {
                     const active = (dish.spiceLevel ?? (dish.title.toLowerCase().includes("chivo") || dish.title.toLowerCase().includes("aguachile") ? 2 : 0)) >= lvl;
                     return (
@@ -74,12 +74,12 @@ export function RestaurantDishesGrid({ dishes }: RestaurantDishesGridProps) {
             <div className="space-y-3 pt-3 border-t border-border/50">
               <div className="flex flex-wrap gap-1.5">
                 {dish.tags.map((t, ti) => (
-                  <span key={ti} className="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-md">
+                  <span key={ti} className="text-3xs bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-md">
                     {t}
                   </span>
                 ))}
               </div>
-              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/90 italic">
+              <div className="flex items-center gap-1.5 text-2xs text-muted-foreground/90 italic">
                 <Wine className="h-3.5 w-3.5 text-primary flex-shrink-0" />
                 <span className="truncate">{dish.pairing}</span>
               </div>

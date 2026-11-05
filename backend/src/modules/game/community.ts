@@ -47,6 +47,8 @@ export class CommunityGame {
       if (!col) throw AppError.notFound("Coleccionable");
       if (!col.unlock_condition) throw new AppError("BUSINESS_RULE", "Este coleccionable se entrega en eventos o de forma especial", { code: "NOT_CLAIMABLE" });
       if ((await c.query("SELECT 1 FROM user_collectibles WHERE user_id = $1 AND collectible_id = $2", [userId, collectibleId])).rowCount) throw new AppError("CONFLICT", "Ya lo tienes", { reason: "ALREADY_OWNED" });
+      // Quitarlo de la colección no permite reclamarlo otra vez: el reclamo queda registrado en el historial de recompensas.
+      if ((await c.query("SELECT 1 FROM gamification_transactions WHERE user_id = $1 AND action = 'collectible_claimed' AND source_id = $2 LIMIT 1", [userId, collectibleId])).rowCount) throw new AppError("CONFLICT", "Ya lo reclamaste antes", { reason: "ALREADY_CLAIMED" });
       if (!(await this.game.meets(userId, col.unlock_condition, c))) throw new AppError("BUSINESS_RULE", "Todavía no cumples la condición", { code: "CONDITION_NOT_MET", condition: col.unlock_condition });
       const supply = await c.query("UPDATE digital_collectibles SET current_supply = current_supply + 1, updated_at = now() WHERE id = $1 AND (total_supply IS NULL OR current_supply < total_supply)", [collectibleId]);
       if (!supply.rowCount) throw new AppError("BUSINESS_RULE", "Se agotó el suministro", { code: "SOLD_OUT" });

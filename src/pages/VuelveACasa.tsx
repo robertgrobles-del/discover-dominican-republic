@@ -10,6 +10,7 @@ import {
   Palmtree, Music, Camera, Users, Gift, Plane, CheckCircle
 } from "lucide-react";
 import santoDomingo from "@/assets/santo-domingo.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const novedades = [
   { titulo: "Teleférico de Santo Domingo", desc: "Sistema de transporte aéreo moderno que conecta barrios de la capital. Una experiencia panorámica nueva.", icono: "🚡" },
@@ -46,11 +47,16 @@ const datosUtiles = [
 ];
 
 export default function VuelveACasa() {
+  const pc = usePageContent("vuelve-a-casa");
+  const novedades = pc.data("novedades", __pcData.novedades);
+  const experienciasNostalgia = pc.data("experienciasNostalgia", __pcData.experienciasNostalgia);
+  const paquetesDiaspora = pc.data("paquetesDiaspora", __pcData.paquetesDiaspora);
+  const datosUtiles = pc.data("datosUtiles", __pcData.datosUtiles);
   return (
     <PageTransition>
       <SEOHead
-        title="Vuelve a Casa - Guía para la Diáspora Dominicana"
-        description="Guía para dominicanos en el exterior que regresan de visita. Novedades del país, paquetes especiales, experiencias nostálgicas y datos prácticos."
+        title={pc.t("SEOHead.title.1", "Vuelve a Casa - Guía para la Diáspora Dominicana")}
+        description={pc.t("SEOHead.description.1", "Guía para dominicanos en el exterior que regresan de visita. Novedades del país, paquetes especiales, experiencias nostálgicas y datos prácticos.")}
         keywords="dominicanos exterior, diaspora dominicana, volver a RD, paquetes navidad dominicana"
       />
       <div className="min-h-screen flex flex-col bg-background">
@@ -58,26 +64,21 @@ export default function VuelveACasa() {
 
         <section className="relative min-h-[45vh] flex items-center overflow-hidden">
           <div className="absolute inset-0">
-            <img src={santoDomingo} alt="Santo Domingo" className="w-full h-full object-cover" />
+            <img src={pc.img("img.src.1", santoDomingo)} alt={pc.t("img.alt.1", "Santo Domingo")} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
           </div>
           <div className="container mx-auto px-4 relative z-10 py-16">
-            <Badge className="mb-4 bg-white/10 text-white border-white/20 backdrop-blur-sm">
-              🇩🇴 Para Dominicanos en el Exterior
-            </Badge>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-4 max-w-2xl">
-              Vuelve a <span className="text-primary">Casa</span>
+            <Badge className="mb-4 bg-white/10 text-white border-white/20 backdrop-blur-sm">{pc.tx("Badge.1", "🇩🇴 Para Dominicanos en el Exterior")}</Badge>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-4 max-w-2xl">{pc.tx("h1.1", "Vuelve a")}{" "}<span className="text-primary">{pc.tx("span.1", "Casa")}</span>
             </h1>
-            <p className="text-lg text-white/80 max-w-xl">
-              Tu tierra te espera. Descubre qué ha cambiado, revive tus recuerdos y planifica tu regreso perfecto.
-            </p>
+            <p className="text-lg text-white/80 max-w-xl">{pc.tx("p.1", "Tu tierra te espera. Descubre qué ha cambiado, revive tus recuerdos y planifica tu regreso perfecto.")}</p>
           </div>
         </section>
 
         {/* Novedades */}
         <section className="py-12">
           <div className="container mx-auto px-4 max-w-5xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">🆕 Lo Nuevo en RD</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.1", "🆕 Lo Nuevo en RD")}</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {novedades.map(n => (
                 <Card key={n.titulo}>
@@ -95,7 +96,7 @@ export default function VuelveACasa() {
         {/* Experiencias nostálgicas */}
         <section className="py-12 bg-card/50">
           <div className="container mx-auto px-4 max-w-4xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">💛 Experiencias que Extrañas</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.2", "💛 Experiencias que Extrañas")}</h2>
             <div className="grid md:grid-cols-2 gap-4">
               {experienciasNostalgia.map(e => (
                 <div key={e.nombre} className="bg-background rounded-xl p-5 border border-border flex gap-4">
@@ -113,13 +114,13 @@ export default function VuelveACasa() {
         {/* Paquetes especiales */}
         <section className="py-12">
           <div className="container mx-auto px-4 max-w-4xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">🎁 Paquetes Especiales para la Diáspora</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.3", "🎁 Paquetes Especiales para la Diáspora")}</h2>
             <div className="grid md:grid-cols-2 gap-4">
               {paquetesDiaspora.map(p => (
                 <Card key={p.titulo} className="hover:border-primary/30 transition-colors">
                   <CardContent className="p-5">
                     <h3 className="font-semibold text-foreground mb-1">{p.titulo}</h3>
-                    <Badge variant="outline" className="text-[10px] mb-2">{p.periodo}</Badge>
+                    <Badge variant="outline" className="text-3xs mb-2">{p.periodo}</Badge>
                     <p className="text-sm text-muted-foreground mb-2">{p.desc}</p>
                     <p className="text-primary font-bold text-sm">{p.precio}</p>
                   </CardContent>
@@ -132,7 +133,7 @@ export default function VuelveACasa() {
         {/* FAQ */}
         <section className="py-12 bg-card/50">
           <div className="container mx-auto px-4 max-w-3xl">
-            <h2 className="font-display text-xl font-bold text-foreground mb-6 text-center">❓ Preguntas Frecuentes</h2>
+            <h2 className="font-display text-xl font-bold text-foreground mb-6 text-center">{pc.tx("h2.4", "❓ Preguntas Frecuentes")}</h2>
             <div className="space-y-3">
               {datosUtiles.map(d => (
                 <div key={d.pregunta} className="bg-background rounded-xl p-4 border border-border">
@@ -149,3 +150,6 @@ export default function VuelveACasa() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { novedades, experienciasNostalgia, paquetesDiaspora, datosUtiles };

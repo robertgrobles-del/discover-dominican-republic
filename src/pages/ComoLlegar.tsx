@@ -1,5 +1,6 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { TransportHighlightSection } from "@/components/TransportHighlightSection";
 import { PageTransition } from "@/components/PageTransition";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SEOHead } from "@/components/SEOHead";
@@ -24,8 +25,10 @@ import {
   calcRoute 
 } from "@/data/comoLlegarData";
 import heroBeach from "@/assets/hero-beach.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function ComoLlegar() {
+  const pc = usePageContent("como-llegar");
   const { t } = useTranslation();
   const [heroLoaded, setHeroLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState("internacional");
@@ -52,7 +55,7 @@ export default function ComoLlegar() {
         <section className="relative py-24 flex items-center justify-center overflow-hidden">
           {!heroLoaded && <Skeleton className="absolute inset-0" />}
           <img
-            src={heroBeach}
+            src={pc.img("img.src.1", heroBeach)}
             alt={t("logistica.title") || "Cómo Llegar a RD"}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
               heroLoaded ? "opacity-30" : "opacity-0"
@@ -119,19 +122,15 @@ export default function ComoLlegar() {
               <TabsContent value="internacional">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-1 h-8 bg-primary rounded" />
-                  <h2 className="font-display text-2xl font-bold text-foreground">Llegada Internacional</h2>
+                  <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.1", "Llegada Internacional")}</h2>
                 </div>
                 
-                <p className="text-muted-foreground max-w-2xl mb-12">
-                  La República Dominicana es el destino mejor conectado del Caribe, con 8 aeropuertos internacionales y múltiples puertos de cruceros recibiendo visitantes diariamente.
-                </p>
+                <p className="text-muted-foreground max-w-2xl mb-12">{pc.tx("p.1", "La República Dominicana es el destino mejor conectado del Caribe, con 8 aeropuertos internacionales y múltiples puertos de cruceros recibiendo visitantes diariamente.")}</p>
 
                 {/* ===== AEROPUERTOS GRID ===== */}
                 <div className="mb-12">
                   <h3 className="font-display font-semibold text-xl text-foreground mb-6 flex items-center gap-2">
-                    <Plane className="h-5 w-5 text-primary" />
-                    Aeropuertos de República Dominicana
-                  </h3>
+                    <Plane className="h-5 w-5 text-primary" />{pc.tx("h3.1", "Aeropuertos de República Dominicana")}</h3>
                   <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {airports.map((airport) => (
                       <Link
@@ -143,7 +142,7 @@ export default function ComoLlegar() {
                           <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                             <Plane className="h-5 w-5 text-primary" />
                           </div>
-                          <Badge variant={airport.type === 'internacional' ? 'default' : 'secondary'} className="text-[10px]">
+                          <Badge variant={airport.type === 'internacional' ? 'default' : 'secondary'} className="text-3xs">
                             {airport.code}
                           </Badge>
                         </div>
@@ -164,7 +163,7 @@ export default function ComoLlegar() {
                           </div>
                           <div className="flex items-center gap-1 text-xs text-muted-foreground">
                             <Globe className="h-3 w-3" />
-                            <span>{airport.airlines.length} aerolíneas</span>
+                            <span>{airport.airlines.length}{" "}{pc.tx("span.1", "aerolíneas")}</span>
                           </div>
                         </div>
                       </Link>
@@ -175,10 +174,8 @@ export default function ComoLlegar() {
                 {/* ===== TIEMPOS DE VUELO MEJORADOS ===== */}
                 <div className="mb-12">
                   <h3 className="font-display font-semibold text-xl text-foreground mb-2 flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-primary" />
-                    Conectividad Directa (Tiempo de Vuelo)
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-6">Rutas con vuelos directos desde las principales ciudades del mundo</p>
+                    <Clock className="h-5 w-5 text-primary" />{pc.tx("h3.2", "Conectividad Directa (Tiempo de Vuelo)")}</h3>
+                  <p className="text-sm text-muted-foreground mb-6">{pc.tx("p.2", "Rutas con vuelos directos desde las principales ciudades del mundo")}</p>
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {tiemposVuelo.map((vuelo, idx) => (
                       <div
@@ -202,7 +199,7 @@ export default function ComoLlegar() {
                           <Clock className="h-3 w-3 text-primary" />
                           <span className="text-sm font-bold text-primary">{vuelo.tiempo}</span>
                         </div>
-                        <p className="text-[11px] text-muted-foreground line-clamp-1">
+                        <p className="text-2xs text-muted-foreground line-clamp-1">
                           {vuelo.aerolineas}
                         </p>
                       </div>
@@ -215,12 +212,10 @@ export default function ComoLlegar() {
               <TabsContent value="maritima">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-1 h-8 bg-primary rounded" />
-                  <h2 className="font-display text-2xl font-bold text-foreground">Vías Marítimas</h2>
+                  <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.2", "Vías Marítimas")}</h2>
                 </div>
                 
-                <p className="text-muted-foreground max-w-2xl mb-12">
-                  Conecta con República Dominicana a través de ferries internacionales y cruceros de lujo. Una forma única de llegar disfrutando del viaje.
-                </p>
+                <p className="text-muted-foreground max-w-2xl mb-12">{pc.tx("p.3", "Conecta con República Dominicana a través de ferries internacionales y cruceros de lujo. Una forma única de llegar disfrutando del viaje.")}</p>
 
                 <div className="grid md:grid-cols-2 gap-6 mb-12">
                   {viasMaritimas.map((via) => (
@@ -238,11 +233,11 @@ export default function ComoLlegar() {
                       
                       <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                         <div>
-                          <p className="text-muted-foreground">Frecuencia</p>
+                          <p className="text-muted-foreground">{pc.tx("p.4", "Frecuencia")}</p>
                           <p className="text-foreground font-medium">{via.frecuencia}</p>
                         </div>
                         <div>
-                          <p className="text-muted-foreground">Duración</p>
+                          <p className="text-muted-foreground">{pc.tx("p.5", "Duración")}</p>
                           <p className="text-foreground font-medium">{via.duracion}</p>
                         </div>
                       </div>
@@ -258,7 +253,7 @@ export default function ComoLlegar() {
 
                       <div className="flex items-center justify-between pt-4 border-t border-border">
                         <p className="text-lg font-bold text-primary">{via.precio}</p>
-                        <Button variant="outline" size="sm">Ver Detalles</Button>
+                        <Button variant="outline" size="sm">{pc.tx("Button.1", "Ver Detalles")}</Button>
                       </div>
                     </div>
                   ))}
@@ -266,17 +261,15 @@ export default function ComoLlegar() {
 
                 <div className="bg-card rounded-xl border border-border p-6 mb-12">
                   <h3 className="font-semibold text-foreground mb-6 flex items-center gap-2">
-                    <Ship className="h-5 w-5 text-primary" />
-                    Rutas de Ferry Regulares
-                  </h3>
+                    <Ship className="h-5 w-5 text-primary" />{pc.tx("h3.3", "Rutas de Ferry Regulares")}</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-border">
-                          <th className="text-left py-3 text-muted-foreground font-medium">Ruta</th>
-                          <th className="text-left py-3 text-muted-foreground font-medium">Precio</th>
-                          <th className="text-left py-3 text-muted-foreground font-medium">Frecuencia</th>
-                          <th className="text-left py-3 text-muted-foreground font-medium">Duración</th>
+                          <th className="text-left py-3 text-muted-foreground font-medium">{pc.tx("th.1", "Ruta")}</th>
+                          <th className="text-left py-3 text-muted-foreground font-medium">{pc.tx("th.2", "Precio")}</th>
+                          <th className="text-left py-3 text-muted-foreground font-medium">{pc.tx("th.3", "Frecuencia")}</th>
+                          <th className="text-left py-3 text-muted-foreground font-medium">{pc.tx("th.4", "Duración")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -296,24 +289,18 @@ export default function ComoLlegar() {
                 <div className="grid md:grid-cols-3 gap-6">
                   <div className="bg-card rounded-xl border border-border p-6">
                     <Clock className="h-8 w-8 text-primary mb-4" />
-                    <h4 className="font-semibold text-foreground mb-2">Check-in</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Llegar 3 horas antes de la salida para ferries. Los cruceros tienen horarios específicos en cada puerto.
-                    </p>
+                    <h4 className="font-semibold text-foreground mb-2">{pc.tx("h4.1", "Check-in")}</h4>
+                    <p className="text-sm text-muted-foreground">{pc.tx("p.6", "Llegar 3 horas antes de la salida para ferries. Los cruceros tienen horarios específicos en cada puerto.")}</p>
                   </div>
                   <div className="bg-card rounded-xl border border-border p-6">
                     <Car className="h-8 w-8 text-primary mb-4" />
-                    <h4 className="font-semibold text-foreground mb-2">Vehículos</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Ferries del Caribe permite transportar vehículos. Reserva con anticipación y lleva documentación completa.
-                    </p>
+                    <h4 className="font-semibold text-foreground mb-2">{pc.tx("h4.2", "Vehículos")}</h4>
+                    <p className="text-sm text-muted-foreground">{pc.tx("p.7", "Ferries del Caribe permite transportar vehículos. Reserva con anticipación y lleva documentación completa.")}</p>
                   </div>
                   <div className="bg-card rounded-xl border border-border p-6">
                     <MapPin className="h-8 w-8 text-primary mb-4" />
-                    <h4 className="font-semibold text-foreground mb-2">Terminales</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Puerto de Sans Souci en Santo Domingo. Amber Cove y Taino Bay en Puerto Plata. La Romana para cruceros del Caribe Este.
-                    </p>
+                    <h4 className="font-semibold text-foreground mb-2">{pc.tx("h4.3", "Terminales")}</h4>
+                    <p className="text-sm text-muted-foreground">{pc.tx("p.8", "Puerto de Sans Souci en Santo Domingo. Amber Cove y Taino Bay en Puerto Plata. La Romana para cruceros del Caribe Este.")}</p>
                   </div>
                 </div>
               </TabsContent>
@@ -322,12 +309,10 @@ export default function ComoLlegar() {
               <TabsContent value="interna">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-1 h-8 bg-primary rounded" />
-                  <h2 className="font-display text-2xl font-bold text-foreground">Conectividad Aérea Regional</h2>
+                  <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.3", "Conectividad Aérea Regional")}</h2>
                 </div>
                 
-                <p className="text-muted-foreground max-w-2xl mb-12">
-                  Explora la red de aeropuertos domésticos y conecta con los rincones más hermosos de República Dominicana a través de vuelos regulares y servicios de air taxi.
-                </p>
+                <p className="text-muted-foreground max-w-2xl mb-12">{pc.tx("p.9", "Explora la red de aeropuertos domésticos y conecta con los rincones más hermosos de República Dominicana a través de vuelos regulares y servicios de air taxi.")}</p>
 
                 <div className="grid md:grid-cols-3 gap-6 mb-12">
                   {operadoresAereos.map((op) => (
@@ -337,10 +322,10 @@ export default function ComoLlegar() {
                       <Badge variant="secondary" className="mb-3">{op.tipo}</Badge>
                       <p className="text-sm text-muted-foreground mb-4">{op.descripcion}</p>
                       {op.hub && (
-                        <p className="text-xs text-muted-foreground">Hub: {op.hub}</p>
+                        <p className="text-xs text-muted-foreground">{pc.tx("p.10", "Hub:")}{" "}{op.hub}</p>
                       )}
                       {op.destinos && (
-                        <p className="text-xs text-muted-foreground">Destinos: {op.destinos.join(", ")}</p>
+                        <p className="text-xs text-muted-foreground">{pc.tx("p.11", "Destinos:")}{" "}{op.destinos.join(", ")}</p>
                       )}
                       {op.servicio && (
                         <Badge className="mt-2 bg-amber-500/20 text-amber-500">{op.servicio}</Badge>
@@ -353,15 +338,15 @@ export default function ComoLlegar() {
                 </div>
 
                 <div className="bg-card rounded-xl border border-border p-6 mb-12">
-                  <h3 className="font-semibold text-foreground mb-6">Rutas Populares</h3>
+                  <h3 className="font-semibold text-foreground mb-6">{pc.tx("h3.4", "Rutas Populares")}</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-border">
-                          <th className="text-left py-3 text-muted-foreground font-medium">Ruta</th>
-                          <th className="text-left py-3 text-muted-foreground font-medium">Precio</th>
-                          <th className="text-left py-3 text-muted-foreground font-medium">Tipo de Vuelo</th>
-                          <th className="text-left py-3 text-muted-foreground font-medium">Duración</th>
+                          <th className="text-left py-3 text-muted-foreground font-medium">{pc.tx("th.5", "Ruta")}</th>
+                          <th className="text-left py-3 text-muted-foreground font-medium">{pc.tx("th.6", "Precio")}</th>
+                          <th className="text-left py-3 text-muted-foreground font-medium">{pc.tx("th.7", "Tipo de Vuelo")}</th>
+                          <th className="text-left py-3 text-muted-foreground font-medium">{pc.tx("th.8", "Duración")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -381,17 +366,13 @@ export default function ComoLlegar() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="bg-card rounded-xl border border-border p-6">
                     <Bus className="h-8 w-8 text-primary mb-4" />
-                    <h4 className="font-semibold text-foreground mb-2">Equipaje</h4>
-                    <p className="text-sm text-muted-foreground">
-                      En vuelos internos con aeronaves pequeñas, el límite de equipaje suele ser de 25−35 libras por persona. Verifique con su operador.
-                    </p>
+                    <h4 className="font-semibold text-foreground mb-2">{pc.tx("h4.4", "Equipaje")}</h4>
+                    <p className="text-sm text-muted-foreground">{pc.tx("p.12", "En vuelos internos con aeronaves pequeñas, el límite de equipaje suele ser de 25−35 libras por persona. Verifique con su operador.")}</p>
                   </div>
                   <div className="bg-card rounded-xl border border-border p-6">
                     <Clock className="h-8 w-8 text-primary mb-4" />
-                    <h4 className="font-semibold text-foreground mb-2">Tiempo de Llegada</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Se recomienda llegar al menos 45 minutos antes de la salida para vuelos domésticos desde aeropuertos regionales.
-                    </p>
+                    <h4 className="font-semibold text-foreground mb-2">{pc.tx("h4.5", "Tiempo de Llegada")}</h4>
+                    <p className="text-sm text-muted-foreground">{pc.tx("p.13", "Se recomienda llegar al menos 45 minutos antes de la salida para vuelos domésticos desde aeropuertos regionales.")}</p>
                   </div>
                 </div>
               </TabsContent>
@@ -404,7 +385,7 @@ export default function ComoLlegar() {
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-1 h-8 bg-primary rounded" />
-              <h2 className="font-display text-2xl font-bold text-foreground">Traslado Interno y Rutas</h2>
+              <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.4", "Traslado Interno y Rutas")}</h2>
             </div>
 
             <div className="grid lg:grid-cols-2 gap-8">
@@ -412,12 +393,12 @@ export default function ComoLlegar() {
               <div className="bg-card rounded-xl border border-border p-6">
                 <div className="flex items-center gap-2 text-primary mb-4">
                   <Car className="h-5 w-5" />
-                  <h3 className="font-semibold">Calculadora de Ruta</h3>
+                  <h3 className="font-semibold">{pc.tx("h3.5", "Calculadora de Ruta")}</h3>
                 </div>
 
                 <div className="space-y-4 mb-6">
                   <div>
-                    <label className="text-xs text-muted-foreground uppercase tracking-wider">ORIGEN</label>
+                    <label className="text-xs text-muted-foreground uppercase tracking-wider">{pc.tx("label.1", "ORIGEN")}</label>
                     <Select value={origin} onValueChange={setOrigin}>
                       <SelectTrigger className="mt-1">
                         <SelectValue />
@@ -433,7 +414,7 @@ export default function ComoLlegar() {
                   </div>
                   
                   <div>
-                    <label className="text-xs text-muted-foreground uppercase tracking-wider">DESTINO</label>
+                    <label className="text-xs text-muted-foreground uppercase tracking-wider">{pc.tx("label.2", "DESTINO")}</label>
                     <Select value={destination} onValueChange={setDestination}>
                       <SelectTrigger className="mt-1">
                         <SelectValue />
@@ -451,23 +432,23 @@ export default function ComoLlegar() {
 
                 <div className="grid grid-cols-2 gap-4 p-4 bg-secondary/50 rounded-lg mb-6">
                   <div>
-                    <p className="text-xs text-muted-foreground uppercase">DISTANCIA ESTIMADA</p>
+                    <p className="text-xs text-muted-foreground uppercase">{pc.tx("p.14", "DISTANCIA ESTIMADA")}</p>
                     <p className="text-2xl font-bold text-foreground">
                       {routeResult ? `${routeResult.distance} km` : "—"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground uppercase">TIEMPO (AUTO)</p>
+                    <p className="text-xs text-muted-foreground uppercase">{pc.tx("p.15", "TIEMPO (AUTO)")}</p>
                     <p className="text-2xl font-bold text-primary">
                       {routeResult ? routeResult.time : "—"}
                     </p>
                   </div>
                 </div>
 
-                <Button className="w-full">Ver Detalles de Ruta</Button>
+                <Button className="w-full">{pc.tx("Button.2", "Ver Detalles de Ruta")}</Button>
 
                 <div className="mt-6 pt-6 border-t border-border">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-4">OPCIONES RECOMENDADAS</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-4">{pc.tx("p.16", "OPCIONES RECOMENDADAS")}</p>
                   <div className="space-y-3">
                     {opcionesTransporte.map((opcion) => (
                       <div key={opcion.titulo} className="flex items-center justify-between p-3 bg-secondary/30 rounded-lg">
@@ -498,14 +479,14 @@ export default function ComoLlegar() {
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
                       <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground">Mapa interactivo de rutas</p>
+                      <p className="text-muted-foreground">{pc.tx("p.17", "Mapa interactivo de rutas")}</p>
                     </div>
                   </div>
                 </div>
                 <div className="p-4 border-t border-border flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-muted-foreground uppercase">VISTA PREVIA</p>
-                    <p className="font-medium text-foreground">Ruta Visualizada</p>
+                    <p className="text-xs text-muted-foreground uppercase">{pc.tx("p.18", "VISTA PREVIA")}</p>
+                    <p className="font-medium text-foreground">{pc.tx("p.19", "Ruta Visualizada")}</p>
                     <p className="text-sm text-muted-foreground">
                       {routePoints.find(r => r.value === origin)?.label} → {routePoints.find(r => r.value === destination)?.label}
                     </p>
@@ -518,6 +499,9 @@ export default function ComoLlegar() {
             </div>
           </div>
         </section>
+
+        {/* Metro, teleférico y monorriel (antes en la portada) */}
+        <TransportHighlightSection />
 
         <Footer />
       </div>

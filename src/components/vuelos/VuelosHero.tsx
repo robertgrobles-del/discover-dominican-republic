@@ -9,16 +9,16 @@ interface VuelosHeroProps {
 
 export function VuelosHero({ search, onSearchChange }: VuelosHeroProps) {
   return (
-    <section className="relative py-20 bg-gradient-to-b from-primary/15 via-background to-background">
+    <section className="relative pt-16 pb-4">
       <div className="container mx-auto px-4 max-w-6xl text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold mb-4">
             <Plane className="w-3.5 h-3.5" />
             Guía Oficial de Conectividad Aérea RD 2026
           </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
+          <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">
             Aerolíneas y Rutas Directas a <span className="text-primary">República Dominicana</span>
-          </h1>
+          </h2>
           <p className="text-muted-foreground text-base md:text-lg max-w-2xl mx-auto mb-8">
             Planifica tu llegada conociendo las rutas sin escalas, aerolíneas bandera, tiempos estimados de vuelo y aeropuertos internacionales de destino.
           </p>

@@ -46,6 +46,8 @@ const USER_SQL = `SELECT u.id, u.email, u.password_hash, u.locale, u.status, u.e
 /** Reglas de negocio de cuentas y sesiones (docs §5.1). Las rutas sólo validan entrada y llaman aquí. */
 export class AuthService {
   private readonly box: SecretBox;
+  /** Se llama una vez, cuando la cuenta verifica su correo (lo asigna el arranque: aplica el referido de registro). */
+  onEmailVerified?: (userId: string) => Promise<void>;
 
   constructor(
     private readonly env: Env, private readonly db: Db, private readonly tokens: TokenService,
@@ -159,8 +161,18 @@ export class AuthService {
       await c.query("UPDATE users SET password_hash = $2, password_set = false, email_verified_at = now(), failed_login_count = 0, locked_until = NULL WHERE id = $1", [userId, `!neutralized:${newOpaqueToken()}`]);
       await c.query("UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL", [userId]);
       await c.query("UPDATE auth_tokens SET used_at = now() WHERE user_id = $1 AND used_at IS NULL", [userId]);
+      await this.dropPlantedCredentials(userId, c);
     });
     this.log.warn({ userId }, "Cuenta sin verificar vinculada a un proveedor: contraseña anulada");
+  }
+
+  /**
+   * Quien creó una cuenta sin verificar pudo vincular su propio proveedor social y activar su propio 2FA. Al recuperarla el
+   * dueño del correo, esas credenciales se eliminan junto con la contraseña y las sesiones.
+   */
+  private async dropPlantedCredentials(userId: string, c: PoolClient) {
+    await c.query("DELETE FROM oauth_identities WHERE user_id = $1", [userId]);
+    await c.query("UPDATE users SET totp_secret_enc = NULL, totp_enabled_at = NULL, totp_recovery_hashes = '{}', totp_last_step = NULL WHERE id = $1", [userId]);
   }
 
   /** null si puede iniciar sesión; si no, el motivo (para el redireccionamiento del login social). */
@@ -192,7 +204,7 @@ export class AuthService {
       throw new AppError("RATE_LIMITED", "Demasiados intentos fallidos. Intenta de nuevo más tarde.", { retry_after_seconds: retry });
     }
     if (!(await verifyPassword(u.password_hash, input.password))) {
-      await this.recordFailure(u.id, u.failed_login_count, ctx);
+      await this.recordFailure(u.id, ctx);
       throw new AppError("UNAUTHENTICATED", GENERIC_LOGIN_ERROR);
     }
     if (u.status === "suspended" || u.is_suspended) throw new AppError("ACCOUNT_SUSPENDED", "Tu cuenta está suspendida. Contacta a soporte.");
@@ -210,13 +222,15 @@ export class AuthService {
   }
 
   /** Cuenta un intento fallido (contraseña o segundo factor); al llegar al máximo bloquea la cuenta unos minutos. */
-  private async recordFailure(userId: string, current: number, ctx: RequestContext) {
-    const failed = current + 1;
-    const lock = failed >= this.env.LOGIN_MAX_FAILURES;
-    await this.db.query(
-      "UPDATE users SET failed_login_count = $2, locked_until = CASE WHEN $3 THEN now() + make_interval(mins => $4) ELSE locked_until END WHERE id = $1",
-      [userId, lock ? 0 : failed, lock, this.env.LOGIN_LOCK_MINUTES],
+  private async recordFailure(userId: string, ctx: RequestContext) {
+    // Incremento atómico en la base: peticiones concurrentes no se pisan el contador (antes se escribía un valor leído al inicio).
+    const { rows } = await this.db.query<{ locked: boolean }>(
+      `UPDATE users SET failed_login_count = CASE WHEN failed_login_count + 1 >= $2 THEN 0 ELSE failed_login_count + 1 END,
+              locked_until = CASE WHEN failed_login_count + 1 >= $2 THEN now() + make_interval(mins => $3) ELSE locked_until END
+        WHERE id = $1 RETURNING (failed_login_count = 0) AS locked`,
+      [userId, this.env.LOGIN_MAX_FAILURES, this.env.LOGIN_LOCK_MINUTES],
     );
+    const lock = !!rows[0]?.locked;
     if (lock) this.log.warn({ userId, ip: ctx.ip }, "Cuenta bloqueada temporalmente por intentos fallidos");
   }
 
@@ -307,6 +321,7 @@ export class AuthService {
     const u = rows[0];
     if (u && !u.was_verified) {
       await this.mailer.send({ to: u.email, template: "auth.welcome", locale: this.locale(u.locale), userId, data: { name: u.display_name ?? u.email, url: this.env.WEB_BASE_URL } });
+      await this.onEmailVerified?.(userId);
     }
     return { verified: true as const };
   }
@@ -344,6 +359,12 @@ export class AuthService {
     const password_hash = await hashPassword(input.password);
     const userId = await this.tx(async (c) => {
       const id = await this.consumeToken("reset_password", input.token, c);
+      // El enlace prueba la propiedad del correo: si la cuenta nunca lo verificó, se retiran las credenciales que pudo dejar su creador.
+      const unverified = (await c.query("SELECT 1 FROM users WHERE id = $1 AND email_verified_at IS NULL FOR UPDATE", [id])).rowCount;
+      if (unverified) {
+        await this.dropPlantedCredentials(id, c);
+        await c.query("UPDATE users SET email_verified_at = now() WHERE id = $1", [id]);
+      }
       await c.query("UPDATE users SET password_hash = $2, password_set = true, failed_login_count = 0, locked_until = NULL WHERE id = $1", [id, password_hash]);
       await c.query("UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND revoked_at IS NULL", [id]);
       return id;
@@ -389,7 +410,7 @@ export class AuthService {
       throw new AppError("RATE_LIMITED", "Demasiados intentos fallidos. Intenta de nuevo más tarde.", { retry_after_seconds: Math.ceil((u.locked_until.getTime() - Date.now()) / 1000) });
     }
     const fail = async (): Promise<never> => {
-      await this.recordFailure(u.id, u.failed_login_count, ctx);
+      await this.recordFailure(u.id, ctx);
       throw new AppError("UNAUTHENTICATED", "El código no es correcto");
     };
     if (input.recovery_code) {
@@ -423,6 +444,8 @@ export class AuthService {
     const codes = generateRecoveryCodes();
     await this.db.query("UPDATE users SET totp_enabled_at = now(), totp_recovery_hashes = $2, failed_login_count = 0 WHERE id = $1", [userId, codes.map(hashRecovery)]);
     await this.db.query("UPDATE refresh_tokens SET mfa = true WHERE user_id = $1 AND family_id = $2 AND revoked_at IS NULL", [userId, sid]);
+    // Las demás sesiones se abrieron sin el segundo factor: se cierran (la actual queda).
+    await this.db.query("UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1 AND family_id <> $2 AND NOT mfa AND revoked_at IS NULL", [userId, sid]);
     return { recovery_codes: codes, access_token: await this.tokens.signAccess({ sub: userId, roles: await this.rolesOf(userId), locale: u.locale, sid, mfa: true }), expires_in: this.tokens.accessTtl };
   }
 

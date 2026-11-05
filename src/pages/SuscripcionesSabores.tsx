@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { CheckoutModal } from "@/components/CheckoutModal";
 import { useAuth } from "@/hooks/useAuth";
+import { usePageContent } from "@/lib/pageContent";
 
 const boxes = [
   {
@@ -52,6 +53,8 @@ const boxes = [
 ];
 
 export default function SuscripcionesSabores() {
+  const pc = usePageContent("suscripciones-sabores");
+  const boxes = pc.data("boxes", __pcData.boxes);
   const { user } = useAuth();
   
   // Checkout Modal State
@@ -99,8 +102,8 @@ export default function SuscripcionesSabores() {
   return (
     <PageTransition>
       <SEOHead
-        title="Suscripción Sabores RD | Descubre RD"
-        description="Recibe una caja mensual de productos dominicanos auténticos directos a tu puerta. Dulces criollos, café orgánico, ron premium y más."
+        title={pc.t("SEOHead.title.1", "Suscripción Sabores RD | Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Recibe una caja mensual de productos dominicanos auténticos directos a tu puerta. Dulces criollos, café orgánico, ron premium y más.")}
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
@@ -111,68 +114,58 @@ export default function SuscripcionesSabores() {
             {/* Hero Section */}
             <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
               <Badge className="bg-primary/20 text-primary border-primary/30 py-1 px-3 text-xs gap-1.5 uppercase font-bold tracking-wider">
-                <Gift className="h-4 w-4" /> Suscripción Sabores RD
-              </Badge>
-              <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground">
-                El Sabor de Tu Tierra, <span className="text-primary">Mensual a tu Puerta</span>
+                <Gift className="h-4 w-4" />{" "}{pc.tx("Badge.1", "Suscripción Sabores RD")}</Badge>
+              <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground">{pc.tx("h1.1", "El Sabor de Tu Tierra,")}{" "}<span className="text-primary">{pc.tx("span.1", "Mensual a tu Puerta")}</span>
               </h1>
-              <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
-                Diseñado especialmente para la diáspora dominicana y los amantes del Caribe. Suscríbete y recibe periódicamente cajas repletas de antojos tradicionales, café tostado artesanal y tesoros dominicanos.
-              </p>
+              <p className="text-muted-foreground text-sm md:text-base leading-relaxed">{pc.tx("p.1", "Diseñado especialmente para la diáspora dominicana y los amantes del Caribe. Suscríbete y recibe periódicamente cajas repletas de antojos tradicionales, café tostado artesanal y tesoros dominicanos.")}</p>
             </div>
 
             {/* Config Bar */}
             <Card className="border border-border bg-card/60 backdrop-blur-md p-6 mb-12 max-w-4xl mx-auto">
               <div className="grid md:grid-cols-3 gap-6 items-center">
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase block mb-1">1. Frecuencia de Envío</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase block mb-1">{pc.tx("label.1", "1. Frecuencia de Envío")}</label>
                   <div className="grid grid-cols-3 gap-2">
                     <Button 
                       variant={subscriptionTerm === "monthly" ? "default" : "outline"} 
                       size="sm" 
                       onClick={() => setSubscriptionTerm("monthly")}
                       className="text-xs font-bold"
-                    >
-                      Mensual
-                    </Button>
+                    >{pc.tx("Button.1", "Mensual")}</Button>
                     <Button 
                       variant={subscriptionTerm === "quarterly" ? "default" : "outline"} 
                       size="sm" 
                       onClick={() => setSubscriptionTerm("quarterly")}
                       className="text-xs font-bold"
-                    >
-                      Trimestral
-                    </Button>
+                    >{pc.tx("Button.2", "Trimestral")}</Button>
                     <Button 
                       variant={subscriptionTerm === "annual" ? "default" : "outline"} 
                       size="sm" 
                       onClick={() => setSubscriptionTerm("annual")}
                       className="text-xs font-bold"
-                    >
-                      Anual
-                    </Button>
+                    >{pc.tx("Button.3", "Anual")}</Button>
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase block mb-1">2. Destino del Envío</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase block mb-1">{pc.tx("label.2", "2. Destino del Envío")}</label>
                   <select
                     value={shippingCountry}
                     onChange={(e) => setShippingCountry(e.target.value)}
                     className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    title="Destino del Envío"
+                    title={pc.t("select.title.1", "Destino del Envío")}
                   >
-                    <option value="USA">Estados Unidos (US$ 15 envío)</option>
-                    <option value="PR">Puerto Rico (US$ 10 envío)</option>
-                    <option value="Spain">España / Europa (US$ 22 envío)</option>
-                    <option value="Canada">Canadá / Otros (US$ 25 envío)</option>
+                    <option value="USA">{pc.tx("option.1", "Estados Unidos (US$ 15 envío)")}</option>
+                    <option value="PR">{pc.tx("option.2", "Puerto Rico (US$ 10 envío)")}</option>
+                    <option value="Spain">{pc.tx("option.3", "España / Europa (US$ 22 envío)")}</option>
+                    <option value="Canada">{pc.tx("option.4", "Canadá / Otros (US$ 25 envío)")}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase block mb-1">3. Descuento Aplicado</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase block mb-1">{pc.tx("label.3", "3. Descuento Aplicado")}</label>
                   <div className="p-2.5 bg-secondary/50 rounded-lg text-xs font-mono text-primary flex items-center justify-between border border-border">
-                    <span>Ahorro del Término:</span>
+                    <span>{pc.tx("span.2", "Ahorro del Término:")}</span>
                     <span className="font-bold">
                       {subscriptionTerm === "monthly" ? "0%" : subscriptionTerm === "quarterly" ? "10% OFF" : "20% OFF"}
                     </span>
@@ -198,19 +191,19 @@ export default function SuscripcionesSabores() {
                           alt={box.name} 
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
                         />
-                        <Badge className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm border-white/10 text-[9px] uppercase font-bold tracking-wider">
+                        <Badge className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm border-white/10 text-3xs uppercase font-bold tracking-wider">
                           {box.badge}
                         </Badge>
                       </div>
 
                       {/* Info details */}
                       <div className="p-6 pt-0 space-y-3">
-                        <h3 className="font-display text-xl font-extrabold text-foreground">{box.name}</h3>
+                        <h2 className="h3 font-display text-xl font-extrabold text-foreground">{box.name}</h2>
                         <p className="text-xs text-muted-foreground leading-relaxed">{box.description}</p>
                         
                         {/* Included items */}
                         <div className="pt-2">
-                          <p className="text-[10px] text-muted-foreground uppercase font-bold mb-1.5">¿Qué contiene la caja?</p>
+                          <p className="text-3xs text-muted-foreground uppercase font-bold mb-1.5">{pc.tx("p.2", "¿Qué contiene la caja?")}</p>
                           <ul className="space-y-1">
                             {box.items.map((it, idx) => (
                               <li key={idx} className="text-xs text-foreground flex items-center gap-1.5">
@@ -227,19 +220,17 @@ export default function SuscripcionesSabores() {
                     <div className="p-6 border-t border-border bg-muted/20 space-y-4">
                       <div className="flex justify-between items-baseline">
                         <div>
-                          <p className="text-[9px] text-muted-foreground uppercase font-bold">Caja + Envío</p>
+                          <p className="text-3xs text-muted-foreground uppercase font-bold">{pc.tx("p.3", "Caja + Envío")}</p>
                           <p className="font-mono text-2xl font-extrabold text-foreground">
                             ${total.toFixed(2)}
-                            <span className="text-xs text-muted-foreground font-normal">/mes</span>
+                            <span className="text-xs text-muted-foreground font-normal">{pc.tx("span.3", "/mes")}</span>
                           </p>
                         </div>
-                        <Badge variant="outline" className="text-[9px] font-mono">
-                          Envío: ${shipping.toFixed(2)}
+                        <Badge variant="outline" className="text-3xs font-mono">{pc.tx("Badge.2", "Envío: $")}{shipping.toFixed(2)}
                         </Badge>
                       </div>
 
-                      <Button onClick={() => handleSubscribe(box)} className="w-full font-bold gap-2">
-                        Suscribirse <ArrowRight className="h-4 w-4" />
+                      <Button onClick={() => handleSubscribe(box)} className="w-full font-bold gap-2">{pc.tx("Button.4", "Suscribirse")}{" "}<ArrowRight className="h-4 w-4" />
                       </Button>
                     </div>
                   </Card>
@@ -251,18 +242,18 @@ export default function SuscripcionesSabores() {
             <div className="mt-16 bg-gradient-to-r from-primary/10 via-secondary/50 to-primary/5 border border-border rounded-2xl p-8 max-w-4xl mx-auto grid md:grid-cols-3 gap-6 text-center md:text-left">
               <div className="space-y-1">
                 <Truck className="h-8 w-8 text-primary mx-auto md:mx-0" />
-                <h4 className="font-bold text-sm text-foreground">Envío Internacional Seguro</h4>
-                <p className="text-xs text-muted-foreground">Despachado mensualmente vía aérea rápida y con código de seguimiento.</p>
+                <h3 className="h4 font-bold text-sm text-foreground">{pc.tx("h4.1", "Envío Internacional Seguro")}</h3>
+                <p className="text-xs text-muted-foreground">{pc.tx("p.4", "Despachado mensualmente vía aérea rápida y con código de seguimiento.")}</p>
               </div>
               <div className="space-y-1">
                 <Calendar className="h-8 w-8 text-primary mx-auto md:mx-0" />
-                <h4 className="font-bold text-sm text-foreground">Cancela Cuando Quieras</h4>
-                <p className="text-xs text-muted-foreground">Sin plazos de permanencia forzada. Gestiona tu suscripción libremente en tu perfil.</p>
+                <h3 className="h4 font-bold text-sm text-foreground">{pc.tx("h4.2", "Cancela Cuando Quieras")}</h3>
+                <p className="text-xs text-muted-foreground">{pc.tx("p.5", "Sin plazos de permanencia forzada. Gestiona tu suscripción libremente en tu perfil.")}</p>
               </div>
               <div className="space-y-1">
                 <Sparkles className="h-8 w-8 text-primary mx-auto md:mx-0" />
-                <h4 className="font-bold text-sm text-foreground">Artesanal & Fresco</h4>
-                <p className="text-xs text-muted-foreground">Colaboramos directamente con micro-productores locales de dulces y café.</p>
+                <h3 className="h4 font-bold text-sm text-foreground">{pc.tx("h4.3", "Artesanal & Fresco")}</h3>
+                <p className="text-xs text-muted-foreground">{pc.tx("p.6", "Colaboramos directamente con micro-productores locales de dulces y café.")}</p>
               </div>
             </div>
 
@@ -281,3 +272,6 @@ export default function SuscripcionesSabores() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { boxes };

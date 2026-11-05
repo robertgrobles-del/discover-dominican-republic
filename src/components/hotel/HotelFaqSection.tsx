@@ -2,8 +2,11 @@ import { useState } from "react";
 import { HelpCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { hotelFaqsData } from "@/data/hotelDetailData";
 
-export function HotelFaqSection() {
+/** `faqs` viene de la ficha del hotel en el backend; sin backend se usan las preguntas de muestra. */
+export function HotelFaqSection({ faqs }: { faqs?: { q: string; a: string }[] }) {
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const items = faqs ?? hotelFaqsData;
+  if (!items.length) return null;
 
   return (
     <div className="space-y-4">
@@ -12,7 +15,7 @@ export function HotelFaqSection() {
         Preguntas Frecuentes
       </h3>
       <div className="space-y-3">
-        {hotelFaqsData.map((faq, idx) => (
+        {items.map((faq, idx) => (
           <div key={faq.q} className="bg-card border border-border rounded-2xl overflow-hidden shadow-xs">
             <button
               onClick={() => setExpandedFaq(expandedFaq === idx ? null : idx)}

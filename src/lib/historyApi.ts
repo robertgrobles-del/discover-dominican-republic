@@ -30,19 +30,19 @@ export async function fetchHistoryArticleBySlug(slug: string): Promise<HistoryAr
           author_role: string | null;
           author_avatar: string | null;
           read_time_min: number | null;
-          extras?: Record<string, any> | null;
+          extras?: Partial<HistoryArticle> | null; // campos de la crónica guardados en la fila
         };
       }>(`/articles/${encodeURIComponent(slug)}`);
 
       if (artRes?.data) {
         const d = artRes.data;
-        const extras = d.extras || {};
+        const extras: Partial<HistoryArticle> = d.extras || {};
         return {
           id: d.id,
           slug: d.slug,
           title: d.title,
           subtitle: extras.subtitle || d.author_role || "Crónica Histórica Dominicana",
-          category: extras.category || (d.category?.replace("historia-", "") as any) || "biografia",
+          category: extras.category || (d.category?.replace("historia-", "") as HistoryArticle["category"]) || "biografia",
           era: extras.era || "Independencia",
           period: extras.period || "",
           heroImage: d.image_url || extras.heroImage || "/assets/history.jpg",
@@ -98,7 +98,7 @@ export async function fetchHistoryArticleBySlug(slug: string): Promise<HistoryAr
           title: f.name,
           subtitle: f.title || "Prócer de la Patria",
           category: "biografia",
-          era: (f.era as any) || "Independencia",
+          era: (f.era as HistoryArticle["era"]) || "Independencia",
           period,
           heroImage: f.image_url || "/assets/history.jpg",
           author: {
@@ -150,7 +150,7 @@ export async function fetchHistoryArticleBySlug(slug: string): Promise<HistoryAr
           title: ev.name,
           subtitle: ev.significance || "Gesta y Acontecimiento Histórico",
           category: "evento",
-          era: (ev.era as any) || "Independencia",
+          era: (ev.era as HistoryArticle["era"]) || "Independencia",
           period: ev.year ? String(ev.year) : "",
           heroImage: ev.image_url || "/assets/history.jpg",
           author: {
@@ -208,13 +208,13 @@ export async function fetchAllHistoryArticles(): Promise<HistoryArticle[]> {
         author_name: string | null;
         author_role: string | null;
         read_time_min: number | null;
-        extras?: Record<string, any> | null;
+        extras?: Partial<HistoryArticle> | null; // campos de la crónica guardados en la fila
       }>;
     }>("/articles?filter[category]=historia&per_page=50");
 
     if (Array.isArray(res?.data)) {
       for (const a of res.data) {
-        const extras = a.extras || {};
+        const extras: Partial<HistoryArticle> = a.extras || {};
         itemsBySlug.set(a.slug, {
           id: a.id,
           slug: a.slug,

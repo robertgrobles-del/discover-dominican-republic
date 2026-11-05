@@ -33,6 +33,7 @@ import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import samanaImg from "@/assets/samana.jpg";
 import historyImg from "@/assets/history.jpg";
 import adventureImg from "@/assets/adventure.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const incentives = [
   {
@@ -137,11 +138,16 @@ const infrastructure = [
 ];
 
 export default function CineRD() {
+  const pc = usePageContent("cine-rd");
+  const productions = pc.data("productions", __pcData.productions);
+  const experiencias = pc.data("experiencias", __pcData.experiencias);
+  const incentives = pc.data("incentives", __pcData.incentives);
+  const infrastructure = pc.data("infrastructure", __pcData.infrastructure);
   return (
     <PageTransition>
       <SEOHead
-        title="Turismo Cinematográfico y Locaciones de Cine en RD | Descubre República Dominicana"
-        description="Explora los escenarios de Hollywood en República Dominicana: Jurassic Park, El Padrino II, The Lost City. Conoce la Ley de Cine (108-10), incentivos fiscales y tours de cine."
+        title={pc.t("SEOHead.title.1", "Turismo Cinematográfico y Locaciones de Cine en RD | Descubre República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Explora los escenarios de Hollywood en República Dominicana: Jurassic Park, El Padrino II, The Lost City. Conoce la Ley de Cine (108-10), incentivos fiscales y tours de cine.")}
         keywords="cine dominicano, locaciones de peliculas en republica dominicana, film commission rd, ley de cine 108-10, jurassic park samana, el padrino zona colonial"
       />
       
@@ -153,8 +159,8 @@ export default function CineRD() {
           <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0">
               <img
-                src={santoDomingoImg}
-                alt="Turismo Cinematográfico y Escenarios de Cine en República Dominicana"
+                src={pc.img("img.src.1", santoDomingoImg)}
+                alt={pc.t("img.alt.1", "Turismo Cinematográfico y Escenarios de Cine en República Dominicana")}
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-black/65 to-black/40" />
@@ -162,24 +168,17 @@ export default function CineRD() {
 
             <div className="relative z-10 text-center px-4 max-w-4xl mx-auto text-white py-16">
               <Badge className="mb-4 bg-primary/20 text-white border-primary/40 backdrop-blur-md px-3 py-1 font-semibold">
-                <Clapperboard className="w-3.5 h-3.5 mr-1.5 text-primary" />
-                Turismo Cinematográfico & Film Commission
-              </Badge>
-              <h1 className="font-display text-4xl md:text-6xl font-extrabold tracking-tight mb-4 drop-shadow-md">
-                República Dominicana en la <br />
-                <span className="italic text-primary">Gran Pantalla</span>
+                <Clapperboard className="w-3.5 h-3.5 mr-1.5 text-primary" />{pc.tx("Badge.1", "Turismo Cinematográfico & Film Commission")}</Badge>
+              <h1 className="font-display text-4xl md:text-6xl font-extrabold tracking-tight mb-4 drop-shadow-md">{pc.tx("h1.1", "República Dominicana en la")}{" "}<br />
+                <span className="italic text-primary">{pc.tx("span.1", "Gran Pantalla")}</span>
               </h1>
-              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto mb-8 leading-relaxed drop-shadow">
-                Visita los sets reales de películas clásicas y producciones contemporáneas que escogieron las costas, selvas y calles coloniales de nuestra isla.
-              </p>
+              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto mb-8 leading-relaxed drop-shadow">{pc.tx("p.1", "Visita los sets reales de películas clásicas y producciones contemporáneas que escogieron las costas, selvas y calles coloniales de nuestra isla.")}</p>
 
               <div className="flex flex-wrap justify-center gap-4">
                 <Button size="lg" className="gap-2 font-bold shadow-md">
-                  <Camera className="h-4 w-4" /> Explorar Locaciones Famosas
-                </Button>
+                  <Camera className="h-4 w-4" />{" "}{pc.tx("Button.1", "Explorar Locaciones Famosas")}</Button>
                 <Button size="lg" variant="outline" className="gap-2 bg-white/10 border-white/30 text-white hover:bg-white/20 backdrop-blur-sm">
-                  <Download className="h-4 w-4" /> Guía DGCINE (PDF)
-                </Button>
+                  <Download className="h-4 w-4" />{" "}{pc.tx("Button.2", "Guía DGCINE (PDF)")}</Button>
               </div>
             </div>
           </section>
@@ -187,13 +186,9 @@ export default function CineRD() {
           {/* Cartelera de Estrellas */}
           <section className="container mx-auto px-4 mt-16 max-w-6xl">
             <div className="text-center max-w-2xl mx-auto mb-12">
-              <span className="text-xs font-bold text-primary uppercase tracking-widest block mb-1">Filmografía en la Isla</span>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">
-                Grandes Producciones Filmadas en RD
-              </h2>
-              <p className="text-sm text-muted-foreground mt-2">
-                Descubre cómo los paisajes dominicanos han dado vida a algunas de las escenas más recordadas del cine mundial.
-              </p>
+              <span className="text-xs font-bold text-primary uppercase tracking-widest block mb-1">{pc.tx("span.2", "Filmografía en la Isla")}</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground">{pc.tx("h2.1", "Grandes Producciones Filmadas en RD")}</h2>
+              <p className="text-sm text-muted-foreground mt-2">{pc.tx("p.2", "Descubre cómo los paisajes dominicanos han dado vida a algunas de las escenas más recordadas del cine mundial.")}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -209,14 +204,14 @@ export default function CineRD() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
                       
                       <div className="absolute top-3 left-3">
-                        <Badge className="bg-black/70 text-white text-[10px] font-semibold backdrop-blur-xs">
+                        <Badge className="bg-black/70 text-white text-3xs font-semibold backdrop-blur-xs">
                           {prod.genre} • {prod.year}
                         </Badge>
                       </div>
 
                       <div className="absolute bottom-3 left-3 right-3 text-white">
                         <h3 className="font-display font-bold text-lg leading-tight drop-shadow">{prod.title}</h3>
-                        <p className="text-xs text-white/80 mt-0.5">Dir: {prod.director}</p>
+                        <p className="text-xs text-white/80 mt-0.5">{pc.tx("p.3", "Dir:")}{" "}{prod.director}</p>
                         <p className="text-xs text-primary font-semibold flex items-center gap-1 mt-1">
                           <MapPin className="h-3 w-3" /> {prod.location}
                         </p>
@@ -224,7 +219,7 @@ export default function CineRD() {
                     </div>
 
                     <CardContent className="p-4 space-y-2">
-                      <span className="text-[10px] font-bold uppercase text-muted-foreground block">Curiosidad de Rodaje:</span>
+                      <span className="text-3xs font-bold uppercase text-muted-foreground block">{pc.tx("span.3", "Curiosidad de Rodaje:")}</span>
                       <p className="text-xs text-muted-foreground leading-relaxed">
                         {prod.curiosidad}
                       </p>
@@ -232,9 +227,7 @@ export default function CineRD() {
                   </div>
 
                   <div className="p-4 pt-0">
-                    <Button variant="outline" size="sm" className="w-full text-xs font-bold">
-                      Ver Ficha de Locación
-                    </Button>
+                    <Button variant="outline" size="sm" className="w-full text-xs font-bold">{pc.tx("Button.3", "Ver Ficha de Locación")}</Button>
                   </div>
                 </Card>
               ))}
@@ -245,14 +238,10 @@ export default function CineRD() {
           <section className="container mx-auto px-4 mt-20 max-w-6xl">
             <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-8">
               <div>
-                <span className="text-xs font-bold text-primary uppercase tracking-widest block mb-1">Tours y Rutas Guiadas</span>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                  Experiencias de Película en Primera Persona
-                </h2>
+                <span className="text-xs font-bold text-primary uppercase tracking-widest block mb-1">{pc.tx("span.4", "Tours y Rutas Guiadas")}</span>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h2.2", "Experiencias de Película en Primera Persona")}</h2>
               </div>
-              <p className="text-xs text-muted-foreground max-w-sm">
-                Recorridos guiados por especialistas en cine que te llevan a los mismos puntos de cámara de tus actores favoritos.
-              </p>
+              <p className="text-xs text-muted-foreground max-w-sm">{pc.tx("p.4", "Recorridos guiados por especialistas en cine que te llevan a los mismos puntos de cámara de tus actores favoritos.")}</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -265,7 +254,7 @@ export default function CineRD() {
                         alt={exp.titulo}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
-                      <Badge className="absolute top-3 left-3 bg-black/70 text-white text-[10px]">
+                      <Badge className="absolute top-3 left-3 bg-black/70 text-white text-3xs">
                         <Clock className="w-3 h-3 mr-1" />
                         {exp.duracion}
                       </Badge>
@@ -282,10 +271,10 @@ export default function CineRD() {
 
                   <div className="p-5 pt-0 border-t border-border/50 flex items-center justify-between mt-2">
                     <div>
-                      <span className="text-[10px] text-muted-foreground block uppercase">Tarifa desde</span>
-                      <span className="text-lg font-bold font-mono text-foreground">${exp.precio} USD</span>
+                      <span className="text-3xs text-muted-foreground block uppercase">{pc.tx("span.5", "Tarifa desde")}</span>
+                      <span className="text-lg font-bold font-mono text-foreground">${exp.precio}{" "}{pc.tx("span.6", "USD")}</span>
                     </div>
-                    <Button size="sm" className="text-xs font-bold">Reservar Tour</Button>
+                    <Button size="sm" className="text-xs font-bold">{pc.tx("Button.4", "Reservar Tour")}</Button>
                   </div>
                 </Card>
               ))}
@@ -296,15 +285,9 @@ export default function CineRD() {
           <section className="container mx-auto px-4 mt-20 max-w-6xl">
             <div className="bg-card border border-border/80 rounded-3xl p-8 md:p-12 shadow-sm">
               <div className="max-w-3xl mb-10">
-                <Badge className="bg-primary/10 text-primary border-primary/20 text-xs mb-3 font-semibold">
-                  📜 Ley de Fomento a la Actividad Cinematográfica (108-10)
-                </Badge>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                  Incentivos Fiscales de Nivel Mundial
-                </h2>
-                <p className="text-xs md:text-sm text-muted-foreground mt-2 leading-relaxed">
-                  República Dominicana ofrece uno de los paquetes de incentivos más competitivos del hemisferio occidental, facilitando transferencias bancarias ágiles y exención total de aranceles de importación temporal de equipos.
-                </p>
+                <Badge className="bg-primary/10 text-primary border-primary/20 text-xs mb-3 font-semibold">{pc.tx("Badge.2", "📜 Ley de Fomento a la Actividad Cinematográfica (108-10)")}</Badge>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h2.3", "Incentivos Fiscales de Nivel Mundial")}</h2>
+                <p className="text-xs md:text-sm text-muted-foreground mt-2 leading-relaxed">{pc.tx("p.5", "República Dominicana ofrece uno de los paquetes de incentivos más competitivos del hemisferio occidental, facilitando transferencias bancarias ágiles y exención total de aranceles de importación temporal de equipos.")}</p>
               </div>
 
               <div className="grid md:grid-cols-3 gap-6 mb-12">
@@ -324,9 +307,7 @@ export default function CineRD() {
 
               {/* Infraestructura */}
               <div className="pt-8 border-t border-border/60">
-                <h3 className="font-display font-bold text-xl text-foreground mb-6">
-                  Infraestructura y Estudios Técnicos
-                </h3>
+                <h3 className="font-display font-bold text-xl text-foreground mb-6">{pc.tx("h3.1", "Infraestructura y Estudios Técnicos")}</h3>
                 <div className="grid md:grid-cols-3 gap-6">
                   {infrastructure.map((inf, i) => {
                     const InfIcon = inf.icon;
@@ -337,7 +318,7 @@ export default function CineRD() {
                         </div>
                         <div className="space-y-1">
                           <h4 className="font-bold text-foreground text-xs">{inf.title}</h4>
-                          <p className="text-[11px] text-muted-foreground leading-relaxed">{inf.description}</p>
+                          <p className="text-2xs text-muted-foreground leading-relaxed">{inf.description}</p>
                         </div>
                       </div>
                     );
@@ -358,3 +339,6 @@ export default function CineRD() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { productions, experiencias, incentives, infrastructure };

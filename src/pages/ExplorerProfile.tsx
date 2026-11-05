@@ -16,6 +16,9 @@ import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
 const supabaseAny = supabase as any;
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { fetchApi } from "@/lib/fastifyClient";
+import { gamificationApi } from "@/lib/gamificationApi";
 import { useAuth } from "@/hooks/useAuth";
 import { BadgeAlbum, BadgeItem, BadgeRarity } from "@/components/gamification/BadgeAlbum";
 import { toast } from "sonner";
@@ -77,6 +80,15 @@ export default function ExplorerProfile() {
   const fetchFollowData = useCallback(async () => {
     if (!id) return;
     try {
+      if (HAS_BACKEND_SESSION) {
+        const res = await fetchApi<{ data: { followers: number; following: number } }>(`/users/${id}/public`).catch(() => null);
+        if (res?.data) {
+          setFollowersCount(res.data.followers || 0);
+          setFollowingCount(res.data.following || 0);
+        }
+        return;
+      }
+
       // Get counts
       const [followersRes, followingRes] = await Promise.all([
         supabaseAny
@@ -112,6 +124,34 @@ export default function ExplorerProfile() {
     if (!id) return;
     setLoading(true);
     try {
+      if (HAS_BACKEND_SESSION) {
+        const publicUser = await fetchApi<{ data: any }>(`/users/${id}/public`).catch(() => null);
+        if (publicUser?.data) {
+          setProfile({
+            display_name: publicUser.data.display_name,
+            avatar_url: publicUser.data.avatar_url,
+            bio: publicUser.data.bio,
+            travel_interests: publicUser.data.travel_interests,
+          });
+          setFollowersCount(publicUser.data.followers || 0);
+          setFollowingCount(publicUser.data.following || 0);
+        } else {
+          toast.error("Explorador no encontrado");
+          setLoading(false);
+          return;
+        }
+
+        // Cargar logros y transacciones oficiales si están disponibles
+        const [achRes, myAch] = await Promise.all([
+          gamificationApi.getAchievements().catch(() => []),
+          gamificationApi.getMyAchievements().catch(() => []),
+        ]);
+        if (achRes.length) setAchievements(achRes as any);
+        if (myAch.length) setUserAchievements(myAch.map((a: any) => ({ achievement_id: a.id, unlocked_at: a.unlocked_at })) as any);
+        setLoading(false);
+        return;
+      }
+
       // Fetch level configs
       const { data: levelData } = await supabase
         .from("gamification_levels")
@@ -181,6 +221,21 @@ export default function ExplorerProfile() {
     
     setActionLoading(true);
     try {
+      if (HAS_BACKEND_SESSION) {
+        if (isFollowing) {
+          await fetchApi(`/users/${id}/follow`, { method: "DELETE" });
+          setIsFollowing(false);
+          setFollowersCount(prev => Math.max(0, prev - 1));
+          toast.success(`Dejaste de seguir a ${profile?.display_name}`);
+        } else {
+          await fetchApi(`/users/${id}/follow`, { method: "POST" });
+          setIsFollowing(true);
+          setFollowersCount(prev => prev + 1);
+          toast.success(`Ahora sigues a ${profile?.display_name}`);
+        }
+        return;
+      }
+
       if (isFollowing) {
         // Unfollow
         const { error } = await supabaseAny
@@ -480,9 +535,9 @@ export default function ExplorerProfile() {
                   {/* Earned Badges highlight */}
                   <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-bold text-foreground text-lg flex items-center gap-2">
+                      <h2 className="h3 font-bold text-foreground text-lg flex items-center gap-2">
                         <Medal className="h-5 w-5 text-amber-500" /> Insignias Destacadas
-                      </h3>
+                      </h2>
                       <Button variant="ghost" size="sm" onClick={() => setActiveTab("badges")} className="text-primary hover:text-primary/80 gap-1 text-xs">
                         Ver todas <ChevronRight className="h-3 w-3" />
                       </Button>
@@ -501,8 +556,8 @@ export default function ExplorerProfile() {
                             className="bg-background border border-border rounded-xl p-4 text-center hover:border-primary/20 transition-all"
                           >
                             <span className="text-4xl block mb-2">{badge.icon}</span>
-                            <h4 className="font-bold text-xs text-foreground truncate">{badge.name}</h4>
-                            <Badge variant="outline" className="text-[9px] mt-1 bg-primary/5 text-primary border-primary/10">
+                            <h3 className="h4 font-bold text-xs text-foreground truncate">{badge.name}</h3>
+                            <Badge variant="outline" className="text-3xs mt-1 bg-primary/5 text-primary border-primary/10">
                               {badge.rarity === "legendary" ? "⭐ Legendaria" : badge.rarity === "epic" ? "🔮 Épica" : badge.rarity === "rare" ? "💎 Rara" : "Común"}
                             </Badge>
                           </div>
@@ -515,9 +570,9 @@ export default function ExplorerProfile() {
                 {/* Right Side: Showcase info */}
                 <div className="space-y-6">
                   <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-                    <h3 className="font-bold text-foreground mb-4 flex items-center gap-2 text-sm">
+                    <h2 className="h3 font-bold text-foreground mb-4 flex items-center gap-2 text-sm">
                       <Trophy className="h-4 w-4 text-primary" /> Rango actual
-                    </h3>
+                    </h2>
                     
                     <div className="flex items-center gap-4 bg-background p-4 rounded-xl border border-border">
                       <span className="text-4xl">{currentLevel?.icon}</span>
@@ -529,7 +584,7 @@ export default function ExplorerProfile() {
 
                     {profile.travel_interests && profile.travel_interests.length > 0 && (
                       <div className="mt-6 pt-6 border-t border-border">
-                        <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-3">Enfoque de Viaje</h4>
+                        <h3 className="h4 font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-3">Enfoque de Viaje</h3>
                         <div className="flex flex-wrap gap-1.5">
                           {profile.travel_interests.map(interest => (
                             <Badge key={interest} variant="secondary" className="text-xs">
@@ -558,9 +613,9 @@ export default function ExplorerProfile() {
             {/* TAB: ACTIVITY HISTORY */}
             <TabsContent value="activity">
               <div className="bg-card border border-border rounded-2xl p-6 shadow-sm max-w-2xl">
-                <h3 className="font-bold text-foreground text-lg mb-6 flex items-center gap-2">
+                <h2 className="h3 font-bold text-foreground text-lg mb-6 flex items-center gap-2">
                   <Clock className="h-5 w-5 text-primary" /> Historial de Aventuras
-                </h3>
+                </h2>
 
                 {transactions.length === 0 ? (
                   <div className="text-center py-12 border border-dashed border-border rounded-xl">
@@ -579,18 +634,18 @@ export default function ExplorerProfile() {
                           <div className="absolute -left-[31px] top-1.5 w-3 h-3 rounded-full bg-primary ring-4 ring-card" />
                           
                           <div>
-                            <span className="text-[10px] font-semibold text-muted-foreground block mb-0.5">{date}</span>
+                            <span className="text-3xs font-semibold text-muted-foreground block mb-0.5">{date}</span>
                             <p className="text-sm font-semibold text-foreground leading-tight">
                               {tx.description || "Acción completada"}
                             </p>
                             <div className="flex gap-2 mt-1.5">
                               {tx.xp_amount && tx.xp_amount > 0 && (
-                                <Badge variant="secondary" className="text-[10px] gap-1 px-1.5 py-0 bg-amber-500/10 text-amber-600 border-none">
+                                <Badge variant="secondary" className="text-3xs gap-1 px-1.5 py-0 bg-amber-500/10 text-amber-600 border-none">
                                   +{tx.xp_amount} XP
                                 </Badge>
                               )}
                               {tx.coin_amount && tx.coin_amount > 0 && (
-                                <Badge variant="secondary" className="text-[10px] gap-1 px-1.5 py-0 bg-primary/10 text-primary border-none">
+                                <Badge variant="secondary" className="text-3xs gap-1 px-1.5 py-0 bg-primary/10 text-primary border-none">
                                   +{tx.coin_amount} monedas
                                 </Badge>
                               )}

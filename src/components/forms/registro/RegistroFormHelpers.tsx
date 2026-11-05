@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, Building2, Utensils, Music, Hotel, MapPin, Leaf, ShoppingBag } from "lucide-react";
+import { Check, Building2, Utensils, Music, Hotel, MapPin, Leaf, ShoppingBag, Coffee, Briefcase, UserRound, Car, Ship, Stethoscope, Palette, Home, Store } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
 export type TipoEstablecimiento =
@@ -10,7 +10,15 @@ export type TipoEstablecimiento =
   | "airbnb"
   | "tour"
   | "spa"
-  | "tienda";
+  | "tienda"
+  | "cafe"
+  | "agencia"
+  | "guia"
+  | "transporte"
+  | "nautica"
+  | "salud"
+  | "taller"
+  | "otro";
 
 export const tipoConfig: Record<TipoEstablecimiento, {
   label: string;
@@ -44,7 +52,7 @@ export const tipoConfig: Record<TipoEstablecimiento, {
   },
   airbnb: {
     label: "Airbnb / Vivienda Turística",
-    icon: Hotel,
+    icon: Home,
     color: "text-rose-500",
     descripcion: "Registra tu villa, apartamento, casa vacacional o glamping y capta reservas directas con turistas de todo el mundo.",
   },
@@ -66,7 +74,58 @@ export const tipoConfig: Record<TipoEstablecimiento, {
     color: "text-amber-500",
     descripcion: "Registra tu tienda y muestra tus productos a los viajeros que buscan souvenirs y artesanías.",
   },
+  cafe: {
+    label: "Café / Experiencia de café",
+    icon: Coffee,
+    color: "text-amber-600",
+    descripcion: "Registra tu cafetería de especialidad, tostador o finca con recorridos y degustaciones.",
+  },
+  agencia: {
+    label: "Agencia de viajes / Operador",
+    icon: Briefcase,
+    color: "text-sky-500",
+    descripcion: "Registra tu agencia u operadora y ofrece tus paquetes y excursiones a quienes planifican su viaje.",
+  },
+  guia: {
+    label: "Guía turístico",
+    icon: UserRound,
+    color: "text-emerald-500",
+    descripcion: "Registra tus servicios como guía y conecta con viajeros que buscan recorridos con un experto local.",
+  },
+  transporte: {
+    label: "Transporte / Alquiler de vehículos",
+    icon: Car,
+    color: "text-indigo-500",
+    descripcion: "Registra tu empresa de traslados, taxis turísticos o alquiler de vehículos.",
+  },
+  nautica: {
+    label: "Náutica / Excursiones marinas",
+    icon: Ship,
+    color: "text-cyan-500",
+    descripcion: "Registra tu marina, chárter, catamarán o centro de buceo.",
+  },
+  salud: {
+    label: "Clínica / Turismo de salud",
+    icon: Stethoscope,
+    color: "text-red-500",
+    descripcion: "Registra tu clínica o centro médico y atiende a pacientes y viajeros que buscan atención de calidad.",
+  },
+  taller: {
+    label: "Taller artesanal",
+    icon: Palette,
+    color: "text-fuchsia-500",
+    descripcion: "Registra tu taller y ofrece clases y experiencias de artesanía dominicana.",
+  },
+  otro: {
+    label: "Otro negocio turístico",
+    icon: Store,
+    color: "text-primary",
+    descripcion: "Si tu negocio no encaja en las categorías anteriores, cuéntanos qué ofreces.",
+  },
 };
+
+/** Tipos que se ofrecen al elegir, en orden. «general» significa «aún sin elegir» y no se ofrece. */
+export const TIPOS_SELECCIONABLES: TipoEstablecimiento[] = ["hotel", "airbnb", "restaurante", "bar", "cafe", "tour", "agencia", "guia", "transporte", "nautica", "spa", "salud", "tienda", "taller", "otro"];
 
 export const provincias = [
   "Azua", "Bahoruco", "Barahona", "Dajabón", "Distrito Nacional", "Duarte",

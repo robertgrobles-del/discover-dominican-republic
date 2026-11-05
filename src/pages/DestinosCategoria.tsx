@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Waves, Mountain, TreePine, Droplets, Sun, Building, Sparkles, Music, LucideIcon } from "lucide-react";
 import { getDestinationsByCategory } from "@/data/destinations";
+import { usePageContent } from "@/lib/pageContent";
 
 const categoryInfo: Record<string, { name: string; icon: LucideIcon; description: string; color: string }> = {
   playa: {
@@ -62,6 +63,8 @@ const categoryInfo: Record<string, { name: string; icon: LucideIcon; description
 };
 
 export default function DestinosCategoria() {
+  const pc = usePageContent("destinos-categoria");
+  const categoryInfo = pc.data("categoryInfo", __pcData.categoryInfo);
   const { categoria } = useParams();
   const catInfo = categoryInfo[categoria || ""];
   
@@ -74,9 +77,9 @@ export default function DestinosCategoria() {
         <Header />
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground mb-4">Categoría no encontrada</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Categoría no encontrada")}</h1>
             <Link to="/destinos">
-              <Button>Ver todos los destinos</Button>
+              <Button>{pc.tx("Button.1", "Ver todos los destinos")}</Button>
             </Link>
           </div>
         </div>
@@ -103,9 +106,7 @@ export default function DestinosCategoria() {
           
           <div className="relative z-10 container mx-auto px-4">
             <Link to="/destinos" className="inline-flex items-center text-white/80 hover:text-white mb-6 transition-colors">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Destinos
-            </Link>
+              <ArrowLeft className="h-4 w-4 mr-2" />{pc.tx("Link.1", "Volver a Destinos")}</Link>
             
             <div className="flex items-center gap-4 mb-6">
               <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
@@ -152,9 +153,9 @@ export default function DestinosCategoria() {
                           <span>{dest.province}</span>
                         </div>
                       )}
-                      <h3 className="font-display text-xl font-bold text-white group-hover:text-primary transition-colors">
+                      <h2 className="h3 font-display text-xl font-bold text-white group-hover:text-primary transition-colors">
                         {dest.name}
-                      </h3>
+                      </h2>
                       {dest.shortDescription && (
                         <p className="text-white/70 text-sm mt-2 line-clamp-2">
                           {dest.shortDescription}
@@ -174,9 +175,7 @@ export default function DestinosCategoria() {
                 </motion.div>
               ))}
               {destinations.length === 0 && (
-                <p className="text-muted-foreground col-span-full text-center py-12">
-                  No hay destinos registrados para esta categoría.
-                </p>
+                <p className="text-muted-foreground col-span-full text-center py-12">{pc.tx("p.1", "No hay destinos registrados para esta categoría.")}</p>
               )}
             </div>
           </div>
@@ -187,3 +186,6 @@ export default function DestinosCategoria() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { categoryInfo };

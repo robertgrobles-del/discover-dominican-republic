@@ -104,6 +104,14 @@ describe("verificación en dos pasos (integración)", () => {
     expect(me.two_factor).toEqual({ enabled: true, recovery_codes_left: 10, required: false });
   });
 
+  it("al activar el 2FA se cierran las otras sesiones abiertas sin segundo factor (la actual sigue)", async () => {
+    const u = await register();
+    const other = json(await login(u.email)).data.tokens;
+    expect((await enable(u)).res.statusCode).toBe(200);
+    expect((await post("/auth/refresh", { refresh_token: other.refresh_token })).statusCode).toBe(401);
+    expect((await post("/auth/refresh", { refresh_token: u.refresh })).statusCode).toBe(200);
+  });
+
   it("enable exige el paso previo y un código correcto", async () => {
     const u = await register();
     expect((await post("/auth/2fa/enable", { code: "123456" }, u.token)).statusCode).toBe(422); // sin setup

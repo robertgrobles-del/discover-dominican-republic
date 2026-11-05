@@ -12,6 +12,7 @@ import { PanoramaAd } from "@/components/promo";
 import gastronomyImg from "@/assets/gastronomy.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const restaurantesHalal = [
   { nombre: "Al-Quds Restaurant & Lounge", zona: "Zona Colonial / Santo Domingo", tipo: "Halal Certificado", rating: 4.8, telefono: "+1 809-555-0101", descripcion: "Cocina árabe auténtica con certificación Halal estricta. Especialidades en shawarma de cordero, hummus y mezze libanés.", direccion: "Calle El Conde, Santo Domingo" },
@@ -47,11 +48,17 @@ const platosNaturales = [
 ];
 
 export default function GuiaHalalKosher() {
+  const pc = usePageContent("guia-halal-kosher");
+  const consejosGenerales = pc.data("consejosGenerales", __pcData.consejosGenerales);
+  const restaurantesHalal = pc.data("restaurantesHalal", __pcData.restaurantesHalal);
+  const restaurantesKosher = pc.data("restaurantesKosher", __pcData.restaurantesKosher);
+  const resortsConOpciones = pc.data("resortsConOpciones", __pcData.resortsConOpciones);
+  const platosNaturales = pc.data("platosNaturales", __pcData.platosNaturales);
   return (
     <PageTransition>
       <SEOHead
-        title="Guía Halal y Kosher en República Dominicana - Restaurantes y Resorts"
-        description="Información completa de viaje para comunidades musulmanas y judías en RD: restaurantes Halal y Kosher, resorts con menús especiales, orientación Qibla y productos importados."
+        title={pc.t("SEOHead.title.1", "Guía Halal y Kosher en República Dominicana - Restaurantes y Resorts")}
+        description={pc.t("SEOHead.description.1", "Información completa de viaje para comunidades musulmanas y judías en RD: restaurantes Halal y Kosher, resorts con menús especiales, orientación Qibla y productos importados.")}
         keywords="halal dominicana, kosher caribe, comida halal punta cana, restaurantes kosher santo domingo, viaje judio republica dominicana"
       />
       <div className="min-h-screen flex flex-col bg-background">
@@ -61,20 +68,15 @@ export default function GuiaHalalKosher() {
           {/* Hero Banner */}
           <section className="relative min-h-[42vh] flex items-center overflow-hidden border-b border-border/60">
             <div className="absolute inset-0">
-              <img src={gastronomyImg} alt="Gastronomía Halal y Kosher en República Dominicana" className="w-full h-full object-cover" />
+              <img src={pc.img("img.src.1", gastronomyImg)} alt={pc.t("img.alt.1", "Gastronomía Halal y Kosher en República Dominicana")} className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-transparent" />
             </div>
             <div className="container mx-auto px-4 relative z-10 py-14">
               <div className="max-w-2xl">
                 <Badge className="mb-3 bg-primary text-primary-foreground font-semibold">
-                  <Utensils className="h-3.5 w-3.5 mr-1.5" /> Dietas Religiosas & Certificaciones
-                </Badge>
-                <h1 className="font-display text-3xl md:text-5xl font-black text-foreground tracking-tight mb-3">
-                  Guía <span className="text-primary">Halal & Kosher</span> en RD
-                </h1>
-                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                  Recursos gastronómicos, establecimientos con supervisión rabínica o certificación islámica, resorts con servicios de catering especial y alternativas naturalmente compatibles.
-                </p>
+                  <Utensils className="h-3.5 w-3.5 mr-1.5" />{" "}{pc.tx("Badge.1", "Dietas Religiosas & Certificaciones")}</Badge>
+                <h1 className="font-display text-3xl md:text-5xl font-black text-foreground tracking-tight mb-3">{pc.tx("h1.1", "Guía")}{" "}<span className="text-primary">{pc.tx("span.1", "Halal & Kosher")}</span>{" "}{pc.tx("h1.2", "en RD")}</h1>
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{pc.tx("p.1", "Recursos gastronómicos, establecimientos con supervisión rabínica o certificación islámica, resorts con servicios de catering especial y alternativas naturalmente compatibles.")}</p>
               </div>
             </div>
           </section>
@@ -87,7 +89,7 @@ export default function GuiaHalalKosher() {
                   <div key={i} className="bg-background rounded-3xl p-5 border border-border flex flex-col justify-between shadow-xs">
                     <div>
                       <span className="text-2xl mb-2 block">{c.emoji}</span>
-                      <h3 className="font-display font-bold text-foreground text-sm mb-1">{c.titulo}</h3>
+                      <h2 className="h3 font-display font-bold text-foreground text-sm mb-1">{c.titulo}</h2>
                       <p className="text-xs text-muted-foreground leading-relaxed">{c.desc}</p>
                     </div>
                   </div>
@@ -104,12 +106,10 @@ export default function GuiaHalalKosher() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
-                      🕌 Restaurantes con Opciones Halal
-                    </h2>
-                    <p className="text-xs text-muted-foreground">Establecimientos árabes, turcos y mediterráneos con carnes certificadas</p>
+                    <h2 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">{pc.tx("h2.1", "🕌 Restaurantes con Opciones Halal")}</h2>
+                    <p className="text-xs text-muted-foreground">{pc.tx("p.2", "Establecimientos árabes, turcos y mediterráneos con carnes certificadas")}</p>
                   </div>
-                  <Badge variant="outline" className="text-xs">Halal Friendly</Badge>
+                  <Badge variant="outline" className="text-xs">{pc.tx("Badge.2", "Halal Friendly")}</Badge>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-5">
@@ -118,7 +118,7 @@ export default function GuiaHalalKosher() {
                       <CardContent className="p-6 space-y-3">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <Badge className="bg-emerald-600/10 text-emerald-600 border-emerald-600/20 text-[10px] mb-1.5">
+                            <Badge className="bg-emerald-600/10 text-emerald-600 border-emerald-600/20 text-3xs mb-1.5">
                               {r.tipo}
                             </Badge>
                             <h3 className="font-display font-bold text-foreground text-lg">{r.nombre}</h3>
@@ -149,12 +149,10 @@ export default function GuiaHalalKosher() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
-                      ✡️ Restaurantes & Servicios Kosher
-                    </h2>
-                    <p className="text-xs text-muted-foreground">Opciones con certificación rabínica y alimentos empacados</p>
+                    <h2 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">{pc.tx("h2.2", "✡️ Restaurantes & Servicios Kosher")}</h2>
+                    <p className="text-xs text-muted-foreground">{pc.tx("p.3", "Opciones con certificación rabínica y alimentos empacados")}</p>
                   </div>
-                  <Badge variant="outline" className="text-xs">Supervisión Rabínica</Badge>
+                  <Badge variant="outline" className="text-xs">{pc.tx("Badge.3", "Supervisión Rabínica")}</Badge>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-5">
@@ -163,7 +161,7 @@ export default function GuiaHalalKosher() {
                       <CardContent className="p-6 space-y-3">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <Badge className="bg-blue-600/10 text-blue-600 border-blue-600/20 text-[10px] mb-1.5">
+                            <Badge className="bg-blue-600/10 text-blue-600 border-blue-600/20 text-3xs mb-1.5">
                               {r.tipo}
                             </Badge>
                             <h3 className="font-display font-bold text-foreground text-lg">{r.nombre}</h3>
@@ -197,9 +195,9 @@ export default function GuiaHalalKosher() {
           <section className="py-12 bg-card/40 border-y border-border">
             <div className="container mx-auto px-4 max-w-6xl">
               <div className="text-center max-w-2xl mx-auto mb-10">
-                <Badge variant="outline" className="mb-2 text-xs">Hotelería Adaptada</Badge>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">Resorts con Servicios Dietéticos Especiales</h2>
-                <p className="text-xs text-muted-foreground mt-1">Hoteles de lujo preparados para recibir solicitudes gastronómicas religiosas</p>
+                <Badge variant="outline" className="mb-2 text-xs">{pc.tx("Badge.4", "Hotelería Adaptada")}</Badge>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h2.3", "Resorts con Servicios Dietéticos Especiales")}</h2>
+                <p className="text-xs text-muted-foreground mt-1">{pc.tx("p.4", "Hoteles de lujo preparados para recibir solicitudes gastronómicas religiosas")}</p>
               </div>
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -207,7 +205,7 @@ export default function GuiaHalalKosher() {
                   <div key={resort.nombre} className="bg-background rounded-3xl p-5 border border-border flex flex-col justify-between shadow-xs">
                     <div>
                       <span className="text-xs text-primary font-semibold block mb-1">{resort.zona}</span>
-                      <h4 className="font-display font-bold text-foreground text-base mb-3">{resort.nombre}</h4>
+                      <h3 className="h4 font-display font-bold text-foreground text-base mb-3">{resort.nombre}</h3>
                       <div className="space-y-1.5 mb-4">
                         {resort.opciones.map((op, idx) => (
                           <div key={idx} className="flex items-start gap-1.5 text-xs text-muted-foreground">
@@ -218,7 +216,7 @@ export default function GuiaHalalKosher() {
                       </div>
                     </div>
                     <div className="pt-3 border-t border-border/60 text-xs text-muted-foreground">
-                      <span>Contacto: <strong className="text-foreground">{resort.contacto}</strong></span>
+                      <span>{pc.tx("span.2", "Contacto:")}{" "}<strong className="text-foreground">{resort.contacto}</strong></span>
                     </div>
                   </div>
                 ))}
@@ -230,19 +228,19 @@ export default function GuiaHalalKosher() {
           <section className="py-12">
             <div className="container mx-auto px-4 max-w-6xl">
               <div className="text-center max-w-2xl mx-auto mb-10">
-                <Badge variant="outline" className="mb-2 text-xs">Sabor Dominicano Sin Restricciones</Badge>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">Platos Criollos Naturalmente Compatibles</h2>
-                <p className="text-xs text-muted-foreground mt-1">Disfruta la auténtica cocina dominicana solicitando preparaciones sin cerdo ni mezclas cárnicas</p>
+                <Badge variant="outline" className="mb-2 text-xs">{pc.tx("Badge.5", "Sabor Dominicano Sin Restricciones")}</Badge>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h2.4", "Platos Criollos Naturalmente Compatibles")}</h2>
+                <p className="text-xs text-muted-foreground mt-1">{pc.tx("p.5", "Disfruta la auténtica cocina dominicana solicitando preparaciones sin cerdo ni mezclas cárnicas")}</p>
               </div>
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {platosNaturales.map(p => (
                   <div key={p.nombre} className="bg-card rounded-3xl p-5 border border-border flex flex-col justify-between shadow-xs">
                     <div>
-                      <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary border-none mb-2">
+                      <Badge variant="secondary" className="text-3xs bg-primary/10 text-primary border-none mb-2">
                         {p.dieta}
                       </Badge>
-                      <h4 className="font-display font-bold text-foreground text-sm mb-2">{p.nombre}</h4>
+                      <h3 className="h4 font-display font-bold text-foreground text-sm mb-2">{p.nombre}</h3>
                       <p className="text-xs text-muted-foreground leading-relaxed mb-3">{p.desc}</p>
                     </div>
                   </div>
@@ -255,8 +253,8 @@ export default function GuiaHalalKosher() {
           <section className="py-12 bg-card/40 border-t border-border">
             <div className="container mx-auto px-4 max-w-5xl">
               <div className="text-center max-w-2xl mx-auto mb-10">
-                <Badge variant="outline" className="mb-2 text-xs">Conexión Comunitaria</Badge>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">Comunidades y Espacios de Rezo</h2>
+                <Badge variant="outline" className="mb-2 text-xs">{pc.tx("Badge.6", "Conexión Comunitaria")}</Badge>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h2.5", "Comunidades y Espacios de Rezo")}</h2>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
@@ -267,15 +265,15 @@ export default function GuiaHalalKosher() {
                         <Globe className="h-5 w-5" />
                       </div>
                       <div>
-                        <CardTitle className="text-base font-display">Comunidad Musulmana en RD</CardTitle>
-                        <span className="text-xs text-muted-foreground">Centro Islámico de Santo Domingo</span>
+                        <CardTitle className="text-base font-display">{pc.tx("CardTitle.1", "Comunidad Musulmana en RD")}</CardTitle>
+                        <span className="text-xs text-muted-foreground">{pc.tx("span.3", "Centro Islámico de Santo Domingo")}</span>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="text-xs text-muted-foreground space-y-2 leading-relaxed">
-                    <p>• <strong>Mezquita Principal:</strong> Centro Islámico Dominicano (Av. Francia, Santo Domingo). Servicios de Salat y Jumu'ah los viernes.</p>
-                    <p>• <strong>Qibla:</strong> 65° ENE desde cualquier punto de la isla.</p>
-                    <p>• <strong>Ramadán:</strong> Los principales resorts de Bávaro y La Romana facilitan horarios especiales para el Iftar y Suhoor.</p>
+                    <p>• <strong>{pc.tx("strong.1", "Mezquita Principal:")}</strong>{" "}{pc.tx("p.6", "Centro Islámico Dominicano (Av. Francia, Santo Domingo). Servicios de Salat y Jumu'ah los viernes.")}</p>
+                    <p>• <strong>{pc.tx("strong.2", "Qibla:")}</strong>{" "}{pc.tx("p.7", "65° ENE desde cualquier punto de la isla.")}</p>
+                    <p>• <strong>{pc.tx("strong.3", "Ramadán:")}</strong>{" "}{pc.tx("p.8", "Los principales resorts de Bávaro y La Romana facilitan horarios especiales para el Iftar y Suhoor.")}</p>
                   </CardContent>
                 </Card>
 
@@ -286,15 +284,15 @@ export default function GuiaHalalKosher() {
                         <ShieldCheck className="h-5 w-5" />
                       </div>
                       <div>
-                        <CardTitle className="text-base font-display">Comunidad Judía en RD</CardTitle>
-                        <span className="text-xs text-muted-foreground">Centro Israelita & Sosúa Histórica</span>
+                        <CardTitle className="text-base font-display">{pc.tx("CardTitle.2", "Comunidad Judía en RD")}</CardTitle>
+                        <span className="text-xs text-muted-foreground">{pc.tx("span.4", "Centro Israelita & Sosúa Histórica")}</span>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="text-xs text-muted-foreground space-y-2 leading-relaxed">
-                    <p>• <strong>Sinagoga de Santo Domingo:</strong> Centro Israelita de la República Dominicana con servicios de Shabat y festividades.</p>
-                    <p>• <strong>Sosúa (Puerto Plata):</strong> Comunidad histórica fundada en 1940 con sinagoga y el Museo Judío de Sosúa.</p>
-                    <p>• <strong>Shabat en Hoteles:</strong> Coordinación de llaves mecánicas y lámparas de Shabat en hoteles de Cap Cana y Santo Domingo.</p>
+                    <p>• <strong>{pc.tx("strong.4", "Sinagoga de Santo Domingo:")}</strong>{" "}{pc.tx("p.9", "Centro Israelita de la República Dominicana con servicios de Shabat y festividades.")}</p>
+                    <p>• <strong>{pc.tx("strong.5", "Sosúa (Puerto Plata):")}</strong>{" "}{pc.tx("p.10", "Comunidad histórica fundada en 1940 con sinagoga y el Museo Judío de Sosúa.")}</p>
+                    <p>• <strong>{pc.tx("strong.6", "Shabat en Hoteles:")}</strong>{" "}{pc.tx("p.11", "Coordinación de llaves mecánicas y lámparas de Shabat en hoteles de Cap Cana y Santo Domingo.")}</p>
                   </CardContent>
                 </Card>
               </div>
@@ -312,3 +310,6 @@ export default function GuiaHalalKosher() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { consejosGenerales, restaurantesHalal, restaurantesKosher, resortsConOpciones, platosNaturales };

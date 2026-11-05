@@ -32,7 +32,7 @@ export function ReservaCard({ reserva }: ReservaCardProps) {
           className="absolute top-3 right-3"
         />
         <div className="absolute bottom-3 left-3 right-3">
-          <h3 className="text-lg font-bold text-white">{reserva.nombre}</h3>
+          <h2 className="h3 text-lg font-bold text-white">{reserva.nombre}</h2>
           <p className="text-white/80 text-sm flex items-center gap-1">
             <MapPin className="h-3 w-3" /> {reserva.ubicacion}
           </p>

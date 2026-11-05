@@ -26,7 +26,9 @@ import { DetailInclusionsCard } from "@/components/detail/DetailInclusionsCard";
 import { DetailLocationMapCard } from "@/components/detail/DetailLocationMapCard";
 import { DetailFloatingBar } from "@/components/detail/DetailFloatingBar";
 import { RiverConditionsCard } from "@/components/river/RiverConditionsCard";
+import { usePageContent } from "@/lib/pageContent";
 
+import { activateOnKey } from "@/lib/a11y";
 const riverTypeLabels: Record<River["riverType"], string> = {
   montaña: "Río de Montaña",
   cascada: "Cascada / Salto",
@@ -37,6 +39,8 @@ const riverTypeLabels: Record<River["riverType"], string> = {
 };
 
 export default function RioDetalle() {
+  const pc = usePageContent("rio-detalle");
+  const riverTypeLabels = pc.data("riverTypeLabels", __pcData.riverTypeLabels);
   const { slug } = useParams<{ slug: string }>();
   const river = slug ? getRiverBySlug(slug) || getRioAsRiver(slug) : undefined;
   const [isSaved, setIsSaved] = useState(false);
@@ -72,8 +76,8 @@ export default function RioDetalle() {
     return (
       <PageTransition>
         <SEOHead
-          title="Río no encontrado"
-          description="El río o cascada que buscas no existe o ha sido movido. Explora todos los ríos y cascadas de República Dominicana."
+          title={pc.t("SEOHead.title.1", "Río no encontrado")}
+          description={pc.t("SEOHead.description.1", "El río o cascada que buscas no existe o ha sido movido. Explora todos los ríos y cascadas de República Dominicana.")}
         />
         <div className="min-h-screen bg-background">
           <Header />
@@ -81,12 +85,10 @@ export default function RioDetalle() {
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
               <Droplets className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="font-display text-3xl font-bold mb-4">Río no encontrado</h1>
-            <p className="text-muted-foreground mb-8">
-              El destino fluvial que buscas no se encuentra disponible.
-            </p>
+            <h1 className="font-display text-3xl font-bold mb-4">{pc.tx("h1.1", "Río no encontrado")}</h1>
+            <p className="text-muted-foreground mb-8">{pc.tx("p.1", "El destino fluvial que buscas no se encuentra disponible.")}</p>
             <Link to="/rios">
-              <Button className="rounded-xl">Explorar todos los ríos y cascadas</Button>
+              <Button className="rounded-xl">{pc.tx("Button.1", "Explorar todos los ríos y cascadas")}</Button>
             </Link>
           </div>
           <Footer />
@@ -144,7 +146,7 @@ export default function RioDetalle() {
           <section className="container mx-auto px-4 max-w-7xl pt-8">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 rounded-3xl overflow-hidden">
               {allImages.slice(0, 4).map((img, i) => (
-                <div
+                <div role="button" tabIndex={0} onKeyDown={activateOnKey}
                   key={i}
                   className="relative aspect-[4/3] cursor-pointer overflow-hidden bg-muted group rounded-2xl"
                   onClick={() => openLightbox(i)}
@@ -169,8 +171,7 @@ export default function RioDetalle() {
             <div className="lg:col-span-8 space-y-8">
               {/* Description Card */}
               <div className="p-6 md:p-8 rounded-3xl bg-card border border-border shadow-sm space-y-4">
-                <h2 className="font-display font-bold text-xl text-foreground">
-                  Sobre {river.name}
+                <h2 className="font-display font-bold text-xl text-foreground">{pc.tx("h2.1", "Sobre")}{" "}{river.name}
                 </h2>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {river.description || river.shortDescription}
@@ -188,7 +189,7 @@ export default function RioDetalle() {
 
               {/* Inclusions & Safety Checklist */}
               <DetailInclusionsCard
-                title="Equipamiento y Qué Llevar al Río"
+                title={pc.t("DetailInclusionsCard.title.1", "Equipamiento y Qué Llevar al Río")}
                 included={river.facilities || ["Acceso a senderos naturales", "Zonas de baño y pozas", "Áreas de descanso bajo sombra"]}
                 recommendations={[
                   "Calzado cerrado para agua (evita chanclas que se sueltan con la corriente)",
@@ -201,7 +202,7 @@ export default function RioDetalle() {
 
               {/* Amenities Grid Component */}
               <DetailAmenitiesGrid
-                title="Servicios en el Entorno Fluvial"
+                title={pc.t("DetailAmenitiesGrid.title.1", "Servicios en el Entorno Fluvial")}
                 amenities={river.facilities && river.facilities.length > 0 ? river.facilities : ["Guías locales disponibles", "Estacionamiento rural", "Puestos de comida típica", "Senderos rústicos"]}
               />
 
@@ -230,28 +231,27 @@ export default function RioDetalle() {
               {/* Quick Summary Card */}
               <div className="p-6 rounded-3xl bg-card border border-border shadow-sm space-y-4 sticky top-24">
                 <h3 className="font-display font-bold text-base text-foreground flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" /> Ficha Técnica del Río
-                </h3>
+                  <Sparkles className="h-4 w-4 text-primary" />{" "}{pc.tx("h3.1", "Ficha Técnica del Río")}</h3>
 
                 <div className="space-y-3 text-xs">
                   <div className="flex justify-between py-1.5 border-b border-border/60">
-                    <span className="text-muted-foreground">Provincia</span>
+                    <span className="text-muted-foreground">{pc.tx("span.1", "Provincia")}</span>
                     <span className="font-bold text-foreground">{river.province}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-border/60">
-                    <span className="text-muted-foreground">Tipo de Flujo</span>
+                    <span className="text-muted-foreground">{pc.tx("span.2", "Tipo de Flujo")}</span>
                     <span className="font-bold text-foreground capitalize">{riverTypeLabels[river.riverType]}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-border/60">
-                    <span className="text-muted-foreground">Dificultad</span>
+                    <span className="text-muted-foreground">{pc.tx("span.3", "Dificultad")}</span>
                     <span className="font-bold text-foreground capitalize">{river.difficulty}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-border/60">
-                    <span className="text-muted-foreground">Caminata</span>
+                    <span className="text-muted-foreground">{pc.tx("span.4", "Caminata")}</span>
                     <span className="font-bold text-foreground">{river.hikingTime || "15-20 min"}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-border/60">
-                    <span className="text-muted-foreground">Entorno Familiar</span>
+                    <span className="text-muted-foreground">{pc.tx("span.5", "Entorno Familiar")}</span>
                     <span className="font-bold text-foreground">{river.familyFriendly ? "Sí (Familiar)" : "Aventura"}</span>
                   </div>
                 </div>
@@ -263,8 +263,7 @@ export default function RioDetalle() {
                   className="block pt-2"
                 >
                   <Button className="w-full rounded-2xl font-bold text-xs h-10 shadow-md gap-1.5">
-                    <Navigation className="h-4 w-4" /> Cómo Llegar con GPS
-                  </Button>
+                    <Navigation className="h-4 w-4" />{" "}{pc.tx("Button.2", "Cómo Llegar con GPS")}</Button>
                 </a>
               </div>
 
@@ -280,17 +279,12 @@ export default function RioDetalle() {
             <section className="mt-14 space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-display text-2xl font-black text-foreground">
-                    Otros Ríos y Cascadas en {river.province}
+                  <h3 className="font-display text-2xl font-black text-foreground">{pc.tx("h3.2", "Otros Ríos y Cascadas en")}{" "}{river.province}
                   </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Continúa tu aventura explorando estas fuentes de agua dulce cercanas.
-                  </p>
+                  <p className="text-xs text-muted-foreground">{pc.tx("p.2", "Continúa tu aventura explorando estas fuentes de agua dulce cercanas.")}</p>
                 </div>
                 <Link to="/rios">
-                  <Button variant="outline" size="sm" className="rounded-xl text-xs">
-                    Ver todos los ríos
-                  </Button>
+                  <Button variant="outline" size="sm" className="rounded-xl text-xs">{pc.tx("Button.3", "Ver todos los ríos")}</Button>
                 </Link>
               </div>
 
@@ -308,7 +302,7 @@ export default function RioDetalle() {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         loading="lazy"
                       />
-                      <Badge className="absolute top-3 left-3 bg-black/60 text-white backdrop-blur-md text-[10px]">
+                      <Badge className="absolute top-3 left-3 bg-black/60 text-white backdrop-blur-md text-3xs">
                         {riverTypeLabels[rr.riverType] || rr.riverType}
                       </Badge>
                     </div>
@@ -359,3 +353,6 @@ export default function RioDetalle() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { riverTypeLabels };

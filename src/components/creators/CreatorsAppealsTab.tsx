@@ -120,7 +120,7 @@ export function CreatorsAppealsTab({ appeals, reloadKey = 0, className = "" }: C
 
       {isDemo && (
         <div className="rounded-2xl border border-dashed border-border bg-muted/40 px-4 py-3">
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-2xs text-muted-foreground">
             Datos de demostración: el entorno corre con datos simulados y el endpoint de apelaciones aún no
             existe. Las apelaciones que envíes ahora solo viven en esta pantalla.
           </p>
@@ -160,14 +160,14 @@ export function CreatorsAppealsTab({ appeals, reloadKey = 0, className = "" }: C
                         <MessageSquareQuote className="h-4 w-4 text-primary" />
                         Apelación sobre la publicación #{appeal.video_id}
                       </CardTitle>
-                      <CardDescription className="text-[11px] flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <CardDescription className="text-2xs flex flex-wrap items-center gap-x-2 gap-y-1">
                         {createdAt && (
                           <span className="inline-flex items-center gap-1">
                             <Clock className="h-3 w-3" /> Enviada el {createdAt}
                           </span>
                         )}
                         {appeal.rule_code && (
-                          <span className="font-mono text-[10px] rounded-md bg-muted px-1.5 py-0.5">
+                          <span className="font-mono text-3xs rounded-md bg-muted px-1.5 py-0.5">
                             Regla: {appeal.rule_code}
                           </span>
                         )}
@@ -179,26 +179,26 @@ export function CreatorsAppealsTab({ appeals, reloadKey = 0, className = "" }: C
                   </CardHeader>
                   <CardContent className="space-y-3 pt-0">
                     <div>
-                      <p className="text-[10px] font-bold uppercase text-muted-foreground">Motivo</p>
+                      <p className="text-3xs font-bold uppercase text-muted-foreground">Motivo</p>
                       <p className="text-xs text-foreground/90 leading-relaxed">{appeal.reason}</p>
                     </div>
                     {appeal.resolution_note ? (
                       <>
                         <Separator />
                         <div>
-                          <p className="text-[10px] font-bold uppercase text-muted-foreground">
+                          <p className="text-3xs font-bold uppercase text-muted-foreground">
                             Nota de resolución
                           </p>
                           <p className="text-xs text-foreground/90 leading-relaxed">
                             {appeal.resolution_note}
                           </p>
                           {resolvedAt && (
-                            <p className="text-[10px] text-muted-foreground mt-1">Resuelta el {resolvedAt}</p>
+                            <p className="text-3xs text-muted-foreground mt-1">Resuelta el {resolvedAt}</p>
                           )}
                         </div>
                       </>
                     ) : (
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="text-2xs text-muted-foreground">
                         Moderación aún no ha resuelto esta apelación. Te avisaremos cuando haya una decisión.
                       </p>
                     )}

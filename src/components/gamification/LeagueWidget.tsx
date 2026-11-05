@@ -78,10 +78,10 @@ export function LeagueWidget() {
         const res = await gamificationApi.getLeaderboard("season", 10);
         return (res.rows || []).map((r, i) => ({
           rank: r.rank || i + 1,
-          user_id: r.user_id,
-          display_name: r.display_name,
-          avatar_url: r.avatar_url,
-          xp_season: r.total_xp,
+          user_id: r.user.id,
+          display_name: r.user.name,
+          avatar_url: r.user.avatar_url,
+          xp_season: r.xp,
           league_slug: "gold",
           level_icon: "🌱",
           missions: 0,
@@ -218,9 +218,9 @@ export function LeagueWidget() {
                       <span className="text-lg flex-shrink-0">{entry.level_icon}</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-foreground truncate">
-                          {entry.display_name} {isMe && <Badge className="text-[9px] bg-primary text-primary-foreground ml-1">Tú</Badge>}
+                          {entry.display_name} {isMe && <Badge className="text-3xs bg-primary text-primary-foreground ml-1">Tú</Badge>}
                         </p>
-                        <p className="text-[10px] text-muted-foreground">{lCfg.icon} {entry.league_slug}</p>
+                        <p className="text-3xs text-muted-foreground">{lCfg.icon} {entry.league_slug}</p>
                       </div>
                       <p className="text-xs font-bold text-foreground">{entry.xp_season.toLocaleString()} <span className="text-muted-foreground font-normal">XP</span></p>
                     </motion.div>
@@ -242,7 +242,7 @@ export function LeagueWidget() {
                   <span className="text-xl flex-shrink-0">{reward.icon}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-foreground">Top {reward.rank}</p>
-                    <p className="text-[10px] text-muted-foreground truncate">{reward.prize}</p>
+                    <p className="text-3xs text-muted-foreground truncate">{reward.prize}</p>
                   </div>
                   <span className="text-xs font-bold text-amber-500 flex-shrink-0">🪙 {reward.coins}</span>
                 </div>

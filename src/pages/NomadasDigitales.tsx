@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { activateOnKey } from "@/lib/a11y";
 interface DestinationCost {
   city: string;
   rent: number;
@@ -203,7 +204,7 @@ export default function NomadasDigitales() {
                   <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                     <benefit.icon className="h-7 w-7 text-primary" />
                   </div>
-                  <h3 className="font-display font-bold text-foreground mb-2">{benefit.title}</h3>
+                  <h2 className="h3 font-display font-bold text-foreground mb-2">{benefit.title}</h2>
                   <p className="text-sm text-muted-foreground">{benefit.description}</p>
                 </motion.div>
               ))}
@@ -262,7 +263,7 @@ export default function NomadasDigitales() {
                 <CardContent>
                   <div className="grid md:grid-cols-2 gap-4">
                     {checklist.map((item) => (
-                      <div
+                      <div role="button" tabIndex={0} onKeyDown={activateOnKey}
                         key={item.id}
                         onClick={() => toggleCheck(item.id)}
                         className="flex items-start gap-3 p-3 bg-muted/40 rounded-lg cursor-pointer hover:bg-muted/80 transition-colors text-xs"

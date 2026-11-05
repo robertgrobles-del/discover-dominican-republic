@@ -58,7 +58,7 @@ export const ExplorerLevelsRoadmapTab: React.FC<ExplorerLevelsRoadmapTabProps> =
                       {level.title}
                     </h4>
                     {isCurrent && (
-                      <Badge className="bg-primary text-primary-foreground text-[10px]">
+                      <Badge className="bg-primary text-primary-foreground text-3xs">
                         Tu Nivel
                       </Badge>
                     )}

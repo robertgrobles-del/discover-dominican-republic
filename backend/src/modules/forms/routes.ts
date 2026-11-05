@@ -62,6 +62,14 @@ export async function formsRoutes(app: FastifyInstance) {
   r.get("/newsletter/unsubscribe", { config: rl(30, "1 minute"), schema: { tags: ["formularios"], summary: "Baja con un clic", querystring: tokenQ, response: { 200: ok } } }, async (req) => unsubscribe(req.query.token));
   r.post("/newsletter/unsubscribe", { config: rl(30, "1 minute"), schema: { tags: ["formularios"], summary: "Baja con un clic (POST, para el encabezado List-Unsubscribe-Post)", body: tokenQ, response: { 200: ok } } }, async (req) => unsubscribe(req.body.token));
 
+  /**
+   * Los acuses de formularios anónimos van a un correo que nadie ha probado controlar: solo se citan los textos
+   * del remitente si es la cuenta con sesión dueña de ese correo; si no, se usa una redacción neutra.
+   */
+  const ownsEmail = async (userId: string | undefined, email: string) =>
+    !!userId && !!(await db.query("SELECT 1 FROM users WHERE id = $1 AND lower(email) = lower($2)", [userId, email])).rowCount;
+  const NEUTRAL = { es: { name: "viajero", subject: "Contacto", establishment: "tu establecimiento" }, en: { name: "traveler", subject: "Contact", establishment: "your business" } } as const;
+
   // ---------- Contacto y soporte ----------
   const CATEGORIES = ["contact", "suggestion", "press", "creators", "influencers", "support", "other"] as const;
   const ackTicket = async (to: string, name: string, ticketId: string, subject: string, loc: string | undefined) =>
@@ -75,7 +83,9 @@ export async function formsRoutes(app: FastifyInstance) {
     reply.code(202);
     if (b.website) return { data: { received: true } };
     const t = (await db.query<{ id: string }>("INSERT INTO support_tickets (user_id, subject, description, category, contact_name, contact_email) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id", [req.user?.id ?? null, b.subject, b.message, b.category, b.name, b.email])).rows[0]!;
-    await ackTicket(b.email, b.name, t.id, b.subject, b.locale);
+    const echo = await ownsEmail(req.user?.id, b.email);
+    const n = NEUTRAL[mailLocale(b.locale)];
+    await ackTicket(b.email, echo ? b.name : n.name, t.id, echo ? b.subject : n.subject, b.locale);
     return { data: { received: true, reference: t.id.slice(0, 8).toUpperCase() } };
   });
 
@@ -124,12 +134,14 @@ export async function formsRoutes(app: FastifyInstance) {
   });
 
   // ---------- Alta de establecimientos ----------
+  // Los mismos tipos que el formulario del sitio (RegistroFormHelpers.tsx) y que el CHECK de la tabla (migración 0093).
+  const ESTABLISHMENT_TYPES = ["general", "restaurante", "bar", "hotel", "tour", "spa", "tienda", "airbnb", "cafe", "agencia", "guia", "transporte", "nautica", "salud", "taller", "otro"] as const;
   r.post("/establishments/register", {
     onRequest: optionalUser, config: rl(5, "1 hour"),
     schema: {
       tags: ["formularios"], summary: "Solicita el alta de un establecimiento (queda pendiente de revisión)",
       body: z.object({
-        type: z.enum(["general", "restaurante", "bar", "hotel", "tour", "spa", "tienda"]), name: z.string().trim().min(2).max(120), contact_name: z.string().trim().min(2).max(100), email, phone: z.string().trim().min(7).max(30),
+        type: z.enum(ESTABLISHMENT_TYPES), name: z.string().trim().min(2).max(120), contact_name: z.string().trim().min(2).max(100), email, phone: z.string().trim().min(7).max(30),
         address: z.string().trim().min(5).max(200), province: z.string().trim().min(2).max(60), website: z.string().url().max(300).optional(), photo_url: z.string().url().max(500).optional(),
         description: z.string().trim().min(10).max(3000), rnc: z.string().trim().max(20).optional(), schedule: z.string().trim().max(200).optional(), details: z.record(z.string(), z.unknown()).optional(), locale: locale.optional(), website_trap: z.string().max(200).optional(),
       }),
@@ -145,7 +157,9 @@ export async function formsRoutes(app: FastifyInstance) {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING id`,
       [b.type, b.name, b.contact_name, b.email, b.phone, b.address, b.province, b.website ?? null, b.photo_url ?? null, b.description, b.rnc ?? null, b.schedule ?? null, b.details ? JSON.stringify(b.details) : null, sha(token), req.user?.id ?? null, b.locale ?? "es"],
     )).rows[0]!;
-    await app.mailer.send({ to: b.email, template: "establishment.received", locale: mailLocale(b.locale), data: { name: b.contact_name.split(" ")[0]!, establishment: b.name, url: `${app.env.WEB_BASE_URL}/registro/estado?id=${row.id}&token=${token}` } });
+    const echo = await ownsEmail(req.user?.id, b.email);
+    const n = NEUTRAL[mailLocale(b.locale)];
+    await app.mailer.send({ to: b.email, template: "establishment.received", locale: mailLocale(b.locale), data: { name: echo ? b.contact_name.split(" ")[0]! : n.name, establishment: echo ? b.name : n.establishment, url: `${app.env.WEB_BASE_URL}/registro/estado?id=${row.id}&token=${token}` } });
     return { data: { received: true, id: row.id, access_token: token } };
   });
   r.get("/establishments/registrations/:id/status", { config: rl(30, "1 minute"), schema: { tags: ["formularios"], summary: "Estado de una solicitud (con su token)", params: uuid, querystring: tokenQ, response: { 200: ok } } }, async (req) => {

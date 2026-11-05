@@ -12,6 +12,7 @@ import { SEOHead } from "@/components/SEOHead";
 import raftingImg from "@/assets/rafting.jpg";
 import samanaImg from "@/assets/samana.jpg";
 import puertoPlataImg from "@/assets/puerto-plata.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const routes = {
   running: [
@@ -104,13 +105,16 @@ const getDifficultyColor = (difficulty: string) => {
 };
 
 export default function RDEnMovimiento() {
+  const pc = usePageContent("rd-en-movimiento");
+  const routes = pc.data("routes", __pcData.routes);
+  const events = pc.data("events", __pcData.events);
   const [selectedTab, setSelectedTab] = useState("running");
 
   return (
     <PageTransition>
       <SEOHead
-        title="RD en Movimiento: Running y Ciclismo | Turismo RD"
-        description="Descubre las mejores rutas de running y ciclismo en República Dominicana. Eventos, mapas y comunidad."
+        title={pc.t("SEOHead.title.1", "RD en Movimiento: Running y Ciclismo | Turismo RD")}
+        description={pc.t("SEOHead.description.1", "Descubre las mejores rutas de running y ciclismo en República Dominicana. Eventos, mapas y comunidad.")}
         keywords="running, ciclismo, bicicleta, rutas, maratón, República Dominicana, deportes"
       />
       <div className="min-h-screen bg-background">
@@ -126,18 +130,14 @@ export default function RDEnMovimiento() {
             >
               <div className="inline-flex items-center gap-2 bg-primary/20 text-primary px-4 py-2 rounded-full mb-6">
                 <Bike className="h-5 w-5" />
-                <span className="font-medium">RD en Movimiento</span>
+                <span className="font-medium">{pc.tx("span.1", "RD en Movimiento")}</span>
               </div>
-              <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
-                Running y <span className="text-primary">Ciclismo</span>
+              <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">{pc.tx("h1.1", "Running y")}{" "}<span className="text-primary">{pc.tx("span.2", "Ciclismo")}</span>
               </h1>
-              <p className="text-muted-foreground text-lg mb-8">
-                Explora la isla sobre dos ruedas o a pie. Las mejores rutas, 
-                eventos y comunidades deportivas te esperan.
-              </p>
+              <p className="text-muted-foreground text-lg mb-8">{pc.tx("p.1", "Explora la isla sobre dos ruedas o a pie. Las mejores rutas, eventos y comunidades deportivas te esperan.")}</p>
               <div className="flex flex-wrap gap-4 justify-center">
-                <Button size="lg">Explorar Rutas</Button>
-                <Button size="lg" variant="outline">Ver Eventos</Button>
+                <Button size="lg">{pc.tx("Button.1", "Explorar Rutas")}</Button>
+                <Button size="lg" variant="outline">{pc.tx("Button.2", "Ver Eventos")}</Button>
               </div>
             </motion.div>
           </div>
@@ -149,19 +149,19 @@ export default function RDEnMovimiento() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
               <div>
                 <p className="text-3xl font-bold text-primary">150+</p>
-                <p className="text-sm text-muted-foreground">Rutas mapeadas</p>
+                <p className="text-sm text-muted-foreground">{pc.tx("p.2", "Rutas mapeadas")}</p>
               </div>
               <div>
                 <p className="text-3xl font-bold text-primary">25</p>
-                <p className="text-sm text-muted-foreground">Eventos anuales</p>
+                <p className="text-sm text-muted-foreground">{pc.tx("p.3", "Eventos anuales")}</p>
               </div>
               <div>
                 <p className="text-3xl font-bold text-primary">50K+</p>
-                <p className="text-sm text-muted-foreground">Atletas activos</p>
+                <p className="text-sm text-muted-foreground">{pc.tx("p.4", "Atletas activos")}</p>
               </div>
               <div>
                 <p className="text-3xl font-bold text-primary">12</p>
-                <p className="text-sm text-muted-foreground">Clubes afiliados</p>
+                <p className="text-sm text-muted-foreground">{pc.tx("p.5", "Clubes afiliados")}</p>
               </div>
             </div>
           </div>
@@ -173,20 +173,13 @@ export default function RDEnMovimiento() {
             <Tabs value={selectedTab} onValueChange={setSelectedTab}>
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
                 <div>
-                  <h2 className="font-display text-3xl font-bold mb-2">
-                    Rutas <span className="text-primary">Destacadas</span>
+                  <h2 className="font-display text-3xl font-bold mb-2">{pc.tx("h2.1", "Rutas")}{" "}<span className="text-primary">{pc.tx("span.3", "Destacadas")}</span>
                   </h2>
-                  <p className="text-muted-foreground">
-                    Selecciona tu disciplina y encuentra la ruta perfecta.
-                  </p>
+                  <p className="text-muted-foreground">{pc.tx("p.6", "Selecciona tu disciplina y encuentra la ruta perfecta.")}</p>
                 </div>
                 <TabsList>
-                  <TabsTrigger value="running" className="gap-2">
-                    🏃 Running
-                  </TabsTrigger>
-                  <TabsTrigger value="cycling" className="gap-2">
-                    🚴 Ciclismo
-                  </TabsTrigger>
+                  <TabsTrigger value="running" className="gap-2">{pc.tx("TabsTrigger.1", "🏃 Running")}</TabsTrigger>
+                  <TabsTrigger value="cycling" className="gap-2">{pc.tx("TabsTrigger.2", "🚴 Ciclismo")}</TabsTrigger>
                 </TabsList>
               </div>
 
@@ -304,8 +297,7 @@ export default function RDEnMovimiento() {
               viewport={{ once: true }}
               className="mb-12"
             >
-              <h2 className="font-display text-3xl font-bold mb-4">
-                Próximos <span className="text-primary">Eventos</span>
+              <h2 className="font-display text-3xl font-bold mb-4">{pc.tx("h2.2", "Próximos")}{" "}<span className="text-primary">{pc.tx("span.4", "Eventos")}</span>
               </h2>
             </motion.div>
 
@@ -327,9 +319,8 @@ export default function RDEnMovimiento() {
                     </div>
                     <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mb-4">
                       <Users className="h-4 w-4" />
-                      {event.participants} participantes
-                    </div>
-                    <Button className="w-full" variant="outline">Inscribirse</Button>
+                      {event.participants}{" "}{pc.tx("div.1", "participantes")}</div>
+                    <Button className="w-full" variant="outline">{pc.tx("Button.3", "Inscribirse")}</Button>
                   </Card>
                 </motion.div>
               ))}
@@ -342,3 +333,6 @@ export default function RDEnMovimiento() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { routes, events };

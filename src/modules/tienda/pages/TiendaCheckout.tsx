@@ -231,7 +231,7 @@ export default function TiendaCheckout() {
               <Button className="w-full text-base font-semibold" size="lg" disabled={busy} onClick={pay}>
                 {busy ? "Procesando pedido..." : paymentMethod === "transfer" ? `Confirmar Pedido por Transferencia · ${formatDop(total)}` : `Confirmar Pedido · ${formatDop(total)}`}
               </Button>
-              <p className="text-[11px] text-muted-foreground text-center">Garantía oficial y soporte directo por WhatsApp.</p>
+              <p className="text-2xs text-muted-foreground text-center">Garantía oficial y soporte directo por WhatsApp.</p>
             </CardContent></Card>
           </div>
         )}

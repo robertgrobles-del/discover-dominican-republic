@@ -17,6 +17,7 @@ import { bars as staticBarsData } from "@/data/bars";
 import { useTranslation } from "@/hooks/useI18n";
 import { CTARegistroEstablecimiento } from "@/components/forms/CTARegistroEstablecimiento";
 import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
+import { usePageContent } from "@/lib/pageContent";
 
 
 const categoryToType: Record<string, string[]> = {
@@ -39,6 +40,9 @@ const nightAgenda = [
 ];
 
 export default function VidaNocturna() {
+  const pc = usePageContent("vida-nocturna");
+  const houseDrinks = pc.data("houseDrinks", __pcData.houseDrinks);
+  const nightAgenda = pc.data("nightAgenda", __pcData.nightAgenda);
   const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -115,7 +119,7 @@ export default function VidaNocturna() {
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1920&h=800&fit=crop"
-            alt="Vida Nocturna RD"
+            alt={pc.t("img.alt.1", "Vida Nocturna RD")}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/30" />
@@ -158,10 +162,10 @@ export default function VidaNocturna() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="santo-domingo">Santo Domingo</SelectItem>
-                    <SelectItem value="punta-cana">Punta Cana</SelectItem>
-                    <SelectItem value="santiago">Santiago</SelectItem>
-                    <SelectItem value="las-terrenas">Las Terrenas</SelectItem>
+                    <SelectItem value="santo-domingo">{pc.tx("SelectItem.1", "Santo Domingo")}</SelectItem>
+                    <SelectItem value="punta-cana">{pc.tx("SelectItem.2", "Punta Cana")}</SelectItem>
+                    <SelectItem value="santiago">{pc.tx("SelectItem.3", "Santiago")}</SelectItem>
+                    <SelectItem value="las-terrenas">{pc.tx("SelectItem.4", "Las Terrenas")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -172,7 +176,7 @@ export default function VidaNocturna() {
       </section>
 
       {/* Category Filters */}
-      <section className="border-b border-border bg-card/50 sticky top-16 z-30">
+      <section className="border-b border-border bg-card/50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
             <span className="text-sm text-muted-foreground whitespace-nowrap">{t("nightlife.filterByAmbiance")}</span>
@@ -324,3 +328,6 @@ export default function VidaNocturna() {
     </div>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { houseDrinks, nightAgenda };

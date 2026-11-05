@@ -87,7 +87,7 @@ export function LicensableImagesSection() {
             <li key={l.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border px-3 py-2">
               <span>{l.title} · {l.license_type === "commercial" ? "Comercial" : "Editorial"} · {money(l.price, l.currency)}{l.decision_note && <span className="block text-xs text-muted-foreground">{l.decision_note}</span>}</span>
               <span className="flex items-center gap-2">
-                <Badge variant="outline" className="text-[10px]">{LICENSE_STATUS[l.status]}</Badge>
+                <Badge variant="outline" className="text-3xs">{LICENSE_STATUS[l.status]}</Badge>
                 {l.download_url && <DownloadOriginal url={l.download_url} title={l.title} />}
               </span>
             </li>

@@ -161,16 +161,16 @@ export default function EventosGrupo() {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                           <div>
                             <div className="flex items-center gap-2 mb-2">
-                              <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                              <Badge className="bg-primary/10 text-primary border-primary/20 text-3xs">
                                 {grupo.destination}
                               </Badge>
-                              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <span className="text-3xs text-muted-foreground flex items-center gap-1">
                                 <Calendar className="h-3 w-3" /> {grupo.date}
                               </span>
                             </div>
-                            <h3 className="font-display font-bold text-base md:text-lg text-foreground mb-3 leading-snug">
+                            <h2 className="h3 font-display font-bold text-base md:text-lg text-foreground mb-3 leading-snug">
                               {grupo.title}
-                            </h3>
+                            </h2>
                             
                             {/* Member Avatars */}
                             <div className="flex items-center gap-3 mt-4">
@@ -178,11 +178,11 @@ export default function EventosGrupo() {
                                 {grupo.members.slice(0, 4).map((member, i) => (
                                   <Avatar key={i} className="border-2 border-background w-8 h-8">
                                     <AvatarImage src={member.avatar} />
-                                    <AvatarFallback className="text-[10px]">{member.name.charAt(0)}</AvatarFallback>
+                                    <AvatarFallback className="text-3xs">{member.name.charAt(0)}</AvatarFallback>
                                   </Avatar>
                                 ))}
                                 {grupo.members.length > 4 && (
-                                  <div className="w-8 h-8 rounded-full border-2 border-background bg-secondary text-foreground text-[9px] font-bold flex items-center justify-center">
+                                  <div className="w-8 h-8 rounded-full border-2 border-background bg-secondary text-foreground text-3xs font-bold flex items-center justify-center">
                                     +{grupo.members.length - 4}
                                   </div>
                                 )}
@@ -194,7 +194,7 @@ export default function EventosGrupo() {
                           {/* Price & Action */}
                           <div className="sm:text-right flex flex-col justify-between items-start sm:items-end">
                             <div>
-                              <p className="text-[10px] text-muted-foreground">Compartir coste</p>
+                              <p className="text-3xs text-muted-foreground">Compartir coste</p>
                               <p className="font-display font-bold text-foreground">RD$ {grupo.price.toLocaleString()}</p>
                             </div>
                             
@@ -228,7 +228,7 @@ export default function EventosGrupo() {
 
                         {/* Slot limits warning */}
                         {slotsLeft <= 2 && slotsLeft > 0 && (
-                          <div className="mt-4 p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-2 text-[10px] text-amber-500">
+                          <div className="mt-4 p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-2 text-3xs text-amber-500">
                             <ShieldAlert className="h-4 w-4" />
                             <span>¡Sólo quedan {slotsLeft} vacantes disponibles! Apúrate a unirte.</span>
                           </div>
@@ -253,7 +253,7 @@ export default function EventosGrupo() {
                         <CardHeader className="p-4 border-b border-border/40 flex flex-row items-center justify-between">
                           <div>
                             <CardTitle className="text-sm font-bold truncate max-w-[180px]">{selectedGroup.title}</CardTitle>
-                            <CardDescription className="text-[10px]">Chat Grupal de Excursión</CardDescription>
+                            <CardDescription className="text-3xs">Chat Grupal de Excursión</CardDescription>
                           </div>
                           <Button variant="ghost" size="sm" onClick={() => setSelectedGroup(null)}>Cerrar</Button>
                         </CardHeader>
@@ -263,14 +263,14 @@ export default function EventosGrupo() {
                           {selectedGroup.chatHistory.map((chat, idx) => (
                             <div key={idx} className="flex gap-2">
                               <Avatar className="w-6 h-6">
-                                <AvatarFallback className="text-[9px]">{chat.user.charAt(0)}</AvatarFallback>
+                                <AvatarFallback className="text-3xs">{chat.user.charAt(0)}</AvatarFallback>
                               </Avatar>
                               <div className="bg-secondary/45 border border-border/40 rounded-xl p-2 max-w-[200px]">
                                 <div className="flex justify-between items-center gap-2 mb-0.5">
-                                  <span className="font-bold text-[9px] text-foreground">@{chat.user}</span>
-                                  <span className="text-[8px] text-muted-foreground">{chat.time}</span>
+                                  <span className="font-bold text-3xs text-foreground">@{chat.user}</span>
+                                  <span className="text-3xs text-muted-foreground">{chat.time}</span>
                                 </div>
-                                <p className="text-[11px] text-muted-foreground leading-normal">{chat.text}</p>
+                                <p className="text-2xs text-muted-foreground leading-normal">{chat.text}</p>
                               </div>
                             </div>
                           ))}
@@ -294,7 +294,7 @@ export default function EventosGrupo() {
                     <Card key="no-chat" className="border border-border bg-card/65 sticky top-24 p-6 text-center">
                       <MessageSquare className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
                       <p className="font-bold text-xs">Chat Grupal Desbloqueado</p>
-                      <p className="text-[10px] text-muted-foreground mt-1">Únete a una excursión para coordinar transporte y detalles en tiempo real con los demás viajeros confirmados.</p>
+                      <p className="text-3xs text-muted-foreground mt-1">Únete a una excursión para coordinar transporte y detalles en tiempo real con los demás viajeros confirmados.</p>
                     </Card>
                   )}
                 </AnimatePresence>

@@ -47,7 +47,7 @@ const ACTIVITIES: SocialActivity[] = [
     target: "5G Caribe Ilimitado",
     timeAgo: "Hace 12 minutos",
     icon: Sparkles,
-    link: "/esim",
+    link: "/conectividad#esim",
     badge: "Conectividad",
   },
   {
@@ -146,14 +146,14 @@ export function SocialProofNotifications() {
             {/* Content */}
             <div className="flex-1 min-w-0 pr-4 space-y-0.5">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[11px] font-bold text-foreground leading-tight">{current.actor}</span>
+                <span className="text-2xs font-bold text-foreground leading-tight">{current.actor}</span>
                 {current.badge && (
-                  <span className="text-[9px] font-extrabold bg-primary/10 text-primary px-1.5 py-0.2 rounded-full border border-primary/20 uppercase">
+                  <span className="text-3xs font-extrabold bg-primary/10 text-primary px-1.5 py-0.2 rounded-full border border-primary/20 uppercase">
                     {current.badge}
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-muted-foreground leading-tight">
+              <p className="text-2xs text-muted-foreground leading-tight">
                 {current.action}{" "}
                 {current.link ? (
                   <Link to={current.link} className="font-semibold text-foreground hover:text-primary transition-colors underline decoration-dotted">
@@ -163,7 +163,7 @@ export function SocialProofNotifications() {
                   <strong className="text-foreground">{current.target}</strong>
                 )}
               </p>
-              <div className="flex items-center gap-1 text-[10px] text-muted-foreground/70 pt-0.5">
+              <div className="flex items-center gap-1 text-3xs text-muted-foreground/70 pt-0.5">
                 <Icon className="h-3 w-3 text-primary" />
                 <span>{current.timeAgo}</span>
                 <span>•</span>

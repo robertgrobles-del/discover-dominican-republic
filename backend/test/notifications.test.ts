@@ -204,6 +204,23 @@ describe("notificaciones", () => {
       await Promise.all(streams.map((s) => s.close()));
     });
 
+    it("al cerrar la sesión el flujo se corta y sus tickets dejan de servir", async () => {
+      const u = await account();
+      const t = await ticket(u.token);
+      const s = await openStream(`${base}/notifications/stream?ticket=${t}`);
+      const h = await openStream(`${base}/notifications/stream`, { authorization: `Bearer ${u.token}` });
+      await s.waitFor((e) => e.event === "ready"); await h.waitFor((e) => e.event === "ready");
+      await pool.query("UPDATE refresh_tokens SET revoked_at = now() WHERE user_id = $1", [u.id]);
+      await app.notifications.notify(u.id, { type: "system", title: "after-revocation" });
+      await sleep(400);
+      expect(s.events.some((e) => e.event === "notification")).toBe(false);
+      expect(h.events.some((e) => e.event === "notification")).toBe(false);
+      const t0 = Date.now();
+      while ((!s.closed || !h.closed) && Date.now() - t0 < 3000) await sleep(25);
+      expect(s.closed && h.closed).toBe(true);
+      expect((await fetch(`${base}/notifications/stream?ticket=${t}`)).status).toBe(401);    // ticket emitido antes del cierre
+    });
+
     it("al cerrar la conexión se libera", async () => {
       const u = await account();
       const before = app.notifications.connections;
@@ -232,6 +249,9 @@ describe("notificaciones", () => {
         expect((await call("POST", "/me/push-subscriptions", { payload: dev(1) })).statusCode).toBe(401);
         expect((await call("POST", "/me/push-subscriptions", { token: u.token, payload: { ...dev(1), endpoint: "http://inseguro.test/x" } })).statusCode).toBe(400);
         expect((await call("POST", "/me/push-subscriptions", { token: u.token, payload: { endpoint: "https://x.test/y" } })).statusCode).toBe(400);
+        // El endpoint no puede apuntar a la red interna (el servidor le haría un POST).
+        for (const endpoint of ["https://10.0.0.1/x", "https://[::ffff:127.0.0.1]/x", "https://localhost/x", "https://intranet/x", "https://meta.internal/x"])
+          expect((await call("POST", "/me/push-subscriptions", { token: u.token, payload: { ...dev(1), endpoint } })).statusCode, endpoint).toBe(400);
         const a = json(await call("POST", "/me/push-subscriptions", { token: u.token, payload: dev(1) })).data;
         expect(json(await call("GET", "/me/push-subscriptions", { token: u.token })).data.devices).toHaveLength(1);
         expect(JSON.stringify(json(await call("GET", "/me/push-subscriptions", { token: u.token })).data)).not.toContain("BNcRdre");   // las claves no se devuelven

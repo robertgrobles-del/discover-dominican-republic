@@ -8,14 +8,11 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { HighContrastToggle } from "@/components/HighContrastToggle";
 import { WeatherWidget } from "@/components/WeatherWidget";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { NotificationBell } from "@/components/NotificationBell";
-import { SpaceSwitcher } from "@/components/account/SpaceSwitcher";
 import { CartDrawer } from "@/components/CartDrawer";
-import { UserProgressWidget } from "@/components/gamification/UserProgressWidget";
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "@/hooks/useI18n";
 import {
@@ -43,6 +40,7 @@ import relaxBeach from "@/assets/relax-beach.jpg";
 import adAdventureImg from "@/assets/promo/promo-adventure.jpg";
 import adBeachResortImg from "@/assets/promo/promo-beach-resort.jpg";
 import adLuxuryHotelImg from "@/assets/promo/promo-luxury-hotel.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 interface HeaderProps {
   hasHero?: boolean;
@@ -54,6 +52,7 @@ interface HeaderProps {
 type MegaMenuType = "dondeIr" | "queHacer" | "dondeQuedarse" | "planificar" | "sobreElPais" | null;
 
 export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProps = {}) {
+  const pc = usePageContent("header");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeMegaMenu, setActiveMegaMenu] = useState<MegaMenuType>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -118,7 +117,7 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
     { name: t("nav.explore"), href: "/destinos", megaMenu: "dondeIr" as MegaMenuType },
     { name: t("nav.plan"), href: "/planifica", megaMenu: "planificar" as MegaMenuType },
     { name: t("nav.whatToDo"), href: "/actividades", megaMenu: "queHacer" as MegaMenuType },
-    { name: t("nav.guides"), href: "/guia-practica", megaMenu: "sobreElPais" as MegaMenuType },
+    { name: t("nav.guides"), href: "/requisitos-viaje#guia-practica", megaMenu: "sobreElPais" as MegaMenuType },
     { name: t("nav.businesses"), href: "/para-empresas", megaMenu: "dondeQuedarse" as MegaMenuType },
   ];
 
@@ -129,8 +128,8 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
       ["Restaurantes", "/restaurantes"], ["Compras", "/compras"], ["Vida nocturna", "/vida-nocturna"],
     ] },
     { title: t("nav.plan"), links: [
-      ["Participa y gana", "/gana-con-descubre-rd"], ["Mi viaje e itinerarios", "/mi-viaje"], ["Planificador grupal", "/planificador-grupal"], ["Ofertas y descuentos", "/ofertas"], ["Presupuesto", "/calculadora-presupuesto"],
-      ["Llegada y vuelos", "/como-llegar"], ["Aeropuertos y puertos", "/aeropuerto"], ["Transporte", "/info/transporte"], ["Conectividad móvil", "/conectividad"],
+      ["Participa y gana", "/gana-con-descubre-rd"], ["Mi viaje e itinerarios", "/mi-viaje"], ["Planificador grupal", "/planificador-grupal"], ["Ofertas y descuentos", "/ofertas"], ["Presupuesto", "/costos-viaje#calculadora"],
+      ["Llegada y vuelos", "/como-llegar"], ["Aeropuertos y puertos", "/aeropuerto"], ["Transporte", "/transporte-urbano#recorre"], ["Conectividad móvil", "/conectividad"],
       ["Requisitos de entrada", "/e-ticket"], ["Clima", "/clima"], ["Seguridad y emergencias", "/info/seguridad"],
     ] },
     { title: t("nav.whatToDo"), links: [
@@ -138,7 +137,7 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
       ["Eventos", "/eventos"], ["Deportes", "/turismo-deportivo"], ["Cultura y gastronomía", "/cultura"],
     ] },
     { title: t("nav.guides"), links: [
-      ["Guía práctica", "/guia-practica"], ["Editorial & Revista", "/revista"], ["Sala de Prensa (PR)", "/revista?canal=prensa"], ["Blog de Viajes", "/revista?canal=experiencias"], ["Historia y patrimonio", "/historia"],
+      ["Guía práctica", "/requisitos-viaje#guia-practica"], ["Editorial & Revista", "/revista"], ["Historia y patrimonio", "/historia"],
       ["Accesibilidad", "/accesibilidad"], ["Guías locales", "/guias-locales"], ["Turismo responsable", "/sostenible"],
     ] },
     { title: t("nav.businesses"), links: [
@@ -149,31 +148,31 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
 
   const megaMenuDondeIrData = {
     destinos: [
-      { name: "Punta Cana", desc: t("header.puntaCanaDesc"), image: puntaCana, href: "/destino/punta-cana", tag: "Costas del Este" },
-      { name: "Samaná", desc: t("header.samanaDesc"), image: samana, href: "/destino/samana", tag: "Santuario de Ballenas" },
-      { name: "Santo Domingo", desc: t("header.santoDomingoDesc"), image: santoDomingo, href: "/destino/santo-domingo", tag: "Ciudad Primada de América" },
-      { name: "Puerto Plata", desc: t("header.puertoPlataDesc"), image: puertoPlata, href: "/destino/puerto-plata", tag: "Costa del Ámbar & Surf" },
+      { name: "Punta Cana", desc: t("header.puntaCanaDesc"), image: pc.img("asset.puntaCana", puntaCana), href: "/destino/punta-cana", tag: "Costas del Este" },
+      { name: "Samaná", desc: t("header.samanaDesc"), image: pc.img("asset.samana", samana), href: "/destino/samana", tag: "Santuario de Ballenas" },
+      { name: "Santo Domingo", desc: t("header.santoDomingoDesc"), image: pc.img("asset.santoDomingo", santoDomingo), href: "/destino/santo-domingo", tag: "Ciudad Primada de América" },
+      { name: "Puerto Plata", desc: t("header.puertoPlataDesc"), image: pc.img("asset.puertoPlata", puertoPlata), href: "/destino/puerto-plata", tag: "Costa del Ámbar & Surf" },
     ],
     regiones: [
-      { name: "Región Norte (Cibao & Costa Atlántica)", desc: "Santiago, Puerto Plata, Jarabacoa, Montecristi", href: "/destinos/region/norte", tag: "Montaña & Ecoturismo", image: puertoPlata },
-      { name: "Región Este (Playas & Golf)", desc: "Punta Cana, La Romana, Bayahíbe, Miches", href: "/destinos/region/este", tag: "All-Inclusive & Arrecifes", image: puntaCana },
-      { name: "Región Sur Profundo (Naturaleza Virgen)", desc: "Barahona, Pedernales, Bahía de las Águilas, Baní", href: "/destinos/region/sur", tag: "Reserva de Biósfera", image: samana },
-      { name: "Gran Santo Domingo (Cultura & Negocios)", desc: "Zona Colonial, Malecón, Gastronomía de Autor", href: "/destinos/region/santo-domingo", tag: "Patrimonio UNESCO", image: santoDomingo },
+      { name: "Región Norte (Cibao & Costa Atlántica)", desc: "Santiago, Puerto Plata, Jarabacoa, Montecristi", href: "/destinos/region/norte", tag: "Montaña & Ecoturismo", image: pc.img("asset.puertoPlata", puertoPlata) },
+      { name: "Región Este (Playas & Golf)", desc: "Punta Cana, La Romana, Bayahíbe, Miches", href: "/destinos/region/este", tag: "All-Inclusive & Arrecifes", image: pc.img("asset.puntaCana", puntaCana) },
+      { name: "Región Sur Profundo (Naturaleza Virgen)", desc: "Barahona, Pedernales, Bahía de las Águilas, Baní", href: "/destinos/region/sur", tag: "Reserva de Biósfera", image: pc.img("asset.samana", samana) },
+      { name: "Gran Santo Domingo (Cultura & Negocios)", desc: "Zona Colonial, Malecón, Gastronomía de Autor", href: "/destinos/region/santo-domingo", tag: "Patrimonio UNESCO", image: pc.img("asset.santoDomingo", santoDomingo) },
     ]
   };
 
   const megaMenuQueHacerData = {
     experienciasTop: [
-      { name: "Aventura, Cascadas & Zipline", desc: "27 Charcos, Samaná y Jarabacoa", image: adventure, href: "/experiencia/27-charcos-de-damajagua" },
-      { name: "Ruta Gastronómica & Alta Cocina", desc: "Sabores criollos, mariscos y catas de ron", image: gastronomy, href: "/rutas-sabor" },
-      { name: "Buceo en Arrecifes & Snorkel", desc: "Aguas cristalinas en Bayahíbe y Sosúa", image: diving, href: "/buceo-snorkel" },
-      { name: "Playas Paradisíacas & Catamarán", desc: "Bávaro, Cayo Levantado y Bahía de las Águilas", image: relaxBeach, href: "/playas" },
+      { name: "Aventura, Cascadas & Zipline", desc: "27 Charcos, Samaná y Jarabacoa", image: pc.img("asset.adventure", adventure), href: "/experiencia/27-charcos-de-damajagua" },
+      { name: "Ruta Gastronómica & Alta Cocina", desc: "Sabores criollos, mariscos y catas de ron", image: pc.img("asset.gastronomy", gastronomy), href: "/rutas-sabor" },
+      { name: "Buceo en Arrecifes & Snorkel", desc: "Aguas cristalinas en Bayahíbe y Sosúa", image: pc.img("asset.diving", diving), href: "/buceo-snorkel" },
+      { name: "Playas Paradisíacas & Catamarán", desc: "Bávaro, Cayo Levantado y Bahía de las Águilas", image: pc.img("asset.relaxBeach", relaxBeach), href: "/playas" },
     ],
     categorias: [
       { name: "Vida Nocturna & Bares", href: "/vida-nocturna", icon: Music },
       { name: "Patrimonio & Museos", href: "/museos-monumentos", icon: BookOpen },
       { name: "Eventos & Fiestas", href: "/eventos", icon: Waves },
-      { name: "Wellness & Spas", href: "/spas-wellness", icon: Heart },
+      { name: "Wellness & Spas", href: "/wellness#spas", icon: Heart },
       { name: "Pelota LIDOM", href: "/lidom", icon: Compass },
       { name: "Deportes y aventura", href: "/turismo-deportivo", icon: Compass },
     ]
@@ -203,11 +202,9 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
     <>
       {/* Skip to content - Accessibility */}
       <a
-        href="#main-content"
+        href="#contenido"
         className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none"
-      >
-        Saltar al contenido principal
-      </a>
+      >{pc.tx("a.1", "Saltar al contenido principal")}</a>
 
       {/* Header Container */}
       <div 
@@ -236,15 +233,13 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
               {/* Logo */}
               <Link to="/" className="flex items-center gap-2 group">
                 <div className="w-8 h-8 bg-primary rounded flex items-center justify-center shadow-md">
-                  <span className="font-display font-black text-slate-950 text-sm">RD</span>
+                  <span className="font-display font-black text-slate-950 text-sm">{pc.tx("span.1", "RD")}</span>
                 </div>
                 <div className="hidden sm:block text-left">
                   <span className={`font-display font-bold text-sm sm:text-base group-hover:text-primary transition-colors ${
                     isWhiteVariant ? "text-slate-900 dark:text-white" : "text-white drop-shadow-sm"
-                  }`}>
-                    República Dominicana
-                  </span>
-                  <span className={`block text-[11px] -mt-1 ${
+                  }`}>{pc.tx("span.2", "República Dominicana")}</span>
+                  <span className={`block text-2xs -mt-1 ${
                     isWhiteVariant ? "text-slate-500 dark:text-slate-400" : "text-white/80 drop-shadow-xs"
                   }`}>
                     {t("hero.subtitle")}
@@ -253,7 +248,7 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
               </Link>
 
               {/* Desktop Navigation */}
-              <nav className="hidden lg:flex items-center gap-1" aria-label="Navegación principal">
+              <nav className="hidden lg:flex items-center gap-1" aria-label={pc.t("nav.aria-label.1", "Navegación principal")}>
                 {navLinks.map((link) => (
                   <div
                     key={link.href}
@@ -286,18 +281,15 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
                   <WeatherWidget />
                 </div>
                 <LanguageSelector />
-                <HighContrastToggle />
                 <ThemeToggle />
                 <NotificationBell />
-                <SpaceSwitcher />
-                {user && <UserProgressWidget />}
                 {showCart && <CartDrawer />}
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   className={isWhiteVariant ? "a11y-touch-target text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800" : "a11y-touch-target text-white hover:text-white hover:bg-white/20"}
                   onClick={() => (onOpenSearch ? onOpenSearch() : setIsSearchOpen(true))}
-                  aria-label="Buscar"
+                  aria-label={pc.t("Button.aria-label.1", "Buscar")}
                 >
                   <Search className="h-5 w-5" />
                 </Button>
@@ -307,7 +299,7 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
                   user ? (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" aria-label="Menú de cuenta de usuario" className={isWhiteVariant ? "text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 h-9 w-9" : "text-white hover:text-white hover:bg-white/20 h-9 w-9"}>
+                        <Button variant="ghost" size="icon" aria-label={pc.t("Button.aria-label.2", "Menú de cuenta de usuario")} className={isWhiteVariant ? "text-slate-700 dark:text-slate-200 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 h-9 w-9" : "text-white hover:text-white hover:bg-white/20 h-9 w-9"}>
                           <User className="h-5 w-5" aria-hidden="true" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -324,33 +316,23 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link to="/perfil" className="flex items-center gap-2 cursor-pointer">
-                            <Heart className="h-4 w-4" />
-                            Favoritos y guardados
-                          </Link>
+                            <Heart className="h-4 w-4" />{pc.tx("Link.1", "Favoritos y guardados")}</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link to="/pasaporte-digital" className="flex items-center gap-2 cursor-pointer">
-                            <Compass className="h-4 w-4" />
-                            Pasaporte digital
-                          </Link>
+                            <Compass className="h-4 w-4" />{pc.tx("Link.2", "Pasaporte digital")}</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link to="/diario-viaje" className="flex items-center gap-2 cursor-pointer">
-                            <BookOpen className="h-4 w-4" />
-                            Mi Diario de Viaje
-                          </Link>
+                            <BookOpen className="h-4 w-4" />{pc.tx("Link.3", "Mi Diario de Viaje")}</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link to="/creadores" className="flex items-center gap-2 cursor-pointer">
-                            <Camera className="h-4 w-4" />
-                            Panel Creadores
-                          </Link>
+                          <Link to="/creadores/panel" className="flex items-center gap-2 cursor-pointer">
+                            <Camera className="h-4 w-4" />{pc.tx("Link.4", "Panel Creadores")}</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link to="/admin" className="flex items-center gap-2 cursor-pointer font-medium text-primary">
-                            <Shield className="h-4 w-4 text-primary" />
-                            Panel Administrativo
-                          </Link>
+                            <Shield className="h-4 w-4 text-primary" />{pc.tx("Link.5", "Panel Administrativo")}</Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
@@ -360,12 +342,12 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
                       </DropdownMenuContent>
                     </DropdownMenu>
                   ) : (
-                    <Link to="/login" aria-label="Iniciar sesión">
+                    <Link to="/login" aria-label={pc.t("Link.aria-label.1", "Iniciar sesión")}>
                       <Button variant="outline" size="sm" className="hidden sm:flex gap-2 border-white/40 text-white bg-black/20 hover:bg-white/20 hover:text-white rounded-xl h-9">
                         <User className="h-4 w-4" aria-hidden="true" />
                         {t("header.signIn")}
                       </Button>
-                      <Button variant="ghost" size="icon" aria-label="Iniciar sesión" className="sm:hidden text-white hover:text-white hover:bg-white/20 h-9 w-9">
+                      <Button variant="ghost" size="icon" aria-label={pc.t("Button.aria-label.3", "Iniciar sesión")} className="sm:hidden text-white hover:text-white hover:bg-white/20 h-9 w-9">
                         <User className="h-5 w-5" aria-hidden="true" />
                       </Button>
                     </Link>
@@ -406,7 +388,7 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
                       onClose={() => setActiveMegaMenu(null)}
                       destinos={megaMenuDondeIrData.destinos}
                       regiones={megaMenuDondeIrData.regiones}
-                      samanaImg={samana}
+                      samanaImg={pc.img("asset.samana", samana)}
                       t={t}
                     />
                   )}
@@ -417,7 +399,7 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
                       onClose={() => setActiveMegaMenu(null)}
                       experienciasTop={megaMenuQueHacerData.experienciasTop}
                       categorias={megaMenuQueHacerData.categorias}
-                      adAdventureImg={adAdventureImg}
+                      adAdventureImg={pc.img("asset.adAdventureImg", adAdventureImg)}
                     />
                   )}
 
@@ -425,7 +407,7 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
                   {activeMegaMenu === "planificar" && (
                     <MegaMenuPlanificar
                       onClose={() => setActiveMegaMenu(null)}
-                      adBeachResortImg={adBeachResortImg}
+                      adBeachResortImg={pc.img("asset.adBeachResortImg", adBeachResortImg)}
                     />
                   )}
 
@@ -433,7 +415,7 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
                   {activeMegaMenu === "sobreElPais" && (
                     <MegaMenuGuias
                       onClose={() => setActiveMegaMenu(null)}
-                      gastronomyImg={gastronomy}
+                      gastronomyImg={pc.img("asset.gastronomy", gastronomy)}
                     />
                   )}
 
@@ -441,7 +423,7 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
                   {activeMegaMenu === "dondeQuedarse" && (
                     <MegaMenuEmpresas
                       onClose={() => setActiveMegaMenu(null)}
-                      adLuxuryHotelImg={adLuxuryHotelImg}
+                      adLuxuryHotelImg={pc.img("asset.adLuxuryHotelImg", adLuxuryHotelImg)}
                     />
                   )}
                 </div>
@@ -491,6 +473,8 @@ export function Header({ hasHero, variant, className, onOpenSearch }: HeaderProp
           </AnimatePresence>
         </header>
       </div>
+      {/* Destino del enlace «Saltar al contenido»: justo después de la cabecera, en todas las páginas. */}
+      <span id="contenido" tabIndex={-1} className="sr-only">Contenido principal</span>
 
       {/* Global Search Modal */}
       {!onOpenSearch && <GlobalSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />}

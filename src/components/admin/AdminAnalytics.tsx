@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { adminAnalyticsApi } from "@/lib/adminAnalyticsApi";
+import { adminListEntities } from "@/lib/adminApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from "recharts";
@@ -30,6 +31,10 @@ export function AdminAnalytics() {
         { name: "Bares", table: "bars" as const },
         { name: "Establecimientos", table: "establecimientos" as const },
       ];
+      if (HAS_BACKEND_SESSION) {
+        // El total de cada colección lo da su propio listado de administración.
+        return Promise.all(tables.map(async (t) => ({ name: t.name, count: (await adminListEntities(t.table, { limit: 1 })).total })));
+      }
       const results = await Promise.all(
         tables.map(async (t) => {
           const { count } = await supabase.from(t.table).select("id", { count: "exact", head: true });
@@ -48,7 +53,7 @@ export function AdminAnalytics() {
         const overview = await adminAnalyticsApi.getOverview();
         return {
           byStatus: [
-            { name: "Completadas", value: overview.bookings || 0 },
+            { name: "Reservas del periodo", value: overview.bookings || 0 },
           ],
           total: overview.bookings || 0,
           revenue: overview.booking_revenue_usd || 0,
@@ -174,6 +179,16 @@ export function AdminAnalytics() {
     staleTime: 60_000,
   });
 
+  const { data: funnels } = useQuery({
+    queryKey: ["admin-analytics-funnels"],
+    queryFn: () => Promise.all((["reserva", "registro", "tienda"] as const).map((name) => adminAnalyticsApi.getFunnel(name))),
+    enabled: HAS_BACKEND_SESSION,
+    staleTime: 60_000,
+  });
+  const funnelTitles = { reserva: "Reservas", registro: "Registro", tienda: "Tienda" } as const;
+  // El resumen del backend cubre los últimos 30 días; los datos de demostración, 7.
+  const period = HAS_BACKEND_SESSION ? "30 días" : "7 días";
+
   const statusLabels: Record<string, string> = {
     pending: "Pendiente",
     confirmed: "Confirmada",
@@ -192,7 +207,7 @@ export function AdminAnalytics() {
             <BarChart3 className="h-5 w-5 text-primary" /> Analítica y Métricas del Ecosistema
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Monitoreo en tiempo real de tráfico, embudos de conversión, reservas y desempeño publicitario.
+            Tráfico, embudos de conversión, reservas y contenido.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -220,7 +235,7 @@ export function AdminAnalytics() {
             </div>
             <div>
               <p className="text-2xl font-bold">{pageViews?.totalViews || 0}</p>
-              <p className="text-xs text-muted-foreground">Visitas 7d</p>
+              <p className="text-xs text-muted-foreground">Visitas {period}</p>
             </div>
           </CardContent>
         </Card>
@@ -271,48 +286,41 @@ export function AdminAnalytics() {
       </div>
 
       {/* Conversion Funnels from Fastify API */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-emerald-500" /> Embudos de Conversión Operativa (Datos Fastify)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid md:grid-cols-3 gap-4 text-xs">
-            <div className="p-3 bg-muted/40 rounded-xl border border-border">
-              <p className="font-bold text-sm mb-2 text-primary">Embudo de Reservas</p>
-              <div className="space-y-1 text-muted-foreground">
-                <div className="flex justify-between"><span>Iniciadas</span><span className="font-mono font-bold text-foreground">100%</span></div>
-                <div className="flex justify-between"><span>Confirmadas</span><span className="font-mono font-bold text-emerald-600">84%</span></div>
-                <div className="flex justify-between"><span>Completadas</span><span className="font-mono font-bold text-emerald-700">79%</span></div>
-              </div>
+      {funnels && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-emerald-500" /> Embudos de conversión (últimos 30 días)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid md:grid-cols-3 gap-4 text-xs">
+              {funnels.map((funnel) => (
+                <div key={funnel.name} className="p-3 bg-muted/40 rounded-xl border border-border">
+                  <p className="font-bold text-sm mb-2 text-primary">{funnelTitles[funnel.name]}</p>
+                  <div className="space-y-1 text-muted-foreground">
+                    {funnel.steps.map((step) => (
+                      <div key={step.step} className="flex justify-between gap-3">
+                        <span>{step.step}</span>
+                        <span className="font-mono font-bold text-foreground">
+                          {step.count.toLocaleString()} <span className="font-normal text-muted-foreground">· {step.pct_of_first}%</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
-            <div className="p-3 bg-muted/40 rounded-xl border border-border">
-              <p className="font-bold text-sm mb-2 text-primary">Embudo de Registro</p>
-              <div className="space-y-1 text-muted-foreground">
-                <div className="flex justify-between"><span>Cuentas creadas</span><span className="font-mono font-bold text-foreground">100%</span></div>
-                <div className="flex justify-between"><span>Email verificado</span><span className="font-mono font-bold text-emerald-600">92%</span></div>
-                <div className="flex justify-between"><span>Con actividad gamificada</span><span className="font-mono font-bold text-emerald-700">68%</span></div>
-              </div>
-            </div>
-            <div className="p-3 bg-muted/40 rounded-xl border border-border">
-              <p className="font-bold text-sm mb-2 text-primary">Embudo de Tienda</p>
-              <div className="space-y-1 text-muted-foreground">
-                <div className="flex justify-between"><span>Pedidos creados</span><span className="font-mono font-bold text-foreground">100%</span></div>
-                <div className="flex justify-between"><span>Pagados</span><span className="font-mono font-bold text-emerald-600">88%</span></div>
-                <div className="flex justify-between"><span>Entregados</span><span className="font-mono font-bold text-emerald-700">85%</span></div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Traffic Chart + Top Pages */}
       <div className="grid md:grid-cols-3 gap-6">
         <Card className="md:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
-              <Eye className="h-4 w-4" /> Tráfico últimos 7 días
+              <Eye className="h-4 w-4" /> Tráfico últimos {period}
             </CardTitle>
           </CardHeader>
           <CardContent>

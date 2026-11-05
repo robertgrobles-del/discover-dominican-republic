@@ -21,6 +21,9 @@ import { AirbnbGallery } from "@/components/airbnb/AirbnbGallery";
 import { AirbnbBookingWidget } from "@/components/airbnb/AirbnbBookingWidget";
 import { AirbnbPolicies } from "@/components/airbnb/AirbnbPolicies";
 import { AirbnbHostCard } from "@/components/airbnb/AirbnbHostCard";
+import { usePageContent } from "@/lib/pageContent";
+import { PlaceActions, scrollToSection } from "@/components/detail/PlaceActions";
+import { CalendarCheck } from "lucide-react";
 
 // Fallback data for demo
 const fallbackAirbnb = {
@@ -87,6 +90,9 @@ const amenityIcons: Record<string, React.ElementType> = {
 };
 
 const AirbnbDetalle = () => {
+  const pc = usePageContent("airbnb-detalle");
+  const fallbackAirbnb = pc.data("fallbackAirbnb", __pcData.fallbackAirbnb);
+  const amenityIcons = pc.data("amenityIcons", __pcData.amenityIcons);
   const { slug: id } = useParams<{ slug: string }>();
   const {
     isOpen: lightboxOpen,
@@ -137,8 +143,8 @@ const AirbnbDetalle = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <SEOHead
-          title="Alojamiento en República Dominicana"
-          description="Consulta este alojamiento tipo Airbnb en República Dominicana: villas, apartamentos y casas con piscina, vista al mar y todas las comodidades."
+          title={pc.t("SEOHead.title.1", "Alojamiento en República Dominicana")}
+          description={pc.t("SEOHead.description.1", "Consulta este alojamiento tipo Airbnb en República Dominicana: villas, apartamentos y casas con piscina, vista al mar y todas las comodidades.")}
         />
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
@@ -185,46 +191,34 @@ const AirbnbDetalle = () => {
                 </div>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                   <h1 className="text-3xl font-bold">{property.name}</h1>
-                  <div className="flex items-center gap-2">
-                    <ClaimBusinessModal
-                      businessName={property.name}
-                      businessType="hotel"
-                      businessId={property.id?.toString()}
-                      triggerButton={
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:text-primary/80 border border-primary/30 hover:border-primary px-3 py-1.5 rounded-lg transition-colors bg-primary/5"
-                        >
-                          <Shield className="w-3.5 h-3.5" />
-                          ¿Es tu alojamiento? Reclamar ficha
-                        </button>
-                      }
-                    />
-                  </div>
+                  <PlaceActions
+                    primary={{ label: "Reservar", icon: CalendarCheck, onClick: () => scrollToSection("airbnb-booking") }}
+                    shareTitle={property.name}
+                    claim={{ name: property.name, type: "hotel", id: property.id?.toString() }}
+                  />
                 </div>
 
                 {/* MITUR Compliance Tag */}
                 <div className="flex flex-wrap items-center gap-2 mb-4 p-2.5 bg-emerald-500/10 border border-emerald-500/25 rounded-xl text-emerald-800 dark:text-emerald-300 text-xs">
                   <Shield className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <span className="font-semibold">Registro MITUR Vivienda Turística:</span>
-                  <span className="font-mono bg-white/70 dark:bg-black/30 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">
-                    VT-RD-{(property.id || "0482").toString().slice(-4).toUpperCase()}-2026
+                  <span className="font-semibold">{pc.tx("span.1", "Registro MITUR Vivienda Turística:")}</span>
+                  <span className="font-mono bg-white/70 dark:bg-black/30 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">{pc.tx("span.2", "VT-RD-")}{(property.id || "0482").toString().slice(-4).toUpperCase()}-2026
                   </span>
-                  <span className="text-[11px] text-muted-foreground ml-auto">Inspeccionado y conforme con normativas turísticas</span>
+                  <span className="text-2xs text-muted-foreground ml-auto">{pc.tx("span.3", "Inspeccionado y conforme con normativas turísticas")}</span>
                 </div>
                 
                 <div className="flex flex-wrap items-center gap-4 text-sm">
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-primary text-primary" />
                     <span className="font-semibold">{property.rating}</span>
-                    <span className="text-muted-foreground">({property.review_count} reseñas)</span>
+                    <span className="text-muted-foreground">({property.review_count}{" "}{pc.tx("span.4", "reseñas)")}</span>
                   </div>
                   <Separator orientation="vertical" className="h-4" />
                   <div className="flex items-center gap-4">
-                    <span className="flex items-center gap-1"><Users className="h-4 w-4" /> {property.guests} huéspedes</span>
-                    <span className="flex items-center gap-1"><Bed className="h-4 w-4" /> {property.bedrooms} habitaciones</span>
-                    <span className="flex items-center gap-1"><Bed className="h-4 w-4" /> {property.beds} camas</span>
-                    <span className="flex items-center gap-1"><Bath className="h-4 w-4" /> {property.bathrooms} baños</span>
+                    <span className="flex items-center gap-1"><Users className="h-4 w-4" /> {property.guests}{" "}{pc.tx("span.5", "huéspedes")}</span>
+                    <span className="flex items-center gap-1"><Bed className="h-4 w-4" /> {property.bedrooms}{" "}{pc.tx("span.6", "habitaciones")}</span>
+                    <span className="flex items-center gap-1"><Bed className="h-4 w-4" /> {property.beds}{" "}{pc.tx("span.7", "camas")}</span>
+                    <span className="flex items-center gap-1"><Bath className="h-4 w-4" /> {property.bathrooms}{" "}{pc.tx("span.8", "baños")}</span>
                   </div>
                 </div>
               </div>
@@ -246,7 +240,7 @@ const AirbnbDetalle = () => {
 
               {/* Description */}
               <div>
-                <h2 className="text-xl font-semibold mb-4">Acerca de este alojamiento</h2>
+                <h2 className="text-xl font-semibold mb-4">{pc.tx("h2.1", "Acerca de este alojamiento")}</h2>
                 <p className="text-muted-foreground leading-relaxed">{property.description}</p>
               </div>
 
@@ -254,7 +248,7 @@ const AirbnbDetalle = () => {
 
               {/* Amenities */}
               <div>
-                <h2 className="text-xl font-semibold mb-4">Lo que ofrece este lugar</h2>
+                <h2 className="text-xl font-semibold mb-4">{pc.tx("h2.2", "Lo que ofrece este lugar")}</h2>
                 <div className="grid sm:grid-cols-2 gap-4">
                   {(property.amenities || []).slice(0, 10).map((amenity, idx) => {
                     const Icon = amenityIcons[amenity] || Check;
@@ -267,9 +261,7 @@ const AirbnbDetalle = () => {
                   })}
                 </div>
                 {(property.amenities || []).length > 10 && (
-                  <Button variant="outline" className="mt-4">
-                    Mostrar las {property.amenities.length} amenidades
-                  </Button>
+                  <Button variant="outline" className="mt-4">{pc.tx("Button.1", "Mostrar las")}{" "}{property.amenities.length}{" "}{pc.tx("Button.2", "amenidades")}</Button>
                 )}
               </div>
 
@@ -293,8 +285,7 @@ const AirbnbDetalle = () => {
               <div>
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <Star className="h-5 w-5 fill-primary text-primary" />
-                  {property.rating} • {property.review_count} reseñas
-                </h2>
+                  {property.rating} • {property.review_count}{" "}{pc.tx("h2.3", "reseñas")}</h2>
                 <div className="grid sm:grid-cols-2 gap-4">
                   {[
                     { label: "Limpieza", value: property.cleanliness_rating },
@@ -325,7 +316,7 @@ const AirbnbDetalle = () => {
                 <>
                   <Separator />
                   <div>
-                    <h2 className="text-xl font-semibold mb-4">La zona</h2>
+                    <h2 className="text-xl font-semibold mb-4">{pc.tx("h2.4", "La zona")}</h2>
                     <p className="text-muted-foreground">{property.neighborhood_description}</p>
                   </div>
                 </>
@@ -333,7 +324,7 @@ const AirbnbDetalle = () => {
             </div>
 
             {/* Booking Widget */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 scroll-mt-24" id="airbnb-booking">
               <AirbnbBookingWidget
                 pricePerNight={property.price_per_night}
                 rating={property.rating}
@@ -399,6 +390,7 @@ const AirbnbDetalle = () => {
                 key={idx}
                 className={`w-2 h-2 rounded-full transition-colors ${idx === currentImageIndex ? 'bg-white' : 'bg-white/40'}`}
                 onClick={() => setCurrentImageIndex(idx)}
+                aria-label={`Foto ${idx + 1}`}
               />
             ))}
           </div>
@@ -411,3 +403,6 @@ const AirbnbDetalle = () => {
 };
 
 export default AirbnbDetalle;
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { fallbackAirbnb, amenityIcons };

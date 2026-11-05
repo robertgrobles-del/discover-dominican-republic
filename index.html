@@ -6,47 +6,15 @@
     <title>Descubre República Dominicana - Tu Portal de Turismo del Caribe</title>
     <meta name="description" content="Explora las mejores playas, destinos, hoteles, restaurantes y experiencias de República Dominicana. Planifica tu viaje perfecto al Caribe con 300+ días de sol al año." />
     <meta name="author" content="Descubre República Dominicana" />
-    <meta name="keywords" content="República Dominicana, turismo, playas, Punta Cana, Samaná, Santo Domingo, hoteles, viajes Caribe, vacaciones" />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#005baa" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Descubre RD" />
     <link rel="manifest" href="/manifest.json" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://pagead2.googlesyndication.com https://tpc.googlesyndication.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://cdn.gpteng.co; img-src 'self' data: blob: https://images.unsplash.com https://*.tile.openstreetmap.org https://pagead2.googlesyndication.com https://*.google.com; connect-src 'self' https://fonts.googleapis.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net; frame-src 'self' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://*.google.com;" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://pagead2.googlesyndication.com https://tpc.googlesyndication.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://images.unsplash.com https://*.tile.openstreetmap.org https://pagead2.googlesyndication.com https://*.google.com; connect-src 'self' https://fonts.googleapis.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net; frame-src 'self' https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://*.google.com;" />
     <link rel="canonical" href="https://descubrerd.com" />
-    <script>
-      // One-time cleanup: an earlier production build registered a PWA
-      // service worker on this origin. Once installed, it serves its own
-      // cached (and now stale) copy of the app forever, ignoring whatever
-      // the server actually serves - no server-side fix can reach it.
-      // Unregister it, clear its caches, and reload once (guarded by
-      // sessionStorage) so the tab stops being controlled by it. If no
-      // registration exists, nothing is touched.
-      (function () {
-        if (!("serviceWorker" in navigator)) return;
-        navigator.serviceWorker.getRegistrations().then(function (regs) {
-          if (!regs.length) return;
-          Promise.all(regs.map(function (r) { return r.unregister(); })).then(function () {
-            var clear = "caches" in window
-              ? caches.keys().then(function (keys) {
-                  return Promise.all(keys.map(function (k) { return caches.delete(k); }));
-                })
-              : Promise.resolve();
-            clear.catch(function () {}).then(function () {
-              var reloadKey = "dr-sw-cleanup-v1";
-              try {
-                if (sessionStorage.getItem(reloadKey)) return;
-                sessionStorage.setItem(reloadKey, "1");
-              } catch (e) {
-                return;
-              }
-              location.reload();
-            });
-          });
-        }).catch(function () {});
-      })();
-    </script>
+    <script src="/legacy-sw-cleanup.js"></script>
 
     <!-- Open Graph -->
     <meta property="og:title" content="Descubre República Dominicana - Tu Portal de Turismo del Caribe" />
@@ -82,9 +50,8 @@
          la vez; el <picture> de Hero.tsx sigue sirviendo WebP/JPEG como respaldo para el resto (Fase 10.17). -->
     <link rel="preload" as="image" href="/src/assets/whale-samana.avif" type="image/avif" fetchpriority="high" />
 
-    <!-- Non-render-blocking Google Fonts -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" /></noscript>
+    <!-- Google Fonts (display=swap; sin onload inline para no necesitar 'unsafe-inline' en la CSP) -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Noto+Sans:ital,wght@0,300..900;1,300..900&display=swap" />
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />

@@ -175,7 +175,7 @@ export function DestinationHighlightCards({
 
                 {/* Badge top-left */}
                 <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                  <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase backdrop-blur-md border ${
+                  <span className={`px-2.5 py-1 rounded-full text-2xs font-bold tracking-wide uppercase backdrop-blur-md border ${
                     item.badgeColor || "bg-black/60 text-white border-white/20"
                   }`}>
                     {item.tag}
@@ -189,7 +189,7 @@ export function DestinationHighlightCards({
 
                 {/* Bottom text inside image overlay */}
                 <div className="absolute bottom-3 left-3 right-3 text-white">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-white/75 block">
+                  <span className="text-2xs font-semibold uppercase tracking-wider text-white/75 block">
                     {item.category}
                   </span>
                   <h4 className="text-lg md:text-xl font-black text-white group-hover:text-primary-foreground transition-colors leading-snug">

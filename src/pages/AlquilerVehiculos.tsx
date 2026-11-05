@@ -19,6 +19,7 @@ import { CTARegistroEstablecimiento } from "@/components/forms/CTARegistroEstabl
 import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
 import { PanoramaAd } from "@/components/promo";
 import puertoPlataImg from "@/assets/puerto-plata.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const rentacarCompanies = [
   {
@@ -110,6 +111,10 @@ const drivingTips = [
 ];
 
 export default function AlquilerVehiculos() {
+  const pc = usePageContent("alquiler-vehiculos");
+  const rentacarCompanies = pc.data("rentacarCompanies", __pcData.rentacarCompanies);
+  const vehicleTypes = pc.data("vehicleTypes", __pcData.vehicleTypes);
+  const drivingTips = pc.data("drivingTips", __pcData.drivingTips);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [selectedType, setSelectedType] = useState<string | null>(null);
@@ -128,8 +133,8 @@ export default function AlquilerVehiculos() {
   return (
     <PageTransition>
       <SEOHead
-        title="Alquiler de Vehículos y Rent a Car en República Dominicana | Descubre RD"
-        description="Encuentra las mejores agencias de alquiler de autos, SUVs 4x4 y camionetas en aeropuertos y ciudades de RD. Precios transparentes, consejos viales y reserva directa."
+        title={pc.t("SEOHead.title.1", "Alquiler de Vehículos y Rent a Car en República Dominicana | Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Encuentra las mejores agencias de alquiler de autos, SUVs 4x4 y camionetas en aeropuertos y ciudades de RD. Precios transparentes, consejos viales y reserva directa.")}
         keywords="rent a car dominicana, alquiler vehiculos punta cana, rent car santo domingo, alquiler jeep 4x4 republica dominicana, nelly rent a car, national rent a car rd"
       />
       <div className="min-h-screen bg-background flex flex-col justify-between">
@@ -140,8 +145,8 @@ export default function AlquilerVehiculos() {
           <section className="relative min-h-[48vh] flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0">
               <img 
-                src={puertoPlataImg} 
-                alt="Carreteras escénicas y alquiler de vehículos en República Dominicana" 
+                src={pc.img("img.src.1", puertoPlataImg)} 
+                alt={pc.t("img.alt.1", "Carreteras escénicas y alquiler de vehículos en República Dominicana")} 
                 className="w-full h-full object-cover" 
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-black/60 to-black/35" />
@@ -149,14 +154,10 @@ export default function AlquilerVehiculos() {
 
             <div className="container relative z-10 mx-auto px-4 py-16 text-center max-w-4xl text-white">
               <Badge className="mb-4 bg-primary/20 text-white border-primary/40 backdrop-blur-md px-3 py-1 font-semibold">
-                <Car className="h-3.5 w-3.5 mr-1.5 text-primary" /> Movilidad y Carreteras en RD
-              </Badge>
-              <h1 className="text-4xl md:text-5xl font-display font-extrabold tracking-tight mb-4 drop-shadow-md">
-                Alquiler de <span className="text-primary italic">Vehículos</span>
+                <Car className="h-3.5 w-3.5 mr-1.5 text-primary" />{" "}{pc.tx("Badge.1", "Movilidad y Carreteras en RD")}</Badge>
+              <h1 className="text-4xl md:text-5xl font-display font-extrabold tracking-tight mb-4 drop-shadow-md">{pc.tx("h1.1", "Alquiler de")}{" "}<span className="text-primary italic">{pc.tx("span.1", "Vehículos")}</span>
               </h1>
-              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed drop-shadow">
-                Recorre la isla a tu propio ritmo. Compara rent-a-cars verificados en los aeropuertos PUJ, SDQ y STI con tarifas claras y sin sorpresas.
-              </p>
+              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed drop-shadow">{pc.tx("p.1", "Recorre la isla a tu propio ritmo. Compara rent-a-cars verificados en los aeropuertos PUJ, SDQ y STI con tarifas claras y sin sorpresas.")}</p>
             </div>
           </section>
 
@@ -180,7 +181,7 @@ export default function AlquilerVehiculos() {
                       </div>
                       <div>
                         <p className="font-bold text-xs text-foreground">{type.name}</p>
-                        <p className="text-[11px] text-primary font-semibold mt-0.5">{type.priceRange}</p>
+                        <p className="text-2xs text-primary font-semibold mt-0.5">{type.priceRange}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -196,7 +197,7 @@ export default function AlquilerVehiculos() {
               <div className="relative w-full md:max-w-md">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar por agencia, aeropuerto o tipo (ej: Punta Cana, 4x4)..."
+                  placeholder={pc.t("Input.placeholder.1", "Buscar por agencia, aeropuerto o tipo (ej: Punta Cana, 4x4)...")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 h-11 bg-card border-border shadow-xs"
@@ -206,8 +207,8 @@ export default function AlquilerVehiculos() {
               <div className="flex items-center gap-2 w-full md:w-auto">
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
                   <TabsList className="bg-muted/60 p-1 border">
-                    <TabsTrigger value="all" className="text-xs">Todas las Agencias ({rentacarCompanies.length})</TabsTrigger>
-                    <TabsTrigger value="featured" className="text-xs">Recomendadas Oficiales</TabsTrigger>
+                    <TabsTrigger value="all" className="text-xs">{pc.tx("TabsTrigger.1", "Todas las Agencias (")}{rentacarCompanies.length})</TabsTrigger>
+                    <TabsTrigger value="featured" className="text-xs">{pc.tx("TabsTrigger.2", "Recomendadas Oficiales")}</TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
@@ -235,25 +236,23 @@ export default function AlquilerVehiculos() {
                         
                         <div className="absolute top-3 left-3">
                           {company.featured && (
-                            <Badge className="bg-primary text-primary-foreground font-semibold text-[10px] shadow-sm">
-                              ⭐ Certificada Descubre RD
-                            </Badge>
+                            <Badge className="bg-primary text-primary-foreground font-semibold text-3xs shadow-sm">{pc.tx("Badge.2", "⭐ Certificada Descubre RD")}</Badge>
                           )}
                         </div>
 
                         <div className="absolute bottom-3 right-3 text-right">
-                          <span className="text-[10px] text-white/80 uppercase font-semibold block">Tarifa Promedio</span>
+                          <span className="text-3xs text-white/80 uppercase font-semibold block">{pc.tx("span.2", "Tarifa Promedio")}</span>
                           <span className="text-2xl font-extrabold text-white font-mono drop-shadow">
-                            ${company.priceFrom} <span className="text-xs font-normal">USD/día</span>
+                            ${company.priceFrom} <span className="text-xs font-normal">{pc.tx("span.3", "USD/día")}</span>
                           </span>
                         </div>
 
                         <div className="absolute bottom-3 left-3 text-white">
-                          <h3 className="font-display font-bold text-lg leading-tight drop-shadow">{company.name}</h3>
+                          <h2 className="h3 font-display font-bold text-lg leading-tight drop-shadow">{company.name}</h2>
                           <div className="flex items-center gap-1.5 text-xs text-white/90 mt-0.5">
                             <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                             <span className="font-bold">{company.rating}</span>
-                            <span className="text-white/70">({company.reviews} reseñas)</span>
+                            <span className="text-white/70">({company.reviews}{" "}{pc.tx("span.4", "reseñas)")}</span>
                           </div>
                         </div>
                       </div>
@@ -262,12 +261,11 @@ export default function AlquilerVehiculos() {
                       <CardContent className="p-5 space-y-4">
                         {/* Ubicaciones */}
                         <div>
-                          <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                            <MapPin className="h-3.5 w-3.5 text-primary" /> Sucursales y Aeropuertos
-                          </p>
+                          <p className="text-2xs font-bold text-muted-foreground uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                            <MapPin className="h-3.5 w-3.5 text-primary" />{" "}{pc.tx("p.2", "Sucursales y Aeropuertos")}</p>
                           <div className="flex flex-wrap gap-1.5">
                             {company.locations.map((loc, i) => (
-                              <Badge key={i} variant="secondary" className="text-[10px] font-medium bg-muted/60">
+                              <Badge key={i} variant="secondary" className="text-3xs font-medium bg-muted/60">
                                 {loc}
                               </Badge>
                             ))}
@@ -277,8 +275,8 @@ export default function AlquilerVehiculos() {
                         {/* Flota y Beneficios */}
                         <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-border/40">
                           <div>
-                            <span className="text-[10px] text-muted-foreground font-bold uppercase block mb-1">Flota Disponible:</span>
-                            <ul className="space-y-1 text-foreground/80 text-[11px]">
+                            <span className="text-3xs text-muted-foreground font-bold uppercase block mb-1">{pc.tx("span.5", "Flota Disponible:")}</span>
+                            <ul className="space-y-1 text-foreground/80 text-2xs">
                               {company.fleetTypes.map((fl, i) => (
                                 <li key={i} className="flex items-center gap-1">
                                   <Car className="h-3 w-3 text-primary shrink-0" /> {fl}
@@ -288,8 +286,8 @@ export default function AlquilerVehiculos() {
                           </div>
 
                           <div>
-                            <span className="text-[10px] text-muted-foreground font-bold uppercase block mb-1">Incluido:</span>
-                            <ul className="space-y-1 text-foreground/80 text-[11px]">
+                            <span className="text-3xs text-muted-foreground font-bold uppercase block mb-1">{pc.tx("span.6", "Incluido:")}</span>
+                            <ul className="space-y-1 text-foreground/80 text-2xs">
                               {company.features.slice(0, 3).map((ft, i) => (
                                 <li key={i} className="flex items-center gap-1">
                                   <CheckCircle className="h-3 w-3 text-emerald-500 shrink-0" /> {ft}
@@ -306,19 +304,16 @@ export default function AlquilerVehiculos() {
                       <div className="flex gap-2">
                         <Button variant="outline" size="sm" className="h-9 gap-1.5 text-xs" asChild>
                           <a href={`tel:${company.phone}`}>
-                            <Phone className="h-3.5 w-3.5" /> Llamar
-                          </a>
+                            <Phone className="h-3.5 w-3.5" />{" "}{pc.tx("a.1", "Llamar")}</a>
                         </Button>
                         <Button variant="outline" size="sm" className="h-9 gap-1.5 text-xs" asChild>
                           <a href={company.website} target="_blank" rel="noopener noreferrer">
-                            <Globe className="h-3.5 w-3.5" /> Web Oficial
-                          </a>
+                            <Globe className="h-3.5 w-3.5" />{" "}{pc.tx("a.2", "Web Oficial")}</a>
                         </Button>
                       </div>
 
                       <Button size="sm" className="h-9 text-xs font-bold gap-1 shadow-xs" asChild>
-                        <a href={company.website} target="_blank" rel="noopener noreferrer">
-                          Ver Tarifas <ChevronRight className="h-3.5 w-3.5" />
+                        <a href={company.website} target="_blank" rel="noopener noreferrer">{pc.tx("a.3", "Ver Tarifas")}{" "}<ChevronRight className="h-3.5 w-3.5" />
                         </a>
                       </Button>
                     </div>
@@ -329,23 +324,20 @@ export default function AlquilerVehiculos() {
 
             {filteredCompanies.length === 0 && (
               <div className="text-center py-12 bg-card rounded-2xl border border-border">
-                <p className="text-muted-foreground text-sm">No se encontraron agencias que coincidan con tu búsqueda.</p>
+                <p className="text-muted-foreground text-sm">{pc.tx("p.3", "No se encontraron agencias que coincidan con tu búsqueda.")}</p>
                 <Button 
                   variant="outline" 
                   size="sm" 
                   className="mt-3 text-xs"
                   onClick={() => { setSearchQuery(""); setSelectedType(null); setActiveTab("all"); }}
-                >
-                  Restablecer Filtros
-                </Button>
+                >{pc.tx("Button.1", "Restablecer Filtros")}</Button>
               </div>
             )}
 
             {/* Consejos Clave para Conducir en RD */}
             <div className="mt-16 bg-card border border-border/80 rounded-2xl p-6 md:p-8 shadow-sm">
               <h2 className="text-2xl font-display font-bold text-foreground mb-6 flex items-center gap-2">
-                <Shield className="h-6 w-6 text-primary" /> Consejos Esenciales para Alquilar y Conducir en RD
-              </h2>
+                <Shield className="h-6 w-6 text-primary" />{" "}{pc.tx("h2.1", "Consejos Esenciales para Alquilar y Conducir en RD")}</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {drivingTips.map((tip, idx) => {
@@ -374,7 +366,7 @@ export default function AlquilerVehiculos() {
             <div className="mt-16 space-y-8">
               <SorteoLectorBanner origenCategoria="Alquiler de Vehículos y Transporte" />
               <CTARegistroEstablecimiento
-                tipo="tour"
+                tipo="transporte"
                 titulo="¿Tienes una empresa de alquiler de vehículos o traslados turísticos?"
                 subtitulo="Registra tu flota de autos, jeeps 4x4, buggies o transfers en Descubre RD y conecta directamente con viajeros de todo el mundo."
               />
@@ -387,3 +379,6 @@ export default function AlquilerVehiculos() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { rentacarCompanies, vehicleTypes, drivingTips };

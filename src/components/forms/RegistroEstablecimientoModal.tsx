@@ -18,9 +18,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { isValidEmail } from "@/lib/security";
 import { saveClaimLocally } from "@/lib/leadStorage";
+import { fetchApi } from "@/lib/fastifyClient";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import {
   TipoEstablecimiento,
   tipoConfig,
+  TIPOS_SELECCIONABLES,
   provincias,
   StepIndicator,
   FieldRow,
@@ -34,6 +37,9 @@ import {
   CamposTour,
   CamposSpa,
   CamposTienda,
+  CamposGenericos,
+  tieneCamposGenericos,
+  camposRequeridosPendientes,
 } from "./registro/CamposEspecificos";
 
 export type { TipoEstablecimiento };
@@ -41,13 +47,19 @@ export type { TipoEstablecimiento };
 interface Props {
   open: boolean;
   onClose: () => void;
+  /** Tipo con el que se abre el formulario. `general` = sin elegir: la persona lo escoge en el primer paso. */
   tipo: TipoEstablecimiento;
 }
 
-export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
+export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial }: Props) {
+  // Un solo formulario para todo tipo de negocio. Quien llega desde un botón concreto («Registrar mi restaurante»)
+  // ya trae el tipo elegido y puede cambiarlo; los campos del paso 2 dependen del tipo.
+  const [tipo, setTipoState] = useState<TipoEstablecimiento>(tipoInicial);
   const config = tipoConfig[tipo];
   const Icon = config.icon;
   const TOTAL_STEPS = 3;
+  // Los alojamientos operan 24/7: en lugar de horario piden check-in y check-out.
+  const esAlojamiento = tipo === "hotel" || tipo === "airbnb";
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -60,71 +72,6 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
     descripcion: "", rnc: "", horario: "",
   });
 
-  const [rncLoading, setRncLoading] = useState(false);
-  const [rncVerified, setRncVerified] = useState<boolean | null>(null);
-  const [rncCompanyName, setRncCompanyName] = useState("");
-
-  const handleVerifyRNC = async () => {
-    const rawRnc = basicData.rnc.replace(/\D/g, "");
-    if (rawRnc.length !== 9 && rawRnc.length !== 11) {
-      setRncVerified(false);
-      setRncCompanyName("");
-      toast.error("El RNC debe tener 9 o 11 dígitos numéricos.");
-      return;
-    }
-
-    setRncLoading(true);
-    setRncVerified(null);
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-
-      const mockDb: Record<string, string> = {
-        "101007896": "Cervecería Nacional Dominicana, SA",
-        "101014221": "Destilería Brugal & Co, SA",
-        "130002148": "Ron Barceló, SRL",
-        "101001243": "Grupo Corripio, SRL",
-        "101000021": "Banco Popular Dominicano, SA",
-        "130005487": "Grupo Punta Cana, SAS",
-        "101824759": "Sabor Criollo SRL",
-        "131985472": "Nomad Beach Stay SRL",
-        "101984231": "Larimar Ecotours SRL",
-        "128765432": "Viva Wyndham Resorts SRL",
-      };
-
-      if (mockDb[rawRnc]) {
-        setRncVerified(true);
-        setRncCompanyName(mockDb[rawRnc]);
-        if (!basicData.nombre) {
-          updateBasic("nombre", mockDb[rawRnc]);
-        }
-        toast.success("RNC Verificado exitosamente con la DGII.");
-      } else {
-        const genericNames = [
-          "Inversiones Turísticas del Caribe SRL",
-          "Hoteles y Restaurantes Quisqueya SAS",
-          "Eco-Tours República Dominicana SRL",
-          "Transportes Turísticos RD SRL",
-          "Servicios Turísticos Barahona SRL"
-        ];
-        const hash = rawRnc.split("").reduce((acc, char) => acc + parseInt(char, 10), 0);
-        const name = genericNames[hash % genericNames.length];
-        
-        setRncVerified(true);
-        setRncCompanyName(name);
-        if (!basicData.nombre) {
-          updateBasic("nombre", name);
-        }
-        toast.success("RNC Verificado exitosamente con la DGII (Simulación).");
-      }
-    } catch (e) {
-      setRncVerified(false);
-      toast.error("Error al consultar el padrón de la DGII.");
-    } finally {
-      setRncLoading(false);
-    }
-  };
-
   // Step 2 - Specific fields
   const [specificData, setSpecificData] = useState<Record<string, string>>({});
 
@@ -133,8 +80,13 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
 
   const updateBasic = (k: string, v: string) => setBasicData(prev => ({ ...prev, [k]: v }));
   const updateSpecific = (k: string, v: string) => setSpecificData(prev => ({ ...prev, [k]: v }));
+  /** Cambiar de tipo descarta los detalles del anterior: sus campos no aplican al nuevo. */
+  const setTipo = (next: TipoEstablecimiento) => { if (next !== tipo) setSpecificData({}); setTipoState(next); };
+  const pendientesPaso2 = camposRequeridosPendientes(tipo, specificData);
 
   const isStep1Valid =
+    (!esAlojamiento || (specificData.checkin && specificData.checkout)) &&
+    tipo !== "general" &&
     basicData.nombre.trim() &&
     basicData.responsable.trim() &&
     isValidEmail(basicData.email) &&
@@ -150,9 +102,46 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
     if (step > 0) setStep(s => s - 1);
   };
 
+  const horario = esAlojamiento
+    ? `24/7 · Check-in ${specificData.checkin || "-"} · Check-out ${specificData.checkout || "-"}`
+    : basicData.horario.trim();
+
   const handleSubmit = async () => {
     if (!acceptTerms) return;
     setLoading(true);
+
+    if (HAS_BACKEND_SESSION) {
+      try {
+        const backendType = tipo;
+        await fetchApi("/establishments/register", {
+          method: "POST",
+          body: JSON.stringify({
+            type: backendType,
+            name: basicData.nombre.trim(),
+            contact_name: basicData.responsable.trim(),
+            email: basicData.email.trim().toLowerCase(),
+            phone: basicData.telefono.trim(),
+            address: basicData.direccion.trim(),
+            province: basicData.provincia.trim(),
+            website: basicData.website?.trim() || undefined,
+            photo_url: basicData.foto_url?.trim() || undefined,
+            description: basicData.descripcion.trim(),
+            rnc: basicData.rnc?.trim() || undefined,
+            schedule: horario || undefined,
+            details: specificData,
+          }),
+        });
+
+        setSuccess(true);
+        toast.success("¡Solicitud de registro enviada con éxito!");
+      } catch (err: any) {
+        console.error("Error al registrar establecimiento en backend:", err);
+        toast.error(err?.message || "No se pudo registrar el establecimiento. Revisa los datos e intenta de nuevo.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
 
     try {
       // 1. Guardar localmente en el registro offline garantizado
@@ -164,7 +153,7 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
         applicant_phone: basicData.telefono,
         role: "Propietario / Administrador",
         rnc: basicData.rnc || null,
-        notes: `Provincia: ${basicData.provincia}. Dirección: ${basicData.direccion}. Horario: ${basicData.horario || "N/A"}. Detalles: ${JSON.stringify(specificData)}`,
+        notes: `Provincia: ${basicData.provincia}. Dirección: ${basicData.direccion}. Horario: ${horario || "N/A"}. Detalles: ${JSON.stringify(specificData)}`,
       });
 
       // 2. Intentar inserción remota en Supabase — graceful fallback si la tabla no existe
@@ -180,9 +169,9 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
         foto_url: basicData.foto_url || null,
         descripcion: basicData.descripcion,
         rnc: basicData.rnc || null,
-        horario: basicData.horario || null,
+        horario: horario || null,
         detalles: specificData,
-        status: "aprobado",
+        status: "pendiente",
       };
 
       const { error } = await (supabase as any)
@@ -193,11 +182,10 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
         console.error("Supabase error:", error);
       }
     } catch {
-      // Ignore — fallback to simulated success
+      // Ignore — fallback to offline demo
     }
 
-    // Simulate processing delay
-    await new Promise(r => setTimeout(r, 1200));
+    await new Promise(r => setTimeout(r, 800));
     setLoading(false);
     setSuccess(true);
   };
@@ -208,11 +196,9 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
       setStep(0);
       setSuccess(false);
       setBasicData({ nombre: "", responsable: "", email: "", telefono: "", direccion: "", provincia: "", website: "", foto_url: "", descripcion: "", rnc: "", horario: "" });
+      setTipoState(tipoInicial);
       setSpecificData({});
       setAcceptTerms(false);
-      setRncLoading(false);
-      setRncVerified(null);
-      setRncCompanyName("");
     }, 300);
   };
 
@@ -250,13 +236,12 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
               <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
                 <PartyPopper className="h-10 w-10 text-emerald-500" />
               </div>
-              <h3 className="font-display text-2xl font-bold text-foreground">¡Establecimiento Aprobado y Registrado!</h3>
+              <h3 className="font-display text-2xl font-bold text-foreground">¡Solicitud recibida!</h3>
               <p className="text-muted-foreground max-w-sm mx-auto">
-                Tu solicitud para <strong>{basicData.nombre}</strong> ha sido verificada y aprobada automáticamente. Ya puedes comenzar a gestionar tu catálogo y recibir visitantes a través de <strong>{basicData.email}</strong>.
+                Recibimos la solicitud de <strong>{basicData.nombre}</strong>. Nuestro equipo la revisará en 2 o 3 días hábiles y te escribirá a <strong>{basicData.email}</strong> con el resultado y los siguientes pasos.
               </p>
               <div className="flex flex-wrap justify-center gap-2 pt-2">
-                <Badge variant="outline" className="gap-1 bg-emerald-500/10 text-emerald-600 border-emerald-300"><Check className="h-3 w-3" /> Ficha Verificada</Badge>
-                <Badge variant="outline" className="gap-1 bg-primary/10 text-primary border-primary/30"><Star className="h-3 w-3" /> Publicado en Descubre RD</Badge>
+                <Badge variant="outline" className="gap-1 bg-amber-500/10 text-amber-600 border-amber-300"><Clock className="h-3 w-3" /> Pendiente de revisión</Badge>
               </div>
               <Button onClick={handleClose} className="mt-4">Cerrar</Button>
             </motion.div>
@@ -272,6 +257,25 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
                 {/* ── STEP 1 ── Basic Info ── */}
                 {step === 0 && (
                   <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
+                    {/* Tipo de negocio */}
+                    <FormField label="¿Qué tipo de negocio vas a registrar?" required>
+                      <Select value={tipo === "general" ? "" : tipo} onValueChange={v => setTipo(v as TipoEstablecimiento)}>
+                        <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                        <SelectContent>
+                          {TIPOS_SELECCIONABLES.map((t) => {
+                            const TipoIcon = tipoConfig[t].icon;
+                            return (
+                              <SelectItem key={t} value={t}>
+                                <span className="flex items-center gap-2">
+                                  <TipoIcon className={`h-4 w-4 shrink-0 ${tipoConfig[t].color}`} aria-hidden="true" />
+                                  {tipoConfig[t].label}
+                                </span>
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </FormField>
                     <FieldRow>
                       <FormField label="Nombre del Establecimiento" required>
                         <div className="relative">
@@ -322,52 +326,29 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
                         </div>
                       </FormField>
                       <FormField label="RNC / Registro Comercial">
-                        <div className="flex gap-2">
-                          <div className="relative flex-1">
-                            <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                              className="pl-9"
-                              placeholder="Número RNC..."
-                              value={basicData.rnc}
-                              onChange={e => {
-                                updateBasic("rnc", e.target.value);
-                                setRncVerified(null);
-                                setRncCompanyName("");
-                              }}
-                            />
-                          </div>
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            className="shrink-0"
-                            disabled={rncLoading || !basicData.rnc.trim()}
-                            onClick={handleVerifyRNC}
-                          >
-                            {rncLoading ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              "Verificar"
-                            )}
-                          </Button>
+                        <div className="relative">
+                          <FileText className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input className="pl-9" maxLength={20} placeholder="Número RNC..." value={basicData.rnc} onChange={e => updateBasic("rnc", e.target.value)} />
                         </div>
-                        {rncVerified === true && (
-                          <p className="text-xs text-emerald-500 flex items-center gap-1 mt-1 font-medium">
-                            <Check className="h-3 w-3" /> RNC Verificado: {rncCompanyName}
-                          </p>
-                        )}
-                        {rncVerified === false && (
-                          <p className="text-xs text-destructive flex items-center gap-1 mt-1 font-medium">
-                            ✕ RNC no encontrado o formato inválido (deben ser 9 o 11 números).
-                          </p>
-                        )}
                       </FormField>
                     </FieldRow>
-                    <FormField label="Horario de Operación">
-                      <div className="relative">
-                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input className="pl-9" placeholder="Ej. Lun-Vie 9AM-6PM, Sáb-Dom 10AM-4PM" value={basicData.horario} onChange={e => updateBasic("horario", e.target.value)} />
-                      </div>
-                    </FormField>
+                    {esAlojamiento ? (
+                      <FieldRow>
+                        <FormField label="Hora de check-in" required>
+                          <Input type="time" value={specificData.checkin || ""} onChange={e => setSpecificData(prev => ({ ...prev, checkin: e.target.value }))} />
+                        </FormField>
+                        <FormField label="Hora de check-out" required>
+                          <Input type="time" value={specificData.checkout || ""} onChange={e => setSpecificData(prev => ({ ...prev, checkout: e.target.value }))} />
+                        </FormField>
+                      </FieldRow>
+                    ) : (
+                      <FormField label="Horario de Operación">
+                        <div className="relative">
+                          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input className="pl-9" placeholder="Ej. Lun-Vie 9AM-6PM, Sáb-Dom 10AM-4PM" value={basicData.horario} onChange={e => updateBasic("horario", e.target.value)} />
+                        </div>
+                      </FormField>
+                    )}
                     <FormField label="Descripción del Establecimiento" required>
                       <Textarea
                         placeholder={`Describe brevemente tu ${config.label.toLowerCase()}: qué ofreces, qué te hace especial...`}
@@ -393,6 +374,7 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
                     {tipo === "tour" && <CamposTour data={specificData} onChange={updateSpecific} />}
                     {tipo === "spa" && <CamposSpa data={specificData} onChange={updateSpecific} />}
                     {tipo === "tienda" && <CamposTienda data={specificData} onChange={updateSpecific} />}
+                    {tieneCamposGenericos(tipo) && <CamposGenericos tipo={tipo} data={specificData} onChange={updateSpecific} />}
                   </motion.div>
                 )}
 
@@ -478,7 +460,7 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo }: Props) {
                 {step < TOTAL_STEPS - 1 ? (
                   <Button
                     onClick={handleNext}
-                    disabled={step === 0 && !isStep1Valid}
+                    disabled={(step === 0 && !isStep1Valid) || (step === 1 && pendientesPaso2.length > 0)}
                     className="gap-2"
                   >
                     Siguiente

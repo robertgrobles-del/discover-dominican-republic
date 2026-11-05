@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
+import { AppError } from "../../lib/errors.js";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
@@ -45,6 +46,8 @@ export async function transactionalProductsRoutes(app: FastifyInstance) {
       response: { 201: ok },
     },
   }, async (req, reply) => {
+    // Sin integración de cobro: sólo el proveedor de pruebas puede activarlo, para no dar por pagado algo que nadie cobró.
+    if (app.env.PAYMENT_PROVIDER !== "fake") throw new AppError("SERVICE_UNAVAILABLE", "La emisión de seguros no está disponible todavía: falta conectar el cobro");
     const policy = await service.issueInsurance({
       ...req.body,
       user_id: req.user?.id,
@@ -75,6 +78,8 @@ export async function transactionalProductsRoutes(app: FastifyInstance) {
       response: { 201: ok },
     },
   }, async (req, reply) => {
+    // Sin integración de cobro: sólo el proveedor de pruebas puede activarlo, para no dar por pagado algo que nadie cobró.
+    if (app.env.PAYMENT_PROVIDER !== "fake") throw new AppError("SERVICE_UNAVAILABLE", "La reserva de traslados no está disponible todavía: falta conectar el cobro");
     const booking = await service.bookTransport({
       ...req.body,
       user_id: req.user?.id,

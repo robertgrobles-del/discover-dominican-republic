@@ -111,7 +111,7 @@ export function DestinationMustSee({ destinoNombre, slug, items }: DestinationMu
 
               {/* Contenido overlay */}
               <div className="relative z-10 p-5 mt-auto flex flex-col justify-end text-white">
-                <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-primary/90 text-primary-foreground self-start mb-2 backdrop-blur-sm">
+                <span className="text-2xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-primary/90 text-primary-foreground self-start mb-2 backdrop-blur-sm">
                   {item.categoria}
                 </span>
                 <h3 className="font-display text-xl font-bold leading-tight mb-2 group-hover:text-primary-foreground transition-colors">

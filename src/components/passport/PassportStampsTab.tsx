@@ -282,7 +282,7 @@ export function PassportStampsTab({ stamps = [], onAddStamp }: PassportStampsTab
 
                       {/* Header Badge: Region & Verified icon */}
                       <div className="w-full flex items-center justify-between mb-3 z-10">
-                        <Badge className={`text-[9px] px-1.5 py-0 rounded-md border font-semibold ${regionBadgeClass}`}>
+                        <Badge className={`text-3xs px-1.5 py-0 rounded-md border font-semibold ${regionBadgeClass}`}>
                           {region}
                         </Badge>
                         {stamp.is_verified && (
@@ -309,13 +309,13 @@ export function PassportStampsTab({ stamps = [], onAddStamp }: PassportStampsTab
                         ) : (
                           <div className="text-center">
                             <span className="text-2xl block mb-0.5">🇩🇴</span>
-                            <span className="text-[8px] font-black uppercase tracking-wider text-primary block leading-none">
+                            <span className="text-3xs font-black uppercase tracking-wider text-primary block leading-none">
                               REP. DOM.
                             </span>
                           </div>
                         )}
 
-                        <span className="text-[8px] font-utility font-bold text-muted-foreground uppercase tracking-wider mt-1 block">
+                        <span className="text-3xs font-utility font-bold text-muted-foreground uppercase tracking-wider mt-1 block">
                           {stampDate}
                         </span>
                       </div>
@@ -325,18 +325,18 @@ export function PassportStampsTab({ stamps = [], onAddStamp }: PassportStampsTab
                         <h4 className="font-display font-bold text-xs text-foreground line-clamp-1 group-hover:text-primary transition-colors">
                           {stamp.stamp_name}
                         </h4>
-                        <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
+                        <p className="text-2xs text-muted-foreground line-clamp-1 mt-0.5">
                           {stamp.stamp_location || "República Dominicana"}
                         </p>
                       </div>
 
                       {/* Rewards Pill */}
                       <div className="mt-3 flex items-center gap-1.5 z-10">
-                        <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                        <span className="text-3xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                           +{stamp.xp_earned || 25} XP
                         </span>
                         {stamp.coins_earned ? (
-                          <span className="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                          <span className="text-3xs font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
                             <Coins className="h-2.5 w-2.5" />
                             {stamp.coins_earned}
                           </span>
@@ -360,8 +360,8 @@ export function PassportStampsTab({ stamps = [], onAddStamp }: PassportStampsTab
                 <div className="mx-auto my-2 w-28 h-28 rounded-full border-4 border-primary/30 bg-gradient-to-br from-primary/10 via-background to-primary/20 flex flex-col items-center justify-center p-3 relative shadow-inner">
                   <div className="absolute inset-2 rounded-full border-2 border-dashed border-primary/40 pointer-events-none" />
                   <span className="text-3xl block mb-1">🇩🇴</span>
-                  <p className="text-[9px] font-black uppercase tracking-widest text-primary">OFICIAL EXPEDICIÓN</p>
-                  <p className="text-[9px] font-utility font-semibold text-muted-foreground">
+                  <p className="text-3xs font-black uppercase tracking-widest text-primary">OFICIAL EXPEDICIÓN</p>
+                  <p className="text-3xs font-utility font-semibold text-muted-foreground">
                     {new Date(selectedStamp.visited_at).toLocaleDateString("es-DO")}
                   </p>
                 </div>
@@ -376,7 +376,7 @@ export function PassportStampsTab({ stamps = [], onAddStamp }: PassportStampsTab
               <div className="space-y-3 my-4">
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="p-3 rounded-2xl bg-muted/40 border border-border">
-                    <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">
+                    <span className="text-muted-foreground block text-3xs uppercase font-bold tracking-wider">
                       Región
                     </span>
                     <span className="font-semibold text-foreground">
@@ -384,7 +384,7 @@ export function PassportStampsTab({ stamps = [], onAddStamp }: PassportStampsTab
                     </span>
                   </div>
                   <div className="p-3 rounded-2xl bg-muted/40 border border-border">
-                    <span className="text-muted-foreground block text-[10px] uppercase font-bold tracking-wider">
+                    <span className="text-muted-foreground block text-3xs uppercase font-bold tracking-wider">
                       Verificación
                     </span>
                     <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
@@ -466,7 +466,7 @@ export function PassportStampsTab({ stamps = [], onAddStamp }: PassportStampsTab
                 className="h-11 rounded-2xl font-mono text-center tracking-widest text-sm bg-background border-border"
                 autoFocus
               />
-              <p className="text-[11px] text-muted-foreground text-center mt-1.5">
+              <p className="text-2xs text-muted-foreground text-center mt-1.5">
                 Disponible en más de 200 puntos turísticos autorizados por MITUR y POLITUR.
               </p>
             </div>

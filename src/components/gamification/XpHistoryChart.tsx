@@ -40,8 +40,7 @@ export const XpHistoryChart: React.FC<XpHistoryChartProps> = ({ transactions, to
     const dayTransactions = transactions.filter((t) => t.created_at && t.created_at.startsWith(dateStr));
     const dayXp = dayTransactions.reduce((sum, t) => sum + (t.xp_amount || 0), 0);
     
-    // Add small organic baseline progress if demo user
-    runningXp += dayXp > 0 ? dayXp : (dayTransactions.length === 0 && totalXp > 0 ? Math.floor(Math.random() * 25) : 0);
+    runningXp += dayXp;
 
     const d = new Date(dateStr);
     const label = `${d.getDate()}/${d.getMonth() + 1}`;
@@ -59,7 +58,7 @@ export const XpHistoryChart: React.FC<XpHistoryChartProps> = ({ transactions, to
       <CardHeader className="pb-3 border-b border-border/50">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <div>
-            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px] gap-1 mb-1">
+            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-3xs gap-1 mb-1">
               <TrendingUp className="w-3 h-3" /> Rendimiento de Explorador
             </Badge>
             <CardTitle className="text-lg font-bold font-display flex items-center gap-2">
@@ -114,7 +113,7 @@ export const XpHistoryChart: React.FC<XpHistoryChartProps> = ({ transactions, to
                           Acumulado: {data.xpAcumulado.toLocaleString()} XP
                         </p>
                         {data.xpGanado > 0 && (
-                          <p className="text-emerald-500 font-mono text-[10px]">
+                          <p className="text-emerald-500 font-mono text-3xs">
                             +{data.xpGanado} XP en este día
                           </p>
                         )}

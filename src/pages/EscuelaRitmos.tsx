@@ -12,6 +12,7 @@ import {
 import { useState } from "react";
 
 import merengueDance from "@/assets/merengue-dance.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const videoTutoriales = [
   {
@@ -86,13 +87,17 @@ const datosHistoricos = {
 };
 
 export default function EscuelaRitmos() {
+  const pc = usePageContent("escuela-ritmos");
+  const videoTutoriales = pc.data("videoTutoriales", __pcData.videoTutoriales);
+  const datosHistoricos = pc.data("datosHistoricos", __pcData.datosHistoricos);
+  const escuelas = pc.data("escuelas", __pcData.escuelas);
   const [ritmoActivo, setRitmoActivo] = useState("merengue");
 
   return (
     <PageTransition>
       <SEOHead
-        title="Aprende el Ritmo: Merengue y Bachata - Escuelas de Baile en República Dominicana"
-        description="Descubre el alma de República Dominicana a través del baile. Aprende Merengue y Bachata con videotutoriales y escuelas certificadas."
+        title={pc.t("SEOHead.title.1", "Aprende el Ritmo: Merengue y Bachata - Escuelas de Baile en República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Descubre el alma de República Dominicana a través del baile. Aprende Merengue y Bachata con videotutoriales y escuelas certificadas.")}
         keywords="aprender merengue, clases bachata, escuelas baile RD, ritmos dominicanos, danza caribeña"
       />
       <div className="min-h-screen flex flex-col bg-background">
@@ -102,32 +107,23 @@ export default function EscuelaRitmos() {
         <section className="relative h-[70vh] min-h-[600px] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0">
             <img
-              src={merengueDance}
-              alt="Baile dominicano"
+              src={pc.img("img.src.1", merengueDance)}
+              alt={pc.t("img.alt.1", "Baile dominicano")}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/85 to-background/50" />
           </div>
 
           <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
-            <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
-              CULTURA VIVA
-            </Badge>
-            <h1 className="font-display text-4xl md:text-6xl font-black text-foreground mb-6 leading-tight">
-              Siente el Ritmo
-              <br />
-              <span className="text-primary">del Caribe</span>
+            <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">{pc.tx("Badge.1", "CULTURA VIVA")}</Badge>
+            <h1 className="font-display text-4xl md:text-6xl font-black text-foreground mb-6 leading-tight">{pc.tx("h1.1", "Siente el Ritmo")}<br />
+              <span className="text-primary">{pc.tx("span.1", "del Caribe")}</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Merengue y bachata paso a paso, con videotutoriales y escuelas certificadas antes de pisar la isla.
-            </p>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">{pc.tx("p.1", "Merengue y bachata paso a paso, con videotutoriales y escuelas certificadas antes de pisar la isla.")}</p>
             <div className="flex flex-wrap justify-center gap-4">
               <Button size="lg" className="gap-2">
-                <Play className="h-4 w-4" /> Comenzar Clases
-              </Button>
-              <Button size="lg" variant="outline" className="gap-2">
-                Ver Escuelas
-              </Button>
+                <Play className="h-4 w-4" />{" "}{pc.tx("Button.1", "Comenzar Clases")}</Button>
+              <Button size="lg" variant="outline" className="gap-2">{pc.tx("Button.2", "Ver Escuelas")}</Button>
             </div>
           </div>
         </section>
@@ -144,9 +140,7 @@ export default function EscuelaRitmos() {
                       ? "bg-primary text-primary-foreground shadow-md" 
                       : "text-muted-foreground hover:text-primary hover:bg-muted"
                   }`}
-                >
-                  Merengue
-                </button>
+                >{pc.tx("button.1", "Merengue")}</button>
                 <button 
                   onClick={() => setRitmoActivo("bachata")}
                   className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${
@@ -154,9 +148,7 @@ export default function EscuelaRitmos() {
                       ? "bg-primary text-primary-foreground shadow-md" 
                       : "text-muted-foreground hover:text-primary hover:bg-muted"
                   }`}
-                >
-                  Bachata
-                </button>
+                >{pc.tx("button.2", "Bachata")}</button>
                 <button 
                   onClick={() => setRitmoActivo("son")}
                   className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${
@@ -164,9 +156,7 @@ export default function EscuelaRitmos() {
                       ? "bg-primary text-primary-foreground shadow-md" 
                       : "text-muted-foreground hover:text-primary hover:bg-muted"
                   }`}
-                >
-                  Son
-                </button>
+                >{pc.tx("button.3", "Son")}</button>
               </div>
             </div>
           </div>
@@ -177,11 +167,10 @@ export default function EscuelaRitmos() {
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="font-display text-3xl font-bold text-foreground mb-2">Videotutoriales Básicos</h2>
-                <p className="text-muted-foreground">Aprende los fundamentos desde casa.</p>
+                <h2 className="font-display text-3xl font-bold text-foreground mb-2">{pc.tx("h2.1", "Videotutoriales Básicos")}</h2>
+                <p className="text-muted-foreground">{pc.tx("p.2", "Aprende los fundamentos desde casa.")}</p>
               </div>
-              <Button variant="link" className="text-primary gap-1">
-                Ver todos <ChevronRight className="h-4 w-4" />
+              <Button variant="link" className="text-primary gap-1">{pc.tx("Button.3", "Ver todos")}{" "}<ChevronRight className="h-4 w-4" />
               </Button>
             </div>
 
@@ -213,8 +202,7 @@ export default function EscuelaRitmos() {
                   <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
                     {video.titulo}
                   </h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Duración: {video.duracion} • Instructor: {video.instructor}
+                  <p className="text-sm text-muted-foreground mt-1">{pc.tx("p.3", "Duración:")}{" "}{video.duracion}{" "}{pc.tx("p.4", "• Instructor:")}{" "}{video.instructor}
                   </p>
                 </motion.div>
               ))}
@@ -230,13 +218,13 @@ export default function EscuelaRitmos() {
                 <div className="aspect-square rounded-2xl overflow-hidden">
                   <img
                     src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600"
-                    alt="Historia del Merengue"
+                    alt={pc.t("img.alt.2", "Historia del Merengue")}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent" />
                   <div className="absolute bottom-6 left-6 text-white">
-                    <p className="text-sm font-bold opacity-80 uppercase tracking-widest mb-1">Orígenes</p>
-                    <p className="text-2xl font-bold">Patrimonio de la Humanidad</p>
+                    <p className="text-sm font-bold opacity-80 uppercase tracking-widest mb-1">{pc.tx("p.5", "Orígenes")}</p>
+                    <p className="text-2xl font-bold">{pc.tx("p.6", "Patrimonio de la Humanidad")}</p>
                   </div>
                 </div>
               </div>
@@ -256,7 +244,7 @@ export default function EscuelaRitmos() {
                     <HeadphonesIcon className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-bold text-foreground text-sm">Playlist Esencial: Clásicos</h4>
+                    <h3 className="h4 font-bold text-foreground text-sm">{pc.tx("h4.1", "Playlist Esencial: Clásicos")}</h3>
                     <p className="text-xs text-muted-foreground">{datosHistoricos.playlist.join(", ")}</p>
                   </div>
                   <Button size="icon" variant="ghost" className="text-primary">
@@ -264,8 +252,7 @@ export default function EscuelaRitmos() {
                   </Button>
                 </div>
 
-                <Button variant="link" className="text-primary p-0 gap-2">
-                  Leer historia completa <ChevronRight className="h-4 w-4" />
+                <Button variant="link" className="text-primary p-0 gap-2">{pc.tx("Button.4", "Leer historia completa")}{" "}<ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -276,10 +263,8 @@ export default function EscuelaRitmos() {
         <section className="py-16">
           <div className="container mx-auto px-4">
             <div className="text-center mb-10">
-              <h2 className="font-display text-3xl font-bold text-foreground mb-3">Encuentra tu Escuela</h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">
-                Mapa interactivo de academias certificadas por el Ministerio de Turismo. Reserva tu primera clase gratis.
-              </p>
+              <h2 className="font-display text-3xl font-bold text-foreground mb-3">{pc.tx("h2.2", "Encuentra tu Escuela")}</h2>
+              <p className="text-muted-foreground max-w-xl mx-auto">{pc.tx("p.7", "Mapa interactivo de academias certificadas por el Ministerio de Turismo. Reserva tu primera clase gratis.")}</p>
             </div>
 
             <div className="grid lg:grid-cols-2 gap-8">
@@ -295,9 +280,9 @@ export default function EscuelaRitmos() {
                     className="bg-card rounded-2xl border border-border p-4 hover:border-primary/50 transition-all cursor-pointer group"
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">
+                      <h3 className="h4 font-bold text-lg text-foreground group-hover:text-primary transition-colors">
                         {escuela.nombre}
-                      </h4>
+                      </h3>
                       <Badge 
                         variant="outline" 
                         className={escuela.estado === "Abierto" ? "bg-green-500/10 text-green-600 border-green-500/30" : "bg-red-500/10 text-red-600 border-red-500/30"}
@@ -310,7 +295,7 @@ export default function EscuelaRitmos() {
                       {[...Array(5)].map((_, i) => (
                         <Star key={i} className={`h-4 w-4 ${i < Math.floor(escuela.rating) ? "fill-current" : ""}`} />
                       ))}
-                      <span className="text-xs text-muted-foreground ml-1">({escuela.reviews} reseñas)</span>
+                      <span className="text-xs text-muted-foreground ml-1">({escuela.reviews}{" "}{pc.tx("span.2", "reseñas)")}</span>
                     </div>
 
                     <p className="text-sm text-muted-foreground flex items-center gap-1 mb-3">
@@ -328,13 +313,9 @@ export default function EscuelaRitmos() {
 
                     <div className="flex items-center justify-between">
                       {escuela.claseGratis && (
-                        <Badge className="bg-primary/10 text-primary border-primary/30">
-                          1ra Clase Gratis
-                        </Badge>
+                        <Badge className="bg-primary/10 text-primary border-primary/30">{pc.tx("Badge.2", "1ra Clase Gratis")}</Badge>
                       )}
-                      <Button size="sm" className="ml-auto">
-                        Reservar
-                      </Button>
+                      <Button size="sm" className="ml-auto">{pc.tx("Button.5", "Reservar")}</Button>
                     </div>
                   </motion.div>
                 ))}
@@ -345,15 +326,14 @@ export default function EscuelaRitmos() {
                 <div className="aspect-square lg:aspect-auto lg:h-full relative">
                   <img
                     src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800"
-                    alt="Mapa de escuelas"
+                    alt={pc.t("img.alt.3", "Mapa de escuelas")}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent flex items-end p-6">
                     <div className="text-center w-full">
-                      <p className="text-foreground font-semibold mb-2">Mapa Interactivo</p>
+                      <p className="text-foreground font-semibold mb-2">{pc.tx("p.8", "Mapa Interactivo")}</p>
                       <Button className="gap-2">
-                        <MapPin className="h-4 w-4" /> Ver en Mapa
-                      </Button>
+                        <MapPin className="h-4 w-4" />{" "}{pc.tx("Button.6", "Ver en Mapa")}</Button>
                     </div>
                   </div>
                 </div>
@@ -370,28 +350,22 @@ export default function EscuelaRitmos() {
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <Award className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="font-bold text-foreground mb-2">Instructores Certificados</h3>
-                <p className="text-sm text-muted-foreground">
-                  Todos nuestros instructores están avalados por el Ministerio de Turismo.
-                </p>
+                <h3 className="font-bold text-foreground mb-2">{pc.tx("h3.1", "Instructores Certificados")}</h3>
+                <p className="text-sm text-muted-foreground">{pc.tx("p.9", "Todos nuestros instructores están avalados por el Ministerio de Turismo.")}</p>
               </div>
               <div>
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <Users className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="font-bold text-foreground mb-2">Clases para Todos</h3>
-                <p className="text-sm text-muted-foreground">
-                  Desde principiantes hasta avanzados. Grupos pequeños o clases privadas.
-                </p>
+                <h3 className="font-bold text-foreground mb-2">{pc.tx("h3.2", "Clases para Todos")}</h3>
+                <p className="text-sm text-muted-foreground">{pc.tx("p.10", "Desde principiantes hasta avanzados. Grupos pequeños o clases privadas.")}</p>
               </div>
               <div>
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <Music className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="font-bold text-foreground mb-2">Inmersión Cultural</h3>
-                <p className="text-sm text-muted-foreground">
-                  No solo aprenderás a bailar, vivirás la cultura dominicana.
-                </p>
+                <h3 className="font-bold text-foreground mb-2">{pc.tx("h3.3", "Inmersión Cultural")}</h3>
+                <p className="text-sm text-muted-foreground">{pc.tx("p.11", "No solo aprenderás a bailar, vivirás la cultura dominicana.")}</p>
               </div>
             </div>
           </div>
@@ -401,19 +375,11 @@ export default function EscuelaRitmos() {
         <section className="py-20 bg-gradient-to-r from-primary to-orange-500">
           <div className="container mx-auto px-4 text-center">
             <Music className="h-12 w-12 text-white mx-auto mb-4" />
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-              ¿Listo para mover los pies?
-            </h2>
-            <p className="text-white/80 mb-8 max-w-xl mx-auto">
-              Reserva tu primera clase gratis en cualquiera de nuestras academias certificadas.
-            </p>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">{pc.tx("h2.3", "¿Listo para mover los pies?")}</h2>
+            <p className="text-white/80 mb-8 max-w-xl mx-auto">{pc.tx("p.12", "Reserva tu primera clase gratis en cualquiera de nuestras academias certificadas.")}</p>
             <div className="flex flex-wrap justify-center gap-4">
-              <Button size="lg" className="gap-2 bg-white text-primary hover:bg-white/90">
-                Reservar Clase Gratis
-              </Button>
-              <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                Ver Videotutoriales
-              </Button>
+              <Button size="lg" className="gap-2 bg-white text-primary hover:bg-white/90">{pc.tx("Button.7", "Reservar Clase Gratis")}</Button>
+              <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.8", "Ver Videotutoriales")}</Button>
             </div>
           </div>
         </section>
@@ -423,3 +389,6 @@ export default function EscuelaRitmos() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { videoTutoriales, datosHistoricos, escuelas };

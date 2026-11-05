@@ -94,7 +94,7 @@ export const RewardsCatalogTab: React.FC<RewardsCatalogTabProps> = ({
               </div>
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="bg-red-500 text-white border-none text-[10px] font-bold animate-pulse">
+                  <Badge className="bg-red-500 text-white border-none text-3xs font-bold animate-pulse">
                     OFERTA FLASH 24 HORAS
                   </Badge>
                   <span className="text-xs text-red-500 font-bold uppercase tracking-wider">

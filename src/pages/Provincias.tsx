@@ -17,8 +17,10 @@ import { getSafeCoverImage } from "@/lib/imageCovers";
 
 import { ProvincesHeroSlider } from "@/components/provinces/ProvincesHeroSlider";
 import { FreeActivitiesSection } from "@/components/provinces/FreeActivitiesSection";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function Provincias() {
+  const pc = usePageContent("provincias");
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
@@ -137,28 +139,20 @@ export default function Provincias() {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                           <div className="absolute top-3 left-3">
                             {province.region === "este" && (
-                              <Badge className="bg-emerald-500/90 text-white font-bold text-[10px] tracking-wide shadow-md">
-                                REGION ESTE · TURQUESA
-                              </Badge>
+                              <Badge className="bg-emerald-500/90 text-white font-bold text-3xs tracking-wide shadow-md">{pc.tx("Badge.1", "REGION ESTE · TURQUESA")}</Badge>
                             )}
                             {province.region === "norte" && (
-                              <Badge className="bg-blue-600/90 text-white font-bold text-[10px] tracking-wide shadow-md">
-                                CIBAO & NORTE · ATLÁNTICO
-                              </Badge>
+                              <Badge className="bg-blue-600/90 text-white font-bold text-3xs tracking-wide shadow-md">{pc.tx("Badge.2", "CIBAO & NORTE · ATLÁNTICO")}</Badge>
                             )}
                             {province.region === "sur" && (
-                              <Badge className="bg-amber-600/90 text-white font-bold text-[10px] tracking-wide shadow-md">
-                                REGIÓN SUR · OCRE DIVERGENTE
-                              </Badge>
+                              <Badge className="bg-amber-600/90 text-white font-bold text-3xs tracking-wide shadow-md">{pc.tx("Badge.3", "REGIÓN SUR · OCRE DIVERGENTE")}</Badge>
                             )}
                             {province.region === "santo-domingo" && (
-                              <Badge className="bg-primary/90 text-primary-foreground font-bold text-[10px] tracking-wide shadow-md">
-                                GRAN SANTO DOMINGO
-                              </Badge>
+                              <Badge className="bg-primary/90 text-primary-foreground font-bold text-3xs tracking-wide shadow-md">{pc.tx("Badge.4", "GRAN SANTO DOMINGO")}</Badge>
                             )}
                           </div>
                           <div className="absolute bottom-0 left-0 right-0 p-4">
-                            <h3 className="font-display text-xl font-bold text-white mb-1">{province.name}</h3>
+                            <h2 className="h3 font-display text-xl font-bold text-white mb-1">{province.name}</h2>
                             {province.capital && (
                               <p className="text-white/80 text-sm flex items-center gap-1">
                                 <MapPin className="h-3 w-3" />
@@ -176,7 +170,7 @@ export default function Provincias() {
                               </span>
                             )}
                             {province.area_km2 && (
-                              <span>{province.area_km2.toLocaleString()} km²</span>
+                              <span>{province.area_km2.toLocaleString()}{" "}{pc.tx("span.1", "km²")}</span>
                             )}
                           </div>
                           {province.highlights && province.highlights.length > 0 && (

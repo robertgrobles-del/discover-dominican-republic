@@ -31,6 +31,7 @@ import { PostgresContentReader } from "./modules/content/reader.js";
 import { HttpContentReader } from "./modules/content/http-reader.js";
 import { tripRoutes } from "./modules/trips/routes.js";
 import { AmbassadorService } from "./modules/ambassadors/service.js";
+import { CreatorAffiliateService } from "./modules/creators/affiliate.js";
 import { ambassadorRoutes } from "./modules/ambassadors/routes.js";
 import { MarketplaceService } from "./modules/marketplace/service.js";
 import { marketplaceRoutes } from "./modules/marketplace/routes.js";
@@ -154,7 +155,10 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   app.decorate("store", store);
   const ambassadors = new AmbassadorService(app.db, app.env, app.mailer, app.log, identity);
   ambassadors.notifyUser = notifyUser;
+  const creatorAffiliate = new CreatorAffiliateService(app.db);
+  ambassadors.creatorLinks = creatorAffiliate;
   app.decorate("ambassadors", ambassadors);
+  app.decorate("creatorAffiliate", creatorAffiliate);
   store.onMoneyChange = (id) => ambassadors.syncOrder("store", id);
   const marketplace = new MarketplaceService(app.db, app.env, app.gateway, app.mailer, app.log);
   marketplace.notifyUser = notifyUser;
@@ -182,7 +186,13 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
     ? new HttpContentReader(app.env.CONTENT_SERVICE_URL, app.env.CONTENT_SERVICE_TOKEN!, app.log)
     : new PostgresContentReader(app.db);
   app.decorate("game", game);
-  app.decorate("play", new PlayService(app.db, game));
+  const play = new PlayService(app.db, game);
+  app.decorate("play", play);
+  // El referido con el que se registró la persona se aplica al verificar el correo; uno inválido o ya usado no bloquea nada.
+  app.auth.onEmailVerified = async (userId) => {
+    const code = (await app.db.query<{ c: string | null }>("SELECT signup_ref_code AS c FROM users WHERE id = $1", [userId])).rows[0]?.c;
+    if (code) await play.applyReferral(userId, code).catch((err) => app.log.info({ err, userId }, "Referido de registro no aplicado"));
+  };
   app.decorate("explore", new ExploreService(app.db, game, contentReader, userFlags));
   app.decorate("trips", new TripService(app.db, game, contentReader, insertNotification));
   app.decorate("ai", new AiService(app.db, app.env, createAiProvider(app.env), app.log, contentReader, businessVerification));
@@ -203,7 +213,7 @@ export async function registerRoutes(app: FastifyInstance, version: string) {
   const automations = new AutomationService(app.db, app.env, app.mailer, ical, app.log);
   app.decorate("ical", ical);
   app.decorate("automations", automations);
-  const payouts = new PayoutService(app.db, app.mailer);
+  const payouts = new PayoutService(app.db, app.mailer, { holdDays: app.env.PAYOUT_HOLD_DAYS });
   const runner = new JobRunner(app.db, app.log, (err, job) => { void app.errorReporter?.capture(err, { source: "tarea programada", tags: { job } }); });
   app.decorate("payouts", payouts);
   app.decorate("jobs", runner);

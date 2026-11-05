@@ -83,7 +83,7 @@ export function DetailCrowdMeter({
                 style={{ height: `${d.pct}%` }}
                 title={`${d.hour}: ${d.label} (${d.pct}%)`}
               />
-              <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">
+              <span className="text-3xs font-medium text-muted-foreground whitespace-nowrap">
                 {d.hour}
               </span>
             </div>

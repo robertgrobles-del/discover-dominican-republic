@@ -109,7 +109,10 @@ export async function adminUserRoutes(app: FastifyInstance) {
       await c.query("SELECT pg_advisory_xact_lock($1)", [ROLES_LOCK]);
       const before = (await c.query<{ role: string }>("SELECT role::text FROM user_roles WHERE user_id = $1 ORDER BY role", [id])).rows.map((x) => x.role);
       // Conceder administración es una operación crítica: con doble aprobación activa sólo ocurre al aprobarse una solicitud.
-      if (next.includes("admin") && !before.includes("admin")) app.approvals.assertDirectAllowed("grant_admin");
+      // replaceRoles deja los roles sin vencimiento, así que un admin temporal (o vencido sin purgar) que pasa a permanente
+      // también es una concesión: sólo se omite la comprobación si ya tenía admin permanente.
+      const permanentAdmin = (await c.query("SELECT 1 FROM user_roles WHERE user_id = $1 AND role = 'admin' AND expires_at IS NULL", [id])).rowCount;
+      if (next.includes("admin") && !permanentAdmin) app.approvals.assertDirectAllowed("grant_admin");
       if (before.includes("admin") && !next.includes("admin")) {
         const admins = (await c.query<{ n: number }>("SELECT count(*)::int AS n FROM user_roles ur JOIN users u ON u.id = ur.user_id WHERE ur.role = 'admin' AND u.status = 'active'")).rows[0]!.n;
         if (admins <= 1) throw new AppError("BUSINESS_RULE", "No se puede quitar al último administrador", { code: "LAST_ADMIN" });

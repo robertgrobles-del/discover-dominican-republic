@@ -77,7 +77,7 @@ export function SocialReelsModal({
 
           {/* Top Label */}
           <div className="relative z-10 p-4 flex justify-between items-center text-white">
-            <Badge className="bg-red-500 text-white font-bold uppercase tracking-wider text-[10px]">
+            <Badge className="bg-red-500 text-white font-bold uppercase tracking-wider text-3xs">
               RD Reels
             </Badge>
             <span className="text-xs text-white/70 font-mono">
@@ -92,7 +92,7 @@ export function SocialReelsModal({
                 {currentReel.user.charAt(1).toUpperCase()}
               </div>
               <span className="font-bold text-sm">{currentReel.user}</span>
-              <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-400 border-none text-[9px]">
+              <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-400 border-none text-3xs">
                 Creador Local
               </Badge>
             </div>

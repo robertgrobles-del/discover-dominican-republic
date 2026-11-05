@@ -30,6 +30,17 @@ describe("límites de tasa compartidos (PostgreSQL)", () => {
     await app.close();
   });
 
+  it("las lecturas y las escrituras gastan presupuestos distintos", async () => {
+    const app = await makeApp({ RATE_LIMIT_STORE: "postgres", RATE_LIMIT_MAX: "2", RATE_LIMIT_READ_MAX: "5" });
+    expect(await codes(app, 6)).toEqual([200, 200, 200, 200, 200, 429]);
+    // Agotadas las lecturas, lo que escribe sigue teniendo su propio cupo (y más corto).
+    const post = () => app.inject({ method: "POST", url: "/api/v1/auth/logout" }).then((r) => r.statusCode);
+    const writes = [await post(), await post(), await post()];
+    expect(writes.slice(0, 2)).not.toContain(429);
+    expect(writes[2]).toBe(429);
+    await app.close();
+  });
+
   it("varias instancias comparten el mismo contador", async () => {
     const [a, b] = await Promise.all([makeApp({ RATE_LIMIT_STORE: "postgres", RATE_LIMIT_MAX: "4" }), makeApp({ RATE_LIMIT_STORE: "postgres", RATE_LIMIT_MAX: "4" })]);
     expect(await codes(a, 2)).toEqual([200, 200]);

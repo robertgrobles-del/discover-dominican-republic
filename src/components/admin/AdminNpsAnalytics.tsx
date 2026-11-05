@@ -209,13 +209,13 @@ export function AdminNpsAnalytics() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-bold text-foreground">{travelerName}</span>
-                          <Badge variant="outline" className="text-[10px]">
+                          <Badge variant="outline" className="text-3xs">
                             NPS: {resp.nps_score}
                           </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground italic">"{feedback}"</p>
                       </div>
-                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-mono">
+                      <div className="flex items-center gap-1 text-3xs text-muted-foreground font-mono">
                         <Calendar className="h-3 w-3" />
                         {new Date(resp.created_at).toLocaleDateString()}
                       </div>

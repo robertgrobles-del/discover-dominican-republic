@@ -222,7 +222,7 @@ export function AdminMembershipPlans() {
                 <div className="flex justify-between items-start gap-2">
                   <div>
                     <CardTitle className="text-lg font-bold">{p.name}</CardTitle>
-                    <p className="font-mono text-[11px] text-muted-foreground mt-0.5">{p.slug}</p>
+                    <p className="font-mono text-2xs text-muted-foreground mt-0.5">{p.slug}</p>
                   </div>
                   <Badge variant={p.is_active ? "default" : "secondary"} className="text-xs">
                     {p.is_active ? "Activo" : "Inactivo"}
@@ -245,7 +245,7 @@ export function AdminMembershipPlans() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Beneficios incluidos</p>
+                  <p className="text-2xs font-semibold text-muted-foreground uppercase tracking-wider">Beneficios incluidos</p>
                   <ul className="text-xs space-y-1">
                     {(p.benefits || []).slice(0, 4).map((b, idx) => (
                       <li key={idx} className="flex items-start gap-1.5 text-foreground">
@@ -254,7 +254,7 @@ export function AdminMembershipPlans() {
                       </li>
                     ))}
                     {(p.benefits || []).length > 4 && (
-                      <li className="text-[11px] text-muted-foreground pl-5">+{(p.benefits || []).length - 4} más...</li>
+                      <li className="text-2xs text-muted-foreground pl-5">+{(p.benefits || []).length - 4} más...</li>
                     )}
                   </ul>
                 </div>

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { PanoramaAd } from "@/components/promo";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 interface CiudadRef {
   ciudad: string;
@@ -47,6 +48,9 @@ const datosRD = {
 };
 
 export default function ZonasHorarias() {
+  const pc = usePageContent("zonas-horarias");
+  const ciudadesReferencia = pc.data("ciudadesReferencia", __pcData.ciudadesReferencia);
+  const datosRD = pc.data("datosRD", __pcData.datosRD);
   const [horaRD, setHoraRD] = useState(new Date());
   const [filterRegion, setFilterRegion] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -89,8 +93,8 @@ export default function ZonasHorarias() {
   return (
     <PageTransition>
       <SEOHead
-        title="Zona Horaria y Hora Actual en República Dominicana | Descubre RD"
-        description="Consulta la hora actual en tiempo real en República Dominicana (AST / UTC-4), comparador con husos horarios de EE.UU., Europa y Latinoamérica, y consejos contra el jet lag."
+        title={pc.t("SEOHead.title.1", "Zona Horaria y Hora Actual en República Dominicana | Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Consulta la hora actual en tiempo real en República Dominicana (AST / UTC-4), comparador con husos horarios de EE.UU., Europa y Latinoamérica, y consejos contra el jet lag.")}
         keywords="hora actual republica dominicana, zona horaria punta cana, hora santo domingo ahora, diferencia horaria espana dominicana, hora ast caribe"
       />
       
@@ -102,8 +106,8 @@ export default function ZonasHorarias() {
           <section className="relative min-h-[48vh] flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0">
               <img 
-                src={santoDomingoImg} 
-                alt="Zona Horaria de República Dominicana" 
+                src={pc.img("img.src.1", santoDomingoImg)} 
+                alt={pc.t("img.alt.1", "Zona Horaria de República Dominicana")} 
                 className="w-full h-full object-cover" 
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background via-black/65 to-black/35" />
@@ -111,14 +115,10 @@ export default function ZonasHorarias() {
 
             <div className="container relative z-10 mx-auto px-4 py-16 text-center max-w-4xl text-white">
               <Badge className="mb-4 bg-primary/20 text-white border-primary/40 backdrop-blur-md px-3 py-1 font-semibold">
-                <Clock className="h-3.5 w-3.5 mr-1.5 text-primary" /> Husos Horarios & Horas de Vuelo
-              </Badge>
-              <h1 className="text-4xl md:text-6xl font-display font-extrabold tracking-tight mb-4 drop-shadow-md">
-                Zona Horaria de <span className="text-primary italic">República Dominicana</span>
+                <Clock className="h-3.5 w-3.5 mr-1.5 text-primary" />{" "}{pc.tx("Badge.1", "Husos Horarios & Horas de Vuelo")}</Badge>
+              <h1 className="text-4xl md:text-6xl font-display font-extrabold tracking-tight mb-4 drop-shadow-md">{pc.tx("h1.1", "Zona Horaria de")}{" "}<span className="text-primary italic">{pc.tx("span.1", "República Dominicana")}</span>
               </h1>
-              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed drop-shadow">
-                República Dominicana opera en <strong>Atlantic Standard Time (AST / UTC-4)</strong> todo el año, sin variaciones por horario de verano.
-              </p>
+              <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed drop-shadow">{pc.tx("p.1", "República Dominicana opera en")}{" "}<strong>{pc.tx("strong.1", "Atlantic Standard Time (AST / UTC-4)")}</strong>{" "}{pc.tx("p.2", "todo el año, sin variaciones por horario de verano.")}</p>
             </div>
           </section>
 
@@ -126,9 +126,7 @@ export default function ZonasHorarias() {
           <section className="container mx-auto px-4 -mt-10 relative z-20 max-w-4xl">
             <Card className="overflow-hidden border border-border/80 shadow-2xl bg-card">
               <div className="bg-gradient-to-r from-primary via-primary/90 to-primary text-primary-foreground p-8 text-center">
-                <Badge className="bg-white/20 text-white border-none mb-3 text-xs font-semibold">
-                  🇩🇴 Hora Oficial de Santo Domingo
-                </Badge>
+                <Badge className="bg-white/20 text-white border-none mb-3 text-xs font-semibold">{pc.tx("Badge.2", "🇩🇴 Hora Oficial de Santo Domingo")}</Badge>
                 <div className="text-5xl md:text-7xl font-extrabold font-mono tracking-wider drop-shadow-sm mb-2">
                   {formatHora(horaRD)}
                 </div>
@@ -147,22 +145,22 @@ export default function ZonasHorarias() {
                   <div className="p-4 bg-muted/40 rounded-2xl border border-border/50">
                     <Globe className="h-5 w-5 mx-auto mb-1.5 text-primary" />
                     <p className="font-bold text-xs text-foreground">{datosRD.zona}</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{datosRD.offset}</p>
+                    <p className="text-2xs text-muted-foreground mt-0.5">{datosRD.offset}</p>
                   </div>
                   <div className="p-4 bg-muted/40 rounded-2xl border border-border/50">
                     <Sparkles className="h-5 w-5 mx-auto mb-1.5 text-primary" />
-                    <p className="font-bold text-xs text-foreground">Horario de Verano</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{datosRD.dst}</p>
+                    <p className="font-bold text-xs text-foreground">{pc.tx("p.3", "Horario de Verano")}</p>
+                    <p className="text-2xs text-muted-foreground mt-0.5">{datosRD.dst}</p>
                   </div>
                   <div className="p-4 bg-muted/40 rounded-2xl border border-border/50">
                     <Sunrise className="h-5 w-5 mx-auto mb-1.5 text-amber-500" />
-                    <p className="font-bold text-xs text-foreground">Salida del Sol</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{datosRD.amanecer}</p>
+                    <p className="font-bold text-xs text-foreground">{pc.tx("p.4", "Salida del Sol")}</p>
+                    <p className="text-2xs text-muted-foreground mt-0.5">{datosRD.amanecer}</p>
                   </div>
                   <div className="p-4 bg-muted/40 rounded-2xl border border-border/50">
                     <Sunset className="h-5 w-5 mx-auto mb-1.5 text-orange-500" />
-                    <p className="font-bold text-xs text-foreground">Puesta de Sol</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{datosRD.atardecer}</p>
+                    <p className="font-bold text-xs text-foreground">{pc.tx("p.5", "Puesta de Sol")}</p>
+                    <p className="text-2xs text-muted-foreground mt-0.5">{datosRD.atardecer}</p>
                   </div>
                 </div>
               </CardContent>
@@ -173,10 +171,8 @@ export default function ZonasHorarias() {
           <section className="container mx-auto px-4 mt-16 max-w-6xl">
             <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 mb-8">
               <div>
-                <span className="text-xs font-bold text-primary uppercase tracking-widest block mb-1">Diferencias Horarias</span>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                  Hora en Ciudades Emisoras de Viajeros
-                </h2>
+                <span className="text-xs font-bold text-primary uppercase tracking-widest block mb-1">{pc.tx("span.2", "Diferencias Horarias")}</span>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h2.1", "Hora en Ciudades Emisoras de Viajeros")}</h2>
               </div>
 
               {/* Filtros */}
@@ -184,7 +180,7 @@ export default function ZonasHorarias() {
                 <div className="relative flex-1 sm:w-48">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                   <Input 
-                    placeholder="Filtrar ciudad..." 
+                    placeholder={pc.t("Input.placeholder.1", "Filtrar ciudad...")} 
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9 h-9 text-xs"
@@ -230,8 +226,8 @@ export default function ZonasHorarias() {
                         <span className="text-3xl shrink-0">{c.emoji}</span>
                         <div>
                           <p className="font-bold text-sm text-foreground">{c.ciudad}</p>
-                          <p className="text-[11px] text-muted-foreground">{c.pais}</p>
-                          <span className="text-[10px] text-muted-foreground/80 font-mono">{c.zona}</span>
+                          <p className="text-2xs text-muted-foreground">{c.pais}</p>
+                          <span className="text-3xs text-muted-foreground/80 font-mono">{c.zona}</span>
                         </div>
                       </div>
 
@@ -248,7 +244,7 @@ export default function ZonasHorarias() {
                         </div>
                         <Badge 
                           variant={isRD ? "default" : "secondary"} 
-                          className="text-[10px] font-semibold"
+                          className="text-3xs font-semibold"
                         >
                           {diff === 0 
                             ? "Misma hora que RD" 
@@ -269,35 +265,22 @@ export default function ZonasHorarias() {
           <section className="container mx-auto px-4 mt-16 max-w-5xl">
             <div className="bg-card border border-border/80 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
               <h3 className="font-display font-bold text-xl text-foreground flex items-center gap-2">
-                <Info className="h-5 w-5 text-primary" /> Recomendaciones para Viajeros Internacionales
-              </h3>
+                <Info className="h-5 w-5 text-primary" />{" "}{pc.tx("h3.1", "Recomendaciones para Viajeros Internacionales")}</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-muted-foreground leading-relaxed">
                 <div className="bg-muted/30 p-4 rounded-2xl border border-border/50 space-y-1.5">
-                  <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5">
-                    📱 Sincronización Automática
-                  </h4>
-                  <p>
-                    Al aterrizar en los aeropuertos PUJ, SDQ o STI, tu smartphone se conectará a las redes locales (Claro / Altice) y ajustará la hora automáticamente a UTC-4.
-                  </p>
+                  <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5">{pc.tx("h4.1", "📱 Sincronización Automática")}</h4>
+                  <p>{pc.tx("p.6", "Al aterrizar en los aeropuertos PUJ, SDQ o STI, tu smartphone se conectará a las redes locales (Claro / Altice) y ajustará la hora automáticamente a UTC-4.")}</p>
                 </div>
 
                 <div className="bg-muted/30 p-4 rounded-2xl border border-border/50 space-y-1.5">
-                  <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5">
-                    ✈️ Vuelos desde Europa
-                  </h4>
-                  <p>
-                    Los viajeros provenientes de España, Francia o Alemania enfrentan una diferencia de 5 a 6 horas. Se recomienda hidratarse abundantemente y exponerse a la luz solar caribeña durante las primeras mañanas.
-                  </p>
+                  <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5">{pc.tx("h4.2", "✈️ Vuelos desde Europa")}</h4>
+                  <p>{pc.tx("p.7", "Los viajeros provenientes de España, Francia o Alemania enfrentan una diferencia de 5 a 6 horas. Se recomienda hidratarse abundantemente y exponerse a la luz solar caribeña durante las primeras mañanas.")}</p>
                 </div>
 
                 <div className="bg-muted/30 p-4 rounded-2xl border border-border/50 space-y-1.5">
-                  <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5">
-                    ☀️ Días Equilibrados Todo el Año
-                  </h4>
-                  <p>
-                    Por su latitud cercana al ecuador (18°N), la duración de la luz solar oscila entre 11 y 13 horas los 365 días del año.
-                  </p>
+                  <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5">{pc.tx("h4.3", "☀️ Días Equilibrados Todo el Año")}</h4>
+                  <p>{pc.tx("p.8", "Por su latitud cercana al ecuador (18°N), la duración de la luz solar oscila entre 11 y 13 horas los 365 días del año.")}</p>
                 </div>
               </div>
             </div>
@@ -314,3 +297,6 @@ export default function ZonasHorarias() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { ciudadesReferencia, datosRD };

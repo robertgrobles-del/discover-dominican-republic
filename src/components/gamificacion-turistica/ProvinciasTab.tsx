@@ -94,7 +94,7 @@ export function ProvinciasTab({
                 )}
                 <span className="text-xl block mb-1">{prov.emoji}</span>
                 <p className="text-xs font-semibold text-foreground leading-tight">{prov.name}</p>
-                <Badge className={`text-[9px] mt-1 px-1.5 py-0.5 ${REGION_COLORS[prov.region]}`}>
+                <Badge className={`text-3xs mt-1 px-1.5 py-0.5 ${REGION_COLORS[prov.region]}`}>
                   {prov.region}
                 </Badge>
                 {isRecording && (
@@ -103,7 +103,7 @@ export function ProvinciasTab({
                   </div>
                 )}
                 {!visited && !isRecording && user && (
-                  <p className="text-[9px] text-muted-foreground mt-1">+25 XP</p>
+                  <p className="text-3xs text-muted-foreground mt-1">+25 XP</p>
                 )}
               </motion.button>
             );

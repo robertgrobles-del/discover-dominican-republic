@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, Loader2, User, ShieldCheck, AlertCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,9 @@ export default function Registro() {
   const { signUp } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  // Vuelta tras registrarse (p. ej. al registro de creador). Sólo rutas internas: «//dominio» o «https://» se ignoran.
+  const returnTo = useSearchParams()[0].get("returnTo");
+  const afterSignup = returnTo && /^\/(?!\/)/.test(returnTo) ? returnTo : "/perfil";
 
   const passwordSecurity = useMemo(() => evaluatePasswordSecurity(password), [password]);
 
@@ -129,7 +132,7 @@ export default function Registro() {
         title: "¡Bienvenido a Descubre RD!",
         description: "Tu cuenta ha sido creada exitosamente.",
       });
-      navigate("/perfil");
+      navigate(afterSignup);
     }
 
     } catch {
@@ -298,7 +301,7 @@ export default function Registro() {
                         ))}
                       </div>
                       {passwordSecurity.feedback.length > 0 && (
-                        <p className="text-[11px] text-muted-foreground pt-0.5">
+                        <p className="text-2xs text-muted-foreground pt-0.5">
                           Sugerencia: {passwordSecurity.feedback.join(" • ")}
                         </p>
                       )}

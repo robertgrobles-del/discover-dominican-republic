@@ -17,8 +17,10 @@ import {
   StaticExperienceItem 
 } from "@/data/experienciasData";
 import { ExperienciaCard } from "@/components/experiences/ExperienciaCard";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function Experiencias() {
+  const pc = usePageContent("experiencias");
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("todos");
   const { t } = useTranslation();
@@ -71,7 +73,7 @@ export default function Experiencias() {
           <div className="absolute inset-0">
             <img
               src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1920&h=800&fit=crop"
-              alt="Experiencias en República Dominicana"
+              alt={pc.t("img.alt.1", "Experiencias en República Dominicana")}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-black/50" />
@@ -138,8 +140,7 @@ export default function Experiencias() {
                   {activeCategory === "todos" ? "Todas las Experiencias" : experienceCategories.find(c => c.id === activeCategory)?.label}
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {filteredExperiencias.length} experiencias disponibles
-                </p>
+                  {filteredExperiencias.length}{" "}{pc.tx("p.1", "experiencias disponibles")}</p>
               </div>
             </div>
 

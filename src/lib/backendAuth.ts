@@ -1,6 +1,7 @@
 import { clearAccessToken, getAccessToken, hasSessionHint, refreshAccessToken } from "@/lib/accessToken";
 import { fetchApi } from "@/lib/fastifyClient";
 import { HttpError } from "@/lib/httpClient";
+import { getAttributionData } from "@/lib/utmTracker";
 
 /**
  * Sesión contra el backend real. El token de acceso vive sólo en memoria (`accessToken.ts`) y el de refresco
@@ -58,7 +59,9 @@ export async function verifyTwoFactor(challengeToken: string, code: string): Pro
 /** Quien llama debe haber recogido antes la aceptación de los términos: el backend la exige y queda registrada. */
 export async function signUp(input: { email: string; password: string; displayName?: string; acceptedTerms: true }): Promise<SignInResult> {
   try {
-    const res = await post<SessionPayload>("/auth/register", { email: input.email, password: input.password, accept_terms: input.acceptedTerms, ...(input.displayName ? { display_name: input.displayName } : {}) });
+    // El código de referido o de enlace de creador viaja con el alta; el servidor lo aplica al verificar el correo.
+    const ref = getAttributionData().ref_code;
+    const res = await post<SessionPayload>("/auth/register", { email: input.email, password: input.password, accept_terms: input.acceptedTerms, ...(input.displayName ? { display_name: input.displayName } : {}), ...(ref && ref.length >= 4 && ref.length <= 30 ? { ref_code: ref } : {}) });
     return { status: "signed_in", user: res.data.user };
   } catch (error) {
     return { status: "error", error: toError(error) };

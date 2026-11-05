@@ -73,7 +73,7 @@ export function PopularDestinations({ destinations }: PopularDestinationsProps) 
                   {dest.highlights && dest.highlights.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-3">
                       {dest.highlights.slice(0, 2).map((h, i) => (
-                        <Badge key={i} className="bg-black/40 backdrop-blur-md text-white/90 border border-white/10 text-[11px] font-medium">
+                        <Badge key={i} className="bg-black/40 backdrop-blur-md text-white/90 border border-white/10 text-2xs font-medium">
                           {h}
                         </Badge>
                       ))}

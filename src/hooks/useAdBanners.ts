@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchApi } from "@/lib/fastifyClient";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { useEffect, useState, useMemo } from "react";
 
 export interface AdBanner {
@@ -7,6 +9,10 @@ export interface AdBanner {
   name: string;
   slug: string | null;
   image_url: string | null;
+  /** Skyscrapers en pareja: imagen del lado derecho; si falta, los dos lados llevan image_url. */
+  image_url_right?: string | null;
+  /** Diapositivas de carrusel (hero-slide): datos de portada que un banner normal no tiene. */
+  slide_details?: { tag?: string; location?: string; season?: string; rating?: number; badge?: string; stats?: { value: string; label: string }[] } | null;
   alt_text: string | null;
   target_url: string | null;
   headline: string | null;
@@ -46,6 +52,10 @@ export function useAdBanners() {
   return useQuery({
     queryKey: ["ad-banners"],
     queryFn: async () => {
+      // Con backend real el catálogo sale del servidor de anuncios (sólo lo publicado, vigente y con cliente).
+      if (HAS_BACKEND_SESSION) {
+        try { return (await fetchApi<{ data: AdBanner[] }>("/ads/catalog")).data ?? []; } catch { return [] as AdBanner[]; }
+      }
       const { data, error } = await supabase
         .from("ad_banners")
         .select("*")
@@ -69,6 +79,11 @@ const recentClicks = new Map<string, number>();
  */
 export async function trackBannerImpression(bannerId: string) {
   if (!bannerId || bannerId === "preview-id" || bannerId.startsWith("demo-")) return;
+  if (HAS_BACKEND_SESSION) {
+    // El servidor deduplica por sesión, banner y hora.
+    void fetchApi(`/ads/${bannerId}/impression`, { method: "POST", keepalive: true, body: JSON.stringify({ session_id: adSessionId() }) }).catch(() => undefined);
+    return;
+  }
   try {
     // Record impression in Supabase / Local DB
     const { data: current } = await supabase
@@ -157,6 +172,12 @@ export async function trackBannerClick(bannerId: string) {
     return;
   }
   recentClicks.set(bannerId, now);
+
+  if (HAS_BACKEND_SESSION) {
+    // El servidor cuenta el clic antes de redirigir; no se sigue la redirección (el enlace ya navega al destino).
+    void fetchApi(`/ads/${bannerId}/click?s=${encodeURIComponent(adSessionId())}`, { redirect: "manual", keepalive: true }).catch(() => undefined);
+    return;
+  }
 
   try {
     const { data: current } = await supabase
@@ -369,3 +390,33 @@ export function useBanners(options: {
     .slice(0, options.limit || 10);
 }
 
+
+/**
+ * Espacio publicitario propio (tarjeta nativa, diapositiva, menú…): el anuncio vigente del admin para ese hueco, con la
+ * impresión contada al mostrarse y `trackClick` para el enlace. Sin anuncio vigente el componente muestra su respaldo.
+ */
+export function useTrackedBanner(options: { section?: string; bannerType: string; placement: string }) {
+  const banner = useBanner(options);
+  useEffect(() => { if (banner) void trackBannerImpression(banner.id); }, [banner?.id]);
+  return { banner, trackClick: () => { if (banner) void trackBannerClick(banner.id); } };
+}
+
+/** Todos los anuncios vigentes de un tipo para una sección (o `global`), p. ej. las diapositivas patrocinadas de un carrusel. */
+export function useAdBannerList(bannerType: string, section: string) {
+  const { data } = useAdBanners();
+  return useMemo(() => {
+    const now = new Date();
+    return (data ?? []).filter((b) =>
+      b.banner_type === bannerType && !!b.section && ["global", section.toLowerCase()].includes(b.section.toLowerCase()) &&
+      (!b.start_date || new Date(b.start_date) <= now) && (!b.end_date || new Date(b.end_date) >= now));
+  }, [data, bannerType, section]);
+}
+
+/** Id anónimo de la pestaña para deduplicar métricas de anuncios (no identifica a la persona). */
+function adSessionId() {
+  try {
+    let id = sessionStorage.getItem("ad_session_id");
+    if (!id) { id = crypto.randomUUID(); sessionStorage.setItem("ad_session_id", id); }
+    return id;
+  } catch { return "anon-session-0000"; }
+}

@@ -206,21 +206,21 @@ export function DestinationAnnualCalendar({ destinationName, region }: Destinati
 
                 <div className="space-y-2 py-3 text-xs">
                   <div className="flex flex-col items-center gap-0.5">
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                    <span className="text-3xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                       <CloudRain className="w-3 h-3 text-blue-500" /> Lluvia
                     </span>
                     {getRainBadge(m.lluvia)}
                   </div>
 
                   <div className="flex flex-col items-center gap-0.5">
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                    <span className="text-3xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                       <DollarSign className="w-3 h-3 text-amber-500" /> Tarifas
                     </span>
                     <span className="font-bold text-foreground tracking-widest">{m.precios}</span>
                   </div>
 
                   <div className="flex flex-col items-center gap-0.5">
-                    <span className="text-[10px] text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                    <span className="text-3xs text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                       <Users className="w-3 h-3 text-rose-500" /> Gente
                     </span>
                     {getCrowdBadge(m.afluencia)}
@@ -228,7 +228,7 @@ export function DestinationAnnualCalendar({ destinationName, region }: Destinati
 
                   {m.ballenas && (
                     <div className="flex flex-col items-center gap-0.5 pt-1">
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-700 dark:text-sky-300 font-semibold flex items-center gap-0.5">
+                      <span className="text-3xs px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-700 dark:text-sky-300 font-semibold flex items-center gap-0.5">
                         <Waves className="w-2.5 h-2.5" /> Ballenas
                       </span>
                     </div>
@@ -236,8 +236,8 @@ export function DestinationAnnualCalendar({ destinationName, region }: Destinati
 
                   {!isMountain && (
                     <div className="flex flex-col items-center gap-0.5">
-                      <span className="text-[10px] text-muted-foreground">Sargazo</span>
-                      <span className={`text-[11px] font-medium ${
+                      <span className="text-3xs text-muted-foreground">Sargazo</span>
+                      <span className={`text-2xs font-medium ${
                         m.sargazo === "Nulo" ? "text-emerald-600 dark:text-emerald-400" :
                         m.sargazo === "Bajo" ? "text-slate-600 dark:text-slate-300" :
                         "text-amber-600 dark:text-amber-400"
@@ -249,7 +249,7 @@ export function DestinationAnnualCalendar({ destinationName, region }: Destinati
                 </div>
 
                 <div className="pt-2 border-t border-border/40 text-center">
-                  <p className="text-[10px] text-muted-foreground line-clamp-2" title={m.nota}>
+                  <p className="text-3xs text-muted-foreground line-clamp-2" title={m.nota}>
                     {m.nota}
                   </p>
                 </div>

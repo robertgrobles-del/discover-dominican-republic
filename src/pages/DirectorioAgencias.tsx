@@ -463,7 +463,7 @@ export default function DirectorioAgencias() {
         <SorteoLectorBanner origenCategoria="Agencias de Viajes y Tours" />
 
         <CTARegistroEstablecimiento
-          tipo="tour"
+          tipo="agencia"
           titulo="¿Tienes una agencia de viajes o tour operador?"
           subtitulo="Inscribe tu agencia y catálogo de excursiones en el directorio oficial de Descubre RD para el gran lanzamiento. Conecta directamente con clientes B2C y B2B."
         />

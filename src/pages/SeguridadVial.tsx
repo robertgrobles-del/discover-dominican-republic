@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
+import { usePageContent } from "@/lib/pageContent";
 
 const drivingTips = [
   {
@@ -60,11 +61,16 @@ const roadRules = [
 ];
 
 export default function SeguridadVial() {
+  const pc = usePageContent("seguridad-vial");
+  const drivingTips = pc.data("drivingTips", __pcData.drivingTips);
+  const roadRules = pc.data("roadRules", __pcData.roadRules);
+  const rentalCompanies = pc.data("rentalCompanies", __pcData.rentalCompanies);
+  const emergencyNumbers = pc.data("emergencyNumbers", __pcData.emergencyNumbers);
   return (
     <PageTransition>
       <SEOHead
-        title="Seguridad Vial: Guía para Conducir en RD | Turismo RD"
-        description="Todo lo que necesitas saber para conducir de forma segura en República Dominicana: reglas, consejos y empresas de alquiler."
+        title={pc.t("SEOHead.title.1", "Seguridad Vial: Guía para Conducir en RD | Turismo RD")}
+        description={pc.t("SEOHead.description.1", "Todo lo que necesitas saber para conducir de forma segura en República Dominicana: reglas, consejos y empresas de alquiler.")}
         keywords="conducir, seguridad vial, alquiler de autos, República Dominicana, reglas de tránsito"
       />
       <div className="min-h-screen bg-background">
@@ -80,14 +86,11 @@ export default function SeguridadVial() {
             >
               <div className="inline-flex items-center gap-2 bg-primary/20 text-primary px-4 py-2 rounded-full mb-6">
                 <Car className="h-5 w-5" />
-                <span className="font-medium">Seguridad Vial</span>
+                <span className="font-medium">{pc.tx("span.1", "Seguridad Vial")}</span>
               </div>
-              <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
-                Conducir en <span className="text-primary">República Dominicana</span>
+              <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">{pc.tx("h1.1", "Conducir en")}{" "}<span className="text-primary">{pc.tx("span.2", "República Dominicana")}</span>
               </h1>
-              <p className="text-muted-foreground text-lg">
-                Guía completa para una experiencia de conducción segura y sin contratiempos.
-              </p>
+              <p className="text-muted-foreground text-lg">{pc.tx("p.1", "Guía completa para una experiencia de conducción segura y sin contratiempos.")}</p>
             </motion.div>
           </div>
         </section>
@@ -97,11 +100,8 @@ export default function SeguridadVial() {
           <div className="container mx-auto px-4 lg:px-8">
             <Alert className="border-amber-500/50 bg-amber-500/10">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
-              <AlertTitle className="text-amber-600 dark:text-amber-400">Importante</AlertTitle>
-              <AlertDescription className="text-muted-foreground">
-                Se requiere licencia de conducir internacional o del país de origen válida.
-                El seguro de auto es obligatorio para todos los vehículos.
-              </AlertDescription>
+              <AlertTitle as="h2" className="text-amber-600 dark:text-amber-400">{pc.tx("AlertTitle.1", "Importante")}</AlertTitle>
+              <AlertDescription className="text-muted-foreground">{pc.tx("AlertDescription.1", "Se requiere licencia de conducir internacional o del país de origen válida. El seguro de auto es obligatorio para todos los vehículos.")}</AlertDescription>
             </Alert>
           </div>
         </section>
@@ -115,12 +115,9 @@ export default function SeguridadVial() {
               viewport={{ once: true }}
               className="mb-12"
             >
-              <h2 className="font-display text-3xl font-bold mb-4">
-                Consejos <span className="text-primary">Esenciales</span>
+              <h2 className="font-display text-3xl font-bold mb-4">{pc.tx("h2.1", "Consejos")}{" "}<span className="text-primary">{pc.tx("span.3", "Esenciales")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl">
-                Recomendaciones para una experiencia de conducción segura.
-              </p>
+              <p className="text-muted-foreground max-w-2xl">{pc.tx("p.2", "Recomendaciones para una experiencia de conducción segura.")}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -158,8 +155,7 @@ export default function SeguridadVial() {
               viewport={{ once: true }}
               className="mb-12"
             >
-              <h2 className="font-display text-3xl font-bold mb-4">
-                Reglas de <span className="text-primary">Tránsito</span>
+              <h2 className="font-display text-3xl font-bold mb-4">{pc.tx("h2.2", "Reglas de")}{" "}<span className="text-primary">{pc.tx("span.4", "Tránsito")}</span>
               </h2>
             </motion.div>
 
@@ -196,8 +192,7 @@ export default function SeguridadVial() {
               viewport={{ once: true }}
               className="mb-12"
             >
-              <h2 className="font-display text-3xl font-bold mb-4">
-                Empresas de <span className="text-primary">Alquiler</span>
+              <h2 className="font-display text-3xl font-bold mb-4">{pc.tx("h2.3", "Empresas de")}{" "}<span className="text-primary">{pc.tx("span.5", "Alquiler")}</span>
               </h2>
             </motion.div>
 
@@ -218,7 +213,7 @@ export default function SeguridadVial() {
                         <span className="font-bold text-primary">{company.priceFrom}</span>
                       </div>
                       <p className="text-sm text-muted-foreground mb-4">{company.locations}</p>
-                      <Button className="w-full" variant="outline">Ver ofertas</Button>
+                      <Button className="w-full" variant="outline">{pc.tx("Button.1", "Ver ofertas")}</Button>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -236,8 +231,7 @@ export default function SeguridadVial() {
               viewport={{ once: true }}
               className="mb-12"
             >
-              <h2 className="font-display text-3xl font-bold mb-4">
-                Números de <span className="text-primary">Emergencia</span>
+              <h2 className="font-display text-3xl font-bold mb-4">{pc.tx("h2.4", "Números de")}{" "}<span className="text-primary">{pc.tx("span.6", "Emergencia")}</span>
               </h2>
             </motion.div>
 
@@ -271,15 +265,15 @@ export default function SeguridadVial() {
                 <div className="flex flex-col lg:flex-row items-center gap-8">
                   <FileText className="h-16 w-16 text-primary flex-shrink-0" />
                   <div className="flex-1 text-center lg:text-left">
-                    <h3 className="font-display text-2xl font-bold mb-2">Documentos Necesarios</h3>
+                    <h3 className="font-display text-2xl font-bold mb-2">{pc.tx("h3.1", "Documentos Necesarios")}</h3>
                     <ul className="text-muted-foreground space-y-1">
-                      <li>• Licencia de conducir válida (internacional recomendada)</li>
-                      <li>• Pasaporte o documento de identidad</li>
-                      <li>• Tarjeta de crédito a nombre del conductor</li>
-                      <li>• Comprobante de seguro (incluido en alquiler)</li>
+                      <li>{pc.tx("li.1", "• Licencia de conducir válida (internacional recomendada)")}</li>
+                      <li>{pc.tx("li.2", "• Pasaporte o documento de identidad")}</li>
+                      <li>{pc.tx("li.3", "• Tarjeta de crédito a nombre del conductor")}</li>
+                      <li>{pc.tx("li.4", "• Comprobante de seguro (incluido en alquiler)")}</li>
                     </ul>
                   </div>
-                  <Button size="lg">Descargar Checklist</Button>
+                  <Button size="lg">{pc.tx("Button.2", "Descargar Checklist")}</Button>
                 </div>
               </CardContent>
             </Card>
@@ -291,3 +285,6 @@ export default function SeguridadVial() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { drivingTips, roadRules, rentalCompanies, emergencyNumbers };

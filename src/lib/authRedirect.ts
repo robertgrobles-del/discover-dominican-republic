@@ -28,7 +28,7 @@ export function resolveUserHome(roles: string[] = [], spaces: string[] = []): st
     normalizedSpaces.includes("creador") ||
     normalizedSpaces.includes("embajador")
   ) {
-    return "/creadores";
+    return "/creadores/panel";
   }
 
   // 4. Viajero regular

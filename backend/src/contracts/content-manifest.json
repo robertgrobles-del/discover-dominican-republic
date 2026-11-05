@@ -1021,6 +1021,18 @@
   "extras": {
    "type": "jsonb",
    "nullable": false
+  },
+  "cover_price": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "instagram": {
+   "type": "text",
+   "nullable": true
+  },
+  "features": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "beaches": {
@@ -1592,6 +1604,74 @@
   },
   "extras": {
    "type": "jsonb",
+   "nullable": false
+  },
+  "clinic_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "image_url": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "emergency_phone": {
+   "type": "text",
+   "nullable": true
+  },
+  "opening_hours": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "services": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "certifications": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "insurance_accepted": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "languages": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "review_count": {
+   "type": "integer",
+   "nullable": false
+  },
+  "is_24_hours": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "is_featured": {
+   "type": "boolean",
    "nullable": false
   }
  },
@@ -3149,6 +3229,42 @@
    "nullable": true
   },
   "eco_guidelines": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "check_in_time": {
+   "type": "text",
+   "nullable": true
+  },
+  "check_out_time": {
+   "type": "text",
+   "nullable": true
+  },
+  "policies": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "dining": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "bars_lounges": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "nightlife": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "spa_info": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "pools": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "faqs": {
    "type": "jsonb",
    "nullable": false
   }
@@ -5441,6 +5557,86 @@
   "extras": {
    "type": "jsonb",
    "nullable": false
+  },
+  "mall_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "description": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "email": {
+   "type": "text",
+   "nullable": true
+  },
+  "opening_hours": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "floors": {
+   "type": "integer",
+   "nullable": true
+  },
+  "store_count": {
+   "type": "integer",
+   "nullable": true
+  },
+  "brands": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "services": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "highlights": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "has_cinema": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "has_food_court": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "has_supermarket": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "parking": {
+   "type": "text",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "review_count": {
+   "type": "integer",
+   "nullable": false
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": false
   }
  },
  "souvenirs": {
@@ -5641,6 +5837,66 @@
   "deleted_at": {
    "type": "timestamp",
    "nullable": true
+  },
+  "spa_type": {
+   "type": "text",
+   "nullable": true
+  },
+  "short_description": {
+   "type": "text",
+   "nullable": true
+  },
+  "gallery": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "services": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "treatments": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "amenities": {
+   "type": "jsonb",
+   "nullable": false
+  },
+  "email": {
+   "type": "text",
+   "nullable": true
+  },
+  "opening_hours": {
+   "type": "jsonb",
+   "nullable": true
+  },
+  "price_range": {
+   "type": "text",
+   "nullable": true
+  },
+  "latitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "longitude": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "rating": {
+   "type": "numeric",
+   "nullable": true
+  },
+  "review_count": {
+   "type": "integer",
+   "nullable": false
+  },
+  "is_featured": {
+   "type": "boolean",
+   "nullable": false
+  },
+  "extras": {
+   "type": "jsonb",
+   "nullable": false
   }
  },
  "stadiums": {

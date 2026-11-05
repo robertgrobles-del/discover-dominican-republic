@@ -132,7 +132,15 @@ export class PlayService {
 
   /** Aplica el código de otra persona: una sola vez por usuario, no el propio, con correo verificado y cuenta reciente (30 días). */
   async applyReferral(userId: string, codeRaw: string) {
-    const code = codeRaw.trim().toUpperCase();
+    let code = codeRaw.trim().toUpperCase();
+    // Enlace de afiliado de un creador («CR-…»): los puntos van a su código de referido, y el registro se cuenta en el enlace.
+    let creatorLink: string | null = null;
+    if (code.startsWith("CR-")) {
+      const link = (await this.db.query<{ id: string; creator_id: string }>("SELECT id, creator_id FROM creator_affiliate_links WHERE code = $1 AND archived_at IS NULL", [code])).rows[0];
+      if (!link) throw AppError.notFound("Código");
+      code = (await this.myReferral(link.creator_id)).code;
+      creatorLink = link.id;
+    }
     return this.tx(async (c) => {
       const me = (await c.query<{ verified: boolean; created_at: Date }>("SELECT email_verified_at IS NOT NULL AS verified, created_at FROM users WHERE id = $1", [userId])).rows[0]!;
       if (!me.verified) throw new AppError("FORBIDDEN", "Verifica tu correo para usar un código de referido", { code: "EMAIL_NOT_VERIFIED" });
@@ -147,6 +155,7 @@ export class PlayService {
       await c.query("UPDATE referral_uses SET xp_awarded = $2, coins_awarded = $3 WHERE referral_code_id = $1 AND referred_user_id = $4", [ref.id, mine.granted.xp, mine.granted.coins, userId]);
       await c.query("UPDATE referral_codes SET total_referrals = total_referrals + 1, total_earnings_coins = total_earnings_coins + $2 WHERE id = $1", [ref.id, theirs.granted.coins]);
       await c.query("UPDATE user_gamification SET total_referrals = total_referrals + 1 WHERE user_id = $1", [ref.user_id]);
+      if (creatorLink) await c.query("UPDATE creator_affiliate_links SET signups = signups + 1 WHERE id = $1", [creatorLink]);
       return { granted: mine.granted, level_up: mine.level_up };
     });
   }

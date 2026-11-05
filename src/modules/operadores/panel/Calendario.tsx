@@ -54,7 +54,7 @@ export default function Calendario() {
                   <button key={key} type="button" onClick={() => setSelected(key)} aria-label={`${d} de ${MONTHS[cursor.m]}${count ? `, ${count} personas` : ""}`}
                     className={`aspect-square rounded-lg text-sm flex flex-col items-center justify-center border transition-colors ${isSel ? "border-primary bg-primary/10" : "border-transparent hover:bg-muted"} ${count ? "font-semibold" : ""}`}>
                     {d}
-                    {count > 0 && <span className="mt-0.5 rounded-full bg-primary px-1.5 text-[10px] leading-4 text-primary-foreground">{count}</span>}
+                    {count > 0 && <span className="mt-0.5 rounded-full bg-primary px-1.5 text-3xs leading-4 text-primary-foreground">{count}</span>}
                   </button>
                 );
               })}

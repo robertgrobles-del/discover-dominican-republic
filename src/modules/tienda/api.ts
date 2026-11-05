@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { queryKeys, queryStaleTime } from "@/lib/queryPolicy";
 import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { fetchApi } from "@/lib/fastifyClient";
+import { getAffiliateRef } from "@/lib/affiliateRef";
+import type { AdminStoreOrder } from "@/lib/adminStoreApi";
 
 export interface BackendProductDto {
   id: string;
@@ -246,6 +248,7 @@ export async function createTransferOrder(input: { name: string; email: string; 
       contact: { name: input.name, email: input.email, phone: input.phone },
       shipping: { address: input.address, city: input.city },
       payment_method: "transfer",
+      ref_code: getAffiliateRef(),
     }),
   });
   return { id: res.data.order.id, transfer: res.data.order.transfer };
@@ -277,12 +280,14 @@ export async function createOrder(o: Omit<StoreOrder, "id" | "created_at" | "sta
   return id;
 }
 
-export async function updateOrderStatus(id: string, status: StoreOrder["status"]) {
-  const { error } = await from("store_orders").update({ status }).eq("id", id);
-  if (error) throw new Error(error.message);
-}
-
 export async function updateProduct(id: string, patch: Partial<StoreProduct>) {
+  if (HAS_BACKEND_SESSION) {
+    const res = await fetchApi<{ data: StoreProduct }>(`/admin/store/products/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    });
+    return res.data;
+  }
   const { error } = await from("store_products").update(patch).eq("id", id);
   if (error) throw new Error(error.message);
 }
@@ -294,28 +299,23 @@ export const useOrders = () => useQuery({ queryKey: queryKeys.store.orders, quer
 export async function adminFetchOrders(status?: string): Promise<StoreOrder[]> {
   if (HAS_BACKEND_SESSION) {
     const q = status ? `?status=${status}` : "";
-    const res = await fetchApi<{ data: any[] }>(`/admin/store/orders${q}`);
-    return (res.data || []).map((o: any) => ({
+    const res = await fetchApi<{ data: AdminStoreOrder[] }>(`/admin/store/orders${q}`);
+    // La API no expone el usuario del pedido; los productos retirados llegan con `product_id` nulo.
+    return res.data.map((o) => ({
       id: o.id,
-      user_id: o.user_id,
-      customer_name: o.customer_name || o.contact?.name || "Cliente",
-      customer_email: o.customer_email || o.contact?.email || "",
-      phone: o.phone || o.contact?.phone,
-      address: o.address || o.shipping?.address || "",
-      city: o.city || o.shipping?.city || "",
-      items: (o.items || []).map((it: any) => ({
-        product_id: it.product_id,
-        name: it.product?.name || it.name || "Producto",
-        qty: it.quantity || it.qty || 1,
-        unit_price: Number(it.unit_price || 0),
-      })),
-      subtotal: Number(o.subtotal || o.total || 0),
-      shipping: Number(o.shipping || 0),
-      total: Number(o.total || 0),
-      status: o.status,
+      customer_name: o.customer_name,
+      customer_email: o.customer_email,
+      phone: o.phone ?? undefined,
+      address: o.address,
+      city: o.city,
+      items: o.items.map((it) => ({ product_id: it.product_id ?? "", name: it.name, qty: it.quantity, unit_price: it.unit_price })),
+      subtotal: o.subtotal,
+      shipping: o.shipping,
+      total: o.total,
+      status: o.status as StoreOrder["status"],
       payment_method: o.payment_method,
       payment_status: o.payment_status,
-      created_at: o.created_at || new Date().toISOString(),
+      created_at: o.created_at,
     }));
   }
   const { data, error } = await from("store_orders").select("*").order("created_at", { ascending: false });
@@ -325,7 +325,7 @@ export async function adminFetchOrders(status?: string): Promise<StoreOrder[]> {
 
 export async function adminConfirmTransfer(orderId: string, reference: string, amount?: number) {
   if (HAS_BACKEND_SESSION) {
-    const res = await fetchApi<{ data: any }>(`/admin/store/orders/${orderId}/confirm-transfer`, {
+    const res = await fetchApi<{ data: AdminStoreOrder }>(`/admin/store/orders/${orderId}/confirm-transfer`, {
       method: "POST",
       body: JSON.stringify({ reference, amount }),
     });
@@ -341,7 +341,7 @@ export async function adminUpdateOrderStatus(
   opts?: { courier_name?: string; tracking_number?: string; reason?: string }
 ) {
   if (HAS_BACKEND_SESSION) {
-    const res = await fetchApi<{ data: any }>(`/admin/store/orders/${id}`, {
+    const res = await fetchApi<{ data: AdminStoreOrder }>(`/admin/store/orders/${id}`, {
       method: "PATCH",
       body: JSON.stringify({ status, ...opts }),
     });
@@ -357,4 +357,3 @@ export const useAdminOrders = (status?: string) =>
     queryFn: () => adminFetchOrders(status),
     staleTime: queryStaleTime.orders,
   });
-

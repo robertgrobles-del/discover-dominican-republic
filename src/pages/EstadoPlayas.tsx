@@ -12,7 +12,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead, generateBeachSchema } from "@/components/SEOHead";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchApi } from "@/lib/fastifyClient";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import heroBeachImg from "@/assets/hero-beach.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 type BeachStatus = "segura" | "precaucion" | "peligrosa";
 
@@ -116,28 +119,33 @@ function BeachCard({ beach }: { beach: Beach }) {
   );
 }
 
-function mapDbBeachToLocal(dbBeach: any): Beach {
+function mapDbBeachToLocal(dbBeach: any, marineReport?: any): Beach {
   const waveMap: Record<string, BeachStatus> = {
     baja: "segura",
     moderada: "precaucion",
     alta: "peligrosa",
   };
+  const waveFromReport = marineReport?.wave_height ? `${marineReport.wave_height}m` : undefined;
+  const windFromReport = marineReport?.wind_speed ? `${marineReport.wind_speed} km/h` : undefined;
+  const tempFromReport = marineReport?.water_temp ? Number(marineReport.water_temp) : 28;
+
   return {
     id: dbBeach.id,
     name: dbBeach.name,
-    region: dbBeach.destination_id ? "República Dominicana" : "República Dominicana",
-    status: waveMap[dbBeach.wave_intensity?.toLowerCase()] || "segura",
-    lastUpdate: new Date().toLocaleTimeString("es-DO", { hour: "2-digit", minute: "2-digit" }),
-    temp: 28 + Math.floor(Math.random() * 4),
-    weather: "Soleado",
-    waveHeight: dbBeach.wave_intensity === "alta" ? "1.5m" : dbBeach.wave_intensity === "moderada" ? "0.8m" : "0.3m",
+    region: dbBeach.province?.name || dbBeach.destination?.name || "República Dominicana",
+    status: waveMap[dbBeach.wave_intensity?.toLowerCase()] || (marineReport?.condition_rating === "dangerous" ? "peligrosa" : marineReport?.condition_rating === "caution" ? "precaucion" : "segura"),
+    lastUpdate: marineReport?.created_at ? new Date(marineReport.created_at).toLocaleTimeString("es-DO", { hour: "2-digit", minute: "2-digit" }) : new Date().toLocaleTimeString("es-DO", { hour: "2-digit", minute: "2-digit" }),
+    temp: tempFromReport,
+    weather: marineReport?.recommendation || "Condición Normal",
+    waveHeight: waveFromReport || (dbBeach.wave_intensity === "alta" ? "1.5m" : dbBeach.wave_intensity === "moderada" ? "0.8m" : "0.3m"),
     seaweed: (dbBeach.crowd_level === "alto" ? "moderado" : "bajo") as Beach["seaweed"],
-    wind: `${12 + Math.floor(Math.random() * 15)}km/h`,
+    wind: windFromReport || "15 km/h",
     image: dbBeach.image_url || heroBeachImg,
   };
 }
 
 export default function EstadoPlayas() {
+  const pc = usePageContent("estado-playas");
   const [beaches, setBeaches] = useState<Beach[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRegion, setSelectedRegion] = useState("Todas");
@@ -146,6 +154,36 @@ export default function EstadoPlayas() {
 
   useEffect(() => {
     async function fetchBeaches() {
+      if (HAS_BACKEND_SESSION) {
+        try {
+          const [beachRes, marineRes] = await Promise.all([
+            fetchApi<{ data: any[] }>("/beaches?limit=50"),
+            fetchApi<{ data: any[] }>("/live/marine-reports?limit=30").catch(() => ({ data: [] })),
+          ]);
+
+          const marineMap = new Map<string, any>();
+          if (marineRes?.data) {
+            marineRes.data.forEach((r: any) => {
+              if (r.location) marineMap.set(r.location.toLowerCase(), r);
+            });
+          }
+
+          if (beachRes?.data && beachRes.data.length > 0) {
+            const mapped = beachRes.data.map((item) => {
+              const report = marineMap.get(item.name?.toLowerCase());
+              return mapDbBeachToLocal(item, report);
+            });
+            setBeaches(mapped);
+            const uniqueRegions = ["Todas", ...new Set(mapped.map((b) => b.region))] as string[];
+            setRegions(uniqueRegions);
+            setLoading(false);
+            return;
+          }
+        } catch (err) {
+          console.error("Error al cargar playas desde Fastify:", err);
+        }
+      }
+
       const { data } = await supabase
         .from("beaches")
         .select("*")
@@ -153,7 +191,7 @@ export default function EstadoPlayas() {
         .limit(50);
 
       if (data && data.length > 0) {
-        const mapped = data.map(mapDbBeachToLocal);
+        const mapped = data.map((b) => mapDbBeachToLocal(b));
         setBeaches(mapped);
         const uniqueRegions = ["Todas", ...new Set(mapped.map((b) => b.region))] as string[];
         setRegions(uniqueRegions);
@@ -173,8 +211,8 @@ export default function EstadoPlayas() {
   return (
     <PageTransition>
       <SEOHead
-        title="Estado de Playas en Tiempo Real"
-        description="Verifica las condiciones del mar, sargazo y clima de las playas de República Dominicana para planificar tu visita segura."
+        title={pc.t("SEOHead.title.1", "Estado de Playas en Tiempo Real")}
+        description={pc.t("SEOHead.description.1", "Verifica las condiciones del mar, sargazo y clima de las playas de República Dominicana para planificar tu visita segura.")}
         keywords="playas, estado del mar, sargazo, oleaje, República Dominicana, seguridad playas"
         jsonLd={generateBeachSchema({ name: "Playas de República Dominicana", description: "Estado en tiempo real de las playas dominicanas" })}
       />
@@ -182,28 +220,24 @@ export default function EstadoPlayas() {
         <Header />
 
         {/* Hero */}
-        <section className="relative h-[400px] flex items-center justify-center overflow-hidden" aria-label="Estado de playas">
+        <section className="relative h-[400px] flex items-center justify-center overflow-hidden" aria-label={pc.t("section.aria-label.1", "Estado de playas")}>
           <img
-            src={heroBeachImg}
-            alt="Playa dominicana con agua cristalina"
+            src={pc.img("img.src.1", heroBeachImg)}
+            alt={pc.t("img.alt.1", "Playa dominicana con agua cristalina")}
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
           <div className="relative z-10 text-center max-w-2xl px-4">
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Estado de Playas en Tiempo Real
-            </h1>
-            <p className="text-muted-foreground text-lg mb-6">
-              Verifique las condiciones del mar, sargazo y clima para planificar su visita segura.
-            </p>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Estado de Playas en Tiempo Real")}</h1>
+            <p className="text-muted-foreground text-lg mb-6">{pc.tx("p.1", "Verifique las condiciones del mar, sargazo y clima para planificar su visita segura.")}</p>
             <div className="relative max-w-xl mx-auto">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" aria-hidden="true" />
               <Input
-                placeholder="Buscar playa (ej. Punta Cana, Samaná...)"
+                placeholder={pc.t("Input.placeholder.1", "Buscar playa (ej. Punta Cana, Samaná...)")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-12 h-14 text-lg bg-card border-border"
-                aria-label="Buscar playa por nombre o región"
+                aria-label={pc.t("Input.aria-label.1", "Buscar playa por nombre o región")}
               />
             </div>
           </div>
@@ -212,8 +246,8 @@ export default function EstadoPlayas() {
         <main className="container mx-auto px-4 lg:px-8 py-10" id="main-content">
           {/* Filters */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-border">
-            <h2 className="text-xl font-bold text-foreground">Condiciones Actuales</h2>
-            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0" role="tablist" aria-label="Filtrar por región">
+            <h2 className="text-xl font-bold text-foreground">{pc.tx("h2.1", "Condiciones Actuales")}</h2>
+            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0" role="tablist" aria-label={pc.t("div.aria-label.1", "Filtrar por región")}>
               {regions.map((region) => (
                 <button
                   key={region}
@@ -259,7 +293,7 @@ export default function EstadoPlayas() {
 
           {!loading && filteredBeaches.length === 0 && (
             <div className="text-center py-12" role="status">
-              <p className="text-muted-foreground">No se encontraron playas con los filtros seleccionados.</p>
+              <p className="text-muted-foreground">{pc.tx("p.2", "No se encontraron playas con los filtros seleccionados.")}</p>
             </div>
           )}
         </main>

@@ -42,12 +42,12 @@ export function ProfilePassport({
                 <CardTitle className="text-sm font-bold tracking-widest text-amber-500 uppercase">
                   Pasaporte Turístico Oficial
                 </CardTitle>
-                <p className="text-[10px] text-slate-400 uppercase tracking-wider">
+                <p className="text-3xs text-slate-400 uppercase tracking-wider">
                   República Dominicana • Ministerio de Turismo
                 </p>
               </div>
             </div>
-            <Badge variant="outline" className="border-amber-500/40 text-amber-500 bg-amber-500/10 uppercase text-[10px] tracking-wider">
+            <Badge variant="outline" className="border-amber-500/40 text-amber-500 bg-amber-500/10 uppercase text-3xs tracking-wider">
               Oficial
             </Badge>
           </div>
@@ -58,7 +58,7 @@ export function ProfilePassport({
             {/* Photo Slot */}
             <div className="w-28 h-36 border-2 border-amber-500/30 bg-slate-800 rounded-lg flex flex-col items-center justify-center relative overflow-hidden shadow-inner shrink-0 group">
               <User className="h-16 w-16 text-slate-600 group-hover:scale-110 transition-transform duration-300" />
-              <div className="absolute bottom-1 text-[8px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded border border-amber-500/30 uppercase tracking-widest font-bold">
+              <div className="absolute bottom-1 text-3xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded border border-amber-500/30 uppercase tracking-widest font-bold">
                 Viajero
               </div>
             </div>
@@ -66,23 +66,23 @@ export function ProfilePassport({
             {/* Passport Info */}
             <div className="grid grid-cols-2 gap-4 flex-1 text-sm">
               <div>
-                <p className="text-[10px] text-slate-400 uppercase font-semibold">Nombre del Titular</p>
+                <p className="text-3xs text-slate-400 uppercase font-semibold">Nombre del Titular</p>
                 <p className="font-bold text-slate-100">{profile.display_name || "Explorador RD"}</p>
               </div>
               <div>
-                <p className="text-[10px] text-slate-400 uppercase font-semibold">Número de Pasaporte</p>
+                <p className="text-3xs text-slate-400 uppercase font-semibold">Número de Pasaporte</p>
                 <p className="font-mono font-bold text-amber-400">RD-{user?.id.slice(0, 8).toUpperCase()}</p>
               </div>
               <div>
-                <p className="text-[10px] text-slate-400 uppercase font-semibold">País de Destino</p>
+                <p className="text-3xs text-slate-400 uppercase font-semibold">País de Destino</p>
                 <p className="font-bold text-slate-100">República Dominicana</p>
               </div>
               <div>
-                <p className="text-[10px] text-slate-400 uppercase font-semibold">Fecha de Expedición</p>
+                <p className="text-3xs text-slate-400 uppercase font-semibold">Fecha de Expedición</p>
                 <p className="font-bold text-slate-100">{new Date().toLocaleDateString("es-DO")}</p>
               </div>
               <div className="col-span-2">
-                <p className="text-[10px] text-slate-400 uppercase font-semibold">Biografía de Viajes</p>
+                <p className="text-3xs text-slate-400 uppercase font-semibold">Biografía de Viajes</p>
                 <p className="text-xs text-slate-300 italic line-clamp-2">
                   {profile.bio || "Explorando las playas, ríos, montañas e historia de la hermosa República Dominicana."}
                 </p>
@@ -104,7 +104,7 @@ export function ProfilePassport({
                 {checkins.map((place) => (
                   <div
                     key={place}
-                    className="bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 uppercase shadow-sm"
+                    className="bg-amber-500/10 border border-amber-500/30 text-amber-400 text-3xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5 uppercase shadow-sm"
                   >
                     <span className="text-xs">📍</span>
                     <span>{place}</span>
@@ -181,8 +181,8 @@ export function ProfilePassport({
                   <span className="text-3xl p-1 bg-background rounded-lg border border-border">{badge.icon}</span>
                   <div>
                     <p className="font-semibold text-xs text-foreground">{badge.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{badge.description}</p>
-                    <p className="text-[8px] text-primary/70 font-mono mt-0.5">Ganado: {badge.date}</p>
+                    <p className="text-3xs text-muted-foreground">{badge.description}</p>
+                    <p className="text-3xs text-primary/70 font-mono mt-0.5">Ganado: {badge.date}</p>
                   </div>
                 </div>
               ))}

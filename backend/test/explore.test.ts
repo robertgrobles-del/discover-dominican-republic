@@ -227,6 +227,11 @@ describe("explorar", () => {
       expect((await call("PATCH", `/collectibles/me/${manual.id}`, { token: u.token, payload: { is_favorite: true } })).statusCode).toBe(404);
       expect((await call("DELETE", `/collectibles/me/${limited.id}`, { token: u.token })).statusCode).toBe(204);
       expect(json(await call("GET", "/collectibles/me", { token: u.token })).data).toHaveLength(0);
+      // Quitarlo y volver a reclamarlo no vuelve a dar la recompensa ni consume suministro.
+      const again = await claim(u.token, limited.id);
+      expect(again.statusCode).toBe(409);
+      expect(json(again).error.details.reason).toBe("ALREADY_CLAIMED");
+      expect((await pool.query("SELECT current_supply FROM digital_collectibles WHERE id = $1", [limited.id])).rows[0].current_supply).toBe(2);
     });
   });
 

@@ -80,10 +80,10 @@ export function TreasureHuntMode() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40 text-[10px] font-bold">
+            <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40 text-3xs font-bold">
               <Key className="h-3 w-3 mr-1" /> MODO CASERÍA DEL TESORO GPS
             </Badge>
-            <Badge className="bg-primary/20 text-primary border-primary/30 text-[10px] font-bold">
+            <Badge className="bg-primary/20 text-primary border-primary/30 text-3xs font-bold">
               Zona Colonial • Santo Domingo
             </Badge>
           </div>
@@ -96,7 +96,7 @@ export function TreasureHuntMode() {
         </div>
 
         <div className="text-right">
-          <span className="text-[10px] text-muted-foreground uppercase font-bold">Progreso del Circuito</span>
+          <span className="text-3xs text-muted-foreground uppercase font-bold">Progreso del Circuito</span>
           <p className="text-base font-black text-amber-500">
             {clues.filter(c => c.isCompleted).length} / {clues.length} Pistas
           </p>
@@ -129,7 +129,7 @@ export function TreasureHuntMode() {
                       Pista #{clue.step}: {clue.isUnlocked ? clue.locationName : "Ubicación Bloqueada"}
                     </h4>
                     {clue.isCompleted && (
-                      <Badge className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-none text-[9px]">Completada</Badge>
+                      <Badge className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-none text-3xs">Completada</Badge>
                     )}
                   </div>
 
@@ -138,7 +138,7 @@ export function TreasureHuntMode() {
                       <p className="text-xs text-muted-foreground italic leading-relaxed">
                         "{clue.riddle}"
                       </p>
-                      <p className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
+                      <p className="text-3xs text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
                         <MapPin className="h-3 w-3" /> Pista geográfica: {clue.hint}
                       </p>
                     </>
@@ -152,12 +152,12 @@ export function TreasureHuntMode() {
 
               <div className="text-right shrink-0">
                 <div className="text-xs font-black text-amber-500">+{clue.coinReward} monedas</div>
-                <div className="text-[10px] text-muted-foreground">+{clue.xpReward} XP</div>
+                <div className="text-3xs text-muted-foreground">+{clue.xpReward} XP</div>
                 {clue.isUnlocked && !clue.isCompleted && (
                   <Button
                     size="sm"
                     onClick={() => handleValidateClue(clue.step)}
-                    className="mt-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-[10px] h-7 px-3 shadow-xs"
+                    className="mt-2 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-3xs h-7 px-3 shadow-xs"
                   >
                     Acreditar GPS
                   </Button>

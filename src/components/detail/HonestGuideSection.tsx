@@ -99,7 +99,7 @@ export function HonestGuideSection({
               </span>
             </div>
             {pronunciacion.nota && (
-              <span className="text-muted-foreground italic text-[11px] hidden sm:inline">
+              <span className="text-muted-foreground italic text-2xs hidden sm:inline">
                 {pronunciacion.nota}
               </span>
             )}

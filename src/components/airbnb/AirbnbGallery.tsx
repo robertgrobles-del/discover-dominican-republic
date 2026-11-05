@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { Share2 } from "lucide-react";
 
+import { activateOnKey } from "@/lib/a11y";
 interface AirbnbGalleryProps {
   property: {
     id: string;
@@ -23,7 +24,7 @@ export function AirbnbGallery({
   return (
     <section className="relative">
       <div className="grid grid-cols-4 grid-rows-2 gap-2 h-[60vh] max-w-7xl mx-auto px-4">
-        <div
+        <div role="button" tabIndex={0} onKeyDown={activateOnKey}
           className="col-span-2 row-span-2 relative cursor-pointer overflow-hidden rounded-l-xl"
           onClick={() => onOpenLightbox(0)}
         >
@@ -34,7 +35,7 @@ export function AirbnbGallery({
           />
         </div>
         {images.slice(1, 5).map((img, idx) => (
-          <div
+          <div role="button" tabIndex={0} onKeyDown={activateOnKey}
             key={idx}
             className={`relative cursor-pointer overflow-hidden ${
               idx === 1 ? "rounded-tr-xl" : ""

@@ -20,8 +20,10 @@ import { ScratchCard } from "@/components/sorteos/ScratchCard";
 import { SurveyModule, ENCUESTAS_DISPONIBLES, type SurveyId } from "@/components/sorteos/SurveyModule";
 import { ViralSorteoModule } from "@/components/sorteos/ViralSorteoModule";
 import { SorteoMisionesTab } from "@/components/sorteos/SorteoMisionesTab";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function SorteosYPremios() {
+  const pc = usePageContent("sorteos-y-premios");
   const [encuestaActiva, setEncuestaActiva] = useState<SurveyId | null>(null);
 
   // Estados de gamificación de sorteos
@@ -75,8 +77,8 @@ export default function SorteosYPremios() {
   return (
     <PageTransition>
       <SEOHead
-        title="Sorteos y Encuestas - Gana Premios Turísticos en RD"
-        description="Participa en sorteos de fines de semana, day passes, excursiones y cenas gratis. Completa encuestas turísticas y gana premios increíbles."
+        title={pc.t("SEOHead.title.1", "Sorteos y Encuestas - Gana Premios Turísticos en RD")}
+        description={pc.t("SEOHead.description.1", "Participa en sorteos de fines de semana, day passes, excursiones y cenas gratis. Completa encuestas turísticas y gana premios increíbles.")}
         keywords="sorteos turismo RD, ganar premios viaje, encuestas turísticas dominicanas, concursos turismo"
       />
       <div className="min-h-screen flex flex-col bg-background">
@@ -86,19 +88,15 @@ export default function SorteosYPremios() {
         <section className="relative py-20 bg-gradient-to-b from-primary/10 to-background overflow-hidden">
           <div className="container mx-auto px-4 text-center relative z-10">
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 animate-pulse">
-              <Gift className="h-3 w-3 mr-1" /> ¡Premios Increíbles!
-            </Badge>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Participa y <span className="text-primary">Gana Premios</span>
+              <Gift className="h-3 w-3 mr-1" />{" "}{pc.tx("Badge.1", "¡Premios Increíbles!")}</Badge>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Participa y")}{" "}<span className="text-primary">{pc.tx("span.1", "Gana Premios")}</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Regístrate o completa nuestras encuestas turísticas y participa automáticamente para ganar fines de semana, excursiones, cenas y mucho más.
-            </p>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">{pc.tx("p.1", "Regístrate o completa nuestras encuestas turísticas y participa automáticamente para ganar fines de semana, excursiones, cenas y mucho más.")}</p>
 
             {/* Countdown badge */}
             <div className="inline-flex items-center gap-2 bg-card border border-border rounded-full px-5 py-2.5 mb-8">
               <CalendarDays className="h-4 w-4 text-primary" />
-              <span className="text-sm text-foreground font-medium">Próximo sorteo: 30 de Abril 2026</span>
+              <span className="text-sm text-foreground font-medium">{pc.tx("span.2", "Próximo sorteo: 30 de Abril 2026")}</span>
             </div>
           </div>
         </section>
@@ -106,7 +104,7 @@ export default function SorteosYPremios() {
         {/* Premios */}
         <section className="py-12 border-b border-border">
           <div className="container mx-auto px-4">
-            <h2 className="font-display text-xl font-bold text-foreground mb-6 text-center">🎁 Premios que Puedes Ganar</h2>
+            <h2 className="font-display text-xl font-bold text-foreground mb-6 text-center">{pc.tx("h2.1", "🎁 Premios que Puedes Ganar")}</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {premiosSorteo.map(p => (
                 <div key={p.id} className="group relative overflow-hidden rounded-xl border border-border hover:border-primary/30 transition-all">
@@ -117,7 +115,7 @@ export default function SorteosYPremios() {
                   <div className="absolute bottom-0 left-0 right-0 p-3">
                     <p.icon className={`h-5 w-5 ${p.color} mb-1`} />
                     <p className="text-white text-xs font-semibold line-clamp-2">{p.titulo}</p>
-                    <p className="text-white/70 text-[10px]">{p.valor}</p>
+                    <p className="text-white/70 text-3xs">{p.valor}</p>
                   </div>
                 </div>
               ))}
@@ -131,17 +129,13 @@ export default function SorteosYPremios() {
             <Tabs defaultValue="registro" className="w-full">
               <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4 mb-10">
                 <TabsTrigger value="registro" className="gap-1.5" onClick={() => setEncuestaActiva(null)}>
-                  <PartyPopper className="h-4 w-4" /> Regístrate
-                </TabsTrigger>
+                  <PartyPopper className="h-4 w-4" />{" "}{pc.tx("TabsTrigger.1", "Regístrate")}</TabsTrigger>
                 <TabsTrigger value="raspadito" className="gap-1.5" onClick={() => setEncuestaActiva(null)}>
-                  <Sparkles className="h-4 w-4" /> Raspadito
-                </TabsTrigger>
+                  <Sparkles className="h-4 w-4" />{" "}{pc.tx("TabsTrigger.2", "Raspadito")}</TabsTrigger>
                 <TabsTrigger value="misiones" className="gap-1.5" onClick={() => setEncuestaActiva(null)}>
-                  <Trophy className="h-4 w-4" /> Misiones
-                </TabsTrigger>
+                  <Trophy className="h-4 w-4" />{" "}{pc.tx("TabsTrigger.3", "Misiones")}</TabsTrigger>
                 <TabsTrigger value="encuestas" className="gap-1.5" onClick={() => setEncuestaActiva(null)}>
-                  <Star className="h-4 w-4" /> Encuestas
-                </TabsTrigger>
+                  <Star className="h-4 w-4" />{" "}{pc.tx("TabsTrigger.4", "Encuestas")}</TabsTrigger>
               </TabsList>
 
               {/* ═══ TAB: REGISTRO MULTI-PUNTOS AVANZADO ═══ */}
@@ -175,9 +169,7 @@ export default function SorteosYPremios() {
               <TabsContent value="encuestas">
                 {encuestaActiva ? (
                   <div>
-                    <Button variant="ghost" size="sm" className="mb-4 gap-1" onClick={() => setEncuestaActiva(null)}>
-                      ← Volver a encuestas
-                    </Button>
+                    <Button variant="ghost" size="sm" className="mb-4 gap-1" onClick={() => setEncuestaActiva(null)}>{pc.tx("Button.1", "← Volver a encuestas")}</Button>
                     <SurveyModule
                       survey={ENCUESTAS_DISPONIBLES.find(e => e.id === encuestaActiva)!}
                       onBack={() => setEncuestaActiva(null)}
@@ -191,11 +183,10 @@ export default function SorteosYPremios() {
                 ) : (
                   <div>
                     <div className="text-center mb-8">
-                      <h2 className="font-display text-2xl font-bold text-foreground mb-2">Encuestas Turísticas</h2>
-                      <p className="text-muted-foreground">Completa una o más encuestas y multiplica tus oportunidades de ganar.</p>
+                      <h2 className="font-display text-2xl font-bold text-foreground mb-2">{pc.tx("h2.2", "Encuestas Turísticas")}</h2>
+                      <p className="text-muted-foreground">{pc.tx("p.2", "Completa una o más encuestas y multiplica tus oportunidades de ganar.")}</p>
                       <Badge variant="outline" className="mt-2 text-xs">
-                        <TrendingUp className="h-3 w-3 mr-1" /> Cada encuesta = 1 entrada adicional al sorteo
-                      </Badge>
+                        <TrendingUp className="h-3 w-3 mr-1" />{" "}{pc.tx("Badge.2", "Cada encuesta = 1 entrada adicional al sorteo")}</Badge>
                     </div>
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
@@ -215,14 +206,13 @@ export default function SorteosYPremios() {
                                 <p className="text-xs text-muted-foreground mb-3">{enc.desc}</p>
                                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
                                   <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {enc.tiempo}</span>
-                                  <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3" /> {enc.preguntas} preguntas</span>
+                                  <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3" /> {enc.preguntas}{" "}{pc.tx("span.3", "preguntas")}</span>
                                 </div>
                               </div>
                             </div>
                             <div className="mt-4 flex items-center justify-between">
-                              <Badge variant="secondary" className="text-[10px] gap-1">
-                                <Gift className="h-3 w-3" /> +1 entrada al sorteo
-                              </Badge>
+                              <Badge variant="secondary" className="text-3xs gap-1">
+                                <Gift className="h-3 w-3" />{" "}{pc.tx("Badge.3", "+1 entrada al sorteo")}</Badge>
                               <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                             </div>
                           </CardContent>
@@ -239,7 +229,7 @@ export default function SorteosYPremios() {
         {/* Cómo funciona */}
         <section className="py-16 bg-card/50">
           <div className="container mx-auto px-4">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">¿Cómo Funciona?</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.3", "¿Cómo Funciona?")}</h2>
             <div className="grid md:grid-cols-4 gap-6 max-w-4xl mx-auto">
               {[
                 { step: 1, icon: Users, title: "Regístrate", desc: "Completa el formulario con tus datos básicos." },
@@ -263,7 +253,7 @@ export default function SorteosYPremios() {
         {/* Reglas */}
         <section className="py-12">
           <div className="container mx-auto px-4 max-w-2xl">
-            <h3 className="font-semibold text-foreground mb-4 text-center">Reglas del Sorteo</h3>
+            <h3 className="font-semibold text-foreground mb-4 text-center">{pc.tx("h3.1", "Reglas del Sorteo")}</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               {sorteoReglas.map((regla, i) => (
                 <li key={i} className="flex items-start gap-2">

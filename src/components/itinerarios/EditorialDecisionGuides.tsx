@@ -20,7 +20,7 @@ export function EditorialDecisionGuides() {
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4 hover:border-primary/40 transition-all shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-primary">Punta Cana Este</span>
-              <Badge variant="outline" className="text-[10px]">Lujo vs. Ambiente</Badge>
+              <Badge variant="outline" className="text-3xs">Lujo vs. Ambiente</Badge>
             </div>
             <h3 className="text-lg font-bold text-foreground">Bávaro vs. Cap Cana</h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
@@ -34,7 +34,7 @@ export function EditorialDecisionGuides() {
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4 hover:border-primary/40 transition-all shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-primary">Península de Samaná</span>
-              <Badge variant="outline" className="text-[10px]">Boho vs. Naturaleza</Badge>
+              <Badge variant="outline" className="text-3xs">Boho vs. Naturaleza</Badge>
             </div>
             <h3 className="text-lg font-bold text-foreground">Las Terrenas vs. Las Galeras</h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
@@ -48,7 +48,7 @@ export function EditorialDecisionGuides() {
           <div className="bg-card border border-border rounded-2xl p-6 space-y-4 hover:border-primary/40 transition-all shadow-xs">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-primary">Cordillera Central</span>
-              <Badge variant="outline" className="text-[10px]">Aventura vs. Clima Frío</Badge>
+              <Badge variant="outline" className="text-3xs">Aventura vs. Clima Frío</Badge>
             </div>
             <h3 className="text-lg font-bold text-foreground">Jarabacoa vs. Constanza</h3>
             <p className="text-xs text-muted-foreground leading-relaxed">

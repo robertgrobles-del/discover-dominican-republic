@@ -22,6 +22,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchApi } from "@/lib/fastifyClient";
 import { CATALOG_SOURCE } from "@/lib/catalogSource";
+import { usePageContent } from "@/lib/pageContent";
 
 interface AudioGuideApi {
   id: string;
@@ -85,6 +86,10 @@ const series = [
 ];
 
 export default function PodcastRD() {
+  const pc = usePageContent("podcast-rd");
+  const defaultEpisodes = pc.data("defaultEpisodes", __pcData.defaultEpisodes);
+  const defaultFeaturedEpisode = pc.data("defaultFeaturedEpisode", __pcData.defaultFeaturedEpisode);
+  const series = pc.data("series", __pcData.series);
   const [isPlaying, setIsPlaying] = useState(false);
 
   // Consulta autoritativa a la colección de audioguías del backend
@@ -152,16 +157,10 @@ export default function PodcastRD() {
               className="max-w-3xl mx-auto text-center"
             >
               <Badge className="mb-4 bg-cyan-500/20 text-cyan-200 border-cyan-400/30">
-                <Headphones className="h-3 w-3 mr-1" />
-                PODCAST TURÍSTICO
-              </Badge>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-6">
-                Podcast RD: <span className="text-cyan-400">Relatos de la Isla</span>
+                <Headphones className="h-3 w-3 mr-1" />{pc.tx("Badge.1", "PODCAST TURÍSTICO")}</Badge>
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-6">{pc.tx("h1.1", "Podcast RD:")}{" "}<span className="text-cyan-400">{pc.tx("span.1", "Relatos de la Isla")}</span>
               </h1>
-              <p className="text-xl text-white/80 mb-8">
-                Historias, sonidos y secretos de República Dominicana. 
-                Escucha mientras viajas o prepárate para tu próxima aventura.
-              </p>
+              <p className="text-xl text-white/80 mb-8">{pc.tx("p.1", "Historias, sonidos y secretos de República Dominicana. Escucha mientras viajas o prepárate para tu próxima aventura.")}</p>
             </motion.div>
           </div>
         </section>
@@ -185,7 +184,7 @@ export default function PodcastRD() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent md:hidden" />
                 </div>
                 <div className="p-8 flex flex-col justify-center">
-                  <Badge className="w-fit mb-4" variant="outline">Episodio Destacado</Badge>
+                  <Badge className="w-fit mb-4" variant="outline">{pc.tx("Badge.2", "Episodio Destacado")}</Badge>
                   <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">
                     {featuredEpisode.title}
                   </h2>
@@ -241,18 +240,12 @@ export default function PodcastRD() {
                     <div className="flex items-center justify-between">
                       <div className="flex gap-2">
                         <Button variant="ghost" size="sm" className="gap-1">
-                          <Heart className="h-4 w-4" />
-                          Favorito
-                        </Button>
+                          <Heart className="h-4 w-4" />{pc.tx("Button.1", "Favorito")}</Button>
                         <Button variant="ghost" size="sm" className="gap-1">
-                          <Share2 className="h-4 w-4" />
-                          Compartir
-                        </Button>
+                          <Share2 className="h-4 w-4" />{pc.tx("Button.2", "Compartir")}</Button>
                       </div>
                       <Button variant="ghost" size="sm" className="gap-1">
-                        <Download className="h-4 w-4" />
-                        Descargar
-                      </Button>
+                        <Download className="h-4 w-4" />{pc.tx("Button.3", "Descargar")}</Button>
                     </div>
                   </div>
                 </div>
@@ -289,13 +282,10 @@ export default function PodcastRD() {
               className="flex items-end justify-between mb-12"
             >
               <div>
-                <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                  Episodios <span className="text-gradient">Recientes</span>
+                <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.1", "Episodios")}{" "}<span className="text-gradient">{pc.tx("span.2", "Recientes")}</span>
                 </h2>
               </div>
-              <Button variant="outline" className="hidden md:flex gap-2">
-                Ver todos
-                <ChevronRight className="h-4 w-4" />
+              <Button variant="outline" className="hidden md:flex gap-2">{pc.tx("Button.4", "Ver todos")}<ChevronRight className="h-4 w-4" />
               </Button>
             </motion.div>
 
@@ -338,9 +328,7 @@ export default function PodcastRD() {
                       <Download className="h-4 w-4" />
                     </Button>
                     <Button size="sm" className="gap-1">
-                      <Play className="h-3 w-3" />
-                      Escuchar
-                    </Button>
+                      <Play className="h-3 w-3" />{pc.tx("Button.5", "Escuchar")}</Button>
                   </div>
                 </motion.div>
               ))}
@@ -357,22 +345,12 @@ export default function PodcastRD() {
               viewport={{ once: true }}
             >
               <Headphones className="h-16 w-16 text-cyan-300 mx-auto mb-6" />
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-                Suscríbete al Podcast
-              </h2>
-              <p className="text-white/80 mb-8 max-w-xl mx-auto">
-                Nuevos episodios cada semana. Disponible en todas las plataformas.
-              </p>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">{pc.tx("h2.2", "Suscríbete al Podcast")}</h2>
+              <p className="text-white/80 mb-8 max-w-xl mx-auto">{pc.tx("p.2", "Nuevos episodios cada semana. Disponible en todas las plataformas.")}</p>
               <div className="flex flex-wrap justify-center gap-4">
-                <Button size="lg" className="gap-2 bg-white text-cyan-900 hover:bg-white/90">
-                  Spotify
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Apple Podcasts
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Google Podcasts
-                </Button>
+                <Button size="lg" className="gap-2 bg-white text-cyan-900 hover:bg-white/90">{pc.tx("Button.6", "Spotify")}</Button>
+                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.7", "Apple Podcasts")}</Button>
+                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.8", "Google Podcasts")}</Button>
               </div>
             </motion.div>
           </div>
@@ -383,3 +361,6 @@ export default function PodcastRD() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { defaultEpisodes, defaultFeaturedEpisode, series };

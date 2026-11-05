@@ -36,14 +36,14 @@ export function ProfileRechargeModal({
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4 pt-2">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase">
+            <label htmlFor="profile-recharge-modal-f4" className="text-xs font-bold text-muted-foreground uppercase">
               Monto a Recargar (DOP)
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-sm text-muted-foreground">
                 RD$
               </span>
-              <Input
+              <Input id="profile-recharge-modal-f4"
                 type="number"
                 min="100"
                 max="50000"
@@ -57,10 +57,10 @@ export function ProfileRechargeModal({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase">
+            <label htmlFor="profile-recharge-modal-f3" className="text-xs font-bold text-muted-foreground uppercase">
               Número de Tarjeta
             </label>
-            <Input
+            <Input id="profile-recharge-modal-f3"
               type="text"
               placeholder="4000 1234 5678 9010"
               pattern="[0-9 ]{12,19}"
@@ -71,16 +71,16 @@ export function ProfileRechargeModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-muted-foreground uppercase">
+              <label htmlFor="profile-recharge-modal-f2" className="text-xs font-bold text-muted-foreground uppercase">
                 Vencimiento
               </label>
-              <Input type="text" placeholder="MM/AA" maxLength={5} required />
+              <Input id="profile-recharge-modal-f2" type="text" placeholder="MM/AA" maxLength={5} required />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-muted-foreground uppercase">
+              <label htmlFor="profile-recharge-modal-f1" className="text-xs font-bold text-muted-foreground uppercase">
                 CVV
               </label>
-              <Input type="password" placeholder="***" maxLength={4} required />
+              <Input id="profile-recharge-modal-f1" type="password" placeholder="***" maxLength={4} required />
             </div>
           </div>
 

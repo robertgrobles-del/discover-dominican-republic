@@ -16,6 +16,7 @@ import {
   Dumbbell, Waves, Sparkles, ShieldCheck, Umbrella, Award, Eye
 } from "lucide-react";
 import { hotels as allStaticHotels } from "@/data/hotels";
+import { usePageContent } from "@/lib/pageContent";
 
 // Enhanced comparison interface with authentic dominican properties
 interface CompareProperty {
@@ -173,6 +174,8 @@ const COMPARISON_HOTELS: CompareProperty[] = [
 ];
 
 export default function ComparadorHoteles() {
+  const pc = usePageContent("comparador-hoteles");
+  const COMPARISON_HOTELS = pc.data("COMPARISON_HOTELS", __pcData.COMPARISON_HOTELS);
   const [selectedHotels, setSelectedHotels] = useState<string[]>([
     "sanctuary-cap-cana",
     "eden-roc-cap-cana",
@@ -199,8 +202,8 @@ export default function ComparadorHoteles() {
   return (
     <PageTransition>
       <SEOHead
-        title="Comparador de Hoteles y Resorts - República Dominicana"
-        description="Compara lado a lado tarifas por noche, amenidades exclusivas, playa privada, régimen de comidas y calificaciones de los mejores hoteles de República Dominicana."
+        title={pc.t("SEOHead.title.1", "Comparador de Hoteles y Resorts - República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Compara lado a lado tarifas por noche, amenidades exclusivas, playa privada, régimen de comidas y calificaciones de los mejores hoteles de República Dominicana.")}
         keywords="comparador hoteles republica dominicana, comparar resorts punta cana, hoteles todo incluido vs boutique rd"
       />
       <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-rose-500 selection:text-white">
@@ -209,15 +212,10 @@ export default function ComparadorHoteles() {
         {/* HERO EDITORIAL */}
         <section className="relative py-16 md:py-24 bg-gradient-to-b from-card via-background to-background border-b border-border">
           <div className="container mx-auto px-4 text-center max-w-4xl">
-            <Badge className="bg-rose-500/20 text-rose-500 border-rose-500/30 mb-4 px-4 py-1.5 text-xs font-mono tracking-widest uppercase">
-              HERRAMIENTA INTELIGENTE DE VIAJE
-            </Badge>
-            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black text-foreground mb-4 tracking-tight">
-              Comparador de <span className="bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500 bg-clip-text text-transparent">Hoteles y Resorts</span>
+            <Badge className="bg-rose-500/20 text-rose-500 border-rose-500/30 mb-4 px-4 py-1.5 text-xs font-mono tracking-widest uppercase">{pc.tx("Badge.1", "HERRAMIENTA INTELIGENTE DE VIAJE")}</Badge>
+            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black text-foreground mb-4 tracking-tight">{pc.tx("h1.1", "Comparador de")}{" "}<span className="bg-gradient-to-r from-rose-500 via-orange-500 to-amber-500 bg-clip-text text-transparent">{pc.tx("span.1", "Hoteles y Resorts")}</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Analiza tarifas, régimen de comidas, campos de golf, amenidades y distancias de playa para elegir tu estancia soñada en Quisqueya.
-            </p>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">{pc.tx("p.1", "Analiza tarifas, régimen de comidas, campos de golf, amenidades y distancias de playa para elegir tu estancia soñada en Quisqueya.")}</p>
           </div>
         </section>
 
@@ -226,12 +224,9 @@ export default function ComparadorHoteles() {
           <div className="container mx-auto px-4 max-w-6xl">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Elige hasta 3 hoteles para comparar:
-                </p>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{pc.tx("p.2", "Elige hasta 3 hoteles para comparar:")}</p>
                 <p className="text-xs text-muted-foreground">
-                  ({selectedHotels.length}/3 seleccionados)
-                </p>
+                  ({selectedHotels.length}{pc.tx("p.3", "/3 seleccionados)")}</p>
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -300,59 +295,54 @@ export default function ComparadorHoteles() {
 
                       {/* DETALLE PRINCIPAL */}
                       <div className="p-6">
-                        <h3 className="font-display text-xl font-bold text-foreground mb-1 leading-tight line-clamp-2">
+                        <h2 className="h3 font-display text-xl font-bold text-foreground mb-1 leading-tight line-clamp-2">
                           {hotel.name}
-                        </h3>
+                        </h2>
                         <p className="text-xs text-muted-foreground mb-4">
-                          {hotel.province} • {hotel.reviews.toLocaleString()} opiniones verificadas
-                        </p>
+                          {hotel.province} • {hotel.reviews.toLocaleString()}{" "}{pc.tx("p.4", "opiniones verificadas")}</p>
 
                         {/* TARIFA */}
                         <div className="bg-muted/40 rounded-2xl p-4 mb-6 border border-border/60 flex items-center justify-between">
                           <div>
-                            <span className="text-xs text-muted-foreground block">Tarifa Promedio</span>
+                            <span className="text-xs text-muted-foreground block">{pc.tx("span.2", "Tarifa Promedio")}</span>
                             <span className="text-2xl font-black text-rose-600 dark:text-rose-400">
-                              ${hotel.pricePerNight} <span className="text-xs font-normal text-muted-foreground">USD / noche</span>
+                              ${hotel.pricePerNight} <span className="text-xs font-normal text-muted-foreground">{pc.tx("span.3", "USD / noche")}</span>
                             </span>
                           </div>
-                          <Badge variant="outline" className="text-[10px] text-emerald-500 border-emerald-500/30">
-                            Mejor Precio Garantizado
-                          </Badge>
+                          <Badge variant="outline" className="text-3xs text-emerald-500 border-emerald-500/30">{pc.tx("Badge.2", "Mejor Precio Garantizado")}</Badge>
                         </div>
 
                         {/* MATRIZ DE AMENIDADES */}
                         <div className="space-y-3 mb-6">
-                          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                            Servicios y Facilidades
-                          </p>
+                          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{pc.tx("p.5", "Servicios y Facilidades")}</p>
                           <div className="grid grid-cols-2 gap-2 text-xs">
                             <div className={`flex items-center gap-2 p-2 rounded-lg ${hotel.amenities.allInclusive ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted/40 text-muted-foreground"}`}>
                               {hotel.amenities.allInclusive ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <X className="h-3.5 w-3.5" />}
-                              <span>Todo Incluido</span>
+                              <span>{pc.tx("span.4", "Todo Incluido")}</span>
                             </div>
 
                             <div className={`flex items-center gap-2 p-2 rounded-lg ${hotel.amenities.beach ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted/40 text-muted-foreground"}`}>
                               {hotel.amenities.beach ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <X className="h-3.5 w-3.5" />}
-                              <span>Playa Privada</span>
+                              <span>{pc.tx("span.5", "Playa Privada")}</span>
                             </div>
 
                             <div className={`flex items-center gap-2 p-2 rounded-lg ${hotel.amenities.golf ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted/40 text-muted-foreground"}`}>
                               {hotel.amenities.golf ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <X className="h-3.5 w-3.5" />}
-                              <span>Campo de Golf</span>
+                              <span>{pc.tx("span.6", "Campo de Golf")}</span>
                             </div>
 
                             <div className={`flex items-center gap-2 p-2 rounded-lg ${hotel.amenities.spa ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted/40 text-muted-foreground"}`}>
                               {hotel.amenities.spa ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <X className="h-3.5 w-3.5" />}
-                              <span>Spa de Lujo</span>
+                              <span>{pc.tx("span.7", "Spa de Lujo")}</span>
                             </div>
 
                             <div className={`flex items-center gap-2 p-2 rounded-lg ${hotel.amenities.butler ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-muted/40 text-muted-foreground"}`}>
                               {hotel.amenities.butler ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <X className="h-3.5 w-3.5" />}
-                              <span>Mayordomo</span>
+                              <span>{pc.tx("span.8", "Mayordomo")}</span>
                             </div>
 
                             <div className={`flex items-center gap-2 p-2 rounded-lg ${hotel.amenities.adultsOnly ? "bg-rose-500/10 text-rose-600 dark:text-rose-400" : "bg-muted/40 text-muted-foreground"}`}>
-                              {hotel.amenities.adultsOnly ? <Check className="h-3.5 w-3.5 text-rose-500" /> : <span className="text-muted-foreground text-[10px]">Familiar</span>}
+                              {hotel.amenities.adultsOnly ? <Check className="h-3.5 w-3.5 text-rose-500" /> : <span className="text-muted-foreground text-3xs">{pc.tx("span.9", "Familiar")}</span>}
                               <span>{hotel.amenities.adultsOnly ? "Solo Adultos" : "Ambiente Familiar"}</span>
                             </div>
                           </div>
@@ -360,9 +350,7 @@ export default function ComparadorHoteles() {
 
                         {/* DESTACADOS */}
                         <div className="space-y-2 mb-6">
-                          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                            Puntos Fuertes
-                          </p>
+                          <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{pc.tx("p.6", "Puntos Fuertes")}</p>
                           <ul className="space-y-1.5">
                             {hotel.highlights.map((h, i) => (
                               <li key={i} className="text-xs text-muted-foreground flex items-center gap-1.5">
@@ -379,9 +367,7 @@ export default function ComparadorHoteles() {
                     <div className="p-6 pt-0">
                       <Button asChild className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-5 rounded-xl gap-2">
                         <Link to={`/alojamiento/${hotel.slug}`}>
-                          <Eye className="h-4 w-4" />
-                          Ver Ficha Completa y Tarifas
-                        </Link>
+                          <Eye className="h-4 w-4" />{pc.tx("Link.1", "Ver Ficha Completa y Tarifas")}</Link>
                       </Button>
                     </div>
                   </motion.div>
@@ -390,13 +376,9 @@ export default function ComparadorHoteles() {
             ) : (
               <div className="text-center py-20 bg-card rounded-3xl border border-dashed border-border max-w-md mx-auto">
                 <Hotel className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-bold text-lg mb-2">Selecciona al menos 2 alojamientos</h3>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Usa los selectores de la barra superior para comparar tarifas y amenidades.
-                </p>
-                <Button onClick={() => setSelectedHotels(["sanctuary-cap-cana", "eden-roc-cap-cana", "casa-de-campo"])}>
-                  Restaurar Selección Recomendada
-                </Button>
+                <h2 className="h3 font-bold text-lg mb-2">{pc.tx("h3.1", "Selecciona al menos 2 alojamientos")}</h2>
+                <p className="text-sm text-muted-foreground mb-6">{pc.tx("p.7", "Usa los selectores de la barra superior para comparar tarifas y amenidades.")}</p>
+                <Button onClick={() => setSelectedHotels(["sanctuary-cap-cana", "eden-roc-cap-cana", "casa-de-campo"])}>{pc.tx("Button.1", "Restaurar Selección Recomendada")}</Button>
               </div>
             )}
           </div>
@@ -409,3 +391,6 @@ export default function ComparadorHoteles() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { COMPARISON_HOTELS };

@@ -184,7 +184,11 @@ describe("usuario y formularios", () => {
       const res = await call("POST", "/contact", { payload: { name: "Carlos Prensa", email, category: "press", subject: "Entrevista", message: "Quisiéramos entrevistar al equipo." } });
       expect(res.statusCode).toBe(202);
       await app.mailer.drain();
-      expect(app.mailer.last(email, "support.received")).toBeTruthy();
+      const ack = app.mailer.last(email, "support.received")!;
+      expect(ack).toBeTruthy();
+      // Sin sesión dueña del correo, el acuse no cita textos del remitente (no sirve para enviar mensajes a terceros).
+      expect(JSON.stringify(ack)).not.toContain("Entrevista");
+      expect(JSON.stringify(ack)).not.toContain("Carlos");
       expect((await pool.query("SELECT category, contact_email FROM support_tickets WHERE contact_email = $1", [email])).rows[0]).toMatchObject({ category: "press" });
       expect((await call("POST", "/contact", { payload: { name: "C", email: "x", subject: "a", message: "corto" } })).statusCode).toBe(400);
       expect((await call("POST", "/contact", { payload: { name: "Bot Bot", email: uniq("b"), subject: "hola hola", message: "mensaje de bot largo", website: "x" } })).statusCode).toBe(202);
@@ -220,7 +224,9 @@ describe("usuario y formularios", () => {
       expect(res.statusCode).toBe(202);
       const { id, access_token } = json(res).data;
       await app.mailer.drain();
-      expect(app.mailer.last(email, "establishment.received")).toBeTruthy();
+      const ack = app.mailer.last(email, "establishment.received")!;
+      expect(ack).toBeTruthy();
+      expect(JSON.stringify(ack)).not.toContain("Hotel Nuevo");
       expect(json(await call("GET", `/establishments/registrations/${id}/status?token=${access_token}`)).data).toMatchObject({ name: "Hotel Nuevo", status: "pendiente" });
       expect((await call("GET", `/establishments/registrations/${id}/status?token=${"z".repeat(30)}`)).statusCode).toBe(404);
       expect((await call("POST", "/establishments/register", { payload: { type: "castillo", name: "X" } })).statusCode).toBe(400);

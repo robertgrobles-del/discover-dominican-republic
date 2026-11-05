@@ -31,7 +31,7 @@ export function SorteoMisionesTab({
         </div>
         <CardContent className="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
           <div className="space-y-2 text-center md:text-left">
-            <Badge className="bg-white/20 hover:bg-white/30 text-white border-none text-[10px] uppercase font-mono tracking-wider">
+            <Badge className="bg-white/20 hover:bg-white/30 text-white border-none text-3xs uppercase font-mono tracking-wider">
               Panel de Sorteos
             </Badge>
             <h2 className="font-display text-2xl md:text-3xl font-extrabold">Tus Oportunidades Acumuladas</h2>
@@ -47,7 +47,7 @@ export function SorteoMisionesTab({
             
             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Boletos</span>
             <h3 className="text-4xl font-mono font-black mt-1">{ticketCount}</h3>
-            <Badge variant="outline" className="mt-2 text-[10px] border-primary/20 text-primary">
+            <Badge variant="outline" className="mt-2 text-3xs border-primary/20 text-primary">
               #SorteoAbril
             </Badge>
           </div>
@@ -71,7 +71,7 @@ export function SorteoMisionesTab({
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                   <CalendarDays className="h-5 w-5 text-primary" />
                 </div>
-                <Badge className="bg-emerald-500/10 text-emerald-400 border-none text-[10px] font-bold">
+                <Badge className="bg-emerald-500/10 text-emerald-400 border-none text-3xs font-bold">
                   +1 Ticket Diario
                 </Badge>
               </div>
@@ -102,7 +102,7 @@ export function SorteoMisionesTab({
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Send className="h-5 w-5 text-primary" />
                 </div>
-                <Badge className="bg-emerald-500/10 text-emerald-400 border-none text-[10px] font-bold">
+                <Badge className="bg-emerald-500/10 text-emerald-400 border-none text-3xs font-bold">
                   +2 Tickets
                 </Badge>
               </div>
@@ -137,7 +137,7 @@ export function SorteoMisionesTab({
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Camera className="h-5 w-5 text-primary" />
                 </div>
-                <Badge className="bg-emerald-500/10 text-emerald-400 border-none text-[10px] font-bold">
+                <Badge className="bg-emerald-500/10 text-emerald-400 border-none text-3xs font-bold">
                   +2 Tickets
                 </Badge>
               </div>
@@ -175,7 +175,7 @@ export function SorteoMisionesTab({
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Music className="h-5 w-5 text-primary" />
                 </div>
-                <Badge className="bg-emerald-500/10 text-emerald-400 border-none text-[10px] font-bold">
+                <Badge className="bg-emerald-500/10 text-emerald-400 border-none text-3xs font-bold">
                   +2 Tickets
                 </Badge>
               </div>

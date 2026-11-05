@@ -84,7 +84,7 @@ function PhotoEditor({ images, onChange }: { images: string[]; onChange: (images
           {images.map((url, index) => (
             <li key={url} className="group relative aspect-square overflow-hidden rounded-lg border border-border bg-muted">
               <img src={displayImageUrl(url)} alt={`Foto ${index + 1}`} loading="lazy" className="h-full w-full object-cover" />
-              {index === 0 && <span className="absolute left-1.5 top-1.5 rounded bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">Portada</span>}
+              {index === 0 && <span className="absolute left-1.5 top-1.5 rounded bg-primary px-1.5 py-0.5 text-3xs font-semibold text-primary-foreground">Portada</span>}
               <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/60 p-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
                 <div className="flex">
                   <button type="button" disabled={index === 0} onClick={() => move(index, -1)} aria-label={`Mover la foto ${index + 1} antes`} className="rounded p-1 text-white hover:bg-white/20 disabled:opacity-30"><ArrowLeft className="h-3.5 w-3.5" /></button>

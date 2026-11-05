@@ -57,14 +57,14 @@ export function DestinationArrivalGuide({
               className="bg-card hover:bg-card/80 border border-border/80 hover:border-primary/40 rounded-2xl p-4 text-center shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
             >
               <div>
-                <span className="text-[11px] font-semibold text-muted-foreground block truncate">
+                <span className="text-2xs font-semibold text-muted-foreground block truncate">
                   Desde {route.name}
                 </span>
                 <p className="text-lg md:text-xl font-black text-primary mt-1">
                   {route.distance}
                 </p>
               </div>
-              <div className="mt-2 pt-2 border-t border-border/40 text-[11px] text-muted-foreground font-medium flex items-center justify-center gap-1">
+              <div className="mt-2 pt-2 border-t border-border/40 text-2xs text-muted-foreground font-medium flex items-center justify-center gap-1">
                 <Clock className="h-3 w-3 text-muted-foreground/80" />
                 <span>{route.duration}</span>
               </div>
@@ -80,9 +80,9 @@ export function DestinationArrivalGuide({
               <FileCheck className="h-5 w-5" />
             </div>
             <div>
-              <h4 className="font-bold text-sm text-foreground mb-1">
+              <h3 className="h4 font-bold text-sm text-foreground mb-1">
                 Formulario E-Ticket Obligatorio
-              </h4>
+              </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Recuerda completar el e-ticket aduanal gratuito antes de abordar hacia o desde los aeropuertos de RD (eticket.migracion.gob.do).
               </p>
@@ -95,9 +95,9 @@ export function DestinationArrivalGuide({
               <Car className="h-5 w-5" />
             </div>
             <div>
-              <h4 className="font-bold text-sm text-foreground mb-1">
+              <h3 className="h4 font-bold text-sm text-foreground mb-1">
                 Traslados Oficiales y Verificados
-              </h4>
+              </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Utiliza taxis turísticos autorizados con tarifas fijas visibles o traslados concertados previamente con tu resort.
               </p>
@@ -110,9 +110,9 @@ export function DestinationArrivalGuide({
               <Shield className="h-5 w-5" />
             </div>
             <div>
-              <h4 className="font-bold text-sm text-foreground mb-1">
+              <h3 className="h4 font-bold text-sm text-foreground mb-1">
                 Asistencia al Turista (POLITUR)
-              </h4>
+              </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Cuerpo especializado de seguridad turística bilingüe disponible las 24 horas en todas las playas, autopistas y zonas públicas.
               </p>

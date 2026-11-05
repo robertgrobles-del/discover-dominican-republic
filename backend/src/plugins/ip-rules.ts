@@ -1,5 +1,5 @@
 import { BlockList, isIP } from "node:net";
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyRequest } from "fastify";
 import { AppError } from "../lib/errors.js";
 import { TtlCache } from "../lib/cache.js";
 import type { Db } from "../db/pool.js";
@@ -41,15 +41,31 @@ export class IpRuleService {
   clear() { this.cache.clear(); }
 }
 
+/**
+ * Rutas con las que se decide una política por ruta: la plantilla que eligió el router (`/api/v1/admin/settings/:key`) y la URL
+ * cortada en `?`/`#` y decodificada. `req.url` es el destino crudo y el router decodifica `%61dmin` → `admin` antes de buscar la ruta,
+ * así que comparar sólo el crudo deja pasar otras grafías de la misma ruta. Quien compare debe aceptar si cualquiera coincide.
+ */
+export function policyPaths(req: FastifyRequest): string[] {
+  const raw = req.url.split(/[?#]/)[0]!;
+  let decoded = raw;
+  try { decoded = decodeURIComponent(raw); } catch { /* mal codificada: el router la rechaza; se compara la cruda */ }
+  return [...new Set([req.routeOptions?.url, raw, decoded].filter((p): p is string => !!p))];
+}
+
+/** Rutas de vida exentas (exactas: ni sufijos ni parámetros que el cliente elija). */
+const EXEMPT_ROUTES = new Set(["/health", "/api/v1/health", "/metrics"]);
+
 /** Aplica las reglas de IP antes de cualquier ruta (salvo las de salud, para que el balanceador no se bloquee). Si la base falla, deja pasar. */
 export function registerIpRules(app: FastifyInstance, svc: IpRuleService) {
   app.addHook("onRequest", async (req) => {
-    const path = req.url.split("?")[0]!;
-    if (path === "/health" || path.endsWith("/health") || path === "/metrics") return;
+    // Sólo se exime si el router eligió exactamente una ruta de vida (antes bastaba con que la URL terminara en /health).
+    const route = req.routeOptions?.url;
+    if (route && EXEMPT_ROUTES.has(route)) return;
     let rules: IpRule[];
     try { rules = await svc.active(); } catch { return; }
     if (!rules.length) return;
-    const verdict = evaluate(rules, req.ip, /^\/api\/v1\/admin(\/|$)/.test(path));
+    const verdict = evaluate(rules, req.ip, policyPaths(req).some((p) => /^\/api\/v1\/admin(\/|$)/i.test(p)));
     if (verdict === "denied") throw new AppError("FORBIDDEN", "Tu dirección IP no tiene acceso", { code: "IP_BLOCKED" });
     if (verdict === "admin_not_allowed") throw new AppError("FORBIDDEN", "El panel sólo está disponible desde direcciones autorizadas", { code: "ADMIN_IP_NOT_ALLOWED" });
   });

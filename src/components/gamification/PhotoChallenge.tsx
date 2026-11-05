@@ -18,6 +18,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { gamificationApi } from "@/lib/gamificationApi";
+import { uploadMedia, ACCEPTED_IMAGE_TYPES } from "@/lib/mediaApi";
 import { apiMessage } from "@/lib/fastifyClient";
 
 interface PhotoChallenge {
@@ -57,6 +58,9 @@ export function PhotoChallenge() {
   const qc = useQueryClient();
   const [submitModal, setSubmitModal] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
+  // Con la API real la foto se sube como archivo (queda en moderación); la URL pegada sólo existe en el modo demo.
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const hasImage = HAS_BACKEND_SESSION ? !!imageFile : !!imageUrl.trim();
   const [caption, setCaption] = useState("");
   const [selectedChallenge, setSelectedChallenge] = useState<PhotoChallenge | null>(null);
 
@@ -114,7 +118,7 @@ export function PhotoChallenge() {
     queryFn: async () => {
       if (HAS_BACKEND_SESSION) {
         const list = await gamificationApi.getPhotoChallenges();
-        return list as PhotoChallenge[];
+        return list.map((c) => ({ id: c.id, title: c.title, description: c.description, theme: c.theme ?? "", destination: c.destination, ends_at: c.ends_at ?? "", xp_reward: c.xp_reward, coin_reward: c.coin_reward, is_active: c.open }));
       }
       const { data } = await supabase
         .from("photo_challenges" as any)
@@ -133,8 +137,8 @@ export function PhotoChallenge() {
     queryFn: async () => {
       if (!activeChallenge) return [];
       if (HAS_BACKEND_SESSION) {
-        const list = await gamificationApi.getPhotoSubmissions(activeChallenge.id);
-        return list as PhotoSubmission[];
+        const { data } = await gamificationApi.getPhotoSubmissions(activeChallenge.id);
+        return data.map((x) => ({ id: x.id, user_id: x.author.id, image_url: x.image_url, caption: x.caption, votes: x.votes, is_winner: x.is_winner, profiles: { display_name: x.author.name, avatar_url: x.author.avatar_url } }));
       }
       const { data } = await supabase
         .from("photo_submissions" as any)
@@ -153,10 +157,11 @@ export function PhotoChallenge() {
 
   const submitPhoto = useMutation({
     mutationFn: async () => {
-      if (!user || !activeChallenge || !imageUrl.trim()) throw new Error("Datos incompletos");
+      if (!user || !activeChallenge || !hasImage) throw new Error("Datos incompletos");
       if (HAS_BACKEND_SESSION) {
+        const media = await uploadMedia(imageFile!, "ugc");
         await gamificationApi.submitPhoto(activeChallenge.id, {
-          image_url: imageUrl.trim(),
+          media_id: media.asset_id,
           caption: caption.trim() || undefined,
         });
         return;
@@ -177,6 +182,7 @@ export function PhotoChallenge() {
       });
       setSubmitModal(false);
       setImageUrl("");
+      setImageFile(null);
       setCaption("");
       qc.invalidateQueries({ queryKey: ["photo-submissions"] });
     },
@@ -308,9 +314,21 @@ export function PhotoChallenge() {
               </div>
             </div>
 
+            {HAS_BACKEND_SESSION ? (
             <div>
-              <label className="text-sm font-medium mb-1.5 block">URL de tu foto *</label>
-              <input
+              <label htmlFor="photo-challenge-file" className="text-sm font-medium mb-1.5 block">Tu foto *</label>
+              <input id="photo-challenge-file"
+                type="file"
+                accept={ACCEPTED_IMAGE_TYPES.join(",")}
+                onChange={e => setImageFile(e.target.files?.[0] ?? null)}
+                className="w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-2 file:text-primary"
+              />
+              <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WebP o GIF de hasta 8 MB. Se publica cuando el equipo la apruebe.</p>
+            </div>
+            ) : (
+            <div>
+              <label htmlFor="photo-challenge-f2" className="text-sm font-medium mb-1.5 block">URL de tu foto *</label>
+              <input id="photo-challenge-f2"
                 type="url"
                 value={imageUrl}
                 onChange={e => setImageUrl(e.target.value)}
@@ -321,6 +339,7 @@ export function PhotoChallenge() {
                 Sube tu foto a Imgur, Google Photos u otro servicio y pega el enlace directo
               </p>
             </div>
+            )}
 
             {imageUrl && (
               <div className="rounded-xl overflow-hidden border border-border aspect-video">
@@ -334,7 +353,7 @@ export function PhotoChallenge() {
                 <span className="text-base">📍</span>
                 <div>
                   <p className="font-bold text-foreground">Verificación Geográfica</p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-2xs text-muted-foreground">
                     {userLocation ? "Ubicacion del dispositivo obtenida" : "Solicita tu ubicacion para continuar"}
                   </p>
                 </div>
@@ -352,8 +371,8 @@ export function PhotoChallenge() {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-1.5 block">Descripción (opcional)</label>
-              <Textarea
+              <label htmlFor="photo-challenge-f1" className="text-sm font-medium mb-1.5 block">Descripción (opcional)</label>
+              <Textarea id="photo-challenge-f1"
                 value={caption}
                 onChange={e => setCaption(e.target.value)}
                 placeholder="Cuéntanos sobre esta foto..."
@@ -366,7 +385,7 @@ export function PhotoChallenge() {
             <Button variant="outline" onClick={() => setSubmitModal(false)} className="flex-1">Cancelar</Button>
             <Button
               onClick={() => submitPhoto.mutate()}
-              disabled={!imageUrl.trim() || submitPhoto.isPending || !userLocation}
+              disabled={!hasImage || submitPhoto.isPending || !userLocation}
               className="flex-1 gap-2"
             >
               <Upload className="h-4 w-4" />
@@ -398,11 +417,11 @@ function ChallengeHeader({ challenge }: { challenge: PhotoChallenge }) {
           <div className="flex gap-4">
             <div className="text-center">
               <p className="text-2xl font-black text-foreground">{timeLeft.days}</p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">días</p>
+              <p className="text-3xs text-muted-foreground uppercase tracking-wide">días</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-black text-foreground">{timeLeft.hours}</p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">horas</p>
+              <p className="text-3xs text-muted-foreground uppercase tracking-wide">horas</p>
             </div>
           </div>
         </div>
@@ -458,14 +477,14 @@ function SubmissionCard({
         {/* Own badge */}
         {isOwn && (
           <div className="absolute top-2 right-2">
-            <Badge className="text-[9px] bg-primary text-primary-foreground">Tu foto</Badge>
+            <Badge className="text-3xs bg-primary text-primary-foreground">Tu foto</Badge>
           </div>
         )}
 
         {/* Winner badge */}
         {submission.is_winner && (
           <div className="absolute top-2 right-2">
-            <Badge className="text-[9px] bg-amber-500 text-white gap-1"><Trophy className="h-2.5 w-2.5" />Ganador</Badge>
+            <Badge className="text-3xs bg-amber-500 text-white gap-1"><Trophy className="h-2.5 w-2.5" />Ganador</Badge>
           </div>
         )}
 

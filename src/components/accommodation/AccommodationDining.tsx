@@ -47,7 +47,7 @@ export function AccommodationDining({ restaurants, bars }: AccommodationDiningPr
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <span className="text-xs font-bold text-primary uppercase tracking-wider">{rest.tag}</span>
                   {rest.reservations && (
-                    <Badge variant="secondary" className="text-[10px] bg-primary/15 text-primary border-primary/20">
+                    <Badge variant="secondary" className="text-3xs bg-primary/15 text-primary border-primary/20">
                       Reserva Recomendada
                     </Badge>
                   )}
@@ -80,15 +80,15 @@ export function AccommodationDining({ restaurants, bars }: AccommodationDiningPr
           {bars.map((bar) => (
             <div key={bar.name} className="bg-gradient-to-br from-primary/5 via-card to-card rounded-3xl p-5 border border-primary/20 flex flex-col justify-between shadow-xs">
               <div>
-                <div className="flex items-center gap-1.5 text-[11px] font-bold text-primary uppercase mb-1.5">
+                <div className="flex items-center gap-1.5 text-2xs font-bold text-primary uppercase mb-1.5">
                   <Wine className="h-3.5 w-3.5" /> {bar.type}
                 </div>
                 <h4 className="font-display text-base font-bold text-foreground mb-1">{bar.name}</h4>
                 <p className="text-xs text-muted-foreground mb-3 leading-relaxed">{bar.description}</p>
               </div>
               <div className="pt-2 border-t border-border/60 text-xs">
-                <p className="text-primary font-semibold text-[11px]">Especialidad: {bar.specialty}</p>
-                <p className="text-muted-foreground text-[10px] mt-0.5">{bar.hours}</p>
+                <p className="text-primary font-semibold text-2xs">Especialidad: {bar.specialty}</p>
+                <p className="text-muted-foreground text-3xs mt-0.5">{bar.hours}</p>
               </div>
             </div>
           ))}

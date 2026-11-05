@@ -20,6 +20,7 @@ import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
 import { getSafeCoverImage } from "@/lib/imageCovers";
 import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 import { RestaurantListCard } from "@/components/restaurant/RestaurantListCard";
+import { usePageContent } from "@/lib/pageContent";
 
 
 const priceRanges = ["$", "$$", "$$$", "$$$$"];
@@ -48,6 +49,9 @@ const destinations = [
 ];
 
 export default function Restaurantes() {
+  const pc = usePageContent("restaurantes");
+  const cuisineCategories = pc.data("cuisineCategories", __pcData.cuisineCategories);
+  const destinations = pc.data("destinations", __pcData.destinations);
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
@@ -118,8 +122,7 @@ export default function Restaurantes() {
         <div className="relative container mx-auto px-4 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 gap-2">
-              <Utensils className="h-3 w-3" /> {filteredRestaurants.length} restaurantes
-            </Badge>
+              <Utensils className="h-3 w-3" /> {filteredRestaurants.length}{" "}{pc.tx("Badge.1", "restaurantes")}</Badge>
             <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{t("restaurantes.title")}</h1>
             <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">{t("restaurantes.subtitle")}</p>
             <div className="flex gap-2 max-w-xl mx-auto bg-card/80 backdrop-blur-md p-2 rounded-xl border border-border">
@@ -134,7 +137,7 @@ export default function Restaurantes() {
       </section>
 
       {/* Cuisine Category Filter - Sticky */}
-      <div className="sticky top-16 z-30 bg-background/95 backdrop-blur-md border-b border-border">
+      <div className="bg-background/95 backdrop-blur-md border-b border-border">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
             {cuisineCategories.map((cat) => (
@@ -170,7 +173,7 @@ export default function Restaurantes() {
           <div className="lg:col-span-4 space-y-6">
             <div className="bg-card rounded-xl border border-border p-6 sticky top-24">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-display font-bold text-foreground">{t("restaurantes.filters")}</h3>
+                <h2 className="h3 font-display font-bold text-foreground">{t("restaurantes.filters")}</h2>
                 <Button variant="link" className="text-primary text-sm p-0" onClick={() => { setSelectedPrice(null); setSelectedDestination("all"); setSelectedTag(null); setSelectedCuisine("all"); setSearchQuery(""); }}>
                   {t("restaurantes.clearAll")}
                 </Button>
@@ -201,7 +204,7 @@ export default function Restaurantes() {
                 </AccordionItem>
               </Accordion>
               <div className="mt-6">
-                <h4 className="text-xs font-medium text-muted-foreground mb-3 uppercase">{t("restaurantes.tags")}</h4>
+                <h3 className="h4 text-xs font-medium text-muted-foreground mb-3 uppercase">{t("restaurantes.tags")}</h3>
                 <div className="flex flex-wrap gap-2">
                   {popularTags.map((tag) => (
                     <Button key={tag} variant={selectedTag === tag ? "default" : "outline"} size="sm" className="text-xs" onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}>{tag}</Button>
@@ -246,7 +249,7 @@ export default function Restaurantes() {
             {filteredRestaurants.length === 0 && (
               <div className="text-center py-16">
                 <Utensils className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-bold text-foreground mb-2">{t("restaurantes.noResults")}</h3>
+                <h2 className="h3 text-lg font-bold text-foreground mb-2">{t("restaurantes.noResults")}</h2>
                 <p className="text-muted-foreground">{t("restaurantes.noResultsHint")}</p>
               </div>
             )}
@@ -269,3 +272,6 @@ export default function Restaurantes() {
     </div>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { cuisineCategories, destinations };

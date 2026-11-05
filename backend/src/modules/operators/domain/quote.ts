@@ -18,7 +18,7 @@ export interface PromoSnap { code: string; type: "percent" | "fixed"; value: num
 
 export type IssueCode =
   | "PAST_DATE" | "INVALID_DATES" | "ROOM_REQUIRED" | "MAX_NIGHTS" | "OVER_CAPACITY" | "SOLD_OUT" | "CAPACITY_EXCEEDED"
-  | "INVALID_TIME" | "INFANTS_NOT_ALLOWED" | "UNKNOWN_EXTRA" | "DATE_BLOCKED" | "MIN_NIGHTS";
+  | "INVALID_TIME" | "INFANTS_NOT_ALLOWED" | "UNKNOWN_EXTRA" | "DATE_BLOCKED" | "MIN_NIGHTS" | "MAX_GUESTS";
 export interface Issue { code: IssueCode; message: string }
 export interface QuoteLine { code: "base" | "weekend" | "season" | "adults" | "children" | "extra" | "discount"; label: string; quantity: number; unit_price: number; amount: number }
 
@@ -65,6 +65,8 @@ export function computeQuote(input: { listing: ListingSnap; room?: RoomSnap | nu
 
   if (!isIsoDate(r.date)) add("INVALID_DATES", "La fecha no es válida.");
   else if (r.date < today) add("PAST_DATE", "Elige una fecha futura.");
+  // Tope por reserva: evita que una sola solicitud (p. ej. 'pay_later' anónima) acapare toda una salida.
+  if (seats > MAX_GUESTS_PER_BOOKING) add("MAX_GUESTS", `Máximo ${MAX_GUESTS_PER_BOOKING} personas por reserva; para grupos mayores contacta al operador.`);
 
   if (stay) {
     // ---------- Alojamiento: habitación, noches, tarifas por noche ----------

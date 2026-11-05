@@ -25,6 +25,7 @@ import { ArticleTableOfContents } from "@/components/editorial/ArticleTableOfCon
 import { ArticleFeedbackWidget } from "@/components/editorial/ArticleFeedbackWidget";
 import { SponsoredArticleCard } from "@/components/editorial/SponsoredArticleCard";
 import { SelloVerificadoBadge } from "@/components/ui/SelloVerificadoBadge";
+import { usePageContent } from "@/lib/pageContent";
 
 interface ArticleReviewItem {
   id: string;
@@ -35,6 +36,7 @@ interface ArticleReviewItem {
 }
 
 export default function Articulo() {
+  const pc = usePageContent("articulo");
   const { slug } = useParams<{ slug: string }>();
   const { data: post, isLoading, isError, refetch } = useEditorialArticle(slug);
   const { data: allArticles = [] } = useEditorialArticles();
@@ -102,9 +104,10 @@ export default function Articulo() {
       localStorage.removeItem(`art_liked_${post.id}`);
     }
 
-    // Persist reaction to backend
+    // El servidor lleva un voto por persona: la cifra que devuelve es la que vale.
     try {
-      await reactToEditorialArticle(post.slug, "likes", nextState ? 1 : -1);
+      const counts = await reactToEditorialArticle(post.slug, "likes", nextState ? 1 : -1);
+      setLikeCount(counts.likes ?? 0);
     } catch {
       // Non-blocking for offline / degraded
     }
@@ -206,9 +209,9 @@ export default function Articulo() {
           <Header />
           <main className="flex-1 flex items-center justify-center py-20 px-4 text-center">
             <div className="max-w-md space-y-4">
-              <h1 className="font-display text-2xl font-bold text-foreground">No pudimos cargar el artículo</h1>
-              <p className="text-sm text-muted-foreground">Revisa tu conexión e inténtalo otra vez.</p>
-              <Button onClick={() => refetch()} className="rounded-xl">Reintentar</Button>
+              <h1 className="font-display text-2xl font-bold text-foreground">{pc.tx("h1.1", "No pudimos cargar el artículo")}</h1>
+              <p className="text-sm text-muted-foreground">{pc.tx("p.1", "Revisa tu conexión e inténtalo otra vez.")}</p>
+              <Button onClick={() => refetch()} className="rounded-xl">{pc.tx("Button.1", "Reintentar")}</Button>
             </div>
           </main>
           <Footer />
@@ -225,12 +228,10 @@ export default function Articulo() {
           <main className="flex-1 flex items-center justify-center py-20 px-4 text-center">
             <div className="max-w-md space-y-4">
               <Newspaper className="h-16 w-16 text-muted-foreground mx-auto opacity-40" />
-              <h1 className="font-display text-2xl font-bold text-foreground">Artículo No Encontrado</h1>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                La publicación que buscas no existe o fue movida de categoría.
-              </p>
+              <h1 className="font-display text-2xl font-bold text-foreground">{pc.tx("h1.2", "Artículo No Encontrado")}</h1>
+              <p className="text-xs text-muted-foreground leading-relaxed">{pc.tx("p.2", "La publicación que buscas no existe o fue movida de categoría.")}</p>
               <Button asChild className="rounded-xl">
-                <Link to="/revista">Volver a la revista</Link>
+                <Link to="/revista">{pc.tx("Link.1", "Volver a la revista")}</Link>
               </Button>
             </div>
           </main>
@@ -267,9 +268,7 @@ export default function Articulo() {
 
         <main className="flex-1 py-10">
           <SectionWithSideAds 
-            showAds 
-            leftAdSize="skyscraper" 
-            rightAdSize="skyscraper" 
+            showAds section="articulo" 
             className="container mx-auto max-w-4xl"
           >
             <div className="px-4">
@@ -279,8 +278,7 @@ export default function Articulo() {
                 to="/revista"
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors"
               >
-                <ChevronLeft className="h-4 w-4" /> Volver a Editorial & Revista
-              </Link>
+                <ChevronLeft className="h-4 w-4" />{" "}{pc.tx("Link.2", "Volver a Editorial & Revista")}</Link>
               <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">
                 {post.categoryLabel}
               </Badge>
@@ -348,10 +346,8 @@ export default function Articulo() {
             {post.category === "prensa" && post.pressReleaseDetails && (
               <div className="mb-8 p-5 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-xs text-foreground space-y-1">
                 <div className="flex items-center gap-1.5 font-bold text-purple-600 dark:text-purple-400">
-                  <Megaphone className="h-4 w-4" /> COMUNICADO DE PRENSA OFICIAL
-                </div>
-                <p className="text-muted-foreground">
-                  Emitido por: <strong>{post.pressReleaseDetails.partnerName}</strong> | Contacto de medios: {post.pressReleaseDetails.contactEmail}
+                  <Megaphone className="h-4 w-4" />{" "}{pc.tx("div.1", "COMUNICADO DE PRENSA OFICIAL")}</div>
+                <p className="text-muted-foreground">{pc.tx("p.3", "Emitido por:")}{" "}<strong>{post.pressReleaseDetails.partnerName}</strong>{" "}{pc.tx("p.4", "| Contacto de medios:")}{" "}{post.pressReleaseDetails.contactEmail}
                 </p>
               </div>
             )}
@@ -360,11 +356,8 @@ export default function Articulo() {
             {post.category === "invitados" && (
               <div className="mb-8 p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-foreground space-y-1">
                 <div className="flex items-center gap-1.5 font-bold text-amber-600 dark:text-amber-400">
-                  <PenTool className="h-4 w-4" /> COLUMNA DE AUTOR INVITADO
-                </div>
-                <p className="text-muted-foreground">
-                  Las opiniones expresadas en este artículo son de exclusiva responsabilidad del autor y enriquecen la diversidad de miradas sobre nuestro país.
-                </p>
+                  <PenTool className="h-4 w-4" />{" "}{pc.tx("div.2", "COLUMNA DE AUTOR INVITADO")}</div>
+                <p className="text-muted-foreground">{pc.tx("p.5", "Las opiniones expresadas en este artículo son de exclusiva responsabilidad del autor y enriquecen la diversidad de miradas sobre nuestro país.")}</p>
               </div>
             )}
 
@@ -393,10 +386,10 @@ export default function Articulo() {
                     <Compass className="h-4 w-4" />
                   </span>
                   <div className="min-w-0">
-                    <h2 id="article-quick-summary" className="font-display text-base font-bold text-foreground">Lo esencial</h2>
+                    <h2 id="article-quick-summary" className="font-display text-base font-bold text-foreground">{pc.tx("h2.1", "Lo esencial")}</h2>
                     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{post.excerpt}</p>
                     {post.tags.length > 0 && (
-                      <ul aria-label="Temas clave del artículo" className="mt-4 flex flex-wrap gap-2">
+                      <ul aria-label={pc.t("ul.aria-label.1", "Temas clave del artículo")} className="mt-4 flex flex-wrap gap-2">
                         {post.tags.slice(0, 4).map((tag) => (
                           <li key={tag}>
                             <Badge variant="secondary" className="text-xs">{tag}</Badge>
@@ -415,9 +408,7 @@ export default function Articulo() {
               {/* In-Content Banner Ad */}
               <div className="my-8 not-prose">
                 <div className="bg-muted/30 p-2 sm:p-4 rounded-2xl border border-border/70 shadow-sm flex flex-col items-center justify-center">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2 self-start pl-2">
-                    Contenido Patrocinado
-                  </span>
+                  <span className="text-3xs font-bold uppercase tracking-wider text-muted-foreground mb-2 self-start pl-2">{pc.tx("span.1", "Contenido Patrocinado")}</span>
                   <div className="hidden md:block w-full">
                     <BannerAd 
                       size="billboard" 
@@ -440,9 +431,8 @@ export default function Articulo() {
               </div>
 
               <section id="destacados" className="scroll-mt-24 space-y-4">
-                <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">Puntos Destacados & Recomendaciones</h3>
-                <p>
-                  Para aprovechar al máximo esta ruta, se aconseja iniciar temprano en la mañana, llevar protección solar biodegradable y coordinar traslados con operadores locales certificados con el <strong>Sello Verificado MITUR</strong>.
+                <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">{pc.tx("h3.1", "Puntos Destacados & Recomendaciones")}</h3>
+                <p>{pc.tx("p.6", "Para aprovechar al máximo esta ruta, se aconseja iniciar temprano en la mañana, llevar protección solar biodegradable y coordinar traslados con operadores locales certificados con el")}{" "}<strong>{pc.tx("strong.1", "Sello Verificado MITUR")}</strong>.
                 </p>
               </section>
 
@@ -459,11 +449,11 @@ export default function Articulo() {
               </section>
 
               <section id="consejos-viajero" className="scroll-mt-24 space-y-3">
-                <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">Consejos Prácticos para el Viajero</h3>
+                <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">{pc.tx("h3.2", "Consejos Prácticos para el Viajero")}</h3>
                 <ul className="list-disc pl-5 space-y-2 text-sm text-muted-foreground">
-                  <li><strong>Moneda:</strong> Se recomienda llevar pesos dominicanos (DOP) para compras menores en artesanías y peajes locales.</li>
-                  <li><strong>Conectividad:</strong> Las zonas costeras principales disponen de excelente cobertura 4G/5G con eSIM Turista.</li>
-                  <li><strong>Respeto Ambiental:</strong> No retirar caracoles, estrellas de mar ni flora autóctona protegida.</li>
+                  <li><strong>{pc.tx("strong.2", "Moneda:")}</strong>{" "}{pc.tx("li.1", "Se recomienda llevar pesos dominicanos (DOP) para compras menores en artesanías y peajes locales.")}</li>
+                  <li><strong>{pc.tx("strong.3", "Conectividad:")}</strong>{" "}{pc.tx("li.2", "Las zonas costeras principales disponen de excelente cobertura 4G/5G con eSIM Turista.")}</li>
+                  <li><strong>{pc.tx("strong.4", "Respeto Ambiental:")}</strong>{" "}{pc.tx("li.3", "No retirar caracoles, estrellas de mar ni flora autóctona protegida.")}</li>
                 </ul>
               </section>
             </div>
@@ -507,7 +497,7 @@ export default function Articulo() {
                 className="gap-2 rounded-xl text-xs"
               >
                 <ThumbsUp className={`h-4 w-4 ${hasLiked ? "fill-primary-foreground" : ""}`} />
-                <span>{likeCount} Me gusta</span>
+                <span>{likeCount}{" "}{pc.tx("span.2", "Me gusta")}</span>
               </Button>
 
               <div className="flex items-center gap-2">
@@ -525,21 +515,18 @@ export default function Articulo() {
 
             {/* Comments Section */}
             <section className="mt-12 pt-8 border-t border-border">
-              <h3 className="font-display text-xl font-bold text-foreground mb-6">
-                Comentarios y Opiniones ({reviews.length})
+              <h3 className="font-display text-xl font-bold text-foreground mb-6">{pc.tx("h3.3", "Comentarios y Opiniones (")}{reviews.length})
               </h3>
 
               {reviews.length === 0 ? (
-                <div className="p-6 rounded-2xl bg-card/60 border border-border text-center text-xs text-muted-foreground mb-8">
-                  Sé el primero en compartir tu opinión o experiencia sobre este artículo.
-                </div>
+                <div className="p-6 rounded-2xl bg-card/60 border border-border text-center text-xs text-muted-foreground mb-8">{pc.tx("div.3", "Sé el primero en compartir tu opinión o experiencia sobre este artículo.")}</div>
               ) : (
                 <div className="space-y-4 mb-8">
                   {reviews.map((rev) => (
                     <div key={rev.id} className="p-4 rounded-2xl bg-card border border-border space-y-1.5">
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-bold text-foreground">{rev.author}</span>
-                        <span className="text-muted-foreground text-[10px]">
+                        <span className="text-muted-foreground text-3xs">
                           {new Date(rev.created_at).toLocaleDateString("es-DO", {
                             day: "numeric",
                             month: "short",
@@ -555,15 +542,14 @@ export default function Articulo() {
 
               {/* Add Comment Form */}
               <form onSubmit={handleAddComment} className="p-5 rounded-2xl bg-card border border-border space-y-3">
-                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">Deja tu opinión</h4>
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">{pc.tx("h4.1", "Deja tu opinión")}</h4>
                 {!user && HAS_BACKEND_SESSION && (
-                  <p className="text-xs text-muted-foreground">
-                    Para que tu opinión quede registrada en la comunidad oficial,{" "}
-                    <Link to="/auth/login" className="text-primary underline font-medium">inicia sesión aquí</Link>.
+                  <p className="text-xs text-muted-foreground">{pc.tx("p.7", "Para que tu opinión quede registrada en la comunidad oficial,")}{" "}
+                    <Link to="/login" className="text-primary underline font-medium">{pc.tx("Link.3", "inicia sesión aquí")}</Link>.
                   </p>
                 )}
                 <textarea
-                  placeholder="Escribe tu comentario respetuoso sobre el artículo (mínimo 10 caracteres)..."
+                  placeholder={pc.t("textarea.placeholder.1", "Escribe tu comentario respetuoso sobre el artículo (mínimo 10 caracteres)...")}
                   value={newCommentText}
                   onChange={(e) => setNewCommentText(e.target.value)}
                   rows={3}
@@ -587,9 +573,7 @@ export default function Articulo() {
             {/* Related Posts */}
             {relatedPosts.length > 0 && (
               <section className="mt-14 pt-8 border-t border-border">
-                <h3 className="font-display text-xl font-bold text-foreground mb-6">
-                  Artículos Relacionados
-                </h3>
+                <h3 className="font-display text-xl font-bold text-foreground mb-6">{pc.tx("h3.4", "Artículos Relacionados")}</h3>
                 <div className="grid md:grid-cols-3 gap-4">
                   {relatedPosts.map((rel) => (
                     <Link
@@ -608,7 +592,7 @@ export default function Articulo() {
                         <h4 className="font-bold text-xs text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-2">
                           {rel.title}
                         </h4>
-                        <span className="text-[10px] text-muted-foreground">{rel.readMinutes ? `${rel.readMinutes} min de lectura` : ""}</span>
+                        <span className="text-3xs text-muted-foreground">{rel.readMinutes ? `${rel.readMinutes} min de lectura` : ""}</span>
                       </div>
                     </Link>
                   ))}

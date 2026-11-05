@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Bed, Crown, CheckCircle2, ShieldCheck, Share2 } from "lucide-react";
+import { Bed, CalendarCheck, Crown, CheckCircle2, ShieldCheck, Share2 } from "lucide-react";
+import { PlaceActions, scrollToSection } from "@/components/detail/PlaceActions";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -37,8 +38,10 @@ import {
   generateSpa,
   generatePools,
 } from "@/data/hotelDetailData";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function AlojamientoDetalle() {
+  const pc = usePageContent("alojamiento-detalle");
   const { slug } = useParams<{ slug: string }>();
   const id = slug;
   const [selectedRoomIndex, setSelectedRoomIndex] = useState(0);
@@ -51,7 +54,7 @@ export default function AlojamientoDetalle() {
 
   const hotelName = staticHotel?.name || dbHotel?.name || "Hotel";
   const hotelLocation = staticHotel
-    ? `${staticHotel.destinationName}, ${staticHotel.province}`
+    ? [...new Set([staticHotel.destinationName, staticHotel.province].filter(Boolean))].join(", ") // sin repetir cuando destino y provincia se llaman igual
     : dbHotel?.address || dbHotel?.destinations?.name || "";
   const hotelRating = staticHotel?.rating || dbHotel?.rating || 4.8;
   const hotelDescription = staticHotel?.description || dbHotel?.description || "";
@@ -77,18 +80,28 @@ export default function AlojamientoDetalle() {
     return Array.from(new Set([...fromDb, ...fromStatic, ...fallback].filter(Boolean)));
   }, [dbHotel, staticHotel]);
 
-  // Derived mock features
-  const policies = useMemo(() => generatePolicies(staticHotel || null), [staticHotel]);
-  const rooms = useMemo(() => generateRooms(staticHotel || null), [staticHotel]);
-  const restaurants = useMemo(() => generateRestaurants(staticHotel || null), [staticHotel]);
-  const bars = useMemo(() => generateBars(staticHotel || null), [staticHotel]);
-  const nightlife = useMemo(() => generateNightlife(staticHotel || null), [staticHotel]);
-  const spa = useMemo(() => generateSpa(staticHotel || hotelName), [staticHotel, hotelName]);
-  const pools = useMemo(() => generatePools(staticHotel || null), [staticHotel]);
+  // Secciones de la ficha. Con ficha del backend se muestra lo que hay en la base (lo que edita el panel): una
+  // sección vacía no se muestra. Los generadores locales quedan para cuando no hay backend, y ponen la foto de
+  // muestra a los elementos que no traen la suya.
+  const db = dbHotel as Record<string, any> | null;
+  const section = <T extends object>(value: unknown, sample: T[]): T[] =>
+    !db ? sample : Array.isArray(value) ? (value as T[]).map((item, i) => ({ ...item, image: (item as any).image || (sample[i % sample.length] as any)?.image })) : [];
+  const policies = useMemo(() => { const g = generatePolicies(staticHotel || null); return db?.policies && !Array.isArray(db.policies) ? { ...g, ...db.policies } as typeof g : g; }, [staticHotel, db]);
+  const rooms = useMemo(() => { const g = generateRooms(staticHotel || null); const r = section(db?.room_types, g); return r.length ? r : g; }, [staticHotel, db]);
+  const restaurants = useMemo(() => section(db?.dining, generateRestaurants(staticHotel || null)), [staticHotel, db]);
+  const bars = useMemo(() => section(db?.bars_lounges, generateBars(staticHotel || null)), [staticHotel, db]);
+  const nightlife = useMemo(() => section(db?.nightlife, generateNightlife(staticHotel || null)), [staticHotel, db]);
+  const spa = useMemo(() => { const g = generateSpa(staticHotel || hotelName); return !db ? g : db.spa_info ? { ...g, ...db.spa_info } as typeof g : null; }, [staticHotel, hotelName, db]);
+  const pools = useMemo(() => section(db?.pools, generatePools(staticHotel || null)), [staticHotel, db]);
+  const faqs: { q: string; a: string }[] | undefined = db ? (Array.isArray(db.faqs) ? db.faqs : []) : undefined;
+  const hotelExtras = (db?.extras ?? {}) as { day_pass?: { price?: string; hours?: string; includes?: string }; kids_policy?: { title?: string; text?: string }; nightlife_summary?: string; experience_tags?: string[] };
 
   const selectedRoom = rooms[selectedRoomIndex] || rooms[0];
+  // WhatsApp sólo con el teléfono del propio hotel: nunca un número genérico.
+  const hotelPhone = String(dbHotel?.phone ?? "").replace(/\D/g, "");
+  const hotelWhatsapp = hotelPhone.length >= 10 ? `https://wa.me/${hotelPhone}?text=${encodeURIComponent(`Hola, vi ${hotelName} en Descubre República Dominicana y quisiera consultar disponibilidad.`)}` : undefined;
 
-  const tags = [
+  const tags = db ? hotelExtras.experience_tags ?? [] : [
     "Playa de Arena Blanca",
     "Régimen Todo Incluido",
     "Servicio de Mayordomo 24/7",
@@ -105,12 +118,10 @@ export default function AlojamientoDetalle() {
         <Header />
         <div className="container mx-auto px-4 py-32 text-center">
           <Bed className="h-16 w-16 text-muted-foreground mx-auto mb-6" />
-          <h1 className="text-3xl font-bold text-foreground mb-4">Alojamiento no encontrado</h1>
-          <p className="text-muted-foreground mb-6">
-            No pudimos encontrar el hotel o resort solicitado.
-          </p>
+          <h1 className="text-3xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Alojamiento no encontrado")}</h1>
+          <p className="text-muted-foreground mb-6">{pc.tx("p.1", "No pudimos encontrar el hotel o resort solicitado.")}</p>
           <Button asChild className="rounded-xl">
-            <Link to="/alojamientos">Explorar todos los alojamientos</Link>
+            <Link to="/alojamientos">{pc.tx("Link.1", "Explorar todos los alojamientos")}</Link>
           </Button>
         </div>
         <Footer />
@@ -148,51 +159,31 @@ export default function AlojamientoDetalle() {
         favoriteId={dbHotel?.id || staticHotel?.id || id || ""}
       />
 
-      {/* Quick Meta / Actions Bar */}
-      <section className="container mx-auto px-4 lg:px-8 pt-6 pb-2">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      {/* Información y acciones: las mismas que en restaurantes y bares */}
+      <section aria-label={`Información y acciones de ${hotelName}`} className="border-b border-border/60 bg-card/60 backdrop-blur-sm mb-8">
+        <div className="container mx-auto flex flex-col gap-4 px-4 py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:px-8">
           <div className="flex flex-wrap items-center gap-2">
             <SelloVerificadoBadge variant="full" size="sm" licenseNumber="MITUR-HOT-2026" />
-            <ClaimBusinessModal
-              businessName={hotelName}
-              businessType="hotel"
-              businessId={dbHotel?.id || staticHotel?.id || id}
-            />
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <WhatsAppPulseButton
-              businessName={hotelName}
-              phone={dbHotel?.phone || "+18095550198"}
-              size="sm"
-            />
-            <SocialShareBar
-              title={hotelName}
-              description={hotelShortDesc}
-              variant="compact"
-            />
-          </div>
+          <PlaceActions
+            primary={{ label: "Reservar", icon: CalendarCheck, onClick: () => scrollToSection("hotel-booking") }}
+            secondary={[{ label: "Habitaciones", icon: Bed, onClick: () => scrollToSection("hotel-rooms") }]}
+            whatsappUrl={hotelWhatsapp}
+            shareTitle={hotelName}
+            claim={{ name: hotelName, type: "hotel", id: dbHotel?.id || staticHotel?.id || id }}
+          />
         </div>
       </section>
 
-      {/* Highlights Bar Strip & Day Pass Info */}
-      <HotelHighlights
-        poolsCount={pools.length}
-        restaurantsCount={restaurants.length}
-        barsCount={bars.length}
-        spaName={spa.name}
-      />
-
       {/* Main Content Layout */}
       <main className="container mx-auto px-4 lg:px-8 pb-20">
-        <div className="mb-10"><ParticipationInvite placeName={hotelName} /></div>
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-12">
           {/* Left Column: Details, Rooms, Pools, Food, Nightlife, Spa, FAQ (8 cols) */}
-          <div className="lg:col-span-8 space-y-12">
+          <div className="lg:col-span-8 space-y-12 order-2 lg:order-1">
             {/* Overview & Story */}
             <div className="bg-card rounded-3xl p-6 md:p-8 border border-border shadow-sm space-y-4">
               <h2 className="font-display text-2xl font-bold text-foreground flex items-center gap-2.5">
-                <Crown className="h-6 w-6 text-primary" />
-                Sobre la Experiencia Todo Incluido en {hotelName}
+                <Crown className="h-6 w-6 text-primary" />{pc.tx("h2.1", "Sobre la Experiencia Todo Incluido en")}{" "}{hotelName}
               </h2>
               <p className="text-muted-foreground leading-relaxed text-base md:text-lg whitespace-pre-line">
                 {hotelDescription ||
@@ -211,6 +202,18 @@ export default function AlojamientoDetalle() {
               </div>
             </div>
 
+            {/* Resumen de instalaciones, pasadía y política de niños */}
+            <HotelHighlights
+              poolsCount={pools.length}
+              restaurantsCount={restaurants.length}
+              barsCount={bars.length}
+              spaName={spa?.name}
+              nightlifeSummary={db ? hotelExtras.nightlife_summary : "Discoteca, Teatro & Shows"}
+              dayPass={db ? hotelExtras.day_pass : undefined}
+              kidsPolicy={db ? hotelExtras.kids_policy : undefined}
+              fromBackend={!!db}
+            />
+
             {/* Experiencia Inmersiva Bento & Cronograma de Huésped */}
             <HotelExperienceBento
               hotelName={hotelName}
@@ -221,29 +224,34 @@ export default function AlojamientoDetalle() {
             />
 
             {/* Room & Suite Selector */}
+            <div id="hotel-rooms" className="scroll-mt-24">
             <AccommodationRooms
               rooms={rooms}
               selectedRoomIndex={selectedRoomIndex}
               onSelectRoom={setSelectedRoomIndex}
             />
+            </div>
 
             {/* Pools & Aquatic Complex */}
-            <AccommodationPools pools={pools} />
+            {pools.length > 0 && <AccommodationPools pools={pools} />}
 
             {/* Culinary & Dining Experience */}
-            <AccommodationDining restaurants={restaurants} bars={bars} />
+            {restaurants.length + bars.length > 0 && <AccommodationDining restaurants={restaurants} bars={bars} />}
 
             {/* Nightlife, Disco & Shows */}
-            <AccommodationNightlife nightlife={nightlife} />
+            {nightlife.length > 0 && <AccommodationNightlife nightlife={nightlife} />}
 
             {/* Spa & Wellness */}
-            <AccommodationSpa spa={spa} />
+            {spa && <AccommodationSpa spa={spa} />}
 
             {/* Policies */}
             <AccommodationPolicies policies={policies} />
 
             {/* FAQs */}
-            <HotelFaqSection />
+            <HotelFaqSection faqs={faqs} />
+
+            {/* Pasaporte y comunidad: después de la información del hotel, no antes */}
+            <ParticipationInvite placeName={hotelName} />
 
             {/* Reviews / Comments */}
             <div className="pt-4">
@@ -256,7 +264,7 @@ export default function AlojamientoDetalle() {
           </div>
 
           {/* Right Column: Sticky Booking Widget (4 cols) */}
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-4 scroll-mt-24 order-1 lg:order-2" id="hotel-booking">
             <AccommodationBookingCard
               hotelName={hotelName}
               selectedRoom={selectedRoom}
@@ -271,12 +279,9 @@ export default function AlojamientoDetalle() {
       {hotelImages.length > 1 && (
         <section className="container mx-auto px-4 lg:px-8 py-12 border-t border-border/60">
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-foreground">
-              Galería Fotográfica de {hotelName}
+            <h2 className="text-2xl font-bold text-foreground">{pc.tx("h2.2", "Galería Fotográfica de")}{" "}{hotelName}
             </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Explora las instalaciones, habitaciones, piscinas y áreas comunes.
-            </p>
+            <p className="text-sm text-muted-foreground mt-1">{pc.tx("p.2", "Explora las instalaciones, habitaciones, piscinas y áreas comunes.")}</p>
           </div>
           <AccommodationGallery images={hotelImages} name={hotelName} />
         </section>

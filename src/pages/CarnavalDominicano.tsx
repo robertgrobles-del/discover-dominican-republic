@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import carnivalImg from "@/assets/carnival.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 interface CarnavalRegion {
   name: string;
@@ -92,14 +93,17 @@ const characters = [
 ];
 
 export default function CarnavalDominicano() {
+  const pc = usePageContent("carnaval-dominicano");
+  const regions = pc.data("regions", __pcData.regions);
+  const characters = pc.data("characters", __pcData.characters);
   const [selectedRegion, setSelectedRegion] = useState<number>(0);
   const current = regions[selectedRegion];
 
   return (
     <PageTransition>
       <SEOHead
-        title="Carnaval Dominicano - Agenda, Personajes, Desfiles y Guía Oficial | DescubreRD"
-        description="Conoce el Carnaval Dominicano: Diablos Cojuelos de La Vega, Lechones de Santiago, Roba la Gallina y el Desfile Nacional en el Malecón. Fechas y consejos de viaje."
+        title={pc.t("SEOHead.title.1", "Carnaval Dominicano - Agenda, Personajes, Desfiles y Guía Oficial | DescubreRD")}
+        description={pc.t("SEOHead.description.1", "Conoce el Carnaval Dominicano: Diablos Cojuelos de La Vega, Lechones de Santiago, Roba la Gallina y el Desfile Nacional en el Malecón. Fechas y consejos de viaje.")}
         keywords="carnaval dominicano, carnaval de la vega, los lechones santiago, diablo cojuelo, roba la gallina, desfile nacional carnaval santo domingo, fechas carnaval rd"
       />
       <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -108,47 +112,42 @@ export default function CarnavalDominicano() {
         {/* Hero Section */}
         <section className="relative h-[65vh] min-h-[480px] flex items-end overflow-hidden">
           <img
-            src={carnivalImg}
-            alt="Carnaval Dominicano y Diablos Cojuelos de La Vega"
+            src={pc.img("img.src.1", carnivalImg)}
+            alt={pc.t("img.alt.1", "Carnaval Dominicano y Diablos Cojuelos de La Vega")}
             className="absolute inset-0 w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-black/30" />
 
           <div className="relative z-10 container mx-auto px-4 lg:px-8 pb-12">
             <nav className="flex items-center gap-2 text-xs md:text-sm text-white/80 mb-4">
-              <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
+              <Link to="/" className="hover:text-primary transition-colors">{pc.tx("Link.1", "Inicio")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <Link to="/cultura" className="hover:text-primary transition-colors">Cultura</Link>
+              <Link to="/cultura" className="hover:text-primary transition-colors">{pc.tx("Link.2", "Cultura")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <span className="text-white font-medium">Carnaval Dominicano</span>
+              <span className="text-white font-medium">{pc.tx("span.1", "Carnaval Dominicano")}</span>
             </nav>
 
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div>
                 <Badge className="mb-3 bg-purple-500/20 text-purple-300 border-purple-500/30 text-xs px-3 py-1 font-semibold">
-                  <PartyPopper className="h-3.5 w-3.5 mr-1.5" /> FIESTA NACIONAL DE QUISQUEYA
-                </Badge>
-                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">
-                  Carnaval Dominicano
-                </h1>
-                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">
-                  El folclore carnavalesco más electrizante del Caribe. Trajes de satén brillante, caretas de demonios con cuernos afilados y música en vivo que desborda las calles en febrero.
-                </p>
+                  <PartyPopper className="h-3.5 w-3.5 mr-1.5" />{" "}{pc.tx("Badge.1", "FIESTA NACIONAL DE QUISQUEYA")}</Badge>
+                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">{pc.tx("h1.1", "Carnaval Dominicano")}</h1>
+                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">{pc.tx("p.1", "El folclore carnavalesco más electrizante del Caribe. Trajes de satén brillante, caretas de demonios con cuernos afilados y música en vivo que desborda las calles en febrero.")}</p>
               </div>
 
               {/* Stats pill */}
               <div className="flex flex-wrap gap-4 bg-black/50 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-white">
                 <div className="text-center px-2">
-                  <p className="font-display text-2xl font-bold text-primary">Febrero</p>
-                  <p className="text-[11px] text-white/70 uppercase">Mes de la Fiesta</p>
+                  <p className="font-display text-2xl font-bold text-primary">{pc.tx("p.2", "Febrero")}</p>
+                  <p className="text-2xs text-white/70 uppercase">{pc.tx("p.3", "Mes de la Fiesta")}</p>
                 </div>
                 <div className="text-center px-2 border-l border-white/10">
                   <p className="font-display text-2xl font-bold text-amber-400">32</p>
-                  <p className="text-[11px] text-white/70 uppercase">Provincias Unidas</p>
+                  <p className="text-2xs text-white/70 uppercase">{pc.tx("p.4", "Provincias Unidas")}</p>
                 </div>
                 <div className="text-center px-2 border-l border-white/10">
-                  <p className="font-display text-2xl font-bold text-emerald-400">UNESCO</p>
-                  <p className="text-[11px] text-white/70 uppercase">Patrimonio Vivo</p>
+                  <p className="font-display text-2xl font-bold text-emerald-400">{pc.tx("p.5", "UNESCO")}</p>
+                  <p className="text-2xs text-white/70 uppercase">{pc.tx("p.6", "Patrimonio Vivo")}</p>
                 </div>
               </div>
             </div>
@@ -158,15 +157,9 @@ export default function CarnavalDominicano() {
         {/* Regional Carnivals Showcase */}
         <section className="py-16 container mx-auto px-4 lg:px-8 max-w-6xl">
           <div className="text-center mb-12">
-            <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
-              DESFILES POR PROVINCIA
-            </Badge>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
-              Los Carnavales Más Emblemáticos de RD
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
-              Cada región expresa su identidad a través de caretas únicas, comparsas y tradiciones centenarias.
-            </p>
+            <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">{pc.tx("Badge.2", "DESFILES POR PROVINCIA")}</Badge>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">{pc.tx("h2.1", "Los Carnavales Más Emblemáticos de RD")}</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">{pc.tx("p.7", "Cada región expresa su identidad a través de caretas únicas, comparsas y tradiciones centenarias.")}</p>
           </div>
 
           <div className="grid lg:grid-cols-12 gap-8 items-start mb-12">
@@ -183,9 +176,9 @@ export default function CarnavalDominicano() {
                   }`}
                 >
                   <div>
-                    <h4 className="font-display font-bold text-base text-foreground">{r.name}</h4>
+                    <h3 className="h4 font-display font-bold text-base text-foreground">{r.name}</h3>
                     <p className="text-xs text-primary font-semibold mt-0.5">{r.keyCharacter}</p>
-                    <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-1">
+                    <p className="text-2xs text-muted-foreground flex items-center gap-1 mt-1">
                       <Calendar className="h-3 w-3" /> {r.schedule}
                     </p>
                   </div>
@@ -207,11 +200,11 @@ export default function CarnavalDominicano() {
 
               <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
                 <div>
-                  <h4 className="font-bold text-foreground text-sm mb-1">Personaje Insignia: {current.keyCharacter}</h4>
+                  <h4 className="font-bold text-foreground text-sm mb-1">{pc.tx("h4.1", "Personaje Insignia:")}{" "}{current.keyCharacter}</h4>
                   <p className="text-xs text-muted-foreground leading-relaxed mb-4">{current.description}</p>
                   
                   <div className="p-3 bg-secondary/50 rounded-xl text-xs text-muted-foreground">
-                    <strong className="text-foreground block mb-0.5">💡 Consejo para el visitante:</strong>
+                    <strong className="text-foreground block mb-0.5">{pc.tx("strong.1", "💡 Consejo para el visitante:")}</strong>
                     {current.tips}
                   </div>
                 </div>
@@ -230,15 +223,9 @@ export default function CarnavalDominicano() {
         <section className="py-16 bg-card/40 border-y border-border/50">
           <div className="container mx-auto px-4 lg:px-8 max-w-6xl">
             <div className="text-center mb-12">
-              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
-                PERSONAJES DEL FOLCLORE
-              </Badge>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
-                Conoce a las Figuras del Carnaval
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
-                Historias, sátira social y mitología detrás de las máscaras más impresionantes.
-              </p>
+              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">{pc.tx("Badge.3", "PERSONAJES DEL FOLCLORE")}</Badge>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">{pc.tx("h2.2", "Conoce a las Figuras del Carnaval")}</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">{pc.tx("p.8", "Historias, sátira social y mitología detrás de las máscaras más impresionantes.")}</p>
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -249,7 +236,7 @@ export default function CarnavalDominicano() {
                   </div>
                   <div className="p-5 flex flex-col flex-1">
                     <h3 className="font-display font-bold text-lg text-foreground mb-1">{char.name}</h3>
-                    <p className="text-[11px] font-bold text-primary mb-2">{char.role}</p>
+                    <p className="text-2xs font-bold text-primary mb-2">{char.role}</p>
                     <p className="text-xs text-muted-foreground leading-relaxed flex-1">{char.details}</p>
                   </div>
                 </div>
@@ -270,3 +257,6 @@ export default function CarnavalDominicano() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { regions, characters };

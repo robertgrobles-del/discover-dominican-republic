@@ -91,7 +91,7 @@ export default function Tarifas() {
                 const taken = bookedOn(d);
                 const full = taken >= room.quantity;
                 return (
-                  <div key={d} title={why || rate.label || "Tarifa base"} className={`rounded-md border p-1 min-h-[3.75rem] text-[11px] leading-tight ${why ? "bg-muted text-muted-foreground line-through" : full ? "bg-rose-500/10 border-rose-500/30" : rate.kind === "season" ? "bg-amber-500/10 border-amber-500/30" : rate.kind === "weekend" ? "bg-sky-500/10 border-sky-500/30" : "border-border"}`}>
+                  <div key={d} title={why || rate.label || "Tarifa base"} className={`rounded-md border p-1 min-h-[3.75rem] text-2xs leading-tight ${why ? "bg-muted text-muted-foreground line-through" : full ? "bg-rose-500/10 border-rose-500/30" : rate.kind === "season" ? "bg-amber-500/10 border-amber-500/30" : rate.kind === "weekend" ? "bg-sky-500/10 border-sky-500/30" : "border-border"}`}>
                     <div className="font-semibold">{Number(d.slice(8))}</div>
                     {why ? <div>Bloq.</div> : <div>{formatMoney(rate.price, listing.currency)}</div>}
                     {!why && taken > 0 && <div className="text-rose-600">{taken}/{room.quantity} res.</div>}

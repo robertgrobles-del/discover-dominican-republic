@@ -74,7 +74,7 @@ export function ReviewCard({ review, onShare, onReply }: ReviewCardProps) {
               {review.verified && (
                 <Badge
                   variant="secondary"
-                  className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
+                  className="text-3xs bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
                 >
                   Viajero Verificado
                 </Badge>

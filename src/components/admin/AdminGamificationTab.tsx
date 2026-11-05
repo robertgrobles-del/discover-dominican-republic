@@ -15,23 +15,17 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api";
+import { safeExternalUrl } from "@/lib/security";
 import { EntityList } from "@/components/admin/EntityList";
 import { getFieldsConfig } from "@/components/admin/AdminEntityConfigs";
+import { AdminMissionDialog, type MissionKind } from "@/components/admin/AdminMissionDialog";
 
 export function AdminGamificationTab() {
   const queryClient = useQueryClient();
   const [subTab, setSubTab] = useState<"stats" | "misiones" | "premios" | "retos-operador" | "premios-operador" | "entregables-creador" | "envios" | "trivia" | "niveles-logros">("stats");
-  const [missionDialogOpen, setMissionDialogOpen] = useState(false);
+  const [missionDialog, setMissionDialog] = useState<MissionKind | null>(null);
   const [prizeDialogOpen, setPrizeDialogOpen] = useState(false);
   const [adjustDialogOpen, setAdjustDialogOpen] = useState(false);
-
-  // Mission form
-  const [mName, setMName] = useState("");
-  const [mDesc, setMDesc] = useState("");
-  const [mAction, setMAction] = useState("visit_province");
-  const [mTarget, setMTarget] = useState(3);
-  const [mXp, setMXp] = useState(100);
-  const [mCoins, setMCoins] = useState(25);
 
   // Prize form
   const [pName, setPName] = useState("");
@@ -185,28 +179,6 @@ export function AdminGamificationTab() {
     onError: (err: any) => toast.error(err.message || "Error al revisar premio"),
   });
 
-  // Create Mission Mutation
-  const createMissionMutation = useMutation({
-    mutationFn: async () => {
-      return apiClient.post("/admin/gamification/missions", {
-        name: mName,
-        description: mDesc,
-        target_action: mAction,
-        target_count: Number(mTarget),
-        xp_reward: Number(mXp),
-        coin_reward: Number(mCoins),
-      });
-    },
-    onSuccess: () => {
-      toast.success("¡Misión creada exitosamente!");
-      setMissionDialogOpen(false);
-      setMName("");
-      setMDesc("");
-      queryClient.invalidateQueries({ queryKey: ["admin-missions-list"] });
-    },
-    onError: (err: any) => toast.error(err.message || "Error al crear misión"),
-  });
-
   // Adjust User Points Mutation
   const adjustMutation = useMutation({
     mutationFn: async () => {
@@ -245,8 +217,11 @@ export function AdminGamificationTab() {
           <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setAdjustDialogOpen(true)}>
             <DollarSign className="h-4 w-4 text-emerald-500" /> Ajuste Manual Puntos
           </Button>
-          <Button size="sm" className="gap-1.5 bg-primary" onClick={() => setMissionDialogOpen(true)}>
+          <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setMissionDialog("weekly")}>
             <Plus className="h-4 w-4" /> Nueva Misión
+          </Button>
+          <Button size="sm" className="gap-1.5 bg-primary" onClick={() => setMissionDialog("daily")}>
+            <Flame className="h-4 w-4" /> Nuevo reto diario
           </Button>
         </div>
       </div>
@@ -329,10 +304,10 @@ export function AdminGamificationTab() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-sm text-foreground">{sc.title}</span>
-                      <Badge variant="outline" className="text-[10px] capitalize">
+                      <Badge variant="outline" className="text-3xs capitalize">
                         {sc.entity_type || "Restaurante / Atracción"}
                       </Badge>
-                      <Badge className={sc.status === "active" ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30 text-[10px]" : "bg-amber-500/15 text-amber-600 border-amber-500/30 text-[10px]"}>
+                      <Badge className={sc.status === "active" ? "bg-emerald-500/15 text-emerald-600 border-emerald-500/30 text-3xs" : "bg-amber-500/15 text-amber-600 border-amber-500/30 text-3xs"}>
                         {sc.status === "active" ? "Activo" : "Pendiente de Aprobación"}
                       </Badge>
                     </div>
@@ -394,10 +369,10 @@ export function AdminGamificationTab() {
                       <Badge className="bg-purple-500/15 text-purple-600 text-xs">
                         🪙 {sr.coin_price} Monedas
                       </Badge>
-                      <Badge variant="outline" className="text-[10px]">
+                      <Badge variant="outline" className="text-3xs">
                         Stock: {sr.stock_total} uds
                       </Badge>
-                      <Badge className={sr.status === "active" ? "bg-emerald-500/15 text-emerald-600 text-[10px]" : "bg-amber-500/15 text-amber-600 text-[10px]"}>
+                      <Badge className={sr.status === "active" ? "bg-emerald-500/15 text-emerald-600 text-3xs" : "bg-amber-500/15 text-amber-600 text-3xs"}>
                         {sr.status === "active" ? "En Catálogo" : "Pendiente"}
                       </Badge>
                     </div>
@@ -457,7 +432,7 @@ export function AdminGamificationTab() {
                       <span className="font-bold text-sm text-foreground">{cd.creator_name}</span>
                       <span className="text-xs text-muted-foreground">en</span>
                       <span className="font-semibold text-xs text-primary">{cd.hotel_name}</span>
-                      <Badge className="bg-emerald-500/15 text-emerald-600 text-[10px]">
+                      <Badge className="bg-emerald-500/15 text-emerald-600 text-3xs">
                         Estancia: {cd.stay_title}
                       </Badge>
                     </div>
@@ -465,7 +440,7 @@ export function AdminGamificationTab() {
                       {(cd.content_links || []).map((link: string, lIdx: number) => (
                         <a
                           key={lIdx}
-                          href={link}
+                          href={safeExternalUrl(link)}
                           target="_blank"
                           rel="noreferrer"
                           className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-500/10 px-2.5 py-0.5 rounded-full"
@@ -495,7 +470,7 @@ export function AdminGamificationTab() {
                 <CardHeader className="p-4 pb-2">
                   <div className="flex justify-between items-start gap-2">
                     <CardTitle className="text-base font-bold">{m.name}</CardTitle>
-                    <Badge variant="outline" className="text-[10px] text-amber-600 bg-amber-500/10">
+                    <Badge variant="outline" className="text-3xs text-amber-600 bg-amber-500/10">
                       +{m.xp_reward} XP · +{m.coin_reward} 🪙
                     </Badge>
                   </div>
@@ -503,7 +478,7 @@ export function AdminGamificationTab() {
                 </CardHeader>
                 <CardContent className="p-4 pt-1 text-xs text-muted-foreground flex justify-between items-center">
                   <span>Meta: {m.target_count} acciones</span>
-                  <Badge variant="secondary" className="text-[10px]">Activa</Badge>
+                  <Badge variant="secondary" className="text-3xs">Activa</Badge>
                 </CardContent>
               </Card>
             ))}
@@ -526,7 +501,7 @@ export function AdminGamificationTab() {
                 </CardHeader>
                 <CardContent className="p-4 pt-1 text-xs text-muted-foreground flex justify-between items-center">
                   <span>Stock: {p.stock} unidades</span>
-                  <Badge className="bg-emerald-500/15 text-emerald-600 text-[10px]">En catálogo</Badge>
+                  <Badge className="bg-emerald-500/15 text-emerald-600 text-3xs">En catálogo</Badge>
                 </CardContent>
               </Card>
             ))}
@@ -585,57 +560,7 @@ export function AdminGamificationTab() {
         </TabsContent>
       </Tabs>
 
-      {/* Dialog Nueva Misión */}
-      <Dialog open={missionDialogOpen} onOpenChange={setMissionDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-primary" />
-              Nueva Misión de Gamificación
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label>Nombre de la Misión</Label>
-              <Input placeholder="Ej. Ruta del Cacao en San Francisco" value={mName} onChange={e => setMName(e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Tipo de Acción Objetivo</Label>
-              <Select value={mAction} onValueChange={setMAction}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="visit_province">Visitar Provincias</SelectItem>
-                  <SelectItem value="scan_qr">Escanear Códigos QR Oficiales</SelectItem>
-                  <SelectItem value="review_place">Escribir Reseñas Verificadas</SelectItem>
-                  <SelectItem value="trivia_quiz">Completar Trivias de Cultura</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="space-y-1">
-                <Label className="text-xs">Meta</Label>
-                <Input type="number" value={mTarget} onChange={e => setMTarget(Number(e.target.value))} />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">XP</Label>
-                <Input type="number" value={mXp} onChange={e => setMXp(Number(e.target.value))} />
-              </div>
-              <div className="space-y-1">
-                <Label className="text-xs">Monedas</Label>
-                <Input type="number" value={mCoins} onChange={e => setMCoins(Number(e.target.value))} />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Descripción</Label>
-              <Textarea rows={2} value={mDesc} onChange={e => setMDesc(e.target.value)} placeholder="Instrucciones para el usuario..." />
-            </div>
-            <Button className="w-full" disabled={!mName || createMissionMutation.isPending} onClick={() => createMissionMutation.mutate()}>
-              {createMissionMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Guardar Misión
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AdminMissionDialog open={missionDialog !== null} kind={missionDialog ?? "daily"} onOpenChange={(o) => { if (!o) setMissionDialog(null); }} />
 
       {/* Dialog Ajuste Manual */}
       <Dialog open={adjustDialogOpen} onOpenChange={setAdjustDialogOpen}>

@@ -35,9 +35,9 @@ export function PricingPlanCard({ plan, billingCycle }: PricingPlanCardProps) {
           </div>
         )}
 
-        <h3 className="text-2xl font-bold font-display text-foreground mb-2">
+        <h2 className="h3 text-2xl font-bold font-display text-foreground mb-2">
           {plan.name}
-        </h3>
+        </h2>
         <p className="text-xs text-muted-foreground mb-6 min-h-[36px]">
           {plan.tagline}
         </p>

@@ -212,7 +212,7 @@ Comprobante emitido conforme a la Norma General DGII.
                 <Badge variant="outline" className="font-mono text-xs font-bold bg-primary/10 text-primary border-primary/20">
                   {inv.ncf}
                 </Badge>
-                <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]">
+                <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-3xs">
                   Pagado
                 </Badge>
               </div>

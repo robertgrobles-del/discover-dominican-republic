@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
+import { activateOnKey } from "@/lib/a11y";
 export interface CuratedPhoto {
   url: string;
   caption: string;
@@ -210,10 +211,10 @@ export const DestinationNarrativeBento: React.FC<DestinationNarrativeBentoProps>
           
           <div>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] uppercase font-mono tracking-widest text-primary font-bold">
+              <span className="text-3xs uppercase font-mono tracking-widest text-primary font-bold">
                 Tarjeta de Aventura Quisqueya
               </span>
-              <Badge variant="outline" className="border-primary/40 text-primary text-[10px] font-mono">
+              <Badge variant="outline" className="border-primary/40 text-primary text-3xs font-mono">
                 RD-GO • CERTIFIED
               </Badge>
             </div>
@@ -228,11 +229,11 @@ export const DestinationNarrativeBento: React.FC<DestinationNarrativeBentoProps>
             {/* Código de barra estético y detalles */}
             <div className="bg-background/80 rounded-2xl p-4 border border-border/80 flex items-center justify-between">
               <div>
-                <span className="text-[10px] text-muted-foreground block uppercase font-mono">Destino Oficial</span>
+                <span className="text-3xs text-muted-foreground block uppercase font-mono">Destino Oficial</span>
                 <span className="text-sm font-bold text-foreground">{destinationName}</span>
               </div>
               <div className="text-right">
-                <span className="text-[10px] text-muted-foreground block uppercase font-mono">Región</span>
+                <span className="text-3xs text-muted-foreground block uppercase font-mono">Región</span>
                 <span className="text-sm font-semibold text-primary">{provinceName}</span>
               </div>
             </div>
@@ -274,7 +275,7 @@ export const DestinationNarrativeBento: React.FC<DestinationNarrativeBentoProps>
                 className="bg-muted/40 hover:bg-muted/70 transition-colors rounded-2xl p-4 border border-border/50 flex flex-col justify-between"
               >
                 <div>
-                  <span className="text-[11px] font-mono font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10 inline-block mb-2">
+                  <span className="text-2xs font-mono font-bold text-primary px-2 py-0.5 rounded-full bg-primary/10 inline-block mb-2">
                     {step.timeOfDay}
                   </span>
                   <h5 className="font-bold text-sm text-foreground mb-1 leading-snug">
@@ -315,7 +316,7 @@ export const DestinationNarrativeBento: React.FC<DestinationNarrativeBentoProps>
           {/* Scroll horizontal con tarjetas 'peeking' en móvil */}
           <div className="flex gap-4 overflow-x-auto pb-4 pt-1 no-scrollbar snap-x snap-mandatory">
             {photos.slice(1).map((photo, i) => (
-              <div 
+              <div role="button" tabIndex={0} onKeyDown={activateOnKey} 
                 key={i}
                 className="snap-start shrink-0 w-[260px] sm:w-[300px] md:w-[340px] rounded-2xl overflow-hidden border border-border shadow-md group relative cursor-pointer"
                 onClick={() => setSelectedImage(photo.url)}
@@ -329,7 +330,7 @@ export const DestinationNarrativeBento: React.FC<DestinationNarrativeBentoProps>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                   
                   {photo.tag && (
-                    <Badge className="absolute top-3 left-3 bg-black/40 backdrop-blur-md text-white border-white/20 text-[10px]">
+                    <Badge className="absolute top-3 left-3 bg-black/40 backdrop-blur-md text-white border-white/20 text-3xs">
                       {photo.tag}
                     </Badge>
                   )}

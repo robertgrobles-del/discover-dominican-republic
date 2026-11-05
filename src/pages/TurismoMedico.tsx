@@ -27,7 +27,10 @@ import {
   Filter,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { fetchApi } from "@/lib/fastifyClient";
+import { usePageContent } from "@/lib/pageContent";
 
 const quickCategories = [
   { icon: Shield, title: "Atención Internacional", description: "Hospitales certificados con personal multilingüe y estándares globales." },
@@ -115,8 +118,72 @@ const benefits = [
 ];
 
 export default function TurismoMedico() {
+  const pc = usePageContent("turismo-medico");
+  const clinics = pc.data("clinics", __pcData.clinics);
+  const quickCategories = pc.data("quickCategories", __pcData.quickCategories);
+  const benefits = pc.data("benefits", __pcData.benefits);
+  const categoryFilters = pc.data("categoryFilters", __pcData.categoryFilters);
+  const dentalServices = pc.data("dentalServices", __pcData.dentalServices);
+  const wellnessHotels = pc.data("wellnessHotels", __pcData.wellnessHotels);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState("Todos");
+  const [selectedLocation, setSelectedLocation] = useState("Todas las ubicaciones");
+  const [serverClinics, setServerClinics] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!HAS_BACKEND_SESSION) return;
+    const controller = new AbortController();
+
+    fetchApi<{ data: Array<{ id: string; name: string; slug: string; address?: string; phone?: string; specialties?: string[]; latitude?: number; longitude?: number }> }>("/clinics?per_page=50", {
+      signal: controller.signal
+    })
+      .then((res) => {
+        if (res?.data && res.data.length > 0) {
+          const mapped = res.data.map((c) => {
+            const specs = c.specialties || [];
+            const isDental = specs.some(s => s.toLowerCase().includes("dental") || s.toLowerCase().includes("odontolog"));
+            const isPharm = specs.some(s => s.toLowerCase().includes("farmac"));
+            const isLab = specs.some(s => s.toLowerCase().includes("laborator"));
+            const type = isDental ? "Clínicas Dentales" : isPharm ? "Farmacias" : isLab ? "Laboratorios" : "Hospitales";
+
+            return {
+              name: c.name,
+              location: c.address || "Santo Domingo",
+              specialties: specs.length > 0 ? specs : ["Medicina General", "Urgencias"],
+              rating: 4.8,
+              verified: true,
+              image: isDental 
+                ? "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=400"
+                : "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400",
+              type,
+            };
+          });
+          setServerClinics(mapped);
+        }
+      })
+      .catch((err) => {
+        if (err.name !== "AbortError") {
+          console.warn("Fallo al obtener clínicas en TurismoMedico:", err);
+        }
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  const combinedClinics = useMemo(() => {
+    const list = serverClinics.length > 0 ? [...serverClinics, ...clinics] : clinics;
+    return list.filter((c) => {
+      const matchSearch = !searchTerm || 
+        c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        c.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.specialties.some((s: string) => s.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      const matchCategory = activeFilter === "Todos" || c.type === activeFilter;
+      const matchLoc = selectedLocation === "Todas las ubicaciones" || c.location.toLowerCase().includes(selectedLocation.toLowerCase());
+
+      return matchSearch && matchCategory && matchLoc;
+    });
+  }, [serverClinics, searchTerm, activeFilter, selectedLocation]);
 
   return (
     <PageTransition>
@@ -133,20 +200,15 @@ export default function TurismoMedico() {
               animate={{ opacity: 1, y: 0 }}
               className="max-w-3xl mx-auto text-center"
             >
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-4">
-                Asistencia Médica para Turistas
-              </h1>
-              <p className="text-lg text-white/80 mb-8">
-                Encuentra hospitales certificados, farmacias 24 horas y médicos de confianza. 
-                Tu salud es nuestra prioridad mientras disfrutas de RD.
-              </p>
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-4">{pc.tx("h1.1", "Asistencia Médica para Turistas")}</h1>
+              <p className="text-lg text-white/80 mb-8">{pc.tx("p.1", "Encuentra hospitales certificados, farmacias 24 horas y médicos de confianza. Tu salud es nuestra prioridad mientras disfrutas de RD.")}</p>
               
               {/* Search Bar */}
               <div className="bg-card rounded-xl p-2 flex flex-col md:flex-row gap-2 shadow-xl">
                 <div className="flex-1 flex items-center gap-2 px-4 border-b md:border-b-0 md:border-r border-border">
                   <Search className="h-5 w-5 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar especialidad, clínica..."
+                    placeholder={pc.t("Input.placeholder.1", "Buscar especialidad, clínica...")}
                     className="border-0 focus-visible:ring-0"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -154,15 +216,19 @@ export default function TurismoMedico() {
                 </div>
                 <div className="flex-1 flex items-center gap-2 px-4">
                   <MapPin className="h-5 w-5 text-muted-foreground" />
-                  <select className="flex-1 bg-transparent border-0 text-foreground focus:ring-0">
-                    <option>Todas las ubicaciones</option>
-                    <option>Santo Domingo</option>
-                    <option>Punta Cana / Bávaro</option>
-                    <option>Puerto Plata</option>
-                    <option>Samaná</option>
+                  <select 
+                    className="flex-1 bg-transparent border-0 text-foreground focus:ring-0"
+                    value={selectedLocation}
+                    onChange={(e) => setSelectedLocation(e.target.value)}
+                  >
+                    <option>{pc.tx("option.1", "Todas las ubicaciones")}</option>
+                    <option>{pc.tx("option.2", "Santo Domingo")}</option>
+                    <option>{pc.tx("option.3", "Punta Cana / Bávaro")}</option>
+                    <option>{pc.tx("option.4", "Puerto Plata")}</option>
+                    <option>{pc.tx("option.5", "Samaná")}</option>
                   </select>
                 </div>
-                <Button className="px-8">Buscar</Button>
+                <Button className="px-8">{pc.tx("Button.1", "Buscar")}</Button>
               </div>
             </motion.div>
           </div>
@@ -171,7 +237,7 @@ export default function TurismoMedico() {
         <div className="container mx-auto px-4 lg:px-8 -mt-5 relative z-10">
           <div role="note" className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-foreground">
             <AlertCircle aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-            <p><strong>Información turística:</strong> este directorio no ofrece diagnósticos ni sustituye el consejo de un profesional de salud. Verifica directamente con cada proveedor sus servicios, credenciales y condiciones.</p>
+            <p><strong>{pc.tx("strong.1", "Información turística:")}</strong>{" "}{pc.tx("p.2", "este directorio no ofrece diagnósticos ni sustituye el consejo de un profesional de salud. Verifica directamente con cada proveedor sus servicios, credenciales y condiciones.")}</p>
           </div>
         </div>
 
@@ -192,7 +258,7 @@ export default function TurismoMedico() {
                     <cat.icon className="h-6 w-6 text-primary group-hover:text-primary-foreground transition-colors" />
                   </div>
                   <div>
-                    <h3 className="font-display font-bold text-foreground mb-1">{cat.title}</h3>
+                    <h2 className="h3 font-display font-bold text-foreground mb-1">{cat.title}</h2>
                     <p className="text-sm text-muted-foreground">{cat.description}</p>
                   </div>
                 </motion.div>
@@ -235,11 +301,11 @@ export default function TurismoMedico() {
               ))}
             </div>
 
-            <h2 className="font-display text-2xl font-bold mb-6">Resultados Recomendados</h2>
+            <h2 className="font-display text-2xl font-bold mb-6">{pc.tx("h2.1", "Resultados Recomendados")}</h2>
 
             {/* Clinic Cards */}
             <div className="space-y-4">
-              {clinics.map((clinic, index) => (
+              {combinedClinics.map((clinic, index) => (
                 <motion.div
                   key={clinic.name}
                   initial={{ opacity: 0, y: 20 }}
@@ -262,9 +328,7 @@ export default function TurismoMedico() {
                           <h3 className="text-lg font-bold text-foreground">{clinic.name}</h3>
                           {clinic.verified && (
                             <Badge className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/30">
-                              <Check className="h-3 w-3 mr-1" />
-                              Verificado
-                            </Badge>
+                              <Check className="h-3 w-3 mr-1" />{pc.tx("Badge.1", "Verificado")}</Badge>
                           )}
                         </div>
                         <p className="text-muted-foreground text-sm flex items-center gap-1">
@@ -287,11 +351,9 @@ export default function TurismoMedico() {
                     <div className="mt-auto pt-3 flex items-center justify-between border-t border-border">
                       <Badge variant="outline">{clinic.type}</Badge>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm">Ver Mapa</Button>
+                        <Button variant="outline" size="sm">{pc.tx("Button.2", "Ver Mapa")}</Button>
                         <Button size="sm" className="gap-1">
-                          <Phone className="h-3.5 w-3.5" />
-                          Llamar
-                        </Button>
+                          <Phone className="h-3.5 w-3.5" />{pc.tx("Button.3", "Llamar")}</Button>
                       </div>
                     </div>
                   </div>
@@ -311,15 +373,10 @@ export default function TurismoMedico() {
               className="text-center mb-12"
             >
               <Badge className="mb-4" variant="outline">
-                <Smile className="h-3 w-3 mr-1" />
-                TURISMO DENTAL
-              </Badge>
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Tratamientos Dentales con <span className="text-gradient">Gran Ahorro</span>
+                <Smile className="h-3 w-3 mr-1" />{pc.tx("Badge.2", "TURISMO DENTAL")}</Badge>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.2", "Tratamientos Dentales con")}{" "}<span className="text-gradient">{pc.tx("span.1", "Gran Ahorro")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Clínicas dentales certificadas con tecnología de punta y precios hasta 70% menores.
-              </p>
+              <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.3", "Clínicas dentales certificadas con tecnología de punta y precios hasta 70% menores.")}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -335,8 +392,8 @@ export default function TurismoMedico() {
                   <Smile className="h-8 w-8 text-primary mb-4" />
                   <h3 className="font-bold text-foreground mb-2">{service.name}</h3>
                   <p className="text-2xl font-bold text-primary mb-1">{service.savings}</p>
-                  <p className="text-sm text-muted-foreground">Ahorro vs. EE.UU.</p>
-                  <p className="text-xs text-muted-foreground mt-2">Precio promedio: {service.avgPrice}</p>
+                  <p className="text-sm text-muted-foreground">{pc.tx("p.4", "Ahorro vs. EE.UU.")}</p>
+                  <p className="text-xs text-muted-foreground mt-2">{pc.tx("p.5", "Precio promedio:")}{" "}{service.avgPrice}</p>
                 </motion.div>
               ))}
             </div>
@@ -354,17 +411,11 @@ export default function TurismoMedico() {
             >
               <div>
                 <Badge className="mb-2" variant="outline">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  RECUPERACIÓN DE LUJO
-                </Badge>
-                <h2 className="font-display text-3xl font-bold">
-                  Hoteles Wellness
-                </h2>
+                  <Sparkles className="h-3 w-3 mr-1" />{pc.tx("Badge.3", "RECUPERACIÓN DE LUJO")}</Badge>
+                <h2 className="font-display text-3xl font-bold">{pc.tx("h2.3", "Hoteles Wellness")}</h2>
               </div>
               <Link to="/wellness">
-                <Button variant="outline" className="hidden md:flex gap-2">
-                  Ver todos
-                  <ChevronRight className="h-4 w-4" />
+                <Button variant="outline" className="hidden md:flex gap-2">{pc.tx("Button.4", "Ver todos")}<ChevronRight className="h-4 w-4" />
                 </Button>
               </Link>
             </motion.div>
@@ -406,7 +457,7 @@ export default function TurismoMedico() {
                           </span>
                         ))}
                       </div>
-                      <Button className="w-full">Ver Paquetes de Recuperación</Button>
+                      <Button className="w-full">{pc.tx("Button.5", "Ver Paquetes de Recuperación")}</Button>
                     </div>
                   </div>
                 </motion.div>
@@ -424,18 +475,14 @@ export default function TurismoMedico() {
                   <AlertCircle className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <p className="font-bold text-foreground">¿Emergencia Médica?</p>
-                  <p className="text-sm text-muted-foreground">Línea de emergencias disponible 24/7</p>
+                  <p className="font-bold text-foreground">{pc.tx("p.6", "¿Emergencia Médica?")}</p>
+                  <p className="text-sm text-muted-foreground">{pc.tx("p.7", "Línea de emergencias disponible 24/7")}</p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <Button variant="destructive" size="lg" className="gap-2">
-                  <Phone className="h-4 w-4" />
-                  911 Emergencias
-                </Button>
-                <Button variant="outline" size="lg">
-                  Ver Hospitales Cercanos
-                </Button>
+                  <Phone className="h-4 w-4" />{pc.tx("Button.6", "911 Emergencias")}</Button>
+                <Button variant="outline" size="lg">{pc.tx("Button.7", "Ver Hospitales Cercanos")}</Button>
               </div>
             </div>
           </div>
@@ -449,20 +496,12 @@ export default function TurismoMedico() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-                ¿Listo para tu consulta?
-              </h2>
-              <p className="text-white/80 mb-8 max-w-xl mx-auto">
-                Nuestro equipo te ayudará a planificar tu viaje médico, desde la consulta inicial hasta la recuperación.
-              </p>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">{pc.tx("h2.4", "¿Listo para tu consulta?")}</h2>
+              <p className="text-white/80 mb-8 max-w-xl mx-auto">{pc.tx("p.8", "Nuestro equipo te ayudará a planificar tu viaje médico, desde la consulta inicial hasta la recuperación.")}</p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button size="lg" className="gap-2 bg-white text-cyan-900 hover:bg-white/90">
-                  <Calendar className="h-4 w-4" />
-                  Agendar Consulta
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Agregar al Plan de Viaje
-                </Button>
+                  <Calendar className="h-4 w-4" />{pc.tx("Button.8", "Agendar Consulta")}</Button>
+                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.9", "Agregar al Plan de Viaje")}</Button>
               </div>
             </motion.div>
           </div>
@@ -473,3 +512,6 @@ export default function TurismoMedico() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { clinics, quickCategories, benefits, categoryFilters, dentalServices, wellnessHotels };

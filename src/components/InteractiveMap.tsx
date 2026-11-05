@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { fetchApi } from "@/lib/fastifyClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -129,21 +131,49 @@ export function InteractiveMap({ className }: { className?: string }) {
     enabled: isNearViewport,
     queryFn: async () => {
       const results: MapMarker[] = [];
-      if (activeLayers.includes("destinations")) {
-        const { data } = await supabase.from("destinations").select("id, name, latitude, longitude, image_url, slug").not("latitude", "is", null);
-        data?.forEach((d) => results.push({ id: d.id, name: d.name, lat: Number(d.latitude), lng: Number(d.longitude), type: "destinations", image: d.image_url, slug: d.slug }));
-      }
-      if (activeLayers.includes("hotels")) {
-        const { data } = await supabase.from("hotels").select("id, name, latitude, longitude, image_url, rating, slug").eq("is_active", true).not("latitude", "is", null);
-        data?.forEach((h) => results.push({ id: h.id, name: h.name, lat: Number(h.latitude), lng: Number(h.longitude), type: "hotels", image: h.image_url, rating: h.rating ? Number(h.rating) : null, slug: h.slug }));
-      }
-      if (activeLayers.includes("beaches")) {
-        const { data } = await supabase.from("beaches").select("id, name, latitude, longitude, image_url, rating, slug").eq("is_active", true).not("latitude", "is", null);
-        data?.forEach((b) => results.push({ id: b.id, name: b.name, lat: Number(b.latitude), lng: Number(b.longitude), type: "beaches", image: b.image_url, rating: b.rating ? Number(b.rating) : null, slug: b.slug }));
-      }
-      if (activeLayers.includes("restaurants")) {
-        const { data } = await supabase.from("restaurants").select("id, name, latitude, longitude, image_url, rating, slug").eq("is_active", true).not("latitude", "is", null);
-        data?.forEach((r) => results.push({ id: r.id, name: r.name, lat: Number(r.latitude), lng: Number(r.longitude), type: "restaurants", image: r.image_url, rating: r.rating ? Number(r.rating) : null, slug: r.slug }));
+
+      if (HAS_BACKEND_SESSION) {
+        const layersToQuery = activeLayers.filter((l) => ["destinations", "hotels", "beaches", "restaurants"].includes(l));
+        if (layersToQuery.length > 0) {
+          try {
+            const geoRes = await fetchApi<{ type: string; features: Array<{ geometry: { coordinates: [number, number] }; properties: any }> }>(
+              `/map/features?layer=${layersToQuery.join(",")}&limit=200`
+            );
+            geoRes?.features?.forEach((f) => {
+              const [lng, lat] = f.geometry.coordinates;
+              const p = f.properties;
+              results.push({
+                id: p.id,
+                name: p.name,
+                lat,
+                lng,
+                type: p.layer as any,
+                image: p.image,
+                rating: p.rating ? Number(p.rating) : null,
+                slug: p.slug,
+              });
+            });
+          } catch (e) {
+            console.error("Error al cargar capas geoespaciales de Fastify:", e);
+          }
+        }
+      } else {
+        if (activeLayers.includes("destinations")) {
+          const { data } = await supabase.from("destinations").select("id, name, latitude, longitude, image_url, slug").not("latitude", "is", null);
+          data?.forEach((d) => results.push({ id: d.id, name: d.name, lat: Number(d.latitude), lng: Number(d.longitude), type: "destinations", image: d.image_url, slug: d.slug }));
+        }
+        if (activeLayers.includes("hotels")) {
+          const { data } = await supabase.from("hotels").select("id, name, latitude, longitude, image_url, rating, slug").eq("is_active", true).not("latitude", "is", null);
+          data?.forEach((h) => results.push({ id: h.id, name: h.name, lat: Number(h.latitude), lng: Number(h.longitude), type: "hotels", image: h.image_url, rating: h.rating ? Number(h.rating) : null, slug: h.slug }));
+        }
+        if (activeLayers.includes("beaches")) {
+          const { data } = await supabase.from("beaches").select("id, name, latitude, longitude, image_url, rating, slug").eq("is_active", true).not("latitude", "is", null);
+          data?.forEach((b) => results.push({ id: b.id, name: b.name, lat: Number(b.latitude), lng: Number(b.longitude), type: "beaches", image: b.image_url, rating: b.rating ? Number(b.rating) : null, slug: b.slug }));
+        }
+        if (activeLayers.includes("restaurants")) {
+          const { data } = await supabase.from("restaurants").select("id, name, latitude, longitude, image_url, rating, slug").eq("is_active", true).not("latitude", "is", null);
+          data?.forEach((r) => results.push({ id: r.id, name: r.name, lat: Number(r.latitude), lng: Number(r.longitude), type: "restaurants", image: r.image_url, rating: r.rating ? Number(r.rating) : null, slug: r.slug }));
+        }
       }
       if (activeLayers.includes("gas_stations")) {
         const mockGas = [
@@ -369,8 +399,8 @@ export function InteractiveMap({ className }: { className?: string }) {
             </p>
             <form onSubmit={handleSaveReport} className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-muted-foreground">Nombre del Lugar</label>
-                <Input 
+                <label htmlFor="interactive-map-f2" className="text-xs font-semibold text-muted-foreground">Nombre del Lugar</label>
+                <Input id="interactive-map-f2" 
                   placeholder="Ej. Charco Azul, Cabarete" 
                   value={reportTitle}
                   onChange={(e) => setReportTitle(e.target.value)}
@@ -379,8 +409,8 @@ export function InteractiveMap({ className }: { className?: string }) {
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-muted-foreground">Descripción / ¿Por qué es especial?</label>
-                <Textarea 
+                <label htmlFor="interactive-map-f1" className="text-xs font-semibold text-muted-foreground">Descripción / ¿Por qué es especial?</label>
+                <Textarea id="interactive-map-f1" 
                   placeholder="Ej. Una piscina natural de agua cristalina azul turquesa rodeada de selva densa. Poco concurrida..." 
                   value={reportDescription}
                   onChange={(e) => setReportDescription(e.target.value)}

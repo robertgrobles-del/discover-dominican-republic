@@ -43,10 +43,10 @@ export function DigitalBoardingPassCard({
               <Plane className="w-5 h-5 text-white transform -rotate-45" />
             </div>
             <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-white/80 block">
+              <span className="text-3xs font-black uppercase tracking-widest text-white/80 block">
                 Tarjeta de Embarque Digital
               </span>
-              <h4 className="font-bold text-sm tracking-wide">{airline}</h4>
+              <h3 className="h4 font-bold text-sm tracking-wide">{airline}</h3>
             </div>
           </div>
           <Badge className="bg-white/20 text-white border-0 text-xs font-semibold backdrop-blur-xs">
@@ -72,7 +72,7 @@ export function DigitalBoardingPassCard({
 
             {/* Trayecto dinámico con avión al centro */}
             <div className="flex-1 px-4 flex flex-col items-center justify-center relative">
-              <span className="text-[10px] font-bold text-sky-600 dark:text-sky-400 mb-1 flex items-center gap-1">
+              <span className="text-3xs font-bold text-sky-600 dark:text-sky-400 mb-1 flex items-center gap-1">
                 <Sparkles className="w-3 h-3" /> Vuelo Directo
               </span>
               <div className="w-full relative flex items-center">
@@ -81,7 +81,7 @@ export function DigitalBoardingPassCard({
                   <Plane className="w-4 h-4 transform rotate-90" />
                 </div>
               </div>
-              <span className="text-[11px] font-semibold text-muted-foreground mt-2">
+              <span className="text-2xs font-semibold text-muted-foreground mt-2">
                 2h 15m de vuelo
               </span>
             </div>
@@ -102,7 +102,7 @@ export function DigitalBoardingPassCard({
           {/* Grilla de Datos de Vuelo */}
           <div className="grid grid-cols-4 gap-3 py-4 mt-2 border-t border-border/50 text-center">
             <div className="bg-muted/40 p-2.5 rounded-2xl">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground block">
+              <span className="text-3xs uppercase font-bold text-muted-foreground block">
                 Pasajero
               </span>
               <span className="font-bold text-xs text-foreground truncate block">
@@ -110,7 +110,7 @@ export function DigitalBoardingPassCard({
               </span>
             </div>
             <div className="bg-muted/40 p-2.5 rounded-2xl">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground block">
+              <span className="text-3xs uppercase font-bold text-muted-foreground block">
                 Vuelo
               </span>
               <span className="font-bold text-xs text-foreground block">
@@ -118,7 +118,7 @@ export function DigitalBoardingPassCard({
               </span>
             </div>
             <div className="bg-muted/40 p-2.5 rounded-2xl">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground block">
+              <span className="text-3xs uppercase font-bold text-muted-foreground block">
                 Puerta / Term.
               </span>
               <span className="font-bold text-xs text-foreground block">
@@ -126,7 +126,7 @@ export function DigitalBoardingPassCard({
               </span>
             </div>
             <div className="bg-muted/40 p-2.5 rounded-2xl">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground block">
+              <span className="text-3xs uppercase font-bold text-muted-foreground block">
                 Asiento
               </span>
               <span className="font-black text-xs text-sky-600 dark:text-sky-400 block">
@@ -153,7 +153,7 @@ export function DigitalBoardingPassCard({
               <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
                 <CheckCircle2 className="w-3.5 h-3.5" /> E-Ticket Dominicano Vinculado
               </div>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
+              <p className="text-2xs text-muted-foreground mt-0.5">
                 Presenta este código en el mostrador o puerta de embarque.
               </p>
             </div>

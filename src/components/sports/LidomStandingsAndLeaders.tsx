@@ -20,7 +20,7 @@ export function LidomStandingsAndLeaders() {
 
         <div className="rounded-3xl border border-border bg-card shadow-sm overflow-x-auto">
           <table className="w-full text-xs text-left text-muted-foreground">
-            <thead className="bg-muted text-foreground font-bold uppercase text-[10px] tracking-wider border-b border-border">
+            <thead className="bg-muted text-foreground font-bold uppercase text-3xs tracking-wider border-b border-border">
               <tr>
                 <th className="py-3 px-4">#</th>
                 <th className="py-3 px-4">Equipo</th>
@@ -46,7 +46,7 @@ export function LidomStandingsAndLeaders() {
                   <td className="py-3 px-2 text-center font-mono font-bold text-primary">{row.pct}</td>
                   <td className="py-3 px-2 text-center font-semibold">{row.dif}</td>
                   <td className="py-3 px-3 text-center">
-                    <Badge variant={row.racha.startsWith("G") ? "secondary" : "outline"} className="text-[10px]">
+                    <Badge variant={row.racha.startsWith("G") ? "secondary" : "outline"} className="text-3xs">
                       {row.racha}
                     </Badge>
                   </td>
@@ -69,14 +69,14 @@ export function LidomStandingsAndLeaders() {
         <div className="grid gap-3">
           {/* Bateo */}
           <Card className="rounded-2xl border-border bg-card p-4 space-y-2">
-            <span className="text-[10px] uppercase font-bold text-primary tracking-wider block">Líderes de Bateo (AVG)</span>
+            <span className="text-3xs uppercase font-bold text-primary tracking-wider block">Líderes de Bateo (AVG)</span>
             <div className="space-y-1.5">
               {LEAGUE_LEADERS.batting.map((l) => (
                 <div key={l.player} className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-muted-foreground w-4">{l.rank}.</span>
                     <span className="font-bold text-foreground">{l.player}</span>
-                    <Badge variant="outline" className="text-[9px] px-1 py-0">{l.team}</Badge>
+                    <Badge variant="outline" className="text-3xs px-1 py-0">{l.team}</Badge>
                   </div>
                   <span className="font-mono font-bold text-primary">{l.stat}</span>
                 </div>
@@ -86,14 +86,14 @@ export function LidomStandingsAndLeaders() {
 
           {/* Jonrones */}
           <Card className="rounded-2xl border-border bg-card p-4 space-y-2">
-            <span className="text-[10px] uppercase font-bold text-orange-500 tracking-wider block">Líderes de Cuadrangulares (HR)</span>
+            <span className="text-3xs uppercase font-bold text-orange-500 tracking-wider block">Líderes de Cuadrangulares (HR)</span>
             <div className="space-y-1.5">
               {LEAGUE_LEADERS.homeRuns.map((l) => (
                 <div key={l.player} className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-muted-foreground w-4">{l.rank}.</span>
                     <span className="font-bold text-foreground">{l.player}</span>
-                    <Badge variant="outline" className="text-[9px] px-1 py-0">{l.team}</Badge>
+                    <Badge variant="outline" className="text-3xs px-1 py-0">{l.team}</Badge>
                   </div>
                   <span className="font-mono font-bold text-orange-500">{l.stat} ({l.rbi} CI)</span>
                 </div>
@@ -103,14 +103,14 @@ export function LidomStandingsAndLeaders() {
 
           {/* Pitcheo */}
           <Card className="rounded-2xl border-border bg-card p-4 space-y-2">
-            <span className="text-[10px] uppercase font-bold text-emerald-500 tracking-wider block">Efectividad de Pitcheo (ERA)</span>
+            <span className="text-3xs uppercase font-bold text-emerald-500 tracking-wider block">Efectividad de Pitcheo (ERA)</span>
             <div className="space-y-1.5">
               {LEAGUE_LEADERS.pitching.map((l) => (
                 <div key={l.player} className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-muted-foreground w-4">{l.rank}.</span>
                     <span className="font-bold text-foreground">{l.player}</span>
-                    <Badge variant="outline" className="text-[9px] px-1 py-0">{l.team}</Badge>
+                    <Badge variant="outline" className="text-3xs px-1 py-0">{l.team}</Badge>
                   </div>
                   <span className="font-mono font-bold text-emerald-500">{l.stat} ({l.wL})</span>
                 </div>

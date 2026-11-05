@@ -10,8 +10,10 @@ import { PortHero } from "@/components/puertos/PortHero";
 import { PortExcursionGuide } from "@/components/puertos/PortExcursionGuide";
 import { PortFacilitiesAndReviews } from "@/components/puertos/PortFacilitiesAndReviews";
 import { PortSidebar } from "@/components/puertos/PortSidebar";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function PuertoDetalle() {
+  const pc = usePageContent("puerto-detalle");
   const { slug } = useParams<{ slug: string }>();
   const puerto = puertosDetalleData[slug || ""];
 
@@ -22,10 +24,10 @@ export default function PuertoDetalle() {
           <Header />
           <div className="container mx-auto px-4 py-32 text-center">
             <Anchor className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h1 className="text-3xl font-bold mb-4">Puerto no encontrado</h1>
-            <p className="text-muted-foreground mb-8">El puerto que buscas no existe.</p>
+            <h1 className="text-3xl font-bold mb-4">{pc.tx("h1.1", "Puerto no encontrado")}</h1>
+            <p className="text-muted-foreground mb-8">{pc.tx("p.1", "El puerto que buscas no existe.")}</p>
             <Link to="/puertos-marinas">
-              <Button>Ver Puertos y Marinas</Button>
+              <Button>{pc.tx("Button.1", "Ver Puertos y Marinas")}</Button>
             </Link>
           </div>
           <Footer />
@@ -53,9 +55,7 @@ export default function PuertoDetalle() {
             {/* Main Column */}
             <div className="lg:col-span-2 space-y-12">
               <section>
-                <h2 className="font-display text-2xl font-bold text-foreground mb-4">
-                  Sobre el Puerto
-                </h2>
+                <h2 className="font-display text-2xl font-bold text-foreground mb-4">{pc.tx("h2.1", "Sobre el Puerto")}</h2>
                 <p className="text-muted-foreground leading-relaxed">{puerto.description}</p>
               </section>
 

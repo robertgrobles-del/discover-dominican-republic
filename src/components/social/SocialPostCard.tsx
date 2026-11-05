@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { SocialPost } from "@/data/socialData";
 
+import { activateOnKey } from "@/lib/a11y";
 interface SocialPostCardProps {
   post: SocialPost;
   index: number;
@@ -56,7 +57,7 @@ export function SocialPostCard({
     >
       <div className="bg-card rounded-xl border border-border overflow-hidden group hover:shadow-xl transition-shadow">
         {!post.isText && post.image && (
-          <div 
+          <div role="button" tabIndex={0} onKeyDown={activateOnKey} 
             className={`relative ${post.isVideo ? "cursor-pointer" : ""}`}
             onClick={() => {
               if (post.isVideo) {
@@ -159,7 +160,7 @@ export function SocialPostCard({
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                    <div className="flex items-center justify-between text-2xs text-muted-foreground">
                       <span className="flex items-center gap-1 text-primary font-medium">
                         <Zap className="h-3 w-3" /> Gana +50 XP y +15 Monedas
                       </span>

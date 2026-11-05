@@ -43,7 +43,7 @@ export function OptimizedImage({
       {hasError ? (
         <div className="w-full h-full flex flex-col items-center justify-center bg-muted/60 p-4 text-muted-foreground">
           <ImageOff className="h-6 w-6 mb-1 opacity-50" />
-          <span className="text-[10px] uppercase font-medium">Imagen no disponible</span>
+          <span className="text-3xs uppercase font-medium">Imagen no disponible</span>
         </div>
       ) : (
         <img

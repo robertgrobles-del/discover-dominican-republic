@@ -62,8 +62,13 @@ const beneficiosDirectos = [
 import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { bookingsApi } from "@/lib/bookingsApi";
 import { apiMessage } from "@/lib/accountApi";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function ReservaDirecta() {
+  const pc = usePageContent("reserva-directa");
+  const destinosOpciones = pc.data("destinosOpciones", __pcData.destinosOpciones);
+  const tiposServicio = pc.data("tiposServicio", __pcData.tiposServicio);
+  const beneficiosDirectos = pc.data("beneficiosDirectos", __pcData.beneficiosDirectos);
   const { user } = useAuth();
   const [selectedDestino, setSelectedDestino] = useState(destinosOpciones[0].id);
   const [selectedTipo, setSelectedTipo] = useState("hotel");
@@ -138,8 +143,8 @@ export default function ReservaDirecta() {
   return (
     <PageTransition>
       <SEOHead
-        title="Portal de Reserva Directa | Tarifas Oficiales y Garantía Descubre RD"
-        description="Reserva directo con hoteles, resorts y operadores certificados en República Dominicana. Sin comisiones ocultas, mejor tarifa garantizada y cancelación flexible."
+        title={pc.t("SEOHead.title.1", "Portal de Reserva Directa | Tarifas Oficiales y Garantía Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Reserva directo con hoteles, resorts y operadores certificados en República Dominicana. Sin comisiones ocultas, mejor tarifa garantizada y cancelación flexible.")}
         keywords="reserva directa hoteles rd, reservar resort punta cana, tours certificados dominicana, reserva directa descubrerd"
       />
       <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -148,8 +153,8 @@ export default function ReservaDirecta() {
         {/* Hero Section */}
         <section className="relative h-[60vh] min-h-[460px] flex items-end overflow-hidden">
           <img
-            src={puntaCanaImg}
-            alt="Reserva directa de hoteles y tours en República Dominicana"
+            src={pc.img("img.src.1", puntaCanaImg)}
+            alt={pc.t("img.alt.1", "Reserva directa de hoteles y tours en República Dominicana")}
             className="absolute inset-0 w-full h-full object-cover object-center"
             loading="lazy"
             decoding="async"
@@ -158,30 +163,26 @@ export default function ReservaDirecta() {
 
           <div className="relative z-10 container mx-auto px-4 lg:px-8 pb-12">
             <nav className="flex items-center gap-2 text-xs md:text-sm text-white/80 mb-4">
-              <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
+              <Link to="/" className="hover:text-primary transition-colors">{pc.tx("Link.1", "Inicio")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <Link to="/alojamientos" className="hover:text-primary transition-colors">Alojamientos</Link>
+              <Link to="/alojamientos" className="hover:text-primary transition-colors">{pc.tx("Link.2", "Alojamientos")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <span className="text-white font-medium">Reserva Directa</span>
+              <span className="text-white font-medium">{pc.tx("span.1", "Reserva Directa")}</span>
             </nav>
 
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div>
                 <SelloVerificadoBadge variant="full" size="md" className="mb-3" />
-                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">
-                  Portal de Reserva Directa
-                </h1>
-                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">
-                  Conéctate de forma transparente y segura con los mejores alojamientos, villas y operadores turísticos certificados de República Dominicana.
-                </p>
+                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">{pc.tx("h1.1", "Portal de Reserva Directa")}</h1>
+                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">{pc.tx("p.1", "Conéctate de forma transparente y segura con los mejores alojamientos, villas y operadores turísticos certificados de República Dominicana.")}</p>
               </div>
 
               {/* Verified badge */}
               <div className="bg-black/50 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-white flex items-center gap-3">
                 <ShieldCheck className="h-8 w-8 text-emerald-400 shrink-0" />
                 <div>
-                  <p className="text-xs text-white/70">Seguridad Garantizada</p>
-                  <p className="text-sm font-bold text-primary">Cifrado SSL de 256 bits</p>
+                  <p className="text-xs text-white/70">{pc.tx("p.2", "Seguridad Garantizada")}</p>
+                  <p className="text-sm font-bold text-primary">{pc.tx("p.3", "Cifrado SSL de 256 bits")}</p>
                 </div>
               </div>
             </div>
@@ -198,10 +199,8 @@ export default function ReservaDirecta() {
               {/* Step 1: Type of service */}
               <Card className="border-border bg-card">
                 <CardContent className="p-6 space-y-4">
-                  <h3 className="font-display font-bold text-lg text-foreground flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">1</span>
-                    ¿Qué deseas reservar?
-                  </h3>
+                  <h2 className="h3 font-display font-bold text-lg text-foreground flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">1</span>{pc.tx("h3.1", "¿Qué deseas reservar?")}</h2>
                   <div className="grid grid-cols-3 gap-3">
                     {tiposServicio.map((tipo) => (
                       <button
@@ -225,9 +224,7 @@ export default function ReservaDirecta() {
               <Card className="border-border bg-card">
                 <CardContent className="p-6 space-y-4">
                   <h3 className="font-display font-bold text-lg text-foreground flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">2</span>
-                    Selecciona tu Destino
-                  </h3>
+                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">2</span>{pc.tx("h3.2", "Selecciona tu Destino")}</h3>
                   <div className="grid sm:grid-cols-2 gap-3">
                     {destinosOpciones.map((dest) => (
                       <button
@@ -243,7 +240,7 @@ export default function ReservaDirecta() {
                           <MapPin className={`h-4 w-4 ${selectedDestino === dest.id ? "text-primary" : "text-muted-foreground"}`} />
                           <span className="text-xs">{dest.nombre}</span>
                         </div>
-                        <span className="text-xs font-semibold text-primary">Desde ${dest.precioPromedio}/noche</span>
+                        <span className="text-xs font-semibold text-primary">{pc.tx("span.2", "Desde $")}{dest.precioPromedio}{pc.tx("span.3", "/noche")}</span>
                       </button>
                     ))}
                   </div>
@@ -254,14 +251,11 @@ export default function ReservaDirecta() {
               <Card className="border-border bg-card">
                 <CardContent className="p-6 space-y-4">
                   <h3 className="font-display font-bold text-lg text-foreground flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">3</span>
-                    Estadía & Huéspedes
-                  </h3>
+                    <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">3</span>{pc.tx("h3.3", "Estadía & Huéspedes")}</h3>
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-semibold text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                        <Calendar className="h-3.5 w-3.5 text-primary" /> Duración de Estadía (Noches)
-                      </label>
+                        <Calendar className="h-3.5 w-3.5 text-primary" />{" "}{pc.tx("label.1", "Duración de Estadía (Noches)")}</label>
                       <Input
                         type="number"
                         min={1}
@@ -273,8 +267,7 @@ export default function ReservaDirecta() {
                     </div>
                     <div>
                       <label className="text-xs font-semibold text-muted-foreground mb-1.5 flex items-center gap-1.5">
-                        <Users className="h-3.5 w-3.5 text-primary" /> Número de Huéspedes
-                      </label>
+                        <Users className="h-3.5 w-3.5 text-primary" />{" "}{pc.tx("label.2", "Número de Huéspedes")}</label>
                       <Input
                         type="number"
                         min={1}
@@ -294,55 +287,49 @@ export default function ReservaDirecta() {
             <div className="lg:col-span-5 sticky top-24 space-y-6">
               <div className="bg-card border border-border rounded-2xl p-6 shadow-xl space-y-6">
                 <div>
-                  <h3 className="font-display font-bold text-xl text-foreground mb-1">
-                    Resumen de Reserva Directa
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Tarifa oficial confirmada sin cargos ocultos.
-                  </p>
+                  <h3 className="font-display font-bold text-xl text-foreground mb-1">{pc.tx("h3.4", "Resumen de Reserva Directa")}</h3>
+                  <p className="text-xs text-muted-foreground">{pc.tx("p.4", "Tarifa oficial confirmada sin cargos ocultos.")}</p>
                 </div>
 
                 {/* Details Pill */}
                 <div className="p-4 bg-muted/30 rounded-xl border border-border/70 space-y-2 text-xs">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Destino:</span>
+                    <span className="text-muted-foreground">{pc.tx("span.4", "Destino:")}</span>
                     <strong className="text-foreground">{destinoActual.nombre}</strong>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Estadía:</span>
-                    <strong className="text-foreground">{noches} noches / {huespedes} huéspedes</strong>
+                    <span className="text-muted-foreground">{pc.tx("span.5", "Estadía:")}</span>
+                    <strong className="text-foreground">{noches}{" "}{pc.tx("strong.1", "noches /")}{" "}{huespedes}{" "}{pc.tx("strong.2", "huéspedes")}</strong>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Modalidad:</span>
-                    <strong className="text-emerald-500">Reserva Directa Oficial</strong>
+                    <span className="text-muted-foreground">{pc.tx("span.6", "Modalidad:")}</span>
+                    <strong className="text-emerald-500">{pc.tx("strong.3", "Reserva Directa Oficial")}</strong>
                   </div>
                 </div>
 
                 {/* Price Breakdown */}
                 <div className="space-y-2 text-xs pt-2 border-t border-border">
                   <div className="flex justify-between text-muted-foreground">
-                    <span>Precio base ({noches} noches):</span>
-                    <span>US$ {precioBase.toLocaleString()}</span>
+                    <span>{pc.tx("span.7", "Precio base (")}{noches}{" "}{pc.tx("span.8", "noches):")}</span>
+                    <span>{pc.tx("span.9", "US$")}{" "}{precioBase.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-muted-foreground">
-                    <span>ITBIS Dominicano (18%):</span>
-                    <span>US$ {itbis.toLocaleString()}</span>
+                    <span>{pc.tx("span.10", "ITBIS Dominicano (18%):")}</span>
+                    <span>{pc.tx("span.11", "US$")}{" "}{itbis.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-muted-foreground">
-                    <span>Propina legal hotelera (10%):</span>
-                    <span>US$ {propinaLegal.toLocaleString()}</span>
+                    <span>{pc.tx("span.12", "Propina legal hotelera (10%):")}</span>
+                    <span>{pc.tx("span.13", "US$")}{" "}{propinaLegal.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between pt-3 border-t border-border text-base font-bold text-foreground">
-                    <span>Total Estimado Final:</span>
-                    <span className="text-primary font-display text-xl">US$ {total.toLocaleString()}</span>
+                    <span>{pc.tx("span.14", "Total Estimado Final:")}</span>
+                    <span className="text-primary font-display text-xl">{pc.tx("span.15", "US$")}{" "}{total.toLocaleString()}</span>
                   </div>
                 </div>
 
                 {/* Payment methods */}
                 <div className="pt-2 border-t border-border space-y-2">
-                  <label className="text-xs font-semibold text-muted-foreground block">
-                    Modalidad de Pago:
-                  </label>
+                  <label className="text-xs font-semibold text-muted-foreground block">{pc.tx("label.3", "Modalidad de Pago:")}</label>
                   <div className="grid grid-cols-1 gap-2 text-xs">
                     <button
                       type="button"
@@ -354,16 +341,10 @@ export default function ReservaDirecta() {
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-foreground flex items-center gap-1.5">
-                          🏨 Pagar en Destino
-                          <Badge variant="outline" className="text-[10px] py-0 bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
-                            Recomendado
-                          </Badge>
+                        <span className="font-semibold text-foreground flex items-center gap-1.5">{pc.tx("span.16", "🏨 Pagar en Destino")}<Badge variant="outline" className="text-3xs py-0 bg-emerald-500/10 text-emerald-600 border-emerald-500/30">{pc.tx("Badge.1", "Recomendado")}</Badge>
                         </span>
                       </div>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
-                        Paga al momento del check-in directamente con el hotel u operador.
-                      </p>
+                      <p className="text-2xs text-muted-foreground mt-0.5">{pc.tx("p.5", "Paga al momento del check-in directamente con el hotel u operador.")}</p>
                     </button>
 
                     <button
@@ -376,16 +357,10 @@ export default function ReservaDirecta() {
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-foreground flex items-center gap-1.5">
-                          💳 Tarjeta Online (Sandbox Demo)
-                          <Badge variant="outline" className="text-[10px] py-0 bg-amber-500/10 text-amber-600 border-amber-500/30">
-                            CardNet / Azul / Stripe
-                          </Badge>
+                        <span className="font-semibold text-foreground flex items-center gap-1.5">{pc.tx("span.17", "💳 Tarjeta Online (Sandbox Demo)")}<Badge variant="outline" className="text-3xs py-0 bg-amber-500/10 text-amber-600 border-amber-500/30">{pc.tx("Badge.2", "CardNet / Azul / Stripe")}</Badge>
                         </span>
                       </div>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
-                        Simulación de pasarela de pago segura con aprobación instantánea de prueba.
-                      </p>
+                      <p className="text-2xs text-muted-foreground mt-0.5">{pc.tx("p.6", "Simulación de pasarela de pago segura con aprobación instantánea de prueba.")}</p>
                     </button>
 
                     <button
@@ -398,16 +373,10 @@ export default function ReservaDirecta() {
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-foreground">
-                          ⏳ Depósito Inicial (20%)
-                        </span>
-                        <span className="text-[11px] text-primary font-bold">
-                          US$ {Math.round(total * 0.2).toLocaleString()} hoy
-                        </span>
+                        <span className="font-semibold text-foreground">{pc.tx("span.18", "⏳ Depósito Inicial (20%)")}</span>
+                        <span className="text-2xs text-primary font-bold">{pc.tx("span.19", "US$")}{" "}{Math.round(total * 0.2).toLocaleString()}{" "}{pc.tx("span.20", "hoy")}</span>
                       </div>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
-                        Garantiza tu cupo con 20% y cancela el saldo restante al llegar.
-                      </p>
+                      <p className="text-2xs text-muted-foreground mt-0.5">{pc.tx("p.7", "Garantiza tu cupo con 20% y cancela el saldo restante al llegar.")}</p>
                     </button>
                   </div>
                 </div>
@@ -429,9 +398,8 @@ export default function ReservaDirecta() {
                   )}
                 </Button>
 
-                <p className="text-[11px] text-center text-muted-foreground flex items-center justify-center gap-1.5">
-                  <Lock className="h-3.5 w-3.5 text-emerald-500" /> Transacción encriptada • Cancelación flexible hasta 48h
-                </p>
+                <p className="text-2xs text-center text-muted-foreground flex items-center justify-center gap-1.5">
+                  <Lock className="h-3.5 w-3.5 text-emerald-500" />{" "}{pc.tx("p.8", "Transacción encriptada • Cancelación flexible hasta 48h")}</p>
               </div>
             </div>
 
@@ -442,15 +410,9 @@ export default function ReservaDirecta() {
         <section className="py-16 bg-card/40 border-y border-border/50">
           <div className="container mx-auto px-4 lg:px-8 max-w-6xl">
             <div className="text-center mb-12">
-              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
-                VENTAJAS EXCLUSIVAS
-              </Badge>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
-                ¿Por Qué Reservar Directo con Nosotros?
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
-                Eliminamos los sobrecostos de intermediarios para ofrecerte las mejores condiciones del mercado.
-              </p>
+              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">{pc.tx("Badge.3", "VENTAJAS EXCLUSIVAS")}</Badge>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">{pc.tx("h2.1", "¿Por Qué Reservar Directo con Nosotros?")}</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">{pc.tx("p.9", "Eliminamos los sobrecostos de intermediarios para ofrecerte las mejores condiciones del mercado.")}</p>
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -479,3 +441,6 @@ export default function ReservaDirecta() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { destinosOpciones, tiposServicio, beneficiosDirectos };

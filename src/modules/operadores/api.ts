@@ -5,17 +5,42 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchApi } from "@/lib/fastifyClient";
+import { HttpError } from "@/lib/httpClient";
 import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { slugify } from "./constants";
 import type {
   Booking, BookingStatus, Listing, OperatorMessage, OperatorOrg, OperatorReview, Promotion,
 } from "./types";
 
-const from = (t: string) => (supabase as any).from(t);
+// Cliente simulado (modo demo): tablas sin tipos generados, así que se describe sólo la cadena que se usa aquí.
+type MockResult = { data: unknown; error: { message?: string } | null };
+interface MockQuery extends PromiseLike<MockResult> {
+  select(cols: string): MockQuery; eq(col: string, v: unknown): MockQuery; order(col: string, o?: { ascending: boolean }): MockQuery;
+  insert(row: unknown): MockQuery; update(patch: unknown): MockQuery; delete(): MockQuery;
+}
+const from = (t: string) => (supabase as unknown as { from(t: string): MockQuery }).from(t);
+
+/** `OrgRow` de backend/src/modules/operators/catalog.ts (`/orgs/me`, `POST /orgs`, `GET /operators`). */
+interface ApiOrg {
+  id: string; business_name: string; slug: string; business_type: string; email: string; phone: string | null; description: string | null;
+  province: string | null; logo_url: string | null; cover_url: string | null; verification: string; commission_rate: number; payout_method: string | null; website_enabled: boolean; created_at: string;
+}
+/** `publicSite` de catalog.ts (`GET /operators/:slug`): el sitio público no expone el id ni los datos de contacto. */
+interface ApiPublicSite { operator: Pick<ApiOrg, "business_name" | "slug" | "description" | "province" | "logo_url" | "cover_url">; listings: Listing[] }
+/** `BookingDto` de backend/src/modules/operators/bookings.ts. No trae `org_id`: es la organización de quien consulta. */
+interface ApiBooking {
+  id: string; reference: string; status: string; payment_status: string; source: string;
+  listing: { id: string; title: string; category: string }; operator: { name: string; slug: string }; room_name: string | null;
+  date: string; check_out: string | null; time: string | null; guests: number; adults: number; children: number; infants: number;
+  currency: string; total_price: number; amount_paid: number; promo_code: string | null; extras: unknown[];
+  contact: { name: string; email: string; phone?: string }; notes: string | null; review_pending: boolean; created_at: string;
+}
+/** Fila de `reservations` del modo demo. */
+type MockReservation = Partial<Omit<Booking, "status">> & { id: string; status?: string; check_in?: string; adults?: number; children?: number };
 const uid = (p: string) => `${p}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 const iso = () => new Date().toISOString();
 
-async function rows<T>(q: PromiseLike<{ data: any; error: any }>): Promise<T[]> {
+async function rows<T>(q: PromiseLike<MockResult>): Promise<T[]> {
   const { data, error } = await q;
   if (error) throw new Error(error.message || "Error de datos");
   return (data || []) as T[];
@@ -25,7 +50,7 @@ async function rows<T>(q: PromiseLike<{ data: any; error: any }>): Promise<T[]> 
 export async function fetchOrgByUser(userId: string, email?: string | null): Promise<OperatorOrg | null> {
   if (HAS_BACKEND_SESSION) {
     try {
-      const res = await fetchApi<{ data: { org: any; role: string; listing_ids?: string[] } }>("/orgs/me");
+      const res = await fetchApi<{ data: { org: ApiOrg; role: string; listing_ids?: string[] } }>("/orgs/me");
       if (res?.data?.org) {
         return normalizeOrg(res.data.org);
       }
@@ -34,54 +59,57 @@ export async function fetchOrgByUser(userId: string, email?: string | null): Pro
     }
   }
 
-  const list = await rows<any>(from("partner_profiles").select("*").eq("id", userId));
+  const list = await rows<OperatorOrg>(from("partner_profiles").select("*").eq("id", userId));
   if (list[0]) return normalizeOrg(list[0]);
   // Miembro de equipo: la organización que lo invitó por correo.
   const e = (email || "").trim().toLowerCase();
   if (!e) return null;
-  const all = await rows<any>(from("partner_profiles").select("*"));
-  const hit = all.find((o) => Array.isArray(o.team) && o.team.some((m: any) => (m.email || "").toLowerCase() === e));
+  const all = await rows<OperatorOrg>(from("partner_profiles").select("*"));
+  const hit = all.find((o) => Array.isArray(o.team) && o.team.some((m) => (m.email || "").toLowerCase() === e));
   return hit ? normalizeOrg(hit) : null;
 }
 
 export async function fetchOrgBySlug(slug: string): Promise<OperatorOrg | null> {
   if (HAS_BACKEND_SESSION) {
     try {
-      const res = await fetchApi<{ data: any }>(`/operators/${encodeURIComponent(slug)}`);
-      if (res?.data) return normalizeOrg(res.data);
+      const res = await fetchApi<{ data: ApiPublicSite }>(`/operators/${encodeURIComponent(slug)}`);
+      // Sólo los operadores verificados con sitio activo tienen página pública; el slug hace de id en ella.
+      if (res?.data) return normalizeOrg({ ...res.data.operator, id: res.data.operator.slug, verification: "verified", website_enabled: true });
     } catch {
       // continuar a fallback si aplica
     }
   }
-  const list = await rows<any>(from("partner_profiles").select("*").eq("slug", slug));
+  const list = await rows<OperatorOrg>(from("partner_profiles").select("*").eq("slug", slug));
   return list[0] ? normalizeOrg(list[0]) : null;
 }
 
 export async function fetchOrgs(): Promise<OperatorOrg[]> {
   if (HAS_BACKEND_SESSION) {
     try {
-      const res = await fetchApi<{ data: any[] }>("/operators?per_page=100");
+      const res = await fetchApi<{ data: ApiOrg[] }>("/operators?per_page=100");
       if (Array.isArray(res?.data)) return res.data.map(normalizeOrg);
     } catch {
       // fallback
     }
   }
-  return (await rows<any>(from("partner_profiles").select("*"))).map(normalizeOrg);
+  return (await rows<OperatorOrg>(from("partner_profiles").select("*"))).map(normalizeOrg);
 }
 
-function normalizeOrg(r: any): OperatorOrg {
+/** Organización de la API (campos `null`) o del modo demo, en la forma que usan las pantallas. */
+type OrgSource = OperatorOrg | ApiOrg | (ApiPublicSite["operator"] & Pick<ApiOrg, "id" | "verification" | "website_enabled">);
+function normalizeOrg(r: OrgSource): OperatorOrg {
   return {
-    ...r,
+    ...(r as unknown as OperatorOrg),
     slug: r.slug || slugify(r.business_name || r.id),
-    verification: r.verification || "unverified",
-    commission_rate: Number(r.commission_rate ?? 8),
+    verification: (r.verification || "unverified") as OperatorOrg["verification"],
+    commission_rate: Number(("commission_rate" in r ? r.commission_rate : null) ?? 8),
     website_enabled: r.website_enabled ?? false,
   };
 }
 
 export async function createOrg(userId: string, input: { business_name: string; email?: string; business_type?: string }) {
   if (HAS_BACKEND_SESSION) {
-    const res = await fetchApi<{ data: any }>("/orgs", {
+    const res = await fetchApi<{ data: ApiOrg }>("/orgs", {
       method: "POST",
       body: JSON.stringify(input),
     });
@@ -96,7 +124,7 @@ export async function createOrg(userId: string, input: { business_name: string; 
     slug: existing ? `${slugBase}-${Math.random().toString(36).slice(2, 5)}` : slugBase,
     email: input.email || "",
     business_type: input.business_type || "tour_operator",
-    verification: "unverified",
+    verification: "unverified" as const,
     commission_rate: 8,
     website_enabled: false,
     created_at: iso(),
@@ -165,13 +193,13 @@ export async function saveListing(input: Partial<Listing> & { org_id: string; ti
   if (HAS_BACKEND_SESSION) {
     if (input.id) {
       const { id, ...patch } = input;
-      const res = await fetchApi<{ data: any }>(`/org/listings/${encodeURIComponent(id)}`, {
+      const res = await fetchApi<{ data: Pick<Listing, "id"> }>(`/org/listings/${encodeURIComponent(id)}`, {
         method: "PATCH",
         body: JSON.stringify(patch),
       });
       return res.data?.id || id;
     }
-    const res = await fetchApi<{ data: any }>("/org/listings", {
+    const res = await fetchApi<{ data: Pick<Listing, "id"> }>("/org/listings", {
       method: "POST",
       body: JSON.stringify(input),
     });
@@ -205,15 +233,24 @@ export async function deleteListing(id: string) {
 }
 
 // ---------- Reservas (reservations) ----------
-function toBooking(r: any): Booking {
+/** La API agrupa servicio y contacto; aquí se aplanan y se les asigna la organización consultada. */
+function apiBooking(r: ApiBooking, orgId: string | undefined): Booking {
+  return toBooking({
+    ...r, org_id: orgId, listing_id: r.listing.id, listing_title: r.listing.title, contact_name: r.contact.name, contact_email: r.contact.email, contact_phone: r.contact.phone,
+    room_name: r.room_name ?? undefined, check_out: r.check_out ?? undefined, time: r.time ?? undefined, promo_code: r.promo_code ?? undefined, notes: r.notes ?? undefined,
+    currency: r.currency as Booking["currency"], payment_status: r.payment_status as Booking["payment_status"], source: r.source as Booking["source"], extras: r.extras as Booking["extras"],
+  });
+}
+
+function toBooking(r: MockReservation): Booking {
   return {
     id: r.id,
     org_id: r.org_id,
-    listing_id: r.listing_id || (r.listing?.id ?? ""),
-    listing_title: r.listing_title || r.listing?.title || "Servicio Turístico",
-    contact_name: r.contact_name || r.contact?.name || "Viajero",
-    contact_email: r.contact_email || r.contact?.email || "",
-    contact_phone: r.contact_phone || r.contact?.phone,
+    listing_id: r.listing_id || "",
+    listing_title: r.listing_title || "Servicio Turístico",
+    contact_name: r.contact_name || "Viajero",
+    contact_email: r.contact_email || "",
+    contact_phone: r.contact_phone,
     date: r.date || (r.check_in ? String(r.check_in).split("T")[0] : ""),
     time: r.time,
     guests: Number(r.guests ?? (r.adults ? r.adults + (r.children || 0) : 1)),
@@ -245,26 +282,30 @@ export const balanceDue = (b: Pick<Booking, "payment_status" | "amount_paid" | "
 export async function fetchBookings(orgId: string): Promise<Booking[]> {
   if (HAS_BACKEND_SESSION) {
     try {
-      const res = await fetchApi<{ data: any[] }>("/org/bookings?per_page=100");
-      if (Array.isArray(res?.data)) return res.data.map(toBooking);
+      const res = await fetchApi<{ data: ApiBooking[] }>("/org/bookings?per_page=100");
+      if (Array.isArray(res?.data)) return res.data.map((b) => apiBooking(b, orgId));
     } catch {
       // fallback
     }
   }
-  const list = await rows<any>(from("reservations").select("*").eq("org_id", orgId).order("created_at", { ascending: false }));
+  const list = await rows<MockReservation>(from("reservations").select("*").eq("org_id", orgId).order("created_at", { ascending: false }));
   return list.map(toBooking);
 }
 
 export async function fetchAllBookings(): Promise<Booking[]> {
   if (HAS_BACKEND_SESSION) {
     try {
-      const res = await fetchApi<{ data: any[] }>("/org/bookings?per_page=100");
-      if (Array.isArray(res?.data)) return res.data.map(toBooking);
+      // Con sesión real sólo se ven las reservas de la organización propia; su id lo da /orgs/me.
+      const [res, me] = await Promise.all([
+        fetchApi<{ data: ApiBooking[] }>("/org/bookings?per_page=100"),
+        fetchApi<{ data: { org: ApiOrg } }>("/orgs/me").catch(() => null),
+      ]);
+      if (Array.isArray(res?.data)) return res.data.map((b) => apiBooking(b, me?.data.org.id));
     } catch {
       // fallback
     }
   }
-  const list = await rows<any>(from("reservations").select("*"));
+  const list = await rows<MockReservation>(from("reservations").select("*"));
   return list.filter((r) => r.org_id).map(toBooking);
 }
 
@@ -289,7 +330,7 @@ export async function createBooking(input: Omit<Booking, "id" | "created_at" | "
       },
       notes: input.notes,
     };
-    const res = await fetchApi<{ data: any }>("/org/bookings", {
+    const res = await fetchApi<{ data: Pick<ApiBooking, "id"> }>("/org/bookings", {
       method: "POST",
       body: JSON.stringify(payload),
     });
@@ -449,7 +490,7 @@ export async function seedDemoData(org: OperatorOrg) {
       summary: `${b.title}, con atención personalizada.`, description: `${b.title}. Servicio de ejemplo generado para que explores el panel; edítalo o elimínalo cuando quieras.`,
       status: "published", time_slots: ["09:00", "14:00"], languages: ["Español", "Inglés"], includes: ["Guía local", "Seguro de viaje"],
       images: [], rating: 4.8, reviews_count: 12,
-    } as any));
+    } as Partial<Listing> & { org_id: string; title: string }));
   }
   const names = ["Sarah Connor", "Michael Torres", "Penélope Díaz", "Juan Almonte", "Alice Smith", "Lucas Martin", "Marie Dubois", "Pedro Santana"];
   const statuses: BookingStatus[] = ["confirmed", "pending", "completed", "completed", "in_progress", "confirmed", "cancelled", "pending"];
@@ -480,6 +521,81 @@ export async function seedDemoData(org: OperatorOrg) {
     { id: uid("rev"), org_id: org.id, listing_id: ids[1], author: "Alice Smith", rating: 4, comment: "Great tour, only the pickup was a bit late.", created_at: iso() },
   ]);
   if (error) throw new Error(error.message);
+}
+
+// ---------- Sitio público del operador (visitantes) ----------
+// Con sesión real el visitante no es miembro de la organización: nada de /org/*; sólo rutas públicas.
+
+/** Organización y servicios que ve un visitante; `isOwner` = vista previa de su propio sitio aún no publicado. */
+export async function fetchStorefront(slug: string, userId?: string, email?: string | null): Promise<{ org: OperatorOrg; listings: Listing[]; isOwner: boolean } | null> {
+  if (HAS_BACKEND_SESSION) {
+    try {
+      const res = await fetchApi<{ data: ApiPublicSite }>(`/operators/${encodeURIComponent(slug)}`);
+      const org = normalizeOrg({ ...res.data.operator, id: res.data.operator.slug, verification: "verified", website_enabled: true });
+      return { org, listings: res.data.listings, isOwner: false };
+    } catch (e) {
+      if (!(e instanceof HttpError && e.status === 404) || !userId) throw e;
+      // No es público todavía: si es la organización de quien mira, se muestra como vista previa.
+      const mine = await fetchOrgByUser(userId, email);
+      if (!mine || mine.slug !== slug) return null;
+      return { org: mine, listings: await fetchListings(mine.id), isOwner: true };
+    }
+  }
+  const org = await fetchOrgBySlug(slug);
+  if (!org) return null;
+  return { org, listings: await fetchListings(org.id), isOwner: !!userId && userId === org.id };
+}
+
+/** `GET /operators/:slug/listings/:listing`: sólo servicios publicados de operadores verificados. */
+export async function fetchPublicListing(slug: string, listingSlug: string): Promise<Listing | null> {
+  try {
+    const res = await fetchApi<{ data: { listing: Listing } }>(`/operators/${encodeURIComponent(slug)}/listings/${encodeURIComponent(listingSlug)}`);
+    return res.data.listing;
+  } catch (e) {
+    if (e instanceof HttpError && e.status === 404) return null;
+    throw e;
+  }
+}
+
+/** Lo que el servidor necesita para cotizar o reservar (operators/routes.ts `bookingRequest`). */
+export interface BookingRequest {
+  listing_id: string; room_id?: string; date: string; check_out?: string; time?: string;
+  adults: number; children: number; infants: number; extras: string[]; promo_code?: string;
+}
+
+/** `Quote` de backend/src/modules/operators/domain/quote.ts: precio final, cupos y motivos si no se puede reservar. */
+export interface ServerQuote {
+  bookable: boolean;
+  issues: { code: string; message: string }[];
+  currency: "USD" | "DOP";
+  lines: { code: string; label: string; quantity: number; unit_price: number; amount: number }[];
+  subtotal: number; discount: number; total: number;
+  deposit_amount: number | null;
+  nights: number | null;
+  seats: number;
+  time: string | null;
+  end_date: string | null;
+  /** Cupos o habitaciones libres antes de esta reserva. */
+  remaining: number | null;
+  promo: { code: string; applied: boolean; reason?: string } | null;
+  departure: { booked: number; min_guests: number | null; confirmed: boolean } | null;
+}
+
+export async function quoteBooking(request: BookingRequest): Promise<ServerQuote> {
+  return (await fetchApi<{ data: ServerQuote }>("/bookings/quote", { method: "POST", body: JSON.stringify(request) })).data;
+}
+
+/**
+ * Reserva del visitante (`POST /bookings`): el servidor recalcula el precio, comprueba cupos y avisa al operador.
+ * Sólo «pagar después»: el pago con tarjeta está en «Próximamente». La clave de idempotencia evita duplicados al reintentar.
+ */
+export async function createPublicBooking(input: { request: BookingRequest; contact: { name: string; email: string; phone?: string }; notes?: string; idempotencyKey: string }): Promise<{ id: string; reference: string; status: string }> {
+  const res = await fetchApi<{ data: { booking: ApiBooking } }>("/bookings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Idempotency-Key": input.idempotencyKey },
+    body: JSON.stringify({ request: input.request, contact: input.contact, notes: input.notes, payment_mode: "pay_later", locale: "es" }),
+  });
+  return { id: res.data.booking.id, reference: res.data.booking.reference, status: res.data.booking.status };
 }
 
 // ---------- Hooks ----------

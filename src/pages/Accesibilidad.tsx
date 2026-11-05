@@ -6,6 +6,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { usePageContent } from "@/lib/pageContent";
 
 const travelStages = [
   {
@@ -70,11 +71,14 @@ const accessNeeds = [
 ];
 
 export default function Accesibilidad() {
+  const pc = usePageContent("accesibilidad");
+  const travelStages = pc.data("travelStages", __pcData.travelStages);
+  const accessNeeds = pc.data("accessNeeds", __pcData.accessNeeds);
   return (
     <PageTransition>
       <SEOHead
-        title="Guía de viaje accesible en República Dominicana"
-        description="Prepara un viaje accesible con preguntas prácticas sobre transporte, alojamiento y actividades. Confirma cada servicio directamente antes de reservar."
+        title={pc.t("SEOHead.title.1", "Guía de viaje accesible en República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Prepara un viaje accesible con preguntas prácticas sobre transporte, alojamiento y actividades. Confirma cada servicio directamente antes de reservar.")}
         keywords="guía viaje accesible República Dominicana, turismo inclusivo, movilidad, accesibilidad"
       />
       <div className="min-h-screen bg-background text-foreground">
@@ -85,18 +89,11 @@ export default function Accesibilidad() {
             <div className="container mx-auto grid gap-10 px-4 py-16 md:grid-cols-[1.3fr_0.7fr] md:items-end md:px-8 md:py-24">
               <div className="max-w-3xl">
                 <Badge variant="outline" className="mb-6 gap-2 border-primary/40 px-3 py-1 text-primary">
-                  <Accessibility className="h-4 w-4" aria-hidden="true" />
-                  Guía práctica para planificar
-                </Badge>
-                <h1 className="font-display text-4xl font-bold leading-tight tracking-tight md:text-6xl">
-                  Viaja con más información. Decide a tu ritmo.
-                </h1>
-                <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-                  Una guía para conversar con alojamientos, transportistas y espacios antes de reservar. Elige qué confirmar según tus necesidades y prepara alternativas para cada etapa.
-                </p>
+                  <Accessibility className="h-4 w-4" aria-hidden="true" />{pc.tx("Badge.1", "Guía práctica para planificar")}</Badge>
+                <h1 className="font-display text-4xl font-bold leading-tight tracking-tight md:text-6xl">{pc.tx("h1.1", "Viaja con más información. Decide a tu ritmo.")}</h1>
+                <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">{pc.tx("p.1", "Una guía para conversar con alojamientos, transportistas y espacios antes de reservar. Elige qué confirmar según tus necesidades y prepara alternativas para cada etapa.")}</p>
                 <Button asChild size="lg" className="mt-8 gap-2">
-                  <a href="#antes-de-reservar">
-                    Empezar a planificar <ArrowDown className="h-4 w-4" aria-hidden="true" />
+                  <a href="#antes-de-reservar">{pc.tx("a.1", "Empezar a planificar")}{" "}<ArrowDown className="h-4 w-4" aria-hidden="true" />
                   </a>
                 </Button>
               </div>
@@ -106,22 +103,19 @@ export default function Accesibilidad() {
                 <div className="flex items-start gap-4">
                   <ShieldCheck className="mt-1 h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
                   <div>
-                    <h2 id="confirmar-heading" className="font-display text-xl font-bold">Confirma antes de viajar</h2>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                      Las condiciones de acceso cambian entre proveedores y con el tiempo. Esta guía no certifica establecimientos ni sustituye la confirmación directa del servicio.
-                    </p>
+                    <h2 id="confirmar-heading" className="font-display text-xl font-bold">{pc.tx("h2.1", "Confirma antes de viajar")}</h2>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{pc.tx("p.2", "Las condiciones de acceso cambian entre proveedores y con el tiempo. Esta guía no certifica establecimientos ni sustituye la confirmación directa del servicio.")}</p>
                   </div>
                 </div>
-                <a className="mt-6 inline-flex items-center gap-2 font-medium text-primary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" href="#preguntas-por-necesidad">
-                  Ir a preguntas por necesidad <ArrowDown className="h-4 w-4" aria-hidden="true" />
+                <a className="mt-6 inline-flex items-center gap-2 font-medium text-primary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary" href="#preguntas-por-necesidad">{pc.tx("a.2", "Ir a preguntas por necesidad")}{" "}<ArrowDown className="h-4 w-4" aria-hidden="true" />
                 </a>
               </aside>
             </div>
           </section>
 
-          <section className="container mx-auto grid gap-12 px-4 py-16 md:grid-cols-[240px_1fr] md:px-8 md:py-20" aria-label="Guía para preparar el viaje">
-            <nav aria-label="En esta guía" className="h-fit border-l-2 border-border pl-4 md:sticky md:top-24">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">En esta guía</p>
+          <section className="container mx-auto grid gap-12 px-4 py-16 md:grid-cols-[240px_1fr] md:px-8 md:py-20" aria-label={pc.t("section.aria-label.1", "Guía para preparar el viaje")}>
+            <nav aria-label={pc.t("nav.aria-label.1", "En esta guía")} className="h-fit border-l-2 border-border pl-4 md:sticky md:top-24">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{pc.tx("p.3", "En esta guía")}</p>
               <ul className="space-y-3 text-sm">
                 {travelStages.map((stage) => (
                   <li key={stage.id}>
@@ -130,15 +124,15 @@ export default function Accesibilidad() {
                     </a>
                   </li>
                 ))}
-                <li><a className="text-foreground underline-offset-4 hover:text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" href="#preguntas-por-necesidad">Preguntas por necesidad</a></li>
+                <li><a className="text-foreground underline-offset-4 hover:text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary" href="#preguntas-por-necesidad">{pc.tx("a.3", "Preguntas por necesidad")}</a></li>
               </ul>
             </nav>
 
             <div className="min-w-0">
               <div className="mb-10 max-w-2xl">
-                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">Un recorrido de preparación</p>
-                <h2 className="mt-3 font-display text-3xl font-bold md:text-4xl">Tres conversaciones que evitan sorpresas</h2>
-                <p className="mt-4 leading-relaxed text-muted-foreground">Usa estas preguntas como lista de comprobación. Describe lo que te funciona y pide medidas, fotos recientes o confirmación escrita cuando te ayude a decidir.</p>
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">{pc.tx("p.4", "Un recorrido de preparación")}</p>
+                <h2 className="mt-3 font-display text-3xl font-bold md:text-4xl">{pc.tx("h2.2", "Tres conversaciones que evitan sorpresas")}</h2>
+                <p className="mt-4 leading-relaxed text-muted-foreground">{pc.tx("p.5", "Usa estas preguntas como lista de comprobación. Describe lo que te funciona y pide medidas, fotos recientes o confirmación escrita cuando te ayude a decidir.")}</p>
               </div>
 
               <div className="space-y-5">
@@ -165,9 +159,9 @@ export default function Accesibilidad() {
               </div>
 
               <section id="preguntas-por-necesidad" className="scroll-mt-24 pt-16" aria-labelledby="needs-heading">
-                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">Adapta la conversación</p>
-                <h2 id="needs-heading" className="mt-3 font-display text-3xl font-bold md:text-4xl">Preguntas según lo que necesitas</h2>
-                <p className="mt-4 max-w-2xl leading-relaxed text-muted-foreground">Las necesidades pueden combinarse. No tienes que encajar en una sola categoría para pedir información clara.</p>
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">{pc.tx("p.6", "Adapta la conversación")}</p>
+                <h2 id="needs-heading" className="mt-3 font-display text-3xl font-bold md:text-4xl">{pc.tx("h2.3", "Preguntas según lo que necesitas")}</h2>
+                <p className="mt-4 max-w-2xl leading-relaxed text-muted-foreground">{pc.tx("p.7", "Las necesidades pueden combinarse. No tienes que encajar en una sola categoría para pedir información clara.")}</p>
                 <ul className="mt-8 grid gap-4 sm:grid-cols-2">
                   {accessNeeds.map(({ title, icon: Icon, description }) => (
                     <li key={title} className="rounded-2xl border border-border p-5 md:p-6">
@@ -183,12 +177,12 @@ export default function Accesibilidad() {
                 <div className="flex gap-4">
                   <HandHelping className="mt-1 h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
                   <div>
-                    <h2 id="help-heading" className="font-display text-xl font-bold">¿Necesitas ayuda para organizar la llegada?</h2>
-                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">Consulta nuestra información general de transporte y movilidad. Verifica horarios, asistencia y condiciones directamente con cada operador antes de salir.</p>
+                    <h2 id="help-heading" className="font-display text-xl font-bold">{pc.tx("h2.4", "¿Necesitas ayuda para organizar la llegada?")}</h2>
+                    <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">{pc.tx("p.8", "Consulta nuestra información general de transporte y movilidad. Verifica horarios, asistencia y condiciones directamente con cada operador antes de salir.")}</p>
                     <div className="mt-5 flex flex-wrap gap-3">
-                      <Button asChild variant="default"><Link to="/info/transporte"><Bus className="mr-2 h-4 w-4" aria-hidden="true" />Información de transporte</Link></Button>
-                      <Button asChild variant="outline"><Link to="/centro-ayuda"><Phone className="mr-2 h-4 w-4" aria-hidden="true" />Centro de ayuda</Link></Button>
-                      <Button asChild variant="ghost"><Link to="/destinos"><MapPin className="mr-2 h-4 w-4" aria-hidden="true" />Explorar destinos</Link></Button>
+                      <Button asChild variant="default"><Link to="/transporte-urbano#recorre"><Bus className="mr-2 h-4 w-4" aria-hidden="true" />{pc.tx("Link.1", "Información de transporte")}</Link></Button>
+                      <Button asChild variant="outline"><Link to="/centro-ayuda"><Phone className="mr-2 h-4 w-4" aria-hidden="true" />{pc.tx("Link.2", "Centro de ayuda")}</Link></Button>
+                      <Button asChild variant="ghost"><Link to="/destinos"><MapPin className="mr-2 h-4 w-4" aria-hidden="true" />{pc.tx("Link.3", "Explorar destinos")}</Link></Button>
                     </div>
                   </div>
                 </div>
@@ -200,9 +194,9 @@ export default function Accesibilidad() {
             <div className="container mx-auto flex flex-col gap-4 px-4 md:flex-row md:items-center md:justify-between md:px-8">
               <div className="flex items-start gap-3">
                 <Signpost className="mt-1 h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-                <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">Si una ficha no explica sus condiciones de acceso, solicita la información antes de reservar. No interpretes una etiqueta, una fotografía o una calificación como garantía de accesibilidad.</p>
+                <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">{pc.tx("p.9", "Si una ficha no explica sus condiciones de acceso, solicita la información antes de reservar. No interpretes una etiqueta, una fotografía o una calificación como garantía de accesibilidad.")}</p>
               </div>
-              <Link to="/accesibilidad" className="shrink-0 font-medium text-primary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">Volver al inicio de esta guía</Link>
+              <Link to="/accesibilidad" className="shrink-0 font-medium text-primary underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">{pc.tx("Link.4", "Volver al inicio de esta guía")}</Link>
             </div>
           </section>
         </main>
@@ -212,3 +206,6 @@ export default function Accesibilidad() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { travelStages, accessNeeds };

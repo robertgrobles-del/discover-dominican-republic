@@ -20,7 +20,7 @@ export function PassportSeasonsTab() {
             </p>
           </div>
           <div className="bg-card/90 border border-border p-4 rounded-2xl text-center shrink-0">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Finaliza en</span>
+            <span className="text-3xs uppercase font-bold text-muted-foreground block mb-1">Finaliza en</span>
             <span className="text-xl font-black text-primary font-mono">65 días : 14h</span>
           </div>
         </div>
@@ -99,7 +99,7 @@ export function PassportSeasonsTab() {
               <div className="flex-1">
                 <div className="flex justify-between items-start">
                   <h5 className="font-bold text-sm">Degusta el Pescado con Coco en Las Terrenas</h5>
-                  <Badge className="bg-amber-500/15 text-amber-500 border-none text-[10px]">+60 Monedas</Badge>
+                  <Badge className="bg-amber-500/15 text-amber-500 border-none text-3xs">+60 Monedas</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Presenta tu pasaporte digital en restaurantes de la bahía y pide al camarero que escanee tu código.
@@ -114,7 +114,7 @@ export function PassportSeasonsTab() {
               <div className="flex-1">
                 <div className="flex justify-between items-start">
                   <h5 className="font-bold text-sm">Ascenso a la Cascada El Limón</h5>
-                  <Badge className="bg-amber-500/15 text-amber-500 border-none text-[10px]">+100 XP Extra</Badge>
+                  <Badge className="bg-amber-500/15 text-amber-500 border-none text-3xs">+100 XP Extra</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Registra tu llegada al rancho oficial de operadores comunitarios certificados por MITUR.

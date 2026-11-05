@@ -54,9 +54,9 @@ export function MegaMenuDondeIr({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-1">
                     <p className="font-bold text-foreground group-hover:text-primary transition-colors text-xs truncate">{item.name}</p>
-                    <span className="text-[9px] px-2 py-0.5 bg-primary/15 text-primary rounded-full font-semibold">{item.tag}</span>
+                    <span className="text-3xs px-2 py-0.5 bg-primary/15 text-primary rounded-full font-semibold">{item.tag}</span>
                   </div>
-                  <p className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5">{item.desc}</p>
+                  <p className="text-2xs text-muted-foreground truncate leading-tight mt-0.5">{item.desc}</p>
                 </div>
               </Link>
             ))}
@@ -89,10 +89,10 @@ export function MegaMenuDondeIr({
                   <span className="font-bold text-xs text-foreground group-hover:text-primary transition-colors block mb-1">
                     {region.name.split(' (')[0]}
                   </span>
-                  <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">{region.desc}</p>
+                  <p className="text-2xs text-muted-foreground line-clamp-2 leading-relaxed">{region.desc}</p>
                 </div>
                 <div className="mt-2 pt-2 border-t border-border/40 flex items-center justify-between">
-                  <span className="text-[10px] font-semibold text-primary">
+                  <span className="text-3xs font-semibold text-primary">
                     ✦ {region.tag}
                   </span>
                   <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:translate-x-1 transition-transform" />
@@ -108,7 +108,7 @@ export function MegaMenuDondeIr({
             <img src={samanaImg} alt="Bahía de las Águilas" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-3.5">
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-black mb-1.5 shadow">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary text-primary-foreground text-3xs font-black mb-1.5 shadow">
                 ★ {t("header.destinationOfMonth")}
               </span>
               <h4 className="font-display text-sm font-bold text-white leading-tight">Bahía de las Águilas</h4>
@@ -127,7 +127,7 @@ export function MegaMenuDondeIr({
               </div>
               <div>
                 <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">Pasaporte de 32 Provincias</p>
-                <p className="text-[10px] text-muted-foreground">Sellos digitales y ranking de exploradores</p>
+                <p className="text-3xs text-muted-foreground">Sellos digitales y ranking de exploradores</p>
               </div>
             </div>
             <ChevronRight className="h-4 w-4 text-primary group-hover:translate-x-1 transition-transform" />

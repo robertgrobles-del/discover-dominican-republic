@@ -244,7 +244,7 @@ export function MarketplaceEscrowManager() {
           <p className="text-2xl font-black text-amber-500 mt-1">
             RD$ {totalHeldInEscrow.toLocaleString()}
           </p>
-          <span className="text-[11px] text-muted-foreground">
+          <span className="text-2xs text-muted-foreground">
             Pendiente de entrega / guía comprobada
           </span>
         </Card>
@@ -257,7 +257,7 @@ export function MarketplaceEscrowManager() {
           <p className="text-2xl font-black text-emerald-500 mt-1">
             RD$ {totalPayoutsReleased.toLocaleString()}
           </p>
-          <span className="text-[11px] text-muted-foreground">
+          <span className="text-2xs text-muted-foreground">
             Transferidos a tu cuenta bancaria
           </span>
         </Card>
@@ -270,7 +270,7 @@ export function MarketplaceEscrowManager() {
           <p className="text-2xl font-black text-foreground mt-1">
             {orders.length}
           </p>
-          <span className="text-[11px] text-muted-foreground">
+          <span className="text-2xs text-muted-foreground">
             {orders.filter((o) => o.status === "held_in_escrow").length} requieren envío hoy
           </span>
         </Card>
@@ -339,7 +339,7 @@ export function MarketplaceEscrowManager() {
       {/* Orders Table */}
       <div className="rounded-3xl border border-border bg-card shadow-sm overflow-x-auto">
         <table className="w-full text-xs text-left text-muted-foreground">
-          <thead className="bg-muted text-foreground font-bold uppercase text-[10px] tracking-wider border-b border-border">
+          <thead className="bg-muted text-foreground font-bold uppercase text-3xs tracking-wider border-b border-border">
             <tr>
               <th className="py-3 px-4">Orden / Fecha</th>
               <th className="py-3 px-4">Producto & Destino</th>
@@ -354,44 +354,44 @@ export function MarketplaceEscrowManager() {
               <tr key={order.id} className="hover:bg-muted/40 transition-colors">
                 <td className="py-3.5 px-4 font-bold text-foreground">
                   <span className="font-mono text-xs">{order.orderNumber}</span>
-                  <span className="block text-[10px] text-muted-foreground font-normal">
+                  <span className="block text-3xs text-muted-foreground font-normal">
                     {new Date(order.createdAt).toLocaleDateString()}
                   </span>
                 </td>
                 <td className="py-3.5 px-4">
                   <div className="font-bold text-foreground line-clamp-1">{order.productName}</div>
-                  <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                  <div className="text-2xs text-muted-foreground flex items-center gap-1">
                     <span>📍 {order.province} • {order.shippingAddress}</span>
                   </div>
                 </td>
                 <td className="py-3.5 px-3 text-center">
                   <div className="font-semibold text-foreground">{order.buyerName}</div>
-                  <div className="text-[10px] text-muted-foreground">{order.buyerPhone}</div>
+                  <div className="text-3xs text-muted-foreground">{order.buyerPhone}</div>
                 </td>
                 <td className="py-3.5 px-3 text-center">
                   <span className="font-mono font-bold text-sm text-foreground">
                     RD$ {order.netPayout.toLocaleString()}
                   </span>
-                  <span className="block text-[9px] text-muted-foreground">
+                  <span className="block text-3xs text-muted-foreground">
                     (Total: RD$ {order.amount} - Com: {order.commission})
                   </span>
                 </td>
                 <td className="py-3.5 px-3 text-center">
                   {order.status === "held_in_escrow" && (
-                    <Badge className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-[10px] font-bold">
+                    <Badge className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 text-3xs font-bold">
                       🔒 Pago en Custodia
                     </Badge>
                   )}
                   {order.status === "shipped" && (
                     <div className="space-y-0.5">
-                      <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-[10px] font-bold">
+                      <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-3xs font-bold">
                         🚚 Enviado ({order.carrier})
                       </Badge>
-                      <span className="block font-mono text-[9px] text-muted-foreground">Guía: {order.trackingNumber}</span>
+                      <span className="block font-mono text-3xs text-muted-foreground">Guía: {order.trackingNumber}</span>
                     </div>
                   )}
                   {order.status === "payout_released" && (
-                    <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[10px] font-bold">
+                    <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-3xs font-bold">
                       ✅ Fondos Liberados
                     </Badge>
                   )}
@@ -412,14 +412,14 @@ export function MarketplaceEscrowManager() {
                       size="sm"
                       variant="outline"
                       onClick={() => handleSimulateDeliveryAndPayout(order.id)}
-                      className="rounded-xl text-[11px] gap-1 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 h-8 px-2.5 font-bold"
+                      className="rounded-xl text-2xs gap-1 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 h-8 px-2.5 font-bold"
                     >
                       <CheckCircle2 className="h-3.5 w-3.5" /> Comprobar Entrega
                     </Button>
                   )}
 
                   {order.status === "payout_released" && (
-                    <span className="text-[11px] text-muted-foreground font-semibold">
+                    <span className="text-2xs text-muted-foreground font-semibold">
                       Completado
                     </span>
                   )}
@@ -514,7 +514,7 @@ export function MarketplaceEscrowManager() {
               <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
               <div>
                 <p className="font-bold text-sm">Estado: Vendedor 100% Verificado y Certificado</p>
-                <p className="text-[11px] mt-0.5">Tus productos cuentan con el sello oficial de garantía y protección de pago.</p>
+                <p className="text-2xs mt-0.5">Tus productos cuentan con el sello oficial de garantía y protección de pago.</p>
               </div>
             </div>
 

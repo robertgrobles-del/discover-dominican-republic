@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useAdBannerList, trackBannerClick, trackBannerImpression } from "@/hooks/useAdBanners";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ChevronRight, ChevronLeft, MapPin, Users, Compass, 
@@ -127,18 +128,24 @@ export const provinceSlidesData: ProvinceSlide[] = [
 ];
 
 export function ProvincesHeroSlider() {
+  // Diapositivas patrocinadas: sólo las del admin (banner_type "hero-slide", section "provincias" o "global").
+  const heroAds = useAdBannerList("hero-slide", "provincias");
+  const slides = useMemo<(ProvinceSlide & { adId?: string })[]>(() => [
+    ...provinceSlidesData.filter((s) => !s.isSponsored),
+    ...heroAds.filter((b) => b.image_url).map((b, i) => ({ id: 10_000 + i, adId: b.id, name: b.headline || b.name, region: b.slide_details?.tag || b.sponsor || "Publicidad", tagline: b.subtext || "", description: b.alt_text || "", image: b.image_url!, isSponsored: true, sponsorBadge: "Patrocinado", sponsorBrand: b.sponsor || undefined, ctaText: b.cta_text || "Ver más", ctaLink: b.target_url || "/", stats: (b.slide_details?.stats ?? []).filter((s) => s.value).slice(0, 3) })),
+  ], [heroAds]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
   const touchStartX = useRef<number | null>(null);
 
   const nextSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev + 1) % provinceSlidesData.length);
-  }, []);
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
+  }, [slides.length]);
 
   const prevSlide = useCallback(() => {
-    setCurrentSlide((prev) => (prev - 1 + provinceSlidesData.length) % provinceSlidesData.length);
-  }, []);
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  }, [slides.length]);
 
   useEffect(() => {
     if (!isAutoPlaying) return;
@@ -146,7 +153,8 @@ export function ProvincesHeroSlider() {
     return () => clearInterval(interval);
   }, [isAutoPlaying, nextSlide]);
 
-  const current = provinceSlidesData[currentSlide];
+  const current = slides[currentSlide] ?? slides[0];
+  useEffect(() => { if (current.adId) void trackBannerImpression(current.adId); }, [current.adId]);
 
   return (
     <div 
@@ -199,7 +207,7 @@ export function ProvincesHeroSlider() {
               </Badge>
             )}
             <Badge variant="outline" className="border-white/20 text-white/80 text-xs backdrop-blur-md">
-              Slide {currentSlide + 1} de {provinceSlidesData.length}
+              Slide {currentSlide + 1} de {slides.length}
             </Badge>
           </div>
 
@@ -246,7 +254,7 @@ export function ProvincesHeroSlider() {
           >
             {current.stats.map((stat, i) => (
               <div key={i} className="text-left px-2">
-                <p className="text-[10px] sm:text-xs uppercase text-slate-300 font-semibold tracking-wider">{stat.label}</p>
+                <p className="text-3xs sm:text-xs uppercase text-slate-300 font-semibold tracking-wider">{stat.label}</p>
                 <p className="text-xs sm:text-sm font-bold text-white truncate">{stat.value}</p>
               </div>
             ))}
@@ -255,7 +263,7 @@ export function ProvincesHeroSlider() {
           {/* Action CTAs */}
           <div className="flex flex-wrap items-center gap-3">
             <Button asChild size="lg" className="rounded-xl px-6 font-bold shadow-lg shadow-primary/25">
-              <Link to={current.ctaLink}>
+              <Link to={current.ctaLink} onClick={() => { if (current.adId) void trackBannerClick(current.adId); }}>
                 {current.ctaText} <ArrowRight className="h-4 w-4 ml-2" />
               </Link>
             </Button>
@@ -279,7 +287,7 @@ export function ProvincesHeroSlider() {
           
           {/* Thumbnails Navigation */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
-            {provinceSlidesData.map((slide, idx) => {
+            {slides.map((slide, idx) => {
               const isActive = idx === currentSlide;
               return (
                 <button
@@ -296,7 +304,7 @@ export function ProvincesHeroSlider() {
                   </div>
                   <div className="text-left max-w-[120px] sm:max-w-[140px]">
                     <p className="text-xs font-bold truncate">{slide.name}</p>
-                    <p className="text-[10px] text-slate-400 truncate">
+                    <p className="text-3xs text-slate-400 truncate">
                       {slide.isSponsored ? "★ Patrocinado" : slide.region}
                     </p>
                   </div>

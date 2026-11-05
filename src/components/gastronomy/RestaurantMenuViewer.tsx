@@ -159,7 +159,7 @@ export const RestaurantMenuViewer: React.FC<RestaurantMenuViewerProps> = ({
                 <strong className="font-semibold">{menuData.activeSponsorship.title}:</strong> {menuData.activeSponsorship.description}
               </span>
             </div>
-            <Badge variant="outline" className="bg-amber-500/20 border-amber-400 text-amber-800 dark:text-amber-300 text-[11px] whitespace-nowrap">
+            <Badge variant="outline" className="bg-amber-500/20 border-amber-400 text-amber-800 dark:text-amber-300 text-2xs whitespace-nowrap">
               {menuData.activeSponsorship.type === 'regalo_usuario' && '🎁 Bono Viajero'}
               {menuData.activeSponsorship.type === 'degustacion_influencer' && '📸 Prensa / Creadores'}
               {menuData.activeSponsorship.type === 'rifa_seguidores' && '🎟️ Sorteo Activo'}
@@ -339,7 +339,7 @@ export const RestaurantMenuViewer: React.FC<RestaurantMenuViewerProps> = ({
                         }`}
                       >
                         {item.isSignature && (
-                          <div className="bg-amber-500 text-amber-950 font-bold text-[10px] uppercase tracking-wider px-2 py-0.5 absolute top-0 right-0 rounded-bl-lg shadow-sm flex items-center gap-1">
+                          <div className="bg-amber-500 text-amber-950 font-bold text-3xs uppercase tracking-wider px-2 py-0.5 absolute top-0 right-0 rounded-bl-lg shadow-sm flex items-center gap-1">
                             <Sparkles className="w-3 h-3" /> Especialidad de la Casa
                           </div>
                         )}
@@ -364,7 +364,7 @@ export const RestaurantMenuViewer: React.FC<RestaurantMenuViewerProps> = ({
                                   <Badge 
                                     key={diet} 
                                     variant="outline" 
-                                    className={`text-[10px] px-1.5 py-0 h-4 border ${getDietaryBadgeColor(diet)}`}
+                                    className={`text-3xs px-1.5 py-0 h-4 border ${getDietaryBadgeColor(diet)}`}
                                   >
                                     {getDietaryLabel(diet)}
                                   </Badge>

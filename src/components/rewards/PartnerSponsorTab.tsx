@@ -18,6 +18,8 @@ import { toast } from "sonner";
 import { PartnerEmbedBadge } from "@/components/gamification/PartnerEmbedBadge";
 import { rewardsFaqs, type CatalogReward, type RedeemedVoucher } from "@/data/rewardsData";
 import { apiClient } from "@/lib/api";
+import { fetchApi } from "@/lib/fastifyClient";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 
 interface PartnerSponsorTabProps {
   rewards: CatalogReward[];
@@ -172,10 +174,55 @@ export const PartnerSponsorTab: React.FC<PartnerSponsorTabProps> = ({
     });
   };
 
-  const handleValidateVoucherCode = () => {
+  const [isValidatingCode, setIsValidatingCode] = useState(false);
+
+  const handleValidateVoucherCode = async () => {
     const code = voucherCodeInput.trim().toUpperCase();
     if (!code) {
       toast.error("Ingresa un código de voucher.");
+      return;
+    }
+
+    if (HAS_BACKEND_SESSION) {
+      setIsValidatingCode(true);
+      try {
+        const res = await fetchApi<{ data: { valid: boolean; guest_name?: string; title?: string; kind?: string } }>("/tickets/verify", {
+          method: "POST",
+          body: JSON.stringify({ code }),
+        });
+        if (res.data?.valid) {
+          setVoucherValidationResult({
+            isValid: true,
+            voucher: {
+              id: `v-${code}`,
+              code,
+              reward_id: "api-verified",
+              reward_name: res.data.title || "Beneficio Oficial Verificado",
+              prizeName: res.data.title || "Beneficio Oficial Verificado",
+              sponsor: res.data.guest_name || "Descubre RD",
+              redeemed_at: new Date().toISOString(),
+              expires_at: new Date(Date.now() + 30 * 86400000).toISOString(),
+              status: "used",
+            },
+            message: `✓ Voucher / Pase Auténtico: ${res.data.title || "Confirmado"} (${res.data.guest_name || "Titular"})`,
+          });
+          toast.success("Voucher / Entrada validado exitosamente en el servidor.");
+        } else {
+          setVoucherValidationResult({
+            isValid: false,
+            message: "❌ Código no válido o ya utilizado anteriormente.",
+          });
+          toast.error("Código no válido.");
+        }
+      } catch (err: any) {
+        setVoucherValidationResult({
+          isValid: false,
+          message: `❌ ${err?.message || "Código no encontrado o no autorizado."}`,
+        });
+        toast.error(err?.message || "Error al verificar código.");
+      } finally {
+        setIsValidatingCode(false);
+      }
       return;
     }
 
@@ -320,7 +367,7 @@ export const PartnerSponsorTab: React.FC<PartnerSponsorTabProps> = ({
                   }
                   className="mt-1 text-xs rounded-xl h-9 bg-card border-border"
                 />
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-3xs text-muted-foreground">
                   Formato de 9 u 11 dígitos con guiones
                 </span>
               </div>
@@ -338,7 +385,7 @@ export const PartnerSponsorTab: React.FC<PartnerSponsorTabProps> = ({
                   }
                   className="mt-1 text-xs rounded-xl h-9 bg-card border-border"
                 />
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-3xs text-muted-foreground">
                   Licencia de operación emitida por el Ministerio de Turismo
                 </span>
               </div>
@@ -448,7 +495,7 @@ export const PartnerSponsorTab: React.FC<PartnerSponsorTabProps> = ({
                     onChange={(e) => setOtpCode(e.target.value)}
                     className="mt-1 text-xs rounded-xl h-9 bg-card border-border font-mono font-bold tracking-widest text-center"
                   />
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-3xs text-muted-foreground">
                     Validación instantánea sin esperas
                   </span>
                 </div>
@@ -473,7 +520,7 @@ export const PartnerSponsorTab: React.FC<PartnerSponsorTabProps> = ({
                         : "📎 Adjuntar RNC o Registro Mercantil"}
                     </button>
                   </div>
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-3xs text-muted-foreground">
                     Revisión manual aprobada en &lt; 24h
                   </span>
                 </div>
@@ -613,7 +660,7 @@ export const PartnerSponsorTab: React.FC<PartnerSponsorTabProps> = ({
                   }
                   className="mt-1 text-xs rounded-xl h-9 bg-card border-border font-bold text-amber-500"
                 />
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-3xs text-muted-foreground">
                   Recomendado entre 150 y 500 monedas
                 </span>
               </div>
@@ -637,7 +684,7 @@ export const PartnerSponsorTab: React.FC<PartnerSponsorTabProps> = ({
                   }}
                   className="mt-1 text-xs rounded-xl h-9 bg-card border-border"
                 />
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-3xs text-muted-foreground">
                   Equivalente a aprox. ${newRewardForm.estimatedValueUsd} USD
                 </span>
               </div>
@@ -797,7 +844,7 @@ export const PartnerSponsorTab: React.FC<PartnerSponsorTabProps> = ({
                       />
                       <div>
                         <p className="font-bold text-foreground">{ad.name}</p>
-                        <p className="text-[10px] text-muted-foreground">{ad.desc}</p>
+                        <p className="text-3xs text-muted-foreground">{ad.desc}</p>
                       </div>
                     </label>
                   ))}
@@ -811,7 +858,7 @@ export const PartnerSponsorTab: React.FC<PartnerSponsorTabProps> = ({
                 </h4>
 
                 <div>
-                  <Label className="text-[11px] font-bold">
+                  <Label className="text-2xs font-bold">
                     1. Regalo / Cortesía para Usuarios Descubre RD
                   </Label>
                   <Input
@@ -824,7 +871,7 @@ export const PartnerSponsorTab: React.FC<PartnerSponsorTabProps> = ({
                 </div>
 
                 <div>
-                  <Label className="text-[11px] font-bold">
+                  <Label className="text-2xs font-bold">
                     2. Degustación / Estadía para Creadores & Influencers
                   </Label>
                   <Input
@@ -840,7 +887,7 @@ export const PartnerSponsorTab: React.FC<PartnerSponsorTabProps> = ({
                 </div>
 
                 <div>
-                  <Label className="text-[11px] font-bold">
+                  <Label className="text-2xs font-bold">
                     3. Sorteo / Rifa entre Seguidores
                   </Label>
                   <Input
@@ -884,31 +931,31 @@ export const PartnerSponsorTab: React.FC<PartnerSponsorTabProps> = ({
             {/* Metrics Summary */}
             <div className="grid sm:grid-cols-3 gap-4">
               <div className="p-5 rounded-3xl bg-background border border-border space-y-1">
-                <span className="text-[10px] text-muted-foreground uppercase font-bold">
+                <span className="text-3xs text-muted-foreground uppercase font-bold">
                   Recompensas Activas
                 </span>
                 <p className="text-2xl font-black text-foreground">
                   {rewards.filter((r) => r.isPartnerCustom).length + 1}
                 </p>
-                <p className="text-[10px] text-emerald-600 font-semibold">
+                <p className="text-3xs text-emerald-600 font-semibold">
                   Visibles en todo el país
                 </p>
               </div>
 
               <div className="p-5 rounded-3xl bg-background border border-border space-y-1">
-                <span className="text-[10px] text-muted-foreground uppercase font-bold">
+                <span className="text-3xs text-muted-foreground uppercase font-bold">
                   Vouchers Canjeados por Turistas
                 </span>
                 <p className="text-2xl font-black text-amber-500">14</p>
-                <p className="text-[10px] text-muted-foreground">Turistas verificados</p>
+                <p className="text-3xs text-muted-foreground">Turistas verificados</p>
               </div>
 
               <div className="p-5 rounded-3xl bg-background border border-border space-y-1">
-                <span className="text-[10px] text-muted-foreground uppercase font-bold">
+                <span className="text-3xs text-muted-foreground uppercase font-bold">
                   Reseñas y Menciones
                 </span>
                 <p className="text-2xl font-black text-primary">⭐ 4.9 / 5.0</p>
-                <p className="text-[10px] text-muted-foreground">Excelente satisfacción</p>
+                <p className="text-3xs text-muted-foreground">Excelente satisfacción</p>
               </div>
             </div>
 
@@ -937,9 +984,15 @@ export const PartnerSponsorTab: React.FC<PartnerSponsorTabProps> = ({
                 />
                 <Button
                   onClick={handleValidateVoucherCode}
+                  disabled={isValidatingCode}
                   className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl text-xs h-10 px-5 shrink-0"
                 >
-                  <ShieldCheck className="h-4 w-4 mr-1.5" /> Comprobar Voucher
+                  {isValidatingCode ? (
+                    <RefreshCw className="h-4 w-4 mr-1.5 animate-spin" />
+                  ) : (
+                    <ShieldCheck className="h-4 w-4 mr-1.5" />
+                  )}
+                  Comprobar Voucher
                 </Button>
               </div>
 

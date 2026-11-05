@@ -119,7 +119,7 @@ export class GamificationSoundEngine {
   private static getContext(): AudioContext | null {
     if (typeof window === "undefined") return null;
     if (!this.audioCtx) {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const AudioContextClass = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
       if (AudioContextClass) {
         this.audioCtx = new AudioContextClass();
       }
@@ -167,7 +167,7 @@ export class GamificationSoundEngine {
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + 0.35);
-    } catch (e) {}
+    } catch { /* sin Web Audio: el efecto de sonido es opcional */ }
   }
 
   /** Sonido de Subida de Nivel / Fanfare */
@@ -188,7 +188,7 @@ export class GamificationSoundEngine {
         osc.start(ctx.currentTime + idx * 0.08);
         osc.stop(ctx.currentTime + idx * 0.08 + 0.25);
       });
-    } catch (e) {}
+    } catch { /* sin Web Audio: el efecto de sonido es opcional */ }
   }
 
   /** Sonido de Acierto en Trivia */
@@ -207,7 +207,7 @@ export class GamificationSoundEngine {
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + 0.28);
-    } catch (e) {}
+    } catch { /* sin Web Audio: el efecto de sonido es opcional */ }
   }
 }
 
@@ -273,17 +273,18 @@ export class AntiFraudEngine {
 }
 
 // Cola de Check-ins Offline
+export interface OfflineCheckIn { provinceId: string; provinceName: string; lat: number; lng: number; timestamp: number }
 export class OfflineGamificationQueue {
   private static STORAGE_KEY = "descubrerd_offline_checkins";
 
-  static enqueueCheckIn(checkIn: { provinceId: string; provinceName: string; lat: number; lng: number; timestamp: number }) {
+  static enqueueCheckIn(checkIn: OfflineCheckIn) {
     if (typeof window === "undefined") return;
     const queue = this.getQueue();
     queue.push(checkIn);
     localStorage.setItem(this.STORAGE_KEY, JSON.stringify(queue));
   }
 
-  static getQueue(): any[] {
+  static getQueue(): OfflineCheckIn[] {
     if (typeof window === "undefined") return [];
     try {
       const data = localStorage.getItem(this.STORAGE_KEY);

@@ -12,6 +12,7 @@ import puntaCanaImg from "@/assets/punta-cana.jpg";
 import samanaImg from "@/assets/samana.jpg";
 import divingImg from "@/assets/diving.jpg";
 import raftingImg from "@/assets/rafting.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 interface Experience {
   id: string;
@@ -83,6 +84,8 @@ const availableExperiences: Experience[] = [
 ];
 
 export default function ComparadorExperiencias() {
+  const pc = usePageContent("comparador-experiencias");
+  const availableExperiences = pc.data("availableExperiences", __pcData.availableExperiences);
   const [selectedExperiences, setSelectedExperiences] = useState<Experience[]>([]);
   const [showSelector, setShowSelector] = useState(false);
 
@@ -109,8 +112,8 @@ export default function ComparadorExperiencias() {
   return (
     <PageTransition>
       <SEOHead
-        title="Comparador de Experiencias | Turismo RD"
-        description="Compara experiencias turísticas en República Dominicana: precios, valoraciones y características."
+        title={pc.t("SEOHead.title.1", "Comparador de Experiencias | Turismo RD")}
+        description={pc.t("SEOHead.description.1", "Compara experiencias turísticas en República Dominicana: precios, valoraciones y características.")}
         keywords="comparador, experiencias, tours, República Dominicana, turismo"
       />
       <div className="min-h-screen bg-background">
@@ -126,14 +129,11 @@ export default function ComparadorExperiencias() {
             >
               <div className="inline-flex items-center gap-2 bg-primary/20 text-primary px-4 py-2 rounded-full mb-4">
                 <Scale className="h-5 w-5" />
-                <span className="font-medium">Comparador</span>
+                <span className="font-medium">{pc.tx("span.1", "Comparador")}</span>
               </div>
-              <h1 className="font-display text-3xl md:text-4xl font-bold mb-3">
-                Compara <span className="text-primary">Experiencias</span>
+              <h1 className="font-display text-3xl md:text-4xl font-bold mb-3">{pc.tx("h1.1", "Compara")}{" "}<span className="text-primary">{pc.tx("span.2", "Experiencias")}</span>
               </h1>
-              <p className="text-muted-foreground">
-                Selecciona hasta 3 experiencias para comparar precios, valoraciones y características.
-              </p>
+              <p className="text-muted-foreground">{pc.tx("p.1", "Selecciona hasta 3 experiencias para comparar precios, valoraciones y características.")}</p>
             </motion.div>
           </div>
         </section>
@@ -194,7 +194,7 @@ export default function ComparadorExperiencias() {
                           <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-3">
                             <Plus className="h-6 w-6 text-muted-foreground" />
                           </div>
-                          <p className="text-muted-foreground">Agregar experiencia</p>
+                          <p className="text-muted-foreground">{pc.tx("p.2", "Agregar experiencia")}</p>
                         </div>
                       </Card>
                     )}
@@ -211,14 +211,14 @@ export default function ComparadorExperiencias() {
               >
                 <Card>
                   <CardHeader>
-                    <CardTitle>Comparación Detallada</CardTitle>
+                    <CardTitle>{pc.tx("CardTitle.1", "Comparación Detallada")}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
                           <tr className="border-b">
-                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">Característica</th>
+                            <th className="text-left py-3 px-4 font-medium text-muted-foreground">{pc.tx("th.1", "Característica")}</th>
                             {selectedExperiences.map((exp) => (
                               <th key={exp.id} className="text-left py-3 px-4 font-bold">{exp.name}</th>
                             ))}
@@ -236,7 +236,7 @@ export default function ComparadorExperiencias() {
                             </tr>
                           ))}
                           <tr className="border-b">
-                            <td className="py-3 px-4 text-muted-foreground">Incluye</td>
+                            <td className="py-3 px-4 text-muted-foreground">{pc.tx("td.1", "Incluye")}</td>
                             {selectedExperiences.map((exp) => (
                               <td key={exp.id} className="py-3 px-4">
                                 <div className="flex flex-wrap gap-1">
@@ -248,7 +248,7 @@ export default function ComparadorExperiencias() {
                             ))}
                           </tr>
                           <tr>
-                            <td className="py-3 px-4 text-muted-foreground">Destacados</td>
+                            <td className="py-3 px-4 text-muted-foreground">{pc.tx("td.2", "Destacados")}</td>
                             {selectedExperiences.map((exp) => (
                               <td key={exp.id} className="py-3 px-4">
                                 <ul className="space-y-1">
@@ -268,8 +268,7 @@ export default function ComparadorExperiencias() {
 
                     <div className="flex justify-center gap-4 mt-8">
                       {selectedExperiences.map((exp) => (
-                        <Button key={exp.id} className="gap-2">
-                          Reservar {exp.name.split(' ')[0]}
+                        <Button key={exp.id} className="gap-2">{pc.tx("Button.1", "Reservar")}{" "}{exp.name.split(' ')[0]}
                           <ArrowRight className="h-4 w-4" />
                         </Button>
                       ))}
@@ -294,7 +293,7 @@ export default function ComparadorExperiencias() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="p-6 border-b border-border flex items-center justify-between">
-                    <h2 className="font-display text-xl font-bold">Seleccionar Experiencia</h2>
+                    <h2 className="font-display text-xl font-bold">{pc.tx("h2.1", "Seleccionar Experiencia")}</h2>
                     <Button size="icon" variant="ghost" onClick={() => setShowSelector(false)}>
                       <X className="h-5 w-5" />
                     </Button>
@@ -345,3 +344,6 @@ export default function ComparadorExperiencias() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { availableExperiences };

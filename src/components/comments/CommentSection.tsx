@@ -76,8 +76,8 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
         if (Array.isArray(items) && items.length > 0) {
           setComments(items.map((it) => ({
             id: it.id,
-            author_name: it.author_name || "Explorador",
-            author_avatar: it.author_avatar || undefined,
+            author_name: it.author.name,
+            author_avatar: it.author.avatar_url || undefined,
             rating: 5,
             content: it.content,
             created_at: new Date(it.created_at).toLocaleDateString(),
@@ -287,7 +287,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                   </Avatar>
                   <div>
                     <h5 className="text-xs font-bold text-foreground">{c.author_name}</h5>
-                    <span className="text-[10px] text-muted-foreground">{c.created_at}</span>
+                    <span className="text-3xs text-muted-foreground">{c.created_at}</span>
                   </div>
                 </div>
 
@@ -302,7 +302,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
 
               <p className="text-xs text-foreground/90 leading-relaxed pl-11">{c.content}</p>
 
-              <div className="flex items-center justify-between pt-2 pl-11 border-t border-border/40 text-[11px] text-muted-foreground">
+              <div className="flex items-center justify-between pt-2 pl-11 border-t border-border/40 text-2xs text-muted-foreground">
                 <button
                   type="button"
                   onClick={() => handleLike(c.id)}

@@ -8,6 +8,9 @@
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "strict-origin-when-cross-origin"
+		# frame-ancestors no funciona en <meta>; esta cabecera se suma a la CSP de index.html.
+		Content-Security-Policy "frame-ancestors 'self'"
+		X-Frame-Options "SAMEORIGIN"
 		-Server
 	}
 }

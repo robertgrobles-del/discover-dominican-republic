@@ -31,7 +31,7 @@ export function AccessDeniedState({
           <h3 className="font-bold text-lg text-foreground">{title}</h3>
           <p className="text-xs text-muted-foreground">{description}</p>
           {requiredRole && (
-            <p className="text-[11px] font-mono text-muted-foreground mt-1">
+            <p className="text-2xs font-mono text-muted-foreground mt-1">
               Rol requerido: <span className="font-bold text-foreground">{requiredRole}</span>
             </p>
           )}

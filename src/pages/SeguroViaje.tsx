@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 
 import heroBeach from "@/assets/hero-beach.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const planes = [
   {
@@ -88,6 +89,9 @@ const centrosMedicosRD = [
 ];
 
 export default function SeguroViaje() {
+  const pc = usePageContent("seguro-viaje");
+  const planes = pc.data("planes", __pcData.planes);
+  const centrosMedicosRD = pc.data("centrosMedicosRD", __pcData.centrosMedicosRD);
   const [diasViaje, setDiasViaje] = useState(7);
   const [pasajeros, setPasajeros] = useState(2);
 
@@ -100,8 +104,8 @@ export default function SeguroViaje() {
   return (
     <PageTransition>
       <SEOHead
-        title="Seguro de Viaje para República Dominicana | Comparador y Coberturas Médicas RD"
-        description="Compara seguros de viaje para RD: cobertura médica en Punta Cana y Santo Domingo, rescate en deportes acuáticos, cancelación y clínicas de primer nivel."
+        title={pc.t("SEOHead.title.1", "Seguro de Viaje para República Dominicana | Comparador y Coberturas Médicas RD")}
+        description={pc.t("SEOHead.description.1", "Compara seguros de viaje para RD: cobertura médica en Punta Cana y Santo Domingo, rescate en deportes acuáticos, cancelación y clínicas de primer nivel.")}
         keywords="seguro viaje republica dominicana, seguro medico turista rd, cobertura medica punta cana, seguro cancelacion vuelo rd, hospiten centro medico"
       />
       <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -110,40 +114,35 @@ export default function SeguroViaje() {
         {/* Hero Section */}
         <section className="relative h-[60vh] min-h-[460px] flex items-end overflow-hidden">
           <img
-            src={heroBeach}
-            alt="Seguro de Viaje y Protección Médica en República Dominicana"
+            src={pc.img("img.src.1", heroBeach)}
+            alt={pc.t("img.alt.1", "Seguro de Viaje y Protección Médica en República Dominicana")}
             className="absolute inset-0 w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/75 to-black/35" />
 
           <div className="relative z-10 container mx-auto px-4 lg:px-8 pb-12">
             <nav className="flex items-center gap-2 text-xs md:text-sm text-white/80 mb-4">
-              <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
+              <Link to="/" className="hover:text-primary transition-colors">{pc.tx("Link.1", "Inicio")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <Link to="/planifica" className="hover:text-primary transition-colors">Planifica</Link>
+              <Link to="/planifica" className="hover:text-primary transition-colors">{pc.tx("Link.2", "Planifica")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <span className="text-white font-medium">Seguro de Viaje y Cobertura Médica</span>
+              <span className="text-white font-medium">{pc.tx("span.1", "Seguro de Viaje y Cobertura Médica")}</span>
             </nav>
 
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div>
                 <Badge className="mb-3 bg-primary/20 text-primary border-primary/30 text-xs px-3 py-1 font-semibold">
-                  <ShieldCheck className="h-3.5 w-3.5 mr-1.5" /> VIAJA 100% PROTEGIDO
-                </Badge>
-                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">
-                  Seguro de Viaje para RD
-                </h1>
-                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">
-                  Disfruta de tus vacaciones en el Caribe con total serenidad: emergencias médicas, deportes acuáticos, cancelación de vuelos y asistencia en español 24/7.
-                </p>
+                  <ShieldCheck className="h-3.5 w-3.5 mr-1.5" />{" "}{pc.tx("Badge.1", "VIAJA 100% PROTEGIDO")}</Badge>
+                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">{pc.tx("h1.1", "Seguro de Viaje para RD")}</h1>
+                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">{pc.tx("p.1", "Disfruta de tus vacaciones en el Caribe con total serenidad: emergencias médicas, deportes acuáticos, cancelación de vuelos y asistencia en español 24/7.")}</p>
               </div>
 
               {/* Alert Badge */}
               <div className="bg-black/50 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-white flex items-center gap-3">
                 <Stethoscope className="h-8 w-8 text-primary shrink-0" />
                 <div>
-                  <p className="text-xs text-white/70">Red de Hospitales Privados</p>
-                  <p className="text-sm font-bold text-emerald-400">Convenios Directos 24/7</p>
+                  <p className="text-xs text-white/70">{pc.tx("p.2", "Red de Hospitales Privados")}</p>
+                  <p className="text-sm font-bold text-emerald-400">{pc.tx("p.3", "Convenios Directos 24/7")}</p>
                 </div>
               </div>
             </div>
@@ -155,8 +154,7 @@ export default function SeguroViaje() {
           <div className="container mx-auto px-4 text-center">
             <p className="text-xs md:text-sm text-foreground flex items-center justify-center gap-2">
               <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
-              <strong>Recomendación oficial:</strong> Aunque el seguro no es obligatorio por ley, una consulta de urgencia privada puede superar los US$ 500 y una internación los US$ 4,000+.
-            </p>
+              <strong>{pc.tx("strong.1", "Recomendación oficial:")}</strong>{" "}{pc.tx("p.4", "Aunque el seguro no es obligatorio por ley, una consulta de urgencia privada puede superar los US$ 500 y una internación los US$ 4,000+.")}</p>
           </div>
         </section>
 
@@ -166,7 +164,7 @@ export default function SeguroViaje() {
             <div className="bg-card p-6 rounded-2xl border border-border flex flex-col sm:flex-row items-center justify-between gap-6">
               <div className="flex-1 w-full grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-semibold text-muted-foreground block mb-1">Días de Viaje</label>
+                  <label className="text-xs font-semibold text-muted-foreground block mb-1">{pc.tx("label.1", "Días de Viaje")}</label>
                   <Input 
                     type="number" 
                     min={1} 
@@ -177,7 +175,7 @@ export default function SeguroViaje() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-muted-foreground block mb-1">Pasajeros</label>
+                  <label className="text-xs font-semibold text-muted-foreground block mb-1">{pc.tx("label.2", "Pasajeros")}</label>
                   <Input 
                     type="number" 
                     min={1} 
@@ -190,8 +188,8 @@ export default function SeguroViaje() {
               </div>
 
               <div className="text-center sm:text-right flex-shrink-0">
-                <p className="text-xs text-muted-foreground">Cobertura calculada para:</p>
-                <p className="font-display font-bold text-lg text-foreground">{diasViaje} días • {pasajeros} viajeros</p>
+                <p className="text-xs text-muted-foreground">{pc.tx("p.5", "Cobertura calculada para:")}</p>
+                <p className="font-display font-bold text-lg text-foreground">{diasViaje}{" "}{pc.tx("p.6", "días •")}{" "}{pasajeros}{" "}{pc.tx("p.7", "viajeros")}</p>
               </div>
             </div>
           </div>
@@ -200,15 +198,9 @@ export default function SeguroViaje() {
         {/* Plan Cards Matrix */}
         <section className="py-16 container mx-auto px-4 lg:px-8 max-w-6xl">
           <div className="text-center mb-12">
-            <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
-              PLANES DISPONIBLES
-            </Badge>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
-              Compara Coberturas para tu Estadía
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
-              Elige el nivel de protección que mejor se adapte a tus actividades previstas.
-            </p>
+            <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">{pc.tx("Badge.2", "PLANES DISPONIBLES")}</Badge>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">{pc.tx("h2.1", "Compara Coberturas para tu Estadía")}</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">{pc.tx("p.8", "Elige el nivel de protección que mejor se adapte a tus actividades previstas.")}</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 mb-16">
@@ -220,9 +212,7 @@ export default function SeguroViaje() {
                   className={`relative overflow-hidden bg-card border flex flex-col justify-between ${plan.color} ${plan.popular ? 'ring-2 ring-primary shadow-xl' : 'border-border/80'}`}
                 >
                   {plan.popular && (
-                    <div className="bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 text-center tracking-wider">
-                      RECOMENDADO PARA REPÚBLICA DOMINICANA
-                    </div>
+                    <div className="bg-primary text-primary-foreground text-3xs font-bold px-3 py-1 text-center tracking-wider">{pc.tx("div.1", "RECOMENDADO PARA REPÚBLICA DOMINICANA")}</div>
                   )}
                   <CardContent className="p-6 flex flex-col flex-1">
                     <h3 className="font-display text-xl font-bold text-foreground mb-1">{plan.nombre}</h3>
@@ -230,8 +220,8 @@ export default function SeguroViaje() {
                     
                     <div className="mb-6 p-4 bg-muted/30 rounded-xl border border-border">
                       <div className="flex items-baseline gap-1">
-                        <span className="font-display font-black text-3xl text-primary">US$ {costoTotal}</span>
-                        <span className="text-xs text-muted-foreground">total ({plan.precioPorDia}$/día por persona)</span>
+                        <span className="font-display font-black text-3xl text-primary">{pc.tx("span.2", "US$")}{" "}{costoTotal}</span>
+                        <span className="text-xs text-muted-foreground">{pc.tx("span.3", "total (")}{plan.precioPorDia}{pc.tx("span.4", "$/día por persona)")}</span>
                       </div>
                     </div>
 
@@ -255,8 +245,7 @@ export default function SeguroViaje() {
                       ))}
                     </div>
 
-                    <Button onClick={() => handleCotizar(plan.nombre)} className="w-full gap-2">
-                      Cotizar y Solicitar {plan.nombre.split(" ")[0]}
+                    <Button onClick={() => handleCotizar(plan.nombre)} className="w-full gap-2">{pc.tx("Button.1", "Cotizar y Solicitar")}{" "}{plan.nombre.split(" ")[0]}
                     </Button>
                   </CardContent>
                 </Card>
@@ -267,8 +256,7 @@ export default function SeguroViaje() {
           {/* Hospitals and Medical Centers */}
           <div className="bg-card border border-border rounded-2xl p-6 md:p-10">
             <h3 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
-              <Building2 className="h-6 w-6 text-primary" /> Principales Centros Médicos con Atención Internacional
-            </h3>
+              <Building2 className="h-6 w-6 text-primary" />{" "}{pc.tx("h3.1", "Principales Centros Médicos con Atención Internacional")}</h3>
             <div className="grid sm:grid-cols-2 gap-4">
               {centrosMedicosRD.map((c) => (
                 <div key={c.nombre} className="p-4 bg-muted/30 rounded-xl border border-border space-y-1.5">
@@ -293,3 +281,6 @@ export default function SeguroViaje() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { planes, centrosMedicosRD };

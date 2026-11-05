@@ -12,6 +12,8 @@ import { costUsd, estimateTokens, type AiKind, type AiMessage, type AiProvider, 
 const RD_DAY_START = "(date_trunc('day', now() AT TIME ZONE 'America/Santo_Domingo') AT TIME ZONE 'America/Santo_Domingo')";
 const LANG: Record<string, string> = { es: "español", en: "inglés", fr: "francés", de: "alemán", pt: "portugués", it: "italiano" };
 const STAFF_FACTOR = 10;
+/** Parte del tope diario de gasto que puede consumir el chat sin sesión. */
+const ANON_BUDGET_SHARE = 0.25;
 
 export interface Ctx { userId?: string | null; staff?: boolean }
 export type Candidate = PublicContentCandidate;
@@ -63,6 +65,12 @@ export class AiService {
       }
       const spent = Number((await c.query<{ n: string }>(`SELECT coalesce(sum(cost_usd), 0) AS n FROM ai_usage WHERE created_at >= ${RD_DAY_START}`)).rows[0]!.n);
       if (spent >= this.env.AI_DAILY_BUDGET_USD) throw new AppError("SERVICE_UNAVAILABLE", "El asistente de IA alcanzó su límite de hoy; intenta mañana", { code: "AI_BUDGET" });
+      if (!ctx.userId) {
+        // Sin sesión no hay cuota por persona: el uso anónimo tiene su propio techo (una fracción del tope diario)
+        // para que no agote el presupuesto del que dependen las cuentas registradas y el personal.
+        const anon = Number((await c.query<{ n: string }>(`SELECT coalesce(sum(cost_usd), 0) AS n FROM ai_usage WHERE user_id IS NULL AND created_at >= ${RD_DAY_START}`)).rows[0]!.n);
+        if (anon >= this.env.AI_DAILY_BUDGET_USD * ANON_BUDGET_SHARE) throw new AppError("RATE_LIMITED", "El asistente alcanzó su límite de hoy para visitantes sin sesión; inicia sesión para seguir", { code: "AI_ANON_BUDGET" });
+      }
       const id = (await c.query<{ id: number }>("INSERT INTO ai_usage (user_id, kind, model) VALUES ($1,$2,$3) RETURNING id", [ctx.userId ?? null, kind, model])).rows[0]!.id;
       await c.query("COMMIT");
       return id;

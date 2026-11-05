@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ChevronRight, Search, Sun, Ruler, Landmark, Users, ChevronLeft, MapPin, Star, Calendar,
@@ -19,6 +19,10 @@ import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 import adLuxuryHotelImg from "@/assets/promo/promo-luxury-hotel.jpg";
 import adGastronomyImg from "@/assets/promo/promo-gastronomy-mobile.jpg";
+import { usePageContent } from "@/lib/pageContent";
+import { useAdBannerList, trackBannerClick, trackBannerImpression, type AdBanner } from "@/hooks/useAdBanners";
+
+import { AdSlotTag } from "@/components/promo/AdSlotTag";
 
 interface SlideStat {
   icon: typeof Sun;
@@ -276,16 +280,13 @@ function DestinationCard({
           <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
           
           {card.badge && (
-            <div className="absolute top-3 left-3 bg-red-600 text-white font-mono font-black text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-md shadow-xs border border-white flex items-center gap-1 animate-pulse">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
-              <span>{card.badge} • ESPACIO DISPONIBLE</span>
-            </div>
+            <AdSlotTag size={card.badge} className="left-3 top-3" />
           )}
 
-          <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2.5 py-1 rounded-full">
+          {card.rating > 0 && <div className="absolute top-3 right-3 flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2.5 py-1 rounded-full">
             <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500" aria-hidden="true" />
             <span className="text-xs font-semibold" aria-label={`Calificación ${card.rating} de 5`}>{card.rating}</span>
-          </div>
+          </div>}
         </div>
         <div className="p-4">
           <h3 className="font-display font-bold text-foreground mb-2 text-lg truncate">{card.title}</h3>
@@ -306,6 +307,14 @@ function DestinationCard({
 }
 
 export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
+  const pc = usePageContent("hero-slideshow");
+  const pageSlides = pc.data("slidesData", __pcData.slidesData);
+  // Las diapositivas patrocinadas salen sólo del admin de anuncios (banner_type "hero-slide"), nunca del contenido fijo.
+  const heroAds = useAdBannerList("hero-slide", "home");
+  const slidesData = useMemo(
+    () => [...pageSlides.filter((s) => !s.isSponsored), ...heroAds.filter((b) => b.image_url).map(adToSlide)],
+    [pageSlides, heroAds],
+  );
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -314,11 +323,11 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
 
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % slidesData.length);
-  }, []);
+  }, [slidesData.length]);
 
   const prevSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev - 1 + slidesData.length) % slidesData.length);
-  }, []);
+  }, [slidesData.length]);
 
   const goToSlide = useCallback((index: number) => {
     setCurrentSlide(index);
@@ -357,7 +366,9 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
     setTouchStartX(null);
   };
 
-  const slide = slidesData[currentSlide];
+  const slide = slidesData[currentSlide] ?? slidesData[0];
+  const slideAdId = (slide as SlideData & { adId?: string }).adId;
+  useEffect(() => { if (slideAdId) void trackBannerImpression(slideAdId); }, [slideAdId]);
 
   return (
     <section 
@@ -369,9 +380,9 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
       <div className="absolute inset-0 z-0">
         <ResponsiveImage
           src={slidesData[0].image}
-          avif={heroAvif}
-          webp={heroWebp}
-          alt="Playas paradisíacas de República Dominicana"
+          avif={pc.img("asset.heroAvif", heroAvif)}
+          webp={pc.img("asset.heroWebp", heroWebp)}
+          alt={pc.t("ResponsiveImage.alt.1", "Playas paradisíacas de República Dominicana")}
           width="1920"
           height="1080"
           className="h-full w-full object-cover"
@@ -414,24 +425,21 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
 
       {/* Main Hero Content Area */}
       <div className="relative z-10 flex-1 flex flex-col justify-center container mx-auto px-4 lg:px-8 pt-8 lg:pt-12 pb-8">
-        <div className="grid lg:grid-cols-5 gap-8 items-center">
-          <div className="lg:col-span-3 max-w-2xl">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
+          <div className="lg:col-span-3 max-w-2xl min-w-0">
 
             {onOpenSearch && (
               <Button
                 type="button"
                 variant="outline"
                 onClick={onOpenSearch}
-                aria-label="Abrir búsqueda global"
                 className="mb-6 h-12 w-full max-w-xl justify-between rounded-xl border-border/80 bg-background/85 px-4 text-left text-muted-foreground shadow-lg backdrop-blur-md hover:border-primary/50 hover:bg-background"
               >
-                <span className="flex items-center gap-3">
+                <span className="flex min-w-0 items-center gap-3">
                   <Search className="h-5 w-5 text-primary" aria-hidden="true" />
-                  <span>¿Qué quieres descubrir en República Dominicana?</span>
+                  <span className="truncate">{pc.tx("span.1", "¿Qué quieres descubrir en República Dominicana?")}</span>
                 </span>
-                <span className="hidden rounded-md border border-border bg-muted px-2 py-1 text-[10px] font-medium text-muted-foreground sm:inline-flex">
-                  Buscar
-                </span>
+                <span className="hidden rounded-md border border-border bg-muted px-2 py-1 text-3xs font-medium text-muted-foreground sm:inline-flex">{pc.tx("span.2", "Buscar")}</span>
               </Button>
             )}
             
@@ -445,15 +453,9 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
                 transition={{ duration: 0.35, ease: "easeOut" }}
                 className="flex flex-col items-start gap-2.5 mb-4"
               >
-                {slide.isSponsored && (
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-red-600 text-white font-mono font-black text-xs sm:text-sm border-2 border-white shadow-2xl shadow-red-950/80 uppercase tracking-wider animate-pulse">
-                    <span className="w-2 h-2 rounded-full bg-white animate-ping" />
-                    <span>SLIDER HERO (1920 × 1080) • ESPACIO PUBLICITARIO DISPONIBLE</span>
-                  </div>
-                )}
                 <div className="flex items-center gap-2">
                   {slide.isSponsored && (
-                    <SponsoredBadge label={slide.sponsorBadge} className="text-[11px] uppercase tracking-wider px-2.5 py-0.5 shadow-sm" />
+                    <SponsoredBadge label={slide.sponsorBadge} className="text-2xs uppercase tracking-wider px-2.5 py-0.5 shadow-sm" />
                   )}
                   <span className="inline-flex items-center gap-2 text-primary text-sm font-semibold tracking-wide">
                     <span className="w-6 h-px bg-primary" />
@@ -473,10 +475,10 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
                 transition={{ duration: 0.45, delay: 0.05, ease: "easeOut" }}
                 className="mb-4"
               >
-                {/* Main H1 Title - Dominant & Impactful */}
-                <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground leading-[1.08] line-clamp-2">
+                {/* Rotating slide title is h2; the stable page h1 lives outside the carousel */}
+                <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground leading-[1.08] line-clamp-2">
                   {slide.title}
-                </h1>
+                </h2>
                 
                 {/* Secondary Subtitle - Refined Accent Scale */}
                 <p className="font-display text-xl sm:text-2xl md:text-3xl font-semibold text-gradient mt-2 leading-snug line-clamp-1">
@@ -507,7 +509,7 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
               className="flex flex-wrap gap-4"
             >
               <Button size="lg" className="gap-2 font-display font-semibold shadow-lg shadow-primary/20" asChild>
-                <Link to={slide.ctaLink || "/destinos"}>
+                <Link to={slide.ctaLink || "/destinos"} onClick={() => { if (slideAdId) void trackBannerClick(slideAdId); }}>
                   {slide.ctaText || t("hero.cta")}
                   <ChevronRight className="h-4 w-4" />
                 </Link>
@@ -526,7 +528,7 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
             <div
               ref={carouselRef}
               role="region"
-              aria-label="Carrusel de destinos turísticos y destacados"
+              aria-label={pc.t("div.aria-label.1", "Carrusel de destinos turísticos y destacados")}
               aria-roledescription="carrusel"
               className="flex gap-4 overflow-x-auto scrollbar-hide pb-4 pr-4 max-w-full scroll-smooth [scrollbar-width:none] [-ms-overflow-style:none]"
             >
@@ -541,18 +543,18 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
             </div>
 
             {/* Slide Navigation Controls */}
-            <div className="flex items-center gap-4 mt-6 pr-4" role="group" aria-label="Controles del carrusel">
+            <div className="flex items-center gap-4 mt-6 pr-4" role="group" aria-label={pc.t("div.aria-label.2", "Controles del carrusel")}>
               <Button
                 size="icon"
                 variant="outline"
-                aria-label="Slide anterior"
+                aria-label={pc.t("Button.aria-label.2", "Slide anterior")}
                 className="rounded-full w-10 h-10 bg-background/60 backdrop-blur-md border-border/60 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
                 onClick={() => { setIsAutoPlaying(false); prevSlide(); }}
               >
                 <ChevronLeft className="h-5 w-5" aria-hidden="true" />
               </Button>
               
-              <div className="flex gap-2" role="tablist" aria-label="Paginación de slides">
+              <div className="flex gap-2" role="tablist" aria-label={pc.t("div.aria-label.3", "Paginación de slides")}>
                 {slidesData.map((s, index) => (
                   <button
                     key={index}
@@ -571,7 +573,7 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
               <Button
                 size="icon"
                 variant="outline"
-                aria-label="Slide siguiente"
+                aria-label={pc.t("Button.aria-label.3", "Slide siguiente")}
                 className="rounded-full w-10 h-10 bg-background/60 backdrop-blur-md border-border/60 hover:bg-primary/20 hover:border-primary/50 transition-all duration-300"
                 onClick={() => { setIsAutoPlaying(false); nextSlide(); }}
               >
@@ -621,4 +623,26 @@ export function HeroSlideshow({ onOpenSearch }: { onOpenSearch?: () => void }) {
       </div>
     </section>
   );
+}
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { slidesData };
+
+function adToSlide(b: AdBanner, i: number): SlideData & { adId: string } {
+  const d = b.slide_details ?? {};
+  return {
+    id: 10_000 + i,
+    adId: b.id,
+    image: b.image_url!,
+    tag: d.tag || b.sponsor || "Publicidad",
+    title: b.headline || b.name,
+    subtitle: b.subtext || "",
+    description: b.alt_text || "",
+    isSponsored: true,
+    sponsorBadge: `Publicidad${b.sponsor ? ` • ${b.sponsor}` : ""}`,
+    ctaText: b.cta_text || undefined,
+    ctaLink: b.target_url || undefined,
+    card: { image: b.image_url!, title: b.headline || b.name, location: d.location || b.sponsor || "", rating: d.rating ?? 0, season: d.season || "", badge: d.badge },
+    stats: (d.stats ?? []).filter((s) => s.value).slice(0, 4).map((s) => ({ icon: Star, value: s.value, label: s.label })),
+  };
 }

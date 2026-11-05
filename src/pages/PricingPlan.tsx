@@ -59,7 +59,7 @@ export default function PricingPlan() {
                 }`}
               >
                 Facturación Anual
-                <span className="bg-amber-400 text-slate-900 text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                <span className="bg-amber-400 text-slate-900 text-3xs font-extrabold px-2 py-0.5 rounded-full">
                   Ahorra 20%
                 </span>
               </button>

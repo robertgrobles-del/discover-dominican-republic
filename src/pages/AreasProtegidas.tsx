@@ -1,3 +1,4 @@
+import { ReservasSection } from "@/components/reservas/ReservasSection";
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -14,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { usePageContent } from "@/lib/pageContent";
 
 interface ProtectedArea {
   id: string;
@@ -68,6 +70,8 @@ const mockAreas: ProtectedArea[] = [
 ];
 
 export default function AreasProtegidas() {
+  const pc = usePageContent("areas-protegidas");
+  const mockAreas = pc.data("mockAreas", __pcData.mockAreas);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCat, setSelectedCat] = useState("all");
 
@@ -107,8 +111,8 @@ export default function AreasProtegidas() {
   return (
     <PageTransition>
       <SEOHead
-        title="Áreas Protegidas y Parques Nacionales de RD"
-        description="Explora las áreas protegidas de República Dominicana. Los Haitises, Ébano Verde y Santuario de Ballenas Jorobadas. Regulaciones, tarifas y visitas."
+        title={pc.t("SEOHead.title.1", "Áreas Protegidas y Parques Nacionales de RD")}
+        description={pc.t("SEOHead.description.1", "Explora las áreas protegidas de República Dominicana. Los Haitises, Ébano Verde y Santuario de Ballenas Jorobadas. Regulaciones, tarifas y visitas.")}
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -118,14 +122,9 @@ export default function AreasProtegidas() {
           <section className="relative py-16 bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border-b border-border">
             <div className="container mx-auto px-4 text-center">
               <Badge variant="secondary" className="mb-4 bg-emerald-500/10 text-emerald-600 border-emerald-500/20 gap-1">
-                <TreePine className="h-3.5 w-3.5" /> Conservación de la Biodiversidad
-              </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display">
-                Áreas Protegidas y Parques
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Descubre los santuarios naturales y reservas científicas que protegen la asombrosa biodiversidad de la República Dominicana.
-              </p>
+                <TreePine className="h-3.5 w-3.5" />{" "}{pc.tx("Badge.1", "Conservación de la Biodiversidad")}</Badge>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display">{pc.tx("h1.1", "Áreas Protegidas y Parques")}</h1>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.1", "Descubre los santuarios naturales y reservas científicas que protegen la asombrosa biodiversidad de la República Dominicana.")}</p>
             </div>
           </section>
 
@@ -139,7 +138,7 @@ export default function AreasProtegidas() {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     className="pl-9 text-sm"
-                    placeholder="Buscar parque por nombre o provincia..."
+                    placeholder={pc.t("Input.placeholder.1", "Buscar parque por nombre o provincia...")}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -150,10 +149,10 @@ export default function AreasProtegidas() {
                   value={selectedCat}
                   onChange={(e) => setSelectedCat(e.target.value)}
                 >
-                  <option value="all">Todas las Categorías</option>
-                  <option value="Parque Nacional">Parque Nacional</option>
-                  <option value="Santuario">Santuario Marino / Vida Silvestre</option>
-                  <option value="Reserva Científica">Reserva Científica</option>
+                  <option value="all">{pc.tx("option.1", "Todas las Categorías")}</option>
+                  <option value="Parque Nacional">{pc.tx("option.2", "Parque Nacional")}</option>
+                  <option value="Santuario">{pc.tx("option.3", "Santuario Marino / Vida Silvestre")}</option>
+                  <option value="Reserva Científica">{pc.tx("option.4", "Reserva Científica")}</option>
                 </select>
               </div>
 
@@ -164,16 +163,16 @@ export default function AreasProtegidas() {
                     <CardHeader className="pb-3 bg-muted/20">
                       <div className="flex flex-wrap justify-between items-start gap-2">
                         <div>
-                          <Badge variant="outline" className="mb-2 text-[10px] uppercase tracking-wider border-emerald-500/30 text-emerald-600">
+                          <Badge variant="outline" className="mb-2 text-3xs uppercase tracking-wider border-emerald-500/30 text-emerald-600">
                             {area.category}
                           </Badge>
-                          <CardTitle className="text-xl font-display">{area.name}</CardTitle>
+                          <CardTitle as="h2" className="text-xl font-display">{area.name}</CardTitle>
                           <span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                            <MapPin className="h-3 w-3 text-primary" /> {area.location} • Extensión: {area.size}
+                            <MapPin className="h-3 w-3 text-primary" /> {area.location}{" "}{pc.tx("span.1", "• Extensión:")}{" "}{area.size}
                           </span>
                         </div>
                         <div className="text-xs text-muted-foreground text-right shrink-0">
-                          <span className="block font-medium">Horario: {area.hours}</span>
+                          <span className="block font-medium">{pc.tx("span.2", "Horario:")}{" "}{area.hours}</span>
                           <span className="block font-semibold text-foreground mt-0.5">{area.fee}</span>
                         </div>
                       </div>
@@ -186,11 +185,10 @@ export default function AreasProtegidas() {
                         {/* Attractions */}
                         <div>
                           <span className="font-bold text-xs text-foreground uppercase tracking-wider block mb-2 flex items-center gap-1">
-                            <Compass className="h-3.5 w-3.5 text-primary" /> Atractivos Principales
-                          </span>
+                            <Compass className="h-3.5 w-3.5 text-primary" />{" "}{pc.tx("span.3", "Atractivos Principales")}</span>
                           <div className="flex flex-wrap gap-1">
                             {area.attractions.map((att, idx) => (
-                              <Badge key={idx} variant="secondary" className="text-[10px]">{att}</Badge>
+                              <Badge key={idx} variant="secondary" className="text-3xs">{att}</Badge>
                             ))}
                           </div>
                         </div>
@@ -198,8 +196,7 @@ export default function AreasProtegidas() {
                         {/* Rules */}
                         <div>
                           <span className="font-bold text-xs text-red-500 uppercase tracking-wider block mb-2 flex items-center gap-1">
-                            <AlertTriangle className="h-3.5 w-3.5" /> Normas de Visitación
-                          </span>
+                            <AlertTriangle className="h-3.5 w-3.5" />{" "}{pc.tx("span.4", "Normas de Visitación")}</span>
                           <ul className="text-xs space-y-1">
                             {area.rules.map((rule, idx) => (
                               <li key={idx} className="flex items-start gap-1">
@@ -220,8 +217,13 @@ export default function AreasProtegidas() {
           </section>
         </main>
 
+        <ReservasSection />
+
         <Footer />
       </div>
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { mockAreas };

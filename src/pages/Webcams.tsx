@@ -22,6 +22,7 @@ import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 import samanaImg from "@/assets/samana.jpg";
 import puertoPlataImg from "@/assets/puerto-plata.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const cameras = [
   {
@@ -68,6 +69,8 @@ const cameras = [
 ];
 
 export default function Webcams() {
+  const pc = usePageContent("webcams");
+  const cameras = pc.data("cameras", __pcData.cameras);
   const [selectedCamera, setSelectedCamera] = useState(cameras[0]);
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
 
@@ -75,20 +78,19 @@ export default function Webcams() {
     <PageTransition>
       <div className="min-h-screen bg-background">
         <Header />
+        <h1 className="sr-only">Webcams en vivo de República Dominicana</h1>
 
         {/* Breadcrumb */}
         <section className="py-4 border-b border-border">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="flex items-center justify-between">
               <nav className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>RD en Vivo</span>
+                <span>{pc.tx("span.1", "RD en Vivo")}</span>
                 <span>›</span>
                 <span className="text-foreground">{selectedCamera.location}</span>
               </nav>
               <Badge variant="outline" className="gap-2">
-                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                EN VIVO
-              </Badge>
+                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />{pc.tx("Badge.1", "EN VIVO")}</Badge>
             </div>
           </div>
         </section>
@@ -149,9 +151,7 @@ export default function Webcams() {
                         <div className="w-3/4 h-full bg-primary rounded-full" />
                       </div>
                       <Badge className="bg-red-500 text-white gap-1">
-                        <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                        LIVE
-                      </Badge>
+                        <span className="w-2 h-2 bg-white rounded-full animate-pulse" />{pc.tx("Badge.2", "LIVE")}</Badge>
                     </div>
                   </div>
 
@@ -159,38 +159,32 @@ export default function Webcams() {
                   <div className="grid grid-cols-3 divide-x divide-border">
                     <div className="p-4">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                        <Sun className="h-4 w-4" />
-                        CLIMA ACTUAL
-                      </div>
+                        <Sun className="h-4 w-4" />{pc.tx("div.1", "CLIMA ACTUAL")}</div>
                       <div className="flex items-center gap-2">
                         <span className="text-3xl font-bold text-foreground">{selectedCamera.temperature}</span>
                         <Sun className="h-8 w-8 text-amber-400" />
                       </div>
-                      <p className="text-sm text-muted-foreground">Soleado, humedad 72%</p>
+                      <p className="text-sm text-muted-foreground">{pc.tx("p.1", "Soleado, humedad 72%")}</p>
                     </div>
                     <div className="p-4">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                        <Clock className="h-4 w-4" />
-                        HORA LOCAL
-                      </div>
+                        <Clock className="h-4 w-4" />{pc.tx("div.2", "HORA LOCAL")}</div>
                       <p className="text-3xl font-bold text-foreground">
-                        10:42 <span className="text-lg font-normal text-muted-foreground">AM</span>
+                        10:42 <span className="text-lg font-normal text-muted-foreground">{pc.tx("span.2", "AM")}</span>
                       </p>
-                      <p className="text-sm text-muted-foreground">Zona Horaria AST (GMT-4)</p>
+                      <p className="text-sm text-muted-foreground">{pc.tx("p.2", "Zona Horaria AST (GMT-4)")}</p>
                     </div>
                     <div className="p-4">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                        <Wind className="h-4 w-4" />
-                        VIENTO
-                      </div>
+                        <Wind className="h-4 w-4" />{pc.tx("div.3", "VIENTO")}</div>
                       <div className="flex items-center gap-2">
                         <span className="text-3xl font-bold text-foreground">15</span>
-                        <span className="text-lg text-muted-foreground">km/h</span>
+                        <span className="text-lg text-muted-foreground">{pc.tx("span.3", "km/h")}</span>
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                           <Wind className="h-5 w-5 text-primary rotate-45" />
                         </div>
                       </div>
-                      <p className="text-sm text-muted-foreground">Dirección Noreste</p>
+                      <p className="text-sm text-muted-foreground">{pc.tx("p.3", "Dirección Noreste")}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -198,17 +192,12 @@ export default function Webcams() {
                 {/* Description */}
                 {selectedCamera.description && (
                   <div className="mt-6 p-6 bg-card rounded-2xl border border-border">
-                    <h3 className="font-display font-bold text-foreground mb-2">Sobre esta vista</h3>
+                    <h3 className="font-display font-bold text-foreground mb-2">{pc.tx("h3.1", "Sobre esta vista")}</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      {selectedCamera.description} Perfecto para verificar las condiciones del mar antes de salir o simplemente para conectar con la capital dominicana desde cualquier lugar del mundo.
-                    </p>
+                      {selectedCamera.description}{" "}{pc.tx("p.4", "Perfecto para verificar las condiciones del mar antes de salir o simplemente para conectar con la capital dominicana desde cualquier lugar del mundo.")}</p>
                     <div className="flex gap-4 mt-4">
-                      <Button variant="link" className="text-primary p-0">
-                        Ver en mapa ↗
-                      </Button>
-                      <Button variant="link" className="text-primary p-0">
-                        Hoteles cercanos 🏨
-                      </Button>
+                      <Button variant="link" className="text-primary p-0">{pc.tx("Button.1", "Ver en mapa ↗")}</Button>
+                      <Button variant="link" className="text-primary p-0">{pc.tx("Button.2", "Hoteles cercanos 🏨")}</Button>
                     </div>
                   </div>
                 )}
@@ -217,7 +206,7 @@ export default function Webcams() {
               {/* Camera List */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-display font-bold text-foreground">Otras Cámaras</h3>
+                  <h3 className="font-display font-bold text-foreground">{pc.tx("h3.2", "Otras Cámaras")}</h3>
                   <div className="flex gap-1">
                     <Button
                       size="icon"
@@ -257,7 +246,7 @@ export default function Webcams() {
                           className="w-full h-full object-cover"
                         />
                         <Badge 
-                          className={`absolute top-1 right-1 text-[10px] px-1 py-0 ${
+                          className={`absolute top-1 right-1 text-3xs px-1 py-0 ${
                             camera.status === "live" ? "bg-red-500" : "bg-muted"
                           }`}
                         >
@@ -280,11 +269,9 @@ export default function Webcams() {
 
                 {/* CTA */}
                 <div className="mt-6 p-6 bg-card rounded-2xl border border-border text-center">
-                  <p className="text-muted-foreground text-sm mb-4">¿Te gusta lo que ves?</p>
+                  <p className="text-muted-foreground text-sm mb-4">{pc.tx("p.5", "¿Te gusta lo que ves?")}</p>
                   <Button className="w-full">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Planificar Viaje
-                  </Button>
+                    <Calendar className="h-4 w-4 mr-2" />{pc.tx("Button.3", "Planificar Viaje")}</Button>
                 </div>
               </div>
             </div>
@@ -296,3 +283,6 @@ export default function Webcams() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { cameras };

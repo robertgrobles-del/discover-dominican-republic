@@ -6,6 +6,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowUpRight, CalendarDays, Footprints, Bus, Users, ShoppingBasket, Leaf, BookOpen, MapPin } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
 
 const explorations = [
   { id: "events", number: "111–112", title: "Agenda y esta semana", description: "Consulta el calendario editorial y los eventos publicados. Verifica fecha, lugar y cambios con la organización antes de desplazarte.", href: "/eventos", icon: CalendarDays, source: "Agenda de eventos" },
@@ -24,20 +25,23 @@ const walkingIdeas = [
 ];
 
 export default function DescubrimientoLocal() {
+  const pc = usePageContent("descubrimiento-local");
+  const explorations = pc.data("explorations", __pcData.explorations);
+  const walkingIdeas = pc.data("walkingIdeas", __pcData.walkingIdeas);
   return (
     <PageTransition>
-      <SEOHead title="Descubrimiento local y comunidad | Descubre RD" description="Agenda local, movilidad, guías, artesanía, naturaleza e historias para descubrir República Dominicana con contexto y respeto." />
+      <SEOHead title={pc.t("SEOHead.title.1", "Descubrimiento local y comunidad | Descubre RD")} description={pc.t("SEOHead.description.1", "Agenda local, movilidad, guías, artesanía, naturaleza e historias para descubrir República Dominicana con contexto y respeto.")} />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
         <main className="container mx-auto max-w-6xl flex-1 px-4 py-16">
-          <Badge variant="outline" className="mb-4 gap-2"><MapPin className="h-4 w-4" aria-hidden="true" /> Descubrimiento local</Badge>
-          <h1 className="max-w-3xl font-display text-4xl font-bold md:text-5xl">Conecta con lo que ocurre en cada territorio</h1>
-          <p className="mt-4 max-w-3xl text-muted-foreground">Una entrada a la agenda, la movilidad y las experiencias culturales y naturales del país. La disponibilidad y vigencia de cada dato depende de su fuente; confirma la información operativa con organizadores, comunidades y proveedores.</p>
+          <Badge variant="outline" className="mb-4 gap-2"><MapPin className="h-4 w-4" aria-hidden="true" />{" "}{pc.tx("Badge.1", "Descubrimiento local")}</Badge>
+          <h1 className="max-w-3xl font-display text-4xl font-bold md:text-5xl">{pc.tx("h1.1", "Conecta con lo que ocurre en cada territorio")}</h1>
+          <p className="mt-4 max-w-3xl text-muted-foreground">{pc.tx("p.1", "Una entrada a la agenda, la movilidad y las experiencias culturales y naturales del país. La disponibilidad y vigencia de cada dato depende de su fuente; confirma la información operativa con organizadores, comunidades y proveedores.")}</p>
           <ul className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {explorations.map((item) => {
               const Icon = item.icon;
               return <li key={item.id}><Card className="h-full transition-colors hover:border-primary/50"><CardContent className="flex h-full flex-col p-6">
-                <div className="flex items-center justify-between"><Badge variant="secondary">Fase 12 · {item.number}</Badge><Icon className="h-5 w-5 text-primary" aria-hidden="true" /></div>
+                <div className="flex items-center justify-between"><Badge variant="secondary">{pc.tx("Badge.2", "Fase 12 ·")}{" "}{item.number}</Badge><Icon className="h-5 w-5 text-primary" aria-hidden="true" /></div>
                 <h2 className="mt-5 font-display text-xl font-bold">{item.title}</h2>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
                 <Link className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-primary underline-offset-4 hover:underline" to={item.href}>{item.source}<ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
@@ -45,16 +49,18 @@ export default function DescubrimientoLocal() {
             })}
           </ul>
           <section className="mt-12" aria-labelledby="walking-routes-heading">
-            <h2 id="walking-routes-heading" className="font-display text-2xl font-bold">Ideas de recorridos urbanos</h2>
-            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Son secuencias orientativas de puntos de interés, no rutas peatonales validadas. Comprueba distancia, cruces, accesibilidad, clima y condiciones locales; adapta o suspende el paseo si el trayecto no es seguro o cómodo.</p>
-            <ul className="mt-4 grid gap-4 md:grid-cols-3">{walkingIdeas.map((route) => <li key={route.title}><Card className="h-full"><CardContent className="p-5"><h3 className="font-semibold">{route.title}</h3><p className="mt-2 text-sm text-muted-foreground">{route.stops}</p><Link className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary underline" to="/mapa-interactivo">Revisar puntos en el mapa<ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link></CardContent></Card></li>)}</ul>
+            <h2 id="walking-routes-heading" className="font-display text-2xl font-bold">{pc.tx("h2.1", "Ideas de recorridos urbanos")}</h2>
+            <p className="mt-2 max-w-3xl text-sm text-muted-foreground">{pc.tx("p.2", "Son secuencias orientativas de puntos de interés, no rutas peatonales validadas. Comprueba distancia, cruces, accesibilidad, clima y condiciones locales; adapta o suspende el paseo si el trayecto no es seguro o cómodo.")}</p>
+            <ul className="mt-4 grid gap-4 md:grid-cols-3">{walkingIdeas.map((route) => <li key={route.title}><Card className="h-full"><CardContent className="p-5"><h3 className="font-semibold">{route.title}</h3><p className="mt-2 text-sm text-muted-foreground">{route.stops}</p><Link className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary underline" to="/mapa-interactivo">{pc.tx("Link.1", "Revisar puntos en el mapa")}<ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link></CardContent></Card></li>)}</ul>
           </section>
           <aside className="mt-8 rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">
-            <strong className="text-foreground">Criterio editorial:</strong> no publicamos como confirmados horarios, eventos, certificaciones o precios sin responsable de actualización y fecha de revisión. Las historias comunitarias requieren autorización de sus protagonistas.
-          </aside>
+            <strong className="text-foreground">{pc.tx("strong.1", "Criterio editorial:")}</strong>{" "}{pc.tx("aside.1", "no publicamos como confirmados horarios, eventos, certificaciones o precios sin responsable de actualización y fecha de revisión. Las historias comunitarias requieren autorización de sus protagonistas.")}</aside>
         </main>
         <Footer />
       </div>
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { explorations, walkingIdeas };

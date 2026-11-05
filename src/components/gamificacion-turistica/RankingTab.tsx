@@ -216,13 +216,13 @@ export function RankingTab({
               <div>
                 <div className="flex items-center justify-between gap-1 mb-1">
                   <span className="text-2xl">{tier.icon}</span>
-                  <span className="text-[10px] font-mono font-bold">{tier.minXp.toLocaleString()} XP</span>
+                  <span className="text-3xs font-mono font-bold">{tier.minXp.toLocaleString()} XP</span>
                 </div>
                 <h4 className="font-bold text-sm text-foreground">{tier.name}</h4>
-                <p className="text-[11px] text-muted-foreground font-medium mt-0.5">{tier.material}</p>
+                <p className="text-2xs text-muted-foreground font-medium mt-0.5">{tier.material}</p>
               </div>
 
-              <div className="pt-2.5 mt-2 border-t border-border/40 text-[10px] text-muted-foreground">
+              <div className="pt-2.5 mt-2 border-t border-border/40 text-3xs text-muted-foreground">
                 <span className="font-semibold text-primary">+{tier.weeklyRewardCoins} monedas/sem.</span>
               </div>
             </div>
@@ -263,13 +263,13 @@ export function RankingTab({
                     <span>{tier.icon}</span>
                     <span>{tier.name}</span>
                   </div>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{tier.material}</p>
+                  <p className="text-2xs text-muted-foreground mt-0.5">{tier.material}</p>
                 </div>
-                <Badge variant="outline" className="text-[10px] font-mono shrink-0">
+                <Badge variant="outline" className="text-3xs font-mono shrink-0">
                   {tier.minXp} XP
                 </Badge>
               </div>
-              <div className="pt-2 border-t border-border/50 text-[11px] flex items-center justify-between">
+              <div className="pt-2 border-t border-border/50 text-2xs flex items-center justify-between">
                 <span className="text-muted-foreground truncate">{tier.perk}</span>
                 <span className="font-bold text-amber-500 shrink-0">+{tier.coins} 🪙/sem</span>
               </div>

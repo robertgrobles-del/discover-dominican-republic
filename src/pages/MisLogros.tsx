@@ -258,7 +258,7 @@ export default function MisLogros() {
                       <div className="absolute top-3 right-3 z-10">
                         <Badge
                           variant="outline"
-                          className="text-[10px] uppercase tracking-wide"
+                          className="text-3xs uppercase tracking-wide"
                           style={{ borderColor: rarity.color, color: rarity.color }}
                         >
                           {rarity.label}

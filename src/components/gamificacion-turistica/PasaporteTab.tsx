@@ -54,7 +54,7 @@ export function PasaporteTab({
               <span className="text-sm font-medium text-foreground">Provincias Visitadas</span>
               <span className="text-sm font-bold text-primary">{totalProvinces} / 32</span>
             </div>
-            <Progress value={(totalProvinces / 32) * 100} className="h-3" />
+            <Progress value={((totalProvinces || 0) / 32) * 100} className="h-3" aria-label={`Provincias visitadas: ${totalProvinces || 0} de 32`} />
             {nextMilestone && (
               <p className="text-xs text-muted-foreground mt-1">
                 {nextMilestone.count - totalProvinces} provincias más para "{nextMilestone.label}" (+{nextMilestone.xp} XP)

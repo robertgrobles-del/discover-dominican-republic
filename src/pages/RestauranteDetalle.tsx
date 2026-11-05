@@ -21,8 +21,10 @@ import { RestaurantOverviewSection } from "@/components/restaurant/RestaurantOve
 import { RestaurantFaqAccordion } from "@/components/restaurant/RestaurantFaqAccordion";
 import { RestaurantPhotoGallery } from "@/components/restaurant/RestaurantPhotoGallery";
 import { ParticipationInvite } from "@/components/gamificacion/ParticipationInvite";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function RestauranteDetalle() {
+  const pc = usePageContent("restaurante-detalle");
   const { slug } = useParams<{ slug: string }>();
   const { restaurant, isLoading } = useRestaurantData(slug);
 
@@ -59,12 +61,10 @@ export default function RestauranteDetalle() {
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto mb-4">
               <Utensils className="h-8 w-8" />
             </div>
-            <h1 className="text-3xl font-bold mb-3 text-foreground">Restaurante no encontrado</h1>
-            <p className="text-muted-foreground mb-6 text-sm">
-              El restaurante que buscas no se encuentra disponible o ha sido actualizado.
-            </p>
+            <h1 className="text-3xl font-bold mb-3 text-foreground">{pc.tx("h1.1", "Restaurante no encontrado")}</h1>
+            <p className="text-muted-foreground mb-6 text-sm">{pc.tx("p.1", "El restaurante que buscas no se encuentra disponible o ha sido actualizado.")}</p>
             <Button asChild className="rounded-xl">
-              <Link to="/guia-gastronomica">Ver Guía Gastronómica</Link>
+              <Link to="/guia-gastronomica">{pc.tx("Link.1", "Ver Guía Gastronómica")}</Link>
             </Button>
           </div>
           <Footer />

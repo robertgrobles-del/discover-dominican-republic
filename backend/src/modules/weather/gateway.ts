@@ -2,16 +2,33 @@ import type { FastifyBaseLogger } from "fastify";
 import { AppError, type ErrorCode } from "../../lib/errors.js";
 import { signWeatherInternalRequest } from "./internal-auth.js";
 
-export class WeatherServiceGateway {
-  constructor(private readonly baseUrl: string, private readonly token: string, private readonly log: FastifyBaseLogger) {}
+/** Vigencia de la copia local de las lecturas públicas; coincide con el `max-age` que ya se anuncia al navegador. */
+const PUBLIC_TTL_MS = 300_000;
 
-  weather(slug?: string) { return this.request("GET", `/live/weather${slug ? `?province=${encodeURIComponent(slug)}` : ""}`); }
-  forecast(slug: string, days: number) { return this.request("GET", `/live/weather/forecast?province=${encodeURIComponent(slug)}&days=${days}`); }
+export class WeatherServiceGateway {
+  /** Las lecturas públicas se guardan y se comparten entre peticiones simultáneas: el servicio de clima limita por
+   *  dirección y todo el tráfico del facade llega desde la misma, así que reenviar cada visita agotaría ese cupo. */
+  private readonly cache = new Map<string, { at: number; value: Promise<any> }>();
+
+  constructor(private readonly baseUrl: string, private readonly token: string, private readonly log: FastifyBaseLogger, private readonly now: () => number = Date.now) {}
+
+  weather(slug?: string) { return this.cachedGet(`/live/weather${slug ? `?province=${encodeURIComponent(slug)}` : ""}`); }
+  forecast(slug: string, days: number) { return this.cachedGet(`/live/weather/forecast?province=${encodeURIComponent(slug)}&days=${days}`); }
+
+  private cachedGet(path: string): Promise<any> {
+    const hit = this.cache.get(path);
+    if (hit && this.now() - hit.at < PUBLIC_TTL_MS) return hit.value;
+    const value = this.request("GET", path);
+    this.cache.set(path, { at: this.now(), value });
+    // Un fallo no se queda guardado: la siguiente visita vuelve a intentarlo.
+    value.catch(() => { if (this.cache.get(path)?.value === value) this.cache.delete(path); });
+    return value;
+  }
   adminList(page: number, perPage: number, actor: string) { return this.request("GET", `/internal/admin/weather_snapshots?page=${page}&per_page=${perPage}`, undefined, actor); }
-  adminCreate(body: unknown, actor: string) { return this.request("POST", "/internal/admin/weather_snapshots", body, actor); }
-  adminUpdate(id: string, body: unknown, actor: string) { return this.request("PATCH", `/internal/admin/weather_snapshots/${id}`, body, actor); }
-  adminDelete(id: string, actor: string) { return this.request("DELETE", `/internal/admin/weather_snapshots/${id}`, undefined, actor); }
-  refresh(actor: string) { return this.request("POST", "/internal/admin/weather_refresh", undefined, actor, 120_000); }
+  adminCreate(body: unknown, actor: string) { this.cache.clear(); return this.request("POST", "/internal/admin/weather_snapshots", body, actor); }
+  adminUpdate(id: string, body: unknown, actor: string) { this.cache.clear(); return this.request("PATCH", `/internal/admin/weather_snapshots/${id}`, body, actor); }
+  adminDelete(id: string, actor: string) { this.cache.clear(); return this.request("DELETE", `/internal/admin/weather_snapshots/${id}`, undefined, actor); }
+  refresh(actor: string) { this.cache.clear(); return this.request("POST", "/internal/admin/weather_refresh", undefined, actor, 120_000); }
 
   private async request(method: string, path: string, body?: unknown, actor = "00000000-0000-4000-8000-000000000000", timeoutMs = 5000): Promise<any> {
     const target = new URL(path, this.baseUrl);

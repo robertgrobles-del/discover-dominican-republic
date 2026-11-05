@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { usePageContent } from "@/lib/pageContent";
+import { useCollectionRecord, str, numOr, list } from "@/lib/collectionPage";
 
 const cuevasData: Record<string, {
   id: string;
@@ -166,8 +168,25 @@ const cuevasData: Record<string, {
 };
 
 export default function CuevaDetalle() {
+  const pc = usePageContent("cueva-detalle");
+  const cuevasData = pc.data("cuevasData", __pcData.cuevasData);
   const { slug: id } = useParams<{ slug: string }>();
-  const cueva = cuevasData[id || ""];
+  // La ficha sale de la colección «Cuevas» del panel; los datos locales son el respaldo y completan lo que la tabla no guarda.
+  const { item: cueva } = useCollectionRecord("caves", id, cuevasData[id || ""], (r, b) => {
+    const gallery = list(r.gallery).map((src) => ({ src, alt: str(r.name) }));
+    const difficulty = str(r.difficulty, b?.dificultad ?? "Fácil");
+    return {
+      id: str(r.slug, b?.id), nombre: str(r.name, b?.nombre), ubicacion: str(r.address, b?.ubicacion), provincia: b?.provincia ?? "",
+      dificultad: (["Fácil", "Moderado", "Difícil"].includes(difficulty) ? difficulty : "Fácil") as "Fácil" | "Moderado" | "Difícil",
+      descripcion: str(r.short_description, b?.descripcion), descripcionLarga: str(r.description, b?.descripcionLarga), nivelFisico: b?.nivelFisico ?? 40,
+      duracion: str(r.tour_duration, b?.duracion), precio: b?.precio ?? (r.price_adult ? `RD${r.price_adult}` : "Consultar"), horario: str(r.opening_hours, b?.horario),
+      capacidad: b?.capacidad ?? "", telefono: str(r.phone, b?.telefono), email: str(r.email, b?.email), website: str(r.website, b?.website),
+      coordenadas: { lat: numOr(r.latitude, b?.coordenadas.lat), lng: numOr(r.longitude, b?.coordenadas.lng) },
+      imagenes: gallery.length ? gallery : b?.imagenes ?? (r.image_url ? [{ src: str(r.image_url), alt: str(r.name) }] : []),
+      atracciones: list(r.highlights, b?.atracciones), equipoIncluido: b?.equipoIncluido ?? [], recomendaciones: b?.recomendaciones ?? [], restricciones: b?.restricciones ?? [],
+      rating: numOr(r.rating, b?.rating), reviews: b?.reviews ?? 0,
+    };
+  });
 
   if (!cueva) {
     return (
@@ -177,10 +196,10 @@ export default function CuevaDetalle() {
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <Mountain className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-foreground mb-2">Cueva no encontrada</h1>
-              <p className="text-muted-foreground mb-6">La cueva que buscas no existe o ha sido removida.</p>
+              <h1 className="text-2xl font-bold text-foreground mb-2">{pc.tx("h1.1", "Cueva no encontrada")}</h1>
+              <p className="text-muted-foreground mb-6">{pc.tx("p.1", "La cueva que buscas no existe o ha sido removida.")}</p>
               <Link to="/ecoturismo">
-                <Button>Volver a Ecoturismo</Button>
+                <Button>{pc.tx("Button.1", "Volver a Ecoturismo")}</Button>
               </Link>
             </div>
           </div>
@@ -210,9 +229,9 @@ export default function CuevaDetalle() {
           {/* Breadcrumb */}
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Link to="/" className="hover:text-primary">Inicio</Link>
+              <Link to="/" className="hover:text-primary">{pc.tx("Link.1", "Inicio")}</Link>
               <ChevronRight className="h-4 w-4" />
-              <Link to="/ecoturismo" className="hover:text-primary">Ecoturismo</Link>
+              <Link to="/ecoturismo" className="hover:text-primary">{pc.tx("Link.2", "Ecoturismo")}</Link>
               <ChevronRight className="h-4 w-4" />
               <span className="text-foreground">{cueva.nombre}</span>
             </div>
@@ -237,7 +256,7 @@ export default function CuevaDetalle() {
                     <div className="flex items-center gap-1 text-amber-500">
                       <Star className="h-4 w-4 fill-current" />
                       <span className="font-semibold">{cueva.rating}</span>
-                      <span className="text-muted-foreground">({cueva.reviews} reseñas)</span>
+                      <span className="text-muted-foreground">({cueva.reviews}{" "}{pc.tx("span.1", "reseñas)")}</span>
                     </div>
                   </div>
                   <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
@@ -262,9 +281,7 @@ export default function CuevaDetalle() {
 
                 {/* Atracciones */}
                 <div className="bg-card rounded-xl border border-border p-6">
-                  <h2 className="font-display text-xl font-bold text-foreground mb-4">
-                    Atracciones Principales
-                  </h2>
+                  <h2 className="font-display text-xl font-bold text-foreground mb-4">{pc.tx("h2.1", "Atracciones Principales")}</h2>
                   <div className="grid md:grid-cols-2 gap-3">
                     {cueva.atracciones.map((atraccion, index) => (
                       <div key={index} className="flex items-center gap-2">
@@ -277,9 +294,7 @@ export default function CuevaDetalle() {
 
                 {/* Qué Incluye */}
                 <div className="bg-card rounded-xl border border-border p-6">
-                  <h2 className="font-display text-xl font-bold text-foreground mb-4">
-                    Qué Incluye
-                  </h2>
+                  <h2 className="font-display text-xl font-bold text-foreground mb-4">{pc.tx("h2.2", "Qué Incluye")}</h2>
                   <div className="grid md:grid-cols-2 gap-3">
                     {cueva.equipoIncluido.map((item, index) => (
                       <div key={index} className="flex items-center gap-2">
@@ -294,9 +309,7 @@ export default function CuevaDetalle() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="bg-card rounded-xl border border-border p-6">
                     <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5 text-emerald-500" />
-                      Recomendaciones
-                    </h3>
+                      <CheckCircle className="h-5 w-5 text-emerald-500" />{pc.tx("h3.1", "Recomendaciones")}</h3>
                     <ul className="space-y-2">
                       {cueva.recomendaciones.map((rec, index) => (
                         <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
@@ -309,9 +322,7 @@ export default function CuevaDetalle() {
 
                   <div className="bg-card rounded-xl border border-border p-6">
                     <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5 text-amber-500" />
-                      Restricciones
-                    </h3>
+                      <AlertTriangle className="h-5 w-5 text-amber-500" />{pc.tx("h3.2", "Restricciones")}</h3>
                     <ul className="space-y-2">
                       {cueva.restricciones.map((rest, index) => (
                         <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
@@ -329,7 +340,7 @@ export default function CuevaDetalle() {
                 {/* Booking Card */}
                 <div className="bg-card rounded-xl border border-border p-6 sticky top-24">
                   <div className="text-center mb-6">
-                    <p className="text-sm text-muted-foreground">Desde</p>
+                    <p className="text-sm text-muted-foreground">{pc.tx("p.2", "Desde")}</p>
                     <p className="text-3xl font-bold text-primary">{cueva.precio}</p>
                   </div>
 
@@ -337,30 +348,28 @@ export default function CuevaDetalle() {
                     <div className="flex items-center gap-3 text-sm">
                       <Clock className="h-4 w-4 text-primary" />
                       <div>
-                        <p className="text-muted-foreground">Duración</p>
+                        <p className="text-muted-foreground">{pc.tx("p.3", "Duración")}</p>
                         <p className="text-foreground font-medium">{cueva.duracion}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
                       <Calendar className="h-4 w-4 text-primary" />
                       <div>
-                        <p className="text-muted-foreground">Horario</p>
+                        <p className="text-muted-foreground">{pc.tx("p.4", "Horario")}</p>
                         <p className="text-foreground font-medium">{cueva.horario}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
                       <Users className="h-4 w-4 text-primary" />
                       <div>
-                        <p className="text-muted-foreground">Capacidad</p>
+                        <p className="text-muted-foreground">{pc.tx("p.5", "Capacidad")}</p>
                         <p className="text-foreground font-medium">{cueva.capacidad}</p>
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-3">
-                    <Button className="w-full" size="lg">
-                      Reservar Ahora
-                    </Button>
+                    <Button className="w-full" size="lg">{pc.tx("Button.2", "Reservar Ahora")}</Button>
                     <div className="flex gap-2">
                       <FavoriteButton
                         id={cueva.id}
@@ -387,15 +396,13 @@ export default function CuevaDetalle() {
                       {cueva.email}
                     </a>
                     <a href={cueva.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
-                      <Globe className="h-4 w-4" />
-                      Sitio Web Oficial
-                    </a>
+                      <Globe className="h-4 w-4" />{pc.tx("a.1", "Sitio Web Oficial")}</a>
                   </div>
                 </div>
 
                 {/* Nivel Físico */}
                 <div className="bg-card rounded-xl border border-border p-6">
-                  <h3 className="font-semibold text-foreground mb-4">Nivel Físico Requerido</h3>
+                  <h3 className="font-semibold text-foreground mb-4">{pc.tx("h3.3", "Nivel Físico Requerido")}</h3>
                   <div className="h-3 bg-secondary rounded-full overflow-hidden mb-2">
                     <div 
                       className="h-full bg-gradient-to-r from-emerald-500 via-amber-500 to-red-500 rounded-full transition-all"
@@ -418,3 +425,6 @@ export default function CuevaDetalle() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { cuevasData };

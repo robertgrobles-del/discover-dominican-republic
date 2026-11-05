@@ -248,6 +248,8 @@ export class TripService {
     if (role !== "owner" && actorId !== memberId) throw new AppError("FORBIDDEN", "Sólo el dueño puede quitar a otros miembros", { code: "NOT_OWNER" });
     if (!(await this.db.query("DELETE FROM trip_members WHERE trip_id = $1 AND user_id = $2", [tripId, memberId])).rowCount) throw AppError.notFound("Miembro");
     await this.db.query("DELETE FROM trip_votes WHERE user_id = $2 AND item_id IN (SELECT id FROM trip_items WHERE trip_id = $1)", [tripId, memberId]);
+    // Si el dueño expulsa a alguien, las invitaciones vivas se vencen: si no, el expulsado volvería a entrar con el mismo enlace.
+    if (actorId !== memberId) await this.db.query("UPDATE trip_invites SET expires_at = now() WHERE trip_id = $1 AND expires_at > now()", [tripId]);
   }
   async vote(tripId: string, itemId: string, userId: string, value: -1 | 0 | 1) {
     await this.access(tripId, userId, "view");

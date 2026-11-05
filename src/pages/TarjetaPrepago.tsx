@@ -72,7 +72,14 @@ const allies = [
   }
 ];
 
+import { useEffect } from "react";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { fetchApi } from "@/lib/fastifyClient";
+import { usePageContent } from "@/lib/pageContent";
+
 export default function TarjetaPrepago() {
+  const pc = usePageContent("tarjeta-prepago");
+  const allies = pc.data("allies", __pcData.allies);
   const { user } = useAuth();
   
   // Checkout Modal State
@@ -82,6 +89,37 @@ export default function TarjetaPrepago() {
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Todos");
+  const [serverOffers, setServerOffers] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!HAS_BACKEND_SESSION) return;
+    const controller = new AbortController();
+
+    fetchApi<{ data: Array<{ id: string; name: string; provider: string; description: string; price_from_usd: number | null; url: string }> }>("/tools/prepaid-card", {
+      signal: controller.signal
+    })
+      .then((res) => {
+        if (res?.data && res.data.length > 0) {
+          const mapped = res.data.map((o) => ({
+            id: o.id,
+            name: o.name,
+            category: "Beneficios",
+            discount: o.price_from_usd ? `Desde $${o.price_from_usd} USD` : "Beneficio",
+            description: o.description || o.provider,
+            location: o.provider || "Nacional",
+            image: "https://images.unsplash.com/photo-1540552980157-21d2a565c52b?w=600&auto=format&fit=crop&q=80"
+          }));
+          setServerOffers(mapped);
+        }
+      })
+      .catch((err) => {
+        if (err.name !== "AbortError") {
+          console.warn("Fallo al cargar ofertas prepago desde backend:", err);
+        }
+      });
+
+    return () => controller.abort();
+  }, []);
   
   // Card stats (Persistent balance)
   const [balance, setBalance] = useState<number>(() => {
@@ -115,7 +153,9 @@ export default function TarjetaPrepago() {
     toast.success(`💳 ¡Saldo actualizado con éxito! Nuevo balance: $${newBal} USD`);
   };
 
-  const filteredAllies = allies.filter(ally => {
+  const combinedAllies = serverOffers.length > 0 ? [...serverOffers, ...allies] : allies;
+
+  const filteredAllies = combinedAllies.filter(ally => {
     const matchesSearch = ally.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           ally.location.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "Todos" || ally.category === selectedCategory;
@@ -125,8 +165,8 @@ export default function TarjetaPrepago() {
   return (
     <PageTransition>
       <SEOHead
-        title="Tarjeta Turística RD Pass | Descubre RD"
-        description="Consigue la tarjeta turística prepagada RD Pass. Recibe descuentos del 10% al 20% en hoteles, restaurantes y tours afiliados en República Dominicana."
+        title={pc.t("SEOHead.title.1", "Tarjeta Turística RD Pass | Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Consigue la tarjeta turística prepagada RD Pass. Recibe descuentos del 10% al 20% en hoteles, restaurantes y tours afiliados en República Dominicana.")}
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
@@ -139,33 +179,29 @@ export default function TarjetaPrepago() {
               
               <div className="lg:col-span-7 space-y-6">
                 <Badge className="bg-primary/20 text-primary border-primary/30 py-1 px-3 text-xs gap-1.5 uppercase font-bold tracking-wider">
-                  <CreditCard className="h-4 w-4" /> Tarjeta Turística Prepago
-                </Badge>
-                <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground">
-                  Viaja Inteligente con <span className="text-primary">RD Pass</span>
+                  <CreditCard className="h-4 w-4" />{" "}{pc.tx("Badge.1", "Tarjeta Turística Prepago")}</Badge>
+                <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground">{pc.tx("h1.1", "Viaja Inteligente con")}{" "}<span className="text-primary">{pc.tx("span.1", "RD Pass")}</span>
                 </h1>
-                <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
-                  Tu pase digital exclusivo para República Dominicana. Carga saldo en dólares, paga de forma segura en comercios locales y disfruta de descuentos instantáneos del 10% al 20% en nuestra red de aliados exclusivos.
-                </p>
+                <p className="text-muted-foreground text-sm md:text-base leading-relaxed">{pc.tx("p.1", "Tu pase digital exclusivo para República Dominicana. Carga saldo en dólares, paga de forma segura en comercios locales y disfruta de descuentos instantáneos del 10% al 20% en nuestra red de aliados exclusivos.")}</p>
 
                 <div className="grid grid-cols-3 gap-4 pt-2">
                   <div className="flex gap-2 items-center">
                     <CheckCircle className="h-5 w-5 text-emerald-500 shrink-0" />
-                    <span className="text-xs text-foreground font-semibold">100% Digital</span>
+                    <span className="text-xs text-foreground font-semibold">{pc.tx("span.2", "100% Digital")}</span>
                   </div>
                   <div className="flex gap-2 items-center">
                     <Percent className="h-5 w-5 text-emerald-500 shrink-0" />
-                    <span className="text-xs text-foreground font-semibold">Descuentos</span>
+                    <span className="text-xs text-foreground font-semibold">{pc.tx("span.3", "Descuentos")}</span>
                   </div>
                   <div className="flex gap-2 items-center">
                     <Shield className="h-5 w-5 text-emerald-500 shrink-0" />
-                    <span className="text-xs text-foreground font-semibold">Cero Comisiones</span>
+                    <span className="text-xs text-foreground font-semibold">{pc.tx("span.4", "Cero Comisiones")}</span>
                   </div>
                 </div>
 
                 {/* Reload Selector */}
                 <div className="pt-4 space-y-3">
-                  <p className="text-xs font-bold text-muted-foreground uppercase">Carga o Recarga de Fondos (USD)</p>
+                  <p className="text-xs font-bold text-muted-foreground uppercase">{pc.tx("p.2", "Carga o Recarga de Fondos (USD)")}</p>
                   <div className="flex gap-3 max-w-md">
                     {[50, 100, 200].map(amount => (
                       <Button 
@@ -191,8 +227,8 @@ export default function TarjetaPrepago() {
                   {/* Top line info */}
                   <div className="flex justify-between items-start z-10">
                     <div>
-                      <span className="text-[10px] tracking-widest font-bold uppercase opacity-85">PASE TURÍSTICO</span>
-                      <h3 className="font-display font-extrabold text-xl leading-none mt-1">RD Pass</h3>
+                      <span className="text-3xs tracking-widest font-bold uppercase opacity-85">{pc.tx("span.5", "PASE TURÍSTICO")}</span>
+                      <h2 className="h3 font-display font-extrabold text-xl leading-none mt-1">{pc.tx("h3.1", "RD Pass")}</h2>
                     </div>
                     <Sparkles className="h-6 w-6 text-amber-200 animate-pulse" />
                   </div>
@@ -201,13 +237,13 @@ export default function TarjetaPrepago() {
                   {qrVisible ? (
                     <div className="bg-white p-3 rounded-lg flex flex-col items-center justify-center border border-white/20 self-center z-10 transition-all duration-300">
                       <QrCode className="h-28 w-28 text-black" />
-                      <span className="text-[9px] font-mono text-black/60 mt-1">Nº: RD-PASS-{user ? user.id.substring(0, 6).toUpperCase() : "INVITADO"}</span>
+                      <span className="text-3xs font-mono text-black/60 mt-1">{pc.tx("span.6", "Nº: RD-PASS-")}{user ? user.id.substring(0, 6).toUpperCase() : "INVITADO"}</span>
                     </div>
                   ) : (
                     <div className="my-auto z-10">
-                      <span className="text-xs text-amber-200/85">Saldo disponible</span>
+                      <span className="text-xs text-amber-200/85">{pc.tx("span.7", "Saldo disponible")}</span>
                       <div className="font-mono text-3xl font-extrabold leading-none mt-1">
-                        ${balance.toFixed(2)} <span className="text-xs font-normal">USD</span>
+                        ${balance.toFixed(2)} <span className="text-xs font-normal">{pc.tx("span.8", "USD")}</span>
                       </div>
                     </div>
                   )}
@@ -215,7 +251,7 @@ export default function TarjetaPrepago() {
                   {/* Card bottom bar */}
                   <div className="flex justify-between items-end z-10">
                     <div>
-                      <p className="text-[10px] font-mono opacity-80">{cardNumber}</p>
+                      <p className="text-3xs font-mono opacity-80">{cardNumber}</p>
                       <p className="text-xs font-bold mt-1 truncate max-w-[180px]">{user ? user.email : "Invitado General"}</p>
                     </div>
                     
@@ -223,7 +259,7 @@ export default function TarjetaPrepago() {
                       size="sm" 
                       variant="secondary" 
                       onClick={() => setQrVisible(!qrVisible)}
-                      className="text-[10px] font-bold h-7 px-3 bg-white/25 hover:bg-white/40 border border-white/20 text-white gap-1.5"
+                      className="text-3xs font-bold h-7 px-3 bg-white/25 hover:bg-white/40 border border-white/20 text-white gap-1.5"
                     >
                       <QrCode className="h-3.5 w-3.5" />
                       {qrVisible ? "Ocultar QR" : "Mostrar QR"}
@@ -238,8 +274,8 @@ export default function TarjetaPrepago() {
             <div className="space-y-8 max-w-6xl mx-auto pt-8 border-t border-border">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h2 className="font-display text-2xl font-extrabold text-foreground">Red de Establecimientos Aliados</h2>
-                  <p className="text-xs text-muted-foreground mt-1">Escanea tu código QR en estos comercios para aplicar tu descuento instantáneo.</p>
+                  <h2 className="font-display text-2xl font-extrabold text-foreground">{pc.tx("h2.1", "Red de Establecimientos Aliados")}</h2>
+                  <p className="text-xs text-muted-foreground mt-1">{pc.tx("p.3", "Escanea tu código QR en estos comercios para aplicar tu descuento instantáneo.")}</p>
                 </div>
                 
                 {/* Filters */}
@@ -263,7 +299,7 @@ export default function TarjetaPrepago() {
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input 
                   type="text" 
-                  placeholder="Buscar hotel, restaurante o actividad por nombre o pueblo..." 
+                  placeholder={pc.t("Input.placeholder.1", "Buscar hotel, restaurante o actividad por nombre o pueblo...")} 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9 bg-card/50"
@@ -285,7 +321,7 @@ export default function TarjetaPrepago() {
                           <Badge className="absolute top-3 right-3 bg-emerald-600 border-emerald-500 text-white font-extrabold flex gap-1 items-center">
                             <Percent className="h-3 w-3" /> {ally.discount}
                           </Badge>
-                          <Badge className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm border-white/10 text-[9px] uppercase font-bold tracking-wider">
+                          <Badge className="absolute bottom-3 left-3 bg-black/70 backdrop-blur-sm border-white/10 text-3xs uppercase font-bold tracking-wider">
                             {ally.category}
                           </Badge>
                         </div>
@@ -305,7 +341,7 @@ export default function TarjetaPrepago() {
                   ))
                 ) : (
                   <div className="col-span-full py-12 text-center text-muted-foreground space-y-2">
-                    <p className="text-sm">No encontramos ningún aliado que coincida con tu búsqueda.</p>
+                    <p className="text-sm">{pc.tx("p.4", "No encontramos ningún aliado que coincida con tu búsqueda.")}</p>
                   </div>
                 )}
               </div>
@@ -326,3 +362,6 @@ export default function TarjetaPrepago() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { allies };

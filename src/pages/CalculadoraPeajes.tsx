@@ -15,6 +15,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { TollsMap } from "@/components/peajes/TollsMap";
 
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { fetchApi } from "@/lib/fastifyClient";
+import { usePageContent } from "@/lib/pageContent";
+
 interface TollPoint {
   name: string;
   cat1Price: number;
@@ -71,12 +75,25 @@ const mockRoutes: TollRoute[] = [
 ];
 
 export default function CalculadoraPeajes() {
+  const pc = usePageContent("calculadora-peajes");
+  const mockRoutes = pc.data("mockRoutes", __pcData.mockRoutes);
   const [selectedRouteId, setSelectedRouteId] = useState<string>("route_east");
   const [vehicleCategory, setVehicleCategory] = useState<number>(1); // Cat 1 to 4
 
   const { data: dbRoutes } = useQuery({
-    queryKey: ["toll-routes"],
+    queryKey: ["toll-routes", HAS_BACKEND_SESSION],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        try {
+          const res = await fetchApi<{ data: Array<{ id: string; slug: string; name: string; description: string; stations: string[] }> }>("/calculators/tolls/routes");
+          if (res?.data && res.data.length > 0) {
+            // Reconstruir con precios por defecto o detallados si están disponibles
+            return res.data;
+          }
+        } catch (err) {
+          console.warn("Fallo al obtener rutas de peaje desde Fastify, usando Supabase fallback", err);
+        }
+      }
       const { data, error } = await supabase
         .from("toll_routes")
         .select("*");
@@ -90,7 +107,15 @@ export default function CalculadoraPeajes() {
         id: r.id,
         name: r.name,
         description: r.description,
-        tolls: (typeof r.tolls_data === "string" ? JSON.parse(r.tolls_data) : r.tolls_data) || []
+        tolls: (typeof r.tolls_data === "string" ? JSON.parse(r.tolls_data) : r.tolls_data) || (
+          r.stations?.map((name: string) => ({
+            name,
+            cat1Price: 60,
+            cat2Price: 120,
+            cat3Price: 180,
+            cat4Price: 240
+          })) || []
+        )
       }))
     : mockRoutes;
 
@@ -108,8 +133,8 @@ export default function CalculadoraPeajes() {
   return (
     <PageTransition>
       <SEOHead
-        title="Calculadora de Peajes de Carreteras - Descubre RD"
-        description="Calcula el costo total de peajes para viajar en auto por República Dominicana (Autopista Duarte, del Nordeste, Las Américas) según tu tipo de vehículo."
+        title={pc.t("SEOHead.title.1", "Calculadora de Peajes de Carreteras - Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Calcula el costo total de peajes para viajar en auto por República Dominicana (Autopista Duarte, del Nordeste, Las Américas) según tu tipo de vehículo.")}
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -119,14 +144,9 @@ export default function CalculadoraPeajes() {
           <section className="relative py-16 bg-gradient-to-br from-blue-500/10 via-amber-500/5 to-transparent border-b border-border">
             <div className="container mx-auto px-4 text-center">
               <Badge variant="secondary" className="mb-4 bg-blue-500/10 text-blue-600 border-blue-500/20 gap-1">
-                <Calculator className="h-3.5 w-3.5" /> Planificador de Viajes por Carretera (Roadtrip)
-              </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display">
-                Calculadora de Peajes RD
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Estima el costo exacto de los peajes de autopistas dominicanas antes de encender el motor. Organiza tu presupuesto de combustible y peajes cómodamente.
-              </p>
+                <Calculator className="h-3.5 w-3.5" />{" "}{pc.tx("Badge.1", "Planificador de Viajes por Carretera (Roadtrip)")}</Badge>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display">{pc.tx("h1.1", "Calculadora de Peajes RD")}</h1>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.1", "Estima el costo exacto de los peajes de autopistas dominicanas antes de encender el motor. Organiza tu presupuesto de combustible y peajes cómodamente.")}</p>
             </div>
           </section>
 
@@ -137,16 +157,12 @@ export default function CalculadoraPeajes() {
               <div className="mb-10">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="text-lg font-bold font-display text-foreground flex items-center gap-2">
-                      <Compass className="h-5 w-5 text-primary" /> Visualizador de Estaciones y Trazado de Ruta
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      Haz clic en los marcadores de las casetas para consultar el desglose exacto de precios.
-                    </p>
+                    <h2 className="h3 text-lg font-bold font-display text-foreground flex items-center gap-2">
+                      <Compass className="h-5 w-5 text-primary" />{" "}{pc.tx("h3.1", "Visualizador de Estaciones y Trazado de Ruta")}</h2>
+                    <p className="text-xs text-muted-foreground">{pc.tx("p.2", "Haz clic en los marcadores de las casetas para consultar el desglose exacto de precios.")}</p>
                   </div>
                   <Badge variant="outline" className="border-primary/30 text-primary">
-                    {currentRoute.tolls.length} Estaciones en esta vía
-                  </Badge>
+                    {currentRoute.tolls.length}{" "}{pc.tx("Badge.2", "Estaciones en esta vía")}</Badge>
                 </div>
                 <TollsMap selectedRouteId={selectedRouteId} vehicleCategory={vehicleCategory} />
               </div>
@@ -157,13 +173,13 @@ export default function CalculadoraPeajes() {
                 <div className="lg:col-span-5 space-y-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Configurar Trayecto</CardTitle>
-                      <CardDescription>Selecciona tu ruta y categoría de vehículo</CardDescription>
+                      <CardTitle className="text-lg">{pc.tx("CardTitle.1", "Configurar Trayecto")}</CardTitle>
+                      <CardDescription>{pc.tx("CardDescription.1", "Selecciona tu ruta y categoría de vehículo")}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase">Autopista / Destino</label>
+                        <label className="text-3xs font-bold text-muted-foreground uppercase">{pc.tx("label.1", "Autopista / Destino")}</label>
                         <select 
                           className="w-full bg-background border border-input text-xs rounded p-2"
                           value={selectedRouteId}
@@ -176,16 +192,16 @@ export default function CalculadoraPeajes() {
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-muted-foreground uppercase">Categoría de Vehículo</label>
+                        <label className="text-3xs font-bold text-muted-foreground uppercase">{pc.tx("label.2", "Categoría de Vehículo")}</label>
                         <select 
                           className="w-full bg-background border border-input text-xs rounded p-2"
                           value={vehicleCategory}
                           onChange={(e) => setVehicleCategory(Number(e.target.value))}
                         >
-                          <option value={1}>Categoría 1: Automóviles, Jeepetas, Camionetas (2 Ejes)</option>
-                          <option value={2}>Categoría 2: Minibuses, Autobuses pequeños (2 Ejes de doble rueda)</option>
-                          <option value={3}>Categoría 3: Camiones de 2 Ejes / Autobuses Grandes</option>
-                          <option value={4}>Categoría 4: Camiones Pesados (3 Ejes o más)</option>
+                          <option value={1}>{pc.tx("option.1", "Categoría 1: Automóviles, Jeepetas, Camionetas (2 Ejes)")}</option>
+                          <option value={2}>{pc.tx("option.2", "Categoría 2: Minibuses, Autobuses pequeños (2 Ejes de doble rueda)")}</option>
+                          <option value={3}>{pc.tx("option.3", "Categoría 3: Camiones de 2 Ejes / Autobuses Grandes")}</option>
+                          <option value={4}>{pc.tx("option.4", "Categoría 4: Camiones Pesados (3 Ejes o más)")}</option>
                         </select>
                       </div>
 
@@ -196,17 +212,12 @@ export default function CalculadoraPeajes() {
                   <Card className="border-blue-500/20 bg-blue-500/5 text-xs text-muted-foreground">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm flex items-center gap-2 text-blue-700">
-                        <CreditCard className="h-4.5 w-4.5" />
-                        Paso Rápido RD
-                      </CardTitle>
+                        <CreditCard className="h-4.5 w-4.5" />{pc.tx("CardTitle.2", "Paso Rápido RD")}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-2">
                       <p>
-                        <strong>Paso Rápido:</strong> Es el sistema de peaje electrónico prepagado de la República Dominicana. Permite cruzar los peajes sin detenerse a pagar en efectivo, utilizando una etiqueta electrónica (tag) adherida al parabrisas.
-                      </p>
-                      <p>
-                        Puedes adquirir el kit en las oficinas de Fideicomiso RD Vial o estaciones autorizadas y recargarlo en línea para mayor fluidez.
-                      </p>
+                        <strong>{pc.tx("strong.1", "Paso Rápido:")}</strong>{" "}{pc.tx("p.3", "Es el sistema de peaje electrónico prepagado de la República Dominicana. Permite cruzar los peajes sin detenerse a pagar en efectivo, utilizando una etiqueta electrónica (tag) adherida al parabrisas.")}</p>
+                      <p>{pc.tx("p.4", "Puedes adquirir el kit en las oficinas de Fideicomiso RD Vial o estaciones autorizadas y recargarlo en línea para mayor fluidez.")}</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -215,37 +226,36 @@ export default function CalculadoraPeajes() {
                 <div className="lg:col-span-7">
                   <Card className="border-2 border-dashed border-border shadow-md">
                     <CardHeader className="text-center pb-2 bg-muted/40">
-                      <CardTitle className="font-mono text-base uppercase tracking-wider">Cálculo de Peajes (RD Vial)</CardTitle>
-                      <CardDescription className="text-[10px] font-mono">FIDEICOMISO RD VIAL • SIMULACIÓN</CardDescription>
+                      <CardTitle className="font-mono text-base uppercase tracking-wider">{pc.tx("CardTitle.3", "Cálculo de Peajes (RD Vial)")}</CardTitle>
+                      <CardDescription className="text-3xs font-mono">{pc.tx("CardDescription.2", "FIDEICOMISO RD VIAL • SIMULACIÓN")}</CardDescription>
                     </CardHeader>
                     <CardContent className="p-6 space-y-4 font-mono text-xs text-muted-foreground">
                       
                       <div className="space-y-1">
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground font-sans block">Ruta Seleccionada:</span>
+                        <span className="text-3xs uppercase font-bold text-muted-foreground font-sans block">{pc.tx("span.1", "Ruta Seleccionada:")}</span>
                         <p className="text-foreground font-sans font-semibold">{currentRoute.name}</p>
-                        <p className="text-[10px] text-muted-foreground font-sans leading-relaxed">{currentRoute.description}</p>
+                        <p className="text-3xs text-muted-foreground font-sans leading-relaxed">{currentRoute.description}</p>
                       </div>
 
                       <div className="border-t border-border pt-4 space-y-2">
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground font-sans block mb-2">Desglose de Estaciones:</span>
+                        <span className="text-3xs uppercase font-bold text-muted-foreground font-sans block mb-2">{pc.tx("span.2", "Desglose de Estaciones:")}</span>
                         {currentRoute.tolls.map((toll, idx) => (
                           <div key={idx} className="flex justify-between items-center py-1">
                             <span>{toll.name}</span>
-                            <span className="text-foreground">RD$ {getTollPrice(toll).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                            <span className="text-foreground">{pc.tx("span.3", "RD$")}{" "}{getTollPrice(toll).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                           </div>
                         ))}
                       </div>
 
                       <div className="border-t-2 border-double border-foreground pt-4 flex justify-between text-base text-foreground font-bold">
-                        <span>TOTAL PEAJES</span>
-                        <span>RD$ {totalCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                        <span>{pc.tx("span.4", "TOTAL PEAJES")}</span>
+                        <span>{pc.tx("span.5", "RD$")}{" "}{totalCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                       </div>
 
-                      <div className="pt-6 text-center text-[10px] space-y-2 border-t border-border/40 font-sans">
+                      <div className="pt-6 text-center text-3xs space-y-2 border-t border-border/40 font-sans">
                         <p className="flex justify-center items-center gap-1.5 text-emerald-500 font-bold">
-                          <ShieldCheck className="h-3.5 w-3.5" /> Tarifas Vigentes de Ley
-                        </p>
-                        <p>Las tarifas corresponden a los precios fijados por RD Vial para las autopistas estatales. Recuerda llevar efectivo dominicano si no cuentas con Paso Rápido.</p>
+                          <ShieldCheck className="h-3.5 w-3.5" />{" "}{pc.tx("p.5", "Tarifas Vigentes de Ley")}</p>
+                        <p>{pc.tx("p.6", "Las tarifas corresponden a los precios fijados por RD Vial para las autopistas estatales. Recuerda llevar efectivo dominicano si no cuentas con Paso Rápido.")}</p>
                       </div>
 
                     </CardContent>
@@ -263,3 +273,6 @@ export default function CalculadoraPeajes() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { mockRoutes };

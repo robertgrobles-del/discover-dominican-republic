@@ -113,6 +113,13 @@ function randomIdempotencyKey(): string {
   return `booking-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+/** Diferencia de precio al mover una reserva. */
+export interface DateChangeSummary { old_total: number; quoted_total: number; new_total: number; price_difference: number; new_balance_due: number; currency: string }
+export type DateChangeResult = DateChangeSummary & (
+  | { dry_run: true; allowed: true; date: string; check_out: string | null; time: string | null; changes_left: number | null }
+  | { dry_run: false; booking: ApiBooking }
+);
+
 export const bookingsApi = {
   /** Cotiza una reserva en el servidor obteniendo disponibilidad y precios reales */
   async quote(req: QuoteBookingRequest): Promise<BookingQuoteResult> {
@@ -157,14 +164,14 @@ export const bookingsApi = {
     return { refund_amount: data.refund_amount ?? 0, currency: data.currency };
   },
 
-  /** Cambia la fecha de una reserva */
+  /** Cambia la fecha de una reserva; con `dry_run` sólo devuelve la nueva cotización (operators/bookings.ts `changeDate`). */
   async changeDate(
     id: string,
     params: { date: string; check_out?: string; time?: string; dry_run?: boolean },
     token?: string
-  ): Promise<any> {
+  ): Promise<DateChangeResult> {
     const query = token ? `?token=${encodeURIComponent(token)}` : "";
-    const res = await fetchApi<{ data: any }>(`/bookings/${id}/change-date${query}`, {
+    const res = await fetchApi<{ data: DateChangeResult }>(`/bookings/${id}/change-date${query}`, {
       method: "POST",
       body: JSON.stringify(params),
     });

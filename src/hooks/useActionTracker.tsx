@@ -99,11 +99,11 @@ export function useActionTracker() {
             const refId = typeof metadata.ref_id === "string" ? metadata.ref_id : typeof metadata.content_id === "string" ? metadata.content_id : typeof metadata.article_id === "string" ? metadata.article_id : undefined;
 
             const res = await gamificationApi.reportAction(actionType, refType, refId);
-            if (res.granted && !skipNotification) {
+            if (!res.denied_reason && !skipNotification) {
               if (res.level_up) {
-                toast.success(`🎉 ¡Subiste al nivel ${res.level}!`);
+                toast.success(`🎉 ¡Subiste al nivel ${res.level_up.to}!`);
               }
-              if (res.achievements_unlocked > 0) {
+              if (res.achievements_unlocked.length > 0) {
                 toast.success("🏆 ¡Nuevo logro desbloqueado!");
               }
             }
@@ -203,15 +203,15 @@ export function useActionTracker() {
     if (HAS_BACKEND_SESSION) {
       try {
         const res = await gamificationApi.dailyCheckIn();
-        if (res.checked_in) {
+        if (res.success) {
           toast.success("🔥 ¡Check-in diario completado!", {
-            description: `Racha actual: ${res.streak_days} días • +${res.xp_earned} XP, +${res.coins_earned} monedas`,
+            description: `Racha actual: ${res.streak} días • +${res.xp ?? 0} XP, +${res.coins ?? 0} monedas`,
           });
 
           // Early bird bonus
           try {
             const eb = await gamificationApi.claimEarlyBird();
-            if (eb.granted) {
+            if (eb.success) {
               toast.success("🐦 ¡Bono Madrugador!", {
                 description: `+${eb.xp} XP por conectarte temprano`,
               });
@@ -223,9 +223,9 @@ export function useActionTracker() {
           // Streak bonus
           try {
             const sb = await gamificationApi.claimStreakBonus();
-            if (sb.granted) {
-              toast.success(`🎊 ¡Bono de racha de ${sb.streak_days} días!`, {
-                description: `+${sb.bonus} XP de recompensa especial`,
+            if (sb.success) {
+              toast.success(`🎊 ¡Bono de racha de ${sb.streak} días!`, {
+                description: `+${sb.coins} monedas de recompensa especial`,
               });
             }
           } catch (err) {

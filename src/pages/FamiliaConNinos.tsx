@@ -9,6 +9,7 @@ import {
   Star, CheckCircle, Waves, Sun, Utensils, Palmtree
 } from "lucide-react";
 import puntaCana from "@/assets/punta-cana.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const destinosFamilia = [
   { nombre: "Punta Cana / Bávaro", edades: "Todas", desc: "El destino #1 para familias. Resorts con kids clubs, parques acuáticos y playas de oleaje suave.", highlights: ["Playas de oleaje bajo", "Kids clubs 4-12 años", "Parques acuáticos en resorts", "Actividades para teens"] },
@@ -52,11 +53,17 @@ const planMultigeneracional = [
 ];
 
 export default function FamiliaConNinos() {
+  const pc = usePageContent("familia-con-ninos");
+  const destinosFamilia = pc.data("destinosFamilia", __pcData.destinosFamilia);
+  const resortsFamiliares = pc.data("resortsFamiliares", __pcData.resortsFamiliares);
+  const actividadesPorEdad = pc.data("actividadesPorEdad", __pcData.actividadesPorEdad);
+  const planMultigeneracional = pc.data("planMultigeneracional", __pcData.planMultigeneracional);
+  const salud = pc.data("salud", __pcData.salud);
   return (
     <PageTransition>
       <SEOHead
-        title="Viaje en Familia a República Dominicana - Guía con Niños"
-        description="Guía completa para viajar en familia a RD: resorts con kids club, actividades por edad, destinos seguros, salud infantil y consejos prácticos."
+        title={pc.t("SEOHead.title.1", "Viaje en Familia a República Dominicana - Guía con Niños")}
+        description={pc.t("SEOHead.description.1", "Guía completa para viajar en familia a RD: resorts con kids club, actividades por edad, destinos seguros, salud infantil y consejos prácticos.")}
         keywords="viaje familia dominicana, vacaciones niños RD, resorts kids club punta cana, actividades niños caribe"
       />
       <div className="min-h-screen flex flex-col bg-background">
@@ -64,38 +71,33 @@ export default function FamiliaConNinos() {
 
         <section className="relative min-h-[40vh] flex items-center overflow-hidden">
           <div className="absolute inset-0">
-            <img src={puntaCana} alt="Familia en playa" className="w-full h-full object-cover" />
+            <img src={pc.img("img.src.1", puntaCana)} alt={pc.t("img.alt.1", "Familia en playa")} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
           </div>
           <div className="container mx-auto px-4 relative z-10 py-16">
-            <Badge className="mb-4 bg-white/10 text-white border-white/20 backdrop-blur-sm">
-              👨‍👩‍👧‍👦 Vacaciones en Familia
-            </Badge>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-4 max-w-2xl">
-              RD en <span className="text-primary">Familia</span>
+            <Badge className="mb-4 bg-white/10 text-white border-white/20 backdrop-blur-sm">{pc.tx("Badge.1", "👨‍👩‍👧‍👦 Vacaciones en Familia")}</Badge>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-4 max-w-2xl">{pc.tx("h1.1", "RD en")}{" "}<span className="text-primary">{pc.tx("span.1", "Familia")}</span>
             </h1>
-            <p className="text-lg text-white/80 max-w-xl">
-              Resorts con kids club, playas seguras, actividades para todas las edades y consejos para padres viajeros.
-            </p>
+            <p className="text-lg text-white/80 max-w-xl">{pc.tx("p.1", "Resorts con kids club, playas seguras, actividades para todas las edades y consejos para padres viajeros.")}</p>
           </div>
         </section>
 
         {/* Destinos */}
         <section className="py-12">
           <div className="container mx-auto px-4 max-w-5xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">📍 Mejores Destinos para Familias</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.1", "📍 Mejores Destinos para Familias")}</h2>
             <div className="grid md:grid-cols-2 gap-4">
               {destinosFamilia.map(d => (
                 <Card key={d.nombre}>
                   <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-semibold text-foreground">{d.nombre}</h3>
-                      <Badge variant="outline" className="text-[10px]">Edades: {d.edades}</Badge>
+                      <Badge variant="outline" className="text-3xs">{pc.tx("Badge.2", "Edades:")}{" "}{d.edades}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-3">{d.desc}</p>
                     <div className="flex flex-wrap gap-1">
                       {d.highlights.map(h => (
-                        <Badge key={h} variant="secondary" className="text-[10px]">
+                        <Badge key={h} variant="secondary" className="text-3xs">
                           <CheckCircle className="h-2.5 w-2.5 mr-0.5" /> {h}
                         </Badge>
                       ))}
@@ -110,14 +112,14 @@ export default function FamiliaConNinos() {
         {/* Resorts */}
         <section className="py-12 bg-card/50">
           <div className="container mx-auto px-4 max-w-5xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">🏨 Resorts Familiares Top</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.2", "🏨 Resorts Familiares Top")}</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {resortsFamiliares.map(r => (
                 <Card key={r.nombre}>
                   <CardContent className="p-5">
                     <h3 className="font-semibold text-foreground text-sm mb-1">{r.nombre}</h3>
                     <p className="text-xs text-muted-foreground flex items-center gap-1 mb-2">
-                      <MapPin className="h-3 w-3" /> {r.ubicacion} · Edades: {r.edades}
+                      <MapPin className="h-3 w-3" /> {r.ubicacion}{" "}{pc.tx("p.2", "· Edades:")}{" "}{r.edades}
                     </p>
                     <ul className="space-y-1">
                       {r.features.map(f => (
@@ -138,14 +140,9 @@ export default function FamiliaConNinos() {
           <div className="container mx-auto max-w-6xl px-4">
             <div className="mx-auto mb-8 max-w-3xl text-center">
               <Badge variant="outline" className="mb-3 gap-2 border-primary/40 text-primary">
-                <Baby className="h-4 w-4" aria-hidden="true" /> Colecciones para cada etapa
-              </Badge>
-              <h2 id="age-collections-heading" className="font-display text-3xl font-bold text-foreground md:text-4xl">
-                Elige ideas según la edad de tu familia
-              </h2>
-              <p className="mt-4 text-sm leading-relaxed text-muted-foreground md:text-base">
-                Son puntos de partida, no recomendaciones ni garantías de seguridad. Confirma edad mínima, condiciones, accesibilidad, equipo y supervisión con el proveedor antes de reservar.
-              </p>
+                <Baby className="h-4 w-4" aria-hidden="true" />{" "}{pc.tx("Badge.3", "Colecciones para cada etapa")}</Badge>
+              <h2 id="age-collections-heading" className="font-display text-3xl font-bold text-foreground md:text-4xl">{pc.tx("h2.3", "Elige ideas según la edad de tu familia")}</h2>
+              <p className="mt-4 text-sm leading-relaxed text-muted-foreground md:text-base">{pc.tx("p.3", "Son puntos de partida, no recomendaciones ni garantías de seguridad. Confirma edad mínima, condiciones, accesibilidad, equipo y supervisión con el proveedor antes de reservar.")}</p>
             </div>
             <ul className="grid gap-4 md:grid-cols-2">
               {actividadesPorEdad.map((coleccion, index) => (
@@ -183,14 +180,9 @@ export default function FamiliaConNinos() {
           <div className="container mx-auto max-w-6xl px-4">
             <div className="mx-auto mb-8 max-w-3xl text-center">
               <Badge variant="outline" className="mb-3 gap-2 border-primary/40 text-primary">
-                <Users className="h-4 w-4" aria-hidden="true" /> Viajar en varias generaciones
-              </Badge>
-              <h2 id="multigenerational-heading" className="font-display text-3xl font-bold text-foreground md:text-4xl">
-                Un plan flexible para disfrutar juntos
-              </h2>
-              <p className="mt-4 text-sm leading-relaxed text-muted-foreground md:text-base">
-                Conversen sobre comodidad, ritmo y preferencias antes de reservar. Las condiciones varían por proveedor: confirma por escrito las características que sean necesarias para tu grupo.
-              </p>
+                <Users className="h-4 w-4" aria-hidden="true" />{" "}{pc.tx("Badge.4", "Viajar en varias generaciones")}</Badge>
+              <h2 id="multigenerational-heading" className="font-display text-3xl font-bold text-foreground md:text-4xl">{pc.tx("h2.4", "Un plan flexible para disfrutar juntos")}</h2>
+              <p className="mt-4 text-sm leading-relaxed text-muted-foreground md:text-base">{pc.tx("p.4", "Conversen sobre comodidad, ritmo y preferencias antes de reservar. Las condiciones varían por proveedor: confirma por escrito las características que sean necesarias para tu grupo.")}</p>
             </div>
             <ul className="grid gap-4 sm:grid-cols-2">
               {planMultigeneracional.map((paso) => (
@@ -210,7 +202,7 @@ export default function FamiliaConNinos() {
         {/* Salud */}
         <section className="py-12 bg-card/50">
           <div className="container mx-auto px-4 max-w-4xl">
-            <h2 className="font-display text-xl font-bold text-foreground mb-6 text-center">🏥 Salud y Seguridad Infantil</h2>
+            <h2 className="font-display text-xl font-bold text-foreground mb-6 text-center">{pc.tx("h2.5", "🏥 Salud y Seguridad Infantil")}</h2>
             <div className="grid md:grid-cols-2 gap-3">
               {salud.map(s => (
                 <div key={s.titulo} className="bg-background rounded-xl p-4 border border-border">
@@ -227,3 +219,6 @@ export default function FamiliaConNinos() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { destinosFamilia, resortsFamiliares, actividadesPorEdad, planMultigeneracional, salud };

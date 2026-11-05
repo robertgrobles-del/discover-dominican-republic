@@ -54,7 +54,7 @@ export function LeaderboardLeagueSection({ leaderboard, featuredMissions, getMis
                   </span>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-foreground text-sm truncate">{entry.display_name}</p>
-                    <p className="text-xs text-muted-foreground">Nivel {entry.current_level} • Racha: {entry.streak_days}d</p>
+                    {entry.current_level != null && <p className="text-xs text-muted-foreground">Nivel {entry.current_level} • Racha: {entry.streak_days}d</p>}
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-foreground text-sm">{entry.total_xp.toLocaleString()}</p>

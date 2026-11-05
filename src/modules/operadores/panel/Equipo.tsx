@@ -368,7 +368,7 @@ export default function Equipo() {
                           "{req.message}"
                         </p>
                       )}
-                      <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-1">
+                      <p className="text-2xs text-muted-foreground flex items-center gap-1 mt-1">
                         <Clock className="h-3 w-3" /> Solicitado hace poco
                       </p>
                     </div>

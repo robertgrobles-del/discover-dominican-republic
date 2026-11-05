@@ -460,7 +460,7 @@ export function DestinationZonesGrid({ slug, destinoNombre, zones }: Destination
 
                 <div className="relative p-6 z-10">
                   <span
-                    className={`inline-block px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase mb-2 ${
+                    className={`inline-block px-3 py-1 rounded-full text-2xs font-bold tracking-wide uppercase mb-2 ${
                       zone.badgeColor || "bg-primary text-primary-foreground"
                     }`}
                   >

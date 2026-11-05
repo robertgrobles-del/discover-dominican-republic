@@ -1,4 +1,5 @@
-import type { FastifyInstance, FastifyRequest } from "fastify";
+import { createHmac } from "node:crypto";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z, type ZodTypeAny } from "zod";
 import { AppError } from "../../lib/errors.js";
@@ -116,6 +117,12 @@ function pickLocale(req: FastifyRequest, lang: string | undefined): Locale {
   return resolveLocale(lang, req.headers["accept-language"]);
 }
 
+/** El idioma puede salir de Accept-Language: las cachés compartidas deben distinguirlo (sin pisar otros Vary, p. ej. Origin). */
+function varyLanguage(reply: FastifyReply) {
+  const cur = String(reply.getHeader("vary") ?? "");
+  if (!/(^|,)\s*(accept-language|\*)\s*(,|$)/i.test(cur)) reply.header("vary", cur ? `${cur}, Accept-Language` : "Accept-Language");
+}
+
 function registerCollection(app: FastifyInstance, d: CollectionDef) {
   const r = app.withTypeProvider<ZodTypeProvider>();
   const item = itemSchema(d);
@@ -185,7 +192,7 @@ function registerCollection(app: FastifyInstance, d: CollectionDef) {
 
     const nextCursor = hasMore ? encodeCursor(specs, rows[rows.length - 1]!) : null;
     const tr = await decorate(rows, parsed, sel, locale);
-    reply.header("cache-control", PUBLIC_CACHE).header("content-language", locale);
+    reply.header("cache-control", PUBLIC_CACHE).header("content-language", locale); varyLanguage(reply);
     return {
       data: tr.rows,
       meta: { ...pageMeta(parsed.page, parsed.perPage, total), locale, ...(tr.fallback ? { fallback_locale: "es" } : {}), ...(canCursor ? { next_cursor: nextCursor } : {}) },
@@ -209,7 +216,7 @@ function registerCollection(app: FastifyInstance, d: CollectionDef) {
       for (const f of wanted) if (!facetable.includes(f)) throw AppError.validation(`Faceta no válida: ${f}`, { allowed: facetable });
       const parsed = parseQuery(d, raw);
       // Igual para todos los visitantes: 30 s en app.publicCache con la colección y todos los filtros en la clave (B7.65).
-      const { data, total } = await app.publicCache.facets.wrap(`facets|${d.path}|${JSON.stringify(raw)}`, async () => {
+      const { data, total } = await app.publicCache.facets.wrap(`facets|${d.path}|${JSON.stringify(raw)}|${[...new Set(wanted)].sort().join(",")}`, async () => {
         const data: Record<string, { value: string; count: number }[]> = {};
         for (const f of wanted) {
           const { where, params } = buildWhere(d, parsed, { skip: f });
@@ -253,7 +260,7 @@ function registerCollection(app: FastifyInstance, d: CollectionDef) {
     const row = await fetchOne(req.params.idOrSlug, sel);
     if (!row) throw AppError.notFound(d.label.replace(/s$/, ""));
     const tr = await decorate([row], parsed, sel, locale);
-    reply.header("cache-control", PUBLIC_CACHE).header("content-language", locale);
+    reply.header("cache-control", PUBLIC_CACHE).header("content-language", locale); varyLanguage(reply);
     return { data: tr.rows[0]!, meta: { locale } };
   });
 
@@ -280,7 +287,7 @@ function registerCollection(app: FastifyInstance, d: CollectionDef) {
       const order = ["is_featured", "rating"].filter((c) => hasCol(d.table, c)).map((c) => `${Q(c)} DESC NULLS LAST`).concat(Q(d.title)).join(", ");
       const { rows } = await app.db.query<Row>(`SELECT ${sel.select} FROM ${T} WHERE ${built.where} ORDER BY ${order}, "id" LIMIT ${limit}`, built.params);
       const tr = await decorate(rows, parsed, sel, locale);
-      reply.header("cache-control", PUBLIC_CACHE).header("content-language", locale);
+      reply.header("cache-control", PUBLIC_CACHE).header("content-language", locale); varyLanguage(reply);
       return { data: tr.rows, meta: { locale } };
     });
   }
@@ -315,7 +322,7 @@ function registerCollection(app: FastifyInstance, d: CollectionDef) {
         const { rows } = await app.db.query<Row>(`SELECT ${sel.select} FROM ${Q(t.table)} WHERE ${built.where} ORDER BY distance_m ASC, "id" LIMIT ${limit}`, built.params);
         data[t.path] = rows.map((row) => ({ ...mapRow(t, row, { fields: sel.fields, wantSeo: false }) }));
       }
-      reply.header("cache-control", PUBLIC_CACHE).header("content-language", locale);
+      reply.header("cache-control", PUBLIC_CACHE).header("content-language", locale); varyLanguage(reply);
       return { data, meta: { radius, center: { lat, lng }, locale } };
     });
   }
@@ -361,39 +368,60 @@ function registerCollection(app: FastifyInstance, d: CollectionDef) {
 
   // ---------- Reacciones de artículos (likes, love, fire) ----------
   if (d.path === "articles") {
-    // Contador anónimo: no hay sesión ni un voto por persona, así que se limita por IP para que no se pueda inflar.
+    // Un voto por persona: con sesión cuenta la cuenta; sin ella, una huella de la IP (no se guarda la IP). El contador
+    // sólo cambia cuando el voto se anota o se retira de verdad, así que repetir la llamada no infla ni resta de más.
+    // La sesión pasa por el mismo control que el resto de la API (sesión viva, soporte de sólo lectura). Un token
+    // inválido o vencido cuenta como anónimo; una sesión de soporte no puede votar.
+    const voterOf = async (req: FastifyRequest, reply: FastifyReply) => {
+      if (req.headers.authorization?.startsWith("Bearer ")) {
+        try { await app.authenticate(req, reply); } catch (err) {
+          if (err instanceof AppError && err.code === "FORBIDDEN") throw err;
+          req.user = undefined;
+        }
+        if (req.user) return `u:${req.user.id}`;
+      }
+      return `ip:${createHmac("sha256", app.env.APP_SECRET!).update(req.ip).digest("hex").slice(0, 32)}`;
+    };
     r.post(`${base}/:idOrSlug/react`, {
       config: { rateLimit: app.env.AUTH_RATE_LIMIT_ENABLED ? { max: 20, timeWindow: "1 minute" } : { max: 1_000_000, timeWindow: "1 minute" } },
       schema: {
-        tags: [d.tag], summary: "Reacciona a un artículo", params: idOrSlug,
+        tags: [d.tag], summary: "Reacciona a un artículo o retira la reacción propia (un voto por persona)", params: idOrSlug,
         body: z.object({
           reaction: z.enum(["likes", "love", "fire"]).default("likes"),
+          /** 1 anota la reacción; -1 retira la propia. */
           delta: z.number().int().min(-1).max(1).default(1),
         }),
         response: {
           200: z.object({
             data: z.object({
               reactions_count: z.record(z.string(), z.number()),
+              /** Si quien llama tiene ahora mismo esta reacción puesta. */
+              reacted: z.boolean(),
             }),
           }),
         },
       },
-    }, async (req) => {
+    }, async (req, reply) => {
       const cur = await fetchOne(req.params.idOrSlug, { select: Q("id") });
       if (!cur) throw AppError.notFound(d.label.replace(/s$/, ""));
       const { reaction, delta } = req.body;
+      const voter = await voterOf(req, reply);
+      const own = delta >= 0
+        ? "INSERT INTO article_reactions (article_id, voter, reaction) VALUES ($2, $3, $1) ON CONFLICT DO NOTHING RETURNING 1"
+        : "DELETE FROM article_reactions WHERE article_id = $2 AND voter = $3 AND reaction = $1 RETURNING 1";
       const res = await app.db.query<{ reactions_count: Record<string, number> }>(
-        `UPDATE articles
+        `WITH own AS (${own})
+         UPDATE articles
          SET reactions_count = jsonb_set(
            COALESCE(reactions_count, '{"likes": 0, "love": 0, "fire": 0}'::jsonb),
            ARRAY[$1],
-           to_jsonb(GREATEST(0, COALESCE((reactions_count->>$1)::int, 0) + $2))
+           to_jsonb(GREATEST(0, COALESCE((reactions_count->>$1)::int, 0) + (SELECT count(*)::int FROM own) * ${delta >= 0 ? 1 : -1}))
          )
-         WHERE id = $3
+         WHERE id = $2
          RETURNING reactions_count`,
-        [reaction, delta, cur.id]
+        [reaction, cur.id, voter]
       );
-      return { data: { reactions_count: res.rows[0]?.reactions_count ?? { likes: 0, love: 0, fire: 0 } } };
+      return { data: { reactions_count: res.rows[0]?.reactions_count ?? { likes: 0, love: 0, fire: 0 }, reacted: delta >= 0 } };
     });
   }
 }

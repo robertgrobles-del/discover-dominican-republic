@@ -13,7 +13,8 @@ export const resolvePackagedAsset = (fileName: string): string | undefined => as
 /** `comoLlegarData.ts` → `como-llegar-data`: la misma clave que usa `db:import-static` para el documento. */
 export const datasetKey = (file: string) => file.replace(/\.tsx?$/, "").replace(/([a-z0-9])([A-Z])/g, "$1-$2").replace(/[^A-Za-z0-9]+/g, "-").toLowerCase();
 
-const dataModules = import.meta.glob("../data/*.{ts,tsx}") as Record<string, () => Promise<Record<string, unknown>>>;
+// El RNT trae teléfono, WhatsApp y correo de 8.224 prestadores: sólo lo lee el importador del backend, nunca el navegador.
+const dataModules = import.meta.glob(["../data/*.{ts,tsx}", "!../data/agenciasToursRNT.ts"]) as Record<string, () => Promise<Record<string, unknown>>>;
 
 /** Cargador de cada archivo de datos por la clave de su documento: el mismo trozo que descargan las pantallas. */
 export const datasetLoaders: Record<string, () => Promise<Record<string, unknown>>> = Object.fromEntries(

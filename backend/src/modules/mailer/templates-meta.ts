@@ -83,21 +83,33 @@ const ALLOWED_TAGS = new Set(["p", "br", "b", "strong", "i", "em", "u", "ul", "o
  * cualquier otra etiqueta se elimina conservando su texto.
  */
 export function sanitizeHtml(html: string): string {
-  return html
+  const src = html
     .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/<(script|style|iframe|object|embed|form|svg|math)\b[\s\S]*?<\/\1\s*>/gi, "")
-    .replace(/<\/?([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)>/g, (m, tag: string, attrs: string) => {
-      const t = tag.toLowerCase();
-      if (!ALLOWED_TAGS.has(t)) return "";
-      if (m.startsWith("</")) return `</${t}>`;
-      if (t === "a") {
-        const href = /\bhref\s*=\s*(?:"([^"]*)"|'([^']*)')/i.exec(attrs);
-        const v = (href?.[1] ?? href?.[2] ?? "").trim();
-        // Sólo https, mailto o una variable ({{url}}) que el servidor rellena con una dirección propia.
-        return /^(https:\/\/|mailto:|\{\{\s*[a-z_]+\s*\}\})/i.test(v) ? `<a href="${v.replace(/"/g, "&quot;")}">` : "<a>";
-      }
-      return `<${t}>`;
-    });
+    .replace(/<(script|style|iframe|object|embed|form|svg|math)\b[\s\S]*?<\/\1\s*>/gi, "");
+  // Una sola pasada que reconstruye las etiquetas permitidas y escapa todo `<`/`>` suelto del texto: así, al quitar una etiqueta,
+  // los restos (p. ej. `<<x>img ...>`) no pueden recomponer otra etiqueta.
+  const escapeText = (s: string) => s.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const TAG = /<\/?([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)>/g;
+  let out = "";
+  let last = 0;
+  for (const m of src.matchAll(TAG)) {
+    out += escapeText(src.slice(last, m.index));
+    last = m.index! + m[0].length;
+    const t = m[1]!.toLowerCase();
+    if (!ALLOWED_TAGS.has(t)) continue;
+    if (m[0].startsWith("</")) { out += `</${t}>`; continue; }
+    if (t === "a") {
+      const href = /\bhref\s*=\s*(?:"([^"]*)"|'([^']*)')/i.exec(m[2]!);
+      const v = (href?.[1] ?? href?.[2] ?? "").trim();
+      // Sólo una variable sola ({{url}}, que el servidor rellena con una dirección propia) o un https/mailto fijo sin variables:
+      // `https://otro.example/?u={{url}}` filtraría el enlace del correo a un tercero.
+      const ok = /^\{\{\s*[a-z_]+\s*\}\}$/i.test(v) || (/^(https:\/\/|mailto:)/i.test(v) && !/\{\{/.test(v));
+      out += ok ? `<a href="${v.replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}">` : "<a>";
+      continue;
+    }
+    out += `<${t}>`;
+  }
+  return out + escapeText(src.slice(last));
 }
 export const htmlToText = (html: string) => html.replace(/<br\s*\/?>/gi, "\n").replace(/<\/(p|li|h2|h3)>/gi, "\n\n").replace(/<li>/gi, "• ").replace(/<a[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi, "$2 ($1)").replace(/<[^>]+>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\n{3,}/g, "\n\n").trim();
 

@@ -55,19 +55,19 @@ export default function FeedSocial() {
     setLoading(true);
     try {
       if (HAS_BACKEND_SESSION) {
-        const res = await gamificationApi.getSocialFeed(1, 50);
+        const res = await gamificationApi.getSocialFeed({ limit: 50 });
         setPosts(
           (res.data || []).map((p) => ({
             id: p.id,
-            user_id: p.user_id,
+            user_id: p.author.id,
             content: p.content,
-            image_url: p.image_url,
-            location: p.location_name,
+            image_url: p.media[0] ?? null,
+            location: p.location,
             likes_count: p.likes_count,
             comments_count: p.comments_count,
             created_at: p.created_at,
-            author_name: p.author_name || "Viajero",
-            liked_by_me: p.is_liked,
+            author_name: p.author.name,
+            liked_by_me: p.liked_by_me,
           }))
         );
         return;
@@ -137,8 +137,8 @@ export default function FeedSocial() {
       if (HAS_BACKEND_SESSION) {
         await gamificationApi.createSocialPost({
           content: newContent.trim(),
-          image_url: newImageUrl.trim() || undefined,
-          location_name: newLocation.trim() || undefined,
+          media: newImageUrl.trim() ? [newImageUrl.trim()] : undefined,
+          location: newLocation.trim() || undefined,
         });
         setNewContent("");
         setNewImageUrl("");
@@ -206,10 +206,10 @@ export default function FeedSocial() {
         const commList = await gamificationApi.getPostComments(postId);
         setComments(commList.map((c) => ({
           id: c.id,
-          user_id: c.user_id,
+          user_id: c.author.id,
           content: c.content,
           created_at: c.created_at,
-          author_name: c.author_name || "Viajero",
+          author_name: c.author.name,
         })));
         return;
       }

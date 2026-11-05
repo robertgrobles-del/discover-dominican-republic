@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { fetchApi } from "@/lib/fastifyClient";
 import { getFormErrorMessage, newsletterSubscribeSchema } from "@/lib/forms";
 import { useI18n } from "@/hooks/useI18n";
+import { usePageContent } from "@/lib/pageContent";
 
 const interests = [
   { id: "playas", label: "Playas", icon: "🏖️" },
@@ -28,6 +29,8 @@ const interests = [
 ];
 
 export default function Newsletter() {
+  const pc = usePageContent("newsletter-page");
+  const interests = pc.data("interests", __pcData.interests);
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
@@ -83,8 +86,8 @@ export default function Newsletter() {
     return (
       <PageTransition>
         <SEOHead
-          title="Newsletter - Suscripción Exitosa"
-          description="Te has suscrito al newsletter de RD Turismo"
+          title={pc.t("SEOHead.title.1", "Newsletter - Suscripción Exitosa")}
+          description={pc.t("SEOHead.description.1", "Te has suscrito al newsletter de RD Turismo")}
         />
         <div className="min-h-screen bg-background">
           <Header />
@@ -97,13 +100,10 @@ export default function Newsletter() {
               <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-emerald/20 flex items-center justify-center">
                 <CheckCircle className="h-10 w-10 text-emerald" />
               </div>
-              <h1 className="font-display text-3xl font-bold mb-4">¡Suscripción Exitosa!</h1>
-              <p className="text-muted-foreground mb-8">
-                Gracias por unirte a nuestra comunidad. Hemos enviado un correo de confirmación a <strong>{email}</strong>.
+              <h1 className="font-display text-3xl font-bold mb-4">{pc.tx("h1.1", "¡Suscripción Exitosa!")}</h1>
+              <p className="text-muted-foreground mb-8">{pc.tx("p.1", "Gracias por unirte a nuestra comunidad. Hemos enviado un correo de confirmación a")}{" "}<strong>{email}</strong>.
               </p>
-              <Button onClick={() => setIsSubscribed(false)}>
-                Modificar preferencias
-              </Button>
+              <Button onClick={() => setIsSubscribed(false)}>{pc.tx("Button.1", "Modificar preferencias")}</Button>
             </motion.div>
           </main>
           <Footer />
@@ -115,8 +115,8 @@ export default function Newsletter() {
   return (
     <PageTransition>
       <SEOHead
-        title="Newsletter Segmentado - Ofertas Personalizadas de RD"
-        description="Suscríbete a nuestro newsletter y recibe ofertas personalizadas según tus intereses de viaje."
+        title={pc.t("SEOHead.title.2", "Newsletter Segmentado - Ofertas Personalizadas de RD")}
+        description={pc.t("SEOHead.description.2", "Suscríbete a nuestro newsletter y recibe ofertas personalizadas según tus intereses de viaje.")}
         keywords="newsletter, ofertas, República Dominicana, turismo, descuentos, promociones"
       />
       <div className="min-h-screen bg-background">
@@ -130,14 +130,10 @@ export default function Newsletter() {
               animate={{ opacity: 1, y: 0 }}
               className="max-w-3xl mx-auto text-center"
             >
-              <Badge className="mb-4">Newsletter</Badge>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-                Ofertas <span className="text-gradient">Personalizadas</span>
+              <Badge className="mb-4">{pc.tx("Badge.1", "Newsletter")}</Badge>
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{pc.tx("h1.2", "Ofertas")}{" "}<span className="text-gradient">{pc.tx("span.1", "Personalizadas")}</span>
               </h1>
-              <p className="text-xl text-muted-foreground">
-                Recibe las mejores ofertas y novedades según tus intereses de viaje.
-                Sin spam, solo contenido relevante para ti.
-              </p>
+              <p className="text-xl text-muted-foreground">{pc.tx("p.2", "Recibe las mejores ofertas y novedades según tus intereses de viaje. Sin spam, solo contenido relevante para ti.")}</p>
             </motion.div>
           </div>
         </section>
@@ -152,12 +148,10 @@ export default function Newsletter() {
                 className="bg-card rounded-2xl p-6 border border-border"
               >
                 <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
-                  <Mail className="h-5 w-5 text-primary" />
-                  Información de contacto
-                </h2>
+                  <Mail className="h-5 w-5 text-primary" />{pc.tx("h2.1", "Información de contacto")}</h2>
                 <div className="space-y-4">
                   <FloatingInput
-                    label="Nombre (opcional)"
+                    label={pc.t("FloatingInput.label.1", "Nombre (opcional)")}
                     id="newsletter-name"
                     maxLength={80}
                     value={name}
@@ -165,7 +159,7 @@ export default function Newsletter() {
                   />
                   <p className="text-xs text-muted-foreground text-right" aria-live="polite">{name.length}/80</p>
                   <FloatingInput
-                    label="Correo electrónico"
+                    label={pc.t("FloatingInput.label.2", "Correo electrónico")}
                     type="email"
                     id="newsletter-email"
                     maxLength={254}
@@ -184,12 +178,8 @@ export default function Newsletter() {
                 className="bg-card rounded-2xl p-6 border border-border"
               >
                 <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  ¿Qué te interesa?
-                </h2>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Selecciona tus intereses para recibir contenido personalizado
-                </p>
+                  <Sparkles className="h-5 w-5 text-primary" />{pc.tx("h2.2", "¿Qué te interesa?")}</h2>
+                <p className="text-sm text-muted-foreground mb-4">{pc.tx("p.3", "Selecciona tus intereses para recibir contenido personalizado")}</p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {interests.map((interest) => (
                     <button
@@ -218,9 +208,7 @@ export default function Newsletter() {
                 className="bg-gradient-to-r from-primary/10 via-card to-card rounded-2xl p-6 border border-primary/30"
               >
                 <h2 className="font-bold text-lg mb-4 flex items-center gap-2">
-                  <Gift className="h-5 w-5 text-primary" />
-                  Beneficios exclusivos
-                </h2>
+                  <Gift className="h-5 w-5 text-primary" />{pc.tx("h2.3", "Beneficios exclusivos")}</h2>
                 <div className="grid md:grid-cols-3 gap-4">
                   {[
                     { icon: Tag, text: "Descuentos exclusivos" },
@@ -236,9 +224,7 @@ export default function Newsletter() {
               </motion.div>
 
               {/* Submit */}
-              <label className="absolute -left-[10000px]" aria-hidden="true">
-                Sitio web
-                <input name="website" tabIndex={-1} autoComplete="off" value={website} onChange={(event) => setWebsite(event.target.value)} />
+              <label className="absolute -left-[10000px]" aria-hidden="true">{pc.tx("label.1", "Sitio web")}<input name="website" tabIndex={-1} autoComplete="off" value={website} onChange={(event) => setWebsite(event.target.value)} />
               </label>
               {formError && <p id="newsletter-form-error" role="alert" aria-live="assertive" className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{formError}</p>}
               <Button
@@ -250,18 +236,13 @@ export default function Newsletter() {
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                    Procesando...
-                  </span>
+                    <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />{pc.tx("span.2", "Procesando...")}</span>
                 ) : (
                   "Suscribirme al Newsletter"
                 )}
               </Button>
 
-              <p className="text-xs text-muted-foreground text-center">
-                Puedes cancelar tu suscripción en cualquier momento.
-                Respetamos tu privacidad y nunca compartiremos tu información.
-              </p>
+              <p className="text-xs text-muted-foreground text-center">{pc.tx("p.4", "Puedes cancelar tu suscripción en cualquier momento. Respetamos tu privacidad y nunca compartiremos tu información.")}</p>
             </form>
           </div>
         </main>
@@ -271,3 +252,6 @@ export default function Newsletter() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { interests };

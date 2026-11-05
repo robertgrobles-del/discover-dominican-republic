@@ -141,11 +141,13 @@ export const ViralSorteoModule: React.FC<ViralSorteoModuleProps> = ({ onPointsUp
     setIsSubmitting(true);
     try {
       if (HAS_BACKEND_SESSION) {
+        // El correo lo toma el servidor de la cuenta (verificada); al enviar se aceptan las bases (texto bajo el botón).
+        // Los boletos extra por compartir son sólo de esta pantalla: la API inscribe una vez por persona.
         await gamificationApi.registerContest("gran-sorteo-2026", {
-          full_name: formData.fullName,
-          email: formData.email,
+          name: formData.fullName,
           phone: formData.phone || undefined,
-          extra_entries: points,
+          country: formData.country || undefined,
+          accept_rules: true,
         });
       } else {
         await supabase.from("contest_registrations").insert({
@@ -226,7 +228,7 @@ export const ViralSorteoModule: React.FC<ViralSorteoModuleProps> = ({ onPointsUp
           </div>
 
           <div className="bg-background/90 backdrop-blur-sm border-2 border-dashed border-primary/30 p-3.5 rounded-2xl flex flex-col items-center min-w-[110px] shadow-sm">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Tus Boletos</span>
+            <span className="text-3xs uppercase font-bold text-muted-foreground tracking-wider">Tus Boletos</span>
             <span className="text-3xl font-mono font-black text-primary">{points}</span>
           </div>
         </div>
@@ -300,7 +302,7 @@ export const ViralSorteoModule: React.FC<ViralSorteoModuleProps> = ({ onPointsUp
                 </span>
                 <h4 className="font-bold text-base text-foreground">Misiones Sociales</h4>
               </div>
-              <Badge variant="secondary" className="text-[10px] text-primary">
+              <Badge variant="secondary" className="text-3xs text-primary">
                 +1 a +3 Boletos c/u
               </Badge>
             </div>
@@ -326,7 +328,7 @@ export const ViralSorteoModule: React.FC<ViralSorteoModuleProps> = ({ onPointsUp
                     {isDone ? (
                       <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                     ) : (
-                      <Badge variant="outline" className="text-[10px]">
+                      <Badge variant="outline" className="text-3xs">
                         +{task.points} Pts
                       </Badge>
                     )}
@@ -345,7 +347,7 @@ export const ViralSorteoModule: React.FC<ViralSorteoModuleProps> = ({ onPointsUp
                 </span>
                 <h4 className="font-bold text-base text-foreground">Invitar Amigos</h4>
               </div>
-              <Badge variant="secondary" className="text-[10px] text-amber-500">
+              <Badge variant="secondary" className="text-3xs text-amber-500">
                 +2 Boletos por Amigo
               </Badge>
             </div>
@@ -395,7 +397,7 @@ export const ViralSorteoModule: React.FC<ViralSorteoModuleProps> = ({ onPointsUp
                       <div className="flex items-center gap-2">
                         <Users className="w-3.5 h-3.5 text-primary" />
                         <span className="font-bold">{inv.name}</span>
-                        <span className="text-muted-foreground text-[11px]">({inv.email})</span>
+                        <span className="text-muted-foreground text-2xs">({inv.email})</span>
                       </div>
                       <button
                         type="button"
@@ -420,7 +422,7 @@ export const ViralSorteoModule: React.FC<ViralSorteoModuleProps> = ({ onPointsUp
                 </span>
                 <h4 className="font-bold text-base text-foreground">Multiplicador Viral</h4>
               </div>
-              <Badge variant="secondary" className="text-[10px] text-emerald-500 font-bold">
+              <Badge variant="secondary" className="text-3xs text-emerald-500 font-bold">
                 +5 Boletos
               </Badge>
             </div>
@@ -460,7 +462,7 @@ export const ViralSorteoModule: React.FC<ViralSorteoModuleProps> = ({ onPointsUp
                 </>
               )}
             </Button>
-            <p className="text-[10px] text-center text-muted-foreground mt-2 flex items-center justify-center gap-1">
+            <p className="text-3xs text-center text-muted-foreground mt-2 flex items-center justify-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Al registrarte aceptas las bases del sorteo y confirmas ser mayor de 18 años.
             </p>
           </div>

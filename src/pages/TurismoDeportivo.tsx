@@ -23,6 +23,7 @@ import {
 import { Link } from "react-router-dom";
 import { GolfSection } from "@/components/sports/GolfSection";
 import { BetweenSectionsAd, CompactInlineAd } from "@/components/promo";
+import { usePageContent } from "@/lib/pageContent";
 
 const sports = [
   {
@@ -151,6 +152,11 @@ const upcomingEvents = [
 ];
 
 export default function TurismoDeportivo() {
+  const pc = usePageContent("turismo-deportivo");
+  const sports = pc.data("sports", __pcData.sports);
+  const hikingRoutes = pc.data("hikingRoutes", __pcData.hikingRoutes);
+  const stadiums = pc.data("stadiums", __pcData.stadiums);
+  const upcomingEvents = pc.data("upcomingEvents", __pcData.upcomingEvents);
   return (
     <PageTransition>
       <div className="min-h-screen bg-background">
@@ -167,24 +173,14 @@ export default function TurismoDeportivo() {
               className="max-w-3xl"
             >
               <span className="inline-flex items-center gap-2 text-orange-300 text-sm font-medium mb-4">
-                <Trophy className="h-4 w-4" />
-                Aventura y Deporte
-              </span>
-              <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">
-                Turismo Deportivo en <span className="text-orange-400">República Dominicana</span>
+                <Trophy className="h-4 w-4" />{pc.tx("span.1", "Aventura y Deporte")}</span>
+              <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">{pc.tx("h1.1", "Turismo Deportivo en")}{" "}<span className="text-orange-400">{pc.tx("span.2", "República Dominicana")}</span>
               </h1>
-              <p className="text-xl text-white/80 mb-8">
-                Golf en campos diseñados por leyendas del deporte, senderismo hasta el Pico Duarte
-                y deportes acuáticos en todo el litoral.
-              </p>
+              <p className="text-xl text-white/80 mb-8">{pc.tx("p.1", "Golf en campos diseñados por leyendas del deporte, senderismo hasta el Pico Duarte y deportes acuáticos en todo el litoral.")}</p>
               <div className="flex flex-wrap gap-4">
                 <Button size="lg" className="gap-2 bg-white text-orange-900 hover:bg-white/90">
-                  <Calendar className="h-4 w-4" />
-                  Ver Eventos
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Explorar Deportes
-                  <ChevronRight className="h-4 w-4" />
+                  <Calendar className="h-4 w-4" />{pc.tx("Button.1", "Ver Eventos")}</Button>
+                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.2", "Explorar Deportes")}<ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </motion.div>
@@ -196,18 +192,10 @@ export default function TurismoDeportivo() {
           <div className="container mx-auto px-4 lg:px-8">
             <Tabs defaultValue="todos" className="w-full">
               <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4 h-auto gap-2 bg-transparent mb-8">
-                <TabsTrigger value="todos" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3">
-                  Todos
-                </TabsTrigger>
-                <TabsTrigger value="golf" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3">
-                  ⛳ Golf
-                </TabsTrigger>
-                <TabsTrigger value="senderismo" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3">
-                  🥾 Senderismo
-                </TabsTrigger>
-                <TabsTrigger value="acuaticos" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3">
-                  🏄 Acuáticos
-                </TabsTrigger>
+                <TabsTrigger value="todos" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3">{pc.tx("TabsTrigger.1", "Todos")}</TabsTrigger>
+                <TabsTrigger value="golf" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3">{pc.tx("TabsTrigger.2", "⛳ Golf")}</TabsTrigger>
+                <TabsTrigger value="senderismo" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3">{pc.tx("TabsTrigger.3", "🥾 Senderismo")}</TabsTrigger>
+                <TabsTrigger value="acuaticos" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3">{pc.tx("TabsTrigger.4", "🏄 Acuáticos")}</TabsTrigger>
               </TabsList>
 
               {/* TAB: TODOS */}
@@ -220,12 +208,9 @@ export default function TurismoDeportivo() {
                       viewport={{ once: true }}
                       className="text-center mb-12"
                     >
-                      <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                        Deportes y <span className="text-gradient">Actividades</span>
+                      <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.1", "Deportes y")}{" "}<span className="text-gradient">{pc.tx("span.3", "Actividades")}</span>
                       </h2>
-                      <p className="text-muted-foreground max-w-2xl mx-auto">
-                        Desde golf de campeonato hasta aventuras extremas en la montaña.
-                      </p>
+                      <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.2", "Desde golf de campeonato hasta aventuras extremas en la montaña.")}</p>
                     </motion.div>
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -250,12 +235,10 @@ export default function TurismoDeportivo() {
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <Calendar className="h-4 w-4 text-primary" />
-                              <span className="text-muted-foreground">Temporada: {sport.season}</span>
+                              <span className="text-muted-foreground">{pc.tx("span.4", "Temporada:")}{" "}{sport.season}</span>
                             </div>
                           </div>
-                          <Button variant="link" className="text-primary p-0 mt-4 gap-1">
-                            Ver más
-                            <ChevronRight className="h-4 w-4" />
+                          <Button variant="link" className="text-primary p-0 mt-4 gap-1">{pc.tx("Button.3", "Ver más")}<ChevronRight className="h-4 w-4" />
                           </Button>
                         </motion.div>
                       ))}
@@ -279,12 +262,9 @@ export default function TurismoDeportivo() {
                       viewport={{ once: true }}
                       className="text-center mb-12"
                     >
-                      <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                        Rutas de <span className="text-gradient">Senderismo</span>
+                      <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.2", "Rutas de")}{" "}<span className="text-gradient">{pc.tx("span.5", "Senderismo")}</span>
                       </h2>
-                      <p className="text-muted-foreground max-w-2xl mx-auto">
-                        Desde caminatas fáciles hasta expediciones de montaña en la Cordillera Central.
-                      </p>
+                      <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.3", "Desde caminatas fáciles hasta expediciones de montaña en la Cordillera Central.")}</p>
                     </motion.div>
 
                     <div className="grid md:grid-cols-3 gap-6">
@@ -310,21 +290,16 @@ export default function TurismoDeportivo() {
                           <p className="text-sm text-muted-foreground mb-4">{route.description}</p>
                           <div className="space-y-2">
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Clock className="h-4 w-4 text-primary" />
-                              Duración: {route.duration}
+                              <Clock className="h-4 w-4 text-primary" />{pc.tx("div.1", "Duración:")}{" "}{route.duration}
                             </div>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Mountain className="h-4 w-4 text-primary" />
-                              Altitud: {route.altitude}
+                              <Mountain className="h-4 w-4 text-primary" />{pc.tx("div.2", "Altitud:")}{" "}{route.altitude}
                             </div>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Flag className="h-4 w-4 text-primary" />
-                              Inicio: {route.startPoint}
+                              <Flag className="h-4 w-4 text-primary" />{pc.tx("div.3", "Inicio:")}{" "}{route.startPoint}
                             </div>
                           </div>
-                          <Button className="w-full mt-4" variant="outline">
-                            Agregar al Plan de Viaje
-                          </Button>
+                          <Button className="w-full mt-4" variant="outline">{pc.tx("Button.4", "Agregar al Plan de Viaje")}</Button>
                         </motion.div>
                       ))}
                     </div>
@@ -342,12 +317,9 @@ export default function TurismoDeportivo() {
                       viewport={{ once: true }}
                       className="text-center mb-12"
                     >
-                      <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                        Deportes <span className="text-gradient">Acuáticos</span>
+                      <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.3", "Deportes")}{" "}<span className="text-gradient">{pc.tx("span.6", "Acuáticos")}</span>
                       </h2>
-                      <p className="text-muted-foreground max-w-2xl mx-auto">
-                        Las mejores condiciones del Caribe para surf, kitesurf, buceo y más.
-                      </p>
+                      <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.4", "Las mejores condiciones del Caribe para surf, kitesurf, buceo y más.")}</p>
                     </motion.div>
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -372,10 +344,10 @@ export default function TurismoDeportivo() {
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                               <Calendar className="h-4 w-4 text-primary" />
-                              <span className="text-muted-foreground">Temporada: {sport.season}</span>
+                              <span className="text-muted-foreground">{pc.tx("span.7", "Temporada:")}{" "}{sport.season}</span>
                             </div>
                           </div>
-                          <Button className="w-full mt-4">Ver Experiencias</Button>
+                          <Button className="w-full mt-4">{pc.tx("Button.5", "Ver Experiencias")}</Button>
                         </motion.div>
                       ))}
                     </div>
@@ -396,17 +368,12 @@ export default function TurismoDeportivo() {
               className="flex items-end justify-between mb-12"
             >
               <div>
-                <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                  Estadios y <span className="text-gradient">Complejos</span>
+                <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.4", "Estadios y")}{" "}<span className="text-gradient">{pc.tx("span.8", "Complejos")}</span>
                 </h2>
-                <p className="text-muted-foreground max-w-xl">
-                  Las mejores instalaciones deportivas del Caribe para vivir la pasión.
-                </p>
+                <p className="text-muted-foreground max-w-xl">{pc.tx("p.5", "Las mejores instalaciones deportivas del Caribe para vivir la pasión.")}</p>
               </div>
               <Button variant="outline" className="hidden md:flex gap-2">
-                <Ticket className="h-4 w-4" />
-                Comprar Boletos
-              </Button>
+                <Ticket className="h-4 w-4" />{pc.tx("Button.6", "Comprar Boletos")}</Button>
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -466,8 +433,7 @@ export default function TurismoDeportivo() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Próximos <span className="text-gradient">Eventos</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.5", "Próximos")}{" "}<span className="text-gradient">{pc.tx("span.9", "Eventos")}</span>
               </h2>
             </motion.div>
 
@@ -495,9 +461,7 @@ export default function TurismoDeportivo() {
                       {event.location}
                     </div>
                   </div>
-                  <Button size="sm" className="w-full mt-4">
-                    Agregar al Viaje
-                  </Button>
+                  <Button size="sm" className="w-full mt-4">{pc.tx("Button.7", "Agregar al Viaje")}</Button>
                 </motion.div>
               ))}
             </div>
@@ -512,19 +476,11 @@ export default function TurismoDeportivo() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-                ¿Listo para la aventura?
-              </h2>
-              <p className="text-white/80 mb-8 max-w-xl mx-auto">
-                Planifica tu viaje deportivo con nuestros guías certificados y paquetes especializados.
-              </p>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">{pc.tx("h2.6", "¿Listo para la aventura?")}</h2>
+              <p className="text-white/80 mb-8 max-w-xl mx-auto">{pc.tx("p.6", "Planifica tu viaje deportivo con nuestros guías certificados y paquetes especializados.")}</p>
               <div className="flex flex-wrap justify-center gap-4">
-                <Button size="lg" className="gap-2 bg-white text-orange-900 hover:bg-white/90">
-                  Contactar Guía
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Comparar Experiencias
-                </Button>
+                <Button size="lg" className="gap-2 bg-white text-orange-900 hover:bg-white/90">{pc.tx("Button.8", "Contactar Guía")}</Button>
+                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.9", "Comparar Experiencias")}</Button>
               </div>
             </motion.div>
           </div>
@@ -538,3 +494,6 @@ export default function TurismoDeportivo() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { sports, hikingRoutes, stadiums, upcomingEvents };

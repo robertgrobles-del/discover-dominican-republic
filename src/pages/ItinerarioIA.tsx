@@ -21,6 +21,7 @@ import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTranslation } from "@/i18n";
+import { usePageContent } from "@/lib/pageContent";
 
 const intereses = [
   { id: "playa", label: "Playas", emoji: "🏖️" },
@@ -41,6 +42,9 @@ const presupuestos = [
 ];
 
 export default function ItinerarioIA() {
+  const pc = usePageContent("itinerario-ia");
+  const intereses = pc.data("intereses", __pcData.intereses);
+  const presupuestos = pc.data("presupuestos", __pcData.presupuestos);
   const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -189,17 +193,17 @@ export default function ItinerarioIA() {
               <div className="container mx-auto px-4 max-w-4xl">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Cuéntanos sobre tu viaje ideal</CardTitle>
-                    <CardDescription>Personaliza tu experiencia en República Dominicana</CardDescription>
+                    <CardTitle as="h2">{pc.tx("CardTitle.1", "Cuéntanos sobre tu viaje ideal")}</CardTitle>
+                    <CardDescription>{pc.tx("CardDescription.1", "Personaliza tu experiencia en República Dominicana")}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-8">
                     {/* Destination */}
                     <div className="space-y-2">
-                      <Label>¿A dónde quieres ir?</Label>
+                      <Label>{pc.tx("Label.1", "¿A dónde quieres ir?")}</Label>
                       <div className="relative">
                         <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input 
-                          placeholder="Ej: Punta Cana, Samaná, Santo Domingo..."
+                          placeholder={pc.t("Input.placeholder.1", "Ej: Punta Cana, Samaná, Santo Domingo...")}
                           className="pl-10"
                           value={formData.destino}
                           onChange={(e) => setFormData(prev => ({ ...prev, destino: e.target.value }))}
@@ -210,7 +214,7 @@ export default function ItinerarioIA() {
                     {/* Dates */}
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Fecha de inicio</Label>
+                        <Label>{pc.tx("Label.2", "Fecha de inicio")}</Label>
                         <Popover>
                           <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full justify-start">
@@ -228,7 +232,7 @@ export default function ItinerarioIA() {
                         </Popover>
                       </div>
                       <div className="space-y-2">
-                        <Label>Fecha de fin</Label>
+                        <Label>{pc.tx("Label.3", "Fecha de fin")}</Label>
                         <Popover>
                           <PopoverTrigger asChild>
                             <Button variant="outline" className="w-full justify-start">
@@ -249,7 +253,7 @@ export default function ItinerarioIA() {
 
                     {/* Travelers */}
                     <div className="space-y-2">
-                      <Label>Número de viajeros</Label>
+                      <Label>{pc.tx("Label.4", "Número de viajeros")}</Label>
                       <div className="flex items-center gap-4">
                         <Users className="h-5 w-5 text-muted-foreground" />
                         <Input 
@@ -260,13 +264,13 @@ export default function ItinerarioIA() {
                           onChange={(e) => setFormData(prev => ({ ...prev, viajeros: parseInt(e.target.value) }))}
                           className="w-24"
                         />
-                        <span className="text-muted-foreground">personas</span>
+                        <span className="text-muted-foreground">{pc.tx("span.1", "personas")}</span>
                       </div>
                     </div>
 
                     {/* Interests */}
                     <div className="space-y-4">
-                      <Label>¿Qué te interesa?</Label>
+                      <Label>{pc.tx("Label.5", "¿Qué te interesa?")}</Label>
                       <div className="flex flex-wrap gap-2">
                         {intereses.map((interes) => (
                           <Badge
@@ -283,7 +287,7 @@ export default function ItinerarioIA() {
 
                     {/* Budget */}
                     <div className="space-y-4">
-                      <Label>Presupuesto</Label>
+                      <Label>{pc.tx("Label.6", "Presupuesto")}</Label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {presupuestos.map((p) => (
                           <Card
@@ -307,17 +311,15 @@ export default function ItinerarioIA() {
 
                     {/* Notes */}
                     <div className="space-y-2">
-                      <Label>Notas adicionales (opcional)</Label>
+                      <Label>{pc.tx("Label.7", "Notas adicionales (opcional)")}</Label>
                       <Textarea 
-                        placeholder="Ej: Viajamos con niños, necesitamos accesibilidad, queremos evitar..."
+                        placeholder={pc.t("Textarea.placeholder.1", "Ej: Viajamos con niños, necesitamos accesibilidad, queremos evitar...")}
                         value={formData.notas}
                         onChange={(e) => setFormData(prev => ({ ...prev, notas: e.target.value }))}
                       />
                     </div>
 
-                    <Button className="w-full" size="lg" onClick={() => setStep(2)}>
-                      Continuar
-                    </Button>
+                    <Button className="w-full" size="lg" onClick={() => setStep(2)}>{pc.tx("Button.1", "Continuar")}</Button>
                   </CardContent>
                 </Card>
               </div>
@@ -330,13 +332,11 @@ export default function ItinerarioIA() {
               <div className="container mx-auto px-4 max-w-2xl text-center">
                 <Card className="p-12">
                   <Wand2 className="h-20 w-20 mx-auto mb-6 text-primary" />
-                  <h2 className="text-2xl font-bold mb-4">¿Listo para crear tu itinerario?</h2>
-                  <p className="text-muted-foreground mb-8">
-                    Nuestra IA analizará tus preferencias y creará un plan personalizado
-                  </p>
+                  <h2 className="text-2xl font-bold mb-4">{pc.tx("h2.1", "¿Listo para crear tu itinerario?")}</h2>
+                  <p className="text-muted-foreground mb-8">{pc.tx("p.1", "Nuestra IA analizará tus preferencias y creará un plan personalizado")}</p>
                   
                   <div className="bg-muted/50 rounded-lg p-6 mb-8 text-left">
-                    <h3 className="font-semibold mb-3">Resumen de tu viaje:</h3>
+                    <h3 className="font-semibold mb-3">{pc.tx("h3.1", "Resumen de tu viaje:")}</h3>
                     <ul className="space-y-2 text-sm">
                       <li className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-primary" />
@@ -348,8 +348,7 @@ export default function ItinerarioIA() {
                       </li>
                       <li className="flex items-center gap-2">
                         <Users className="h-4 w-4 text-primary" />
-                        {formData.viajeros} viajeros
-                      </li>
+                        {formData.viajeros}{" "}{pc.tx("li.1", "viajeros")}</li>
                       <li className="flex items-center gap-2">
                         <Heart className="h-4 w-4 text-primary" />
                         {formData.intereses.map(i => intereses.find(int => int.id === i)?.label).join(", ") || "Sin preferencias"}
@@ -358,9 +357,7 @@ export default function ItinerarioIA() {
                   </div>
 
                   <div className="flex gap-3 justify-center">
-                    <Button variant="outline" onClick={() => setStep(1)}>
-                      Modificar
-                    </Button>
+                    <Button variant="outline" onClick={() => setStep(1)}>{pc.tx("Button.2", "Modificar")}</Button>
                     <Button size="lg" onClick={generateItinerary} disabled={isGenerating}>
                       {isGenerating ? (
                         <>
@@ -386,21 +383,15 @@ export default function ItinerarioIA() {
               <div className="container mx-auto px-4 max-w-4xl">
                 {/* Header */}
                 <div className="text-center mb-12">
-                  <Badge className="mb-4">✨ Generado con IA</Badge>
+                  <Badge className="mb-4">{pc.tx("Badge.1", "✨ Generado con IA")}</Badge>
                   <h2 className="text-3xl font-bold mb-4">{itinerary.titulo}</h2>
                   <div className="flex justify-center gap-4 flex-wrap">
                     <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4 mr-2" />
-                      Descargar PDF
-                    </Button>
+                      <Download className="h-4 w-4 mr-2" />{pc.tx("Button.3", "Descargar PDF")}</Button>
                     <Button variant="outline" size="sm">
-                      <Share2 className="h-4 w-4 mr-2" />
-                      Compartir
-                    </Button>
+                      <Share2 className="h-4 w-4 mr-2" />{pc.tx("Button.4", "Compartir")}</Button>
                     <Button variant="outline" size="sm">
-                      <Heart className="h-4 w-4 mr-2" />
-                      Guardar
-                    </Button>
+                      <Heart className="h-4 w-4 mr-2" />{pc.tx("Button.5", "Guardar")}</Button>
                   </div>
                 </div>
 
@@ -408,15 +399,15 @@ export default function ItinerarioIA() {
                 <div className="grid grid-cols-3 gap-4 mb-12">
                   <Card className="text-center p-4">
                     <p className="text-2xl font-bold text-primary">{itinerary.resumen.costoEstimado}</p>
-                    <p className="text-xs text-muted-foreground">Costo estimado</p>
+                    <p className="text-xs text-muted-foreground">{pc.tx("p.2", "Costo estimado")}</p>
                   </Card>
                   <Card className="text-center p-4">
                     <p className="text-2xl font-bold text-primary">{itinerary.resumen.distanciaTotal}</p>
-                    <p className="text-xs text-muted-foreground">Distancia total</p>
+                    <p className="text-xs text-muted-foreground">{pc.tx("p.3", "Distancia total")}</p>
                   </Card>
                   <Card className="text-center p-4">
                     <p className="text-2xl font-bold text-primary">{itinerary.resumen.actividadesIncluidas}</p>
-                    <p className="text-xs text-muted-foreground">Actividades</p>
+                    <p className="text-xs text-muted-foreground">{pc.tx("p.4", "Actividades")}</p>
                   </Card>
                 </div>
 
@@ -427,10 +418,10 @@ export default function ItinerarioIA() {
                       <CardHeader className="bg-primary/5">
                         <div className="flex items-center justify-between">
                           <div>
-                            <CardTitle className="text-lg">Día {dia.dia}</CardTitle>
+                            <CardTitle className="text-lg">{pc.tx("CardTitle.2", "Día")}{" "}{dia.dia}</CardTitle>
                             <CardDescription>{dia.titulo}</CardDescription>
                           </div>
-                          <Badge variant="secondary">{dia.actividades.length} actividades</Badge>
+                          <Badge variant="secondary">{dia.actividades.length}{" "}{pc.tx("Badge.2", "actividades")}</Badge>
                         </div>
                       </CardHeader>
                       <CardContent className="p-0">
@@ -465,9 +456,7 @@ export default function ItinerarioIA() {
                     localStorage.removeItem("descubre_rd_last_itinerary");
                     setItinerary(null);
                     setStep(1);
-                  }}>
-                    Crear otro itinerario
-                  </Button>
+                  }}>{pc.tx("Button.6", "Crear otro itinerario")}</Button>
                   <Button
                     variant="secondary"
                     onClick={() => {
@@ -478,12 +467,9 @@ export default function ItinerarioIA() {
                     }}
                     className="gap-2"
                   >
-                    <Download className="h-4 w-4" /> Guardar Offline (Sin señal)
-                  </Button>
+                    <Download className="h-4 w-4" />{" "}{pc.tx("Button.7", "Guardar Offline (Sin señal)")}</Button>
                   <Button onClick={() => generateItinerary()}>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Regenerar
-                  </Button>
+                    <Sparkles className="mr-2 h-4 w-4" />{pc.tx("Button.8", "Regenerar")}</Button>
                 </div>
               </div>
             </section>
@@ -495,3 +481,6 @@ export default function ItinerarioIA() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { intereses, presupuestos };

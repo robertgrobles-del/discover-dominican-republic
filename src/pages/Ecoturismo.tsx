@@ -20,6 +20,7 @@ import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
 import whaleSamana from "@/assets/whale-samana.jpg";
 import adventure from "@/assets/adventure.jpg";
 import diving from "@/assets/diving.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 // ==================== ESPELEOLOGÍA ====================
 const cuevas = [
@@ -138,13 +139,23 @@ const parquesNacionales = [
 ];
 
 export default function Ecoturismo() {
+  const pc = usePageContent("ecoturismo");
+  const cuevas = pc.data("cuevas", __pcData.cuevas);
+  const equipoEspeleologia = pc.data("equipoEspeleologia", __pcData.equipoEspeleologia);
+  const puntosAvistamiento = pc.data("puntosAvistamiento", __pcData.puntosAvistamiento);
+  const especiesAves = pc.data("especiesAves", __pcData.especiesAves);
+  const calendarioMigracion = pc.data("calendarioMigracion", __pcData.calendarioMigracion);
+  const mesesOptimos = pc.data("mesesOptimos", __pcData.mesesOptimos);
+  const regulacionesBallenas = pc.data("regulacionesBallenas", __pcData.regulacionesBallenas);
+  const operadoresBallenas = pc.data("operadoresBallenas", __pcData.operadoresBallenas);
+  const parquesNacionales = pc.data("parquesNacionales", __pcData.parquesNacionales);
   const [activeTab, setActiveTab] = useState("cuevas");
 
   return (
     <PageTransition>
       <SEOHead
-        title="Ecoturismo en República Dominicana - Cuevas, Aves, Ballenas y Parques"
-        description="Descubre la naturaleza salvaje de RD: espeleología en cuevas milenarias, avistamiento de aves endémicas, ballenas jorobadas en Samaná y parques nacionales."
+        title={pc.t("SEOHead.title.1", "Ecoturismo en República Dominicana - Cuevas, Aves, Ballenas y Parques")}
+        description={pc.t("SEOHead.description.1", "Descubre la naturaleza salvaje de RD: espeleología en cuevas milenarias, avistamiento de aves endémicas, ballenas jorobadas en Samaná y parques nacionales.")}
         keywords="ecoturismo RD, cuevas dominicanas, birdwatching Caribe, ballenas Samaná, parques nacionales dominicanos"
       />
       <div className="min-h-screen flex flex-col bg-background">
@@ -154,42 +165,37 @@ export default function Ecoturismo() {
         <section className="relative h-[60vh] min-h-[500px] flex items-end">
           <div className="absolute inset-0">
             <img
-              src={whaleSamana}
-              alt="Ecoturismo en República Dominicana"
+              src={pc.img("img.src.1", whaleSamana)}
+              alt={pc.t("img.alt.1", "Ecoturismo en República Dominicana")}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
           </div>
           
           <div className="relative z-10 container mx-auto px-4 pb-16">
-            <Badge className="mb-4 bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-              TURISMO DE NATURALEZA
-            </Badge>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4 max-w-3xl">
-              La naturaleza{" "}
-              <span className="text-gradient">de Quisqueya</span>
+            <Badge className="mb-4 bg-emerald-500/20 text-emerald-400 border-emerald-500/30">{pc.tx("Badge.1", "TURISMO DE NATURALEZA")}</Badge>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4 max-w-3xl">{pc.tx("h1.1", "La naturaleza")}{" "}
+              <span className="text-gradient">{pc.tx("span.1", "de Quisqueya")}</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-xl mb-8">
-              Cuevas milenarias, ballenas jorobadas y parques nacionales. Explora 500+ cuevas, 300+ especies de aves y decenas de áreas protegidas en todo el país.
-            </p>
+            <p className="text-lg text-muted-foreground max-w-xl mb-8">{pc.tx("p.1", "Cuevas milenarias, ballenas jorobadas y parques nacionales. Explora 500+ cuevas, 300+ especies de aves y decenas de áreas protegidas en todo el país.")}</p>
             
             {/* Stats */}
             <div className="flex flex-wrap gap-8 mb-8">
               <div className="text-center">
                 <p className="text-3xl font-bold text-foreground">500+</p>
-                <p className="text-sm text-muted-foreground">Cuevas Documentadas</p>
+                <p className="text-sm text-muted-foreground">{pc.tx("p.2", "Cuevas Documentadas")}</p>
               </div>
               <div className="text-center">
                 <p className="text-3xl font-bold text-foreground">300+</p>
-                <p className="text-sm text-muted-foreground">Especies de Aves</p>
+                <p className="text-sm text-muted-foreground">{pc.tx("p.3", "Especies de Aves")}</p>
               </div>
               <div className="text-center">
                 <p className="text-3xl font-bold text-foreground">31</p>
-                <p className="text-sm text-muted-foreground">Aves Endémicas</p>
+                <p className="text-sm text-muted-foreground">{pc.tx("p.4", "Aves Endémicas")}</p>
               </div>
               <div className="text-center">
                 <p className="text-3xl font-bold text-primary">24°C</p>
-                <p className="text-sm text-muted-foreground">Temp. Promedio</p>
+                <p className="text-sm text-muted-foreground">{pc.tx("p.5", "Temp. Promedio")}</p>
               </div>
             </div>
           </div>
@@ -204,37 +210,29 @@ export default function Ecoturismo() {
                   value="cuevas" 
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
                 >
-                  <Mountain className="h-4 w-4" />
-                  Espeleología
-                </TabsTrigger>
+                  <Mountain className="h-4 w-4" />{pc.tx("TabsTrigger.1", "Espeleología")}</TabsTrigger>
                 <TabsTrigger 
                   value="aves" 
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
                 >
-                  <Bird className="h-4 w-4" />
-                  Birdwatching
-                </TabsTrigger>
+                  <Bird className="h-4 w-4" />{pc.tx("TabsTrigger.2", "Birdwatching")}</TabsTrigger>
                 <TabsTrigger 
                   value="ballenas" 
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
                 >
-                  <Anchor className="h-4 w-4" />
-                  Ballenas
-                </TabsTrigger>
+                  <Anchor className="h-4 w-4" />{pc.tx("TabsTrigger.3", "Ballenas")}</TabsTrigger>
                 <TabsTrigger 
                   value="parques" 
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
                 >
-                  <TreeDeciduous className="h-4 w-4" />
-                  Parques Nacionales
-                </TabsTrigger>
+                  <TreeDeciduous className="h-4 w-4" />{pc.tx("TabsTrigger.4", "Parques Nacionales")}</TabsTrigger>
               </TabsList>
 
               {/* ========== TAB: ESPELEOLOGÍA ========== */}
               <TabsContent value="cuevas" className="mt-8">
                 <div className="mb-8">
-                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">Espeleología: Cuevas Icónicas</h2>
-                  <p className="text-muted-foreground">Desciende a las profundidades y descubre los secretos geológicos de la isla.</p>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">{pc.tx("h2.1", "Espeleología: Cuevas Icónicas")}</h2>
+                  <p className="text-muted-foreground">{pc.tx("p.6", "Desciende a las profundidades y descubre los secretos geológicos de la isla.")}</p>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6 mb-12">
@@ -279,7 +277,7 @@ export default function Ecoturismo() {
                         <div className="flex items-center justify-between gap-4 pt-3 border-t border-border/60">
                           <div className="flex-1">
                             <div className="flex justify-between text-xs text-muted-foreground mb-1 font-medium">
-                              <span>Exigencia física</span>
+                              <span>{pc.tx("span.2", "Exigencia física")}</span>
                               <span className="font-semibold text-foreground">{cueva.nivelFisico}%</span>
                             </div>
                             <div className="h-2 bg-secondary rounded-full overflow-hidden">
@@ -290,9 +288,7 @@ export default function Ecoturismo() {
                             </div>
                           </div>
                           <Link to={`/cueva/${cueva.id}`}>
-                            <Button size="sm" className="btn-cta-magnetic rounded-xl text-xs font-semibold px-4">
-                              Detalles
-                            </Button>
+                            <Button size="sm" className="btn-cta-magnetic rounded-xl text-xs font-semibold px-4">{pc.tx("Button.1", "Detalles")}</Button>
                           </Link>
                         </div>
                       </div>
@@ -302,7 +298,7 @@ export default function Ecoturismo() {
 
                 {/* Equipo */}
                 <div className="bg-card rounded-xl border border-border p-6">
-                  <h3 className="font-display font-bold text-lg text-foreground mb-6">Requisitos de Equipo</h3>
+                  <h3 className="font-display font-bold text-lg text-foreground mb-6">{pc.tx("h3.1", "Requisitos de Equipo")}</h3>
                   <div className="grid md:grid-cols-3 gap-6">
                     {equipoEspeleologia.map((nivel, index) => (
                       <div key={index} className="bg-secondary/30 rounded-lg p-4">
@@ -324,8 +320,8 @@ export default function Ecoturismo() {
               {/* ========== TAB: BIRDWATCHING ========== */}
               <TabsContent value="aves" className="mt-8">
                 <div className="mb-8">
-                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">Birdwatching: Paraíso de Aves</h2>
-                  <p className="text-muted-foreground">Más de 300 especies incluyendo 31 endémicas. El paraíso ornitológico del Caribe.</p>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">{pc.tx("h2.2", "Birdwatching: Paraíso de Aves")}</h2>
+                  <p className="text-muted-foreground">{pc.tx("p.7", "Más de 300 especies incluyendo 31 endémicas. El paraíso ornitológico del Caribe.")}</p>
                 </div>
 
                 {/* Puntos Estratégicos */}
@@ -349,12 +345,12 @@ export default function Ecoturismo() {
 
                 {/* Especies */}
                 <div className="bg-card rounded-xl border border-border p-6 mb-12">
-                  <h3 className="font-display font-bold text-lg text-foreground mb-6">Guía de Campo: Especies Destacadas</h3>
+                  <h3 className="font-display font-bold text-lg text-foreground mb-6">{pc.tx("h3.2", "Guía de Campo: Especies Destacadas")}</h3>
                   <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {especiesAves.map((ave) => (
                       <div key={ave.nombre} className="bg-secondary/30 rounded-lg p-4 relative">
                         {ave.esNacional && (
-                          <Badge className="absolute top-2 right-2 bg-amber-500 text-white text-xs">AVE NACIONAL</Badge>
+                          <Badge className="absolute top-2 right-2 bg-amber-500 text-white text-xs">{pc.tx("Badge.2", "AVE NACIONAL")}</Badge>
                         )}
                         <Bird className="h-8 w-8 text-primary mb-3" />
                         <h4 className="font-semibold text-foreground">{ave.nombre}</h4>
@@ -364,8 +360,7 @@ export default function Ecoturismo() {
                           <span>{ave.habitat}</span>
                         </div>
                         <Button variant="ghost" size="sm" className="mt-3 gap-1 p-0 h-auto text-primary">
-                          <Headphones className="h-3 w-3" /> Escuchar Canto
-                        </Button>
+                          <Headphones className="h-3 w-3" />{" "}{pc.tx("Button.2", "Escuchar Canto")}</Button>
                       </div>
                     ))}
                   </div>
@@ -373,8 +368,8 @@ export default function Ecoturismo() {
 
                 {/* Calendario Migración */}
                 <div className="bg-card rounded-xl border border-border p-6">
-                  <h3 className="font-display font-bold text-lg text-foreground mb-4">Calendario de Migración</h3>
-                  <p className="text-sm text-muted-foreground mb-6">Temporada óptima para avistar especies migratorias de Norteamérica.</p>
+                  <h3 className="font-display font-bold text-lg text-foreground mb-4">{pc.tx("h3.3", "Calendario de Migración")}</h3>
+                  <p className="text-sm text-muted-foreground mb-6">{pc.tx("p.8", "Temporada óptima para avistar especies migratorias de Norteamérica.")}</p>
                   <div className="flex gap-2 flex-wrap mb-4">
                     {calendarioMigracion.map((mes) => (
                       <div 
@@ -389,43 +384,38 @@ export default function Ecoturismo() {
                       </div>
                     ))}
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    La mejor época es entre <strong className="text-foreground">Octubre y Marzo</strong>, cuando el clima es más fresco y las aves migratorias se unen a las residentes.
-                  </p>
+                  <p className="text-sm text-muted-foreground">{pc.tx("p.9", "La mejor época es entre")}{" "}<strong className="text-foreground">{pc.tx("strong.1", "Octubre y Marzo")}</strong>{pc.tx("p.10", ", cuando el clima es más fresco y las aves migratorias se unen a las residentes.")}</p>
                   <Button variant="outline" className="mt-4 gap-2">
-                    <Download className="h-4 w-4" /> Descargar Checklist PDF
-                  </Button>
+                    <Download className="h-4 w-4" />{" "}{pc.tx("Button.3", "Descargar Checklist PDF")}</Button>
                 </div>
               </TabsContent>
 
               {/* ========== TAB: BALLENAS ========== */}
               <TabsContent value="ballenas" className="mt-8">
                 <div className="mb-8">
-                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">Santuario de Ballenas Jorobadas</h2>
-                  <p className="text-muted-foreground">Cada año, miles de ballenas viajan 5,000 km desde el Atlántico Norte para aparearse en la Bahía de Samaná.</p>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">{pc.tx("h2.3", "Santuario de Ballenas Jorobadas")}</h2>
+                  <p className="text-muted-foreground">{pc.tx("p.11", "Cada año, miles de ballenas viajan 5,000 km desde el Atlántico Norte para aparearse en la Bahía de Samaná.")}</p>
                 </div>
 
                 {/* Hero Ballenas */}
                 <div className="relative rounded-2xl overflow-hidden mb-12">
-                  <img src={whaleSamana} alt="Ballenas en Samaná" className="w-full h-[400px] object-cover" />
+                  <img src={pc.img("img.src.2", whaleSamana)} alt={pc.t("img.alt.2", "Ballenas en Samaná")} className="w-full h-[400px] object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-8">
-                    <Badge className="mb-4 bg-blue-500/20 text-blue-400 border-blue-500/30">
-                      Temporada: Enero - Marzo | Avistamiento 95% Probable
-                    </Badge>
-                    <h3 className="font-display text-2xl font-bold text-white mb-4">Conoce a los Viajeros</h3>
+                    <Badge className="mb-4 bg-blue-500/20 text-blue-400 border-blue-500/30">{pc.tx("Badge.3", "Temporada: Enero - Marzo | Avistamiento 95% Probable")}</Badge>
+                    <h3 className="font-display text-2xl font-bold text-white mb-4">{pc.tx("h3.4", "Conoce a los Viajeros")}</h3>
                     <div className="grid md:grid-cols-3 gap-4">
                       <div className="bg-background/80 backdrop-blur rounded-lg p-4">
-                        <h4 className="font-semibold text-foreground mb-1">El Canto</h4>
-                        <p className="text-sm text-muted-foreground">Melodías complejas de hasta 20 minutos para atraer parejas.</p>
+                        <h4 className="font-semibold text-foreground mb-1">{pc.tx("h4.1", "El Canto")}</h4>
+                        <p className="text-sm text-muted-foreground">{pc.tx("p.12", "Melodías complejas de hasta 20 minutos para atraer parejas.")}</p>
                       </div>
                       <div className="bg-background/80 backdrop-blur rounded-lg p-4">
-                        <h4 className="font-semibold text-foreground mb-1">La Gran Migración</h4>
-                        <p className="text-sm text-muted-foreground">Una de las migraciones más largas de cualquier mamífero.</p>
+                        <h4 className="font-semibold text-foreground mb-1">{pc.tx("h4.2", "La Gran Migración")}</h4>
+                        <p className="text-sm text-muted-foreground">{pc.tx("p.13", "Una de las migraciones más largas de cualquier mamífero.")}</p>
                       </div>
                       <div className="bg-background/80 backdrop-blur rounded-lg p-4">
-                        <h4 className="font-semibold text-foreground mb-1">Madres y Crías</h4>
-                        <p className="text-sm text-muted-foreground">Aguas tranquilas ideales como "guardería" para ballenatos.</p>
+                        <h4 className="font-semibold text-foreground mb-1">{pc.tx("h4.3", "Madres y Crías")}</h4>
+                        <p className="text-sm text-muted-foreground">{pc.tx("p.14", "Aguas tranquilas ideales como \"guardería\" para ballenatos.")}</p>
                       </div>
                     </div>
                   </div>
@@ -433,10 +423,8 @@ export default function Ecoturismo() {
 
                 {/* Regulaciones */}
                 <div className="bg-card rounded-xl border border-border p-6 mb-12">
-                  <h3 className="font-display font-bold text-lg text-foreground mb-6">Avistamiento Responsable</h3>
-                  <p className="text-sm text-muted-foreground mb-6">
-                    El Ministerio de Medio Ambiente exige el cumplimiento estricto de estas normas para proteger a nuestras visitantes.
-                  </p>
+                  <h3 className="font-display font-bold text-lg text-foreground mb-6">{pc.tx("h3.5", "Avistamiento Responsable")}</h3>
+                  <p className="text-sm text-muted-foreground mb-6">{pc.tx("p.15", "El Ministerio de Medio Ambiente exige el cumplimiento estricto de estas normas para proteger a nuestras visitantes.")}</p>
                   <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                     {regulacionesBallenas.map((reg) => (
                       <div key={reg.titulo} className="bg-secondary/30 rounded-lg p-4">
@@ -450,30 +438,30 @@ export default function Ecoturismo() {
 
                 {/* Operadores */}
                 <div className="bg-card rounded-xl border border-border p-6">
-                  <h3 className="font-display font-bold text-lg text-foreground mb-6">Embarcaciones Autorizadas</h3>
+                  <h3 className="font-display font-bold text-lg text-foreground mb-6">{pc.tx("h3.6", "Embarcaciones Autorizadas")}</h3>
                   <div className="grid md:grid-cols-2 gap-4">
                     {operadoresBallenas.map((op) => (
                       <div key={op.nombre} className="flex items-center justify-between bg-secondary/30 rounded-lg p-4">
                         <div>
                           <h4 className="font-semibold text-foreground">{op.nombre}</h4>
-                          <p className="text-sm text-muted-foreground">Capitán: {op.capitán} • Capacidad: {op.capacidad} pax</p>
+                          <p className="text-sm text-muted-foreground">{pc.tx("p.16", "Capitán:")}{" "}{op.capitán}{" "}{pc.tx("p.17", "• Capacidad:")}{" "}{op.capacidad}{" "}{pc.tx("p.18", "pax")}</p>
                         </div>
                         <div className="flex gap-2">
-                          <Badge className="bg-emerald-500/20 text-emerald-400">Certificado</Badge>
-                          <Button size="sm">Contactar</Button>
+                          <Badge className="bg-emerald-500/20 text-emerald-400">{pc.tx("Badge.4", "Certificado")}</Badge>
+                          <Button size="sm">{pc.tx("Button.4", "Contactar")}</Button>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <Button variant="outline" className="mt-4 w-full">Ver listado completo (45 operadores)</Button>
+                  <Button variant="outline" className="mt-4 w-full">{pc.tx("Button.5", "Ver listado completo (45 operadores)")}</Button>
                 </div>
               </TabsContent>
 
               {/* ========== TAB: PARQUES NACIONALES ========== */}
               <TabsContent value="parques" className="mt-8">
                 <div className="mb-8">
-                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">Santuarios Naturales de Quisqueya</h2>
-                  <p className="text-muted-foreground">Explora la red más extensa de biodiversidad en el Caribe, desde manglares costeros hasta picos nublados.</p>
+                  <h2 className="font-display text-2xl font-bold text-foreground mb-2">{pc.tx("h2.4", "Santuarios Naturales de Quisqueya")}</h2>
+                  <p className="text-muted-foreground">{pc.tx("p.19", "Explora la red más extensa de biodiversidad en el Caribe, desde manglares costeros hasta picos nublados.")}</p>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">
@@ -521,13 +509,11 @@ export default function Ecoturismo() {
                       <div className="px-6 pb-6 pt-0">
                         <div className="flex items-center justify-between pt-3 border-t border-border/60">
                           <div>
-                            <span className="text-xs text-muted-foreground block font-medium">Entrada oficial</span>
+                            <span className="text-xs text-muted-foreground block font-medium">{pc.tx("span.3", "Entrada oficial")}</span>
                             <span className="text-primary font-bold text-base">{parque.precio}</span>
                           </div>
                           <Link to={`/parque-nacional/${parque.id}`}>
-                            <Button size="sm" className="btn-cta-magnetic rounded-xl text-xs font-semibold px-4">
-                              Ver Ficha Completa
-                            </Button>
+                            <Button size="sm" className="btn-cta-magnetic rounded-xl text-xs font-semibold px-4">{pc.tx("Button.6", "Ver Ficha Completa")}</Button>
                           </Link>
                         </div>
                       </div>
@@ -537,13 +523,9 @@ export default function Ecoturismo() {
 
                 {/* Turismo Responsable */}
                 <div className="mt-12 bg-gradient-to-r from-emerald-500/10 to-primary/10 rounded-2xl p-8 border border-border">
-                  <h3 className="font-display font-bold text-xl text-foreground mb-4">Turismo Responsable</h3>
-                  <p className="text-muted-foreground mb-6 max-w-2xl">
-                    Nuestros parques son santuarios de vida. Al visitarlos, te conviertes en un guardián de nuestra biodiversidad. 
-                    Recuerda siempre llevar tu basura contigo, respetar la vida silvestre y mantenerte en los senderos marcados.
-                  </p>
-                  <Button className="gap-2">
-                    Leer guía completa de conducta <ChevronRight className="h-4 w-4" />
+                  <h3 className="font-display font-bold text-xl text-foreground mb-4">{pc.tx("h3.7", "Turismo Responsable")}</h3>
+                  <p className="text-muted-foreground mb-6 max-w-2xl">{pc.tx("p.20", "Nuestros parques son santuarios de vida. Al visitarlos, te conviertes en un guardián de nuestra biodiversidad. Recuerda siempre llevar tu basura contigo, respetar la vida silvestre y mantenerte en los senderos marcados.")}</p>
+                  <Button className="gap-2">{pc.tx("Button.7", "Leer guía completa de conducta")}{" "}<ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
               </TabsContent>
@@ -551,7 +533,7 @@ export default function Ecoturismo() {
 
             {/* Explora Más: guías especializadas de ecoturismo */}
             <div className="mt-16">
-              <h3 className="font-display font-bold text-2xl text-foreground mb-6">Explora Más</h3>
+              <h3 className="font-display font-bold text-2xl text-foreground mb-6">{pc.tx("h3.8", "Explora Más")}</h3>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {[
                   { icon: Thermometer, titulo: "Aguas Termales", desc: "Manantiales y balnearios naturales de aguas calientes", link: "/aguas-termales" },
@@ -596,3 +578,6 @@ export default function Ecoturismo() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { cuevas, equipoEspeleologia, puntosAvistamiento, especiesAves, calendarioMigracion, mesesOptimos, regulacionesBallenas, operadoresBallenas, parquesNacionales };

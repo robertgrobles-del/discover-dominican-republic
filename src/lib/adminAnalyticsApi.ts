@@ -61,7 +61,27 @@ export interface AnalyticsNpsData {
   comments: AnalyticsNpsComment[];
 }
 
+/** Paso de un embudo de `GET /admin/analytics/funnels/:name`. */
+export interface AnalyticsFunnelStep {
+  step: string;
+  count: number;
+  pct_of_first: number;
+  pct_of_previous: number | null;
+}
+
+export interface AnalyticsFunnel {
+  name: "reserva" | "registro" | "tienda";
+  range: { from: string; to: string };
+  steps: AnalyticsFunnelStep[];
+}
+
 export const adminAnalyticsApi = {
+  /** Embudo calculado con datos reales del periodo (por omisión, los últimos 30 días). */
+  async getFunnel(name: AnalyticsFunnel["name"]): Promise<AnalyticsFunnel> {
+    const res = await fetchApi<{ data: AnalyticsFunnel }>(`/admin/analytics/funnels/${name}`);
+    return res.data;
+  },
+
   /** Obtiene KPIs agregados de la plataforma y serie diaria en un rango */
   async getOverview(params?: { from?: string; to?: string }): Promise<AnalyticsOverview> {
     const qs = new URLSearchParams();

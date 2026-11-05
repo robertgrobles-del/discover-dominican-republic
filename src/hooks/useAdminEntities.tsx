@@ -13,10 +13,10 @@ import {
 export type EntityType = 
   | 'hotels' | 'restaurants' | 'bars' | 'experiences' | 'events'
   | 'coffee_experiences' | 'caves' | 'rivers' | 'theme_parks'
-  | 'clinics' | 'stadiums' | 'ports_marinas' | 'artisanal_workshops'
+  | 'clinics' | 'shopping_centers' | 'stadiums' | 'ports_marinas' | 'artisanal_workshops'
   | 'tour_guides' | 'travel_agencies' | 'tour_operators'
   | 'destinations' | 'provinces' | 'municipalities' | 'airbnb_listings'
-  | 'beaches' | 'spas_wellness' | 'ad_banners' | 'historical_figures' | 'historical_events'
+  | 'beaches' | 'spas_wellness' | 'ad_banners' | 'ad_clients' | 'historical_figures' | 'historical_events'
   | 'tour_packages' | 'job_vacancies' | 'establishment_registrations'
   | 'site_settings' | 'newsletter_subscribers' | 'marketing_leads' | 'offers'
   | 'ambassadors' | 'ambassador_referrals' | 'achievements' | 'gamification_levels'

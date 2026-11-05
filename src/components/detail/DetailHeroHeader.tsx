@@ -151,7 +151,7 @@ export const DetailHeroHeader: React.FC<DetailHeroHeaderProps> = ({
                   >
                     {m.icon && <span className="text-primary">{m.icon}</span>}
                     <div>
-                      <span className="text-[10px] text-white/60 uppercase font-bold block leading-none">
+                      <span className="text-3xs text-white/60 uppercase font-bold block leading-none">
                         {m.label}
                       </span>
                       <span className="font-bold text-white text-xs mt-0.5 block leading-tight">

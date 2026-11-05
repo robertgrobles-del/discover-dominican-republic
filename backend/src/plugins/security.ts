@@ -2,7 +2,7 @@ import compress from "@fastify/compress";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyRequest } from "fastify";
 import { Redis } from "ioredis";
 import type { Env } from "../config/env.js";
 import { createPostgresStore, purgeRateLimits } from "./rate-limit-store.js";
@@ -32,7 +32,9 @@ export async function registerSecurity(app: FastifyInstance, env: Env) {
     exposedHeaders: ["X-Request-Id", "ETag", "X-RateLimit-Limit", "X-RateLimit-Remaining", "Retry-After"],
     maxAge: 86400,
   });
-  // Límite por IP. Con una sola instancia basta la memoria; con varias, los contadores se comparten en PostgreSQL o Redis.
+  // Límite por IP, con dos presupuestos: las lecturas (GET/HEAD) tienen el suyo, más amplio, porque una carga del portal
+  // pide decenas de colecciones; todo lo que escribe conserva el estricto. Las rutas con límite propio no cambian.
+  // Con una sola instancia basta la memoria; con varias, los contadores se comparten en PostgreSQL o Redis.
   // Si el almacén falla se deja pasar la solicitud (skipOnError): los intentos de contraseña siguen limitados por la base de datos (bloqueo de cuenta).
   const store: Record<string, unknown> = {};
   if (env.RATE_LIMIT_STORE === "postgres") {
@@ -49,8 +51,10 @@ export async function registerSecurity(app: FastifyInstance, env: Env) {
   } else if (env.NODE_ENV === "production") {
     app.log.warn("RATE_LIMIT_STORE=memory en producción: con varias instancias los límites no se comparten (usa postgres o redis)");
   }
+  const isRead = (req: FastifyRequest) => req.method === "GET" || req.method === "HEAD";
   await app.register(rateLimit, {
-    max: env.RATE_LIMIT_MAX,
+    max: (req) => (isRead(req) ? env.RATE_LIMIT_READ_MAX : env.RATE_LIMIT_MAX),
+    keyGenerator: (req) => (isRead(req) ? `${req.ip}|r` : req.ip),
     timeWindow: env.RATE_LIMIT_WINDOW,
     allowList: (req) => req.url.startsWith("/health"),
     skipOnError: true,

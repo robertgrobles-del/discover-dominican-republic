@@ -450,7 +450,7 @@ export function AdminDeportesManager() {
         <Card className="rounded-2xl border-border bg-card shadow-xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <span className="text-[11px] text-muted-foreground font-medium">Torneos Activos</span>
+              <span className="text-2xs text-muted-foreground font-medium">Torneos Activos</span>
               <p className="text-xl font-black text-foreground">{tournaments.length}</p>
             </div>
             <Trophy className="h-5 w-5 text-amber-500" />
@@ -460,7 +460,7 @@ export function AdminDeportesManager() {
         <Card className="rounded-2xl border-border bg-card shadow-xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <span className="text-[11px] text-muted-foreground font-medium">Partidos Totales</span>
+              <span className="text-2xs text-muted-foreground font-medium">Partidos Totales</span>
               <p className="text-xl font-black text-primary">{games.length}</p>
             </div>
             <Calendar className="h-5 w-5 text-primary" />
@@ -470,7 +470,7 @@ export function AdminDeportesManager() {
         <Card className="rounded-2xl border-border bg-card shadow-xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <span className="text-[11px] text-muted-foreground font-medium">En Vivo Ahora</span>
+              <span className="text-2xs text-muted-foreground font-medium">En Vivo Ahora</span>
               <p className="text-xl font-black text-emerald-500">
                 {games.filter((g) => g.status === "live").length}
               </p>
@@ -482,7 +482,7 @@ export function AdminDeportesManager() {
         <Card className="rounded-2xl border-border bg-card shadow-xs">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <span className="text-[11px] text-muted-foreground font-medium">Pospuestos / Lluvia</span>
+              <span className="text-2xs text-muted-foreground font-medium">Pospuestos / Lluvia</span>
               <p className="text-xl font-black text-amber-600">
                 {games.filter((g) => g.status === "postponed" || g.status === "cancelled").length}
               </p>
@@ -572,30 +572,30 @@ export function AdminDeportesManager() {
                 {/* Left: Tournament Badge & Matchup */}
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" className="text-[10px] font-bold bg-background">
+                    <Badge variant="outline" className="text-3xs font-bold bg-background">
                       {game.tournamentName} • {game.phase}
                     </Badge>
                     
                     {game.status === "live" && (
-                      <Badge className="bg-emerald-500 text-slate-950 font-black text-[10px] gap-1 animate-pulse">
+                      <Badge className="bg-emerald-500 text-slate-950 font-black text-3xs gap-1 animate-pulse">
                         <span className="w-1.5 h-1.5 rounded-full bg-slate-950" /> EN VIVO
                       </Badge>
                     )}
 
                     {game.status === "postponed" && (
-                      <Badge className="bg-amber-500 text-slate-950 font-black text-[10px] gap-1">
+                      <Badge className="bg-amber-500 text-slate-950 font-black text-3xs gap-1">
                         <CloudRain className="h-3 w-3" /> POSPUESTO POR LLUVIA
                       </Badge>
                     )}
 
                     {game.status === "cancelled" && (
-                      <Badge className="bg-red-500 text-white font-black text-[10px] gap-1">
+                      <Badge className="bg-red-500 text-white font-black text-3xs gap-1">
                         <XCircle className="h-3 w-3" /> CANCELADO
                       </Badge>
                     )}
 
                     {game.status === "ended" && (
-                      <Badge variant="secondary" className="text-[10px]">
+                      <Badge variant="secondary" className="text-3xs">
                         Finalizado
                       </Badge>
                     )}

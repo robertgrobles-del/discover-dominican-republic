@@ -14,8 +14,10 @@ import { Footer } from "@/components/Footer";
 import { SEOHead } from "@/components/SEOHead";
 import { toast } from "sonner";
 import { getRecipeBySlug, recipesData } from "@/data/recipesData";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function RecetaDetalle() {
+  const pc = usePageContent("receta-detalle");
   const { slug } = useParams<{ slug: string }>();
   const [checkedIngredients, setCheckedIngredients] = useState<string[]>([]);
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -80,7 +82,7 @@ export default function RecetaDetalle() {
           <div className="flex items-center gap-2 text-sm text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
             <Link to="/recetas-criollas" className="hover:text-primary transition-colors flex items-center gap-1">
               <ArrowLeft className="h-4 w-4" />
-              <span>Recetario Criollo</span>
+              <span>{pc.tx("span.1", "Recetario Criollo")}</span>
             </Link>
             <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50" />
             <span className="font-semibold text-foreground truncate">{recipe.title}</span>
@@ -94,7 +96,7 @@ export default function RecetaDetalle() {
               className="gap-1.5 h-8 text-xs font-medium"
             >
               <Share2 className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Compartir</span>
+              <span className="hidden sm:inline">{pc.tx("span.2", "Compartir")}</span>
             </Button>
             <Button 
               variant="outline" 
@@ -103,7 +105,7 @@ export default function RecetaDetalle() {
               className="gap-1.5 h-8 text-xs font-medium hidden md:flex"
             >
               <Printer className="h-3.5 w-3.5" />
-              <span>Imprimir</span>
+              <span>{pc.tx("span.3", "Imprimir")}</span>
             </Button>
             <Button 
               variant={isBookmarked ? "default" : "outline"} 
@@ -169,7 +171,7 @@ export default function RecetaDetalle() {
                 <Clock className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider">Tiempo Total</p>
+                <p className="text-2xs uppercase font-bold text-muted-foreground tracking-wider">{pc.tx("p.1", "Tiempo Total")}</p>
                 <p className="font-bold text-foreground text-sm sm:text-base">{recipe.time}</p>
               </div>
             </div>
@@ -179,7 +181,7 @@ export default function RecetaDetalle() {
                 <ChefHat className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider">Dificultad</p>
+                <p className="text-2xs uppercase font-bold text-muted-foreground tracking-wider">{pc.tx("p.2", "Dificultad")}</p>
                 <p className="font-bold text-foreground text-sm sm:text-base">{recipe.difficulty}</p>
               </div>
             </div>
@@ -189,7 +191,7 @@ export default function RecetaDetalle() {
                 <Users className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider">Rinde Para</p>
+                <p className="text-2xs uppercase font-bold text-muted-foreground tracking-wider">{pc.tx("p.3", "Rinde Para")}</p>
                 <p className="font-bold text-foreground text-sm sm:text-base">{recipe.servings}</p>
               </div>
             </div>
@@ -199,7 +201,7 @@ export default function RecetaDetalle() {
                 <Flame className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[11px] uppercase font-bold text-muted-foreground tracking-wider">Origen</p>
+                <p className="text-2xs uppercase font-bold text-muted-foreground tracking-wider">{pc.tx("p.4", "Origen")}</p>
                 <p className="font-bold text-foreground text-sm sm:text-base truncate">{recipe.region.split(',')[0]}</p>
               </div>
             </div>
@@ -217,10 +219,8 @@ export default function RecetaDetalle() {
               <div className="flex items-center justify-between pb-4 border-b border-border">
                 <div>
                   <h2 className="font-display text-xl font-bold text-foreground flex items-center gap-2">
-                    <UtensilsCrossed className="h-5 w-5 text-primary" />
-                    Ingredientes
-                  </h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">Marca los ingredientes que ya tienes listos</p>
+                    <UtensilsCrossed className="h-5 w-5 text-primary" />{pc.tx("h2.1", "Ingredientes")}</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">{pc.tx("p.5", "Marca los ingredientes que ya tienes listos")}</p>
                 </div>
                 <Badge variant="secondary" className="font-semibold text-xs">
                   {checkedIngredients.length}/{allIngredientsCount}
@@ -276,8 +276,7 @@ export default function RecetaDetalle() {
               {recipe.maridaje && (
                 <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-900 dark:text-amber-200">
                   <p className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 mb-1 text-amber-600 dark:text-amber-400">
-                    <Sparkles className="h-3.5 w-3.5" /> Maridaje Criollo Sugerido
-                  </p>
+                    <Sparkles className="h-3.5 w-3.5" />{" "}{pc.tx("p.6", "Maridaje Criollo Sugerido")}</p>
                   <p className="text-xs leading-relaxed text-muted-foreground">
                     {recipe.maridaje}
                   </p>
@@ -293,7 +292,7 @@ export default function RecetaDetalle() {
             <section className="bg-card rounded-2xl border border-border p-6 sm:p-8 space-y-6">
               <div className="flex items-center gap-2 text-primary">
                 <Sparkles className="h-5 w-5" />
-                <h2 className="font-display text-2xl font-bold text-foreground">Historia y Tradición</h2>
+                <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.2", "Historia y Tradición")}</h2>
               </div>
               
               <div className="prose dark:prose-invert max-w-none text-muted-foreground leading-relaxed whitespace-pre-line text-base sm:text-lg">
@@ -313,12 +312,8 @@ export default function RecetaDetalle() {
             <section className="bg-card rounded-2xl border border-border p-6 sm:p-8 space-y-8">
               <div>
                 <h2 className="font-display text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-3">
-                  <ChefHat className="h-7 w-7 text-primary" />
-                  Instrucciones de Preparación
-                </h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Sigue cada paso con calma para obtener el auténtico sabor y sazón criollo.
-                </p>
+                  <ChefHat className="h-7 w-7 text-primary" />{pc.tx("h2.3", "Instrucciones de Preparación")}</h2>
+                <p className="text-sm text-muted-foreground mt-1">{pc.tx("p.7", "Sigue cada paso con calma para obtener el auténtico sabor y sazón criollo.")}</p>
               </div>
 
               <div className="space-y-6">
@@ -366,8 +361,8 @@ export default function RecetaDetalle() {
                     <Play className="h-8 w-8 fill-current ml-1" />
                   </Button>
                   <div className="mt-4 text-white">
-                    <p className="font-bold text-lg sm:text-xl">Ver técnica tradicional en video</p>
-                    <p className="text-xs sm:text-sm text-white/80">Aprende los secretos del sazón dominicano en caldero</p>
+                    <p className="font-bold text-lg sm:text-xl">{pc.tx("p.8", "Ver técnica tradicional en video")}</p>
+                    <p className="text-xs sm:text-sm text-white/80">{pc.tx("p.9", "Aprende los secretos del sazón dominicano en caldero")}</p>
                   </div>
                 </div>
               </section>
@@ -377,14 +372,11 @@ export default function RecetaDetalle() {
             <section className="space-y-6 pt-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="font-display text-2xl font-bold text-foreground">
-                    Otros Sabores Dominicanos
-                  </h2>
-                  <p className="text-xs sm:text-sm text-muted-foreground">Explora más joyas de nuestra cocina criolla</p>
+                  <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.4", "Otros Sabores Dominicanos")}</h2>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{pc.tx("p.10", "Explora más joyas de nuestra cocina criolla")}</p>
                 </div>
                 <Link to="/recetas-criollas">
-                  <Button variant="ghost" size="sm" className="gap-1 text-primary text-xs font-bold">
-                    Ver Todo <ChevronRight className="h-4 w-4" />
+                  <Button variant="ghost" size="sm" className="gap-1 text-primary text-xs font-bold">{pc.tx("Button.1", "Ver Todo")}{" "}<ChevronRight className="h-4 w-4" />
                   </Button>
                 </Link>
               </div>
@@ -403,13 +395,13 @@ export default function RecetaDetalle() {
                           alt={related.title}
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
-                        <Badge className="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-white border-0 text-[10px] px-1.5 py-0.5">
+                        <Badge className="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-white border-0 text-3xs px-1.5 py-0.5">
                           {related.time}
                         </Badge>
                       </div>
                       <CardContent className="p-3 flex-1 flex flex-col justify-between">
                         <div>
-                          <p className="text-[10px] uppercase font-bold text-primary tracking-wider">{related.category}</p>
+                          <p className="text-3xs uppercase font-bold text-primary tracking-wider">{related.category}</p>
                           <h3 className="font-display font-semibold text-foreground group-hover:text-primary transition-colors text-xs sm:text-sm line-clamp-2 mt-0.5">
                             {related.title}
                           </h3>

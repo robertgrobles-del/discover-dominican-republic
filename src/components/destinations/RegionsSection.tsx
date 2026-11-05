@@ -56,8 +56,8 @@ export function RegionsSection() {
                       <h3 className="font-display text-3xl font-bold text-white mt-1">{t(region.nameKey)}</h3>
                       <p className="text-white/80 text-sm mt-2 max-w-xs">{t(region.descKey)}</p>
                     </div>
-                    <Button variant="secondary" size="icon" className="rounded-full bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30 group-hover:translate-x-1 transition-transform">
-                      <ChevronRight className="h-5 w-5" />
+                    <Button asChild variant="secondary" size="icon" className="rounded-full bg-white/20 backdrop-blur-sm border-white/30 text-white hover:bg-white/30 group-hover:translate-x-1 transition-transform">
+                      <span aria-hidden="true"><ChevronRight className="h-5 w-5" /></span>
                     </Button>
                   </div>
                 </div>

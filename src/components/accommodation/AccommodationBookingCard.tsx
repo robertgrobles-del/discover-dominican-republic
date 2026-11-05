@@ -73,13 +73,13 @@ export function AccommodationBookingCard({
             <div>
               <span className="text-3xl sm:text-4xl font-black text-primary">US$ {roomPrice}</span>
               <span className="text-muted-foreground text-xs sm:text-sm font-medium"> / noche</span>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
+              <p className="text-2xs text-muted-foreground mt-0.5">
                 aprox. RD$ {(roomPrice * 60).toLocaleString("es-DO")}
               </p>
             </div>
             <div className="flex flex-col items-end gap-1.5">
               <SelloVerificadoBadge variant="compact" size="sm" licenseNumber="MITUR-HOTEL" />
-              <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-[11px] border-emerald-500/20">
+              <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold text-2xs border-emerald-500/20">
                 Mejor Tarifa Directa
               </Badge>
             </div>
@@ -108,7 +108,7 @@ export function AccommodationBookingCard({
               {/* Check-in & Check-out */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label htmlFor="hotel-checkin" className="text-[11px] font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-1">
+                  <label htmlFor="hotel-checkin" className="text-2xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-1">
                     <Calendar className="h-3 w-3 text-primary" /> Entrada
                   </label>
                   <input
@@ -124,7 +124,7 @@ export function AccommodationBookingCard({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="hotel-checkout" className="text-[11px] font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-1">
+                  <label htmlFor="hotel-checkout" className="text-2xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-1">
                     <Calendar className="h-3 w-3 text-primary" /> Salida
                   </label>
                   <input
@@ -142,9 +142,9 @@ export function AccommodationBookingCard({
 
               {/* Number of guests */}
               <div className="space-y-1.5">
-                <label className="text-[11px] font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-1">
+                <p className="text-2xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-1">
                   <Users className="h-3 w-3 text-primary" /> Huéspedes
-                </label>
+                </p>
                 <div className="flex items-center justify-between border border-border rounded-xl p-1 bg-muted/40">
                   <Button 
                     type="button" 
@@ -183,7 +183,7 @@ export function AccommodationBookingCard({
                 <div className="flex justify-between text-base font-bold text-foreground pt-2 border-t border-border/40">
                   <div>
                     <span>Total Estimado</span>
-                    <p className="text-[11px] text-muted-foreground font-normal">
+                    <p className="text-2xs text-muted-foreground font-normal">
                       aprox. RD$ {(totalPrice * 60).toLocaleString("es-DO")}
                     </p>
                   </div>
@@ -234,7 +234,7 @@ export function AccommodationBookingCard({
             )}
           </div>
 
-          <div className="flex items-center gap-2 text-[11px] text-muted-foreground pt-2 border-t border-border/40">
+          <div className="flex items-center gap-2 text-2xs text-muted-foreground pt-2 border-t border-border/40">
             <ShieldCheck className="h-4 w-4 text-emerald-500 flex-shrink-0" />
             <span>Cancelación gratuita hasta 48h antes del check-in</span>
           </div>

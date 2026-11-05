@@ -141,12 +141,12 @@ export function SocialFeed() {
                   >
                     {name}
                   </Link>
-                  <span className="text-[10px] text-muted-foreground shrink-0">
+                  <span className="text-3xs text-muted-foreground shrink-0">
                     {getFormattedDate(act.created_at)}
                   </span>
                 </div>
                 
-                <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
+                <p className="text-2xs text-muted-foreground line-clamp-1 mt-0.5">
                   {act.description || "Completó una acción en Descubre RD"}
                 </p>
 
@@ -155,12 +155,12 @@ export function SocialFeed() {
                     {getSourceIcon(act.source_type)}
                   </span>
                   {act.xp_amount && act.xp_amount > 0 && (
-                    <Badge variant="secondary" className="text-[9px] font-medium px-1.5 py-0 bg-amber-500/10 text-amber-600 border-none">
+                    <Badge variant="secondary" className="text-3xs font-medium px-1.5 py-0 bg-amber-500/10 text-amber-600 border-none">
                       <Zap className="h-2.5 w-2.5 mr-0.5" /> +{act.xp_amount} XP
                     </Badge>
                   )}
                   {act.coin_amount && act.coin_amount > 0 && (
-                    <Badge variant="secondary" className="text-[9px] font-medium px-1.5 py-0 bg-primary/10 text-primary border-none">
+                    <Badge variant="secondary" className="text-3xs font-medium px-1.5 py-0 bg-primary/10 text-primary border-none">
                       <Crown className="h-2.5 w-2.5 mr-0.5" /> +{act.coin_amount}
                     </Badge>
                   )}

@@ -18,6 +18,7 @@ import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
 import samanaImg from "@/assets/samana.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import puertoPlataImg from "@/assets/puerto-plata.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 interface Guide {
   id: string;
@@ -147,7 +148,7 @@ function GuideCard({ guide }: { guide: Guide }) {
             </div>
             <p className="text-xs font-semibold text-primary uppercase tracking-wide mt-0.5">{guide.location}</p>
             {guide.isEco && guide.license && (
-              <p className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
+              <p className="text-3xs font-mono text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
                 Licencia: {guide.license}
               </p>
             )}
@@ -158,10 +159,10 @@ function GuideCard({ guide }: { guide: Guide }) {
           {/* Languages & Specialties */}
           <div className="flex flex-wrap gap-1.5 pt-1">
             {guide.languages.map((lang) => (
-              <Badge key={lang} variant="secondary" className="text-[10px]"><Globe className="h-3 w-3 mr-1" /> {lang}</Badge>
+              <Badge key={lang} variant="secondary" className="text-3xs"><Globe className="h-3 w-3 mr-1" /> {lang}</Badge>
             ))}
             {guide.specialties.slice(0, 2).map((spec) => (
-              <Badge key={spec} className="text-[10px] bg-primary/10 text-primary border-primary/30">{spec}</Badge>
+              <Badge key={spec} className="text-3xs bg-primary/10 text-primary border-primary/30">{spec}</Badge>
             ))}
           </div>
         </div>
@@ -195,6 +196,9 @@ function GuideCard({ guide }: { guide: Guide }) {
 }
 
 export default function GuiasLocales() {
+  const pc = usePageContent("guias-locales");
+  const mockGuides = pc.data("mockGuides", __pcData.mockGuides);
+  const interests = pc.data("interests", __pcData.interests);
   const [selectedInterest, setSelectedInterest] = useState("Todos");
   const [search, setSearch] = useState("");
   const [locationSearch, setLocationSearch] = useState("");
@@ -261,8 +265,8 @@ export default function GuiasLocales() {
   return (
     <PageTransition>
       <SEOHead
-        title="Guías Locales y Ecológicos Certificados - Descubre RD"
-        description="Encuentra y reserva guías turísticos y ecológicos certificados en República Dominicana. Experiencias seguras y sustentables en cada rincón de la isla."
+        title={pc.t("SEOHead.title.1", "Guías Locales y Ecológicos Certificados - Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Encuentra y reserva guías turísticos y ecológicos certificados en República Dominicana. Experiencias seguras y sustentables en cada rincón de la isla.")}
         keywords="guías turísticos, guías ecológicos, medio ambiente, Los Haitises, Pico Duarte, senderismo RD"
       />
       <div className="min-h-screen bg-background">
@@ -271,25 +275,20 @@ export default function GuiasLocales() {
         {/* Hero */}
         <section className="relative h-[480px] flex items-center justify-center overflow-hidden">
           <img
-            src={samanaImg}
-            alt="Guía local"
+            src={pc.img("img.src.1", samanaImg)}
+            alt={pc.t("img.alt.1", "Guía local")}
             className="absolute inset-0 w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/30" />
           <div className="relative z-10 text-center max-w-3xl px-4">
             <Badge className="mb-4 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 gap-1.5 py-1 px-3">
-              <Award className="h-4 w-4" /> Guías Avalados por el Ministerio de Turismo y Medio Ambiente
-            </Badge>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Conecta con República Dominicana a través de su gente
-            </h1>
-            <p className="text-muted-foreground text-lg mb-8">
-              Encuentra guías locales oficiales e intérpretes ambientales. Experiencias seguras, ecológicas y memorables en cada rincón de la isla.
-            </p>
+              <Award className="h-4 w-4" />{" "}{pc.tx("Badge.1", "Guías Avalados por el Ministerio de Turismo y Medio Ambiente")}</Badge>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Conecta con República Dominicana a través de su gente")}</h1>
+            <p className="text-muted-foreground text-lg mb-8">{pc.tx("p.1", "Encuentra guías locales oficiales e intérpretes ambientales. Experiencias seguras, ecológicas y memorables en cada rincón de la isla.")}</p>
             <div className="relative max-w-xl mx-auto">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder="¿Qué te gustaría hacer hoy? Ej. Senderismo, Aves, Playa..."
+                placeholder={pc.t("Input.placeholder.1", "¿Qué te gustaría hacer hoy? Ej. Senderismo, Aves, Playa...")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-12 h-14 text-lg bg-card border-border"
@@ -303,11 +302,11 @@ export default function GuiasLocales() {
           <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-end pb-8 border-b border-border">
             <div className="flex flex-col sm:flex-row gap-4 flex-1">
               <div className="flex-1 w-full">
-                <label className="text-sm font-medium text-foreground mb-2 block">Región / Ciudad</label>
+                <label className="text-sm font-medium text-foreground mb-2 block">{pc.tx("label.1", "Región / Ciudad")}</label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
-                    placeholder="Ej. Samaná, Puerto Plata"
+                    placeholder={pc.t("Input.placeholder.2", "Ej. Samaná, Puerto Plata")}
                     value={locationSearch}
                     onChange={(e) => setLocationSearch(e.target.value)}
                     className="pl-10"
@@ -316,7 +315,7 @@ export default function GuiasLocales() {
               </div>
             </div>
             <div className="flex-1 w-full">
-              <label className="text-sm font-medium text-foreground mb-2 block">Intereses Populares</label>
+              <label className="text-sm font-medium text-foreground mb-2 block">{pc.tx("label.2", "Intereses Populares")}</label>
               <div className="flex gap-2 overflow-x-auto pb-1">
                 {interests.map((interest) => (
                   <button
@@ -337,11 +336,11 @@ export default function GuiasLocales() {
 
           {/* Results Header */}
           <div className="flex items-center justify-between pt-10 pb-6">
-            <h2 className="text-2xl font-bold text-foreground">Directorio de Guías Certificados</h2>
-            <select className="bg-transparent border-none text-sm font-bold text-foreground cursor-pointer" title="Ordenar por">
-              <option>Recomendados</option>
-              <option>Mayor Calificación</option>
-              <option>Más Recientes</option>
+            <h2 className="text-2xl font-bold text-foreground">{pc.tx("h2.1", "Directorio de Guías Certificados")}</h2>
+            <select className="bg-transparent border-none text-sm font-bold text-foreground cursor-pointer" title={pc.t("select.title.1", "Ordenar por")}>
+              <option>{pc.tx("option.1", "Recomendados")}</option>
+              <option>{pc.tx("option.2", "Mayor Calificación")}</option>
+              <option>{pc.tx("option.3", "Más Recientes")}</option>
             </select>
           </div>
 
@@ -355,7 +354,7 @@ export default function GuiasLocales() {
           {filteredGuides.length === 0 && (
             <div className="text-center py-12">
               <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No se encontraron guías con los filtros seleccionados.</p>
+              <p className="text-muted-foreground">{pc.tx("p.2", "No se encontraron guías con los filtros seleccionados.")}</p>
             </div>
           )}
 
@@ -364,7 +363,7 @@ export default function GuiasLocales() {
             <SorteoLectorBanner origenCategoria="Guías Turísticos y Excursiones" />
 
             <CTARegistroEstablecimiento
-              tipo="tour"
+              tipo="guia"
               titulo="¿Eres guía turístico o empresa de excursiones?"
               subtitulo="Certifícate y añade tu perfil profesional a Descubre RD para el gran lanzamiento. Conecta con viajeros y grupos que buscan vivir aventuras inolvidables."
             />
@@ -376,3 +375,6 @@ export default function GuiasLocales() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { mockGuides, interests };

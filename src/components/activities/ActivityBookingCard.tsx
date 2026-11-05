@@ -104,9 +104,9 @@ export function ActivityBookingCard({
 
               {/* Number of people */}
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-1.5">
+                <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wider flex items-center gap-1.5">
                   <Users className="h-3.5 w-3.5 text-primary" /> Cantidad de Personas
-                </label>
+                </p>
                 <div className="flex items-center justify-between border border-border rounded-xl p-1 bg-muted/40">
                   <Button 
                     type="button" 
@@ -156,7 +156,7 @@ export function ActivityBookingCard({
           )}
 
           {/* Guarantees */}
-          <div className="space-y-2 pt-2 border-t border-border/40 text-[11px] text-muted-foreground">
+          <div className="space-y-2 pt-2 border-t border-border/40 text-2xs text-muted-foreground">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-emerald-500 flex-shrink-0" />
               <span>Cancelación gratuita hasta 24 horas antes</span>
@@ -176,7 +176,7 @@ export function ActivityBookingCard({
         </div>
         <div>
           <h4 className="font-bold text-xs text-foreground uppercase tracking-wider flex items-center gap-1.5">
-            Recompensa de Explorador <Badge className="text-[10px] px-1.5 py-0 bg-primary/20 text-primary border-0">+{xpPoints} XP</Badge>
+            Recompensa de Explorador <Badge className="text-3xs px-1.5 py-0 bg-primary/20 text-primary border-0">+{xpPoints} XP</Badge>
           </h4>
           <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
             Completar esta actividad sumará puntos a tu <strong>Pasaporte Digital</strong> para desbloquear insignias y beneficios exclusivos.

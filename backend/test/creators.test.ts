@@ -222,14 +222,15 @@ describe("CreatorService — Modulo de Creadores UGC (Fase 3B)", () => {
       let profileViewsUpdated = false;
       const db: any = {
         query: async (sql: string) => {
-          if (sql.includes("SELECT creator_id FROM creator_videos")) return { rows: [{ creator_id: "creator-001" }] };
+          if (sql.includes("SELECT creator_id, status FROM creator_videos")) return { rows: [{ creator_id: "creator-001", status: "published" }] };
           if (sql.includes("views_count = views_count + 1")) { viewsUpdated = true; return { rows: [] }; }
           if (sql.includes("total_views = total_views + 1")) { profileViewsUpdated = true; return { rows: [] }; }
           return { rows: [], rowCount: 0 };
         },
       };
+      db.connect = async () => ({ query: db.query, release: () => undefined });
       const svc = new CreatorService(db);
-      const result = await svc.trackVideoEvent({ video_id: "video-001", event_type: "view_complete" });
+      const result = await svc.trackVideoEvent({ video_id: "video-001", event_type: "view_complete", ip: "10.0.0.9" });
       expect(result.recorded).toBe(true);
       expect(viewsUpdated).toBe(true);
       expect(profileViewsUpdated).toBe(true);
@@ -250,13 +251,14 @@ describe("CreatorService — Modulo de Creadores UGC (Fase 3B)", () => {
       let capturedHash: string | null = null;
       const db: any = {
         query: async (sql: string, params?: unknown[]) => {
-          if (sql.includes("SELECT creator_id")) return { rows: [{ creator_id: "c1" }] };
+          if (sql.includes("SELECT creator_id")) return { rows: [{ creator_id: "c1", status: "published" }] };
           if (sql.includes("creator_video_events") && params) {
             capturedHash = params[6] as string;
           }
           return { rows: [], rowCount: 0 };
         },
       };
+      db.connect = async () => ({ query: db.query, release: () => undefined });
       const svc = new CreatorService(db);
       await svc.trackVideoEvent({ video_id: "v1", event_type: "view_start", ip: "10.0.0.1" });
       expect(capturedHash).not.toBe("10.0.0.1");

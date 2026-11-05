@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { usePageContent } from "@/lib/pageContent";
 
 interface HotSpring {
   id: string;
@@ -68,6 +69,8 @@ const mockSprings: HotSpring[] = [
 ];
 
 export default function AguasTermales() {
+  const pc = usePageContent("aguas-termales");
+  const mockSprings = pc.data("mockSprings", __pcData.mockSprings);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedAccess, setSelectedAccess] = useState("all");
 
@@ -108,8 +111,8 @@ export default function AguasTermales() {
   return (
     <PageTransition>
       <SEOHead
-        title="Aguas Termales y Balnearios de Bienestar - Descubre RD"
-        description="Explora los balnearios de aguas termales y azufradas naturales en República Dominicana, como Aguas Calientes en SAJOMA y Canoa en Barahona."
+        title={pc.t("SEOHead.title.1", "Aguas Termales y Balnearios de Bienestar - Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Explora los balnearios de aguas termales y azufradas naturales en República Dominicana, como Aguas Calientes en SAJOMA y Canoa en Barahona.")}
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -119,14 +122,9 @@ export default function AguasTermales() {
           <section className="relative py-16 bg-gradient-to-br from-cyan-500/10 via-teal-500/5 to-transparent border-b border-border">
             <div className="container mx-auto px-4 text-center">
               <Badge variant="secondary" className="mb-4 bg-cyan-500/10 text-cyan-600 border-cyan-500/20 gap-1">
-                <Sparkles className="h-3.5 w-3.5" /> Turismo de Bienestar & Salud
-              </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display">
-                Aguas Termales y Balnearios Naturales
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Desconéctate y renueva energías en las aguas azufradas y termales de la isla. Descubre fuentes de relajación y salud en la montaña o el sur profundo.
-              </p>
+                <Sparkles className="h-3.5 w-3.5" />{" "}{pc.tx("Badge.1", "Turismo de Bienestar & Salud")}</Badge>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display">{pc.tx("h1.1", "Aguas Termales y Balnearios Naturales")}</h1>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.1", "Desconéctate y renueva energías en las aguas azufradas y termales de la isla. Descubre fuentes de relajación y salud en la montaña o el sur profundo.")}</p>
             </div>
           </section>
 
@@ -139,8 +137,7 @@ export default function AguasTermales() {
                 <CardContent className="p-4 flex gap-3 items-start">
                   <ShieldAlert className="h-5 w-5 text-cyan-600 shrink-0 mt-0.5" />
                   <div>
-                    <strong>Recomendaciones Médicas:</strong> Los baños en aguas azufradas/termales deben realizarse en intervalos de 15 a 20 minutos para evitar deshidratación o bajas de presión arterial. Mantente bien hidratado y consulta a tu médico si sufres de problemas cardíacos o estás embarazada.
-                  </div>
+                    <strong>{pc.tx("strong.1", "Recomendaciones Médicas:")}</strong>{" "}{pc.tx("div.1", "Los baños en aguas azufradas/termales deben realizarse en intervalos de 15 a 20 minutos para evitar deshidratación o bajas de presión arterial. Mantente bien hidratado y consulta a tu médico si sufres de problemas cardíacos o estás embarazada.")}</div>
                 </CardContent>
               </Card>
 
@@ -150,7 +147,7 @@ export default function AguasTermales() {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     className="pl-9 text-sm"
-                    placeholder="Buscar por manantial, provincia o beneficio (ej. SAJOMA, piel)..."
+                    placeholder={pc.t("Input.placeholder.1", "Buscar por manantial, provincia o beneficio (ej. SAJOMA, piel)...")}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -161,10 +158,10 @@ export default function AguasTermales() {
                   value={selectedAccess}
                   onChange={(e) => setSelectedAccess(e.target.value)}
                 >
-                  <option value="all">Cualquier Acceso</option>
-                  <option value="Fácil">Acceso Fácil</option>
-                  <option value="Moderado">Acceso Moderado</option>
-                  <option value="Aventura (Difícil)">Aventura (Difícil)</option>
+                  <option value="all">{pc.tx("option.1", "Cualquier Acceso")}</option>
+                  <option value="Fácil">{pc.tx("option.2", "Acceso Fácil")}</option>
+                  <option value="Moderado">{pc.tx("option.3", "Acceso Moderado")}</option>
+                  <option value="Aventura (Difícil)">{pc.tx("option.4", "Aventura (Difícil)")}</option>
                 </select>
               </div>
 
@@ -177,9 +174,8 @@ export default function AguasTermales() {
                       <div className="md:col-span-3 bg-cyan-500/5 flex flex-col justify-center items-center p-6 border-b md:border-b-0 md:border-r border-border text-center">
                         <span className="text-5xl mb-2">{spring.avatar}</span>
                         <Badge className="bg-cyan-500 hover:bg-cyan-600 border-none text-white text-xs font-semibold px-3 py-1 flex items-center gap-1">
-                          <Thermometer className="h-3.5 w-3.5" /> {spring.tempCelsius}°C Aprox.
-                        </Badge>
-                        <span className="text-[10px] text-muted-foreground mt-2 uppercase font-bold">Aguas Termales</span>
+                          <Thermometer className="h-3.5 w-3.5" /> {spring.tempCelsius}{pc.tx("Badge.2", "°C Aprox.")}</Badge>
+                        <span className="text-3xs text-muted-foreground mt-2 uppercase font-bold">{pc.tx("span.1", "Aguas Termales")}</span>
                       </div>
 
                       {/* Details content */}
@@ -187,23 +183,22 @@ export default function AguasTermales() {
                         <div className="space-y-4">
                           <div className="flex justify-between items-start gap-4 flex-wrap">
                             <div>
-                              <CardTitle className="text-xl font-display">{spring.name}</CardTitle>
+                              <CardTitle as="h2" className="text-xl font-display">{spring.name}</CardTitle>
                               <CardDescription className="text-xs text-cyan-600/80 mt-0.5 flex items-center gap-1 font-semibold">
                                 <MapPin className="h-3.5 w-3.5" /> {spring.location} ({spring.province})
                               </CardDescription>
                             </div>
-                            <Badge variant="outline" className="text-[10px] border-cyan-500/30 text-cyan-600 bg-cyan-500/5">
-                              Acceso: {spring.access}
+                            <Badge variant="outline" className="text-3xs border-cyan-500/30 text-cyan-600 bg-cyan-500/5">{pc.tx("Badge.3", "Acceso:")}{" "}{spring.access}
                             </Badge>
                           </div>
 
                           <p className="text-xs text-muted-foreground leading-relaxed">{spring.description}</p>
                           
                           <div>
-                            <span className="text-[10px] text-muted-foreground uppercase font-bold block mb-1">Propiedades Terapéuticas:</span>
+                            <span className="text-3xs text-muted-foreground uppercase font-bold block mb-1">{pc.tx("span.2", "Propiedades Terapéuticas:")}</span>
                             <div className="flex flex-wrap gap-1">
                               {spring.properties.map(p => (
-                                <Badge key={p} variant="secondary" className="text-[9px]"><Heart className="h-2.5 w-2.5 mr-0.5 text-rose-500" /> {p}</Badge>
+                                <Badge key={p} variant="secondary" className="text-3xs"><Heart className="h-2.5 w-2.5 mr-0.5 text-rose-500" /> {p}</Badge>
                               ))}
                             </div>
                           </div>
@@ -211,7 +206,7 @@ export default function AguasTermales() {
 
                         <div className="pt-6 border-t border-border mt-4 flex items-center justify-between text-xs">
                           <div>
-                            <span className="text-muted-foreground block text-[9px] uppercase font-bold">Costo de Entrada</span>
+                            <span className="text-muted-foreground block text-3xs uppercase font-bold">{pc.tx("span.3", "Costo de Entrada")}</span>
                             <span className="font-semibold text-foreground">{spring.price}</span>
                           </div>
                           <Button 
@@ -221,15 +216,14 @@ export default function AguasTermales() {
                               toast.success(`Mostrando ubicación de ${spring.name} en el mapa de bienestar.`);
                             }}
                           >
-                            <Compass className="h-3.5 w-3.5 mr-1" /> Cómo Llegar
-                          </Button>
+                            <Compass className="h-3.5 w-3.5 mr-1" />{" "}{pc.tx("Button.1", "Cómo Llegar")}</Button>
                         </div>
                       </div>
                     </div>
                   </Card>
                 ))}
                 {filteredSprings.length === 0 && (
-                  <p className="text-center text-xs text-muted-foreground py-12">No se encontraron aguas termales con esos criterios.</p>
+                  <p className="text-center text-xs text-muted-foreground py-12">{pc.tx("p.2", "No se encontraron aguas termales con esos criterios.")}</p>
                 )}
               </div>
 
@@ -240,10 +234,8 @@ export default function AguasTermales() {
           <section className="bg-muted/40 py-16 border-t border-border">
             <div className="container mx-auto px-4 max-w-4xl text-center">
               <Wind className="h-10 w-10 text-cyan-500 mx-auto mb-4 animate-pulse" />
-              <h2 className="text-2xl md:text-3xl font-bold font-display mb-4">El Poder del Azufre y Calor Geotérmico</h2>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-                Las aguas termales dominicanas adquieren sus temperaturas templadas gracias a las fracturas geológicas en la Cordillera Central y la Sierra de Bahoruco. Los minerales disueltos, especialmente el azufre, actúan como exfoliante natural, calmando dolores crónicos y promoviendo la relajación mental profunda.
-              </p>
+              <h2 className="text-2xl md:text-3xl font-bold font-display mb-4">{pc.tx("h2.1", "El Poder del Azufre y Calor Geotérmico")}</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl mx-auto">{pc.tx("p.3", "Las aguas termales dominicanas adquieren sus temperaturas templadas gracias a las fracturas geológicas en la Cordillera Central y la Sierra de Bahoruco. Los minerales disueltos, especialmente el azufre, actúan como exfoliante natural, calmando dolores crónicos y promoviendo la relajación mental profunda.")}</p>
             </div>
           </section>
         </main>
@@ -253,3 +245,6 @@ export default function AguasTermales() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { mockSprings };

@@ -151,7 +151,7 @@ export function DestinationEditorialSections({
                         {/* Featured Highlight Badge */}
                         {isFirstFeatured && (
                           <div className="absolute top-3 left-3 z-10">
-                            <span className="bg-amber-500 text-black font-black text-[11px] uppercase px-3 py-1 rounded-full shadow-lg flex items-center gap-1 border border-amber-300">
+                            <span className="bg-amber-500 text-black font-black text-2xs uppercase px-3 py-1 rounded-full shadow-lg flex items-center gap-1 border border-amber-300">
                               ★ Hotel Destacado
                             </span>
                           </div>
@@ -164,7 +164,7 @@ export function DestinationEditorialSections({
                         </span>
 
                         {/* Category Badge */}
-                        <span className="absolute bottom-3 left-3 bg-primary text-primary-foreground text-[11px] font-extrabold uppercase px-3 py-1 rounded-lg tracking-wider shadow-md">
+                        <span className="absolute bottom-3 left-3 bg-primary text-primary-foreground text-2xs font-extrabold uppercase px-3 py-1 rounded-lg tracking-wider shadow-md">
                           {hotel.category || "All-Inclusive"}
                         </span>
                       </div>
@@ -190,7 +190,7 @@ export function DestinationEditorialSections({
                             {hotel.amenities.slice(0, 3).map((amenity, idx) => (
                               <span
                                 key={idx}
-                                className="text-[11px] bg-muted/80 text-foreground font-medium px-2.5 py-1 rounded-md border border-border/50"
+                                className="text-2xs bg-muted/80 text-foreground font-medium px-2.5 py-1 rounded-md border border-border/50"
                               >
                                 {amenity}
                               </span>
@@ -204,7 +204,7 @@ export function DestinationEditorialSections({
                     <div className="p-6 pt-0">
                       <div className="pt-4 border-t border-border flex items-center justify-between">
                         <div>
-                          <span className="text-[10px] uppercase text-muted-foreground block font-bold tracking-wider">
+                          <span className="text-3xs uppercase text-muted-foreground block font-bold tracking-wider">
                             {hotel.stars} Estrellas
                           </span>
                           <span className="text-base font-black text-foreground">
@@ -302,11 +302,11 @@ export function DestinationEditorialSections({
                       
                       <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
                         {isFirstFeatured ? (
-                          <span className="bg-amber-500 text-black font-black text-[10px] uppercase px-2.5 py-1 rounded-md shadow-md border border-amber-300">
+                          <span className="bg-amber-500 text-black font-black text-3xs uppercase px-2.5 py-1 rounded-md shadow-md border border-amber-300">
                             ★ Gastronomía Destacada
                           </span>
                         ) : (
-                          <span className="bg-amber-500/90 backdrop-blur-md text-white font-extrabold text-[10px] uppercase px-2.5 py-1 rounded-md">
+                          <span className="bg-amber-500/90 backdrop-blur-md text-white font-extrabold text-3xs uppercase px-2.5 py-1 rounded-md">
                             {rest.category || "Gastronomía"}
                           </span>
                         )}
@@ -318,7 +318,7 @@ export function DestinationEditorialSections({
                       </span>
 
                       <div className="absolute bottom-3 left-3 right-3 text-white">
-                        <div className="flex items-center gap-1 text-[11px] text-white/80">
+                        <div className="flex items-center gap-1 text-2xs text-white/80">
                           <MapPin className="h-3 w-3 text-amber-400" />
                           <span className="truncate">{(rest as any).location || rest.province}</span>
                         </div>
@@ -339,7 +339,7 @@ export function DestinationEditorialSections({
                           {rest.cuisineType.slice(0, 3).map((type, idx) => (
                             <span
                               key={idx}
-                              className="text-[11px] bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold px-2.5 py-0.5 rounded-full"
+                              className="text-2xs bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold px-2.5 py-0.5 rounded-full"
                             >
                               {type}
                             </span>
@@ -350,7 +350,7 @@ export function DestinationEditorialSections({
                       {/* Signature dishes preview */}
                       {rest.signatureDishes && rest.signatureDishes.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-border/60">
-                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold block mb-1">
+                          <span className="text-3xs uppercase tracking-wider text-muted-foreground font-bold block mb-1">
                             Plato Sugerido:
                           </span>
                           <p className="text-xs font-semibold text-foreground truncate">
@@ -435,24 +435,24 @@ export function DestinationEditorialSections({
                       {/* Top Badges */}
                       <div className="absolute top-2.5 left-2.5 z-10">
                         {isFirstFeatured ? (
-                          <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-md shadow-md border border-purple-400">
+                          <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-3xs font-black uppercase px-2 py-0.5 rounded-md shadow-md border border-purple-400">
                             ★ Club Destacado
                           </span>
                         ) : (
-                          <span className="bg-purple-600/90 backdrop-blur-md text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-md shadow-sm">
+                          <span className="bg-purple-600/90 backdrop-blur-md text-white text-3xs font-black uppercase px-2 py-0.5 rounded-md shadow-sm">
                             {bar.barType === 'nightclub' ? 'Discoteca' : bar.barType === 'beach-bar' ? 'Beach Club' : 'Rooftop Bar'}
                           </span>
                         )}
                       </div>
 
-                      <span className="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-full text-[11px] font-bold text-white shadow-sm flex items-center gap-1 border border-white/20">
+                      <span className="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-full text-2xs font-bold text-white shadow-sm flex items-center gap-1 border border-white/20">
                         <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
                         {bar.rating}
                       </span>
 
                       {/* Bottom Title on Image */}
                       <div className="absolute bottom-2.5 left-2.5 right-2.5 text-white">
-                        <span className="text-[10px] text-purple-300 font-semibold block uppercase tracking-wider truncate">
+                        <span className="text-3xs text-purple-300 font-semibold block uppercase tracking-wider truncate">
                           {(bar as any).location || bar.province}
                         </span>
                         <h3 className="text-base font-black text-white group-hover:text-purple-300 transition-colors truncate">
@@ -463,7 +463,7 @@ export function DestinationEditorialSections({
 
                     {/* Compact Body Content */}
                     <div className="p-3.5 space-y-2">
-                      <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
+                      <p className="text-2xs text-muted-foreground leading-relaxed line-clamp-2">
                         {bar.shortDescription}
                       </p>
 
@@ -473,7 +473,7 @@ export function DestinationEditorialSections({
                           {bar.musicStyle.slice(0, 2).map((style, idx) => (
                             <span
                               key={idx}
-                              className="text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-300 font-semibold px-2 py-0.5 rounded-md border border-purple-500/20 truncate"
+                              className="text-3xs bg-purple-500/10 text-purple-600 dark:text-purple-300 font-semibold px-2 py-0.5 rounded-md border border-purple-500/20 truncate"
                             >
                               🎵 {style}
                             </span>
@@ -486,7 +486,7 @@ export function DestinationEditorialSections({
                   {/* Card Footer */}
                   <div className="p-3.5 pt-0">
                     <div className="pt-2.5 border-t border-border/60 flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-muted-foreground">
+                      <span className="text-2xs font-bold text-muted-foreground">
                         {bar.priceRange || "$$$"}
                       </span>
                       <Button size="sm" variant="secondary" asChild className="h-7 text-xs rounded-lg font-bold px-2.5 bg-purple-500/10 text-purple-600 hover:bg-purple-500 hover:text-white dark:text-purple-300">

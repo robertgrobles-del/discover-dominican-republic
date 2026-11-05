@@ -97,25 +97,25 @@ export function VipAuctionModal({
           <div className="p-5 space-y-4 text-xs">
             <div className="grid grid-cols-2 gap-3 p-3.5 rounded-2xl bg-muted/40 border border-border">
               <div>
-                <span className="text-[10px] text-muted-foreground uppercase font-bold">Puja Actual Líder</span>
+                <span className="text-3xs text-muted-foreground uppercase font-bold">Puja Actual Líder</span>
                 <p className="text-xl font-black text-amber-500 mt-0.5">{currentBid} monedas</p>
-                <span className="text-[10px] text-muted-foreground">Por: {highestBidder}</span>
+                <span className="text-3xs text-muted-foreground">Por: {highestBidder}</span>
               </div>
 
               <div>
-                <span className="text-[10px] text-muted-foreground uppercase font-bold">Cierre de Subasta</span>
+                <span className="text-3xs text-muted-foreground uppercase font-bold">Cierre de Subasta</span>
                 <p className="text-sm font-bold text-foreground mt-0.5 flex items-center gap-1 font-mono">
                   <Clock className="h-4 w-4 text-amber-500" />
                   {String(timeLeft.hours).padStart(2, "0")}h : {String(timeLeft.minutes).padStart(2, "0")}m : {String(timeLeft.seconds).padStart(2, "0")}s
                 </p>
-                <span className="text-[10px] text-emerald-600 font-semibold">Garantía oficial MITUR</span>
+                <span className="text-3xs text-emerald-600 font-semibold">Garantía oficial MITUR</span>
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-foreground">Tu Siguiente Puja:</label>
+              <label htmlFor="vip-auction-modal-f1" className="text-xs font-bold text-foreground">Tu Siguiente Puja:</label>
               <div className="flex gap-2">
-                <Input
+                <Input id="vip-auction-modal-f1"
                   type="number"
                   value={myBidAmount}
                   onChange={(e) => setMyBidAmount(Number(e.target.value))}
@@ -128,7 +128,7 @@ export function VipAuctionModal({
                   <Gavel className="h-3.5 w-3.5 mr-1" /> Pujar Ahora
                 </Button>
               </div>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-3xs text-muted-foreground">
                 Tu saldo disponible: <strong className="text-amber-500">{userCoins} monedas</strong>. Solo se deducen las monedas si ganas la subasta al expirar el tiempo.
               </p>
             </div>

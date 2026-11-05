@@ -15,6 +15,10 @@ import { LotteryResultRelational } from "@/types/lotteryRelational";
 import { LotteryRelationalCard } from "@/components/loterias/LotteryRelationalCard";
 import { LotteryDrawDetailView } from "@/components/loterias/LotteryDrawDetailView";
 import { LotteryFiltersPanel } from "@/components/loterias/LotteryFiltersPanel";
+import { LotteryChecker } from "@/components/loterias/LotteryChecker";
+import { LotteryStatsSidebar } from "@/components/loterias/LotteryStatsSidebar";
+import { toast } from "sonner";
+import { usePageContent } from "@/lib/pageContent";
 
 function useLotteryResults(filterDate?: string) {
   return useQuery({
@@ -67,6 +71,7 @@ function useLotteryResults(filterDate?: string) {
 }
 
 export default function Loteria() {
+  const pc = usePageContent("loteria");
   const [searchParams, setSearchParams] = useSearchParams();
   const activeDrawId = searchParams.get("draw");
 
@@ -76,6 +81,23 @@ export default function Loteria() {
   const [activeTab, setActiveTab] = useState("todos");
 
   const { data: results, isLoading, refetch, isFetching } = useLotteryResults(filterDate);
+
+  // Comprobador de jugadas (antes en /loterias): busca un número entre los resultados cargados.
+  const [checkNumber, setCheckNumber] = useState("");
+  const [checkResult, setCheckResult] = useState<{ tested: boolean; matches: { draw: string; position: number; date: string }[] } | null>(null);
+  const handleTestNumber = (e: React.FormEvent) => {
+    e.preventDefault();
+    const n = Number.parseInt(checkNumber.trim(), 10);
+    if (!Number.isInteger(n) || n < 0 || n > 99) {
+      toast.error("Ingresa un número de 2 dígitos (ej. 42 o 08).");
+      return;
+    }
+    const matches = (results || []).flatMap((r) => {
+      const pos = r.winning_numbers.indexOf(n);
+      return pos === -1 ? [] : [{ draw: `${r.lottery_draws?.lotteries?.name ?? "Lotería"} - ${r.lottery_draws?.name ?? ""}`, position: pos + 1, date: r.draw_date }];
+    });
+    setCheckResult({ tested: true, matches });
+  };
 
   // Derivar opciones de filtros de los resultados actuales
   const uniqueLotteries = Array.from(
@@ -172,8 +194,8 @@ export default function Loteria() {
   return (
     <PageTransition>
       <SEOHead
-        title="Resultados de Loterías y Sorteos | Descubre RD"
-        description="Consulta en tiempo real los resultados de los sorteos y marcas de lotería en República Dominicana y loterías americanas con histórico y buscador."
+        title={pc.t("SEOHead.title.1", "Resultados de Loterías y Sorteos | Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Consulta en tiempo real los resultados de los sorteos y marcas de lotería en República Dominicana y loterías americanas con histórico y buscador.")}
         keywords="loteria rd, leidsa loto, loteria nacional, quiniela pale, loteka, real, loterias dominicanas"
       />
       <div className="min-h-screen bg-background">
@@ -187,14 +209,10 @@ export default function Loteria() {
           </div>
           <div className="container mx-auto px-4 text-center relative z-10 animate-fade-in">
             <Badge className="mb-4 bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30">
-              <Sparkles className="h-3 w-3 mr-1" /> Resultados Relacionales & Históricos
-            </Badge>
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-4">
-              Resultados de <span className="text-primary italic">Lotería</span>
+              <Sparkles className="h-3 w-3 mr-1" />{" "}{pc.tx("Badge.1", "Resultados Relacionales & Históricos")}</Badge>
+            <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Resultados de")}{" "}<span className="text-primary italic">{pc.tx("span.1", "Lotería")}</span>
             </h1>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-              Consulta y busca los números ganadores. <strong>Haz clic en cualquier sorteo</strong> para ver su histórico completo y estadísticas.
-            </p>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">{pc.tx("p.1", "Consulta y busca los números ganadores.")}{" "}<strong>{pc.tx("strong.1", "Haz clic en cualquier sorteo")}</strong>{" "}{pc.tx("p.2", "para ver su histórico completo y estadísticas.")}</p>
           </div>
         </section>
 
@@ -217,21 +235,17 @@ export default function Loteria() {
 
         {/* Results List */}
         <section className="container mx-auto px-4 py-4">
+          <div className="grid lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-8">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
               <TabsList>
                 <TabsTrigger value="todos" className="gap-1.5">
-                  <Ticket className="h-4 w-4" /> Todos
-                </TabsTrigger>
-                <TabsTrigger value="dominicanas" className="gap-1.5">
-                  🇩🇴 Dominicanas
-                </TabsTrigger>
-                <TabsTrigger value="americanas" className="gap-1.5">
-                  🇺🇸 Americanas
-                </TabsTrigger>
+                  <Ticket className="h-4 w-4" />{" "}{pc.tx("TabsTrigger.1", "Todos")}</TabsTrigger>
+                <TabsTrigger value="dominicanas" className="gap-1.5">{pc.tx("TabsTrigger.2", "🇩🇴 Dominicanas")}</TabsTrigger>
+                <TabsTrigger value="americanas" className="gap-1.5">{pc.tx("TabsTrigger.3", "🇺🇸 Americanas")}</TabsTrigger>
                 <TabsTrigger value="destacados" className="gap-1.5">
-                  <Star className="h-4 w-4" /> Acumulados
-                </TabsTrigger>
+                  <Star className="h-4 w-4" />{" "}{pc.tx("TabsTrigger.4", "Acumulados")}</TabsTrigger>
               </TabsList>
 
               <Button
@@ -241,21 +255,19 @@ export default function Loteria() {
                 onClick={() => refetch()}
                 disabled={isFetching}
               >
-                <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-                Actualizar
-              </Button>
+                <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />{pc.tx("Button.1", "Actualizar")}</Button>
             </div>
 
             {["todos", "dominicanas", "americanas", "destacados"].map((tab) => (
               <TabsContent key={tab} value={tab}>
                 {isLoading ? (
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
                     {[...Array(4)].map((_, i) => (
                       <Skeleton key={i} className="h-48 w-full rounded-2xl" />
                     ))}
                   </div>
                 ) : (
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
                     {filteredResults.map((result) => (
                       <LotteryRelationalCard
                         key={result.id}
@@ -266,14 +278,10 @@ export default function Loteria() {
                     {filteredResults.length === 0 && (
                       <div className="col-span-2 text-center py-16 bg-card border border-dashed border-border rounded-2xl">
                         <Ticket className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-                        <h4 className="font-bold text-foreground">No hay resultados</h4>
-                        <p className="text-muted-foreground text-sm mt-1">
-                          No se encontraron sorteos para los filtros seleccionados.
-                        </p>
+                        <h2 className="h3 h4 font-bold text-foreground">{pc.tx("h4.1", "No hay resultados")}</h2>
+                        <p className="text-muted-foreground text-sm mt-1">{pc.tx("p.3", "No se encontraron sorteos para los filtros seleccionados.")}</p>
                         {hasActiveFilters && (
-                          <Button variant="link" onClick={handleClearFilters} className="mt-2 text-primary">
-                            Limpiar filtros de búsqueda
-                          </Button>
+                          <Button variant="link" onClick={handleClearFilters} className="mt-2 text-primary">{pc.tx("Button.2", "Limpiar filtros de búsqueda")}</Button>
                         )}
                       </div>
                     )}
@@ -282,6 +290,12 @@ export default function Loteria() {
               </TabsContent>
             ))}
           </Tabs>
+          </div>
+          <aside className="lg:col-span-4 space-y-6">
+            <LotteryChecker checkNumber={checkNumber} onCheckNumberChange={setCheckNumber} onSubmit={handleTestNumber} checkResult={checkResult} />
+            <LotteryStatsSidebar />
+          </aside>
+          </div>
         </section>
 
         {/* Info card */}
@@ -290,24 +304,18 @@ export default function Loteria() {
             <div className="grid md:grid-cols-3 gap-6 text-center">
               <div>
                 <Clock className="h-7 w-7 text-primary mx-auto mb-3" />
-                <h3 className="font-display font-bold text-foreground mb-1.5">Estructura Relacional</h3>
-                <p className="text-xs text-muted-foreground">
-                  Configura sorteos por días de la semana, horarios, rango de bolos y cantidad de tómbolas.
-                </p>
+                <h2 className="h3 font-display font-bold text-foreground mb-1.5">{pc.tx("h3.1", "Estructura Relacional")}</h2>
+                <p className="text-xs text-muted-foreground">{pc.tx("p.4", "Configura sorteos por días de la semana, horarios, rango de bolos y cantidad de tómbolas.")}</p>
               </div>
               <div>
                 <Star className="h-7 w-7 text-amber-500 mx-auto mb-3" />
-                <h3 className="font-display font-bold text-foreground mb-1.5">Tómbolas Múltiples</h3>
-                <p className="text-xs text-muted-foreground">
-                  Soporta extracción de bolos de tómbolas separadas (1ra, 2da, 3ra) que permiten números repetidos.
-                </p>
+                <h2 className="h3 font-display font-bold text-foreground mb-1.5">{pc.tx("h3.2", "Tómbolas Múltiples")}</h2>
+                <p className="text-xs text-muted-foreground">{pc.tx("p.5", "Soporta extracción de bolos de tómbolas separadas (1ra, 2da, 3ra) que permiten números repetidos.")}</p>
               </div>
               <div>
                 <Trophy className="h-7 w-7 text-emerald-500 mx-auto mb-3" />
-                <h3 className="font-display font-bold text-foreground mb-1.5">Acumulados</h3>
-                <p className="text-xs text-muted-foreground">
-                  Registra botes estimados para sorteos especiales como Lotos y botes americanos.
-                </p>
+                <h2 className="h3 font-display font-bold text-foreground mb-1.5">{pc.tx("h3.3", "Acumulados")}</h2>
+                <p className="text-xs text-muted-foreground">{pc.tx("p.6", "Registra botes estimados para sorteos especiales como Lotos y botes americanos.")}</p>
               </div>
             </div>
           </div>

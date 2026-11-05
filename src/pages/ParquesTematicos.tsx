@@ -29,8 +29,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { usePageContent } from "@/lib/pageContent";
+import { useCollectionList, str, numOr, list, extras } from "@/lib/collectionPage";
 
-const parquesTematicos = [
+const parquesTematicosLocal = [
   {
     id: "scape-park",
     nombre: "Scape Park at Cap Cana",
@@ -163,6 +165,14 @@ const tiposParque = [
 ];
 
 export default function ParquesTematicos() {
+  const pc = usePageContent("parques-tematicos");
+  const tiposParque = pc.data("tiposParque", __pcData.tiposParque);
+  // Los parques salen de la colección «Parques temáticos» del panel; el arreglo local es el respaldo.
+  const parquesTematicos = useCollectionList("theme-parks", parquesTematicosLocal, (p) => p.id, (r, b) => ({
+    id: str(r.slug, b?.id), nombre: str(r.name, b?.nombre), tipo: str(r.park_type, b?.tipo ?? "Parque Temático"), ubicacion: str(r.address, b?.ubicacion),
+    imagen: str(r.image_url, b?.imagen), descripcion: str(r.description, b?.descripcion), precioAdulto: numOr(r.price_adult, b?.precioAdulto), precioNino: numOr(r.price_child, b?.precioNino),
+    rating: numOr(r.rating, b?.rating), reviews: numOr(extras(r).reviews, b?.reviews), atracciones: list(r.attractions, b?.atracciones), horario: str(r.opening_hours, b?.horario), duracion: str(r.duration_recommended, b?.duracion),
+  }));
   const [search, setSearch] = useState("");
   const [tipoFiltro, setTipoFiltro] = useState("all");
 
@@ -184,8 +194,8 @@ export default function ParquesTematicos() {
   return (
     <PageTransition>
       <SEOHead
-        title="Parques Temáticos y de Diversiones | Descubre RD"
-        description="Descubre los mejores parques temáticos, acuáticos y de aventuras en República Dominicana. Scape Park, Ocean World, Manatí Park y más."
+        title={pc.t("SEOHead.title.1", "Parques Temáticos y de Diversiones | Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Descubre los mejores parques temáticos, acuáticos y de aventuras en República Dominicana. Scape Park, Ocean World, Manatí Park y más.")}
         keywords="parques temáticos RD, parques acuáticos Punta Cana, Scape Park, Ocean World, diversiones República Dominicana"
       />
       <Header />
@@ -195,21 +205,17 @@ export default function ParquesTematicos() {
         <section className="relative py-20 bg-gradient-to-b from-primary/10 to-background">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto">
-              <Badge className="mb-4">Diversión Garantizada</Badge>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-                Parques <span className="text-gradient">Temáticos</span>
+              <Badge className="mb-4">{pc.tx("Badge.1", "Diversión Garantizada")}</Badge>
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Parques")}{" "}<span className="text-gradient">{pc.tx("span.1", "Temáticos")}</span>
               </h1>
-              <p className="text-lg text-muted-foreground mb-8">
-                Desde aventuras extremas en cenotes hasta encuentros con delfines, 
-                descubre los mejores parques de diversiones del Caribe.
-              </p>
+              <p className="text-lg text-muted-foreground mb-8">{pc.tx("p.1", "Desde aventuras extremas en cenotes hasta encuentros con delfines, descubre los mejores parques de diversiones del Caribe.")}</p>
 
               {/* Filtros */}
               <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
                 <div className="relative flex-1">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar parques..."
+                    placeholder={pc.t("Input.placeholder.1", "Buscar parques...")}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="pl-12 h-12 bg-card"
@@ -218,7 +224,7 @@ export default function ParquesTematicos() {
                 <Select value={tipoFiltro} onValueChange={setTipoFiltro}>
                   <SelectTrigger className="w-full sm:w-[200px] h-12">
                     <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Tipo de parque" />
+                    <SelectValue placeholder={pc.t("SelectValue.placeholder.1", "Tipo de parque")} />
                   </SelectTrigger>
                   <SelectContent>
                     {tiposParque.map(tipo => (
@@ -267,9 +273,9 @@ export default function ParquesTematicos() {
                   </div>
 
                   <CardContent className="p-5">
-                    <h3 className="font-display text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
+                    <h2 className="h3 font-display text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors">
                       {parque.nombre}
-                    </h3>
+                    </h2>
                     <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
                       {parque.descripcion}
                     </p>
@@ -307,16 +313,14 @@ export default function ParquesTematicos() {
                     {/* Precios y CTA */}
                     <div className="flex items-center justify-between pt-4 border-t">
                       <div>
-                        <p className="text-xs text-muted-foreground">Desde</p>
+                        <p className="text-xs text-muted-foreground">{pc.tx("p.2", "Desde")}</p>
                         <p className="text-xl font-bold text-primary">
                           ${parque.precioAdulto}
-                          <span className="text-sm font-normal text-muted-foreground">/adulto</span>
+                          <span className="text-sm font-normal text-muted-foreground">{pc.tx("span.2", "/adulto")}</span>
                         </p>
                       </div>
                       <Link to={`/parque/${parque.id}`}>
-                        <Button className="gap-2">
-                          Ver Detalles
-                          <ChevronRight className="h-4 w-4" />
+                        <Button className="gap-2">{pc.tx("Button.1", "Ver Detalles")}<ChevronRight className="h-4 w-4" />
                         </Button>
                       </Link>
                     </div>
@@ -328,13 +332,9 @@ export default function ParquesTematicos() {
             {parquesFiltrados.length === 0 && (
               <div className="text-center py-16">
                 <Ticket className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No se encontraron parques</h3>
-                <p className="text-muted-foreground mb-4">
-                  Intenta con otros términos de búsqueda o filtros
-                </p>
-                <Button variant="outline" onClick={() => { setSearch(""); setTipoFiltro("all"); }}>
-                  Limpiar filtros
-                </Button>
+                <h3 className="text-xl font-semibold mb-2">{pc.tx("h3.1", "No se encontraron parques")}</h3>
+                <p className="text-muted-foreground mb-4">{pc.tx("p.3", "Intenta con otros términos de búsqueda o filtros")}</p>
+                <Button variant="outline" onClick={() => { setSearch(""); setTipoFiltro("all"); }}>{pc.tx("Button.2", "Limpiar filtros")}</Button>
               </div>
             )}
           </div>
@@ -343,22 +343,14 @@ export default function ParquesTematicos() {
         {/* CTA */}
         <section className="py-16 bg-card/50">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="font-display text-2xl font-bold mb-4">
-              ¿Planeas visitar varios parques?
-            </h2>
-            <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
-              Contacta a nuestras agencias asociadas para obtener paquetes combinados con descuentos especiales.
-            </p>
+            <h2 className="font-display text-2xl font-bold mb-4">{pc.tx("h2.1", "¿Planeas visitar varios parques?")}</h2>
+            <p className="text-muted-foreground mb-6 max-w-xl mx-auto">{pc.tx("p.4", "Contacta a nuestras agencias asociadas para obtener paquetes combinados con descuentos especiales.")}</p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link to="/directorio-agencias">
-                <Button variant="outline" className="gap-2">
-                  Ver Agencias
-                </Button>
+                <Button variant="outline" className="gap-2">{pc.tx("Button.3", "Ver Agencias")}</Button>
               </Link>
               <Link to="/herramientas">
-                <Button className="gap-2">
-                  Planificar Viaje
-                  <ChevronRight className="h-4 w-4" />
+                <Button className="gap-2">{pc.tx("Button.4", "Planificar Viaje")}<ChevronRight className="h-4 w-4" />
                 </Button>
               </Link>
             </div>
@@ -370,3 +362,6 @@ export default function ParquesTematicos() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { tiposParque };

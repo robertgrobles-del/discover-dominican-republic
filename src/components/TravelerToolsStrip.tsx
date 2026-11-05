@@ -50,7 +50,7 @@ const tools = [
     icon: Calculator, 
     labelKey: "tools.budgetCalc", 
     desc: "Estima tus gastos por destino", 
-    href: "/calculadora-presupuesto",
+    href: "/costos-viaje#calculadora",
     accent: "from-indigo-500/20 to-transparent",
     border: "border-indigo-500/20",
     iconColor: "text-indigo-500"
@@ -59,7 +59,7 @@ const tools = [
     icon: Languages, 
     labelKey: "tools.translator", 
     desc: "Diccionario y frases locales", 
-    href: "/traductor",
+    href: "/espanol-viajero#traductor",
     accent: "from-purple-500/20 to-transparent",
     border: "border-purple-500/20",
     iconColor: "text-purple-500"
@@ -153,7 +153,7 @@ export function TravelerToolsStrip() {
                     </div>
                     <div className="flex items-center gap-2">
                       {tool.badge && (
-                        <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-amber-500/20 text-amber-500 border border-amber-500/30">
+                        <span className="px-2 py-0.5 text-3xs font-bold uppercase rounded-full bg-amber-500/20 text-amber-500 border border-amber-500/30">
                           {tool.badge}
                         </span>
                       )}
@@ -169,7 +169,7 @@ export function TravelerToolsStrip() {
                   </p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-border/40 flex items-center justify-between text-[11px] font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="mt-4 pt-3 border-t border-border/40 flex items-center justify-between text-2xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                   <span>Abrir herramienta</span>
                   <span>→</span>
                 </div>

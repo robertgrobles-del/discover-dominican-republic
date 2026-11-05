@@ -172,8 +172,8 @@ export default function AutorInvitado() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">Nombre completo *</label>
-                  <Input
+                  <label htmlFor="autor-invitado-f5" className="text-sm font-medium text-foreground mb-1 block">Nombre completo *</label>
+                  <Input id="autor-invitado-f5"
                     value={formData.nombre}
                     onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
                     placeholder="Tu nombre"
@@ -181,8 +181,8 @@ export default function AutorInvitado() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">Email *</label>
-                  <Input
+                  <label htmlFor="autor-invitado-f4" className="text-sm font-medium text-foreground mb-1 block">Email *</label>
+                  <Input id="autor-invitado-f4"
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -193,8 +193,8 @@ export default function AutorInvitado() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-foreground mb-1 block">Sitio web / Portfolio</label>
-                <Input
+                <label htmlFor="autor-invitado-f3" className="text-sm font-medium text-foreground mb-1 block">Sitio web / Portfolio</label>
+                <Input id="autor-invitado-f3"
                   value={formData.website}
                   onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                   placeholder="https://tusitio.com"
@@ -202,8 +202,8 @@ export default function AutorInvitado() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-foreground mb-1 block">Tema propuesto *</label>
-                <Input
+                <label htmlFor="autor-invitado-f2" className="text-sm font-medium text-foreground mb-1 block">Tema propuesto *</label>
+                <Input id="autor-invitado-f2"
                   value={formData.tema}
                   onChange={(e) => setFormData({ ...formData, tema: e.target.value })}
                   placeholder="Ej: 5 playas secretas en la costa sur de RD"
@@ -212,8 +212,8 @@ export default function AutorInvitado() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-foreground mb-1 block">Sinopsis del artículo</label>
-                <Textarea
+                <label htmlFor="autor-invitado-f1" className="text-sm font-medium text-foreground mb-1 block">Sinopsis del artículo</label>
+                <Textarea id="autor-invitado-f1"
                   value={formData.sinopsis}
                   onChange={(e) => setFormData({ ...formData, sinopsis: e.target.value })}
                   placeholder="Describe brevemente de qué tratará tu artículo (200-500 caracteres)"

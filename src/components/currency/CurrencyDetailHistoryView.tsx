@@ -61,11 +61,11 @@ export function CurrencyDetailHistoryView({
           </div>
           <div className="flex gap-4">
             <div className="bg-background border rounded-lg px-3 py-2 text-center shadow-xs">
-              <span className="block text-[10px] uppercase text-muted-foreground font-bold">Compra</span>
+              <span className="block text-3xs uppercase text-muted-foreground font-bold">Compra</span>
               <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">RD$ {coinInfo.buy_rate.toFixed(2)}</span>
             </div>
             <div className="bg-background border rounded-lg px-3 py-2 text-center shadow-xs">
-              <span className="block text-[10px] uppercase text-muted-foreground font-bold">Venta</span>
+              <span className="block text-3xs uppercase text-muted-foreground font-bold">Venta</span>
               <span className="text-xl font-extrabold text-primary">RD$ {coinInfo.sell_rate.toFixed(2)}</span>
             </div>
           </div>
@@ -81,11 +81,11 @@ export function CurrencyDetailHistoryView({
           </CardTitle>
           <div className="grid grid-cols-2 gap-4 text-center">
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase">Máximo</p>
+              <p className="text-3xs text-muted-foreground uppercase">Máximo</p>
               <p className="text-lg font-bold text-foreground mt-0.5">RD$ {maxBuy.toFixed(4)}</p>
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase">Mínimo</p>
+              <p className="text-3xs text-muted-foreground uppercase">Mínimo</p>
               <p className="text-lg font-bold text-foreground mt-0.5">RD$ {minBuy.toFixed(4)}</p>
             </div>
           </div>
@@ -98,11 +98,11 @@ export function CurrencyDetailHistoryView({
           </CardTitle>
           <div className="grid grid-cols-2 gap-4 text-center">
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase">Máximo</p>
+              <p className="text-3xs text-muted-foreground uppercase">Máximo</p>
               <p className="text-lg font-bold text-foreground mt-0.5">RD$ {maxSell.toFixed(4)}</p>
             </div>
             <div>
-              <p className="text-[10px] text-muted-foreground uppercase">Mínimo</p>
+              <p className="text-3xs text-muted-foreground uppercase">Mínimo</p>
               <p className="text-lg font-bold text-foreground mt-0.5">RD$ {minSell.toFixed(4)}</p>
             </div>
           </div>

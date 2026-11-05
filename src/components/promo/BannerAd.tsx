@@ -2,13 +2,14 @@ import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { safeExternalUrl } from "@/lib/security";
 import { ExternalLink, MapPin } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useBanner, trackBannerClick, trackBannerImpression, trackBannerViewableImpression, type AdBanner } from "@/hooks/useAdBanners";
 import { BannerMediaContent } from "./BannerMediaContent";
 import { GoogleAdSlot } from "./GoogleAdSlot";
 import { buildUtmUrl } from "@/lib/utmBuilder";
 import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { INDUSTRY_BANNERS_DEMO, type IndustryBannerDemo } from "@/data/mockIndustryBanners";
+import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 
 // Demo images for tourism promos (fallback)
 import adBeachResort from "@/assets/promo/promo-beach-resort.jpg";
@@ -22,6 +23,7 @@ import adGolfSkyscraper from "@/assets/promo/promo-golf-skyscraper.jpg";
 import adCasinoSkyscraper from "@/assets/promo/promo-casino-skyscraper.jpg";
 import adDivingWide from "@/assets/promo/promo-diving-wide.jpg";
 import { OFFICIAL_BANNER_MAP } from "@/data/officialBanners";
+import { AdSlotTag } from "@/components/promo/AdSlotTag";
 
 export type AdSize = 
   | "leaderboard"           // 728x90
@@ -268,10 +270,12 @@ export function BannerAd({
   isPremiumListing = false,
   allowGoogleFallback = true,
 }: BannerAdProps) {
-  // Fetch dynamic banner from DB if section is provided and no bannerData passed
+  // Sin `section` explícita se usa el primer tramo de la ruta (/alojamientos → "alojamientos", / → "home"): todo banner del
+  // portal pasa por el admin de anuncios, que es quien elige el anuncio y cuenta impresiones y clics.
+  const routeSection = useLocation().pathname.split("/")[1] || "home";
   const dynamicBanner = useBanner(
-    section && !bannerData
-      ? { section, bannerType: size, placement }
+    !bannerData
+      ? { section: section || routeSection, bannerType: size, placement }
       : {}
   );
 
@@ -410,7 +414,7 @@ export function BannerAd({
           </span>
         </div>
         <p className="text-xs text-muted-foreground text-center max-w-md">{resolvedSubtext}</p>
-        <span className="text-[11px] font-semibold text-primary group-hover:underline flex items-center gap-1 mt-2.5">
+        <span className="text-2xs font-semibold text-primary group-hover:underline flex items-center gap-1 mt-2.5">
           {resolvedCta} <ExternalLink className="h-3 w-3" aria-hidden="true" />
         </span>
       </div>
@@ -487,11 +491,11 @@ export function BannerAd({
           )}>
             <div className="min-w-0 flex-1 px-1">
               {resolvedSponsor && !isCompact && (
-                <span className="inline-block text-[10px] font-semibold uppercase tracking-wider text-amber-300/90 mb-1">
+                <span className="inline-block text-3xs font-semibold uppercase tracking-wider text-amber-300/90 mb-1">
                   {resolvedSponsor}
                 </span>
               )}
-              <h3 className={cn(
+              <p className={cn(
                 "font-display font-bold leading-snug text-white drop-shadow-sm", 
                 isCompact 
                   ? "text-xs truncate" 
@@ -504,12 +508,12 @@ export function BannerAd({
                   : "text-sm truncate"
               )}>
                 {resolvedHeadline}
-              </h3>
+              </p>
               {!isCompact && (
                 <p className={cn(
                   "text-slate-200/90 leading-tight font-normal", 
                   isVertical 
-                    ? "text-[11px] sm:text-xs mb-3 line-clamp-3" 
+                    ? "text-2xs sm:text-xs mb-3 line-clamp-3" 
                     : isRectangle
                     ? "text-xs mb-3 line-clamp-2"
                     : isHorizontal 
@@ -525,7 +529,7 @@ export function BannerAd({
               <span className={cn(
                 "inline-flex items-center justify-center gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-xl shadow-md shadow-primary/20 transition-transform group-hover:scale-105",
                 isCompact 
-                  ? "text-[10px] px-2.5 py-1" 
+                  ? "text-3xs px-2.5 py-1" 
                   : isVertical
                   ? "w-full text-xs px-3 py-2"
                   : isRectangle
@@ -542,22 +546,15 @@ export function BannerAd({
 
       {/* Central Dimension Indicator & Ad Space Status - Hide when official graphic already contains dimensions text */}
       {showDimensionsBadge && !isOfficialGraphic && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none w-auto max-w-[94%] flex items-center justify-center text-center">
-          <div className="bg-red-600/95 hover:bg-red-600 text-white font-mono font-black text-xs sm:text-sm md:text-base px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl border-2 border-white shadow-2xl shadow-red-950/90 backdrop-blur-md flex items-center gap-2 tracking-wider uppercase animate-pulse">
-            <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping shrink-0" />
-            <span className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] whitespace-nowrap">
-              {config.label} • ESPACIO DISPONIBLE
-            </span>
-          </div>
-        </div>
+        <AdSlotTag size={config.label} className="left-2.5 top-2.5" />
       )}
 
       {/* Official Sponsored Label */}
-      <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1">
-        <span className="bg-slate-950/80 backdrop-blur-md text-slate-300 text-[9px] font-medium px-2 py-0.5 rounded-full border border-white/10 uppercase tracking-wider shadow-xs">
-          Patrocinado
-        </span>
-      </div>
+      {(!isOfficialGraphic || activeBanner) && (
+        <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1">
+          <SponsoredBadge />
+        </div>
+      )}
     </div>
   );
 
@@ -569,9 +566,9 @@ export function BannerAd({
         rel="noopener noreferrer"
         onClick={handleBannerClick}
         className="block group w-full"
-        aria-label={`Anuncio patrocinado: ${resolvedHeadline}`}
       >
         {bannerInnerContent}
+        <span className="sr-only"> (anuncio patrocinado)</span>
       </a>
     );
   }
@@ -580,10 +577,10 @@ export function BannerAd({
     <Link 
       to={resolvedTargetUrl} 
       onClick={handleBannerClick}
-      className="block group w-full" 
-      aria-label={`Anuncio patrocinado: ${resolvedHeadline}`}
+      className="block group w-full"
     >
       {bannerInnerContent}
+      <span className="sr-only"> (anuncio patrocinado)</span>
     </Link>
   );
 }

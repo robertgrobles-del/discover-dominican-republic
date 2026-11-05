@@ -479,7 +479,7 @@ export default function RecompensasRetos() {
           ) : challenges.length === 0 ? (
             <Card className="p-8 text-center border-dashed">
               <Flame className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-40" />
-              <h3 className="font-semibold text-lg mb-1">Aún no has creado retos turísticos</h3>
+              <h2 className="h3 font-semibold text-lg mb-1">Aún no has creado retos turísticos</h2>
               <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
                 Crea tu primera misión para atraer visitantes a tu local a cambio de puntos XP, monedas y descuentos.
               </p>
@@ -494,7 +494,7 @@ export default function RecompensasRetos() {
                   <CardHeader className="p-5 pb-3">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <Badge variant="outline" className="mb-2 uppercase text-[10px] tracking-wider border-orange-500/30 text-orange-600 bg-orange-500/10">
+                        <Badge variant="outline" className="mb-2 uppercase text-3xs tracking-wider border-orange-500/30 text-orange-600 bg-orange-500/10">
                           {c.entity_type} · {c.action_type}
                         </Badge>
                         <CardTitle className="text-base font-bold">{c.title}</CardTitle>
@@ -541,7 +541,7 @@ export default function RecompensasRetos() {
           ) : rewards.length === 0 ? (
             <Card className="p-8 text-center border-dashed">
               <Gift className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-40" />
-              <h3 className="font-semibold text-lg mb-1">Sin premios en el Club de Recompensas</h3>
+              <h2 className="h3 font-semibold text-lg mb-1">Sin premios en el Club de Recompensas</h2>
               <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
                 Ofrece experiencias de cortesía o vouchers de descuento para que los mejores exploradores del país los canjeen.
               </p>
@@ -556,7 +556,7 @@ export default function RecompensasRetos() {
                   <CardHeader className="p-5 pb-3">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <Badge variant="outline" className="mb-2 uppercase text-[10px] tracking-wider border-purple-500/30 text-purple-600 bg-purple-500/10">
+                        <Badge variant="outline" className="mb-2 uppercase text-3xs tracking-wider border-purple-500/30 text-purple-600 bg-purple-500/10">
                           {r.category}
                         </Badge>
                         <CardTitle className="text-base font-bold">{r.prize_name}</CardTitle>

@@ -16,6 +16,7 @@ import { FavoriteButton } from "@/components/FavoriteButton";
 
 import santoDomingo from "@/assets/santo-domingo.jpg";
 import colonialDoor from "@/assets/colonial-door.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const destinosReligiososData: Record<string, {
   id: string;
@@ -149,6 +150,8 @@ const destinosReligiososData: Record<string, {
 };
 
 export default function DestinoReligiosoDetalle() {
+  const pc = usePageContent("destino-religioso-detalle");
+  const destinosReligiososData = pc.data("destinosReligiososData", __pcData.destinosReligiososData);
   const { slug: id } = useParams<{ slug: string }>();
   const destino = destinosReligiososData[id || ""];
 
@@ -160,10 +163,10 @@ export default function DestinoReligiosoDetalle() {
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <Church className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-foreground mb-2">Destino no encontrado</h1>
-              <p className="text-muted-foreground mb-6">El destino religioso que buscas no existe.</p>
+              <h1 className="text-2xl font-bold text-foreground mb-2">{pc.tx("h1.1", "Destino no encontrado")}</h1>
+              <p className="text-muted-foreground mb-6">{pc.tx("p.1", "El destino religioso que buscas no existe.")}</p>
               <Link to="/turismo-religioso">
-                <Button>Volver a Turismo Religioso</Button>
+                <Button>{pc.tx("Button.1", "Volver a Turismo Religioso")}</Button>
               </Link>
             </div>
           </div>
@@ -187,9 +190,9 @@ export default function DestinoReligiosoDetalle() {
           {/* Breadcrumb */}
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Link to="/" className="hover:text-primary">Inicio</Link>
+              <Link to="/" className="hover:text-primary">{pc.tx("Link.1", "Inicio")}</Link>
               <ChevronRight className="h-4 w-4" />
-              <Link to="/turismo-religioso" className="hover:text-primary">Turismo Religioso</Link>
+              <Link to="/turismo-religioso" className="hover:text-primary">{pc.tx("Link.2", "Turismo Religioso")}</Link>
               <ChevronRight className="h-4 w-4" />
               <span className="text-foreground">{destino.nombre}</span>
             </div>
@@ -212,7 +215,7 @@ export default function DestinoReligiosoDetalle() {
                     <div className="flex items-center gap-1 text-amber-500">
                       <Star className="h-4 w-4 fill-current" />
                       <span className="font-semibold">{destino.rating}</span>
-                      <span className="text-muted-foreground">({destino.reviews} reseñas)</span>
+                      <span className="text-muted-foreground">({destino.reviews}{" "}{pc.tx("span.1", "reseñas)")}</span>
                     </div>
                   </div>
                   <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-2">
@@ -238,18 +241,14 @@ export default function DestinoReligiosoDetalle() {
                 {/* Historia */}
                 <div className="bg-card rounded-xl border border-border p-6">
                   <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-amber-500" />
-                    Historia
-                  </h2>
+                    <BookOpen className="h-5 w-5 text-amber-500" />{pc.tx("h2.1", "Historia")}</h2>
                   <p className="text-muted-foreground leading-relaxed">{destino.historia}</p>
                 </div>
 
                 {/* Arquitectura */}
                 <div className="bg-card rounded-xl border border-border p-6">
                   <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                    <Church className="h-5 w-5 text-primary" />
-                    Arquitectura
-                  </h2>
+                    <Church className="h-5 w-5 text-primary" />{pc.tx("h2.2", "Arquitectura")}</h2>
                   <div className="grid md:grid-cols-2 gap-3">
                     {destino.arquitectura.map((elemento, index) => (
                       <div key={index} className="flex items-center gap-2">
@@ -263,9 +262,7 @@ export default function DestinoReligiosoDetalle() {
                 {/* Festividades */}
                 <div className="bg-card rounded-xl border border-border p-6">
                   <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-amber-500" />
-                    Festividades Principales
-                  </h2>
+                    <Calendar className="h-5 w-5 text-amber-500" />{pc.tx("h2.3", "Festividades Principales")}</h2>
                   <div className="space-y-4">
                     {destino.festividades.map((fest, index) => (
                       <div key={index} className="p-4 bg-secondary/30 rounded-lg">
@@ -283,9 +280,7 @@ export default function DestinoReligiosoDetalle() {
 
                 {/* Recomendaciones */}
                 <div className="bg-card rounded-xl border border-border p-6">
-                  <h2 className="font-display text-xl font-bold text-foreground mb-4">
-                    Recomendaciones para Visitantes
-                  </h2>
+                  <h2 className="font-display text-xl font-bold text-foreground mb-4">{pc.tx("h2.4", "Recomendaciones para Visitantes")}</h2>
                   <ul className="space-y-2">
                     {destino.recomendaciones.map((rec, index) => (
                       <li key={index} className="text-muted-foreground flex items-start gap-2">
@@ -302,9 +297,7 @@ export default function DestinoReligiosoDetalle() {
                 {/* Horarios Card */}
                 <div className="bg-card rounded-xl border border-border p-6 sticky top-24">
                   <h3 className="font-display text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-primary" />
-                    Horarios de Misas
-                  </h3>
+                    <Clock className="h-5 w-5 text-primary" />{pc.tx("h3.1", "Horarios de Misas")}</h3>
                   <div className="space-y-3 mb-6">
                     {destino.horariosMisas.map((horario, index) => (
                       <div key={index} className="flex justify-between text-sm border-b border-border pb-2 last:border-0">
@@ -315,9 +308,7 @@ export default function DestinoReligiosoDetalle() {
                   </div>
 
                   <div className="space-y-3">
-                    <Button className="w-full" size="lg">
-                      Planificar Visita
-                    </Button>
+                    <Button className="w-full" size="lg">{pc.tx("Button.2", "Planificar Visita")}</Button>
                     <div className="flex gap-2">
                       <FavoriteButton
                         id={destino.id}
@@ -344,18 +335,14 @@ export default function DestinoReligiosoDetalle() {
                       {destino.email}
                     </a>
                     <a href={destino.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary">
-                      <Globe className="h-4 w-4" />
-                      Sitio Web Oficial
-                    </a>
+                      <Globe className="h-4 w-4" />{pc.tx("a.1", "Sitio Web Oficial")}</a>
                   </div>
                 </div>
 
                 {/* Servicios */}
                 <div className="bg-card rounded-xl border border-border p-6">
                   <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                    <Users className="h-5 w-5 text-primary" />
-                    Servicios Disponibles
-                  </h3>
+                    <Users className="h-5 w-5 text-primary" />{pc.tx("h3.2", "Servicios Disponibles")}</h3>
                   <ul className="space-y-2">
                     {destino.servicios.map((servicio, index) => (
                       <li key={index} className="text-sm text-muted-foreground flex items-center gap-2">
@@ -375,3 +362,6 @@ export default function DestinoReligiosoDetalle() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { destinosReligiososData };

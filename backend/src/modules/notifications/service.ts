@@ -5,6 +5,7 @@ import webpush from "web-push";
 import type { Env } from "../../config/env.js";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
+import { assertPublicUrl, assertPublicUrlSyntax } from "../../lib/public-url.js";
 import { CHANNELS, insertNotification, NOTIFICATION_TYPES, type CreatedNotification, type NotificationInput } from "./insert.js";
 import type { ProfileAdminPort } from "../../contracts/profile.js";
 
@@ -23,6 +24,8 @@ export class WebPushSender implements PushSender {
     if (this.enabled) webpush.setVapidDetails(env.VAPID_SUBJECT, env.VAPID_PUBLIC_KEY!, env.VAPID_PRIVATE_KEY!);
   }
   async send(sub: PushSub, payload: string) {
+    // El endpoint lo eligió quien registró el dispositivo: antes de cada envío se resuelve y se descarta si apunta a la red interna.
+    try { await assertPublicUrl(sub.endpoint); } catch { return "error" as const; }
     try { await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload, { TTL: 3600, timeout: 5000 }); return "ok" as const; }
     catch (e) { const s = (e as { statusCode?: number }).statusCode; return s === 404 || s === 410 ? "gone" as const : "error" as const; }
   }
@@ -90,6 +93,7 @@ export class NotificationService {
   async addPush(userId: string, s: { endpoint: string; keys: { p256dh: string; auth: string }; user_agent?: string }) {
     if (!this.pushSender.enabled) throw new AppError("SERVICE_UNAVAILABLE", "Las notificaciones push no están habilitadas", { code: "PUSH_DISABLED" });
     if (!/^https:\/\//.test(s.endpoint)) throw AppError.validation("El endpoint debe ser https", { field: "endpoint" });
+    assertPublicUrlSyntax(s.endpoint, "El endpoint");          // nada de IPs privadas, localhost ni nombres internos (el envío vuelve a comprobarlo con DNS)
     if ((await this.db.query<{ n: number }>("SELECT count(*)::int AS n FROM push_subscriptions WHERE user_id = $1", [userId])).rows[0]!.n >= 10) throw new AppError("BUSINESS_RULE", "Máximo 10 dispositivos", { code: "PUSH_LIMIT" });
     // El mismo dispositivo (endpoint) pasa a la cuenta que lo registra: si alguien más inicia sesión en ese navegador, deja de recibir lo de la cuenta anterior.
     const row = (await this.db.query<{ id: string }>(
@@ -106,19 +110,22 @@ export class NotificationService {
 
   // ---------- Tiempo real (SSE) ----------
   /** Un EventSource del navegador no puede enviar el encabezado Authorization: se canjea la sesión por un ticket de un solo minuto. */
-  createTicket(userId: string) {
+  createTicket(userId: string, sid?: string) {
     const exp = Math.floor(Date.now() / 1000) + TICKET_TTL_SECONDS;
-    const body = Buffer.from(`${userId}.${exp}`).toString("base64url");
+    // Lleva la sesión que lo pidió: al abrir el flujo (y mientras siga abierto) se comprueba que esa sesión siga viva.
+    const body = Buffer.from(sid ? `${userId}.${exp}.${sid}` : `${userId}.${exp}`).toString("base64url");
     const sig = createHmac("sha256", this.env.APP_SECRET!).update(`stream:${body}`).digest("base64url");
     return { ticket: `${body}.${sig}`, expires_in: TICKET_TTL_SECONDS };
   }
-  verifyTicket(ticket: string): string | null {
+  verifyTicket(ticket: string): string | null { return this.verifyTicketSession(ticket)?.userId ?? null; }
+  /** Como `verifyTicket`, pero devuelve también la sesión que emitió el ticket (null en tickets sin sesión). */
+  verifyTicketSession(ticket: string): { userId: string; sid: string | null } | null {
     const [body, sig] = ticket.split(".");
     if (!body || !sig) return null;
     const good = Buffer.from(createHmac("sha256", this.env.APP_SECRET!).update(`stream:${body}`).digest("base64url")), got = Buffer.from(sig);
     if (good.length !== got.length || !timingSafeEqual(good, got)) return null;
-    const [userId, exp] = Buffer.from(body, "base64url").toString().split(".");
-    return userId && Number(exp) > Date.now() / 1000 ? userId : null;
+    const [userId, exp, sid] = Buffer.from(body, "base64url").toString().split(".");
+    return userId && Number(exp) > Date.now() / 1000 ? { userId, sid: sid || null } : null;
   }
 
   /** Registra una conexión abierta. Devuelve la función para cerrarla. Cada persona tiene como máximo 5 a la vez (se cierra la más antigua). */

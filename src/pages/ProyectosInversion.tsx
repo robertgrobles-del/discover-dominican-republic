@@ -390,18 +390,18 @@ export default function ProyectosInversion() {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                             
-                            <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground text-[10px] font-bold">
+                            <Badge className="absolute top-3 left-3 bg-primary text-primary-foreground text-3xs font-bold">
                               {project.category}
                             </Badge>
 
                             <div className="absolute bottom-3 left-3 right-3 text-white flex items-end justify-between">
                               <div>
-                                <span className="text-[10px] uppercase font-bold text-white/80 block">Capital Requerido</span>
+                                <span className="text-3xs uppercase font-bold text-white/80 block">Capital Requerido</span>
                                 <span className="text-xl font-black font-mono tracking-tight">
                                   ${project.fundingRequired.toLocaleString()} USD
                                 </span>
                               </div>
-                              <Badge className="bg-emerald-600 text-white text-[10px] font-bold">
+                              <Badge className="bg-emerald-600 text-white text-3xs font-bold">
                                 TIR: {project.irr}
                               </Badge>
                             </div>
@@ -412,10 +412,10 @@ export default function ProyectosInversion() {
                               <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
                               <span>{project.location}</span>
                             </div>
-                            <CardTitle className="text-base font-display font-bold group-hover:text-primary transition-colors">
+                            <CardTitle as="h2" className="text-base font-display font-bold group-hover:text-primary transition-colors">
                               {project.title}
                             </CardTitle>
-                            <span className="text-[11px] text-muted-foreground block font-medium">Por: {project.creatorName}</span>
+                            <span className="text-2xs text-muted-foreground block font-medium">Por: {project.creatorName}</span>
                           </CardHeader>
 
                           <CardContent className="p-5 pt-0 space-y-3 text-xs text-muted-foreground">
@@ -423,7 +423,7 @@ export default function ProyectosInversion() {
                             
                             <div className="flex flex-wrap gap-1.5 pt-1">
                               {project.highlights.map((h, i) => (
-                                <Badge key={i} variant="secondary" className="text-[10px] bg-muted/60 text-muted-foreground border-none">
+                                <Badge key={i} variant="secondary" className="text-3xs bg-muted/60 text-muted-foreground border-none">
                                   {h}
                                 </Badge>
                               ))}
@@ -493,11 +493,11 @@ export default function ProyectosInversion() {
                       <Card key={inv.id} className="rounded-3xl border border-border hover:border-primary/40 transition-colors flex flex-col justify-between shadow-xs">
                         <CardHeader className="p-5 pb-3">
                           <div className="flex justify-between items-start gap-2 mb-2">
-                            <Badge variant="outline" className="text-[10px] font-semibold">
+                            <Badge variant="outline" className="text-3xs font-semibold">
                               {inv.investorType}
                             </Badge>
                             {inv.verified && (
-                              <Badge className="bg-emerald-600/10 text-emerald-600 border-emerald-600/20 text-[10px]">
+                              <Badge className="bg-emerald-600/10 text-emerald-600 border-emerald-600/20 text-3xs">
                                 Verificado ✓
                               </Badge>
                             )}
@@ -508,17 +508,17 @@ export default function ProyectosInversion() {
 
                         <CardContent className="p-5 pt-0 space-y-4 text-xs text-muted-foreground">
                           <div className="bg-primary/5 p-3 rounded-2xl border border-primary/10">
-                            <span className="text-[10px] text-muted-foreground uppercase font-bold block">Ticket de Inversión</span>
+                            <span className="text-3xs text-muted-foreground uppercase font-bold block">Ticket de Inversión</span>
                             <span className="text-sm font-bold font-mono text-primary">{inv.investmentRange}</span>
                           </div>
 
                           <p className="leading-relaxed">{inv.description}</p>
                           
                           <div className="space-y-1">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Sectores de Interés</span>
+                            <span className="text-3xs font-bold uppercase tracking-wider text-muted-foreground">Sectores de Interés</span>
                             <div className="flex flex-wrap gap-1.5">
                               {inv.focusAreas.map((f, idx) => (
-                                <Badge key={idx} variant="secondary" className="text-[10px] bg-muted border-none">{f}</Badge>
+                                <Badge key={idx} variant="secondary" className="text-3xs bg-muted border-none">{f}</Badge>
                               ))}
                             </div>
                           </div>

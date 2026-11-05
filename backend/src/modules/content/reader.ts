@@ -223,8 +223,9 @@ export class PostgresContentReader implements ContentReaderPort {
         `SELECT t.id::text AS id, t.${Q(definition.title)}::text AS name,
                 ${hasContentColumn(definition.table, "slug") ? "t.slug::text" : "NULL::text"} AS slug,
                 t.province_id::text AS province_id, p.name AS province_name, p.slug AS province_slug, ${distance} AS distance_m
-           FROM ${table} t LEFT JOIN ${provinceTable} p ON p.id = t.province_id
-          WHERE t.status = 'published' AND t.deleted_at IS NULL AND t.${latitude} IS NOT NULL AND t.${longitude} IS NOT NULL
+           FROM (SELECT * FROM ${table} WHERE ${visibility(definition)}) t
+           LEFT JOIN (SELECT * FROM ${provinceTable} WHERE ${visibility(provinces)}) p ON p.id = t.province_id
+          WHERE t.${latitude} IS NOT NULL AND t.${longitude} IS NOT NULL
           ORDER BY distance_m LIMIT 1`,
         [lat, lng],
       );

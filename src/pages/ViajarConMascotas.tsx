@@ -5,6 +5,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Heart, FileText, Plane, MapPin, Phone, ShieldCheck, AlertTriangle, CheckCircle, Info } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
 
 const requisitosEntrada = [
   { label: "Certificado de salud", value: "Emitido por veterinario autorizado, máximo 15 días antes del viaje", obligatorio: true },
@@ -46,11 +47,17 @@ const consejosViaje = [
 ];
 
 export default function ViajarConMascotas() {
+  const pc = usePageContent("viajar-con-mascotas");
+  const consejosViaje = pc.data("consejosViaje", __pcData.consejosViaje);
+  const requisitosEntrada = pc.data("requisitosEntrada", __pcData.requisitosEntrada);
+  const hotelesPetFriendly = pc.data("hotelesPetFriendly", __pcData.hotelesPetFriendly);
+  const playas = pc.data("playas", __pcData.playas);
+  const veterinarios = pc.data("veterinarios", __pcData.veterinarios);
   return (
     <PageTransition>
       <SEOHead
-        title="Viajar con Mascotas a República Dominicana"
-        description="Guía completa para traer tu mascota a RD: requisitos de entrada, hoteles pet-friendly, playas para perros, veterinarios y consejos prácticos."
+        title={pc.t("SEOHead.title.1", "Viajar con Mascotas a República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Guía completa para traer tu mascota a RD: requisitos de entrada, hoteles pet-friendly, playas para perros, veterinarios y consejos prácticos.")}
         keywords="mascotas dominicana, perros playa caribe, pet friendly punta cana, viajar con perro RD, veterinarios dominicana"
       />
       <div className="min-h-screen flex flex-col bg-background">
@@ -59,21 +66,16 @@ export default function ViajarConMascotas() {
         <section className="relative py-20 bg-gradient-to-b from-primary/10 to-background">
           <div className="container mx-auto px-4 text-center">
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
-              <Heart className="h-3 w-3 mr-1" /> Pet-Friendly
-            </Badge>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Viajar con <span className="text-primary">Mascotas</span> a RD
-            </h1>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-              Tu compañero peludo también merece unas vacaciones caribeñas. Guía completa con requisitos, alojamientos y playas pet-friendly.
-            </p>
+              <Heart className="h-3 w-3 mr-1" />{" "}{pc.tx("Badge.1", "Pet-Friendly")}</Badge>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Viajar con")}{" "}<span className="text-primary">{pc.tx("span.1", "Mascotas")}</span>{" "}{pc.tx("h1.2", "a RD")}</h1>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">{pc.tx("p.1", "Tu compañero peludo también merece unas vacaciones caribeñas. Guía completa con requisitos, alojamientos y playas pet-friendly.")}</p>
           </div>
         </section>
 
         {/* Tips rápidos */}
         <section className="py-8 bg-card/50 border-b border-border">
           <div className="container mx-auto px-4">
-            <h2 className="font-semibold text-foreground mb-4 text-center text-sm uppercase tracking-wide">🐾 Tips Rápidos</h2>
+            <h2 className="font-semibold text-foreground mb-4 text-center text-sm uppercase tracking-wide">{pc.tx("h2.1", "🐾 Tips Rápidos")}</h2>
             <div className="flex flex-wrap justify-center gap-3">
               {consejosViaje.map(c => (
                 <Badge key={c.texto} variant="outline" className="py-2 px-3 text-sm">
@@ -87,7 +89,7 @@ export default function ViajarConMascotas() {
         {/* Requisitos de entrada */}
         <section className="py-16">
           <div className="container mx-auto px-4 max-w-4xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">📋 Requisitos de Entrada</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.2", "📋 Requisitos de Entrada")}</h2>
             <div className="space-y-4">
               {requisitosEntrada.map(r => (
                 <div key={r.label} className="flex items-start gap-4 bg-card rounded-xl p-5 border border-border">
@@ -101,7 +103,7 @@ export default function ViajarConMascotas() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-foreground">{r.label}</h3>
-                      {r.obligatorio && <Badge variant="destructive" className="text-xs">Obligatorio</Badge>}
+                      {r.obligatorio && <Badge variant="destructive" className="text-xs">{pc.tx("Badge.2", "Obligatorio")}</Badge>}
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">{r.value}</p>
                   </div>
@@ -114,7 +116,7 @@ export default function ViajarConMascotas() {
         {/* Hoteles */}
         <section className="py-12 bg-card/50">
           <div className="container mx-auto px-4 max-w-5xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">🏨 Alojamientos Pet-Friendly</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.3", "🏨 Alojamientos Pet-Friendly")}</h2>
             <div className="grid md:grid-cols-2 gap-6">
               {hotelesPetFriendly.map(h => (
                 <Card key={h.nombre}>
@@ -139,7 +141,7 @@ export default function ViajarConMascotas() {
         {/* Playas */}
         <section className="py-16">
           <div className="container mx-auto px-4 max-w-4xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">🏖️ Playas donde tu Mascota es Bienvenida</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.4", "🏖️ Playas donde tu Mascota es Bienvenida")}</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               {playas.map(p => (
                 <div key={p.nombre} className="bg-card rounded-xl p-5 border border-border">
@@ -157,7 +159,7 @@ export default function ViajarConMascotas() {
         {/* Veterinarios */}
         <section className="py-12 bg-card/50">
           <div className="container mx-auto px-4 max-w-5xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">🏥 Veterinarios de Emergencia</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.5", "🏥 Veterinarios de Emergencia")}</h2>
             <div className="grid md:grid-cols-2 gap-6">
               {veterinarios.map(v => (
                 <Card key={v.nombre}>
@@ -180,7 +182,7 @@ export default function ViajarConMascotas() {
         {/* Aerolíneas */}
         <section className="py-16">
           <div className="container mx-auto px-4 max-w-4xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">✈️ Aerolíneas con Servicio de Mascotas a RD</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.6", "✈️ Aerolíneas con Servicio de Mascotas a RD")}</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[
                 { nombre: "JetBlue", politica: "Cabina: mascotas <9 kg. Cargo ~US$125", icono: "🇺🇸" },
@@ -204,3 +206,6 @@ export default function ViajarConMascotas() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { consejosViaje, requisitosEntrada, hotelesPetFriendly, playas, veterinarios };

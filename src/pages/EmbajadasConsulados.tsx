@@ -11,6 +11,7 @@ import {
   AlertTriangle, ExternalLink, HeartPulse, Shield, Copy, Star
 } from "lucide-react";
 import { toast } from "sonner";
+import { usePageContent } from "@/lib/pageContent";
 
 // ── Data ────────────────────────────────────────────────────────────────────
 const embajadas = [
@@ -42,6 +43,10 @@ const tips = [
 
 // ─────────────────────────────────────────────────────────────────────────────
 export default function EmbajadasConsulados() {
+  const pc = usePageContent("embajadas-consulados");
+  const embajadas = pc.data("embajadas", __pcData.embajadas);
+  const regions = pc.data("regions", __pcData.regions);
+  const tips = pc.data("tips", __pcData.tips);
   const [busqueda, setBusqueda] = useState("");
   const [region, setRegion] = useState("Todas");
 
@@ -66,8 +71,8 @@ export default function EmbajadasConsulados() {
   return (
     <PageTransition>
       <SEOHead
-        title="Embajadas y Consulados en República Dominicana | Directorio Consular"
-        description="Directorio completo de embajadas y consulados en Santo Domingo. Teléfonos de emergencia 24h, direcciones, horarios y correos de atención consular."
+        title={pc.t("SEOHead.title.1", "Embajadas y Consulados en República Dominicana | Directorio Consular")}
+        description={pc.t("SEOHead.description.1", "Directorio completo de embajadas y consulados en Santo Domingo. Teléfonos de emergencia 24h, direcciones, horarios y correos de atención consular.")}
         keywords="embajadas dominicana, consulados Santo Domingo, emergencia consular, embajada EEUU RD"
       />
       <div className="min-h-screen flex flex-col bg-background">
@@ -79,16 +84,9 @@ export default function EmbajadasConsulados() {
           <div className="relative container mx-auto px-4 lg:px-8 text-center">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
               <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 gap-1.5 py-1.5 px-3">
-                <Building2 className="h-3.5 w-3.5" />
-                Directorio Consular Oficial
-              </Badge>
-              <h1 className="font-display text-4xl md:text-6xl font-black text-foreground tracking-tight mb-4 leading-none">
-                Embajadas y<br className="hidden md:block" /> Consulados
-              </h1>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-lg leading-relaxed">
-                Directorio completo con teléfonos de emergencia, direcciones y horarios.
-                Encuentra tu representación diplomática en República Dominicana.
-              </p>
+                <Building2 className="h-3.5 w-3.5" />{pc.tx("Badge.1", "Directorio Consular Oficial")}</Badge>
+              <h1 className="font-display text-4xl md:text-6xl font-black text-foreground tracking-tight mb-4 leading-none">{pc.tx("h1.1", "Embajadas y")}<br className="hidden md:block" />{" "}{pc.tx("h1.2", "Consulados")}</h1>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-lg leading-relaxed">{pc.tx("p.1", "Directorio completo con teléfonos de emergencia, direcciones y horarios. Encuentra tu representación diplomática en República Dominicana.")}</p>
 
               {/* Quick stats */}
               <div className="flex flex-wrap justify-center gap-6 mt-8 text-sm">
@@ -115,8 +113,8 @@ export default function EmbajadasConsulados() {
                 <AlertTriangle className="h-4 w-4 text-white" />
               </div>
               <div>
-                <p className="text-sm font-bold text-foreground">¿Emergencia en República Dominicana?</p>
-                <p className="text-xs text-muted-foreground">Llama al 911 para policía, bomberos y ambulancias</p>
+                <p className="text-sm font-bold text-foreground">{pc.tx("p.2", "¿Emergencia en República Dominicana?")}</p>
+                <p className="text-xs text-muted-foreground">{pc.tx("p.3", "Llama al 911 para policía, bomberos y ambulancias")}</p>
               </div>
             </div>
             <div className="h-px sm:h-8 sm:w-px bg-red-500/20" />
@@ -125,7 +123,7 @@ export default function EmbajadasConsulados() {
                 <Shield className="h-4 w-4 text-primary-foreground" />
               </div>
               <div>
-                <p className="text-sm font-bold text-foreground">POLITUR — Policía Turística</p>
+                <p className="text-sm font-bold text-foreground">{pc.tx("p.4", "POLITUR — Policía Turística")}</p>
                 <a href="tel:+18092003500" className="text-xs text-primary font-semibold hover:underline">+1 809-200-3500</a>
               </div>
             </div>
@@ -138,9 +136,7 @@ export default function EmbajadasConsulados() {
             {/* ── FEATURED / MOST VISITED ──────────────────────────────── */}
             <section className="mb-12">
               <h2 className="font-display font-bold text-lg text-foreground mb-4 flex items-center gap-2">
-                <Star className="h-4 w-4 text-yellow-500" />
-                Embajadas más consultadas
-              </h2>
+                <Star className="h-4 w-4 text-yellow-500" />{pc.tx("h2.1", "Embajadas más consultadas")}</h2>
               <div className="grid sm:grid-cols-3 gap-4">
                 {featured.map((e, i) => (
                   <motion.div
@@ -154,7 +150,7 @@ export default function EmbajadasConsulados() {
                       <span className="text-3xl">{e.bandera}</span>
                       <div>
                         <p className="font-bold text-foreground text-sm">{e.pais}</p>
-                        <span className="text-[10px] bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded-full">{e.tipo}</span>
+                        <span className="text-3xs bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded-full">{e.tipo}</span>
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground flex items-start gap-1.5 mb-2">
@@ -178,7 +174,7 @@ export default function EmbajadasConsulados() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   className="pl-10 bg-card border-border"
-                  placeholder="Buscar por país o tipo..."
+                  placeholder={pc.t("Input.placeholder.1", "Buscar por país o tipo...")}
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
                 />
@@ -200,9 +196,7 @@ export default function EmbajadasConsulados() {
               </div>
             </div>
 
-            <p className="text-xs text-muted-foreground mb-5">
-              Mostrando <strong className="text-foreground">{filtradas.length}</strong> de {embajadas.length} representaciones
-            </p>
+            <p className="text-xs text-muted-foreground mb-5">{pc.tx("p.5", "Mostrando")}{" "}<strong className="text-foreground">{filtradas.length}</strong>{" "}{pc.tx("p.6", "de")}{" "}{embajadas.length}{" "}{pc.tx("p.7", "representaciones")}</p>
 
             {/* ── CARDS GRID ───────────────────────────────────────────── */}
             <AnimatePresence mode="popLayout">
@@ -223,8 +217,8 @@ export default function EmbajadasConsulados() {
                       <div className="flex-1 min-w-0">
                         <h3 className="font-display font-bold text-foreground truncate">{e.pais}</h3>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <Badge variant="outline" className="text-[9px] py-0 px-1.5 h-4">{e.tipo}</Badge>
-                          <span className="text-[10px] text-muted-foreground">{e.region}</span>
+                          <Badge variant="outline" className="text-3xs py-0 px-1.5 h-4">{e.tipo}</Badge>
+                          <span className="text-3xs text-muted-foreground">{e.region}</span>
                         </div>
                       </div>
                       {e.web && (
@@ -252,7 +246,7 @@ export default function EmbajadasConsulados() {
                         <div className="bg-secondary/40 rounded-xl p-2.5 flex items-center gap-2">
                           <Phone className="h-3.5 w-3.5 text-primary shrink-0" />
                           <div className="min-w-0">
-                            <p className="text-[9px] text-muted-foreground uppercase font-semibold">Teléfono</p>
+                            <p className="text-3xs text-muted-foreground uppercase font-semibold">{pc.tx("p.8", "Teléfono")}</p>
                             <a href={`tel:${e.telefono}`} className="text-xs font-semibold text-primary hover:underline truncate block">
                               {e.telefono}
                             </a>
@@ -263,7 +257,7 @@ export default function EmbajadasConsulados() {
                         <div className="bg-secondary/40 rounded-xl p-2.5 flex items-center gap-2">
                           <Clock className="h-3.5 w-3.5 text-primary shrink-0" />
                           <div>
-                            <p className="text-[9px] text-muted-foreground uppercase font-semibold">Horario</p>
+                            <p className="text-3xs text-muted-foreground uppercase font-semibold">{pc.tx("p.9", "Horario")}</p>
                             <p className="text-xs text-foreground">{e.horario}</p>
                           </div>
                         </div>
@@ -274,7 +268,7 @@ export default function EmbajadasConsulados() {
                         <div className="flex items-center gap-2 bg-red-500/8 border border-red-500/20 rounded-xl px-3 py-2">
                           <AlertTriangle className="h-3.5 w-3.5 text-red-500 shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <span className="text-[9px] text-red-500 uppercase font-bold">Emergencia</span>
+                            <span className="text-3xs text-red-500 uppercase font-bold">{pc.tx("span.1", "Emergencia")}</span>
                             <a href={`tel:${e.emergencia}`} className="block text-xs font-bold text-red-600 dark:text-red-400 hover:underline truncate">
                               {e.emergencia}
                             </a>
@@ -282,7 +276,7 @@ export default function EmbajadasConsulados() {
                           <button
                             onClick={() => copyToClipboard(e.emergencia, "Número de emergencia")}
                             className="h-6 w-6 rounded-full bg-red-500/15 flex items-center justify-center text-red-500 hover:bg-red-500/25 transition-colors shrink-0"
-                            aria-label="Copiar número de emergencia"
+                            aria-label={pc.t("button.aria-label.1", "Copiar número de emergencia")}
                           >
                             <Copy className="h-3 w-3" />
                           </button>
@@ -310,14 +304,14 @@ export default function EmbajadasConsulados() {
             {filtradas.length === 0 && (
               <div className="text-center py-16 bg-card rounded-2xl border border-border mt-4">
                 <Building2 className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" />
-                <p className="text-muted-foreground">No se encontró representación diplomática con esos filtros.</p>
-                <p className="text-xs text-muted-foreground mt-1">En caso de emergencia, llama al <strong>911</strong>.</p>
+                <p className="text-muted-foreground">{pc.tx("p.10", "No se encontró representación diplomática con esos filtros.")}</p>
+                <p className="text-xs text-muted-foreground mt-1">{pc.tx("p.11", "En caso de emergencia, llama al")}{" "}<strong>911</strong>.</p>
               </div>
             )}
 
             {/* ── TRAVEL TIPS ──────────────────────────────────────────── */}
             <section className="mt-16 pt-12 border-t border-border">
-              <h2 className="font-display font-bold text-xl text-foreground mb-6">Consejos para viajeros</h2>
+              <h2 className="font-display font-bold text-xl text-foreground mb-6">{pc.tx("h2.2", "Consejos para viajeros")}</h2>
               <div className="grid sm:grid-cols-3 gap-4">
                 {tips.map(({ icon: Icon, title, text }) => (
                   <div key={title} className="bg-card border border-border rounded-2xl p-5 hover:shadow-md transition-all hover:border-primary/25">
@@ -338,3 +332,6 @@ export default function EmbajadasConsulados() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { embajadas, regions, tips };

@@ -125,6 +125,7 @@ export function TestimonialCarousel({
           {testimonials.map((_, index) => (
             <button
               key={index}
+              aria-label={`Testimonio ${index + 1}`}
               onClick={() => {
                 if (timerRef.current) clearInterval(timerRef.current);
                 setCurrentIndex(index);

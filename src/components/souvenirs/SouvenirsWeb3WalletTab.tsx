@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Collectible, UserCollectible, NftTransaction, rarityConfig } from "@/data/souvenirsData";
 
+import { activateOnKey } from "@/lib/a11y";
 interface SouvenirsWeb3WalletTabProps {
   isConnected: boolean;
   isConnecting: boolean;
@@ -117,16 +118,16 @@ export function SouvenirsWeb3WalletTab({
               <ScrollArea className="h-[220px] pr-2">
                 <div className="space-y-3">
                   {txHistory.map(tx => (
-                    <div key={tx.id} className="p-2.5 rounded bg-secondary/25 border border-border/40 text-[11px] space-y-1">
+                    <div key={tx.id} className="p-2.5 rounded bg-secondary/25 border border-border/40 text-2xs space-y-1">
                       <div className="flex justify-between items-center font-bold">
                         <span className="text-foreground">{tx.action}</span>
-                        <span className="text-muted-foreground text-[9px]">{tx.timestamp}</span>
+                        <span className="text-muted-foreground text-3xs">{tx.timestamp}</span>
                       </div>
                       <div className="flex justify-between text-muted-foreground">
                         <span>Activo: {tx.assetName}</span>
                         <span className="truncate max-w-[80px] font-mono">{tx.recipient}</span>
                       </div>
-                      <div className="text-[10px] text-primary hover:underline font-mono truncate cursor-pointer" onClick={() => toast.info(`Tx Hash: ${tx.hash}`)}>
+                      <div role="button" tabIndex={0} onKeyDown={activateOnKey} className="text-3xs text-primary hover:underline font-mono truncate cursor-pointer" onClick={() => toast.info(`Tx Hash: ${tx.hash}`)}>
                         Tx: {tx.hash}
                       </div>
                     </div>
@@ -174,13 +175,13 @@ export function SouvenirsWeb3WalletTab({
                         </div>
                         <div className="min-w-0">
                           <p className="font-bold text-sm text-foreground truncate">{item.name}</p>
-                          <p className="text-[11px] text-muted-foreground truncate">{rarityConfig[item.rarity]?.label}</p>
+                          <p className="text-2xs text-muted-foreground truncate">{rarityConfig[item.rarity]?.label}</p>
                           {isMinted ? (
-                            <span className="text-[10px] text-green-500 font-semibold flex items-center gap-0.5 mt-0.5">
+                            <span className="text-3xs text-green-500 font-semibold flex items-center gap-0.5 mt-0.5">
                               ✓ Minted (NFT)
                             </span>
                           ) : (
-                            <span className="text-[10px] text-amber-500 font-semibold flex items-center gap-0.5 mt-0.5">
+                            <span className="text-3xs text-amber-500 font-semibold flex items-center gap-0.5 mt-0.5">
                               Pendiente de Mint
                             </span>
                           )}

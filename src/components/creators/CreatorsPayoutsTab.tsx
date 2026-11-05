@@ -25,8 +25,8 @@ export function CreatorsPayoutsTab({ profile, payouts }: CreatorPayoutsProps) {
       <CardHeader><CardTitle className="text-base font-bold">Pagos registrados</CardTitle><CardDescription className="text-xs">Historial devuelto por el servicio, sin datos de ejemplo.</CardDescription></CardHeader>
       <CardContent className="space-y-3">
         {payouts.length === 0 ? <p className="text-xs text-muted-foreground">No hay pagos registrados.</p> : payouts.map(item => <div key={item.id} className="flex justify-between items-center p-3 rounded-xl bg-muted/40 border border-border">
-          <div><p className="font-semibold text-xs">{new Date(item.created_at).toLocaleDateString("es-DO")}</p><p className="text-[10px] text-muted-foreground">{money(item.amount)}</p></div>
-          <Badge variant="outline" className="text-[10px]">{item.status}</Badge>
+          <div><p className="font-semibold text-xs">{new Date(item.created_at).toLocaleDateString("es-DO")}</p><p className="text-3xs text-muted-foreground">{money(item.amount)}</p></div>
+          <Badge variant="outline" className="text-3xs">{item.status}</Badge>
         </div>)}
       </CardContent>
     </Card>

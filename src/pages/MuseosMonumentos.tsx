@@ -12,10 +12,12 @@ import {
   Landmark, MapPin, Clock, Star, Search, ChevronRight,
   Calendar, Eye, Ticket, Globe, ArrowRight
 } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
+import { useCollectionList, str, numOr, list, type Row } from "@/lib/collectionPage";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
-const museums = [
+const museumsLocal = [
   {
     id: "1",
     name: "Museo del Hombre Dominicano",
@@ -103,7 +105,7 @@ const museums = [
   },
 ];
 
-const monuments = [
+const monumentsLocal = [
   {
     id: 1,
     name: "Faro a Colón",
@@ -151,6 +153,33 @@ const stats = [
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function MuseosMonumentos() {
+  const pc = usePageContent("museos-monumentos");
+  const stats = pc.data("stats", __pcData.stats);
+  const categories = pc.data("categories", __pcData.categories);
+  // Museos y monumentos comparten la colección «Monumentos y museos» del panel: los museos llevan el tipo «Museo · <categoría>».
+  const slugOf = (name: string) => name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  const isMuseum = (r: Row) => str(r.monument_type).startsWith("Museo");
+  const all = useCollectionList<Row>("monuments", [], () => "", (r) => r);
+  const fromBackend = all.length > 0;
+  const museums = !fromBackend ? museumsLocal : all.filter(isMuseum).map((r) => {
+    const b = museumsLocal.find((m) => slugOf(m.name) === r.slug);
+    const category = str(r.monument_type).split("·")[1]?.trim() || b?.category || "Historia";
+    return {
+      ...(b ?? museumsLocal[0]!), id: str(r.id, b?.id), name: str(r.name, b?.name), image: str(r.image_url, b?.image), category,
+      categoryColor: museumsLocal.find((m) => m.category === category)?.categoryColor ?? museumsLocal[0]!.categoryColor,
+      location: str(r.address, b?.location), rating: numOr(r.rating, b?.rating), reviews: numOr(r.review_count, b?.reviews),
+      price: numOr(String(r.entry_fee ?? "").replace(/[^0-9.]/g, ""), b?.price ?? 0), hours: str(r.opening_hours, b?.hours), description: str(r.description, b?.description),
+      highlights: list(r.highlights, b?.highlights), featured: typeof r.is_featured === "boolean" ? r.is_featured : !!b?.featured,
+    };
+  });
+  const monuments = !fromBackend ? monumentsLocal : all.filter((r) => !isMuseum(r)).map((r, i) => {
+    const b = monumentsLocal.find((m) => slugOf(m.name) === r.slug);
+    return {
+      ...(b ?? monumentsLocal[0]!), id: b?.id ?? 1000 + i, name: str(r.name, b?.name), location: str(r.address, b?.location), image: str(r.image_url, b?.image),
+      description: str(r.description, b?.description), year: numOr(r.year_built, b?.year), architect: str(r.architect, b?.architect), type: str(r.monument_type, b?.type ?? "Monumento"),
+      accent: b?.accent ?? monumentsLocal[i % monumentsLocal.length]!.accent,
+    };
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("Todos");
   const [activeTab, setActiveTab] = useState<"museos" | "monumentos">("museos");
@@ -167,8 +196,8 @@ export default function MuseosMonumentos() {
   return (
     <PageTransition>
       <SEOHead
-        title="Museos y Monumentos de República Dominicana | Descubre República Dominicana"
-        description="Explora los museos y monumentos históricos de RD: arte taíno, historia colonial, ámbar dominicano, obeliscos y los mausoleos de los Padres de la Patria."
+        title={pc.t("SEOHead.title.1", "Museos y Monumentos de República Dominicana | Descubre República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Explora los museos y monumentos históricos de RD: arte taíno, historia colonial, ámbar dominicano, obeliscos y los mausoleos de los Padres de la Patria.")}
         image="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&auto=format&fit=crop&q=80"
       />
       <div className="min-h-screen bg-background">
@@ -179,7 +208,7 @@ export default function MuseosMonumentos() {
           <section className="relative h-[68vh] min-h-[480px] flex items-end overflow-hidden">
             <img
               src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&auto=format&fit=crop&q=80"
-              alt="Museos y Monumentos de República Dominicana"
+              alt={pc.t("img.alt.1", "Museos y Monumentos de República Dominicana")}
               className="absolute inset-0 w-full h-full object-cover scale-105"
               style={{ filter: "brightness(0.55)" }}
             />
@@ -192,15 +221,9 @@ export default function MuseosMonumentos() {
                 transition={{ duration: 0.6 }}
               >
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-semibold uppercase tracking-wider mb-4">
-                  <Landmark className="h-3.5 w-3.5" />
-                  Patrimonio Cultural
-                </span>
-                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight leading-none mb-3">
-                  Museos &amp;<br className="hidden md:block" /> Monumentos
-                </h1>
-                <p className="text-white/75 text-lg max-w-xl leading-relaxed">
-                  Cinco siglos de historia taína, colonial y moderna al alcance de tu visita.
-                </p>
+                  <Landmark className="h-3.5 w-3.5" />{pc.tx("span.1", "Patrimonio Cultural")}</span>
+                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight leading-none mb-3">{pc.tx("h1.1", "Museos &")}<br className="hidden md:block" />{" "}{pc.tx("h1.2", "Monumentos")}</h1>
+                <p className="text-white/75 text-lg max-w-xl leading-relaxed">{pc.tx("p.1", "Cinco siglos de historia taína, colonial y moderna al alcance de tu visita.")}</p>
               </motion.div>
             </div>
           </section>
@@ -259,7 +282,7 @@ export default function MuseosMonumentos() {
                     <div className="relative flex-1 max-w-xs">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="Buscar museo..."
+                        placeholder={pc.t("Input.placeholder.1", "Buscar museo...")}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-10 bg-card border-border"
@@ -304,27 +327,19 @@ export default function MuseosMonumentos() {
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                             {museum.featured && (
-                              <span className="absolute top-3 left-3 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-md">
-                                ⭐ Destacado
-                              </span>
+                              <span className="absolute top-3 left-3 bg-amber-500 text-white text-3xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-md">{pc.tx("span.2", "⭐ Destacado")}</span>
                             )}
-                            <span className={`absolute top-3 right-3 text-[10px] font-semibold px-2.5 py-1 rounded-full border backdrop-blur-sm ${museum.categoryColor}`}>
+                            <span className={`absolute top-3 right-3 text-3xs font-semibold px-2.5 py-1 rounded-full border backdrop-blur-sm ${museum.categoryColor}`}>
                               {museum.category}
                             </span>
                             {/* Price badge over image bottom (★ Mejora 108) */}
                             <div className="absolute bottom-3 left-3 flex items-center gap-1.5 flex-wrap">
                               {museum.price === 0 ? (
-                                <span className="bg-emerald-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full">
-                                  Entrada Libre / Gratis
-                                </span>
+                                <span className="bg-emerald-500 text-white text-2xs font-bold px-2.5 py-1 rounded-full">{pc.tx("span.3", "Entrada Libre / Gratis")}</span>
                               ) : (
                                 <>
-                                  <span className="bg-black/80 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/20">
-                                    Nac: RD$ {museum.price} • Ext: $5 USD
-                                  </span>
-                                  <span className="bg-emerald-600/90 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
-                                    Domingos Gratis
-                                  </span>
+                                  <span className="bg-black/80 backdrop-blur-sm text-white text-3xs font-bold px-2.5 py-1 rounded-full border border-white/20">{pc.tx("span.4", "Nac: RD$")}{" "}{museum.price}{" "}{pc.tx("span.5", "• Ext: $5 USD")}</span>
+                                  <span className="bg-emerald-600/90 text-white text-3xs font-bold px-2 py-0.5 rounded-full">{pc.tx("span.6", "Domingos Gratis")}</span>
                                 </>
                               )}
                             </div>
@@ -332,9 +347,9 @@ export default function MuseosMonumentos() {
 
                           {/* Content */}
                           <div className="p-5">
-                            <h3 className="font-display font-bold text-lg leading-snug text-foreground group-hover:text-primary transition-colors mb-2">
+                            <h2 className="h3 font-display font-bold text-lg leading-snug text-foreground group-hover:text-primary transition-colors mb-2">
                               {museum.name}
-                            </h3>
+                            </h2>
 
                             <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
                               <span className="flex items-center gap-1">
@@ -353,7 +368,7 @@ export default function MuseosMonumentos() {
 
                             <div className="flex flex-wrap gap-1.5 mb-4">
                               {museum.highlights.slice(0, 3).map((h, i) => (
-                                <span key={i} className="text-[10px] bg-secondary text-foreground/70 font-medium px-2 py-0.5 rounded-md border border-border/50">
+                                <span key={i} className="text-3xs bg-secondary text-foreground/70 font-medium px-2 py-0.5 rounded-md border border-border/50">
                                   {h}
                                 </span>
                               ))}
@@ -363,8 +378,7 @@ export default function MuseosMonumentos() {
                               <span className="flex items-center gap-1 text-xs text-muted-foreground">
                                 <Clock className="h-3.5 w-3.5" /> {museum.hours}
                               </span>
-                              <Button size="sm" variant="ghost" className="h-8 text-xs gap-1 text-primary hover:text-primary px-2">
-                                Ver más <ChevronRight className="h-3.5 w-3.5" />
+                              <Button size="sm" variant="ghost" className="h-8 text-xs gap-1 text-primary hover:text-primary px-2">{pc.tx("Button.1", "Ver más")}{" "}<ChevronRight className="h-3.5 w-3.5" />
                               </Button>
                             </div>
                           </div>
@@ -376,7 +390,7 @@ export default function MuseosMonumentos() {
                   {filteredMuseums.length === 0 && (
                     <div className="text-center py-20 text-muted-foreground">
                       <Landmark className="h-10 w-10 mx-auto mb-3 opacity-30" />
-                      <p>No se encontraron museos con ese filtro.</p>
+                      <p>{pc.tx("p.2", "No se encontraron museos con ese filtro.")}</p>
                     </div>
                   )}
                 </motion.div>
@@ -420,7 +434,7 @@ export default function MuseosMonumentos() {
 
                       {/* Content */}
                       <div className="p-6 md:p-8 flex flex-col justify-center">
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-primary mb-2">
+                        <span className="inline-flex items-center gap-1 text-3xs font-bold uppercase tracking-widest text-primary mb-2">
                           <Landmark className="h-3 w-3" />
                           {monument.type}
                         </span>
@@ -436,8 +450,7 @@ export default function MuseosMonumentos() {
                         </p>
                         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-full border border-border">
-                            <Calendar className="h-3.5 w-3.5 text-primary" />
-                            Inaugurado: {monument.year}
+                            <Calendar className="h-3.5 w-3.5 text-primary" />{pc.tx("span.7", "Inaugurado:")}{" "}{monument.year}
                           </span>
                           {monument.architect && (
                             <span className="flex items-center gap-1.5 bg-secondary px-3 py-1.5 rounded-full border border-border">
@@ -457,25 +470,17 @@ export default function MuseosMonumentos() {
           {/* ── CTA STRIP ────────────────────────────────────────────────── */}
           <section className="py-16 bg-gradient-to-r from-primary/10 via-amber-500/8 to-primary/10 border-t border-border">
             <div className="container mx-auto px-4 lg:px-8 text-center">
-              <h2 className="font-display text-2xl md:text-3xl font-black text-foreground mb-3">
-                Planifica tu visita cultural
-              </h2>
-              <p className="text-muted-foreground max-w-lg mx-auto text-sm mb-6">
-                Compra entradas, descarga guías de audio y personaliza tu recorrido histórico en la Ciudad Colonial más antigua del Nuevo Mundo.
-              </p>
+              <h2 className="font-display text-2xl md:text-3xl font-black text-foreground mb-3">{pc.tx("h2.1", "Planifica tu visita cultural")}</h2>
+              <p className="text-muted-foreground max-w-lg mx-auto text-sm mb-6">{pc.tx("p.3", "Compra entradas, descarga guías de audio y personaliza tu recorrido histórico en la Ciudad Colonial más antigua del Nuevo Mundo.")}</p>
               <div className="flex flex-wrap gap-3 justify-center">
                 <Button asChild size="lg" className="rounded-full gap-2 shadow-lg shadow-primary/20">
                   <Link to="/audio-guias">
-                    <Ticket className="h-4 w-4" />
-                    Audio Guías Oficiales
-                    <ArrowRight className="h-4 w-4" />
+                    <Ticket className="h-4 w-4" />{pc.tx("Link.1", "Audio Guías Oficiales")}<ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="rounded-full gap-2">
                   <Link to="/patrimonio">
-                    <Globe className="h-4 w-4" />
-                    Patrimonio UNESCO
-                  </Link>
+                    <Globe className="h-4 w-4" />{pc.tx("Link.2", "Patrimonio UNESCO")}</Link>
                 </Button>
               </div>
             </div>
@@ -487,3 +492,6 @@ export default function MuseosMonumentos() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { stats, categories };

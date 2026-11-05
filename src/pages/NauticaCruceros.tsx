@@ -22,8 +22,10 @@ import {
   regulations 
 } from "@/data/nauticaData";
 import heroBeachImg from "@/assets/hero-beach.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function NauticaCruceros() {
+  const pc = usePageContent("nautica-cruceros");
   return (
     <PageTransition>
       <div className="min-h-screen bg-background">
@@ -32,8 +34,8 @@ export default function NauticaCruceros() {
         {/* Hero */}
         <section className="relative h-[60vh] min-h-[500px] flex items-center justify-center overflow-hidden">
           <img
-            src={heroBeachImg}
-            alt="Vista panorámica de costa caribeña dominicana"
+            src={pc.img("img.src.1", heroBeachImg)}
+            alt={pc.t("img.alt.1", "Vista panorámica de costa caribeña dominicana")}
             className="absolute inset-0 w-full h-full object-cover object-center"
             aria-hidden="true"
           />
@@ -46,25 +48,14 @@ export default function NauticaCruceros() {
               transition={{ duration: 0.6 }}
             >
               <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
-                <Anchor className="h-3 w-3 mr-1" />
-                TURISMO NÁUTICO Y CRUCEROS
-              </Badge>
-              <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-4">
-                Navega el Lujo del Caribe
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-                Descubre las marinas más exclusivas, puertos de cruceros, pesca deportiva de clase mundial
-                y las costas vírgenes de República Dominicana.
-              </p>
+                <Anchor className="h-3 w-3 mr-1" />{pc.tx("Badge.1", "TURISMO NÁUTICO Y CRUCEROS")}</Badge>
+              <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Navega el Lujo del Caribe")}</h1>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">{pc.tx("p.1", "Descubre las marinas más exclusivas, puertos de cruceros, pesca deportiva de clase mundial y las costas vírgenes de República Dominicana.")}</p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button size="lg" className="gap-2">
-                  <Anchor className="h-4 w-4" />
-                  Explorar Marinas
-                </Button>
+                  <Anchor className="h-4 w-4" />{pc.tx("Button.1", "Explorar Marinas")}</Button>
                 <Button size="lg" variant="outline" className="gap-2">
-                  <Ship className="h-4 w-4" />
-                  Info Cruceros
-                </Button>
+                  <Ship className="h-4 w-4" />{pc.tx("Button.2", "Info Cruceros")}</Button>
               </div>
             </motion.div>
           </div>
@@ -75,19 +66,16 @@ export default function NauticaCruceros() {
           <div className="container mx-auto px-4 lg:px-8">
             <Tabs defaultValue="marinas" className="w-full">
               <TabsList className="grid w-full max-w-lg mx-auto grid-cols-3 mb-8">
-                <TabsTrigger value="marinas">Marinas</TabsTrigger>
-                <TabsTrigger value="cruceros">Cruceros</TabsTrigger>
-                <TabsTrigger value="servicios">Servicios</TabsTrigger>
+                <TabsTrigger value="marinas">{pc.tx("TabsTrigger.1", "Marinas")}</TabsTrigger>
+                <TabsTrigger value="cruceros">{pc.tx("TabsTrigger.2", "Cruceros")}</TabsTrigger>
+                <TabsTrigger value="servicios">{pc.tx("TabsTrigger.3", "Servicios")}</TabsTrigger>
               </TabsList>
 
               {/* Marinas Tab */}
               <TabsContent value="marinas">
                 <div className="flex items-center justify-between mb-8">
-                  <h2 className="font-display text-2xl font-bold text-foreground">
-                    Marinas Destacadas
-                  </h2>
-                  <Button variant="link" className="text-primary gap-1">
-                    Ver todas <ChevronRight className="h-4 w-4" />
+                  <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.1", "Marinas Destacadas")}</h2>
+                  <Button variant="link" className="text-primary gap-1">{pc.tx("Button.3", "Ver todas")}{" "}<ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
 
@@ -126,19 +114,16 @@ export default function NauticaCruceros() {
                         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
                           <div className="flex items-center gap-1">
                             <Anchor className="h-4 w-4 text-primary" />
-                            {marina.slips} Slips
-                          </div>
+                            {marina.slips}{" "}{pc.tx("div.1", "Slips")}</div>
                           <div className="flex items-center gap-1">
                             <Ship className="h-4 w-4 text-primary" />
-                            {marina.maxLength} Max
-                          </div>
+                            {marina.maxLength}{" "}{pc.tx("div.2", "Max")}</div>
                           <div className="flex items-center gap-1">
                             <Fuel className="h-4 w-4 text-primary" />
                             {marina.services.join(", ")}
                           </div>
                         </div>
-                        <Button variant="outline" className="w-fit gap-2">
-                          Ver Detalles <ChevronRight className="h-4 w-4" />
+                        <Button variant="outline" className="w-fit gap-2">{pc.tx("Button.4", "Ver Detalles")}{" "}<ChevronRight className="h-4 w-4" />
                         </Button>
                       </div>
                       <div className="md:w-1/2 h-64 md:h-auto">
@@ -158,9 +143,7 @@ export default function NauticaCruceros() {
                 {/* Puertos */}
                 <div className="mb-12">
                   <div className="flex items-center justify-between mb-8">
-                    <h2 className="font-display text-2xl font-bold text-foreground">
-                      Puertos de Llegada
-                    </h2>
+                    <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.2", "Puertos de Llegada")}</h2>
                   </div>
 
                   <div className="grid md:grid-cols-3 gap-6">
@@ -198,15 +181,9 @@ export default function NauticaCruceros() {
                   {/* Itinerario */}
                   <div>
                     <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
-                      <Star className="h-3 w-3 mr-1" />
-                      RECOMENDADO
-                    </Badge>
-                    <h2 className="font-display text-2xl font-bold text-foreground mb-2">
-                      Itinerario: Un Día Perfecto
-                    </h2>
-                    <p className="text-muted-foreground mb-8">
-                      Aprovecha al máximo tus 8 horas en tierra con este plan optimizado.
-                    </p>
+                      <Star className="h-3 w-3 mr-1" />{pc.tx("Badge.2", "RECOMENDADO")}</Badge>
+                    <h2 className="font-display text-2xl font-bold text-foreground mb-2">{pc.tx("h2.3", "Itinerario: Un Día Perfecto")}</h2>
+                    <p className="text-muted-foreground mb-8">{pc.tx("p.2", "Aprovecha al máximo tus 8 horas en tierra con este plan optimizado.")}</p>
 
                     <div className="space-y-6">
                       {itinerario.map((item, index) => (
@@ -229,15 +206,9 @@ export default function NauticaCruceros() {
 
                   {/* Servicios Terminal */}
                   <div>
-                    <Badge className="mb-4 bg-emerald-500/20 text-emerald-600 border-emerald-500/30">
-                      ✓ FACILIDADES
-                    </Badge>
-                    <h2 className="font-display text-2xl font-bold text-foreground mb-2">
-                      Servicios en Terminal
-                    </h2>
-                    <p className="text-muted-foreground mb-8">
-                      Ubica lo esencial dentro de la terminal.
-                    </p>
+                    <Badge className="mb-4 bg-emerald-500/20 text-emerald-600 border-emerald-500/30">{pc.tx("Badge.3", "✓ FACILIDADES")}</Badge>
+                    <h2 className="font-display text-2xl font-bold text-foreground mb-2">{pc.tx("h2.4", "Servicios en Terminal")}</h2>
+                    <p className="text-muted-foreground mb-8">{pc.tx("p.3", "Ubica lo esencial dentro de la terminal.")}</p>
 
                     <div className="grid grid-cols-3 gap-4 mb-6">
                       {serviciosTerminal.map((serv) => (
@@ -250,8 +221,7 @@ export default function NauticaCruceros() {
 
                     <div className="bg-primary/10 rounded-2xl p-6 flex items-center justify-center">
                       <Button variant="outline" className="gap-2">
-                        <MapPin className="h-4 w-4" /> Explorar Mapa
-                      </Button>
+                        <MapPin className="h-4 w-4" />{" "}{pc.tx("Button.5", "Explorar Mapa")}</Button>
                     </div>
                   </div>
                 </div>
@@ -260,10 +230,8 @@ export default function NauticaCruceros() {
                 <div>
                   <div className="flex items-center justify-between mb-8" id="excursiones-express">
                     <div>
-                      <h2 className="font-display text-2xl font-bold text-foreground">
-                        Excursiones Express
-                      </h2>
-                      <p className="text-muted-foreground">Garantizadas para regresar antes de que zarpe tu barco.</p>
+                      <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.5", "Excursiones Express")}</h2>
+                      <p className="text-muted-foreground">{pc.tx("p.4", "Garantizadas para regresar antes de que zarpe tu barco.")}</p>
                     </div>
                   </div>
 
@@ -276,9 +244,7 @@ export default function NauticaCruceros() {
                             alt={exc.nombre}
                             className="w-full h-full object-cover"
                           />
-                          <Badge className="absolute top-3 left-3 bg-emerald-500 text-white text-xs">
-                            ✓ GARANTÍA REGRESO
-                          </Badge>
+                          <Badge className="absolute top-3 left-3 bg-emerald-500 text-white text-xs">{pc.tx("Badge.4", "✓ GARANTÍA REGRESO")}</Badge>
                           <Badge className="absolute bottom-3 right-3 bg-background/90 text-foreground text-xs">
                             {exc.duracion}
                           </Badge>
@@ -288,7 +254,7 @@ export default function NauticaCruceros() {
                           <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{exc.descripcion}</p>
                           <div className="flex items-center justify-between">
                             <p className="font-bold text-primary">
-                              ${exc.precio}<span className="text-xs font-normal text-muted-foreground">/pers</span>
+                              ${exc.precio}<span className="text-xs font-normal text-muted-foreground">{pc.tx("span.1", "/pers")}</span>
                             </p>
                             <Button size="icon" variant="outline" className="h-8 w-8 rounded-full">
                               <Plus className="h-4 w-4" />
@@ -303,9 +269,7 @@ export default function NauticaCruceros() {
 
               {/* Servicios Tab */}
               <TabsContent value="servicios">
-                <h2 className="font-display text-2xl font-bold text-foreground mb-8">
-                  Servicios Náuticos
-                </h2>
+                <h2 className="font-display text-2xl font-bold text-foreground mb-8">{pc.tx("h2.6", "Servicios Náuticos")}</h2>
 
                 <div className="grid md:grid-cols-3 gap-6 mb-12">
                   {nauticalServices.map((service, index) => (
@@ -332,27 +296,21 @@ export default function NauticaCruceros() {
                 {/* Map and Regulations */}
                 <div className="grid md:grid-cols-2 gap-8">
                   <div>
-                    <h2 className="font-display text-2xl font-bold text-foreground mb-6">
-                      Mapa de Navegación Costera
-                    </h2>
+                    <h2 className="font-display text-2xl font-bold text-foreground mb-6">{pc.tx("h2.7", "Mapa de Navegación Costera")}</h2>
                     <div className="bg-card rounded-2xl border border-border overflow-hidden">
                       <div className="aspect-[4/3] bg-muted flex items-center justify-center">
                         <Navigation className="h-12 w-12 text-primary" />
                       </div>
                       <div className="p-4">
                         <p className="text-sm text-muted-foreground">
-                          <strong className="text-foreground">Rutas de Navegación</strong> — 
-                          Seleccione un punto para ver detalles de profundidad, corrientes y servicios disponibles.
-                        </p>
+                          <strong className="text-foreground">{pc.tx("strong.1", "Rutas de Navegación")}</strong>{" "}{pc.tx("p.5", "— Seleccione un punto para ver detalles de profundidad, corrientes y servicios disponibles.")}</p>
                       </div>
                     </div>
                   </div>
 
                   <div>
                     <div className="flex items-center justify-between mb-6">
-                      <h2 className="font-display text-2xl font-bold text-foreground">
-                        Reglamentaciones
-                      </h2>
+                      <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.8", "Reglamentaciones")}</h2>
                       <Button variant="ghost" size="sm" className="gap-2">
                         <Download className="h-4 w-4" />
                       </Button>
@@ -384,8 +342,7 @@ export default function NauticaCruceros() {
 
                     <div className="mt-6 p-4 bg-primary/10 rounded-xl border border-primary/20">
                       <p className="text-sm text-muted-foreground">
-                        <strong className="text-foreground">Importante:</strong> Recuerde reportar su llegada con 24 horas de antelación a la marina de destino vía radio VHF canal 16.
-                      </p>
+                        <strong className="text-foreground">{pc.tx("strong.2", "Importante:")}</strong>{" "}{pc.tx("p.6", "Recuerde reportar su llegada con 24 horas de antelación a la marina de destino vía radio VHF canal 16.")}</p>
                     </div>
                   </div>
                 </div>
@@ -397,7 +354,7 @@ export default function NauticaCruceros() {
               <SorteoLectorBanner origenCategoria="Turismo Náutico, Cruceros y Catamaranes" />
 
               <CTARegistroEstablecimiento
-                tipo="tour"
+                tipo="nautica"
                 titulo="¿Administras una marina, charter de yates o tour en catamarán?"
                 subtitulo="Inscribe tus embarcaciones y servicios náuticos en Descubre RD para el gran lanzamiento oficial. Conecta con navegantes y cruceristas de todo el mundo."
               />

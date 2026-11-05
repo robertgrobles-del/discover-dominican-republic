@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { MegaMenuAdCard } from "./MegaMenuAdCard";
 import { 
   Route, MapPin, DollarSign, Ticket, ShieldCheck, 
   FileText, Plane, Car, HeartPulse, ChevronRight 
@@ -15,7 +16,7 @@ export function MegaMenuPlanificar({ onClose, adBeachResortImg }: MegaMenuPlanif
   const tools = [
     { name: "Planificador con IA", desc: "Itinerarios y rutas personalizadas", href: "/mi-viaje", icon: Route },
     { name: "Circuitos & Rutas", desc: "Guías de 3, 5 y 7 días por región", href: "/itinerarios", icon: MapPin },
-    { name: "Calculadora de Gastos", desc: "Estima vuelos, hotel y traslados", href: "/calculadora-presupuesto", icon: DollarSign },
+    { name: "Calculadora de Gastos", desc: "Estima vuelos, hotel y traslados", href: "/costos-viaje#calculadora", icon: DollarSign },
     { name: "Ofertas & Descuentos", desc: "Promociones verificadas y cupones", href: "/ofertas", icon: Ticket },
   ];
 
@@ -23,7 +24,7 @@ export function MegaMenuPlanificar({ onClose, adBeachResortImg }: MegaMenuPlanif
     { name: "E-Ticket Migratorio", desc: "Formulario oficial de entrada y salida", href: "/e-ticket", icon: FileText },
     { name: "Vuelos & Aeropuertos", desc: "Terminales internacionales de RD", href: "/como-llegar", icon: Plane },
     { name: "Transporte Urbano", desc: "Autobuses, taxis y rent a car", href: "/transporte-urbano", icon: Car },
-    { name: "Salud & Asistencia 911", desc: "Hospitales y farmacias de turno 24h", href: "/salud-24h", icon: HeartPulse },
+    { name: "Salud & Asistencia 911", desc: "Hospitales y farmacias de turno 24h", href: "/info/seguridad#salud", icon: HeartPulse },
   ];
 
   return (
@@ -55,7 +56,7 @@ export function MegaMenuPlanificar({ onClose, adBeachResortImg }: MegaMenuPlanif
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-foreground group-hover:text-primary transition-colors text-xs truncate leading-tight">{item.name}</p>
-                <p className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5">{item.desc}</p>
+                <p className="text-2xs text-muted-foreground truncate leading-tight mt-0.5">{item.desc}</p>
               </div>
             </Link>
           ))}
@@ -71,7 +72,7 @@ export function MegaMenuPlanificar({ onClose, adBeachResortImg }: MegaMenuPlanif
             </div>
             <h4 className="text-xs uppercase tracking-wider text-foreground font-bold font-display">Llegada & Asistencia</h4>
           </div>
-          <Link to="/guia-practica" onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground font-medium">
+          <Link to="/requisitos-viaje#guia-practica" onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground font-medium">
             Guía práctica →
           </Link>
         </div>
@@ -89,7 +90,7 @@ export function MegaMenuPlanificar({ onClose, adBeachResortImg }: MegaMenuPlanif
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-foreground group-hover:text-primary transition-colors text-xs truncate leading-tight">{item.name}</p>
-                <p className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5">{item.desc}</p>
+                <p className="text-2xs text-muted-foreground truncate leading-tight mt-0.5">{item.desc}</p>
               </div>
             </Link>
           ))}
@@ -98,15 +99,7 @@ export function MegaMenuPlanificar({ onClose, adBeachResortImg }: MegaMenuPlanif
 
       {/* Col 3: Publicidad & Acción Rápida (4 cols) */}
       <div className="lg:col-span-4 flex flex-col gap-3 justify-between">
-        <Link to="/esim" onClick={onClose} className="block group relative rounded-2xl overflow-hidden h-36 shadow-md">
-          <img src={adBeachResortImg} alt="eSIM Dominicana 5G" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-3.5">
-            <SponsoredBadge sponsor="eSIM Dominicana 5G" className="mb-1 text-[10px]" />
-            <h4 className="font-display text-sm font-bold text-white leading-tight">Conéctate al Instante en 5G</h4>
-            <p className="text-white/85 text-xs">Datos móviles prepago sin roaming al aterrizar</p>
-          </div>
-        </Link>
+        <MegaMenuAdCard section="megamenu-planificar" onClose={onClose} fallback={{ to: "/conectividad#esim", img: adBeachResortImg, alt: "eSIM Dominicana 5G", sponsor: "eSIM Dominicana 5G", title: "Conéctate al Instante en 5G", text: "Datos móviles prepago sin roaming al aterrizar" }} />
 
         <Link 
           to="/e-ticket" 
@@ -119,7 +112,7 @@ export function MegaMenuPlanificar({ onClose, adBeachResortImg }: MegaMenuPlanif
             </div>
             <div>
               <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">E-Ticket Migratorio Oficial</p>
-              <p className="text-[10px] text-muted-foreground">Formulario digital gratuito y obligatorio</p>
+              <p className="text-3xs text-muted-foreground">Formulario digital gratuito y obligatorio</p>
             </div>
           </div>
           <ChevronRight className="h-4 w-4 text-emerald-600 group-hover:translate-x-1 transition-transform" />

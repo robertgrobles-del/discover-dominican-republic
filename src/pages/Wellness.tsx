@@ -1,8 +1,10 @@
+import { SectionIndex } from "@/components/SectionIndex";
+import { SpasSection } from "@/components/wellness/SpasSection";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { Link } from "react-router-dom";
-import { Waves, Heart, Mountain, Leaf, MapPin, Star, Mail } from "lucide-react";
+import { Waves, Heart, Mountain, Leaf, MapPin, Star, Mail, Droplets, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -10,20 +12,23 @@ import { BetweenSectionsAd, CompactInlineAd } from "@/components/promo";
 import heroBeach from "@/assets/hero-beach.jpg";
 import hotelClareVerde from "@/assets/hotel-clare-verde.jpg";
 import adventure from "@/assets/adventure.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const categorias = [
-  { nombre: "Todos", activo: true },
-  { nombre: "Spas de Lujo", activo: false },
-  { nombre: "Yoga en Samaná", activo: false },
-  { nombre: "Retiros de Montaña", activo: false },
-  { nombre: "Terapias Holísticas", activo: false },
+  { nombre: "Todos", activo: true, ancla: "tratamientos" },
+  { nombre: "Spas de Lujo", activo: false, ancla: "spas" },
+  { nombre: "Yoga en Samaná", activo: false, ancla: "retiros" },
+  { nombre: "Retiros de Montaña", activo: false, ancla: "retiros" },
+  { nombre: "Terapias Holísticas", activo: false, ancla: "tratamientos" },
 ];
 
 const tratamientos = [
-  { nombre: "Hidroterapia", icon: Waves },
-  { nombre: "Mindfulness", icon: Heart },
-  { nombre: "Termales", icon: Mountain },
-  { nombre: "Ayurveda", icon: Leaf },
+  { nombre: "Hidroterapia", icon: Droplets, desc: "Circuitos de agua y piscinas termales en los spas de resort" },
+  { nombre: "Mindfulness", icon: Heart, desc: "Meditación guiada y yoga para cuerpo y mente en armonía" },
+  { nombre: "Termales", icon: Mountain, desc: "Aguas termales naturales en el sur y la cordillera" },
+  { nombre: "Productos naturales", icon: Leaf, desc: "Tratamientos con cacao, café e ingredientes orgánicos locales" },
+  { nombre: "Relax total", icon: Smile, desc: "Ambientes de tranquilidad frente al mar o en la montaña" },
+  { nombre: "Ayurveda", icon: Waves, desc: "Terapias holísticas y masajes con aceites esenciales" },
 ];
 
 const retiros = [
@@ -74,6 +79,11 @@ const zonas = [
 ];
 
 export default function Wellness() {
+  const pc = usePageContent("wellness");
+  const categorias = pc.data("categorias", __pcData.categorias);
+  const tratamientos = pc.data("tratamientos", __pcData.tratamientos);
+  const retiros = pc.data("retiros", __pcData.retiros);
+  const zonas = pc.data("zonas", __pcData.zonas);
   return (
     <PageTransition>
       <div className="min-h-screen flex flex-col bg-background">
@@ -84,28 +94,18 @@ export default function Wellness() {
           <div className="max-w-4xl mx-auto">
             <div className="relative rounded-3xl overflow-hidden aspect-[16/9] mb-8">
               <img 
-                src={heroBeach} 
-                alt="Wellness y Retiros" 
+                src={pc.img("img.src.1", heroBeach)} 
+                alt={pc.t("img.alt.1", "Wellness y Retiros")} 
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/20" />
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-                <Badge className="mb-4 bg-white/10 text-white border-white/30">
-                  TURISMO DE BIENESTAR
-                </Badge>
-                <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-4">
-                  Wellness y Retiros
-                </h1>
-                <p className="text-white/90 max-w-lg mb-6">
-                  Yoga, retiros de montaña y spas de lujo. Desde Samaná hasta Punta Cana.
-                </p>
+                <Badge className="mb-4 bg-white/10 text-white border-white/30">{pc.tx("Badge.1", "TURISMO DE BIENESTAR")}</Badge>
+                <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-4">{pc.tx("h1.1", "Wellness y Retiros")}</h1>
+                <p className="text-white/90 max-w-lg mb-6">{pc.tx("p.1", "Yoga, retiros de montaña y spas de lujo. Desde Samaná hasta Punta Cana.")}</p>
                 <div className="flex gap-3">
-                  <Button className="bg-primary text-primary-foreground">
-                    Explorar Experiencias →
-                  </Button>
-                  <Button variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
-                    Ver Mapa Interactivo
-                  </Button>
+                  <Button className="bg-primary text-primary-foreground" asChild><a href="#tratamientos">{pc.tx("Button.1", "Explorar Experiencias →")}</a></Button>
+                  <Button variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20" asChild><a href="#mapa">{pc.tx("Button.2", "Ver Mapa Interactivo")}</a></Button>
                 </div>
               </div>
             </div>
@@ -113,37 +113,35 @@ export default function Wellness() {
             {/* Categorías */}
             <div className="flex flex-wrap gap-3 justify-center">
               {categorias.map((cat) => (
-                <Badge
+                <a
                   key={cat.nombre}
-                  variant={cat.activo ? "default" : "outline"}
-                  className={`cursor-pointer text-sm px-4 py-2 ${
-                    cat.activo ? "bg-primary text-primary-foreground" : ""
+                  href={`#${cat.ancla}`}
+                  className={`rounded-full border text-sm px-4 py-2 font-medium transition-colors ${
+                    cat.activo ? "bg-primary text-primary-foreground border-primary" : "border-border bg-card text-foreground hover:border-primary/40 hover:text-primary"
                   }`}
                 >
                   {cat.nombre}
-                </Badge>
+                </a>
               ))}
             </div>
           </div>
         </section>
+        <SectionIndex items={[{ id: "tratamientos", label: "Tratamientos" }, { id: "retiros", label: "Retiros" }, { id: "mapa", label: "Dónde ir" }, { id: "spas", label: "Spas" }]} />
 
         {/* Encuentra tu Equilibrio */}
-        <section className="py-16 px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">
-              Encuentra tu Equilibrio
-            </h2>
-            <p className="text-muted-foreground mb-12 max-w-xl mx-auto">
-              Explora una variedad de tratamientos diseñados para restaurar tu cuerpo y alma en el corazón del Caribe.
-            </p>
+        <section id="tratamientos" className="py-16 px-4 scroll-mt-24">
+          <div className="max-w-5xl mx-auto text-center">
+            <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">{pc.tx("h2.1", "Encuentra tu Equilibrio")}</h2>
+            <p className="text-muted-foreground mb-12 max-w-xl mx-auto">{pc.tx("p.2", "Explora una variedad de tratamientos diseñados para restaurar tu cuerpo y alma en el corazón del Caribe.")}</p>
 
-            <div className="flex flex-wrap justify-center gap-12">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-10">
               {tratamientos.map((t) => (
                 <div key={t.nombre} className="flex flex-col items-center gap-3">
                   <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center">
                     <t.icon className="h-8 w-8 text-primary" />
                   </div>
                   <span className="text-foreground font-medium">{t.nombre}</span>
+                  {t.desc && <p className="text-sm text-muted-foreground max-w-[14rem]">{t.desc}</p>}
                 </div>
               ))}
             </div>
@@ -151,15 +149,11 @@ export default function Wellness() {
         </section>
 
         {/* Retiros Destacados */}
-        <section className="py-16 px-4 bg-card/30">
+        <section id="retiros" className="py-16 px-4 bg-card/30 scroll-mt-24">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="font-display text-2xl font-bold text-foreground">
-                Retiros Destacados
-              </h2>
-              <Link to="/alojamientos" className="text-primary font-medium text-sm hover:underline">
-                Ver todos →
-              </Link>
+              <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.2", "Retiros Destacados")}</h2>
+              <Link to="/alojamientos" className="text-primary font-medium text-sm hover:underline">{pc.tx("Link.1", "Ver todos →")}</Link>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -193,10 +187,10 @@ export default function Wellness() {
                       <div className="flex items-center gap-1">
                         <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                         <span className="font-medium text-sm">{retiro.rating}</span>
-                        <span className="text-muted-foreground text-sm">({retiro.resenas} reseñas)</span>
+                        <span className="text-muted-foreground text-sm">({retiro.resenas}{" "}{pc.tx("span.1", "reseñas)")}</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-xs text-muted-foreground">Desde</span>
+                        <span className="text-xs text-muted-foreground">{pc.tx("span.2", "Desde")}</span>
                         <p className="font-bold text-foreground">
                           ${retiro.precio}<span className="text-sm font-normal text-muted-foreground">/{retiro.unidad}</span>
                         </p>
@@ -210,21 +204,14 @@ export default function Wellness() {
         </section>
 
         {/* Mapa Interactivo */}
-        <section className="py-16 px-4">
+        <section id="mapa" className="py-16 px-4 scroll-mt-24">
           <div className="max-w-5xl mx-auto">
             <div className="bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-900/20 dark:to-emerald-900/20 rounded-3xl p-8 md:p-12">
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div>
-                  <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
-                    🌿 EXPLORA LA ISLA
-                  </Badge>
-                  <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">
-                    Encuentra tu santuario
-                  </h2>
-                  <p className="text-muted-foreground mb-6">
-                    Navega por nuestro mapa interactivo para descubrir gemas ocultas, 
-                    desde cabañas aisladas hasta resorts de clase mundial.
-                  </p>
+                  <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">{pc.tx("Badge.2", "🌿 EXPLORA LA ISLA")}</Badge>
+                  <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">{pc.tx("h2.3", "Encuentra tu santuario")}</h2>
+                  <p className="text-muted-foreground mb-6">{pc.tx("p.3", "Navega por nuestro mapa interactivo para descubrir gemas ocultas, desde cabañas aisladas hasta resorts de clase mundial.")}</p>
                   <div className="space-y-4">
                     {zonas.map((zona) => (
                       <div key={zona.nombre} className="flex items-center gap-3">
@@ -242,7 +229,7 @@ export default function Wellness() {
                 <div className="bg-gradient-to-br from-teal-100 to-emerald-100 dark:from-teal-800/30 dark:to-emerald-800/30 rounded-2xl aspect-square flex items-center justify-center">
                   <div className="text-center">
                     <MapPin className="h-16 w-16 text-primary mx-auto mb-4" />
-                    <p className="text-muted-foreground">Mapa Interactivo</p>
+                    <p className="text-muted-foreground">{pc.tx("p.4", "Mapa Interactivo")}</p>
                   </div>
                 </div>
               </div>
@@ -256,33 +243,29 @@ export default function Wellness() {
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
               <Mail className="h-6 w-6 text-primary" />
             </div>
-            <h2 className="font-display text-2xl font-bold text-foreground mb-3">
-              Paz en tu bandeja de entrada
-            </h2>
-            <p className="text-muted-foreground mb-8">
-              Recibe guías exclusivas de meditación, ofertas en retiros y secretos de bienestar de la isla.
-            </p>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-3">{pc.tx("h2.4", "Paz en tu bandeja de entrada")}</h2>
+            <p className="text-muted-foreground mb-8">{pc.tx("p.5", "Recibe guías exclusivas de meditación, ofertas en retiros y secretos de bienestar de la isla.")}</p>
             <div className="flex gap-3 max-w-md mx-auto">
               <Input 
                 type="email" 
-                placeholder="Tu correo electrónico" 
+                placeholder={pc.t("Input.placeholder.1", "Tu correo electrónico")} 
                 className="flex-1"
               />
-              <Button className="bg-primary text-primary-foreground">
-                Suscribir
-              </Button>
+              <Button className="bg-primary text-primary-foreground">{pc.tx("Button.3", "Suscribir")}</Button>
             </div>
-            <p className="text-xs text-muted-foreground mt-3">
-              Respetamos tu privacidad. Date de baja cuando quieras.
-            </p>
+            <p className="text-xs text-muted-foreground mt-3">{pc.tx("p.6", "Respetamos tu privacidad. Date de baja cuando quieras.")}</p>
           </div>
         </section>
 
         {/* Ad before footer */}
         <BetweenSectionsAd showDemo />
 
+        <SpasSection />
         <Footer />
       </div>
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { categorias, tratamientos, retiros, zonas };

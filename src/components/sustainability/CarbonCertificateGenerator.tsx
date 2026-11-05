@@ -18,6 +18,7 @@ export function CarbonCertificateGenerator({
 }: CarbonCertificateGeneratorProps) {
   const [certifiedName, setCertifiedName] = useState<string>("");
   const [isCertificateGenerated, setIsCertificateGenerated] = useState<boolean>(false);
+  const [certFolio, setCertFolio] = useState<string>("");
 
   const handleGenerateCertificate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,6 +26,8 @@ export function CarbonCertificateGenerator({
       toast.error("Por favor escribe tu nombre para el certificado.");
       return;
     }
+    const clean = certifiedName.replace(/[^a-zA-Z0-9]/g, "").slice(0, 4).toUpperCase() || "VERDE";
+    setCertFolio(`DR-ECO-${clean}-${Date.now().toString(36).toUpperCase()}`);
     setIsCertificateGenerated(true);
     toast.success("¡Certificado Oficial de Viajero Verde generado exitosamente!");
   };
@@ -68,10 +71,10 @@ export function CarbonCertificateGenerator({
                 <ShieldCheck className="w-6 h-6 text-emerald-600" />
                 <div>
                   <h4 className="font-bold text-sm text-foreground">REPÚBLICA DOMINICANA • TURISMO VERDE</h4>
-                  <p className="text-[10px] text-muted-foreground">Folio Verificado: DR-ECO-{Math.floor(100000 + Math.random() * 900000)}</p>
+                  <p className="text-3xs text-muted-foreground">Folio Verificado: {certFolio}</p>
                 </div>
               </div>
-              <Badge className="bg-emerald-600 text-white text-[10px]">
+              <Badge className="bg-emerald-600 text-white text-3xs">
                 Carbon Neutral Verified
               </Badge>
             </div>
@@ -88,7 +91,7 @@ export function CarbonCertificateGenerator({
               </p>
             </div>
 
-            <div className="pt-3 border-t border-emerald-500/20 flex flex-wrap items-center justify-between gap-3 text-[11px] text-muted-foreground">
+            <div className="pt-3 border-t border-emerald-500/20 flex flex-wrap items-center justify-between gap-3 text-2xs text-muted-foreground">
               <span>Fecha de Validación: <strong>{new Date().toLocaleDateString('es-DO')}</strong></span>
               
               <div className="flex gap-2">

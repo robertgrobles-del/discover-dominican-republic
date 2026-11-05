@@ -1,3 +1,6 @@
+import { SectionIndex } from "@/components/SectionIndex";
+import { CalendarioSection } from "@/components/clima/CalendarioSection";
+import { VacacionesSection } from "@/components/clima/VacacionesSection";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
@@ -22,6 +25,7 @@ import {
   Mountain,
   ChevronRight,
 } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
 
 // JSON-LD schema for climate page
 const generateClimateSchema = () => ({
@@ -135,11 +139,16 @@ const eventosPorMes = [
 ];
 
 export default function ClimaTemporadas() {
+  const pc = usePageContent("clima-temporadas");
+  const temporadas = pc.data("temporadas", __pcData.temporadas);
+  const climaPorRegion = pc.data("climaPorRegion", __pcData.climaPorRegion);
+  const consejos = pc.data("consejos", __pcData.consejos);
+  const eventosPorMes = pc.data("eventosPorMes", __pcData.eventosPorMes);
   return (
     <PageTransition>
       <SEOHead
-        title="Clima y Temporadas en República Dominicana"
-        description="Descubre el clima tropical de República Dominicana. 300+ días de sol, temperaturas de 25-31°C y la mejor época para visitar según tus intereses."
+        title={pc.t("SEOHead.title.1", "Clima y Temporadas en República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Descubre el clima tropical de República Dominicana. 300+ días de sol, temperaturas de 25-31°C y la mejor época para visitar según tus intereses.")}
         keywords="clima República Dominicana, temporadas, mejor época visitar, temperatura Punta Cana, huracanes Caribe, vacaciones"
         jsonLd={generateClimateSchema()}
       />
@@ -157,31 +166,22 @@ export default function ClimaTemporadas() {
               className="max-w-3xl"
             >
               <Badge className="mb-4 bg-white/20 text-white border-white/30">
-                <Thermometer className="w-4 h-4 mr-2" />
-                Guía Climática
-              </Badge>
-              <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">
-                Clima y Temporadas de{" "}
-                <span className="text-cyan-400">República Dominicana</span>
+                <Thermometer className="w-4 h-4 mr-2" />{pc.tx("Badge.1", "Guía Climática")}</Badge>
+              <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">{pc.tx("h1.1", "Clima y Temporadas de")}{" "}
+                <span className="text-cyan-400">{pc.tx("span.1", "República Dominicana")}</span>
               </h1>
-              <p className="text-xl text-white/80 mb-8">
-                Con 300+ días de sol al año, siempre es buen momento para visitar. 
-                Descubre cuál es la mejor época según tus intereses.
-              </p>
+              <p className="text-xl text-white/80 mb-8">{pc.tx("p.1", "Con 300+ días de sol al año, siempre es buen momento para visitar. Descubre cuál es la mejor época según tus intereses.")}</p>
               <div className="flex flex-wrap gap-4">
                 <Button size="lg" className="gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Ver Calendario
-                </Button>
+                  <Calendar className="h-4 w-4" />{pc.tx("Button.1", "Ver Calendario")}</Button>
                 <Button asChild size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  <a href="https://indomet.gob.do/pronostico/informes-marino/informe-del-tiempo/" target="_blank" rel="noopener noreferrer">
-                    Pronóstico oficial
-                  </a>
+                  <a href="https://indomet.gob.do/pronostico/informes-marino/informe-del-tiempo/" target="_blank" rel="noopener noreferrer">{pc.tx("a.1", "Pronóstico oficial")}</a>
                 </Button>
               </div>
             </motion.div>
           </div>
         </section>
+        <SectionIndex items={[{ id: "calendario", label: "Calendario mensual" }, { id: "vacaciones", label: "Vacaciones en RD" }]} />
 
         {/* Pronóstico Actual */}
         <section className="py-8 bg-muted/30 border-y border-border/50">
@@ -189,12 +189,12 @@ export default function ClimaTemporadas() {
             <Card className="border-border/80 bg-card/70">
               <CardContent className="flex flex-col items-start justify-between gap-5 p-6 md:flex-row md:items-center">
                 <div>
-                  <h2 className="font-display text-xl font-bold text-foreground">Consulta las condiciones actuales</h2>
-                  <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Este portal no recibe datos meteorológicos en tiempo real. Revisa el pronóstico marítimo de INDOMET y las alertas oficiales del COE antes de salir.</p>
+                  <h2 className="font-display text-xl font-bold text-foreground">{pc.tx("h2.1", "Consulta las condiciones actuales")}</h2>
+                  <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{pc.tx("p.2", "Este portal no recibe datos meteorológicos en tiempo real. Revisa el pronóstico marítimo de INDOMET y las alertas oficiales del COE antes de salir.")}</p>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  <div className="flex flex-col items-start gap-2"><OfficialSourceBadge /><Button asChild><a href="https://indomet.gob.do/pronostico/informes-marino/informe-del-tiempo/" target="_blank" rel="noopener noreferrer">Pronóstico INDOMET</a></Button></div>
-                  <div className="flex flex-col items-start gap-2"><OfficialSourceBadge /><Button asChild variant="outline"><a href="https://www.coe.gob.do/" target="_blank" rel="noopener noreferrer">Alertas COE</a></Button></div>
+                  <div className="flex flex-col items-start gap-2"><OfficialSourceBadge /><Button asChild><a href="https://indomet.gob.do/pronostico/informes-marino/informe-del-tiempo/" target="_blank" rel="noopener noreferrer">{pc.tx("a.2", "Pronóstico INDOMET")}</a></Button></div>
+                  <div className="flex flex-col items-start gap-2"><OfficialSourceBadge /><Button asChild variant="outline"><a href="https://www.coe.gob.do/" target="_blank" rel="noopener noreferrer">{pc.tx("a.3", "Alertas COE")}</a></Button></div>
                 </div>
               </CardContent>
             </Card>
@@ -210,13 +210,10 @@ export default function ClimaTemporadas() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Las Tres <span className="text-gradient">Temporadas</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.2", "Las Tres")}{" "}<span className="text-gradient">{pc.tx("span.2", "Temporadas")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Entiende el clima dominicano para planificar tu viaje perfecto.
-              </p>
-              <p className="mt-2 text-xs text-muted-foreground">Las temperaturas y condiciones por temporada son referencias generales, no pronósticos actuales. Pueden variar según la zona y el año.</p>
+              <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.3", "Entiende el clima dominicano para planificar tu viaje perfecto.")}</p>
+              <p className="mt-2 text-xs text-muted-foreground">{pc.tx("p.4", "Las temperaturas y condiciones por temporada son referencias generales, no pronósticos actuales. Pueden variar según la zona y el año.")}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -239,22 +236,22 @@ export default function ClimaTemporadas() {
                     <div className="grid grid-cols-3 gap-4 mb-4">
                       <div className="text-center">
                         <Thermometer className="h-4 w-4 mx-auto text-primary mb-1" />
-                        <p className="text-xs text-muted-foreground">Temp.</p>
+                        <p className="text-xs text-muted-foreground">{pc.tx("p.5", "Temp.")}</p>
                         <p className="font-semibold text-foreground text-sm">{temp.temperatura}</p>
                       </div>
                       <div className="text-center">
                         <CloudRain className="h-4 w-4 mx-auto text-primary mb-1" />
-                        <p className="text-xs text-muted-foreground">Lluvia</p>
+                        <p className="text-xs text-muted-foreground">{pc.tx("p.6", "Lluvia")}</p>
                         <p className="font-semibold text-foreground text-sm">{temp.lluvia}</p>
                       </div>
                       <div className="text-center">
                         <Droplets className="h-4 w-4 mx-auto text-primary mb-1" />
-                        <p className="text-xs text-muted-foreground">Humedad</p>
+                        <p className="text-xs text-muted-foreground">{pc.tx("p.7", "Humedad")}</p>
                         <p className="font-semibold text-foreground text-sm">{temp.humedad}</p>
                       </div>
                     </div>
                     <div className="border-t border-border pt-4">
-                      <p className="text-xs text-muted-foreground mb-2">Recomendado para:</p>
+                      <p className="text-xs text-muted-foreground mb-2">{pc.tx("p.8", "Recomendado para:")}</p>
                       <div className="flex flex-wrap gap-1">
                         {temp.recomendaciones.map((rec) => (
                           <Badge key={rec} variant="secondary" className="text-xs">
@@ -279,12 +276,9 @@ export default function ClimaTemporadas() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Clima por <span className="text-gradient">Región</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.3", "Clima por")}{" "}<span className="text-gradient">{pc.tx("span.3", "Región")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Cada zona tiene su propio microclima. Elige según tus preferencias.
-              </p>
+              <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.9", "Cada zona tiene su propio microclima. Elige según tus preferencias.")}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -334,8 +328,7 @@ export default function ClimaTemporadas() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl font-bold mb-4">
-                Consejos <span className="text-gradient">Prácticos</span>
+              <h2 className="font-display text-3xl font-bold mb-4">{pc.tx("h2.4", "Consejos")}{" "}<span className="text-gradient">{pc.tx("span.4", "Prácticos")}</span>
               </h2>
             </motion.div>
 
@@ -369,8 +362,7 @@ export default function ClimaTemporadas() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl font-bold mb-4">
-                Qué Ver <span className="text-gradient">Cada Mes</span>
+              <h2 className="font-display text-3xl font-bold mb-4">{pc.tx("h2.5", "Qué Ver")}{" "}<span className="text-gradient">{pc.tx("span.5", "Cada Mes")}</span>
               </h2>
             </motion.div>
 
@@ -385,7 +377,7 @@ export default function ClimaTemporadas() {
                   className="bg-background rounded-xl p-4 text-center border border-border"
                 >
                   <item.icon className="h-6 w-6 text-primary mx-auto mb-2" />
-                  <h4 className="font-semibold text-foreground">{item.mes}</h4>
+                  <h3 className="h4 font-semibold text-foreground">{item.mes}</h3>
                   <p className="text-xs text-muted-foreground mt-1">{item.evento}</p>
                 </motion.div>
               ))}
@@ -401,23 +393,23 @@ export default function ClimaTemporadas() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-                ¿Listo para planificar?
-              </h2>
-              <p className="text-white/80 mb-8 max-w-xl mx-auto">
-                Usa nuestras herramientas para encontrar la fecha perfecta según tus intereses.
-              </p>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">{pc.tx("h2.6", "¿Listo para planificar?")}</h2>
+              <p className="text-white/80 mb-8 max-w-xl mx-auto">{pc.tx("p.10", "Usa nuestras herramientas para encontrar la fecha perfecta según tus intereses.")}</p>
               <Link to="/planifica">
-                <Button size="lg" className="gap-2 bg-white text-blue-900 hover:bg-white/90">
-                  Ir al Planificador <ChevronRight className="h-4 w-4" />
+                <Button size="lg" className="gap-2 bg-white text-blue-900 hover:bg-white/90">{pc.tx("Button.2", "Ir al Planificador")}{" "}<ChevronRight className="h-4 w-4" />
                 </Button>
               </Link>
             </motion.div>
           </div>
         </section>
 
+        <CalendarioSection />
+        <VacacionesSection />
         <Footer />
       </div>
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { temporadas, climaPorRegion, consejos, eventosPorMes };

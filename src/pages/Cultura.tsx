@@ -23,6 +23,7 @@ import historyImg from "@/assets/history.jpg";
 import gastronomyImg from "@/assets/gastronomy.jpg";
 import colonialDoorImg from "@/assets/colonial-door.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const culturalCategories = [
   { id: "all", label: "Todo el Patrimonio", icon: "🇩🇴" },
@@ -99,6 +100,10 @@ const unescoTreasures = [
 ];
 
 export default function Cultura() {
+  const pc = usePageContent("cultura");
+  const culturalCategories = pc.data("culturalCategories", __pcData.culturalCategories);
+  const unescoTreasures = pc.data("unescoTreasures", __pcData.unescoTreasures);
+  const festivals = pc.data("festivals", __pcData.festivals);
   const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState("all");
   const [isPlayingMusic, setIsPlayingMusic] = useState(false);
@@ -111,8 +116,8 @@ export default function Cultura() {
   return (
     <PageTransition>
       <SEOHead
-        title="Cultura, Tradiciones y Ritmos de República Dominicana | Descubre RD"
-        description="Explora 500 años de patrimonio: la Ciudad Colonial UNESCO, el Merengue, la Bachata, el Carnaval Vegano y la auténtica gastronomía criolla."
+        title={pc.t("SEOHead.title.1", "Cultura, Tradiciones y Ritmos de República Dominicana | Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Explora 500 años de patrimonio: la Ciudad Colonial UNESCO, el Merengue, la Bachata, el Carnaval Vegano y la auténtica gastronomía criolla.")}
         keywords="cultura dominicana, merengue unesco, bachata dominicana, carnaval vegano, zona colonial historia, gastronomia criolla rd"
       />
       <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-amber-500 selection:text-white">
@@ -122,8 +127,8 @@ export default function Cultura() {
         <section className="relative h-[65vh] min-h-[500px] w-full flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0">
             <img
-              src={merengueImg}
-              alt="Cultura, Danza y Tradiciones Dominicanas"
+              src={pc.img("img.src.1", merengueImg)}
+              alt={pc.t("img.alt.1", "Cultura, Danza y Tradiciones Dominicanas")}
               className="h-full w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/85 to-black/60" />
@@ -131,23 +136,17 @@ export default function Cultura() {
 
           <div className="relative z-10 text-center px-4 max-w-4xl mx-auto pt-16">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/30 text-xs font-mono uppercase tracking-widest px-4 py-1.5 mb-4 backdrop-blur-md">
-                🇩🇴 ALMA Y CORAZÓN DEL CARIBE
-              </Badge>
+              <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/30 text-xs font-mono uppercase tracking-widest px-4 py-1.5 mb-4 backdrop-blur-md">{pc.tx("Badge.1", "🇩🇴 ALMA Y CORAZÓN DEL CARIBE")}</Badge>
 
-              <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black mb-4 tracking-tight">
-                Cultura & <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 bg-clip-text text-transparent">Tradición Dominicana</span>
+              <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black mb-4 tracking-tight">{pc.tx("h1.1", "Cultura &")}{" "}<span className="bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 bg-clip-text text-transparent">{pc.tx("span.1", "Tradición Dominicana")}</span>
               </h1>
 
-              <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 font-light leading-relaxed">
-                500 años de historia viva donde confluyen la herencia taína, el pulso africano y el legado hispánico en una explosión de música, arte y hospitalidad.
-              </p>
+              <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 font-light leading-relaxed">{pc.tx("p.1", "500 años de historia viva donde confluyen la herencia taína, el pulso africano y el legado hispánico en una explosión de música, arte y hospitalidad.")}</p>
 
               <div className="flex flex-wrap justify-center gap-3">
                 <Button asChild className="bg-amber-600 hover:bg-amber-700 text-white font-medium px-6 py-5 rounded-xl shadow-lg shadow-amber-600/25">
                   <Link to="/patrimonio">
-                    <Landmark className="h-4 w-4 mr-2" /> Explorar Monumentos UNESCO
-                  </Link>
+                    <Landmark className="h-4 w-4 mr-2" />{" "}{pc.tx("Link.1", "Explorar Monumentos UNESCO")}</Link>
                 </Button>
                 <Button 
                   onClick={togglePlayMusic}
@@ -208,13 +207,9 @@ export default function Cultura() {
         <section className="py-16">
           <div className="container mx-auto px-4 max-w-6xl space-y-8">
             <div className="text-center max-w-2xl mx-auto">
-              <Badge className="bg-amber-500/20 text-amber-500 mb-2">RECONOCIMIENTO INTERNACIONAL</Badge>
-              <h2 className="font-display text-3xl sm:text-4xl font-black">
-                Patrimonio de la Humanidad UNESCO
-              </h2>
-              <p className="text-sm text-muted-foreground mt-2">
-                Bienes materiales e inmateriales que la República Dominicana le ha regalado al mundo entero.
-              </p>
+              <Badge className="bg-amber-500/20 text-amber-500 mb-2">{pc.tx("Badge.2", "RECONOCIMIENTO INTERNACIONAL")}</Badge>
+              <h2 className="font-display text-3xl sm:text-4xl font-black">{pc.tx("h2.1", "Patrimonio de la Humanidad UNESCO")}</h2>
+              <p className="text-sm text-muted-foreground mt-2">{pc.tx("p.2", "Bienes materiales e inmateriales que la República Dominicana le ha regalado al mundo entero.")}</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -252,8 +247,7 @@ export default function Cultura() {
                       </p>
                     </div>
                     <Button asChild variant="outline" size="sm" className="rounded-xl text-xs gap-1.5 hover:border-amber-500 hover:text-amber-500 self-start">
-                      <Link to={item.link}>
-                        Conocer más detalles <ChevronRight className="h-3.5 w-3.5" />
+                      <Link to={item.link}>{pc.tx("Link.2", "Conocer más detalles")}{" "}<ChevronRight className="h-3.5 w-3.5" />
                       </Link>
                     </Button>
                   </div>
@@ -270,14 +264,10 @@ export default function Cultura() {
           <div className="container mx-auto px-4 max-w-6xl space-y-10">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div>
-                <Badge className="bg-amber-500/20 text-amber-500 mb-2">TRADICIÓN EN VIVO</Badge>
-                <h2 className="font-display text-3xl font-black text-foreground">
-                  Grandes Festivales & Fiestas Populares
-                </h2>
+                <Badge className="bg-amber-500/20 text-amber-500 mb-2">{pc.tx("Badge.3", "TRADICIÓN EN VIVO")}</Badge>
+                <h2 className="font-display text-3xl font-black text-foreground">{pc.tx("h2.2", "Grandes Festivales & Fiestas Populares")}</h2>
               </div>
-              <p className="text-sm text-muted-foreground max-w-md">
-                Planifica tu viaje para coincidir con las expresiones folklóricas y musicales más electrizantes del Caribe.
-              </p>
+              <p className="text-sm text-muted-foreground max-w-md">{pc.tx("p.3", "Planifica tu viaje para coincidir con las expresiones folklóricas y musicales más electrizantes del Caribe.")}</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -299,9 +289,9 @@ export default function Cultura() {
                       <p className="text-xs text-amber-500 font-bold mb-1 flex items-center gap-1">
                         <MapPin className="h-3 w-3" /> {fest.location}
                       </p>
-                      <h4 className="font-display font-bold text-lg text-foreground mb-2 group-hover:text-amber-500 transition-colors">
+                      <h3 className="h4 font-display font-bold text-lg text-foreground mb-2 group-hover:text-amber-500 transition-colors">
                         {fest.name}
-                      </h4>
+                      </h3>
                       <p className="text-xs text-muted-foreground leading-relaxed">
                         {fest.description}
                       </p>
@@ -310,9 +300,7 @@ export default function Cultura() {
 
                   <div className="p-6 pt-0">
                     <Button asChild className="w-full btn-cta-magnetic bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs py-5">
-                      <Link to="/eventos">
-                        Ver Programa y Fechas de Salida →
-                      </Link>
+                      <Link to="/eventos">{pc.tx("Link.3", "Ver Programa y Fechas de Salida →")}</Link>
                     </Button>
                   </div>
                 </div>
@@ -325,13 +313,9 @@ export default function Cultura() {
         <section className="py-16 bg-muted/30 border-y border-border">
           <div className="container mx-auto px-4 max-w-6xl space-y-8">
             <div className="text-center max-w-2xl mx-auto">
-              <Badge className="bg-primary/20 text-primary mb-2">FOLKLORE VIVO & PERSONAJES</Badge>
-              <h2 className="font-display text-3xl sm:text-4xl font-black">
-                Personajes Icónicos del Carnaval Dominicano
-              </h2>
-              <p className="text-sm text-muted-foreground mt-2">
-                Símbolos satíricos y festivos creados por la imaginación popular que acompañan nuestras celebraciones.
-              </p>
+              <Badge className="bg-primary/20 text-primary mb-2">{pc.tx("Badge.4", "FOLKLORE VIVO & PERSONAJES")}</Badge>
+              <h2 className="font-display text-3xl sm:text-4xl font-black">{pc.tx("h2.3", "Personajes Icónicos del Carnaval Dominicano")}</h2>
+              <p className="text-sm text-muted-foreground mt-2">{pc.tx("p.4", "Símbolos satíricos y festivos creados por la imaginación popular que acompañan nuestras celebraciones.")}</p>
             </div>
 
             <div className="grid sm:grid-cols-3 gap-6">
@@ -361,7 +345,7 @@ export default function Cultura() {
                 <div key={i} className="bg-card rounded-2xl border border-border p-6 space-y-3 hover:border-primary/50 transition-all shadow-sm">
                   <div className="text-4xl">{p.icono}</div>
                   <div>
-                    <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider block">{p.origen}</span>
+                    <span className="text-3xs text-muted-foreground font-bold uppercase tracking-wider block">{p.origen}</span>
                     <h3 className="font-display text-lg font-bold text-foreground mt-0.5">{p.nombre}</h3>
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed">{p.desc}</p>
@@ -376,13 +360,9 @@ export default function Cultura() {
         <section className="py-16">
           <div className="container mx-auto px-4 max-w-6xl space-y-8">
             <div className="text-center max-w-2xl mx-auto">
-              <Badge className="bg-purple-500/20 text-purple-600 dark:text-purple-400 mb-2">ORALIDAD & MISTERIO</Badge>
-              <h2 className="font-display text-3xl sm:text-4xl font-black">
-                Mitos y Leyendas de Nuestra Tierra
-              </h2>
-              <p className="text-sm text-muted-foreground mt-2">
-                Relatos transmitidos de generación en generación en los campos y cordilleras de la República Dominicana.
-              </p>
+              <Badge className="bg-purple-500/20 text-purple-600 dark:text-purple-400 mb-2">{pc.tx("Badge.5", "ORALIDAD & MISTERIO")}</Badge>
+              <h2 className="font-display text-3xl sm:text-4xl font-black">{pc.tx("h2.4", "Mitos y Leyendas de Nuestra Tierra")}</h2>
+              <p className="text-sm text-muted-foreground mt-2">{pc.tx("p.5", "Relatos transmitidos de generación en generación en los campos y cordilleras de la República Dominicana.")}</p>
             </div>
 
             <div className="grid sm:grid-cols-3 gap-6">
@@ -416,18 +396,14 @@ export default function Cultura() {
           <div className="container mx-auto px-4 max-w-4xl text-center">
             <div className="bg-gradient-to-br from-amber-600/15 via-card to-orange-600/15 rounded-3xl p-8 sm:p-12 border border-amber-500/25">
               <BookOpen className="h-12 w-12 text-amber-500 mx-auto mb-4" />
-              <h3 className="font-display text-2xl sm:text-3xl font-black mb-3">
-                ¿Deseas profundizar en las Crónicas de la Historia?
-              </h3>
-              <p className="text-sm text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed">
-                Descubre los documentos y semblanzas sobre los próceres patrios, la Independencia de 1844 y la Gesta Restauradora en nuestro Archivo Histórico.
-              </p>
+              <h3 className="font-display text-2xl sm:text-3xl font-black mb-3">{pc.tx("h3.1", "¿Deseas profundizar en las Crónicas de la Historia?")}</h3>
+              <p className="text-sm text-muted-foreground max-w-xl mx-auto mb-8 leading-relaxed">{pc.tx("p.6", "Descubre los documentos y semblanzas sobre los próceres patrios, la Independencia de 1844 y la Gesta Restauradora en nuestro Archivo Histórico.")}</p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button asChild size="lg" className="bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-xl">
-                  <Link to="/historia">Leer Crónicas Históricas</Link>
+                  <Link to="/historia">{pc.tx("Link.4", "Leer Crónicas Históricas")}</Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="rounded-xl">
-                  <Link to="/recetas-criollas">Explorar Sabores Criollos</Link>
+                  <Link to="/recetas-criollas">{pc.tx("Link.5", "Explorar Sabores Criollos")}</Link>
                 </Button>
               </div>
             </div>
@@ -439,3 +415,6 @@ export default function Cultura() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { culturalCategories, unescoTreasures, festivals };

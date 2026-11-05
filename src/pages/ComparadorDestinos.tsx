@@ -17,7 +17,9 @@ import samanaImg from "@/assets/samana.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import puertoPlataImg from "@/assets/puerto-plata.jpg";
 import laRomanaImg from "@/assets/la-romana.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
+import { activateOnKey } from "@/lib/a11y";
 interface Destination {
   id: string;
   name: string;
@@ -185,6 +187,8 @@ function ComparisonRow({
 }
 
 export default function ComparadorDestinos() {
+  const pc = usePageContent("comparador-destinos");
+  const allDestinations = pc.data("allDestinations", __pcData.allDestinations);
   const [selectedDestinations, setSelectedDestinations] = useState<(Destination | null)[]>([
     allDestinations[0],
     allDestinations[1],
@@ -225,17 +229,13 @@ export default function ComparadorDestinos() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4"
-            >
-              Encuentra tu Paraíso Ideal
-            </motion.h1>
+            >{pc.tx("motion_h1.1", "Encuentra tu Paraíso Ideal")}</motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               className="text-muted-foreground text-lg max-w-2xl mx-auto"
-            >
-              Selecciona hasta 3 destinos y compara sus playas, precios y experiencias lado a lado para planificar tus vacaciones perfectas.
-            </motion.p>
+            >{pc.tx("motion_p.1", "Selecciona hasta 3 destinos y compara sus playas, precios y experiencias lado a lado para planificar tus vacaciones perfectas.")}</motion.p>
           </div>
         </section>
 
@@ -267,19 +267,19 @@ export default function ComparadorDestinos() {
                       <p className="text-xs font-semibold uppercase tracking-wider mb-1 text-primary">
                         {dest.region}
                       </p>
-                      <h3 className="text-2xl font-bold">{dest.name}</h3>
+                      <h2 className="h3 text-2xl font-bold">{dest.name}</h2>
                     </div>
                   </div>
                 ) : (
-                  <div
+                  <div role="button" tabIndex={0} onKeyDown={activateOnKey}
                     onClick={() => setShowSelector(index)}
                     className="h-64 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center bg-card/50 hover:bg-card transition-colors cursor-pointer group"
                   >
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                       <Plus className="h-6 w-6 text-primary" />
                     </div>
-                    <p className="font-bold text-foreground">Añadir Destino</p>
-                    <p className="text-sm text-muted-foreground">Buscar zona para comparar</p>
+                    <p className="font-bold text-foreground">{pc.tx("p.1", "Añadir Destino")}</p>
+                    <p className="text-sm text-muted-foreground">{pc.tx("p.2", "Buscar zona para comparar")}</p>
                   </div>
                 )}
               </motion.div>
@@ -303,12 +303,12 @@ export default function ComparadorDestinos() {
                   className="bg-card rounded-2xl border border-border p-6 max-w-lg w-full max-h-[70vh] overflow-hidden flex flex-col"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <h3 className="font-display text-xl font-bold mb-4">Seleccionar Destino</h3>
+                  <h3 className="font-display text-xl font-bold mb-4">{pc.tx("h3.1", "Seleccionar Destino")}</h3>
                   <div className="relative mb-4">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="text"
-                      placeholder="Buscar destino..."
+                      placeholder={pc.t("Input.placeholder.1", "Buscar destino...")}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10"
@@ -333,9 +333,7 @@ export default function ComparadorDestinos() {
                       </button>
                     ))}
                     {availableDestinations.length === 0 && (
-                      <p className="text-center text-muted-foreground py-8">
-                        No hay más destinos disponibles
-                      </p>
+                      <p className="text-center text-muted-foreground py-8">{pc.tx("p.3", "No hay más destinos disponibles")}</p>
                     )}
                   </div>
                 </motion.div>
@@ -355,9 +353,9 @@ export default function ComparadorDestinos() {
                   className={`p-6 text-center ${i < selectedDestinations.length - 1 ? "border-b md:border-b-0 md:border-r" : ""} border-border`}
                 >
                   {dest ? (
-                    <h4 className="font-bold text-xl text-foreground">{dest.name}</h4>
+                    <h3 className="h4 font-bold text-xl text-foreground">{dest.name}</h3>
                   ) : (
-                    <h4 className="font-medium text-xl italic text-muted-foreground">-- Vacío --</h4>
+                    <h4 className="font-medium text-xl italic text-muted-foreground">{pc.tx("h4.1", "-- Vacío --")}</h4>
                   )}
                 </div>
               ))}
@@ -365,36 +363,36 @@ export default function ComparadorDestinos() {
 
             {/* Rows */}
             <ComparisonRow
-              label="Tipo de Playa"
+              label={pc.t("ComparisonRow.label.1", "Tipo de Playa")}
               icon={Umbrella}
               values={selectedDestinations.map((d) => d?.beachType || null)}
             />
             <ComparisonRow
-              label="Costo Promedio"
+              label={pc.t("ComparisonRow.label.2", "Costo Promedio")}
               icon={DollarSign}
               values={selectedDestinations.map((d) => d?.costLevel || null)}
               type="dollars"
             />
             <ComparisonRow
-              label="Nivel de Aventura"
+              label={pc.t("ComparisonRow.label.3", "Nivel de Aventura")}
               icon={Activity}
               values={selectedDestinations.map((d) => d?.adventureLevel || null)}
               type="progress"
             />
             <ComparisonRow
-              label="Cultura e Historia"
+              label={pc.t("ComparisonRow.label.4", "Cultura e Historia")}
               icon={Camera}
               values={selectedDestinations.map((d) => d?.cultureLevel || null)}
               type="progress"
             />
             <ComparisonRow
-              label="Vida Nocturna"
+              label={pc.t("ComparisonRow.label.5", "Vida Nocturna")}
               icon={Users}
               values={selectedDestinations.map((d) => d?.nightlifeLevel || null)}
               type="progress"
             />
             <ComparisonRow
-              label="Mejor Temporada"
+              label={pc.t("ComparisonRow.label.6", "Mejor Temporada")}
               icon={Thermometer}
               values={selectedDestinations.map((d) => d?.bestSeason || null)}
             />
@@ -406,3 +404,6 @@ export default function ComparadorDestinos() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { allDestinations };

@@ -76,7 +76,7 @@ export const DetailInclusionsCard: React.FC<DetailInclusionsCardProps> = ({
           </h4>
           <ul className="grid sm:grid-cols-2 gap-2 text-xs text-muted-foreground">
             {recommendations.map((tip, idx) => (
-              <li key={idx} className="flex items-start gap-1.5 text-[11px] leading-relaxed">
+              <li key={idx} className="flex items-start gap-1.5 text-2xs leading-relaxed">
                 <span className="text-amber-500 font-bold">•</span>
                 <span>{tip}</span>
               </li>

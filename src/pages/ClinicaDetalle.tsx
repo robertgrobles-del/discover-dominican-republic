@@ -11,8 +11,10 @@ import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { SEOHead } from "@/components/SEOHead";
+import { usePageContent } from "@/lib/pageContent";
+import { useCollectionRecord, str, numOr, list, extras } from "@/lib/collectionPage";
 
-const clinica = {
+const clinicaLocal = {
   id: "centro-medico-punta-cana",
   name: "Centro Médico Punta Cana",
   type: "Hospital General",
@@ -65,7 +67,24 @@ const clinica = {
 };
 
 export default function ClinicaDetalle() {
+  const pc = usePageContent("clinica-detalle");
   const { slug: id } = useParams<{ slug: string }>();
+  // La ficha sale de la colección «Clínicas» del panel; la ficha local es la plantilla de respaldo para lo que falte.
+  const { item } = useCollectionRecord("clinics", id, id === clinicaLocal.id ? clinicaLocal : undefined, (r, b) => {
+    const base = b ?? clinicaLocal;
+    const x = extras(r) as Partial<typeof clinicaLocal>;
+    const specialties = list(r.specialties);
+    return {
+      ...base, id: str(r.slug, base.id), name: str(r.name, base.name), type: str(r.clinic_type, b?.type ?? "Centro de salud"), location: str(x.location, b?.location ?? str(r.address)),
+      address: str(r.address, b?.address), rating: numOr(r.rating, b?.rating ?? 0), reviewCount: numOr(r.review_count, b?.reviewCount ?? 0), description: str(r.description, b?.description),
+      image: str(r.image_url, base.image), certifications: list(r.certifications, b?.certifications), languages: list(r.languages, b?.languages ?? ["Español"]),
+      specialties: specialties.length ? specialties.map((name) => ({ name, available: true })) : b?.specialties ?? [],
+      services: list(r.services, b?.services as string[] | undefined) as typeof base.services,
+      treatments: x.treatments ?? b?.treatments ?? [], testimonials: x.testimonials ?? b?.testimonials ?? [], hours: x.hours ?? base.hours, nearbyHotels: x.nearbyHotels ?? b?.nearbyHotels ?? [],
+      contact: { ...base.contact, phone: str(r.phone, base.contact.phone), emergency: str(r.emergency_phone, str(r.phone, base.contact.emergency)) },
+    };
+  });
+  const clinica = item ?? clinicaLocal;
 
   return (
     <PageTransition>
@@ -92,15 +111,14 @@ export default function ClinicaDetalle() {
                   <Heart className="h-3 w-3 mr-1" /> {clinica.type}
                 </Badge>
                 <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                  <Shield className="h-3 w-3 mr-1" /> Emergencias 24/7
-                </Badge>
+                  <Shield className="h-3 w-3 mr-1" />{" "}{pc.tx("Badge.1", "Emergencias 24/7")}</Badge>
               </div>
               <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{clinica.name}</h1>
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
                   <span className="font-medium text-foreground">{clinica.rating}</span>
-                  <span>({clinica.reviewCount} reseñas)</span>
+                  <span>({clinica.reviewCount}{" "}{pc.tx("span.1", "reseñas)")}</span>
                 </div>
                 <span>·</span>
                 <div className="flex items-center gap-1">
@@ -118,7 +136,7 @@ export default function ClinicaDetalle() {
             <div className="lg:col-span-2 space-y-12">
               {/* About */}
               <section>
-                <h2 className="font-display text-2xl font-bold text-foreground mb-4">Sobre la Clínica</h2>
+                <h2 className="font-display text-2xl font-bold text-foreground mb-4">{pc.tx("h2.1", "Sobre la Clínica")}</h2>
                 <p className="text-muted-foreground leading-relaxed mb-6">{clinica.description}</p>
                 
                 {/* Certifications */}
@@ -133,7 +151,7 @@ export default function ClinicaDetalle() {
 
               {/* Specialties */}
               <section>
-                <h3 className="font-display text-xl font-bold text-foreground mb-6">Especialidades</h3>
+                <h3 className="font-display text-xl font-bold text-foreground mb-6">{pc.tx("h3.1", "Especialidades")}</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {clinica.specialties.map((spec) => (
                     <div key={spec.name} className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border">
@@ -148,21 +166,21 @@ export default function ClinicaDetalle() {
 
               {/* Treatments & Prices */}
               <section>
-                <h3 className="font-display text-xl font-bold text-foreground mb-6">Tratamientos y Precios Orientativos</h3>
+                <h3 className="font-display text-xl font-bold text-foreground mb-6">{pc.tx("h3.2", "Tratamientos y Precios Orientativos")}</h3>
                 <div className="space-y-3">
                   {clinica.treatments.map((treatment) => (
                     <div key={treatment.name} className="flex items-center justify-between p-4 bg-card rounded-xl border border-border">
                       <span className="font-medium text-foreground">{treatment.name}</span>
-                      <span className="text-primary font-bold">Desde ${treatment.priceFrom} {treatment.currency}</span>
+                      <span className="text-primary font-bold">{pc.tx("span.2", "Desde $")}{treatment.priceFrom} {treatment.currency}</span>
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground mt-4">* Los precios son orientativos y pueden variar según el caso.</p>
+                <p className="text-xs text-muted-foreground mt-4">{pc.tx("p.1", "* Los precios son orientativos y pueden variar según el caso.")}</p>
               </section>
 
               {/* Services */}
               <section>
-                <h3 className="font-display text-xl font-bold text-foreground mb-6">Servicios</h3>
+                <h3 className="font-display text-xl font-bold text-foreground mb-6">{pc.tx("h3.3", "Servicios")}</h3>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {clinica.services.map((service) => (
                     <div key={service} className="flex items-center gap-2 text-muted-foreground">
@@ -175,7 +193,7 @@ export default function ClinicaDetalle() {
 
               {/* Testimonials */}
               <section>
-                <h3 className="font-display text-xl font-bold text-foreground mb-6">Testimonios de Pacientes</h3>
+                <h3 className="font-display text-xl font-bold text-foreground mb-6">{pc.tx("h3.4", "Testimonios de Pacientes")}</h3>
                 <div className="space-y-4">
                   {clinica.testimonials.map((review, i) => (
                     <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="bg-card rounded-xl p-5 border border-border">
@@ -186,7 +204,7 @@ export default function ClinicaDetalle() {
                           </div>
                           <div>
                             <p className="font-medium text-foreground">{review.name}</p>
-                            <p className="text-xs text-muted-foreground">{review.country} · Tratamiento: {review.treatment}</p>
+                            <p className="text-xs text-muted-foreground">{review.country}{" "}{pc.tx("p.2", "· Tratamiento:")}{" "}{review.treatment}</p>
                           </div>
                         </div>
                         <div className="flex gap-0.5">
@@ -207,28 +225,26 @@ export default function ClinicaDetalle() {
               {/* Emergency Contact */}
               <div className="bg-red-500/10 rounded-xl border border-red-500/20 p-6">
                 <h3 className="font-display font-bold text-foreground mb-2 flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-red-500" /> Emergencias
-                </h3>
+                  <Shield className="h-5 w-5 text-red-500" />{" "}{pc.tx("h3.5", "Emergencias")}</h3>
                 <p className="text-2xl font-bold text-red-500 mb-4">{clinica.contact.emergency}</p>
                 <Button className="w-full bg-red-500 hover:bg-red-600 gap-2">
-                  <Phone className="h-4 w-4" /> Llamar Emergencias
-                </Button>
+                  <Phone className="h-4 w-4" />{" "}{pc.tx("Button.1", "Llamar Emergencias")}</Button>
               </div>
 
               {/* Hours */}
               <div className="bg-card rounded-xl border border-border p-6">
-                <h3 className="font-display font-bold text-foreground mb-4">Horarios</h3>
+                <h3 className="font-display font-bold text-foreground mb-4">{pc.tx("h3.6", "Horarios")}</h3>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Emergencias</span>
+                    <span className="text-muted-foreground">{pc.tx("span.3", "Emergencias")}</span>
                     <span className="font-medium text-foreground">{clinica.hours.emergencies}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Consultas</span>
+                    <span className="text-muted-foreground">{pc.tx("span.4", "Consultas")}</span>
                     <span className="font-medium text-foreground">{clinica.hours.consultation}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Laboratorio</span>
+                    <span className="text-muted-foreground">{pc.tx("span.5", "Laboratorio")}</span>
                     <span className="font-medium text-foreground">{clinica.hours.lab}</span>
                   </div>
                 </div>
@@ -236,23 +252,21 @@ export default function ClinicaDetalle() {
 
               {/* Contact */}
               <div className="bg-card rounded-xl border border-border p-6">
-                <h3 className="font-display font-bold text-foreground mb-4">Contacto</h3>
+                <h3 className="font-display font-bold text-foreground mb-4">{pc.tx("h3.7", "Contacto")}</h3>
                 <div className="space-y-3">
                   <Button variant="outline" className="w-full gap-2 justify-start">
                     <Phone className="h-4 w-4 text-primary" /> {clinica.contact.phone}
                   </Button>
                   <Button variant="outline" className="w-full gap-2 justify-start">
-                    <MessageSquare className="h-4 w-4 text-green-500" /> WhatsApp
-                  </Button>
+                    <MessageSquare className="h-4 w-4 text-green-500" />{" "}{pc.tx("Button.2", "WhatsApp")}</Button>
                   <Button variant="outline" className="w-full gap-2 justify-start">
-                    <Mail className="h-4 w-4 text-primary" /> Email
-                  </Button>
+                    <Mail className="h-4 w-4 text-primary" />{" "}{pc.tx("Button.3", "Email")}</Button>
                 </div>
               </div>
 
               {/* Languages */}
               <div className="bg-card rounded-xl border border-border p-6">
-                <h3 className="font-display font-bold text-foreground mb-4">Idiomas</h3>
+                <h3 className="font-display font-bold text-foreground mb-4">{pc.tx("h3.8", "Idiomas")}</h3>
                 <div className="flex flex-wrap gap-2">
                   {clinica.languages.map((lang) => (
                     <Badge key={lang} variant="outline">{lang}</Badge>
@@ -262,7 +276,7 @@ export default function ClinicaDetalle() {
 
               {/* Nearby Hotels */}
               <div className="bg-card rounded-xl border border-border p-6">
-                <h3 className="font-display font-bold text-foreground mb-4">Hoteles Cercanos</h3>
+                <h3 className="font-display font-bold text-foreground mb-4">{pc.tx("h3.9", "Hoteles Cercanos")}</h3>
                 <div className="space-y-2">
                   {clinica.nearbyHotels.map((hotel) => (
                     <Link key={hotel} to="#" className="flex items-center justify-between p-2 rounded-lg hover:bg-muted transition-colors">
@@ -275,7 +289,7 @@ export default function ClinicaDetalle() {
 
               {/* Location */}
               <div className="bg-card rounded-xl border border-border p-6">
-                <h3 className="font-display font-bold text-foreground mb-4">Ubicación</h3>
+                <h3 className="font-display font-bold text-foreground mb-4">{pc.tx("h3.10", "Ubicación")}</h3>
                 <div className="aspect-video bg-muted rounded-lg flex items-center justify-center mb-4">
                   <MapPin className="h-8 w-8 text-primary" />
                 </div>
@@ -284,11 +298,10 @@ export default function ClinicaDetalle() {
 
               {/* Consultation CTA */}
               <div className="bg-primary/10 rounded-xl border border-primary/20 p-6">
-                <h3 className="font-display font-bold text-foreground mb-2">Consulta Online</h3>
-                <p className="text-sm text-muted-foreground mb-4">Agenda una consulta virtual con nuestros especialistas.</p>
+                <h3 className="font-display font-bold text-foreground mb-2">{pc.tx("h3.11", "Consulta Online")}</h3>
+                <p className="text-sm text-muted-foreground mb-4">{pc.tx("p.3", "Agenda una consulta virtual con nuestros especialistas.")}</p>
                 <Button className="w-full gap-2">
-                  <Calendar className="h-4 w-4" /> Agendar Consulta
-                </Button>
+                  <Calendar className="h-4 w-4" />{" "}{pc.tx("Button.4", "Agendar Consulta")}</Button>
               </div>
             </div>
           </div>
@@ -299,3 +312,6 @@ export default function ClinicaDetalle() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = {};

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SEOHead } from "@/components/SEOHead";
+import { usePageContent } from "@/lib/pageContent";
 
 /** Fase 10.50: página pública de estatus, sobre los datos que ya expone GET /health/detailed en el backend
  * (Fastify). No inventa nada nuevo del lado de datos: sólo los presenta de forma legible para el público. */
@@ -37,6 +38,10 @@ const SERVICE_LABEL: Record<string, string> = {
 };
 
 export default function EstadoServicio() {
+  const pc = usePageContent("estado-servicio");
+  const STATUS_COLOR = pc.data("STATUS_COLOR", __pcData.STATUS_COLOR);
+  const SERVICE_LABEL = pc.data("SERVICE_LABEL", __pcData.SERVICE_LABEL);
+  const STATUS_LABEL = pc.data("STATUS_LABEL", __pcData.STATUS_LABEL);
   const [data, setData] = useState<HealthDetailed | null>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -68,13 +73,13 @@ export default function EstadoServicio() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <SEOHead
-        title="Estatus del servicio"
-        description="Estado en vivo de los servicios de Descubre República Dominicana: base de datos, correo y caché."
+        title={pc.t("SEOHead.title.1", "Estatus del servicio")}
+        description={pc.t("SEOHead.description.1", "Estado en vivo de los servicios de Descubre República Dominicana: base de datos, correo y caché.")}
       />
       <Header />
       <main className="flex-1 container mx-auto px-4 py-12 max-w-2xl">
-        <h1 className="text-3xl font-bold mb-2">Estatus del servicio</h1>
-        <p className="text-muted-foreground mb-8">Estado en vivo de los componentes internos de la plataforma. Se actualiza solo cada minuto.</p>
+        <h1 className="text-3xl font-bold mb-2">{pc.tx("h1.1", "Estatus del servicio")}</h1>
+        <p className="text-muted-foreground mb-8">{pc.tx("p.1", "Estado en vivo de los componentes internos de la plataforma. Se actualiza solo cada minuto.")}</p>
 
         {loading && !data && (
           <div className="space-y-4">
@@ -84,11 +89,8 @@ export default function EstadoServicio() {
 
         {error && !data && (
           <Card className="border-red-600/30">
-            <CardContent className="p-6 text-center text-muted-foreground">
-              No se pudo consultar el estatus en este momento.
-              <Button variant="outline" size="sm" className="mt-4 mx-auto flex" onClick={fetchStatus}>
-                <RefreshCw className="h-4 w-4 mr-2" /> Reintentar
-              </Button>
+            <CardContent className="p-6 text-center text-muted-foreground">{pc.tx("CardContent.1", "No se pudo consultar el estatus en este momento.")}<Button variant="outline" size="sm" className="mt-4 mx-auto flex" onClick={fetchStatus}>
+                <RefreshCw className="h-4 w-4 mr-2" />{" "}{pc.tx("Button.1", "Reintentar")}</Button>
             </CardContent>
           </Card>
         )}
@@ -102,7 +104,7 @@ export default function EstadoServicio() {
                   <p className="font-semibold text-lg">
                     {data.status === "up" ? "Todos los sistemas operan con normalidad" : data.status === "degraded" ? "Algunos servicios están degradados" : "Interrupción del servicio"}
                   </p>
-                  {checkedAt && <p className="text-xs text-muted-foreground">Última verificación: {checkedAt.toLocaleTimeString("es-DO")}</p>}
+                  {checkedAt && <p className="text-xs text-muted-foreground">{pc.tx("p.2", "Última verificación:")}{" "}{checkedAt.toLocaleTimeString("es-DO")}</p>}
                 </div>
               </CardContent>
             </Card>
@@ -113,7 +115,7 @@ export default function EstadoServicio() {
                 return (
                   <Card key={name}>
                     <CardHeader className="flex flex-row items-center justify-between py-4">
-                      <CardTitle className="text-base font-medium">{SERVICE_LABEL[name] ?? name}</CardTitle>
+                      <CardTitle as="h2" className="text-base font-medium">{SERVICE_LABEL[name] ?? name}</CardTitle>
                       <Badge variant="outline" className={`gap-1.5 ${STATUS_COLOR[check.status] ?? ""}`}>
                         <Icon className="h-3.5 w-3.5" /> {STATUS_LABEL[check.status] ?? check.status}
                       </Badge>
@@ -124,8 +126,7 @@ export default function EstadoServicio() {
             </div>
 
             <Button variant="ghost" size="sm" className="mt-6" onClick={fetchStatus} disabled={loading}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} /> Actualizar ahora
-            </Button>
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />{" "}{pc.tx("Button.2", "Actualizar ahora")}</Button>
           </>
         )}
       </main>
@@ -133,3 +134,6 @@ export default function EstadoServicio() {
     </div>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { STATUS_COLOR, SERVICE_LABEL, STATUS_LABEL };

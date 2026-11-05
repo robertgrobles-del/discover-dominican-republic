@@ -51,13 +51,13 @@ export const EventSidebarCard: React.FC<EventSidebarCardProps> = ({
     <div className="rounded-3xl bg-card border border-border p-6 shadow-xl space-y-6 sticky top-24">
       {/* Price & Status */}
       <div className="border-b border-border/60 pb-4">
-        <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+        <span className="text-3xs text-muted-foreground uppercase font-bold tracking-wider">
           Acceso & Boletas
         </span>
         <h3 className="font-display font-black text-2xl text-foreground mt-0.5">
           {priceRange}
         </h3>
-        <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1 flex items-center gap-1">
+        <p className="text-2xs text-emerald-600 dark:text-emerald-400 font-semibold mt-1 flex items-center gap-1">
           <ShieldCheck className="h-3.5 w-3.5" /> Evento Oficial Dominicano
         </p>
       </div>
@@ -65,25 +65,25 @@ export const EventSidebarCard: React.FC<EventSidebarCardProps> = ({
       {/* Countdown Clock */}
       {countdown && !isPastOrToday && (
         <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/10 via-amber-500/5 to-transparent border border-primary/20 space-y-2 text-center">
-          <span className="text-[10px] uppercase font-bold text-primary flex items-center justify-center gap-1">
+          <span className="text-3xs uppercase font-bold text-primary flex items-center justify-center gap-1">
             <Clock className="h-3 w-3" /> Faltan para el inicio
           </span>
           <div className="grid grid-cols-4 gap-1.5 font-mono text-xs">
             <div className="bg-background/80 p-2 rounded-xl border border-border">
               <span className="font-black text-base text-foreground block">{countdown.days}</span>
-              <span className="text-[9px] text-muted-foreground uppercase">Días</span>
+              <span className="text-3xs text-muted-foreground uppercase">Días</span>
             </div>
             <div className="bg-background/80 p-2 rounded-xl border border-border">
               <span className="font-black text-base text-foreground block">{countdown.hours}</span>
-              <span className="text-[9px] text-muted-foreground uppercase">Hrs</span>
+              <span className="text-3xs text-muted-foreground uppercase">Hrs</span>
             </div>
             <div className="bg-background/80 p-2 rounded-xl border border-border">
               <span className="font-black text-base text-foreground block">{countdown.minutes}</span>
-              <span className="text-[9px] text-muted-foreground uppercase">Min</span>
+              <span className="text-3xs text-muted-foreground uppercase">Min</span>
             </div>
             <div className="bg-background/80 p-2 rounded-xl border border-border">
               <span className="font-black text-base text-foreground block text-amber-500">{countdown.seconds}</span>
-              <span className="text-[9px] text-muted-foreground uppercase">Seg</span>
+              <span className="text-3xs text-muted-foreground uppercase">Seg</span>
             </div>
           </div>
         </div>

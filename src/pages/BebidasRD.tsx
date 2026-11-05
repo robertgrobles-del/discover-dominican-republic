@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner";
 
 import gastronomyImg from "@/assets/gastronomy.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 interface Bebida {
   name: string;
@@ -105,6 +106,9 @@ const recetasCocteles = [
 ];
 
 export default function BebidasRD() {
+  const pc = usePageContent("bebidas-rd");
+  const bebidasList = pc.data("bebidasList", __pcData.bebidasList);
+  const recetasCocteles = pc.data("recetasCocteles", __pcData.recetasCocteles);
   const [activeTab, setActiveTab] = useState<string>("all");
 
   const filteredBebidas = bebidasList.filter(bebida => {
@@ -115,8 +119,8 @@ export default function BebidasRD() {
   return (
     <PageTransition>
       <SEOHead
-        title="Guía de Bebidas y Licores de República Dominicana | Ron, Mamajuana y Más"
-        description="Descubre las bebidas emblemáticas de RD: Ron dominicano añejo, Mamajuana taína, Cerveza Presidente, Morir Soñando y Mabí. Recetas y rutas de degustación."
+        title={pc.t("SEOHead.title.1", "Guía de Bebidas y Licores de República Dominicana | Ron, Mamajuana y Más")}
+        description={pc.t("SEOHead.description.1", "Descubre las bebidas emblemáticas de RD: Ron dominicano añejo, Mamajuana taína, Cerveza Presidente, Morir Soñando y Mabí. Recetas y rutas de degustación.")}
         keywords="bebidas republica dominicana, ron dominicano, mamajuana receta, morir soñando dominicano, cerveza presidente, mabi seibano"
       />
       <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -126,46 +130,40 @@ export default function BebidasRD() {
         <section className="relative h-[65vh] min-h-[480px] flex items-end overflow-hidden">
           <img
             src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1920&h=800&fit=crop"
-            alt="Bebidas, Licores y Cócteles Típicos de República Dominicana"
+            alt={pc.t("img.alt.1", "Bebidas, Licores y Cócteles Típicos de República Dominicana")}
             className="absolute inset-0 w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-black/30" />
 
           <div className="relative z-10 container mx-auto px-4 lg:px-8 pb-12">
             <nav className="flex items-center gap-2 text-xs md:text-sm text-white/80 mb-4">
-              <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
+              <Link to="/" className="hover:text-primary transition-colors">{pc.tx("Link.1", "Inicio")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <Link to="/guia-gastronomica" className="hover:text-primary transition-colors">Gastronomía</Link>
+              <Link to="/guia-gastronomica" className="hover:text-primary transition-colors">{pc.tx("Link.2", "Gastronomía")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <span className="text-white font-medium">Bebidas y Licores de RD</span>
+              <span className="text-white font-medium">{pc.tx("span.1", "Bebidas y Licores de RD")}</span>
             </nav>
 
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div>
-                <Badge className="mb-3 bg-amber-500/20 text-amber-300 border-amber-500/30 text-xs px-3 py-1 font-semibold">
-                  🍹 PATRIMONIO LÍQUIDO DE QUISQUEYA
-                </Badge>
-                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">
-                  Bebidas & Licores de RD
-                </h1>
-                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">
-                  Desde rones centenarios galardonados internacionalmente y el místico elixir de mamajuana hasta batidas tropicales como el morir soñando.
-                </p>
+                <Badge className="mb-3 bg-amber-500/20 text-amber-300 border-amber-500/30 text-xs px-3 py-1 font-semibold">{pc.tx("Badge.1", "🍹 PATRIMONIO LÍQUIDO DE QUISQUEYA")}</Badge>
+                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">{pc.tx("h1.1", "Bebidas & Licores de RD")}</h1>
+                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">{pc.tx("p.1", "Desde rones centenarios galardonados internacionalmente y el místico elixir de mamajuana hasta batidas tropicales como el morir soñando.")}</p>
               </div>
 
               {/* Stats pill */}
               <div className="flex flex-wrap gap-3 bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-white">
                 <div className="text-center px-3 border-r border-white/10 last:border-none">
                   <p className="font-display text-2xl font-bold text-amber-400">1888</p>
-                  <p className="text-[11px] text-white/70 uppercase">Herencia Ronera</p>
+                  <p className="text-2xs text-white/70 uppercase">{pc.tx("p.2", "Herencia Ronera")}</p>
                 </div>
                 <div className="text-center px-3 border-r border-white/10 last:border-none">
                   <p className="font-display text-2xl font-bold text-emerald-400">100%</p>
-                  <p className="text-[11px] text-white/70 uppercase">Ingredientes Naturales</p>
+                  <p className="text-2xs text-white/70 uppercase">{pc.tx("p.3", "Ingredientes Naturales")}</p>
                 </div>
                 <div className="text-center px-3">
-                  <p className="font-display text-2xl font-bold text-primary">Taína</p>
-                  <p className="text-[11px] text-white/70 uppercase">Raíz Ancestral</p>
+                  <p className="font-display text-2xl font-bold text-primary">{pc.tx("p.4", "Taína")}</p>
+                  <p className="text-2xs text-white/70 uppercase">{pc.tx("p.5", "Raíz Ancestral")}</p>
                 </div>
               </div>
             </div>
@@ -173,14 +171,14 @@ export default function BebidasRD() {
         </section>
 
         {/* Category Tabs */}
-        <section className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border/80 py-4 shadow-sm">
+        <section className="bg-background/95 backdrop-blur-md border-b border-border/80 py-4 shadow-sm">
           <div className="container mx-auto px-4 lg:px-8 flex justify-center">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="bg-card border border-border">
-                <TabsTrigger value="all">Todas ({bebidasList.length})</TabsTrigger>
-                <TabsTrigger value="alcohol">Espirituosas & Ron</TabsTrigger>
-                <TabsTrigger value="traditional">Ancestrales & Tradicionales</TabsTrigger>
-                <TabsTrigger value="non-alcohol">Sin Alcohol & Batidas</TabsTrigger>
+                <TabsTrigger value="all">{pc.tx("TabsTrigger.1", "Todas (")}{bebidasList.length})</TabsTrigger>
+                <TabsTrigger value="alcohol">{pc.tx("TabsTrigger.2", "Espirituosas & Ron")}</TabsTrigger>
+                <TabsTrigger value="traditional">{pc.tx("TabsTrigger.3", "Ancestrales & Tradicionales")}</TabsTrigger>
+                <TabsTrigger value="non-alcohol">{pc.tx("TabsTrigger.4", "Sin Alcohol & Batidas")}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -201,7 +199,7 @@ export default function BebidasRD() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/20" />
 
                   <div className="absolute top-3 left-3">
-                    <Badge className="bg-amber-500 text-slate-950 font-bold border-none text-[11px]">
+                    <Badge className="bg-amber-500 text-slate-950 font-bold border-none text-2xs">
                       {bebida.category === "alcohol" ? "Espirituosa" : bebida.category === "traditional" ? "Tradición Ancestral" : "Sin Alcohol"}
                     </Badge>
                   </div>
@@ -220,21 +218,21 @@ export default function BebidasRD() {
                 </div>
 
                 <CardContent className="p-5 flex flex-col flex-1">
-                  <h3 className="font-display font-bold text-xl text-foreground mb-2">
+                  <h2 className="h3 font-display font-bold text-xl text-foreground mb-2">
                     {bebida.name}
-                  </h3>
+                  </h2>
                   <p className="text-xs text-muted-foreground leading-relaxed mb-4 flex-1">
                     {bebida.history}
                   </p>
 
                   <div className="p-3 bg-muted/30 rounded-xl border border-border/60 text-xs text-muted-foreground space-y-1 mb-4">
-                    <strong className="text-foreground block text-[11px] uppercase tracking-wider">Notas de Cata:</strong>
+                    <strong className="text-foreground block text-2xs uppercase tracking-wider">{pc.tx("strong.1", "Notas de Cata:")}</strong>
                     <p className="italic">{bebida.notes}</p>
                   </div>
 
                   <div className="pt-3 border-t border-border flex flex-wrap gap-1.5">
                     {bebida.brands.map((b) => (
-                      <Badge key={b} variant="secondary" className="text-[10px]">
+                      <Badge key={b} variant="secondary" className="text-3xs">
                         {b}
                       </Badge>
                     ))}
@@ -249,15 +247,9 @@ export default function BebidasRD() {
         <section className="py-16 bg-card/40 border-y border-border/50">
           <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
             <div className="text-center mb-12">
-              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
-                RECETARIO DOMINICANO
-              </Badge>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
-                Cómo Preparar Cócteles y Bebidas Icónicas
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
-                Fáciles de hacer en casa o en tu villa de vacaciones para saborear el auténtico espíritu caribeño.
-              </p>
+              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">{pc.tx("Badge.2", "RECETARIO DOMINICANO")}</Badge>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">{pc.tx("h2.1", "Cómo Preparar Cócteles y Bebidas Icónicas")}</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">{pc.tx("p.6", "Fáciles de hacer en casa o en tu villa de vacaciones para saborear el auténtico espíritu caribeño.")}</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -266,7 +258,7 @@ export default function BebidasRD() {
                   <div>
                     <h3 className="font-display font-bold text-xl text-foreground mb-3">{receta.nombre}</h3>
                     <div className="mb-4">
-                      <h4 className="text-xs font-bold text-primary uppercase mb-2">Ingredientes:</h4>
+                      <h4 className="text-xs font-bold text-primary uppercase mb-2">{pc.tx("h4.1", "Ingredientes:")}</h4>
                       <ul className="space-y-1 text-xs text-muted-foreground">
                         {receta.ingredientes.map((ing, i) => (
                           <li key={i} className="flex items-center gap-1.5">
@@ -278,7 +270,7 @@ export default function BebidasRD() {
                     </div>
                   </div>
                   <div className="p-3 bg-secondary/40 rounded-xl border border-border/50 text-xs text-muted-foreground">
-                    <strong className="text-foreground block mb-1">Preparación:</strong>
+                    <strong className="text-foreground block mb-1">{pc.tx("strong.2", "Preparación:")}</strong>
                     {receta.preparacion}
                   </div>
                 </div>
@@ -299,3 +291,6 @@ export default function BebidasRD() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { bebidasList, recetasCocteles };

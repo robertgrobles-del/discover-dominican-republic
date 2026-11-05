@@ -51,7 +51,7 @@ export default function Anuncios() {
                   <p className="text-sm text-muted-foreground">{formatMoney(l.price, l.currency)} · {l.duration || "—"} · {l.capacity} cupos</p>
                   {l.rooms && l.rooms.length > 0 && (
                     <div className="flex flex-wrap gap-1">{l.rooms.map((r) => (
-                      <Button key={r.id} size="sm" variant="secondary" className="h-6 text-[11px] px-2 gap-1" onClick={() => copyLink(`/operador/${org.slug}/${l.slug}?habitacion=${r.id}`)}><Copy className="h-3 w-3" /> {r.name}</Button>
+                      <Button key={r.id} size="sm" variant="secondary" className="h-6 text-2xs px-2 gap-1" onClick={() => copyLink(`/operador/${org.slug}/${l.slug}?habitacion=${r.id}`)}><Copy className="h-3 w-3" /> {r.name}</Button>
                     ))}</div>
                   )}
                   <div className="mt-auto pt-2 flex flex-wrap gap-1">

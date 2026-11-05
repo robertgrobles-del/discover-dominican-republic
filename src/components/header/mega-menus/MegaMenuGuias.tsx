@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { MegaMenuAdCard } from "./MegaMenuAdCard";
 import { 
   Heart, Building2, Newspaper, BookOpen, Utensils, 
   Coffee, Leaf, HeartPulse, ChevronRight 
@@ -23,7 +24,7 @@ export function MegaMenuGuias({ onClose, gastronomyImg }: MegaMenuGuiasProps) {
     { name: "Rutas Gastronómicas", desc: "Cacao, café, tabaco, ron y cocina local", href: "/rutas-sabor", icon: Utensils },
     { name: "Guía de Restaurantes", desc: "Platos típicos, chefs y alta cocina", href: "/guia-gastronomica", icon: Coffee },
     { name: "Turismo Sostenible", desc: "Reservas de biósfera y ecoturismo", href: "/sostenible", icon: Leaf },
-    { name: "Spas & Bienestar", desc: "Relajación y centros de bienestar", href: "/spas-wellness", icon: HeartPulse },
+    { name: "Spas & Bienestar", desc: "Relajación y centros de bienestar", href: "/wellness#spas", icon: HeartPulse },
   ];
 
   return (
@@ -55,7 +56,7 @@ export function MegaMenuGuias({ onClose, gastronomyImg }: MegaMenuGuiasProps) {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-foreground group-hover:text-primary transition-colors text-xs truncate leading-tight">{item.name}</p>
-                <p className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5">{item.desc}</p>
+                <p className="text-2xs text-muted-foreground truncate leading-tight mt-0.5">{item.desc}</p>
               </div>
             </Link>
           ))}
@@ -89,7 +90,7 @@ export function MegaMenuGuias({ onClose, gastronomyImg }: MegaMenuGuiasProps) {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-foreground group-hover:text-primary transition-colors text-xs truncate leading-tight">{item.name}</p>
-                <p className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5">{item.desc}</p>
+                <p className="text-2xs text-muted-foreground truncate leading-tight mt-0.5">{item.desc}</p>
               </div>
             </Link>
           ))}
@@ -98,15 +99,7 @@ export function MegaMenuGuias({ onClose, gastronomyImg }: MegaMenuGuiasProps) {
 
       {/* Col 3: Publicidad & Revista (4 cols) */}
       <div className="lg:col-span-4 flex flex-col gap-3 justify-between">
-        <Link to="/rutas-sabor" onClick={onClose} className="block group relative rounded-2xl overflow-hidden h-36 shadow-md">
-          <img src={gastronomyImg} alt="Rutas del Cacao & Ron" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-3.5">
-            <SponsoredBadge sponsor="Ruta del Cacao & Ron" className="mb-1 text-[10px]" />
-            <h4 className="font-display text-sm font-bold text-white leading-tight">Experiencia Cacao & Ron Añejo</h4>
-            <p className="text-white/85 text-xs">Catas guiadas y talleres artesanales premium</p>
-          </div>
-        </Link>
+        <MegaMenuAdCard section="megamenu-guias" onClose={onClose} fallback={{ to: "/rutas-sabor", img: gastronomyImg, alt: "Rutas del Cacao & Ron", sponsor: "Ruta del Cacao & Ron", title: "Experiencia Cacao & Ron Añejo", text: "Catas guiadas y talleres artesanales premium" }} />
 
         <Link 
           to="/revista" 
@@ -119,7 +112,7 @@ export function MegaMenuGuias({ onClose, gastronomyImg }: MegaMenuGuiasProps) {
             </div>
             <div>
               <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">Edición Especial Revista RD</p>
-              <p className="text-[10px] text-muted-foreground">10 joyas ocultas por descubrir este mes</p>
+              <p className="text-3xs text-muted-foreground">10 joyas ocultas por descubrir este mes</p>
             </div>
           </div>
           <ChevronRight className="h-4 w-4 text-amber-600 group-hover:translate-x-1 transition-transform" />

@@ -12,6 +12,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { SEOHead } from "@/components/SEOHead";
 import { getMountainBySlug, Mountain as MountainType, rangeLabels } from "@/data/mountains";
+import { usePageContent } from "@/lib/pageContent";
 
 const difficultyLabels: Record<MountainType['difficulty'], { label: string; color: string }> = {
   'facil': { label: 'Fácil', color: 'bg-green-500' },
@@ -21,6 +22,8 @@ const difficultyLabels: Record<MountainType['difficulty'], { label: string; colo
 };
 
 export default function MontanaDetalle() {
+  const pc = usePageContent("montana-detalle");
+  const difficultyLabels = pc.data("difficultyLabels", __pcData.difficultyLabels);
   const { slug } = useParams<{ slug: string }>();
   const mountain = slug ? getMountainBySlug(slug) : undefined;
 
@@ -28,16 +31,16 @@ export default function MontanaDetalle() {
     return (
       <PageTransition>
         <SEOHead
-          title="Montaña no encontrada"
-          description="La montaña que buscas no existe o ha sido movida. Explora todas las montañas de República Dominicana."
+          title={pc.t("SEOHead.title.1", "Montaña no encontrada")}
+          description={pc.t("SEOHead.description.1", "La montaña que buscas no existe o ha sido movida. Explora todas las montañas de República Dominicana.")}
         />
         <div className="min-h-screen bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32 text-center">
-            <h1 className="text-3xl font-bold mb-4">Montaña no encontrada</h1>
-            <p className="text-muted-foreground mb-8">La montaña que buscas no existe o ha sido movida.</p>
+            <h1 className="text-3xl font-bold mb-4">{pc.tx("h1.1", "Montaña no encontrada")}</h1>
+            <p className="text-muted-foreground mb-8">{pc.tx("p.1", "La montaña que buscas no existe o ha sido movida.")}</p>
             <Link to="/montanas">
-              <Button>Ver todas las montañas</Button>
+              <Button>{pc.tx("Button.1", "Ver todas las montañas")}</Button>
             </Link>
           </div>
           <Footer />
@@ -66,9 +69,9 @@ export default function MontanaDetalle() {
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12">
             <div className="container mx-auto">
               <nav className="flex items-center gap-2 text-sm text-white/70 mb-4">
-                <Link to="/" className="hover:text-white">Inicio</Link>
+                <Link to="/" className="hover:text-white">{pc.tx("Link.1", "Inicio")}</Link>
                 <ChevronRight className="h-4 w-4" />
-                <Link to="/montanas" className="hover:text-white">Montañas</Link>
+                <Link to="/montanas" className="hover:text-white">{pc.tx("Link.2", "Montañas")}</Link>
                 <ChevronRight className="h-4 w-4" />
                 <span className="text-white">{mountain.name}</span>
               </nav>
@@ -112,13 +115,13 @@ export default function MontanaDetalle() {
 
               {/* Description */}
               <div>
-                <h2 className="font-display text-2xl font-bold text-foreground mb-4">Sobre {mountain.name}</h2>
+                <h2 className="font-display text-2xl font-bold text-foreground mb-4">{pc.tx("h2.1", "Sobre")}{" "}{mountain.name}</h2>
                 <p className="text-muted-foreground leading-relaxed">{mountain.description}</p>
               </div>
 
               {/* Activities */}
               <div>
-                <h2 className="font-display text-xl font-bold text-foreground mb-4">Actividades</h2>
+                <h2 className="font-display text-xl font-bold text-foreground mb-4">{pc.tx("h2.2", "Actividades")}</h2>
                 <div className="flex flex-wrap gap-2">
                   {mountain.activities.map((act, i) => (
                     <Badge key={i} variant="secondary">{act}</Badge>
@@ -128,7 +131,7 @@ export default function MontanaDetalle() {
 
               {/* Highlights */}
               <div>
-                <h2 className="font-display text-xl font-bold text-foreground mb-4">Puntos Destacados</h2>
+                <h2 className="font-display text-xl font-bold text-foreground mb-4">{pc.tx("h2.3", "Puntos Destacados")}</h2>
                 <ul className="grid md:grid-cols-2 gap-3">
                   {mountain.highlights.map((h, i) => (
                     <li key={i} className="flex items-start gap-2">
@@ -143,8 +146,7 @@ export default function MontanaDetalle() {
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <h3 className="font-display text-lg font-bold text-foreground mb-3 flex items-center gap-2">
-                    <TreePine className="h-5 w-5 text-green-500" /> Flora
-                  </h3>
+                    <TreePine className="h-5 w-5 text-green-500" />{" "}{pc.tx("h3.1", "Flora")}</h3>
                   <ul className="space-y-2">
                     {mountain.flora.map((f, i) => (
                       <li key={i} className="text-sm text-muted-foreground flex items-center gap-2">
@@ -155,8 +157,7 @@ export default function MontanaDetalle() {
                 </div>
                 <div>
                   <h3 className="font-display text-lg font-bold text-foreground mb-3 flex items-center gap-2">
-                    <Mountain className="h-5 w-5 text-amber-500" /> Fauna
-                  </h3>
+                    <Mountain className="h-5 w-5 text-amber-500" />{" "}{pc.tx("h3.2", "Fauna")}</h3>
                   <ul className="space-y-2">
                     {mountain.fauna.map((f, i) => (
                       <li key={i} className="text-sm text-muted-foreground flex items-center gap-2">
@@ -170,7 +171,7 @@ export default function MontanaDetalle() {
               {/* Gallery */}
               {mountain.gallery.length > 0 && (
                 <div>
-                  <h2 className="font-display text-xl font-bold text-foreground mb-4">Galería</h2>
+                  <h2 className="font-display text-xl font-bold text-foreground mb-4">{pc.tx("h2.4", "Galería")}</h2>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     {mountain.gallery.map((img, i) => (
                       <div key={i} className="aspect-square rounded-xl overflow-hidden">
@@ -186,26 +187,26 @@ export default function MontanaDetalle() {
             <div className="space-y-6">
               {/* Info Card */}
               <div className="p-6 rounded-2xl bg-card border border-border">
-                <h3 className="font-display text-lg font-bold text-foreground mb-4">Información Práctica</h3>
+                <h3 className="font-display text-lg font-bold text-foreground mb-4">{pc.tx("h3.3", "Información Práctica")}</h3>
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <Navigation className="h-5 w-5 text-primary mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-foreground">Cómo llegar</p>
+                      <p className="text-sm font-medium text-foreground">{pc.tx("p.2", "Cómo llegar")}</p>
                       <p className="text-sm text-muted-foreground">{mountain.howToGetThere}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Clock className="h-5 w-5 text-primary mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-foreground">Mejor temporada</p>
+                      <p className="text-sm font-medium text-foreground">{pc.tx("p.3", "Mejor temporada")}</p>
                       <p className="text-sm text-muted-foreground">{mountain.bestSeason}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <Thermometer className="h-5 w-5 text-primary mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-foreground">Precio</p>
+                      <p className="text-sm font-medium text-foreground">{pc.tx("p.4", "Precio")}</p>
                       <p className="text-sm text-muted-foreground">{mountain.priceRange}</p>
                     </div>
                   </div>
@@ -214,23 +215,21 @@ export default function MontanaDetalle() {
 
               {/* Difficulty */}
               <div className="p-6 rounded-2xl bg-card border border-border">
-                <h3 className="font-display text-lg font-bold text-foreground mb-4">Dificultad</h3>
+                <h3 className="font-display text-lg font-bold text-foreground mb-4">{pc.tx("h3.4", "Dificultad")}</h3>
                 <div className="flex items-center gap-3 mb-4">
                   <span className={`w-3 h-3 rounded-full ${diff.color}`} />
                   <span className="font-semibold text-foreground">{diff.label}</span>
                 </div>
                 {mountain.guidesRequired && (
                   <p className="text-sm text-amber-600 dark:text-amber-400 flex items-center gap-2">
-                    <Users className="h-4 w-4" /> Guía obligatorio
-                  </p>
+                    <Users className="h-4 w-4" />{" "}{pc.tx("p.5", "Guía obligatorio")}</p>
                 )}
               </div>
 
               {/* Safety Tips */}
               <div className="p-6 rounded-2xl bg-card border border-border">
                 <h3 className="font-display text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-amber-500" /> Seguridad
-                </h3>
+                  <AlertTriangle className="h-5 w-5 text-amber-500" />{" "}{pc.tx("h3.5", "Seguridad")}</h3>
                 <ul className="space-y-2">
                   {mountain.safetyTips.map((tip, i) => (
                     <li key={i} className="flex items-start gap-2">
@@ -249,3 +248,6 @@ export default function MontanaDetalle() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { difficultyLabels };

@@ -43,7 +43,12 @@ describe("estancias de creadores y gamificación patrocinada", () => {
   it("quien dirige una organización de operador también puede, sin rol global", async () => {
     const owner = await account();
     expect((await call("GET", "/operators/creator-stays", { token: owner.token })).statusCode).toBe(403);
-    expect((await call("POST", "/orgs", { token: owner.token, payload: { business_name: `Estancias ${Date.now()}` } })).statusCode).toBe(201);
+    const org = await call("POST", "/orgs", { token: owner.token, payload: { business_name: `Estancias ${Date.now()}` } });
+    expect(org.statusCode).toBe(201);
+    // Registrar la organización es autoservicio: sin verificar no publica estancias ni ve postulantes.
+    expect((await call("GET", "/operators/creator-stays", { token: owner.token })).statusCode).toBe(403);
+    expect((await call("POST", "/operators/creator-stays", { token: owner.token, payload: stayBody })).statusCode).toBe(403);
+    await pool.query("UPDATE partner_profiles SET verification = 'verified' WHERE id = $1", [json(org).data.id]);
     expect((await call("GET", "/operators/creator-stays", { token: owner.token })).statusCode).toBe(200);
     expect((await call("GET", "/operators/sponsorship/challenges", { token: owner.token })).statusCode).toBe(200);
     expect((await call("GET", "/admin/gamification/sponsored-challenges", { token: owner.token })).statusCode).toBe(403);
@@ -81,7 +86,16 @@ describe("estancias de creadores y gamificación patrocinada", () => {
   });
 
   it("los entregables los ve administración, no el negocio ni un usuario cualquiera", async () => {
-    expect((await call("POST", `/creators/stays/${applicationId}/deliverables`, { token: creator.token, payload: { content_links: ["https://example.com/reel"] } })).statusCode).toBe(200);
+    const deliver = (links: string[]) => call("POST", `/creators/stays/${applicationId}/deliverables`, { token: creator.token, payload: { content_links: links } });
+    // Sin aprobación del negocio el creador no puede cerrar la postulación por su cuenta.
+    expect((await deliver(["https://example.com/reel"])).statusCode).toBe(404);
+    await call("PATCH", `/operators/creator-stay-applications/${applicationId}`, { token: partner.token, payload: { status: "rejected" } });
+    expect((await deliver(["https://example.com/reel"])).statusCode).toBe(404);
+    await call("PATCH", `/operators/creator-stay-applications/${applicationId}`, { token: partner.token, payload: { status: "approved" } });
+    expect((await deliver(["javascript:alert(1)"])).statusCode).toBe(400);
+    const done = await deliver(["https://example.com/reel"]);
+    expect(done.statusCode).toBe(200);
+    expect(json(done).data.status).toBe("completed");
     expect((await call("GET", "/admin/creators/stay-deliverables", { token: partner.token })).statusCode).toBe(403);
     const res = await call("GET", "/admin/creators/stay-deliverables", { token: admin.token });
     expect(res.statusCode).toBe(200);

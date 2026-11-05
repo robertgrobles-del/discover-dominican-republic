@@ -554,31 +554,49 @@ export class CreatorService {
   /** Telemetría de video (vistas, likes, conversiones) y acumulación de métricas */
   async trackVideoEvent(input: VideoEventInput): Promise<{ recorded: boolean }> {
     const ipHash = input.ip ? createHash("sha256").update(input.ip).digest("hex").slice(0, 16) : null;
-    const v = (await this.db.query<{ creator_id: string }>("SELECT creator_id FROM creator_videos WHERE id = $1", [input.video_id])).rows[0];
-    if (!v) throw AppError.notFound("Video");
+    const v = (await this.db.query<{ creator_id: string; status: string }>("SELECT creator_id, status FROM creator_videos WHERE id = $1", [input.video_id])).rows[0];
+    // Sólo los videos publicados suman métricas públicas (y reputación).
+    if (!v || v.status !== "published") throw AppError.notFound("Video");
+    // Quién cuenta: la cuenta si hay sesión; si no, la IP (hash). session_id lo elige el cliente y no sirve para deduplicar.
+    const actor = input.user_id ? `u:${input.user_id}` : ipHash ? `ip:${ipHash}` : null;
+    if (!actor) return { recorded: false };
 
-    await this.db.query("BEGIN");
+    // Transacción en un cliente dedicado: BEGIN/COMMIT a través del pool pueden caer en conexiones distintas.
+    const c = await this.db.connect();
     try {
-      await this.db.query(
+      await c.query("BEGIN");
+      await c.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`video-event:${input.video_id}:${input.event_type}:${actor}`]);
+      // Una vista por persona y día; un like o un compartido por persona y video.
+      const window = input.event_type === "view_start" || input.event_type === "view_complete" ? "AND created_at > now() - interval '24 hours'" : "";
+      const dup = await c.query(
+        `SELECT 1 FROM creator_video_events
+          WHERE video_id = $1 AND event_type = $2 AND ${input.user_id ? "user_id = $3" : "user_id IS NULL AND ip_hash = $3"} ${window} LIMIT 1`,
+        [input.video_id, input.event_type, input.user_id ?? ipHash],
+      );
+      if (dup.rowCount) { await c.query("ROLLBACK"); return { recorded: false }; }
+
+      await c.query(
         `INSERT INTO creator_video_events (video_id, creator_id, event_type, watch_time_seconds, session_id, user_id, ip_hash)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
         [input.video_id, v.creator_id, input.event_type, input.watch_time_seconds ?? 0, input.session_id ?? null, input.user_id ?? null, ipHash],
       );
 
       if (input.event_type === "view_complete" || input.event_type === "view_start") {
-        await this.db.query("UPDATE creator_videos SET views_count = views_count + 1 WHERE id = $1", [input.video_id]);
-        await this.db.query("UPDATE creator_profiles SET total_views = total_views + 1 WHERE id = $1", [v.creator_id]);
+        await c.query("UPDATE creator_videos SET views_count = views_count + 1 WHERE id = $1", [input.video_id]);
+        await c.query("UPDATE creator_profiles SET total_views = total_views + 1 WHERE id = $1", [v.creator_id]);
       } else if (input.event_type === "like") {
-        await this.db.query("UPDATE creator_videos SET likes_count = likes_count + 1 WHERE id = $1", [input.video_id]);
+        await c.query("UPDATE creator_videos SET likes_count = likes_count + 1 WHERE id = $1", [input.video_id]);
       } else if (input.event_type === "share") {
-        await this.db.query("UPDATE creator_videos SET shares_count = shares_count + 1 WHERE id = $1", [input.video_id]);
+        await c.query("UPDATE creator_videos SET shares_count = shares_count + 1 WHERE id = $1", [input.video_id]);
       }
 
-      await this.db.query("COMMIT");
+      await c.query("COMMIT");
       return { recorded: true };
     } catch (e) {
-      await this.db.query("ROLLBACK");
+      await c.query("ROLLBACK").catch(() => undefined);
       throw e;
+    } finally {
+      c.release();
     }
   }
 

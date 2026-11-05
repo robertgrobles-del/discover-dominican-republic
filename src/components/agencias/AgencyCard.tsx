@@ -63,7 +63,7 @@ export function AgencyCard({ agency, index }: AgencyCardProps) {
                 {agency.isDemo && (
                   <Badge
                     variant="outline"
-                    className="text-[10px] border-yellow-500/40 text-yellow-600 dark:text-yellow-400"
+                    className="text-3xs border-yellow-500/40 text-yellow-600 dark:text-yellow-400"
                   >
                     Demo
                   </Badge>
@@ -100,7 +100,7 @@ export function AgencyCard({ agency, index }: AgencyCardProps) {
           {agency.specialties && agency.specialties.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-4">
               {agency.specialties.slice(0, 3).map((s) => (
-                <Badge key={s} variant="secondary" className="text-[10px]">
+                <Badge key={s} variant="secondary" className="text-3xs">
                   {s}
                 </Badge>
               ))}

@@ -74,7 +74,7 @@ function ProductCard({ p, onBuy }: { p: Producto; onBuy: (producto: Producto) =>
         )}
         <FavoriteButton id={p.id} type="destino" name={p.nombre} image={p.imagen} className="absolute top-3 right-3" />
         <div className="absolute bottom-3 left-3 right-3">
-          <h3 className="text-base font-bold text-white line-clamp-1">{p.nombre}</h3>
+          <h2 className="h3 text-base font-bold text-white line-clamp-1">{p.nombre}</h2>
           <p className="text-white/80 text-xs">{p.vendedor}</p>
         </div>
       </div>
@@ -82,7 +82,7 @@ function ProductCard({ p, onBuy }: { p: Producto; onBuy: (producto: Producto) =>
         <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{p.descripcion}</p>
         <div className="flex flex-wrap gap-1 mb-2">
           {p.tags.map((t) => (
-            <Badge key={t} variant="outline" className="text-[10px]">{t}</Badge>
+            <Badge key={t} variant="outline" className="text-3xs">{t}</Badge>
           ))}
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
@@ -94,7 +94,7 @@ function ProductCard({ p, onBuy }: { p: Producto; onBuy: (producto: Producto) =>
           <span className="text-sm font-bold text-primary">{p.precio}</span>
           <div className="flex items-center gap-1.5">
             {p.envio && (
-              <Badge variant="secondary" className="text-[10px] gap-1 hidden sm:flex">
+              <Badge variant="secondary" className="text-3xs gap-1 hidden sm:flex">
                 <Truck className="h-3 w-3" /> Envío
               </Badge>
             )}

@@ -426,17 +426,22 @@ export class MarketplaceService {
   }
 
   private async refundItem(itemId: string, opts: { restock: boolean; onlyPending?: boolean }) {
-    const it = (await this.db.query<{ order_id: string; product_id: string | null; quantity: number; line_total: string; fulfillment_status: string; refunded: boolean; payout_id: string | null; amount_paid: string }>("SELECT i.order_id, i.product_id, i.quantity, i.line_total, i.fulfillment_status, i.refunded, i.payout_id, o.amount_paid FROM marketplace_order_items i JOIN marketplace_orders o ON o.id = i.order_id WHERE i.id = $1", [itemId])).rows[0];
-    if (!it) throw AppError.notFound("Artículo");
-    if (it.refunded || it.fulfillment_status === "cancelled") throw new AppError("BUSINESS_RULE", "El artículo ya fue cancelado o reembolsado", { code: "INVALID_STATE" });
-    if (it.payout_id) throw new AppError("BUSINESS_RULE", "El artículo ya se liquidó al vendedor", { code: "ITEM_ALREADY_SETTLED" });
-    if (opts.onlyPending && it.fulfillment_status !== "pending") throw new AppError("BUSINESS_RULE", "El artículo ya salió; no se puede cancelar", { code: "INVALID_STATE" });
-    if (Number(it.amount_paid) > 0) await this.refundAmount(it.order_id, Number(it.line_total), `item:${itemId}`);
-    await this.tx(async (c) => {
+    // El artículo queda bloqueado desde la verificación hasta marcarlo reembolsado: dos cancelaciones simultáneas no pueden
+    // reembolsar ni reponer el inventario dos veces (la segunda espera y ve "refunded").
+    const it = await this.tx(async (c) => {
+      const it = (await c.query<{ order_id: string; product_id: string | null; quantity: number; line_total: string; fulfillment_status: string; refunded: boolean; payout_id: string | null; amount_paid: string; refund_amount: string | null }>("SELECT i.order_id, i.product_id, i.quantity, i.line_total, i.fulfillment_status, i.refunded, i.payout_id, o.amount_paid, o.refund_amount FROM marketplace_order_items i JOIN marketplace_orders o ON o.id = i.order_id WHERE i.id = $1 FOR UPDATE OF i", [itemId])).rows[0];
+      if (!it) throw AppError.notFound("Artículo");
+      if (it.refunded || it.fulfillment_status === "cancelled") throw new AppError("BUSINESS_RULE", "El artículo ya fue cancelado o reembolsado", { code: "INVALID_STATE" });
+      if (it.payout_id) throw new AppError("BUSINESS_RULE", "El artículo ya se liquidó al vendedor", { code: "ITEM_ALREADY_SETTLED" });
+      if (opts.onlyPending && it.fulfillment_status !== "pending") throw new AppError("BUSINESS_RULE", "El artículo ya salió; no se puede cancelar", { code: "INVALID_STATE" });
+      // Nunca más de lo que queda por devolver del cobro.
+      const refundable = Math.min(Number(it.line_total), Math.max(0, Number(it.amount_paid) - Number(it.refund_amount ?? 0)));
+      if (refundable > 0) await this.refundAmount(it.order_id, refundable, `item:${itemId}`);
       const restock = opts.restock && it.fulfillment_status !== "delivered";
       if (restock && it.product_id) await c.query("UPDATE marketplace_products SET stock = stock + $2, updated_at = now() WHERE id = $1", [it.product_id, it.quantity]);
-      await c.query("UPDATE marketplace_order_items SET refunded = true, fulfillment_status = CASE WHEN fulfillment_status = 'delivered' THEN 'delivered' ELSE 'cancelled' END WHERE id = $1", [itemId]);
+      await c.query("UPDATE marketplace_order_items SET refunded = true, fulfillment_status = CASE WHEN fulfillment_status = 'delivered' THEN 'delivered' ELSE 'cancelled' END WHERE id = $1 AND NOT refunded", [itemId]);
       await this.refreshStatus(c, it.order_id);
+      return it;
     });
     await this.onMoneyChange?.(it.order_id);
     return it.order_id;

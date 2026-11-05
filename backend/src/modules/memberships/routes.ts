@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { AppError } from "../../lib/errors.js";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { PUBLIC_CACHE } from "../../plugins/etag.js";
@@ -48,6 +49,8 @@ export async function membershipsRoutes(app: FastifyInstance) {
       response: { 201: ok },
     },
   }, async (req, reply) => {
+    // Sin integración de cobro: sólo el proveedor de pruebas puede activarlo, para no dar por pagado algo que nadie cobró.
+    if (app.env.PAYMENT_PROVIDER !== "fake") throw new AppError("SERVICE_UNAVAILABLE", "La suscripción a Pasaporte RD no está disponible todavía: falta conectar el cobro");
     const membership = await app.membershipsService.subscribeUserToPlan(
       req.user!.id,
       req.body.plan_slug_or_id,

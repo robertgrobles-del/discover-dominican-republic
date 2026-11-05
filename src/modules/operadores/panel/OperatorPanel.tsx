@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, CalendarDays, Store, MessageSquare, ClipboardList, Coins, BadgeDollarSign, UserCog, Zap, Megaphone, Tag,
-  HandHelping, Users, BarChart3, Building2, ExternalLink, ArrowLeft, Loader2, BadgeCheck, Clock, Trophy, Sparkles, Menu, X, Bell, LogOut, type LucideIcon,
+  HandHelping, Users, BarChart3, Building2, ExternalLink, ArrowLeft, Loader2, BadgeCheck, Clock, Trophy, Sparkles, Menu, X, Bell, LogOut, QrCode, type LucideIcon,
 } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,7 @@ import Ingresos from "./Ingresos";
 import Informacion from "./Informacion";
 import Promocion from "./Promocion";
 import RecompensasRetos from "./RecompensasRetos";
+import ValidarRetos from "./ValidarRetos";
 import EstanciasCreadores from "./EstanciasCreadores";
 import Reportes from "./Reportes";
 import Perfil from "./Perfil";
@@ -50,6 +51,7 @@ const NAV: { to: string; label: string; icon: LucideIcon; group: NavGroup; end?:
   { to: "reservas", label: "Reservas", icon: ClipboardList, group: "operaciones" },
   { to: "solicitudes", label: "Solicitudes", icon: HandHelping, group: "operaciones", badge: "requests" },
   { to: "mensajes", label: "Mensajes", icon: MessageSquare, group: "operaciones", badge: "messages" },
+  { to: "validar-retos", label: "Validar retos", icon: QrCode, group: "operaciones" },
   { to: "tarifas", label: "Tarifas", icon: BadgeDollarSign, group: "ingresos" },
   { to: "ingresos", label: "Ingresos", icon: Coins, group: "ingresos" },
   { to: "promocion", label: "Promoción", icon: Tag, group: "ingresos" },
@@ -166,7 +168,7 @@ function Shell() {
                   >
                     <n.icon className="h-4 w-4" />
                     <span className="flex-1 truncate">{n.label}</span>
-                    {count > 0 && <span className="rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">{count}</span>}
+                    {count > 0 && <span className="rounded-full bg-primary px-1.5 text-3xs font-bold text-primary-foreground">{count}</span>}
                   </NavLink>
                 );
               })}
@@ -236,6 +238,7 @@ function Shell() {
             <Route path="anuncios/nuevo" element={g("anuncios", <AnuncioWizard />)} />
             <Route path="anuncios/:id" element={g("anuncios", <AnuncioWizard />)} />
             <Route path="recompensas" element={g("recompensas", <RecompensasRetos />)} />
+            <Route path="validar-retos" element={g("validar-retos", <ValidarRetos />)} />
             <Route path="creadores" element={g("creadores", <EstanciasCreadores />)} />
             <Route path="mensajes" element={g("mensajes", <Mensajes />)} />
             <Route path="reservas" element={g("reservas", <Reservas />)} />
@@ -278,7 +281,7 @@ export default function OperatorPanel() {
   if (authLoading || (user && orgQuery.isLoading)) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   }
-  if (!user) return <Navigate to="/partner/login?returnTo=/operadores/panel" replace />;
+  if (!user) return <Navigate to="/login?returnTo=/operadores/panel" replace />;
   if (!orgQuery.data) {
     const fallbackName = (user.user_metadata as any)?.display_name || user.email?.split("@")[0] || "Mi organización";
     return <OrgOnboarding userId={user.id} defaultName={fallbackName} email={user.email || undefined} />;

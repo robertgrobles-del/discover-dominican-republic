@@ -251,7 +251,7 @@ export default function ReclamarReserva() {
                 <Alert className="border-amber-500/40 bg-amber-50 text-amber-950 dark:bg-amber-950/40 dark:text-amber-100">
                   <AlertCircle className="h-4 w-4" aria-hidden="true" />
                   <AlertTitle className="flex items-center gap-2">
-                    <Badge variant="outline" className="border-amber-600 text-[10px] uppercase tracking-wide">
+                    <Badge variant="outline" className="border-amber-600 text-3xs uppercase tracking-wide">
                       demo
                     </Badge>
                     Modo de demostración
@@ -429,7 +429,7 @@ export default function ReclamarReserva() {
                 <section aria-labelledby="intro-heading" className="space-y-6">
                   <Card className="rounded-2xl">
                     <CardHeader>
-                      <CardTitle id="intro-heading" className="text-xl">
+                      <CardTitle as="h2" id="intro-heading" className="text-xl">
                         ¿Qué es reclamar una reserva?
                       </CardTitle>
                       <CardDescription>
@@ -448,7 +448,7 @@ export default function ReclamarReserva() {
                       </ol>
                       <Alert>
                         <MailCheck className="h-4 w-4" aria-hidden="true" />
-                        <AlertTitle>¿Perdiste el enlace?</AlertTitle>
+                        <AlertTitle as="h3">¿Perdiste el enlace?</AlertTitle>
                         <AlertDescription>
                           Puedes pedir uno nuevo con el identificador de tu reserva y el token de acceso que aparece
                           en el correo de confirmación. Por seguridad, nunca confirmamos si un correo coincide con la

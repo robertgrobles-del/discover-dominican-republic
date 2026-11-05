@@ -299,7 +299,7 @@ export function AdminFinanceLotteryManager() {
                       className="font-mono font-bold tracking-wider"
                       required
                     />
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-2xs text-muted-foreground">
                       Introduce los bolos de 2 dígitos. Los 3 primeros recibirán medallas (1º, 2º, 3º).
                     </p>
                   </div>
@@ -361,7 +361,7 @@ export function AdminFinanceLotteryManager() {
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="font-bold text-[10px] uppercase">
+                          <Badge variant="secondary" className="font-bold text-3xs uppercase">
                             {item.companyName}
                           </Badge>
                           <span className="font-bold text-sm text-foreground">{item.drawName}</span>
@@ -377,7 +377,7 @@ export function AdminFinanceLotteryManager() {
                             </span>
                           ))}
                           {item.jackpotOrExtra && (
-                            <span className="text-[11px] text-amber-500 font-medium ml-2">
+                            <span className="text-2xs text-amber-500 font-medium ml-2">
                               ⭐ {item.jackpotOrExtra}
                             </span>
                           )}
@@ -454,7 +454,7 @@ export function AdminFinanceLotteryManager() {
                     </span>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label htmlFor="usdBuy" className="text-[11px] text-muted-foreground">Compra (DOP)</Label>
+                        <Label htmlFor="usdBuy" className="text-2xs text-muted-foreground">Compra (DOP)</Label>
                         <Input
                           id="usdBuy"
                           type="number"
@@ -466,7 +466,7 @@ export function AdminFinanceLotteryManager() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="usdSell" className="text-[11px] text-muted-foreground">Venta (DOP)</Label>
+                        <Label htmlFor="usdSell" className="text-2xs text-muted-foreground">Venta (DOP)</Label>
                         <Input
                           id="usdSell"
                           type="number"
@@ -487,7 +487,7 @@ export function AdminFinanceLotteryManager() {
                     </span>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label htmlFor="eurBuy" className="text-[11px] text-muted-foreground">Compra (DOP)</Label>
+                        <Label htmlFor="eurBuy" className="text-2xs text-muted-foreground">Compra (DOP)</Label>
                         <Input
                           id="eurBuy"
                           type="number"
@@ -499,7 +499,7 @@ export function AdminFinanceLotteryManager() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="eurSell" className="text-[11px] text-muted-foreground">Venta (DOP)</Label>
+                        <Label htmlFor="eurSell" className="text-2xs text-muted-foreground">Venta (DOP)</Label>
                         <Input
                           id="eurSell"
                           type="number"
@@ -520,7 +520,7 @@ export function AdminFinanceLotteryManager() {
                     </span>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label htmlFor="cadBuy" className="text-[11px] text-muted-foreground">Compra (DOP)</Label>
+                        <Label htmlFor="cadBuy" className="text-2xs text-muted-foreground">Compra (DOP)</Label>
                         <Input
                           id="cadBuy"
                           type="number"
@@ -532,7 +532,7 @@ export function AdminFinanceLotteryManager() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="cadSell" className="text-[11px] text-muted-foreground">Venta (DOP)</Label>
+                        <Label htmlFor="cadSell" className="text-2xs text-muted-foreground">Venta (DOP)</Label>
                         <Input
                           id="cadSell"
                           type="number"
@@ -594,7 +594,7 @@ export function AdminFinanceLotteryManager() {
                           <td className="p-3 text-center font-mono font-bold text-foreground">
                             RD$ {bank.currencies.EUR.sell.toFixed(2)}
                           </td>
-                          <td className="p-3 text-muted-foreground text-[11px]">
+                          <td className="p-3 text-muted-foreground text-2xs">
                             {bank.lastUpdated}
                           </td>
                         </tr>

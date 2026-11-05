@@ -3,7 +3,7 @@
 > Generado automáticamente por `npm run docs:api` a partir de las rutas que el servidor registra. **No se edita a mano**: si una ruta cambia, se regenera (CI verifica con `npm run docs:api -- --check`).
 > `docs/BACKEND_API.md` es el diseño original; donde difiera, esta lista describe lo que existe. Detalle de cada módulo, reglas y ejemplos: `backend/README.md`. Contrato completo (esquemas de entrada y salida): `/docs` (Swagger) del servidor.
 
-Versión 0.1.0 · 1035 operaciones en 47 grupos.
+Versión 0.1.0 · 1037 operaciones en 47 grupos.
 
 Convenciones: todas las rutas cuelgan de `/api/v1`. Errores con la forma `{ error: { code, message, details, request_id } }`. **Sesión** = `Authorization: Bearer <jwt>`; **Opcional** = funciona sin sesión y, con ella, personaliza.
 
@@ -147,6 +147,7 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/admin/capability-grants` | Personal / admin | Permisos acotados concedidos, con su alcance y vigencia |
 | POST | `/admin/capability-grants` | Personal / admin | Concede un permiso acotado (colecciones del catálogo, registros concretos con vencimiento, o analítica de sólo lectura) |
 | DELETE | `/admin/capability-grants/{id}` | Personal / admin | Revoca un permiso acotado |
+| GET | `/admin/contests` | Personal / admin | Todos los concursos, incluidos los borradores y los cerrados |
 | POST | `/admin/contests` | Personal / admin | Crea un concurso |
 | POST | `/admin/contests/{slug}/draw` | Personal / admin | Sortea ganadores al azar entre los inscritos y cierra el concurso |
 | GET | `/admin/contests/{slug}/registrations` | Personal / admin | Inscritos |
@@ -383,6 +384,7 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 | GET | `/admin/support/tickets/{id}` | Personal / admin | Ticket con toda la conversación, incluidas las notas internas |
 | PATCH | `/admin/support/tickets/{id}` | Personal / admin | Cambia estado, prioridad o asignación (quien atiende debe ser personal). Al resolver se avisa a la persona |
 | POST | `/admin/support/tickets/{id}/messages` | Personal / admin | Responde al usuario (aviso en su bandeja y correo) o deja una nota interna que él no ve |
+| GET | `/admin/surveys` | Personal / admin | Todas las encuestas, activas o no, con su número de respuestas |
 | POST | `/admin/surveys` | Personal / admin | Crea una encuesta |
 | PATCH | `/admin/surveys/{slug}` | Personal / admin | Activa/desactiva o retitula una encuesta (las preguntas no cambian una vez publicada) |
 | GET | `/admin/surveys/{slug}/results` | Personal / admin | Resultados agregados (NPS, medias y distribución) |
@@ -576,7 +578,7 @@ Antivirus y almacenamiento S3 de medios · vuelos · Azul/CardNET y 3-D Secure d
 |---|---|---|---|
 | GET | `/articles` | Público | Listado de artículos |
 | GET | `/articles/{idOrSlug}` | Público | Detalle de artículos por id (uuid) o slug |
-| POST | `/articles/{idOrSlug}/react` | Público | Reacciona a un artículo |
+| POST | `/articles/{idOrSlug}/react` | Público | Reacciona a un artículo o retira la reacción propia (un voto por persona) |
 | GET | `/articles/{idOrSlug}/related` | Público | Artículos relacionados |
 | GET | `/articles/{idOrSlug}/reviews` | Público | Reseñas aprobadas de artículos |
 | GET | `/articles/facets` | Público | Facetas de artículos |

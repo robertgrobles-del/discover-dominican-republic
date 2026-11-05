@@ -207,7 +207,7 @@ export function AdminStockConsole() {
                       </TableCell>
                       <TableCell className="text-xs font-bold">
                         <div>{s.recipient_name}</div>
-                        <div className="text-[10px] text-muted-foreground font-normal">{s.recipient_phone}</div>
+                        <div className="text-3xs text-muted-foreground font-normal">{s.recipient_phone}</div>
                       </TableCell>
                       <TableCell className="text-xs">
                         {s.reward_inventory?.title || "Recompensa Física"}
@@ -224,7 +224,7 @@ export function AdminStockConsole() {
                             placeholder="Ej: MetroPac"
                           />
                         ) : (
-                          s.courier_name || <span className="text-muted-foreground text-[10px]">No asignado</span>
+                          s.courier_name || <span className="text-muted-foreground text-3xs">No asignado</span>
                         )}
                       </TableCell>
                       <TableCell className="text-xs">
@@ -236,7 +236,7 @@ export function AdminStockConsole() {
                             placeholder="Tracking #"
                           />
                         ) : (
-                          s.tracking_number || <span className="text-muted-foreground text-[10px]">No asignado</span>
+                          s.tracking_number || <span className="text-muted-foreground text-3xs">No asignado</span>
                         )}
                       </TableCell>
                       <TableCell className="text-xs">

@@ -46,7 +46,8 @@ describe("retirada del service worker", () => {
   });
 
   it("index.html desregistra el service worker y borra sus cachés una sola vez", () => {
-    const html = read(path.join(ROOT, "index.html"));
+    expect(read(path.join(ROOT, "index.html"))).toContain('<script src="/legacy-sw-cleanup.js"></script>');
+    const html = read(path.join(ROOT, "public", "legacy-sw-cleanup.js"));
 
     expect(html).toContain("navigator.serviceWorker.getRegistrations()");
     expect(html).toContain("unregister()");

@@ -11,6 +11,7 @@ import { Hotel } from "@/data/hotels";
 import { Restaurant } from "@/data/restaurants";
 import promoLuxuryHotelImg from "@/assets/promo/promo-luxury-hotel.jpg";
 import promoGastronomyImg from "@/assets/promo/promo-gastronomy-mobile.jpg";
+import { useAdBannerList, trackBannerClick, trackBannerImpression, type AdBanner } from "@/hooks/useAdBanners";
 
 interface HeroSlide {
   image: string;
@@ -34,55 +35,17 @@ const categoryLabels: Record<string, string> = {
   lujo: "Lujo",
 };
 
-function buildSponsorSlides(destination: Destination, hotels: Hotel[], restaurants: Restaurant[]): HeroSlide[] {
-  const topHotel = [...hotels].sort((a, b) => b.rating - a.rating)[0];
-  const topRestaurant = [...restaurants].sort((a, b) => b.rating - a.rating)[0];
+// Las diapositivas patrocinadas salen del admin (banner_type "hero-slide", section "destino-<slug>" o "global"); sin campaña
+// quedan los espacios "Anuncia aquí". Nunca se marca como patrocinado a un negocio que no ha contratado.
+function houseAdSlides(destination: Destination): HeroSlide[] {
+  return [
+    { image: promoLuxuryHotelImg, title: "Anuncia tu Hotel Aquí", subtitle: destination.name, description: `Llega a miles de viajeros que están planificando su visita a ${destination.name}.`, isSponsored: true, sponsorBadge: "Espacio Disponible", ctaText: "Conviértete en Patrocinador", ctaLink: "/partners" },
+    { image: promoGastronomyImg, title: "Anuncia tu Restaurante Aquí", subtitle: destination.name, description: `Da a conocer tu propuesta gastronómica a los visitantes de ${destination.name}.`, isSponsored: true, sponsorBadge: "Espacio Disponible", ctaText: "Conviértete en Patrocinador", ctaLink: "/partners" },
+  ];
+}
 
-  const hotelSlide: HeroSlide = topHotel
-    ? {
-        image: topHotel.imageUrl,
-        title: topHotel.name,
-        subtitle: `Hospédate en ${destination.name}`,
-        description: topHotel.shortDescription,
-        isSponsored: true,
-        sponsorBadge: "Hotel Patrocinado",
-        ctaText: "Ver Hotel",
-        ctaLink: `/alojamiento/${topHotel.slug}`,
-      }
-    : {
-        image: promoLuxuryHotelImg,
-        title: "Anuncia tu Hotel Aquí",
-        subtitle: destination.name,
-        description: `Llega a miles de viajeros que están planificando su visita a ${destination.name}.`,
-        isSponsored: true,
-        sponsorBadge: "Espacio Disponible",
-        ctaText: "Conviértete en Patrocinador",
-        ctaLink: "/partners",
-      };
-
-  const restaurantSlide: HeroSlide = topRestaurant
-    ? {
-        image: topRestaurant.imageUrl,
-        title: topRestaurant.name,
-        subtitle: `Gastronomía en ${destination.name}`,
-        description: topRestaurant.shortDescription,
-        isSponsored: true,
-        sponsorBadge: "Restaurante Patrocinado",
-        ctaText: "Ver Restaurante",
-        ctaLink: `/restaurante/${topRestaurant.slug}`,
-      }
-    : {
-        image: promoGastronomyImg,
-        title: "Anuncia tu Restaurante Aquí",
-        subtitle: destination.name,
-        description: `Da a conocer tu propuesta gastronómica a los visitantes de ${destination.name}.`,
-        isSponsored: true,
-        sponsorBadge: "Espacio Disponible",
-        ctaText: "Conviértete en Patrocinador",
-        ctaLink: "/partners",
-      };
-
-  return [hotelSlide, restaurantSlide];
+function adToHeroSlide(b: AdBanner): HeroSlide & { adId: string } {
+  return { adId: b.id, image: b.image_url!, title: b.headline || b.name, subtitle: b.slide_details?.location || b.subtext || "", description: b.alt_text || undefined, isSponsored: true, sponsorBadge: b.sponsor ? `Patrocinado • ${b.sponsor}` : "Patrocinado", ctaText: b.cta_text || undefined, ctaLink: b.target_url || undefined };
 }
 
 interface DestinationHeroSliderProps {
@@ -91,7 +54,8 @@ interface DestinationHeroSliderProps {
   restaurants: Restaurant[];
 }
 
-export function DestinationHeroSlider({ destination, hotels, restaurants }: DestinationHeroSliderProps) {
+export function DestinationHeroSlider({ destination }: DestinationHeroSliderProps) {
+  const heroAds = useAdBannerList("hero-slide", `destino-${destination.slug}`).filter((b) => b.image_url);
   const ownImages = Array.from(new Set([destination.imageUrl, ...(destination.gallery || [])].filter(Boolean)));
 
   const slides: HeroSlide[] = [
@@ -100,7 +64,7 @@ export function DestinationHeroSlider({ destination, hotels, restaurants }: Dest
       title: destination.name,
       subtitle: destination.province || "República Dominicana",
     })),
-    ...buildSponsorSlides(destination, hotels, restaurants),
+    ...(heroAds.length ? heroAds.map(adToHeroSlide) : houseAdSlides(destination)),
   ];
 
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -135,12 +99,14 @@ export function DestinationHeroSlider({ destination, hotels, restaurants }: Dest
     const diff = touchStartX.current - e.changedTouches[0].clientX;
     if (Math.abs(diff) > 45) {
       setIsAutoPlaying(false);
-      diff > 0 ? nextSlide() : prevSlide();
+      if (diff > 0) nextSlide(); else prevSlide();
     }
     touchStartX.current = null;
   };
 
-  const slide = slides[currentSlide];
+  const slide = slides[currentSlide] ?? slides[0];
+  const slideAdId = (slide as HeroSlide & { adId?: string }).adId;
+  useEffect(() => { if (slideAdId) void trackBannerImpression(slideAdId); }, [slideAdId]);
 
   return (
     <section
@@ -186,7 +152,7 @@ export function DestinationHeroSlider({ destination, hotels, restaurants }: Dest
             >
               <div className="flex items-center gap-2 mb-4 flex-wrap">
                 {slide.isSponsored && (
-                  <SponsoredBadge label={slide.sponsorBadge} className="text-[11px] uppercase tracking-wider px-2.5 py-0.5 shadow-sm" />
+                  <SponsoredBadge label={slide.sponsorBadge} className="text-2xs uppercase tracking-wider px-2.5 py-0.5 shadow-sm" />
                 )}
                 {!slide.isSponsored &&
                   destination.categories.map((cat) => (
@@ -218,7 +184,7 @@ export function DestinationHeroSlider({ destination, hotels, restaurants }: Dest
                         <p className="text-white/75 max-w-xl mb-6 line-clamp-2">{slide.description}</p>
                       )}
                       <Button size="lg" className="gap-2 font-display font-semibold shadow-lg" asChild>
-                        <Link to={slide.ctaLink || "/partners"}>
+                        <Link to={slide.ctaLink || "/partners"} onClick={() => { if (slideAdId) void trackBannerClick(slideAdId); }}>
                           {slide.ctaText}
                           <ChevronRight className="h-4 w-4" />
                         </Link>

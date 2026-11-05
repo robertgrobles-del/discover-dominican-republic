@@ -10,8 +10,10 @@ import { MarinaHero } from "@/components/marinas/MarinaHero";
 import { MarinaQuickStats } from "@/components/marinas/MarinaQuickStats";
 import { MarinaContent } from "@/components/marinas/MarinaContent";
 import { MarinaSidebar } from "@/components/marinas/MarinaSidebar";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function MarinaDetalle() {
+  const pc = usePageContent("marina-detalle");
   const { slug: id } = useParams<{ slug: string }>();
   const marina = marinasDetalleData[id || ""];
 
@@ -23,12 +25,10 @@ export default function MarinaDetalle() {
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center p-8">
               <Anchor className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-foreground mb-2">Marina no encontrada</h1>
-              <p className="text-muted-foreground mb-6">
-                La marina que buscas no existe o ha sido removida.
-              </p>
+              <h1 className="text-2xl font-bold text-foreground mb-2">{pc.tx("h1.1", "Marina no encontrada")}</h1>
+              <p className="text-muted-foreground mb-6">{pc.tx("p.1", "La marina que buscas no existe o ha sido removida.")}</p>
               <Link to="/puertos-marinas">
-                <Button>Volver a Puertos y Marinas</Button>
+                <Button>{pc.tx("Button.1", "Volver a Puertos y Marinas")}</Button>
               </Link>
             </div>
           </div>

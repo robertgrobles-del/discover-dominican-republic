@@ -31,7 +31,8 @@ export function CookieConsentBanner() {
     setIsOpen(false);
   };
 
-  if (!isOpen) return null;
+  // La consola de administración y el panel del operador son herramientas internas: el aviso taparía su menú.
+  if (!isOpen || /^\/(admin|operadores\/panel)(\/|$)/.test(window.location.pathname)) return null;
 
   return (
     <div className="fixed bottom-4 left-4 right-4 md:left-6 md:right-auto md:max-w-md z-50 animate-in fade-in slide-in-from-bottom-5 duration-300">
@@ -49,10 +50,10 @@ export function CookieConsentBanner() {
             <ShieldCheck className="h-5 w-5" />
           </div>
           <div>
-            <h4 className="font-display font-bold text-sm text-foreground flex items-center gap-1.5 mb-1">
+            <h2 className="font-display font-bold text-sm text-foreground flex items-center gap-1.5 mb-1">
               Privacidad & Experiencia de Viaje
-            </h4>
-            {getAnalyticsConsent() && <p className="text-[11px] text-muted-foreground mb-1">Puedes cambiar o retirar tu elección cuando quieras.</p>}
+            </h2>
+            {getAnalyticsConsent() && <p className="text-2xs text-muted-foreground mb-1">Puedes cambiar o retirar tu elección cuando quieras.</p>}
             <p className="text-xs text-muted-foreground leading-relaxed">
               Analitica opcional. Si la aceptas, registramos paginas y eventos de sesion sin asociarlos a tu cuenta y conservamos los eventos hasta 13 meses; despues quedan solo agregados. No solicitamos GPS para analitica.
             </p>
@@ -60,7 +61,7 @@ export function CookieConsentBanner() {
         </div>
 
         <div className="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-border/60">
-          <Link to="/terminos" className="text-[11px] text-muted-foreground hover:text-primary underline">
+          <Link to="/terminos" className="text-2xs text-muted-foreground hover:text-primary underline">
             Política de Privacidad
           </Link>
           <div className="flex items-center gap-2">

@@ -130,14 +130,14 @@ export default function ViveLocal() {
                   <div className="p-6 md:w-3/5 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-2">
-                        <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                        <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-3xs">
                           {exp.location}
                         </Badge>
                         <span className="text-xs text-muted-foreground">{exp.duration}</span>
                       </div>
-                      <h3 className="font-display font-bold text-lg text-foreground mb-2 leading-snug group-hover:text-primary transition-colors">
+                      <h2 className="h3 font-display font-bold text-lg text-foreground mb-2 leading-snug group-hover:text-primary transition-colors">
                         {exp.title}
-                      </h3>
+                      </h2>
                       <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
                         {exp.desc}
                       </p>
@@ -208,7 +208,7 @@ export default function ViveLocal() {
                 <div className="p-4 rounded-xl bg-card border border-border/50 mt-6 text-center">
                   <HelpCircle className="h-8 w-8 text-primary mx-auto mb-2" />
                   <p className="font-bold text-xs">¿Listo para jugar?</p>
-                  <p className="text-[10px] text-muted-foreground mb-3">Únete a una partida guiada con los campeones de dominó de la Zona Colonial.</p>
+                  <p className="text-3xs text-muted-foreground mb-3">Únete a una partida guiada con los campeones de dominó de la Zona Colonial.</p>
                   <Button
                     onClick={() => handleReserva("Clase de Dominó")}
                     variant="outline"

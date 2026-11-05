@@ -139,7 +139,7 @@ export function DistancesFromCities({ latitude, longitude, destinationName, cust
                   {item.name}
                 </p>
                 {item.code && (
-                  <span className="text-[10px] font-mono font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-md">
+                  <span className="text-3xs font-mono font-bold bg-primary/10 text-primary px-1.5 py-0.5 rounded-md">
                     Código IATA: {item.code}
                   </span>
                 )}

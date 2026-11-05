@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import gastronomyImg from "@/assets/gastronomy.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const restaurantesVeganos = [
   { 
@@ -96,11 +97,15 @@ const frasesUtiles = [
 ];
 
 export default function GuiaVegana() {
+  const pc = usePageContent("guia-vegana");
+  const platosLocalesVeganos = pc.data("platosLocalesVeganos", __pcData.platosLocalesVeganos);
+  const restaurantesVeganos = pc.data("restaurantesVeganos", __pcData.restaurantesVeganos);
+  const frasesUtiles = pc.data("frasesUtiles", __pcData.frasesUtiles);
   return (
     <PageTransition>
       <SEOHead
-        title="Guía Vegana y Vegetariana de República Dominicana | Restaurantes y Platos Plant-Based"
-        description="Descubre los mejores restaurantes veganos en Santo Domingo, Punta Cana, Cabarete y Las Terrenas. Guía de platos dominicanos tradicionales plant-based."
+        title={pc.t("SEOHead.title.1", "Guía Vegana y Vegetariana de República Dominicana | Restaurantes y Platos Plant-Based")}
+        description={pc.t("SEOHead.description.1", "Descubre los mejores restaurantes veganos en Santo Domingo, Punta Cana, Cabarete y Las Terrenas. Guía de platos dominicanos tradicionales plant-based.")}
         keywords="comida vegana republica dominicana, restaurantes veganos punta cana, guia vegetariana rd, mangu vegano, restaurantes plant based santo domingo"
       />
       <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -109,43 +114,38 @@ export default function GuiaVegana() {
         {/* Hero Section */}
         <section className="relative h-[60vh] min-h-[460px] flex items-end overflow-hidden">
           <img
-            src={gastronomyImg}
-            alt="Gastronomía Vegana y Plant-Based en República Dominicana"
+            src={pc.img("img.src.1", gastronomyImg)}
+            alt={pc.t("img.alt.1", "Gastronomía Vegana y Plant-Based en República Dominicana")}
             className="absolute inset-0 w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/75 to-black/35" />
 
           <div className="relative z-10 container mx-auto px-4 lg:px-8 pb-12">
             <nav className="flex items-center gap-2 text-xs md:text-sm text-white/80 mb-4">
-              <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
+              <Link to="/" className="hover:text-primary transition-colors">{pc.tx("Link.1", "Inicio")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <Link to="/guia-gastronomica" className="hover:text-primary transition-colors">Gastronomía</Link>
+              <Link to="/guia-gastronomica" className="hover:text-primary transition-colors">{pc.tx("Link.2", "Gastronomía")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <span className="text-white font-medium">Guía Vegana & Vegetariana</span>
+              <span className="text-white font-medium">{pc.tx("span.1", "Guía Vegana & Vegetariana")}</span>
             </nav>
 
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div>
                 <Badge className="mb-3 bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-xs px-3 py-1 font-semibold">
-                  <Leaf className="h-3.5 w-3.5 mr-1.5" /> PLANT-BASED CARIBBEAN
-                </Badge>
-                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">
-                  Guía Vegana en RD
-                </h1>
-                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">
-                  Descubre la rica despensa tropical de Quisqueya: plátano, yuca, aguacate criollo, coco fresco y restaurantes que redefinen la cocina vegetal.
-                </p>
+                  <Leaf className="h-3.5 w-3.5 mr-1.5" />{" "}{pc.tx("Badge.1", "PLANT-BASED CARIBBEAN")}</Badge>
+                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">{pc.tx("h1.1", "Guía Vegana en RD")}</h1>
+                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">{pc.tx("p.1", "Descubre la rica despensa tropical de Quisqueya: plátano, yuca, aguacate criollo, coco fresco y restaurantes que redefinen la cocina vegetal.")}</p>
               </div>
 
               {/* Stats pill */}
               <div className="flex flex-wrap gap-4 bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-white">
                 <div className="text-center px-2">
                   <p className="font-display text-2xl font-bold text-emerald-400">100%</p>
-                  <p className="text-[11px] text-white/70 uppercase">Frutas Tropicales</p>
+                  <p className="text-2xs text-white/70 uppercase">{pc.tx("p.2", "Frutas Tropicales")}</p>
                 </div>
                 <div className="text-center px-2 border-l border-white/10">
                   <p className="font-display text-2xl font-bold text-primary">30+</p>
-                  <p className="text-[11px] text-white/70 uppercase">Restaurantes Plant-Based</p>
+                  <p className="text-2xs text-white/70 uppercase">{pc.tx("p.3", "Restaurantes Plant-Based")}</p>
                 </div>
               </div>
             </div>
@@ -155,15 +155,9 @@ export default function GuiaVegana() {
         {/* Platos Naturalmente Veganos */}
         <section className="py-16 container mx-auto px-4 lg:px-8 max-w-6xl">
           <div className="text-center mb-12">
-            <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
-              SABOR CRIOLLO SIN CARNE
-            </Badge>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
-              Platos Típicos Naturalmente Veganos
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
-              La cocina dominicana está llena de tesoros vegetales listos para disfrutar en cualquier rincón del país.
-            </p>
+            <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">{pc.tx("Badge.2", "SABOR CRIOLLO SIN CARNE")}</Badge>
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">{pc.tx("h2.1", "Platos Típicos Naturalmente Veganos")}</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">{pc.tx("p.4", "La cocina dominicana está llena de tesoros vegetales listos para disfrutar en cualquier rincón del país.")}</p>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -185,15 +179,9 @@ export default function GuiaVegana() {
         <section className="py-16 bg-card/40 border-y border-border/50">
           <div className="container mx-auto px-4 lg:px-8 max-w-6xl">
             <div className="text-center mb-12">
-              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
-                DIRECTORIO GASTRONÓMICO
-              </Badge>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
-                Restaurantes Veganos & Vegetarian-Friendly
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
-                Establecimientos seleccionados con opciones creativas y respetuosas de la dieta plant-based.
-              </p>
+              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">{pc.tx("Badge.3", "DIRECTORIO GASTRONÓMICO")}</Badge>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">{pc.tx("h2.2", "Restaurantes Veganos & Vegetarian-Friendly")}</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">{pc.tx("p.5", "Establecimientos seleccionados con opciones creativas y respetuosas de la dieta plant-based.")}</p>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -202,7 +190,7 @@ export default function GuiaVegana() {
                   <div className="relative h-48 overflow-hidden bg-muted">
                     <img src={r.imagen} alt={r.nombre} className="w-full h-full object-cover" />
                     <div className="absolute top-3 left-3">
-                      <Badge className="bg-emerald-600 text-white border-none text-[11px]">
+                      <Badge className="bg-emerald-600 text-white border-none text-2xs">
                         {r.tipo}
                       </Badge>
                     </div>
@@ -238,11 +226,8 @@ export default function GuiaVegana() {
           <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
             <div className="text-center mb-10">
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-2 flex items-center justify-center gap-2">
-                <MessageSquare className="h-6 w-6 text-primary" /> Frases Clave para Ordenar en RD
-              </h2>
-              <p className="text-xs md:text-sm text-muted-foreground">
-                Usa estas expresiones para comunicarte con claridad en comedores y restaurantes tradicionales.
-              </p>
+                <MessageSquare className="h-6 w-6 text-primary" />{" "}{pc.tx("h2.3", "Frases Clave para Ordenar en RD")}</h2>
+              <p className="text-xs md:text-sm text-muted-foreground">{pc.tx("p.6", "Usa estas expresiones para comunicarte con claridad en comedores y restaurantes tradicionales.")}</p>
             </div>
 
             <div className="space-y-3">
@@ -250,9 +235,9 @@ export default function GuiaVegana() {
                 <div key={i} className="bg-card border border-border p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
                     <p className="font-bold text-foreground text-sm">"{f.frase}"</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Uso: {f.context}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{pc.tx("p.7", "Uso:")}{" "}{f.context}</p>
                   </div>
-                  <Badge variant="outline" className="text-[10px] self-start sm:self-center">Recomendado</Badge>
+                  <Badge variant="outline" className="text-3xs self-start sm:self-center">{pc.tx("Badge.4", "Recomendado")}</Badge>
                 </div>
               ))}
             </div>
@@ -271,3 +256,6 @@ export default function GuiaVegana() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { platosLocalesVeganos, restaurantesVeganos, frasesUtiles };

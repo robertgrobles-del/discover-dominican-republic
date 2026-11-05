@@ -14,6 +14,7 @@ import {
   Loader2, CheckCircle2, XCircle, Calendar, Briefcase
 } from "lucide-react";
 
+import { activateOnKey } from "@/lib/a11y";
 /* ==========================================================================
    MODULE 1: GUIDE TOOLS MODULE (businessType === 'guia')
    ========================================================================== */
@@ -31,16 +32,11 @@ export function GuideToolsModule({ userId, businessName }: { userId?: string, bu
   ];
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
     if (isBroadcasting) {
-      setBroadcastUsers(12);
-      interval = setInterval(() => {
-        setBroadcastUsers(prev => prev + (Math.random() > 0.5 ? 1 : -1));
-      }, 5000);
+      setBroadcastUsers(1);
     } else {
       setBroadcastUsers(0);
     }
-    return () => clearInterval(interval);
   }, [isBroadcasting]);
 
   const handleCopyBroadcastLink = () => {
@@ -68,7 +64,7 @@ export function GuideToolsModule({ userId, businessName }: { userId?: string, bu
           {/* Badge Visual Design */}
           <div className="w-full max-w-[280px] bg-gradient-to-b from-indigo-900 to-indigo-950 text-white rounded-2xl p-5 shadow-lg border-2 border-amber-500 relative overflow-hidden text-center aspect-[2/3] flex flex-col justify-between">
             {/* Crest / Flag simulation */}
-            <div className="flex justify-between items-center text-[8px] tracking-widest font-bold opacity-80 uppercase">
+            <div className="flex justify-between items-center text-3xs tracking-widest font-bold opacity-80 uppercase">
               <span>MITUR RD</span>
               <span className="text-amber-500">LICENCIA VIGENTE</span>
             </div>
@@ -80,7 +76,7 @@ export function GuideToolsModule({ userId, businessName }: { userId?: string, bu
               </div>
               <div>
                 <h4 className="font-bold text-sm leading-tight">{businessName || "Guía Autorizado"}</h4>
-                <p className="text-[10px] text-amber-400 font-mono mt-0.5">ID: LIC-MITUR-2026-{(userId || "0000").substring(0,4)}</p>
+                <p className="text-3xs text-amber-400 font-mono mt-0.5">ID: LIC-MITUR-2026-{(userId || "0000").substring(0,4)}</p>
               </div>
 
               {/* QR Code pointing to public verify / silent guide */}
@@ -99,7 +95,7 @@ export function GuideToolsModule({ userId, businessName }: { userId?: string, bu
               </div>
             </div>
 
-            <div className="text-[7px] leading-relaxed opacity-70">
+            <div className="text-3xs leading-relaxed opacity-70">
               Escanea para verificar validez y unirse al grupo de audio digital.
             </div>
           </div>
@@ -305,7 +301,7 @@ export function AgencyToolsModule() {
                 <Label className="text-sm font-semibold">Seleccionar actividades para incluir</Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {mockCatalog.map((item) => (
-                    <div
+                    <div role="button" tabIndex={0} onKeyDown={activateOnKey}
                       key={item.id}
                       onClick={() => handleToggleItem(item.id)}
                       className={`p-3 rounded-xl border cursor-pointer transition-all flex justify-between items-center ${
@@ -316,8 +312,8 @@ export function AgencyToolsModule() {
                     >
                       <div>
                         <div className="font-semibold text-sm text-foreground">{item.name}</div>
-                        <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                          <Badge variant="outline" className="text-[8px] px-1.5 py-0">
+                        <div className="text-3xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                          <Badge variant="outline" className="text-3xs px-1.5 py-0">
                             {item.type}
                           </Badge>
                           <span>Precio al público: ${item.price} USD</span>
@@ -342,7 +338,7 @@ export function AgencyToolsModule() {
             <div className="space-y-4 bg-muted/20 p-6 rounded-2xl border border-border">
               <div className="flex justify-between items-center border-b border-border pb-4">
                 <div>
-                  <div className="text-[10px] uppercase font-bold text-primary tracking-widest">PROPUESTA DE VIAJE</div>
+                  <div className="text-3xs uppercase font-bold text-primary tracking-widest">PROPUESTA DE VIAJE</div>
                   <h4 className="text-xl font-bold text-foreground">Itinerario: {clientName}</h4>
                 </div>
                 <div className="text-right">
@@ -442,7 +438,7 @@ export function AgencyToolsModule() {
                 Cargar Saldo
               </Button>
             </div>
-            <div className="text-[10px] text-muted-foreground bg-muted/40 p-2 rounded border border-border">
+            <div className="text-3xs text-muted-foreground bg-muted/40 p-2 rounded border border-border">
               ℹ️ Los depósitos vía transferencia bancaria tardan de 12 a 24 horas en ser validados por el departamento de finanzas.
             </div>
           </CardContent>
@@ -607,17 +603,9 @@ export function OperatorToolsModule() {
   };
 
   const handleStartCameraScan = () => {
-    setIsScanning(true);
-    setScanResult(null);
-
-    // Auto-resolve mock scan after 2.5 seconds
-    setTimeout(() => {
-      setIsScanning(false);
-      // Auto fill a code
-      const mockCode = Math.random() > 0.4 ? "MOCK-OK" : "TKT-INVALID";
-      setTicketCode(mockCode);
-      handleValidateTicket(mockCode);
-    }, 2500);
+    toast.info("Lector de cámara: Enfoca el código QR o digita la referencia del ticket abajo.", {
+      description: "También puedes introducir el código alfanumérico manualmente.",
+    });
   };
 
   return (
@@ -743,8 +731,8 @@ export function OperatorToolsModule() {
                   variant="outline"
                   className={
                     dep.status === "embarcando"
-                      ? "bg-amber-500/10 text-amber-500 border-amber-500/20 uppercase text-[9px] font-bold"
-                      : "bg-muted text-muted-foreground uppercase text-[9px] font-bold"
+                      ? "bg-amber-500/10 text-amber-500 border-amber-500/20 uppercase text-3xs font-bold"
+                      : "bg-muted text-muted-foreground uppercase text-3xs font-bold"
                   }
                 >
                   {dep.status}
@@ -865,13 +853,13 @@ export function RestaurantToolsModule() {
               <div>
                 <div className="flex items-center gap-2">
                   <h4 className="font-semibold text-sm text-foreground">{item.name}</h4>
-                  {item.special && <Badge className="text-[9px] bg-amber-500/15 text-amber-600 border-amber-500/30">Plato Estrella</Badge>}
+                  {item.special && <Badge className="text-3xs bg-amber-500/15 text-amber-600 border-amber-500/30">Plato Estrella</Badge>}
                 </div>
                 <p className="text-xs text-muted-foreground">{item.category}</p>
               </div>
               <div className="text-right">
                 <span className="font-mono font-bold text-sm text-foreground">RD$ {item.priceDOP}</span>
-                <span className="text-[10px] text-muted-foreground block">~${(item.priceDOP / 60).toFixed(1)} USD</span>
+                <span className="text-3xs text-muted-foreground block">~${(item.priceDOP / 60).toFixed(1)} USD</span>
               </div>
             </div>
           ))}

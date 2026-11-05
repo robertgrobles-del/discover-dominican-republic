@@ -117,8 +117,15 @@ import { ReviewsSidebar, CategoryFilterItem } from "@/components/reviews/Reviews
 import { CreateReviewDialog } from "@/components/reviews/CreateReviewDialog";
 import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { accountApi, apiMessage, type ReviewablePlace } from "@/lib/accountApi";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function Opiniones() {
+  const pc = usePageContent("opiniones");
+  const sampleReviews = pc.data("sampleReviews", __pcData.sampleReviews);
+  const locations = pc.data("locations", __pcData.locations);
+  const categoryFilters = pc.data("categoryFilters", __pcData.categoryFilters);
+  const travelerTypes = pc.data("travelerTypes", __pcData.travelerTypes);
+  const sortOptions = pc.data("sortOptions", __pcData.sortOptions);
   const { user } = useAuth();
   const { toast } = useToast();
   // Con sesión real el muro muestra las reseñas del backend; las de muestra son sólo para la demostración.
@@ -353,8 +360,8 @@ export default function Opiniones() {
   return (
     <PageTransition>
       <SEOHead
-        title="Opiniones y Experiencias Reales"
-        description="Lee reseñas verificadas de viajeros que visitaron República Dominicana. Comparte tu experiencia y ayuda a otros a planificar su viaje perfecto."
+        title={pc.t("SEOHead.title.1", "Opiniones y Experiencias Reales")}
+        description={pc.t("SEOHead.description.1", "Lee reseñas verificadas de viajeros que visitaron República Dominicana. Comparte tu experiencia y ayuda a otros a planificar su viaje perfecto.")}
         keywords="opiniones, reseñas, viajeros, República Dominicana, experiencias, turismo"
       />
       <div className="min-h-screen bg-background">
@@ -367,14 +374,10 @@ export default function Opiniones() {
               <div className="flex flex-col gap-2 max-w-2xl">
                 <div className="flex items-center gap-2 text-primary font-medium text-sm mb-1">
                   <CheckCircle className="h-4 w-4" />
-                  <span>Comunidad Verificada</span>
+                  <span>{pc.tx("span.1", "Comunidad Verificada")}</span>
                 </div>
-                <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground">
-                  Opiniones y Experiencias Reales
-                </h1>
-                <p className="text-muted-foreground text-lg mt-1">
-                  Descubre la República Dominicana a través de los ojos de viajeros como tú. 100% transparente.
-                </p>
+                <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground">{pc.tx("h1.1", "Opiniones y Experiencias Reales")}</h1>
+                <p className="text-muted-foreground text-lg mt-1">{pc.tx("p.1", "Descubre la República Dominicana a través de los ojos de viajeros como tú. 100% transparente.")}</p>
               </div>
               
               <CreateReviewDialog
@@ -413,16 +416,15 @@ export default function Opiniones() {
             {/* Reviews Feed */}
             <section className="flex-1">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-foreground">
-                  Últimas Reseñas <span className="text-muted-foreground text-lg font-normal ml-1">({filteredReviews.length})</span>
+                <h2 className="text-xl font-bold text-foreground">{pc.tx("h2.1", "Últimas Reseñas")}{" "}<span className="text-muted-foreground text-lg font-normal ml-1">({filteredReviews.length})</span>
                 </h2>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-muted-foreground hidden sm:block">Ordenar por:</span>
+                  <span className="text-sm font-medium text-muted-foreground hidden sm:block">{pc.tx("span.2", "Ordenar por:")}</span>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
                     className="bg-card border border-border text-sm font-medium rounded-lg py-2 pl-3 pr-8"
-                    title="Ordenar opiniones por"
+                    title={pc.t("select.title.1", "Ordenar opiniones por")}
                   >
                     {sortOptions.map((opt) => (
                       <option key={opt}>{opt}</option>
@@ -432,7 +434,7 @@ export default function Opiniones() {
               </div>
 
               {loading ? (
-                <div className="space-y-6" aria-busy="true" aria-label="Cargando reseñas">
+                <div className="space-y-6" aria-busy="true" aria-label={pc.t("div.aria-label.1", "Cargando reseñas")}>
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="bg-card p-6 rounded-2xl border border-border">
                       <div className="flex items-start justify-between mb-4">
@@ -464,14 +466,12 @@ export default function Opiniones() {
 
               {!loading && filteredReviews.length === 0 && (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground">No se encontraron reseñas con los filtros seleccionados.</p>
+                  <p className="text-muted-foreground">{pc.tx("p.2", "No se encontraron reseñas con los filtros seleccionados.")}</p>
                 </div>
               )}
 
               {filteredReviews.length > 0 && (
-                <Button variant="outline" className="w-full mt-8">
-                  Cargar más reseñas
-                  <ChevronDown className="h-4 w-4 ml-2" />
+                <Button variant="outline" className="w-full mt-8">{pc.tx("Button.1", "Cargar más reseñas")}<ChevronDown className="h-4 w-4 ml-2" />
                 </Button>
               )}
             </section>
@@ -483,3 +483,6 @@ export default function Opiniones() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { sampleReviews, locations, categoryFilters, travelerTypes, sortOptions };

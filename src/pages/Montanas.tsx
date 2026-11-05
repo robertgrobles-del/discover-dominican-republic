@@ -18,6 +18,7 @@ import { PanoramaAd } from "@/components/promo";
 import { mountains, rangeLabels, Mountain as MountainType } from "@/data/mountains";
 
 import adventureImg from "@/assets/adventure.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const difficultyLabels: Record<MountainType['difficulty'], { label: string; color: string }> = {
   'facil': { label: 'Fácil', color: 'bg-emerald-500' },
@@ -96,6 +97,11 @@ const faqsMontanismo = [
 ];
 
 export default function Montanas() {
+  const pc = usePageContent("montanas");
+  const difficultyLabels = pc.data("difficultyLabels", __pcData.difficultyLabels);
+  const rutasPicoDuarte = pc.data("rutasPicoDuarte", __pcData.rutasPicoDuarte);
+  const miradoresDestacados = pc.data("miradoresDestacados", __pcData.miradoresDestacados);
+  const faqsMontanismo = pc.data("faqsMontanismo", __pcData.faqsMontanismo);
   const [search, setSearch] = useState("");
   const [rangeFilter, setRangeFilter] = useState<string>("");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("");
@@ -114,8 +120,8 @@ export default function Montanas() {
   return (
     <PageTransition>
       <SEOHead
-        title="Montañas y Picos de República Dominicana | Senderismo y Cumbres RD"
-        description="Explora las montañas, cordilleras y picos principales de RD: Pico Duarte (3,098m), Isabel de Torres, Montaña Redonda, La Pelona y rutas de trekking."
+        title={pc.t("SEOHead.title.1", "Montañas y Picos de República Dominicana | Senderismo y Cumbres RD")}
+        description={pc.t("SEOHead.description.1", "Explora las montañas, cordilleras y picos principales de RD: Pico Duarte (3,098m), Isabel de Torres, Montaña Redonda, La Pelona y rutas de trekking.")}
         keywords="montañas republica dominicana, pico duarte, cordillera central, senderismo rd, trekking caribe, montaña redonda, isabel de torres"
       />
       <div className="min-h-screen bg-background flex flex-col text-foreground">
@@ -124,47 +130,42 @@ export default function Montanas() {
         {/* Hero Section */}
         <section className="relative h-[65vh] min-h-[480px] flex items-end overflow-hidden">
           <img
-            src={adventureImg}
-            alt="Cordillera Central y Montañas de República Dominicana"
+            src={pc.img("img.src.1", adventureImg)}
+            alt={pc.t("img.alt.1", "Cordillera Central y Montañas de República Dominicana")}
             className="absolute inset-0 w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-black/30" />
 
           <div className="relative z-10 container mx-auto px-4 lg:px-8 pb-12">
             <nav className="flex items-center gap-2 text-xs md:text-sm text-white/80 mb-4">
-              <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
+              <Link to="/" className="hover:text-primary transition-colors">{pc.tx("Link.1", "Inicio")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <Link to="/ecoturismo" className="hover:text-primary transition-colors">Ecoturismo</Link>
+              <Link to="/ecoturismo" className="hover:text-primary transition-colors">{pc.tx("Link.2", "Ecoturismo")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <span className="text-white font-medium">Montañas y Picos</span>
+              <span className="text-white font-medium">{pc.tx("span.1", "Montañas y Picos")}</span>
             </nav>
 
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div>
                 <Badge className="mb-3 bg-emerald-500/20 text-emerald-300 border-emerald-500/30 text-xs px-3 py-1">
-                  <Mountain className="h-3.5 w-3.5 mr-1.5" /> TECHO DEL CARIBE
-                </Badge>
-                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">
-                  Montañas & Picos de RD
-                </h1>
-                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">
-                  Desde el imponente Pico Duarte a 3,098 metros de altura hasta miradores escénicos con vistas al Atlántico y el Mar Caribe.
-                </p>
+                  <Mountain className="h-3.5 w-3.5 mr-1.5" />{" "}{pc.tx("Badge.1", "TECHO DEL CARIBE")}</Badge>
+                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">{pc.tx("h1.1", "Montañas & Picos de RD")}</h1>
+                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">{pc.tx("p.1", "Desde el imponente Pico Duarte a 3,098 metros de altura hasta miradores escénicos con vistas al Atlántico y el Mar Caribe.")}</p>
               </div>
 
               {/* Stat Badges */}
               <div className="flex flex-wrap gap-3 bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-white">
                 <div className="text-center px-3 border-r border-white/10 last:border-none">
                   <p className="font-display text-2xl font-bold text-primary">{mountains.length}+</p>
-                  <p className="text-[11px] text-white/70 uppercase">Cumbres Principales</p>
+                  <p className="text-2xs text-white/70 uppercase">{pc.tx("p.2", "Cumbres Principales")}</p>
                 </div>
                 <div className="text-center px-3 border-r border-white/10 last:border-none">
                   <p className="font-display text-2xl font-bold text-emerald-400">3,098 m</p>
-                  <p className="text-[11px] text-white/70 uppercase">Punto Más Alto</p>
+                  <p className="text-2xs text-white/70 uppercase">{pc.tx("p.3", "Punto Más Alto")}</p>
                 </div>
                 <div className="text-center px-3">
                   <p className="font-display text-2xl font-bold text-amber-400">6</p>
-                  <p className="text-[11px] text-white/70 uppercase">Sistemas Montañosos</p>
+                  <p className="text-2xs text-white/70 uppercase">{pc.tx("p.4", "Sistemas Montañosos")}</p>
                 </div>
               </div>
             </div>
@@ -172,13 +173,13 @@ export default function Montanas() {
         </section>
 
         {/* Filters & Search */}
-        <section className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border/80 py-4 shadow-sm">
+        <section className="bg-background/95 backdrop-blur-md border-b border-border/80 py-4 shadow-sm">
           <div className="container mx-auto px-4 lg:px-8 space-y-3">
             <div className="flex flex-col md:flex-row gap-3 items-center">
               <div className="relative flex-1 w-full">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
-                  placeholder="Buscar montaña por nombre, provincia o cordillera..." 
+                  placeholder={pc.t("Input.placeholder.1", "Buscar montaña por nombre, provincia o cordillera...")} 
                   value={search} 
                   onChange={e => setSearch(e.target.value)} 
                   className="pl-10 h-11 bg-card rounded-xl border-border/70" 
@@ -190,9 +191,7 @@ export default function Montanas() {
                   size="sm" 
                   onClick={() => setRangeFilter("")}
                   className="rounded-full text-xs"
-                >
-                  Todas las Cordilleras
-                </Button>
+                >{pc.tx("Button.1", "Todas las Cordilleras")}</Button>
                 {ranges.map(([key, label]) => (
                   <Button 
                     key={key} 
@@ -209,16 +208,13 @@ export default function Montanas() {
 
             <div className="flex items-center gap-2 overflow-x-auto text-xs pb-1">
               <span className="text-muted-foreground font-semibold flex items-center gap-1">
-                <Filter className="h-3 w-3 text-primary" /> Dificultad:
-              </span>
+                <Filter className="h-3 w-3 text-primary" />{" "}{pc.tx("span.2", "Dificultad:")}</span>
               <Button 
                 variant={difficultyFilter === "" ? "secondary" : "ghost"} 
                 size="sm" 
                 onClick={() => setDifficultyFilter("")}
                 className="h-7 text-xs rounded-full"
-              >
-                Todas
-              </Button>
+              >{pc.tx("Button.2", "Todas")}</Button>
               {Object.entries(difficultyLabels).map(([key, { label, color }]) => (
                 <Button 
                   key={key} 
@@ -238,9 +234,7 @@ export default function Montanas() {
         {/* Mountain Cards Grid */}
         <section className="container mx-auto px-4 lg:px-8 py-10 flex-1">
           <div className="flex items-center justify-between mb-6">
-            <p className="text-sm text-muted-foreground font-medium">
-              Mostrando <span className="text-foreground font-bold">{filtered.length}</span> montañas y senderos
-            </p>
+            <p className="text-sm text-muted-foreground font-medium">{pc.tx("p.5", "Mostrando")}{" "}<span className="text-foreground font-bold">{filtered.length}</span>{" "}{pc.tx("p.6", "montañas y senderos")}</p>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -259,7 +253,7 @@ export default function Montanas() {
                   >
                     <div className="relative h-52 overflow-hidden bg-muted">
                       <img 
-                        src={m.imageUrl || adventureImg} 
+                        src={m.imageUrl || pc.img("asset.adventureImg", adventureImg)} 
                         alt={m.name} 
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                         loading="lazy"
@@ -267,7 +261,7 @@ export default function Montanas() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
                       
                       <div className="absolute top-3 left-3 flex gap-1.5">
-                        <Badge className={`${diff.color} text-white border-none text-[11px] shadow-sm font-semibold`}>
+                        <Badge className={`${diff.color} text-white border-none text-2xs shadow-sm font-semibold`}>
                           {diff.label}
                         </Badge>
                       </div>
@@ -289,18 +283,18 @@ export default function Montanas() {
                     </div>
 
                     <div className="p-5 flex flex-col flex-1">
-                      <p className="text-[11px] font-bold text-primary uppercase tracking-wider mb-1">
+                      <p className="text-2xs font-bold text-primary uppercase tracking-wider mb-1">
                         {rangeLabels[m.range] || "Cordillera Central"}
                       </p>
-                      <h3 className="font-display text-xl font-bold text-foreground group-hover:text-primary transition-colors mb-2">
+                      <h2 className="h3 font-display text-xl font-bold text-foreground group-hover:text-primary transition-colors mb-2">
                         {m.name}
-                      </h3>
+                      </h2>
                       <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed mb-4 flex-1">
                         {m.shortDescription}
                       </p>
 
                       <div className="pt-3 border-t border-border/60 flex items-center justify-between text-xs font-semibold text-primary">
-                        <span>Ver ruta y detalles</span>
+                        <span>{pc.tx("span.3", "Ver ruta y detalles")}</span>
                         <ArrowUpRight className="h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                       </div>
                     </div>
@@ -313,11 +307,9 @@ export default function Montanas() {
           {filtered.length === 0 && (
             <div className="text-center py-16 bg-card rounded-2xl border border-border">
               <Mountain className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-40" />
-              <h3 className="font-bold text-lg text-foreground mb-1">No se encontraron montañas</h3>
-              <p className="text-sm text-muted-foreground mb-4">Intenta cambiar los filtros o el término de búsqueda.</p>
-              <Button onClick={() => { setSearch(""); setRangeFilter(""); setDifficultyFilter(""); }} variant="outline">
-                Limpiar Filtros
-              </Button>
+              <h3 className="font-bold text-lg text-foreground mb-1">{pc.tx("h3.1", "No se encontraron montañas")}</h3>
+              <p className="text-sm text-muted-foreground mb-4">{pc.tx("p.7", "Intenta cambiar los filtros o el término de búsqueda.")}</p>
+              <Button onClick={() => { setSearch(""); setRangeFilter(""); setDifficultyFilter(""); }} variant="outline">{pc.tx("Button.3", "Limpiar Filtros")}</Button>
             </div>
           )}
         </section>
@@ -326,15 +318,9 @@ export default function Montanas() {
         <section className="py-16 bg-card/40 border-y border-border/50">
           <div className="container mx-auto px-4 lg:px-8 max-w-6xl">
             <div className="text-center mb-12">
-              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
-                GUÍA DE EXPEDICIÓN
-              </Badge>
-              <h2 className="font-display text-3xl md:text-4xl font-black text-foreground mb-3">
-                Ascenso al Pico Duarte (3,098 m)
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
-                La cumbre más alta de todas las Antillas. Conoce las principales rutas de trekking y qué necesitas para coronar el techo del Caribe.
-              </p>
+              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">{pc.tx("Badge.2", "GUÍA DE EXPEDICIÓN")}</Badge>
+              <h2 className="font-display text-3xl md:text-4xl font-black text-foreground mb-3">{pc.tx("h2.1", "Ascenso al Pico Duarte (3,098 m)")}</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">{pc.tx("p.8", "La cumbre más alta de todas las Antillas. Conoce las principales rutas de trekking y qué necesitas para coronar el techo del Caribe.")}</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6 mb-12">
@@ -342,7 +328,7 @@ export default function Montanas() {
                 <Card key={ruta.nombre} className="border-border/70 bg-card hover:border-primary/40 transition-all flex flex-col">
                   <CardContent className="p-6 flex flex-col flex-1">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-bold text-primary uppercase tracking-wider">Ruta #{i + 1}</span>
+                      <span className="text-xs font-bold text-primary uppercase tracking-wider">{pc.tx("span.4", "Ruta #")}{i + 1}</span>
                       <Badge variant="outline" className="text-xs">{ruta.dificultad}</Badge>
                     </div>
                     <h3 className="font-display font-bold text-lg text-foreground mb-2">{ruta.nombre}</h3>
@@ -350,15 +336,15 @@ export default function Montanas() {
                     
                     <div className="space-y-1.5 pt-3 border-t border-border text-xs text-muted-foreground">
                       <div className="flex justify-between">
-                        <span>Distancia:</span>
+                        <span>{pc.tx("span.5", "Distancia:")}</span>
                         <strong className="text-foreground">{ruta.distancia}</strong>
                       </div>
                       <div className="flex justify-between">
-                        <span>Duración:</span>
+                        <span>{pc.tx("span.6", "Duración:")}</span>
                         <strong className="text-foreground">{ruta.duracion}</strong>
                       </div>
                       <div className="flex justify-between">
-                        <span>Partida:</span>
+                        <span>{pc.tx("span.7", "Partida:")}</span>
                         <strong className="text-foreground">{ruta.puntoPartida}</strong>
                       </div>
                     </div>
@@ -374,15 +360,11 @@ export default function Montanas() {
                   <Tent className="h-8 w-8" />
                 </div>
                 <div className="flex-1 text-center md:text-left">
-                  <h4 className="font-display font-bold text-xl text-foreground mb-1">
-                    Equipo & Requisitos Obligatorios
-                  </h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Saco de dormir térmico (-5°C), ropa impermeable por capas, botas de montaña, linterna frontal y contratación de guía comunitario certificado con mulas de soporte.
-                  </p>
+                  <h4 className="font-display font-bold text-xl text-foreground mb-1">{pc.tx("h4.1", "Equipo & Requisitos Obligatorios")}</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{pc.tx("p.9", "Saco de dormir térmico (-5°C), ropa impermeable por capas, botas de montaña, linterna frontal y contratación de guía comunitario certificado con mulas de soporte.")}</p>
                 </div>
                 <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-white flex-shrink-0">
-                  <Link to="/pico-duarte">Ver Guía Completa Pico Duarte</Link>
+                  <Link to="/pico-duarte">{pc.tx("Link.3", "Ver Guía Completa Pico Duarte")}</Link>
                 </Button>
               </div>
             </div>
@@ -393,15 +375,9 @@ export default function Montanas() {
         <section className="py-16">
           <div className="container mx-auto px-4 lg:px-8 max-w-6xl">
             <div className="text-center mb-12">
-              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
-                TURISMO ACCESIBLE
-              </Badge>
-              <h2 className="font-display text-3xl md:text-4xl font-black text-foreground mb-3">
-                Miradores y Picos Panorámicos
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
-                Cumbres con vistas de ensueño aptas para toda la familia y accesibles en teleférico, vehículos 4x4 o caminatas cortas.
-              </p>
+              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">{pc.tx("Badge.3", "TURISMO ACCESIBLE")}</Badge>
+              <h2 className="font-display text-3xl md:text-4xl font-black text-foreground mb-3">{pc.tx("h2.2", "Miradores y Picos Panorámicos")}</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">{pc.tx("p.10", "Cumbres con vistas de ensueño aptas para toda la familia y accesibles en teleférico, vehículos 4x4 o caminatas cortas.")}</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -439,8 +415,7 @@ export default function Montanas() {
         <section className="py-16 bg-card/30">
           <div className="container mx-auto px-4 max-w-4xl">
             <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-8 text-center flex items-center justify-center gap-2">
-              <HelpCircle className="h-6 w-6 text-primary" /> Preguntas Frecuentes sobre Montañismo en RD
-            </h2>
+              <HelpCircle className="h-6 w-6 text-primary" />{" "}{pc.tx("h2.3", "Preguntas Frecuentes sobre Montañismo en RD")}</h2>
             <div className="space-y-4">
               {faqsMontanismo.map((faq, i) => (
                 <div key={i} className="bg-card p-5 rounded-xl border border-border space-y-2">
@@ -457,3 +432,6 @@ export default function Montanas() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { difficultyLabels, rutasPicoDuarte, miradoresDestacados, faqsMontanismo };

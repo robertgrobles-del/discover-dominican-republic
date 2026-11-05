@@ -18,6 +18,7 @@ import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 import { TourPhysicalEffort } from "@/components/tour/TourPhysicalEffort";
 import { supabase } from "@/integrations/supabase/client";
 import heroBeach from "@/assets/hero-beach.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const categoryLabels: Record<string, string> = {
   adventure: "Aventura", cultural: "Cultural", wellness: "Bienestar",
@@ -31,6 +32,8 @@ interface ItineraryDay {
 }
 
 export default function TourDetalle() {
+  const pc = usePageContent("tour-detalle");
+  const categoryLabels = pc.data("categoryLabels", __pcData.categoryLabels);
   const { slug } = useParams<{ slug: string }>();
 
   const { data: tour, isLoading } = useQuery({
@@ -75,9 +78,9 @@ export default function TourDetalle() {
         <div className="min-h-screen bg-background">
           <Header />
           <div className="container mx-auto px-4 py-32 text-center">
-            <h1 className="text-3xl font-bold mb-4">Tour no encontrado</h1>
-            <p className="text-muted-foreground mb-8">El paquete que buscas no existe o ha sido removido.</p>
-            <Link to="/tours"><Button>Ver todos los tours</Button></Link>
+            <h1 className="text-3xl font-bold mb-4">{pc.tx("h1.1", "Tour no encontrado")}</h1>
+            <p className="text-muted-foreground mb-8">{pc.tx("p.1", "El paquete que buscas no existe o ha sido removido.")}</p>
+            <Link to="/tours"><Button>{pc.tx("Button.1", "Ver todos los tours")}</Button></Link>
           </div>
           <Footer />
         </div>
@@ -99,15 +102,15 @@ export default function TourDetalle() {
         {/* Hero */}
         <section className="relative h-[55vh] min-h-[450px] flex items-end">
           <div className="absolute inset-0">
-            <img src={tour.image_url || heroBeach} alt={tour.name} className="w-full h-full object-cover" />
+            <img src={tour.image_url || pc.img("asset.heroBeach", heroBeach)} alt={tour.name} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
           </div>
           <div className="relative container mx-auto px-4 pb-10">
             {/* Breadcrumbs */}
             <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-              <Link to="/" className="hover:text-primary">Inicio</Link>
+              <Link to="/" className="hover:text-primary">{pc.tx("Link.1", "Inicio")}</Link>
               <ChevronRight className="h-4 w-4" />
-              <Link to="/tours" className="hover:text-primary">Tours</Link>
+              <Link to="/tours" className="hover:text-primary">{pc.tx("Link.2", "Tours")}</Link>
               <ChevronRight className="h-4 w-4" />
               <span className="text-foreground">{tour.name}</span>
             </nav>
@@ -123,12 +126,12 @@ export default function TourDetalle() {
                 {tour.is_sponsored && (
                   <SponsoredBadge />
                 )}
-                <FavoriteButton id={tour.id} type="tour" name={tour.name} image={tour.image_url || heroBeach} variant="button" />
+                <FavoriteButton id={tour.id} type="tour" name={tour.name} image={tour.image_url || pc.img("asset.heroBeach", heroBeach)} variant="button" />
               </div>
               <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{tour.name}</h1>
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                 {tour.duration && <span className="flex items-center gap-1"><Clock className="h-4 w-4 text-primary" /> {tour.duration}</span>}
-                {tour.max_group_size && <span className="flex items-center gap-1"><Users className="h-4 w-4 text-primary" /> Máx. {tour.max_group_size} personas</span>}
+                {tour.max_group_size && <span className="flex items-center gap-1"><Users className="h-4 w-4 text-primary" />{" "}{pc.tx("span.1", "Máx.")}{" "}{tour.max_group_size}{" "}{pc.tx("span.2", "personas")}</span>}
                 {tour.rating && <span className="flex items-center gap-1"><Star className="h-4 w-4 text-yellow-500 fill-yellow-500" /> {tour.rating}</span>}
                 {tour.languages && tour.languages.length > 0 && (
                   <span className="flex items-center gap-1"><Globe className="h-4 w-4 text-primary" /> {tour.languages.join(', ')}</span>
@@ -145,7 +148,7 @@ export default function TourDetalle() {
             <div className="lg:col-span-2 space-y-12">
               {/* Description */}
               <section>
-                <h2 className="font-display text-2xl font-bold text-foreground mb-4">Sobre este Tour</h2>
+                <h2 className="font-display text-2xl font-bold text-foreground mb-4">{pc.tx("h2.1", "Sobre este Tour")}</h2>
                 <p className="text-muted-foreground leading-relaxed">{tour.description}</p>
               </section>
 
@@ -153,8 +156,7 @@ export default function TourDetalle() {
               {tour.highlights && tour.highlights.length > 0 && (
                 <section className="bg-primary/5 rounded-2xl p-6 border border-primary/20">
                   <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-                    <Award className="h-5 w-5 text-primary" /> Lo Más Destacado
-                  </h2>
+                    <Award className="h-5 w-5 text-primary" />{" "}{pc.tx("h2.2", "Lo Más Destacado")}</h2>
                   <div className="grid sm:grid-cols-2 gap-3">
                     {tour.highlights.map((h: string, i: number) => (
                       <div key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -169,8 +171,7 @@ export default function TourDetalle() {
               {itinerary.length > 0 && (
                 <section>
                   <h2 className="font-display text-2xl font-bold text-foreground mb-6 flex items-center gap-2">
-                    <CalendarDays className="h-6 w-6 text-primary" /> Itinerario
-                  </h2>
+                    <CalendarDays className="h-6 w-6 text-primary" />{" "}{pc.tx("h2.3", "Itinerario")}</h2>
                   <div className="space-y-6">
                     {itinerary.map((day, i) => (
                       <motion.div
@@ -185,8 +186,7 @@ export default function TourDetalle() {
                           {day.day}
                         </div>
                         <div className="bg-card rounded-xl border border-border p-6">
-                          <h3 className="font-display text-lg font-bold text-foreground mb-3">
-                            Día {day.day}: {day.title}
+                          <h3 className="font-display text-lg font-bold text-foreground mb-3">{pc.tx("h3.1", "Día")}{" "}{day.day}: {day.title}
                           </h3>
                           <ul className="space-y-2">
                             {day.activities.map((act: string, j: number) => (
@@ -217,8 +217,7 @@ export default function TourDetalle() {
                 {tour.included && tour.included.length > 0 && (
                   <section className="bg-green-500/5 rounded-2xl p-6 border border-green-500/20">
                     <h3 className="font-display text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                      <Check className="h-5 w-5 text-green-500" /> Incluido
-                    </h3>
+                      <Check className="h-5 w-5 text-green-500" />{" "}{pc.tx("h3.2", "Incluido")}</h3>
                     <ul className="space-y-2">
                       {tour.included.map((item: string, i: number) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -231,8 +230,7 @@ export default function TourDetalle() {
                 {tour.not_included && tour.not_included.length > 0 && (
                   <section className="bg-red-500/5 rounded-2xl p-6 border border-red-500/20">
                     <h3 className="font-display text-lg font-bold text-foreground mb-4 flex items-center gap-2">
-                      <X className="h-5 w-5 text-red-500" /> No Incluido
-                    </h3>
+                      <X className="h-5 w-5 text-red-500" />{" "}{pc.tx("h3.3", "No Incluido")}</h3>
                     <ul className="space-y-2">
                       {tour.not_included.map((item: string, i: number) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -252,16 +250,14 @@ export default function TourDetalle() {
                 <div className="bg-card rounded-2xl border border-border p-6">
                   {tour.price_from ? (
                     <div className="mb-6">
-                      <span className="text-xs text-muted-foreground uppercase font-semibold">Tarifa Oficial Desde</span>
-                      <p className="text-3xl sm:text-4xl font-black text-primary">
-                        US$ {tour.price_from} <span className="text-sm font-normal text-muted-foreground">/ persona</span>
+                      <span className="text-xs text-muted-foreground uppercase font-semibold">{pc.tx("span.3", "Tarifa Oficial Desde")}</span>
+                      <p className="text-3xl sm:text-4xl font-black text-primary">{pc.tx("p.2", "US$")}{" "}{tour.price_from} <span className="text-sm font-normal text-muted-foreground">{pc.tx("span.4", "/ persona")}</span>
                       </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        aprox. RD$ {(tour.price_from * 60).toLocaleString("es-DO")}
+                      <p className="text-xs text-muted-foreground mt-1">{pc.tx("p.3", "aprox. RD$")}{" "}{(tour.price_from * 60).toLocaleString("es-DO")}
                       </p>
                     </div>
                   ) : (
-                    <p className="text-lg font-medium text-foreground mb-6">Consultar precio personalizado</p>
+                    <p className="text-lg font-medium text-foreground mb-6">{pc.tx("p.4", "Consultar precio personalizado")}</p>
                   )}
 
                   <a
@@ -270,20 +266,14 @@ export default function TourDetalle() {
                     rel="noopener noreferrer"
                     className="w-full mb-1 inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg py-5 px-4 rounded-xl transition-all shadow-md"
                   >
-                    <MessageCircle className="h-5 w-5" />
-                    Reservar Ahora
-                  </a>
-                  <p className="text-[11px] text-center text-muted-foreground mb-3">
-                    💬 Te atiende directamente el equipo de asistencia y conserjería del portal (+1 809-221-4660).
-                  </p>
+                    <MessageCircle className="h-5 w-5" />{pc.tx("a.1", "Reservar Ahora")}</a>
+                  <p className="text-2xs text-center text-muted-foreground mb-3">{pc.tx("p.5", "💬 Te atiende directamente el equipo de asistencia y conserjería del portal (+1 809-221-4660).")}</p>
 
                   <a
                     href={`mailto:info@descubrerd.do?subject=${encodeURIComponent(`Consulta sobre Tour: ${tour.name}`)}&body=${encodeURIComponent(`Hola equipo de Descubre República Dominicana,\n\nDeseo solicitar más información sobre el paquete turístico "${tour.name}".\n\n- Número de viajeros:\n- Fecha aproximada:\n- Preguntas específicas:\n\nGracias.`)}`}
                     className="w-full inline-flex items-center justify-center gap-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground font-semibold py-3 px-4 rounded-xl text-sm transition-all"
                   >
-                    <Phone className="h-4 w-4" />
-                    Solicitar Información
-                  </a>
+                    <Phone className="h-4 w-4" />{pc.tx("a.2", "Solicitar Información")}</a>
 
                   <div className="mt-6 pt-6 border-t border-border space-y-3 text-sm">
                     {tour.duration && (
@@ -295,19 +285,19 @@ export default function TourDetalle() {
                     {tour.max_group_size && (
                       <div className="flex items-center gap-3">
                         <Users className="h-4 w-4 text-primary" />
-                        <span className="text-muted-foreground">Máximo {tour.max_group_size} personas</span>
+                        <span className="text-muted-foreground">{pc.tx("span.5", "Máximo")}{" "}{tour.max_group_size}{" "}{pc.tx("span.6", "personas")}</span>
                       </div>
                     )}
                     {tour.difficulty && (
                       <div className="flex items-center gap-3">
                         <Mountain className="h-4 w-4 text-primary" />
-                        <span className="text-muted-foreground">Dificultad: {tour.difficulty}</span>
+                        <span className="text-muted-foreground">{pc.tx("span.7", "Dificultad:")}{" "}{tour.difficulty}</span>
                       </div>
                     )}
                     {tour.min_age && (
                       <div className="flex items-center gap-3">
                         <Shield className="h-4 w-4 text-primary" />
-                        <span className="text-muted-foreground">Edad mínima: {tour.min_age} años</span>
+                        <span className="text-muted-foreground">{pc.tx("span.8", "Edad mínima:")}{" "}{tour.min_age}{" "}{pc.tx("span.9", "años")}</span>
                       </div>
                     )}
                   </div>
@@ -316,8 +306,7 @@ export default function TourDetalle() {
                 {tour.languages && tour.languages.length > 0 && (
                   <div className="bg-card rounded-2xl border border-border p-6">
                     <h3 className="font-display font-bold text-foreground mb-3 flex items-center gap-2">
-                      <Globe className="h-5 w-5 text-primary" /> Idiomas
-                    </h3>
+                      <Globe className="h-5 w-5 text-primary" />{" "}{pc.tx("h3.4", "Idiomas")}</h3>
                     <div className="flex flex-wrap gap-2">
                       {tour.languages.map((lang: string) => (
                         <Badge key={lang} variant="secondary">{lang}</Badge>
@@ -329,8 +318,7 @@ export default function TourDetalle() {
                 {tour.meeting_point && (
                   <div className="bg-card rounded-2xl border border-border p-6">
                     <h3 className="font-display font-bold text-foreground mb-3 flex items-center gap-2">
-                      <MapPin className="h-5 w-5 text-primary" /> Punto de Encuentro
-                    </h3>
+                      <MapPin className="h-5 w-5 text-primary" />{" "}{pc.tx("h3.5", "Punto de Encuentro")}</h3>
                     <p className="text-sm text-muted-foreground">{tour.meeting_point}</p>
                   </div>
                 )}
@@ -344,3 +332,6 @@ export default function TourDetalle() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { categoryLabels };

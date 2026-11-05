@@ -142,7 +142,7 @@ export default function ConcursosFotografia() {
             <div className="bg-gradient-to-r from-amber-600/20 via-orange-600/10 to-background border border-amber-500/20 rounded-2xl p-8 mb-8 relative overflow-hidden">
               <div className="absolute -right-10 -top-10 w-40 h-40 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
               <div className="max-w-2xl">
-                <Badge className="bg-amber-500/20 text-amber-500 border border-amber-500/30 uppercase text-[10px] tracking-wider mb-3">
+                <Badge className="bg-amber-500/20 text-amber-500 border border-amber-500/30 uppercase text-3xs tracking-wider mb-3">
                   Concurso Mensual de Fotografía
                 </Badge>
                 <h1 className="text-3xl md:text-4xl font-bold font-display text-foreground mb-3">
@@ -166,7 +166,7 @@ export default function ConcursosFotografia() {
                     <CardContent className="p-4 flex items-center gap-3">
                       <Calendar className="h-8 w-8 text-primary shrink-0" />
                       <div>
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold">Fecha Límite</p>
+                        <p className="text-3xs text-muted-foreground uppercase font-bold">Fecha Límite</p>
                         <p className="font-bold text-xs text-foreground">30 de Junio, 2026</p>
                       </div>
                     </CardContent>
@@ -176,7 +176,7 @@ export default function ConcursosFotografia() {
                     <CardContent className="p-4 flex items-center gap-3">
                       <Trophy className="h-8 w-8 text-amber-500 shrink-0" />
                       <div>
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold">Primer Premio</p>
+                        <p className="text-3xs text-muted-foreground uppercase font-bold">Primer Premio</p>
                         <p className="font-bold text-xs text-foreground">Fin de Semana en Cayo Levantado</p>
                       </div>
                     </CardContent>
@@ -186,7 +186,7 @@ export default function ConcursosFotografia() {
                     <CardContent className="p-4 flex items-center gap-3">
                       <Users className="h-8 w-8 text-violet-500 shrink-0" />
                       <div>
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold">Participantes</p>
+                        <p className="text-3xs text-muted-foreground uppercase font-bold">Participantes</p>
                         <p className="font-bold text-xs text-foreground">{photoSubmissions.length} Envías activos</p>
                       </div>
                     </CardContent>
@@ -195,10 +195,10 @@ export default function ConcursosFotografia() {
 
                 {/* Submissions Gallery */}
                 <div className="space-y-4">
-                  <h3 className="text-xl font-bold font-display text-foreground flex items-center gap-2">
+                  <h2 className="h3 text-xl font-bold font-display text-foreground flex items-center gap-2">
                     <ImageIcon className="h-5 w-5 text-primary" />
                     Fotografías Participantes
-                  </h3>
+                  </h2>
                   <div className="grid sm:grid-cols-2 gap-6">
                     {photoSubmissions.map(photo => {
                       const voted = hasVoted.includes(photo.id);
@@ -210,13 +210,13 @@ export default function ConcursosFotografia() {
                               alt={photo.title} 
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
                             />
-                            <Badge className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm border-white/10 uppercase text-[9px]">
+                            <Badge className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm border-white/10 uppercase text-3xs">
                               📍 {photo.location}
                             </Badge>
                           </div>
                           <CardContent className="p-4 space-y-2">
-                            <h4 className="font-bold text-xs text-foreground line-clamp-1">{photo.title}</h4>
-                            <p className="text-[10px] text-muted-foreground">Por: {photo.author} • {photo.date}</p>
+                            <h3 className="h4 font-bold text-xs text-foreground line-clamp-1">{photo.title}</h3>
+                            <p className="text-3xs text-muted-foreground">Por: {photo.author} • {photo.date}</p>
                             
                             <div className="flex items-center justify-between pt-2 border-t border-border">
                               <span className="text-xs font-mono font-bold text-muted-foreground">
@@ -256,8 +256,8 @@ export default function ConcursosFotografia() {
                   <CardContent>
                     <form onSubmit={handleSubmitPhoto} className="space-y-4">
                       <div>
-                        <label className="text-xs font-semibold text-muted-foreground uppercase">Título de la Fotografía</label>
-                        <Input 
+                        <label htmlFor="concursos-fotografia-f3" className="text-xs font-semibold text-muted-foreground uppercase">Título de la Fotografía</label>
+                        <Input id="concursos-fotografia-f3" 
                           placeholder="Ej. Olas turquesas de Playa Rincón" 
                           value={photoTitle}
                           onChange={(e) => setPhotoTitle(e.target.value)}
@@ -266,8 +266,8 @@ export default function ConcursosFotografia() {
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-semibold text-muted-foreground uppercase">Provincia/Lugar</label>
-                        <Input 
+                        <label htmlFor="concursos-fotografia-f2" className="text-xs font-semibold text-muted-foreground uppercase">Provincia/Lugar</label>
+                        <Input id="concursos-fotografia-f2" 
                           placeholder="Ej. Samaná, Puerto Plata..." 
                           value={photoLocation}
                           onChange={(e) => setPhotoLocation(e.target.value)}
@@ -276,8 +276,8 @@ export default function ConcursosFotografia() {
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-semibold text-muted-foreground uppercase">Enlace de la Imagen (URL)</label>
-                        <Input 
+                        <label htmlFor="concursos-fotografia-f1" className="text-xs font-semibold text-muted-foreground uppercase">Enlace de la Imagen (URL)</label>
+                        <Input id="concursos-fotografia-f1" 
                           placeholder="Ej. https://images.unsplash.com/photo-..." 
                           value={photoUrl}
                           onChange={(e) => setPhotoUrl(e.target.value)}
@@ -329,9 +329,9 @@ export default function ConcursosFotografia() {
                           className="w-16 h-16 object-cover rounded-lg border border-border/80 shrink-0" 
                         />
                         <div className="min-w-0">
-                          <p className="font-bold text-[10px] text-amber-500 uppercase">{winner.month}</p>
+                          <p className="font-bold text-3xs text-amber-500 uppercase">{winner.month}</p>
                           <p className="font-semibold text-xs text-foreground truncate">Por: {winner.winner}</p>
-                          <p className="text-[10px] text-muted-foreground truncate">Premio: {winner.prize}</p>
+                          <p className="text-3xs text-muted-foreground truncate">Premio: {winner.prize}</p>
                         </div>
                       </div>
                     ))}

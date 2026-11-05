@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { MegaMenuAdCard } from "./MegaMenuAdCard";
 import { Compass, Sparkles, ChevronRight, Ticket, Trophy } from "lucide-react";
 import { SponsoredBadge } from "@/components/promo/SponsoredBadge";
 
@@ -45,7 +46,7 @@ export function MegaMenuQueHacer({
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-foreground group-hover:text-primary transition-colors text-xs truncate leading-tight">{item.name}</p>
-                <p className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5">{item.desc}</p>
+                <p className="text-2xs text-muted-foreground truncate leading-tight mt-0.5">{item.desc}</p>
               </div>
             </Link>
           ))}
@@ -86,7 +87,7 @@ export function MegaMenuQueHacer({
             <Ticket className="h-4 w-4 text-primary" />
             <div>
               <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">Directorio de Excursiones Oficiales</p>
-              <p className="text-[10px] text-muted-foreground">Reservas verificadas con operadores locales</p>
+              <p className="text-3xs text-muted-foreground">Reservas verificadas con operadores locales</p>
             </div>
           </div>
           <ChevronRight className="h-4 w-4 text-primary group-hover:translate-x-1 transition-transform" />
@@ -95,15 +96,7 @@ export function MegaMenuQueHacer({
 
       {/* Col 3: Contenido Patrocinado & Gamificación (4 cols) */}
       <div className="lg:col-span-4 flex flex-col gap-3 justify-between">
-        <Link to="/tour/buggies-cenote-hoyo-azul" onClick={onClose} className="block group relative rounded-2xl overflow-hidden h-36 shadow-md">
-          <img src={adAdventureImg} alt="Excursiones Extremas & Buggies en Punta Cana" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 p-3.5">
-            <SponsoredBadge sponsor="Caribbean Buggies" className="mb-1 text-[10px]" />
-            <h4 className="font-display text-sm font-bold text-white leading-tight">Buggies & Cenote Hoyo Azul</h4>
-            <p className="text-white/85 text-xs">Aventura 4x4 con traslado desde tu hotel</p>
-          </div>
-        </Link>
+        <MegaMenuAdCard section="megamenu-que-hacer" onClose={onClose} fallback={{ to: "/tour/buggies-cenote-hoyo-azul", img: adAdventureImg, alt: "Excursiones Extremas & Buggies en Punta Cana", sponsor: "Caribbean Buggies", title: "Buggies & Cenote Hoyo Azul", text: "Aventura 4x4 con traslado desde tu hotel" }} />
 
         <Link 
           to="/gamificacion-turistica/retos" 
@@ -116,7 +109,7 @@ export function MegaMenuQueHacer({
             </div>
             <div>
               <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">Misiones Diarias & Retos</p>
-              <p className="text-[10px] text-muted-foreground">Gana monedas canjeables por day passes</p>
+              <p className="text-3xs text-muted-foreground">Gana monedas canjeables por day passes</p>
             </div>
           </div>
           <ChevronRight className="h-4 w-4 text-purple-600 group-hover:translate-x-1 transition-transform" />

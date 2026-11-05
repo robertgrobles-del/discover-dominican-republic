@@ -102,7 +102,7 @@ export function EmergencyPdfExport({ currentRegion = "all", triggerButton }: Eme
                 <div key={i} className="p-2.5 rounded-xl bg-muted/30 border border-border/70 flex justify-between items-center">
                   <div>
                     <p className="font-bold text-foreground">{h.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{h.desc}</p>
+                    <p className="text-3xs text-muted-foreground">{h.desc}</p>
                   </div>
                   <a
                     href={`tel:${h.number.replace(/[^0-9]/g, "")}`}
@@ -125,18 +125,18 @@ export function EmergencyPdfExport({ currentRegion = "all", triggerButton }: Eme
                 <div key={i} className="p-2.5 rounded-xl bg-muted/20 border border-border/60 flex justify-between items-start gap-2">
                   <div>
                     <p className="font-bold text-foreground">{c.name}</p>
-                    <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                    <p className="text-3xs text-muted-foreground flex items-center gap-1 mt-0.5">
                       <MapPin className="h-3 w-3 text-primary shrink-0" /> {c.address} ({c.region})
                     </p>
                   </div>
-                  <span className="font-mono font-bold text-[11px] text-primary shrink-0">{c.phone}</span>
+                  <span className="font-mono font-bold text-2xs text-primary shrink-0">{c.phone}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Practical travel advice */}
-          <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/20 text-[11px] text-amber-900 dark:text-amber-200">
+          <div className="p-3 bg-amber-500/10 rounded-xl border border-amber-500/20 text-2xs text-amber-900 dark:text-amber-200">
             <p className="font-bold flex items-center gap-1 mb-1">
               <AlertTriangle className="h-3.5 w-3.5 text-amber-600" /> Seguro de Viaje Internacional:
             </p>

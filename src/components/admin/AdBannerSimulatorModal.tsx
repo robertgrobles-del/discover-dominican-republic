@@ -157,11 +157,11 @@ export function AdBannerSimulatorModal({
                 {/* Banner overlay text */}
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent p-4 flex flex-col justify-end">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="bg-amber-400 text-slate-950 text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
+                    <span className="bg-amber-400 text-slate-950 text-3xs font-black uppercase px-2 py-0.5 rounded-full tracking-wider">
                       Patrocinado
                     </span>
                     {bannerData.sponsor && (
-                      <span className="text-[11px] font-bold text-white/90">{bannerData.sponsor}</span>
+                      <span className="text-2xs font-bold text-white/90">{bannerData.sponsor}</span>
                     )}
                   </div>
                   <h4 className="font-display text-base sm:text-lg font-bold text-white leading-tight drop-shadow-md">
@@ -176,7 +176,7 @@ export function AdBannerSimulatorModal({
 
                 {/* CTA Button */}
                 <div className="absolute top-3 right-3">
-                  <span className="inline-flex items-center gap-1 bg-amber-500 text-slate-950 font-bold text-[11px] px-3 py-1 rounded-xl shadow-lg group-hover:bg-amber-400 transition-colors">
+                  <span className="inline-flex items-center gap-1 bg-amber-500 text-slate-950 font-bold text-2xs px-3 py-1 rounded-xl shadow-lg group-hover:bg-amber-400 transition-colors">
                     <span>{bannerData.cta_text || "Conocer Más"}</span>
                     <ExternalLink className="h-3 w-3" />
                   </span>

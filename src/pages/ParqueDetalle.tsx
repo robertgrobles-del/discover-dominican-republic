@@ -28,8 +28,10 @@ import {
   Camera,
   Ticket
 } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function ParqueDetalle() {
+  const pc = usePageContent("parque-detalle");
   const { slug: id } = useParams<{ slug: string }>();
   const parque = (id && parquesData[id]) ? parquesData[id] : parquesData["scape-park"];
 
@@ -76,7 +78,7 @@ export default function ParqueDetalle() {
                 {/* Description */}
                 <Card className="border-border/60 shadow-sm">
                   <CardContent className="p-6 md:p-8">
-                    <h2 className="font-display text-2xl font-bold mb-4 text-foreground">Acerca de {parque.nombre}</h2>
+                    <h2 className="font-display text-2xl font-bold mb-4 text-foreground">{pc.tx("h2.1", "Acerca de")}{" "}{parque.nombre}</h2>
                     <p className="text-muted-foreground leading-relaxed text-base">
                       {parque.descripcionLarga}
                     </p>
@@ -86,10 +88,10 @@ export default function ParqueDetalle() {
                 {/* Interactive Tabs */}
                 <Tabs defaultValue="atracciones" className="w-full">
                   <TabsList className="w-full justify-start overflow-x-auto p-1 bg-muted/60">
-                    <TabsTrigger value="atracciones">Atracciones</TabsTrigger>
-                    <TabsTrigger value="incluye">Qué Incluye</TabsTrigger>
-                    <TabsTrigger value="info">Información</TabsTrigger>
-                    <TabsTrigger value="galeria">Galería ({parque.galeria.length})</TabsTrigger>
+                    <TabsTrigger value="atracciones">{pc.tx("TabsTrigger.1", "Atracciones")}</TabsTrigger>
+                    <TabsTrigger value="incluye">{pc.tx("TabsTrigger.2", "Qué Incluye")}</TabsTrigger>
+                    <TabsTrigger value="info">{pc.tx("TabsTrigger.3", "Información")}</TabsTrigger>
+                    <TabsTrigger value="galeria">{pc.tx("TabsTrigger.4", "Galería (")}{parque.galeria.length})</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="atracciones" className="mt-6">
@@ -105,7 +107,7 @@ export default function ParqueDetalle() {
                     {parque.queLlevar && parque.queLlevar.length > 0 && (
                       <Card className="border-border/60 shadow-sm">
                         <CardHeader>
-                          <CardTitle className="text-lg">Qué te recomendamos llevar</CardTitle>
+                          <CardTitle className="text-lg">{pc.tx("CardTitle.1", "Qué te recomendamos llevar")}</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <div className="flex flex-wrap gap-2">
@@ -123,43 +125,41 @@ export default function ParqueDetalle() {
                   <TabsContent value="info" className="mt-6 space-y-6">
                     <Card className="border-border/60 shadow-sm">
                       <CardHeader>
-                        <CardTitle className="text-lg">Información Operativa</CardTitle>
+                        <CardTitle className="text-lg">{pc.tx("CardTitle.2", "Información Operativa")}</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="grid sm:grid-cols-2 gap-5">
                           <div className="flex items-center gap-3">
                             <Clock className="h-5 w-5 text-primary shrink-0" />
                             <div>
-                              <p className="font-medium text-sm">Horario diario</p>
+                              <p className="font-medium text-sm">{pc.tx("p.1", "Horario diario")}</p>
                               <p className="text-sm text-muted-foreground">{parque.horario}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
                             <Calendar className="h-5 w-5 text-primary shrink-0" />
                             <div>
-                              <p className="font-medium text-sm">Días de operación</p>
+                              <p className="font-medium text-sm">{pc.tx("p.2", "Días de operación")}</p>
                               <p className="text-sm text-muted-foreground">{parque.diasOperacion}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
                             <Phone className="h-5 w-5 text-primary shrink-0" />
                             <div>
-                              <p className="font-medium text-sm">Contacto telefónico</p>
+                              <p className="font-medium text-sm">{pc.tx("p.3", "Contacto telefónico")}</p>
                               <p className="text-sm text-muted-foreground">{parque.telefono}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3">
                             <Globe className="h-5 w-5 text-primary shrink-0" />
                             <div>
-                              <p className="font-medium text-sm">Sitio web oficial</p>
+                              <p className="font-medium text-sm">{pc.tx("p.4", "Sitio web oficial")}</p>
                               <a 
                                 href={parque.website} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
                                 className="text-sm text-primary hover:underline font-medium"
-                              >
-                                Visitar web
-                              </a>
+                              >{pc.tx("a.1", "Visitar web")}</a>
                             </div>
                           </div>
                         </div>
@@ -174,7 +174,7 @@ export default function ParqueDetalle() {
 
                     {/* Amenities / Services */}
                     <DetailAmenitiesGrid 
-                      title="Servicios y Comodidades del Parque"
+                      title={pc.t("DetailAmenitiesGrid.title.1", "Servicios y Comodidades del Parque")}
                       amenities={parque.servicios}
                     />
 
@@ -204,9 +204,7 @@ export default function ParqueDetalle() {
                       <Card className="border-border/60 shadow-sm border-l-4 border-l-amber-500">
                         <CardHeader>
                           <CardTitle className="text-lg flex items-center gap-2 text-foreground">
-                            <AlertCircle className="h-5 w-5 text-amber-500" />
-                            Requisitos y Restricciones
-                          </CardTitle>
+                            <AlertCircle className="h-5 w-5 text-amber-500" />{pc.tx("CardTitle.3", "Requisitos y Restricciones")}</CardTitle>
                         </CardHeader>
                         <CardContent>
                           <ul className="space-y-2.5">

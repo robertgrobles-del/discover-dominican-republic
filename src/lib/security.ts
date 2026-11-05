@@ -74,10 +74,10 @@ export function isValidEmail(email: string): boolean {
 export function detectSQLiPatterns(input: string): boolean {
   if (!input || typeof input !== "string") return false;
   const sqliPatterns = [
-    /(\%27)|(\')|(\-\-)|(\%23)|(#)/i,
-    /((\%3D)|(=))[^\n]*((\%27)|(\')|(\-\-)|(\%3B)|(;))/i,
-    /\w*((\%27)|(\'))(\s)*((\%6F)|o|(\%4F))((\%72)|r|(\%52))/i,
-    /((\%27)|(\'))(\s)*(union|select|insert|update|delete|drop|truncate|declare|exec|execute|information_schema)/i,
+    /(%27)|(')|(--)|(%23)|(#)/i,
+    /((%3D)|(=))[^\n]*((%27)|(')|(--)|(%3B)|(;))/i,
+    /\w*((%27)|('))(\s)*((%6F)|o|(%4F))((%72)|r|(%52))/i,
+    /((%27)|('))(\s)*(union|select|insert|update|delete|drop|truncate|declare|exec|execute|information_schema)/i,
     /(union(\s+)all(\s+)select)/i,
     /(\b(select|union|insert|update|delete|drop|alter|create|truncate)\b.+\b(from|into|table|database|where)\b)/i,
     /(\bOR\b\s+['"\d\w]+\s*=\s*['"\d\w]+)/i,
@@ -220,7 +220,7 @@ export class ClientRateLimiter {
 
     try {
       const raw = localStorage.getItem(key);
-      let record: RateLimitRecord = raw 
+      const record: RateLimitRecord = raw 
         ? JSON.parse(raw) 
         : { attempts: 0, firstAttemptTime: now, blockedUntil: 0 };
 

@@ -32,17 +32,17 @@ import {
 import { toast } from "sonner";
 
 const STATUS_CONFIG: Record<SupportTicketStatus, { label: string; badge: string }> = {
-  open: { label: "Abierto", badge: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-200" },
-  in_progress: { label: "En proceso", badge: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-200" },
-  resolved: { label: "Resuelto", badge: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200" },
-  closed: { label: "Cerrado", badge: "bg-slate-500/10 text-slate-700 dark:text-slate-400 border-slate-200" },
+  open: { label: "Abierto", badge: "bg-red-500/10 text-red-500 border-red-200" },
+  in_progress: { label: "En proceso", badge: "bg-amber-500/10 text-amber-500 border-amber-200" },
+  resolved: { label: "Resuelto", badge: "bg-emerald-500/10 text-emerald-500 border-emerald-200" },
+  closed: { label: "Cerrado", badge: "bg-muted text-foreground border-border" },
 };
 
 const PRIORITY_CONFIG: Record<SupportTicketPriority, { label: string; color: string }> = {
   urgent: { label: "Urgente", color: "text-red-600 font-bold" },
   high: { label: "Alta", color: "text-orange-600 font-semibold" },
   medium: { label: "Media", color: "text-amber-600" },
-  low: { label: "Baja", color: "text-slate-500" },
+  low: { label: "Baja", color: "text-muted-foreground" },
 };
 
 export default function AdminSupportTickets() {
@@ -118,11 +118,11 @@ export default function AdminSupportTickets() {
       {/* Header & Stats */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+          <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <Headphones className="w-6 h-6 text-primary" />
             Mesa de Ayuda y Soporte
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             Atención al usuario, resolución de incidencias y notas internas de soporte.
           </p>
         </div>
@@ -134,21 +134,21 @@ export default function AdminSupportTickets() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-card border rounded-xl p-4 shadow-sm">
-          <p className="text-xs text-slate-500 font-medium">Sin asignar</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{stats?.unassigned ?? 0}</p>
+          <p className="text-xs text-muted-foreground font-medium">Sin asignar</p>
+          <p className="text-2xl font-bold text-foreground mt-1">{stats?.unassigned ?? 0}</p>
         </div>
         <div className="bg-card border rounded-xl p-4 shadow-sm">
-          <p className="text-xs text-slate-500 font-medium">Tiempo resp. promedio (30d)</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
+          <p className="text-xs text-muted-foreground font-medium">Tiempo resp. promedio (30d)</p>
+          <p className="text-2xl font-bold text-foreground mt-1">
             {stats?.avg_first_response_hours != null ? `${stats.avg_first_response_hours}h` : "—"}
           </p>
         </div>
         <div className="bg-card border rounded-xl p-4 shadow-sm">
-          <p className="text-xs text-slate-500 font-medium">Resueltos (últimos 30d)</p>
+          <p className="text-xs text-muted-foreground font-medium">Resueltos (últimos 30d)</p>
           <p className="text-2xl font-bold text-emerald-600 mt-1">{stats?.resolved_30d ?? 0}</p>
         </div>
         <div className="bg-card border rounded-xl p-4 shadow-sm">
-          <p className="text-xs text-slate-500 font-medium">Ticket más antiguo abierto</p>
+          <p className="text-xs text-muted-foreground font-medium">Ticket más antiguo abierto</p>
           <p className="text-2xl font-bold text-amber-600 mt-1">
             {stats?.oldest_hours != null ? `${stats.oldest_hours}h` : "0h"}
           </p>
@@ -158,7 +158,7 @@ export default function AdminSupportTickets() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center bg-card border rounded-xl p-3">
         <div className="relative flex-1 min-w-[220px]">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
           <Input
             value={search}
             onChange={(e) => {
@@ -201,7 +201,7 @@ export default function AdminSupportTickets() {
       <div className="bg-card border rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 dark:bg-slate-900 border-b text-slate-500 font-medium">
+            <thead className="bg-muted/50 border-b text-muted-foreground font-medium">
               <tr>
                 <th className="p-3">Ref</th>
                 <th className="p-3">Asunto & Usuario</th>
@@ -215,23 +215,23 @@ export default function AdminSupportTickets() {
             <tbody className="divide-y">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-10 text-slate-400">
+                  <td colSpan={7} className="text-center py-10 text-muted-foreground">
                     Cargando tickets...
                   </td>
                 </tr>
               ) : tickets.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-10 text-slate-400">
+                  <td colSpan={7} className="text-center py-10 text-muted-foreground">
                     No se encontraron tickets con los filtros actuales.
                   </td>
                 </tr>
               ) : (
                 tickets.map((t) => (
-                  <tr key={t.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                  <tr key={t.id} className="hover:bg-muted/30 dark:hover:bg-muted/50 transition-colors">
                     <td className="p-3 font-mono font-medium text-xs text-primary">{t.reference}</td>
                     <td className="p-3 max-w-[280px]">
-                      <div className="font-semibold text-slate-900 dark:text-white truncate">{t.subject}</div>
-                      <div className="text-xs text-slate-500 truncate">{t.display_name || t.email || "Usuario anónimo"}</div>
+                      <div className="font-semibold text-foreground truncate">{t.subject}</div>
+                      <div className="text-xs text-muted-foreground truncate">{t.display_name || t.email || "Usuario anónimo"}</div>
                     </td>
                     <td className="p-3">
                       <Badge variant="outline" className={STATUS_CONFIG[t.status]?.badge}>
@@ -244,12 +244,12 @@ export default function AdminSupportTickets() {
                       </span>
                     </td>
                     <td className="p-3">
-                      <span className="inline-flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400">
+                      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                         <MessageSquare className="w-3.5 h-3.5" />
                         {t.messages}
                       </span>
                     </td>
-                    <td className="p-3 text-xs text-slate-500 whitespace-nowrap">
+                    <td className="p-3 text-xs text-muted-foreground whitespace-nowrap">
                       {new Date(t.created_at).toLocaleDateString()}
                     </td>
                     <td className="p-3 text-right">
@@ -266,7 +266,7 @@ export default function AdminSupportTickets() {
 
         {/* Pagination */}
         {meta && meta.total_pages > 1 && (
-          <div className="flex items-center justify-between p-3 border-t text-xs text-slate-500">
+          <div className="flex items-center justify-between p-3 border-t text-xs text-muted-foreground">
             <span>Página {meta.page} de {meta.total_pages} ({meta.total} tickets)</span>
             <div className="flex gap-2">
               <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage(page - 1)}>
@@ -283,7 +283,7 @@ export default function AdminSupportTickets() {
       {/* Ticket Details & Chat Modal */}
       <Dialog open={Boolean(selectedTicketId)} onOpenChange={(open) => !open && setSelectedTicketId(null)}>
         <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
-          <DialogHeader className="p-4 border-b bg-slate-50 dark:bg-slate-900">
+          <DialogHeader className="p-4 border-b bg-muted/50">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <span className="font-mono text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded">
@@ -314,7 +314,7 @@ export default function AdminSupportTickets() {
                 </div>
               )}
             </div>
-            <div className="text-xs text-slate-500 flex gap-4 mt-1">
+            <div className="text-xs text-muted-foreground flex gap-4 mt-1">
               <span>Usuario: <strong>{ticketDetail?.display_name || ticketDetail?.email}</strong></span>
               <span>Categoría: <strong>{ticketDetail?.category || "General"}</strong></span>
               <span>Prioridad: <strong>{PRIORITY_CONFIG[ticketDetail?.priority || "medium"]?.label}</strong></span>
@@ -322,21 +322,21 @@ export default function AdminSupportTickets() {
           </DialogHeader>
 
           {/* Messages Feed */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50/50 dark:bg-slate-950">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-muted/30">
             {loadingDetail ? (
-              <div className="text-center py-10 text-slate-400">Cargando mensajes...</div>
+              <div className="text-center py-10 text-muted-foreground">Cargando mensajes...</div>
             ) : (
               <>
                 {/* Initial Description */}
                 {ticketDetail?.description && (
                   <div className="bg-card border rounded-lg p-3 shadow-2xs">
-                    <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-                      <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-1">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                      <span className="font-semibold text-foreground flex items-center gap-1">
                         <User className="w-3.5 h-3.5" /> Solicitud original
                       </span>
                       <span>{new Date(ticketDetail.created_at).toLocaleString()}</span>
                     </div>
-                    <p className="text-sm text-slate-800 dark:text-slate-200 whitespace-pre-line">
+                    <p className="text-sm text-foreground whitespace-pre-line">
                       {ticketDetail.description}
                     </p>
                   </div>
@@ -355,7 +355,7 @@ export default function AdminSupportTickets() {
                           : "bg-card border mr-auto shadow-2xs"
                       }`}
                     >
-                      <div className="flex items-center justify-between text-xs text-slate-500 mb-1 gap-4">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground mb-1 gap-4">
                         <span className="font-semibold flex items-center gap-1">
                           {m.internal ? (
                             <>
@@ -373,7 +373,7 @@ export default function AdminSupportTickets() {
                         </span>
                         <span>{new Date(m.created_at).toLocaleString()}</span>
                       </div>
-                      <p className="whitespace-pre-line text-slate-800 dark:text-slate-200">{m.message}</p>
+                      <p className="whitespace-pre-line text-foreground">{m.message}</p>
                     </div>
                   ))}
               </>
@@ -383,7 +383,7 @@ export default function AdminSupportTickets() {
           {/* Reply Form */}
           <div className="p-3 border-t bg-card space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <label className="flex items-center gap-1.5 cursor-pointer text-slate-600 dark:text-slate-400">
+              <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground">
                 <input
                   type="checkbox"
                   checked={isInternalNote}

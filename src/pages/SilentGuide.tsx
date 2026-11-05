@@ -15,8 +15,10 @@ import { Badge } from "@/components/ui/badge";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { toast } from "sonner";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function SilentGuide() {
+  const pc = usePageContent("silent-guide");
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const roomParam = searchParams.get("room") || "";
@@ -50,17 +52,13 @@ export default function SilentGuide() {
   useEffect(() => {
     if (roomParam) {
       setRoomCode(roomParam);
-      // Simulate auto-connecting
       setIsConnected(true);
       setIsListening(true);
-      // Periodically fluctuate listeners
-      const interval = setInterval(() => {
-        setListenersCount(prev => prev + (Math.random() > 0.5 ? 1 : -1));
-      }, 8000);
-      return () => clearInterval(interval);
+      setListenersCount(1);
     } else {
       setIsConnected(false);
       setIsListening(false);
+      setListenersCount(0);
     }
   }, [roomParam]);
 
@@ -110,11 +108,12 @@ export default function SilentGuide() {
   return (
     <PageTransition>
       <SEOHead
-        title="Silent Guide - Audio Transmisor Grupal en Vivo"
-        description="Escucha a tu guía turístico en tiempo real con la función Silent Guide de Descubre RD. Sin megáfonos, sin interferencias."
+        title={pc.t("SEOHead.title.1", "Silent Guide - Audio Transmisor Grupal en Vivo")}
+        description={pc.t("SEOHead.description.1", "Escucha a tu guía turístico en tiempo real con la función Silent Guide de Descubre RD. Sin megáfonos, sin interferencias.")}
       />
       <div className="min-h-screen bg-background flex flex-col justify-between">
         <Header />
+        <h1 className="sr-only">Silent Guide: audio transmisor grupal en vivo</h1>
 
         <main className="flex-1 pt-24 pb-16 container mx-auto px-4 max-w-4xl">
           <div className="mb-6">
@@ -149,18 +148,16 @@ export default function SilentGuide() {
                     <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-primary/20">
                       <Radio className="h-8 w-8 text-primary animate-pulse" />
                     </div>
-                    <CardTitle className="text-2xl font-bold font-display">Silent Guide B2B</CardTitle>
-                    <CardDescription>
-                      Ingresa el código que te ha proporcionado tu guía turístico para escuchar su audio en vivo directamente en tus auriculares.
-                    </CardDescription>
+                    <CardTitle as="h2" className="text-2xl font-bold font-display">{pc.tx("CardTitle.1", "Silent Guide B2B")}</CardTitle>
+                    <CardDescription>{pc.tx("CardDescription.1", "Ingresa el código que te ha proporcionado tu guía turístico para escuchar su audio en vivo directamente en tus auriculares.")}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleJoin} className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="room-code" className="text-sm font-semibold">Código de la Sala</Label>
+                        <Label htmlFor="room-code" className="text-sm font-semibold">{pc.tx("Label.1", "Código de la Sala")}</Label>
                         <Input
                           id="room-code"
-                          placeholder="Ej: COLONIAL-2026"
+                          placeholder={pc.t("Input.placeholder.1", "Ej: COLONIAL-2026")}
                           value={roomCode}
                           onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
                           className="text-center text-lg font-bold tracking-widest uppercase h-12"
@@ -169,9 +166,7 @@ export default function SilentGuide() {
                         />
                       </div>
                       <Button type="submit" className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary/90 text-white gap-2">
-                        <Play className="h-4 w-4 fill-white" />
-                        Conectarse y Escuchar
-                      </Button>
+                        <Play className="h-4 w-4 fill-white" />{pc.tx("Button.1", "Conectarse y Escuchar")}</Button>
                     </form>
                   </CardContent>
                 </Card>
@@ -180,18 +175,18 @@ export default function SilentGuide() {
                 <div className="grid grid-cols-3 gap-4 mt-8 text-center text-xs text-muted-foreground">
                   <div className="space-y-1">
                     <div className="text-base">🎧</div>
-                    <div className="font-bold text-foreground">Tus Auriculares</div>
-                    <div>Usa tus audífonos favoritos para escuchar sin ruidos.</div>
+                    <div className="font-bold text-foreground">{pc.tx("div.1", "Tus Auriculares")}</div>
+                    <div>{pc.tx("div.2", "Usa tus audífonos favoritos para escuchar sin ruidos.")}</div>
                   </div>
                   <div className="space-y-1">
                     <div className="text-base">🔕</div>
-                    <div className="font-bold text-foreground">Cero Megáfonos</div>
-                    <div>Protege el silencio histórico y natural de los destinos.</div>
+                    <div className="font-bold text-foreground">{pc.tx("div.3", "Cero Megáfonos")}</div>
+                    <div>{pc.tx("div.4", "Protege el silencio histórico y natural de los destinos.")}</div>
                   </div>
                   <div className="space-y-1">
                     <div className="text-base">🔋</div>
-                    <div className="font-bold text-foreground">Bajo Consumo</div>
-                    <div>Tecnología optimizada para gastar el mínimo de batería.</div>
+                    <div className="font-bold text-foreground">{pc.tx("div.5", "Bajo Consumo")}</div>
+                    <div>{pc.tx("div.6", "Tecnología optimizada para gastar el mínimo de batería.")}</div>
                   </div>
                 </div>
               </motion.div>
@@ -219,10 +214,8 @@ export default function SilentGuide() {
 
                     <div className="space-y-1">
                       <div className="text-xs font-semibold text-primary uppercase tracking-widest flex items-center gap-1.5">
-                        <Radio className="h-3.5 w-3.5" />
-                        Silent Guide Broadcast
-                      </div>
-                      <h2 className="text-2xl font-bold font-display text-foreground">Sala: {roomParam.toUpperCase()}</h2>
+                        <Radio className="h-3.5 w-3.5" />{pc.tx("div.7", "Silent Guide Broadcast")}</div>
+                      <h2 className="text-2xl font-bold font-display text-foreground">{pc.tx("h2.1", "Sala:")}{" "}{roomParam.toUpperCase()}</h2>
                     </div>
                   </div>
 
@@ -262,8 +255,7 @@ export default function SilentGuide() {
                       </p>
                       <p className="text-xs text-muted-foreground flex items-center justify-center gap-1.5">
                         <Users className="h-3.5 w-3.5" />
-                        {listenersCount} turistas conectados en este grupo
-                      </p>
+                        {listenersCount}{" "}{pc.tx("p.1", "turistas conectados en este grupo")}</p>
                     </div>
 
                     {/* Audio Controls */}
@@ -307,7 +299,7 @@ export default function SilentGuide() {
                             if (isMuted) setIsMuted(false);
                           }}
                           className="flex-1 accent-primary h-1.5 rounded-lg bg-muted cursor-pointer"
-                          aria-label="Volumen de audio"
+                          aria-label={pc.t("input.aria-label.1", "Volumen de audio")}
                         />
                         <span className="text-xs font-mono font-bold text-muted-foreground w-8 text-right">
                           {isMuted ? "0" : volume}%
@@ -343,7 +335,7 @@ export default function SilentGuide() {
                       <div className="bg-primary/5 border border-primary/10 p-2.5 rounded-xl flex items-center gap-2.5">
                         <Award className="h-5 w-5 text-primary" />
                         <div>
-                          <div className="text-[10px] uppercase font-bold text-primary tracking-widest">Guía Certificado MITUR</div>
+                          <div className="text-3xs uppercase font-bold text-primary tracking-widest">{pc.tx("div.8", "Guía Certificado MITUR")}</div>
                           <div className="text-xs font-mono font-bold text-foreground">{mockGuide.license}</div>
                         </div>
                       </div>
@@ -353,7 +345,7 @@ export default function SilentGuide() {
                       </p>
 
                       <div className="pt-2">
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground block mb-1.5">Idiomas</span>
+                        <span className="text-3xs uppercase font-bold text-muted-foreground block mb-1.5">{pc.tx("span.1", "Idiomas")}</span>
                         <div className="flex flex-wrap gap-1.5">
                           {mockGuide.languages.map((lang) => (
                             <Badge key={lang} variant="outline" className="text-xs px-2.5 py-0.5 border-border text-foreground bg-muted/30">
@@ -368,22 +360,18 @@ export default function SilentGuide() {
                         className="w-full mt-4 bg-amber-500 hover:bg-amber-600 text-white font-bold gap-2"
                         onClick={() => setShowTipModal(true)}
                       >
-                        <Heart className="h-4 w-4 fill-white" />
-                        Enviar Propina al Guía
-                      </Button>
+                        <Heart className="h-4 w-4 fill-white" />{pc.tx("Button.2", "Enviar Propina al Guía")}</Button>
                     </CardContent>
                   </Card>
 
                   {/* Connection Details Helper */}
                   <div className="p-4 rounded-2xl bg-muted/30 border border-border text-xs text-muted-foreground space-y-2">
                     <div className="font-bold text-foreground flex items-center gap-1.5">
-                      <AlertCircle className="h-4 w-4 text-primary" />
-                      ¿Problemas de Audio?
-                    </div>
+                      <AlertCircle className="h-4 w-4 text-primary" />{pc.tx("div.9", "¿Problemas de Audio?")}</div>
                     <ul className="list-disc pl-4 space-y-1">
-                      <li>Asegúrate de que tus auriculares estén conectados.</li>
-                      <li>Verifica que el volumen de tu teléfono esté alto.</li>
-                      <li>Si el audio se detiene, intenta refrescar la pestaña.</li>
+                      <li>{pc.tx("li.1", "Asegúrate de que tus auriculares estén conectados.")}</li>
+                      <li>{pc.tx("li.2", "Verifica que el volumen de tu teléfono esté alto.")}</li>
+                      <li>{pc.tx("li.3", "Si el audio se detiene, intenta refrescar la pestaña.")}</li>
                     </ul>
                   </div>
                 </div>
@@ -406,17 +394,15 @@ export default function SilentGuide() {
               >
                 <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-white relative">
                   <h3 className="font-display font-bold text-lg flex items-center gap-2">
-                    <Heart className="h-5 w-5 fill-white animate-pulse" />
-                    Propina Digital
-                  </h3>
-                  <p className="text-xs text-white/80 mt-1">Apoya el trabajo de tu guía turístico certificado.</p>
+                    <Heart className="h-5 w-5 fill-white animate-pulse" />{pc.tx("h3.1", "Propina Digital")}</h3>
+                  <p className="text-xs text-white/80 mt-1">{pc.tx("p.2", "Apoya el trabajo de tu guía turístico certificado.")}</p>
                 </div>
 
                 <div className="p-6">
                   {!tipSuccess ? (
                     <form onSubmit={handleSendTip} className="space-y-6">
                       <div className="space-y-3">
-                        <Label className="text-xs uppercase font-bold text-muted-foreground tracking-wider">Selecciona el monto (USD)</Label>
+                        <Label className="text-xs uppercase font-bold text-muted-foreground tracking-wider">{pc.tx("Label.2", "Selecciona el monto (USD)")}</Label>
                         <div className="grid grid-cols-4 gap-3">
                           {["5", "10", "15", "20"].map((val) => (
                             <Button
@@ -436,13 +422,13 @@ export default function SilentGuide() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="custom-tip" className="text-xs uppercase font-bold text-muted-foreground tracking-wider">Monto Personalizado</Label>
+                        <Label htmlFor="custom-tip" className="text-xs uppercase font-bold text-muted-foreground tracking-wider">{pc.tx("Label.3", "Monto Personalizado")}</Label>
                         <div className="relative">
                           <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                           <Input
                             id="custom-tip"
                             type="number"
-                            placeholder="Otro monto"
+                            placeholder={pc.t("Input.placeholder.2", "Otro monto")}
                             value={customTip}
                             onChange={(e) => {
                               setCustomTip(e.target.value);
@@ -461,9 +447,7 @@ export default function SilentGuide() {
                           onClick={resetTipForm}
                           className="w-1/2 text-muted-foreground"
                           disabled={tipLoading}
-                        >
-                          Cancelar
-                        </Button>
+                        >{pc.tx("Button.3", "Cancelar")}</Button>
                         <Button
                           type="submit"
                           className="w-1/2 bg-amber-500 hover:bg-amber-600 text-white font-bold"
@@ -479,14 +463,11 @@ export default function SilentGuide() {
                         <CheckCircle2 className="h-10 w-10" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-lg text-foreground">¡Muchas Gracias!</h4>
-                        <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">
-                          Tu pago de ${customTip || tipAmount} USD ha sido procesado de forma segura y se enviará de inmediato a la cuenta de {mockGuide.name}.
+                        <h4 className="font-bold text-lg text-foreground">{pc.tx("h4.1", "¡Muchas Gracias!")}</h4>
+                        <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">{pc.tx("p.3", "Tu pago de $")}{customTip || tipAmount}{" "}{pc.tx("p.4", "USD ha sido procesado de forma segura y se enviará de inmediato a la cuenta de")}{" "}{mockGuide.name}.
                         </p>
                       </div>
-                      <Button onClick={resetTipForm} className="mt-4">
-                        Cerrar
-                      </Button>
+                      <Button onClick={resetTipForm} className="mt-4">{pc.tx("Button.4", "Cerrar")}</Button>
                     </div>
                   )}
                 </div>

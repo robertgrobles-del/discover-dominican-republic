@@ -7,6 +7,18 @@ export interface GeoCoordinate {
   lng: number;
 }
 
+/** Ubicación actual del navegador con su precisión, como la piden las pruebas de visita del backend. */
+export function currentPosition(): Promise<GeoCoordinate & { accuracy_m: number }> {
+  return new Promise((resolve, reject) => {
+    if (!("geolocation" in navigator)) return reject(new Error("Tu navegador no permite obtener la ubicación"));
+    navigator.geolocation.getCurrentPosition(
+      (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude, accuracy_m: Math.round(p.coords.accuracy) }),
+      () => reject(new Error("Activa el permiso de ubicación para registrar la visita")),
+      { enableHighAccuracy: true, timeout: 15_000 },
+    );
+  });
+}
+
 const EARTH_RADIUS_KM = 6371;
 const DOMINICAN_ROAD_FACTOR = 1.35; // Factor de corrección topográfica para carreteras dominicanas
 const AVG_DR_DRIVE_SPEED_KMH = 60; // Velocidad promedio de traslado en RD (60 km/h)

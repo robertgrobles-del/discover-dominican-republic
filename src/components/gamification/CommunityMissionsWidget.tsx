@@ -54,10 +54,10 @@ export function CommunityMissionsWidget() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <Badge className="bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30 text-[10px] font-bold">
+            <Badge className="bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30 text-3xs font-bold">
               <Users className="h-3 w-3 mr-1" /> META NACIONAL COLECTIVA
             </Badge>
-            <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[10px] font-bold">
+            <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 text-3xs font-bold">
               Temporada 2026
             </Badge>
           </div>
@@ -90,10 +90,10 @@ export function CommunityMissionsWidget() {
                     <span className="text-2xl">{m.icon}</span>
                     <div>
                       <h4 className="font-bold text-sm text-foreground">{m.title}</h4>
-                      <span className="text-[10px] text-muted-foreground">{m.category}</span>
+                      <span className="text-3xs text-muted-foreground">{m.category}</span>
                     </div>
                   </div>
-                  <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-none text-[10px] font-bold">
+                  <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-none text-3xs font-bold">
                     {m.boostMultiplier}
                   </Badge>
                 </div>
@@ -102,7 +102,7 @@ export function CommunityMissionsWidget() {
                   {m.description}
                 </p>
 
-                <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 text-[11px] text-foreground flex items-center gap-2">
+                <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 text-2xs text-foreground flex items-center gap-2">
                   <Gift className="h-3.5 w-3.5 text-primary shrink-0" />
                   <span><strong>Recompensa Global:</strong> {m.rewardDescription}</span>
                 </div>

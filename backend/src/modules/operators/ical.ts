@@ -1,7 +1,7 @@
 import type { FastifyBaseLogger } from "fastify";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
-import { traceHeaders } from "../../lib/http.js";
+import { readBodyCapped, traceHeaders } from "../../lib/http.js";
 import { addDays, isIsoDate } from "./domain/dates.js";
 import { assertPublicUrl } from "../../lib/public-url.js";
 
@@ -16,9 +16,8 @@ const defaultFetcher: Fetcher = async (url) => {
   await assertPublicUrl(url);
   const res = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(10_000), headers: traceHeaders({ accept: "text/calendar" }) });
   if (!res.ok) throw new Error(`El calendario respondió ${res.status}`);
-  const text = await res.text();
-  if (text.length > MAX_BYTES) throw new Error("El calendario es demasiado grande");
-  return text;
+  // Se lee por trozos y se corta al pasar el límite: con res.text() todo el cuerpo (incluso comprimido) se cargaba en memoria antes de medirlo.
+  return readBodyCapped(res, MAX_BYTES).catch((e) => { throw /excede el límite/.test(String((e as Error).message)) ? new Error("El calendario es demasiado grande") : e; });
 };
 
 const ymd = (v: string) => { const m = v.match(/(\d{4})(\d{2})(\d{2})/); return m ? `${m[1]}-${m[2]}-${m[3]}` : null; };

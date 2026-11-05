@@ -17,6 +17,7 @@ import {
   Upload,
   Scan,
 } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
 
 const popularDishes = [
   {
@@ -66,11 +67,15 @@ const recentScans = [
 ];
 
 export default function IdentificadorComida() {
+  const pc = usePageContent("identificador-comida");
+  const recentScans = pc.data("recentScans", __pcData.recentScans);
+  const categories = pc.data("categories", __pcData.categories);
+  const popularDishes = pc.data("popularDishes", __pcData.popularDishes);
   return (
     <PageTransition>
       <SEOHead
-        title="Identificador de Comida Dominicana con IA"
-        description="Escanea platos dominicanos con tu cámara para descubrir ingredientes, información nutricional y dónde encontrar comidas típicas como la bandera, mangú, sancocho y mofongo."
+        title={pc.t("SEOHead.title.1", "Identificador de Comida Dominicana con IA")}
+        description={pc.t("SEOHead.description.1", "Escanea platos dominicanos con tu cámara para descubrir ingredientes, información nutricional y dónde encontrar comidas típicas como la bandera, mangú, sancocho y mofongo.")}
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -86,16 +91,10 @@ export default function IdentificadorComida() {
               className="max-w-3xl mx-auto text-center"
             >
               <Badge className="mb-4 bg-lime-500/20 text-lime-200 border-lime-400/30">
-                <Camera className="h-3 w-3 mr-1" />
-                IDENTIFICACIÓN IA
-              </Badge>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-6">
-                ¿Qué estoy <span className="text-lime-400">comiendo</span>?
+                <Camera className="h-3 w-3 mr-1" />{pc.tx("Badge.1", "IDENTIFICACIÓN IA")}</Badge>
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-6">{pc.tx("h1.1", "¿Qué estoy")}{" "}<span className="text-lime-400">{pc.tx("span.1", "comiendo")}</span>?
               </h1>
-              <p className="text-xl text-white/80 mb-8">
-                Escanea cualquier plato dominicano y descubre sus ingredientes, 
-                origen, información nutricional y dónde encontrarlo.
-              </p>
+              <p className="text-xl text-white/80 mb-8">{pc.tx("p.1", "Escanea cualquier plato dominicano y descubre sus ingredientes, origen, información nutricional y dónde encontrarlo.")}</p>
             </motion.div>
           </div>
         </section>
@@ -114,22 +113,14 @@ export default function IdentificadorComida() {
                   <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                     <Camera className="h-10 w-10 text-primary" />
                   </div>
-                  <p className="text-muted-foreground text-center mb-2">
-                    Toca para tomar una foto o sube una imagen
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    JPG, PNG • Máx 10MB
-                  </p>
+                  <p className="text-muted-foreground text-center mb-2">{pc.tx("p.2", "Toca para tomar una foto o sube una imagen")}</p>
+                  <p className="text-xs text-muted-foreground">{pc.tx("p.3", "JPG, PNG • Máx 10MB")}</p>
                 </div>
                 <div className="flex gap-3">
                   <Button className="flex-1 gap-2" size="lg">
-                    <Camera className="h-4 w-4" />
-                    Tomar Foto
-                  </Button>
+                    <Camera className="h-4 w-4" />{pc.tx("Button.1", "Tomar Foto")}</Button>
                   <Button variant="outline" className="flex-1 gap-2" size="lg">
-                    <Upload className="h-4 w-4" />
-                    Subir Imagen
-                  </Button>
+                    <Upload className="h-4 w-4" />{pc.tx("Button.2", "Subir Imagen")}</Button>
                 </div>
               </motion.div>
 
@@ -140,7 +131,7 @@ export default function IdentificadorComida() {
                 viewport={{ once: true }}
                 className="mt-8"
               >
-                <h3 className="font-display font-bold text-foreground mb-4">Escaneos recientes</h3>
+                <h2 className="h3 font-display font-bold text-foreground mb-4">{pc.tx("h3.1", "Escaneos recientes")}</h2>
                 <div className="space-y-3">
                   {recentScans.map((scan) => (
                     <div
@@ -157,8 +148,7 @@ export default function IdentificadorComida() {
                         </div>
                       </div>
                       <Badge variant="outline" className="text-primary border-primary/30">
-                        {scan.confidence}% match
-                      </Badge>
+                        {scan.confidence}{pc.tx("Badge.2", "% match")}</Badge>
                     </div>
                   ))}
                 </div>
@@ -176,8 +166,7 @@ export default function IdentificadorComida() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Explora el <span className="text-gradient">Catálogo</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.1", "Explora el")}{" "}<span className="text-gradient">{pc.tx("span.2", "Catálogo")}</span>
               </h2>
             </motion.div>
 
@@ -207,16 +196,11 @@ export default function IdentificadorComida() {
               className="flex items-end justify-between mb-12"
             >
               <div>
-                <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                  Platos <span className="text-gradient">Populares</span>
+                <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.2", "Platos")}{" "}<span className="text-gradient">{pc.tx("span.3", "Populares")}</span>
                 </h2>
-                <p className="text-muted-foreground max-w-xl">
-                  Los sabores más emblemáticos de la gastronomía dominicana.
-                </p>
+                <p className="text-muted-foreground max-w-xl">{pc.tx("p.4", "Los sabores más emblemáticos de la gastronomía dominicana.")}</p>
               </div>
-              <Button variant="outline" className="hidden md:flex gap-2">
-                Ver todos
-                <ChevronRight className="h-4 w-4" />
+              <Button variant="outline" className="hidden md:flex gap-2">{pc.tx("Button.3", "Ver todos")}<ChevronRight className="h-4 w-4" />
               </Button>
             </motion.div>
 
@@ -259,8 +243,7 @@ export default function IdentificadorComida() {
                     </div>
                     {dish.allergens.length > 0 && (
                       <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-                        <AlertTriangle className="h-3 w-3" />
-                        Contiene: {dish.allergens.join(", ")}
+                        <AlertTriangle className="h-3 w-3" />{pc.tx("div.1", "Contiene:")}{" "}{dish.allergens.join(", ")}
                       </div>
                     )}
                   </div>
@@ -279,16 +262,10 @@ export default function IdentificadorComida() {
               viewport={{ once: true }}
             >
               <Utensils className="h-16 w-16 text-lime-300 mx-auto mb-6" />
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-                Descubre los sabores de RD
-              </h2>
-              <p className="text-white/80 mb-8 max-w-xl mx-auto">
-                Escanea, aprende y disfruta. Tu guía gastronómica personal siempre contigo.
-              </p>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">{pc.tx("h2.3", "Descubre los sabores de RD")}</h2>
+              <p className="text-white/80 mb-8 max-w-xl mx-auto">{pc.tx("p.5", "Escanea, aprende y disfruta. Tu guía gastronómica personal siempre contigo.")}</p>
               <Button size="lg" className="gap-2 bg-white text-lime-900 hover:bg-white/90">
-                <Camera className="h-4 w-4" />
-                Comenzar a Escanear
-              </Button>
+                <Camera className="h-4 w-4" />{pc.tx("Button.4", "Comenzar a Escanear")}</Button>
             </motion.div>
           </div>
         </section>
@@ -298,3 +275,6 @@ export default function IdentificadorComida() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { recentScans, categories, popularDishes };

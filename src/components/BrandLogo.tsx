@@ -17,8 +17,8 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 }) => {
   // Dimension scales
   const sizeMap = {
-    sm: { icon: 28, text: "text-sm", sub: "text-[9px]" },
-    md: { icon: 36, text: "text-lg", sub: "text-[10px]" },
+    sm: { icon: 28, text: "text-sm", sub: "text-3xs" },
+    md: { icon: 36, text: "text-lg", sub: "text-3xs" },
     lg: { icon: 48, text: "text-2xl", sub: "text-xs" },
     xl: { icon: 64, text: "text-3xl", sub: "text-sm" },
   };

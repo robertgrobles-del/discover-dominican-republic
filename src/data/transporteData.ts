@@ -129,7 +129,7 @@ export const sistemasMasivos: SistemaMasivo[] = [
     horario: "Lun-Vie: 6:00 AM - 10:30 PM | Sáb-Dom-Feriados: 6:00 AM - 10:00 PM",
     cobertura: "Conecta Santo Domingo Norte, Centro, Este y Oeste sin tráfico vehicular.",
     consejo: "Usa la estación central Juan Pablo Duarte (Av. Kennedy / Máximo Gómez) para transbordar gratis entre Línea 1 y Línea 2.",
-    link: "/metro-santo-domingo"
+    link: "/transporte-urbano#metro"
   },
   {
     sistema: "Teleférico de Santo Domingo",
@@ -139,7 +139,7 @@ export const sistemasMasivos: SistemaMasivo[] = [
     horario: "Lun-Vie: 6:00 AM - 10:30 PM | Sáb: 6:00 AM - 9:00 PM | Dom: 8:00 AM - 9:00 PM",
     cobertura: "Sobrevuela el Río Ozama y conecta sectores elevados con las terminales del metro.",
     consejo: "Excelente opción escénica y libre de congestionamiento para cruzar el Gran Santo Domingo.",
-    link: "/teleferico-santo-domingo"
+    link: "/transporte-urbano#teleferico"
   },
   {
     sistema: "Monorriel de Santiago",
@@ -149,7 +149,7 @@ export const sistemasMasivos: SistemaMasivo[] = [
     horario: "6:00 AM - 10:00 PM (Estimado operativo)",
     cobertura: "Primer monorriel del Caribe: Conecta Cienfuegos con el Monumento de Santiago y PUCMM.",
     consejo: "Reducirá el trayecto norte-sur en Santiago de 60 min en hora pico a solo 18 min.",
-    link: "/monoriel-santiago"
+    link: "/transporte-urbano#monoriel"
   }
 ];
 

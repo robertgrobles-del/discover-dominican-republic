@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { MockDataNotice } from "@/components/MockDataNotice";
 import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { safeExternalUrl } from "@/lib/security";
 import { UUID_PATTERN } from "@/lib/accessGovernanceApi";
 import { campaignErrorMessage, creatorCampaignsApi as api, type AdminCampaign, type CampaignTerms } from "@/lib/creatorCampaignsApi";
 
@@ -193,7 +194,7 @@ function CampaignsTab() {
               {campaigns.data?.data.map((c) => (
                 <TableRow key={c.id} className={c.id === selected ? "bg-muted/50" : ""}>
                   <TableCell className="text-xs"><span className="font-semibold">{c.title}</span>{c.sponsor && <span className="block text-muted-foreground">{c.sponsor}</span>}</TableCell>
-                  <TableCell><Badge variant={c.status === "open" ? "default" : "outline"} className="text-[10px]">{STATUS[c.status]}</Badge></TableCell>
+                  <TableCell><Badge variant={c.status === "open" ? "default" : "outline"} className="text-3xs">{STATUS[c.status]}</Badge></TableCell>
                   <TableCell className="text-xs">v{c.current_version}</TableCell>
                   <TableCell className="text-xs">{c.accepted_current}</TableCell>
                   <TableCell className="text-xs">{c.deliverables_pending}</TableCell>
@@ -221,9 +222,9 @@ function CampaignsTab() {
                 <div key={d.id} className="rounded-xl border border-border p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span><strong>{d.video_title}</strong> · @{d.handle} · términos v{d.accepted_version}</span>
-                    <Badge variant="outline" className="text-[10px]">{d.status === "submitted" ? "Por revisar" : d.status === "approved" ? "Aprobada" : "Rechazada"}</Badge>
+                    <Badge variant="outline" className="text-3xs">{d.status === "submitted" ? "Por revisar" : d.status === "approved" ? "Aprobada" : "Rechazada"}</Badge>
                   </div>
-                  <a href={d.video_url} target="_blank" rel="noopener noreferrer" className="text-primary underline">Ver la pieza</a>
+                  <a href={safeExternalUrl(d.video_url)} target="_blank" rel="noopener noreferrer" className="text-primary underline">Ver la pieza</a>
                   {d.review_note && <p className="mt-1 text-muted-foreground">{d.review_note}</p>}
                   {d.status === "submitted" && (
                     <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -287,11 +288,11 @@ function DisputesTab() {
             <div key={d.id} className="rounded-xl border border-border p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span><strong>@{d.handle}</strong> · {d.subject_type === "campaign" ? "campaña" : "movimiento"} <span className="font-mono">{d.subject_id.slice(0, 8)}</span></span>
-                <Badge variant="outline" className={`text-[10px] ${d.overdue ? "border-destructive/40 text-destructive" : ""}`}>{d.overdue ? "Plazo vencido" : `Responder antes del ${when(d.due_at)}`}</Badge>
+                <Badge variant="outline" className={`text-3xs ${d.overdue ? "border-destructive/40 text-destructive" : ""}`}>{d.overdue ? "Plazo vencido" : `Responder antes del ${when(d.due_at)}`}</Badge>
               </div>
               <p className="mt-1">{d.reason}</p>
               {d.evidence.map((e, i) => (
-                <p key={i} className="text-muted-foreground">Evidencia: {e.label}{e.url && <> · <a href={e.url} target="_blank" rel="noopener noreferrer" className="text-primary underline">abrir</a></>}{e.text && <> · {e.text}</>}</p>
+                <p key={i} className="text-muted-foreground">Evidencia: {e.label}{e.url && <> · <a href={safeExternalUrl(e.url)} target="_blank" rel="noopener noreferrer" className="text-primary underline">abrir</a></>}{e.text && <> · {e.text}</>}</p>
               ))}
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <Input aria-label="Respuesta al creador" value={notes[d.id] ?? ""} onChange={(e) => setNotes({ ...notes, [d.id]: e.target.value })} placeholder="Respuesta al creador (mínimo 10 caracteres)" className="h-8 min-w-[14rem] flex-1 text-xs" />
@@ -342,7 +343,7 @@ function DisputesTab() {
 }
 
 function Field({ label, id, children }: { label: string; id: string; children: React.ReactNode }) {
-  return <div><label className="mb-1 block text-[11px] font-semibold text-muted-foreground" htmlFor={id}>{label}</label>{children}</div>;
+  return <div><label className="mb-1 block text-2xs font-semibold text-muted-foreground" htmlFor={id}>{label}</label>{children}</div>;
 }
 function ErrorCard({ text }: { text: string }) {
   return <Card className="border-destructive/40 bg-destructive/5"><CardContent className="p-4 text-xs text-destructive">{text}</CardContent></Card>;

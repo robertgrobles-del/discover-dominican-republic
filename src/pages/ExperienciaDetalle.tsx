@@ -29,6 +29,7 @@ import samana from "@/assets/samana.jpg";
 import puntaCana from "@/assets/punta-cana.jpg";
 import santoDomingo from "@/assets/santo-domingo.jpg";
 import puertoPlata from "@/assets/puerto-plata.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 // Checklist de equipamiento recomendado por categoría
 const EQUIPAMIENTO_CHECKLIST: Record<string, string[]> = {
@@ -253,6 +254,9 @@ const experienciasData: Record<string, {
 };
 
 export default function ExperienciaDetalle() {
+  const pc = usePageContent("experiencia-detalle");
+  const experienciasData = pc.data("experienciasData", __pcData.experienciasData);
+  const EQUIPAMIENTO_CHECKLIST = pc.data("EQUIPAMIENTO_CHECKLIST", __pcData.EQUIPAMIENTO_CHECKLIST);
   const { slug: id } = useParams<{ slug: string }>();
   const [saved, setSaved] = useState(false);
   const [numPersonas, setNumPersonas] = useState<number>(2);
@@ -314,7 +318,7 @@ export default function ExperienciaDetalle() {
                 <div className="bg-card rounded-3xl p-8 border border-border">
                   <div className="flex items-center gap-2 text-primary text-sm font-semibold mb-2">
                     <Sparkles className="h-4 w-4" />
-                    <span>EXPERIENCIA CURADA POR EXPERTOS</span>
+                    <span>{pc.tx("span.1", "EXPERIENCIA CURADA POR EXPERTOS")}</span>
                   </div>
                   <h2 className="font-display text-3xl font-bold text-foreground mb-4">
                     {experiencia.nombre}: {experiencia.subtitulo}
@@ -349,14 +353,13 @@ export default function ExperienciaDetalle() {
                         }
                       }}
                     >
-                      <Share2 className="h-4 w-4" /> Compartir
-                    </Button>
+                      <Share2 className="h-4 w-4" />{" "}{pc.tx("Button.1", "Compartir")}</Button>
                   </div>
                 </div>
 
                 {/* Highlights Bento */}
                 <div className="bg-card rounded-3xl p-8 border border-border">
-                  <h3 className="font-display text-xl font-bold mb-4">Lo más destacado</h3>
+                  <h3 className="font-display text-xl font-bold mb-4">{pc.tx("h3.1", "Lo más destacado")}</h3>
                   <div className="grid sm:grid-cols-2 gap-3">
                     {experiencia.highlights.map((highlight, index) => (
                       <div key={index} className="flex items-center gap-3 p-3.5 bg-muted/40 rounded-xl border border-border/60">
@@ -374,8 +377,8 @@ export default function ExperienciaDetalle() {
                       <Backpack className="h-5 w-5" />
                     </div>
                     <div>
-                      <h3 className="font-display text-xl font-bold">Qué llevar en tu mochila</h3>
-                      <p className="text-xs text-muted-foreground">Marca los artículos que vas empacando para tu viaje</p>
+                      <h3 className="font-display text-xl font-bold">{pc.tx("h3.2", "Qué llevar en tu mochila")}</h3>
+                      <p className="text-xs text-muted-foreground">{pc.tx("p.1", "Marca los artículos que vas empacando para tu viaje")}</p>
                     </div>
                   </div>
 
@@ -409,23 +412,19 @@ export default function ExperienciaDetalle() {
               {/* Columna Derecha: Cotizador Rápido y CTA */}
               <div className="sticky top-20 bg-card rounded-3xl p-6 sm:p-8 border border-border shadow-xl space-y-6">
                 <div className="border-b border-border pb-4">
-                  <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 mb-2">
-                    Operador Certificado MITUR
-                  </Badge>
-                  <p className="text-xs text-muted-foreground">Desde</p>
+                  <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 mb-2">{pc.tx("Badge.1", "Operador Certificado MITUR")}</Badge>
+                  <p className="text-xs text-muted-foreground">{pc.tx("p.2", "Desde")}</p>
                   <div className="flex items-baseline gap-1">
                     <span className="text-3xl font-black text-foreground">
                       ${experiencia.basePricePerPerson || 60}
                     </span>
-                    <span className="text-xs text-muted-foreground">USD / persona</span>
+                    <span className="text-xs text-muted-foreground">{pc.tx("span.2", "USD / persona")}</span>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">
-                      Número de Viajeros
-                    </label>
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">{pc.tx("label.1", "Número de Viajeros")}</label>
                     <div className="flex items-center gap-3">
                       {[1, 2, 4, 6].map((num) => (
                         <button
@@ -445,34 +444,28 @@ export default function ExperienciaDetalle() {
 
                   <div className="bg-muted/40 rounded-2xl p-4 space-y-2 border border-border/60">
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Tarifa base ({numPersonas}x ${experiencia.basePricePerPerson || 60})</span>
-                      <span>${estimatedTotal} USD</span>
+                      <span>{pc.tx("span.3", "Tarifa base (")}{numPersonas}x ${experiencia.basePricePerPerson || 60})</span>
+                      <span>${estimatedTotal}{" "}{pc.tx("span.4", "USD")}</span>
                     </div>
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Seguro y Guía Certificado</span>
-                      <span className="text-emerald-500 font-semibold">Incluido</span>
+                      <span>{pc.tx("span.5", "Seguro y Guía Certificado")}</span>
+                      <span className="text-emerald-500 font-semibold">{pc.tx("span.6", "Incluido")}</span>
                     </div>
                     <div className="pt-2 border-t border-border/60 flex justify-between font-bold text-sm text-foreground">
-                      <span>Total Estimado</span>
-                      <span className="text-lg text-primary">${estimatedTotal} USD</span>
+                      <span>{pc.tx("span.7", "Total Estimado")}</span>
+                      <span className="text-lg text-primary">${estimatedTotal}{" "}{pc.tx("span.8", "USD")}</span>
                     </div>
                   </div>
                 </div>
 
                 <Button className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-6 rounded-xl text-base shadow-lg shadow-primary/25">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Reservar Experiencia
-                </Button>
+                  <Calendar className="h-4 w-4 mr-2" />{pc.tx("Button.2", "Reservar Experiencia")}</Button>
 
-                <div className="space-y-2 pt-2 border-t border-border/60 text-[11px] text-muted-foreground">
+                <div className="space-y-2 pt-2 border-t border-border/60 text-2xs text-muted-foreground">
                   <p className="flex items-center gap-1.5">
-                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                    Cancelación gratuita hasta 24 horas antes
-                  </p>
+                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0" />{pc.tx("p.3", "Cancelación gratuita hasta 24 horas antes")}</p>
                   <p className="flex items-center gap-1.5">
-                    <Compass className="h-3.5 w-3.5 text-primary shrink-0" />
-                    Transporte y degustación típica incluida
-                  </p>
+                    <Compass className="h-3.5 w-3.5 text-primary shrink-0" />{pc.tx("p.4", "Transporte y degustación típica incluida")}</p>
                 </div>
               </div>
 
@@ -485,12 +478,9 @@ export default function ExperienciaDetalle() {
           <section className="py-12 border-t border-border/60">
             <div className="container mx-auto px-4 max-w-6xl">
               <div className="mb-6">
-                <h3 className="font-display text-2xl font-bold text-foreground">
-                  Galería de Momentos: {experiencia.nombre}
+                <h3 className="font-display text-2xl font-bold text-foreground">{pc.tx("h3.3", "Galería de Momentos:")}{" "}{experiencia.nombre}
                 </h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Capturas reales de las rutas, aventuras y paisajes de esta experiencia.
-                </p>
+                <p className="text-xs text-muted-foreground mt-1">{pc.tx("p.5", "Capturas reales de las rutas, aventuras y paisajes de esta experiencia.")}</p>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {experiencia.galeria.map((img, i) => (
@@ -512,9 +502,7 @@ export default function ExperienciaDetalle() {
         {/* Lugares donde vivirla */}
         <section className="py-16 bg-card/40 border-y border-border">
           <div className="container mx-auto px-4 max-w-6xl">
-            <h3 className="font-display text-2xl font-bold text-foreground mb-8">
-              Lugares Clave Donde Vivirla
-            </h3>
+            <h3 className="font-display text-2xl font-bold text-foreground mb-8">{pc.tx("h3.4", "Lugares Clave Donde Vivirla")}</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {experiencia.lugares.map((lugar) => (
                 <Link key={lugar.nombre} to={lugar.link} className="group block bg-card rounded-2xl overflow-hidden border border-border hover:border-primary/50 transition-all">
@@ -543,14 +531,11 @@ export default function ExperienciaDetalle() {
           <div className="container mx-auto px-4 max-w-6xl">
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Compara alternativas</p>
-                <h2 id="related-experiences-title" className="mt-1 font-display text-2xl font-bold text-foreground">
-                  Actividades relacionadas con {experiencia.nombre.toLowerCase()}
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">{pc.tx("p.6", "Compara alternativas")}</p>
+                <h2 id="related-experiences-title" className="mt-1 font-display text-2xl font-bold text-foreground">{pc.tx("h2.1", "Actividades relacionadas con")}{" "}{experiencia.nombre.toLowerCase()}
                 </h2>
               </div>
-              <p className="max-w-md text-xs leading-relaxed text-muted-foreground">
-                Precios, duración y valoraciones son referencias editoriales; confirma disponibilidad y condiciones con cada operador.
-              </p>
+              <p className="max-w-md text-xs leading-relaxed text-muted-foreground">{pc.tx("p.7", "Precios, duración y valoraciones son referencias editoriales; confirma disponibilidad y condiciones con cada operador.")}</p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {experiencia.actividadesRelacionadas.map((activity) => (
@@ -566,14 +551,14 @@ export default function ExperienciaDetalle() {
                     <h3 className="font-semibold text-foreground">{activity.nombre}</h3>
                     <div className="mt-3 flex items-center justify-between gap-3 text-sm">
                       <span className="text-muted-foreground">{activity.duracion}</span>
-                      <span className="font-bold text-foreground">Desde ${activity.precio} USD</span>
+                      <span className="font-bold text-foreground">{pc.tx("span.9", "Desde $")}{activity.precio}{" "}{pc.tx("span.10", "USD")}</span>
                     </div>
                   </div>
                 </article>
               ))}
             </div>
             <Button asChild variant="outline" className="mt-5 gap-2">
-              <Link to="/experiencias">Ver catálogo de experiencias <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+              <Link to="/experiencias">{pc.tx("Link.1", "Ver catálogo de experiencias")}{" "}<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
             </Button>
           </div>
         </section>
@@ -586,3 +571,6 @@ export default function ExperienciaDetalle() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { experienciasData, EQUIPAMIENTO_CHECKLIST };

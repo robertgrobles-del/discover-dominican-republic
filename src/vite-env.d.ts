@@ -2,7 +2,6 @@
 
 interface ImportMetaEnv {
   readonly VITE_API_URL?: string;
-  readonly VITE_STRAPI_URL?: string;
   readonly VITE_SUPABASE_URL?: string;
   /** Public browser key only. Never put service-role or private credentials in VITE_* variables. */
   readonly VITE_SUPABASE_PUBLISHABLE_KEY?: string;

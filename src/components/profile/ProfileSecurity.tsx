@@ -113,7 +113,7 @@ export function ProfileSecurity({ user }: ProfileSecurityProps) {
                       <span className="font-semibold text-sm text-foreground">{sess.device}</span>
                       <span className="text-xs text-muted-foreground">({sess.browser})</span>
                       {sess.isCurrent && (
-                        <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200 text-[10px] gap-1 border">
+                        <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200 text-3xs gap-1 border">
                           Dispositivo actual
                         </Badge>
                       )}

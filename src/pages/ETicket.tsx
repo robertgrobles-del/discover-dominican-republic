@@ -12,6 +12,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 import { useTranslation } from "@/i18n";
+import { usePageContent } from "@/lib/pageContent";
 
 const OFFICIAL_URL = "https://eticket.migracion.gob.do";
 const OFFICIAL_HOST = "eticket.migracion.gob.do";
@@ -71,6 +72,12 @@ function OfficialSiteButton({ label, size = "lg", className = "" }: { label: str
 }
 
 export default function ETicket() {
+  const pc = usePageContent("e-ticket");
+  const keyFacts = pc.data("keyFacts", __pcData.keyFacts);
+  const steps = pc.data("steps", __pcData.steps);
+  const checklist = pc.data("checklist", __pcData.checklist);
+  const fraudSigns = pc.data("fraudSigns", __pcData.fraudSigns);
+  const faqs = pc.data("faqs", __pcData.faqs);
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
@@ -111,9 +118,9 @@ export default function ETicket() {
                   {t("logistica.eTicketDesc") || "El e-Ticket es el formulario digital, obligatorio y gratuito, que todo viajero completa para entrar y salir de República Dominicana."}
                 </p>
                 <div className="mt-7 flex flex-wrap items-center gap-3">
-                  <OfficialSiteButton label="Completar mi e-Ticket gratis" />
+                  <OfficialSiteButton label={pc.t("OfficialSiteButton.label.1", "Completar mi e-Ticket gratis")} />
                   <Button variant="outline" size="lg" className="rounded-xl" asChild>
-                    <a href="#como-obtenerlo">Ver cómo se hace</a>
+                    <a href="#como-obtenerlo">{pc.tx("a.1", "Ver cómo se hace")}</a>
                   </Button>
                 </div>
               </motion.div>
@@ -131,8 +138,8 @@ export default function ETicket() {
                     <ShieldCheck className="h-6 w-6" aria-hidden="true" />
                   </span>
                   <div>
-                    <h2 id="sitio-oficial" className="font-display text-lg font-bold">El único sitio oficial</h2>
-                    <p className="text-sm text-muted-foreground">Dirección General de Migración</p>
+                    <h2 id="sitio-oficial" className="font-display text-lg font-bold">{pc.tx("h2.1", "El único sitio oficial")}</h2>
+                    <p className="text-sm text-muted-foreground">{pc.tx("p.1", "Dirección General de Migración")}</p>
                   </div>
                 </div>
                 <div className="mt-4 flex items-center gap-2 rounded-xl border border-border bg-muted/50 p-2 pl-4">
@@ -142,9 +149,7 @@ export default function ETicket() {
                     {copied ? "Copiada" : "Copiar"}
                   </Button>
                 </div>
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Comprueba siempre que la dirección termine en <strong className="text-foreground">.gob.do</strong>, el dominio del gobierno dominicano.
-                </p>
+                <p className="mt-3 text-sm text-muted-foreground">{pc.tx("p.2", "Comprueba siempre que la dirección termine en")}{" "}<strong className="text-foreground">{pc.tx("strong.1", ".gob.do")}</strong>{pc.tx("p.3", ", el dominio del gobierno dominicano.")}</p>
               </motion.aside>
             </div>
 
@@ -166,9 +171,7 @@ export default function ETicket() {
             <div role="note" className="flex flex-col gap-3 rounded-2xl border border-red-600/30 bg-red-600/10 p-5 sm:flex-row sm:items-center">
               <ShieldAlert className="h-7 w-7 shrink-0 text-red-600 dark:text-red-400" aria-hidden="true" />
               <p className="text-sm text-foreground">
-                <strong id="alerta-fraude" className="font-display text-base">El e-Ticket no se paga.</strong>{" "}
-                Hay sitios que cobran por un trámite que el gobierno ofrece gratis. Si te piden dinero, no es el sitio oficial.
-              </p>
+                <strong id="alerta-fraude" className="font-display text-base">{pc.tx("strong.2", "El e-Ticket no se paga.")}</strong>{" "}{pc.tx("p.4", "Hay sitios que cobran por un trámite que el gobierno ofrece gratis. Si te piden dinero, no es el sitio oficial.")}</p>
             </div>
           </section>
 
@@ -177,8 +180,8 @@ export default function ETicket() {
             <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr]">
               <div>
                 <motion.div {...fadeUp}>
-                  <h2 id="titulo-pasos" className="font-display text-3xl font-bold">Cómo obtenerlo en 4 pasos</h2>
-                  <p className="mt-2 text-muted-foreground">Se completa en línea, desde el celular o la computadora.</p>
+                  <h2 id="titulo-pasos" className="font-display text-3xl font-bold">{pc.tx("h2.2", "Cómo obtenerlo en 4 pasos")}</h2>
+                  <p className="mt-2 text-muted-foreground">{pc.tx("p.5", "Se completa en línea, desde el celular o la computadora.")}</p>
                 </motion.div>
                 <ol className="mt-8 space-y-0">
                   {steps.map((step, index) => (
@@ -189,7 +192,7 @@ export default function ETicket() {
                       <div className="flex-1 rounded-2xl border border-border bg-card p-5">
                         <h3 className="flex items-center gap-2 font-display text-lg font-bold">
                           <step.icon className="h-5 w-5 text-primary" aria-hidden="true" />
-                          <span className="sr-only">Paso {index + 1}: </span>{step.title}
+                          <span className="sr-only">{pc.tx("span.1", "Paso")}{" "}{index + 1}: </span>{step.title}
                         </h3>
                         <p className="mt-1.5 text-sm text-muted-foreground">{step.description}</p>
                       </div>
@@ -199,8 +202,8 @@ export default function ETicket() {
               </div>
 
               <motion.aside {...fadeUp} aria-labelledby="titulo-lista" className="h-fit rounded-3xl border border-border bg-muted/40 p-6 lg:sticky lg:top-24">
-                <h2 id="titulo-lista" className="font-display text-xl font-bold">Ten esto a mano</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Con estos datos lo terminas de una sola vez.</p>
+                <h2 id="titulo-lista" className="font-display text-xl font-bold">{pc.tx("h2.3", "Ten esto a mano")}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{pc.tx("p.6", "Con estos datos lo terminas de una sola vez.")}</p>
                 <ul className="mt-5 space-y-3">
                   {checklist.map((item) => (
                     <li key={item.text} className="flex items-start gap-3 text-sm">
@@ -211,9 +214,9 @@ export default function ETicket() {
                 </ul>
                 <div className="mt-6 flex items-start gap-2 rounded-xl bg-card p-3 text-sm text-muted-foreground">
                   <Users className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                  <p>¿Viajas en grupo? El formulario permite añadir acompañantes; ten los datos de todos.</p>
+                  <p>{pc.tx("p.7", "¿Viajas en grupo? El formulario permite añadir acompañantes; ten los datos de todos.")}</p>
                 </div>
-                <OfficialSiteButton label="Ir al sitio oficial" size="default" className="mt-5 w-full" />
+                <OfficialSiteButton label={pc.t("OfficialSiteButton.label.2", "Ir al sitio oficial")} size="default" className="mt-5 w-full" />
               </motion.aside>
             </div>
           </section>
@@ -223,8 +226,7 @@ export default function ETicket() {
             <div className="container mx-auto grid gap-8 px-4 py-14 lg:grid-cols-2 lg:px-8">
               <motion.div {...fadeUp} className="rounded-3xl border border-red-600/25 bg-card p-6">
                 <h2 id="titulo-fraudes" className="flex items-center gap-2 font-display text-2xl font-bold">
-                  <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" aria-hidden="true" /> Señales de un sitio falso
-                </h2>
+                  <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" aria-hidden="true" />{" "}{pc.tx("h2.4", "Señales de un sitio falso")}</h2>
                 <ul className="mt-5 space-y-3">
                   {fraudSigns.map((sign) => (
                     <li key={sign} className="flex items-start gap-3 text-sm">
@@ -237,23 +239,20 @@ export default function ETicket() {
 
               <motion.div {...fadeUp} transition={{ delay: 0.08 }} className="rounded-3xl border border-emerald-600/25 bg-card p-6">
                 <h2 className="flex items-center gap-2 font-display text-2xl font-bold">
-                  <CheckCircle2 className="h-6 w-6 text-emerald-700 dark:text-emerald-400" aria-hidden="true" /> Si necesitas ayuda
-                </h2>
+                  <CheckCircle2 className="h-6 w-6 text-emerald-700 dark:text-emerald-400" aria-hidden="true" />{" "}{pc.tx("h2.5", "Si necesitas ayuda")}</h2>
                 <ul className="mt-5 space-y-3 text-sm">
-                  <li className="flex items-start gap-3"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" aria-hidden="true" /><span>Pídesela a tu aerolínea, a tu agencia de viajes o a la recepción de tu hotel: suelen orientarte sin costo.</span></li>
-                  <li className="flex items-start gap-3"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" aria-hidden="true" /><span>Si alguien lo llena por ti, que lo haga en el sitio oficial y delante de ti.</span></li>
-                  <li className="flex items-start gap-3"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" aria-hidden="true" /><span>En el aeropuerto puedes completarlo antes de migración si no lo hiciste, aunque con espera.</span></li>
+                  <li className="flex items-start gap-3"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" aria-hidden="true" /><span>{pc.tx("span.2", "Pídesela a tu aerolínea, a tu agencia de viajes o a la recepción de tu hotel: suelen orientarte sin costo.")}</span></li>
+                  <li className="flex items-start gap-3"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" aria-hidden="true" /><span>{pc.tx("span.3", "Si alguien lo llena por ti, que lo haga en el sitio oficial y delante de ti.")}</span></li>
+                  <li className="flex items-start gap-3"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700 dark:text-emerald-400" aria-hidden="true" /><span>{pc.tx("span.4", "En el aeropuerto puedes completarlo antes de migración si no lo hiciste, aunque con espera.")}</span></li>
                 </ul>
-                <p className="mt-5 rounded-xl bg-muted/60 p-3 text-xs text-muted-foreground">
-                  Descubre RD es una guía de viaje independiente: no tramita el e-Ticket ni cobra por él.
-                </p>
+                <p className="mt-5 rounded-xl bg-muted/60 p-3 text-xs text-muted-foreground">{pc.tx("p.8", "Descubre RD es una guía de viaje independiente: no tramita el e-Ticket ni cobra por él.")}</p>
               </motion.div>
             </div>
           </section>
 
           {/* Preguntas frecuentes */}
           <section aria-labelledby="titulo-faq" className="container mx-auto max-w-3xl px-4 py-14 lg:px-8">
-            <motion.h2 {...fadeUp} id="titulo-faq" className="text-center font-display text-3xl font-bold">Preguntas frecuentes</motion.h2>
+            <motion.h2 {...fadeUp} id="titulo-faq" className="text-center font-display text-3xl font-bold">{pc.tx("motion_h2.1", "Preguntas frecuentes")}</motion.h2>
             <Accordion type="single" collapsible className="mt-8 space-y-3">
               {faqs.map((faq, index) => (
                 <AccordionItem key={faq.question} value={`faq-${index}`} className="rounded-2xl border border-border bg-card px-5">
@@ -268,10 +267,10 @@ export default function ETicket() {
           <section className="container mx-auto px-4 pb-16 lg:px-8">
             <div className="flex flex-col items-center gap-5 rounded-3xl border border-primary/30 bg-gradient-to-r from-primary/15 to-primary/5 p-8 text-center md:flex-row md:justify-between md:text-left">
               <div>
-                <h2 className="font-display text-2xl font-bold">Hazlo con tiempo y viaja tranquilo</h2>
-                <p className="mt-1 text-muted-foreground">Gratis, en línea y en unos 15 minutos. Guarda el código QR en tu celular.</p>
+                <h2 className="font-display text-2xl font-bold">{pc.tx("h2.6", "Hazlo con tiempo y viaja tranquilo")}</h2>
+                <p className="mt-1 text-muted-foreground">{pc.tx("p.9", "Gratis, en línea y en unos 15 minutos. Guarda el código QR en tu celular.")}</p>
               </div>
-              <OfficialSiteButton label="Completar e-Ticket gratis" className="shrink-0" />
+              <OfficialSiteButton label={pc.t("OfficialSiteButton.label.3", "Completar e-Ticket gratis")} className="shrink-0" />
             </div>
           </section>
         </main>
@@ -281,3 +280,6 @@ export default function ETicket() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { keyFacts, steps, checklist, fraudSigns, faqs };

@@ -78,7 +78,7 @@ export default function Reservas() {
             <Card className="max-w-md mx-auto">
               <CardContent className="p-8 text-center space-y-4">
                 <Calendar className="h-12 w-12 mx-auto text-muted-foreground" />
-                <h2 className="text-xl font-bold">Inicia sesión para ver tus reservas</h2>
+                <h1 className="text-xl font-bold">Inicia sesión para ver tus reservas</h1>
                 <p className="text-muted-foreground">Necesitas una cuenta para gestionar tus reservaciones.</p>
                 <div className="flex gap-3 justify-center">
                   <Button asChild><Link to="/login">Iniciar Sesión</Link></Button>

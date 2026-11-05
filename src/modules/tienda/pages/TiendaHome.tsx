@@ -32,9 +32,9 @@ export default function TiendaHome() {
     <PageTransition>
       <SEOHead title="Tienda oficial Descubre RD" description="Pósters rayables, ropa, gorras, bolsos y accesorios inspirados en República Dominicana. Envíos a todo el país." />
       <Header variant="white" />
-      <main className="pt-24 pb-16">
+      <main className="pb-16">
         <div className="bg-primary text-primary-foreground text-center text-sm py-2">¡Bienvenido a la tienda oficial de Descubre RD! Envío gratis en compras desde {formatDop(FREE_SHIPPING_FROM)}.</div>
-        <div className="container mx-auto px-4 pt-8">
+        <div className="container mx-auto px-4 pt-6">
           {featured && (
             <Card variant="commercial" className="overflow-hidden grid md:grid-cols-2 mb-10">
               <ProductArt product={featured} className="min-h-[16rem]" />

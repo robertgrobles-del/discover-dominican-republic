@@ -53,8 +53,8 @@ export function ProductDetailModal({ open, onOpenChange, product, shippingDest, 
 
             {/* Shipping Selector */}
             <div className="space-y-2 p-4 bg-muted/40 border border-border rounded-lg">
-              <label className="text-xs font-bold text-muted-foreground uppercase block mb-1">País de Envío</label>
-              <select
+              <label htmlFor="product-detail-modal-f1" className="text-xs font-bold text-muted-foreground uppercase block mb-1">País de Envío</label>
+              <select id="product-detail-modal-f1"
                 value={shippingDest}
                 onChange={(e) => onShippingDestChange(e.target.value as ShippingDestination)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary mb-2"

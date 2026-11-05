@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { getDestinationsByRegion } from "@/data/destinations";
 import { LeaderboardAd, BetweenSectionsAd, PanoramaAd } from "@/components/promo";
+import { usePageContent } from "@/lib/pageContent";
 
 const regionData: Record<string, { 
   name: string; 
@@ -88,6 +89,8 @@ const regionData: Record<string, {
 };
 
 export default function DestinosRegion() {
+  const pc = usePageContent("destinos-region");
+  const regionData = pc.data("regionData", __pcData.regionData);
   const { region } = useParams();
   const regionInfo = regionData[region || ""];
   
@@ -102,9 +105,9 @@ export default function DestinosRegion() {
         <Header />
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground mb-4">Región no encontrada</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Región no encontrada")}</h1>
             <Link to="/destinos">
-              <Button>Ver todos los destinos</Button>
+              <Button>{pc.tx("Button.1", "Ver todos los destinos")}</Button>
             </Link>
           </div>
         </div>
@@ -135,13 +138,11 @@ export default function DestinosRegion() {
 
           <div className="relative z-10 container mx-auto px-4 pb-12 pt-28">
             <Link to="/destinos" className="inline-flex items-center text-white/80 hover:text-white mb-4 transition-colors text-sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver a Todos los Destinos
-            </Link>
+              <ArrowLeft className="h-4 w-4 mr-2" />{pc.tx("Link.1", "Volver a Todos los Destinos")}</Link>
             
             <div className="flex items-center gap-2 mb-3">
               <Compass className="h-5 w-5 text-amber-400" />
-              <span className="text-amber-300 text-xs font-bold uppercase tracking-widest">Macro-Región Turística Oficial</span>
+              <span className="text-amber-300 text-xs font-bold uppercase tracking-widest">{pc.tx("span.1", "Macro-Región Turística Oficial")}</span>
             </div>
             
             <h1 className="font-display text-3xl sm:text-4xl md:text-6xl font-extrabold text-white mb-3 tracking-tight">
@@ -170,7 +171,7 @@ export default function DestinosRegion() {
                   <Calendar className="h-5 w-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm text-foreground">Mejor Época para Visitar</h4>
+                  <h4 className="font-bold text-sm text-foreground">{pc.tx("h4.1", "Mejor Época para Visitar")}</h4>
                   <p className="text-xs text-muted-foreground mt-1">{regionInfo.bestTime}</p>
                 </div>
               </div>
@@ -180,7 +181,7 @@ export default function DestinosRegion() {
                   <Waves className="h-5 w-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm text-foreground">Clima & Entorno</h4>
+                  <h4 className="font-bold text-sm text-foreground">{pc.tx("h4.2", "Clima & Entorno")}</h4>
                   <p className="text-xs text-muted-foreground mt-1">{regionInfo.climate}</p>
                 </div>
               </div>
@@ -190,8 +191,8 @@ export default function DestinosRegion() {
                   <ShieldCheck className="h-5 w-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm text-foreground">Infraestructura</h4>
-                  <p className="text-xs text-muted-foreground mt-1">Acceso asfaltado, aeropuertos internacionales y red de transporte turístico MITUR.</p>
+                  <h4 className="font-bold text-sm text-foreground">{pc.tx("h4.3", "Infraestructura")}</h4>
+                  <p className="text-xs text-muted-foreground mt-1">{pc.tx("p.1", "Acceso asfaltado, aeropuertos internacionales y red de transporte turístico MITUR.")}</p>
                 </div>
               </div>
             </div>
@@ -204,14 +205,11 @@ export default function DestinosRegion() {
             <div className="max-w-3xl mb-10">
               <div className="flex items-center gap-2 text-primary font-semibold text-xs tracking-widest uppercase mb-2">
                 <Sparkles className="h-4 w-4" />
-                <span>Identidad & Experiencias</span>
+                <span>{pc.tx("span.2", "Identidad & Experiencias")}</span>
               </div>
-              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                Lo Que Hace Única a la {regionInfo.name}
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h2.1", "Lo Que Hace Única a la")}{" "}{regionInfo.name}
               </h2>
-              <p className="text-sm text-muted-foreground mt-2">
-                Descubre por qué miles de viajeros eligen esta zona para sus vacaciones, expediciones ecológicas y viajes de descanso.
-              </p>
+              <p className="text-sm text-muted-foreground mt-2">{pc.tx("p.2", "Descubre por qué miles de viajeros eligen esta zona para sus vacaciones, expediciones ecológicas y viajes de descanso.")}</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6 mb-8">
@@ -240,7 +238,7 @@ export default function DestinosRegion() {
 
             {/* Highlights pill tags */}
             <div className="flex items-center gap-2 flex-wrap pt-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground mr-2">Atracciones Clave:</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground mr-2">{pc.tx("span.3", "Atracciones Clave:")}</span>
               {regionInfo.highlights.map((h, i) => (
                 <Badge key={i} variant="secondary" className="px-3 py-1 text-xs bg-muted/60 hover:bg-muted font-medium">
                   {h}
@@ -261,16 +259,12 @@ export default function DestinosRegion() {
             <div className="container mx-auto px-4">
               <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
                 <div>
-                  <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                    Provincias de la {regionInfo.name}
+                  <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h2.2", "Provincias de la")}{" "}{regionInfo.name}
                   </h2>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Explora la guía completa de cada provincia con sus municipios, monumentos, hoteles y gastronomía.
-                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">{pc.tx("p.3", "Explora la guía completa de cada provincia con sus municipios, monumentos, hoteles y gastronomía.")}</p>
                 </div>
                 <Badge variant="outline" className="text-xs font-semibold px-3 py-1 self-start md:self-auto">
-                  {provinces.length} Provincias
-                </Badge>
+                  {provinces.length}{" "}{pc.tx("Badge.1", "Provincias")}</Badge>
               </div>
 
               <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -297,7 +291,7 @@ export default function DestinosRegion() {
                           <h3 className="font-bold text-white group-hover:text-primary transition-colors text-base">
                             {province.name}
                           </h3>
-                          <span className="text-[11px] text-white/75">Ver Guía Provincial</span>
+                          <span className="text-2xs text-white/75">{pc.tx("span.4", "Ver Guía Provincial")}</span>
                         </div>
                         <ChevronRight className="h-4 w-4 text-white/80 group-hover:text-primary group-hover:translate-x-1 transition-all" />
                       </div>
@@ -314,16 +308,12 @@ export default function DestinosRegion() {
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
               <div>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                  Destinos & Polos Turísticos en la {regionInfo.name}
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h2.3", "Destinos & Polos Turísticos en la")}{" "}{regionInfo.name}
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Playas, pueblos mágicos, valles de montaña y complejos ecoturísticos.
-                </p>
+                <p className="text-sm text-muted-foreground mt-1">{pc.tx("p.4", "Playas, pueblos mágicos, valles de montaña y complejos ecoturísticos.")}</p>
               </div>
               <Badge variant="outline" className="text-xs font-semibold px-3 py-1 self-start md:self-auto">
-                {touristDestinations.length} Destinos Curados
-              </Badge>
+                {touristDestinations.length}{" "}{pc.tx("Badge.2", "Destinos Curados")}</Badge>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -364,7 +354,7 @@ export default function DestinosRegion() {
                       {dest.highlights && dest.highlights.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mt-3">
                           {dest.highlights.slice(0, 3).map((h, i) => (
-                            <Badge key={i} className="bg-white/20 text-white text-[11px] backdrop-blur-xs font-normal">
+                            <Badge key={i} className="bg-white/20 text-white text-2xs backdrop-blur-xs font-normal">
                               {h}
                             </Badge>
                           ))}
@@ -375,9 +365,7 @@ export default function DestinosRegion() {
                 </motion.div>
               ))}
               {touristDestinations.length === 0 && (
-                <p className="text-muted-foreground col-span-full text-center py-12">
-                  No hay destinos registrados para esta región.
-                </p>
+                <p className="text-muted-foreground col-span-full text-center py-12">{pc.tx("p.5", "No hay destinos registrados para esta región.")}</p>
               )}
             </div>
           </div>
@@ -390,18 +378,14 @@ export default function DestinosRegion() {
               <div>
                 <div className="flex items-center gap-2 text-primary font-semibold text-xs tracking-widest uppercase mb-2">
                   <Utensils className="h-4 w-4" />
-                  <span>Gastronomía & Sabores</span>
+                  <span>{pc.tx("span.5", "Gastronomía & Sabores")}</span>
                 </div>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                  Sabores Representativos de la {regionInfo.name}
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h2.4", "Sabores Representativos de la")}{" "}{regionInfo.name}
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-                  Platos auténticos, productos de denominación de origen y paradas gastronómicas obligatorias para los amantes de la buena mesa.
-                </p>
+                <p className="text-sm text-muted-foreground mt-1 max-w-2xl">{pc.tx("p.6", "Platos auténticos, productos de denominación de origen y paradas gastronómicas obligatorias para los amantes de la buena mesa.")}</p>
               </div>
               <Button variant="outline" size="sm" asChild className="rounded-xl self-start md:self-auto gap-2">
-                <Link to="/guia-gastronomica">
-                  Explorar Guía Gastronómica <ChevronRight className="h-4 w-4" />
+                <Link to="/guia-gastronomica">{pc.tx("Link.2", "Explorar Guía Gastronómica")}{" "}<ChevronRight className="h-4 w-4" />
                 </Link>
               </Button>
             </div>
@@ -412,10 +396,8 @@ export default function DestinosRegion() {
                   <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center mb-3">
                     <Utensils className="h-5 w-5" />
                   </div>
-                  <h4 className="font-bold text-foreground text-sm mb-1">Chivo Criollo & Sancocho</h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Preparados a fuego lento con orégano silvestre, tubérculos cosechados en el valle y sazón campestre.
-                  </p>
+                  <h4 className="font-bold text-foreground text-sm mb-1">{pc.tx("h4.4", "Chivo Criollo & Sancocho")}</h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{pc.tx("p.7", "Preparados a fuego lento con orégano silvestre, tubérculos cosechados en el valle y sazón campestre.")}</p>
                 </CardContent>
               </Card>
 
@@ -424,10 +406,8 @@ export default function DestinosRegion() {
                   <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center mb-3">
                     <TreePine className="h-5 w-5" />
                   </div>
-                  <h4 className="font-bold text-foreground text-sm mb-1">Café de Altura & Cacao</h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Cosechas orgánicas de microclimas de montaña con tostado artesanal y chocolates premiados internacionalmente.
-                  </p>
+                  <h4 className="font-bold text-foreground text-sm mb-1">{pc.tx("h4.5", "Café de Altura & Cacao")}</h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{pc.tx("p.8", "Cosechas orgánicas de microclimas de montaña con tostado artesanal y chocolates premiados internacionalmente.")}</p>
                 </CardContent>
               </Card>
 
@@ -436,10 +416,8 @@ export default function DestinosRegion() {
                   <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center mb-3">
                     <Waves className="h-5 w-5" />
                   </div>
-                  <h4 className="font-bold text-foreground text-sm mb-1">Pescados del Día al Coco</h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Mero, chillo y langostas frescas de costa caribeña cocinadas con leche de coco natural y guarnición de tostones.
-                  </p>
+                  <h4 className="font-bold text-foreground text-sm mb-1">{pc.tx("h4.6", "Pescados del Día al Coco")}</h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{pc.tx("p.9", "Mero, chillo y langostas frescas de costa caribeña cocinadas con leche de coco natural y guarnición de tostones.")}</p>
                 </CardContent>
               </Card>
 
@@ -448,10 +426,8 @@ export default function DestinosRegion() {
                   <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center mb-3">
                     <Sparkles className="h-5 w-5" />
                   </div>
-                  <h4 className="font-bold text-foreground text-sm mb-1">Dulces Típicos & Frutas</h4>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Dulces cortados de leche, pilones, mermeladas de chinola fresca y postres tradicionales de recetas centenarias.
-                  </p>
+                  <h4 className="font-bold text-foreground text-sm mb-1">{pc.tx("h4.7", "Dulces Típicos & Frutas")}</h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{pc.tx("p.10", "Dulces cortados de leche, pilones, mermeladas de chinola fresca y postres tradicionales de recetas centenarias.")}</p>
                 </CardContent>
               </Card>
             </div>
@@ -465,18 +441,14 @@ export default function DestinosRegion() {
               <div>
                 <div className="flex items-center gap-2 text-primary font-semibold text-xs tracking-widest uppercase mb-2">
                   <Hotel className="h-4 w-4" />
-                  <span>Hospedaje & Confort</span>
+                  <span>{pc.tx("span.6", "Hospedaje & Confort")}</span>
                 </div>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                  Dónde Quedarte en la {regionInfo.name}
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground">{pc.tx("h2.5", "Dónde Quedarte en la")}{" "}{regionInfo.name}
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-                  Resorts de playa todo incluido, eco-lodges entre montañas y hoteles boutique coloniales.
-                </p>
+                <p className="text-sm text-muted-foreground mt-1 max-w-2xl">{pc.tx("p.11", "Resorts de playa todo incluido, eco-lodges entre montañas y hoteles boutique coloniales.")}</p>
               </div>
               <Button asChild className="rounded-xl self-start md:self-auto gap-2">
-                <Link to="/alojamientos">
-                  Ver Todos los Alojamientos <ChevronRight className="h-4 w-4" />
+                <Link to="/alojamientos">{pc.tx("Link.3", "Ver Todos los Alojamientos")}{" "}<ChevronRight className="h-4 w-4" />
                 </Link>
               </Button>
             </div>
@@ -485,39 +457,39 @@ export default function DestinosRegion() {
               <div className="relative rounded-2xl overflow-hidden aspect-[16/10] group border border-border/60 shadow-sm">
                 <img 
                   src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80" 
-                  alt="Resorts Todo Incluido" 
+                  alt={pc.t("img.alt.1", "Resorts Todo Incluido")} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-6 flex flex-col justify-end">
-                  <Badge className="w-fit mb-2 bg-primary text-primary-foreground text-xs">All-Inclusive</Badge>
-                  <h3 className="font-bold text-white text-lg">Resorts Frente al Mar</h3>
-                  <p className="text-xs text-white/80 mt-1">Spas, múltiples piscinas y régimen todo incluido de máxima categoría.</p>
+                  <Badge className="w-fit mb-2 bg-primary text-primary-foreground text-xs">{pc.tx("Badge.3", "All-Inclusive")}</Badge>
+                  <h3 className="font-bold text-white text-lg">{pc.tx("h3.1", "Resorts Frente al Mar")}</h3>
+                  <p className="text-xs text-white/80 mt-1">{pc.tx("p.12", "Spas, múltiples piscinas y régimen todo incluido de máxima categoría.")}</p>
                 </div>
               </div>
 
               <div className="relative rounded-2xl overflow-hidden aspect-[16/10] group border border-border/60 shadow-sm">
                 <img 
                   src="https://images.unsplash.com/photo-1540541338287-41700207dee6?w=800&q=80" 
-                  alt="Eco-Lodges de Montaña" 
+                  alt={pc.t("img.alt.2", "Eco-Lodges de Montaña")} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-6 flex flex-col justify-end">
-                  <Badge className="w-fit mb-2 bg-emerald-600 text-white text-xs">Ecoturismo</Badge>
-                  <h3 className="font-bold text-white text-lg">Eco-Lodges & Cabañas</h3>
-                  <p className="text-xs text-white/80 mt-1">Conexión con la naturaleza, chimeneas, senderos y vistas panorámicas.</p>
+                  <Badge className="w-fit mb-2 bg-emerald-600 text-white text-xs">{pc.tx("Badge.4", "Ecoturismo")}</Badge>
+                  <h3 className="font-bold text-white text-lg">{pc.tx("h3.2", "Eco-Lodges & Cabañas")}</h3>
+                  <p className="text-xs text-white/80 mt-1">{pc.tx("p.13", "Conexión con la naturaleza, chimeneas, senderos y vistas panorámicas.")}</p>
                 </div>
               </div>
 
               <div className="relative rounded-2xl overflow-hidden aspect-[16/10] group border border-border/60 shadow-sm">
                 <img 
                   src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&q=80" 
-                  alt="Hoteles Boutique & Ciudad" 
+                  alt={pc.t("img.alt.3", "Hoteles Boutique & Ciudad")} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-6 flex flex-col justify-end">
-                  <Badge className="w-fit mb-2 bg-amber-600 text-white text-xs">Boutique & Encanto</Badge>
-                  <h3 className="font-bold text-white text-lg">Hoteles Boutique & Ciudad</h3>
-                  <p className="text-xs text-white/80 mt-1">Atención personalizada, diseño de autor y ubicación en centros históricos.</p>
+                  <Badge className="w-fit mb-2 bg-amber-600 text-white text-xs">{pc.tx("Badge.5", "Boutique & Encanto")}</Badge>
+                  <h3 className="font-bold text-white text-lg">{pc.tx("h3.3", "Hoteles Boutique & Ciudad")}</h3>
+                  <p className="text-xs text-white/80 mt-1">{pc.tx("p.14", "Atención personalizada, diseño de autor y ubicación en centros históricos.")}</p>
                 </div>
               </div>
             </div>
@@ -537,3 +509,5 @@ export default function DestinosRegion() {
   );
 }
 
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { regionData };

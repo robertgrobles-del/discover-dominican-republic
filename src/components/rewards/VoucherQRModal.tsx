@@ -46,7 +46,7 @@ export const VoucherQRModal: React.FC<VoucherQRModalProps> = ({
               </div>
 
               <div>
-                <span className="text-[10px] text-muted-foreground uppercase font-bold">
+                <span className="text-3xs text-muted-foreground uppercase font-bold">
                   Código de Validación
                 </span>
                 <p className="font-mono text-base font-black text-foreground tracking-wider">
@@ -56,16 +56,16 @@ export const VoucherQRModal: React.FC<VoucherQRModalProps> = ({
 
               <div className="text-xs border-t border-border/60 pt-2 space-y-1">
                 <p className="font-bold text-foreground">{voucher.prizeName}</p>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-2xs text-muted-foreground">
                   {voucher.sponsor} — {voucher.location}
                 </p>
-                <p className="text-[10px] text-emerald-600 font-semibold">
+                <p className="text-3xs text-emerald-600 font-semibold">
                   Válido: {voucher.expiryDate}
                 </p>
               </div>
             </div>
 
-            <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
+            <p className="text-2xs text-muted-foreground text-center leading-relaxed">
               {voucher.instructions}
             </p>
           </div>

@@ -41,7 +41,7 @@ export default function MembresiasPasaporte() {
       <div className="min-h-screen bg-background text-foreground">
         <Header />
         <main>
-          <section className="bg-[#0b3c36] text-white">
+          <section className="bg-brand-lagoon text-white">
             <div className="container mx-auto max-w-7xl px-4 py-16 md:px-8 md:py-20">
               <Badge className="border-white/20 bg-white/10 text-emerald-100">Pasaporte RD</Badge>
               <h1 className="mt-5 max-w-3xl font-display text-4xl font-black md:text-5xl">Compara el acceso gratuito con los planes VIP</h1>

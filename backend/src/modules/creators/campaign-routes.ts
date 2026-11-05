@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
+import { httpUrl } from "./url.js";
 import { campaignTerms } from "./campaigns.js";
 
 const bearer = [{ bearerAuth: [] }];
@@ -66,10 +67,10 @@ export async function creatorCampaignRoutes(app: FastifyInstance) {
 
   r.get("/creators/me/earnings", { onRequest: auth, schema: { tags: creatorTags, summary: "Mis ingresos por concepto, separando lo estimado de lo confirmado y explicando los reversos", security: bearer, response: { 200: ok } } }, async (req) => ({ data: await svc.earnings(req.user!.id) }));
 
-  r.get("/creators/videos/:id/rights", { onRequest: auth, schema: { tags: creatorTags, summary: "Titular y licencias de una pieza (sólo su autor y el personal)", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => ({ data: await svc.rightsOf(req.params.id, { id: req.user!.id, staff: isStaff(req.user!.roles) }) }));
+  r.get("/creators/videos/:id/rights", { onRequest: app.authenticateStaffMfa, schema: { tags: creatorTags, summary: "Titular y licencias de una pieza (sólo su autor y el personal)", security: bearer, params: uuid, response: { 200: ok } } }, async (req) => ({ data: await svc.rightsOf(req.params.id, { id: req.user!.id, staff: isStaff(req.user!.roles) }) }));
   r.post("/creators/videos/:id/platform-license", { onRequest: auth, schema: { tags: creatorTags, summary: "Concede a la plataforma una licencia de difusión de un año sobre una pieza propia", security: bearer, params: uuid, response: { 201: ok } } }, async (req, reply) => { reply.code(201); return { data: await svc.grantPlatformLicense(req.user!.id, req.params.id) }; });
   r.post("/creators/rights/:id/revoke", {
-    onRequest: auth,
+    onRequest: app.authenticateStaffMfa,
     schema: { tags: creatorTags, summary: "Revoca una licencia: el autor la de plataforma; el personal, cualquiera", security: bearer, params: uuid, body: z.object({ reason }), response: { 204: z.null() } },
   }, async (req, reply) => { await svc.revokeRight(req.params.id, { id: req.user!.id, staff: isStaff(req.user!.roles) }, req.body.reason, req.ip); reply.code(204); return null; });
 
@@ -80,7 +81,7 @@ export async function creatorCampaignRoutes(app: FastifyInstance) {
       tags: creatorTags, summary: "Abre una disputa sobre una campaña o un movimiento propio, con evidencia", security: bearer,
       body: z.object({
         subject_type: z.enum(["campaign", "ledger_entry"]), subject_id: z.string().uuid(), reason,
-        evidence: z.array(z.object({ label: z.string().trim().min(2).max(120), url: z.string().url().max(500).optional(), text: z.string().trim().max(1000).optional() }).refine((e) => e.url || e.text, "Cada evidencia necesita un enlace o un texto")).max(10).default([]),
+        evidence: z.array(z.object({ label: z.string().trim().min(2).max(120), url: httpUrl().optional(), text: z.string().trim().max(1000).optional() }).refine((e) => e.url || e.text, "Cada evidencia necesita un enlace o un texto")).max(10).default([]),
       }),
       response: { 201: ok },
     },

@@ -17,6 +17,7 @@ import {
   FileCheck,
   Search,
 } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
 
 const certificationLevels = [
   {
@@ -88,6 +89,11 @@ const certifiedBusinesses = [
 ];
 
 export default function SelloCalidad() {
+  const pc = usePageContent("sello-calidad");
+  const categories = pc.data("categories", __pcData.categories);
+  const certificationLevels = pc.data("certificationLevels", __pcData.certificationLevels);
+  const criteria = pc.data("criteria", __pcData.criteria);
+  const certifiedBusinesses = pc.data("certifiedBusinesses", __pcData.certifiedBusinesses);
   return (
     <PageTransition>
       <div className="min-h-screen bg-background">
@@ -106,21 +112,12 @@ export default function SelloCalidad() {
               <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-6">
                 <Award className="h-12 w-12 text-primary" />
               </div>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-6">
-                Sello de <span className="text-primary">Excelencia</span> RD
-              </h1>
-              <p className="text-xl text-white/80 mb-8">
-                Certificación oficial de calidad turística. Identifica establecimientos 
-                que cumplen con los más altos estándares de servicio.
-              </p>
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-6">{pc.tx("h1.1", "Sello de")}{" "}<span className="text-primary">{pc.tx("span.1", "Excelencia")}</span>{" "}{pc.tx("h1.2", "RD")}</h1>
+              <p className="text-xl text-white/80 mb-8">{pc.tx("p.1", "Certificación oficial de calidad turística. Identifica establecimientos que cumplen con los más altos estándares de servicio.")}</p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button size="lg" className="gap-2">
-                  <Search className="h-4 w-4" />
-                  Buscar Certificados
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Solicitar Certificación
-                  <ChevronRight className="h-4 w-4" />
+                  <Search className="h-4 w-4" />{pc.tx("Button.1", "Buscar Certificados")}</Button>
+                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.2", "Solicitar Certificación")}<ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </motion.div>
@@ -138,7 +135,7 @@ export default function SelloCalidad() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-foreground">{cat.certified}</p>
-                    <p className="text-sm text-muted-foreground">{cat.name} certificados</p>
+                    <p className="text-sm text-muted-foreground">{cat.name}{" "}{pc.tx("p.2", "certificados")}</p>
                   </div>
                 </div>
               ))}
@@ -155,12 +152,9 @@ export default function SelloCalidad() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Niveles de <span className="text-gradient">Certificación</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.1", "Niveles de")}{" "}<span className="text-gradient">{pc.tx("span.2", "Certificación")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Tres niveles de excelencia que garantizan calidad turística verificada.
-              </p>
+              <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.3", "Tres niveles de excelencia que garantizan calidad turística verificada.")}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -174,8 +168,7 @@ export default function SelloCalidad() {
                   className="bg-card rounded-2xl p-6 border border-border text-center"
                 >
                   <div className="text-5xl mb-4">{level.icon}</div>
-                  <h3 className="font-display text-2xl font-bold text-foreground mb-2">
-                    Sello {level.name}
+                  <h3 className="font-display text-2xl font-bold text-foreground mb-2">{pc.tx("h3.1", "Sello")}{" "}{level.name}
                   </h3>
                   <p className="text-sm text-muted-foreground mb-6">{level.requirements}</p>
                   <ul className="space-y-3 text-left">
@@ -202,12 +195,9 @@ export default function SelloCalidad() {
               className="max-w-4xl mx-auto"
             >
               <div className="text-center mb-12">
-                <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                  Criterios de <span className="text-gradient">Evaluación</span>
+                <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.2", "Criterios de")}{" "}<span className="text-gradient">{pc.tx("span.3", "Evaluación")}</span>
                 </h2>
-                <p className="text-muted-foreground">
-                  Evaluamos 8 dimensiones clave para garantizar la excelencia.
-                </p>
+                <p className="text-muted-foreground">{pc.tx("p.4", "Evaluamos 8 dimensiones clave para garantizar la excelencia.")}</p>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -239,13 +229,10 @@ export default function SelloCalidad() {
               className="flex items-end justify-between mb-12"
             >
               <div>
-                <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                  Establecimientos <span className="text-gradient">Certificados</span>
+                <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.3", "Establecimientos")}{" "}<span className="text-gradient">{pc.tx("span.4", "Certificados")}</span>
                 </h2>
               </div>
-              <Button variant="outline" className="hidden md:flex gap-2">
-                Ver directorio completo
-                <ChevronRight className="h-4 w-4" />
+              <Button variant="outline" className="hidden md:flex gap-2">{pc.tx("Button.3", "Ver directorio completo")}<ChevronRight className="h-4 w-4" />
               </Button>
             </motion.div>
 
@@ -282,9 +269,7 @@ export default function SelloCalidad() {
                       <MapPin className="h-3.5 w-3.5" />
                       {business.location}
                     </div>
-                    <Button className="w-full" variant="outline">
-                      Ver Detalles
-                    </Button>
+                    <Button className="w-full" variant="outline">{pc.tx("Button.4", "Ver Detalles")}</Button>
                   </div>
                 </motion.div>
               ))}
@@ -301,20 +286,11 @@ export default function SelloCalidad() {
               viewport={{ once: true }}
             >
               <FileCheck className="h-16 w-16 text-blue-300 mx-auto mb-6" />
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-                ¿Tienes un negocio turístico?
-              </h2>
-              <p className="text-white/80 mb-8 max-w-xl mx-auto">
-                Solicita la certificación de calidad y destaca tu establecimiento 
-                entre los mejores de República Dominicana.
-              </p>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">{pc.tx("h2.4", "¿Tienes un negocio turístico?")}</h2>
+              <p className="text-white/80 mb-8 max-w-xl mx-auto">{pc.tx("p.5", "Solicita la certificación de calidad y destaca tu establecimiento entre los mejores de República Dominicana.")}</p>
               <div className="flex flex-wrap justify-center gap-4">
-                <Button size="lg" className="gap-2 bg-white text-blue-900 hover:bg-white/90">
-                  Solicitar Certificación
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Conocer Requisitos
-                </Button>
+                <Button size="lg" className="gap-2 bg-white text-blue-900 hover:bg-white/90">{pc.tx("Button.5", "Solicitar Certificación")}</Button>
+                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.6", "Conocer Requisitos")}</Button>
               </div>
             </motion.div>
           </div>
@@ -325,3 +301,6 @@ export default function SelloCalidad() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { categories, certificationLevels, criteria, certifiedBusinesses };

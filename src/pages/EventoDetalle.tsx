@@ -29,8 +29,10 @@ import { DetailFloatingBar } from "@/components/detail/DetailFloatingBar";
 import { EventAgendaTimeline } from "@/components/events/EventAgendaTimeline";
 import { EventTipsCard } from "@/components/events/EventTipsCard";
 import { EventSidebarCard } from "@/components/events/EventSidebarCard";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function EventoDetalle() {
+  const pc = usePageContent("evento-detalle");
   const { slug, id } = useParams<{ slug?: string; id?: string }>();
   const eventIdentifier = slug || id || "carnaval-la-vega";
 
@@ -222,8 +224,7 @@ export default function EventoDetalle() {
               size="sm"
               className="rounded-xl text-xs h-10 px-4 font-bold border-white/20 bg-black/40 text-white hover:bg-black/60 backdrop-blur-md gap-1.5"
             >
-              <PlusCircle className="h-4 w-4 text-emerald-400" /> Registrar Mi Evento
-            </Button>
+              <PlusCircle className="h-4 w-4 text-emerald-400" />{" "}{pc.tx("Button.1", "Registrar Mi Evento")}</Button>
           }
         />
 
@@ -234,9 +235,7 @@ export default function EventoDetalle() {
             <div className="lg:col-span-8 space-y-8">
               {/* Event Description Card */}
               <div className="p-6 md:p-8 rounded-3xl bg-card border border-border space-y-4 shadow-sm">
-                <h2 className="font-display font-bold text-xl text-foreground">
-                  Sobre el Evento
-                </h2>
+                <h2 className="font-display font-bold text-xl text-foreground">{pc.tx("h2.1", "Sobre el Evento")}</h2>
                 <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line space-y-3">
                   {event.description}
                 </div>
@@ -245,9 +244,7 @@ export default function EventoDetalle() {
               {/* Photo Gallery if present */}
               {event.gallery && event.gallery.length > 1 && (
                 <div className="p-6 rounded-3xl bg-card border border-border space-y-4 shadow-sm">
-                  <h3 className="font-display font-bold text-lg text-foreground">
-                    Galería del Evento
-                  </h3>
+                  <h3 className="font-display font-bold text-lg text-foreground">{pc.tx("h3.1", "Galería del Evento")}</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                     {event.gallery.map((img, idx) => (
                       <div key={idx} className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted group">

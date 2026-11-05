@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageTransition } from "@/components/PageTransition";
@@ -18,16 +17,35 @@ import { FavoriteButton } from "@/components/FavoriteButton";
 import { BetweenSectionsAd } from "@/components/promo";
 
 import { RUTAS_SABOR_DATA, type RutaSensorial } from "@/data/rutasSaborData";
+import { useQuery } from "@tanstack/react-query";
+import { contentDocumentsApi } from "@/lib/contentDocumentsApi";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function RutasSabor() {
-  const [selectedRuta, setSelectedRuta] = useState<string>("cafe");
-  const rutaActual = RUTAS_SABOR_DATA[selectedRuta];
+  const pc = usePageContent("rutas-sabor");
+  const selectedRuta = "cafe";
+
+  const { data: remoteDataset } = useQuery({
+    queryKey: ["content-dataset", "rutas-sabor"],
+    queryFn: async () => {
+      try {
+        const res = await contentDocumentsApi.get("rutas-sabor");
+        return (res.data?.value as unknown as Record<string, RutaSensorial>) || null;
+      } catch {
+        return null;
+      }
+    },
+    staleTime: 300_000,
+  });
+
+  const allRutas = remoteDataset || RUTAS_SABOR_DATA;
+  const rutaActual = allRutas[selectedRuta] || RUTAS_SABOR_DATA[selectedRuta] || RUTAS_SABOR_DATA.cafe;
 
   return (
     <PageTransition>
       <SEOHead
-        title="Rutas del Sabor Dominicano - Circuitos Gastronómicos Auténticos"
-        description="Explora las 5 rutas sensoriales de República Dominicana: Ruta del Café de Altura, Cacao y Chocolate, Tabaco Premium, Ron y Gastronomía Costera de Samaná."
+        title={pc.t("SEOHead.title.1", "Rutas del Sabor Dominicano - Circuitos Gastronómicos Auténticos")}
+        description={pc.t("SEOHead.description.1", "Explora las 5 rutas sensoriales de República Dominicana: Ruta del Café de Altura, Cacao y Chocolate, Tabaco Premium, Ron y Gastronomía Costera de Samaná.")}
         keywords="rutas gastronomicas republica dominicana, ruta del cafe jarabacoa, ruta del cacao san francisco, ruta del tabaco santiago santiago la aurora, pescado al coco samana"
       />
 
@@ -60,8 +78,7 @@ export default function RutasSabor() {
                 {rutaActual.badge}
               </Badge>
               
-              <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-[1.1] mb-6">
-                Rutas del <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-200 bg-clip-text text-transparent">Sabor Dominicano</span>
+              <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tight leading-[1.1] mb-6">{pc.tx("h1.1", "Rutas del")}{" "}<span className="bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-200 bg-clip-text text-transparent">{pc.tx("span.1", "Sabor Dominicano")}</span>
               </h1>
 
               <p className="text-lg md:text-xl text-white/90 font-light max-w-2xl mx-auto mb-8 leading-relaxed">
@@ -86,31 +103,6 @@ export default function RutasSabor() {
           </div>
         </section>
 
-        {/* SELECTOR DE CIRCUITOS INTERACTIVO (STICKY) */}
-        <section className="sticky top-16 z-30 bg-card/95 backdrop-blur-md border-y border-border py-3 px-4 shadow-md">
-          <div className="container mx-auto">
-            <div className="flex items-center justify-start md:justify-center gap-2 overflow-x-auto no-scrollbar py-1">
-              {Object.values(RUTAS_SABOR_DATA).map((ruta: any) => {
-                const IconComponent = ruta.icon;
-                const isSelected = selectedRuta === ruta.id;
-                return (
-                  <button
-                    key={ruta.id}
-                    onClick={() => setSelectedRuta(ruta.id)}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm whitespace-nowrap transition-all duration-300 ${
-                      isSelected
-                        ? "bg-amber-600 text-white shadow-lg shadow-amber-600/30 scale-105"
-                        : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
-                    }`}
-                  >
-                    <IconComponent className={`h-4 w-4 ${isSelected ? "text-white" : "text-amber-500"}`} />
-                    <span>{ruta.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </section>
 
         {/* CONTENIDO PRINCIPAL DE LA RUTA */}
         <section className="py-12 md:py-16">
@@ -120,9 +112,7 @@ export default function RutasSabor() {
             <div className="grid lg:grid-cols-3 gap-8 items-stretch">
               <div className="lg:col-span-2 bg-card rounded-3xl p-8 border border-border flex flex-col justify-between">
                 <div>
-                  <Badge variant="outline" className="mb-3 text-amber-500 border-amber-500/30">
-                    MANIFIESTO SENSORIAL
-                  </Badge>
+                  <Badge variant="outline" className="mb-3 text-amber-500 border-amber-500/30">{pc.tx("Badge.1", "MANIFIESTO SENSORIAL")}</Badge>
                   <h2 className="font-display text-2xl sm:text-3xl font-bold mb-4">
                     {rutaActual.name}
                   </h2>
@@ -132,9 +122,7 @@ export default function RutasSabor() {
                 </div>
 
                 <div className="pt-6 border-t border-border/60">
-                  <h4 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">
-                    Provincias y Polos Incluidos
-                  </h4>
+                  <h3 className="h4 text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">{pc.tx("h4.1", "Provincias y Polos Incluidos")}</h3>
                   <div className="flex flex-wrap gap-2">
                     {rutaActual.provinces.map((prov, i) => (
                       <Badge key={i} variant="secondary" className="bg-muted px-3 py-1 text-xs">
@@ -152,21 +140,13 @@ export default function RutasSabor() {
                   <div className="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center text-amber-500 mb-4">
                     <Sparkles className="h-6 w-6" />
                   </div>
-                  <h3 className="font-display text-xl font-bold mb-2">
-                    ¿Quieres vivir esta ruta guiada?
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-6">
-                    Contamos con guías y sumilleres locales certificados para tours de café, cacao y tabaco.
-                  </p>
+                  <h3 className="font-display text-xl font-bold mb-2">{pc.tx("h3.1", "¿Quieres vivir esta ruta guiada?")}</h3>
+                  <p className="text-sm text-muted-foreground mb-6">{pc.tx("p.1", "Contamos con guías y sumilleres locales certificados para tours de café, cacao y tabaco.")}</p>
                 </div>
                 <div className="space-y-3">
                   <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-6 rounded-xl shadow-lg shadow-amber-600/20">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Consultar Salidas del Mes
-                  </Button>
-                  <Link to="/recetas-criollas" className="block text-center text-xs text-muted-foreground hover:text-foreground">
-                    O descubre cómo cocinar estos platos en casa →
-                  </Link>
+                    <Calendar className="h-4 w-4 mr-2" />{pc.tx("Button.1", "Consultar Salidas del Mes")}</Button>
+                  <Link to="/recetas-criollas" className="block text-center text-xs text-muted-foreground hover:text-foreground">{pc.tx("Link.1", "O descubre cómo cocinar estos platos en casa →")}</Link>
                 </div>
               </div>
             </div>
@@ -174,13 +154,9 @@ export default function RutasSabor() {
             {/* PARADAS CLAVE DEL CIRCUITO (BENTO GRID 3 COLS) */}
             <div>
               <div className="text-center max-w-2xl mx-auto mb-10">
-                <Badge className="bg-amber-500/20 text-amber-500 mb-2">HACIENTAS Y PARADAS OBLIGADAS</Badge>
-                <h3 className="font-display text-2xl sm:text-3xl font-bold">
-                  Paradas Emblemáticas de la Ruta
-                </h3>
-                <p className="text-muted-foreground text-sm mt-2">
-                  Haciendas, factorías y talleres que no puedes dejar de visitar en este recorrido.
-                </p>
+                <Badge className="bg-amber-500/20 text-amber-500 mb-2">{pc.tx("Badge.2", "HACIENTAS Y PARADAS OBLIGADAS")}</Badge>
+                <h3 className="font-display text-2xl sm:text-3xl font-bold">{pc.tx("h3.2", "Paradas Emblemáticas de la Ruta")}</h3>
+                <p className="text-muted-foreground text-sm mt-2">{pc.tx("p.2", "Haciendas, factorías y talleres que no puedes dejar de visitar en este recorrido.")}</p>
               </div>
 
               <div className="grid md:grid-cols-3 gap-6">
@@ -202,8 +178,7 @@ export default function RutasSabor() {
                           loading="lazy"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                        <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white font-mono text-xs px-2.5 py-1 rounded-md border border-white/10">
-                          Parada {idx + 1}
+                        <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white font-mono text-xs px-2.5 py-1 rounded-md border border-white/10">{pc.tx("span.2", "Parada")}{" "}{idx + 1}
                         </span>
                       </div>
 
@@ -239,14 +214,10 @@ export default function RutasSabor() {
             <div>
               <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-3">
                 <div>
-                  <Badge className="bg-amber-500/20 text-amber-500 mb-2">EXPERIENCIAS GUIADAS</Badge>
-                  <h3 className="font-display text-2xl sm:text-3xl font-bold">
-                    Tours y Catas Disponibles
-                  </h3>
+                  <Badge className="bg-amber-500/20 text-amber-500 mb-2">{pc.tx("Badge.3", "EXPERIENCIAS GUIADAS")}</Badge>
+                  <h3 className="font-display text-2xl sm:text-3xl font-bold">{pc.tx("h3.3", "Tours y Catas Disponibles")}</h3>
                 </div>
-                <p className="text-muted-foreground text-sm max-w-md mt-2 md:mt-0">
-                  Reserva directamente con operadores certificados con seguro turístico y transporte incluido.
-                </p>
+                <p className="text-muted-foreground text-sm max-w-md mt-2 md:mt-0">{pc.tx("p.3", "Reserva directamente con operadores certificados con seguro turístico y transporte incluido.")}</p>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
@@ -254,9 +225,7 @@ export default function RutasSabor() {
                   <div key={idx} className="card-taste p-6 sm:p-8 flex flex-col justify-between shadow-sm">
                     <div>
                       <div className="flex items-center justify-between mb-4">
-                        <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30 text-xs">
-                          Certificado MITUR
-                        </Badge>
+                        <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30 text-xs">{pc.tx("Badge.4", "Certificado MITUR")}</Badge>
                         <div className="flex items-center gap-1 text-sm font-semibold bg-secondary/70 px-2.5 py-1 rounded-lg">
                           <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                           <span>{tour.rating.toFixed(1)}</span>
@@ -278,9 +247,7 @@ export default function RutasSabor() {
                       </div>
 
                       <div className="space-y-2 mb-6 bg-muted/20 p-4 rounded-xl border border-border/50">
-                        <p className="text-xs uppercase tracking-wider text-muted-foreground font-bold">
-                          Qué incluye:
-                        </p>
+                        <p className="text-xs uppercase tracking-wider text-muted-foreground font-bold">{pc.tx("p.4", "Qué incluye:")}</p>
                         {tour.incluye.map((item, i) => (
                           <div key={i} className="flex items-center gap-2 text-xs text-foreground font-medium">
                             <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
@@ -290,8 +257,7 @@ export default function RutasSabor() {
                       </div>
                     </div>
 
-                    <Button className="btn-cta-magnetic w-full bg-amber-600 hover:bg-amber-700 text-white gap-2 font-semibold py-5 rounded-xl">
-                      Reservar Plaza para el Tour <ChevronRight className="h-4 w-4" />
+                    <Button className="btn-cta-magnetic w-full bg-amber-600 hover:bg-amber-700 text-white gap-2 font-semibold py-5 rounded-xl">{pc.tx("Button.2", "Reservar Plaza para el Tour")}{" "}<ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
                 ))}
@@ -302,15 +268,9 @@ export default function RutasSabor() {
             <div className="bg-card rounded-3xl p-8 sm:p-10 border border-border">
               <div className="text-center max-w-2xl mx-auto mb-8">
                 <Badge className="bg-amber-500/20 text-amber-500 mb-2">
-                  <Wine className="h-3 w-3 mr-1 inline" />
-                  ARTE DEL MARIDAJE CRIOLLO
-                </Badge>
-                <h3 className="font-display text-2xl sm:text-3xl font-bold">
-                  Armonía y Perfiles de Cata
-                </h3>
-                <p className="text-muted-foreground text-sm mt-2">
-                  Combinaciones maestras recomendadas por sumilleres gastronómicos dominicanos.
-                </p>
+                  <Wine className="h-3 w-3 mr-1 inline" />{pc.tx("Badge.5", "ARTE DEL MARIDAJE CRIOLLO")}</Badge>
+                <h3 className="font-display text-2xl sm:text-3xl font-bold">{pc.tx("h3.4", "Armonía y Perfiles de Cata")}</h3>
+                <p className="text-muted-foreground text-sm mt-2">{pc.tx("p.5", "Combinaciones maestras recomendadas por sumilleres gastronómicos dominicanos.")}</p>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
@@ -322,7 +282,7 @@ export default function RutasSabor() {
                     <div>
                       <div className="flex items-center gap-2 text-amber-500 text-sm font-semibold mb-2">
                         <Sparkles className="h-4 w-4" />
-                        <span>Maridaje Recomendado #{index + 1}</span>
+                        <span>{pc.tx("span.3", "Maridaje Recomendado #")}{index + 1}</span>
                       </div>
                       <h4 className="font-bold text-lg text-foreground mb-1">
                         {item.protagonista}
@@ -345,18 +305,14 @@ export default function RutasSabor() {
         {/* CTA FINAL NAVEGACIÓN */}
         <section className="py-16 bg-muted/40 border-t border-border">
           <div className="container mx-auto px-4 text-center max-w-3xl">
-            <h3 className="font-display text-2xl sm:text-3xl font-bold mb-4">
-              ¿Listo para saborear lo mejor de Quisqueya?
-            </h3>
-            <p className="text-muted-foreground mb-8">
-              Continúa tu viaje gastronómico explorando nuestro recetario tradicional o encuentra los mejores restaurantes de cada provincia.
-            </p>
+            <h3 className="font-display text-2xl sm:text-3xl font-bold mb-4">{pc.tx("h3.5", "¿Listo para saborear lo mejor de Quisqueya?")}</h3>
+            <p className="text-muted-foreground mb-8">{pc.tx("p.6", "Continúa tu viaje gastronómico explorando nuestro recetario tradicional o encuentra los mejores restaurantes de cada provincia.")}</p>
             <div className="flex flex-wrap justify-center gap-4">
               <Button asChild size="lg" className="bg-primary hover:bg-primary/90">
-                <Link to="/guia-gastronomica">Explorar Guía de Restaurantes</Link>
+                <Link to="/guia-gastronomica">{pc.tx("Link.2", "Explorar Guía de Restaurantes")}</Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link to="/recetas-criollas">Ver Recetas Criollas Paso a Paso</Link>
+                <Link to="/recetas-criollas">{pc.tx("Link.3", "Ver Recetas Criollas Paso a Paso")}</Link>
               </Button>
             </div>
           </div>

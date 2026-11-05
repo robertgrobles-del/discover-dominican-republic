@@ -143,6 +143,33 @@ describe("reseñas del portal", () => {
     expect((await pool.query("SELECT report_count FROM reviews WHERE id = $1", [id])).rows[0].report_count).toBe(0);
   });
 
+  it("el autor no puede liberar con una edición una reseña retenida (correo sin verificar o reportes)", async () => {
+    const before = (await reviewsOf()).meta.summary.count;
+    const unv = await signup(false);
+    const id = json(await review(unv.token, { rating: 1 })).data.id;
+    expect(json(await call("PATCH", `/reviews/${id}`, { token: unv.token, payload: {} })).data.status).toBe("pending");
+    expect(json(await call("PATCH", `/reviews/${id}`, { token: unv.token, payload: { rating: 1 } })).data.status).toBe("pending");
+    expect((await reviewsOf()).meta.summary.count).toBe(before);
+
+    const author = await signup();
+    const id2 = json(await review(author.token)).data.id;
+    for (let i = 0; i < 3; i++) await call("POST", `/reviews/${id2}/report`, { token: (await signup()).token, payload: { reason: "fake" } });
+    expect(json(await call("PATCH", `/reviews/${id2}`, { token: author.token, payload: {} })).data.status).toBe("pending");
+    expect((await pool.query("SELECT is_approved, moderation_note FROM reviews WHERE id = $1", [id2])).rows[0]).toEqual({ is_approved: false, moderation_note: "reported" });
+  });
+
+  it("las cuentas sin verificar no votan útil ni sus reportes ocultan reseñas", async () => {
+    const author = await signup();
+    const id = json(await review(author.token)).data.id;
+    const unv = await signup(false);
+    const v = await call("POST", `/reviews/${id}/helpful`, { token: unv.token });
+    expect(v.statusCode).toBe(403);
+    expect(json(v).error.details.code).toBe("EMAIL_NOT_VERIFIED");
+    for (let i = 0; i < 3; i++) expect((await call("POST", `/reviews/${id}/report`, { token: (await signup(false)).token, payload: { reason: "fake" } })).statusCode).toBe(204);
+    expect((await pool.query("SELECT status, report_count FROM reviews WHERE id = $1", [id])).rows[0]).toEqual({ status: "approved", report_count: 0 });
+    expect((await pool.query("SELECT count(*)::int AS n FROM review_reports WHERE review_id = $1", [id])).rows[0].n).toBe(3);
+  });
+
   it("la respuesta oficial es del equipo del sitio", async () => {
     const author = await signup();
     const id = json(await review(author.token)).data.id;

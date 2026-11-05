@@ -10,6 +10,7 @@ import {
   Waves, MapPin, ShieldAlert, Sparkles, BookOpen, Clock, 
   HelpCircle, Star, Compass, Anchor
 } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
 
 interface DiveSpot {
   id: string;
@@ -66,6 +67,8 @@ const diveSpots: DiveSpot[] = [
 ];
 
 export default function TurismoBuceo() {
+  const pc = usePageContent("turismo-buceo");
+  const diveSpots = pc.data("diveSpots", __pcData.diveSpots);
   const [filterType, setFilterType] = useState<"all" | "reef" | "wreck" | "cave">("all");
 
   const filteredSpots = diveSpots.filter(s => filterType === "all" || s.type === filterType);
@@ -73,8 +76,8 @@ export default function TurismoBuceo() {
   return (
     <PageTransition>
       <SEOHead
-        title="Buceo y Snorkel en RD - Arrecifes, Barcos Hundidos y Cuevas"
-        description="Descubre los mejores puntos de buceo en República Dominicana. Explora el pecio St. George, cuevas de agua dulce y arrecifes en Sosúa y Catalina."
+        title={pc.t("SEOHead.title.1", "Buceo y Snorkel en RD - Arrecifes, Barcos Hundidos y Cuevas")}
+        description={pc.t("SEOHead.description.1", "Descubre los mejores puntos de buceo en República Dominicana. Explora el pecio St. George, cuevas de agua dulce y arrecifes en Sosúa y Catalina.")}
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -84,14 +87,9 @@ export default function TurismoBuceo() {
           <section className="relative py-16 bg-gradient-to-br from-blue-500/10 via-teal-500/5 to-transparent border-b border-border">
             <div className="container mx-auto px-4 text-center">
               <Badge variant="secondary" className="mb-4 bg-blue-500/10 text-blue-600 border-blue-500/20 gap-1">
-                <Waves className="h-3.5 w-3.5 animate-pulse" /> Turismo de Aventura Subacuática
-              </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display">
-                Buceo y Snorkel
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Arrecifes de coral, cuevas de agua dulce y pecios hundidos. Sitios de buceo y snorkel en todo el país, para principiantes y certificados.
-              </p>
+                <Waves className="h-3.5 w-3.5 animate-pulse" />{" "}{pc.tx("Badge.1", "Turismo de Aventura Subacuática")}</Badge>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display">{pc.tx("h1.1", "Buceo y Snorkel")}</h1>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.1", "Arrecifes de coral, cuevas de agua dulce y pecios hundidos. Sitios de buceo y snorkel en todo el país, para principiantes y certificados.")}</p>
             </div>
           </section>
 
@@ -103,35 +101,23 @@ export default function TurismoBuceo() {
               <div className="grid lg:grid-cols-3 gap-6 mb-10">
                 <Card className="lg:col-span-2">
                   <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <BookOpen className="h-5 w-5 text-primary" />
-                      Un Paraíso Bajo el Mar
-                    </CardTitle>
+                    <CardTitle as="h2" className="text-lg flex items-center gap-2">
+                      <BookOpen className="h-5 w-5 text-primary" />{pc.tx("CardTitle.1", "Un Paraíso Bajo el Mar")}</CardTitle>
                   </CardHeader>
                   <CardContent className="text-sm text-muted-foreground space-y-3 leading-relaxed">
-                    <p>
-                      Con temperaturas del agua que oscilan entre los 26°C y 29°C todo el año, la República Dominicana es un destino idóneo para buceadores de todos los niveles.
-                    </p>
-                    <p>
-                      La costa sur (Bayahibe, Catalina) destaca por sus aguas calmadas de excelente visibilidad y pecios históricos. La costa norte (Sosúa, Las Terrenas) ofrece formaciones rocosas complejas e inmersiones a la deriva, mientras que los sistemas de cavernas cársticas interiores del país atraen a buceadores técnicos de todo el mundo.
-                    </p>
+                    <p>{pc.tx("p.2", "Con temperaturas del agua que oscilan entre los 26°C y 29°C todo el año, la República Dominicana es un destino idóneo para buceadores de todos los niveles.")}</p>
+                    <p>{pc.tx("p.3", "La costa sur (Bayahibe, Catalina) destaca por sus aguas calmadas de excelente visibilidad y pecios históricos. La costa norte (Sosúa, Las Terrenas) ofrece formaciones rocosas complejas e inmersiones a la deriva, mientras que los sistemas de cavernas cársticas interiores del país atraen a buceadores técnicos de todo el mundo.")}</p>
                   </CardContent>
                 </Card>
                 
                 <Card className="border-blue-500/20 bg-blue-500/5 flex flex-col justify-between">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm flex items-center gap-2 text-blue-600">
-                      <Anchor className="h-5 w-5" />
-                      Seguridad y Eco-Buceo
-                    </CardTitle>
+                      <Anchor className="h-5 w-5" />{pc.tx("CardTitle.2", "Seguridad y Eco-Buceo")}</CardTitle>
                   </CardHeader>
                   <CardContent className="text-xs text-muted-foreground space-y-2">
-                    <p>
-                      Respeta siempre las pautas de conservación marina: no toques el coral ni alimentes a los peces.
-                    </p>
-                    <p>
-                      Asegúrate de bucear con centros autorizados que cuenten con certificación <strong>PADI o SSI</strong> y mantengan equipos de oxígeno a bordo de las embarcaciones.
-                    </p>
+                    <p>{pc.tx("p.4", "Respeta siempre las pautas de conservación marina: no toques el coral ni alimentes a los peces.")}</p>
+                    <p>{pc.tx("p.5", "Asegúrate de bucear con centros autorizados que cuenten con certificación")}{" "}<strong>{pc.tx("strong.1", "PADI o SSI")}</strong>{" "}{pc.tx("p.6", "y mantengan equipos de oxígeno a bordo de las embarcaciones.")}</p>
                   </CardContent>
                 </Card>
               </div>
@@ -142,33 +128,28 @@ export default function TurismoBuceo() {
                   variant={filterType === "all" ? "default" : "outline"} 
                   size="sm"
                   onClick={() => setFilterType("all")}
-                >
-                  Ver Todo
-                </Button>
+                >{pc.tx("Button.1", "Ver Todo")}</Button>
                 <Button 
                   variant={filterType === "reef" ? "default" : "outline"} 
                   size="sm"
                   onClick={() => setFilterType("reef")}
                   className="gap-1.5"
                 >
-                  <Waves className="h-4 w-4" /> Arrecifes
-                </Button>
+                  <Waves className="h-4 w-4" />{" "}{pc.tx("Button.2", "Arrecifes")}</Button>
                 <Button 
                   variant={filterType === "wreck" ? "default" : "outline"} 
                   size="sm"
                   onClick={() => setFilterType("wreck")}
                   className="gap-1.5"
                 >
-                  <Anchor className="h-4 w-4" /> Barcos Hundidos
-                </Button>
+                  <Anchor className="h-4 w-4" />{" "}{pc.tx("Button.3", "Barcos Hundidos")}</Button>
                 <Button 
                   variant={filterType === "cave" ? "default" : "outline"} 
                   size="sm"
                   onClick={() => setFilterType("cave")}
                   className="gap-1.5"
                 >
-                  <Compass className="h-4 w-4" /> Cuevas y Cavernas
-                </Button>
+                  <Compass className="h-4 w-4" />{" "}{pc.tx("Button.4", "Cuevas y Cavernas")}</Button>
               </div>
 
               {/* Dive spots list */}
@@ -178,7 +159,7 @@ export default function TurismoBuceo() {
                     <CardHeader>
                       <div className="flex justify-between items-start gap-2">
                         <div>
-                          <Badge variant="outline" className="mb-2 uppercase text-[10px] tracking-wider border-primary/30 text-primary">
+                          <Badge variant="outline" className="mb-2 uppercase text-3xs tracking-wider border-primary/30 text-primary">
                             {spot.type === "reef" ? "Arrecife" : spot.type === "wreck" ? "Pecio / Barco" : "Cueva / Caverna"}
                           </Badge>
                           <CardTitle className="text-lg font-display">{spot.name}</CardTitle>
@@ -194,15 +175,15 @@ export default function TurismoBuceo() {
                       {/* Specs info */}
                       <div className="grid grid-cols-3 gap-2 p-3 bg-muted/40 rounded-lg text-center text-xs">
                         <div>
-                          <span className="text-muted-foreground block text-[10px] uppercase">Profundidad</span>
+                          <span className="text-muted-foreground block text-3xs uppercase">{pc.tx("span.1", "Profundidad")}</span>
                           <span className="font-semibold text-foreground">{spot.depth}</span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground block text-[10px] uppercase">Visibilidad</span>
+                          <span className="text-muted-foreground block text-3xs uppercase">{pc.tx("span.2", "Visibilidad")}</span>
                           <span className="font-semibold text-foreground">{spot.visibility}</span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground block text-[10px] uppercase">Nivel Requerido</span>
+                          <span className="text-muted-foreground block text-3xs uppercase">{pc.tx("span.3", "Nivel Requerido")}</span>
                           <span className="font-semibold text-foreground">{spot.level}</span>
                         </div>
                       </div>
@@ -221,3 +202,6 @@ export default function TurismoBuceo() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { diveSpots };

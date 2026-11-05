@@ -119,14 +119,14 @@ export function ProvinceTechCard({
                       <p className="text-xs text-muted-foreground">Ubicación y demografía oficial</p>
                     </div>
                   </div>
-                  <Badge variant="secondary" className="text-[11px] font-semibold">
+                  <Badge variant="secondary" className="text-2xs font-semibold">
                     {regionLabels[region] || region}
                   </Badge>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3.5 my-4">
                   <div className="bg-muted/30 p-3 rounded-xl border border-border/40">
-                    <span className="text-[11px] text-muted-foreground flex items-center gap-1 mb-1">
+                    <span className="text-2xs text-muted-foreground flex items-center gap-1 mb-1">
                       <Mountain className="h-3.5 w-3.5 text-primary" /> Capital Provincial
                     </span>
                     <p className="text-sm font-bold text-foreground truncate">
@@ -135,7 +135,7 @@ export function ProvinceTechCard({
                   </div>
 
                   <div className="bg-muted/30 p-3 rounded-xl border border-border/40">
-                    <span className="text-[11px] text-muted-foreground flex items-center gap-1 mb-1">
+                    <span className="text-2xs text-muted-foreground flex items-center gap-1 mb-1">
                       <Ruler className="h-3.5 w-3.5 text-emerald-500" /> Superficie Total
                     </span>
                     <p className="text-sm font-bold text-foreground">
@@ -144,7 +144,7 @@ export function ProvinceTechCard({
                   </div>
 
                   <div className="bg-muted/30 p-3 rounded-xl border border-border/40">
-                    <span className="text-[11px] text-muted-foreground flex items-center gap-1 mb-1">
+                    <span className="text-2xs text-muted-foreground flex items-center gap-1 mb-1">
                       <Users className="h-3.5 w-3.5 text-blue-500" /> Población Aprox.
                     </span>
                     <p className="text-sm font-bold text-foreground">
@@ -153,7 +153,7 @@ export function ProvinceTechCard({
                   </div>
 
                   <div className="bg-muted/30 p-3 rounded-xl border border-border/40">
-                    <span className="text-[11px] text-muted-foreground flex items-center gap-1 mb-1">
+                    <span className="text-2xs text-muted-foreground flex items-center gap-1 mb-1">
                       <Navigation className="h-3.5 w-3.5 text-amber-500" /> Coordenadas GPS
                     </span>
                     <p className="text-xs font-bold text-foreground truncate">
@@ -205,7 +205,7 @@ export function ProvinceTechCard({
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-border/40 flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+              <div className="pt-3 border-t border-border/40 flex items-center gap-1.5 text-2xs text-emerald-600 dark:text-emerald-400 font-medium">
                 <Sparkles className="h-3.5 w-3.5" /> Clima favorable para actividades ecoturísticas todo el año
               </div>
             </div>
@@ -234,7 +234,7 @@ export function ProvinceTechCard({
                     <Badge 
                       key={i} 
                       variant="secondary" 
-                      className="text-[11px] font-medium py-1 px-2 bg-muted/60 text-foreground"
+                      className="text-2xs font-medium py-1 px-2 bg-muted/60 text-foreground"
                     >
                       {dish}
                     </Badge>
@@ -242,7 +242,7 @@ export function ProvinceTechCard({
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-border/40 text-[11px] text-muted-foreground flex items-center gap-1">
+              <div className="pt-3 border-t border-border/40 text-2xs text-muted-foreground flex items-center gap-1">
                 <span>🍴</span>
                 <span>Ingredientes frescos locales</span>
               </div>

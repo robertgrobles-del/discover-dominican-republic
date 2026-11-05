@@ -35,7 +35,7 @@ import { adminSaveTranslations } from '@/lib/adminApi';
 interface FieldConfig {
   name: string;
   label: string;
-  type: 'text' | 'textarea' | 'number' | 'boolean' | 'array' | 'url' | 'email' | 'date' | 'time';
+  type: 'text' | 'textarea' | 'number' | 'boolean' | 'array' | 'url' | 'email' | 'date' | 'time' | 'objectlist' | 'object';
   required?: boolean;
   placeholder?: string;
   showInList?: boolean;
@@ -189,29 +189,35 @@ export function EntityList({ entity, entityName, fields }: EntityListProps) {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between">
+      {/* Modern ERP Toolbar */}
+      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between p-3.5 bg-card/60 backdrop-blur-xs rounded-xl border border-border/60 shadow-xs">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
-            placeholder={`Buscar ${entityName.toLowerCase()}...`}
+            placeholder={`Filtrar ${entityName.toLowerCase()}...`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-8 h-8.5 text-xs bg-background/80 rounded-lg border-border/60"
           />
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nuevo {entityName}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-2xs font-mono py-1 px-2.5 rounded-lg border-border/60 bg-muted/30">
+            {total} {total === 1 ? "registro" : "registros"}
+          </Badge>
+          <Button onClick={handleCreate} size="sm" className="h-8.5 text-xs rounded-lg gap-1.5 shadow-xs font-medium">
+            <Plus className="h-3.5 w-3.5" />
+            Crear {entityName}
+          </Button>
+        </div>
       </div>
 
-      {/* Table */}
-      <ScrollArea className="h-[500px] border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nombre</TableHead>
+      {/* Table Container with soft borders */}
+      <div className="rounded-xl border border-border/60 bg-card overflow-hidden shadow-xs">
+        <ScrollArea className="h-[520px]">
+          <Table>
+            <TableHeader className="bg-muted/40 sticky top-0 z-10 border-b border-border/60">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="font-semibold text-xs text-foreground/80 py-3">Nombre</TableHead>
               {listFields.map(field => (
                 <TableHead key={field.name} className="hidden md:table-cell">
                   {field.label}
@@ -295,11 +301,12 @@ export function EntityList({ entity, entityName, fields }: EntityListProps) {
           </TableBody>
         </Table>
       </ScrollArea>
+    </div>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Mostrando {items.length} de {total} resultados
+      {/* Modern Soft Pagination */}
+      <div className="flex items-center justify-between px-2 py-1 text-xs">
+        <p className="text-muted-foreground">
+          Mostrando <span className="font-semibold text-foreground">{items.length}</span> de <span className="font-semibold text-foreground">{total}</span> registros totales
         </p>
         <div className="flex items-center gap-2">
           <Button
@@ -307,19 +314,21 @@ export function EntityList({ entity, entityName, fields }: EntityListProps) {
             size="sm"
             onClick={() => setPage(p => p - 1)}
             disabled={page === 0}
+            className="h-8 rounded-lg border-border/60 hover:bg-muted/60"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Anterior
           </Button>
-          <span className="text-sm text-muted-foreground">
-            Página {page + 1} de {totalPages || 1}
+          <span className="text-xs font-mono px-2 py-1 rounded bg-muted/40 text-muted-foreground border border-border/40">
+            {page + 1} / {totalPages || 1}
           </span>
           <Button
             variant="outline"
             size="sm"
             onClick={() => setPage(p => p + 1)}
             disabled={page >= totalPages - 1}
+            className="h-8 rounded-lg border-border/60 hover:bg-muted/60"
           >
-            <ChevronRight className="h-4 w-4" />
+            Siguiente <ChevronRight className="h-3.5 w-3.5 ml-1" />
           </Button>
         </div>
       </div>

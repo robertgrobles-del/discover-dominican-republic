@@ -73,7 +73,7 @@ export function SpaceSwitcher({ className = "" }: { className?: string }) {
       <DropdownMenuContent align="end" className="w-64 bg-card text-card-foreground border border-border shadow-2xl">
         <DropdownMenuLabel className="flex items-center justify-between gap-2 text-xs">
           <span>Espacio activo</span>
-          {demo && <Badge variant="outline" className="text-[10px] font-mono">demo</Badge>}
+          {demo && <Badge variant="outline" className="text-3xs font-mono">demo</Badge>}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {spaces.map((space) => {
@@ -88,7 +88,7 @@ export function SpaceSwitcher({ className = "" }: { className?: string }) {
               <SpaceIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden />
               <span className="flex-1">
                 <span className="block font-semibold">{space.label}</span>
-                <span className="block text-[11px] text-muted-foreground">{space.description}</span>
+                <span className="block text-2xs text-muted-foreground">{space.description}</span>
               </span>
               {isActive && <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />}
             </DropdownMenuItem>
@@ -105,7 +105,7 @@ export function SpaceSwitcher({ className = "" }: { className?: string }) {
               <DropdownMenuItem key={org.id} onSelect={() => setActiveOrg(org.id)} className="flex items-center gap-2 text-xs">
                 <Building2 className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
                 <span className="flex-1 truncate">{org.name ?? "Organización"}</span>
-                <span className="font-mono text-[10px] uppercase text-muted-foreground">{org.role}</span>
+                <span className="font-mono text-3xs uppercase text-muted-foreground">{org.role}</span>
                 {activeOrg?.id === org.id && <Check className="h-3.5 w-3.5 text-primary" aria-hidden />}
               </DropdownMenuItem>
             ))}

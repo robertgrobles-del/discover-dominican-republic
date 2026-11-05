@@ -10,6 +10,7 @@ import {
   Flame, GlassWater, Compass, MapPin, Sparkles, Clock, 
   BookOpen, Star, Phone, Info
 } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
 
 interface TourItem {
   id: string;
@@ -66,6 +67,8 @@ const toursData: TourItem[] = [
 ];
 
 export default function RutaRonTabaco() {
+  const pc = usePageContent("ruta-ron-tabaco");
+  const toursData = pc.data("toursData", __pcData.toursData);
   const [filterType, setFilterType] = useState<"all" | "rum" | "tobacco">("all");
 
   const filteredTours = toursData.filter(t => filterType === "all" || t.type === filterType);
@@ -73,8 +76,8 @@ export default function RutaRonTabaco() {
   return (
     <PageTransition>
       <SEOHead
-        title="Ruta del Ron y del Tabaco Dominicano - Tour Sensorial"
-        description="Recorre las destilerías de ron más famosas y las plantaciones y fábricas de cigarros artesanales en Santiago, Puerto Plata y La Romana."
+        title={pc.t("SEOHead.title.1", "Ruta del Ron y del Tabaco Dominicano - Tour Sensorial")}
+        description={pc.t("SEOHead.description.1", "Recorre las destilerías de ron más famosas y las plantaciones y fábricas de cigarros artesanales en Santiago, Puerto Plata y La Romana.")}
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -84,14 +87,9 @@ export default function RutaRonTabaco() {
           <section className="relative py-16 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent border-b border-border">
             <div className="container mx-auto px-4 text-center">
               <Badge variant="secondary" className="mb-4 bg-amber-500/10 text-amber-600 border-amber-500/20 gap-1">
-                <GlassWater className="h-3.5 w-3.5" /> Ruta Gastronómica y Sensorial
-              </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display">
-                Ruta del Ron y Tabaco
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Explora el legado del azúcar, la destilación del ron y el arte del tabaco dominicano enrollado a mano en el corazón del Cibao y la costa Sur.
-              </p>
+                <GlassWater className="h-3.5 w-3.5" />{" "}{pc.tx("Badge.1", "Ruta Gastronómica y Sensorial")}</Badge>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4 font-display">{pc.tx("h1.1", "Ruta del Ron y Tabaco")}</h1>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.1", "Explora el legado del azúcar, la destilación del ron y el arte del tabaco dominicano enrollado a mano en el corazón del Cibao y la costa Sur.")}</p>
             </div>
           </section>
 
@@ -103,32 +101,22 @@ export default function RutaRonTabaco() {
               <div className="grid lg:grid-cols-3 gap-6 mb-10">
                 <Card className="lg:col-span-2">
                   <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <BookOpen className="h-5 w-5 text-primary" />
-                      Legado y Tradición
-                    </CardTitle>
+                    <CardTitle as="h2" className="text-lg flex items-center gap-2">
+                      <BookOpen className="h-5 w-5 text-primary" />{pc.tx("CardTitle.1", "Legado y Tradición")}</CardTitle>
                   </CardHeader>
                   <CardContent className="text-sm text-muted-foreground space-y-3">
-                    <p>
-                      La República Dominicana es líder mundial en la exportación de cigarros premium hechos a mano y produce algunos de los rones añejos más premiados del planeta.
-                    </p>
-                    <p>
-                      El fértil <strong>Valle del Cibao</strong> proporciona el microclima idóneo para cultivar tabaco de calidad inigualable, mientras que los campos de caña de azúcar del Sur e Inteligencia de la costa Norte dan vida a destilados suaves y aromáticos amparados por denominaciones de origen.
-                    </p>
+                    <p>{pc.tx("p.2", "La República Dominicana es líder mundial en la exportación de cigarros premium hechos a mano y produce algunos de los rones añejos más premiados del planeta.")}</p>
+                    <p>{pc.tx("p.3", "El fértil")}{" "}<strong>{pc.tx("strong.1", "Valle del Cibao")}</strong>{" "}{pc.tx("p.4", "proporciona el microclima idóneo para cultivar tabaco de calidad inigualable, mientras que los campos de caña de azúcar del Sur e Inteligencia de la costa Norte dan vida a destilados suaves y aromáticos amparados por denominaciones de origen.")}</p>
                   </CardContent>
                 </Card>
                 
                 <Card className="border-amber-500/20 bg-amber-500/5 flex flex-col justify-between">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm flex items-center gap-2 text-amber-600">
-                      <Info className="h-5 w-5" />
-                      Sabías que...
-                    </CardTitle>
+                      <Info className="h-5 w-5" />{pc.tx("CardTitle.2", "Sabías que...")}</CardTitle>
                   </CardHeader>
                   <CardContent className="text-xs text-muted-foreground">
-                    <p>
-                      El país es conocido como el <strong>"Silicon Valley del Tabaco"</strong> debido a la concentración de maestros artesanos y marcas de fama internacional en la provincia de Santiago de los Caballeros.
-                    </p>
+                    <p>{pc.tx("p.5", "El país es conocido como el")}{" "}<strong>{pc.tx("strong.2", "\"Silicon Valley del Tabaco\"")}</strong>{" "}{pc.tx("p.6", "debido a la concentración de maestros artesanos y marcas de fama internacional en la provincia de Santiago de los Caballeros.")}</p>
                   </CardContent>
                 </Card>
               </div>
@@ -139,25 +127,21 @@ export default function RutaRonTabaco() {
                   variant={filterType === "all" ? "default" : "outline"} 
                   size="sm"
                   onClick={() => setFilterType("all")}
-                >
-                  Ver Todo
-                </Button>
+                >{pc.tx("Button.1", "Ver Todo")}</Button>
                 <Button 
                   variant={filterType === "rum" ? "default" : "outline"} 
                   size="sm"
                   onClick={() => setFilterType("rum")}
                   className="gap-1.5"
                 >
-                  <GlassWater className="h-4 w-4" /> Destilerías de Ron
-                </Button>
+                  <GlassWater className="h-4 w-4" />{" "}{pc.tx("Button.2", "Destilerías de Ron")}</Button>
                 <Button 
                   variant={filterType === "tobacco" ? "default" : "outline"} 
                   size="sm"
                   onClick={() => setFilterType("tobacco")}
                   className="gap-1.5"
                 >
-                  <Flame className="h-4 w-4" /> Fábricas de Cigarros
-                </Button>
+                  <Flame className="h-4 w-4" />{" "}{pc.tx("Button.3", "Fábricas de Cigarros")}</Button>
               </div>
 
               {/* List of tours */}
@@ -167,7 +151,7 @@ export default function RutaRonTabaco() {
                     <CardHeader>
                       <div className="flex justify-between items-start gap-2">
                         <div>
-                          <Badge variant="secondary" className="mb-2 uppercase text-[10px] tracking-wider">
+                          <Badge variant="secondary" className="mb-2 uppercase text-3xs tracking-wider">
                             {tour.type === "rum" ? "Destilados" : "Tabaco"}
                           </Badge>
                           <CardTitle className="text-lg font-display">{tour.name}</CardTitle>
@@ -182,10 +166,10 @@ export default function RutaRonTabaco() {
                       
                       {/* Highlights */}
                       <div className="space-y-1">
-                        <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Lo Destacado</span>
+                        <span className="text-3xs uppercase font-bold text-muted-foreground tracking-wider">{pc.tx("span.1", "Lo Destacado")}</span>
                         <div className="flex flex-wrap gap-1.5">
                           {tour.highlights.map((h, i) => (
-                            <Badge key={i} variant="outline" className="text-[10px] bg-background border-border">{h}</Badge>
+                            <Badge key={i} variant="outline" className="text-3xs bg-background border-border">{h}</Badge>
                           ))}
                         </div>
                       </div>
@@ -193,11 +177,11 @@ export default function RutaRonTabaco() {
                       {/* Schedule and Contact */}
                       <div className="grid grid-cols-2 gap-2 pt-3 border-t border-border text-xs text-muted-foreground">
                         <div>
-                          <span className="block font-medium text-foreground">Horario:</span>
+                          <span className="block font-medium text-foreground">{pc.tx("span.2", "Horario:")}</span>
                           <span className="flex items-center gap-1.5 mt-0.5"><Clock className="h-3.5 w-3.5 text-primary" /> {tour.hours}</span>
                         </div>
                         <div>
-                          <span className="block font-medium text-foreground">Teléfono Reservas:</span>
+                          <span className="block font-medium text-foreground">{pc.tx("span.3", "Teléfono Reservas:")}</span>
                           <a href={`tel:${tour.phone}`} className="flex items-center gap-1.5 mt-0.5 text-primary hover:underline font-semibold">
                             <Phone className="h-3.5 w-3.5" /> {tour.phone}
                           </a>
@@ -218,3 +202,6 @@ export default function RutaRonTabaco() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { toursData };

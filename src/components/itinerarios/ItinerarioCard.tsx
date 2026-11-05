@@ -28,9 +28,9 @@ export function ItinerarioCard({ itinerario, isSelected, onSelect }: ItinerarioC
           <Badge className="bg-white/20 text-white border-white/30 backdrop-blur-sm mb-1">
             <Clock className="h-3 w-3 mr-1" /> {itinerario.duracion}
           </Badge>
-          <h3 className="font-display text-lg font-bold text-white">
+          <h2 className="h3 font-display text-lg font-bold text-white">
             {itinerario.titulo}
-          </h3>
+          </h2>
         </div>
       </div>
       <CardContent className="p-4">
@@ -45,7 +45,7 @@ export function ItinerarioCard({ itinerario, isSelected, onSelect }: ItinerarioC
         <p className="text-sm text-muted-foreground mb-2">{itinerario.descripcion}</p>
         <div className="flex flex-wrap gap-1">
           {itinerario.destinos.map((d) => (
-            <Badge key={d} variant="outline" className="text-[10px]">
+            <Badge key={d} variant="outline" className="text-3xs">
               <MapPin className="h-2.5 w-2.5 mr-0.5" /> {d}
             </Badge>
           ))}

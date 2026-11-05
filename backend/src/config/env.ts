@@ -26,6 +26,10 @@ const schema = z.object({
   /** Orígenes permitidos por CORS, separados por comas (portal, paneles, staging). */
   CORS_ORIGINS: z.string().default("http://localhost:8080,http://localhost:5173"),
   RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(120),
+  /** Presupuesto aparte para lecturas (GET/HEAD): una sola carga del portal pide decenas de colecciones del catálogo. */
+  RATE_LIMIT_READ_MAX: z.coerce.number().int().min(1).default(1200),
+  /** Días que se retiene el pago al operador tras la fecha del servicio antes de liquidarlo (reclamaciones, cancelaciones). */
+  PAYOUT_HOLD_DAYS: z.coerce.number().int().min(0).max(120).default(7),
   RATE_LIMIT_WINDOW: z.string().default("1 minute"),
   /** Dónde viven los contadores: memory (una instancia) · postgres (varias instancias, sin infraestructura extra) · redis (varias instancias, más rápido). */
   RATE_LIMIT_STORE: z.enum(["memory", "postgres", "redis"]).default("memory"),
@@ -193,6 +197,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   if (env.NODE_ENV === "production" && env.CONTENT_SERVICE_URL && new URL(env.CONTENT_SERVICE_URL).protocol !== "https:") throw new Error("Configuración inválida: CONTENT_SERVICE_URL debe usar HTTPS en producción");
   if (env.TOTP_ENCRYPTION_KEY && Buffer.from(env.TOTP_ENCRYPTION_KEY, "base64").length !== 32) throw new Error("Configuración inválida: TOTP_ENCRYPTION_KEY debe ser de 32 bytes en base64");
   if (!!env.OAUTH_GOOGLE_CLIENT_ID !== !!env.OAUTH_GOOGLE_CLIENT_SECRET) throw new Error("Configuración inválida: OAUTH_GOOGLE_CLIENT_ID y OAUTH_GOOGLE_CLIENT_SECRET van juntos");
+  if (env.NODE_ENV === "production" && !source.RATE_LIMIT_STORE) env.RATE_LIMIT_STORE = "postgres"; // memory no se comparte entre procesos; fijarlo explícito para una sola instancia
   if (env.RATE_LIMIT_STORE === "redis" && !env.REDIS_URL) throw new Error("Configuración inválida: RATE_LIMIT_STORE=redis requiere REDIS_URL");
   if (env.NODE_ENV === "test" && !source.MAIL_TRANSPORT) env.MAIL_TRANSPORT = "memory";
   if (env.NODE_ENV === "test" && source.JOBS_ENABLED === undefined) env.JOBS_ENABLED = false; // las pruebas ejecutan automations.run() a mano

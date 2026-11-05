@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { DEFAULT_LOTTERY_RESULTS, LotteryResult } from "@/data/loteriasData";
 import { PreFooterPresidenteBanner } from "@/components/promo";
+import { usePageContent } from "@/lib/pageContent";
 
 const COMPANY_INFO: Record<string, {
   name: string;
@@ -141,6 +142,8 @@ const COMPANY_INFO: Record<string, {
 };
 
 export default function LoteriaDetalle() {
+  const pc = usePageContent("loteria-detalle");
+  const COMPANY_INFO = pc.data("COMPANY_INFO", __pcData.COMPANY_INFO);
   const { slug } = useParams<{ slug: string }>();
   const normalizedSlug = (slug || "").toLowerCase();
 
@@ -157,7 +160,7 @@ export default function LoteriaDetalle() {
   useEffect(() => {
     try {
       const stored = localStorage.getItem("descubre_rd_lottery_results");
-      let allResults: LotteryResult[] = stored ? JSON.parse(stored) : DEFAULT_LOTTERY_RESULTS;
+      const allResults: LotteryResult[] = stored ? JSON.parse(stored) : DEFAULT_LOTTERY_RESULTS;
       
       const filtered = allResults.filter(
         (r) => r.company.toLowerCase() === normalizedSlug || 
@@ -234,12 +237,12 @@ export default function LoteriaDetalle() {
                 className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" />
-                <span>Volver a todas las Loterías</span>
+                <span>{pc.tx("span.1", "Volver a todas las Loterías")}</span>
               </Link>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="gap-1 bg-card/60 backdrop-blur-xs">
                   <Clock className="h-3.5 w-3.5 text-primary" />
-                  <span>Actualizado en tiempo real</span>
+                  <span>{pc.tx("span.2", "Actualizado en tiempo real")}</span>
                 </Badge>
               </div>
             </div>
@@ -254,8 +257,7 @@ export default function LoteriaDetalle() {
                       <Badge className="bg-primary/20 text-primary hover:bg-primary/30 border-primary/30 text-xs">
                         {company.badge}
                       </Badge>
-                      <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground mt-1">
-                        Resultados {company.name}
+                      <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground mt-1">{pc.tx("h1.1", "Resultados")}{" "}{company.name}
                       </h1>
                     </div>
                   </div>
@@ -274,11 +276,8 @@ export default function LoteriaDetalle() {
                 <Card className="w-full md:w-80 bg-card/90 backdrop-blur-md border-border shrink-0 shadow-lg">
                   <CardHeader className="p-4 pb-2">
                     <CardTitle className="text-sm font-bold flex items-center gap-2">
-                      <Search className="h-4 w-4 text-primary" />
-                      Comprobar mi número
-                    </CardTitle>
-                    <CardDescription className="text-xs">
-                      Verifica si tu bolo salió hoy en {company.name}
+                      <Search className="h-4 w-4 text-primary" />{pc.tx("CardTitle.1", "Comprobar mi número")}</CardTitle>
+                    <CardDescription className="text-xs">{pc.tx("CardDescription.1", "Verifica si tu bolo salió hoy en")}{" "}{company.name}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-4 pt-2">
@@ -287,14 +286,12 @@ export default function LoteriaDetalle() {
                         <Input
                           type="text"
                           maxLength={2}
-                          placeholder="Ej: 42"
+                          placeholder={pc.t("Input.placeholder.1", "Ej: 42")}
                           value={checkingNumber}
                           onChange={(e) => setCheckingNumber(e.target.value.replace(/\D/g, ""))}
                           className="text-center font-mono font-bold text-lg"
                         />
-                        <Button type="submit" size="sm" className="font-bold px-4">
-                          Verificar
-                        </Button>
+                        <Button type="submit" size="sm" className="font-bold px-4">{pc.tx("Button.1", "Verificar")}</Button>
                       </div>
                       {checkResult && (
                         <div className={`p-2.5 rounded-xl text-xs flex items-start gap-2 ${
@@ -306,18 +303,17 @@ export default function LoteriaDetalle() {
                             <>
                               <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400 mt-0.5" />
                               <div>
-                                <span>¡Premiado en:</span>
+                                <span>{pc.tx("span.3", "¡Premiado en:")}</span>
                                 {checkResult.draws.map((d, i) => (
                                   <div key={i} className="text-foreground">
-                                    • {d.drawName} ({d.position}º lugar)
-                                  </div>
+                                    • {d.drawName} ({d.position}{pc.tx("div.1", "º lugar)")}</div>
                                 ))}
                               </div>
                             </>
                           ) : (
                             <>
                               <XCircle className="h-4 w-4 shrink-0 text-muted-foreground mt-0.5" />
-                              <span>No premiado en los sorteos registrados de hoy.</span>
+                              <span>{pc.tx("span.4", "No premiado en los sorteos registrados de hoy.")}</span>
                             </>
                           )}
                         </div>
@@ -333,18 +329,15 @@ export default function LoteriaDetalle() {
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                   <h2 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
-                    <Trophy className="h-6 w-6 text-amber-500" />
-                    Sorteos y Números Ganadores de Hoy
-                  </h2>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    Resultados oficiales certificados para {company.name}
+                    <Trophy className="h-6 w-6 text-amber-500" />{pc.tx("h2.1", "Sorteos y Números Ganadores de Hoy")}</h2>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{pc.tx("p.1", "Resultados oficiales certificados para")}{" "}{company.name}
                   </p>
                 </div>
                 
                 {/* Date filter */}
                 <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-3 py-1.5 text-xs">
                   <Calendar className="h-4 w-4 text-primary" />
-                  <span className="text-muted-foreground">Fecha:</span>
+                  <span className="text-muted-foreground">{pc.tx("span.5", "Fecha:")}</span>
                   <input
                     type="date"
                     value={selectedDate}
@@ -384,7 +377,7 @@ export default function LoteriaDetalle() {
                           size="icon" 
                           className="h-8 w-8 text-muted-foreground hover:text-foreground"
                           onClick={() => handleShare(draw.drawName, draw.winningNumbers)}
-                          title="Compartir resultados"
+                          title={pc.t("Button.title.1", "Compartir resultados")}
                         >
                           <Share2 className="h-4 w-4" />
                         </Button>
@@ -410,7 +403,7 @@ export default function LoteriaDetalle() {
                               <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-lg sm:text-xl font-mono shadow-md transform hover:scale-105 transition-transform ${ballBg}`}>
                                 {num}
                               </div>
-                              <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                              <span className="text-3xs uppercase font-bold text-muted-foreground tracking-wider">
                                 {idx === 0 ? "1er" : idx === 1 ? "2do" : idx === 2 ? "3er" : `${idx + 1}º`}
                               </span>
                             </div>
@@ -434,9 +427,7 @@ export default function LoteriaDetalle() {
             {/* Other Lotteries Switcher */}
             <div className="space-y-4 pt-6 border-t border-border">
               <h3 className="font-display text-lg font-bold text-foreground flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-primary" />
-                Explorar otras loterías dominicanas
-              </h3>
+                <Building2 className="h-5 w-5 text-primary" />{pc.tx("h3.1", "Explorar otras loterías dominicanas")}</h3>
               <div className="flex flex-wrap gap-2.5">
                 {Object.entries(COMPANY_INFO).map(([key, info]) => {
                   if (key === normalizedSlug) return null;
@@ -456,14 +447,12 @@ export default function LoteriaDetalle() {
             <div className="p-6 rounded-3xl bg-card border border-border space-y-3">
               <div className="flex items-center gap-2 text-foreground font-bold">
                 <ShieldCheck className="h-5 w-5 text-emerald-500" />
-                <span>Sobre {company.fullName}</span>
+                <span>{pc.tx("span.6", "Sobre")}{" "}{company.fullName}</span>
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                 {company.historyText}
               </p>
-              <p className="text-[11px] text-muted-foreground/70 italic pt-2 border-t border-border/50">
-                Aviso: Los resultados publicados son de carácter meramente informativo y son recolectados de las transmisiones oficiales en vivo. Descubre RD no realiza venta de lotería ni apuestas. En caso de discrepancia, prevalecerán las actas oficiales de los sorteos de la empresa emisora.
-              </p>
+              <p className="text-2xs text-muted-foreground/70 italic pt-2 border-t border-border/50">{pc.tx("p.2", "Aviso: Los resultados publicados son de carácter meramente informativo y son recolectados de las transmisiones oficiales en vivo. Descubre RD no realiza venta de lotería ni apuestas. En caso de discrepancia, prevalecerán las actas oficiales de los sorteos de la empresa emisora.")}</p>
             </div>
 
             {/* Prefooter Promo */}
@@ -477,3 +466,6 @@ export default function LoteriaDetalle() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { COMPANY_INFO };

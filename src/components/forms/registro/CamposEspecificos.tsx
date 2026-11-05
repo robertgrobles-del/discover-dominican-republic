@@ -469,3 +469,87 @@ export function CamposTienda({ data, onChange }: { data: Record<string, string>;
     </div>
   );
 }
+
+// ---------- Tipos sin componente propio: sus campos salen de esta tabla ----------
+type Campo = { key: string; label: string; required?: boolean; placeholder?: string; options?: string[] };
+const CAMPOS_POR_TIPO: Record<string, Campo[]> = {
+  cafe: [
+    { key: "tipo_cafe", label: "Tipo de negocio", required: true, options: ["Cafetería de especialidad", "Tostador", "Finca con recorrido", "Cooperativa"] },
+    { key: "variedades", label: "Variedades de café", placeholder: "Típica, Caturra, Bourbon…" },
+    { key: "duracion_recorrido", label: "Duración del recorrido o cata", placeholder: "Ej. 2 horas" },
+    { key: "precio_persona", label: "Precio por persona", placeholder: "Ej. US$ 25" },
+  ],
+  agencia: [
+    { key: "tipo_agencia", label: "Tipo de empresa", required: true, options: ["Agencia de viajes", "Operador receptivo", "Tour operador mayorista", "Agencia en línea"] },
+    { key: "licencia_mitur", label: "Licencia MITUR", placeholder: "Número de licencia" },
+    { key: "zonas", label: "Zonas que cubre", placeholder: "Punta Cana, Samaná…" },
+    { key: "especialidades", label: "Especialidades", placeholder: "Excursiones, traslados, bodas…" },
+    { key: "idiomas", label: "Idiomas de atención", placeholder: "Español, inglés, francés…" },
+  ],
+  guia: [
+    { key: "licencia_guia", label: "Carné o licencia de guía", placeholder: "Número de carné" },
+    { key: "idiomas", label: "Idiomas", required: true, placeholder: "Español, inglés…" },
+    { key: "zonas", label: "Zonas donde guía", required: true, placeholder: "Ciudad Colonial, Jarabacoa…" },
+    { key: "especialidad", label: "Especialidad", options: ["Historia y cultura", "Naturaleza y senderismo", "Aves", "Gastronomía", "Aventura", "General"] },
+    { key: "tarifa", label: "Tarifa orientativa", placeholder: "Ej. US$ 60 por medio día" },
+  ],
+  transporte: [
+    { key: "tipo_servicio", label: "Tipo de servicio", required: true, options: ["Alquiler de vehículos", "Traslados aeropuerto", "Taxi turístico", "Autobuses y excursiones", "Motos y scooters"] },
+    { key: "flota", label: "Tamaño de la flota", placeholder: "Ej. 12 vehículos" },
+    { key: "zonas", label: "Zonas de servicio", placeholder: "Aeropuertos y ciudades que cubre" },
+    { key: "seguro", label: "Seguro incluido", options: ["Sí, a todo riesgo", "Sí, básico", "Opcional", "No"] },
+    { key: "servicio_24h", label: "Servicio 24 horas", options: ["Sí", "No"] },
+  ],
+  nautica: [
+    { key: "tipo_servicio", label: "Tipo de servicio", required: true, options: ["Marina", "Chárter de yate", "Catamarán y excursiones", "Buceo y snorkel", "Pesca deportiva", "Deportes acuáticos"] },
+    { key: "capacidad", label: "Capacidad por salida", placeholder: "Ej. 20 personas" },
+    { key: "puerto_salida", label: "Puerto o playa de salida", required: true },
+    { key: "certificaciones", label: "Certificaciones", placeholder: "PADI, Armada, seguros…" },
+    { key: "precio_persona", label: "Precio por persona", placeholder: "Ej. US$ 85" },
+  ],
+  salud: [
+    { key: "tipo_centro", label: "Tipo de centro", required: true, options: ["Hospital o clínica general", "Clínica dental", "Cirugía estética", "Laboratorio", "Centro de rehabilitación", "Farmacia"] },
+    { key: "especialidades", label: "Especialidades", required: true, placeholder: "Odontología, cardiología…" },
+    { key: "emergencias_24h", label: "Emergencias 24 horas", options: ["Sí", "No"] },
+    { key: "seguros", label: "Seguros que acepta", placeholder: "Nacionales e internacionales" },
+    { key: "idiomas", label: "Idiomas de atención", placeholder: "Español, inglés…" },
+    { key: "acreditaciones", label: "Acreditaciones", placeholder: "JCI, ISO…" },
+  ],
+  taller: [
+    { key: "oficio", label: "Oficio o técnica", required: true, placeholder: "Larimar, cerámica, tabaco, carnaval…" },
+    { key: "duracion", label: "Duración de la clase", placeholder: "Ej. 3 horas" },
+    { key: "max_participantes", label: "Máximo de participantes", placeholder: "Ej. 8" },
+    { key: "precio_persona", label: "Precio por persona", placeholder: "Ej. US$ 45" },
+    { key: "incluye", label: "Qué incluye", placeholder: "Materiales, pieza terminada…" },
+  ],
+  otro: [
+    { key: "actividad", label: "¿A qué se dedica tu negocio?", required: true, placeholder: "Describe la actividad principal" },
+    { key: "servicios", label: "Servicios que ofrece", placeholder: "Sepáralos con comas" },
+    { key: "publico", label: "Público al que se dirige", placeholder: "Familias, parejas, grupos, empresas…" },
+  ],
+};
+
+/** ¿Tiene este tipo campos propios en el paso 2? */
+export const tieneCamposGenericos = (tipo: string) => tipo in CAMPOS_POR_TIPO;
+/** Campos obligatorios del paso 2 que faltan por rellenar. */
+export const camposRequeridosPendientes = (tipo: string, data: Record<string, string>) => (CAMPOS_POR_TIPO[tipo] ?? []).filter((c) => c.required && !data[c.key]?.trim()).map((c) => c.label);
+
+export function CamposGenericos({ tipo, data, onChange }: { tipo: string; data: Record<string, string>; onChange: (k: string, v: string) => void }) {
+  const campos = CAMPOS_POR_TIPO[tipo] ?? [];
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {campos.map((c) => (
+        <FormField key={c.key} label={c.label} required={c.required}>
+          {c.options ? (
+            <Select value={data[c.key] || ""} onValueChange={(v) => onChange(c.key, v)}>
+              <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+              <SelectContent>{c.options.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
+            </Select>
+          ) : (
+            <Input maxLength={200} placeholder={c.placeholder} value={data[c.key] || ""} onChange={(e) => onChange(c.key, e.target.value)} />
+          )}
+        </FormField>
+      ))}
+    </div>
+  );
+}

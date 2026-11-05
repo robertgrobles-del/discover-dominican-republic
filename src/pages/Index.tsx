@@ -7,12 +7,11 @@ import { MobileAd, MobileStickyFooterAd, BetweenSectionsAd } from "@/components/
 import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
 import { Footer } from "@/components/Footer";
 import { DeferredSection } from "@/components/DeferredSection";
-import { TravelerIntentSection } from "@/components/home/TravelerIntentSection";
-import { HomeDiscoveryHub } from "@/components/home/HomeDiscoveryHub";
 import { GlobalSearch } from "@/components/GlobalSearch";
 
 // Critical above-the-fold components (loaded immediately for LCP and initial interaction)
 import { InterestSection } from "@/components/InterestSection";
+import { AboutRepublicaDominicanaSection } from "@/components/home/AboutRepublicaDominicanaSection";
 import { GamificationTeaser } from "@/components/GamificationTeaser";
 
 // Deferred below-the-fold components to break critical request chains & reduce DOM tree size
@@ -20,12 +19,9 @@ const EventsSection = lazy(() => import("@/components/EventsSection").then(m => 
 const RestaurantsBarsSection = lazy(() => import("@/components/RestaurantsBarsSection").then(m => ({ default: m.RestaurantsBarsSection })));
 const AccommodationsSection = lazy(() => import("@/components/AccommodationsSection").then(m => ({ default: m.AccommodationsSection })));
 const DestinationsSection = lazy(() => import("@/components/DestinationsSection").then(m => ({ default: m.DestinationsSection })));
-const ShoppingHighlightSection = lazy(() => import("@/components/ShoppingHighlightSection").then(m => ({ default: m.ShoppingHighlightSection })));
-const TransportHighlightSection = lazy(() => import("@/components/TransportHighlightSection").then(m => ({ default: m.TransportHighlightSection })));
 const TravelerToolsStrip = lazy(() => import("@/components/TravelerToolsStrip").then(m => ({ default: m.TravelerToolsStrip })));
 const TestimonialsSection = lazy(() => import("@/components/TestimonialsSection").then(m => ({ default: m.TestimonialsSection })));
 const NewsSection = lazy(() => import("@/components/NewsSection").then(m => ({ default: m.NewsSection })));
-const QuickThreeHoursSection = lazy(() => import("@/components/home/QuickThreeHoursSection").then(m => ({ default: m.QuickThreeHoursSection })));
 const SorteoLectorBanner = lazy(() => import("@/components/forms/SorteoLectorBanner").then(m => ({ default: m.SorteoLectorBanner })));
 const CTARegistroEstablecimiento = lazy(() => import("@/components/forms/CTARegistroEstablecimiento").then(m => ({ default: m.CTARegistroEstablecimiento })));
 
@@ -46,30 +42,21 @@ const Index = () => {
       />
       <div className="min-h-screen bg-background" id="main-content">
         <Header onOpenSearch={() => setIsGlobalSearchOpen(true)} />
+        <h1 className="sr-only">Descubre República Dominicana: destinos, experiencias y planificación de viaje</h1>
         <HeroSlideshow onOpenSearch={() => setIsGlobalSearchOpen(true)} />
         <GlobalSearch isOpen={isGlobalSearchOpen} onClose={() => setIsGlobalSearchOpen(false)} />
-        <TravelerIntentSection />
+
+        <SectionErrorBoundary sectionName="AboutRepublicaDominicanaSection">
+          <AboutRepublicaDominicanaSection />
+        </SectionErrorBoundary>
 
         <SectionErrorBoundary sectionName="InterestSection">
           <InterestSection />
         </SectionErrorBoundary>
 
-        <HomeDiscoveryHub />
-
         <SectionErrorBoundary sectionName="GamificationTeaser">
           <GamificationTeaser />
         </SectionErrorBoundary>
-
-        <BetweenSectionsAd showDemo />
-
-        {/* Dynamic Contest Reader Banner for conversion */}
-        <DeferredSection minHeight="220px">
-          <div className="container mx-auto px-4 lg:px-8">
-            <Suspense fallback={<SectionFallback />}>
-              <SorteoLectorBanner origenCategoria="Turismo Dominicano" />
-            </Suspense>
-          </div>
-        </DeferredSection>
 
         <DeferredSection minHeight="450px">
           <SectionErrorBoundary sectionName="EventsSection">
@@ -79,6 +66,9 @@ const Index = () => {
           </SectionErrorBoundary>
         </DeferredSection>
 
+        {/* Entre secciones de contenido (no entre dos bloques promocionales) */}
+        <BetweenSectionsAd showDemo />
+
         <DeferredSection minHeight="500px">
           <SectionErrorBoundary sectionName="RestaurantsBarsSection">
             <Suspense fallback={<SectionFallback />}>
@@ -87,14 +77,6 @@ const Index = () => {
           </SectionErrorBoundary>
         </DeferredSection>
 
-        {/* Mejora 721: "Tengo 3 horas libres" - Micro-itinerarios espontáneos */}
-        <DeferredSection minHeight="380px">
-          <Suspense fallback={<SectionFallback />}>
-            <QuickThreeHoursSection />
-          </Suspense>
-        </DeferredSection>
-
-        <BetweenSectionsAd showDemo />
 
         <DeferredSection minHeight="500px">
           <SectionErrorBoundary sectionName="AccommodationsSection">
@@ -102,6 +84,15 @@ const Index = () => {
               <AccommodationsSection />
             </Suspense>
           </SectionErrorBoundary>
+        </DeferredSection>
+
+        {/* Sorteo para lectores: lejos del pasaporte (misma idea de premiar al viajero) y de los anuncios */}
+        <DeferredSection minHeight="220px">
+          <div className="container mx-auto px-4 lg:px-8">
+            <Suspense fallback={<SectionFallback />}>
+              <SorteoLectorBanner origenCategoria="Turismo Dominicano" />
+            </Suspense>
+          </div>
         </DeferredSection>
 
         <DeferredSection minHeight="480px">
@@ -112,23 +103,7 @@ const Index = () => {
           </SectionErrorBoundary>
         </DeferredSection>
 
-        <DeferredSection minHeight="400px">
-          <SectionErrorBoundary sectionName="ShoppingHighlightSection">
-            <Suspense fallback={<SectionFallback />}>
-              <ShoppingHighlightSection />
-            </Suspense>
-          </SectionErrorBoundary>
-        </DeferredSection>
-
         <BetweenSectionsAd showDemo />
-
-        <DeferredSection minHeight="400px">
-          <SectionErrorBoundary sectionName="TransportHighlightSection">
-            <Suspense fallback={<SectionFallback />}>
-              <TransportHighlightSection />
-            </Suspense>
-          </SectionErrorBoundary>
-        </DeferredSection>
 
         <DeferredSection minHeight="380px">
           <SectionErrorBoundary sectionName="TravelerToolsStrip">

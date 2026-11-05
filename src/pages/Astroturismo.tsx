@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Eye,
 } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
 
 const upcomingEvents = [
   {
@@ -76,11 +77,15 @@ const constellations = [
 ];
 
 export default function Astroturismo() {
+  const pc = usePageContent("astroturismo");
+  const upcomingEvents = pc.data("upcomingEvents", __pcData.upcomingEvents);
+  const observatories = pc.data("observatories", __pcData.observatories);
+  const constellations = pc.data("constellations", __pcData.constellations);
   return (
     <PageTransition>
       <SEOHead
-        title="Astroturismo en República Dominicana - Observatorios y Cielos Estrellados"
-        description="Descubre los mejores observatorios y miradores de montaña y playa en Constanza, Jarabacoa y Bayahíbe, y consulta el calendario de eventos astronómicos del Caribe."
+        title={pc.t("SEOHead.title.1", "Astroturismo en República Dominicana - Observatorios y Cielos Estrellados")}
+        description={pc.t("SEOHead.description.1", "Descubre los mejores observatorios y miradores de montaña y playa en Constanza, Jarabacoa y Bayahíbe, y consulta el calendario de eventos astronómicos del Caribe.")}
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -118,24 +123,14 @@ export default function Astroturismo() {
               className="max-w-3xl mx-auto text-center"
             >
               <Badge className="mb-4 bg-indigo-500/20 text-indigo-200 border-indigo-400/30">
-                <Star className="h-3 w-3 mr-1" />
-                OBSERVACIÓN ASTRONÓMICA
-              </Badge>
-              <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">
-                Astroturismo en <span className="text-indigo-400">RD</span>
+                <Star className="h-3 w-3 mr-1" />{pc.tx("Badge.1", "OBSERVACIÓN ASTRONÓMICA")}</Badge>
+              <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">{pc.tx("h1.1", "Astroturismo en")}{" "}<span className="text-indigo-400">{pc.tx("span.1", "RD")}</span>
               </h1>
-              <p className="text-xl text-white/80 mb-8">
-                Descubre cielos prístinos, constelaciones brillantes y experiencias 
-                únicas bajo el manto estrellado del Caribe.
-              </p>
+              <p className="text-xl text-white/80 mb-8">{pc.tx("p.1", "Descubre cielos prístinos, constelaciones brillantes y experiencias únicas bajo el manto estrellado del Caribe.")}</p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button size="lg" className="gap-2 bg-white text-indigo-900 hover:bg-white/90">
-                  <Telescope className="h-4 w-4" />
-                  Explorar Observatorios
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Calendario Astronómico
-                  <ChevronRight className="h-4 w-4" />
+                  <Telescope className="h-4 w-4" />{pc.tx("Button.1", "Explorar Observatorios")}</Button>
+                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.2", "Calendario Astronómico")}<ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
             </motion.div>
@@ -156,21 +151,21 @@ export default function Astroturismo() {
                   <Moon className="h-10 w-10 text-amber-900" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Esta noche</p>
-                  <p className="text-2xl font-bold text-foreground">Luna Creciente 45%</p>
-                  <p className="text-sm text-muted-foreground">Condiciones: Excelentes para observación</p>
+                  <p className="text-sm text-muted-foreground">{pc.tx("p.2", "Esta noche")}</p>
+                  <p className="text-2xl font-bold text-foreground">{pc.tx("p.3", "Luna Creciente 45%")}</p>
+                  <p className="text-sm text-muted-foreground">{pc.tx("p.4", "Condiciones: Excelentes para observación")}</p>
                 </div>
               </div>
               <div className="flex gap-8">
                 <div className="text-center">
                   <CloudMoon className="h-8 w-8 text-primary mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">Nubosidad</p>
+                  <p className="text-sm text-muted-foreground">{pc.tx("p.5", "Nubosidad")}</p>
                   <p className="text-xl font-bold text-foreground">15%</p>
                 </div>
                 <div className="text-center">
                   <Eye className="h-8 w-8 text-primary mx-auto mb-2" />
-                  <p className="text-sm text-muted-foreground">Visibilidad</p>
-                  <p className="text-xl font-bold text-foreground">Óptima</p>
+                  <p className="text-sm text-muted-foreground">{pc.tx("p.6", "Visibilidad")}</p>
+                  <p className="text-xl font-bold text-foreground">{pc.tx("p.7", "Óptima")}</p>
                 </div>
               </div>
             </motion.div>
@@ -186,12 +181,9 @@ export default function Astroturismo() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Próximos <span className="text-gradient">Eventos Celestes</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.1", "Próximos")}{" "}<span className="text-gradient">{pc.tx("span.2", "Eventos Celestes")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                No te pierdas estos espectáculos astronómicos visibles desde República Dominicana.
-              </p>
+              <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.8", "No te pierdas estos espectáculos astronómicos visibles desde República Dominicana.")}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -216,13 +208,10 @@ export default function Astroturismo() {
                       {event.time}
                     </p>
                     <p className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      Mejor vista: {event.location}
+                      <MapPin className="h-4 w-4" />{pc.tx("p.9", "Mejor vista:")}{" "}{event.location}
                     </p>
                   </div>
-                  <Button variant="outline" className="w-full gap-1">
-                    Agregar al Plan
-                    <ChevronRight className="h-4 w-4" />
+                  <Button variant="outline" className="w-full gap-1">{pc.tx("Button.3", "Agregar al Plan")}<ChevronRight className="h-4 w-4" />
                   </Button>
                 </motion.div>
               ))}
@@ -240,12 +229,9 @@ export default function Astroturismo() {
               className="flex items-end justify-between mb-12"
             >
               <div>
-                <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                  Observatorios y <span className="text-gradient">Miradores</span>
+                <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.2", "Observatorios y")}{" "}<span className="text-gradient">{pc.tx("span.3", "Miradores")}</span>
                 </h2>
-                <p className="text-muted-foreground max-w-xl">
-                  Los mejores puntos para observar las estrellas en la isla.
-                </p>
+                <p className="text-muted-foreground max-w-xl">{pc.tx("p.10", "Los mejores puntos para observar las estrellas en la isla.")}</p>
               </div>
             </motion.div>
 
@@ -271,8 +257,7 @@ export default function Astroturismo() {
                     </div>
                     <div className="absolute bottom-4 left-4">
                       <Badge className="bg-indigo-500/90 text-white">
-                        {obs.altitude} alt.
-                      </Badge>
+                        {obs.altitude}{" "}{pc.tx("Badge.2", "alt.")}</Badge>
                     </div>
                   </div>
                   <div className="p-5">
@@ -288,7 +273,7 @@ export default function Astroturismo() {
                         </span>
                       ))}
                     </div>
-                    <Button className="w-full">Reservar Tour</Button>
+                    <Button className="w-full">{pc.tx("Button.4", "Reservar Tour")}</Button>
                   </div>
                 </motion.div>
               ))}
@@ -305,8 +290,7 @@ export default function Astroturismo() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Constelaciones <span className="text-gradient">Visibles</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.3", "Constelaciones")}{" "}<span className="text-gradient">{pc.tx("span.4", "Visibles")}</span>
               </h2>
             </motion.div>
 
@@ -341,19 +325,11 @@ export default function Astroturismo() {
               viewport={{ once: true }}
             >
               <Telescope className="h-16 w-16 text-indigo-300 mx-auto mb-6" />
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-                ¿Listo para explorar el universo?
-              </h2>
-              <p className="text-white/80 mb-8 max-w-xl mx-auto">
-                Reserva tu experiencia astronómica y descubre los secretos del cielo caribeño.
-              </p>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">{pc.tx("h2.4", "¿Listo para explorar el universo?")}</h2>
+              <p className="text-white/80 mb-8 max-w-xl mx-auto">{pc.tx("p.11", "Reserva tu experiencia astronómica y descubre los secretos del cielo caribeño.")}</p>
               <div className="flex flex-wrap justify-center gap-4">
-                <Button size="lg" className="gap-2 bg-white text-indigo-900 hover:bg-white/90">
-                  Reservar Ahora
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Agregar al Plan de Viaje
-                </Button>
+                <Button size="lg" className="gap-2 bg-white text-indigo-900 hover:bg-white/90">{pc.tx("Button.5", "Reservar Ahora")}</Button>
+                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.6", "Agregar al Plan de Viaje")}</Button>
               </div>
             </motion.div>
           </div>
@@ -364,3 +340,6 @@ export default function Astroturismo() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { upcomingEvents, observatories, constellations };

@@ -114,7 +114,7 @@ export default function OperadoresLanding() {
               <div className="mt-8 flex items-center gap-3 pt-6 border-t border-border/50">
                 <div className="flex -space-x-2">
                   {["CF", "LR", "RM", "JP"].map((i) => (
-                    <div key={i} className="h-8 w-8 rounded-full bg-primary/20 border-2 border-background flex items-center justify-center text-[10px] font-bold text-primary">
+                    <div key={i} className="h-8 w-8 rounded-full bg-primary/20 border-2 border-background flex items-center justify-center text-3xs font-bold text-primary">
                       {i}
                     </div>
                   ))}
@@ -153,7 +153,7 @@ export default function OperadoresLanding() {
                       <div key={l} className="rounded-2xl bg-secondary/50 border border-border/60 p-3">
                         <Icon className={`h-4 w-4 ${color} mx-auto mb-1`} />
                         <p className="font-display font-bold text-base text-foreground">{v}</p>
-                        <p className="text-[10px] text-muted-foreground">{l}</p>
+                        <p className="text-3xs text-muted-foreground">{l}</p>
                       </div>
                     ))}
                   </div>
@@ -166,11 +166,11 @@ export default function OperadoresLanding() {
                       <div key={t} className="flex items-start justify-between rounded-xl border border-border/60 bg-card p-3 text-sm gap-3">
                         <div>
                           <p className="font-medium text-foreground text-xs leading-snug">{t}</p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">{d}</p>
+                          <p className="text-3xs text-muted-foreground mt-0.5">{d}</p>
                         </div>
                         <Badge
                           variant={s === "confirmed" ? "default" : "secondary"}
-                          className={`shrink-0 text-[9px] ${s === "confirmed" ? "bg-emerald-600 text-white" : ""}`}
+                          className={`shrink-0 text-3xs ${s === "confirmed" ? "bg-emerald-600 text-white" : ""}`}
                         >
                           {s === "confirmed" ? "✓ Confirmada" : "Pendiente"}
                         </Badge>
@@ -194,7 +194,7 @@ export default function OperadoresLanding() {
                 <div key={label} className="flex flex-col items-center gap-1.5 py-5 px-3 text-center">
                   <Icon className="h-5 w-5 text-primary" />
                   <p className="text-xs font-semibold text-foreground">{label}</p>
-                  <p className="text-[10px] text-muted-foreground">{count} servicios</p>
+                  <p className="text-3xs text-muted-foreground">{count} servicios</p>
                 </div>
               ))}
             </div>
@@ -317,7 +317,7 @@ export default function OperadoresLanding() {
                         </div>
                       </div>
                       <div>
-                        <p className="text-[10px] text-primary font-mono mb-0.5 font-bold">{String(i + 1).padStart(2, "0")}</p>
+                        <p className="text-3xs text-primary font-mono mb-0.5 font-bold">{String(i + 1).padStart(2, "0")}</p>
                         <p className="font-semibold text-foreground text-sm">{r.title}</p>
                         <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{r.desc}</p>
                       </div>
@@ -361,7 +361,7 @@ export default function OperadoresLanding() {
                         </div>
                         <div>
                           <p className="text-xs font-bold text-foreground">{t.name}</p>
-                          <p className="text-[10px] text-muted-foreground">{t.role}</p>
+                          <p className="text-3xs text-muted-foreground">{t.role}</p>
                         </div>
                       </div>
                     </CardContent>

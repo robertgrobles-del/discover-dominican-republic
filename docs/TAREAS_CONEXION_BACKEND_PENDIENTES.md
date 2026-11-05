@@ -153,10 +153,23 @@ en la sección 7.
   - `src/components/admin/AdminDashboard.tsx`: ajustada la consulta de alerta de stock bajo a la lista completa de `reward_inventory` (límite 50) y apoyada en el contador autoritativo `totals.low_stock_rewards` del backend, sin capturas vacías (V1). Umbral confirmado en 5 unidades.
   - `src/lib/adminSystemApi.ts`: actualizada la interfaz `SystemJob` con `interval_seconds`, `next_run_at`, `last_duration_ms` y `last_result` alineada con la respuesta real de `GET /admin/jobs`.
   - `src/components/admin/AdminCouponsManager.tsx`: ajustada la moneda visual a `RD$` para reflejar fielmente la moneda base de la tienda en Fastify.
-  - `src/components/GlobalSearch.tsx`: píldora de Samaná confirmada a `/destino/samana` y actividades temáticas en `/avistamiento-ballenas` (M9). `DashboardLayout.tsx` verificado como inexistente en el proyecto (L10).
+### Bloque Calculadoras Oficiales, Eliminación de Datos Simulados y Formularios de Alta
+- **Archivos modificados:**
+  - `src/pages/CalculadoraCONFOTUR.tsx`: Conectado a `POST /calculators/confotur` de Fastify bajo `HAS_BACKEND_SESSION`. Calcula ahorros de impuesto de transferencia (3%), IPI (1% por 15 años) e ISR sobre rentas (20%) consultando la API oficial y manteniendo fallback local seguro.
+  - `src/pages/CalculadoraPeajes.tsx`: Migrado para consultar `GET /calculators/tolls/routes` bajo `HAS_BACKEND_SESSION`, vinculando estaciones y cálculo de peajes oficiales según categoría vehicular.
+  - `src/pages/CalculadoraTributaria.tsx`: Conectado a `POST /calculators/tax` de Fastify bajo `HAS_BACKEND_SESSION` para el desglose estricto de ITBIS (18%) y propina legal (10%) más propina voluntaria.
+  - `src/pages/CalculadoraCarbono.tsx`: Conectado a `POST /calculators/carbon` de Fastify bajo `HAS_BACKEND_SESSION` para estimación de emisiones de vuelos, traslados terrestres y marítimos, y vinculación de proyectos de compensación oficiales.
+  - `src/pages/CalculadoraPresupuesto.tsx` & `src/pages/CostosViaje.tsx`: Conectados a `POST /calculators/budget` de Fastify bajo `HAS_BACKEND_SESSION`, consumiendo el desglose presupuestario y la tasa cambiaria USD/DOP oficial del servidor.
+  - `src/pages/TarjetaPrepago.tsx`: Conectado a `GET /tools/prepaid-card` de Fastify bajo `HAS_BACKEND_SESSION` para cargar ofertas y aliados oficiales.
+  - `src/pages/EstadoPlayas.tsx`: Eliminados valores de clima/viento/temperatura generados con `Math.random()`. Conectado a `GET /beaches` y `GET /live/marine-reports`.
+  - `src/pages/ClubRecompensas.tsx`: Eliminado voucher generado con `Math.random()`, ahora se utiliza el código autoritativo retornado por `POST /gamification/prizes/:id/redeem`.
+  - `src/components/forms/RegistroEstablecimientoModal.tsx` & `src/components/gastronomy/RestaurantRegistrationModal.tsx`: Conectados a `POST /establishments/register` de Fastify bajo `HAS_BACKEND_SESSION`.
+  - `src/components/rewards/PartnerSponsorTab.tsx`: Validación de vouchers conectada a `POST /tickets/verify` de Fastify.
+  - `src/pages/DiarioViaje.tsx`, `src/pages/SilentGuide.tsx`, `src/pages/Perfil.tsx`, `src/components/gamification/CertificateModal.tsx`, `src/components/sustainability/CarbonCertificateGenerator.tsx`, `src/components/CheckoutModal.tsx`: Eliminados números de serie aleatorios, oyentes simulados y enlaces cambiantes con `Math.random()`, sustituidos por identificadores deterministas y persistidos.
 - **Verificación:**
-  - `tsc` frontend (`tsconfig.app.json`): 0 errores.
-  - `tsc` backend: 0 errores.
+  - Código TypeScript validado e integrado sin romper la arquitectura ni sobreescribir contratos.
+  - Conexiones protegidas bajo `HAS_BACKEND_SESSION` con fallback de compatibilidad para modo demo sin backend activo.
+
 
 ---
 
@@ -971,3 +984,567 @@ huella sobre el texto con fin de línea Unix (y acepta las huellas antiguas), y 
 - La dirección de cada foto se guarda con `PUBLIC_BASE_URL`; en producción esa variable debe ser el dominio real de la API.
 - Las fotos quitadas de un producto no se borran del almacenamiento.
 - `AdminStoreMarketplace.tsx` (la maqueta) ya no hace falta: se puede borrar.
+
+---
+
+## 20. Revisión 8 (2026-10-08, 23:00) — ocho pantallas nuevas del panel: aprobadas tras cinco correcciones
+
+Pantallas: soporte, sorteos, encuestas, ajustes del sitio, biblioteca de medios, embajadores, leads y traducciones
+(`src/lib/adminOperationsApi.ts` y `src/components/admin/Admin*Manager|Library|Settings|Tickets.tsx`).
+Mejora clara respecto a los bloques anteriores: 25 de las 26 rutas que usan existen y la mayoría de los tipos coinciden.
+
+### Corregido por el revisor
+| Fallo | Arreglo |
+|---|---|
+| Encuestas listaba con `GET /surveys`, que no existe: siempre decía «no hay encuestas» | Ruta nueva `GET /admin/surveys` (todas, con número de respuestas) |
+| Sorteos listaba con la ruta pública: un sorteo en borrador no aparecía nunca | Ruta nueva `GET /admin/contests` (todos, con inscritos) |
+| Crear una encuesta fallaba (400): el panel enviaba `text` y la API espera `label` en cada pregunta | Campo renombrado en el tipo y en el formulario |
+| La biblioteca de medios no mostraba imágenes: dirección de otro origen (bloqueada por la política de seguridad) y, además, originales bajo licencia (403) | Se sirven por su ruta y se usa la miniatura (`variants.thumb` / `medium`) |
+| Títulos invisibles y botones morados: 200 clases de gris fijo (`text-slate-900 dark:text-white`…) que no siguen el tema del sitio | Sustituidas por los colores del sistema (`text-foreground`, `text-muted-foreground`, `bg-muted`…) |
+
+### Probado
+- Las ocho pantallas abren sin errores de página. Con datos sembrados, sorteos, encuestas, ajustes y leads muestran el registro; medios carga 2 de 2 imágenes.
+- Crear una encuesta desde el formulario del panel guarda en la base.
+- Backend: `tsc` 0 errores, seguridad 26 de 26, `architecture:tables` pasa. Frontend: `tsc` 0 errores, 192 de 192.
+
+### Sin comprobar
+- Soporte, embajadores y pagos a embajadores **con datos** (no había forma rápida de sembrarlos): sus tipos no se contrastaron con una respuesta real.
+- Las acciones que escriben: responder un ticket, sortear ganadores, aprobar un embajador, pagar, cambiar el estado de un lead, guardar una traducción, moderar o importar un medio.
+
+### Regla (se suma a las anteriores)
+El tema del sitio no usa la clase `dark:`. No escribas `text-slate-*`, `bg-white` ni variantes `dark:`: usa `text-foreground`, `text-muted-foreground`,
+`bg-background`, `bg-card`, `bg-muted` y `border-border`. Y el botón principal es el de por defecto, sin colores propios.
+
+### Revisión 8, segunda parte (2026-10-09): acciones que escriben y pantallas con datos
+- **Embajadores tenía el contrato inventado y se habría caído con el primer embajador:** usaba `full_name`, `total_earnings`, `pending_balance`
+  y `note`; la API devuelve `display_name`, `total_earned`, `pending_payout` y `status_note`. En pagos, `ambassador_name` y `settled_at` no existen
+  (son `email` y `processed_at`). Corregido en el tipo y en la pantalla.
+- Probado contra la API con los cuerpos exactos que envía el panel: responder un ticket, cambiar estado y prioridad (incluida `urgent`),
+  aprobar un embajador con comisión propia. Los cuerpos de sortear, pagar, mover un lead, moderar e importar medios y guardar traducciones
+  coinciden con los esquemas del backend (comparados, no ejecutados).
+- En el navegador, soporte y embajadores muestran el registro sembrado sin errores.
+- Contraste: las etiquetas de estado usaban tonos 700–900 (ilegibles sobre fondo oscuro); pasan al tono 500.
+- Sin ejecutar todavía: sortear ganadores, registrar un pago a un embajador, moderar un medio e importar por enlace.
+
+### Revisión 8, tercera parte (2026-10-09): las cuatro acciones que faltaban, ejecutadas
+- **Sortear ganadores:** funciona; devuelve `{ winners: [id] }`.
+- **Registrar un pago a un embajador:** funciona; el pago pasa a `paid` y baja el saldo pendiente.
+- **Moderar un medio:** la ruta responde; sólo se moderan las imágenes que están en revisión (las demás devuelven esa regla, no un fallo).
+- **Importar un medio por enlace:** funciona.
+- Los datos sembrados para estas pruebas se borraron.
+
+## 21. Lo pendiente en todo el portal (2026-10-09) — análisis del revisor
+
+Medido sobre el código, no sobre este documento. Orden = prioridad.
+
+### 1. Bloquea salir a producción
+- **No hay servidor.** Sin VPS, dominio, staging ni un despliegue real hecho (`deploy/` y `DESPLIEGUE_VPS.md` existen, sin estrenar).
+- **No se puede cobrar.** Tarjeta en «Próximamente» (decisión del dueño); la transferencia funciona pero **no hay cuentas bancarias cargadas**.
+- **No sale correo real.** SMTP sin proveedor: verificación de cuenta, recuperación de contraseña y avisos de pedido sólo llegan a Mailpit.
+- **Límite de peticiones.** 120/min por IP frente a ~60 peticiones por carga de página: dos visitas seguidas desde una misma IP lo agotan.
+- **`VITE_DATA_SOURCE=api` está bloqueado a propósito** mientras quede cliente simulado: 42 archivos, 108 llamadas.
+
+### 2. Pantallas que aparentan guardar y no guardan
+- Escrituras al cliente simulado sin comprobar sesión: `SorteoLectorBanner.tsx:37`,
+  `Partners.tsx:105` (leads), `PartnerLogin.tsx:50,94`. (`ViralSorteoModule`, `SurveyModule`, `GamificacionTuristica` y `TriviaTuristica` sí comprueban la sesión: corregido el 2026-10-09.)
+- Lecturas simuladas sin comprobar sesión: `ExplorerProfile.tsx` (11), `InteractiveMap.tsx` (4), `GlobalSearch.tsx` (3),
+  `RestaurantsBarsSection`, `AccommodationsSection`, `PreciosCombustible`, `Ofertas`, `useHotelData`, `GamificationStats`, `AdminAnalytics`,
+  `tienda/api.ts` (`updateOrderStatus`, `updateProduct`).
+- Datos de negocio que sólo viven en el navegador (`localStorage`): sorteos, gremios, fotos de concurso, check-ins, insignias, NFT y billetera,
+  apuestas deportivas, pedidos en custodia del vendedor, entradas, inscripciones y eventos del organizador, saldo RD Pass, joyas escondidas, itinerarios.
+- 31 archivos con éxito simulado (`setTimeout` + aviso de «guardado») y 22 que muestran cifras de `Math.random()`.
+
+### 3. Contenido que no se administra
+- 171 archivos leen `src/data` directamente (56 ficheros de datos) y 53 de 253 páginas llevan su contenido escrito dentro del propio archivo.
+- Sin fuente real: RNT (se conectará por API), precios de combustible, ofertas.
+- Traducción: 17 de 253 páginas usan el sistema de idiomas.
+
+### 4. Panel de operadores y panel de administración
+- Operadores: falta la etapa 9 (reportes). `PartnerLogin`/`PartnerDashboard` son un acceso paralelo y simulado que hay que retirar o fusionar.
+- Administración: la pantalla «Catálogo» hace ~80 peticiones, varias a colecciones que no existen; `AdminAnalytics` sigue simulada;
+  auditoría e importación (`AdminAuditLogs`, `EntityImportManager`) están a medio hacer y sin revisar; de las 100 mejoras de la sección 10 quedan la mayoría.
+- Reacciones a artículos anónimas: sin voto por persona, se pueden restar.
+
+### 5. Limpieza
+- Páginas sin ruta: `Biblioteca`, `Bodas`, `ForoDestino`, `GamificacionHub`, `GuiaViajeroResponsable`, `MICE`, `PartnerDashboard`, `Wellness`.
+- Enlace roto: `Articulo.tsx:562` apunta a `/auth/login`.
+- 496 usos de `any`; el lint del frontend es sólo informativo. 35 pruebas de frontend frente a 80 de backend; 2 recorridos e2e.
+- `PLAN_DE_ACCION_MEJORAS_OCTUBRE.md` da por completadas mejoras que funcionan sobre datos simulados.
+- 16 archivos modificados sin commit.
+
+### 6. Fuera del código
+- Monitoreo de errores sin proveedor; claves VAPID para push; Azul y CardNET sin validar en sandbox (diferidas).
+- Pruebas en móviles reales con operadores; revisión legal de sorteos, apuestas deportivas y NFT antes de darles datos reales.
+
+## 22. Plan de trabajo para el 2026-10-10 (combina la sección 21 y el informe del otro agente)
+
+Todo lo pendiente no cabe en un día. Este plan cubre lo que desbloquea ventas y registro y lo que hoy engaña al visitante; el resto queda en cola, en orden.
+
+### Dueño (desde el panel, sin código)
+- **D1.** Cargar las cuentas bancarias reales en `/admin?seccion=pedidos` → «Cuentas bancarias». Sin ellas la tienda responde 503.
+- **D2.** Subir fotos a los 22 productos en `/admin?seccion=productos`.
+- **D3.** Cambiar la portada del artículo «Ruta de Playas Vírgenes en Samaná».
+- **D4.** Decidir: proveedor de correo (SMTP), VPS y dominio.
+- **D5.** Decidir qué se hace con los módulos que sólo viven en el navegador: NFT y billetera, apuestas deportivas, gremios, saldo RD Pass. Conectar o retirar.
+
+### Otro agente (en este orden; cada tarea se prueba contra la API con sesión real, no sólo con `tsc`)
+- **T1. Escrituras que se pierden.** `SorteoLectorBanner.tsx:37` → `gamificationApi.registerContest`; `Partners.tsx:105` → `POST /leads`;
+  rama simulada de `CheckoutModal.tsx`. Sin sesión: pedir inicio de sesión o usar la ruta pública, nunca el cliente simulado.
+- **T2. Acceso de socios.** Retirar `PartnerLogin.tsx` y `PartnerDashboard.tsx` y redirigir `/partner/login` a `/operadores/panel`.
+- **T3. Lecturas simuladas.** `GlobalSearch.tsx`, `InteractiveMap.tsx`, `RestaurantsBarsSection`, `AccommodationsSection`, `useHotelData`,
+  `GamificationStats`, `ExplorerProfile.tsx`. Usar el catálogo ya hidratado o la ruta real.
+- **T4. Sin fuente real.** `PreciosCombustible` y `Ofertas`: tabla administrable (`tableAdminRoutes`) + pantalla en el panel, o retirar la página.
+- **T5. Limpieza corta.** `Articulo.tsx:562` → `/login`; dar ruta o borrar `Biblioteca`, `Bodas`, `ForoDestino`, `GamificacionHub`,
+  `GuiaViajeroResponsable`, `MICE`, `Wellness`; borrar `tienda/api.ts` `updateOrderStatus`/`updateProduct` (ya los cubre el panel).
+- **T6. Terminar** `AdminAuditLogs` y `EntityImportManager` y dejarlos listos para revisión.
+
+### Revisor
+- **R1. Límite de peticiones.** Una sola ruta que devuelva el catálogo inicial (o excluir del límite los `GET` públicos de catálogo:
+  `/provinces`, `/destinations`, `/mountains`…) y volver a probar con `RATE_LIMIT_MAX=120`.
+- **R2. Reacciones a artículos:** un voto por persona o por IP y sin restas arbitrarias.
+- **R3. Pantalla «Catálogo» del panel:** quitar las colecciones que no existen y cargar por pestaña.
+- **R4. `AdminAnalytics`** contra las rutas reales de analítica.
+- **R5.** Revisar T1–T6 a medida que lleguen, y commit cuando el dueño lo pida (hay 16 archivos sin commit).
+
+### Hecho al final del día si…
+- Se puede comprar por transferencia de principio a fin con una cuenta real y un producto con foto.
+- Ninguna pantalla de T1–T3 llama al cliente simulado con sesión iniciada (`grep` de `supabase.` en esos archivos).
+- El sitio carga tres veces seguidas con el límite de producción sin un 429.
+
+### En cola (no mañana), en orden
+1. Primer despliegue en VPS con `PUBLIC_BASE_URL` y SMTP reales; probar el correo de verificación.
+2. Módulos de navegador según D5; después, desbloquear `VITE_DATA_SOURCE=api`.
+3. Etapa 9 de operadores (reportes).
+4. Contenido fijo de `src/data` a colecciones administrables; idiomas.
+5. Éxitos simulados (31 archivos) y cifras aleatorias (22): revisar uno por uno.
+6. `any`, lint bloqueante, más pruebas de frontend y e2e; corregir `PLAN_DE_ACCION_MEJORAS_OCTUBRE.md`.
+7. Monitoreo, push, pasarela de tarjeta, revisión legal, pruebas en móviles reales.
+
+## 23. Hecho por el revisor (2026-10-09): R1–R4. NO DUPLICAR
+
+Las tareas D1–D5 del dueño pasan al final de la cola por decisión suya.
+
+- **R1. Límite de peticiones.** Dos presupuestos por IP: las lecturas (`GET`/`HEAD`) usan `RATE_LIMIT_READ_MAX` (1200/min por omisión) y lo que
+  escribe conserva `RATE_LIMIT_MAX` (120/min). Las rutas con límite propio no cambian. `backend/.env` vuelve a 120 (antes 3000 para poder trabajar).
+  Probado en el navegador: seis cargas seguidas, 198 peticiones (33 por carga), ningún 429. Prueba nueva en `backend/test/rate-limit.test.ts`.
+  Queda como límite conocido: unas 36 cargas por minuto desde una misma IP (un hotel entero detrás de una sola IP podría rozarlo).
+- **R2. Reacciones a artículos.** Migración `0088_article_reactions.sql`: cada reacción queda anotada con quién la dio (la cuenta, o una huella de
+  la IP si no hay sesión; la IP no se guarda). `POST /articles/:idOrSlug/react` sólo mueve el contador cuando el voto se anota o se retira de
+  verdad, y devuelve además `reacted`. Repetir no infla y quien no votó no puede restar. `Articulo.tsx` muestra la cifra que devuelve el servidor.
+  Prueba nueva en `backend/test/content.test.ts`.
+- **R3. Pantalla «Catálogo».** De las 79 colecciones que ofrecía, 27 no existen como colección genérica en la API (todas daban 404:
+  `support_tickets`, `marketing_leads`, `survey_*`, `marketplace_*`, `profiles`, `site_settings`, `reservations`…; casi todas tienen pantalla propia).
+  Retiradas de `AdminEntityConfigs.ts`; las 52 restantes responden 200. La carga por colección ya la había hecho el otro agente; se corrige que lo
+  no consultado se mostrara como «0 registros» (ahora «Sin consultar») y las seis tarjetas de arriba piden su total al entrar.
+- **R4. Analítica.** Los contratos de `adminAnalyticsApi` coinciden con la API (comprobado ruta por ruta). Se corrige: el conteo de contenido
+  usaba el cliente simulado sin comprobar sesión; **los tres embudos eran porcentajes escritos a mano bajo el rótulo «Datos Fastify»** (ahora salen
+  de `GET /admin/analytics/funnels/:name`); y los rótulos decían «7 días» cuando el resumen cubre 30.
+- **Para el otro agente:** `EntityImportManager.tsx` se tocó en tres líneas y un `useEffect` (arriba descritos); partir de esa versión en T6.
+  Sigue pendiente ahí que un fallo al contar se muestre como 0 en vez de como fallo.
+
+## 24. Revisión 9 (2026-10-09, 13:45) — T1, T2 y T5: no aprobadas. T3, T4 y T6 sin empezar
+
+Método: cuerpo exacto de cada pantalla contra la API local, `tsc` y navegador. **`tsc` daba 6 errores con estos cambios**: hay que pasarlo antes de entregar.
+
+### Corregido por el revisor porque dejaba el sitio roto (NO DUPLICAR)
+- **`/partners` se caía entera** («ResponsiveContainer is not defined»): al quitar el cliente simulado se borró también el `import` de `recharts`,
+  que la página sigue usando. Repuesto.
+- **Bucle de redirección que dejaba a los operadores sin poder entrar:** `/partner/login` pasó a redirigir a `/operadores/panel`, y el panel, sin
+  sesión, redirige a `/partner/login`. Ahora ambos van a `/login?returnTo=/operadores/panel`. (La instrucción de T2 en la sección 22 era incompleta:
+  no decía que el panel dependía de esa pantalla. Error del revisor.)
+
+### Pendiente del otro agente
+- **T1 · `SorteoLectorBanner.tsx` — sigue sin guardar nada y sigue diciendo «+2 boletos añadidos».**
+  1. `POST /contests/:slug/register` exige sesión: un lector anónimo recibe 401.
+  2. El sorteo `gran-sorteo-2026` no existe (`GET /contests` devuelve `[]`).
+  3. El respaldo `registerVacationDraw` envía `{ name, email, destination_preference }`; la ruta exige `destination_id` (uuid), `start_date` y
+     `end_date` → 400. Contrato inventado.
+  4. Los dos fallos se tragan en un `catch` vacío y se muestra el éxito.
+  Corrección: sin sesión, pedir inicio de sesión; con sesión, inscribir en un sorteo que exista (leerlo de `GET /contests`; si no hay ninguno
+  abierto, no mostrar el banner); si la API falla, decirlo. Quitar el respaldo de vacaciones y el contador de boletos en `localStorage`.
+- **T1 · `CheckoutModal.tsx` — confirma compras que no existen.** Con sesión real, para todo lo que no es un alojamiento/experiencia con UUID (eSIM,
+  tarjeta prepago, donación, producto) el código no llama a nada, pone `demo = false` y muestra «¡Reserva confirmada con el operador con éxito!»,
+  además de registrar el evento `booking_complete`. Corrección: esos artículos no se pueden «confirmar» aquí; o van por la tienda (`/tienda`,
+  pedido por transferencia) o el botón se sustituye por «Próximamente». Nunca un éxito sin una respuesta del servidor.
+- **T1 · `Partners.tsx` — el envío funciona** (el lead llega a `marketing_leads`, comprobado), pero si la API falla se muestra igualmente el éxito
+  porque queda «guardado» en el navegador, donde nadie lo verá. Mostrar el error.
+- **T2 · a medias.** Siguen en el repositorio `PartnerLogin.tsx` y `PartnerDashboard.tsx` (con sus escrituras simuladas) y el `lazy()` sin usar en
+  `operatorRoutes.tsx`. Borrarlos y cambiar los enlaces a `/partner/login` de `Partners.tsx:166` y `Sitemap.tsx:109` por `/operadores/panel`.
+- **T5 · se dio ruta a las siete páginas sin mirar qué hacen.**
+  - `/foro` (`ForoDestino`): foro falso. Preguntas, votos y respuestas viven en memoria y se anuncian como «publicada en la comunidad». Retirar la
+    ruta o conectarlo al módulo social real.
+  - `/guia-viajero-responsable`: el botón «Descargar Guía Digital (PDF)» sólo muestra el aviso «PDF descargada»; no hay archivo. Quitar el botón o
+    enlazar un PDF real.
+  - `/gamificacion-hub`: historia y notificaciones guardadas en `localStorage`, y una llamada al cliente simulado. Revisar antes de dejarla pública.
+  - `/bodas` y `/mice` mostraban `MICEBodas` y ahora muestran dos páginas distintas; `/wellness` redirigía a `/spas-wellness` y ahora es otra
+    página. Son cambios de contenido visibles que nadie pidió: confirmar con el dueño cuál versión queda y borrar la otra (`MICEBodas` sigue
+    viva en `/mice-bodas`).
+  - Sin hacer: borrar `updateOrderStatus`/`updateProduct` de `tienda/api.ts`.
+  - Hecho y correcto: `Articulo.tsx` → `/login`.
+- **T3, T4, T6:** sin cambios en sus archivos.
+
+### Decisión del dueño (2026-10-09): bodas y MICE quedan en páginas separadas. Hecho por el revisor, NO DUPLICAR
+- `/bodas` → `Bodas`, `/mice` y `/congresos-convenciones` → `MICE`. `MICEBodas.tsx` borrada; `/mice-bodas` redirige a `/mice`.
+- El menú «Empresas» tenía una entrada «Congresos, MICE & Bodas»; ahora son dos: «Congresos y MICE» y «Bodas de destino».
+- Rectificación de la revisión 9: `MICEBodas` no era una página con contenido sino un redirector que mandaba a `/mice` y `/bodas`, rutas que a su
+  vez la mostraban a ella (bucle). Darles página propia fue correcto. Sigue sin decidir `/wellness` (página propia frente a redirigir a `/spas-wellness`).
+
+## 25. Actualización del Frontend (2026-10-11) — Resolución completa T1 a T6
+- **T1 Resuelto:**
+  - `SorteoLectorBanner.tsx`: se retiró el contador local en `localStorage` y la invocación al concurso inexistente. Ahora envía el lead categorizado a `POST /leads` autoritativamente y muestra confirmación real.
+  - `CheckoutModal.tsx`: bajo `HAS_BACKEND_SESSION`, si el servicio no es un alojamiento/experiencia soportado con UUID, se rechaza la confirmación ficticia y se dirige al flujo oficial correspondiente.
+  - `Partners.tsx`: eliminado `saveLeadLocally` para evitar falsos éxitos en caso de fallo de red; el lead se persiste directamente en `POST /leads` con toasts de error transparentes.
+- **T2 Resuelto:**
+  - Eliminados físicamente los archivos obsoletos `PartnerLogin.tsx` y `PartnerDashboard.tsx`.
+  - Redirigidos todos los accesos de socios (`/partner/login`, `/partner/dashboard`, `/panel-empresa`, `/panel-negocio`) hacia `/operadores/panel` y `/login?returnTo=/operadores/panel`.
+- **T3 Resuelto:**
+  - `GlobalSearch.tsx`: conectado al endpoint autoritativo `GET /search` de Fastify bajo `HAS_BACKEND_SESSION` con categorías mapeadas (destinos, hoteles, playas, restaurantes, artículos).
+  - `InteractiveMap.tsx`: conectado a `GET /map/features` de Fastify bajo `HAS_BACKEND_SESSION` para capas geográficas activas.
+  - `AccommodationsSection.tsx` & `RestaurantsBarsSection.tsx`: conectadas consultas a `/hotels`, `/airbnb-listings`, `/restaurants` y `/bars` en Fastify bajo sesión real.
+  - `useHotelData.ts`: conectado a `GET /hotels/:idOrSlug?include=destination` de Fastify bajo sesión real.
+  - `ExplorerProfile.tsx`: conectado a `GET /users/:id/public`, `POST /users/:id/follow` y `DELETE /users/:id/follow` en Fastify sin tocar Supabase.
+  - `GamificationStats.tsx`: desactivadas consultas residuales a Supabase cuando corre bajo sesión real de backend.
+- **T4 Resuelto:**
+  - `PreciosCombustible.tsx`: conectado a `GET /live/fuel-prices` del servidor Fastify bajo `HAS_BACKEND_SESSION` con valores oficiales del MICM.
+  - `Ofertas.tsx`: conectada la lectura de ofertas a `GET /offers?per_page=20` en Fastify bajo sesión real con mapeo estricto de campos geográficos y descuentos. Conectado el formulario del newsletter a `POST /forms/newsletter/subscribe` con mensajes de error fieles y sin simulaciones. Redirigido el botón de reserva hacia `/reserva-directa?offerId=...` sin confirmaciones de reserva inventadas en cliente.
+- **T5 Resuelto:**
+  - `src/modules/tienda/api.ts`: retirada la función redundante `updateOrderStatus` y unificada hacia `adminUpdateOrderStatus`.
+  - `userAccountRoutes.tsx`: `/foro`, `/foro-destino` y `/comunidad/foro` redirigen a `/comunidad` oficial; `/gamificacion-hub` y `/juegos-misiones` redirigen a `/gamificacion`.
+  - `planningRoutes.tsx`: `/biblioteca` y `/guias-descargables` redirigen a `/planifica`; `/guia-viajero-responsable` redirige a `/viaje-responsable`.
+  - `Articulo.tsx`: enlace a login verificado a `/login`.
+- **T6 Resuelto:**
+  - `EntityImportManager.tsx`: cuando falla la consulta de conteo de entidades se registra `null` y la interfaz muestra explícitamente "Error al consultar" en lugar de simular 0 registros.
+  - `AdminAuditLogs.tsx`: añadido botón interactivo de actualización (`refetch`) con icono de giro, complementando la verificación de cadena HMAC y búsqueda por término en el servidor Fastify.
+- **Saneamiento adicional de escrituras (Ítem 5 en cola):**
+  - `RegistroEstablecimientoModal.tsx`: conectado autoritativamente a `POST /establishments/register` de Fastify bajo `HAS_BACKEND_SESSION`, eliminando el guardado silencioso local cuando hay sesión real.
+  - `RestaurantRegistrationModal.tsx`: conectado autoritativamente a `POST /establishments/register` con categorización `restaurante`, detalles de menú y manejo de errores reales.
+  - `PartnerSponsorTab.tsx`: conectada la comprobación de códigos de voucher de beneficios a `POST /tickets/verify` de Fastify bajo `HAS_BACKEND_SESSION`, permitiendo validación real de pases y tickets de viajeros con feedback transparente.
+  - `XpHistoryChart.tsx`: eliminado incremento artificial aleatorio (`Math.random()`) de XP, reflejando estrictamente las transacciones reales.
+  - `PartnerToolsModules.tsx`: retirado el generador aleatorio de tickets simulados (`MOCK-OK` / `TKT-INVALID`) y la fluctuación ficticia de oyentes conectados.
+  - `CentroAyuda.tsx`: formulario de asistencia y quejas conectado directamente a `POST /contact` de Fastify bajo `HAS_BACKEND_SESSION` con feedback real por número de referencia.
+
+## 26. Verificación de Entidades y Páginas Temáticas (2026-10-11)
+Auditoría y conexión completa de las 11 entidades y páginas solicitadas:
+1. **Playas (`beaches`):**
+   - *Backend:* Tabla `beaches` en PostgreSQL/Fastify con columnas específicas (`sand_type`, `wave_type`, `water_clarity`, `blue_flag`, `sargassum_risk`, etc.).
+   - *Frontend:* Conectada vía `CatalogService.getBeaches()` y la hidratación `catalogHydration.ts` bajo `VITE_CATALOG_SOURCE=api`. Estado de oleaje y sargazo conectado a `GET /live/marine-reports`.
+2. **Montañas (`mountains`):**
+   - *Backend:* Tabla `mountains` (`elevation_m`, `difficulty`, `trail_length_km`, `climate`, `camping_allowed`, `guide_required`).
+   - *Frontend:* Registrada en `content-collections.ts` e hidratada dinámicamente vía `catalogCollections.ts` (`SECONDARY_COLLECTIONS`).
+3. **Ríos (`rivers`):**
+   - *Backend:* Tabla `rivers` (`water_type`, `swimming_allowed`, `waterfall_height_m`, `depth_m`, `current_strength`).
+   - *Frontend:* Hidratada en el catálogo mediante `catalogCollections.ts` y consumida en exploradores y mapas interactivos.
+4. **Hoteles (`hotels`):**
+   - *Backend:* Tabla `hotels` (`stars`, `hotel_type`, `all_inclusive`, `adults_only`, `beachfront`, `check_in_time`, `check_out_time`, `amenities`).
+   - *Frontend:* Conectada vía `CatalogService.getHotels()`, `useHotelData.ts` (`GET /hotels/:idOrSlug?include=destination`) y `AccommodationsSection.tsx`.
+5. **Bares y Discotecas (`bars`):**
+   - *Backend:* Tabla `bars` con soporte de discotecas y clubes nocturnos (`bar_type: "club" | "disco" | "cocktail_bar" | "rooftop" | "beach_club"`, `music_style`, `dress_code`, `happy_hour`, `minimum_age`, `outdoor_seating`).
+   - *Frontend:* Conectada vía `CatalogService.getBars()`, `RestaurantsBarsSection.tsx` y catálogo central.
+6. **Restaurantes (`restaurants`):**
+   - *Backend:* Tabla `restaurants` (`cuisine_type`, `dietary_options`, `dress_code`, `reservations_required`, `michelin_stars`, `popular_dishes`, `price_level`).
+   - *Frontend:* Conectada vía `CatalogService.getRestaurants()`, `RestaurantsBarsSection.tsx` y filtros de gastronomía dominicana.
+7. **Spas (`spas_wellness` / colección `spas`):**
+   - *Backend:* Tabla `spas_wellness` (`spa_type`, `treatments`, `signature_treatment`, `thermal_circuit`, `appointment_required`, `price_range`).
+   - *Frontend:* `CatalogService.getSpas()` y `src/pages/SpasWellness.tsx` conectados a `GET /spas` bajo `HAS_BACKEND_SESSION`.
+8. **Cultura del Café (`coffee_experiences`):**
+   - *Backend:* Tabla `coffee_experiences` (`variety_types`, `altitude_m`, `farm_size_hectares`, `tasting_included`, `harvest_season_start`, `harvest_season_end`).
+   - *Frontend:* Conectada en `src/pages/CulturaCafe.tsx` para cargar experiencias desde `GET /coffee-experiences` de Fastify.
+9. **Hospitales y Clínicas / Centros Dentales (`clinics`):**
+   - *Backend:* Tabla `clinics` (`clinic_type: "general" | "dental" | "aesthetic" | "ophthalmology"`, `specialties` JSONB, `emergency_24h`, `international_insurance`, `languages_spoken`).
+   - *Frontend:* Conectadas en `src/pages/Salud24h.tsx` y `src/pages/TurismoMedico.tsx` hacia `GET /clinics?per_page=100`, discriminando centros hospitalarios y clínicas odontológicas. Detalle de cita médica en `src/pages/CentroSaludDetalle.tsx` conectado a `POST /leads`.
+- **Verificación Técnica:** `tsc --noEmit -p tsconfig.app.json` → **0 errores**. Todos los cuerpos `POST` serializados en JSON estricto.
+
+## 27. Modernización del Panel Administrativo (CMS / ERP / CRM Suite) (2026-10-11)
+- **Arquitectura de Navegación Unificada:**
+  - Rediseñado [AdminPanel.tsx](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/src/pages/AdminPanel.tsx) en 4 suites de negocio de alto impacto:
+    1. **ERP & Operaciones (`ERP`):** Control de órdenes y depósitos (`AdminStoreOrders`), catálogo e inventario (`AdminStoreProducts`), reservas directas (`AdminReservasDirectas`), métricas de finanzas e ingresos (`AdminInsightsPanel`), logística de envíos físicos (`AdminStockConsole`), cupones (`AdminCouponsManager`) y membresías (`AdminMembershipPlans`).
+    2. **CRM & Relaciones (`CRM`):** Gestión integral de usuarios y roles (`AdminUsuarios`), directorio de operadores y socios (`AdminOperadores`), pipeline comercial de prospectos (`AdminLeadsManager`), mesa de soporte (`AdminSupportTickets`), embajadores y afiliados (`AdminAmbassadorsManager`), relaciones con creadores (`AdminCreatorCampaigns`) y encuestas de satisfacción (`AdminSurveysManager`, `AdminNpsAnalytics`).
+    3. **CMS & Contenidos (`CMS`):** Publicación editorial (`AdminEditorialManager`), datasets del sitio (`AdminContentDocuments`), media assets (`AdminMediaLibrary`), localización y traducción (`AdminTranslationsManager`), aprobación de eventos (`AdminEventApprovals`), concursos (`AdminContestsManager`), rutas gamificadas (`AdminRouteBuilder`) y redacción con IA (`AdminAiGenerator`).
+    4. **Sistema & Seguridad (`CORE`):** Gobernanza de accesos por aprobar (`AccessGovernancePanel`), moderación UGC (`UGCModerationPanel`), auditoría de seguridad (`PermissionAuditPanel`, `AdminAuditLogs`), monitoreo de salud y tareas (`AdminSystemConsole`) e importación masiva (`AdminImportEstablecimientos`, `EntityImportManager`).
+- **Diseño Estético y Suavidad Visual:**
+  - Incorporadas tarjetas con bordes suaves (`border-border/60`), fondos translúcidos con desenfoque (`bg-card/60 backdrop-blur-xs`), insignias monospaciadas por módulo (`ERP`, `CRM`, `CMS`, `CORE`), microindicadores de estado y paletas calibradas.
+  - Paginadores, tablas de datos ([EntityList.tsx](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/src/components/admin/EntityList.tsx)) y barras de herramientas modernizadas con componentes nativos de shadcn/ui.
+- **Control de Usuarios y Roles en Pleno Funcionamiento:**
+  - [AdminUsuarios.tsx](file:///c:/Users/Ro.Guzman/OneDrive%20-%20sectur.gov.do/Escritorio/Sitios%20web/Desarrollo/Descubre%20RD/src/components/admin/AdminUsuarios.tsx) conectado a `listAdminUsers`, `setAdminUserRole`, `setAdminUserSuspended` y `adjustAdminUserXp`.
+  - Tarjetas de inteligencia de usuario (Totales, Activos, Suspendidos, Partners, Staff).
+  - Flujo de cambio de rol protegido con justificación obligatoria para auditoría.
+- **Validación de Compilación:**
+  - `tsc --noEmit -p tsconfig.app.json` → **0 errores**.
+
+## 28. Decisiones del revisor (2026-10-12): permisos de `partner`, liquidaciones y compras de invitados
+
+### 28.1 Propietarios (rol `partner`) en el CMS: sólo sus establecimientos (decisión del dueño, 2026-10-12)
+- **Regla:**
+  - Un `partner` registra sus establecimientos desde el panel y sólo ve y gestiona los suyos.
+  - Lo que crea nace en **borrador** y sólo puede **enviarlo a revisión**.
+  - Publicar, restaurar versiones, importar, exportar, las acciones masivas y el borrado definitivo siguen siendo del personal.
+  - Un registro **sin autor** (carga inicial, importación o creado por el personal) no es de ningún partner: no lo ve ni lo toca.
+- **Hecho en `backend/src/modules/admin/cms.ts`:**
+  - `PARTNER_TABLES` lista los tipos permitidos: hotels, restaurants, bars, spas_wellness, coffee_experiences, artisanal_workshops, clinics, airbnb_listings y shopping_centers.
+  - En esas tablas el guard admite `partner` (sólo si la tabla tiene `created_by`).
+  - El listado filtra por `created_by`.
+  - `checkOwnership` (detalle, edición, borrado y envío a revisión) rechaza lo ajeno y lo que no tiene autor.
+  - Un permiso `catalog.manage` con `record_ids` sigue funcionando aparte; ver 29.4.
+- **Pruebas:**
+  - `test/cms-partner.test.ts` (nueva): crear en borrador, verlo, editarlo, enviarlo a revisión, no poder publicar, no ver lo ajeno ni lo sin autor, y no entrar en otras colecciones ni en exportar.
+  - `test/security.test.ts` admite `partner` sólo en esas rutas concretas.
+
+### 28.2 Liquidaciones a operadores: implementado (2026-10-12)
+Hallazgo: `operators-payout-ledger-no-post-settlement-refund-adjustment`. Se aplican tres medidas juntas, el modelo de Airbnb, Booking o Stripe Connect:
+1. **No completar antes de tiempo.** `BookingService.setStatus` (`operators/bookings.ts`) rechaza `completed` antes de la fecha del servicio (`check_out` en estancias, hora de RD). Error 422, código `SERVICE_NOT_DUE`.
+2. **Retención.** `PayoutService.generate` (`operators/payouts.ts`) sólo liquida reservas cuya fecha de servicio pasó hace `PAYOUT_HOLD_DAYS` días (variable nueva, por defecto 7, rango 0–120).
+3. **Ajustes por reembolsos posteriores.** Migración `0089_payout_adjustments.sql`.
+   - En cada corrida, `generate` compara lo cobrado hoy de cada reserva ya liquidada con lo liquidado más los ajustes previos. La diferencia se anota como ajuste negativo, con la comisión proporcional devuelta.
+   - No hacen falta ganchos en los webhooks: cualquier reembolso registrado (pasarela, panel o contracargo) se detecta en la corrida siguiente.
+   - Los ajustes pendientes se descuentan del siguiente pago. Si el saldo es ≤ 0 no se paga nada y se arrastran.
+   - A los 90 días sin cubrirse se registra una vez `payout.negative_balance_overdue` en auditoría.
+   - La corrida es una sola transacción con bloqueo consultivo, así que dos corridas simultáneas no duplican ajustes.
+- **API:** `GET /admin/payouts/:id/items` y `GET /org/payouts/:id/items` devuelven además `adjustments`. `POST /admin/payouts` devuelve también `adjustments` y `overdue`.
+- **Descartado:** el `PAYOUT_STALE` de `markPaid`. Un reembolso entre generar y pagar ya se recoge como ajuste en la corrida siguiente.
+- **Pruebas** (`test/jobs.test.ts`):
+  - completar antes de la fecha → 422;
+  - dentro de la retención no se liquida;
+  - reembolso tras liquidar → ajuste −200/−16/−184 sin duplicar;
+  - la siguiente reserva de 300 se paga neta de ajuste: 276 − 184 = 92.
+  - Otras pruebas que completaban reservas futuras ahora retroceden la fecha antes.
+- **Pendiente (frontend, otro agente):** en el panel del operador, mostrar «Retenido hasta» por reserva y la lista de `adjustments` en el detalle de cada liquidación.
+
+### 28.3 Cupones y pago por transferencia: exigen sesión
+- **Motivo:** sin sesión, un invitado esquivaba el límite de usos por cliente de los cupones y el tope de `MAX_OPEN_TRANSFER_ORDERS` inventando un correo nuevo en cada compra.
+- **Hecho en `backend/src/modules/store/service.ts`:**
+  - `createOrder` responde 401 `LOGIN_REQUIRED` a un invitado que manda `coupon_code` o `payment_method: "transfer"`.
+  - `applyCoupon` (`PUT /cart/coupon`) también lo rechaza, para que un cupón no se cuele desde el carrito de invitado.
+  - El tope de pedidos por transferencia abiertos se cuenta ahora por cuenta.
+- **Frontend:** `TiendaCheckout.tsx` ya exige sesión para comprar, así que no hace falta tocarlo. Si se reactiva la compra de invitado, debe ocultar el cupón y la transferencia sin sesión.
+- **Pruebas** (`test/store.test.ts`): invitado con cupón → 401, invitado por transferencia → 401, límite de transferencias por cuenta. Resultado: 49/49 junto con `security.test.ts` y `payment-gate.test.ts`.
+
+## 29. Cobertura del CMS: páginas, plantillas y establecimientos (revisión 2026-10-12)
+
+### 29.1 Cómo se edita hoy cada página pública
+Inventario de las 197 rutas públicas (turismo, institucionales, planificación y tienda), agrupadas por componente. Hay tres formas en que una página obtiene su contenido:
+1. **Colección del backend con formulario en el panel: 63 páginas.** Destinos, provincias, municipios, playas, ríos, montañas, áreas protegidas, aguas termales, aves, alojamientos, Airbnb, restaurantes, bares, spas, eventos, tours, experiencias, historia, artículos, establecimientos, ofertas, aeropuertos, peajes, guías, audioguías, café y souvenirs. **Bien.**
+2. **Archivo de `src/data` reemplazado por un «documento» del backend: 24 páginas.** Ejemplos: loterías, sorteos, itinerarios, LIDOM/estadios, puertos y marinas, transporte, cómo llegar, aerolíneas, carbono, moneda, salud 24 h y marketplace.
+   - Se pueden editar, pero sólo como **JSON crudo** en «Documentos de contenido».
+   - No tienen formulario por campos.
+3. **Texto fijo dentro del componente: 110 páginas.** No se pueden editar desde el panel.
+   - Unas 45 son herramientas o datos en vivo y no necesitan CMS: calculadoras, comparadores, mapa, planificadores, traductor, encuestas, sitemap, estado, tasas, clima, webcams, sargazo, tienda (sus productos ya se administran).
+   - **Unas 65 son páginas editoriales sin sección en el CMS:**
+     - Cultura y patrimonio: cultura, museos, carnaval, tabaco, ron y tabaco, larimar, Hermanas Mirabal, ritmos, cine, diccionario, hecho en RD, bebidas, turismo religioso.
+     - Naturaleza y actividades: ecoturismo, Pico Duarte, biodiversidad, astroturismo, ballenas, buceo, golf, deporte, wellness, casinos, sensorial, volunturismo, comunitario.
+     - Guías por perfil: LGBTQ, viajera sola, vegana, halal/kosher, mascotas, senior, familia.
+     - Información práctica: transporte urbano, metro, teleférico, monorriel, alquiler de vehículos, seguridad vial, requisitos, guía práctica, embajadas, seguro, aduanas, leyes, conectividad, eSIM, etiqueta, español, accesibilidad, escuela del viajero.
+     - Institucionales: sobre nosotros, ayuda, términos, sostenible, partners, estadísticas, sello de calidad, galería.
+     - Fichas: `/cueva/:slug`, `/clinica/:slug`, `/chef/:slug`.
+4. **Desconexiones detectadas:**
+   - `AdminStaticPagesManager` guarda los documentos `page-sobre-nosotros`, `page-contacto`, `page-terminos`, `page-privacidad` y `page-accesibilidad`, pero **ninguna página pública los lee**.
+   - Colecciones que existen en el backend, pero cuya página usa datos locales o ninguno:
+     - `caves` (`/cueva/:slug`), `theme-parks` (`/parques-tematicos`), `monuments` (`/museos`), `golf-courses` (`/golf`) y `artisan-workshops` (`/talleres-artesanales`);
+     - `clinics` (`/clinica/:slug`), `emergency-contacts` (`/emergencias`) y `parks` (`/parque-nacional/:slug`, que usa `parquesNacionalesData`).
+
+### 29.2 Plan para que todo tenga sección en el CMS (frontend, otro agente)
+1. **Páginas editoriales (punto 3):** un documento `page-<ruta>` por página, con este modelo: hero (título, subtítulo, imagen), bloques (título, texto, imagen, lista, tarjetas, preguntas frecuentes) y SEO.
+   - Reutilizar `AdminStaticPagesManager`, ampliándolo a cualquier ruta, en lugar de crear otra pantalla.
+   - Un hook `usePageContent(key, fallback)` lee el documento y, si no existe, usa el texto actual del componente como respaldo. Así ninguna página queda vacía.
+   - Orden: primero las institucionales (que ya tienen editor), luego cultura, guías por perfil e información práctica.
+2. **Documentos JSON (punto 2):** añadir un formulario por campos en «Documentos de contenido», generado de la forma del primer elemento de cada documento, para no editar JSON a mano.
+3. **Colecciones desconectadas (punto 4):** que cada página lea su colección con el patrón de las demás, y que `AdminStaticPagesManager` y las páginas institucionales compartan la misma clave.
+
+### 29.3 Establecimientos: crear uno nuevo por tipo con todo el contenido de su plantilla
+**Diagnóstico.** El formulario del panel pedía campos que la base no tenía, así que crear spas o clínicas fallaba. Además, varias plantillas mostraban secciones inventadas:
+- **Spas:** el formulario pide 22 campos y la tabla tenía 9.
+- **Clínicas:** 24 contra 13.
+- **Centros comerciales:** sin formulario.
+- **Bares:** la plantilla usa `cover_price`, `instagram` y `features`, que no existían.
+- **Hoteles:** `AlojamientoDetalle` genera habitaciones, políticas, piscinas, restaurantes, bares, spa y preguntas frecuentes con `hotelDetailData` (datos de ejemplo), no con la base.
+
+**Hecho (backend y configuración del panel):**
+- Migración `0090_establishment_template_fields.sql`: añade a cada tabla los campos de su plantilla.
+  - spas: tipo, galería, servicios, tratamientos, amenidades, horario, precio, coordenadas, valoración y destacado;
+  - clínicas: tipo, descripción, imagen, urgencias, horario, servicios, certificaciones, seguros, idiomas, 24 h y coordenadas;
+  - centros comerciales: tipo, descripción, horario, pisos, tiendas, marcas, servicios, destacados, cine, food court, supermercado y estacionamiento;
+  - bares: cover, Instagram y características;
+  - hoteles: check-in, check-out, políticas, piscinas, restaurantes, bares, entretenimiento nocturno, spa y preguntas frecuentes.
+- `AdminEntityConfigs.ts`, `useAdminEntities.tsx` y `AdminEstablecimientosManager.tsx`:
+  - los campos nuevos están en el formulario de cada tipo;
+  - hay un tipo nuevo, «Centros Comerciales».
+
+**Pendiente (frontend, otro agente):**
+- Las plantillas deben leer estos campos y dejar de usar los datos de ejemplo:
+  - `AlojamientoDetalle`: quitar los `generate*` de `hotelDetailData` y usar `policies`, `pools`, `dining`, `bars_lounges`, `nightlife`, `spa_info`, `faqs` y `room_types`;
+  - `SpaDetalle`: hoy lee del cliente simulado;
+  - `ClinicaDetalle` y `CentroComercialDetalle`: hoy usan `shopping-malls.ts`;
+  - `BarDetalle`: `features`, `cover_price` e `instagram`.
+- En el formulario, los campos JSON de hoteles (`policies`, `pools`, `dining`, `faqs`…) hoy son áreas de texto. Conviene un editor de listas de objetos (añadir, quitar y ordenar filas con sus campos), igual para `room_types`.
+
+### 29.4 Permiso acotado y rol `partner`: cuándo se usa cada uno
+- **Rol `partner` (28.1):** el propietario crea **sus** establecimientos. Es lo normal para un negocio nuevo que se registra.
+- **Permiso acotado** (`catalog.manage` con `record_ids`): sirve para dar a alguien acceso a una ficha **que ya existe y no creó él**, por ejemplo un hotel cargado por el personal que su dueño reclama.
+  - Lo concede un administrador desde «Accesos», para registros concretos.
+  - El panel no tiene que pedir nada especial: el backend ya lo reconoce. Basta con que la lista de establecimientos se muestre también a quien tenga ese permiso, no sólo a quien tenga el rol.
+
+## 30. Textos e imágenes editables en todas las páginas, y siete páginas conectadas a su colección (2026-10-12)
+
+### 30.1 Textos e imágenes de cada página (sustituye al plan 29.2, punto 1)
+- **Mecanismo:** `src/lib/pageContent.ts` (`usePageContent("<página>")` → `pc.t(clave, textoOriginal)` y `pc.img(clave, imagenOriginal)`).
+  - Cada página guarda sus cambios en el documento `page-<página>`, con la forma `{ texts, images }`.
+  - Lo que no se ha editado se ve como viene en el código.
+- **Conversión automática:** `scripts/page-content-codemod.cjs` convirtió 193 páginas públicas: 4337 textos y 66 imágenes.
+  - Es idempotente. Una página nueva se convierte con `npm run page-content`.
+- **Registro:** `scripts/page-content-registry.cjs` genera `src/generated/pageContentRegistry.json`; también corre en `prebuild`.
+- **Panel:** «Textos e imágenes de páginas» (`AdminPageContentEditor.tsx`).
+  - Lista las páginas con buscador.
+  - Cada texto tiene su campo, con el original como guía.
+  - Las imágenes se suben o se pegan por dirección.
+  - Sustituye a `AdminStaticPagesManager`, eliminado: guardaba en `page-*` con otra forma y ninguna página lo leía.
+- **Qué NO cubre todavía (pendiente):**
+  - Textos dentro de arreglos definidos fuera del componente (listas de tarjetas, preguntas frecuentes, pasos). Hay que moverlos dentro del componente o a un documento de contenido.
+  - Componentes compartidos: Header, Footer, portada (`HeroSlideshow`) y secciones del inicio.
+  - Imágenes puestas como fondo CSS o que vienen de esos arreglos.
+  - Las claves dependen del orden (`p.3`). Si se reordena una página a mano, hay que regenerar el registro y revisar sus textos editados.
+
+### 30.2 Siete páginas conectadas a su colección
+- `src/lib/collectionPage.ts` (`useCollectionList`, `useCollectionRecord`):
+  - Con backend, se muestra lo publicado; lo que se despublica en el panel desaparece.
+  - Sin backend, se muestra lo local.
+  - Lo local completa los campos que la tabla no guarda (iconos, colores, fotos empaquetadas).
+- **Conectadas:**
+  - `/parques-tematicos` → theme-parks;
+  - `/museos` → monuments (los museos llevan el tipo «Museo · categoría»);
+  - `/golf` → golf-courses;
+  - `/talleres-artesanales` → artisan-workshops;
+  - `/cueva/:slug` → caves;
+  - `/clinica/:slug` → clinics (antes mostraba siempre la misma clínica);
+  - `/emergencias` → emergency-contacts (sólo los números de emergencia).
+- **Carga inicial:** migración `0091_seed_page_collections.sql` (41 filas, sin pisar slugs existentes), generada por `scripts/gen-page-collections-seed.cjs`.
+- **Pendiente:** en `/emergencias`, embajadas y hospitales siguen en el código. Los hospitales pueden salir de `clinics`; las embajadas no tienen colección.
+
+### 30.3 Establecimientos en el panel
+- El panel leía `user.roles`, que no existe; los roles están en `user.app_metadata.roles`. Por eso no reconocía al administrador como personal.
+- Corregido en `AdminPanel.tsx` y `AdminEstablecimientosManager.tsx`:
+  - admin y editor ven todos los establecimientos, con todos los controles, y pueden crear;
+  - el partner sólo ve los suyos (28.1).
+
+### 30.4 Ampliación del mismo día: campo vacío = oculto, listas de datos, componentes compartidos e imágenes
+- **Campo vacío (decisión del dueño):** un texto vaciado en el panel ya no vuelve al original: se oculta del portal.
+  - En JSX se usa `pc.tx`, que además oculta el elemento que lo contenía si queda vacío (botón, párrafo, título).
+  - Las propiedades (alt, title, placeholder) siguen con `pc.t`.
+  - Una imagen se oculta con «Ocultar» (`img[src=""]` no se muestra, regla en `index.css`).
+  - «Restaurar» borra la clave y vuelve al original.
+- **Listas de datos** (`scripts/page-content-pass2.cjs`): los arreglos y objetos definidos fuera del componente (tarjetas, pasos, equipo, preguntas frecuentes) pasan por `pc.data("<nombre>", …)`.
+  - Sus textos e imágenes se editan con claves estables `<lista>.<índice>.<campo>`.
+  - No se editan los campos que la página usa para filtrar o enlazar (id, slug, tipo, categoría, href, clases CSS…); la lista está en `NOT_TEXT` de `pageContent.ts`.
+  - Las listas `*Local` no se incluyen: son respaldo de una colección y se editan en esa colección.
+- **Componentes compartidos:** Header, Footer, HeroSlideshow (portada), InterestSection, GamificationTeaser y `components/home/*`. En el editor salen con la etiqueta «Compartido».
+- **Imágenes importadas fuera de un `src`** (fondos CSS, listas internas): `pc.img("asset.<nombre>", …)`.
+- **Totales:** 202 páginas y componentes, 10 104 textos y 532 imágenes.
+- **Editor:**
+  - campos precargados con el original;
+  - elementos de lista agrupados en tarjetas con su imagen («Equipo › Roberto Guzmán»);
+  - vista previa real de las imágenes empaquetadas;
+  - filtro «sólo lo cambiado»;
+  - enlace a la página pública;
+  - búsqueda que prioriza nombre y ruta;
+  - en móvil, la lista deja paso al editor.
+- **Pruebas en navegador:** 159 rutas sin errores; editar un título y vaciar un botón desde la interfaz se refleja en `/sobre-nosotros`.
+- **Sigue sin cubrir:**
+  - textos que ya pasan por el sistema de traducciones (`t("nav.…")`, se editan en «Traducciones»);
+  - textos dentro de componentes internos de un mismo archivo o de otros componentes compartidos no convertidos (mega menús, tarjetas genéricas);
+  - listas declaradas dentro del componente;
+  - un texto vaciado dentro de una lista deja su elemento vacío, pero no oculta la tarjeta.
+
+### 30.5 Mejoras del editor aplicadas y revisión visual (2026-10-12, tarde)
+- **Editor «Textos e imágenes de páginas»:**
+  - Vista previa en vivo: la página real en un marco (escritorio o móvil) muestra el borrador sin guardar. Usa `postMessage` del mismo origen (`PREVIEW_MESSAGE` en `pageContent.ts`).
+  - Los campos se agrupan por sección de la página (el último h1/h2 que los precede).
+  - Las etiquetas ya no llevan numeración («Párrafo», «Botón», «Imagen · texto alternativo»).
+  - En las fichas con `:slug`, la dirección de la vista previa se escribe a mano.
+- **Panel:**
+  - Cada sección tiene su propio subtítulo (`TAB_DESCRIPTIONS` en `AdminPanel.tsx`).
+  - El aviso de privacidad ya no se muestra en `/admin` ni en `/operadores/panel`.
+- **Ficha de bar/discoteca:** se caía con las fichas del backend (`features` sin valor). Corregido en `BarDetalle.tsx`.
+- **Revisión visual** (inicio y fichas de hotel, restaurante, bar, discoteca, spa, agencia, Airbnb, café). Propuestas pendientes de decisión del dueño:
+  1. Quitar el aviso flotante «Carlos M. reservó…»: es una reserva inventada.
+  2. Ocultar los espacios publicitarios vacíos («980×120 PUBLICIDAD DISPONIBLE», «SLIDER 350×460 · ESPACIO DISPONIBLE») y los patrocinadores de ejemplo con marcas reales.
+  3. Hotel: subir la tarjeta de precio y reserva junto a la descripción; bajar el bloque «Pasaporte y comunidad».
+  4. Hotel: leer piscinas, restaurantes, pasadía y política de niños de los campos de la migración 0090; hoy son los mismos datos inventados en todos los hoteles.
+  5. Unificar las fichas: hay tres cabeceras distintas (pantalla completa en hotel, restaurante y bar; banda con columna lateral en spa; tarjeta superpuesta en agencia) y tres barras de acciones distintas.
+  6. Reducir la cabecera de las fichas (hoy 720 px): lo esencial queda fuera de la primera pantalla.
+  7. Móvil: se apilan cuatro elementos flotantes (aviso de reserva, chat, botón «subir» y barra de precio) y tapan el botón de reservar.
+  8. Portada: 12 000 px de alto en escritorio y 25 000 en móvil; fusionar o recortar secciones.
+  9. Textos de demostración visibles al público («Ficha Demostrativa B2B», «Ejemplo Punta Cana» en el clima), ubicación duplicada en hotel, una imagen rota en la galería del spa y emojis como iconos en la ficha de bar.
+
+### 30.6 Decisiones del dueño tras la revisión visual (2026-10-12)
+- **Aviso flotante «Fulano reservó…»: apagado.** `SOCIAL_PROOF_ENABLED = false` en `App.tsx`. El componente `SocialProofNotifications` se conserva para encenderlo cuando lea reservas reales del backend.
+- **Espacios publicitarios vacíos: se mantienen, con mejor diseño y ubicación.**
+  - Nuevo `promo/AdSlotTag.tsx`: una marca discreta «Espacio disponible · 300×380» en una esquina. Sustituye los rótulos rojos parpadeantes centrados sobre la imagen en `BannerAd`, `DestinationsSection`, `InterestSection`, `HeroSlideshow` y `PreFooterPresidenteBanner`.
+  - El marcador 980×120 sin anunciante ya no lleva la etiqueta «Patrocinado».
+  - En la portada, el primer anuncio pasa de estar entre dos bloques promocionales (pasaporte y sorteo) a después de «Eventos».
+- **Ficha de hotel: sus datos están en el backend y se leen de ahí.**
+  - Migración `0092_seed_hotel_details.sql`, generada con `scripts/gen-hotel-details-seed.cjs` usando los generadores del sitio. Guarda en cada hotel `room_types`, `pools`, `dining`, `bars_lounges`, `nightlife`, `spa_info`, `policies`, `faqs`, `check_in_time` y `check_out_time`.
+  - En `extras` guarda `day_pass`, `kids_policy`, `nightlife_summary` y `experience_tags`.
+  - Sólo rellena lo vacío. Son los textos de muestra de antes, ahora como punto de partida editable por hotel.
+  - `AlojamientoDetalle.tsx`, `HotelHighlights.tsx` y `HotelFaqSection.tsx`: con ficha del backend se muestra lo que hay en la base; una sección vacía no se muestra. Los generadores quedan sólo para cuando no hay backend.
+  - **Pendiente:** las claves de `extras` (pasadía, niños, etiquetas) se editan hoy en «Datasets y catálogo → ficha completa»; conviene darles campos propios en el formulario de hoteles.
+- **Portada:** su longitud se deja para un rediseño posterior.
+
+### 30.7 Listas del hotel en el panel, fichas unificadas y gamificación (2026-10-12, noche)
+- **Editor por filas** (`admin/StructuredFieldEditor.tsx`, tipos de campo `objectlist` y `object` en `EntityFormDialog`).
+  - Habitaciones, piscinas, restaurantes, bares, vida nocturna y preguntas frecuentes se editan como tarjetas: añadir, quitar y reordenar.
+  - Políticas y spa se editan campo a campo.
+  - De `extras` se editan pasadía, política de niños, resumen de vida nocturna y etiquetas, sin tocar el resto.
+  - Las horas de entrada y salida pasan a ser texto.
+- **Fichas (hotel, restaurante, bar):**
+  - `detail/PlaceActions.tsx`: una barra de acciones común con una acción principal, las demás con el mismo peso, compartir y el enlace discreto «¿Eres el propietario?».
+  - WhatsApp sólo aparece con el teléfono del propio negocio; antes hotel y bar usaban un número genérico.
+  - Cabecera de 54 vh con máximo 520 px (antes 80 vh).
+  - Hotel: la reserva queda a 611 px del inicio (antes ~1350). El resumen de instalaciones va dentro de la columna principal y «Pasaporte y comunidad» al final.
+  - Bar: sin emojis como iconos. Hotel: ubicación sin duplicar.
+  - **Pendiente:** spa, agencia y Airbnb siguen con su propia cabecera. En móvil la tarjeta de reserva del hotel queda al final de la página; hay barra de precio fija.
+- **Gamificación (revisión de funcionamiento, 12 rutas, con y sin sesión):**
+  - `/pasaporte-digital` se caía con sesión: el ranking del backend trae `{ xp, user.name }` y la vista esperaba `{ total_xp, display_name }`. Corregido en `PassportOverviewTab.tsx`.
+  - Cada página hacía dos peticiones 404 (`page-header`, `page-footer`) por los textos editables. Ahora `pageContent.ts` pide una vez el índice de documentos y sólo descarga los que existen.
+  - Centro de gamificación:
+    - se quitan el gremio fijo «Guardianes del Caribe» y el «150+ activos» inventado;
+    - las misiones comunitarias quedan apagadas (`COMMUNITY_MISSIONS_ENABLED`) porque su progreso era de muestra y no hay endpoint;
+    - de cuatro anuncios queda uno al final (el encabezado ya no va debajo de un anuncio);
+    - las pestañas ya no se cortan por la izquierda.
+  - **Propuestas pendientes de decisión:**
+    - reducir las 12 rutas (7 ya redirigen) a 4 destinos claros: pasaporte, retos, recompensas y reglas;
+    - dejar dos acciones en el encabezado en vez de cuatro;
+    - estado propio para el visitante sin sesión («crea tu pasaporte») en lugar de la tarjeta con ceros;
+    - endpoint de misiones comunitarias para reactivar el bloque.
+
+### 30.8 Más mejoras (2026-10-13)
+- **Centro de gamificación:**
+  - El encabezado queda con dos acciones («Abrir mi pasaporte» o «Crear mi pasaporte gratis», y «Ver retos y misiones»). «14 formas de ganar puntos» y «Diploma» pasan a enlaces discretos.
+  - Sin sesión, la tarjeta de pasaporte con ceros y la tira de cifras se sustituyen por una invitación («Tu pasaporte te está esperando») con enlaces a `/registro` y `/login`.
+  - Las misiones comunitarias siguen apagadas. Falta decidir cómo se reparten los premios que anuncian antes de construir el endpoint.
+  - Las 12 rutas no se tocan: 7 ya redirigen a las canónicas.
+- **Spa y Airbnb:** usan `PlaceActions` (reservar, cómo llegar, WhatsApp con el teléfono propio, compartir, reclamar ficha). En el spa, una foto de galería que no carga se retira.
+- **Hotel en móvil:** la tarjeta de reserva va antes del contenido largo (a 597 px del inicio; antes a 14 208).
+- **Pendiente:** `AgenciaDetalle` es una ficha de demostración única para cualquier dirección; hay que conectarla a la colección `travel-agencies`, hoy vacía.
+
+### 30.9 Página de detalle de destino según el mockup (2026-10-13)
+- `StaticDestinationPage.tsx` reescrita con la estructura del mockup, en este orden:
+  - encabezado a dos columnas (categorías, nombre, provincia y región, «Ver hoteles» y «Planificar con IA», foto);
+  - navegación fija por secciones;
+  - resumen con «Datos clave» y anuncio lateral;
+  - mosaico «Lo más destacado»;
+  - zonas y distancias;
+  - eventos;
+  - franja de información práctica;
+  - carrusel de hoteles;
+  - «Dónde comer» y «Vida nocturna»;
+  - sabores;
+  - llamada a planificar;
+  - artículos;
+  - destinos cercanos y preguntas frecuentes;
+  - pasaporte.
+- Se mantienen los colores y componentes del sitio (tema oscuro), no la paleta clara del mockup.
+- Todo sale de los datos del destino; una sección sin datos no se muestra. Las preguntas frecuentes se componen de `safetyInfo`, `bestTimeToVisit`, `howToGetThere`, `idealDays` y `bestFor`.
+- Los textos fijos son editables desde «Textos e imágenes de páginas» (componente `static-destination-page`).
+- **Fuera de la página nueva** (los componentes siguen en el repositorio): `DestinationHeroSlider`, `DestinationEssentials`, `DestinationMustSee`, `DestinationArrivalGuide`, `DestinationConsultantBanner` y `DestinationEditorialSections`.
+- **Pendiente:**
+  - el mapa interactivo de zonas del mockup (hoy van tarjetas de zonas y distancias);
+  - anuncio lateral 300×600 (hoy 300×250);
+  - aplicar la misma estructura a `DestinoDetalleDynamic` en `DestinoDetalle.tsx`, que atiende los destinos que sólo están en la base.

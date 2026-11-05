@@ -15,6 +15,8 @@ import { PanoramaAd } from "@/components/promo";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 import laRomanaImg from "@/assets/la-romana.jpg";
 import puertoPlataImg from "@/assets/puerto-plata.jpg";
+import { usePageContent } from "@/lib/pageContent";
+import { useCollectionList, str, numOr, list, extras } from "@/lib/collectionPage";
 
 interface GolfCourse {
   id: string;
@@ -31,7 +33,7 @@ interface GolfCourse {
   image: string;
 }
 
-const golfCourses: GolfCourse[] = [
+const golfCoursesLocal: GolfCourse[] = [
   {
     id: "1",
     slug: "teeth-of-the-dog",
@@ -103,6 +105,19 @@ const golfCourses: GolfCourse[] = [
 ];
 
 export default function GolfRD() {
+  const pc = usePageContent("golf-rd");
+  // Los campos salen de la colección «Campos de golf» del panel; el arreglo local es el respaldo (y aporta la foto empaquetada).
+  const golfSlug = (c: GolfCourse) => c.slug || c.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  const golfCourses = useCollectionList<GolfCourse>("golf-courses", golfCoursesLocal, golfSlug, (r, b) => {
+    const x = extras(r);
+    const region = str(x.region, b?.region ?? "este");
+    return {
+      id: str(r.id, b?.id), slug: str(r.slug, b?.slug), name: str(r.name, b?.name), location: str(x.location, b?.location),
+      region: (["este", "norte", "santo-domingo"].includes(region) ? region : "este") as GolfCourse["region"],
+      holes: numOr(r.holes, b?.holes ?? 18), par: numOr(r.par, b?.par ?? 72), designer: str(r.designer, b?.designer), greenFee: str(x.greenFee, b?.greenFee),
+      description: str(r.description, b?.description), highlights: list(x.highlights, b?.highlights), image: str(r.image_url, b?.image ?? golfCoursesLocal[0]!.image),
+    };
+  });
   const [selectedRegion, setSelectedRegion] = useState<string>("all");
 
   const filteredCourses = golfCourses.filter(c => selectedRegion === "all" || c.region === selectedRegion);
@@ -110,8 +125,8 @@ export default function GolfRD() {
   return (
     <PageTransition>
       <SEOHead
-        title="Golf en República Dominicana - Campos PGA y Clase Mundial"
-        description="Explora los campos de golf premium de la República Dominicana: Teeth of the Dog, Corales PGA Tour, Punta Espada y Playa Grande con tarifas y diseñadores legendarios."
+        title={pc.t("SEOHead.title.1", "Golf en República Dominicana - Campos PGA y Clase Mundial")}
+        description={pc.t("SEOHead.description.1", "Explora los campos de golf premium de la República Dominicana: Teeth of the Dog, Corales PGA Tour, Punta Espada y Playa Grande con tarifas y diseñadores legendarios.")}
         keywords="golf republica dominicana, pga tour corales, teeth of the dog casa de campo, punta espada golf cap cana, campos de golf caribe"
       />
       <div className="min-h-screen bg-background flex flex-col">
@@ -122,8 +137,8 @@ export default function GolfRD() {
           <section className="relative min-h-[40vh] flex items-center overflow-hidden border-b border-border/60">
             <div className="absolute inset-0">
               <img 
-                src={laRomanaImg} 
-                alt="Campos de Golf República Dominicana" 
+                src={pc.img("img.src.1", laRomanaImg)} 
+                alt={pc.t("img.alt.1", "Campos de Golf República Dominicana")} 
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-background via-background/85 to-transparent" />
@@ -131,14 +146,10 @@ export default function GolfRD() {
             <div className="container mx-auto px-4 relative z-10 py-14">
               <div className="max-w-2xl">
                 <Badge className="mb-3 bg-emerald-600 text-white font-semibold">
-                  <Trophy className="h-3.5 w-3.5 mr-1.5" /> Capital del Golf del Caribe
-                </Badge>
-                <h1 className="font-display text-3xl md:text-5xl font-black text-foreground tracking-tight mb-3">
-                  Golf de Clase Mundial en <span className="text-primary">República Dominicana</span>
+                  <Trophy className="h-3.5 w-3.5 mr-1.5" />{" "}{pc.tx("Badge.1", "Capital del Golf del Caribe")}</Badge>
+                <h1 className="font-display text-3xl md:text-5xl font-black text-foreground tracking-tight mb-3">{pc.tx("h1.1", "Golf de Clase Mundial en")}{" "}<span className="text-primary">{pc.tx("span.1", "República Dominicana")}</span>
                 </h1>
-                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                  Fairways esculpidos sobre acantilados del Caribe y el Atlántico diseñados por leyendas como Pete Dye, Jack Nicklaus y Tom Fazio. Sede oficial del PGA TOUR y destino predilecto de golfistas globales.
-                </p>
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{pc.tx("p.1", "Fairways esculpidos sobre acantilados del Caribe y el Atlántico diseñados por leyendas como Pete Dye, Jack Nicklaus y Tom Fazio. Sede oficial del PGA TOUR y destino predilecto de golfistas globales.")}</p>
               </div>
             </div>
           </section>
@@ -152,8 +163,8 @@ export default function GolfRD() {
                     <Award className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Reconocimiento</p>
-                    <p className="text-sm md:text-base font-bold text-foreground">#1 Destino Golf Caribe</p>
+                    <p className="text-xs text-muted-foreground">{pc.tx("p.2", "Reconocimiento")}</p>
+                    <p className="text-sm md:text-base font-bold text-foreground">{pc.tx("p.3", "#1 Destino Golf Caribe")}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-2">
@@ -161,8 +172,8 @@ export default function GolfRD() {
                     <Flag className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Campos Premium</p>
-                    <p className="text-sm md:text-base font-bold text-foreground">26+ Campos de Autor</p>
+                    <p className="text-xs text-muted-foreground">{pc.tx("p.4", "Campos Premium")}</p>
+                    <p className="text-sm md:text-base font-bold text-foreground">{pc.tx("p.5", "26+ Campos de Autor")}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-2">
@@ -170,8 +181,8 @@ export default function GolfRD() {
                     <Trophy className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Torneo Oficial</p>
-                    <p className="text-sm md:text-base font-bold text-foreground">Corales PGA TOUR</p>
+                    <p className="text-xs text-muted-foreground">{pc.tx("p.6", "Torneo Oficial")}</p>
+                    <p className="text-sm md:text-base font-bold text-foreground">{pc.tx("p.7", "Corales PGA TOUR")}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-2">
@@ -179,8 +190,8 @@ export default function GolfRD() {
                     <Sun className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Temporada de Juego</p>
-                    <p className="text-sm md:text-base font-bold text-foreground">365 Días al Año</p>
+                    <p className="text-xs text-muted-foreground">{pc.tx("p.8", "Temporada de Juego")}</p>
+                    <p className="text-sm md:text-base font-bold text-foreground">{pc.tx("p.9", "365 Días al Año")}</p>
                   </div>
                 </div>
               </div>
@@ -194,10 +205,8 @@ export default function GolfRD() {
               {/* Region Filter */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="font-display text-2xl font-bold text-foreground">
-                    Campos de Campeonato Destacados
-                  </h2>
-                  <p className="text-xs text-muted-foreground">Selecciona por zona geográfica para consultar tee times y especificaciones</p>
+                  <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.1", "Campos de Campeonato Destacados")}</h2>
+                  <p className="text-xs text-muted-foreground">{pc.tx("p.10", "Selecciona por zona geográfica para consultar tee times y especificaciones")}</p>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -233,13 +242,13 @@ export default function GolfRD() {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                         
-                        <Badge className="absolute top-3 left-3 bg-emerald-600 text-white text-[10px] font-bold">
-                          {course.holes} Hoyos • Par {course.par}
+                        <Badge className="absolute top-3 left-3 bg-emerald-600 text-white text-3xs font-bold">
+                          {course.holes}{" "}{pc.tx("Badge.2", "Hoyos • Par")}{" "}{course.par}
                         </Badge>
 
                         <div className="absolute bottom-3 left-3 right-3 text-white flex items-end justify-between">
                           <div>
-                            <span className="text-[10px] uppercase font-bold text-white/80 block">Green Fee Estimado</span>
+                            <span className="text-3xs uppercase font-bold text-white/80 block">{pc.tx("span.2", "Green Fee Estimado")}</span>
                             <span className="text-sm font-black font-mono">{course.greenFee}</span>
                           </div>
                           <span className="text-xs text-white/90 font-semibold bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-md">
@@ -263,7 +272,7 @@ export default function GolfRD() {
                         
                         <div className="flex flex-wrap gap-1.5 pt-1">
                           {course.highlights.map((h, idx) => (
-                            <Badge key={idx} variant="secondary" className="text-[10px] bg-muted/60 text-muted-foreground border-none">
+                            <Badge key={idx} variant="secondary" className="text-3xs bg-muted/60 text-muted-foreground border-none">
                               {h}
                             </Badge>
                           ))}
@@ -278,8 +287,7 @@ export default function GolfRD() {
                         className="w-full rounded-xl gap-1.5 text-xs font-semibold"
                         onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent(course.name + " reserva tee times")}`, "_blank")}
                       >
-                        <ExternalLink className="h-3.5 w-3.5" /> Consultar Horarios & Tee Times
-                      </Button>
+                        <ExternalLink className="h-3.5 w-3.5" />{" "}{pc.tx("Button.1", "Consultar Horarios & Tee Times")}</Button>
                     </div>
                   </Card>
                 ))}
@@ -299,3 +307,6 @@ export default function GolfRD() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = {};

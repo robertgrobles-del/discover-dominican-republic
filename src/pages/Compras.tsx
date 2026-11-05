@@ -8,6 +8,8 @@ import { SorteoLectorBanner } from "@/components/forms/SorteoLectorBanner";
 
 
 import { Footer } from "@/components/Footer";
+import { ShoppingByHub } from "@/components/shopping/ShoppingByHub";
+import { ShoppingHighlightSection } from "@/components/ShoppingHighlightSection";
 import { PageTransition } from "@/components/PageTransition";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -18,6 +20,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 
 import merengue from "@/assets/merengue-dance.jpg";
 import gastronomy from "@/assets/gastronomy.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const categoriasCompras = [
   { id: "lujo", titulo: "Centros de Lujo", imagen: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&h=300&fit=crop" },
@@ -75,6 +78,13 @@ const dutyFreeInfo = [
 ];
 
 export default function Compras() {
+  const pc = usePageContent("compras");
+  const categoriasCompras = pc.data("categoriasCompras", __pcData.categoriasCompras);
+  const productosInsignia = pc.data("productosInsignia", __pcData.productosInsignia);
+  const consejosViajero = pc.data("consejosViajero", __pcData.consejosViajero);
+  const boutiquesLujo = pc.data("boutiquesLujo", __pcData.boutiquesLujo);
+  const dutyFreeInfo = pc.data("dutyFreeInfo", __pcData.dutyFreeInfo);
+  const marcasInternacionales = pc.data("marcasInternacionales", __pcData.marcasInternacionales);
   const [activeTab, setActiveTab] = useState("malls");
 
   return (
@@ -86,31 +96,24 @@ export default function Compras() {
         <section className="relative h-[60vh] min-h-[500px] flex items-end">
           <div className="absolute inset-0">
             <img
-              src={merengue}
-              alt="Compras en República Dominicana"
+              src={pc.img("img.src.1", merengue)}
+              alt={pc.t("img.alt.1", "Compras en República Dominicana")}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
           </div>
           
           <div className="relative z-10 container mx-auto px-4 pb-16">
-            <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
-              GUÍA OFICIAL DE COMPRAS
-            </Badge>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4 max-w-2xl">
-              Lleva contigo un pedazo de{" "}
-              <span className="text-gradient">Paraíso</span>
+            <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">{pc.tx("Badge.1", "GUÍA OFICIAL DE COMPRAS")}</Badge>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4 max-w-2xl">{pc.tx("h1.1", "Lleva contigo un pedazo de")}{" "}
+              <span className="text-gradient">{pc.tx("span.1", "Paraíso")}</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-xl mb-8">
-              Desde boutiques de lujo en Santo Domingo hasta los tesoros artesanales escondidos en los mercados locales. Descubre el Larimar, el Ámbar y los sabores auténticos del Caribe.
-            </p>
+            <p className="text-lg text-muted-foreground max-w-xl mb-8">{pc.tx("p.1", "Desde boutiques de lujo en Santo Domingo hasta los tesoros artesanales escondidos en los mercados locales. Descubre el Larimar, el Ámbar y los sabores auténticos del Caribe.")}</p>
             <div className="flex gap-4 flex-wrap">
               <Button size="lg" className="gap-2">
-                <Store className="h-4 w-4" /> Explorar Mercados
-              </Button>
+                <Store className="h-4 w-4" />{" "}{pc.tx("Button.1", "Explorar Mercados")}</Button>
               <Button size="lg" variant="outline" className="gap-2">
-                <MapPin className="h-4 w-4" /> Ver Mapa de Tiendas
-              </Button>
+                <MapPin className="h-4 w-4" />{" "}{pc.tx("Button.2", "Ver Mapa de Tiendas")}</Button>
             </div>
           </div>
         </section>
@@ -124,30 +127,22 @@ export default function Compras() {
                   value="malls" 
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
                 >
-                  <ShoppingCart className="h-4 w-4" />
-                  Malls
-                </TabsTrigger>
+                  <ShoppingCart className="h-4 w-4" />{pc.tx("TabsTrigger.1", "Malls")}</TabsTrigger>
                 <TabsTrigger 
                   value="general" 
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
                 >
-                  <ShoppingBag className="h-4 w-4" />
-                  Guía General
-                </TabsTrigger>
+                  <ShoppingBag className="h-4 w-4" />{pc.tx("TabsTrigger.2", "Guía General")}</TabsTrigger>
                 <TabsTrigger 
                   value="tesoros" 
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
                 >
-                  <Gem className="h-4 w-4" />
-                  Tesoros
-                </TabsTrigger>
+                  <Gem className="h-4 w-4" />{pc.tx("TabsTrigger.3", "Tesoros")}</TabsTrigger>
                 <TabsTrigger 
                   value="lujo" 
                   className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-3"
                 >
-                  <Crown className="h-4 w-4" />
-                  Lujo
-                </TabsTrigger>
+                  <Crown className="h-4 w-4" />{pc.tx("TabsTrigger.4", "Lujo")}</TabsTrigger>
               </TabsList>
 
               {/* ========== TAB: CENTROS COMERCIALES ========== */}
@@ -183,12 +178,8 @@ export default function Compras() {
 
                 {/* Productos Insignia */}
                 <div className="text-center mb-12">
-                  <h2 className="font-display text-3xl font-bold text-foreground mb-4">
-                    Productos Insignia
-                  </h2>
-                  <p className="text-muted-foreground max-w-2xl mx-auto">
-                    La República Dominicana es famosa mundialmente por estos tesoros únicos. No regreses a casa sin ellos.
-                  </p>
+                  <h2 className="font-display text-3xl font-bold text-foreground mb-4">{pc.tx("h2.1", "Productos Insignia")}</h2>
+                  <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.2", "La República Dominicana es famosa mundialmente por estos tesoros únicos. No regreses a casa sin ellos.")}</p>
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-8 mb-16">
@@ -208,9 +199,7 @@ export default function Compras() {
                           className="w-full h-full object-cover"
                         />
                         {producto.exclusivo && (
-                          <Badge className="absolute top-4 left-4 bg-primary text-primary-foreground">
-                            Exclusivo RD
-                          </Badge>
+                          <Badge className="absolute top-4 left-4 bg-primary text-primary-foreground">{pc.tx("Badge.2", "Exclusivo RD")}</Badge>
                         )}
                       </div>
                       <div className="p-6">
@@ -241,9 +230,7 @@ export default function Compras() {
                   <div>
                     <div className="flex items-center gap-2 mb-6">
                       <HelpCircle className="h-5 w-5 text-primary" />
-                      <h2 className="font-display text-2xl font-bold text-foreground">
-                        Consejos para el Viajero
-                      </h2>
+                      <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.2", "Consejos para el Viajero")}</h2>
                     </div>
                     <Accordion type="single" collapsible className="space-y-2">
                       {consejosViajero.map((consejo, index) => (
@@ -263,25 +250,20 @@ export default function Compras() {
                     <div className="aspect-[4/3] relative">
                       <img
                         src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&h=600&fit=crop"
-                        alt="Mapa de compras"
+                        alt={pc.t("img.alt.2", "Mapa de compras")}
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
                       <div className="absolute bottom-0 left-0 right-0 p-6">
-                        <h3 className="font-display text-xl font-bold text-foreground mb-2">
-                          Mapa Interactivo de Tiendas
-                        </h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Localiza los centros comerciales certificados y mercados de artesanía cerca de tu hotel.
-                        </p>
+                        <h3 className="font-display text-xl font-bold text-foreground mb-2">{pc.tx("h3.1", "Mapa Interactivo de Tiendas")}</h3>
+                        <p className="text-sm text-muted-foreground mb-4">{pc.tx("p.3", "Localiza los centros comerciales certificados y mercados de artesanía cerca de tu hotel.")}</p>
                         <div className="flex gap-2 flex-wrap mb-4">
-                          <Badge className="bg-primary/20 text-primary">Santo Domingo</Badge>
-                          <Badge className="bg-primary/20 text-primary">Punta Cana</Badge>
-                          <Badge className="bg-primary/20 text-primary">Puerto Plata</Badge>
+                          <Badge className="bg-primary/20 text-primary">{pc.tx("Badge.3", "Santo Domingo")}</Badge>
+                          <Badge className="bg-primary/20 text-primary">{pc.tx("Badge.4", "Punta Cana")}</Badge>
+                          <Badge className="bg-primary/20 text-primary">{pc.tx("Badge.5", "Puerto Plata")}</Badge>
                         </div>
                         <Button className="w-full gap-2">
-                          <MapPin className="h-4 w-4" /> Encontrar tiendas cercanas
-                        </Button>
+                          <MapPin className="h-4 w-4" />{" "}{pc.tx("Button.3", "Encontrar tiendas cercanas")}</Button>
                       </div>
                     </div>
                   </div>
@@ -296,30 +278,22 @@ export default function Compras() {
               {/* ========== TAB: SHOPPING DE LUJO ========== */}
               <TabsContent value="lujo">
                 <div className="mb-8">
-                  <Badge className="mb-4 bg-amber-500/20 text-amber-400 border-amber-500/30">
-                    EXCLUSIVE GUIDE
-                  </Badge>
-                  <h2 className="font-display text-3xl font-bold text-foreground mb-2">
-                    Dominican Republic: The Caribbean's Fashion Capital
-                  </h2>
-                  <p className="text-muted-foreground max-w-2xl">
-                    Descubre la fusión del lujo tropical y la alta costura internacional. Desde las boutiques de diseñador en Santo Domingo hasta la exclusividad de Punta Cana.
-                  </p>
+                  <Badge className="mb-4 bg-amber-500/20 text-amber-400 border-amber-500/30">{pc.tx("Badge.6", "EXCLUSIVE GUIDE")}</Badge>
+                  <h2 className="font-display text-3xl font-bold text-foreground mb-2">{pc.tx("h2.3", "Dominican Republic: The Caribbean's Fashion Capital")}</h2>
+                  <p className="text-muted-foreground max-w-2xl">{pc.tx("p.4", "Descubre la fusión del lujo tropical y la alta costura internacional. Desde las boutiques de diseñador en Santo Domingo hasta la exclusividad de Punta Cana.")}</p>
                 </div>
 
                 <div className="bg-card rounded-2xl border border-border p-8 mb-12">
                   <div className="flex items-center gap-2 mb-6">
-                    <Badge className="bg-primary text-primary-foreground">SANTO DOMINGO</Badge>
-                    <h3 className="font-display text-xl font-bold text-foreground">The BlueMall Experience</h3>
+                    <Badge className="bg-primary text-primary-foreground">{pc.tx("Badge.7", "SANTO DOMINGO")}</Badge>
+                    <h3 className="font-display text-xl font-bold text-foreground">{pc.tx("h3.2", "The BlueMall Experience")}</h3>
                   </div>
-                  <p className="text-muted-foreground mb-8">
-                    El destino definitivo para la alta costura en el Caribe. Encuentra las colecciones más recientes de casas de moda europeas.
-                  </p>
+                  <p className="text-muted-foreground mb-8">{pc.tx("p.5", "El destino definitivo para la alta costura en el Caribe. Encuentra las colecciones más recientes de casas de moda europeas.")}</p>
 
                   <div className="grid md:grid-cols-3 gap-6 mb-6">
                     {boutiquesLujo.map((boutique) => (
                       <div key={boutique.nombre} className="bg-secondary/30 rounded-xl p-6">
-                        {boutique.flagship && <Badge className="mb-2 bg-amber-500 text-white">FLAGSHIP</Badge>}
+                        {boutique.flagship && <Badge className="mb-2 bg-amber-500 text-white">{pc.tx("Badge.8", "FLAGSHIP")}</Badge>}
                         <h4 className="font-display font-bold text-foreground mb-1">{boutique.nombre}</h4>
                         <p className="text-sm text-muted-foreground">{boutique.categoria}</p>
                       </div>
@@ -327,37 +301,29 @@ export default function Compras() {
                   </div>
 
                   <Button variant="outline" className="gap-2">
-                    <MapPin className="h-4 w-4" /> Ver mapa del mall
-                  </Button>
+                    <MapPin className="h-4 w-4" />{" "}{pc.tx("Button.4", "Ver mapa del mall")}</Button>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-8 mb-12">
                   <div className="bg-card rounded-2xl border border-border p-8">
-                    <h3 className="font-display text-xl font-bold text-foreground mb-4">Punta Cana Village</h3>
-                    <p className="text-muted-foreground mb-6">
-                      Un ambiente relajado y sofisticado donde el diseño local se encuentra con marcas internacionales de resort.
-                    </p>
+                    <h3 className="font-display text-xl font-bold text-foreground mb-4">{pc.tx("h3.3", "Punta Cana Village")}</h3>
+                    <p className="text-muted-foreground mb-6">{pc.tx("p.6", "Un ambiente relajado y sofisticado donde el diseño local se encuentra con marcas internacionales de resort.")}</p>
                     <div className="space-y-4 mb-6">
                       <div>
-                        <h4 className="font-semibold text-foreground mb-1">Diseñadores Locales</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Descubre piezas únicas de Oscar de la Renta y Jenny Polanco, inspiradas en la luz del Caribe.
-                        </p>
+                        <h4 className="font-semibold text-foreground mb-1">{pc.tx("h4.1", "Diseñadores Locales")}</h4>
+                        <p className="text-sm text-muted-foreground">{pc.tx("p.7", "Descubre piezas únicas de Oscar de la Renta y Jenny Polanco, inspiradas en la luz del Caribe.")}</p>
                       </div>
                       <div>
-                        <h4 className="font-semibold text-foreground mb-1">Concept Stores</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Boutiques que mezclan arte, decoración y moda en un ambiente de galería.
-                        </p>
+                        <h4 className="font-semibold text-foreground mb-1">{pc.tx("h4.2", "Concept Stores")}</h4>
+                        <p className="text-sm text-muted-foreground">{pc.tx("p.8", "Boutiques que mezclan arte, decoración y moda en un ambiente de galería.")}</p>
                       </div>
                     </div>
-                    <Button variant="outline" className="gap-2">
-                      Ver Directorio <ChevronRight className="h-4 w-4" />
+                    <Button variant="outline" className="gap-2">{pc.tx("Button.5", "Ver Directorio")}{" "}<ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
 
                   <div className="bg-card rounded-2xl border border-border p-8">
-                    <h3 className="font-display text-xl font-bold text-foreground mb-6">Duty Free Privileges</h3>
+                    <h3 className="font-display text-xl font-bold text-foreground mb-6">{pc.tx("h3.4", "Duty Free Privileges")}</h3>
                     <div className="space-y-4">
                       {dutyFreeInfo.map((info, i) => (
                         <div key={i} className="flex gap-4">
@@ -374,18 +340,21 @@ export default function Compras() {
 
                 <div className="bg-gradient-to-r from-amber-500/10 to-primary/10 rounded-2xl p-8 text-center">
                   <User className="h-12 w-12 text-primary mx-auto mb-4" />
-                  <h3 className="font-display text-xl font-bold text-foreground mb-2">Experiencia VIP Concierge</h3>
-                  <p className="text-muted-foreground max-w-lg mx-auto mb-6">
-                    Reserva un Personal Shopper para una experiencia de compra privada y transporte de lujo entre boutiques.
-                  </p>
-                  <Button size="lg" className="gap-2">
-                    Reservar Ahora <ChevronRight className="h-4 w-4" />
+                  <h3 className="font-display text-xl font-bold text-foreground mb-2">{pc.tx("h3.5", "Experiencia VIP Concierge")}</h3>
+                  <p className="text-muted-foreground max-w-lg mx-auto mb-6">{pc.tx("p.9", "Reserva un Personal Shopper para una experiencia de compra privada y transporte de lujo entre boutiques.")}</p>
+                  <Button size="lg" className="gap-2">{pc.tx("Button.6", "Reservar Ahora")}{" "}<ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
               </TabsContent>
             </Tabs>
           </div>
         </section>
+
+        {/* Dónde comprar en cada polo turístico */}
+        <ShoppingByHub />
+
+        {/* Centros comerciales destacados (antes en la portada) */}
+        <ShoppingHighlightSection />
 
         {/* Marcas Internacionales */}
         <section className="py-12 border-t border-border">
@@ -400,9 +369,7 @@ export default function Compras() {
               />
             </div>
 
-            <p className="text-center text-xs text-muted-foreground uppercase tracking-wider mb-6">
-              Encuentra tus marcas favoritas
-            </p>
+            <p className="text-center text-xs text-muted-foreground uppercase tracking-wider mb-6">{pc.tx("p.10", "Encuentra tus marcas favoritas")}</p>
             <div className="flex items-center justify-center gap-8 md:gap-16 flex-wrap">
               {marcasInternacionales.map((marca) => (
                 <span key={marca} className="text-xl md:text-2xl font-display font-light text-muted-foreground">
@@ -418,3 +385,6 @@ export default function Compras() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { categoriasCompras, productosInsignia, consejosViajero, boutiquesLujo, dutyFreeInfo, marcasInternacionales };

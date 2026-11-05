@@ -28,6 +28,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
+import { fetchApi } from "@/lib/fastifyClient";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 import samanaImg from "@/assets/samana.jpg";
@@ -35,6 +37,7 @@ import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import puertoPlataImg from "@/assets/puerto-plata.jpg";
 import heroBeachImg from "@/assets/hero-beach.jpg";
 import laRomanaImg from "@/assets/la-romana.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const filters = ["Todo", "Ofertas Flash", "Aventura", "Cultura", "Eco-Glamping"];
 
@@ -66,6 +69,9 @@ interface Offer {
 }
 
 export default function Ofertas() {
+  const pc = usePageContent("ofertas");
+  const simLocations = pc.data("simLocations", __pcData.simLocations);
+  const filters = pc.data("filters", __pcData.filters);
   const [activeFilter, setActiveFilter] = useState("Todo");
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
@@ -88,7 +94,7 @@ export default function Ofertas() {
       price: 15000,
       discount: "40% OFF",
       tags: ["Hotel 5*", "Todo Incluido"],
-      image: samanaImg,
+      image: pc.img("asset.samanaImg", samanaImg),
       latitude: 19.1673,
       longitude: -69.2974,
       radius: 1000,
@@ -104,7 +110,7 @@ export default function Ofertas() {
       price: 2250,
       discount: "50% OFF",
       tags: ["Transporte", "Almuerzo"],
-      image: heroBeachImg,
+      image: pc.img("asset.heroBeachImg", heroBeachImg),
       latitude: 19.0423,
       longitude: -69.5752,
       radius: 1200,
@@ -120,7 +126,7 @@ export default function Ofertas() {
       price: 6500,
       discount: "20% OFF",
       tags: ["Cultura", "Cena Incluida"],
-      image: santoDomingoImg,
+      image: pc.img("asset.santoDomingoImg", santoDomingoImg),
       latitude: 18.4735,
       longitude: -69.8858,
       radius: 500,
@@ -136,7 +142,7 @@ export default function Ofertas() {
       price: 9900,
       discount: "15% OFF",
       tags: ["Camping", "Trekking"],
-      image: laRomanaImg,
+      image: pc.img("asset.laRomanaImg", laRomanaImg),
       latitude: 17.8465,
       longitude: -71.6508,
       radius: 1500,
@@ -144,9 +150,42 @@ export default function Ofertas() {
     }
   ]);
 
-  // Load from Supabase
+  // Load from Fastify (under session) or Supabase/fallback
   useEffect(() => {
     async function fetchOffers() {
+      if (HAS_BACKEND_SESSION) {
+        try {
+          const res = await fetchApi<{ data: any[] }>("/offers?per_page=20");
+          if (res?.data && res.data.length > 0) {
+            const mapped = res.data.map((item: any) => ({
+              id: item.id,
+              title: item.title,
+              location: item.latitude && item.longitude 
+                ? `${item.title.includes("Colonial") ? "Santo Domingo" : item.title.includes("Levantado") ? "Samaná" : "RD"} (Lat: ${Number(item.latitude).toFixed(3)}, Lng: ${Number(item.longitude).toFixed(3)})` 
+                : "República Dominicana",
+              duration: item.is_flash ? "¡Oferta Relámpago!" : "Por tiempo limitado",
+              rating: item.is_flash ? 4.9 : 4.7,
+              originalPrice: Number(item.original_price || 0),
+              price: Number(item.price || 0),
+              discount: item.discount_percentage ? `${item.discount_percentage}% OFF` : "Oferta Especial",
+              tags: [item.discount_code ? `Código: ${item.discount_code}` : "Descuento"],
+              image: item.image_url || pc.img("asset.samanaImg", samanaImg),
+              latitude: item.latitude ? Number(item.latitude) : undefined,
+              longitude: item.longitude ? Number(item.longitude) : undefined,
+              radius: Number(item.radius_meters || 500),
+              isFlash: Boolean(item.is_flash),
+              discountCode: item.discount_code || undefined
+            }));
+            setDbOffers(mapped);
+            return;
+          }
+        } catch (err) {
+          console.error("Error al cargar ofertas desde Fastify:", err);
+          toast.error("No se pudieron cargar las ofertas desde el servidor.");
+          return;
+        }
+      }
+
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- el cliente simulado no tipa esta tabla
         const { data, error } = await (supabase.from("offers" as any).select("*") as any);
@@ -164,7 +203,7 @@ export default function Ofertas() {
             price: Number(item.price),
             discount: item.discount_percentage ? `${item.discount_percentage}% OFF` : "Oferta Especial",
             tags: [item.discount_code ? `Código: ${item.discount_code}` : "Descuento"],
-            image: item.image_url || samanaImg,
+            image: item.image_url || pc.img("asset.samanaImg", samanaImg),
             latitude: Number(item.latitude),
             longitude: Number(item.longitude),
             radius: Number(item.radius_meters || 500),
@@ -327,8 +366,8 @@ export default function Ofertas() {
   return (
     <PageTransition>
       <SEOHead
-        title="Ofertas Relámpago y Cupones Geolocalizados - Descubre RD"
-        description="Encuentra cupones y ofertas flash geolocalizadas cuando estés cerca de atracciones y hoteles en República Dominicana."
+        title={pc.t("SEOHead.title.1", "Ofertas Relámpago y Cupones Geolocalizados - Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Encuentra cupones y ofertas flash geolocalizadas cuando estés cerca de atracciones y hoteles en República Dominicana.")}
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -337,8 +376,8 @@ export default function Ofertas() {
         {/* Hero with Countdown */}
         <section className="relative h-[50vh] min-h-[420px] flex items-center justify-center overflow-hidden">
           <img
-            src={puntaCanaImg}
-            alt="Vista de Punta Cana, República Dominicana"
+            src={pc.img("img.src.1", puntaCanaImg)}
+            alt={pc.t("img.alt.1", "Vista de Punta Cana, República Dominicana")}
             className="absolute inset-0 w-full h-full object-cover object-center"
             aria-hidden="true"
           />
@@ -350,15 +389,9 @@ export default function Ofertas() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <Badge className="bg-primary/20 text-primary mb-4 border border-primary/20 animate-pulse">
-                ⚡ OFERTA RELÁMPAGO DEL DÍA
-              </Badge>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-                Escapada de Lujo a Punta Cana
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
-                5 días y 4 noches en Secrets Cap Cana con todo incluido. ¡Usa geolocalización para desbloquear más descuentos!
-              </p>
+              <Badge className="bg-primary/20 text-primary mb-4 border border-primary/20 animate-pulse">{pc.tx("Badge.1", "⚡ OFERTA RELÁMPAGO DEL DÍA")}</Badge>
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Escapada de Lujo a Punta Cana")}</h1>
+              <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">{pc.tx("p.1", "5 días y 4 noches en Secrets Cap Cana con todo incluido. ¡Usa geolocalización para desbloquear más descuentos!")}</p>
 
               {/* Countdown */}
               <div className="flex justify-center gap-4 mb-8">
@@ -393,20 +426,17 @@ export default function Ofertas() {
               <div className="space-y-2 text-center md:text-left">
                 <div className="flex items-center justify-center md:justify-start gap-2">
                   <Navigation className="h-5 w-5 text-primary animate-bounce" />
-                  <h3 className="font-bold text-lg">Consola de Ofertas Proximidad GPS</h3>
+                  <h2 className="h3 font-bold text-lg">{pc.tx("h3.1", "Consola de Ofertas Proximidad GPS")}</h2>
                 </div>
-                <p className="text-sm text-muted-foreground max-w-md">
-                  Simula tu ubicación en los puntos turísticos de RD para activar cupones flash y notificaciones push exclusivas.
-                </p>
+                <p className="text-sm text-muted-foreground max-w-md">{pc.tx("p.2", "Simula tu ubicación en los puntos turísticos de RD para activar cupones flash y notificaciones push exclusivas.")}</p>
                 <div className="flex flex-wrap gap-2 pt-1 justify-center md:justify-start">
                   <Badge variant="outline" className="gap-1">
-                    <Compass className="h-3.5 w-3.5" /> Lat: {userLocation?.lat.toFixed(4) || "Ninguna"}
+                    <Compass className="h-3.5 w-3.5" />{" "}{pc.tx("Badge.2", "Lat:")}{" "}{userLocation?.lat.toFixed(4) || "Ninguna"}
                   </Badge>
                   <Badge variant="outline" className="gap-1">
-                    <Compass className="h-3.5 w-3.5" /> Lng: {userLocation?.lng.toFixed(4) || "Ninguna"}
+                    <Compass className="h-3.5 w-3.5" />{" "}{pc.tx("Badge.3", "Lng:")}{" "}{userLocation?.lng.toFixed(4) || "Ninguna"}
                   </Badge>
-                  <Badge className="bg-primary/20 text-primary border-primary/20">
-                    Socio: {simulatedName}
+                  <Badge className="bg-primary/20 text-primary border-primary/20">{pc.tx("Badge.4", "Socio:")}{" "}{simulatedName}
                   </Badge>
                 </div>
               </div>
@@ -414,16 +444,14 @@ export default function Ofertas() {
               <div className="flex flex-col gap-3 w-full md:w-auto">
                 <div className="flex flex-wrap justify-center md:justify-end gap-2">
                   <Button size="sm" variant="outline" onClick={handleUseRealLocation} className="gap-1">
-                    <Navigation className="h-4 w-4" /> GPS Real
-                  </Button>
+                    <Navigation className="h-4 w-4" />{" "}{pc.tx("Button.1", "GPS Real")}</Button>
                   <Button 
                     size="sm" 
                     variant={notificationsEnabled ? "secondary" : "default"} 
                     onClick={requestNotificationPermission} 
                     className="gap-1"
                   >
-                    <Bell className="h-4 w-4" /> Activar Push
-                  </Button>
+                    <Bell className="h-4 w-4" />{" "}{pc.tx("Button.2", "Activar Push")}</Button>
                 </div>
                 <div className="flex flex-wrap justify-center md:justify-end gap-1.5">
                   {simLocations.map((loc) => (
@@ -445,13 +473,11 @@ export default function Ofertas() {
         </section>
 
         {/* Filters */}
-        <section className="py-8 border-b border-border sticky top-16 bg-background/95 backdrop-blur-sm z-40">
+        <section className="py-8 border-b border-border bg-background/95 backdrop-blur-sm">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-4 overflow-x-auto no-scrollbar">
               <span className="text-sm text-muted-foreground whitespace-nowrap flex items-center gap-2">
-                <Check className="h-4 w-4" />
-                FILTRAR POR:
-              </span>
+                <Check className="h-4 w-4" />{pc.tx("span.1", "FILTRAR POR:")}</span>
               {filters.map((filter) => (
                 <Button
                   key={filter}
@@ -472,12 +498,8 @@ export default function Ofertas() {
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h2 className="font-display text-2xl font-bold text-foreground">
-                  Ofertas Disponibles en el Destino
-                </h2>
-                <p className="text-muted-foreground">
-                  Desbloquea cupones exclusivos acercándote a los destinos correspondientes.
-                </p>
+                <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.1", "Ofertas Disponibles en el Destino")}</h2>
+                <p className="text-muted-foreground">{pc.tx("p.3", "Desbloquea cupones exclusivos acercándote a los destinos correspondientes.")}</p>
               </div>
             </div>
 
@@ -511,8 +533,7 @@ export default function Ofertas() {
                         <span className="text-xs font-medium">{offer.rating}</span>
                       </div>
                       {isClose && (
-                        <Badge className="absolute bottom-3 left-3 bg-emerald-600 text-white gap-1 font-semibold border-none animate-pulse">
-                          📍 CERCANO ({distance}m)
+                        <Badge className="absolute bottom-3 left-3 bg-emerald-600 text-white gap-1 font-semibold border-none animate-pulse">{pc.tx("Badge.5", "📍 CERCANO (")}{distance}m)
                         </Badge>
                       )}
                     </div>
@@ -539,7 +560,7 @@ export default function Ofertas() {
 
                       {isClose && offer.discountCode && (
                         <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2.5 text-center">
-                          <p className="text-xs text-emerald-600 font-semibold mb-1">¡CUPÓN DESBLOQUEADO!</p>
+                          <p className="text-xs text-emerald-600 font-semibold mb-1">{pc.tx("p.4", "¡CUPÓN DESBLOQUEADO!")}</p>
                           <code className="text-sm font-mono font-bold bg-white dark:bg-zinc-800 text-emerald-600 px-3 py-1 rounded border border-emerald-500/30 select-all block max-w-[180px] mx-auto">
                             {offer.discountCode}
                           </code>
@@ -548,11 +569,9 @@ export default function Ofertas() {
 
                       <div className="flex items-center justify-between pt-2">
                         <div>
-                          <span className="text-sm text-muted-foreground line-through">
-                            RD$ {offer.originalPrice.toLocaleString()}
+                          <span className="text-sm text-muted-foreground line-through">{pc.tx("span.2", "RD$")}{" "}{offer.originalPrice.toLocaleString()}
                           </span>
-                          <p className="text-xl font-bold text-primary">
-                            RD$ {offer.price.toLocaleString()}
+                          <p className="text-xl font-bold text-primary">{pc.tx("p.5", "RD$")}{" "}{offer.price.toLocaleString()}
                           </p>
                         </div>
                         <Button 
@@ -560,8 +579,7 @@ export default function Ofertas() {
                           disabled={offer.isFlash && !isClose}
                           variant={isClose ? "default" : "secondary"}
                           onClick={() => {
-                            toast.success(`Redirigiendo a reserva para ${offer.title}`);
-                            navigate(`/reserva-directa`);
+                            navigate(`/reserva-directa?offerId=${encodeURIComponent(offer.id)}`);
                           }}
                         >
                           {offer.isFlash && !isClose ? "Bloqueado (Acércate)" : "Ver Oferta"}
@@ -576,7 +594,7 @@ export default function Ofertas() {
             {filteredOffers.length === 0 && (
               <div className="text-center py-12">
                 <NavigationOff className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No hay ofertas que coincidan con esta categoría.</p>
+                <p className="text-muted-foreground">{pc.tx("p.6", "No hay ofertas que coincidan con esta categoría.")}</p>
               </div>
             )}
           </div>
@@ -591,30 +609,36 @@ export default function Ofertas() {
                 <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mx-auto">
                   <Mail className="h-6 w-6 text-white" />
                 </div>
-                <h2 className="font-display text-2xl md:text-3xl font-bold text-white">
-                  ¿Buscas ofertas ocultas?
-                </h2>
-                <p className="text-white/80 max-w-md mx-auto">
-                  Únete a nuestro club exclusivo y recibe alertas GPS directamente en tu móvil con descuentos sorpresa de hasta 70% en hoteles.
-                </p>
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-white">{pc.tx("h2.2", "¿Buscas ofertas ocultas?")}</h2>
+                <p className="text-white/80 max-w-md mx-auto">{pc.tx("p.7", "Únete a nuestro club exclusivo y recibe alertas GPS directamente en tu móvil con descuentos sorpresa de hasta 70% en hoteles.")}</p>
                 <div className="max-w-md mx-auto flex flex-col sm:flex-row gap-3">
                   <Input
                     type="email"
-                    placeholder="Tu correo electrónico"
+                    placeholder={pc.t("Input.placeholder.1", "Tu correo electrónico")}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/50"
                   />
-                  <Button variant="secondary" onClick={() => {
-                    if (email) {
-                      toast.success("¡Te has registrado para recibir ofertas exclusivas!");
-                      setEmail("");
+                  <Button variant="secondary" onClick={async () => {
+                    const cleanEmail = email.trim().toLowerCase();
+                    if (!cleanEmail || !cleanEmail.includes("@")) {
+                      toast.error("Por favor ingresa un correo electrónico válido.");
+                      return;
                     }
-                  }}>Suscribirme</Button>
+                    try {
+                      await fetchApi("/forms/newsletter/subscribe", {
+                        method: "POST",
+                        body: JSON.stringify({ email: cleanEmail, lists: ["ofertas-flash"] }),
+                      });
+                      toast.success("¡Te has suscrito para recibir ofertas exclusivas! Revisa tu correo.");
+                      setEmail("");
+                    } catch (err: any) {
+                      const msg = err?.message || "No se pudo completar la suscripción. Intenta nuevamente.";
+                      toast.error(msg);
+                    }
+                  }}>{pc.tx("Button.3", "Suscribirme")}</Button>
                 </div>
-                <p className="text-[10px] text-white/60">
-                  Respetamos tu privacidad. Puedes darte de baja en cualquier momento.
-                </p>
+                <p className="text-3xs text-white/60">{pc.tx("p.8", "Respetamos tu privacidad. Puedes darte de baja en cualquier momento.")}</p>
               </div>
             </div>
           </div>
@@ -625,4 +649,6 @@ export default function Ofertas() {
     </PageTransition>
   );
 }
- 
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { simLocations, filters };

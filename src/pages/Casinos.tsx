@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
+import { usePageContent } from "@/lib/pageContent";
 
 const casinos = [
   {
@@ -71,11 +72,13 @@ const casinos = [
 ];
 
 export default function Casinos() {
+  const pc = usePageContent("casinos");
+  const casinos = pc.data("casinos", __pcData.casinos);
   return (
     <PageTransition>
       <SEOHead
-        title="Casinos en República Dominicana - Entretenimiento y Juegos"
-        description="Descubre los mejores casinos de RD. Hard Rock Casino, entretenimiento nocturno y más."
+        title={pc.t("SEOHead.title.1", "Casinos en República Dominicana - Entretenimiento y Juegos")}
+        description={pc.t("SEOHead.description.1", "Descubre los mejores casinos de RD. Hard Rock Casino, entretenimiento nocturno y más.")}
         keywords="casinos, República Dominicana, Hard Rock Casino, juegos, entretenimiento, Punta Cana"
       />
       <div className="min-h-screen bg-background">
@@ -95,22 +98,15 @@ export default function Casinos() {
               animate={{ opacity: 1, y: 0 }}
               className="max-w-3xl"
             >
-              <Badge className="mb-4 badge-gold">Entretenimiento</Badge>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-                Casinos en <span className="text-gradient-gold">República Dominicana</span>
+              <Badge className="mb-4 badge-gold">{pc.tx("Badge.1", "Entretenimiento")}</Badge>
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Casinos en")}{" "}<span className="text-gradient-gold">{pc.tx("span.1", "República Dominicana")}</span>
               </h1>
-              <p className="text-xl text-muted-foreground mb-8">
-                Vive la emoción del juego en los mejores casinos del Caribe con entretenimiento de clase mundial.
-              </p>
+              <p className="text-xl text-muted-foreground mb-8">{pc.tx("p.1", "Vive la emoción del juego en los mejores casinos del Caribe con entretenimiento de clase mundial.")}</p>
               <div className="flex gap-4">
                 <Button size="lg" className="gap-2">
-                  <Sparkles className="h-4 w-4" />
-                  Explorar Casinos
-                </Button>
+                  <Sparkles className="h-4 w-4" />{pc.tx("Button.1", "Explorar Casinos")}</Button>
                 <Button size="lg" variant="outline" className="gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  Promociones
-                </Button>
+                  <DollarSign className="h-4 w-4" />{pc.tx("Button.2", "Promociones")}</Button>
               </div>
             </motion.div>
           </div>
@@ -134,7 +130,7 @@ export default function Casinos() {
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent to-card md:hidden" />
                 </div>
                 <div className="p-8 flex flex-col justify-center">
-                  <Badge className="w-fit mb-4 badge-gold">Casino Destacado</Badge>
+                  <Badge className="w-fit mb-4 badge-gold">{pc.tx("Badge.2", "Casino Destacado")}</Badge>
                   <h2 className="font-display text-3xl font-bold mb-3">{casinos[0].name}</h2>
                   <div className="flex items-center gap-4 text-muted-foreground mb-4">
                     <div className="flex items-center gap-1">
@@ -156,9 +152,7 @@ export default function Casinos() {
                       <Badge key={i} variant="secondary">{feature}</Badge>
                     ))}
                   </div>
-                  <Button className="w-fit gap-2">
-                    Visitar Casino
-                    <ChevronRight className="h-4 w-4" />
+                  <Button className="w-fit gap-2">{pc.tx("Button.3", "Visitar Casino")}<ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -166,7 +160,7 @@ export default function Casinos() {
           )}
 
           {/* All Casinos */}
-          <h2 className="font-display text-2xl font-bold mb-6">Todos los Casinos</h2>
+          <h2 className="font-display text-2xl font-bold mb-6">{pc.tx("h2.1", "Todos los Casinos")}</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {casinos.map((casino, index) => (
               <motion.div
@@ -215,9 +209,7 @@ export default function Casinos() {
                     ))}
                   </div>
 
-                  <Button className="w-full gap-2">
-                    Ver Detalles
-                    <ChevronRight className="h-4 w-4" />
+                  <Button className="w-full gap-2">{pc.tx("Button.4", "Ver Detalles")}<ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
               </motion.div>
@@ -226,10 +218,7 @@ export default function Casinos() {
 
           {/* Responsible Gaming Notice */}
           <div className="mt-12 bg-muted/50 rounded-xl p-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              🎲 Juega responsablemente. Los juegos de azar pueden ser adictivos. 
-              Si sientes que tienes un problema, busca ayuda profesional.
-            </p>
+            <p className="text-sm text-muted-foreground">{pc.tx("p.2", "🎲 Juega responsablemente. Los juegos de azar pueden ser adictivos. Si sientes que tienes un problema, busca ayuda profesional.")}</p>
           </div>
         </main>
 
@@ -238,3 +227,6 @@ export default function Casinos() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { casinos };

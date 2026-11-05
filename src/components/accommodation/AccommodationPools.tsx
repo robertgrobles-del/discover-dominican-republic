@@ -32,7 +32,7 @@ export function AccommodationPools({ pools }: AccommodationPoolsProps) {
           <div key={p.name} className="bg-card rounded-3xl p-5 border border-border hover:border-primary/40 transition-all flex flex-col justify-between shadow-xs">
             <div>
               <div className="flex items-center justify-between gap-2 mb-2">
-                <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px]">
+                <Badge className="bg-primary/10 text-primary border-primary/20 text-3xs">
                   Piscina #{idx + 1} • {p.type}
                 </Badge>
                 <span className="text-xs font-bold text-primary">{p.vibe}</span>

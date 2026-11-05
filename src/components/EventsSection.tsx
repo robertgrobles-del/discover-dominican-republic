@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { LazyImage } from "@/components/ui/lazy-image";
+import { HOME_SECTION_FRAME, SectionWithSideAds } from "@/components/SectionWithSideAds";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/hooks/useI18n";
 import carnivalImg from "@/assets/carnival.jpg";
@@ -94,7 +95,7 @@ export function EventsSection() {
 
   return (
     <section className="relative bg-card py-16">
-      <div className="container mx-auto px-4 lg:px-8">
+      <div className={HOME_SECTION_FRAME}>
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-12">
           <motion.div
@@ -129,6 +130,7 @@ export function EventsSection() {
         </div>
 
         {/* Event Cards */}
+        <SectionWithSideAds section="home-eventos">
         <div className="grid md:grid-cols-3 gap-6">
           {events.slice(0, 3).map((event, index) => (
             <motion.div
@@ -192,6 +194,7 @@ export function EventsSection() {
             </motion.div>
           ))}
         </div>
+        </SectionWithSideAds>
       </div>
     </section>
   );

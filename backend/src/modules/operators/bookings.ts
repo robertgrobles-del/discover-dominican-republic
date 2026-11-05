@@ -503,6 +503,11 @@ export class BookingService {
     const cur = await this.getForOrg(orgId, id);
     if (status === "cancelled") return this.cancel(id, { by: "operator", orgId, reason: opts.reason });
     if (!BookingService.TRANSITIONS[cur.status]!.includes(status)) throw new AppError("BUSINESS_RULE", `No se puede pasar de "${cur.status}" a "${status}"`, { code: "INVALID_TRANSITION" });
+    // Completar habilita la liquidación: no antes de la fecha del servicio (o del check-out, en estancias), hora de RD.
+    if (status === "completed") {
+      const due = (await this.db.query<{ due: boolean }>("SELECT coalesce(check_out, date) <= (now() AT TIME ZONE 'America/Santo_Domingo')::date AS due FROM bookings WHERE id = $1", [id])).rows[0]?.due;
+      if (!due) throw new AppError("BUSINESS_RULE", "La reserva sólo se puede completar a partir de la fecha del servicio", { code: "SERVICE_NOT_DUE" });
+    }
     await this.db.query("UPDATE bookings SET status = $2, review_pending = ($2 = 'completed') WHERE id = $1", [id, status]);
     return (await this.get(id))!;
   }
@@ -543,20 +548,33 @@ export class BookingService {
   async cancel(id: string, who: { by: "traveler" | "operator"; token?: string; userId?: string; orgId?: string; reason?: string; now?: Date }) {
     const b = who.by === "operator" ? await this.getForOrg(who.orgId!, id) : await this.getForTraveler(id, { token: who.token, userId: who.userId });
     if (!["pending", "confirmed"].includes(b.status)) throw new AppError("BUSINESS_RULE", `No se puede cancelar una reserva en estado "${b.status}"`, { code: "INVALID_STATE" });
-    const { percent, refund } = refundFor(b.cancellation.policy as CancellationPolicy, b.date, b.time, b.amount_paid, who.now ?? new Date(), who.by === "operator");
-    let providerRef: string | null = null;
-    if (refund > 0) {
-      const last = await this.db.query<{ provider_ref: string | null }>("SELECT provider_ref FROM booking_payments WHERE booking_id = $1 AND kind <> 'refund' AND status = 'succeeded' AND provider <> 'manual' ORDER BY created_at DESC LIMIT 1", [id]);
-      const manualOnly = !last.rows[0];
-      if (!manualOnly) {
-        let res;
-        try { res = await this.gateway.refund({ providerRef: last.rows[0]!.provider_ref, amount: refund, currency: b.currency, reference: b.reference, idempotencyKey: `${id}:refund:${toCents(refund)}` }); }
-        catch (err) { this.log.error({ err, id }, "Falló el reembolso"); throw new AppError("UPSTREAM_ERROR", "No se pudo procesar el reembolso; la reserva no se canceló. Intenta de nuevo."); }
-        if (!res.ok) throw new AppError("UPSTREAM_ERROR", "El proveedor rechazó el reembolso; la reserva no se canceló.", { reason: res.reason });
-        providerRef = res.providerRef;
-      }
-    }
+    let percent = 0;
+    let refund = 0;
     await this.tx(async (c) => {
+      // Fila bloqueada antes de reembolsar: dos cancelaciones simultáneas no pueden pasar ambas la revisión ni reembolsar dos veces.
+      const cur = (await c.query<{ status: string; original_date: string | null; amount_paid: string }>("SELECT status, original_date::text AS original_date, amount_paid FROM bookings WHERE id = $1 FOR UPDATE", [id])).rows[0];
+      if (!cur || !["pending", "confirmed"].includes(cur.status)) throw new AppError("BUSINESS_RULE", `No se puede cancelar una reserva en estado "${cur?.status ?? b.status}"`, { code: "INVALID_STATE" });
+      const now = who.now ?? new Date();
+      const policy = b.cancellation.policy as CancellationPolicy;
+      const paid = Number(cur.amount_paid);
+      ({ percent, refund } = refundFor(policy, b.date, b.time, paid, now, who.by === "operator"));
+      // Si el viajero movió la fecha, el reembolso no puede superar el que le correspondía con la fecha original (mover no reabre la ventana).
+      if (who.by === "traveler" && cur.original_date && cur.original_date !== b.date) {
+        const orig = refundFor(policy, cur.original_date, b.time, paid, now, false);
+        if (orig.refund < refund) ({ percent, refund } = orig);
+      }
+      let providerRef: string | null = null;
+      if (refund > 0) {
+        const last = await c.query<{ provider_ref: string | null }>("SELECT provider_ref FROM booking_payments WHERE booking_id = $1 AND kind <> 'refund' AND status = 'succeeded' AND provider <> 'manual' ORDER BY created_at DESC LIMIT 1", [id]);
+        const manualOnly = !last.rows[0];
+        if (!manualOnly) {
+          let res;
+          try { res = await this.gateway.refund({ providerRef: last.rows[0]!.provider_ref, amount: refund, currency: b.currency, reference: b.reference, idempotencyKey: `${id}:refund:${toCents(refund)}` }); }
+          catch (err) { this.log.error({ err, id }, "Falló el reembolso"); throw new AppError("UPSTREAM_ERROR", "No se pudo procesar el reembolso; la reserva no se canceló. Intenta de nuevo."); }
+          if (!res.ok) throw new AppError("UPSTREAM_ERROR", "El proveedor rechazó el reembolso; la reserva no se canceló.", { reason: res.reason });
+          providerRef = res.providerRef;
+        }
+      }
       if (refund > 0) await c.query("INSERT INTO booking_payments (booking_id, kind, amount, currency, provider, provider_ref) VALUES ($1, 'refund', $2, $3, $4, $5)", [id, refund, b.currency, providerRef ? this.gateway.name : "manual", providerRef]);
       await c.query(
         "UPDATE bookings SET status = 'cancelled', cancelled_at = now(), cancelled_by = $2, cancel_reason = $3, refund_amount = $4 WHERE id = $1 AND status IN ('pending', 'confirmed')",

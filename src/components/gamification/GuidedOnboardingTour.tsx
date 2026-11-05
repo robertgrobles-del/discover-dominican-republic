@@ -67,7 +67,7 @@ export const GuidedOnboardingTour: React.FC = () => {
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20 gap-1">
+            <Badge variant="outline" className="text-3xs bg-primary/10 text-primary border-primary/20 gap-1">
               <Sparkles className="w-3 h-3" /> Tour Guiado ({currentStep + 1}/{TOUR_STEPS.length})
             </Badge>
             <button

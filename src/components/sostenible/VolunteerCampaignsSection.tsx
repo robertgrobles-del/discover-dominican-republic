@@ -27,7 +27,7 @@ export function VolunteerCampaignsSection({
   return (
     <div id="voluntariado" className="pt-8 border-t border-border space-y-6">
       <div>
-        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] font-bold">
+        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-3xs font-bold">
           VOLUNTARIADO ACTIVO
         </Badge>
         <h2 className="text-2xl font-bold text-foreground mt-2">
@@ -51,14 +51,14 @@ export function VolunteerCampaignsSection({
                   <span className="text-xs text-emerald-500 font-bold flex items-center gap-1.5 font-mono">
                     <Calendar className="h-3.5 w-3.5" /> {camp.date}
                   </span>
-                  <Badge className="bg-emerald-600/10 text-emerald-500 border-emerald-500/20 text-[9px] font-bold uppercase font-mono">
+                  <Badge className="bg-emerald-600/10 text-emerald-500 border-emerald-500/20 text-3xs font-bold uppercase font-mono">
                     {camp.xp} XP
                   </Badge>
                 </div>
                 <h3 className="font-display text-base font-extrabold text-foreground mt-2">
                   {camp.title}
                 </h3>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
+                <p className="text-3xs text-muted-foreground mt-0.5">
                   {camp.location} • {camp.time}
                 </p>
               </div>
@@ -69,7 +69,7 @@ export function VolunteerCampaignsSection({
                 <span className="text-muted-foreground">Insignia otorgada:</span>
                 <Badge
                   variant="outline"
-                  className="text-[10px] font-bold text-primary flex gap-1 items-center"
+                  className="text-3xs font-bold text-primary flex gap-1 items-center"
                 >
                   <Trophy className="h-3 w-3" /> {camp.badge}
                 </Badge>

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SEOHead } from "@/components/SEOHead";
+import { usePageContent } from "@/lib/pageContent";
 
 const chef = {
   name: "Inés Páez Nin",
@@ -58,6 +59,9 @@ const galleryImages = [
 ];
 
 export default function ChefPerfil() {
+  const pc = usePageContent("chef-perfil");
+  const chef = pc.data("chef", __pcData.chef);
+  const recipes = pc.data("recipes", __pcData.recipes);
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
@@ -103,13 +107,9 @@ export default function ChefPerfil() {
             </p>
             <div className="flex flex-wrap gap-4">
               <Button className="gap-2 bg-red-600 hover:bg-red-700">
-                <Utensils className="h-4 w-4" />
-                Ver Recetas Firma
-              </Button>
+                <Utensils className="h-4 w-4" />{pc.tx("Button.1", "Ver Recetas Firma")}</Button>
               <Button variant="outline" className="gap-2">
-                <ExternalLink className="h-4 w-4" />
-                Reservar en Morisoñando
-              </Button>
+                <ExternalLink className="h-4 w-4" />{pc.tx("Button.2", "Reservar en Morisoñando")}</Button>
             </div>
           </motion.div>
         </div>
@@ -121,10 +121,8 @@ export default function ChefPerfil() {
           <div className="lg:col-span-2 space-y-16">
             {/* Biography */}
             <section>
-              <span className="text-red-500 text-sm font-medium uppercase tracking-wide">Biografía Profesional</span>
-              <h2 className="font-display text-3xl font-bold text-foreground mt-2 mb-6">
-                La Voz Gastronómica del Caribe
-              </h2>
+              <span className="text-red-500 text-sm font-medium uppercase tracking-wide">{pc.tx("span.1", "Biografía Profesional")}</span>
+              <h2 className="font-display text-3xl font-bold text-foreground mt-2 mb-6">{pc.tx("h2.1", "La Voz Gastronómica del Caribe")}</h2>
               <div className="prose prose-invert max-w-none">
                 <p className="text-muted-foreground leading-relaxed text-lg">
                   <span className="text-5xl font-display text-foreground float-left mr-3 leading-none">C</span>
@@ -145,7 +143,7 @@ export default function ChefPerfil() {
               <div className="mt-12">
                 <div className="flex items-center gap-2 mb-6">
                   <Trophy className="h-5 w-5 text-red-500" />
-                  <h3 className="font-display font-bold text-foreground">Reconocimientos y Premios</h3>
+                  <h3 className="font-display font-bold text-foreground">{pc.tx("h3.1", "Reconocimientos y Premios")}</h3>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {chef.awards.map((award, index) => (
@@ -172,13 +170,10 @@ export default function ChefPerfil() {
             <section>
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <span className="text-red-500 text-xs font-medium uppercase tracking-wide">Creaciones de Autor</span>
-                  <h2 className="font-display text-2xl font-bold text-foreground mt-1">
-                    Platos Firma & Recetas
-                  </h2>
+                  <span className="text-red-500 text-xs font-medium uppercase tracking-wide">{pc.tx("span.2", "Creaciones de Autor")}</span>
+                  <h2 className="font-display text-2xl font-bold text-foreground mt-1">{pc.tx("h2.2", "Platos Firma & Recetas")}</h2>
                 </div>
-                <Button variant="link" className="text-red-500 gap-1">
-                  Ver todas las recetas <ChevronRight className="h-4 w-4" />
+                <Button variant="link" className="text-red-500 gap-1">{pc.tx("Button.3", "Ver todas las recetas")}{" "}<ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
 
@@ -226,12 +221,12 @@ export default function ChefPerfil() {
 
             {/* Gallery */}
             <section>
-              <h2 className="font-display text-2xl font-bold text-foreground mb-6">Maestra en Acción</h2>
+              <h2 className="font-display text-2xl font-bold text-foreground mb-6">{pc.tx("h2.3", "Maestra en Acción")}</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 md:col-span-1 row-span-2">
                   <img 
                     src={galleryImages[0]} 
-                    alt="Chef en acción"
+                    alt={pc.t("img.alt.1", "Chef en acción")}
                     className="w-full h-full object-cover rounded-xl"
                   />
                 </div>
@@ -247,9 +242,7 @@ export default function ChefPerfil() {
                         size="sm" 
                         className="absolute bottom-3 right-3 gap-1"
                       >
-                        <Play className="h-3 w-3" />
-                        Galería
-                      </Button>
+                        <Play className="h-3 w-3" />{pc.tx("Button.4", "Galería")}</Button>
                     )}
                   </div>
                 ))}
@@ -280,26 +273,16 @@ export default function ChefPerfil() {
                   </div>
                 </div>
                 <Button variant="outline" className="w-full gap-2">
-                  <Share2 className="h-4 w-4" />
-                  Compartir Perfil
-                </Button>
+                  <Share2 className="h-4 w-4" />{pc.tx("Button.5", "Compartir Perfil")}</Button>
               </div>
 
               {/* CTA Card */}
               <div className="bg-gradient-to-br from-red-600 to-red-700 rounded-xl p-6 text-center">
-                <h3 className="font-display text-xl font-bold text-white mb-2">
-                  Vive la Experiencia Gastronómica
-                </h3>
-                <p className="text-red-100 text-sm mb-6">
-                  Reserva una mesa en Morisoñando o descubre las rutas gastronómicas curadas por Chef Tita alrededor de la isla.
-                </p>
+                <h3 className="font-display text-xl font-bold text-white mb-2">{pc.tx("h3.2", "Vive la Experiencia Gastronómica")}</h3>
+                <p className="text-red-100 text-sm mb-6">{pc.tx("p.1", "Reserva una mesa en Morisoñando o descubre las rutas gastronómicas curadas por Chef Tita alrededor de la isla.")}</p>
                 <div className="flex flex-col gap-3">
-                  <Button className="w-full bg-white text-red-600 hover:bg-red-50">
-                    Reservar Ahora
-                  </Button>
-                  <Button variant="outline" className="w-full border-white/30 text-white hover:bg-white/10">
-                    Ver Rutas de Sabor
-                  </Button>
+                  <Button className="w-full bg-white text-red-600 hover:bg-red-50">{pc.tx("Button.6", "Reservar Ahora")}</Button>
+                  <Button variant="outline" className="w-full border-white/30 text-white hover:bg-white/10">{pc.tx("Button.7", "Ver Rutas de Sabor")}</Button>
                 </div>
               </div>
             </div>
@@ -311,3 +294,6 @@ export default function ChefPerfil() {
     </div>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { chef, recipes };

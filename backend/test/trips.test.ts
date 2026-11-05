@@ -172,6 +172,10 @@ describe("mi viaje", () => {
       expect((await call("DELETE", `/me/trips/${t.id}/members/${viewer.id}`, { token: viewer.token })).statusCode).toBe(204);
       expect((await call("GET", `/me/trips/${t.id}`, { token: viewer.token })).statusCode).toBe(404);
       expect((await call("DELETE", `/me/trips/${t.id}/members/${editor.id}`, { token: owner.token })).statusCode).toBe(204);
+      // El expulsado no vuelve a entrar con el mismo enlace: expulsar vence las invitaciones vivas.
+      const rejoin = await call("POST", "/trips/join", { token: editor.token, payload: { token: invE.token } });
+      expect(json(rejoin).error.details.code).toBe("INVITE_INVALID");
+      expect((await call("GET", `/me/trips/${t.id}`, { token: editor.token })).statusCode).toBe(404);
       // El dueño ve sus enlaces vigentes y puede revocar uno ya compartido (plan de accesos, punto 18).
       const fresh = json(await call("POST", `/me/trips/${t.id}/members`, { token: owner.token, payload: { role: "viewer" } })).data;
       expect((await call("GET", `/me/trips/${t.id}/invites`, { token: stranger.token })).statusCode).toBe(404);

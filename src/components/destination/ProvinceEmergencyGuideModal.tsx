@@ -96,10 +96,10 @@ export function ProvinceEmergencyGuideModal({
               <div className="space-y-0.5 min-w-0">
                 <p className="font-bold text-xs sm:text-sm text-foreground truncate">{contact.name}</p>
                 {contact.notes && (
-                  <p className="text-[11px] text-muted-foreground">{contact.notes}</p>
+                  <p className="text-2xs text-muted-foreground">{contact.notes}</p>
                 )}
                 {contact.address && (
-                  <p className="text-[10px] text-muted-foreground/80">{contact.address}</p>
+                  <p className="text-3xs text-muted-foreground/80">{contact.address}</p>
                 )}
               </div>
 
@@ -115,7 +115,7 @@ export function ProvinceEmergencyGuideModal({
         </div>
 
         <div className="pt-2 border-t border-border flex items-center justify-between gap-3">
-          <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+          <p className="text-2xs text-muted-foreground flex items-center gap-1">
             <ShieldAlert className="h-3.5 w-3.5 text-rose-500" />
             <span>Servicios de emergencia 24/7 en toda RD</span>
           </p>

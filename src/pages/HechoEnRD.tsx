@@ -11,6 +11,7 @@ import { SEOHead } from "@/components/SEOHead";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import samanaImg from "@/assets/samana.jpg";
 import puertoPlataImg from "@/assets/puerto-plata.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const categories = [
   {
@@ -100,11 +101,15 @@ const featuredProducts = [
 ];
 
 export default function HechoEnRD() {
+  const pc = usePageContent("hecho-en-rd");
+  const categories = pc.data("categories", __pcData.categories);
+  const featuredProducts = pc.data("featuredProducts", __pcData.featuredProducts);
+  const culturalRoutes = pc.data("culturalRoutes", __pcData.culturalRoutes);
   return (
     <PageTransition>
       <SEOHead
-        title="Hecho en RD - Artesanías y Productos Locales | Turismo RD"
-        description="Descubre la riqueza artesanal de República Dominicana: Larimar, Ámbar, artesanías tradicionales y rutas culturales."
+        title={pc.t("SEOHead.title.1", "Hecho en RD - Artesanías y Productos Locales | Turismo RD")}
+        description={pc.t("SEOHead.description.1", "Descubre la riqueza artesanal de República Dominicana: Larimar, Ámbar, artesanías tradicionales y rutas culturales.")}
         keywords="artesanías, larimar, ámbar, productos dominicanos, souvenirs, República Dominicana"
       />
       <div className="min-h-screen bg-background">
@@ -120,15 +125,11 @@ export default function HechoEnRD() {
             >
               <div className="inline-flex items-center gap-2 bg-amber-500/20 text-amber-600 dark:text-amber-400 px-4 py-2 rounded-full mb-6">
                 <Award className="h-5 w-5" />
-                <span className="font-medium">Hecho en RD</span>
+                <span className="font-medium">{pc.tx("span.1", "Hecho en RD")}</span>
               </div>
-              <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
-                Tesoros <span className="text-amber-600 dark:text-amber-400">Artesanales</span>
+              <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">{pc.tx("h1.1", "Tesoros")}{" "}<span className="text-amber-600 dark:text-amber-400">{pc.tx("span.2", "Artesanales")}</span>
               </h1>
-              <p className="text-muted-foreground text-lg mb-8">
-                Llévate un pedazo de la isla: piedras preciosas únicas, artesanías 
-                tradicionales y productos hechos con amor por manos dominicanas.
-              </p>
+              <p className="text-muted-foreground text-lg mb-8">{pc.tx("p.1", "Llévate un pedazo de la isla: piedras preciosas únicas, artesanías tradicionales y productos hechos con amor por manos dominicanas.")}</p>
             </motion.div>
           </div>
         </section>
@@ -142,12 +143,9 @@ export default function HechoEnRD() {
               viewport={{ once: true }}
               className="mb-12"
             >
-              <h2 className="font-display text-3xl font-bold mb-4">
-                Categorías <span className="text-amber-600 dark:text-amber-400">Principales</span>
+              <h2 className="font-display text-3xl font-bold mb-4">{pc.tx("h2.1", "Categorías")}{" "}<span className="text-amber-600 dark:text-amber-400">{pc.tx("span.3", "Principales")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl">
-                Explora los productos más emblemáticos de nuestra tierra.
-              </p>
+              <p className="text-muted-foreground max-w-2xl">{pc.tx("p.2", "Explora los productos más emblemáticos de nuestra tierra.")}</p>
             </motion.div>
 
             <div className="grid lg:grid-cols-3 gap-8">
@@ -180,7 +178,7 @@ export default function HechoEnRD() {
                       
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                         <MapPin className="h-4 w-4" />
-                        <span>Origen: {category.origin}</span>
+                        <span>{pc.tx("span.4", "Origen:")}{" "}{category.origin}</span>
                       </div>
 
                       <div className="flex flex-wrap gap-2 mb-4">
@@ -190,12 +188,9 @@ export default function HechoEnRD() {
                       </div>
 
                       <div className="flex items-center justify-between pt-4 border-t border-border">
-                        <span className="text-sm text-muted-foreground">
-                          Rango: <span className="font-bold text-foreground">{category.priceRange}</span>
+                        <span className="text-sm text-muted-foreground">{pc.tx("span.5", "Rango:")}{" "}<span className="font-bold text-foreground">{category.priceRange}</span>
                         </span>
-                        <Button variant="ghost" size="sm" className="gap-1">
-                          Explorar
-                          <ArrowRight className="h-4 w-4" />
+                        <Button variant="ghost" size="sm" className="gap-1">{pc.tx("Button.1", "Explorar")}<ArrowRight className="h-4 w-4" />
                         </Button>
                       </div>
                     </CardContent>
@@ -215,12 +210,9 @@ export default function HechoEnRD() {
               viewport={{ once: true }}
               className="mb-12"
             >
-              <h2 className="font-display text-3xl font-bold mb-4">
-                Productos <span className="text-amber-600 dark:text-amber-400">Destacados</span>
+              <h2 className="font-display text-3xl font-bold mb-4">{pc.tx("h2.2", "Productos")}{" "}<span className="text-amber-600 dark:text-amber-400">{pc.tx("span.6", "Destacados")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl">
-                Piezas verificadas y certificadas de artesanos locales.
-              </p>
+              <p className="text-muted-foreground max-w-2xl">{pc.tx("p.3", "Piezas verificadas y certificadas de artesanos locales.")}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -241,9 +233,7 @@ export default function HechoEnRD() {
                       />
                       {product.certified && (
                         <Badge className="absolute top-4 left-4 bg-amber-600/90 text-white border-0 shadow">
-                          <Award className="h-3 w-3 mr-1" />
-                          Artesanía Auténtica
-                        </Badge>
+                          <Award className="h-3 w-3 mr-1" />{pc.tx("Badge.1", "Artesanía Auténtica")}</Badge>
                       )}
                       <Button
                         size="icon"
@@ -261,8 +251,7 @@ export default function HechoEnRD() {
                           <span className="text-sm font-medium">{product.rating}</span>
                         </div>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Por {product.artisan} • {product.location}
+                      <p className="text-sm text-muted-foreground mb-3">{pc.tx("p.4", "Por")}{" "}{product.artisan} • {product.location}
                       </p>
                       <div className="flex items-center justify-between">
                         <span className="text-xl font-bold text-amber-600 dark:text-amber-400">
@@ -274,9 +263,7 @@ export default function HechoEnRD() {
                           rel="noopener noreferrer"
                         >
                           <Button size="sm" className="gap-2">
-                            <ShoppingBag className="h-4 w-4" />
-                            Comprar / Pedir
-                          </Button>
+                            <ShoppingBag className="h-4 w-4" />{pc.tx("Button.2", "Comprar / Pedir")}</Button>
                         </a>
                       </div>
                     </CardContent>
@@ -296,12 +283,9 @@ export default function HechoEnRD() {
               viewport={{ once: true }}
               className="mb-12"
             >
-              <h2 className="font-display text-3xl font-bold mb-4">
-                Rutas <span className="text-amber-600 dark:text-amber-400">Culturales</span>
+              <h2 className="font-display text-3xl font-bold mb-4">{pc.tx("h2.3", "Rutas")}{" "}<span className="text-amber-600 dark:text-amber-400">{pc.tx("span.7", "Culturales")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl">
-                Recorre los lugares donde se crea la magia artesanal dominicana.
-              </p>
+              <p className="text-muted-foreground max-w-2xl">{pc.tx("p.5", "Recorre los lugares donde se crea la magia artesanal dominicana.")}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -340,7 +324,7 @@ export default function HechoEnRD() {
                         <Badge variant="outline">{route.duration}</Badge>
                         <Badge variant="outline">{route.difficulty}</Badge>
                       </div>
-                      <Button variant="ghost" size="sm">Ver ruta</Button>
+                      <Button variant="ghost" size="sm">{pc.tx("Button.3", "Ver ruta")}</Button>
                     </div>
                   </Card>
                 </motion.div>
@@ -357,19 +341,12 @@ export default function HechoEnRD() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                ¿Eres artesano dominicano?
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-                Únete a nuestra plataforma y muestra tus creaciones al mundo. 
-                Certificamos y promovemos el talento local.
-              </p>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.4", "¿Eres artesano dominicano?")}</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto mb-8">{pc.tx("p.6", "Únete a nuestra plataforma y muestra tus creaciones al mundo. Certificamos y promovemos el talento local.")}</p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg" className="bg-amber-600 hover:bg-amber-700 gap-2">
-                  <Award className="h-5 w-5" />
-                  Registrar mi negocio
-                </Button>
-                <Button size="lg" variant="outline">Conocer requisitos</Button>
+                  <Award className="h-5 w-5" />{pc.tx("Button.4", "Registrar mi negocio")}</Button>
+                <Button size="lg" variant="outline">{pc.tx("Button.5", "Conocer requisitos")}</Button>
               </div>
             </motion.div>
           </div>
@@ -380,3 +357,6 @@ export default function HechoEnRD() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { categories, featuredProducts, culturalRoutes };

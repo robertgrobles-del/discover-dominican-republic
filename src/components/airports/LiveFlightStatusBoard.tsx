@@ -154,7 +154,7 @@ export function LiveFlightStatusBoard() {
                     {item.route}
                   </td>
                   <td className="py-3.5 px-4 text-center">
-                    <span className="px-2 py-1 rounded-md bg-muted text-[11px] font-bold text-foreground">
+                    <span className="px-2 py-1 rounded-md bg-muted text-2xs font-bold text-foreground">
                       {item.terminal} • {item.gate}
                     </span>
                   </td>

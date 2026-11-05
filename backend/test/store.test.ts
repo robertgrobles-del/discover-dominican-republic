@@ -200,16 +200,17 @@ describe("tienda oficial", () => {
     it("un pago rechazado o caído no deja pedido activo: devuelve stock y cupón y conserva el carrito", async () => {
       await call("POST", "/admin/discount_coupons", { token: admin, payload: { code: `RECHAZO${tag}`, discount_percentage: 10, max_uses: 1 } });
       const before = await stockOf(cap.id);
-      const cart = await guestCart(cap.id, 2);
-      const declined = await order({ cart, pay: "tok_test_declined", coupon: `RECHAZO${tag}` });
+      const u = await signup();
+      await add(cap.id, undefined, { quantity: 2 }, u.token);
+      const declined = await order({ token: u.token, pay: "tok_test_declined", coupon: `RECHAZO${tag}` });
       expect(declined.statusCode).toBe(402);
       expect(json(declined).error.code).toBe("PAYMENT_FAILED");
-      const down = await order({ cart, pay: "tok_test_error" });
+      const down = await order({ token: u.token, pay: "tok_test_error" });
       expect(down.statusCode).toBe(502);
       expect(await stockOf(cap.id)).toBe(before);
       expect((await pool.query("SELECT uses_count FROM discount_coupons WHERE code = $1", [`RECHAZO${tag}`.toUpperCase()])).rows[0].uses_count).toBe(0);
-      expect(json(await call("GET", "/cart", { cart })).data.count).toBe(2); // puede reintentar
-      expect((await order({ cart, coupon: `RECHAZO${tag}`, email: "reintento@test.local" })).statusCode).toBe(201); // el cupón sigue libre
+      expect(json(await call("GET", "/cart", { token: u.token })).data.count).toBe(2); // puede reintentar
+      expect((await order({ token: u.token, coupon: `RECHAZO${tag}` })).statusCode).toBe(201); // el cupón sigue libre
     });
 
     it("nunca vende más que el stock: 10 pedidos simultáneos por 3 unidades → exactamente 3", async () => {
@@ -234,6 +235,10 @@ describe("tienda oficial", () => {
       const second = await order({ token: u.token, coupon: `UNAVEZ${tag}` });
       expect(second.statusCode).toBe(422);
       expect(json(second).error.details.code).toBe("COUPON_INVALID");
+      // Sin sesión no se aceptan cupones (ni en el pedido ni en el carrito): se exige cuenta.
+      const guest = await order({ cart: await guestCart(poster.id, 2), coupon: `UNAVEZ${tag}`, email: u.email });
+      expect(guest.statusCode).toBe(401);
+      expect(json(guest).error.details.code).toBe("LOGIN_REQUIRED");
     });
 
     it("el cliente cancela antes del envío: reembolso total y stock devuelto; después ya no", async () => {
@@ -398,5 +403,44 @@ describe("tienda con Stripe (se cobra en USD)", () => {
     expect(json(await webhook(ev("evt_s2", "pi_orphan_store", orphan.id))).outcome).toBe("orphan_refunded");
     expect(calls.filter((x) => x.url.endsWith("/refunds")).length).toBe(refundsBefore + 1);
     expect((await pool.query("SELECT payment_status FROM store_orders WHERE id = $1", [orphan.id])).rows[0].payment_status).toBe("refunded");
+  });
+});
+
+describe("tienda: pedidos por transferencia sin pagar", () => {
+  let app: FastifyInstance;
+  let pool: pg.Pool;
+  let product: string;
+  const call = (method: "POST", url: string, opts: { cart?: string; token?: string; payload?: unknown; headers?: Record<string, string> } = {}) =>
+    app.inject({ method, url: `/api/v1${url}`, payload: opts.payload as object, headers: { ...(opts.token ? { authorization: `Bearer ${opts.token}` } : {}), ...(opts.cart ? { "x-cart-token": opts.cart } : {}), ...opts.headers } });
+  beforeAll(async () => {
+    app = await makeApp({ STORE_TRANSFER_INSTRUCTIONS: "Banco Prueba, cuenta 000-0000" });
+    pool = new pg.Pool({ connectionString: process.env.TEST_DATABASE_URL });
+    const email = `tr${Date.now().toString(36)}@test.local`;
+    const reg = json(await call("POST", "/auth/register", { payload: { email, password: PW, accept_terms: true } }));
+    await pool.query("INSERT INTO user_roles (user_id, role) VALUES ($1, 'admin')", [reg.data.user.id]);
+    const admin = json(await call("POST", "/auth/login", { payload: { email, password: PW } })).data.tokens.access_token;
+    product = json(await call("POST", "/admin/store/products", { token: admin, payload: { slug: `tr-${Date.now().toString(36)}`, name: "Producto transferencia", category: "poster", price: 500, stock: 100 } })).data.id;
+  });
+  afterAll(async () => { await pool.end(); await app.close(); });
+
+  it("sin sesión no se puede pagar por transferencia", async () => {
+    const cart = json(await call("POST", "/cart/items", { payload: { product_id: product, quantity: 1 } })).data.cart_token as string;
+    const res = await call("POST", "/orders", { cart, headers: { "idempotency-key": "tr-guest-1234" }, payload: { contact: { name: "Invitado", email: "invitado@test.local" }, shipping: { address: "Calle Uno 123", city: "Santo Domingo" }, payment_method: "transfer" } });
+    expect(res.statusCode).toBe(401);
+    expect(json(res).error.details.code).toBe("LOGIN_REQUIRED");
+  });
+
+  it("una cuenta no puede apartar inventario con pedidos sin pagar sin límite", async () => {
+    const email = `aparta${Date.now().toString(36)}@test.local`;
+    const token = json(await call("POST", "/auth/register", { payload: { email, password: PW, accept_terms: true } })).data.tokens.access_token as string;
+    const place = async () => {
+      await call("POST", "/cart/items", { token, payload: { product_id: product, quantity: 1 } });
+      return call("POST", "/orders", { token, headers: { "idempotency-key": `tr-${Math.random().toString(36).slice(2)}` }, payload: { contact: { name: "Cliente Transfer", email }, shipping: { address: "Calle Uno 123", city: "Santo Domingo" }, payment_method: "transfer" } });
+    };
+    const { MAX_OPEN_TRANSFER_ORDERS } = await import("../src/modules/store/service.js");
+    for (let i = 0; i < MAX_OPEN_TRANSFER_ORDERS; i++) expect((await place()).statusCode).toBe(201);
+    const extra = await place();
+    expect(extra.statusCode).toBe(422);
+    expect(json(extra).error.details.code).toBe("TOO_MANY_PENDING_TRANSFERS");
   });
 });

@@ -92,7 +92,7 @@ export function TourPhysicalEffort({
         <div className="flex items-center gap-2.5 p-2 bg-muted/40 rounded-xl">
           <Footprints className="w-4 h-4 text-primary shrink-0" />
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold">Caminata</p>
+            <p className="text-3xs text-muted-foreground uppercase font-bold">Caminata</p>
             <p className="font-semibold text-foreground">
               {caminataKm ? `${caminataKm} km aprox.` : "1.5 - 3 km"}
             </p>
@@ -103,7 +103,7 @@ export function TourPhysicalEffort({
         <div className="flex items-center gap-2.5 p-2 bg-muted/40 rounded-xl">
           <Waves className="w-4 h-4 text-sky-500 shrink-0" />
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold">Nado</p>
+            <p className="text-3xs text-muted-foreground uppercase font-bold">Nado</p>
             <p className="font-semibold text-foreground">
               {nadoRequerido ? "Requerido / Chaleco" : "Opcional / Aguas bajas"}
             </p>
@@ -114,7 +114,7 @@ export function TourPhysicalEffort({
         <div className="flex items-center gap-2.5 p-2 bg-muted/40 rounded-xl">
           <Mountain className="w-4 h-4 text-emerald-600 shrink-0" />
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold">Desnivel / Pasos</p>
+            <p className="text-3xs text-muted-foreground uppercase font-bold">Desnivel / Pasos</p>
             <p className="font-semibold text-foreground">
               {escalones ? `${escalones} escalones` : "Moderado"}
             </p>
@@ -125,7 +125,7 @@ export function TourPhysicalEffort({
         <div className="flex items-center gap-2.5 p-2 bg-muted/40 rounded-xl">
           <Info className="w-4 h-4 text-amber-500 shrink-0" />
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase font-bold">Altitud</p>
+            <p className="text-3xs text-muted-foreground uppercase font-bold">Altitud</p>
             <p className="font-semibold text-foreground">
               {altitudM ? `${altitudM} msnm` : "Nivel del mar"}
             </p>

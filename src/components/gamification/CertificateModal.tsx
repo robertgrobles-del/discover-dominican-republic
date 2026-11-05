@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useMemo } from "react";
 import { 
   Award, Download, Printer, ShieldCheck, 
   Sparkles, CheckCircle2, QrCode, Share2, Compass
@@ -33,7 +33,10 @@ export function CertificateModal({
   levelTitle
 }: CertificateModalProps) {
   const certificateRef = useRef<HTMLDivElement>(null);
-  const certId = `RD-CERT-2026-${Math.floor(100000 + Math.random() * 900000)}`;
+  const certId = useMemo(() => {
+    const clean = userName.replace(/[^a-zA-Z0-9]/g, "").slice(0, 4).toUpperCase() || "USER";
+    return `RD-CERT-2026-${clean}-${totalXp}`;
+  }, [userName, totalXp]);
   const issueDate = new Date().toLocaleDateString("es-DO", {
     year: "numeric",
     month: "long",
@@ -87,7 +90,7 @@ export function CertificateModal({
               <span className="text-3xl">🇩🇴</span>
               <div>
                 <h4 className="font-serif font-black text-sm text-foreground tracking-wider uppercase">República Dominicana</h4>
-                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Portal Oficial de Turismo • MITUR</p>
+                <p className="text-3xs text-muted-foreground uppercase font-bold tracking-widest">Portal Oficial de Turismo • MITUR</p>
               </div>
             </div>
             <Badge className="bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/40 text-xs font-bold px-3 py-1">
@@ -116,20 +119,20 @@ export function CertificateModal({
             <div className="text-center space-y-1">
               <p className="font-serif font-bold text-foreground text-xs">{issueDate}</p>
               <div className="w-24 h-0.5 bg-muted-foreground/30 mx-auto" />
-              <p className="text-[10px] text-muted-foreground uppercase font-semibold">Fecha de Emisión</p>
+              <p className="text-3xs text-muted-foreground uppercase font-semibold">Fecha de Emisión</p>
             </div>
 
             <div className="flex flex-col items-center justify-center">
               <div className="w-16 h-16 bg-white p-1.5 rounded-xl border border-amber-500/40 shadow-inner flex items-center justify-center">
                 <QrCode className="w-full h-full text-black" />
               </div>
-              <span className="text-[9px] text-muted-foreground font-mono mt-1">Verificación Oficial</span>
+              <span className="text-3xs text-muted-foreground font-mono mt-1">Verificación Oficial</span>
             </div>
 
             <div className="text-center space-y-1">
               <p className="font-serif font-bold text-foreground text-xs">Comité de Gamificación</p>
               <div className="w-24 h-0.5 bg-muted-foreground/30 mx-auto" />
-              <p className="text-[10px] text-muted-foreground uppercase font-semibold">Descubre RD • MITUR</p>
+              <p className="text-3xs text-muted-foreground uppercase font-semibold">Descubre RD • MITUR</p>
             </div>
           </div>
         </div>

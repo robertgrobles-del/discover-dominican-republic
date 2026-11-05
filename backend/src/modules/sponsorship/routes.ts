@@ -59,6 +59,7 @@ export async function sponsorshipRoutes(app: FastifyInstance) {
 
   r.post("/sponsorship/telemetry", {
     onRequest: optionalUser,
+    config: { rateLimit: { max: 120, timeWindow: "1 minute" } },
     schema: {
       tags: ["patrocinio"],
       summary: "Registra telemetría de anuncios (impresión, clic o conversión)",
@@ -160,18 +161,33 @@ export async function sponsorshipRoutes(app: FastifyInstance) {
   }, async (req, reply) => {
     const b = req.body;
     // Sólo quien creó la campaña (o administración) le añade anuncios; una campaña ajena responde como inexistente.
-    const campaign = (await db.query<{ created_by: string | null }>("SELECT created_by FROM sponsorship_campaigns WHERE id = $1", [req.params.id])).rows[0];
+    const campaign = (await db.query<{ created_by: string | null; status: string }>("SELECT created_by, status FROM sponsorship_campaigns WHERE id = $1", [req.params.id])).rows[0];
     if (!campaign || (campaign.created_by !== req.user!.id && !req.user!.roles.includes("admin"))) throw AppError.notFound("Campaña publicitaria");
     // `url()` admite cualquier esquema; un anuncio sólo puede enlazar por http(s).
     for (const url of [b.target_url, b.image_url]) if (url && !/^https?:\/\//i.test(url)) throw AppError.validation("Los enlaces del anuncio deben ser http o https");
-    const ins = await db.query(
-      `INSERT INTO sponsorship_creatives
-        (campaign_id, slot_id, title, headline, body_text, target_url, image_url, badge_label, category_target, destination_target, weight)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-       RETURNING *`,
-      [req.params.id, b.slot_id, b.title, b.headline ?? null, b.body_text ?? null, b.target_url, b.image_url ?? null, b.badge_label, b.category_target ?? null, b.destination_target ?? null, b.weight],
-    );
-    await audit(db, { actor: req.user!.id, action: "creative.create", entity: "sponsorship_creative", id: ins.rows[0].id, ip: req.ip });
+    // Un anuncio nuevo no hereda la aprobación de la campaña: si ya estaba aprobada (activa o pausada) y no lo añade
+    // administración, la campaña vuelve a revisión y no se sirve nada hasta que la vuelvan a aprobar.
+    const reReview = !req.user!.roles.includes("admin") && (campaign.status === "active" || campaign.status === "paused");
+    const c = await db.connect();
+    let ins;
+    try {
+      await c.query("BEGIN");
+      ins = await c.query(
+        `INSERT INTO sponsorship_creatives
+          (campaign_id, slot_id, title, headline, body_text, target_url, image_url, badge_label, category_target, destination_target, weight)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         RETURNING *`,
+        [req.params.id, b.slot_id, b.title, b.headline ?? null, b.body_text ?? null, b.target_url, b.image_url ?? null, b.badge_label, b.category_target ?? null, b.destination_target ?? null, b.weight],
+      );
+      if (reReview) await c.query("UPDATE sponsorship_campaigns SET status = 'pending_approval', updated_at = now() WHERE id = $1", [req.params.id]);
+      await c.query("COMMIT");
+    } catch (e) {
+      await c.query("ROLLBACK").catch(() => undefined);
+      throw e;
+    } finally {
+      c.release();
+    }
+    await audit(db, { actor: req.user!.id, action: "creative.create", entity: "sponsorship_creative", id: ins.rows[0].id, meta: reReview ? { campaign_back_to_review: true } : undefined, ip: req.ip });
     reply.code(201);
     return { data: ins.rows[0] };
   });

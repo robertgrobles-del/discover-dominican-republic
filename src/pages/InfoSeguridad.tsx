@@ -1,3 +1,6 @@
+import { SectionIndex } from "@/components/SectionIndex";
+import { EmergenciasSection } from "@/components/seguridad/EmergenciasSection";
+import { SaludSection } from "@/components/seguridad/SaludSection";
 import { motion } from "framer-motion";
 import { 
   Shield, Phone, AlertTriangle, Heart, Sun, Droplets, 
@@ -9,14 +12,8 @@ import { PageTransition } from "@/components/PageTransition";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { SEOHead } from "@/components/SEOHead";
+import { usePageContent } from "@/lib/pageContent";
 
-const emergencyNumbers = [
-  { service: "Emergencias Generales", number: "911", icon: Phone },
-  { service: "Policía Turística (POLITUR)", number: "1-809-200-3500", icon: Shield },
-  { service: "Bomberos", number: "809-682-2000", icon: AlertTriangle },
-  { service: "Cruz Roja Dominicana", number: "809-682-4545", icon: Heart },
-  { service: "Defensa Civil", number: "809-472-8604", icon: Shield },
-];
 
 const healthTips = [
   {
@@ -99,11 +96,16 @@ const faqs = [
 ];
 
 export default function InfoSeguridad() {
+  const pc = usePageContent("info-seguridad");
+  const healthTips = pc.data("healthTips", __pcData.healthTips);
+  const practicalInfo = pc.data("practicalInfo", __pcData.practicalInfo);
+  const safetyTips = pc.data("safetyTips", __pcData.safetyTips);
+  const faqs = pc.data("faqs", __pcData.faqs);
   return (
     <PageTransition>
       <SEOHead
-        title="Seguridad y Consejos de Viaje en República Dominicana"
-        description="Números de emergencia, consejos de salud, información práctica sobre moneda y electricidad, y respuestas a preguntas frecuentes para viajar seguro por República Dominicana."
+        title={pc.t("SEOHead.title.1", "Seguridad y Consejos de Viaje en República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Números de emergencia, consejos de salud, información práctica sobre moneda y electricidad, y respuestas a preguntas frecuentes para viajar seguro por República Dominicana.")}
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -116,51 +118,21 @@ export default function InfoSeguridad() {
               animate={{ opacity: 1, y: 0 }}
             >
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 rounded-full text-primary text-sm font-medium mb-6">
-                <Shield className="h-4 w-4" />
-                Información Práctica
-              </div>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-                Seguridad y <span className="text-gradient">Consejos de Viaje</span>
+                <Shield className="h-4 w-4" />{pc.tx("div.1", "Información Práctica")}</div>
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Seguridad y")}{" "}<span className="text-gradient">{pc.tx("span.1", "Consejos de Viaje")}</span>
               </h1>
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                Todo lo que necesitas saber para un viaje seguro y sin preocupaciones a República Dominicana.
-              </p>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">{pc.tx("p.1", "Todo lo que necesitas saber para un viaje seguro y sin preocupaciones a República Dominicana.")}</p>
             </motion.div>
           </div>
         </section>
+        <SectionIndex items={[{ id: "emergencias", label: "Contactos de emergencia" }, { id: "salud", label: "Salud y farmacias" }]} />
 
-        {/* Emergency Numbers */}
-        <section className="py-16">
-          <div className="container mx-auto px-4">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 flex items-center gap-2">
-              <Phone className="h-6 w-6 text-primary" />
-              Números de Emergencia
-            </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {emergencyNumbers.map((item) => (
-                <Card key={item.service} className="bg-card border-border hover:border-primary/50 transition-colors">
-                  <CardContent className="p-6 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0">
-                      <item.icon className="h-6 w-6 text-red-500" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">{item.service}</p>
-                      <p className="text-2xl font-bold text-primary">{item.number}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* Health Tips */}
         <section className="py-16 bg-card/50">
           <div className="container mx-auto px-4">
             <h2 className="font-display text-2xl font-bold text-foreground mb-8 flex items-center gap-2">
-              <Heart className="h-6 w-6 text-primary" />
-              Consejos de Salud
-            </h2>
+              <Heart className="h-6 w-6 text-primary" />{pc.tx("h2.2", "Consejos de Salud")}</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {healthTips.map((tip) => (
                 <motion.div
@@ -190,9 +162,7 @@ export default function InfoSeguridad() {
         <section className="py-16">
           <div className="container mx-auto px-4">
             <h2 className="font-display text-2xl font-bold text-foreground mb-8 flex items-center gap-2">
-              <Info className="h-6 w-6 text-primary" />
-              Información Práctica
-            </h2>
+              <Info className="h-6 w-6 text-primary" />{pc.tx("h2.3", "Información Práctica")}</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {practicalInfo.map((info) => (
                 <Card key={info.title} className="bg-card border-border">
@@ -216,9 +186,7 @@ export default function InfoSeguridad() {
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto">
               <h2 className="font-display text-2xl font-bold text-foreground mb-8 flex items-center gap-2">
-                <Shield className="h-6 w-6 text-primary" />
-                Consejos de Seguridad
-              </h2>
+                <Shield className="h-6 w-6 text-primary" />{pc.tx("h2.4", "Consejos de Seguridad")}</h2>
               <Card className="bg-background border-border">
                 <CardContent className="p-6">
                   <ul className="space-y-4">
@@ -239,9 +207,7 @@ export default function InfoSeguridad() {
         <section className="py-16">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto">
-              <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">
-                Preguntas Frecuentes
-              </h2>
+              <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.5", "Preguntas Frecuentes")}</h2>
               <Accordion type="single" collapsible className="space-y-4">
                 {faqs.map((faq, index) => (
                   <AccordionItem key={index} value={`item-${index}`} className="bg-card rounded-xl border border-border px-6">
@@ -258,8 +224,13 @@ export default function InfoSeguridad() {
           </div>
         </section>
 
+        <EmergenciasSection />
+        <SaludSection />
         <Footer />
       </div>
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { healthTips, practicalInfo, safetyTips, faqs };

@@ -55,7 +55,7 @@ export function TipCalculatorModal() {
       {/* Bill input */}
       <div className="space-y-4">
         <div>
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
+          <label htmlFor="tip-calculator-modal-f1" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
             Monto de la Cuenta
           </label>
           <div className="flex gap-2">
@@ -63,7 +63,7 @@ export function TipCalculatorModal() {
               <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">
                 {currency === "DOP" ? "RD$" : "US$"}
               </span>
-              <Input
+              <Input id="tip-calculator-modal-f1"
                 type="number"
                 min="0"
                 step="any"
@@ -117,9 +117,9 @@ export function TipCalculatorModal() {
 
         {/* Voluntary Tip options */}
         <div>
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1.5">
             Propina Voluntaria para el Mozo / Camarero
-          </label>
+          </p>
           <div className="grid grid-cols-4 gap-2">
             {[0, 5, 10, 15].map((pct) => (
               <button
@@ -140,9 +140,9 @@ export function TipCalculatorModal() {
 
         {/* Number of People */}
         <div className="flex items-center justify-between pt-2">
-          <label className="text-xs font-medium text-muted-foreground">
+          <p className="text-xs font-medium text-muted-foreground">
             Dividir cuenta entre amigos:
-          </label>
+          </p>
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -193,7 +193,7 @@ export function TipCalculatorModal() {
           )}
         </div>
 
-        <div className="flex items-start gap-2 text-[11px] text-muted-foreground pt-1">
+        <div className="flex items-start gap-2 text-2xs text-muted-foreground pt-1">
           <Info className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
           <span>
             En República Dominicana, los restaurantes añaden por ley el 18% de ITBIS y el 10% de propina legal en la factura. La propina adicional en mesa (5% al 10%) es voluntaria y va directamente a la persona que te atendió.

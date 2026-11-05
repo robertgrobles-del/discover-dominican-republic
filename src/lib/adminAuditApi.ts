@@ -24,6 +24,14 @@ export interface AdminAuditEntry {
   meta?: Record<string, unknown> | null;
 }
 
+export interface AuditChainReport {
+  ok: boolean;
+  checked: number;
+  first_id: number | null;
+  last_id: number | null;
+  broken: { id: number; reason: "hash" | "enlace" }[];
+}
+
 export const adminAuditApi = {
   /** Lista eventos de auditoría con filtros y paginación */
   async listLogs(params?: {
@@ -46,5 +54,14 @@ export const adminAuditApi = {
     const query = qs.toString() ? `?${qs.toString()}` : "";
     const res = await fetchApi<{ data: AdminAuditEntry[]; meta: AdminAuditPaginationMeta }>(`/admin/audit-logs${query}`);
     return res;
+  },
+
+  /** Verifica la integridad criptográfica de la cadena HMAC de la bitácora */
+  async verifyChain(params?: { after_id?: number; limit?: number }): Promise<{ data: AuditChainReport }> {
+    const qs = new URLSearchParams();
+    if (params?.after_id !== undefined) qs.set("after_id", String(params.after_id));
+    if (params?.limit !== undefined) qs.set("limit", String(params.limit));
+    const query = qs.toString() ? `?${qs.toString()}` : "";
+    return fetchApi<{ data: AuditChainReport }>(`/admin/audit/verify${query}`);
   },
 };

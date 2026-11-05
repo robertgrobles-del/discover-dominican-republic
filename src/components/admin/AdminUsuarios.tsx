@@ -208,71 +208,81 @@ export function AdminUsuarios() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Stats row */}
+    <div className="space-y-5">
+      {/* CRM User Intelligence Metric Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
-          { icon: Users,     label: "Total",      value: stats.total,     color: "text-primary" },
-          { icon: UserCheck, label: "Activos",     value: stats.total - stats.suspended, color: "text-emerald-500" },
-          { icon: UserX,     label: "Suspendidos", value: stats.suspended, color: "text-red-500" },
-          { icon: Crown,     label: "Partners",    value: stats.partners,  color: "text-blue-500" },
-          { icon: Shield,    label: "Admins",      value: stats.admins,    color: "text-purple-500" },
+          { icon: Users,     label: "Usuarios Totales", value: stats.total,                 sub: "Registrados", color: "text-primary", bg: "bg-primary/10" },
+          { icon: UserCheck, label: "Activos en Plataforma", value: stats.total - stats.suspended, sub: "Sin restricciones", color: "text-emerald-500", bg: "bg-emerald-500/10" },
+          { icon: UserX,     label: "Cuentas Suspendidas", value: stats.suspended,          sub: "Por moderación", color: "text-rose-500", bg: "bg-rose-500/10" },
+          { icon: Crown,     label: "Socios / Partners", value: stats.partners,             sub: "Operadores RNT", color: "text-blue-500", bg: "bg-blue-500/10" },
+          { icon: Shield,    label: "Equipo Staff & Admin", value: stats.admins,            sub: "Permisos elevados", color: "text-purple-500", bg: "bg-purple-500/10" },
         ].map(s => (
-          <Card key={s.label}>
-            <CardContent className="p-4 text-center">
-              <s.icon className={`h-5 w-5 ${s.color} mx-auto mb-1`} />
-              <p className="text-2xl font-bold text-foreground">{s.value}</p>
-              <p className="text-xs text-muted-foreground">{s.label}</p>
+          <Card key={s.label} className="border-border/60 bg-card/60 backdrop-blur-xs shadow-xs hover:border-border transition-all">
+            <CardContent className="p-3.5 flex items-center gap-3">
+              <div className={`w-9 h-9 rounded-xl ${s.bg} flex items-center justify-center shrink-0`}>
+                <s.icon className={`h-4.5 w-4.5 ${s.color}`} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xl font-bold tracking-tight text-foreground">{s.value}</p>
+                <p className="text-2xs font-medium text-muted-foreground truncate">{s.label}</p>
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nombre o email..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-9"
-          />
+      {/* CRM Toolbar with soft lines and clean filters */}
+      <div className="flex flex-wrap gap-2.5 items-center justify-between p-3 bg-card/60 backdrop-blur-xs rounded-xl border border-border/60 shadow-xs">
+        <div className="flex flex-wrap gap-2.5 items-center flex-1">
+          <div className="relative min-w-[220px] max-w-sm">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por nombre, email o ID..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-8 h-8.5 text-xs bg-background/80 rounded-lg border-border/60"
+            />
+          </div>
+          <Select value={filterRole} onValueChange={setFilterRole}>
+            <SelectTrigger className="w-36 h-8.5 text-xs rounded-lg border-border/60 bg-background/80">
+              <Filter className="h-3 w-3 mr-1 text-muted-foreground" />
+              <SelectValue placeholder="Rol" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los roles</SelectItem>
+              <SelectItem value="user">Usuario Regular</SelectItem>
+              <SelectItem value="partner">Partner / Operador</SelectItem>
+              <SelectItem value="editor">Editor de Contenido</SelectItem>
+              <SelectItem value="moderator">Moderador UGC</SelectItem>
+              <SelectItem value="admin">Administrador Total</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-32 h-8.5 text-xs rounded-lg border-border/60 bg-background/80">
+              <SelectValue placeholder="Estado" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los estados</SelectItem>
+              <SelectItem value="active">Activos</SelectItem>
+              <SelectItem value="suspended">Suspendidos</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={filterRole} onValueChange={setFilterRole}>
-          <SelectTrigger className="w-36">
-            <Filter className="h-3.5 w-3.5 mr-1" />
-            <SelectValue placeholder="Rol" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los roles</SelectItem>
-            <SelectItem value="user">Usuario</SelectItem>
-            <SelectItem value="partner">Partner</SelectItem>
-            <SelectItem value="editor">Editor</SelectItem>
-            <SelectItem value="moderator">Moderador</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={filterStatus} onValueChange={setFilterStatus}>
-          <SelectTrigger className="w-36">
-            <SelectValue placeholder="Estado" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="active">Activos</SelectItem>
-            <SelectItem value="suspended">Suspendidos</SelectItem>
-          </SelectContent>
-        </Select>
-        <p className="text-sm text-muted-foreground ml-auto">{filtered.length} usuarios</p>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="text-2xs font-mono py-1 px-2 rounded-lg border-border/60 bg-muted/40">
+            {filtered.length} {filtered.length === 1 ? "usuario" : "usuarios"}
+          </Badge>
+        </div>
       </div>
 
-      {/* Table */}
-      <Card>
+      {/* CRM Users Table */}
+      <div className="rounded-xl border border-border/60 bg-card overflow-hidden shadow-xs">
         <ScrollArea className="w-full">
-          <table className="w-full text-sm">
+          <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="text-left p-3 pl-4 font-medium text-muted-foreground">
+              <tr className="border-b border-border/60 bg-muted/40 text-2xs">
+                <th className="text-left p-3 pl-4 font-semibold text-foreground/80">
                   <button className="flex items-center gap-1" onClick={() => toggleSort("display_name")}>
                     Usuario <ArrowUpDown className="h-3 w-3" />
                   </button>
@@ -409,7 +419,7 @@ export function AdminUsuarios() {
             </tbody>
           </table>
         </ScrollArea>
-      </Card>
+      </div>
 
       {/* XP Modal */}
       <Dialog open={!!xpModal} onOpenChange={open => !open && setXpModal(null)}>

@@ -5,6 +5,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Accessibility, Heart, MapPin, Star, Stethoscope, Car, Sun, ShieldCheck, Phone, CheckCircle } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
 
 const destinosRecomendados = [
   {
@@ -74,11 +75,17 @@ const actividadesRelajadas = [
 ];
 
 export default function ViajerosSenior() {
+  const pc = usePageContent("viajeros-senior");
+  const destinosRecomendados = pc.data("destinosRecomendados", __pcData.destinosRecomendados);
+  const resortsAdaptados = pc.data("resortsAdaptados", __pcData.resortsAdaptados);
+  const saludBienestar = pc.data("saludBienestar", __pcData.saludBienestar);
+  const transporteSenior = pc.data("transporteSenior", __pcData.transporteSenior);
+  const actividadesRelajadas = pc.data("actividadesRelajadas", __pcData.actividadesRelajadas);
   return (
     <PageTransition>
       <SEOHead
-        title="Guía para Viajeros Senior - República Dominicana"
-        description="Destinos accesibles, resorts adaptados, transporte cómodo, actividades relajadas y servicios de salud para viajeros mayores en República Dominicana."
+        title={pc.t("SEOHead.title.1", "Guía para Viajeros Senior - República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Destinos accesibles, resorts adaptados, transporte cómodo, actividades relajadas y servicios de salud para viajeros mayores en República Dominicana.")}
         keywords="viajeros senior dominicana, turismo tercera edad caribe, resorts accesibles punta cana, vacaciones mayores RD"
       />
       <div className="min-h-screen flex flex-col bg-background">
@@ -87,21 +94,17 @@ export default function ViajerosSenior() {
         <section className="relative py-20 bg-gradient-to-b from-primary/10 to-background">
           <div className="container mx-auto px-4 text-center">
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20">
-              <Accessibility className="h-3 w-3 mr-1" /> Confort y Accesibilidad
-            </Badge>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-              RD para <span className="text-primary">Viajeros Senior</span>
+              <Accessibility className="h-3 w-3 mr-1" />{" "}{pc.tx("Badge.1", "Confort y Accesibilidad")}</Badge>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{pc.tx("h1.1", "RD para")}{" "}<span className="text-primary">{pc.tx("span.1", "Viajeros Senior")}</span>
             </h1>
-            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-              República Dominicana tiene todo para unas vacaciones cómodas y seguras: resorts adaptados, actividades relajadas, excelente atención médica y el mejor clima del Caribe.
-            </p>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">{pc.tx("p.1", "República Dominicana tiene todo para unas vacaciones cómodas y seguras: resorts adaptados, actividades relajadas, excelente atención médica y el mejor clima del Caribe.")}</p>
           </div>
         </section>
 
         {/* Destinos recomendados */}
         <section className="py-16">
           <div className="container mx-auto px-4 max-w-5xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">🌴 Destinos Ideales para Senior</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.1", "🌴 Destinos Ideales para Senior")}</h2>
             <div className="space-y-4">
               {destinosRecomendados.map(d => (
                 <Card key={d.nombre}>
@@ -115,7 +118,7 @@ export default function ViajerosSenior() {
                       </div>
                     </div>
                     <p className="text-sm text-muted-foreground mb-2">{d.porque}</p>
-                    <Badge variant="outline" className="text-xs">Ideal para: {d.ideal}</Badge>
+                    <Badge variant="outline" className="text-xs">{pc.tx("Badge.2", "Ideal para:")}{" "}{d.ideal}</Badge>
                   </CardContent>
                 </Card>
               ))}
@@ -126,7 +129,7 @@ export default function ViajerosSenior() {
         {/* Resorts adaptados */}
         <section className="py-12 bg-card/50">
           <div className="container mx-auto px-4 max-w-5xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">🏨 Resorts con Facilidades Senior</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.2", "🏨 Resorts con Facilidades Senior")}</h2>
             <div className="grid md:grid-cols-2 gap-6">
               {resortsAdaptados.map(r => (
                 <Card key={r.nombre}>
@@ -152,7 +155,7 @@ export default function ViajerosSenior() {
         {/* Salud */}
         <section className="py-16">
           <div className="container mx-auto px-4 max-w-5xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">🏥 Salud y Bienestar</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.3", "🏥 Salud y Bienestar")}</h2>
             <div className="grid md:grid-cols-2 gap-6">
               {saludBienestar.map(s => (
                 <Card key={s.titulo}>
@@ -174,7 +177,7 @@ export default function ViajerosSenior() {
         {/* Transporte */}
         <section className="py-12 bg-card/50">
           <div className="container mx-auto px-4 max-w-4xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">🚗 Transporte Recomendado</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.4", "🚗 Transporte Recomendado")}</h2>
             <div className="space-y-3">
               {transporteSenior.map(t => (
                 <div key={t.medio} className="flex items-start gap-4 bg-background rounded-xl p-5 border border-border">
@@ -198,13 +201,13 @@ export default function ViajerosSenior() {
         {/* Actividades */}
         <section className="py-16">
           <div className="container mx-auto px-4 max-w-5xl">
-            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">🎯 Actividades Relajadas</h2>
+            <h2 className="font-display text-2xl font-bold text-foreground mb-8 text-center">{pc.tx("h2.5", "🎯 Actividades Relajadas")}</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {actividadesRelajadas.map(a => (
                 <div key={a.nombre} className="bg-card rounded-xl p-5 border border-border">
                   <h3 className="font-semibold text-foreground mb-2 text-sm">{a.nombre}</h3>
                   <p className="text-xs text-muted-foreground mb-3">{a.descripcion}</p>
-                  <Badge variant="outline" className="text-xs">Dificultad: {a.dificultad}</Badge>
+                  <Badge variant="outline" className="text-xs">{pc.tx("Badge.3", "Dificultad:")}{" "}{a.dificultad}</Badge>
                 </div>
               ))}
             </div>
@@ -216,3 +219,6 @@ export default function ViajerosSenior() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { destinosRecomendados, resortsAdaptados, saludBienestar, transporteSenior, actividadesRelajadas };

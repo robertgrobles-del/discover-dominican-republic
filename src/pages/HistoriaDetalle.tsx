@@ -13,8 +13,10 @@ import {
 import { toast } from "sonner";
 import { PanoramaAd } from "@/components/promo";
 import { useHistoryArticle } from "@/lib/historyApi";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function HistoriaDetalle() {
+  const pc = usePageContent("historia-detalle");
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { data: article, isLoading, isError, refetch } = useHistoryArticle(slug);
@@ -35,18 +37,14 @@ export default function HistoriaDetalle() {
           <main className="flex-1 flex items-center justify-center py-20 px-4 text-center">
             <div className="max-w-md space-y-4">
               <BookOpen className="h-16 w-16 text-muted-foreground mx-auto opacity-40" />
-              <h1 className="font-display text-2xl font-bold text-foreground">Artículo Histórico No Encontrado</h1>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                No pudimos encontrar la publicación solicitada. Puede que la crónica o biografía haya sido reubicada.
-              </p>
+              <h1 className="font-display text-2xl font-bold text-foreground">{pc.tx("h1.1", "Artículo Histórico No Encontrado")}</h1>
+              <p className="text-xs text-muted-foreground leading-relaxed">{pc.tx("p.1", "No pudimos encontrar la publicación solicitada. Puede que la crónica o biografía haya sido reubicada.")}</p>
               <div className="flex justify-center gap-2">
                 {isError && (
-                  <Button variant="outline" onClick={() => refetch()} className="rounded-xl">
-                    Reintentar
-                  </Button>
+                  <Button variant="outline" onClick={() => refetch()} className="rounded-xl">{pc.tx("Button.1", "Reintentar")}</Button>
                 )}
                 <Button asChild className="rounded-xl">
-                  <Link to="/historia">Volver al Archivo Histórico</Link>
+                  <Link to="/historia">{pc.tx("Link.1", "Volver al Archivo Histórico")}</Link>
                 </Button>
               </div>
             </div>
@@ -94,9 +92,9 @@ export default function HistoriaDetalle() {
           <div className="border-b border-border/40 bg-muted/20">
             <div className="container mx-auto px-4 max-w-5xl py-3 flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground flex-wrap">
-                <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
+                <Link to="/" className="hover:text-primary transition-colors">{pc.tx("Link.2", "Inicio")}</Link>
                 <ChevronRight className="h-3.5 w-3.5" />
-                <Link to="/historia" className="hover:text-primary transition-colors">Historia Dominicana</Link>
+                <Link to="/historia" className="hover:text-primary transition-colors">{pc.tx("Link.3", "Historia Dominicana")}</Link>
                 <ChevronRight className="h-3.5 w-3.5" />
                 <span className="text-foreground font-semibold truncate max-w-[200px]">{article.title}</span>
               </div>
@@ -114,8 +112,7 @@ export default function HistoriaDetalle() {
                   }
                 }}
               >
-                <Share2 className="h-3.5 w-3.5" /> Compartir
-              </Button>
+                <Share2 className="h-3.5 w-3.5" />{" "}{pc.tx("Button.2", "Compartir")}</Button>
             </div>
           </div>
 
@@ -136,8 +133,7 @@ export default function HistoriaDetalle() {
                   <Badge className="bg-amber-500 text-slate-950 font-bold capitalize">
                     {article.category}
                   </Badge>
-                  <Badge variant="outline" className="bg-background/80 backdrop-blur-md text-foreground text-xs font-semibold">
-                    Época: {article.era} ({article.period})
+                  <Badge variant="outline" className="bg-background/80 backdrop-blur-md text-foreground text-xs font-semibold">{pc.tx("Badge.1", "Época:")}{" "}{article.era} ({article.period})
                   </Badge>
                   <Badge variant="secondary" className="text-xs bg-muted">
                     <Clock className="h-3 w-3 mr-1" /> {article.readTime}
@@ -153,7 +149,7 @@ export default function HistoriaDetalle() {
 
                 <div className="flex items-center gap-2 pt-2 text-xs text-muted-foreground">
                   <User className="h-3.5 w-3.5 text-primary" />
-                  <span>Publicado por: <strong className="text-foreground">{article.author.name}</strong> • {article.author.role}</span>
+                  <span>{pc.tx("span.1", "Publicado por:")}{" "}<strong className="text-foreground">{article.author.name}</strong> • {article.author.role}</span>
                 </div>
               </div>
             </div>
@@ -204,9 +200,7 @@ export default function HistoriaDetalle() {
                     <div className="space-y-6 pt-6">
                       <div className="flex items-center gap-2">
                         <Calendar className="h-5 w-5 text-primary" />
-                        <h2 className="font-display text-2xl font-bold text-foreground">
-                          Hitos Cronológicos
-                        </h2>
+                        <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.1", "Hitos Cronológicos")}</h2>
                       </div>
 
                       <div className="space-y-4 border-l-2 border-primary/30 ml-3 pl-6">
@@ -216,7 +210,7 @@ export default function HistoriaDetalle() {
                             <Badge variant="outline" className="text-xs font-mono font-bold text-primary mb-1">
                               {item.yearOrDate}
                             </Badge>
-                            <h4 className="font-display text-base font-bold text-foreground">{item.title}</h4>
+                            <h3 className="h4 font-display text-base font-bold text-foreground">{item.title}</h3>
                             <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
                           </div>
                         ))}
@@ -228,8 +222,7 @@ export default function HistoriaDetalle() {
                   <div className="pt-6 border-t border-border">
                     <Button asChild variant="outline" className="rounded-xl gap-2 text-xs">
                       <Link to="/historia">
-                        <ArrowLeft className="h-4 w-4" /> Volver a todas las publicaciones
-                      </Link>
+                        <ArrowLeft className="h-4 w-4" />{" "}{pc.tx("Link.4", "Volver a todas las publicaciones")}</Link>
                     </Button>
                   </div>
 
@@ -243,17 +236,13 @@ export default function HistoriaDetalle() {
                     <Card className="rounded-3xl border-border bg-card/60">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-base flex items-center gap-2">
-                          <Landmark className="h-4 w-4 text-primary" />
-                          Sitios Históricos Vinculados
-                        </CardTitle>
+                          <Landmark className="h-4 w-4 text-primary" />{pc.tx("CardTitle.1", "Sitios Históricos Vinculados")}</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3 text-xs">
-                        <p className="text-muted-foreground">
-                          Puedes visitar los lugares emblemáticos donde ocurrieron estos hechos históricos:
-                        </p>
+                        <p className="text-muted-foreground">{pc.tx("p.2", "Puedes visitar los lugares emblemáticos donde ocurrieron estos hechos históricos:")}</p>
                         <Button asChild variant="secondary" className="w-full text-xs rounded-xl justify-between">
                           <Link to="/patrimonio">
-                            <span>Ver en Patrimonio Cultural</span>
+                            <span>{pc.tx("span.2", "Ver en Patrimonio Cultural")}</span>
                             <ChevronRight className="h-3.5 w-3.5" />
                           </Link>
                         </Button>
@@ -266,9 +255,7 @@ export default function HistoriaDetalle() {
                     <Card className="rounded-3xl border-border">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-base flex items-center gap-2">
-                          <BookOpen className="h-4 w-4 text-primary" />
-                          Crónicas Relacionadas
-                        </CardTitle>
+                          <BookOpen className="h-4 w-4 text-primary" />{pc.tx("CardTitle.2", "Crónicas Relacionadas")}</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-3">
                         {article.relatedItems.map((item, idx) => (
@@ -277,7 +264,7 @@ export default function HistoriaDetalle() {
                             to={`/historia/${item.slug}`}
                             className="block p-3 rounded-2xl bg-muted/40 hover:bg-primary/10 transition-colors border border-transparent hover:border-primary/20 group"
                           >
-                            <span className="text-[10px] uppercase font-bold text-primary block mb-0.5">
+                            <span className="text-3xs uppercase font-bold text-primary block mb-0.5">
                               {item.type}
                             </span>
                             <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors block">
@@ -292,12 +279,8 @@ export default function HistoriaDetalle() {
                   {/* Fact Checking / Academic Seal */}
                   <div className="p-4 bg-muted/30 rounded-3xl border border-border text-xs space-y-2">
                     <div className="flex items-center gap-2 font-bold text-foreground">
-                      <ShieldCheck className="h-4 w-4 text-emerald-500" />
-                      Rigor Académico
-                    </div>
-                    <p className="text-muted-foreground text-[11px] leading-relaxed">
-                      Todas las fuentes han sido recopiladas del Archivo General de la Nación (AGN) y las actas constitutivas de la República Dominicana.
-                    </p>
+                      <ShieldCheck className="h-4 w-4 text-emerald-500" />{pc.tx("div.1", "Rigor Académico")}</div>
+                    <p className="text-muted-foreground text-2xs leading-relaxed">{pc.tx("p.3", "Todas las fuentes han sido recopiladas del Archivo General de la Nación (AGN) y las actas constitutivas de la República Dominicana.")}</p>
                   </div>
 
                 </div>

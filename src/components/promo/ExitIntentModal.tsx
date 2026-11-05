@@ -12,6 +12,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import { AppStorage } from "@/lib/storage";
+import { useBanner, trackBannerClick, trackBannerImpression } from "@/hooks/useAdBanners";
 
 export interface ExitPopupConfig {
   enabled: boolean;
@@ -60,14 +61,22 @@ export function markUserAsRegistered() {
   AppStorage.set(USER_REGISTERED_STORAGE_KEY, true);
   try {
     localStorage.setItem("descubrerd_user_registered", "true");
-  } catch {}
+  } catch { /* almacenamiento no disponible: el modal se vuelve a mostrar */ }
 }
 
 export function ExitIntentModal() {
   const { user, signUp } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [config, setConfig] = useState<ExitPopupConfig>(getExitPopupConfig);
+  const [savedConfig, setConfig] = useState<ExitPopupConfig>(getExitPopupConfig);
+  // El admin de anuncios manda (banner_type "exit-popup", placement "exit-popup"): headline = título, subtext = subtítulo,
+  // alt_text = regalo y animation_config.badge_text / xp_reward. Abrir cuenta como impresión y registrarse como clic.
+  const banner = useBanner({ bannerType: "exit-popup", placement: "exit-popup" });
+  const extra = (banner?.animation_config ?? {}) as { badge_text?: string; xp_reward?: number };
+  const config: ExitPopupConfig = banner
+    ? { enabled: true, title: banner.headline || banner.name, subtitle: banner.subtext || "", giftText: banner.alt_text || savedConfig.giftText, badgeText: extra.badge_text || savedConfig.badgeText, xpReward: extra.xp_reward ?? savedConfig.xpReward }
+    : savedConfig;
+  useEffect(() => { if (open && banner) void trackBannerImpression(banner.id); }, [open, banner?.id]);
   
   // Registration mini-form
   const [name, setName] = useState("");
@@ -103,7 +112,6 @@ export function ExitIntentModal() {
     const hasBeenShown = sessionStorage.getItem(EXIT_POPUP_SHOWN_KEY) === "true";
     if (hasBeenShown) return;
 
-    let timer: NodeJS.Timeout;
 
     const handleMouseLeave = (e: MouseEvent) => {
       // Trigger when mouse leaves viewport near top (navigating to address bar or tabs)
@@ -114,7 +122,7 @@ export function ExitIntentModal() {
     };
 
     // Mobile fallback: trigger after 45 seconds of interaction if still guest
-    timer = setTimeout(() => {
+    const timer = setTimeout(() => {
       if (!sessionStorage.getItem(EXIT_POPUP_SHOWN_KEY) && !user) {
         setOpen(true);
         sessionStorage.setItem(EXIT_POPUP_SHOWN_KEY, "true");
@@ -178,7 +186,7 @@ export function ExitIntentModal() {
           <div className="absolute -top-12 -right-12 w-36 h-36 bg-white/10 rounded-full blur-2xl" />
           <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-black/20 rounded-full blur-xl" />
           
-          <Badge className="bg-white/20 text-white border-white/30 text-[10px] font-bold px-3 py-1 mb-3 backdrop-blur-md uppercase tracking-wider mx-auto">
+          <Badge className="bg-white/20 text-white border-white/30 text-3xs font-bold px-3 py-1 mb-3 backdrop-blur-md uppercase tracking-wider mx-auto">
             <Sparkles className="h-3 w-3 mr-1 text-amber-300" />
             {config.badgeText}
           </Badge>
@@ -269,7 +277,7 @@ export function ExitIntentModal() {
                   onCheckedChange={(c) => setAcceptTerms(c as boolean)}
                   className="mt-0.5"
                 />
-                <Label htmlFor="exit-terms" className="text-[11px] text-muted-foreground leading-tight">
+                <Label htmlFor="exit-terms" className="text-2xs text-muted-foreground leading-tight">
                   Acepto los{" "}
                   <Link to="/terminos" target="_blank" className="text-primary underline font-medium">
                     Términos y Condiciones
@@ -286,7 +294,7 @@ export function ExitIntentModal() {
                   onCheckedChange={(c) => setSubscribeNewsletter(c as boolean)}
                   className="mt-0.5"
                 />
-                <Label htmlFor="exit-newsletter" className="text-[11px] text-muted-foreground leading-tight">
+                <Label htmlFor="exit-newsletter" className="text-2xs text-muted-foreground leading-tight">
                   Deseo suscribirme al boletín oficial con promociones y ofertas turísticas exclusivas.
                 </Label>
               </div>
@@ -312,7 +320,7 @@ export function ExitIntentModal() {
             </form>
           )}
 
-          <div className="flex items-center justify-center gap-1.5 pt-4 text-[10px] text-muted-foreground border-t border-border mt-4">
+          <div className="flex items-center justify-center gap-1.5 pt-4 text-3xs text-muted-foreground border-t border-border mt-4">
             <ShieldCheck className="h-3.5 w-3.5 text-primary" />
             <span>Datos 100% protegidos bajo directrices oficiales del Ministerio de Turismo.</span>
           </div>

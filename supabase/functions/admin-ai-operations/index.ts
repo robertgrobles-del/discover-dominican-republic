@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,10 +11,29 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const json = (body: unknown, status: number) =>
+    new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
   try {
+    // Sólo administración: la función gasta la clave de IA del servidor (mismo control que admin-entities).
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) return json({ error: "No authorization header" }, 401);
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
+    if (authError || !user) return json({ error: "Invalid token" }, 401);
+    const { data: isAdmin, error: roleError } = await supabase.rpc("has_role", { _user_id: user.id, _role: "admin" });
+    if (roleError || !isAdmin) return json({ error: "Forbidden" }, 403);
+
     const { prompt, tone = "aventurero", entityType = "beaches" } = await req.json();
 
-    if (!prompt) {
+    // Tipos y tamaños acotados: estos valores se interpolan en las instrucciones del modelo.
+    const TONES = ["aventurero", "elegante", "familiar", "informativo", "romantico", "divertido", "lujoso"];
+    if (typeof prompt !== "string" || prompt.length > 1000 || typeof tone !== "string" || !TONES.includes(tone)
+      || typeof entityType !== "string" || !/^[a-z_]{2,40}$/.test(entityType)) {
+      return json({ error: "Parámetros inválidos: prompt (texto ≤ 1000), tone y entityType válidos." }, 400);
+    }
+
+    if (!prompt.trim()) {
       return new Response(
         JSON.stringify({ error: "El parámetro 'prompt' es requerido." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }

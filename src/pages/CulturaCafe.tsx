@@ -104,7 +104,50 @@ const cafeterias = [
   },
 ];
 
+import { useEffect, useState } from "react";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { fetchApi } from "@/lib/fastifyClient";
+import { usePageContent } from "@/lib/pageContent";
+
 export default function CulturaCafe() {
+  const pc = usePageContent("cultura-cafe");
+  const tours = pc.data("tours", __pcData.tours);
+  const regiones = pc.data("regiones", __pcData.regiones);
+  const proceso = pc.data("proceso", __pcData.proceso);
+  const cafeterias = pc.data("cafeterias", __pcData.cafeterias);
+  const [serverTours, setServerTours] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!HAS_BACKEND_SESSION) return;
+    const controller = new AbortController();
+
+    fetchApi<{ data: Array<{ id: string; name: string; slug: string; description?: string; tour_duration?: string; price_range?: string; rating?: number; review_count?: number; image_url?: string }> }>("/coffee-experiences?per_page=20", {
+      signal: controller.signal
+    })
+      .then((res) => {
+        if (res?.data && res.data.length > 0) {
+          const mapped = res.data.map(exp => ({
+            nombre: exp.name,
+            duracion: exp.tour_duration || "3-4 horas",
+            precio: exp.price_range ? `$${exp.price_range}` : "$50",
+            incluye: ["Recorrido guiado", "Degustación de café especial", "Guía local"],
+            rating: Number(exp.rating) || 4.9,
+            reviews: exp.review_count || 10,
+          }));
+          setServerTours(mapped);
+        }
+      })
+      .catch((err) => {
+        if (err.name !== "AbortError") {
+          console.warn("Fallo al obtener experiencias de café desde Fastify:", err);
+        }
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  const activeTours = serverTours.length > 0 ? [...serverTours, ...tours] : tours;
+
   return (
     <PageTransition>
       <div className="min-h-screen bg-background">
@@ -121,25 +164,15 @@ export default function CulturaCafe() {
               className="max-w-3xl"
             >
               <Badge className="mb-4 bg-white/20 text-white border-white/30">
-                <Coffee className="w-4 h-4 mr-2" />
-                Ruta del Café
-              </Badge>
-              <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">
-                Cultura del Café:{" "}
-                <span className="text-amber-300">Sabor de la Montaña</span>
+                <Coffee className="w-4 h-4 mr-2" />{pc.tx("Badge.1", "Ruta del Café")}</Badge>
+              <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6">{pc.tx("h1.1", "Cultura del Café:")}{" "}
+                <span className="text-amber-300">{pc.tx("span.1", "Sabor de la Montaña")}</span>
               </h1>
-              <p className="text-xl text-white/80 mb-8">
-                Descubre el café dominicano cultivado en las montañas del Cibao. 
-                Desde la semilla hasta tu taza, vive una experiencia única.
-              </p>
+              <p className="text-xl text-white/80 mb-8">{pc.tx("p.1", "Descubre el café dominicano cultivado en las montañas del Cibao. Desde la semilla hasta tu taza, vive una experiencia única.")}</p>
               <div className="flex flex-wrap gap-4">
                 <Button size="lg" className="gap-2 bg-white text-amber-900 hover:bg-white/90">
-                  <Calendar className="h-4 w-4" />
-                  Reservar Tour
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Ver Fincas
-                </Button>
+                  <Calendar className="h-4 w-4" />{pc.tx("Button.1", "Reservar Tour")}</Button>
+                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.2", "Ver Fincas")}</Button>
               </div>
             </motion.div>
           </div>
@@ -154,12 +187,9 @@ export default function CulturaCafe() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Regiones <span className="text-gradient">Cafetaleras</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.1", "Regiones")}{" "}<span className="text-gradient">{pc.tx("span.2", "Cafetaleras")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Cada región produce un café con características únicas definidas por su terroir.
-              </p>
+              <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.2", "Cada región produce un café con características únicas definidas por su terroir.")}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-8">
@@ -189,15 +219,15 @@ export default function CulturaCafe() {
                   </div>
                   <div className="p-6">
                     <div className="mb-4">
-                      <p className="text-sm text-muted-foreground mb-1">Variedades:</p>
+                      <p className="text-sm text-muted-foreground mb-1">{pc.tx("p.3", "Variedades:")}</p>
                       <p className="font-medium text-foreground">{region.variedad}</p>
                     </div>
                     <div className="mb-4">
-                      <p className="text-sm text-muted-foreground mb-1">Notas de sabor:</p>
+                      <p className="text-sm text-muted-foreground mb-1">{pc.tx("p.4", "Notas de sabor:")}</p>
                       <p className="font-medium text-foreground">{region.sabor}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground mb-2">Fincas destacadas:</p>
+                      <p className="text-sm text-muted-foreground mb-2">{pc.tx("p.5", "Fincas destacadas:")}</p>
                       <div className="flex flex-wrap gap-2">
                         {region.fincas.map((finca) => (
                           <Badge key={finca} variant="secondary" className="text-xs">
@@ -222,12 +252,9 @@ export default function CulturaCafe() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Del Cafetal a tu <span className="text-gradient">Taza</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.2", "Del Cafetal a tu")}{" "}<span className="text-gradient">{pc.tx("span.3", "Taza")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Conoce cada etapa del proceso artesanal que hace único al café dominicano.
-              </p>
+              <p className="text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.6", "Conoce cada etapa del proceso artesanal que hace único al café dominicano.")}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -243,7 +270,7 @@ export default function CulturaCafe() {
                   <div className="w-12 h-12 rounded-full bg-amber-500 text-white font-bold text-xl flex items-center justify-center mx-auto mb-3">
                     {item.paso}
                   </div>
-                  <h4 className="font-semibold text-foreground mb-1">{item.titulo}</h4>
+                  <h3 className="h4 font-semibold text-foreground mb-1">{item.titulo}</h3>
                   <p className="text-xs text-muted-foreground">{item.desc}</p>
                 </motion.div>
               ))}
@@ -260,13 +287,12 @@ export default function CulturaCafe() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-                Tours y <span className="text-gradient">Experiencias</span>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{pc.tx("h2.3", "Tours y")}{" "}<span className="text-gradient">{pc.tx("span.4", "Experiencias")}</span>
               </h2>
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              {tours.map((tour, index) => (
+              {activeTours.map((tour, index) => (
                 <motion.div
                   key={tour.nombre}
                   initial={{ opacity: 0, y: 20 }}
@@ -278,9 +304,7 @@ export default function CulturaCafe() {
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-4">
                         <Badge className="bg-amber-500/20 text-amber-600">
-                          <Coffee className="h-3 w-3 mr-1" />
-                          Tour
-                        </Badge>
+                          <Coffee className="h-3 w-3 mr-1" />{pc.tx("Badge.2", "Tour")}</Badge>
                         <div className="flex items-center gap-1 text-sm">
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                           <span className="font-medium">{tour.rating}</span>
@@ -305,8 +329,7 @@ export default function CulturaCafe() {
                           </li>
                         ))}
                       </ul>
-                      <Button className="w-full gap-2">
-                        Reservar <ChevronRight className="h-4 w-4" />
+                      <Button className="w-full gap-2">{pc.tx("Button.3", "Reservar")}{" "}<ChevronRight className="h-4 w-4" />
                       </Button>
                     </CardContent>
                   </Card>
@@ -325,8 +348,7 @@ export default function CulturaCafe() {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <h2 className="font-display text-3xl font-bold mb-4">
-                Dónde <span className="text-gradient">Degustar</span>
+              <h2 className="font-display text-3xl font-bold mb-4">{pc.tx("h2.4", "Dónde")}{" "}<span className="text-gradient">{pc.tx("span.5", "Degustar")}</span>
               </h2>
             </motion.div>
 
@@ -348,7 +370,7 @@ export default function CulturaCafe() {
                     />
                   </div>
                   <div className="p-4">
-                    <h4 className="font-semibold text-foreground">{cafe.nombre}</h4>
+                    <h3 className="h4 font-semibold text-foreground">{cafe.nombre}</h3>
                     <p className="text-sm text-muted-foreground flex items-center gap-1">
                       <MapPin className="h-3 w-3" />
                       {cafe.ubicacion}
@@ -370,19 +392,11 @@ export default function CulturaCafe() {
               viewport={{ once: true }}
             >
               <Coffee className="h-12 w-12 text-amber-300 mx-auto mb-4" />
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">
-                Vive la experiencia cafetalera
-              </h2>
-              <p className="text-white/80 mb-8 max-w-xl mx-auto">
-                Reserva tu tour y lleva a casa el mejor café del Caribe.
-              </p>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-4">{pc.tx("h2.5", "Vive la experiencia cafetalera")}</h2>
+              <p className="text-white/80 mb-8 max-w-xl mx-auto">{pc.tx("p.7", "Reserva tu tour y lleva a casa el mejor café del Caribe.")}</p>
               <div className="flex justify-center gap-4">
-                <Button size="lg" className="gap-2 bg-white text-amber-900 hover:bg-white/90">
-                  Reservar Tour
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">
-                  Comprar Café Online
-                </Button>
+                <Button size="lg" className="gap-2 bg-white text-amber-900 hover:bg-white/90">{pc.tx("Button.4", "Reservar Tour")}</Button>
+                <Button size="lg" variant="outline" className="gap-2 border-white/30 text-white hover:bg-white/10">{pc.tx("Button.5", "Comprar Café Online")}</Button>
               </div>
             </motion.div>
           </div>
@@ -393,3 +407,6 @@ export default function CulturaCafe() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { tours, regiones, proceso, cafeterias };

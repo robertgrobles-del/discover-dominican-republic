@@ -63,7 +63,7 @@ export function StoryQuestSection({ storyStage, storyCompleted, onAdvanceStory }
                   <span className="text-2xl">{s.icon}</span>
                   <Badge
                     variant={isCompleted ? "default" : isActive ? "secondary" : "outline"}
-                    className={`text-[9px] ${
+                    className={`text-3xs ${
                       isCompleted ? "bg-emerald-500 text-white border-none" :
                       isActive ? "bg-amber-500/20 text-amber-600 border-none" : ""
                     }`}
@@ -71,9 +71,9 @@ export function StoryQuestSection({ storyStage, storyCompleted, onAdvanceStory }
                     {isCompleted ? "Completado" : isActive ? "Activo" : "Bloqueado"}
                   </Badge>
                 </div>
-                <h4 className="font-bold text-xs text-foreground mb-1 leading-tight">{s.title}</h4>
-                <p className="text-[10px] text-muted-foreground leading-normal mb-3">{s.desc}</p>
-                <Badge variant="outline" className="text-[9px] gap-0.5 border-none bg-muted px-1.5 py-0">
+                <h3 className="h4 font-bold text-xs text-foreground mb-1 leading-tight">{s.title}</h3>
+                <p className="text-3xs text-muted-foreground leading-normal mb-3">{s.desc}</p>
+                <Badge variant="outline" className="text-3xs gap-0.5 border-none bg-muted px-1.5 py-0">
                   <Zap className="h-2.5 w-2.5 text-amber-500" /> +{s.xp} XP
                 </Badge>
               </div>

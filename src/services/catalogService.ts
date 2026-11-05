@@ -17,6 +17,7 @@ import { experiences as localExperiences, type Experience } from "@/data/experie
 import { hotels as localHotels, type Hotel } from "@/data/hotels";
 import { restaurants as localRestaurants, type Restaurant } from "@/data/restaurants";
 import { CATALOG_SOURCE } from "@/lib/catalogSource";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { fetchApi } from "@/lib/fastifyClient";
 import { catalogReady } from "./catalogHydration";
 
@@ -81,7 +82,7 @@ export const CatalogService = {
 
   /** Spas y centros de bienestar publicados en el backend. Sin backend no hay ninguno que añadir a los locales. */
   async getSpas(): Promise<SpaRow[]> {
-    if (CATALOG_SOURCE !== "api") return [];
+    if (CATALOG_SOURCE !== "api" && !HAS_BACKEND_SESSION) return [];
     try {
       return (await fetchApi<{ data: SpaRow[] }>("/spas?per_page=100&fields=*")).data;
     } catch {

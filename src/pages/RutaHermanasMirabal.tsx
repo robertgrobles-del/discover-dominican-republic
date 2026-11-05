@@ -12,7 +12,9 @@ import {
   Map, History, ArrowRight, Star, Heart
 } from "lucide-react";
 import { toast } from "sonner";
+import { usePageContent } from "@/lib/pageContent";
 
+import { activateOnKey } from "@/lib/a11y";
 interface RouteStop {
   id: string;
   name: string;
@@ -68,6 +70,8 @@ const routeStops: RouteStop[] = [
 ];
 
 export default function RutaHermanasMirabal() {
+  const pc = usePageContent("ruta-hermanas-mirabal");
+  const routeStops = pc.data("routeStops", __pcData.routeStops);
   const [activeStop, setActiveStop] = useState<string>("stop1");
   const currentStop = routeStops.find(s => s.id === activeStop) || routeStops[0];
 
@@ -78,8 +82,8 @@ export default function RutaHermanasMirabal() {
   return (
     <PageTransition>
       <SEOHead
-        title="Ruta Histórica Hermanas Mirabal - Descubre RD"
-        description="Sigue los pasos de Patria, Minerva y María Teresa Mirabal en Salcedo. Explora el museo, su casa natal, los famosos murales artísticos y el Ecoparque de la Paz."
+        title={pc.t("SEOHead.title.1", "Ruta Histórica Hermanas Mirabal - Descubre RD")}
+        description={pc.t("SEOHead.description.1", "Sigue los pasos de Patria, Minerva y María Teresa Mirabal en Salcedo. Explora el museo, su casa natal, los famosos murales artísticos y el Ecoparque de la Paz.")}
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -89,21 +93,14 @@ export default function RutaHermanasMirabal() {
           <section className="relative py-20 bg-gradient-to-br from-rose-500/10 via-amber-500/5 to-transparent border-b border-border">
             <div className="container mx-auto px-4 text-center">
               <Badge variant="secondary" className="mb-4 bg-rose-500/10 text-rose-600 border-rose-500/20 gap-1">
-                <History className="h-3.5 w-3.5" /> Ruta de la Libertad y Memoria Histórica
-              </Badge>
-              <h1 className="text-4xl md:text-6xl font-bold mb-4 font-display">
-                Ruta Hermanas Mirabal
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Recorre la provincia de los murales y rinde tributo a las heroínas nacionales en su tierra natal, Salcedo. Un viaje de arte, ecología e historia patria.
-              </p>
+                <History className="h-3.5 w-3.5" />{" "}{pc.tx("Badge.1", "Ruta de la Libertad y Memoria Histórica")}</Badge>
+              <h1 className="text-4xl md:text-6xl font-bold mb-4 font-display">{pc.tx("h1.1", "Ruta Hermanas Mirabal")}</h1>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.1", "Recorre la provincia de los murales y rinde tributo a las heroínas nacionales en su tierra natal, Salcedo. Un viaje de arte, ecología e historia patria.")}</p>
               <div className="mt-8 flex justify-center gap-4">
                 <Button onClick={handleStartRoute} className="bg-rose-600 hover:bg-rose-700 text-white gap-2">
-                  <Map className="h-4.5 w-4.5" /> Iniciar Ruta Digital
-                </Button>
+                  <Map className="h-4.5 w-4.5" />{" "}{pc.tx("Button.1", "Iniciar Ruta Digital")}</Button>
                 <Button variant="outline" className="gap-2" onClick={() => toast.info("Guía de audio disponible próximamente.")}>
-                  <BookOpen className="h-4.5 w-4.5" /> Descargar Folleto PDF
-                </Button>
+                  <BookOpen className="h-4.5 w-4.5" />{" "}{pc.tx("Button.2", "Descargar Folleto PDF")}</Button>
               </div>
             </div>
           </section>
@@ -118,14 +115,14 @@ export default function RutaHermanasMirabal() {
                 <div className="lg:col-span-5 space-y-4">
                   <div className="flex items-center gap-2 mb-4">
                     <Compass className="h-5 w-5 text-rose-500" />
-                    <h2 className="text-xl font-bold font-display">Paradas del Recorrido</h2>
+                    <h2 className="text-xl font-bold font-display">{pc.tx("h2.1", "Paradas del Recorrido")}</h2>
                   </div>
 
                   <div className="relative border-l border-muted-foreground/30 ml-4 pl-6 space-y-8">
                     {routeStops.map((stop, index) => {
                       const isActive = stop.id === activeStop;
                       return (
-                        <div 
+                        <div role="button" tabIndex={0} onKeyDown={activateOnKey} 
                           key={stop.id}
                           className="relative cursor-pointer group"
                           onClick={() => setActiveStop(stop.id)}
@@ -137,7 +134,7 @@ export default function RutaHermanasMirabal() {
                               : "bg-background border-muted-foreground/50 group-hover:border-rose-400"
                           }`} />
                           
-                          <span className="text-[10px] uppercase font-bold text-muted-foreground">Parada {index + 1}</span>
+                          <span className="text-3xs uppercase font-bold text-muted-foreground">{pc.tx("span.1", "Parada")}{" "}{index + 1}</span>
                           <h3 className={`text-base font-semibold transition-colors ${
                             isActive ? "text-rose-500 font-bold" : "text-foreground group-hover:text-rose-400"
                           }`}>{stop.name}</h3>
@@ -156,7 +153,7 @@ export default function RutaHermanasMirabal() {
                     <CardHeader className="bg-rose-500/5 border-b border-rose-500/10">
                       <div className="flex justify-between items-start gap-2">
                         <div>
-                          <Badge variant="outline" className="mb-2 border-rose-500/30 text-rose-600 bg-rose-500/5 text-[10px]">
+                          <Badge variant="outline" className="mb-2 border-rose-500/30 text-rose-600 bg-rose-500/5 text-3xs">
                             {currentStop.type}
                           </Badge>
                           <CardTitle className="text-2xl font-display text-foreground">{currentStop.name}</CardTitle>
@@ -178,15 +175,14 @@ export default function RutaHermanasMirabal() {
                       
                       <div className="space-y-2">
                         <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
-                          <History className="h-4 w-4 text-rose-500" /> Sobre esta parada
-                        </h4>
+                          <History className="h-4 w-4 text-rose-500" />{" "}{pc.tx("h4.1", "Sobre esta parada")}</h4>
                         <p className="text-sm text-muted-foreground leading-relaxed">
                           {currentStop.description}
                         </p>
                       </div>
 
                       <div className="space-y-3">
-                        <h4 className="text-sm font-bold text-foreground">Aspectos Destacados:</h4>
+                        <h4 className="text-sm font-bold text-foreground">{pc.tx("h4.2", "Aspectos Destacados:")}</h4>
                         <ul className="grid sm:grid-cols-2 gap-2 text-xs text-muted-foreground">
                           {currentStop.highlights.map((h, i) => (
                             <li key={i} className="flex items-center gap-2 bg-muted/40 p-2 rounded border border-border">
@@ -199,13 +195,13 @@ export default function RutaHermanasMirabal() {
 
                       <div className="grid sm:grid-cols-2 gap-4 pt-4 border-t border-border text-xs">
                         <div className="space-y-1">
-                          <span className="text-muted-foreground block text-[10px] uppercase font-bold">Horarios de Entrada:</span>
+                          <span className="text-muted-foreground block text-3xs uppercase font-bold">{pc.tx("span.2", "Horarios de Entrada:")}</span>
                           <span className="font-semibold flex items-center gap-1 text-foreground">
                             <Calendar className="h-4.5 w-4.5 text-rose-500" /> {currentStop.hours}
                           </span>
                         </div>
                         <div className="space-y-1">
-                          <span className="text-muted-foreground block text-[10px] uppercase font-bold">Costo de Entrada:</span>
+                          <span className="text-muted-foreground block text-3xs uppercase font-bold">{pc.tx("span.3", "Costo de Entrada:")}</span>
                           <span className="font-semibold text-foreground">
                             {currentStop.price}
                           </span>
@@ -218,8 +214,7 @@ export default function RutaHermanasMirabal() {
                             toast.success(`Mostrando ruta vial hacia ${currentStop.name} en el mapa.`);
                           }}
                           className="w-full sm:w-auto gap-1 text-xs"
-                        >
-                          Cómo llegar <ArrowRight className="h-3.5 w-3.5" />
+                        >{pc.tx("Button.3", "Cómo llegar")}{" "}<ArrowRight className="h-3.5 w-3.5" />
                         </Button>
                       </div>
 
@@ -236,13 +231,9 @@ export default function RutaHermanasMirabal() {
           <section className="bg-muted/40 py-16 border-t border-border">
             <div className="container mx-auto px-4 max-w-4xl text-center">
               <Landmark className="h-10 w-10 text-rose-500 mx-auto mb-4" />
-              <h2 className="text-2xl md:text-3xl font-bold font-display mb-4">El Legado de las Mariposas</h2>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-6">
-                El 25 de noviembre, fecha del trágico asesinato de Patria, Minerva y María Teresa Mirabal en 1960, fue declarado por la ONU como el <strong>Día Internacional de la Eliminación de la Violencia contra la Mujer</strong>. Su valentía transformó la historia dominicana y el mundo.
-              </p>
-              <Badge variant="outline" className="border-rose-500/20 bg-rose-500/5 text-rose-600 px-4 py-1.5 text-xs font-semibold">
-                Salcedo, Provincia Hermanas Mirabal, República Dominicana
-              </Badge>
+              <h2 className="text-2xl md:text-3xl font-bold font-display mb-4">{pc.tx("h2.2", "El Legado de las Mariposas")}</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-6">{pc.tx("p.2", "El 25 de noviembre, fecha del trágico asesinato de Patria, Minerva y María Teresa Mirabal en 1960, fue declarado por la ONU como el")}{" "}<strong>{pc.tx("strong.1", "Día Internacional de la Eliminación de la Violencia contra la Mujer")}</strong>{pc.tx("p.3", ". Su valentía transformó la historia dominicana y el mundo.")}</p>
+              <Badge variant="outline" className="border-rose-500/20 bg-rose-500/5 text-rose-600 px-4 py-1.5 text-xs font-semibold">{pc.tx("Badge.2", "Salcedo, Provincia Hermanas Mirabal, República Dominicana")}</Badge>
             </div>
           </section>
         </main>
@@ -252,3 +243,6 @@ export default function RutaHermanasMirabal() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { routeStops };

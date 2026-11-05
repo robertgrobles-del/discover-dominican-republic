@@ -13,6 +13,15 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { usePageContent } from "@/lib/pageContent";
+import { PlaceActions, scrollToSection } from "@/components/detail/PlaceActions";
+import { CalendarCheck, Navigation } from "lucide-react";
+
+/** WhatsApp sólo con el teléfono del propio negocio: nunca un número genérico. */
+const waUrl = (phone: string | undefined | null, name: string) => {
+  const digits = String(phone ?? "").replace(/\D/g, "");
+  return digits.length >= 10 ? `https://wa.me/${digits}?text=${encodeURIComponent(`Hola, vi ${name} en Descubre República Dominicana y quisiera consultar disponibilidad.`)}` : undefined;
+};
 
 // Shape of the static demo spas below. There is no dedicated `src/data/spas.ts`
 // (unlike beaches/restaurants/bars) - this is the closest thing to a real
@@ -193,6 +202,7 @@ function useSpaData(slug: string | undefined): { spa: SpaSource | undefined; isL
 }
 
 export default function SpaDetalle() {
+  const pc = usePageContent("spa-detalle");
   const { slug } = useParams();
   const { spa: rawSpa, isLoading } = useSpaData(slug);
 
@@ -218,9 +228,9 @@ export default function SpaDetalle() {
         <div className="min-h-screen bg-background">
           <Header />
           <div className="container mx-auto px-4 py-20 text-center">
-            <h1 className="text-3xl font-bold mb-4">Spa no encontrado</h1>
-            <p className="text-muted-foreground mb-8">El establecimiento que buscas no existe o fue removido.</p>
-            <Link to="/wellness"><Button>Volver a Wellness</Button></Link>
+            <h1 className="text-3xl font-bold mb-4">{pc.tx("h1.1", "Spa no encontrado")}</h1>
+            <p className="text-muted-foreground mb-8">{pc.tx("p.1", "El establecimiento que buscas no existe o fue removido.")}</p>
+            <Link to="/wellness"><Button>{pc.tx("Button.1", "Volver a Wellness")}</Button></Link>
           </div>
           <Footer />
         </div>
@@ -270,16 +280,15 @@ export default function SpaDetalle() {
             <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
               <div className="container mx-auto">
                 <Link to="/wellness" className="inline-flex items-center gap-1 text-white/80 hover:text-white mb-4 text-sm">
-                  <ChevronLeft className="h-4 w-4" /> Volver a Wellness
-                </Link>
+                  <ChevronLeft className="h-4 w-4" />{" "}{pc.tx("Link.1", "Volver a Wellness")}</Link>
                 <div className="flex items-center gap-2 mb-2">
                   <Badge className="bg-primary/90 text-primary-foreground">{spa.category}</Badge>
-                  {spa.featured && <Badge variant="secondary">⭐ Destacado</Badge>}
+                  {spa.featured && <Badge variant="secondary">{pc.tx("Badge.1", "Destacado")}</Badge>}
                 </div>
                 <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-2">{spa.name}</h1>
                 <div className="flex items-center gap-4 text-white/80 text-sm flex-wrap">
                   {spa.location && <span className="flex items-center gap-1"><MapPin className="h-4 w-4" /> {spa.location}</span>}
-                  {spa.rating > 0 && <span className="flex items-center gap-1"><Star className="h-4 w-4 fill-yellow-400 text-yellow-400" /> {spa.rating} ({spa.reviews} reseñas)</span>}
+                  {spa.rating > 0 && <span className="flex items-center gap-1"><Star className="h-4 w-4 fill-yellow-400 text-yellow-400" /> {spa.rating} ({spa.reviews}{" "}{pc.tx("span.1", "reseñas)")}</span>}
                   {spa.duration && <span className="flex items-center gap-1"><Clock className="h-4 w-4" /> {spa.duration}</span>}
                 </div>
               </div>
@@ -287,21 +296,35 @@ export default function SpaDetalle() {
           </div>
         </section>
 
+        {/* Acciones: las mismas que en hoteles, restaurantes y bares */}
+        <section aria-label={`Acciones de ${spa.name}`} className="border-b border-border/60 bg-card/60 backdrop-blur-sm">
+          <div className="container mx-auto flex flex-col gap-4 px-4 py-4 lg:flex-row lg:items-center lg:justify-end">
+            <PlaceActions
+              primary={{ label: "Reservar", icon: CalendarCheck, onClick: () => scrollToSection("spa-booking") }}
+              secondary={spa.location ? [{ label: "Cómo llegar", icon: Navigation, href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${spa.name} ${spa.location}`)}` }] : []}
+              whatsappUrl={waUrl(spa.phone, spa.name)}
+              shareTitle={spa.name}
+              claim={{ name: spa.name, type: "otro", id: spa.id }}
+            />
+          </div>
+        </section>
+
         <main className="container mx-auto px-4 py-10">
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
               <section>
-                <h2 className="font-display text-2xl font-bold mb-4">Sobre {spa.name}</h2>
+                <h2 className="font-display text-2xl font-bold mb-4">{pc.tx("h2.1", "Sobre")}{" "}{spa.name}</h2>
                 <p className="text-muted-foreground leading-relaxed">{spa.description}</p>
               </section>
 
               {spa.gallery.length > 1 && (
                 <section>
-                  <h2 className="font-display text-xl font-bold mb-4">Galería</h2>
+                  <h2 className="font-display text-xl font-bold mb-4">{pc.tx("h2.2", "Galería")}</h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {spa.gallery.map((img: string, i: number) => (
                       <div key={i} className="aspect-[4/3] rounded-xl overflow-hidden">
-                        <img src={img} alt={`${spa.name} ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                        {/* Una foto que no carga se retira con su hueco, en vez de dejar el texto alternativo suelto. */}
+                        <img src={img} alt={`${spa.name} ${i + 1}`} loading="lazy" onError={(e) => { (e.currentTarget.parentElement as HTMLElement).style.display = "none"; }} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
                       </div>
                     ))}
                   </div>
@@ -310,7 +333,7 @@ export default function SpaDetalle() {
 
               {spa.services.length > 0 && (
                 <section>
-                  <h2 className="font-display text-xl font-bold mb-4">Servicios y Tratamientos</h2>
+                  <h2 className="font-display text-xl font-bold mb-4">{pc.tx("h2.3", "Servicios y Tratamientos")}</h2>
                   <div className="grid sm:grid-cols-2 gap-3">
                     {spa.services.map((service: string, i: number) => (
                       <div key={i} className="flex items-center gap-3 p-3 bg-card rounded-lg border border-border">
@@ -324,7 +347,7 @@ export default function SpaDetalle() {
 
               {spa.highlights.length > 0 && (
                 <section>
-                  <h2 className="font-display text-xl font-bold mb-4">¿Por qué elegir {spa.name}?</h2>
+                  <h2 className="font-display text-xl font-bold mb-4">{pc.tx("h2.4", "¿Por qué elegir")}{" "}{spa.name}?</h2>
                   <div className="space-y-3">
                     {spa.highlights.map((h: string, i: number) => (
                       <div key={i} className="flex items-start gap-3 p-4 bg-primary/5 rounded-lg">
@@ -338,22 +361,22 @@ export default function SpaDetalle() {
             </div>
 
             <div className="space-y-6">
-              <div className="bg-card rounded-2xl border border-border p-6 sticky top-24">
+              <div id="spa-booking" className="bg-card rounded-2xl border border-border p-6 sticky top-24 scroll-mt-24">
                 {spa.priceFrom > 0 && (
                   <div className="text-center mb-6">
-                    <p className="text-sm text-muted-foreground">Desde</p>
+                    <p className="text-sm text-muted-foreground">{pc.tx("p.2", "Desde")}</p>
                     <p className="text-4xl font-bold text-primary">${spa.priceFrom}</p>
-                    <p className="text-sm text-muted-foreground">por sesión</p>
+                    <p className="text-sm text-muted-foreground">{pc.tx("p.3", "por sesión")}</p>
                   </div>
                 )}
                 {spa.priceRange && !spa.priceFrom && (
                   <div className="text-center mb-6">
-                    <p className="text-sm text-muted-foreground">Rango de precios</p>
+                    <p className="text-sm text-muted-foreground">{pc.tx("p.4", "Rango de precios")}</p>
                     <p className="text-2xl font-bold text-primary">{spa.priceRange}</p>
                   </div>
                 )}
 
-                <Button className="w-full mb-3 gap-2"><Calendar className="h-4 w-4" /> Reservar Ahora</Button>
+                <Button className="w-full mb-3 gap-2"><Calendar className="h-4 w-4" />{" "}{pc.tx("Button.2", "Reservar Ahora")}</Button>
                 <FavoriteButton id={spa.id} type="spa" name={spa.name} image={spa.image} location={spa.location} variant="button" />
 
                 <div className="mt-6 pt-6 border-t border-border space-y-4">
@@ -378,7 +401,7 @@ export default function SpaDetalle() {
                   {spa.website && (
                     <div className="flex items-center gap-3 text-sm">
                       <Globe className="h-4 w-4 text-muted-foreground" />
-                      <a href={spa.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Sitio web</a>
+                      <a href={spa.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{pc.tx("a.1", "Sitio web")}</a>
                     </div>
                   )}
                 </div>

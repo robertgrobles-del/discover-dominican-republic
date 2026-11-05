@@ -43,7 +43,7 @@ export function RestaurantReservationCard({
   };
 
   return (
-    <div className="bg-card rounded-3xl border border-border p-6 shadow-xl ring-1 ring-border/50 sticky top-28 space-y-5">
+    <div className="bg-card rounded-3xl border border-border p-6 shadow-xl ring-1 ring-border/50 space-y-5">
       <div className="flex items-center justify-between pb-4 border-b border-border/70">
         <div>
           <h3 className="font-display text-xl font-bold text-foreground">Reservar Mesa</h3>
@@ -75,11 +75,11 @@ export function RestaurantReservationCard({
         {/* Time & Guests */}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
+            <label htmlFor="restaurant-reservation-card-f3" className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 text-primary" /> Hora
             </label>
             <Select value={selectedTime} onValueChange={setSelectedTime}>
-              <SelectTrigger aria-label="Hora de la reserva" className="rounded-xl bg-muted/30 border-border">
+              <SelectTrigger id="restaurant-reservation-card-f3" aria-label="Hora de la reserva" className="rounded-xl bg-muted/30 border-border">
                 <SelectValue placeholder="Hora" />
               </SelectTrigger>
               <SelectContent>
@@ -91,11 +91,11 @@ export function RestaurantReservationCard({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
+            <label htmlFor="restaurant-reservation-card-f2" className="text-xs font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
               <Users className="h-3.5 w-3.5 text-primary" /> Personas
             </label>
             <Select value={selectedGuests} onValueChange={setSelectedGuests}>
-              <SelectTrigger aria-label="Cantidad de personas" className="rounded-xl bg-muted/30 border-border">
+              <SelectTrigger id="restaurant-reservation-card-f2" aria-label="Cantidad de personas" className="rounded-xl bg-muted/30 border-border">
                 <SelectValue placeholder="Personas" />
               </SelectTrigger>
               <SelectContent>
@@ -123,9 +123,9 @@ export function RestaurantReservationCard({
 
         {/* Special Requests */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase">Área Preferida</label>
+          <label htmlFor="restaurant-reservation-card-f1" className="text-xs font-semibold text-muted-foreground uppercase">Área Preferida</label>
           <Select value={specialRequest} onValueChange={setSpecialRequest}>
-            <SelectTrigger aria-label="Preferencia de área" className="rounded-xl bg-muted/30 border-border">
+            <SelectTrigger id="restaurant-reservation-card-f1" aria-label="Preferencia de área" className="rounded-xl bg-muted/30 border-border">
               <SelectValue placeholder="Seleccionar" />
             </SelectTrigger>
             <SelectContent>

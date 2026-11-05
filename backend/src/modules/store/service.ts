@@ -13,6 +13,8 @@ export const FREE_SHIPPING_FROM = 2500;   // RD$
 export const SHIPPING_FEE = 250;          // RD$
 export const ITBIS_PCT = 18;              // los precios ya incluyen ITBIS; se informa el desglose
 export const RETURN_WINDOW_HOURS = 72;
+/** Pedidos por transferencia sin pagar que un mismo cliente (correo o cuenta) puede tener abiertos a la vez. */
+export const MAX_OPEN_TRANSFER_ORDERS = 3;
 const MAX_LINE_QTY = 20;
 
 const sha = (t: string) => createHash("sha256").update(t).digest("hex");
@@ -199,7 +201,16 @@ export class StoreService {
     if (coupon.max_uses !== null && coupon.uses_count >= coupon.max_uses) return { coupon, cents: 0, reason: "El cupón ya no tiene usos disponibles" };
     if (coupon.min_subtotal !== null && subtotalCents < toCents(coupon.min_subtotal)) return { coupon, cents: 0, reason: `Compra mínima de ${money(coupon.min_subtotal)}` };
     if (userKey) {
-      const used = (await c.query<{ n: number }>("SELECT count(*)::int AS n FROM coupon_redemptions WHERE coupon_id = $1 AND user_key = $2", [coupon.id, userKey])).rows[0]!.n;
+      // La clave puede ser una cuenta o un correo: se cuentan juntos la cuenta, su correo y el correo del pedido, para que el
+      // mismo cliente no repita el cupón comprando una vez con sesión y otra como invitado (o al revés).
+      const keys = userKey.split("|").filter(Boolean);
+      const used = (await c.query<{ n: number }>(
+        `SELECT count(*)::int AS n FROM coupon_redemptions WHERE coupon_id = $1 AND (user_key = ANY($2::text[])
+           OR user_key IN (SELECT id::text FROM users WHERE lower(email) = ANY($2::text[]))
+           OR user_key IN (SELECT lower(email) FROM users WHERE id::text = ANY($2::text[]))
+           OR order_id IN (SELECT id FROM store_orders WHERE lower(customer_email) = ANY($2::text[])))`,
+        [coupon.id, keys],
+      )).rows[0]!.n;
       if (used >= coupon.per_user_limit) return { coupon, cents: 0, reason: "Ya usaste este cupón" };
     }
     const cents = coupon.discount_percentage ? pctOf(subtotalCents, coupon.discount_percentage) : Math.min(subtotalCents, toCents(coupon.discount_amount ?? 0));
@@ -244,6 +255,7 @@ export class StoreService {
     return r.cents > 0 ? { valid: true, code: r.coupon!.code, discount: fromCents(r.cents), type: r.coupon!.discount_percentage ? "percent" : "amount" } : { valid: false, reason: r.reason ?? "El cupón no aplica a esta compra" };
   }
   async applyCoupon(actor: Actor, code: string | null) {
+    if (code && !actor.userId) throw new AppError("UNAUTHENTICATED", "Inicia sesión para usar un cupón de descuento", { code: "LOGIN_REQUIRED" });
     const cart = await this.cartFor(actor, true);
     if (code) { const cur = await this.cart(actor); const r = await this.couponDiscount(this.db, code, toCents(cur.subtotal), actor.userId ?? null); if (r.cents === 0) throw new AppError("BUSINESS_RULE", r.reason ?? "El cupón no aplica", { code: "COUPON_INVALID" }); }
     await this.db.query("UPDATE store_carts SET coupon_code = $2 WHERE id = $1", [cart!.id, code ? code.trim().toUpperCase() : null]);
@@ -276,6 +288,10 @@ export class StoreService {
     const prev = (await this.db.query<{ id: string; customer_email: string }>("SELECT id, customer_email FROM store_orders WHERE coalesce(user_id::text, lower(customer_email)) = $1 AND idempotency_key = $2", [idemScope, input.idempotencyKey])).rows[0];
     if (prev) return { order: (await this.orderDto(prev.id))!, accessToken: null as string | null, replayed: true };
     const byTransfer = input.paymentMethod === "transfer";
+    // Sin sesión, un invitado esquiva los límites por cliente (cupón por usuario, pedidos por transferencia abiertos)
+    // inventando un correo distinto en cada compra: cupones y transferencias exigen cuenta.
+    if (!input.actor.userId && byTransfer) throw new AppError("UNAUTHENTICATED", "Inicia sesión para pagar por depósito o transferencia", { code: "LOGIN_REQUIRED" });
+    if (!input.actor.userId && input.couponCode?.trim()) throw new AppError("UNAUTHENTICATED", "Inicia sesión para usar un cupón de descuento", { code: "LOGIN_REQUIRED" });
     if (byTransfer && !this.env.STORE_TRANSFER_INSTRUCTIONS && !(await this.bankAccounts()).length) throw new AppError("SERVICE_UNAVAILABLE", "El pago por depósito o transferencia no está disponible en este momento");
     if (!byTransfer && this.gateway.name === "none") throw new AppError("SERVICE_UNAVAILABLE", "Los pagos con tarjeta no están habilitados todavía; elige depósito o transferencia");
     if (!byTransfer && !input.paymentToken) throw AppError.validation("Falta payment_method_token");
@@ -288,6 +304,11 @@ export class StoreService {
       await this.tx(async (c) => {
         const cart = await this.cartFor(input.actor, false, c);
         if (!cart) throw new AppError("BUSINESS_RULE", "Tu carrito está vacío", { code: "EMPTY_CART" });
+        // Un pedido por transferencia aparta inventario sin cobro: se limita cuántos puede tener abiertos a la vez un mismo cliente.
+        if (byTransfer) {
+          const open = (await c.query<{ n: number }>("SELECT count(*)::int AS n FROM store_orders WHERE payment_method = 'transfer' AND status = 'pending' AND payment_status = 'unpaid' AND (lower(customer_email) = $1 OR user_id::text = $2)", [email, input.actor.userId ?? ""])).rows[0]!.n;
+          if (open >= MAX_OPEN_TRANSFER_ORDERS) throw new AppError("BUSINESS_RULE", "Ya tienes pedidos esperando el pago; págalos o cancélalos antes de hacer otro", { code: "TOO_MANY_PENDING_TRANSFERS" });
+        }
         // Se bloquean los productos en orden de id (evita interbloqueos entre pedidos que comparten artículos).
         const lines = (await this.linesOf(cart.id, c, false));
         const ids = [...new Set(lines.map((l) => l.product.id))].sort();
@@ -296,7 +317,7 @@ export class StoreService {
         const issues = lines.filter((l) => !l.product.active || l.product.stock < l.quantity);
         if (issues.length) throw new AppError("BUSINESS_RULE", "Algunos productos ya no tienen stock suficiente", { code: "STOCK_INSUFFICIENT", items: issues.map((l) => ({ product_id: l.product.id, name: l.product.name, available: l.product.active ? l.product.stock : 0 })) });
         for (const l of lines) this.checkVariant(l.product, l.size, l.color);
-        priced = await this.price(c, lines, input.couponCode ?? cart.coupon_code, input.actor.userId ?? email, true);
+        priced = await this.price(c, lines, input.couponCode ?? cart.coupon_code, input.actor.userId ? `${input.actor.userId}|${email}` : email, true);
         if (input.couponCode && !priced.coupon?.applied) throw new AppError("BUSINESS_RULE", priced.coupon?.reason ?? "El cupón no aplica", { code: "COUPON_INVALID" });
         await c.query(
           `INSERT INTO store_orders (id, user_id, customer_name, customer_email, phone, address, city, province, notes, subtotal, discount, shipping, tax, total, coupon_code, status, payment_status, fx_rate, access_hash, idempotency_key, items, ref_code, payment_method, transfer_expires_at)
@@ -508,6 +529,8 @@ export class StoreService {
     if (amount < Number(o.total)) throw new AppError("BUSINESS_RULE", "El monto recibido no cubre el total del pedido", { code: "AMOUNT_TOO_LOW", total: Number(o.total) });
     const res = await this.recordPayment(id, { amount: Number(o.total), chargedAmount: amount, chargedCurrency: o.currency, provider: "transfer", ref: input.reference });
     if (res === "duplicate") throw new AppError("CONFLICT", "Esa referencia de depósito ya está registrada");
+    // Como el cobro con tarjeta: el pago confirmado genera la comisión del embajador o del enlace de creador.
+    await this.onMoneyChange?.(id);
     await this.notify({ customer_email: o.customer_email, customer_name: o.customer_name, id }, "Recibimos tu pago", "Confirmamos tu depósito y ya estamos preparando tu pedido.").catch((err) => this.log.error({ err, id }, "No se pudo avisar del pago confirmado"));
     return (await this.orderDto(id))!;
   }

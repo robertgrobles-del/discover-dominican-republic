@@ -89,7 +89,7 @@ export function ClimateWidget({ variant = "full", className = "" }: ClimateWidge
               <p className="text-xs text-muted-foreground">{currentSeason.temperatura}</p>
             </div>
           </div>
-          <Link to="/clima-temporadas">
+          <Link to="/clima">
             <Button variant="ghost" size="sm" className="gap-1 text-primary">
               Ver más <ChevronRight className="h-4 w-4" />
             </Button>
@@ -183,7 +183,7 @@ export function ClimateWidget({ variant = "full", className = "" }: ClimateWidge
         </div>
 
         {/* CTA */}
-        <Link to="/clima-temporadas">
+        <Link to="/clima">
           <Button className="w-full gap-2">
             <Calendar className="h-4 w-4" />
             Guía Completa de Clima

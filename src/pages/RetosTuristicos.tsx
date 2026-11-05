@@ -144,7 +144,7 @@ export default function RetosTuristicos() {
                 <div className="rounded-2xl p-5 bg-card border border-border shadow-sm space-y-4">
                   <div className="flex items-center justify-between border-b border-border/60 pb-3">
                     <span className="text-xs font-bold text-foreground">Tu Estado de Expedición</span>
-                    <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px]">
+                    <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-3xs">
                       Nivel {userGamification?.current_level || 1}
                     </Badge>
                   </div>
@@ -152,20 +152,20 @@ export default function RetosTuristicos() {
                   <div className="grid grid-cols-3 gap-3 text-center">
                     <div className="p-3 rounded-xl bg-muted/40 border border-border/50">
                       <p className="text-xl font-black text-primary">{missions.length}</p>
-                      <p className="text-[10px] text-muted-foreground font-semibold uppercase mt-0.5">Disponibles</p>
+                      <p className="text-3xs text-muted-foreground font-semibold uppercase mt-0.5">Disponibles</p>
                     </div>
                     <div className="p-3 rounded-xl bg-muted/40 border border-border/50">
                       <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">{completedCount}</p>
-                      <p className="text-[10px] text-muted-foreground font-semibold uppercase mt-0.5">Completadas</p>
+                      <p className="text-3xs text-muted-foreground font-semibold uppercase mt-0.5">Completadas</p>
                     </div>
                     <div className="p-3 rounded-xl bg-muted/40 border border-border/50">
                       <p className="text-xl font-black text-amber-500">{totalXp.toLocaleString()}</p>
-                      <p className="text-[10px] text-muted-foreground font-semibold uppercase mt-0.5">XP en Juego</p>
+                      <p className="text-3xs text-muted-foreground font-semibold uppercase mt-0.5">XP en Juego</p>
                     </div>
                   </div>
 
                   <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-xs flex items-center justify-between">
-                    <span className="text-muted-foreground text-[11px]">Racha actual:</span>
+                    <span className="text-muted-foreground text-2xs">Racha actual:</span>
                     <strong className="text-orange-500 font-bold flex items-center gap-1 text-xs">
                       <Flame className="h-3.5 w-3.5 fill-orange-500" /> {userGamification?.streak_days || 0} Días Consecutivos
                     </strong>
@@ -177,7 +177,7 @@ export default function RetosTuristicos() {
         </section>
 
         {/* Filters Sticky Bar */}
-        <section className="sticky top-16 z-30 bg-card/90 backdrop-blur-md border-b border-border py-3">
+        <section className="bg-card/90 backdrop-blur-md border-b border-border py-3">
           <div className="container mx-auto px-4 max-w-6xl space-y-3">
             <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
               <div className="relative w-full sm:max-w-xs">
@@ -246,16 +246,16 @@ export default function RetosTuristicos() {
           <div className="p-6 rounded-3xl bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-transparent border-2 border-amber-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <Badge className="bg-amber-500 text-black font-black text-[10px] animate-pulse">
+                <Badge className="bg-amber-500 text-black font-black text-3xs animate-pulse">
                   ⚡ SPEED-RUN DE FIN DE SEMANA
                 </Badge>
                 <span className="text-xs text-amber-600 dark:text-amber-400 font-bold uppercase tracking-wider">
                   Multiplicador +2.5x XP Activo
                 </span>
               </div>
-              <h3 className="font-display font-bold text-base sm:text-lg text-foreground">
+              <h2 className="h3 font-display font-bold text-base sm:text-lg text-foreground">
                 Ruta del Cacao Orgánico & Cascadas de San Francisco a Samaná
-              </h3>
+              </h2>
               <p className="text-xs text-muted-foreground">
                 Visita y acredita 2 senderos antes del domingo a medianoche para ganar +250 monedas extra.
               </p>

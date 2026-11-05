@@ -20,6 +20,7 @@ import samanaImg from "@/assets/samana.jpg";
 import divingImg from "@/assets/diving.jpg";
 import raftingImg from "@/assets/rafting.jpg";
 import heroBeachImg from "@/assets/hero-beach.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 interface EspecieDominicana {
   id: string;
@@ -183,6 +184,10 @@ const protectedAreas = [
 ];
 
 export default function Biodiversidad() {
+  const pc = usePageContent("biodiversidad");
+  const speciesData = pc.data("speciesData", __pcData.speciesData);
+  const categories = pc.data("categories", __pcData.categories);
+  const protectedAreas = pc.data("protectedAreas", __pcData.protectedAreas);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({});
@@ -215,8 +220,8 @@ export default function Biodiversidad() {
   return (
     <PageTransition>
       <SEOHead
-        title="Explorador de Biodiversidad y Fauna de República Dominicana"
-        description="Conoce las especies endémicas, flora nativa y áreas protegidas de la isla: solenodonte, cotorra de la hispaniola, ballenas jorobadas y parques nacionales."
+        title={pc.t("SEOHead.title.1", "Explorador de Biodiversidad y Fauna de República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Conoce las especies endémicas, flora nativa y áreas protegidas de la isla: solenodonte, cotorra de la hispaniola, ballenas jorobadas y parques nacionales.")}
         keywords="biodiversidad republica dominicana, animales endemicos rd, solenodonte, cotorra hispaniola, rosa bayahibe, parques nacionales rd"
       />
       <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-emerald-500 selection:text-white">
@@ -225,23 +230,18 @@ export default function Biodiversidad() {
         {/* HERO EDITORIAL DE BIODIVERSIDAD */}
         <section className="relative py-20 md:py-28 bg-gradient-to-b from-emerald-950/20 via-background to-background border-b border-border overflow-hidden">
           <div className="container mx-auto px-4 lg:px-8 text-center max-w-4xl relative z-10">
-            <Badge className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 mb-4 px-4 py-1.5 text-xs font-mono tracking-widest uppercase">
-              PATRIMONIO BIOLÓGICO DEL CARIBE
-            </Badge>
+            <Badge className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 mb-4 px-4 py-1.5 text-xs font-mono tracking-widest uppercase">{pc.tx("Badge.1", "PATRIMONIO BIOLÓGICO DEL CARIBE")}</Badge>
 
-            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-6">
-              Explorador de <span className="bg-gradient-to-r from-emerald-500 via-teal-400 to-green-300 bg-clip-text text-transparent">Biodiversidad</span>
+            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-6">{pc.tx("h1.1", "Explorador de")}{" "}<span className="bg-gradient-to-r from-emerald-500 via-teal-400 to-green-300 bg-clip-text text-transparent">{pc.tx("span.1", "Biodiversidad")}</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-8">
-              La Española es el epicentro de endemismo del Caribe, albergando más de 6,000 especies vegetales y fauna única en el planeta.
-            </p>
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto mb-8">{pc.tx("p.1", "La Española es el epicentro de endemismo del Caribe, albergando más de 6,000 especies vegetales y fauna única en el planeta.")}</p>
 
             {/* BUSCADOR INTELIGENTE */}
             <div className="relative max-w-xl mx-auto">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
-                placeholder="Buscar por especie, nombre científico o parque..."
+                placeholder={pc.t("Input.placeholder.1", "Buscar por especie, nombre científico o parque...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-12 h-14 text-base rounded-2xl bg-card border-border shadow-lg"
@@ -251,7 +251,7 @@ export default function Biodiversidad() {
         </section>
 
         {/* BARRA DE CATEGORÍAS STICKY */}
-        <section className="sticky top-16 z-30 bg-background/95 backdrop-blur-md border-b border-border py-3">
+        <section className="bg-background/95 backdrop-blur-md border-b border-border py-3">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-start md:justify-center gap-2 overflow-x-auto no-scrollbar py-1">
               {categories.map((cat) => {
@@ -283,12 +283,8 @@ export default function Biodiversidad() {
             <div>
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h2 className="font-display text-2xl sm:text-3xl font-bold">
-                    Catálogo de Especies
-                  </h2>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Mostrando {filteredSpecies.length} especies registradas
-                  </p>
+                  <h2 className="font-display text-2xl sm:text-3xl font-bold">{pc.tx("h2.1", "Catálogo de Especies")}</h2>
+                  <p className="text-sm text-muted-foreground mt-1">{pc.tx("p.2", "Mostrando")}{" "}{filteredSpecies.length}{" "}{pc.tx("p.3", "especies registradas")}</p>
                 </div>
               </div>
 
@@ -317,9 +313,7 @@ export default function Biodiversidad() {
                             {item.status}
                           </Badge>
                           {item.endemic && (
-                            <Badge className="bg-purple-600 text-white text-[10px] uppercase font-bold tracking-wider">
-                              Endémica RD
-                            </Badge>
+                            <Badge className="bg-purple-600 text-white text-3xs uppercase font-bold tracking-wider">{pc.tx("Badge.2", "Endémica RD")}</Badge>
                           )}
                         </div>
 
@@ -346,19 +340,18 @@ export default function Biodiversidad() {
                         <div className="space-y-2 mb-4 text-xs">
                           <div className="flex items-start gap-1.5 text-muted-foreground">
                             <MapPin className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                            <span><strong>Ubicación:</strong> {item.location}</span>
+                            <span><strong>{pc.tx("strong.1", "Ubicación:")}</strong> {item.location}</span>
                           </div>
                           <div className="flex items-start gap-1.5 text-muted-foreground">
                             <Compass className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
-                            <span><strong>Ecosistema:</strong> {item.ecosystem}</span>
+                            <span><strong>{pc.tx("strong.2", "Ecosistema:")}</strong> {item.ecosystem}</span>
                           </div>
                         </div>
 
                         {/* DATO CURIOSO */}
                         <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs">
                           <p className="font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1 mb-1">
-                            <Sparkles className="h-3.5 w-3.5" /> Dato Curioso
-                          </p>
+                            <Sparkles className="h-3.5 w-3.5" />{" "}{pc.tx("p.4", "Dato Curioso")}</p>
                           <p className="text-muted-foreground leading-relaxed">
                             "{item.funFact}"
                           </p>
@@ -368,9 +361,7 @@ export default function Biodiversidad() {
 
                     <div className="p-6 pt-0">
                       <Button asChild variant="outline" className="w-full rounded-xl text-xs hover:border-emerald-500 hover:text-emerald-500">
-                        <Link to="/ecoturismo">
-                          Ver Rutas de Observación Ecoturística →
-                        </Link>
+                        <Link to="/ecoturismo">{pc.tx("Link.1", "Ver Rutas de Observación Ecoturística →")}</Link>
                       </Button>
                     </div>
                   </motion.div>
@@ -383,15 +374,9 @@ export default function Biodiversidad() {
             {/* ÁREAS PROTEGIDAS EMBLEMÁTICAS */}
             <div className="bg-card rounded-3xl p-8 sm:p-10 border border-border">
               <div className="max-w-2xl mb-8">
-                <Badge className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 mb-2">
-                  SISTEMA NACIONAL DE ÁREAS PROTEGIDAS (SINAP)
-                </Badge>
-                <h3 className="font-display text-2xl sm:text-3xl font-bold">
-                  Santuarios Naturales de la República Dominicana
-                </h3>
-                <p className="text-muted-foreground text-sm mt-2">
-                  Más del 25% del territorio dominicano está resguardado bajo figuras de Parques Nacionales y Reservas Científicas.
-                </p>
+                <Badge className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 mb-2">{pc.tx("Badge.3", "SISTEMA NACIONAL DE ÁREAS PROTEGIDAS (SINAP)")}</Badge>
+                <h3 className="font-display text-2xl sm:text-3xl font-bold">{pc.tx("h3.1", "Santuarios Naturales de la República Dominicana")}</h3>
+                <p className="text-muted-foreground text-sm mt-2">{pc.tx("p.5", "Más del 25% del territorio dominicano está resguardado bajo figuras de Parques Nacionales y Reservas Científicas.")}</p>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
@@ -411,9 +396,7 @@ export default function Biodiversidad() {
                     </div>
                     <div className="pt-4 border-t border-border flex items-center justify-between text-xs">
                       <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{area.species}</span>
-                      <Link to="/ecoturismo" className="text-primary hover:underline font-medium">
-                        Planificar Visita →
-                      </Link>
+                      <Link to="/ecoturismo" className="text-primary hover:underline font-medium">{pc.tx("Link.2", "Planificar Visita →")}</Link>
                     </div>
                   </div>
                 ))}
@@ -428,3 +411,6 @@ export default function Biodiversidad() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { speciesData, categories, protectedAreas };

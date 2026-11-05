@@ -95,7 +95,7 @@ export function LotteryDrawDetailView({ drawResults, onBack }: LotteryDrawDetail
               <div key={idx} className="flex items-center gap-2 bg-muted/40 border p-2 rounded-xl">
                 <LotteryBall number={hn.number} index={idx} />
                 <div className="pr-1">
-                  <p className="text-[10px] text-muted-foreground uppercase leading-none">Salidas</p>
+                  <p className="text-3xs text-muted-foreground uppercase leading-none">Salidas</p>
                   <p className="text-sm font-bold text-foreground mt-1">{hn.count} veces</p>
                 </div>
               </div>

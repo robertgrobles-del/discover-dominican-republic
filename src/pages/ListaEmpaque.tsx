@@ -13,6 +13,7 @@ import {
   Luggage, Sun, Umbrella, Camera, Shirt, Plus, 
   Download, Share2, Trash2, Sparkles, Plane
 } from "lucide-react";
+import { usePageContent } from "@/lib/pageContent";
 
 const categoriasDefault = [
   {
@@ -83,6 +84,8 @@ const categoriasDefault = [
 ];
 
 export default function ListaEmpaque() {
+  const pc = usePageContent("lista-empaque");
+  const categoriasDefault = pc.data("categoriasDefault", __pcData.categoriasDefault);
   const [categorias, setCategorias] = useState(categoriasDefault);
   const [itemsChecked, setItemsChecked] = useState<Set<string>>(new Set());
   const [nuevoItem, setNuevoItem] = useState({ categoria: "", nombre: "" });
@@ -137,8 +140,8 @@ export default function ListaEmpaque() {
   return (
     <PageTransition>
       <SEOHead
-        title="Lista de Empaque para República Dominicana"
-        description="Lista completa de qué empacar para tu viaje a RD. Personalizable e interactiva con todo lo esencial."
+        title={pc.t("SEOHead.title.1", "Lista de Empaque para República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Lista completa de qué empacar para tu viaje a RD. Personalizable e interactiva con todo lo esencial.")}
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -148,10 +151,8 @@ export default function ListaEmpaque() {
           <section className="relative py-20 bg-gradient-to-br from-orange-500/10 to-amber-500/10">
             <div className="container mx-auto px-4 text-center">
               <Luggage className="h-16 w-16 text-primary mx-auto mb-4" />
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">Lista de Empaque</h1>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Todo lo que necesitas para tu viaje al Caribe
-              </p>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">{pc.tx("h1.1", "Lista de Empaque")}</h1>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.1", "Todo lo que necesitas para tu viaje al Caribe")}</p>
             </div>
           </section>
 
@@ -160,27 +161,22 @@ export default function ListaEmpaque() {
             <div className="container mx-auto px-4">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-lg font-semibold">Tu progreso</h2>
+                  <h2 className="text-lg font-semibold">{pc.tx("h2.1", "Tu progreso")}</h2>
                   <p className="text-sm text-muted-foreground">
-                    {checkedItems} de {totalItems} items empacados
-                  </p>
+                    {checkedItems}{" "}{pc.tx("p.2", "de")}{" "}{totalItems}{" "}{pc.tx("p.3", "items empacados")}</p>
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
-                    Descargar
-                  </Button>
+                    <Download className="h-4 w-4 mr-2" />{pc.tx("Button.1", "Descargar")}</Button>
                   <Button variant="outline" size="sm">
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Compartir
-                  </Button>
+                    <Share2 className="h-4 w-4 mr-2" />{pc.tx("Button.2", "Compartir")}</Button>
                 </div>
               </div>
               <Progress value={progress} className="h-3" />
               {progress === 100 && (
                 <div className="mt-4 p-3 bg-green-500/10 rounded-lg text-center">
                   <Sparkles className="h-5 w-5 inline mr-2 text-green-500" />
-                  <span className="text-green-600 font-medium">¡Listo para viajar! ✈️</span>
+                  <span className="text-green-600 font-medium">{pc.tx("span.1", "¡Listo para viajar! ✈️")}</span>
                 </div>
               )}
             </div>
@@ -192,23 +188,23 @@ export default function ListaEmpaque() {
               <div className="grid md:grid-cols-4 gap-4">
                 <Card className="text-center p-4">
                   <Sun className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
-                  <p className="text-sm font-medium">Clima Tropical</p>
-                  <p className="text-xs text-muted-foreground">25-32°C todo el año</p>
+                  <p className="text-sm font-medium">{pc.tx("p.4", "Clima Tropical")}</p>
+                  <p className="text-xs text-muted-foreground">{pc.tx("p.5", "25-32°C todo el año")}</p>
                 </Card>
                 <Card className="text-center p-4">
                   <Umbrella className="h-8 w-8 mx-auto mb-2 text-blue-500" />
-                  <p className="text-sm font-medium">Temporada Lluviosa</p>
-                  <p className="text-xs text-muted-foreground">Mayo - Noviembre</p>
+                  <p className="text-sm font-medium">{pc.tx("p.6", "Temporada Lluviosa")}</p>
+                  <p className="text-xs text-muted-foreground">{pc.tx("p.7", "Mayo - Noviembre")}</p>
                 </Card>
                 <Card className="text-center p-4">
                   <Shirt className="h-8 w-8 mx-auto mb-2 text-primary" />
-                  <p className="text-sm font-medium">Vestimenta</p>
-                  <p className="text-xs text-muted-foreground">Casual y ligera</p>
+                  <p className="text-sm font-medium">{pc.tx("p.8", "Vestimenta")}</p>
+                  <p className="text-xs text-muted-foreground">{pc.tx("p.9", "Casual y ligera")}</p>
                 </Card>
                 <Card className="text-center p-4">
                   <Plane className="h-8 w-8 mx-auto mb-2 text-primary" />
-                  <p className="text-sm font-medium">Equipaje</p>
-                  <p className="text-xs text-muted-foreground">23kg facturado típico</p>
+                  <p className="text-sm font-medium">{pc.tx("p.10", "Equipaje")}</p>
+                  <p className="text-xs text-muted-foreground">{pc.tx("p.11", "23kg facturado típico")}</p>
                 </Card>
               </div>
             </div>
@@ -248,7 +244,7 @@ export default function ListaEmpaque() {
                               {item.nombre}
                             </span>
                             {item.esencial && (
-                              <Badge variant="destructive" className="text-xs">Esencial</Badge>
+                              <Badge variant="destructive" className="text-xs">{pc.tx("Badge.1", "Esencial")}</Badge>
                             )}
                           </div>
                           {!item.esencial && item.id.startsWith('custom') && (
@@ -267,7 +263,7 @@ export default function ListaEmpaque() {
                       {/* Add new item */}
                       <div className="flex gap-2 pt-2">
                         <Input 
-                          placeholder="Añadir item..."
+                          placeholder={pc.t("Input.placeholder.1", "Añadir item...")}
                           value={nuevoItem.categoria === categoria.id ? nuevoItem.nombre : ""}
                           onChange={(e) => setNuevoItem({ categoria: categoria.id, nombre: e.target.value })}
                           onKeyPress={(e) => {
@@ -294,17 +290,13 @@ export default function ListaEmpaque() {
                 <Button 
                   variant="outline"
                   onClick={() => setItemsChecked(new Set())}
-                >
-                  Reiniciar lista
-                </Button>
+                >{pc.tx("Button.3", "Reiniciar lista")}</Button>
                 <Button 
                   onClick={() => {
                     const allItems = categorias.flatMap(c => c.items.map(i => i.id));
                     setItemsChecked(new Set(allItems));
                   }}
-                >
-                  Marcar todo
-                </Button>
+                >{pc.tx("Button.4", "Marcar todo")}</Button>
               </div>
             </div>
           </section>
@@ -315,3 +307,6 @@ export default function ListaEmpaque() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { categoriasDefault };

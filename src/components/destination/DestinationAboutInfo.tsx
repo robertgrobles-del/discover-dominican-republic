@@ -48,7 +48,7 @@ export function DestinationAboutInfo({
 
         {/* Direct Traveler Assistance & Emergency Strip for this Destination */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8 pt-8 border-t border-border/60">
-          <Link to="/salud-24h" className="block">
+          <Link to="/info/seguridad#salud" className="block">
             <Card className="rounded-2xl border-border bg-card p-4 hover:border-primary/40 hover:shadow-md transition-all">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center font-bold">
@@ -56,13 +56,13 @@ export function DestinationAboutInfo({
                 </div>
                 <div>
                   <p className="font-bold text-xs sm:text-sm text-foreground">{t("destinoDetalle.hospitals")}</p>
-                  <p className="text-[11px] text-muted-foreground">{nombre}</p>
+                  <p className="text-2xs text-muted-foreground">{nombre}</p>
                 </div>
               </div>
             </Card>
           </Link>
 
-          <Link to="/tasas-cambio" className="block">
+          <Link to="/conversor-moneda#tasas" className="block">
             <Card className="rounded-2xl border-border bg-card p-4 hover:border-primary/40 hover:shadow-md transition-all">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center font-bold">
@@ -70,7 +70,7 @@ export function DestinationAboutInfo({
                 </div>
                 <div>
                   <p className="font-bold text-xs sm:text-sm text-foreground">{t("destinoDetalle.currencyRates")}</p>
-                  <p className="text-[11px] text-muted-foreground">USD, EUR, DOP</p>
+                  <p className="text-2xs text-muted-foreground">USD, EUR, DOP</p>
                 </div>
               </div>
             </Card>
@@ -84,13 +84,13 @@ export function DestinationAboutInfo({
                 </div>
                 <div>
                   <p className="font-bold text-xs sm:text-sm text-foreground">{t("destinoDetalle.aiItinerary")}</p>
-                  <p className="text-[11px] text-muted-foreground">Smart Trip AI</p>
+                  <p className="text-2xs text-muted-foreground">Smart Trip AI</p>
                 </div>
               </div>
             </Card>
           </Link>
 
-          <Link to="/esim" className="block">
+          <Link to="/conectividad#esim" className="block">
             <Card className="rounded-2xl border-border bg-card p-4 hover:border-primary/40 hover:shadow-md transition-all">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center font-bold">
@@ -98,7 +98,7 @@ export function DestinationAboutInfo({
                 </div>
                 <div>
                   <p className="font-bold text-xs sm:text-sm text-foreground">{t("destinoDetalle.esim")}</p>
-                  <p className="text-[11px] text-muted-foreground">5G Roaming</p>
+                  <p className="text-2xs text-muted-foreground">5G Roaming</p>
                 </div>
               </div>
             </Card>

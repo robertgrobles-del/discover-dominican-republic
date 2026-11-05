@@ -17,7 +17,11 @@ import { useQuery } from "@tanstack/react-query";
 import { format, addDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { useSearchParams } from "react-router-dom";
+import { fetchApi } from "@/lib/fastifyClient";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { usePageContent } from "@/lib/pageContent";
 
+import { activateOnKey } from "@/lib/a11y";
 interface FuelPriceRecord {
   id: string;
   effective_date: string;
@@ -44,6 +48,29 @@ function useFuelPrices(filterDate?: string) {
   return useQuery({
     queryKey: ["fuel-prices", filterDate],
     queryFn: async () => {
+      if (HAS_BACKEND_SESSION) {
+        try {
+          const res = await fetchApi<{ data: any }>("/live/fuel-prices");
+          if (res?.data) {
+            const raw = res.data;
+            const record: FuelPriceRecord = {
+              id: raw.id || "live-micm",
+              effective_date: raw.date || raw.effective_date || new Date().toISOString().slice(0, 10),
+              gasolina_premium: Number(raw.gasolina_premium || 290.10),
+              gasolina_regular: Number(raw.gasolina_regular || 272.50),
+              gasoil_optimo: Number(raw.gasoil_optimo || 239.10),
+              gasoil_regular: Number(raw.gasoil_regular || 221.60),
+              glp: Number(raw.glp || 132.60),
+              gnv: Number(raw.gnv || 43.97),
+              created_at: new Date().toISOString(),
+            };
+            return [record];
+          }
+        } catch {
+          // Fallback a Supabase si el endpoint live falla
+        }
+      }
+
       let query = supabase.from("fuel_prices").select("*");
       if (filterDate) {
         query = query.eq("effective_date", filterDate);
@@ -52,13 +79,16 @@ function useFuelPrices(filterDate?: string) {
         .order("effective_date", { ascending: false })
         .limit(100);
       
-      if (error) throw error;
+      if (error) {
+        return [{ ...fallbackPrices, id: "fallback-record", created_at: new Date().toISOString() }];
+      }
       return (data || []) as FuelPriceRecord[];
     }
   });
 }
 
 export default function PreciosCombustible() {
+  const pc = usePageContent("precios-combustible");
   const [searchParams, setSearchParams] = useSearchParams();
   const activeType = searchParams.get("type");
 
@@ -186,8 +216,7 @@ export default function PreciosCombustible() {
                   onClick={() => setSearchParams({})} 
                   className="mb-6 gap-2 text-muted-foreground hover:text-foreground"
                 >
-                  <ArrowLeft className="h-4 w-4" /> Volver a Combustibles
-                </Button>
+                  <ArrowLeft className="h-4 w-4" />{" "}{pc.tx("Button.1", "Volver a Combustibles")}</Button>
 
                 {/* Fuel Header Card */}
                 <Card className="border border-border/80 shadow-md mb-8">
@@ -198,16 +227,16 @@ export default function PreciosCombustible() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-primary/20">Combustible</Badge>
-                          <span className="text-xs text-muted-foreground">República Dominicana</span>
+                          <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-primary/20">{pc.tx("Badge.1", "Combustible")}</Badge>
+                          <span className="text-xs text-muted-foreground">{pc.tx("span.1", "República Dominicana")}</span>
                         </div>
                         <h2 className="text-2xl md:text-3xl font-display font-bold mt-1">{cardInfo.name}</h2>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-muted-foreground uppercase font-bold">Precio Actual</p>
+                      <p className="text-xs text-muted-foreground uppercase font-bold">{pc.tx("p.1", "Precio Actual")}</p>
                       <p className="text-3xl font-extrabold text-primary mt-0.5">{formatCurrency(cardInfo.price)}</p>
-                      <p className="text-[11px] text-muted-foreground mt-1">{getWeekRangeLabel(latest.effective_date)}</p>
+                      <p className="text-2xs text-muted-foreground mt-1">{getWeekRangeLabel(latest.effective_date)}</p>
                     </div>
                   </CardHeader>
                   <CardContent className="pt-6">
@@ -221,17 +250,17 @@ export default function PreciosCombustible() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                   <Card className="border shadow-xs text-center p-5">
                     <TrendingUp className="h-6 w-6 text-rose-500 mx-auto mb-2" />
-                    <p className="text-xs text-muted-foreground uppercase font-semibold">Precio Máximo Registrado</p>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold">{pc.tx("p.2", "Precio Máximo Registrado")}</p>
                     <p className="text-xl font-bold text-foreground mt-1">{formatCurrency(maxPrice)}</p>
                   </Card>
                   <Card className="border shadow-xs text-center p-5">
                     <TrendingDown className="h-6 w-6 text-emerald-500 mx-auto mb-2" />
-                    <p className="text-xs text-muted-foreground uppercase font-semibold">Precio Mínimo Registrado</p>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold">{pc.tx("p.3", "Precio Mínimo Registrado")}</p>
                     <p className="text-xl font-bold text-foreground mt-1">{formatCurrency(minPrice)}</p>
                   </Card>
                   <Card className="border shadow-xs text-center p-5">
                     <DollarSign className="h-6 w-6 text-blue-500 mx-auto mb-2" />
-                    <p className="text-xs text-muted-foreground uppercase font-semibold">Promedio Histórico</p>
+                    <p className="text-xs text-muted-foreground uppercase font-semibold">{pc.tx("p.4", "Promedio Histórico")}</p>
                     <p className="text-xl font-bold text-foreground mt-1">{formatCurrency(avgPrice)}</p>
                   </Card>
                 </div>
@@ -241,19 +270,17 @@ export default function PreciosCombustible() {
                   <CardHeader>
                     <CardTitle className="text-lg font-bold flex items-center gap-2">
                       <History className="h-5 w-5 text-primary" />
-                      <span>Histórico Semanal para {cardInfo.name}</span>
+                      <span>{pc.tx("span.2", "Histórico Semanal para")}{" "}{cardInfo.name}</span>
                     </CardTitle>
-                    <CardDescription>
-                      Desglose de precios por galón registrados en las últimas semanas.
-                    </CardDescription>
+                    <CardDescription>{pc.tx("CardDescription.1", "Desglose de precios por galón registrados en las últimas semanas.")}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="border rounded-xl overflow-hidden bg-background">
                       <Table>
                         <TableHeader className="bg-muted/40">
                           <TableRow>
-                            <TableHead className="font-bold">Semana Vigente</TableHead>
-                            <TableHead className="font-bold text-right">Precio por Galón</TableHead>
+                            <TableHead className="font-bold">{pc.tx("TableHead.1", "Semana Vigente")}</TableHead>
+                            <TableHead className="font-bold text-right">{pc.tx("TableHead.2", "Precio por Galón")}</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -266,7 +293,7 @@ export default function PreciosCombustible() {
                                   <TableCell className="font-semibold text-xs py-3.5">
                                     <div className="flex items-center gap-1.5">
                                       <Calendar className="h-3.5 w-3.5 text-primary" />
-                                      <span>{format(dateObj, "dd/MM/yyyy")} al {format(nextDateObj, "dd/MM/yyyy")}</span>
+                                      <span>{format(dateObj, "dd/MM/yyyy")}{" "}{pc.tx("span.3", "al")}{" "}{format(nextDateObj, "dd/MM/yyyy")}</span>
                                     </div>
                                   </TableCell>
                                   <TableCell className="text-right font-extrabold text-foreground text-sm">
@@ -277,9 +304,7 @@ export default function PreciosCombustible() {
                             })
                           ) : (
                             <TableRow>
-                              <TableCell colSpan={2} className="text-center py-12 text-muted-foreground">
-                                No hay precios históricos cargados para este combustible.
-                              </TableCell>
+                              <TableCell colSpan={2} className="text-center py-12 text-muted-foreground">{pc.tx("TableCell.1", "No hay precios históricos cargados para este combustible.")}</TableCell>
                             </TableRow>
                           )}
                         </TableBody>
@@ -299,8 +324,8 @@ export default function PreciosCombustible() {
   return (
     <PageTransition>
       <SEOHead
-        title="Precios de los Combustibles en RD | Histórico Semanal"
-        description="Consulta oficial e histórica de precios de gasolina premium, regular, gasoil óptimo, regular, GLP y GNV en República Dominicana."
+        title={pc.t("SEOHead.title.1", "Precios de los Combustibles en RD | Histórico Semanal")}
+        description={pc.t("SEOHead.description.1", "Consulta oficial e histórica de precios de gasolina premium, regular, gasoil óptimo, regular, GLP y GNV en República Dominicana.")}
         keywords="precios gasolina rd, combustible republica dominicana, gasolina premium precio, glp precio hoy, micm combustibles"
       />
       <div className="min-h-screen bg-background flex flex-col justify-between">
@@ -311,14 +336,10 @@ export default function PreciosCombustible() {
             {/* Hero */}
             <section className="container mx-auto px-4 text-center mb-8 relative overflow-hidden">
               <Badge className="mb-4 bg-primary/20 text-primary border-primary/30 py-1 px-3">
-                <Sparkles className="h-3.5 w-3.5 mr-1" /> Ministerio de Industria, Comercio y MiPymes (MICM)
-              </Badge>
-              <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-3">
-                Precios de <span className="text-primary italic">Combustibles</span>
+                <Sparkles className="h-3.5 w-3.5 mr-1" />{" "}{pc.tx("Badge.2", "Ministerio de Industria, Comercio y MiPymes (MICM)")}</Badge>
+              <h1 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-3">{pc.tx("h1.1", "Precios de")}{" "}<span className="text-primary italic">{pc.tx("span.4", "Combustibles")}</span>
               </h1>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-base">
-                Consulta los precios oficiales vigentes. <strong>Haz clic en cualquier combustible</strong> para analizar su histórico detallado.
-              </p>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-base">{pc.tx("p.5", "Consulta los precios oficiales vigentes.")}{" "}<strong>{pc.tx("strong.1", "Haz clic en cualquier combustible")}</strong>{" "}{pc.tx("p.6", "para analizar su histórico detallado.")}</p>
             </section>
 
             {/* Current Rates Section */}
@@ -326,9 +347,9 @@ export default function PreciosCombustible() {
               <Card className="border border-border/80 shadow-md">
                 <CardHeader className="bg-muted/15 border-b pb-4 flex flex-row items-center justify-between flex-wrap gap-4">
                   <div>
-                    <CardTitle className="text-xl font-bold flex items-center gap-2">
+                    <CardTitle as="h2" className="text-xl font-bold flex items-center gap-2">
                       <DollarSign className="h-5 w-5 text-primary" />
-                      <span>Precios Oficiales de esta Semana</span>
+                      <span>{pc.tx("span.5", "Precios Oficiales de esta Semana")}</span>
                     </CardTitle>
                     <CardDescription className="text-sm font-semibold text-primary/80 mt-1">
                       {getWeekRangeLabel(latest.effective_date)}
@@ -341,14 +362,12 @@ export default function PreciosCombustible() {
                     disabled={isFetching}
                     className="gap-1.5 h-9"
                   >
-                    <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />
-                    Actualizar
-                  </Button>
+                    <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? "animate-spin" : ""}`} />{pc.tx("Button.2", "Actualizar")}</Button>
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {fuelCards.map((card) => (
-                      <div 
+                      <div role="button" tabIndex={0} onKeyDown={activateOnKey} 
                         key={card.key} 
                         onClick={() => setSearchParams({ type: card.key })}
                         className={`rounded-xl border border-border/80 border-l-4 ${card.color} ${card.bg} p-5 flex flex-col justify-between hover:shadow-md hover:border-primary/40 cursor-pointer transition-all active:scale-[0.98] group`}
@@ -356,16 +375,16 @@ export default function PreciosCombustible() {
                         <div className="flex items-start justify-between mb-3">
                           <div>
                             <div className="flex items-center gap-1.5">
-                              <h4 className="font-bold text-foreground text-sm group-hover:text-primary transition-colors">{card.name}</h4>
+                              <h3 className="h4 font-bold text-foreground text-sm group-hover:text-primary transition-colors">{card.name}</h3>
                             </div>
-                            <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">{card.desc}</p>
+                            <p className="text-2xs text-muted-foreground mt-1 leading-relaxed">{card.desc}</p>
                           </div>
                           <div className="p-2 rounded-lg bg-background border shadow-xs group-hover:border-primary/30 transition-colors">
                             {card.icon}
                           </div>
                         </div>
                         <div className="flex items-center justify-between mt-4 pt-3 border-t border-border/40">
-                          <span className="text-[9px] text-primary/80 font-bold bg-primary/10 px-1.5 py-0.5 rounded group-hover:bg-primary group-hover:text-primary-foreground transition-colors">Ver histórico →</span>
+                          <span className="text-3xs text-primary/80 font-bold bg-primary/10 px-1.5 py-0.5 rounded group-hover:bg-primary group-hover:text-primary-foreground transition-colors">{pc.tx("span.6", "Ver histórico →")}</span>
                           <span className="text-xl font-extrabold text-foreground">{formatCurrency(card.price)}</span>
                         </div>
                       </div>
@@ -381,19 +400,15 @@ export default function PreciosCombustible() {
                 <CardHeader>
                   <CardTitle className="text-xl font-bold flex items-center gap-2">
                     <History className="h-5 w-5 text-primary" />
-                    <span>Registro Histórico General</span>
+                    <span>{pc.tx("span.7", "Registro Histórico General")}</span>
                   </CardTitle>
-                  <CardDescription>
-                    Busca semanas anteriores o filtra la tabla para rastrear la evolución general.
-                  </CardDescription>
+                  <CardDescription>{pc.tx("CardDescription.2", "Busca semanas anteriores o filtra la tabla para rastrear la evolución general.")}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Filters Area */}
                   <div className="bg-muted/30 p-5 border rounded-xl grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1.5">
-                      <Label htmlFor="date-filter" className="text-xs font-semibold text-muted-foreground">
-                        Buscar Fecha Vigencia (Sábado)
-                      </Label>
+                      <Label htmlFor="date-filter" className="text-xs font-semibold text-muted-foreground">{pc.tx("Label.1", "Buscar Fecha Vigencia (Sábado)")}</Label>
                       <Input
                         id="date-filter"
                         type="date"
@@ -404,16 +419,14 @@ export default function PreciosCombustible() {
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                      <Label htmlFor="fuel-filter" className="text-xs font-semibold text-muted-foreground">
-                        Combustible Particular
-                      </Label>
+                      <Label htmlFor="fuel-filter" className="text-xs font-semibold text-muted-foreground">{pc.tx("Label.2", "Combustible Particular")}</Label>
                       <select
                         id="fuel-filter"
                         value={selectedFuelType}
                         onChange={(e) => setSelectedFuelType(e.target.value)}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        <option value="all">Ver Todos</option>
+                        <option value="all">{pc.tx("option.1", "Ver Todos")}</option>
                         {fuelCards.map((f) => (
                           <option key={f.key} value={f.key}>{f.name}</option>
                         ))}
@@ -429,8 +442,7 @@ export default function PreciosCombustible() {
                         onClick={handleClearFilters} 
                         className="text-destructive hover:bg-destructive/10 gap-1.5 h-8 text-xs"
                       >
-                        <X className="h-4 w-4" /> Limpiar filtros
-                      </Button>
+                        <X className="h-4 w-4" />{" "}{pc.tx("Button.3", "Limpiar filtros")}</Button>
                     </div>
                   ) : null}
 
@@ -439,24 +451,24 @@ export default function PreciosCombustible() {
                     <Table>
                       <TableHeader className="bg-muted/40">
                         <TableRow>
-                          <TableHead className="font-bold">Semana Vigente</TableHead>
+                          <TableHead className="font-bold">{pc.tx("TableHead.3", "Semana Vigente")}</TableHead>
                           {selectedFuelType === "all" || selectedFuelType === "gasolina_premium" ? (
-                            <TableHead className="font-bold text-right">G. Premium</TableHead>
+                            <TableHead className="font-bold text-right">{pc.tx("TableHead.4", "G. Premium")}</TableHead>
                           ) : null}
                           {selectedFuelType === "all" || selectedFuelType === "gasolina_regular" ? (
-                            <TableHead className="font-bold text-right">G. Regular</TableHead>
+                            <TableHead className="font-bold text-right">{pc.tx("TableHead.5", "G. Regular")}</TableHead>
                           ) : null}
                           {selectedFuelType === "all" || selectedFuelType === "gasoil_optimo" ? (
-                            <TableHead className="font-bold text-right">G. Óptimo</TableHead>
+                            <TableHead className="font-bold text-right">{pc.tx("TableHead.6", "G. Óptimo")}</TableHead>
                           ) : null}
                           {selectedFuelType === "all" || selectedFuelType === "gasoil_regular" ? (
-                            <TableHead className="font-bold text-right">G. Regular</TableHead>
+                            <TableHead className="font-bold text-right">{pc.tx("TableHead.7", "G. Regular")}</TableHead>
                           ) : null}
                           {selectedFuelType === "all" || selectedFuelType === "glp" ? (
-                            <TableHead className="font-bold text-right">GLP</TableHead>
+                            <TableHead className="font-bold text-right">{pc.tx("TableHead.8", "GLP")}</TableHead>
                           ) : null}
                           {selectedFuelType === "all" || selectedFuelType === "gnv" ? (
-                            <TableHead className="font-bold text-right">GNV</TableHead>
+                            <TableHead className="font-bold text-right">{pc.tx("TableHead.9", "GNV")}</TableHead>
                           ) : null}
                         </TableRow>
                       </TableHeader>
@@ -464,9 +476,7 @@ export default function PreciosCombustible() {
                         {isLoading ? (
                           <TableRow>
                             <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                              <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-primary" />
-                              Cargando precios históricos...
-                            </TableCell>
+                              <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-primary" />{pc.tx("TableCell.2", "Cargando precios históricos...")}</TableCell>
                           </TableRow>
                         ) : pricesList && pricesList.length > 0 ? (
                           pricesList.map((record) => {
@@ -477,7 +487,7 @@ export default function PreciosCombustible() {
                                 <TableCell className="font-semibold text-xs py-3.5">
                                   <div className="flex items-center gap-1.5">
                                     <Calendar className="h-3.5 w-3.5 text-primary" />
-                                    <span>{format(dateObj, "dd/MM/yyyy")} al {format(nextDateObj, "dd/MM/yyyy")}</span>
+                                    <span>{format(dateObj, "dd/MM/yyyy")}{" "}{pc.tx("span.8", "al")}{" "}{format(nextDateObj, "dd/MM/yyyy")}</span>
                                   </div>
                                 </TableCell>
 
@@ -523,8 +533,8 @@ export default function PreciosCombustible() {
                           <TableRow>
                             <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                               <Search className="h-10 w-10 mx-auto mb-3 opacity-30 text-muted-foreground" />
-                              <h5 className="font-bold text-foreground">No se encontraron precios</h5>
-                              <p className="text-xs mt-1">Intenta cambiar la fecha de búsqueda (ej. buscar sábados).</p>
+                              <h4 className="h5 font-bold text-foreground">{pc.tx("h5.1", "No se encontraron precios")}</h4>
+                              <p className="text-xs mt-1">{pc.tx("p.7", "Intenta cambiar la fecha de búsqueda (ej. buscar sábados).")}</p>
                             </TableCell>
                           </TableRow>
                         )}
@@ -542,10 +552,8 @@ export default function PreciosCombustible() {
                   <Info className="h-6 w-6" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-foreground text-sm">Información para Conductores Turistas</h4>
-                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                    Los precios de los combustibles en República Dominicana cambian cada viernes a medianoche. La venta se realiza por Galón Americano. El GLP es altamente común para servicios de taxi y transporte público local.
-                  </p>
+                  <h3 className="h4 font-bold text-foreground text-sm">{pc.tx("h4.1", "Información para Conductores Turistas")}</h3>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{pc.tx("p.8", "Los precios de los combustibles en República Dominicana cambian cada viernes a medianoche. La venta se realiza por Galón Americano. El GLP es altamente común para servicios de taxi y transporte público local.")}</p>
                 </div>
               </div>
             </section>

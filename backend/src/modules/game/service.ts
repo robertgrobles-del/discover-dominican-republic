@@ -1,5 +1,6 @@
 import type { NotifyInTransaction } from "../../contracts/notifications.js";
 import type { DenyReason, GameGrantPort, GrantInput, GrantResult } from "../../contracts/game.js";
+import { randomBytes } from "node:crypto";
 import type { PoolClient } from "pg";
 import type { Db } from "../../db/pool.js";
 import { AppError } from "../../lib/errors.js";
@@ -9,6 +10,11 @@ import { todayInSantoDomingo } from "../../lib/dates.js";
 export type { DenyReason, GrantInput, GrantResult } from "../../contracts/game.js";
 
 const RD_DAY_START = "(date_trunc('day', now() AT TIME ZONE 'America/Santo_Domingo') AT TIME ZONE 'America/Santo_Domingo')";
+/** Misión dentro de su vigencia el día `p` (parámetro SQL con la fecha de RD). */
+const inDates = (p: string) => `(starts_on IS NULL OR starts_on <= ${p}::date) AND (ends_on IS NULL OR ends_on >= ${p}::date)`;
+/** Sin 0/O ni 1/I/L: se dicta y se teclea sin confusiones si la cámara no lee el QR. */
+const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+type MissionRow = { id: string; name: string; target_count: number; xp_reward: number; coin_reward: number; mission_type: string };
 const STREAK_MILESTONES: [number, number][] = [[7, 1], [14, 2], [30, 4], [60, 8], [100, 15]];
 
 /** Multiplicador de XP del check-in según los días de racha. */
@@ -157,8 +163,10 @@ export class GameService implements GameGrantPort {
 
   private async advanceMissions(c: PoolClient, userId: string, action: string, out: GrantResult) {
     const today = todayInSantoDomingo();
-    const { rows: missions } = await c.query<{ id: string; name: string; target_count: number; xp_reward: number; coin_reward: number; mission_type: string }>(
-      "SELECT id, name, target_count, xp_reward, coin_reward, mission_type FROM gamification_missions WHERE is_active AND target_action = $1 AND coalesce(min_level, 1) <= $2", [action, out.level],
+    // Las que valida el patrocinador no avanzan con acciones; las que están fuera de fecha tampoco.
+    const { rows: missions } = await c.query<MissionRow>(
+      `SELECT id, name, target_count, xp_reward, coin_reward, mission_type FROM gamification_missions
+        WHERE is_active AND NOT requires_validation AND target_action = $1 AND coalesce(min_level, 1) <= $2 AND ${inDates("$3")}`, [action, out.level, today],
     );
     const done: GrantResult["missions_completed"] = [];
     for (const m of missions) {
@@ -169,15 +177,90 @@ export class GameService implements GameGrantPort {
          RETURNING progress, is_completed`, [userId, m.id, period, m.target_count],
       )).rows[0]!;
       if (row.is_completed || row.progress < m.target_count) continue;
-      await c.query("UPDATE user_missions SET is_completed = true, completed_at = now() WHERE user_id = $1 AND mission_id = $2 AND period_key = $3", [userId, m.id, period]);
-      await c.query("UPDATE user_gamification SET total_missions_completed = total_missions_completed + 1 WHERE user_id = $1", [userId]);
-      const r = await this.grantIn(c, { userId, action: "mission_completed", ref: `${m.id}:${period}`, xp: m.xp_reward, coins: m.coin_reward, description: `Misión: ${m.name}`, skipLimits: true, noMissions: true, noAchievements: true });
+      if (await this.completeMission(c, userId, m, period, out)) done.push({ id: m.id, name: m.name, xp: m.xp_reward, coins: m.coin_reward });
+    }
+    return done;
+  }
+
+  /** Marca la misión como cumplida y paga su premio. Devuelve false si se agotó el cupo (no se completa ni se paga). */
+  private async completeMission(c: PoolClient, userId: string, m: MissionRow, period: string, out?: GrantResult): Promise<GrantResult | null> {
+    const seat = await c.query("UPDATE gamification_missions SET completions_count = completions_count + 1 WHERE id = $1 AND (max_completions IS NULL OR completions_count < max_completions) RETURNING 1", [m.id]);
+    if (!seat.rowCount) return null;
+    await c.query(
+      `INSERT INTO user_missions (user_id, mission_id, period_key, progress, is_completed, completed_at) VALUES ($1,$2,$3,$4,true,now())
+       ON CONFLICT (user_id, mission_id, period_key) DO UPDATE SET progress = $4, is_completed = true, completed_at = now(), updated_at = now()`, [userId, m.id, period, m.target_count],
+    );
+    await c.query("UPDATE user_gamification SET total_missions_completed = total_missions_completed + 1 WHERE user_id = $1", [userId]);
+    const r = await this.grantIn(c, { userId, action: "mission_completed", ref: `${m.id}:${period}`, xp: m.xp_reward, coins: m.coin_reward, description: `Misión: ${m.name}`, skipLimits: true, noMissions: true, noAchievements: true });
+    if (out) {
       out.total_xp = r.total_xp; out.coins = r.coins; out.level = r.level;
       out.level_up ??= r.level_up;
       out.milestones_reached.push(...r.milestones_reached);
-      done.push({ id: m.id, name: m.name, xp: m.xp_reward, coins: m.coin_reward });
     }
-    return done;
+    return r;
+  }
+
+  // ---------- Retos que valida el patrocinador (QR) ----------
+  /** Código que el viajero muestra como QR. Se reutiliza mientras siga vigente; caduca a los 15 minutos. */
+  async issueValidationCode(userId: string, missionId: string): Promise<{ code: string; expires_at: string }> {
+    const today = todayInSantoDomingo();
+    const m = (await this.db.query<MissionRow & { requires_validation: boolean; full: boolean }>(
+      `SELECT id, name, target_count, xp_reward, coin_reward, mission_type, requires_validation,
+              (max_completions IS NOT NULL AND completions_count >= max_completions) AS full
+         FROM gamification_missions WHERE id = $1 AND is_active AND ${inDates("$2")}`, [missionId, today],
+    )).rows[0];
+    if (!m) throw AppError.notFound("Reto");
+    if (!m.requires_validation) throw new AppError("BUSINESS_RULE", "Este reto se completa solo, sin validación", { code: "NO_VALIDATION" });
+    if (m.full) throw new AppError("BUSINESS_RULE", "El reto ya no tiene cupos", { code: "MISSION_FULL" });
+    const period = missionPeriod(m.mission_type, today);
+    const done = await this.db.query("SELECT 1 FROM user_missions WHERE user_id = $1 AND mission_id = $2 AND period_key = $3 AND is_completed", [userId, missionId, period]);
+    if (done.rowCount) throw new AppError("CONFLICT", "Ya completaste este reto", { code: "ALREADY_COMPLETED" });
+    const code = Array.from(randomBytes(10), (b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join("");
+    const row = (await this.db.query<{ code: string; expires_at: Date }>(
+      `INSERT INTO mission_validation_codes (mission_id, user_id, period_key, code, expires_at) VALUES ($1,$2,$3,$4, now() + interval '15 minutes')
+       ON CONFLICT (user_id, mission_id, period_key) DO UPDATE
+         SET code = CASE WHEN mission_validation_codes.expires_at > now() + interval '2 minutes' THEN mission_validation_codes.code ELSE EXCLUDED.code END,
+             expires_at = CASE WHEN mission_validation_codes.expires_at > now() + interval '2 minutes' THEN mission_validation_codes.expires_at ELSE EXCLUDED.expires_at END
+         WHERE mission_validation_codes.used_at IS NULL
+       RETURNING code, expires_at`, [missionId, userId, period, code],
+    )).rows[0];
+    if (!row) throw new AppError("CONFLICT", "Ya completaste este reto", { code: "ALREADY_COMPLETED" });
+    return { code: row.code, expires_at: row.expires_at.toISOString() };
+  }
+
+  /** La empresa escanea el QR: comprueba que el reto es suyo, que el código sigue vigente y completa el reto. */
+  async validateCode(orgId: string, staffId: string, rawCode: string) {
+    const code = rawCode.trim().toUpperCase().replace(/^DRRETO:/, "");
+    return this.tx(async (c) => {
+      const v = (await c.query<{ id: string; mission_id: string; user_id: string; period_key: string; expires_at: Date; used_at: Date | null }>(
+        "SELECT id, mission_id, user_id, period_key, expires_at, used_at FROM mission_validation_codes WHERE code = $1 FOR UPDATE", [code],
+      )).rows[0];
+      if (!v) throw AppError.notFound("Código");
+      const m = (await c.query<MissionRow & { sponsor_id: string | null; requires_validation: boolean }>(
+        "SELECT id, name, target_count, xp_reward, coin_reward, mission_type, sponsor_id, requires_validation FROM gamification_missions WHERE id = $1 AND is_active", [v.mission_id],
+      )).rows[0];
+      // Un código de otra empresa se trata igual que uno inexistente: no revela qué retos tiene la competencia.
+      if (!m || !m.requires_validation || m.sponsor_id !== orgId) throw AppError.notFound("Código");
+      if (v.user_id === staffId) throw new AppError("FORBIDDEN", "No puedes validar tu propio reto", { code: "SELF_VALIDATION" });
+      if (v.used_at) throw new AppError("CONFLICT", "Este código ya se usó", { code: "CODE_USED" });
+      if (v.expires_at.getTime() < Date.now()) throw new AppError("BUSINESS_RULE", "El código caducó: pide a la persona que lo genere de nuevo", { code: "CODE_EXPIRED" });
+      const r = await this.completeMission(c, v.user_id, m, v.period_key);
+      if (!r) throw new AppError("BUSINESS_RULE", "El reto ya no tiene cupos", { code: "MISSION_FULL" });
+      await c.query("UPDATE mission_validation_codes SET used_at = now(), validated_by = $2, org_id = $3 WHERE id = $1", [v.id, staffId, orgId]);
+      // Nombre abreviado («Ana P.»): basta para reconocer a la persona en el mostrador.
+      const name = ((await c.query<{ display_name: string | null }>("SELECT display_name FROM profiles WHERE id = $1", [v.user_id])).rows[0]?.display_name ?? "").trim().split(/\s+/);
+      await this.notifyInTx(c, v.user_id, { type: "gamification", title: `¡Reto completado: ${m.name}!`, message: `Ganaste ${m.xp_reward} XP${m.coin_reward ? ` y ${m.coin_reward} monedas` : ""}.`, link: "/gamificacion-turistica/retos", data: { mission_id: m.id } });
+      return { mission: m.name, traveler: name[0] ? `${name[0]}${name[1] ? ` ${name[1][0]!.toUpperCase()}.` : ""}` : "Viajero", xp: m.xp_reward, coins: m.coin_reward };
+    });
+  }
+
+  /** Retos que patrocina una empresa, con cuántas personas los completaron. */
+  async sponsorMissions(orgId: string) {
+    return (await this.db.query(
+      `SELECT m.id, m.name, m.description, m.mission_type, m.xp_reward, m.coin_reward, to_char(m.starts_on, 'YYYY-MM-DD') AS starts_on, to_char(m.ends_on, 'YYYY-MM-DD') AS ends_on, m.max_completions, m.completions_count, m.is_active, m.requires_validation,
+              (SELECT count(*)::int FROM mission_validation_codes v WHERE v.mission_id = m.id AND v.used_at >= ${RD_DAY_START}) AS validated_today
+         FROM gamification_missions m WHERE m.sponsor_id = $1 ORDER BY m.is_active DESC, m.created_at DESC`, [orgId],
+    )).rows;
   }
 
   // ---------- Logros con condición evaluada en el servidor ----------
@@ -339,19 +422,26 @@ export class GameService implements GameGrantPort {
       id: string; name: string; description: string | null; target_action: string; target_count: number;
       xp_reward: number; coin_reward: number; mission_type: string; is_featured: boolean; icon: string | null;
       min_level: number; sponsor_id: string | null; sponsor_name: string | null; sponsor_logo_url: string | null;
-      sponsor_reward_text: string | null; is_sponsored: boolean;
+      sponsor_reward_text: string | null; is_sponsored: boolean; target_url: string | null; target_label: string | null;
+      starts_on: string | null; ends_on: string | null; image_url: string | null; place_name: string | null; province: string | null;
+      difficulty: string | null; estimated_minutes: number | null; requires_validation: boolean; spots_left: number | null;
     }>(
       `SELECT id, name, description, target_action, target_count, xp_reward, coin_reward, mission_type, is_featured, icon,
-              coalesce(min_level, 1) AS min_level, sponsor_id, sponsor_name, sponsor_logo_url, sponsor_reward_text, is_sponsored
+              coalesce(min_level, 1) AS min_level, sponsor_id, sponsor_name, sponsor_logo_url, sponsor_reward_text, is_sponsored, target_url, target_label,
+              to_char(starts_on, 'YYYY-MM-DD') AS starts_on, to_char(ends_on, 'YYYY-MM-DD') AS ends_on, image_url, place_name, province, difficulty, estimated_minutes, requires_validation,
+              CASE WHEN max_completions IS NULL THEN NULL ELSE GREATEST(0, max_completions - completions_count) END AS spots_left
          FROM gamification_missions
-        WHERE is_active AND coalesce(min_level, 1) <= $1
-        ORDER BY is_featured DESC, is_sponsored DESC, mission_type, name`, [level],
+        WHERE is_active AND coalesce(min_level, 1) <= $1 AND ${inDates("$2")}
+        ORDER BY is_featured DESC, is_sponsored DESC, mission_type, name`, [level, today],
     );
     const mine = userId ? (await this.db.query<{ mission_id: string; period_key: string; progress: number; is_completed: boolean }>("SELECT mission_id, period_key, progress, is_completed FROM user_missions WHERE user_id = $1", [userId])).rows : [];
-    return rows.map((m) => {
-      const mp = mine.find((x) => x.mission_id === m.id && x.period_key === missionPeriod(m.mission_type, today));
-      return { ...m, progress: mp?.progress ?? 0, completed: mp?.is_completed ?? false };
-    });
+    return rows
+      .map((m) => {
+        const mp = mine.find((x) => x.mission_id === m.id && x.period_key === missionPeriod(m.mission_type, today));
+        return { ...m, progress: mp?.progress ?? 0, completed: mp?.is_completed ?? false };
+      })
+      // Sin cupos ya no se ofrece, salvo a quien lo completó (para que vea su logro).
+      .filter((m) => m.spots_left !== 0 || m.completed);
   }
 
   async achievements(userId: string | null) {

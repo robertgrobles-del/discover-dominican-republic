@@ -12,6 +12,7 @@ import { useState } from "react";
 import { SEOHead } from "@/components/SEOHead";
 
 import heroBeach from "@/assets/hero-beach.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const intereses = [
   { id: "relax", label: "RELAX", icon: "🏖️" },
@@ -55,6 +56,13 @@ const transporteCiudades = [
 ];
 
 export default function Herramientas() {
+  const pc = usePageContent("herramientas");
+  const intereses = pc.data("intereses", __pcData.intereses);
+  const checklistDocumentos = pc.data("checklistDocumentos", __pcData.checklistDocumentos);
+  const checklistMaleta = pc.data("checklistMaleta", __pcData.checklistMaleta);
+  const checklistApps = pc.data("checklistApps", __pcData.checklistApps);
+  const infoCards = pc.data("infoCards", __pcData.infoCards);
+  const transporteCiudades = pc.data("transporteCiudades", __pcData.transporteCiudades);
   const [heroLoaded, setHeroLoaded] = useState(false);
   const [estadia, setEstadia] = useState([7]);
   const [selectedInteres, setSelectedInteres] = useState("relax");
@@ -62,8 +70,8 @@ export default function Herramientas() {
   return (
     <PageTransition>
       <SEOHead
-        title="Herramientas y Logística de Viaje"
-        description="Genera itinerarios personalizados con IA, gestiona tu checklist de viaje y consulta opciones de transporte, calculadoras y monitores en tiempo real para tu visita a República Dominicana."
+        title={pc.t("SEOHead.title.1", "Herramientas y Logística de Viaje")}
+        description={pc.t("SEOHead.description.1", "Genera itinerarios personalizados con IA, gestiona tu checklist de viaje y consulta opciones de transporte, calculadoras y monitores en tiempo real para tu visita a República Dominicana.")}
       />
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
@@ -72,8 +80,8 @@ export default function Herramientas() {
         <section className="relative py-24 flex items-center justify-center overflow-hidden">
           {!heroLoaded && <Skeleton className="absolute inset-0" />}
           <img
-            src={heroBeach}
-            alt="Herramientas y Logística"
+            src={pc.img("img.src.1", heroBeach)}
+            alt={pc.t("img.alt.1", "Herramientas y Logística")}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
               heroLoaded ? "opacity-30" : "opacity-0"
             }`}
@@ -83,14 +91,9 @@ export default function Herramientas() {
           
           <div className="relative z-10 text-center px-4">
             <Badge className="mb-4 bg-primary/20 text-primary">
-              <Sparkles className="w-4 h-4 mr-1" /> SUITE DE VIAJE
-            </Badge>
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">
-              Herramientas y Logística
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Todo lo que necesitas para organizar tu llegada. Genera itinerarios, gestiona requisitos y planifica tu movilidad.
-            </p>
+              <Sparkles className="w-4 h-4 mr-1" />{" "}{pc.tx("Badge.1", "SUITE DE VIAJE")}</Badge>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-4">{pc.tx("h1.1", "Herramientas y Logística")}</h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{pc.tx("p.1", "Todo lo que necesitas para organizar tu llegada. Genera itinerarios, gestiona requisitos y planifica tu movilidad.")}</p>
           </div>
         </section>
 
@@ -104,21 +107,21 @@ export default function Herramientas() {
                     <Map className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h2 className="font-display font-bold text-xl text-foreground">Generador de Itinerarios</h2>
-                    <p className="text-sm text-muted-foreground">IA Turística</p>
+                    <h2 className="font-display font-bold text-xl text-foreground">{pc.tx("h2.1", "Generador de Itinerarios")}</h2>
+                    <p className="text-sm text-muted-foreground">{pc.tx("p.2", "IA Turística")}</p>
                   </div>
                 </div>
 
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-sm font-medium text-foreground">Estadía</label>
-                    <span className="text-primary font-semibold">{estadia[0]} días</span>
+                    <label className="text-sm font-medium text-foreground">{pc.tx("label.1", "Estadía")}</label>
+                    <span className="text-primary font-semibold">{estadia[0]}{" "}{pc.tx("span.1", "días")}</span>
                   </div>
                   <Slider value={estadia} onValueChange={setEstadia} min={3} max={21} step={1} />
                 </div>
 
                 <div className="mb-6">
-                  <label className="text-sm font-medium text-foreground mb-3 block">Intereses</label>
+                  <label className="text-sm font-medium text-foreground mb-3 block">{pc.tx("label.2", "Intereses")}</label>
                   <div className="grid grid-cols-3 gap-3">
                     {intereses.map((interes) => (
                       <button
@@ -138,8 +141,7 @@ export default function Herramientas() {
                 </div>
 
                 <Button className="w-full gap-2">
-                  <Sparkles className="h-4 w-4" /> Crear Ruta Personalizada
-                </Button>
+                  <Sparkles className="h-4 w-4" />{" "}{pc.tx("Button.1", "Crear Ruta Personalizada")}</Button>
               </div>
 
               {/* Vista Previa */}
@@ -151,14 +153,14 @@ export default function Herramientas() {
                 </div>
                 <div className="p-6 border-t border-border">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-muted-foreground uppercase">VISTA PREVIA</span>
-                    <span className="text-xs text-muted-foreground">Actualizado hace 2m</span>
+                    <span className="text-xs text-muted-foreground uppercase">{pc.tx("span.2", "VISTA PREVIA")}</span>
+                    <span className="text-xs text-muted-foreground">{pc.tx("span.3", "Actualizado hace 2m")}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-2xl font-bold text-primary">{estadia[0]}</span>
                     <div>
-                      <p className="font-semibold text-foreground">Ruta Paraíso Tropical</p>
-                      <p className="text-sm text-muted-foreground">Punta Cana • Santo Domingo • Samaná</p>
+                      <p className="font-semibold text-foreground">{pc.tx("p.3", "Ruta Paraíso Tropical")}</p>
+                      <p className="text-sm text-muted-foreground">{pc.tx("p.4", "Punta Cana • Santo Domingo • Samaná")}</p>
                     </div>
                   </div>
                 </div>
@@ -173,9 +175,9 @@ export default function Herramientas() {
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
                 <Check className="h-6 w-6 text-primary" />
-                <h2 className="font-display text-2xl font-bold text-foreground">Checklist de Viaje</h2>
+                <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.2", "Checklist de Viaje")}</h2>
               </div>
-              <span className="text-sm text-muted-foreground">Progreso: 0/9</span>
+              <span className="text-sm text-muted-foreground">{pc.tx("span.4", "Progreso: 0/9")}</span>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -183,7 +185,7 @@ export default function Herramientas() {
               <div className="bg-card rounded-xl border border-border p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <FileText className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-foreground">Documentos</h3>
+                  <h3 className="font-semibold text-foreground">{pc.tx("h3.1", "Documentos")}</h3>
                 </div>
                 <div className="space-y-4">
                   {checklistDocumentos.map((item) => (
@@ -202,7 +204,7 @@ export default function Herramientas() {
               <div className="bg-card rounded-xl border border-border p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-primary">🧳</span>
-                  <h3 className="font-semibold text-foreground">En la Maleta</h3>
+                  <h3 className="font-semibold text-foreground">{pc.tx("h3.2", "En la Maleta")}</h3>
                 </div>
                 <div className="space-y-4">
                   {checklistMaleta.map((item) => (
@@ -221,7 +223,7 @@ export default function Herramientas() {
               <div className="bg-card rounded-xl border border-border p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-primary">📱</span>
-                  <h3 className="font-semibold text-foreground">Apps Útiles</h3>
+                  <h3 className="font-semibold text-foreground">{pc.tx("h3.3", "Apps Útiles")}</h3>
                 </div>
                 <div className="space-y-4">
                   {checklistApps.map((item) => (
@@ -273,14 +275,13 @@ export default function Herramientas() {
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-2 mb-8">
               <Car className="h-6 w-6 text-primary" />
-              <h2 className="font-display text-2xl font-bold text-foreground">Opciones de Transporte</h2>
+              <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.3", "Opciones de Transporte")}</h2>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="bg-card rounded-xl border border-border p-6">
                 <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                  <span className="text-primary">🏙️</span> Movilidad Local (Ciudad)
-                </h3>
+                  <span className="text-primary">🏙️</span>{" "}{pc.tx("h3.4", "Movilidad Local (Ciudad)")}</h3>
                 <div className="space-y-4">
                   {transporteLocal.map((item) => (
                     <div key={item.titulo} className="flex items-start gap-4">
@@ -298,8 +299,7 @@ export default function Herramientas() {
 
               <div className="bg-card rounded-xl border border-border p-6">
                 <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                  <span className="text-primary">🚌</span> Entre Ciudades
-                </h3>
+                  <span className="text-primary">🚌</span>{" "}{pc.tx("h3.5", "Entre Ciudades")}</h3>
                 <div className="space-y-4">
                   {transporteCiudades.map((item) => (
                     <div key={item.titulo} className="flex items-start gap-4">
@@ -323,7 +323,7 @@ export default function Herramientas() {
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-2 mb-8">
               <Coins className="h-6 w-6 text-primary" />
-              <h2 className="font-display text-2xl font-bold text-foreground">Calculadoras y Monitores</h2>
+              <h2 className="font-display text-2xl font-bold text-foreground">{pc.tx("h2.4", "Calculadoras y Monitores")}</h2>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[
@@ -343,7 +343,7 @@ export default function Herramientas() {
                     <item.icon className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">{item.titulo}</h4>
+                    <h3 className="h4 font-semibold text-foreground group-hover:text-primary transition-colors">{item.titulo}</h3>
                     <p className="text-sm text-muted-foreground mt-1">{item.desc}</p>
                   </div>
                 </Link>
@@ -357,3 +357,6 @@ export default function Herramientas() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { intereses, checklistDocumentos, checklistMaleta, checklistApps, infoCards, transporteCiudades };

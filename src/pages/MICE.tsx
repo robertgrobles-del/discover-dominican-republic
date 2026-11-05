@@ -189,7 +189,7 @@ export default function MICE() {
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                       
-                      <Badge className="absolute top-3 right-3 bg-slate-950/80 text-cyan-300 border-cyan-500/30 text-[10px] font-semibold">
+                      <Badge className="absolute top-3 right-3 bg-slate-950/80 text-cyan-300 border-cyan-500/30 text-3xs font-semibold">
                         {venue.tipo}
                       </Badge>
 
@@ -208,13 +208,13 @@ export default function MICE() {
 
                       <div className="grid grid-cols-2 gap-3 p-3 bg-muted/40 rounded-xl border border-border/50 text-xs">
                         <div>
-                          <span className="text-[10px] text-muted-foreground uppercase font-bold block">Capacidad Máxima</span>
+                          <span className="text-3xs text-muted-foreground uppercase font-bold block">Capacidad Máxima</span>
                           <span className="font-extrabold text-foreground flex items-center gap-1 mt-0.5">
                             <Users className="h-3.5 w-3.5 text-cyan-500" /> {venue.capacidad}
                           </span>
                         </div>
                         <div>
-                          <span className="text-[10px] text-muted-foreground uppercase font-bold block">Espacios & Salones</span>
+                          <span className="text-3xs text-muted-foreground uppercase font-bold block">Espacios & Salones</span>
                           <span className="font-extrabold text-foreground flex items-center gap-1 mt-0.5">
                             <Building2 className="h-3.5 w-3.5 text-cyan-500" /> {venue.salones}
                           </span>
@@ -280,7 +280,7 @@ export default function MICE() {
                           }`}
                         >
                           <span className="text-xl block mb-1">{tipo.icon}</span>
-                          <span className="text-[11px]">{tipo.nombre}</span>
+                          <span className="text-2xs">{tipo.nombre}</span>
                         </button>
                       ))}
                     </div>
@@ -293,19 +293,19 @@ export default function MICE() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 bg-background rounded-xl border">
-                      <span className="text-[10px] text-muted-foreground font-bold uppercase block">Área Mínima</span>
+                      <span className="text-3xs text-muted-foreground font-bold uppercase block">Área Mínima</span>
                       <span className="text-3xl font-extrabold text-cyan-600 dark:text-cyan-400 font-mono">{espacioNecesario}</span>
                       <span className="text-xs text-muted-foreground ml-1">m²</span>
                     </div>
 
                     <div className="p-4 bg-background rounded-xl border">
-                      <span className="text-[10px] text-muted-foreground font-bold uppercase block">Altura de Techo</span>
+                      <span className="text-3xs text-muted-foreground font-bold uppercase block">Altura de Techo</span>
                       <span className="text-3xl font-extrabold text-cyan-600 dark:text-cyan-400 font-mono">{alturaMinima}</span>
                       <span className="text-xs text-muted-foreground ml-1">metros</span>
                     </div>
                   </div>
 
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  <p className="text-2xs text-muted-foreground leading-relaxed">
                     * El cálculo contempla pasillos de seguridad, tarima para ponentes y espacio para traducción simultánea reglamentaria.
                   </p>
                 </div>

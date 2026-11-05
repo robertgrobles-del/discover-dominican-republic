@@ -10,7 +10,7 @@ export function ParticipationInvite({ placeName }: ParticipationInviteProps) {
   const subject = placeName ? ` en ${placeName}` : "";
 
   return (
-    <section aria-labelledby="participation-invite-title" className="relative isolate overflow-hidden rounded-3xl border border-emerald-900/15 bg-[#0b3c36] px-6 py-8 text-white md:px-10 md:py-10">
+    <section aria-labelledby="participation-invite-title" className="relative isolate overflow-hidden rounded-3xl border border-emerald-900/15 bg-brand-lagoon px-6 py-8 text-white md:px-10 md:py-10">
       <div aria-hidden="true" className="absolute -right-14 -top-24 -z-10 h-64 w-64 rounded-full border border-emerald-100/20" />
       <div aria-hidden="true" className="absolute -right-2 -top-12 -z-10 h-40 w-40 rounded-full border border-emerald-100/15" />
       <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">

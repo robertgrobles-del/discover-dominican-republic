@@ -19,6 +19,7 @@ import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import samanaImg from "@/assets/samana.jpg";
 import adventureImg from "@/assets/adventure.jpg";
 import gastronomyImg from "@/assets/gastronomy.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 interface AudioGuide {
   id: number;
@@ -141,6 +142,9 @@ const featuresList = [
 ];
 
 export default function AudioGuias() {
+  const pc = usePageContent("audio-guias");
+  const audioGuidesList = pc.data("audioGuidesList", __pcData.audioGuidesList);
+  const featuresList = pc.data("featuresList", __pcData.featuresList);
   const [playing, setPlaying] = useState<number | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>("todas");
   const [guides, setGuides] = useState(audioGuidesList);
@@ -177,8 +181,8 @@ export default function AudioGuias() {
   return (
     <PageTransition>
       <SEOHead
-        title="Audioguías de República Dominicana | Recorridos Narrados con GPS"
-        description="Explora la Zona Colonial, Samaná, el Pico Duarte y Los Haitises con audioguías interactivas narradas por expertos. Descarga sin conexión."
+        title={pc.t("SEOHead.title.1", "Audioguías de República Dominicana | Recorridos Narrados con GPS")}
+        description={pc.t("SEOHead.description.1", "Explora la Zona Colonial, Samaná, el Pico Duarte y Los Haitises con audioguías interactivas narradas por expertos. Descarga sin conexión.")}
         keywords="audioguias republica dominicana, audioguia zona colonial, audio tour rd, relatos dominicanos, tours guiados con gps"
       />
       <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -187,47 +191,42 @@ export default function AudioGuias() {
         {/* Hero Section */}
         <section className="relative h-[60vh] min-h-[460px] flex items-end overflow-hidden">
           <img
-            src={santoDomingoImg}
-            alt="Audioguías en República Dominicana"
+            src={pc.img("img.src.1", santoDomingoImg)}
+            alt={pc.t("img.alt.1", "Audioguías en República Dominicana")}
             className="absolute inset-0 w-full h-full object-cover object-center"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/75 to-black/40" />
 
           <div className="relative z-10 container mx-auto px-4 lg:px-8 pb-12">
             <nav className="flex items-center gap-2 text-xs md:text-sm text-white/80 mb-4">
-              <Link to="/" className="hover:text-primary transition-colors">Inicio</Link>
+              <Link to="/" className="hover:text-primary transition-colors">{pc.tx("Link.1", "Inicio")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <Link to="/experiencias" className="hover:text-primary transition-colors">Experiencias</Link>
+              <Link to="/experiencias" className="hover:text-primary transition-colors">{pc.tx("Link.2", "Experiencias")}</Link>
               <ChevronRight className="h-3.5 w-3.5" />
-              <span className="text-white font-medium">Audioguías Oficiales</span>
+              <span className="text-white font-medium">{pc.tx("span.1", "Audioguías Oficiales")}</span>
             </nav>
 
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div>
                 <Badge className="mb-3 bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-xs px-3 py-1">
-                  <Headphones className="h-3.5 w-3.5 mr-1.5" /> EXPERIENCIA INMERSIVA
-                </Badge>
-                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">
-                  Audioguías de RD
-                </h1>
-                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">
-                  Descubre los secretos mejor guardados de nuestra historia, naturaleza y cultura narrados por historiadores, biólogos y chefs locales.
-                </p>
+                  <Headphones className="h-3.5 w-3.5 mr-1.5" />{" "}{pc.tx("Badge.1", "EXPERIENCIA INMERSIVA")}</Badge>
+                <h1 className="font-display text-4xl md:text-6xl font-black text-white tracking-tight mb-3">{pc.tx("h1.1", "Audioguías de RD")}</h1>
+                <p className="text-base md:text-lg text-white/90 max-w-2xl leading-relaxed">{pc.tx("p.1", "Descubre los secretos mejor guardados de nuestra historia, naturaleza y cultura narrados por historiadores, biólogos y chefs locales.")}</p>
               </div>
 
               {/* Stats pill */}
               <div className="flex flex-wrap gap-4 bg-black/40 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-white">
                 <div className="text-center px-2">
                   <p className="font-display text-2xl font-bold text-primary">{guides.length}</p>
-                  <p className="text-[11px] text-white/70 uppercase">Tours Narrados</p>
+                  <p className="text-2xs text-white/70 uppercase">{pc.tx("p.2", "Tours Narrados")}</p>
                 </div>
                 <div className="text-center px-2 border-l border-white/10">
                   <p className="font-display text-2xl font-bold text-emerald-400">100%</p>
-                  <p className="text-[11px] text-white/70 uppercase">Modo Offline</p>
+                  <p className="text-2xs text-white/70 uppercase">{pc.tx("p.3", "Modo Offline")}</p>
                 </div>
                 <div className="text-center px-2 border-l border-white/10">
-                  <p className="font-display text-2xl font-bold text-indigo-400">GPS</p>
-                  <p className="text-[11px] text-white/70 uppercase">Auto-Play</p>
+                  <p className="font-display text-2xl font-bold text-indigo-400">{pc.tx("p.4", "GPS")}</p>
+                  <p className="text-2xs text-white/70 uppercase">{pc.tx("p.5", "Auto-Play")}</p>
                 </div>
               </div>
             </div>
@@ -235,7 +234,7 @@ export default function AudioGuias() {
         </section>
 
         {/* Category Selector */}
-        <section className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border/80 py-4 shadow-sm">
+        <section className="bg-background/95 backdrop-blur-md border-b border-border/80 py-4 shadow-sm">
           <div className="container mx-auto px-4 lg:px-8 flex items-center justify-between gap-4 overflow-x-auto scrollbar-none">
             <div className="flex items-center gap-2">
               <Button 
@@ -243,41 +242,32 @@ export default function AudioGuias() {
                 size="sm"
                 onClick={() => setActiveCategory("todas")}
                 className="rounded-full text-xs"
-              >
-                Todas ({guides.length})
+              >{pc.tx("Button.1", "Todas (")}{guides.length})
               </Button>
               <Button 
                 variant={activeCategory === "historia" ? "default" : "outline"} 
                 size="sm"
                 onClick={() => setActiveCategory("historia")}
                 className="rounded-full text-xs"
-              >
-                Historia & Monumentos
-              </Button>
+              >{pc.tx("Button.2", "Historia & Monumentos")}</Button>
               <Button 
                 variant={activeCategory === "naturaleza" ? "default" : "outline"} 
                 size="sm"
                 onClick={() => setActiveCategory("naturaleza")}
                 className="rounded-full text-xs"
-              >
-                Naturaleza & Ballenas
-              </Button>
+              >{pc.tx("Button.3", "Naturaleza & Ballenas")}</Button>
               <Button 
                 variant={activeCategory === "gastronomia" ? "default" : "outline"} 
                 size="sm"
                 onClick={() => setActiveCategory("gastronomia")}
                 className="rounded-full text-xs"
-              >
-                Gastronomía & Sabores
-              </Button>
+              >{pc.tx("Button.4", "Gastronomía & Sabores")}</Button>
               <Button 
                 variant={activeCategory === "aventura" ? "default" : "outline"} 
                 size="sm"
                 onClick={() => setActiveCategory("aventura")}
                 className="rounded-full text-xs"
-              >
-                Aventura & Cumbres
-              </Button>
+              >{pc.tx("Button.5", "Aventura & Cumbres")}</Button>
             </div>
           </div>
         </section>
@@ -326,16 +316,15 @@ export default function AudioGuias() {
                         <Clock className="h-3.5 w-3.5 text-primary" /> {guide.duration}
                       </span>
                       <span className="flex items-center gap-1 font-semibold">
-                        <Volume2 className="h-3.5 w-3.5 text-indigo-400" /> {guide.stops} Paradas
-                      </span>
+                        <Volume2 className="h-3.5 w-3.5 text-indigo-400" /> {guide.stops}{" "}{pc.tx("span.2", "Paradas")}</span>
                     </div>
                   </div>
 
                   <CardContent className="p-5 flex flex-col flex-1">
-                    <h3 className="font-display font-bold text-lg text-foreground mb-1 leading-snug">
+                    <h2 className="h3 font-display font-bold text-lg text-foreground mb-1 leading-snug">
                       {guide.title}
-                    </h3>
-                    <p className="text-[11px] font-semibold text-primary mb-2">
+                    </h2>
+                    <p className="text-2xs font-semibold text-primary mb-2">
                       🎙️ {guide.narrator}
                     </p>
                     <p className="text-xs text-muted-foreground leading-relaxed mb-4 flex-1">
@@ -347,8 +336,7 @@ export default function AudioGuias() {
                       <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-xl space-y-2 animate-in fade-in">
                         <div className="flex items-center justify-between text-xs font-mono text-primary font-bold">
                           <span className="flex items-center gap-1">
-                            <span className="w-2 h-2 rounded-full bg-primary animate-ping" /> EN REPRODUCCIÓN
-                          </span>
+                            <span className="w-2 h-2 rounded-full bg-primary animate-ping" />{" "}{pc.tx("span.3", "EN REPRODUCCIÓN")}</span>
                           <span>04:18 / {guide.duration}</span>
                         </div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -359,8 +347,8 @@ export default function AudioGuias() {
 
                     <div className="pt-3 border-t border-border flex items-center justify-between text-xs">
                       <div className="space-y-0.5">
-                        <span className="text-[11px] text-muted-foreground block">{guide.language}</span>
-                        <span className="text-[11px] text-muted-foreground font-mono">{guide.size}</span>
+                        <span className="text-2xs text-muted-foreground block">{guide.language}</span>
+                        <span className="text-2xs text-muted-foreground font-mono">{guide.size}</span>
                       </div>
 
                       <Button 
@@ -391,15 +379,9 @@ export default function AudioGuias() {
         <section className="py-16 bg-card/40 border-y border-border/50">
           <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
             <div className="text-center mb-12">
-              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">
-                TECNOLOGÍA INTELIGENTE
-              </Badge>
-              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">
-                ¿Cómo Funciona la Audioguía con GPS?
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
-                Tu teléfono se convierte en un guía turístico privado que reacciona a tu ubicación en tiempo real.
-              </p>
+              <Badge className="mb-3 bg-primary/15 text-primary border-primary/30">{pc.tx("Badge.2", "TECNOLOGÍA INTELIGENTE")}</Badge>
+              <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-3">{pc.tx("h2.1", "¿Cómo Funciona la Audioguía con GPS?")}</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">{pc.tx("p.6", "Tu teléfono se convierte en un guía turístico privado que reacciona a tu ubicación en tiempo real.")}</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -428,3 +410,6 @@ export default function AudioGuias() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { audioGuidesList, featuresList };

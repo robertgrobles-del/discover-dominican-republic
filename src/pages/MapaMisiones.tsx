@@ -234,7 +234,7 @@ export default function MapaMisiones() {
                         <span className="text-3xl">{selectedMission.icon}</span>
                         <Badge variant="outline">{statusConfig[selectedMission.status].label}</Badge>
                       </div>
-                      <h3 className="text-lg font-bold text-foreground mb-2">{selectedMission.name}</h3>
+                      <h2 className="h3 text-lg font-bold text-foreground mb-2">{selectedMission.name}</h2>
                       <p className="text-sm text-muted-foreground mb-4">{selectedMission.description}</p>
                       <div className="flex gap-2 mb-4 flex-wrap">
                         <Badge className="bg-amber-500/10 text-amber-600 border-amber-200">
@@ -285,7 +285,7 @@ export default function MapaMisiones() {
                           <div className="flex items-start gap-3">
                             <span className="text-2xl">{m.status === "locked" ? "🔒" : m.icon}</span>
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-foreground text-sm truncate">{m.name}</h4>
+                              <h2 className="h3 h4 font-semibold text-foreground text-sm truncate">{m.name}</h2>
                               <p className="text-xs text-muted-foreground mb-1">{m.region} • {m.category}</p>
                               <div className="flex gap-2">
                                 <span className="text-xs font-medium text-primary">+{m.xp_reward} XP</span>

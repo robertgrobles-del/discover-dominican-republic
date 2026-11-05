@@ -29,7 +29,7 @@ export const RewardDetailDialog: React.FC<RewardDetailDialogProps> = ({
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
               <div className="absolute bottom-4 left-6 right-6 text-white">
-                <Badge className="bg-primary text-primary-foreground text-[10px] mb-1">
+                <Badge className="bg-primary text-primary-foreground text-3xs mb-1">
                   {prize.sponsor}
                 </Badge>
                 <h3 className="font-display font-bold text-lg leading-tight">{prize.name}</h3>
@@ -45,7 +45,7 @@ export const RewardDetailDialog: React.FC<RewardDetailDialogProps> = ({
               </p>
 
               <div className="space-y-2">
-                <h5 className="font-bold text-foreground">¿Qué incluye este beneficio?</h5>
+                <h4 className="h5 font-bold text-foreground">¿Qué incluye este beneficio?</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                   {prize.includes.map((inc, i) => (
                     <div key={i} className="flex items-center gap-2 text-muted-foreground">
@@ -58,15 +58,15 @@ export const RewardDetailDialog: React.FC<RewardDetailDialogProps> = ({
 
               <div className="grid grid-cols-3 gap-2 bg-muted/30 p-3 rounded-2xl border border-border text-center">
                 <div>
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold">Costo</span>
+                  <span className="text-3xs text-muted-foreground uppercase font-bold">Costo</span>
                   <p className="font-black text-amber-500 text-sm mt-0.5">{prize.coin_cost} monedas</p>
                 </div>
                 <div>
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold">Valor Real</span>
+                  <span className="text-3xs text-muted-foreground uppercase font-bold">Valor Real</span>
                   <p className="font-bold text-foreground text-sm mt-0.5">RD$ {prize.estimated_value_dop.toLocaleString()}</p>
                 </div>
                 <div>
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold">Vigencia</span>
+                  <span className="text-3xs text-muted-foreground uppercase font-bold">Vigencia</span>
                   <p className="font-bold text-foreground text-sm mt-0.5">{prize.validity_days} días</p>
                 </div>
               </div>

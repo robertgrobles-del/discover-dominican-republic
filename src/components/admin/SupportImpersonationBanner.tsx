@@ -80,14 +80,14 @@ export function SupportImpersonationBanner({ onExitSession }: SupportImpersonati
   return (
     <div className="bg-amber-500 text-amber-950 px-4 py-2 text-xs font-medium border-b border-amber-600/40 shadow-sm sticky top-0 z-50 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <Badge className="bg-amber-950 text-amber-100 border-0 text-[10px] gap-1 font-mono uppercase">
+        <Badge className="bg-amber-950 text-amber-100 border-0 text-3xs gap-1 font-mono uppercase">
           <Eye className="h-3 w-3" /> Modo soporte (solo lectura)
         </Badge>
         <span className="truncate">
           Estás auditando la cuenta de: <strong className="font-bold">{targetLabel}</strong>{" "}
           (<span className="font-mono">por {actorLabel}</span>)
         </span>
-        <span className="hidden md:inline-flex items-center gap-1 text-[11px] opacity-80">
+        <span className="hidden md:inline-flex items-center gap-1 text-2xs opacity-80">
           <Clock className="h-3 w-3" /> Caduca sola a los 15 min {demoSession?.expiresAt ? `(${demoSession.expiresAt})` : ""}
         </span>
       </div>

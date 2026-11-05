@@ -92,7 +92,7 @@ export function DestinationEssentials({
                     <div className={`p-2.5 rounded-xl border ${item.color}`}>
                       <Icon className="h-5 w-5" />
                     </div>
-                    <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground border border-border/50">
+                    <span className="text-2xs font-semibold px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground border border-border/50">
                       {item.badge}
                     </span>
                   </div>

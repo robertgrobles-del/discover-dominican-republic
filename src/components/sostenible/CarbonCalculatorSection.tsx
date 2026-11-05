@@ -38,7 +38,7 @@ export function CarbonCalculatorSection({
         {/* Form Side */}
         <div className="lg:col-span-5 space-y-6">
           <div>
-            <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] font-bold">
+            <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-3xs font-bold">
               CALCULADORA DE HUELLA
             </Badge>
             <h2 className="text-2xl font-bold text-foreground mt-2">Mide Tu Impacto Ambiental</h2>
@@ -50,10 +50,10 @@ export function CarbonCalculatorSection({
 
           <form onSubmit={onCalculate} className="space-y-4 bg-card/50 p-6 border rounded-xl">
             <div>
-              <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">
+              <label htmlFor="carbon-calculator-section-f3" className="text-3xs font-bold text-muted-foreground uppercase block mb-1">
                 Origen del Vuelo
               </label>
-              <select
+              <select id="carbon-calculator-section-f3"
                 value={flightOrigin}
                 onChange={(e) => onFlightOriginChange(e.target.value)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -68,10 +68,10 @@ export function CarbonCalculatorSection({
             </div>
 
             <div>
-              <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">
+              <label htmlFor="carbon-calculator-section-f2" className="text-3xs font-bold text-muted-foreground uppercase block mb-1">
                 Clase del Asiento
               </label>
-              <select
+              <select id="carbon-calculator-section-f2"
                 value={flightClass}
                 onChange={(e) => onFlightClassChange(e.target.value)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -84,10 +84,10 @@ export function CarbonCalculatorSection({
             </div>
 
             <div>
-              <label className="text-[10px] font-bold text-muted-foreground uppercase block mb-1">
+              <label htmlFor="carbon-calculator-section-f1" className="text-3xs font-bold text-muted-foreground uppercase block mb-1">
                 Noches de Alojamiento
               </label>
-              <Input
+              <Input id="carbon-calculator-section-f1"
                 type="number"
                 min="1"
                 value={hotelNights}
@@ -124,7 +124,7 @@ export function CarbonCalculatorSection({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-card p-4 rounded-xl border border-border">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground">
+                    <span className="text-3xs uppercase font-bold text-muted-foreground">
                       Emisiones CO2
                     </span>
                     <p className="text-2xl font-extrabold font-mono text-foreground mt-1">
@@ -132,7 +132,7 @@ export function CarbonCalculatorSection({
                     </p>
                   </div>
                   <div className="bg-card p-4 rounded-xl border border-border">
-                    <span className="text-[10px] uppercase font-bold text-muted-foreground">
+                    <span className="text-3xs uppercase font-bold text-muted-foreground">
                       Costo Sugerido
                     </span>
                     <p className="text-2xl font-extrabold font-mono text-emerald-500 mt-1">

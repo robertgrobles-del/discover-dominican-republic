@@ -57,6 +57,25 @@ describe("colecciones públicas", () => {
   beforeAll(async () => { app = await makeApp(); });
   afterAll(async () => { await app.close(); });
 
+  it("reacciones de artículos: un voto por persona y sólo se retira el propio", async () => {
+    const react = async (delta: number, ip: string) => JSON.parse((await app.inject({ method: "POST", url: "/api/v1/articles/guia-de-playas/react", payload: { reaction: "likes", delta }, remoteAddress: ip })).body).data;
+    const start = (await react(-1, "10.9.0.1")).reactions_count.likes as number; // nadie ha votado: restar no cambia nada
+    expect((await react(1, "10.9.0.1")).reactions_count.likes).toBe(start + 1);
+    expect((await react(1, "10.9.0.1")).reactions_count.likes).toBe(start + 1); // repetir no infla
+    expect((await react(1, "10.9.0.2")).reactions_count.likes).toBe(start + 2);
+    expect((await react(-1, "10.9.0.3")).reactions_count.likes).toBe(start + 2); // quien no votó no puede restar
+    expect(await react(-1, "10.9.0.1")).toEqual({ reactions_count: expect.objectContaining({ likes: start + 1 }), reacted: false });
+    expect((await react(-1, "10.9.0.2")).reactions_count.likes).toBe(start);
+  });
+
+  it("reacciones de artículos: un token inválido cuenta como anónimo, no como otra persona", async () => {
+    const send = (ip: string, auth?: string) => app.inject({ method: "POST", url: "/api/v1/articles/guia-de-playas/react", payload: { reaction: "love", delta: 1 }, remoteAddress: ip, headers: auth ? { authorization: auth } : {} });
+    const first = await send("10.9.1.1", "Bearer no-es-un-token");
+    expect(first.statusCode).toBe(200);
+    const again = JSON.parse((await send("10.9.1.1")).body).data.reactions_count.love;
+    expect(again).toBe(JSON.parse(first.body).data.reactions_count.love); // misma IP anónima: no suma otra vez
+  });
+
   describe("visibilidad", () => {
     it("oculta borradores, eliminados, inactivos y contenido programado a futuro", async () => {
       const res = await get("/beaches?per_page=100");
@@ -258,6 +277,13 @@ describe("colecciones públicas", () => {
       expect((await get("/beaches/facets?fields=password")).statusCode).toBe(400);
       expect(json(await get("/beaches/facets?filter[beach_type]=salvaje")).meta.total).toBe(1);
     });
+
+    it("la caché de facetas distingue los campos pedidos", async () => {
+      expect(json(await get("/beaches/facets?fields=&filter[wave_intensity]=baja")).data).toEqual({});
+      expect(Object.keys(json(await get("/beaches/facets?fields=is_featured&filter[wave_intensity]=baja")).data)).toEqual(["is_featured"]);
+      const all = json(await get("/beaches/facets?filter[wave_intensity]=baja")).data;
+      expect(Object.keys(all)).toEqual(expect.arrayContaining(["beach_type", "is_featured"]));
+    });
   });
 
   describe("detalle", () => {
@@ -278,6 +304,13 @@ describe("colecciones públicas", () => {
       const list = json(await get("/beaches?lang=en&sort=name"));
       expect(list.data.map((b: { name: string }) => b.name)).toEqual(["Bavaro Beach", "Playa Macao", "Playa Rincón"]);
       expect(list.meta).toMatchObject({ locale: "en", fallback_locale: "es" });
+    });
+
+    it("las respuestas públicas varían por Accept-Language", async () => {
+      for (const url of ["/beaches", "/beaches/playa-bavaro"]) {
+        const res = await get(url, { "accept-language": "en", origin: "http://localhost:5173" });
+        expect(String(res.headers.vary).toLowerCase(), url).toContain("accept-language");
+      }
     });
 
     it("tiene ETag y responde 304", async () => {

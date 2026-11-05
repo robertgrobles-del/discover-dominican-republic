@@ -273,7 +273,7 @@ export default function Perfil() {
               </div>
               <div class="detail-row">
                 <div class="detail-label">Número de Serie</div>
-                <div class="detail-value">RD-${Math.floor(100000 + Math.random() * 900000)}</div>
+                <div class="detail-value">RD-${(user?.id || "EXPLORER").slice(0, 8).toUpperCase()}</div>
               </div>
               <div class="detail-row">
                 <div class="detail-label">País de Destino</div>

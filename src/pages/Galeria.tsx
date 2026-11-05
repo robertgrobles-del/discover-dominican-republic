@@ -18,6 +18,7 @@ import gastronomyImg from "@/assets/gastronomy.jpg";
 import colonialDoorImg from "@/assets/colonial-door.jpg";
 import divingImg from "@/assets/diving.jpg";
 import adventureImg from "@/assets/adventure.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const categories = [
   { id: "todo", label: "Todo", icon: Grid },
@@ -155,7 +156,7 @@ const GalleryItem = forwardRef<HTMLDivElement, { item: typeof galleryItems[0]; o
       )}
 
       <div className="absolute inset-x-0 bottom-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity translate-y-2 group-hover:translate-y-0">
-        <h3 className="font-display font-bold text-foreground">{item.title}</h3>
+        <h2 className="h3 font-display font-bold text-foreground">{item.title}</h2>
         <p className="text-sm text-muted-foreground">{item.location}</p>
       </div>
     </motion.div>
@@ -163,6 +164,9 @@ const GalleryItem = forwardRef<HTMLDivElement, { item: typeof galleryItems[0]; o
 });
 
 export default function Galeria() {
+  const pc = usePageContent("galeria");
+  const galleryItems = pc.data("galleryItems", __pcData.galleryItems);
+  const categories = pc.data("categories", __pcData.categories);
   const [activeCategory, setActiveCategory] = useState("todo");
   const { isOpen: lightboxOpen, currentIndex: selectedIndex, open: openLightbox, close: closeLightbox } = useLightbox();
 
@@ -174,8 +178,8 @@ export default function Galeria() {
   return (
     <PageTransition>
       <SEOHead
-        title="Galería Multimedia de República Dominicana"
-        description="Explora fotos y videos curados de playas, naturaleza, gastronomía, arquitectura colonial y cultura dominicana, organizados por categoría."
+        title={pc.t("SEOHead.title.1", "Galería Multimedia de República Dominicana")}
+        description={pc.t("SEOHead.description.1", "Explora fotos y videos curados de playas, naturaleza, gastronomía, arquitectura colonial y cultura dominicana, organizados por categoría.")}
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -184,8 +188,8 @@ export default function Galeria() {
         <section className="relative h-[50vh] min-h-[400px] w-full flex flex-col justify-end">
           <div className="absolute inset-0 z-0">
             <img
-              src={heroBeachImg}
-              alt="Galería RD"
+              src={pc.img("img.src.1", heroBeachImg)}
+              alt={pc.t("img.alt.1", "Galería RD")}
               className="h-full w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
@@ -196,32 +200,26 @@ export default function Galeria() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="inline-block bg-primary/20 text-primary text-sm font-medium px-4 py-2 rounded-full mb-4"
-            >
-              GALERÍA MULTIMEDIA
-            </motion.span>
+            >{pc.tx("motion_span.1", "GALERÍA MULTIMEDIA")}</motion.span>
 
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
-            >
-              RD en Lente
-            </motion.h1>
+            >{pc.tx("motion_h1.1", "RD en Lente")}</motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="text-muted-foreground text-lg max-w-xl"
-            >
-              Sumérgete en el alma del Caribe. Una colección curada de momentos visuales que capturan la esencia vibrante de nuestra tierra, desde picos nublados hasta profundidades turquesas.
-            </motion.p>
+            >{pc.tx("motion_p.1", "Sumérgete en el alma del Caribe. Una colección curada de momentos visuales que capturan la esencia vibrante de nuestra tierra, desde picos nublados hasta profundidades turquesas.")}</motion.p>
           </div>
         </section>
 
         {/* Filters */}
-        <section className="py-8 bg-card border-y border-border sticky top-16 z-30 backdrop-blur-md bg-card/90">
+        <section className="py-8 bg-card border-y border-border backdrop-blur-md bg-card/90">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="flex flex-wrap items-center justify-center gap-3">
               {categories.map((category) => {
@@ -263,9 +261,7 @@ export default function Galeria() {
 
             {/* Load More */}
             <div className="text-center mt-12">
-              <Button variant="outline" className="gap-2">
-                Cargar más momentos
-                <ChevronDown className="h-4 w-4" />
+              <Button variant="outline" className="gap-2">{pc.tx("Button.1", "Cargar más momentos")}<ChevronDown className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -310,3 +306,6 @@ export default function Galeria() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { galleryItems, categories };

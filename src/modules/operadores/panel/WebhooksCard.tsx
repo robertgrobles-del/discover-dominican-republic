@@ -58,7 +58,7 @@ export function WebhooksCard() {
           <div key={h.id} className="rounded-xl border border-border p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="break-all font-medium">{h.url}</span>
-              <Badge variant="outline" className="text-[10px]">{h.active ? "Activo" : "Desactivado"}</Badge>
+              <Badge variant="outline" className="text-3xs">{h.active ? "Activo" : "Desactivado"}</Badge>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
               {h.events.map((e) => WEBHOOK_EVENT_LABEL[e] ?? e).join(" · ")} · última entrega: {when(h.last_delivery_at)}

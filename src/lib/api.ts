@@ -3,10 +3,10 @@ import { fetchApi } from "./fastifyClient";
 export { fetchApi };
 
 export const apiClient = {
-  get: <T = any>(endpoint: string, options?: RequestInit): Promise<{ data: T }> =>
+  get: <T = unknown>(endpoint: string, options?: RequestInit): Promise<{ data: T }> =>
     fetchApi<{ data: T }>(endpoint, { method: "GET", ...options }),
 
-  post: <T = any>(endpoint: string, body?: unknown, options?: RequestInit): Promise<{ data: T }> =>
+  post: <T = unknown>(endpoint: string, body?: unknown, options?: RequestInit): Promise<{ data: T }> =>
     fetchApi<{ data: T }>(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json", ...options?.headers },
@@ -14,7 +14,7 @@ export const apiClient = {
       ...options,
     }),
 
-  put: <T = any>(endpoint: string, body?: unknown, options?: RequestInit): Promise<{ data: T }> =>
+  put: <T = unknown>(endpoint: string, body?: unknown, options?: RequestInit): Promise<{ data: T }> =>
     fetchApi<{ data: T }>(endpoint, {
       method: "PUT",
       headers: { "Content-Type": "application/json", ...options?.headers },
@@ -22,7 +22,7 @@ export const apiClient = {
       ...options,
     }),
 
-  patch: <T = any>(endpoint: string, body?: unknown, options?: RequestInit): Promise<{ data: T }> =>
+  patch: <T = unknown>(endpoint: string, body?: unknown, options?: RequestInit): Promise<{ data: T }> =>
     fetchApi<{ data: T }>(endpoint, {
       method: "PATCH",
       headers: { "Content-Type": "application/json", ...options?.headers },
@@ -30,6 +30,6 @@ export const apiClient = {
       ...options,
     }),
 
-  delete: <T = any>(endpoint: string, options?: RequestInit): Promise<{ data: T }> =>
+  delete: <T = unknown>(endpoint: string, options?: RequestInit): Promise<{ data: T }> =>
     fetchApi<{ data: T }>(endpoint, { method: "DELETE", ...options }),
 };

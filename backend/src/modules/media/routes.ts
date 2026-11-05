@@ -47,8 +47,19 @@ const defaultFetcher: Fetcher = async (url) => {
   const res = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(15_000), headers: { accept: "image/*" } });
   const len = Number(res.headers.get("content-length") ?? 0);
   if (len > PURPOSES.cms) throw AppError.validation("El archivo supera el tamaño permitido");
-  const body = Buffer.from(await res.arrayBuffer());
-  if (body.length > PURPOSES.cms) throw AppError.validation("El archivo supera el tamaño permitido");
+  // Se lee por trozos y se corta al pasar el límite (sin Content-Length, arrayBuffer() cargaba todo antes de medirlo).
+  const chunks: Buffer[] = [];
+  let total = 0;
+  const reader = res.body?.getReader();
+  for (;;) {
+    if (!reader) break;
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > PURPOSES.cms) { await reader.cancel().catch(() => undefined); throw AppError.validation("El archivo supera el tamaño permitido"); }
+    chunks.push(Buffer.from(value));
+  }
+  const body = Buffer.concat(chunks);
   return { status: res.status, contentType: res.headers.get("content-type"), body };
 };
 
@@ -96,7 +107,7 @@ export async function mediaRoutes(app: FastifyInstance) {
   const storage = app.mediaStorage;
   const base = `${app.env.PUBLIC_BASE_URL}/api/v1/media/files`;
   const rl = (max: number, timeWindow: string) => ({ rateLimit: app.env.AUTH_RATE_LIMIT_ENABLED ? { max, timeWindow } : { max: 1_000_000, timeWindow: "1 minute" } });
-  const optionalUser = async (req: FastifyRequest) => { if (req.headers.authorization) { try { await app.authenticate(req, undefined as never); } catch { req.user = undefined; } } };
+  const optionalUser = async (req: FastifyRequest) => { if (req.headers.authorization) { try { await app.authenticateStaffMfa(req, undefined as never); } catch { req.user = undefined; } } };
   const isStaff = (req: FastifyRequest) => !!req.user?.roles.some((x) => STAFF.includes(x));
   const tag = ["medios"];
   const licensing = new MediaLicensingService(db);
@@ -135,8 +146,18 @@ export async function mediaRoutes(app: FastifyInstance) {
     if (req.headers["content-type"]?.split(";")[0]!.trim() !== a.mime) throw AppError.validation("El tipo de contenido no coincide con el declarado");
     const body = req.body as Buffer;
     if (!Buffer.isBuffer(body) || body.length !== a.declared_size) throw AppError.validation("El tamaño no coincide con el declarado", { declared: a.declared_size, received: Buffer.isBuffer(body) ? body.length : 0 });
-    await storage.put(req.params.id, body);
-    await db.query("UPDATE media_assets SET status = 'uploaded', storage_key = $2, size = $3, sha256 = $4 WHERE id = $1 AND status = 'pending'", [req.params.id, req.params.id, body.length, createHash("sha256").update(body).digest("hex")]);
+    // La fila se bloquea mientras se escribe el binario: dos PUT simultáneos con la misma URL no pueden pasar ambos el "pending",
+    // y un PUT tardío nunca sobrescribe el original que `complete` ya validó y limpió.
+    const c = await db.connect();
+    try {
+      await c.query("BEGIN");
+      const locked = (await c.query<{ status: string }>("SELECT status FROM media_assets WHERE id = $1 FOR UPDATE", [req.params.id])).rows[0];
+      if (locked?.status !== "pending") throw new AppError("CONFLICT", "Este archivo ya se subió", { reason: "ALREADY_UPLOADED" });
+      await storage.put(req.params.id, body);
+      await c.query("UPDATE media_assets SET status = 'uploaded', storage_key = $2, size = $3, sha256 = $4 WHERE id = $1 AND status = 'pending'", [req.params.id, req.params.id, body.length, createHash("sha256").update(body).digest("hex")]);
+      await c.query("COMMIT");
+    } catch (e) { await c.query("ROLLBACK").catch(() => {}); throw e; }
+    finally { c.release(); }
     reply.code(204);
     return null;
   });
@@ -202,7 +223,7 @@ export async function mediaRoutes(app: FastifyInstance) {
     return { data: asset(a, base) };
   });
 
-  r.delete("/media/:id", { onRequest: app.authenticate, schema: { tags: tag, summary: "Elimina un archivo (dueño o admin)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
+  r.delete("/media/:id", { onRequest: app.authenticateStaffMfa, schema: { tags: tag, summary: "Elimina un archivo (dueño o admin)", security: bearer, params: uuid, response: { 204: z.null() } } }, async (req, reply) => {
     const a = (await db.query<{ owner_id: string | null; storage_key: string | null; variants: unknown }>("SELECT owner_id, storage_key, variants FROM media_assets WHERE id = $1", [req.params.id])).rows[0];
     if (!a || (a.owner_id !== req.user!.id && !req.user!.roles.includes("admin"))) throw AppError.notFound("Archivo");
     await deleteFiles(storage, a.storage_key, a.variants);

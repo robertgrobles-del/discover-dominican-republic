@@ -138,20 +138,20 @@ export function CreatorAppealDialog({ video, open, onOpenChange, onSubmitted }: 
               <ShieldAlert className="h-4 w-4 text-destructive shrink-0" />
               <p className="text-xs font-bold text-foreground">Regla aplicable</p>
               {video.ruleCode ? (
-                <Badge variant="outline" className="font-mono text-[10px]">
+                <Badge variant="outline" className="font-mono text-3xs">
                   {video.ruleCode}
                 </Badge>
               ) : (
-                <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                <Badge variant="outline" className="text-3xs text-muted-foreground">
                   sin regla registrada
                 </Badge>
               )}
             </div>
             <div>
-              <p className="text-[10px] font-bold uppercase text-muted-foreground">
+              <p className="text-3xs font-bold uppercase text-muted-foreground">
                 Motivo de la revisión
               </p>
-              <p className="text-[11px] text-foreground/90 leading-relaxed">
+              <p className="text-2xs text-foreground/90 leading-relaxed">
                 {video.reviewNotes || "Moderación no adjuntó una nota de revisión a esta pieza."}
               </p>
             </div>
@@ -161,7 +161,7 @@ export function CreatorAppealDialog({ video, open, onOpenChange, onSubmitted }: 
             <p className="text-xs font-bold text-foreground flex items-center gap-1.5">
               <Scale className="h-3.5 w-3.5 text-primary" /> Plazo y estado
             </p>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
+            <p className="text-2xs text-muted-foreground leading-relaxed">
               Puedes apelar una publicación rechazada dentro de los {APPEAL_WINDOW_DAYS} días naturales
               siguientes a la decisión de moderación. La apelación abre una revisión humana:{" "}
               <strong className="text-foreground">no restaura el contenido automáticamente</strong> ni concede
@@ -185,12 +185,12 @@ export function CreatorAppealDialog({ video, open, onOpenChange, onSubmitted }: 
               aria-invalid={showError}
               aria-describedby="creator-appeal-reason-help"
             />
-            <p id="creator-appeal-reason-help" className="text-[11px] text-muted-foreground">
+            <p id="creator-appeal-reason-help" className="text-2xs text-muted-foreground">
               Entre {APPEAL_REASON_MIN_LENGTH} y {APPEAL_REASON_MAX_LENGTH} caracteres.{" "}
               {reason.trim().length}/{APPEAL_REASON_MAX_LENGTH}
             </p>
             {showError && (
-              <p className="text-[11px] text-destructive flex items-center gap-1.5" role="alert">
+              <p className="text-2xs text-destructive flex items-center gap-1.5" role="alert">
                 <AlertCircle className="h-3.5 w-3.5" /> {validationError}
               </p>
             )}

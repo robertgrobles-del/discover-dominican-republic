@@ -16,7 +16,6 @@ const EstadoServicio = lazy(() => import("@/pages/EstadoServicio"));
 const Sitemap = lazy(() => import("@/pages/Sitemap"));
 const Ofertas = lazy(() => import("@/pages/Ofertas"));
 const Encuesta = lazy(() => import("@/pages/Encuesta"));
-const EncuestaPostViaje = lazy(() => import("@/pages/EncuestaPostViaje"));
 const Opiniones = lazy(() => import("@/pages/Opiniones"));
 const Sugerencias = lazy(() => import("@/pages/Sugerencias"));
 const AdminPanel = lazy(() => import("@/pages/AdminPanel"));
@@ -25,16 +24,16 @@ export const institutionalRoutes = (
   <>
     {/* Portal Editorial & Magazine Unificado */}
     <Route path="/revista" element={<EditorialMagazineHub />} />
-    <Route path="/blog" element={<Navigate to="/revista?canal=experiencias" replace />} />
-    <Route path="/prensa" element={<Navigate to="/revista?canal=prensa" replace />} />
-    <Route path="/noticias" element={<Navigate to="/revista?canal=noticias" replace />} />
+    <Route path="/blog" element={<Navigate to="/revista" replace />} />
+    <Route path="/prensa" element={<Navigate to="/revista" replace />} />
+    <Route path="/noticias" element={<Navigate to="/revista" replace />} />
     <Route path="/articulo/:slug" element={<Articulo />} />
     <Route path="/galeria" element={<Galeria />} />
 
     {/* Institucional, Prensa & Estadísticas */}
     <Route path="/sobre-nosotros" element={<SobreNosotros />} />
-    <Route path="/newsletter" element={<Navigate to="/revista?canal=prensa" replace />} />
-    <Route path="/prensa-comunicacion" element={<Navigate to="/revista?canal=prensa" replace />} />
+    <Route path="/newsletter" element={<Navigate to="/revista" replace />} />
+    <Route path="/prensa-comunicacion" element={<Navigate to="/revista" replace />} />
     <Route path="/newsletter-subscribe" element={<NewsletterPage />} />
     <Route path="/estadisticas" element={<Estadisticas />} />
     <Route path="/partners" element={<Partners />} />
@@ -49,7 +48,6 @@ export const institutionalRoutes = (
     {/* Feedback, Encuestas & Ofertas */}
     <Route path="/ofertas" element={<Ofertas />} />
     <Route path="/encuesta" element={<Encuesta />} />
-    <Route path="/encuesta-post-viaje" element={<EncuestaPostViaje />} />
     <Route path="/opiniones" element={<Opiniones />} />
     <Route path="/sugerencias" element={<Sugerencias />} />
 

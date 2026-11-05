@@ -156,6 +156,16 @@ describe("RD Social, encuestas, concursos y vacaciones", () => {
       expect(json(await call("GET", "/social/feed?limit=50")).data.some((x: { id: string }) => x.id === id)).toBe(true);
     });
 
+    it("cuentas sin verificar: no dan like y sus reportes no ocultan publicaciones", async () => {
+      const a = await signup();
+      const id = json(await post(a.token)).data.id;
+      const like = await call("PUT", `/social/posts/${id}/like`, { token: (await signup(false)).token });
+      expect(like.statusCode).toBe(403);
+      expect(json(like).error.details.code).toBe("EMAIL_NOT_VERIFIED");
+      for (let i = 0; i < 3; i++) expect((await call("POST", "/ugc/reports", { token: (await signup(false)).token, payload: { target_type: "post", target_id: id, reason: "spam" } })).statusCode).toBe(204);
+      expect((await pool.query("SELECT is_active, report_count, likes_count FROM social_posts WHERE id = $1", [id])).rows[0]).toEqual({ is_active: true, report_count: 0, likes_count: 0 });
+    });
+
     it("medios de usuarios: quedan pendientes y sólo se ven al aprobarse", async () => {
       const u = await signup();
       const body = { media_url: "https://cdn.test/foto.jpg", media_type: "photo", entity_type: "destination", entity_id: DEST };

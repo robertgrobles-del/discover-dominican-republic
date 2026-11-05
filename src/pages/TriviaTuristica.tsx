@@ -156,11 +156,11 @@ export default function TriviaTuristica() {
             session.questions.map((q) => ({
               id: q.id,
               question: q.question,
-              options: q.choices,
-              correct_index: -1,
+              options: q.options,
+              correct_index: -1, // el servidor la revela al responder
               category: q.category,
               difficulty: q.difficulty,
-              explanation: q.explanation || "",
+              explanation: "",
               xp_reward: 30,
             }))
           );
@@ -215,10 +215,12 @@ export default function TriviaTuristica() {
     if (HAS_BACKEND_SESSION && backendSession && questions[currentQ]) {
       try {
         const result = await gamificationApi.answerTrivia(
-          backendSession.id,
+          backendSession.session_id,
           questions[currentQ].id,
           idx >= 0 ? idx : 0
         );
+        const answered = currentQ;
+        setQuestions(qs => qs.map((q, i) => i === answered ? { ...q, correct_index: result.correct_index, explanation: result.explanation ?? "" } : q));
         if (result.correct) {
           GamificationSoundEngine.playCorrectAnswerSound();
           setScore(s => s + 100 + Math.max(0, timeLeft) * 5);
@@ -266,10 +268,12 @@ export default function TriviaTuristica() {
       if (HAS_BACKEND_SESSION) {
         if (backendSession) {
           try {
-            const res = await gamificationApi.finishTrivia(backendSession.id);
-            setTotalXpEarned(res.xp_awarded || 0);
+            const res = await gamificationApi.finishTrivia(backendSession.session_id);
+            setTotalXpEarned(res.granted.xp);
             toast.success("🏆 ¡Trivia completada!", {
-              description: `+${res.xp_awarded} XP, +${res.coins_awarded} monedas ganadas en esta partida`,
+              description: res.denied_reason
+                ? `${res.score}/${res.total} aciertos. Ya alcanzaste el máximo de XP de trivia por hoy.`
+                : `+${res.granted.xp} XP, +${res.granted.coins} monedas ganadas en esta partida`,
             });
           } catch (err: any) {
             toast.error("Error al finalizar la trivia", { description: err.message });
@@ -369,9 +373,9 @@ export default function TriviaTuristica() {
 
                   {/* Category Filter */}
                   <div>
-                    <label className="text-xs font-semibold text-muted-foreground block mb-2">
+                    <p className="text-xs font-semibold text-muted-foreground block mb-2">
                       Categoría Temática
-                    </label>
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {categories.map((cat) => (
                         <button
@@ -391,9 +395,9 @@ export default function TriviaTuristica() {
 
                   {/* Difficulty Filter */}
                   <div>
-                    <label className="text-xs font-semibold text-muted-foreground block mb-2">
+                    <p className="text-xs font-semibold text-muted-foreground block mb-2">
                       Nivel de Dificultad
-                    </label>
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {["all", "easy", "medium", "hard"].map((diff) => (
                         <button
@@ -432,7 +436,7 @@ export default function TriviaTuristica() {
                     <span className="text-xs font-bold text-muted-foreground">
                       Pregunta {currentQ + 1} de {questions.length}
                     </span>
-                    <Badge variant="outline" className={`text-[11px] font-semibold py-0.5 px-2.5 ${categoryColors[q.category] || "border-border"}`}>
+                    <Badge variant="outline" className={`text-2xs font-semibold py-0.5 px-2.5 ${categoryColors[q.category] || "border-border"}`}>
                       {q.category}
                     </Badge>
                   </div>
@@ -528,17 +532,17 @@ export default function TriviaTuristica() {
                   {/* Rewards summary */}
                   <div className="grid grid-cols-3 gap-3 p-4 bg-muted/20 rounded-2xl border border-border/60">
                     <div>
-                      <span className="text-[11px] text-muted-foreground block">Aciertos</span>
+                      <span className="text-2xs text-muted-foreground block">Aciertos</span>
                       <strong className="text-lg font-bold text-foreground">
                         {answers.filter((a, i) => a === questions[i]?.correct_index).length}/{questions.length}
                       </strong>
                     </div>
                     <div>
-                      <span className="text-[11px] text-muted-foreground block">XP Ganado</span>
+                      <span className="text-2xs text-muted-foreground block">XP Ganado</span>
                       <strong className="text-lg font-bold text-primary">+{totalXpEarned} XP</strong>
                     </div>
                     <div>
-                      <span className="text-[11px] text-muted-foreground block">Max Racha</span>
+                      <span className="text-2xs text-muted-foreground block">Max Racha</span>
                       <strong className="text-lg font-bold text-amber-500">{maxStreak}x</strong>
                     </div>
                   </div>

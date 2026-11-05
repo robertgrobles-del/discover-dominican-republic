@@ -30,8 +30,10 @@ import { HAS_BACKEND_SESSION } from "@/lib/authSource";
 import { gamificationApi } from "@/lib/gamificationApi";
 import { fetchApi } from "@/lib/fastifyClient";
 import { apiMessage } from "@/lib/fastifyClient";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function SouvenirsDigitales() {
+  const pc = usePageContent("souvenirs-digitales");
   const { user } = useAuth();
   const [collectibles, setCollectibles] = useState<Collectible[]>([]);
   const [userCollectibles, setUserCollectibles] = useState<UserCollectible[]>([]);
@@ -256,8 +258,8 @@ export default function SouvenirsDigitales() {
   return (
     <PageTransition>
       <SEOHead
-        title="Souvenirs Digitales - Coleccionables RD"
-        description="Colecciona souvenirs digitales únicos explorando República Dominicana. Tarjetas, sellos y más."
+        title={pc.t("SEOHead.title.1", "Souvenirs Digitales - Coleccionables RD")}
+        description={pc.t("SEOHead.description.1", "Colecciona souvenirs digitales únicos explorando República Dominicana. Tarjetas, sellos y más.")}
       />
       <div className="min-h-screen bg-background">
         <Header />
@@ -269,28 +271,23 @@ export default function SouvenirsDigitales() {
           <div className="container mx-auto px-4 relative z-10">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl mx-auto text-center">
               <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 gap-2 px-4 py-2">
-                <Gem className="h-4 w-4" /> Colección Digital
-              </Badge>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">
-                Souvenirs <span className="text-gradient">Digitales</span>
+                <Gem className="h-4 w-4" />{" "}{pc.tx("Badge.1", "Colección Digital")}</Badge>
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground mb-6">{pc.tx("h1.1", "Souvenirs")}{" "}<span className="text-gradient">{pc.tx("span.1", "Digitales")}</span>
               </h1>
-              <p className="text-lg text-muted-foreground mb-8">
-                Colecciona items digitales únicos explorando República Dominicana. 
-                Cada destino, reto y logro puede desbloquear piezas exclusivas.
-              </p>
+              <p className="text-lg text-muted-foreground mb-8">{pc.tx("p.1", "Colecciona items digitales únicos explorando República Dominicana. Cada destino, reto y logro puede desbloquear piezas exclusivas.")}</p>
               {user && (
                 <div className="flex justify-center gap-6">
                   <div className="text-center">
                     <p className="text-2xl font-bold text-foreground">{ownedCount}</p>
-                    <p className="text-xs text-muted-foreground">Coleccionados</p>
+                    <p className="text-xs text-muted-foreground">{pc.tx("p.2", "Coleccionados")}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-foreground">{totalCount}</p>
-                    <p className="text-xs text-muted-foreground">Disponibles</p>
+                    <p className="text-xs text-muted-foreground">{pc.tx("p.3", "Disponibles")}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-foreground">{totalCount > 0 ? Math.round((ownedCount / totalCount) * 100) : 0}%</p>
-                    <p className="text-xs text-muted-foreground">Completado</p>
+                    <p className="text-xs text-muted-foreground">{pc.tx("p.4", "Completado")}</p>
                   </div>
                 </div>
               )}
@@ -304,12 +301,11 @@ export default function SouvenirsDigitales() {
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
                 <TabsList>
-                  <TabsTrigger value="all">Todos ({totalCount})</TabsTrigger>
-                  <TabsTrigger value="owned">Míos ({ownedCount})</TabsTrigger>
-                  <TabsTrigger value="locked">Por Desbloquear ({totalCount - ownedCount})</TabsTrigger>
+                  <TabsTrigger value="all">{pc.tx("TabsTrigger.1", "Todos (")}{totalCount})</TabsTrigger>
+                  <TabsTrigger value="owned">{pc.tx("TabsTrigger.2", "Míos (")}{ownedCount})</TabsTrigger>
+                  <TabsTrigger value="locked">{pc.tx("TabsTrigger.3", "Por Desbloquear (")}{totalCount - ownedCount})</TabsTrigger>
                   <TabsTrigger value="wallet" className="gap-2">
-                    <Wallet className="h-4 w-4" /> Wallet NFT
-                  </TabsTrigger>
+                    <Wallet className="h-4 w-4" />{" "}{pc.tx("TabsTrigger.4", "Wallet NFT")}</TabsTrigger>
                 </TabsList>
 
                 {activeTab !== "wallet" && (
@@ -356,12 +352,12 @@ export default function SouvenirsDigitales() {
                 ) : filteredCollectibles.length === 0 ? (
                   <div className="text-center py-16">
                     <Gem className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-bold text-foreground mb-2">
+                    <h2 className="h3 text-lg font-bold text-foreground mb-2">
                       {activeTab === "owned" ? "Aún no tienes coleccionables" : "No hay items en esta categoría"}
-                    </h3>
-                    <p className="text-muted-foreground mb-4">Explora destinos y completa retos para desbloquear</p>
+                    </h2>
+                    <p className="text-muted-foreground mb-4">{pc.tx("p.5", "Explora destinos y completa retos para desbloquear")}</p>
                     <Button asChild>
-                      <Link to="/retos">Explorar Retos</Link>
+                      <Link to="/retos">{pc.tx("Link.1", "Explorar Retos")}</Link>
                     </Button>
                   </div>
                 ) : (
@@ -432,7 +428,7 @@ export default function SouvenirsDigitales() {
                             <p className="text-xs text-muted-foreground truncate">{item.short_description || typeLabels[item.collectible_type] || item.collectible_type}</p>
                             <div className="flex items-center gap-2 mt-2">
                               {item.xp_value && item.xp_value > 0 && (
-                                <Badge variant="secondary" className="text-xs gap-1"><Star className="h-3 w-3" /> {item.xp_value} XP</Badge>
+                                <Badge variant="secondary" className="text-xs gap-1"><Star className="h-3 w-3" /> {item.xp_value}{" "}{pc.tx("Badge.2", "XP")}</Badge>
                               )}
                               {item.coin_value && item.coin_value > 0 && (
                                 <Badge variant="outline" className="text-xs gap-1"><Crown className="h-3 w-3" /> {item.coin_value}</Badge>
@@ -449,7 +445,7 @@ export default function SouvenirsDigitales() {
 
             {/* Transfer NFT Modal */}
             {activeItemForTransfer && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4" onClick={() => { if (!isTransferring) setActiveItemForTransfer(null); }}>
+              <div role="presentation" className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4" onClick={() => { if (!isTransferring) setActiveItemForTransfer(null); }}>
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -457,18 +453,14 @@ export default function SouvenirsDigitales() {
                   onClick={e => e.stopPropagation()}
                 >
                   <h3 className="text-lg font-bold text-foreground mb-2 flex items-center gap-2">
-                    <Send className="h-5 w-5 text-primary" />
-                    Transferir Souvenir NFT
-                  </h3>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    Transfiere "{activeItemForTransfer.name}" a otra billetera o usuario de la red. Esta acción es irreversible y removerá el souvenir de tu colección local.
-                  </p>
+                    <Send className="h-5 w-5 text-primary" />{pc.tx("h3.1", "Transferir Souvenir NFT")}</h3>
+                  <p className="text-xs text-muted-foreground mb-4">{pc.tx("p.6", "Transfiere \"")}{activeItemForTransfer.name}{pc.tx("p.7", "\" a otra billetera o usuario de la red. Esta acción es irreversible y removerá el souvenir de tu colección local.")}</p>
 
                   <div className="space-y-4 mb-6">
                     <div>
-                      <label className="text-xs font-semibold text-muted-foreground">Dirección o Usuario Destinatario</label>
+                      <label className="text-xs font-semibold text-muted-foreground">{pc.tx("label.1", "Dirección o Usuario Destinatario")}</label>
                       <Input 
-                        placeholder="Dirección 0x... o nombre de usuario" 
+                        placeholder={pc.t("Input.placeholder.1", "Dirección 0x... o nombre de usuario")} 
                         value={transferRecipient}
                         onChange={(e) => setTransferRecipient(e.target.value)}
                         disabled={isTransferring}
@@ -476,9 +468,8 @@ export default function SouvenirsDigitales() {
                       />
                     </div>
 
-                    <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-[11px] text-yellow-600 dark:text-yellow-400">
-                      ⚠️ <strong>Aviso Importante:</strong> Una vez transferido, perderás los puntos de experiencia (XP) asociados con este logro en la plataforma.
-                    </div>
+                    <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-2xs text-yellow-600 dark:text-yellow-400">
+                      ⚠️ <strong>{pc.tx("strong.1", "Aviso Importante:")}</strong>{" "}{pc.tx("div.1", "Una vez transferido, perderás los puntos de experiencia (XP) asociados con este logro en la plataforma.")}</div>
                   </div>
 
                   <div className="flex justify-end gap-2">
@@ -486,9 +477,7 @@ export default function SouvenirsDigitales() {
                       variant="outline" 
                       onClick={() => setActiveItemForTransfer(null)}
                       disabled={isTransferring}
-                    >
-                      Cancelar
-                    </Button>
+                    >{pc.tx("Button.1", "Cancelar")}</Button>
                     <Button 
                       onClick={handleTransfer}
                       disabled={isTransferring || !transferRecipient}
@@ -523,9 +512,9 @@ export default function SouvenirsDigitales() {
                     <RefreshCw className="h-8 w-8 text-primary animate-spin" />
                   </div>
                   <div className="space-y-2">
-                    <h4 className="font-bold text-foreground text-lg">Minando Transacción</h4>
+                    <h4 className="font-bold text-foreground text-lg">{pc.tx("h4.1", "Minando Transacción")}</h4>
                     <p className="text-xs text-primary font-semibold">{miningProgress}</p>
-                    <p className="text-xs text-muted-foreground font-mono truncate">Logro: {activeItemForMint.name}</p>
+                    <p className="text-xs text-muted-foreground font-mono truncate">{pc.tx("p.8", "Logro:")}{" "}{activeItemForMint.name}</p>
                   </div>
                   <div className="w-full bg-secondary h-1.5 rounded-full overflow-hidden">
                     <motion.div 
@@ -546,7 +535,7 @@ export default function SouvenirsDigitales() {
 
         {/* Detail Modal */}
         {selectedItem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4" onClick={() => setSelectedItem(null)}>
+          <div role="presentation" className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4" onClick={() => setSelectedItem(null)}>
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -568,25 +557,25 @@ export default function SouvenirsDigitales() {
 
                 {selectedItem.unlock_condition && !isOwned(selectedItem.id) && (
                   <div className="p-3 rounded-lg bg-muted/50 mb-4">
-                    <p className="text-xs font-medium text-muted-foreground">Cómo desbloquear:</p>
+                    <p className="text-xs font-medium text-muted-foreground">{pc.tx("p.9", "Cómo desbloquear:")}</p>
                     <p className="text-sm text-foreground">{selectedItem.unlock_condition}</p>
                   </div>
                 )}
 
                 {selectedItem.season && (
-                  <p className="text-xs text-muted-foreground mb-4">Temporada: {selectedItem.season}</p>
+                  <p className="text-xs text-muted-foreground mb-4">{pc.tx("p.10", "Temporada:")}{" "}{selectedItem.season}</p>
                 )}
 
                 <div className="flex gap-2">
                   {isOwned(selectedItem.id) ? (
-                    <Badge className="bg-emerald-500/10 text-emerald-500 gap-1"><Star className="h-3 w-3" /> En tu colección</Badge>
+                    <Badge className="bg-emerald-500/10 text-emerald-500 gap-1"><Star className="h-3 w-3" />{" "}{pc.tx("Badge.3", "En tu colección")}</Badge>
                   ) : (
-                    <Badge variant="outline" className="gap-1"><Lock className="h-3 w-3" /> Bloqueado</Badge>
+                    <Badge variant="outline" className="gap-1"><Lock className="h-3 w-3" />{" "}{pc.tx("Badge.4", "Bloqueado")}</Badge>
                   )}
                 </div>
               </div>
               <div className="border-t border-border p-4 flex justify-end">
-                <Button variant="outline" onClick={() => setSelectedItem(null)}>Cerrar</Button>
+                <Button variant="outline" onClick={() => setSelectedItem(null)}>{pc.tx("Button.2", "Cerrar")}</Button>
               </div>
             </motion.div>
           </div>
@@ -596,16 +585,14 @@ export default function SouvenirsDigitales() {
         <section className="py-16 bg-card border-t border-border">
           <div className="container mx-auto px-4 text-center">
             <Gem className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-foreground mb-4">Desbloquea más coleccionables</h2>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Completa misiones, visita destinos y participa en eventos para expandir tu colección.
-            </p>
+            <h2 className="text-2xl font-bold text-foreground mb-4">{pc.tx("h2.1", "Desbloquea más coleccionables")}</h2>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">{pc.tx("p.11", "Completa misiones, visita destinos y participa en eventos para expandir tu colección.")}</p>
             <div className="flex gap-4 justify-center">
               <Button asChild className="gap-2">
-                <Link to="/gamificacion"><Sparkles className="h-4 w-4" /> Ver Misiones</Link>
+                <Link to="/gamificacion"><Sparkles className="h-4 w-4" />{" "}{pc.tx("Link.2", "Ver Misiones")}</Link>
               </Button>
               <Button variant="outline" asChild className="gap-2">
-                <Link to="/pasaporte-digital"><Gift className="h-4 w-4" /> Mi Pasaporte</Link>
+                <Link to="/pasaporte-digital"><Gift className="h-4 w-4" />{" "}{pc.tx("Link.3", "Mi Pasaporte")}</Link>
               </Button>
             </div>
           </div>

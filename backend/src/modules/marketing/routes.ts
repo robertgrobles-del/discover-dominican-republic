@@ -24,8 +24,9 @@ const hourBucket = () => { const d = new Date(); d.setMinutes(0, 0, 0); return d
 /** Gobierno de los banners: el equipo edita lo visible; los contadores y la trazabilidad los gobierna el sistema. */
 const TABLES: TableCfg[] = [
   { table: "ad_banners", pk: "id", readonly: ["id", "created_at", "slug_history", "created_by", "updated_by", "reviewed_by", "version", "deleted_at", "published_at", "unpublished_at"], order: "created_at DESC", label: "Banners",
-    check: (d) => { if (d.start_date && d.end_date && String(d.end_date) < String(d.start_date)) throw AppError.validation("La fecha final es anterior a la inicial"); for (const f of ["target_url", "image_url", "video_url"]) if (typeof d[f] === "string" && !/^(https:\/\/|\/)/.test(d[f] as string)) throw AppError.validation(`${f} debe ser https o una ruta local`); } },
+    check: (d) => { if (d.start_date && d.end_date && String(d.end_date) < String(d.start_date)) throw AppError.validation("La fecha final es anterior a la inicial"); for (const f of ["target_url", "image_url", "image_url_right", "video_url"]) if (typeof d[f] === "string" && !/^(https:\/\/|\/)/.test(d[f] as string)) throw AppError.validation(`${f} debe ser https o una ruta local`); } },
   { table: "ad_slots", pk: "placement" as never, readonly: [], order: "placement", label: "Espacios publicitarios" },
+  { table: "ad_clients", pk: "id", readonly: ["id", "created_at", "updated_at", "deleted_at"], order: "legal_name", label: "Clientes publicitarios" },
 ];
 
 /** Servidor de anuncios, ofertas y campañas de correo (docs §5.12). */
@@ -65,6 +66,21 @@ export async function marketingRoutes(app: FastifyInstance) {
     return out;
   };
 
+  // Catálogo público de lo que el portal puede pintar ahora mismo: banners publicados, activos, en fechas y con cliente.
+  // El portal elige el hueco en el navegador (tipo + ubicación + sección); impresiones y clics vuelven por /ads/:id/*.
+  r.get("/ads/catalog", { config: rl(120, "1 minute"), schema: { tags: tag, summary: "Banners vigentes para el portal (todos los huecos)", response: { 200: ok } } }, async (_req, reply) => {
+    const { rows } = await db.query(
+      `SELECT id, name, image_url, image_url_right, alt_text, target_url, headline, subtext, cta_text, sponsor, banner_type, placement, section, page,
+              start_date, end_date, priority, is_featured, sponsorship_scope, is_takeover, content_type, video_url, video_autoplay, video_loop,
+              video_muted, animation_type, animation_config, slider_items, slider_interval, slide_details, utm_campaign, utm_source, utm_medium, utm_content
+         FROM ad_banners
+        WHERE status = 'published' AND deleted_at IS NULL AND is_active AND client_id IS NOT NULL AND (published_at IS NULL OR published_at <= now())
+          AND (start_date IS NULL OR start_date <= $1::date) AND (end_date IS NULL OR end_date >= $1::date)
+        ORDER BY priority DESC NULLS LAST, created_at DESC`, [todayInSantoDomingo()]);
+    reply.header("cache-control", "public, max-age=60");
+    return { data: rows.map((b) => ({ ...b, is_active: true })) };
+  });
+
   r.get("/ads", {
     config: rl(300, "1 minute"),
     schema: { tags: tag, summary: "Banners vigentes de un espacio, con rotación ponderada por prioridad", querystring: z.object({ placement: z.string().regex(/^[a-z][a-z0-9_]{1,50}$/), page: z.string().max(100).optional(), section: z.string().max(60).optional(), limit: z.coerce.number().int().min(1).max(10).optional() }), response: { 200: ok } },
@@ -73,7 +89,7 @@ export async function marketingRoutes(app: FastifyInstance) {
     const slot = (await db.query<{ max_items: number }>("SELECT max_items FROM ad_slots WHERE placement = $1 AND is_active", [req.query.placement])).rows[0];
     if (!slot) throw AppError.notFound("Espacio publicitario");
     const { rows } = await db.query(
-      `SELECT id, name, image_url, alt_text, headline, subtext, cta_text, sponsor, content_type, video_url, video_autoplay, video_loop, video_muted, animation_type, animation_config, slider_items, slider_interval, target_url, priority
+      `SELECT id, name, image_url, image_url_right, alt_text, headline, subtext, cta_text, sponsor, content_type, video_url, video_autoplay, video_loop, video_muted, animation_type, animation_config, slider_items, slider_interval, target_url, priority
          FROM ad_banners WHERE status = 'published' AND deleted_at IS NULL AND is_active AND (published_at IS NULL OR published_at <= now()) AND placement = $1
           AND (start_date IS NULL OR start_date <= $2::date) AND (end_date IS NULL OR end_date >= $2::date)
           AND (page IS NULL OR page = $3) AND (section IS NULL OR section = $4)`, [req.query.placement, today, req.query.page ?? "", req.query.section ?? ""],
@@ -199,7 +215,7 @@ export async function marketingRoutes(app: FastifyInstance) {
   });
 
   r.post("/advertisers/requests", {
-    config: rl(5, "1 hour"),
+    onRequest: optionalUser, config: rl(5, "1 hour"),
     schema: { tags: tag, summary: "Solicitud de publicidad (crea un lead y un ticket)", body: z.object({ company: z.string().trim().min(2).max(120), contact_name: z.string().trim().min(2).max(100), email, phone: z.string().trim().max(30).optional(), budget: z.string().trim().max(60).optional(), message: z.string().trim().min(10).max(3000), consent: z.literal(true, { error: "Debes aceptar el tratamiento de tus datos" }), website: z.string().max(200).optional() }), response: { 202: ok } },
   }, async (req, reply) => {
     const b = req.body;
@@ -207,7 +223,9 @@ export async function marketingRoutes(app: FastifyInstance) {
     if (b.website) return { data: { received: true } };
     await app.leads.capture({ name: b.contact_name, email: b.email, phone: b.phone, company: b.company, message: b.message, source: "advertiser", interest: b.budget });
     const ticketId = await app.supportIntake.openTicket({ subject: `Publicidad: ${b.company}`, description: b.message, category: "advertising", contactName: b.contact_name, contactEmail: b.email });
-    await app.mailer.send({ to: b.email, template: "support.received", locale: "es", data: { name: b.contact_name.split(" ")[0]!, reference: ticketId.slice(0, 8).toUpperCase(), subject: `Publicidad: ${b.company}` } });
+    // El correo no está verificado: solo se citan textos del remitente si la sesión es dueña de ese correo.
+    const echo = !!req.user?.id && !!(await db.query("SELECT 1 FROM users WHERE id = $1 AND lower(email) = lower($2)", [req.user.id, b.email])).rowCount;
+    await app.mailer.send({ to: b.email, template: "support.received", locale: "es", data: { name: echo ? b.contact_name.split(" ")[0]! : "viajero", reference: ticketId.slice(0, 8).toUpperCase(), subject: echo ? `Publicidad: ${b.company}` : "Publicidad" } });
     return { data: { received: true } };
   });
 
@@ -256,6 +274,62 @@ export async function marketingRoutes(app: FastifyInstance) {
     };
   });
   await tableAdminRoutes(app, TABLES, ["admin", "editor"]);
+
+  // ---------- Facturación de banners a su cliente ----------
+  // Una factura por banner y mes (reference_id = "<banner>:<YYYY-MM>"): el comprador sale de la ficha del cliente, nunca
+  // de lo que mande quien llama, y el mismo mes no se factura dos veces.
+  r.post("/admin/ad_banners/:id/invoices", {
+    onRequest: admin,
+    schema: {
+      tags: ["publicidad", "billing"], summary: "Factura un mes de un banner a su cliente (NCF/e-CF)", security: [{ bearerAuth: [] }],
+      params: z.object({ id: z.string().uuid() }),
+      body: z.object({
+        period: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Formato AAAA-MM"),
+        subtotal: z.number().min(0).max(99_999_999).optional(),          // por defecto, el precio mensual del banner
+        itbis_rate: z.number().min(0).max(0.18).optional(),              // por defecto 18 %
+        ncf_type: z.enum(["B01", "B02", "B14", "B15", "E31", "E32", "E44", "E45"]).optional(),
+        currency: z.enum(["DOP", "USD", "EUR"]).optional(),
+        exchange_rate: z.number().positive().max(1_000).optional(),
+        payment_method: z.string().trim().min(2).max(40).optional(),
+      }).strict(),
+      response: { 201: ok },
+    },
+  }, async (req, reply) => {
+    const b = (await db.query<{ name: string; custom_price_monthly: string | null; legal_name: string | null; rnc_cedula: string | null; default_ncf_type: string | null }>(
+      `SELECT b.name, b.custom_price_monthly, c.legal_name, c.rnc_cedula, c.default_ncf_type
+         FROM ad_banners b LEFT JOIN ad_clients c ON c.id = b.client_id AND c.deleted_at IS NULL
+        WHERE b.id = $1 AND b.deleted_at IS NULL`, [req.params.id])).rows[0];
+    if (!b) throw AppError.notFound("Banner");
+    if (!b.legal_name) throw AppError.validation("El banner no tiene cliente asignado");
+    const subtotal = req.body.subtotal ?? Number(b.custom_price_monthly ?? NaN);
+    if (!Number.isFinite(subtotal)) throw AppError.validation("Indica el monto: el banner no tiene precio mensual");
+    const ncf_type = (req.body.ncf_type ?? b.default_ncf_type ?? "B01") as "B01";
+    if ((ncf_type === "B01" || ncf_type === "E31") && !b.rnc_cedula) throw AppError.validation("Una factura de crédito fiscal requiere el RNC o la cédula del cliente");
+    const reference_id = `${req.params.id}:${req.body.period}`;
+    if ((await app.invoicingService.listInvoicesByReference("advertising", reference_id)).some((i) => i.status !== "cancelled")) {
+      throw new AppError("CONFLICT", `Ese mes (${req.body.period}) ya está facturado`, { reason: "ALREADY_INVOICED" });
+    }
+    const invoice = await app.invoicingService.issueInvoice({
+      ncf_type, buyer_name: b.legal_name, buyer_rnc_cedula: b.rnc_cedula ?? undefined, subtotal,
+      itbis: Math.round(subtotal * (req.body.itbis_rate ?? 0.18) * 100) / 100,
+      currency: req.body.currency, exchange_rate: req.body.exchange_rate, payment_method: req.body.payment_method ?? "transfer",
+      reference_type: "advertising", reference_id,
+    });
+    await audit(db, { actor: req.user!.id, action: "ads.banner_invoiced", entity: "ad_banner", id: req.params.id, ip: req.ip });
+    reply.code(201);
+    return { data: invoice };
+  });
+
+  r.get("/admin/ad_clients/:id/invoices", {
+    onRequest: admin,
+    schema: { tags: ["publicidad", "billing"], summary: "Facturas de publicidad emitidas a un cliente", security: [{ bearerAuth: [] }], params: z.object({ id: z.string().uuid() }), response: { 200: ok } },
+  }, async (req) => {
+    const { rows } = await db.query(
+      `SELECT i.*, b.id AS banner_id, b.name AS banner_name, split_part(i.reference_id, ':', 2) AS period
+         FROM fiscal_invoices i JOIN ad_banners b ON b.id::text = split_part(i.reference_id, ':', 1)
+        WHERE i.reference_type = 'advertising' AND b.client_id = $1 ORDER BY i.issued_at DESC LIMIT 500`, [req.params.id]);
+    return { data: rows };
+  });
 
   // ---------- Ofertas ----------
   r.post("/offers/:id/redeem", {

@@ -100,11 +100,11 @@ export function StoryCardModal({
             <div className="flex items-center gap-2">
               <span className="text-2xl">🇩🇴</span>
               <div>
-                <p className="text-[10px] font-bold tracking-widest uppercase opacity-80">Pasaporte Digital</p>
+                <p className="text-3xs font-bold tracking-widest uppercase opacity-80">Pasaporte Digital</p>
                 <h4 className="font-bold text-xs tracking-wider">Descubre República Dominicana</h4>
               </div>
             </div>
-            <Badge className="bg-white/20 text-white border-white/30 text-[10px] backdrop-blur-md">
+            <Badge className="bg-white/20 text-white border-white/30 text-3xs backdrop-blur-md">
               #ExploradorRD
             </Badge>
           </div>
@@ -123,25 +123,25 @@ export function StoryCardModal({
             {/* Metrics */}
             <div className="grid grid-cols-3 gap-2 bg-black/40 backdrop-blur-md p-3 rounded-2xl border border-white/10 text-center">
               <div>
-                <p className="text-[9px] uppercase font-bold text-white/70">Provincias</p>
+                <p className="text-3xs uppercase font-bold text-white/70">Provincias</p>
                 <p className="text-lg font-black text-amber-400">{totalProvinces}/32</p>
               </div>
               <div>
-                <p className="text-[9px] uppercase font-bold text-white/70">Puntos XP</p>
+                <p className="text-3xs uppercase font-bold text-white/70">Puntos XP</p>
                 <p className="text-lg font-black text-emerald-400">{totalXp.toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-[9px] uppercase font-bold text-white/70">Monedas</p>
+                <p className="text-3xs uppercase font-bold text-white/70">Monedas</p>
                 <p className="text-lg font-black text-cyan-400">{coins}</p>
               </div>
             </div>
 
             {/* Recent Stamps */}
             <div className="space-y-1.5 text-left">
-              <p className="text-[10px] uppercase font-bold text-white/70 tracking-wider">Últimas Provincias Selladas:</p>
+              <p className="text-3xs uppercase font-bold text-white/70 tracking-wider">Últimas Provincias Selladas:</p>
               <div className="flex flex-wrap gap-1.5">
                 {(recentProvinces.length > 0 ? recentProvinces : ["Puerto Plata", "Samaná", "La Vega", "Pedernales"]).map((prov, i) => (
-                  <span key={i} className="text-[10px] bg-white/15 px-2.5 py-1 rounded-lg backdrop-blur-sm flex items-center gap-1 border border-white/15">
+                  <span key={i} className="text-3xs bg-white/15 px-2.5 py-1 rounded-lg backdrop-blur-sm flex items-center gap-1 border border-white/15">
                     <Check className="h-3 w-3 text-emerald-400" /> {prov}
                   </span>
                 ))}
@@ -150,7 +150,7 @@ export function StoryCardModal({
           </div>
 
           {/* Bottom Footer CTA */}
-          <div className="border-t border-white/20 pt-3 flex items-center justify-between text-[10px] opacity-80">
+          <div className="border-t border-white/20 pt-3 flex items-center justify-between text-3xs opacity-80">
             <span>descubrerd.com/pasaporte</span>
             <span className="font-mono">#TurismoRD2026</span>
           </div>

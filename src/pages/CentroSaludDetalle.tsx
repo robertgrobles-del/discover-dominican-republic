@@ -18,8 +18,12 @@ import { centrosSalud, CentroSalud } from "@/data/healthCenters";
 import { PreFooterPresidenteBanner, DetailPageSidebarAd, BillboardAd, MobileStickyFooterAd } from "@/components/promo";
 import { ClaimBusinessModal } from "@/components/business/ClaimBusinessModal";
 import { saveLeadLocally } from "@/lib/leadStorage";
+import { HAS_BACKEND_SESSION } from "@/lib/authSource";
+import { fetchApi } from "@/lib/fastifyClient";
+import { usePageContent } from "@/lib/pageContent";
 
 export default function CentroSaludDetalle() {
+  const pc = usePageContent("centro-salud-detalle");
   const { id } = useParams<{ id: string }>();
 
   // Find center by id or fallback to first
@@ -47,29 +51,47 @@ export default function CentroSaludDetalle() {
     }
   };
 
-  const handleAppointment = (e: React.FormEvent) => {
+  const handleAppointment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!patientName.trim() || !patientEmail.trim() || !patientPhone.trim()) {
       toast.error("Por favor completa tus datos de contacto.");
       return;
     }
     setIsSubmitting(true);
+    const leadMsg = `Cita médica solicitada para ${bookingDate || 'Fecha a convenir'}. Motivo: ${appointmentReason || 'Consulta general'} en ${centro.name}`;
+
     try {
-      saveLeadLocally({
-        name: patientName.trim(),
-        email: patientEmail.trim().toLowerCase(),
-        phone: patientPhone.trim(),
-        message: `Cita médica solicitada para ${bookingDate || 'Fecha a convenir'}. Motivo: ${appointmentReason || 'Consulta general'} en ${centro.name}`,
-        source: `salud_${centro.id}`,
-      });
+      if (HAS_BACKEND_SESSION) {
+        await fetchApi("/leads", {
+          method: "POST",
+          body: JSON.stringify({
+            name: patientName.trim(),
+            email: patientEmail.trim().toLowerCase(),
+            phone: patientPhone.trim(),
+            message: leadMsg,
+            source: `salud_${centro.id}`,
+            interest: centro.name,
+            consent: true
+          })
+        });
+      } else {
+        saveLeadLocally({
+          name: patientName.trim(),
+          email: patientEmail.trim().toLowerCase(),
+          phone: patientPhone.trim(),
+          message: leadMsg,
+          source: `salud_${centro.id}`,
+        });
+      }
       toast.success(`¡Solicitud enviada a ${centro.name}! Un asesor bilingüe te contactará pronto.`);
       setPatientName("");
       setPatientEmail("");
       setPatientPhone("");
       setAppointmentReason("");
       setBookingDate("");
-    } catch {
-      toast.success(`¡Solicitud registrada correctamente para ${centro.name}!`);
+    } catch (err: any) {
+      console.warn("Fallo al enviar cita al backend:", err);
+      toast.error("No se pudo registrar la solicitud en este momento. Intenta de nuevo.");
     } finally {
       setIsSubmitting(false);
     }
@@ -91,16 +113,15 @@ export default function CentroSaludDetalle() {
             {/* Breadcrumbs & Share */}
             <div className="flex items-center justify-between">
               <Link
-                to="/salud-24h"
+                to="/info/seguridad#salud"
                 className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" />
-                <span>Volver al Directorio de Salud 24h</span>
+                <span>{pc.tx("span.1", "Volver al Directorio de Salud 24h")}</span>
               </Link>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={handleShare} className="gap-1.5 rounded-xl text-xs">
-                  <Share2 className="h-3.5 w-3.5" /> Compartir
-                </Button>
+                  <Share2 className="h-3.5 w-3.5" />{" "}{pc.tx("Button.1", "Compartir")}</Button>
               </div>
             </div>
 
@@ -121,22 +142,19 @@ export default function CentroSaludDetalle() {
                 <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
                   <div className="space-y-3 max-w-3xl">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge className="bg-primary/20 text-primary border-primary/30 uppercase text-[11px] font-bold">
+                      <Badge className="bg-primary/20 text-primary border-primary/30 uppercase text-2xs font-bold">
                         {centro.type === "hospital" ? "Hospital / Clínica" : centro.type === "pharmacy" ? "Farmacia" : centro.type === "dental" ? "Clínica Dental" : "Laboratorio Clínico"}
                       </Badge>
                       {centro.is24h && (
-                        <Badge className="bg-rose-500/20 text-rose-500 border-rose-500/30 text-[11px] font-bold gap-1">
-                          <Clock className="h-3 w-3" /> Abierto 24 Horas
-                        </Badge>
+                        <Badge className="bg-rose-500/20 text-rose-500 border-rose-500/30 text-2xs font-bold gap-1">
+                          <Clock className="h-3 w-3" />{" "}{pc.tx("Badge.1", "Abierto 24 Horas")}</Badge>
                       )}
                       {centro.verified && (
-                        <Badge className="bg-emerald-500/20 text-emerald-500 border-emerald-500/30 text-[11px] font-bold gap-1">
-                          <ShieldCheck className="h-3 w-3" /> Centro Certificado
-                        </Badge>
+                        <Badge className="bg-emerald-500/20 text-emerald-500 border-emerald-500/30 text-2xs font-bold gap-1">
+                          <ShieldCheck className="h-3 w-3" />{" "}{pc.tx("Badge.2", "Centro Certificado")}</Badge>
                       )}
-                      <Badge variant="outline" className="text-[10px] text-muted-foreground gap-1 border-border/80">
-                        <Calendar className="h-3 w-3 text-primary" /> Verificado: Septiembre 2026
-                      </Badge>
+                      <Badge variant="outline" className="text-3xs text-muted-foreground gap-1 border-border/80">
+                        <Calendar className="h-3 w-3 text-primary" />{" "}{pc.tx("Badge.3", "Verificado: Septiembre 2026")}</Badge>
                       <ClaimBusinessModal
                         businessName={centro.name}
                         businessType="salud"
@@ -145,11 +163,10 @@ export default function CentroSaludDetalle() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 text-[10px] text-muted-foreground hover:text-rose-500 gap-1 px-1.5"
+                        className="h-6 text-3xs text-muted-foreground hover:text-rose-500 gap-1 px-1.5"
                         onClick={() => toast.info("Gracias por colaborar. Tu reporte sobre este centro médico ha sido enviado a revisión.")}
                       >
-                        <AlertTriangle className="h-3 w-3" /> Reportar dato incorrecto
-                      </Button>
+                        <AlertTriangle className="h-3 w-3" />{" "}{pc.tx("Button.2", "Reportar dato incorrecto")}</Button>
                     </div>
 
                     <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold text-foreground">
@@ -164,7 +181,7 @@ export default function CentroSaludDetalle() {
                       <span>•</span>
                       <div className="flex items-center gap-1.5">
                         <Globe className="h-4 w-4 text-primary" />
-                        <span>Idiomas: {centro.languages?.join(", ") || "Español, Inglés"}</span>
+                        <span>{pc.tx("span.2", "Idiomas:")}{" "}{centro.languages?.join(", ") || "Español, Inglés"}</span>
                       </div>
                     </div>
                   </div>
@@ -173,14 +190,13 @@ export default function CentroSaludDetalle() {
                   <div className="w-full sm:w-auto flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
                     <a href={`tel:${centro.phone.replace(/-/g, "")}`}>
                       <Button size="lg" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-2 rounded-2xl shadow-lg">
-                        <Phone className="h-5 w-5" /> Llamar Directo: {centro.phone}
+                        <Phone className="h-5 w-5" />{" "}{pc.tx("Button.3", "Llamar Directo:")}{" "}{centro.phone}
                       </Button>
                     </a>
                     {centro.emergencyPhone && (
                       <a href={`tel:${centro.emergencyPhone.replace(/-/g, "")}`}>
                         <Button size="lg" variant="destructive" className="w-full font-bold gap-2 rounded-2xl shadow-lg">
-                          <Ambulance className="h-5 w-5" /> Urgencias 24h
-                        </Button>
+                          <Ambulance className="h-5 w-5" />{" "}{pc.tx("Button.4", "Urgencias 24h")}</Button>
                       </a>
                     )}
                     <a 
@@ -189,8 +205,7 @@ export default function CentroSaludDetalle() {
                       rel="noopener noreferrer"
                     >
                       <Button size="lg" variant="outline" className="w-full gap-2 rounded-2xl">
-                        <Navigation className="h-5 w-5 text-primary" /> Abrir en Google Maps
-                      </Button>
+                        <Navigation className="h-5 w-5 text-primary" />{" "}{pc.tx("Button.5", "Abrir en Google Maps")}</Button>
                     </a>
                   </div>
                 </div>
@@ -207,7 +222,7 @@ export default function CentroSaludDetalle() {
                 <Card className="rounded-3xl border-border bg-card p-6 space-y-4">
                   <div className="flex items-center gap-2">
                     <Stethoscope className="h-6 w-6 text-primary" />
-                    <h2 className="text-xl font-bold font-display text-foreground">Servicios Médicos Disponibles</h2>
+                    <h2 className="text-xl font-bold font-display text-foreground">{pc.tx("h2.1", "Servicios Médicos Disponibles")}</h2>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-3 pt-2">
                     {centro.services.map((svc, idx) => (
@@ -223,11 +238,9 @@ export default function CentroSaludDetalle() {
                 <Card className="rounded-3xl border-border bg-card p-6 space-y-4">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="h-6 w-6 text-emerald-500" />
-                    <h2 className="text-xl font-bold font-display text-foreground">Seguros Médicos y Coberturas</h2>
+                    <h2 className="text-xl font-bold font-display text-foreground">{pc.tx("h2.2", "Seguros Médicos y Coberturas")}</h2>
                   </div>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    Este centro colabora con las principales aseguradoras nacionales e internacionales para viajeros y turistas.
-                  </p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">{pc.tx("p.1", "Este centro colabora con las principales aseguradoras nacionales e internacionales para viajeros y turistas.")}</p>
                   <div className="flex flex-wrap gap-2 pt-2">
                     {centro.insuranceAccepted?.map((ins, idx) => (
                       <Badge key={idx} variant="secondary" className="px-3 py-1 text-xs font-semibold rounded-xl">
@@ -241,18 +254,15 @@ export default function CentroSaludDetalle() {
                 <Card className="rounded-3xl border-border bg-card p-6 space-y-4">
                   <div className="flex items-center gap-2">
                     <Award className="h-6 w-6 text-amber-500" />
-                    <h2 className="text-xl font-bold font-display text-foreground">Atención para Turistas & Viajeros</h2>
+                    <h2 className="text-xl font-bold font-display text-foreground">{pc.tx("h2.3", "Atención para Turistas & Viajeros")}</h2>
                   </div>
                   <div className="space-y-3 text-xs sm:text-sm text-muted-foreground leading-relaxed">
                     <p>
-                      • <strong>Personal Bilingüe:</strong> Médicos, enfermeros y traductores disponibles para pacientes internacionales.
-                    </p>
+                      • <strong>{pc.tx("strong.1", "Personal Bilingüe:")}</strong>{" "}{pc.tx("p.2", "Médicos, enfermeros y traductores disponibles para pacientes internacionales.")}</p>
                     <p>
-                      • <strong>Facturación para Reembolso:</strong> Emisión de facturas médicas detalladas con códigos internacionales ICD para reclamar con tu seguro de viaje.
-                    </p>
+                      • <strong>{pc.tx("strong.2", "Facturación para Reembolso:")}</strong>{" "}{pc.tx("p.3", "Emisión de facturas médicas detalladas con códigos internacionales ICD para reclamar con tu seguro de viaje.")}</p>
                     <p>
-                      • <strong>Traslados en Ambulancia:</strong> Coordinación de emergencias hacia y desde hoteles, aeropuertos y puertos de cruceros.
-                    </p>
+                      • <strong>{pc.tx("strong.3", "Traslados en Ambulancia:")}</strong>{" "}{pc.tx("p.4", "Coordinación de emergencias hacia y desde hoteles, aeropuertos y puertos de cruceros.")}</p>
                   </div>
                 </Card>
               </div>
@@ -264,20 +274,16 @@ export default function CentroSaludDetalle() {
                 <Card className="rounded-3xl border-border bg-card shadow-lg p-6 space-y-4">
                   <CardHeader className="p-0 pb-2">
                     <CardTitle className="text-lg font-bold flex items-center gap-2">
-                      <Calendar className="h-5 w-5 text-primary" />
-                      Solicitar Cita o Consulta
-                    </CardTitle>
-                    <CardDescription className="text-xs">
-                      Envía tus datos y el centro médico se comunicará contigo para confirmar tu turno.
-                    </CardDescription>
+                      <Calendar className="h-5 w-5 text-primary" />{pc.tx("CardTitle.1", "Solicitar Cita o Consulta")}</CardTitle>
+                    <CardDescription className="text-xs">{pc.tx("CardDescription.1", "Envía tus datos y el centro médico se comunicará contigo para confirmar tu turno.")}</CardDescription>
                   </CardHeader>
                   <CardContent className="p-0 pt-2">
                     <form onSubmit={handleAppointment} className="space-y-3 text-xs sm:text-sm">
                       <div className="space-y-1.5">
-                        <label className="font-semibold text-foreground">Nombre del Paciente</label>
+                        <label className="font-semibold text-foreground">{pc.tx("label.1", "Nombre del Paciente")}</label>
                         <input
                           type="text"
-                          placeholder="Tu nombre completo"
+                          placeholder={pc.t("input.placeholder.1", "Tu nombre completo")}
                           value={patientName}
                           onChange={(e) => setPatientName(e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-background border border-border text-xs focus:outline-primary"
@@ -286,10 +292,10 @@ export default function CentroSaludDetalle() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="font-semibold text-foreground">Correo Electrónico</label>
+                        <label className="font-semibold text-foreground">{pc.tx("label.2", "Correo Electrónico")}</label>
                         <input
                           type="email"
-                          placeholder="correo@ejemplo.com"
+                          placeholder={pc.t("input.placeholder.2", "correo@ejemplo.com")}
                           value={patientEmail}
                           onChange={(e) => setPatientEmail(e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-background border border-border text-xs focus:outline-primary"
@@ -298,7 +304,7 @@ export default function CentroSaludDetalle() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="font-semibold text-foreground">Teléfono / WhatsApp</label>
+                        <label className="font-semibold text-foreground">{pc.tx("label.3", "Teléfono / WhatsApp")}</label>
                         <input
                           type="tel"
                           placeholder="+1 (809) 000-0000"
@@ -310,7 +316,7 @@ export default function CentroSaludDetalle() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="font-semibold text-foreground">Fecha Preferida</label>
+                        <label className="font-semibold text-foreground">{pc.tx("label.4", "Fecha Preferida")}</label>
                         <input
                           type="date"
                           value={bookingDate}
@@ -321,9 +327,9 @@ export default function CentroSaludDetalle() {
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="font-semibold text-foreground">Motivo de Consulta / Especialidad</label>
+                        <label className="font-semibold text-foreground">{pc.tx("label.5", "Motivo de Consulta / Especialidad")}</label>
                         <textarea
-                          placeholder="Ej: Chequeo general, odontología, medicina hiperbárica..."
+                          placeholder={pc.t("textarea.placeholder.1", "Ej: Chequeo general, odontología, medicina hiperbárica...")}
                           value={appointmentReason}
                           onChange={(e) => setAppointmentReason(e.target.value)}
                           rows={3}
@@ -343,10 +349,9 @@ export default function CentroSaludDetalle() {
                 <div className="p-5 rounded-3xl bg-amber-500/10 border border-amber-500/20 space-y-2">
                   <div className="flex items-center gap-2 text-amber-500 font-bold text-sm">
                     <AlertTriangle className="h-4 w-4" />
-                    <span>¿Emergencia en República Dominicana?</span>
+                    <span>{pc.tx("span.3", "¿Emergencia en República Dominicana?")}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    Si te encuentras ante una urgencia de gravedad, llama de inmediato al <strong>9-1-1</strong> (Sistema Nacional de Emergencias) o contacta a <strong>POLITUR al (809) 222-2010</strong>.
+                  <p className="text-xs text-muted-foreground leading-relaxed">{pc.tx("p.5", "Si te encuentras ante una urgencia de gravedad, llama de inmediato al")}{" "}<strong>9-1-1</strong>{" "}{pc.tx("p.6", "(Sistema Nacional de Emergencias) o contacta a")}{" "}<strong>{pc.tx("strong.4", "POLITUR al (809) 222-2010")}</strong>.
                   </p>
                 </div>
 

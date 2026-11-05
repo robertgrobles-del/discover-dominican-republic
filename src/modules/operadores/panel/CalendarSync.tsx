@@ -139,7 +139,7 @@ export default function CalendarSync({ room, listingTitle, bookings, onChange }:
             ))}
           </div>
         )}
-        <p className="lg:col-span-2 text-[11px] text-muted-foreground">Las reservas importadas bloquean esas noches en tu página. La sincronización automática continua (sin pulsar el botón) requiere el backend real; por ahora se actualiza al sincronizar.</p>
+        <p className="lg:col-span-2 text-2xs text-muted-foreground">Las reservas importadas bloquean esas noches en tu página. La sincronización automática continua (sin pulsar el botón) requiere el backend real; por ahora se actualiza al sincronizar.</p>
       </CardContent>
     </Card>
   );

@@ -54,8 +54,8 @@ export function AirbnbBookingWidget({
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-2">
           <div>
-            <label className="text-xs font-medium text-muted-foreground">CHECK-IN</label>
-            <Input
+            <label htmlFor="airbnb-booking-widget-f3" className="text-xs font-medium text-muted-foreground">CHECK-IN</label>
+            <Input id="airbnb-booking-widget-f3"
               type="date"
               value={checkIn}
               onChange={(e) => onCheckInChange(e.target.value)}
@@ -63,8 +63,8 @@ export function AirbnbBookingWidget({
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-muted-foreground">CHECK-OUT</label>
-            <Input
+            <label htmlFor="airbnb-booking-widget-f2" className="text-xs font-medium text-muted-foreground">CHECK-OUT</label>
+            <Input id="airbnb-booking-widget-f2"
               type="date"
               value={checkOut}
               onChange={(e) => onCheckOutChange(e.target.value)}
@@ -74,8 +74,8 @@ export function AirbnbBookingWidget({
         </div>
 
         <div>
-          <label className="text-xs font-medium text-muted-foreground">HUÉSPEDES</label>
-          <Input
+          <label htmlFor="airbnb-booking-widget-f1" className="text-xs font-medium text-muted-foreground">HUÉSPEDES</label>
+          <Input id="airbnb-booking-widget-f1"
             type="number"
             value={guestCount}
             onChange={(e) => onGuestCountChange(parseInt(e.target.value) || 1)}

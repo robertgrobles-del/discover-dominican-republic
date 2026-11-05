@@ -72,60 +72,60 @@ export const RiverConditionsCard: React.FC<RiverConditionsCardProps> = ({
       <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
         {/* Tipo de Río */}
         <div className="p-4 rounded-2xl bg-muted/30 border border-border/60 space-y-1.5">
-          <span className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1">
+          <span className="text-3xs text-muted-foreground uppercase font-bold flex items-center gap-1">
             <Mountain className="h-3.5 w-3.5 text-emerald-500" /> Formación Fluvial
           </span>
           <p className="font-bold text-sm text-foreground">{riverTypeLabels[riverType] || riverType}</p>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">Pozas y saltos de origen cordillerano.</p>
+          <p className="text-2xs text-muted-foreground leading-relaxed">Pozas y saltos de origen cordillerano.</p>
         </div>
 
         {/* Nivel de Dificultad */}
         <div className="p-4 rounded-2xl bg-muted/30 border border-border/60 space-y-1.5">
-          <span className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1">
+          <span className="text-3xs text-muted-foreground uppercase font-bold flex items-center gap-1">
             <ShieldAlert className="h-3.5 w-3.5 text-amber-500" /> Dificultad del Sendero
           </span>
           <p className="font-bold text-sm text-foreground">{diff.label}</p>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">{diff.desc}</p>
+          <p className="text-2xs text-muted-foreground leading-relaxed">{diff.desc}</p>
         </div>
 
         {/* Temperatura del Agua */}
         <div className="p-4 rounded-2xl bg-muted/30 border border-border/60 space-y-1.5">
-          <span className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1">
+          <span className="text-3xs text-muted-foreground uppercase font-bold flex items-center gap-1">
             <Thermometer className="h-3.5 w-3.5 text-cyan-500" /> Temperatura del Agua
           </span>
           <p className="font-bold text-sm text-foreground">{temp.label}</p>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">{temp.desc}</p>
+          <p className="text-2xs text-muted-foreground leading-relaxed">{temp.desc}</p>
         </div>
 
         {/* Tiempo de Caminata */}
         <div className="p-4 rounded-2xl bg-muted/30 border border-border/60 space-y-1.5">
-          <span className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1">
+          <span className="text-3xs text-muted-foreground uppercase font-bold flex items-center gap-1">
             <Clock className="h-3.5 w-3.5 text-blue-500" /> Tiempo de Senderismo
           </span>
           <p className="font-bold text-sm text-foreground">{hikingTime}</p>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">Desde el punto de parqueo hasta el primer charco.</p>
+          <p className="text-2xs text-muted-foreground leading-relaxed">Desde el punto de parqueo hasta el primer charco.</p>
         </div>
 
         {/* Familiar */}
         <div className="p-4 rounded-2xl bg-muted/30 border border-border/60 space-y-1.5">
-          <span className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1">
+          <span className="text-3xs text-muted-foreground uppercase font-bold flex items-center gap-1">
             <Users className="h-3.5 w-3.5 text-indigo-500" /> Apto para Niños & Familia
           </span>
           <p className="font-bold text-sm text-foreground">
             {familyFriendly ? "✓ Recomendado para Familias" : "⚠️ Exclusivo para Adultos / Aventura"}
           </p>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">
+          <p className="text-2xs text-muted-foreground leading-relaxed">
             {familyFriendly ? "Pozas de poca profundidad en las orillas." : "Corrientes rápidas o saltos altos."}
           </p>
         </div>
 
         {/* Tips de Seguridad */}
         <div className="p-4 rounded-2xl bg-muted/30 border border-border/60 space-y-1.5">
-          <span className="text-[10px] text-muted-foreground uppercase font-bold flex items-center gap-1">
+          <span className="text-3xs text-muted-foreground uppercase font-bold flex items-center gap-1">
             <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Consejo Ecoturístico
           </span>
           <p className="font-bold text-sm text-foreground">Calzado de Agua Obligatorio</p>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">Usa 'water shoes' o tenis con buen agarre para rocas húmedas.</p>
+          <p className="text-2xs text-muted-foreground leading-relaxed">Usa 'water shoes' o tenis con buen agarre para rocas húmedas.</p>
         </div>
       </div>
     </div>

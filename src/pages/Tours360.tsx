@@ -12,6 +12,7 @@ import puntaCanaImg from "@/assets/punta-cana.jpg";
 import samanaImg from "@/assets/samana.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import puertoPlataImg from "@/assets/puerto-plata.jpg";
+import { usePageContent } from "@/lib/pageContent";
 
 const tours360 = [
   {
@@ -72,14 +73,17 @@ const vrFeatures = [
 ];
 
 export default function Tours360() {
+  const pc = usePageContent("tours360");
+  const vrFeatures = pc.data("vrFeatures", __pcData.vrFeatures);
+  const tours360 = pc.data("tours360", __pcData.tours360);
   const [selectedTour, setSelectedTour] = useState<typeof tours360[0] | null>(null);
   const [isMuted, setIsMuted] = useState(false);
 
   return (
     <PageTransition>
       <SEOHead
-        title="Tours Virtuales 360° | Turismo RD"
-        description="Explora República Dominicana desde casa con tours virtuales inmersivos en 360 grados."
+        title={pc.t("SEOHead.title.1", "Tours Virtuales 360° | Turismo RD")}
+        description={pc.t("SEOHead.description.1", "Explora República Dominicana desde casa con tours virtuales inmersivos en 360 grados.")}
         keywords="tours virtuales, 360, VR, realidad virtual, República Dominicana, inmersivo"
       />
       <div className="min-h-screen bg-background">
@@ -89,8 +93,8 @@ export default function Tours360() {
         <section className="relative h-[60vh] flex items-center overflow-hidden">
           <div className="absolute inset-0">
             <img
-              src={santoDomingoImg}
-              alt="Tour 360"
+              src={pc.img("img.src.1", santoDomingoImg)}
+              alt={pc.t("img.alt.1", "Tour 360")}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
@@ -104,23 +108,15 @@ export default function Tours360() {
             >
               <div className="inline-flex items-center gap-2 bg-primary/20 text-primary px-4 py-2 rounded-full mb-6 backdrop-blur-sm">
                 <View className="h-5 w-5" />
-                <span className="font-medium">Inmersión Total</span>
+                <span className="font-medium">{pc.tx("span.1", "Inmersión Total")}</span>
               </div>
-              <h1 className="font-display text-5xl md:text-6xl font-bold mb-4">
-                Tours <span className="text-primary">360°</span>
+              <h1 className="font-display text-5xl md:text-6xl font-bold mb-4">{pc.tx("h1.1", "Tours")}{" "}<span className="text-primary">360°</span>
               </h1>
-              <p className="text-xl text-muted-foreground mb-8">
-                Explora los destinos más impresionantes de República Dominicana 
-                sin moverte de tu sofá. Experiencias inmersivas en realidad virtual.
-              </p>
+              <p className="text-xl text-muted-foreground mb-8">{pc.tx("p.1", "Explora los destinos más impresionantes de República Dominicana sin moverte de tu sofá. Experiencias inmersivas en realidad virtual.")}</p>
               <div className="flex gap-4">
                 <Button size="lg" className="gap-2">
-                  <Play className="h-5 w-5" />
-                  Comenzar Tour
-                </Button>
-                <Button size="lg" variant="outline">
-                  Ver con VR
-                </Button>
+                  <Play className="h-5 w-5" />{pc.tx("Button.1", "Comenzar Tour")}</Button>
+                <Button size="lg" variant="outline">{pc.tx("Button.2", "Ver con VR")}</Button>
               </div>
             </motion.div>
           </div>
@@ -139,7 +135,7 @@ export default function Tours360() {
                   transition={{ delay: index * 0.1 }}
                   className="text-center"
                 >
-                  <h3 className="font-bold mb-1">{feature.title}</h3>
+                  <h2 className="h3 font-bold mb-1">{feature.title}</h2>
                   <p className="text-sm text-muted-foreground">{feature.description}</p>
                 </motion.div>
               ))}
@@ -156,12 +152,9 @@ export default function Tours360() {
               viewport={{ once: true }}
               className="mb-12"
             >
-              <h2 className="font-display text-3xl font-bold mb-4">
-                Tours <span className="text-primary">Disponibles</span>
+              <h2 className="font-display text-3xl font-bold mb-4">{pc.tx("h2.1", "Tours")}{" "}<span className="text-primary">{pc.tx("span.2", "Disponibles")}</span>
               </h2>
-              <p className="text-muted-foreground max-w-2xl">
-                Selecciona un destino y sumérgete en una experiencia visual única.
-              </p>
+              <p className="text-muted-foreground max-w-2xl">{pc.tx("p.2", "Selecciona un destino y sumérgete en una experiencia visual única.")}</p>
             </motion.div>
 
             <div className="grid md:grid-cols-2 gap-6">
@@ -254,7 +247,7 @@ export default function Tours360() {
               {/* Controls */}
               <div className="absolute top-6 left-6 right-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Badge className="bg-red-500 animate-pulse">● EN VIVO</Badge>
+                  <Badge className="bg-red-500 animate-pulse">{pc.tx("Badge.1", "● EN VIVO")}</Badge>
                   <span className="text-white font-bold">{selectedTour.name}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -277,22 +270,16 @@ export default function Tours360() {
                     variant="ghost"
                     className="text-white hover:bg-white/20"
                     onClick={() => setSelectedTour(null)}
-                  >
-                    Cerrar
-                  </Button>
+                  >{pc.tx("Button.3", "Cerrar")}</Button>
                 </div>
               </div>
 
               {/* Navigation hint */}
               <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-center">
-                <p className="text-white/80 text-sm mb-2">Arrastra para mirar alrededor</p>
+                <p className="text-white/80 text-sm mb-2">{pc.tx("p.3", "Arrastra para mirar alrededor")}</p>
                 <div className="flex items-center justify-center gap-4">
-                  <Button variant="outline" className="border-white/30 text-white hover:bg-white/10">
-                    Anterior
-                  </Button>
-                  <Button className="gap-2">
-                    Siguiente
-                    <ChevronRight className="h-4 w-4" />
+                  <Button variant="outline" className="border-white/30 text-white hover:bg-white/10">{pc.tx("Button.4", "Anterior")}</Button>
+                  <Button className="gap-2">{pc.tx("Button.5", "Siguiente")}<ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -316,16 +303,11 @@ export default function Tours360() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="font-display text-3xl font-bold mb-4">
-                ¿Tienes gafas VR?
-              </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto mb-8">
-                Descarga nuestra app para una experiencia completamente inmersiva 
-                con tu Oculus, HTC Vive o Google Cardboard.
-              </p>
+              <h2 className="font-display text-3xl font-bold mb-4">{pc.tx("h2.2", "¿Tienes gafas VR?")}</h2>
+              <p className="text-muted-foreground max-w-xl mx-auto mb-8">{pc.tx("p.4", "Descarga nuestra app para una experiencia completamente inmersiva con tu Oculus, HTC Vive o Google Cardboard.")}</p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg">Descargar para Oculus</Button>
-                <Button size="lg" variant="outline">Otras plataformas</Button>
+                <Button size="lg">{pc.tx("Button.6", "Descargar para Oculus")}</Button>
+                <Button size="lg" variant="outline">{pc.tx("Button.7", "Otras plataformas")}</Button>
               </div>
             </motion.div>
           </div>
@@ -336,3 +318,6 @@ export default function Tours360() {
     </PageTransition>
   );
 }
+
+// Datos del módulo editables desde el panel (ver pc.data en src/lib/pageContent.ts).
+const __pcData = { vrFeatures, tours360 };

@@ -27,7 +27,7 @@ export const EventTipsCard: React.FC<EventTipsCardProps> = ({ tips }) => {
             <h4 className="font-bold text-foreground flex items-center gap-1.5">
               <Shirt className="h-4 w-4 text-amber-500" /> Código de Vestimenta
             </h4>
-            <p className="text-muted-foreground leading-relaxed text-[11px]">
+            <p className="text-muted-foreground leading-relaxed text-2xs">
               {tips.dressCode}
             </p>
           </div>
@@ -38,7 +38,7 @@ export const EventTipsCard: React.FC<EventTipsCardProps> = ({ tips }) => {
             <h4 className="font-bold text-foreground flex items-center gap-1.5">
               <Car className="h-4 w-4 text-emerald-500" /> Parqueos & Transporte
             </h4>
-            <p className="text-muted-foreground leading-relaxed text-[11px]">
+            <p className="text-muted-foreground leading-relaxed text-2xs">
               {tips.parking}
             </p>
           </div>
@@ -49,7 +49,7 @@ export const EventTipsCard: React.FC<EventTipsCardProps> = ({ tips }) => {
             <h4 className="font-bold text-foreground flex items-center gap-1.5">
               <Users className="h-4 w-4 text-blue-500" /> Ambiente & Familias
             </h4>
-            <p className="text-muted-foreground leading-relaxed text-[11px]">
+            <p className="text-muted-foreground leading-relaxed text-2xs">
               {tips.familyFriendly}
             </p>
           </div>
@@ -60,7 +60,7 @@ export const EventTipsCard: React.FC<EventTipsCardProps> = ({ tips }) => {
             <h4 className="font-bold text-foreground flex items-center gap-1.5">
               <Utensils className="h-4 w-4 text-pink-500" /> Gastronomía & Bebidas
             </h4>
-            <p className="text-muted-foreground leading-relaxed text-[11px]">
+            <p className="text-muted-foreground leading-relaxed text-2xs">
               {tips.gastronomy}
             </p>
           </div>

@@ -66,7 +66,7 @@ export function SargazoOleajeAlert({
             Estado de Mar & Playa ({beachName})
           </h4>
         </div>
-        <div className={cn("inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border", currentBandera.bg)}>
+        <div className={cn("inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-3xs font-bold border", currentBandera.bg)}>
           <span className={cn("h-2 w-2 rounded-full animate-pulse", currentBandera.dot)} />
           <span>{currentBandera.label}</span>
         </div>
@@ -74,21 +74,21 @@ export function SargazoOleajeAlert({
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
         <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60">
-          <span className="text-[10px] uppercase font-bold text-muted-foreground block">Nivel de Sargazo</span>
+          <span className="text-3xs uppercase font-bold text-muted-foreground block">Nivel de Sargazo</span>
           <span className={cn("font-bold text-xs", sargazoConfig[condition.sargazoLevel].color)}>
             {sargazoConfig[condition.sargazoLevel].label}
           </span>
         </div>
 
         <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60">
-          <span className="text-[10px] uppercase font-bold text-muted-foreground block">Condición Oleaje</span>
+          <span className="text-3xs uppercase font-bold text-muted-foreground block">Condición Oleaje</span>
           <span className="font-bold text-xs text-foreground capitalize">
             {condition.oleajeStatus === "calmo" ? "Mar Calmo (0.5m)" : condition.oleajeStatus === "moderado" ? "Oleaje Moderado (1.2m)" : "Precaución / Corrientes"}
           </span>
         </div>
 
         <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 col-span-2 sm:col-span-1">
-          <span className="text-[10px] uppercase font-bold text-muted-foreground block">Temp. Agua / Monitoreo</span>
+          <span className="text-3xs uppercase font-bold text-muted-foreground block">Temp. Agua / Monitoreo</span>
           <span className="font-bold text-xs text-foreground font-mono">
             {condition.temperaturaAgua || 28}°C • {condition.lastUpdated || "Hoy"}
           </span>
@@ -96,7 +96,7 @@ export function SargazoOleajeAlert({
       </div>
 
       {condition.advisoryNote && (
-        <p className="text-[11px] text-muted-foreground flex items-center gap-1.5 pt-1 border-t border-border/40">
+        <p className="text-2xs text-muted-foreground flex items-center gap-1.5 pt-1 border-t border-border/40">
           <Info className="h-3.5 w-3.5 text-primary shrink-0" />
           <span>{condition.advisoryNote}</span>
         </p>
