@@ -306,6 +306,8 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
 
   if (path === "/health") return { status: 200, body: { data: { ok: true } } };
   if (m === "GET" && path.startsWith("/public/")) return (await publicApi(db, path)) ?? err(404, "Ruta no encontrada");
+  // La landing pide el catálogo de anuncios del backend completo; staging no tiene anuncios.
+  if (m === "GET" && path === "/ads/catalog") return { status: 200, body: { data: [] }, headers: PUBLIC_CACHE };
 
   if (path === "/auth/login" && m === "POST") {
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
