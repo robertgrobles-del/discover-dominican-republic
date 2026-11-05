@@ -7,7 +7,7 @@ Versión reducida del sitio para Vercel + Turso:
 - Cualquier otra ruta vuelve a `/`. Todo el sitio responde con `X-Robots-Tag: noindex`.
 
 El backend completo (`backend/`, PostgreSQL) **no** se despliega aquí. En su lugar, `api/index.ts` es una función de
-Vercel que habla con Turso y solo cubre acceso, provincias y noticias (`api/_core.ts`).
+Vercel que habla con Turso y solo cubre acceso, provincias y noticias (todo en ese archivo).
 
 ## 1. Base de datos en Turso
 
@@ -52,7 +52,7 @@ datos locales y sesión real) ya van en el `buildCommand` de `vercel.json`. No p
 `GET|POST /api/v1/admin/users`, `PATCH|DELETE /api/v1/admin/users/:id` (solo admin) y, sin sesión,
 `GET /api/v1/public/{provinces|news}` (solo lo publicado; lo usa la landing).
 
-Tests: `npx vitest run api/_core.test.ts`.
+Tests: `npx vitest run api/_index.test.ts`.
 
 ## Límites conocidos
 

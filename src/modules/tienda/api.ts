@@ -259,7 +259,7 @@ export async function createOrder(o: Omit<StoreOrder, "id" | "created_at" | "sta
     const res = await createTransferOrder({
       name: o.customer_name,
       email: o.customer_email,
-      phone: o.phone,
+      phone: o.phone ?? "",
       address: o.address,
       city: o.city,
     });

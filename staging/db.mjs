@@ -15,7 +15,7 @@ const here = (f) => fileURLToPath(new URL(f, import.meta.url));
 const SQLITE = here("./descubre-staging.sqlite");
 const schema = readFileSync(here("./schema.sql"), "utf8");
 
-// Mismo formato que hashPassword() en api/_core.ts.
+// Mismo formato que hashPassword() en api/index.ts.
 const hashPassword = (pw, salt = randomBytes(16)) => `scrypt$${salt.toString("hex")}$${scryptSync(pw, salt, 64).toString("hex")}`;
 
 const [cmd, ...args] = process.argv.slice(2);

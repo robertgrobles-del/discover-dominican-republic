@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createClient, type Client } from "@libsql/client";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { handle, hashPassword, type ApiRequest } from "./_core";
+import { handle, hashPassword, type ApiRequest } from "./index";
 
 const SECRET = "x".repeat(40);
 const dir = mkdtempSync(join(tmpdir(), "staging-api-"));

@@ -1,4 +1,4 @@
-// Alta, edición y borrado de una tabla del mini backend de staging (api/_core.ts). Lo usan provincias y noticias.
+// Alta, edición y borrado de una tabla del mini backend de staging (api/index.ts). Lo usan provincias y noticias.
 import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";

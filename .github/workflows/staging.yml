@@ -35,7 +35,7 @@ jobs:
         run: npx tsc -p tsconfig.app.json --noEmit
 
       - name: Tipos del mini backend (api/)
-        run: npx tsc --noEmit --strict --skipLibCheck --target es2022 --module esnext --moduleResolution bundler --types node api/index.ts api/_core.ts
+        run: npx tsc --noEmit --strict --skipLibCheck --target es2022 --module esnext --moduleResolution bundler --types node api/index.ts
 
       - name: Lint de lo propio de staging
         run: >-

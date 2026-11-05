@@ -87,7 +87,7 @@ const CATEGORY_CONFIG: Record<TabCategory, { label: string; badge: string; descr
 };
 
 
-// Rama staging: el panel solo gestiona provincias y noticias contra el mini backend (api/_core.ts).
+// Rama staging: el panel solo gestiona provincias y noticias contra el mini backend (api/index.ts).
 // La capacidad no existe a propósito: el acceso lo da el rol real de la sesión (allowRoles), no el contexto
 // de demostración que se carga con la landing en datos locales.
 const ADMIN_TABS: AdminTab[] = [

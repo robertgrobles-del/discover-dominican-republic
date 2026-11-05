@@ -1,4 +1,4 @@
-// Contenido que el equipo publica desde el panel de staging (Turso, ver api/_core.ts → /public/*).
+// Contenido que el equipo publica desde el panel de staging (Turso, ver api/index.ts → /public/*).
 // La landing lo antepone a su contenido local; si la API falla, la landing sigue igual que antes.
 import { useQuery } from "@tanstack/react-query";
 import { fetchApi } from "@/lib/fastifyClient";
