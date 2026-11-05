@@ -118,7 +118,7 @@ export const establishmentRegistrationSchema = z.object({
     .max(2000, "La descripción no puede exceder 2000 caracteres"),
   rnc: z.string().trim().max(20).optional().nullable(),
   horario: z.string().trim().max(120).optional().nullable(),
-  detalles: z.record(z.any()).optional().default({}),
+  detalles: z.record(z.string(), z.any()).optional().default({}),
 });
 
 // ─── Mensajes de Contacto / Cotizaciones ───────────────────────────────────────

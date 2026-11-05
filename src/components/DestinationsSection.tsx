@@ -19,6 +19,7 @@ import divingImg from "@/assets/diving.jpg";
 import raftingImg from "@/assets/rafting.jpg";
 import { AdSlotTag } from "@/components/promo/AdSlotTag";
 import { useTrackedBanner } from "@/hooks/useAdBanners";
+import { usePublicProvinces } from "@/lib/stagingContent";
 
 const staticDestinations = [
   { id: "punta-cana", name: "Punta Cana", description: "Playas de arena blanca y aguas cristalinas con resorts de clase mundial.", image: puntaCanaImg },
@@ -51,7 +52,14 @@ export function DestinationsSection() {
   const { t } = useTranslation();
   // Tarjeta nativa 350×460 dentro del carrusel: banner_type "native-card", placement "native", section "home-destinos".
   const { banner: ad, trackClick: trackAdClick } = useTrackedBanner({ section: "home-destinos", bannerType: "native-card", placement: "native" });
-  const [destinations, setDestinations] = useState<DisplayDestination[]>(staticDestinations);
+  const [localDestinations, setDestinations] = useState<DisplayDestination[]>(staticDestinations);
+  // Staging: las provincias publicadas desde el panel (Turso) van primero y sustituyen a la local del mismo slug.
+  const { data: published = [] } = usePublicProvinces();
+  const fromPanel: DisplayDestination[] = published.map((p) => ({
+    id: p.slug, name: p.name, description: p.short_description ?? p.description ?? "", image: p.image_url || localImageMap[p.slug] || puntaCanaImg,
+  }));
+  const panelSlugs = new Set(fromPanel.map((d) => d.id));
+  const destinations = [...fromPanel, ...localDestinations.filter((d) => !panelSlugs.has(d.id))];
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start", slidesToScroll: 1 });
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);

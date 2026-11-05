@@ -1,0 +1,61 @@
+name: staging
+
+# Comprueba la rama que se despliega en Vercel + Turso (ver staging/README.md). Los workflows frontend y backend
+# validan el sitio completo y no aplican aquí: staging no tiene sus rutas ni su backend PostgreSQL.
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [staging]
+  pull_request:
+    branches: [staging]
+
+concurrency:
+  group: staging-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependencias limpias
+        run: npm ci
+
+      - name: Tipos del frontend
+        run: npx tsc -p tsconfig.app.json --noEmit
+
+      - name: Tipos del mini backend (api/)
+        run: npx tsc --noEmit --strict --skipLibCheck --target es2022 --module esnext --moduleResolution bundler --types node api/index.ts api/_core.ts
+
+      - name: Lint de lo propio de staging
+        run: >-
+          npx eslint api src/components/admin/staging src/lib/stagingContent.ts src/App.tsx src/pages/AdminPanel.tsx
+          src/components/DestinationsSection.tsx src/lib/editorialApi.ts
+
+      - name: Tests (incluye el mini backend contra un SQLite temporal)
+        run: npm test
+
+      - name: El esquema de Turso se crea sin errores
+        run: |
+          node staging/db.mjs build
+          cp staging/descubre-staging.sqlite "$RUNNER_TEMP/ci.sqlite"
+          TURSO_DATABASE_URL="file:$RUNNER_TEMP/ci.sqlite" node staging/db.mjs admin ci@example.com "clave-de-ci-123456" admin
+
+      - name: Build igual que en Vercel
+        run: VITE_AUTH_SOURCE=api VITE_DATA_SOURCE=mock VITE_ALLOW_MOCK_BUILD=true npx vite build
+
+      - name: El bundle no contiene credenciales de servicio
+        run: npm run check:client-secrets
+
+      - name: Dependencias de producción sin vulnerabilidades altas
+        run: npm audit --omit=dev --audit-level=high

@@ -18,7 +18,8 @@ import { Navigate, Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { adminDashboardApi } from "@/lib/adminDashboardApi";
 import { StagingNewsManager, StagingProvincesManager } from "@/components/admin/staging/StagingCrudManager";
-import { Shield, Loader2, Search, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper } from "lucide-react";
+import { StagingUsersManager } from "@/components/admin/staging/StagingUsersManager";
+import { Shield, Loader2, Search, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users } from "lucide-react";
 
 type TabCategory = "erp" | "crm" | "cms" | "system";
 
@@ -92,6 +93,7 @@ const CATEGORY_CONFIG: Record<TabCategory, { label: string; badge: string; descr
 const ADMIN_TABS: AdminTab[] = [
   { value: "provincias", label: "Provincias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: MapPin, iconClass: "text-emerald-500", render: () => <StagingProvincesManager /> },
   { value: "noticias", label: "Noticias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Newspaper, iconClass: "text-primary", render: () => <StagingNewsManager /> },
+  { value: "usuarios", label: "Usuarios", category: "system", capability: "staging.panel", allowRoles: ["admin"], icon: Users, iconClass: "text-sky-500", render: () => <StagingUsersManager /> },
 ];
 
 export default function AdminPanel() {

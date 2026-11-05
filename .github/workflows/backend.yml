@@ -5,8 +5,10 @@ permissions:
 
 on:
   push:
+    branches-ignore: [staging]
     paths: ["backend/**", ".github/workflows/backend.yml"]
   pull_request:
+    branches-ignore: [staging]
     paths: ["backend/**", ".github/workflows/backend.yml"]
 
 jobs:

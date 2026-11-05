@@ -7,6 +7,7 @@ on:
   # Permite recompilar y descargar el artefacto bajo demanda (despliegue o rollback de una revisión concreta).
   workflow_dispatch:
   push:
+    branches-ignore: [staging]
     paths:
       - "src/**"
       - "public/**"
@@ -21,6 +22,7 @@ on:
       - "e2e/**"
       - ".github/workflows/frontend.yml"
   pull_request:
+    branches-ignore: [staging]
     paths:
       - "src/**"
       - "public/**"

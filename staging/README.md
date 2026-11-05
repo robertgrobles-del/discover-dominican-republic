@@ -40,17 +40,17 @@ Con el mismo comando se cambia la contraseña. Rol `editor` para quien solo edit
 | `TURSO_DATABASE_URL` | `libsql://…turso.io` |
 | `TURSO_AUTH_TOKEN` | token de Turso (`turso db tokens create descubre-staging`) |
 | `JWT_SECRET` | 32+ caracteres aleatorios (`openssl rand -hex 32`) |
-| `VITE_AUTH_SOURCE` | `api` |
-| `VITE_DATA_SOURCE` | `mock` |
-| `VITE_ALLOW_MOCK_BUILD` | `true` |
 
-Las tres `VITE_*` son las de la landing con datos locales y sesión real. No pongas `VITE_API_URL`: el frontend ya
-usa `/api/v1` en el mismo dominio.
+Las variables del frontend (`VITE_AUTH_SOURCE=api`, `VITE_DATA_SOURCE=mock`, `VITE_ALLOW_MOCK_BUILD=true`: landing con
+datos locales y sesión real) ya van en el `buildCommand` de `vercel.json`. No pongas `VITE_API_URL`: el frontend usa
+`/api/v1` en el mismo dominio.
 
 ## Endpoints
 
 `POST /api/v1/auth/login`, `/auth/refresh`, `/auth/logout`, `GET /auth/me`, y
-`GET|POST /api/v1/admin/{provinces|news}`, `GET|PUT|DELETE /api/v1/admin/{provinces|news}/:id` (rol admin o editor).
+`GET|POST /api/v1/admin/{provinces|news}`, `GET|PUT|DELETE /api/v1/admin/{provinces|news}/:id` (rol admin o editor),
+`GET|POST /api/v1/admin/users`, `PATCH|DELETE /api/v1/admin/users/:id` (solo admin) y, sin sesión,
+`GET /api/v1/public/{provinces|news}` (solo lo publicado; lo usa la landing).
 
 Tests: `npx vitest run api/_core.test.ts`.
 
@@ -58,4 +58,6 @@ Tests: `npx vitest run api/_core.test.ts`.
 
 - El token de refresco no se revoca en el servidor: cerrar sesión borra la cookie, pero un token copiado sigue
   valiendo hasta 7 días. Aceptable para staging; con usuarios reales, guardar los tokens en una tabla.
-- Provincias y noticias se guardan en Turso, pero la landing no las muestra todavía.
+- La landing muestra las provincias publicadas en el carrusel de destinos y las noticias publicadas al frente de la
+  sección de noticias (la más reciente, destacada). Los borradores no se ven. Como los enlaces de la landing están
+  desactivados, el texto completo de una noticia solo se lee en el panel.

@@ -62,6 +62,50 @@ describe("auth", () => {
   });
 });
 
+describe("usuarios", () => {
+  it("solo un admin gestiona usuarios; nunca expone el hash", async () => {
+    const admin = bearer(await login("admin@x.do", "clave-segura-123"));
+    const c = await call("POST", "/admin/users", { email: "Editora@X.do", password: "otra-clave-larga", role: "editor", display_name: "Ana" }, admin);
+    expect(c.status).toBe(201);
+    expect(data(c)).toMatchObject({ email: "editora@x.do", roles: ["editor"], display_name: "Ana" });
+    expect(JSON.stringify((await call("GET", "/admin/users", undefined, admin)).body)).not.toContain("scrypt");
+
+    expect((await call("POST", "/admin/users", { email: "editora@x.do", password: "otra-clave-larga" }, admin)).status).toBe(409);
+    expect((await call("POST", "/admin/users", { email: "corta@x.do", password: "corta" }, admin)).status).toBe(422);
+    expect((await call("POST", "/admin/users", { email: "rol@x.do", password: "otra-clave-larga", role: "dios" }, admin)).status).toBe(422);
+
+    const editor = bearer(await login("editora@x.do", "otra-clave-larga"));
+    expect((await call("GET", "/admin/users", undefined, editor)).status).toBe(403);
+    expect((await call("GET", "/admin/news", undefined, editor)).status).toBe(200);
+
+    const id = data(c).id as string;
+    await call("PATCH", `/admin/users/${id}`, { password: "clave-nueva-larga" }, admin);
+    expect((await login("editora@x.do", "clave-nueva-larga")).status).toBe(200);
+    expect((await call("DELETE", `/admin/users/${id}`, undefined, admin)).status).toBe(204);
+  });
+
+  it("no deja borrarse a sí mismo ni quedarse sin administradores", async () => {
+    const admin = bearer(await login("admin@x.do", "clave-segura-123"));
+    expect((await call("DELETE", "/admin/users/u1", undefined, admin)).status).toBe(422);
+    expect((await call("PATCH", "/admin/users/u1", { role: "editor" }, admin)).status).toBe(422);
+  });
+});
+
+describe("contenido público", () => {
+  it("la landing ve solo lo publicado y sin sesión", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    await call("POST", "/admin/provinces", { slug: "publica", name: "Pública", region: "sur", status: "published" }, auth);
+    await call("POST", "/admin/provinces", { slug: "borrador", name: "Borrador", region: "sur" }, auth);
+    await call("POST", "/admin/news", { slug: "nota-publica", title: "Nota", status: "published" }, auth);
+    await call("POST", "/admin/news", { slug: "nota-borrador", title: "Borrador" }, auth);
+
+    const p = await call("GET", "/public/provinces");
+    expect(p.headers?.["Cache-Control"]).toContain("s-maxage");
+    expect(data<{ slug: string }[]>(p).map((r) => r.slug)).toEqual(["publica"]);
+    expect(data<{ slug: string }[]>(await call("GET", "/public/news")).map((r) => r.slug)).toEqual(["nota-publica"]);
+  });
+});
+
 describe("provincias y noticias", () => {
   it("crea, edita, lista y borra; valida y detecta slugs repetidos", async () => {
     const auth = bearer(await login("admin@x.do", "clave-segura-123"));
@@ -82,7 +126,7 @@ describe("provincias y noticias", () => {
     expect(data(n).published_at).toBeTruthy();
     expect((await call("POST", "/admin/news", { slug: "otra", title: "X", province_id: "no-existe" }, auth)).status).toBe(422);
 
-    expect(data<unknown[]>(await call("GET", "/admin/news", undefined, auth))).toHaveLength(1);
+    expect(data<{ slug: string }[]>(await call("GET", "/admin/news", undefined, auth)).map((r) => r.slug)).toContain("ballenas-2027");
     expect((await call("DELETE", `/admin/provinces/${id}`, undefined, auth)).status).toBe(204);
     expect((await call("GET", `/admin/provinces/${id}`, undefined, auth)).status).toBe(404);
   });

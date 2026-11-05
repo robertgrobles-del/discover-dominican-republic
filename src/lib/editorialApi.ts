@@ -1,3 +1,4 @@
+import { loadPublicNews, type PublicNews } from "@/lib/stagingContent";
 import { useQuery } from "@tanstack/react-query";
 import { fetchApi } from "@/lib/fastifyClient";
 import { CATALOG_SOURCE } from "@/lib/catalogSource";
@@ -95,10 +96,20 @@ function fromStatic(p: BlogPost): EditorialArticle {
   };
 }
 
+function fromPublicNews(n: PublicNews): EditorialArticle {
+  return {
+    id: n.id, slug: n.slug, title: n.title, excerpt: n.excerpt ?? "", channel: "noticias", category: "Noticias", image: n.cover_url,
+    publishedAt: n.published_at, readMinutes: null, authorName: "Redacción Descubre RD", authorRole: null, authorAvatar: null,
+    // Destacada: al ir primero, la más reciente del panel ocupa la portada de la sección de noticias.
+    tags: n.province_name ? [n.province_name] : [], featured: true, trending: false, pressPartner: null, href: hrefOf("noticias", n.slug),
+  };
+}
+
 async function loadArticles(): Promise<EditorialArticle[]> {
   if (CATALOG_SOURCE !== "api") {
-    const { blogPosts } = await import("@/data/blogData");
-    return blogPosts.map(fromStatic);
+    // Staging: las noticias publicadas desde el panel (Turso) van primero; luego, las locales.
+    const [{ blogPosts }, published] = await Promise.all([import("@/data/blogData"), loadPublicNews()]);
+    return [...published.map(fromPublicNews), ...blogPosts.map(fromStatic)];
   }
   const image = await imageResolver();
   const query = new URLSearchParams({ per_page: "100", sort: "-published_at", fields: LIST_FIELDS });

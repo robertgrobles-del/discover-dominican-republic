@@ -209,6 +209,91 @@ async function crud(db: Client, table: keyof typeof TABLES, method: string, id: 
   }
 }
 
+// ---------- usuarios del panel (solo admin) ----------
+const ROLES = ["admin", "editor"];
+const MIN_PASSWORD = 12;
+
+async function adminCount(db: Client): Promise<number> {
+  return Number((await db.execute(`SELECT COUNT(*) AS n FROM users WHERE roles LIKE '%"admin"%'`)).rows[0]?.n ?? 0);
+}
+
+async function usersApi(db: Client, method: string, id: string | undefined, body: Fields, me: UserRow): Promise<ApiResponse> {
+  if (method === "GET" && !id) {
+    const rows = (await db.execute("SELECT * FROM users ORDER BY created_at")).rows as unknown as UserRow[];
+    return { status: 200, body: { data: rows.map(publicUser) } };
+  }
+
+  const role = oneOf(body, "role", ROLES, null);
+  if (role instanceof Error) return err(422, role.message);
+  const displayName = str(body, "display_name", 120);
+  if (displayName instanceof Error) return err(422, displayName.message);
+  const password = body.password;
+  if (password !== undefined && password !== null && password !== "" &&
+      (typeof password !== "string" || password.length < MIN_PASSWORD || password.length > 200)) {
+    return err(422, `La contraseña debe tener entre ${MIN_PASSWORD} y 200 caracteres`);
+  }
+
+  if (method === "POST" && !id) {
+    const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return err(422, "Correo no válido");
+    if (typeof password !== "string" || !password) return err(422, "La contraseña es obligatoria");
+    const newId = randomUUID();
+    try {
+      await db.execute({
+        sql: "INSERT INTO users (id, email, password_hash, display_name, roles) VALUES (?, ?, ?, ?, ?)",
+        args: [newId, email, hashPassword(password), displayName, JSON.stringify([role ?? "editor"])],
+      });
+    } catch (e) {
+      if (String(e).includes("UNIQUE")) return err(409, "Ya existe un usuario con ese correo");
+      throw e;
+    }
+    return { status: 201, body: { data: publicUser((await findUser(db, "id", newId))!) } };
+  }
+
+  if (!id) return err(405, "Método no permitido");
+  const target = await findUser(db, "id", id);
+  if (!target) return err(404, "No encontrado");
+  const targetIsAdmin = publicUser(target).roles.includes("admin");
+
+  if (method === "DELETE") {
+    if (target.id === me.id) return err(422, "No puedes eliminar tu propia cuenta");
+    if (targetIsAdmin && (await adminCount(db)) <= 1) return err(422, "Debe quedar al menos un administrador");
+    await db.execute({ sql: "DELETE FROM users WHERE id = ?", args: [id] });
+    return { status: 204 };
+  }
+
+  if (method === "PATCH" || method === "PUT") {
+    if (role && role !== "admin" && targetIsAdmin && (await adminCount(db)) <= 1) return err(422, "Debe quedar al menos un administrador");
+    const sets: string[] = [];
+    const args: InValue[] = [];
+    if (role) { sets.push("roles = ?"); args.push(JSON.stringify([role])); }
+    if (body.display_name !== undefined) { sets.push("display_name = ?"); args.push(displayName); }
+    if (typeof password === "string" && password) { sets.push("password_hash = ?"); args.push(hashPassword(password)); }
+    if (sets.length) await db.execute({ sql: `UPDATE users SET ${sets.join(", ")} WHERE id = ?`, args: [...args, id] });
+    return { status: 200, body: { data: publicUser((await findUser(db, "id", id))!) } };
+  }
+  return err(405, "Método no permitido");
+}
+
+// ---------- contenido público (landing) ----------
+// Solo lo publicado; los borradores se quedan en el panel. Caché corta en la CDN de Vercel.
+const PUBLIC_CACHE = { "Cache-Control": "public, max-age=0, s-maxage=30, stale-while-revalidate=300" };
+
+async function publicApi(db: Client, path: string): Promise<ApiResponse | null> {
+  if (path === "/public/provinces") {
+    const r = await db.execute(`SELECT id, slug, name, region, capital, short_description, description, image_url, latitude, longitude, updated_at
+      FROM provinces WHERE status = 'published' ORDER BY name COLLATE NOCASE`);
+    return { status: 200, body: { data: r.rows }, headers: PUBLIC_CACHE };
+  }
+  if (path === "/public/news") {
+    const r = await db.execute(`SELECT n.id, n.slug, n.title, n.excerpt, n.body, n.cover_url, n.published_at, p.name AS province_name
+      FROM news n LEFT JOIN provinces p ON p.id = n.province_id AND p.status = 'published'
+      WHERE n.status = 'published' ORDER BY n.published_at DESC LIMIT 50`);
+    return { status: 200, body: { data: r.rows }, headers: PUBLIC_CACHE };
+  }
+  return null;
+}
+
 // ---------- router ----------
 export async function handle(req: ApiRequest, db: Client, secret: string, secureCookies = true): Promise<ApiResponse> {
   const path = req.path.replace(/^\/api\/v1/, "").replace(/\/+$/, "") || "/";
@@ -216,6 +301,7 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   const m = req.method.toUpperCase();
 
   if (path === "/health") return { status: 200, body: { data: { ok: true } } };
+  if (m === "GET" && path.startsWith("/public/")) return (await publicApi(db, path)) ?? err(404, "Ruta no encontrada");
 
   if (path === "/auth/login" && m === "POST") {
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
@@ -253,6 +339,9 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
 
   const roles = publicUser(user).roles;
   if (!roles.some((r) => STAFF_ROLES.includes(r))) return err(403, "Sin permisos");
+
+  const users = path.match(/^\/admin\/users(?:\/([A-Za-z0-9-]+))?$/);
+  if (users) return roles.includes("admin") ? usersApi(db, m, users[1], body, user) : err(403, "Solo un administrador gestiona usuarios");
 
   const match = path.match(/^\/admin\/(provinces|news)(?:\/([A-Za-z0-9-]+))?$/);
   if (match) return crud(db, match[1] as keyof typeof TABLES, m, match[2], body, user.id);
