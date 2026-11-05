@@ -40,7 +40,7 @@ jobs:
       - name: Lint de lo propio de staging
         run: >-
           npx eslint api src/components/admin/staging src/lib/stagingContent.ts src/App.tsx src/pages/AdminPanel.tsx
-          src/components/DestinationsSection.tsx src/lib/editorialApi.ts
+          src/components/DestinationsSection.tsx src/components/NewsSection.tsx src/lib/editorialApi.ts src/lib/stagingMedia.ts
 
       - name: Tests (incluye el mini backend contra un SQLite temporal)
         run: npm test

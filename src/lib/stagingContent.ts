@@ -10,7 +10,9 @@ export interface PublicProvince {
 
 export interface PublicNews {
   id: string; slug: string; title: string; excerpt: string | null; body: string | null;
-  cover_url: string | null; published_at: string | null; province_name: string | null;
+  cover_url: string | null; image_alt: string | null; image_credit: string | null; author: string | null;
+  source_url: string | null; featured: number; published_at: string | null; province_name: string | null;
+  category_name: string | null; category_slug: string | null;
 }
 
 const load = async <T,>(path: string): Promise<T[]> => {

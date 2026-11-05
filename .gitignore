@@ -41,3 +41,7 @@ docs/Registro Nacional Tur*.txt
 playwright-report/
 test-results/
 backend/loadtest-report.json
+
+# Archivos temporales de SQLite en modo WAL (staging)
+*.sqlite-shm
+*.sqlite-wal

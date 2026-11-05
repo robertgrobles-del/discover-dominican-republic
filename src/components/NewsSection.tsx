@@ -14,7 +14,8 @@ export function NewsSection() {
   // Las mismas publicaciones que la revista: la destacada (o la más reciente) y las tres siguientes.
   const { data: articles = [] } = useEditorialArticles();
   const news = articles.map((a) => ({
-    id: a.id, href: a.href, title: a.title, excerpt: a.excerpt, image: a.image ?? heroBeachImg, category: channelLabel(a.channel),
+    id: a.id, href: a.href, title: a.title, excerpt: a.excerpt, image: a.image ?? heroBeachImg, // Las noticias del panel muestran su categoría; el resto, el nombre de su canal.
+    category: a.channel === "noticias" && a.category ? a.category : channelLabel(a.channel),
     date: formatEditorialDate(a.publishedAt), readTime: a.readMinutes ? `${a.readMinutes} min` : "", featured: a.featured,
   }));
   const featuredNews = news.find(n => n.featured) ?? news[0];

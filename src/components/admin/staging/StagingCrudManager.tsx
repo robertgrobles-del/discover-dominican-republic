@@ -1,8 +1,8 @@
-// Alta, edición y borrado de una tabla del mini backend de staging (api/index.ts). Lo usan provincias y noticias.
-import { useState, type FormEvent } from "react";
+// Alta, edición y borrado de una tabla del mini backend de staging (api/index.ts): provincias, noticias y categorías.
+import { useRef, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { ImagePlus, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { fetchApi } from "@/lib/fastifyClient";
 import { HttpError } from "@/lib/httpClient";
 import { Button } from "@/components/ui/button";
@@ -10,11 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { IMAGE_ACCEPT, uploadImage } from "@/lib/stagingMedia";
+import { MarkdownEditor } from "./MarkdownEditor";
 
 export type FieldDef = {
   key: string;
   label: string;
-  type?: "text" | "textarea" | "number" | "url" | "select";
+  type?: "text" | "textarea" | "number" | "url" | "select" | "markdown" | "image" | "checkbox";
   required?: boolean;
   options?: { value: string; label: string }[];
   placeholder?: string;
@@ -27,11 +29,11 @@ const toSlug = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLower
 const apiMessage = (e: unknown) => (e instanceof HttpError ? (e.details as { error?: { message?: string } } | null)?.error?.message : null) ?? (e instanceof Error ? e.message : "Error");
 
 export function StagingCrudManager({ resource, title, titleKey, fields, noun }: {
-  resource: "provinces" | "news";
+  resource: "provinces" | "news" | "news-categories";
   title: string;
   titleKey: string;           // campo que se muestra en la lista y del que sale el slug
   fields: FieldDef[];
-  noun: string;               // "provincia", "noticia"
+  noun: string;               // "provincia", "noticia", "categoría" (femenino: "Nueva …", "guardada")
 }) {
   const qc = useQueryClient();
   const queryKey = ["staging", resource];
@@ -46,12 +48,17 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun }: 
   const open = (row: Row | "new") => {
     setEditing(row);
     setSlugTouched(row !== "new");
-    setForm(Object.fromEntries(fields.map((f) => [f.key, row === "new" ? (f.options?.[0]?.value ?? "") : String(row[f.key] ?? "")])));
+    setForm(Object.fromEntries(fields.map((f) => {
+      if (row === "new") return [f.key, f.options?.[0]?.value ?? ""];
+      const v = row[f.key];
+      return [f.key, f.type === "checkbox" ? (v === 1 || v === true ? "1" : "") : String(v ?? "")];
+    })));
   };
 
   const save = useMutation({
     mutationFn: async () => {
-      const body = Object.fromEntries(fields.map((f) => [f.key, f.type === "number" && form[f.key] !== "" ? Number(form[f.key]) : form[f.key] || null]));
+      const body = Object.fromEntries(fields.map((f) => [f.key,
+        f.type === "checkbox" ? form[f.key] === "1" : f.type === "number" && form[f.key] !== "" ? Number(form[f.key]) : form[f.key] || null]));
       const isNew = editing === "new";
       return fetchApi(`/admin/${resource}${isNew ? "" : `/${(editing as Row).id}`}`, { method: isNew ? "POST" : "PUT", body: JSON.stringify(body) });
     },
@@ -83,8 +90,19 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun }: 
           const common = { id, required: f.required, value: form[f.key] ?? "", placeholder: f.placeholder };
           return (
             <div key={f.key} className="space-y-1.5">
-              <Label htmlFor={id}>{f.label}{f.required && <span className="text-destructive"> *</span>}</Label>
-              {f.type === "textarea" ? (
+              {f.type === "checkbox" ? (
+                <label htmlFor={id} className="flex items-center gap-2 text-sm font-medium">
+                  <input id={id} type="checkbox" checked={form[f.key] === "1"} onChange={(e) => set(f.key, e.target.checked ? "1" : "")} className="h-4 w-4 accent-[hsl(var(--primary))]" />
+                  {f.label}
+                </label>
+              ) : (
+                <Label htmlFor={id}>{f.label}{f.required && <span className="text-destructive"> *</span>}</Label>
+              )}
+              {f.type === "checkbox" ? null : f.type === "markdown" ? (
+                <MarkdownEditor id={id} value={form[f.key] ?? ""} onChange={(v) => set(f.key, v)} />
+              ) : f.type === "image" ? (
+                <ImageField id={id} value={form[f.key] ?? ""} onChange={(v) => set(f.key, v)} />
+              ) : f.type === "textarea" ? (
                 <Textarea {...common} rows={6} onChange={(e) => set(f.key, e.target.value)} />
               ) : f.type === "select" ? (
                 <select {...common} onChange={(e) => set(f.key, e.target.value)} className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
@@ -125,7 +143,7 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun }: 
                 <p className="truncate font-medium">{String(r[titleKey] ?? "")}</p>
                 <p className="truncate text-xs text-muted-foreground">/{String(r.slug ?? "")}</p>
               </div>
-              <Badge variant={r.status === "published" ? "default" : "secondary"}>{r.status === "published" ? "Publicada" : "Borrador"}</Badge>
+              {"status" in r && <Badge variant={r.status === "published" ? "default" : "secondary"}>{r.status === "published" ? "Publicada" : "Borrador"}</Badge>}
               <Button size="icon" variant="ghost" aria-label={`Editar ${String(r[titleKey])}`} onClick={() => open(r)}><Pencil className="h-4 w-4" /></Button>
               <Button
                 size="icon"
@@ -141,6 +159,34 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun }: 
         </ul>
       )}
     </section>
+  );
+}
+
+/** Imagen: se sube como archivo (convertida a WebP) o se pega una URL; muestra una miniatura. */
+function ImageField({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const pick = async (file: File | undefined) => {
+    if (!file) return;
+    setUploading(true);
+    try { onChange(await uploadImage(file)); toast.success("Imagen subida (WebP)"); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "No se pudo subir la imagen"); }
+    finally { setUploading(false); if (fileRef.current) fileRef.current.value = ""; }
+  };
+  return (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+      <div className="flex h-24 w-36 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
+        {value ? <img src={value} alt="" className="h-full w-full object-cover" /> : <ImagePlus className="h-6 w-6 text-muted-foreground" aria-hidden="true" />}
+      </div>
+      <div className="flex-1 space-y-2">
+        <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
+          {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImagePlus className="mr-2 h-4 w-4" />}Subir imagen
+        </Button>
+        <input ref={fileRef} type="file" accept={IMAGE_ACCEPT} className="hidden" onChange={(e) => void pick(e.target.files?.[0])} />
+        <Input id={id} value={value} onChange={(e) => onChange(e.target.value)} placeholder="…o pega una URL https://" />
+        <p className="text-xs text-muted-foreground">JPG, PNG, WebP, GIF o AVIF: se convierte a WebP y se reduce antes de subir (máx. 2 MB).</p>
+      </div>
+    </div>
   );
 }
 
@@ -160,7 +206,7 @@ export function StagingProvincesManager() {
         { key: "capital", label: "Capital" },
         { key: "short_description", label: "Descripción corta" },
         { key: "description", label: "Descripción", type: "textarea" },
-        { key: "image_url", label: "Imagen principal (URL)", type: "url", placeholder: "https://…" },
+        { key: "image_url", label: "Imagen principal", type: "image" },
         { key: "latitude", label: "Latitud", type: "number" },
         { key: "longitude", label: "Longitud", type: "number" },
         STATUS,
@@ -174,6 +220,10 @@ export function StagingNewsManager() {
     queryKey: ["staging", "provinces"],
     queryFn: async () => (await fetchApi<{ data: Row[] }>("/admin/provinces")).data,
   });
+  const { data: categories = [] } = useQuery({
+    queryKey: ["staging", "news-categories"],
+    queryFn: async () => (await fetchApi<{ data: Row[] }>("/admin/news-categories")).data,
+  });
   return (
     <StagingCrudManager
       resource="news"
@@ -183,11 +233,33 @@ export function StagingNewsManager() {
       fields={[
         { key: "title", label: "Título", required: true },
         { key: "slug", label: "Slug (URL)", required: true, hint: "Se genera del título; solo minúsculas, números y guiones." },
-        { key: "excerpt", label: "Resumen" },
-        { key: "body", label: "Contenido", type: "textarea" },
-        { key: "cover_url", label: "Imagen de portada (URL)", type: "url", placeholder: "https://…" },
+        { key: "category_id", label: "Categoría", type: "select", options: [{ value: "", label: "Sin categoría" }, ...categories.map((c) => ({ value: c.id, label: String(c.name) }))] },
+        { key: "excerpt", label: "Antetítulo (resumen)", hint: "Una o dos frases que resumen la noticia; aparece en las tarjetas de la portada." },
+        { key: "body", label: "Cuerpo", type: "markdown" },
+        { key: "cover_url", label: "Imagen de portada", type: "image" },
+        { key: "image_alt", label: "Texto alternativo de la portada", hint: "Describe la imagen para quien no la ve (accesibilidad y buscadores)." },
+        { key: "image_credit", label: "Crédito de la foto", placeholder: "Foto: Ana Pérez / Mitur" },
         { key: "province_id", label: "Provincia", type: "select", options: [{ value: "", label: "Ninguna" }, ...provinces.map((p) => ({ value: p.id, label: String(p.name) }))] },
+        { key: "author", label: "Autor", placeholder: "Redacción Descubre RD" },
+        { key: "source_url", label: "Fuente (enlace a la nota original)", type: "url", placeholder: "https://…" },
+        { key: "featured", label: "Destacada en la portada", type: "checkbox" },
         STATUS,
+      ]}
+    />
+  );
+}
+
+export function StagingNewsCategoriesManager() {
+  return (
+    <StagingCrudManager
+      resource="news-categories"
+      title="Categorías de noticias"
+      titleKey="name"
+      noun="categoría"
+      fields={[
+        { key: "name", label: "Nombre", required: true },
+        { key: "slug", label: "Slug (URL)", required: true, hint: "Se genera del nombre; solo minúsculas, números y guiones." },
+        { key: "sort_order", label: "Orden", type: "number", hint: "Las categorías se listan de menor a mayor." },
       ]}
     />
   );

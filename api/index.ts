@@ -9,7 +9,8 @@ import { createHmac, randomBytes, randomUUID, scryptSync, timingSafeEqual } from
 // Responde con el mismo contrato que el backend completo para /auth/*, así el frontend no cambia.
 
 export interface ApiRequest { method: string; path: string; headers: Record<string, string | undefined>; body: unknown; ip?: string }
-export interface ApiResponse { status: number; body?: unknown; headers?: Record<string, string> }
+/** body se envía como JSON; raw, tal cual (imágenes). */
+export interface ApiResponse { status: number; body?: unknown; raw?: Uint8Array; headers?: Record<string, string> }
 
 const ACCESS_TTL = 15 * 60;            // segundos
 const REFRESH_TTL = 7 * 24 * 60 * 60;
@@ -88,6 +89,7 @@ function str(o: Fields, key: string, max: number, required = false): string | nu
 function url(o: Fields, key: string): string | null | Error {
   const v = str(o, key, 2000);
   if (v instanceof Error || v === null) return v;
+  if (/^\/api\/v1\/media\/[0-9a-f-]{36}\.webp$/.test(v)) return v; // imagen subida al propio sitio
   try {
     const u = new URL(v);
     return u.protocol === "https:" || u.protocol === "http:" ? v : new Error(`${key} debe ser una URL http(s)`);
@@ -120,6 +122,24 @@ function collect(spec: Record<string, () => unknown>): Record<string, InValue> |
   return out;
 }
 
+function bool(o: Fields, key: string): number | Error {
+  const v = o[key];
+  if (v === undefined || v === null || v === "" || v === false || v === 0 || v === "false" || v === "0") return 0;
+  if (v === true || v === 1 || v === "true" || v === "1") return 1;
+  return new Error(`${key} debe ser verdadero o falso`);
+}
+
+const slugOf = (b: Fields, max: number) => () => {
+  const s = str(b, "slug", max, true);
+  return s instanceof Error || SLUG.test(s!) ? s : new Error("slug solo admite minúsculas, números y guiones");
+};
+
+const categorySpec = (b: Fields) => ({
+  slug: slugOf(b, 80),
+  name: () => str(b, "name", 80, true),
+  sort_order: () => { const n = num(b, "sort_order", 0, 100000); return n instanceof Error || n === null || Number.isInteger(n) ? n ?? 0 : new Error("sort_order debe ser un número entero"); },
+});
+
 const provinceSpec = (b: Fields) => ({
   slug: () => { const s = str(b, "slug", 80, true); return s instanceof Error || SLUG.test(s!) ? s : new Error("slug solo admite minúsculas, números y guiones"); },
   name: () => str(b, "name", 120, true),
@@ -137,9 +157,15 @@ const newsSpec = (b: Fields) => ({
   slug: () => { const s = str(b, "slug", 120, true); return s instanceof Error || SLUG.test(s!) ? s : new Error("slug solo admite minúsculas, números y guiones"); },
   title: () => str(b, "title", 200, true),
   excerpt: () => str(b, "excerpt", 500),
-  body: () => str(b, "body", 100000),
+  body: () => str(b, "body", 100000),         // Markdown (se muestra sin HTML)
   cover_url: () => url(b, "cover_url"),
+  image_alt: () => str(b, "image_alt", 300),
+  image_credit: () => str(b, "image_credit", 200),
+  category_id: () => str(b, "category_id", 64),
   province_id: () => str(b, "province_id", 64),
+  author: () => str(b, "author", 120),
+  source_url: () => url(b, "source_url"),
+  featured: () => bool(b, "featured"),
   status: () => oneOf(b, "status", STATUSES, "draft"),
 });
 
@@ -166,19 +192,26 @@ function sessionFor(u: UserRow, secret: string, secure: boolean): ApiResponse {
 }
 
 // ---------- CRUD genérico ----------
+// refs: columnas que apuntan a otra tabla. Se comprueban aquí porque Turso, por HTTP, no garantiza las claves foráneas.
 const TABLES = {
-  provinces: { spec: provinceSpec, order: "name COLLATE NOCASE" },
-  news: { spec: newsSpec, order: "created_at DESC" },
-} as const;
+  provinces: { spec: provinceSpec, order: "name COLLATE NOCASE", refs: {} },
+  news: { spec: newsSpec, order: "created_at DESC", refs: { province_id: ["provinces", "La provincia indicada no existe"], category_id: ["news_categories", "La categoría indicada no existe"] } },
+  news_categories: { spec: categorySpec, order: "sort_order, name COLLATE NOCASE", refs: {} },
+} as const satisfies Record<string, { spec: (b: Fields) => Record<string, () => unknown>; order: string; refs: Record<string, readonly [string, string]> }>;
 
 async function crud(db: Client, table: keyof typeof TABLES, method: string, id: string | undefined, body: Fields, userId: string): Promise<ApiResponse> {
-  const { spec, order } = TABLES[table];
+  const { spec, order, refs } = TABLES[table] as (typeof TABLES)[keyof typeof TABLES] & { refs: Record<string, readonly [string, string]> };
   if (method === "GET" && !id) return { status: 200, body: { data: (await db.execute(`SELECT * FROM ${table} ORDER BY ${order}`)).rows } };
   if (method === "GET") {
     const row = (await db.execute({ sql: `SELECT * FROM ${table} WHERE id = ?`, args: [id!] })).rows[0];
     return row ? { status: 200, body: { data: row } } : err(404, "No encontrado");
   }
   if (method === "DELETE" && id) {
+    if (table === "news_categories") {
+      const n = Number((await db.execute({ sql: "SELECT COUNT(*) AS n FROM news WHERE category_id = ?", args: [id] })).rows[0]?.n ?? 0);
+      if (n) return err(409, `No se puede eliminar: ${n} noticia${n === 1 ? " usa" : "s usan"} esta categoría`);
+    }
+    if (table === "provinces") await db.execute({ sql: "UPDATE news SET province_id = NULL WHERE province_id = ?", args: [id] });
     const r = await db.execute({ sql: `DELETE FROM ${table} WHERE id = ?`, args: [id] });
     return r.rowsAffected ? { status: 204 } : err(404, "No encontrado");
   }
@@ -187,7 +220,16 @@ async function crud(db: Client, table: keyof typeof TABLES, method: string, id: 
 
   const values = collect(spec(body));
   if (values instanceof Error) return err(422, values.message);
-  if (table === "news") values.published_at = values.status === "published" ? ((body.published_at as string) || now()) : null;
+  for (const [col, [refTable, message]] of Object.entries(refs)) {
+    if (values[col] == null) continue;
+    const found = await db.execute({ sql: `SELECT 1 FROM ${refTable} WHERE id = ?`, args: [values[col]] });
+    if (!found.rows.length) return err(422, message);
+  }
+  if (table === "news") {
+    // Una noticia ya publicada conserva su fecha al editarla; solo la estrena al publicarse.
+    const prev = id ? (await db.execute({ sql: "SELECT published_at FROM news WHERE id = ?", args: [id] })).rows[0]?.published_at : null;
+    values.published_at = values.status === "published" ? ((prev as string | null) ?? now()) : null;
+  }
 
   try {
     if (method === "POST") {
@@ -208,7 +250,7 @@ async function crud(db: Client, table: keyof typeof TABLES, method: string, id: 
     return { status: 200, body: { data: (await db.execute({ sql: `SELECT * FROM ${table} WHERE id = ?`, args: [id!] })).rows[0] } };
   } catch (e) {
     if (String(e).includes("UNIQUE")) return err(409, "Ya existe un registro con ese slug");
-    if (String(e).includes("FOREIGN KEY")) return err(422, "La provincia indicada no existe");
+    if (String(e).includes("FOREIGN KEY")) return err(422, "Hay una referencia a un registro que no existe");
     throw e;
   }
 }
@@ -290,12 +332,48 @@ async function publicApi(db: Client, path: string): Promise<ApiResponse | null> 
     return { status: 200, body: { data: r.rows }, headers: PUBLIC_CACHE };
   }
   if (path === "/public/news") {
-    const r = await db.execute(`SELECT n.id, n.slug, n.title, n.excerpt, n.body, n.cover_url, n.published_at, p.name AS province_name
-      FROM news n LEFT JOIN provinces p ON p.id = n.province_id AND p.status = 'published'
-      WHERE n.status = 'published' ORDER BY n.published_at DESC LIMIT 50`);
+    const r = await db.execute(`SELECT n.id, n.slug, n.title, n.excerpt, n.body, n.cover_url, n.image_alt, n.image_credit, n.author, n.source_url,
+        n.featured, n.published_at, p.name AS province_name, c.name AS category_name, c.slug AS category_slug
+      FROM news n
+      LEFT JOIN provinces p ON p.id = n.province_id AND p.status = 'published'
+      LEFT JOIN news_categories c ON c.id = n.category_id
+      WHERE n.status = 'published' ORDER BY n.featured DESC, n.published_at DESC LIMIT 50`);
     return { status: 200, body: { data: r.rows }, headers: PUBLIC_CACHE };
   }
   return null;
+}
+
+// ---------- imágenes (WebP) ----------
+// El panel convierte a WebP en el navegador y envía base64; aquí se comprueba que de verdad sea WebP y su tamaño.
+export const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+const MEDIA_ID = /^[0-9a-f-]{36}$/;
+
+const isWebp = (b: Uint8Array) =>
+  b.length > 12 && String.fromCharCode(...b.subarray(0, 4)) === "RIFF" && String.fromCharCode(...b.subarray(8, 12)) === "WEBP";
+
+async function uploadMedia(db: Client, body: Fields, userId: string): Promise<ApiResponse> {
+  if (typeof body.data !== "string" || body.data.length > Math.ceil(MAX_IMAGE_BYTES / 3) * 4 + 4) {
+    return err(413, "La imagen supera los 2 MB");
+  }
+  const bytes = new Uint8Array(Buffer.from(body.data, "base64"));
+  if (!isWebp(bytes)) return err(415, "Solo se aceptan imágenes WebP");
+  if (bytes.length > MAX_IMAGE_BYTES) return err(413, "La imagen supera los 2 MB");
+  const dim = (k: string) => { const n = num(body, k, 1, 20000); return typeof n === "number" ? Math.round(n) : null; };
+  const alt = str(body, "alt", 300);
+  const id = randomUUID();
+  await db.execute({
+    sql: "INSERT INTO media (id, mime, bytes, size, width, height, alt, created_by) VALUES (?, 'image/webp', ?, ?, ?, ?, ?, ?)",
+    args: [id, bytes, bytes.length, dim("width"), dim("height"), alt instanceof Error ? null : alt, userId],
+  });
+  return { status: 201, body: { data: { id, url: `/api/v1/media/${id}.webp`, size: bytes.length } } };
+}
+
+async function serveMedia(db: Client, id: string): Promise<ApiResponse> {
+  if (!MEDIA_ID.test(id)) return err(404, "No encontrada");
+  const row = (await db.execute({ sql: "SELECT bytes FROM media WHERE id = ?", args: [id] })).rows[0];
+  if (!row) return err(404, "No encontrada");
+  // Cada subida tiene un id nuevo: la imagen nunca cambia y se puede cachear un año.
+  return { status: 200, raw: new Uint8Array(row.bytes as ArrayBuffer), headers: { "Content-Type": "image/webp", "Cache-Control": "public, max-age=31536000, immutable" } };
 }
 
 // ---------- router ----------
@@ -306,6 +384,8 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
 
   if (path === "/health") return { status: 200, body: { data: { ok: true } } };
   if (m === "GET" && path.startsWith("/public/")) return (await publicApi(db, path)) ?? err(404, "Ruta no encontrada");
+  const media = m === "GET" && path.match(/^\/media\/([^/]+)\.webp$/); // el id se valida en serveMedia
+  if (media) return serveMedia(db, media[1]);
   // La landing pide el catálogo de anuncios del backend completo; staging no tiene anuncios.
   if (m === "GET" && path === "/ads/catalog") return { status: 200, body: { data: [] }, headers: PUBLIC_CACHE };
 
@@ -349,8 +429,10 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   const users = path.match(/^\/admin\/users(?:\/([A-Za-z0-9-]+))?$/);
   if (users) return roles.includes("admin") ? usersApi(db, m, users[1], body, user) : err(403, "Solo un administrador gestiona usuarios");
 
-  const match = path.match(/^\/admin\/(provinces|news)(?:\/([A-Za-z0-9-]+))?$/);
-  if (match) return crud(db, match[1] as keyof typeof TABLES, m, match[2], body, user.id);
+  if (path === "/admin/media" && m === "POST") return uploadMedia(db, body, user.id);
+
+  const match = path.match(/^\/admin\/(provinces|news|news-categories)(?:\/([A-Za-z0-9-]+))?$/);
+  if (match) return crud(db, match[1].replace("-", "_") as keyof typeof TABLES, m, match[2], body, user.id);
 
   return err(404, "Ruta no encontrada");
 }
@@ -380,7 +462,7 @@ async function readBody(req: IncomingMessage & { body?: unknown }): Promise<unkn
   let size = 0;
   for await (const c of req) {
     size += (c as Buffer).length;
-    if (size > 1_000_000) throw Object.assign(new Error("Cuerpo demasiado grande"), { status: 413 });
+    if (size > 4_000_000) throw Object.assign(new Error("Cuerpo demasiado grande"), { status: 413 });
     chunks.push(c as Buffer);
   }
   const text = Buffer.concat(chunks).toString();
@@ -403,6 +485,7 @@ export default async function handler(req: IncomingMessage & { body?: unknown },
       secret,
     );
     for (const [k, v] of Object.entries(out.headers ?? {})) res.setHeader(k, v);
+    if (out.raw) return void res.writeHead(out.status).end(Buffer.from(out.raw));
     if (out.body === undefined) return void res.writeHead(out.status).end();
     res.writeHead(out.status, { "Content-Type": "application/json; charset=utf-8" }).end(JSON.stringify(out.body));
   } catch (e) {

@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createClient, type Client } from "@libsql/client";
@@ -20,6 +20,9 @@ const bearer = (r: Res) => ({ authorization: `Bearer ${data<Session>(r).tokens.a
 beforeAll(async () => {
   db = createClient({ url: `file:${join(dir, "t.sqlite")}` });
   await db.executeMultiple(readFileSync(join(__dirname, "../staging/schema.sql"), "utf8"));
+  // Las mismas migraciones que se aplican en Turso con `node staging/db.mjs migrate`.
+  const migrations = join(__dirname, "../staging/migrations");
+  for (const f of readdirSync(migrations).sort()) await db.executeMultiple(readFileSync(join(migrations, f), "utf8"));
   await db.execute({ sql: "INSERT INTO users (id, email, password_hash, roles) VALUES ('u1', 'admin@x.do', ?, '[\"admin\"]')", args: [hashPassword("clave-segura-123")] });
   await db.execute({ sql: "INSERT INTO users (id, email, password_hash, roles) VALUES ('u2', 'turista@x.do', ?, '[]')", args: [hashPassword("clave-segura-123")] });
 });
@@ -129,5 +132,52 @@ describe("provincias y noticias", () => {
     expect(data<{ slug: string }[]>(await call("GET", "/admin/news", undefined, auth)).map((r) => r.slug)).toContain("ballenas-2027");
     expect((await call("DELETE", `/admin/provinces/${id}`, undefined, auth)).status).toBe(204);
     expect((await call("GET", `/admin/provinces/${id}`, undefined, auth)).status).toBe(404);
+  });
+});
+
+describe("categorías, campos editoriales e imágenes", () => {
+  it("mantiene categorías y no deja borrar una en uso", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    expect(data<unknown[]>(await call("GET", "/admin/news-categories", undefined, auth))).toHaveLength(7);
+    const c = await call("POST", "/admin/news-categories", { slug: "deportes", name: "Deportes", sort_order: 80 }, auth);
+    expect(c.status).toBe(201);
+    expect((await call("POST", "/admin/news-categories", { slug: "deportes", name: "Otra" }, auth)).status).toBe(409);
+
+    const n = await call("POST", "/admin/news", { slug: "con-categoria", title: "Con categoría", category_id: data(c).id }, auth);
+    expect(n.status).toBe(201);
+    expect((await call("DELETE", `/admin/news-categories/${data(c).id as string}`, undefined, auth)).status).toBe(409);
+    expect((await call("POST", "/admin/news", { slug: "cat-falsa", title: "X", category_id: "no-existe" }, auth)).status).toBe(422);
+  });
+
+  it("guarda los campos editoriales, conserva la fecha al editar y la landing ve la categoría", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    const fields = { slug: "con-todo", title: "Con todo", category_id: "cat-cultura", image_alt: "Malecón", image_credit: "Ana", author: "Ana", source_url: "https://mitur.gob.do", featured: true, status: "published" };
+    const n = await call("POST", "/admin/news", fields, auth);
+    expect(data(n)).toMatchObject({ featured: 1, author: "Ana" });
+    const first = data(n).published_at;
+    await new Promise((r) => setTimeout(r, 15));
+    const edited = await call("PUT", `/admin/news/${data(n).id as string}`, { ...fields, title: "Editada" }, auth);
+    expect(data(edited).published_at).toBe(first);
+
+    const pub = data<{ slug: string; category_name: string }[]>(await call("GET", "/public/news"));
+    expect(pub[0]).toMatchObject({ slug: "con-todo", category_name: "Cultura" }); // las destacadas, primero
+  });
+
+  it("acepta solo WebP, lo sirve con caché larga y exige sesión para subir", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    const webp = Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WEBPVP8 "), Buffer.alloc(16)]);
+    const up = await call("POST", "/admin/media", { data: webp.toString("base64"), width: 800, height: 600 }, auth);
+    expect(up.status).toBe(201);
+    const url = data(up).url as string;
+
+    const got = await call("GET", url.replace("/api/v1", ""));
+    expect(got.headers?.["Content-Type"]).toBe("image/webp");
+    expect(got.headers?.["Cache-Control"]).toContain("immutable");
+    expect(Buffer.from(got.raw!).equals(webp)).toBe(true);
+
+    const png = Buffer.from("89504e470d0a1a0a0000000d49484452", "hex");
+    expect((await call("POST", "/admin/media", { data: png.toString("base64") }, auth)).status).toBe(415);
+    expect((await call("POST", "/admin/media", { data: webp.toString("base64") })).status).toBe(401);
+    expect((await call("GET", "/media/no-es-un-id.webp")).status).toBe(404);
   });
 });

@@ -19,7 +19,18 @@ turso db create descubre-staging --from-file staging/descubre-staging.sqlite
 turso db shell descubre-staging < staging/schema.sql
 ```
 
-Para regenerar el archivo tras cambiar `schema.sql`: `node staging/db.mjs build`.
+Para regenerar el archivo: `node staging/db.mjs build` (esquema + todas las migraciones, en modo WAL).
+
+### Migraciones (cambios sobre una base que ya tiene datos)
+
+Los cambios de tablas van en `staging/migrations/NNN_descripcion.sql`. Para aplicarlos en Turso:
+
+```bash
+TURSO_DATABASE_URL="libsql://…turso.io" TURSO_AUTH_TOKEN="…" node staging/db.mjs migrate
+```
+
+Aplica solo las que falten (las anota en `schema_migrations`), cada una en una transacción. Ejecutarlo dos veces
+no hace nada la segunda. **Hay que correrlo antes de desplegar código que use las tablas o columnas nuevas.**
 
 ## 2. Primer usuario del panel
 
@@ -58,6 +69,9 @@ Tests: `npx vitest run api/_index.test.ts`.
 
 - El token de refresco no se revoca en el servidor: cerrar sesión borra la cookie, pero un token copiado sigue
   valiendo hasta 7 días. Aceptable para staging; con usuarios reales, guardar los tokens en una tabla.
+- Las imágenes subidas desde el panel se convierten a WebP en el navegador (máx. 1920 px y 2 MB) y se guardan en la
+  tabla `media` de Turso; se sirven en `/api/v1/media/<id>.webp` con caché de un año. Es provisional: para
+  mudarlas a un almacenamiento de archivos basta cambiar ese endpoint, las URLs guardadas siguen valiendo.
 - La landing muestra las provincias publicadas en el carrusel de destinos y las noticias publicadas al frente de la
   sección de noticias (la más reciente, destacada). Los borradores no se ven. Como los enlaces de la landing están
   desactivados, el texto completo de una noticia solo se lee en el panel.

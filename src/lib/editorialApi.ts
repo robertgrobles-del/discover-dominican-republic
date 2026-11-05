@@ -96,12 +96,11 @@ function fromStatic(p: BlogPost): EditorialArticle {
   };
 }
 
-function fromPublicNews(n: PublicNews): EditorialArticle {
+function fromPublicNews(n: PublicNews, featured: boolean): EditorialArticle {
   return {
-    id: n.id, slug: n.slug, title: n.title, excerpt: n.excerpt ?? "", channel: "noticias", category: "Noticias", image: n.cover_url,
-    publishedAt: n.published_at, readMinutes: null, authorName: "Redacción Descubre RD", authorRole: null, authorAvatar: null,
-    // Destacada: al ir primero, la más reciente del panel ocupa la portada de la sección de noticias.
-    tags: n.province_name ? [n.province_name] : [], featured: true, trending: false, pressPartner: null, href: hrefOf("noticias", n.slug),
+    id: n.id, slug: n.slug, title: n.title, excerpt: n.excerpt ?? "", channel: "noticias", category: n.category_name ?? "Noticias", image: n.cover_url,
+    publishedAt: n.published_at, readMinutes: n.body ? Math.max(1, Math.round(n.body.split(/\s+/).length / 200)) : null, authorName: n.author || "Redacción Descubre RD", authorRole: null, authorAvatar: null,
+    tags: n.province_name ? [n.province_name] : [], featured, trending: false, pressPartner: null, href: hrefOf("noticias", n.slug),
   };
 }
 
@@ -109,7 +108,9 @@ async function loadArticles(): Promise<EditorialArticle[]> {
   if (CATALOG_SOURCE !== "api") {
     // Staging: las noticias publicadas desde el panel (Turso) van primero; luego, las locales.
     const [{ blogPosts }, published] = await Promise.all([import("@/data/blogData"), loadPublicNews()]);
-    return [...published.map(fromPublicNews), ...blogPosts.map(fromStatic)];
+    // La que se marque como destacada ocupa la portada; si no hay ninguna, la más reciente del panel.
+    const anyFeatured = published.some((n) => n.featured);
+    return [...published.map((n, i) => fromPublicNews(n, anyFeatured ? Boolean(n.featured) : i === 0)), ...blogPosts.map(fromStatic)];
   }
   const image = await imageResolver();
   const query = new URLSearchParams({ per_page: "100", sort: "-published_at", fields: LIST_FIELDS });
