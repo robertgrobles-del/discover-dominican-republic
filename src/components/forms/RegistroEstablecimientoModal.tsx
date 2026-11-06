@@ -57,7 +57,7 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
   const [tipo, setTipoState] = useState<TipoEstablecimiento>(tipoInicial);
   const config = tipoConfig[tipo];
   const Icon = config.icon;
-  const TOTAL_STEPS = 3;
+  const TOTAL_STEPS = 5;
   // Los alojamientos operan 24/7: en lugar de horario piden check-in y check-out.
   const esAlojamiento = tipo === "hotel" || tipo === "airbnb";
 
@@ -84,15 +84,15 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
   const setTipo = (next: TipoEstablecimiento) => { if (next !== tipo) setSpecificData({}); setTipoState(next); };
   const pendientesPaso2 = camposRequeridosPendientes(tipo, specificData);
 
-  const isStep1Valid =
-    (!esAlojamiento || (specificData.checkin && specificData.checkout)) &&
-    tipo !== "general" &&
-    basicData.nombre.trim() &&
-    basicData.responsable.trim() &&
-    isValidEmail(basicData.email) &&
-    basicData.telefono.trim() &&
-    basicData.direccion.trim() &&
-    basicData.provincia;
+  // Cada paso exige lo suyo antes de seguir: 0 negocio y contacto, 1 ubicación, 2 horario y descripción,
+  // 3 detalles según el tipo, 4 confirmación.
+  const stepValid = (n: number): boolean => {
+    if (n === 0) return tipo !== "general" && Boolean(basicData.nombre.trim() && basicData.responsable.trim() && basicData.telefono.trim()) && isValidEmail(basicData.email);
+    if (n === 1) return Boolean(basicData.direccion.trim() && basicData.provincia);
+    if (n === 2) return Boolean((!esAlojamiento || (specificData.checkin && specificData.checkout)) && basicData.descripcion.trim());
+    if (n === 3) return pendientesPaso2.length === 0;
+    return true;
+  };
 
   const handleNext = () => {
     if (step < TOTAL_STEPS - 1) setStep(s => s + 1);
@@ -134,9 +134,9 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
 
         setSuccess(true);
         toast.success("¡Solicitud de registro enviada con éxito!");
-      } catch (err: any) {
+      } catch (err) {
         console.error("Error al registrar establecimiento en backend:", err);
-        toast.error(err?.message || "No se pudo registrar el establecimiento. Revisa los datos e intenta de nuevo.");
+        toast.error((err instanceof Error && err.message) || "No se pudo registrar el establecimiento. Revisa los datos e intenta de nuevo.");
       } finally {
         setLoading(false);
       }
@@ -174,7 +174,7 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
         status: "pendiente",
       };
 
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("establishment_registrations")
         .insert(payload);
 
@@ -202,11 +202,11 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
     }, 300);
   };
 
-  const stepLabels = ["Información Básica", "Detalles del Negocio", "Confirmación"];
+  const stepLabels = ["Negocio y contacto", "Ubicación", "Horario y descripción", "Detalles del negocio", "Confirmación"];
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto sm:p-8">
         {/* Header */}
         <DialogHeader className="pb-2">
           <div className="flex items-center gap-3 mb-1">
@@ -248,8 +248,8 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
           ) : (
             <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               {/* Step Indicator */}
-              <StepIndicator step={step} total={TOTAL_STEPS} />
-              <p className="text-center text-xs text-muted-foreground mb-6 -mt-3">
+              <StepIndicator step={step} total={TOTAL_STEPS} labels={stepLabels} />
+              <p className="text-center text-xs text-muted-foreground mb-6 -mt-3 sm:hidden">
                 Paso {step + 1} de {TOTAL_STEPS} — <span className="font-medium text-foreground">{stepLabels[step]}</span>
               </p>
 
@@ -304,6 +304,12 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
                         </div>
                       </FormField>
                     </FieldRow>
+                  </motion.div>
+                )}
+
+                {/* ── PASO 2 ── Ubicación ── */}
+                {step === 1 && (
+                  <motion.div key="step-ubicacion" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
                     <FieldRow>
                       <FormField label="Dirección Física" required>
                         <div className="relative">
@@ -332,6 +338,12 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
                         </div>
                       </FormField>
                     </FieldRow>
+                  </motion.div>
+                )}
+
+                {/* ── PASO 3 ── Horario y descripción ── */}
+                {step === 2 && (
+                  <motion.div key="step-horario" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
                     {esAlojamiento ? (
                       <FieldRow>
                         <FormField label="Hora de check-in" required>
@@ -352,7 +364,7 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
                     <FormField label="Descripción del Establecimiento" required>
                       <Textarea
                         placeholder={`Describe brevemente tu ${config.label.toLowerCase()}: qué ofreces, qué te hace especial...`}
-                        className="min-h-[90px]"
+                        className="min-h-[140px]"
                         value={basicData.descripcion}
                         onChange={e => updateBasic("descripcion", e.target.value)}
                       />
@@ -360,8 +372,8 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
                   </motion.div>
                 )}
 
-                {/* ── STEP 2 ── Specific Fields ── */}
-                {step === 1 && (
+                {/* ── PASO 4 ── Detalles según el tipo ── */}
+                {step === 3 && (
                   <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                     <div className="mb-5 p-3 bg-muted/50 rounded-xl flex items-center gap-3">
                       <Icon className={`h-5 w-5 flex-shrink-0 ${config.color}`} />
@@ -378,8 +390,8 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
                   </motion.div>
                 )}
 
-                {/* ── STEP 3 ── Confirmation ── */}
-                {step === 2 && (
+                {/* ── PASO 5 ── Confirmación ── */}
+                {step === 4 && (
                   <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
                     {/* Summary Card */}
                     <div className="bg-muted/50 rounded-xl p-4 space-y-3">
@@ -434,7 +446,7 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
                         className="mt-0.5"
                       />
                       <label htmlFor="terms" className="text-sm text-muted-foreground cursor-pointer leading-relaxed">
-                        Acepto los <span className="text-primary underline cursor-pointer">Términos y Condiciones</span> para establecimientos asociados de Descubre RD. Confirmo que la información proporcionada es verídica y me comprometo a mantenerla actualizada.
+                        Acepto los <a href="/terminos" target="_blank" rel="noopener noreferrer" className="text-primary underline">Términos y Condiciones</a> y la <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="text-primary underline">Política de Privacidad</a> de Descubre RD. Confirmo que la información proporcionada es verídica y me comprometo a mantenerla actualizada.
                       </label>
                     </div>
                   </motion.div>
@@ -460,7 +472,7 @@ export function RegistroEstablecimientoModal({ open, onClose, tipo: tipoInicial 
                 {step < TOTAL_STEPS - 1 ? (
                   <Button
                     onClick={handleNext}
-                    disabled={(step === 0 && !isStep1Valid) || (step === 1 && pendientesPaso2.length > 0)}
+                    disabled={!stepValid(step)}
                     className="gap-2"
                   >
                     Siguiente

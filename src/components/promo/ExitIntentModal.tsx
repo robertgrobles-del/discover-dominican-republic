@@ -163,8 +163,8 @@ export function ExitIntentModal() {
           navigate("/gamificacion-turistica");
         }, 2200);
       }
-    } catch (err: any) {
-      toast.error(err.message || "Error al registrarse");
+    } catch (err) {
+      toast.error(err instanceof Error && err.message ? err.message : "Error al registrarse");
     } finally {
       setLoading(false);
     }
@@ -282,7 +282,10 @@ export function ExitIntentModal() {
                   <Link to="/terminos" target="_blank" className="text-primary underline font-medium">
                     Términos y Condiciones
                   </Link>{" "}
-                  y la Política de Privacidad de Datos.
+                  y la{" "}
+                  <Link to="/privacidad" target="_blank" className="text-primary underline font-medium">
+                    Política de Privacidad
+                  </Link>.
                 </Label>
               </div>
 

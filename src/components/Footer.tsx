@@ -283,7 +283,7 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
         <div className="pt-6 mt-6 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <p>© {new Date().getFullYear()}{" "}{pc.tx("p.2", "Descubre República Dominicana.")}{" "}{t("footer.allRightsReserved")}</p>
           <div className="flex flex-wrap items-center gap-6">
-            <Link to="/terminos" className="hover:text-primary transition-colors">{t("footer.privacy")}</Link>
+            <Link to="/privacidad" className="hover:text-primary transition-colors">{t("footer.privacy")}</Link>
             <Link to="/terminos" className="hover:text-primary transition-colors">{t("footer.terms")}</Link>
             <Link to="/sitemap" className="hover:text-primary transition-colors">{pc.tx("Link.1", "Mapa del Sitio")}</Link>
             <button type="button" onClick={openPrivacySettings} className="hover:text-primary transition-colors underline-offset-4 hover:underline">{pc.tx("button.1", "Configuración de privacidad")}</button>

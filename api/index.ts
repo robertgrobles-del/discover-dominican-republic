@@ -589,7 +589,7 @@ function sitemap(rows: NewsRow[]): string {
     `<url><loc>${xmlEsc(`${siteUrl()}${loc}`)}</loc>${lastmod ? `<lastmod>${xmlEsc(lastmod)}</lastmod>` : ""}${extra}</url>`;
   const newest = rows.map((r) => r.updated_at).sort().at(-1);
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">`
-    + url("/") + url("/noticias", newest) + url("/eventos") + url("/requisitos-viaje") + url("/e-ticket")
+    + url("/") + url("/noticias", newest) + url("/eventos") + url("/requisitos-viaje") + url("/e-ticket") + url("/privacidad") + url("/terminos")
     + rows.map((n) => url(`/noticias/${n.slug}`, n.updated_at || n.published_at,
       n.cover_url ? `<image:image><image:loc>${xmlEsc(absolute(n.cover_url))}</image:loc></image:image>` : "")).join("")
     + "</urlset>";

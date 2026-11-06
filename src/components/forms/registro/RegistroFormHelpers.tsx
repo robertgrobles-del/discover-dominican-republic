@@ -137,28 +137,34 @@ export const provincias = [
   "Santo Domingo", "Valverde",
 ];
 
-export function StepIndicator({ step, total }: { step: number; total: number }) {
+/** Pasos del registro: columnas iguales, número centrado, nombre debajo y línea de progreso por detrás. */
+export function StepIndicator({ step, total, labels }: { step: number; total: number; labels?: string[] }) {
   return (
-    <div className="flex items-center justify-center gap-2 mb-6">
+    <ol className="mb-8 flex" aria-label="Pasos del registro">
       {Array.from({ length: total }).map((_, i) => (
-        <div key={i} className="flex items-center gap-2">
-          <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+        <li key={i} className="relative flex flex-1 flex-col items-center" aria-current={i === step ? "step" : undefined}>
+          {i > 0 && (
+            <span aria-hidden="true" className={`absolute right-1/2 top-[18px] h-0.5 w-full -translate-y-1/2 transition-colors duration-300 ${i <= step ? "bg-primary" : "bg-muted"}`} />
+          )}
+          <span
+            className={`relative z-10 flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold transition-all duration-300 ${
               i < step
                 ? "bg-primary text-primary-foreground"
                 : i === step
-                ? "bg-primary/20 border-2 border-primary text-primary"
+                ? "bg-background text-primary ring-2 ring-primary"
                 : "bg-muted text-muted-foreground"
             }`}
           >
-            {i < step ? <Check className="h-4 w-4" /> : i + 1}
-          </div>
-          {i < total - 1 && (
-            <div className={`w-8 h-0.5 transition-all duration-300 ${i < step ? "bg-primary" : "bg-muted"}`} />
+            {i < step ? <Check className="h-4 w-4" aria-hidden="true" /> : i + 1}
+          </span>
+          {labels?.[i] && (
+            <span className={`mt-2 hidden px-1 text-center text-xs leading-tight sm:block ${i === step ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
+              {labels[i]}
+            </span>
           )}
-        </div>
+        </li>
       ))}
-    </div>
+    </ol>
   );
 }
 

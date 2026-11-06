@@ -61,7 +61,7 @@ export function CookieConsentBanner() {
         </div>
 
         <div className="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-border/60">
-          <Link to="/terminos" className="text-2xs text-muted-foreground hover:text-primary underline">
+          <Link to="/privacidad" className="text-2xs text-muted-foreground hover:text-primary underline">
             Política de Privacidad
           </Link>
           <div className="flex items-center gap-2">
