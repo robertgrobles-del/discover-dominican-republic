@@ -8,7 +8,7 @@ import { createHmac, randomBytes, randomUUID, scryptSync, timingSafeEqual } from
 // Mini backend de staging (Turso/SQLite): acceso al panel, provincias y noticias.
 // Responde con el mismo contrato que el backend completo para /auth/*, así el frontend no cambia.
 
-export interface ApiRequest { method: string; path: string; headers: Record<string, string | undefined>; body: unknown; ip?: string }
+export interface ApiRequest { method: string; path: string; headers: Record<string, string | undefined>; body: unknown; ip?: string; lang?: string }
 /** body se envía como JSON; raw, tal cual (imágenes). */
 export interface ApiResponse { status: number; body?: unknown; raw?: Uint8Array; headers?: Record<string, string> }
 
@@ -214,6 +214,7 @@ async function crud(db: Client, table: keyof typeof TABLES, method: string, id: 
       if (n) return err(409, `No se puede eliminar: ${n} noticia${n === 1 ? " usa" : "s usan"} esta categoría`);
     }
     if (table === "provinces") await db.execute({ sql: "UPDATE news SET province_id = NULL WHERE province_id = ?", args: [id] });
+    await db.execute({ sql: "DELETE FROM content_translations WHERE entity = ? AND entity_id = ?", args: [table, id] });
     const r = await db.execute({ sql: `DELETE FROM ${table} WHERE id = ?`, args: [id] });
     return r.rowsAffected ? { status: 204 } : err(404, "No encontrado");
   }
@@ -228,9 +229,19 @@ async function crud(db: Client, table: keyof typeof TABLES, method: string, id: 
     if (!found.rows.length) return err(422, message);
   }
   if (table === "news") {
-    // Una noticia ya publicada conserva su fecha al editarla; solo la estrena al publicarse.
-    const prev = id ? (await db.execute({ sql: "SELECT published_at FROM news WHERE id = ?", args: [id] })).rows[0]?.published_at : null;
-    values.published_at = values.status === "published" ? ((prev as string | null) ?? now()) : null;
+    // Fecha de publicación: la que se indique (puede ser pasada; si es futura, la noticia queda programada y no
+    // sale en lo público hasta entonces). Sin indicarla, la que ya tenía o, al publicar, la de ahora.
+    const given = body.published_at;
+    let date: string | null = null;
+    if (given !== undefined && given !== null && given !== "") {
+      const d = new Date(String(given));
+      if (Number.isNaN(d.getTime()) || d.getUTCFullYear() < 1990 || d.getTime() > Date.now() + 5 * 365 * 86_400_000) {
+        return err(422, "Fecha de publicación no válida");
+      }
+      date = d.toISOString();
+    }
+    const prev = id ? ((await db.execute({ sql: "SELECT published_at FROM news WHERE id = ?", args: [id] })).rows[0]?.published_at as string | null) : null;
+    values.published_at = date ?? prev ?? (values.status === "published" ? now() : null);
   }
 
   try {
@@ -327,19 +338,19 @@ async function usersApi(db: Client, method: string, id: string | undefined, body
 // Solo lo publicado; los borradores se quedan en el panel. Caché corta en la CDN de Vercel.
 const PUBLIC_CACHE = { "Cache-Control": "public, max-age=0, s-maxage=30, stale-while-revalidate=300" };
 
-async function publicApi(db: Client, path: string): Promise<ApiResponse | null> {
+async function publicApi(db: Client, path: string, lang?: Lang): Promise<ApiResponse | null> {
   if (path === "/public/provinces") {
     const r = await db.execute(`SELECT id, slug, name, region, capital, short_description, description, image_url, latitude, longitude, updated_at
       FROM provinces WHERE status = 'published' ORDER BY name COLLATE NOCASE`);
-    return { status: 200, body: { data: r.rows }, headers: PUBLIC_CACHE };
+    return { status: 200, body: { data: await overlay(db, "provinces", r.rows as unknown as Record<string, unknown>[], lang) }, headers: PUBLIC_CACHE };
   }
   const detail = path.match(/^\/public\/news\/([^/]+)$/);
   if (detail) {
     const n = SLUG.test(detail[1]) ? await findNews(db, detail[1]) : null;
-    return n ? { status: 200, body: { data: n }, headers: PUBLIC_CACHE } : err(404, "No encontrada");
+    return n ? { status: 200, body: { data: (await localizeNews(db, [n], lang))[0] }, headers: PUBLIC_CACHE } : err(404, "No encontrada");
   }
   if (path === "/public/news") {
-    return { status: 200, body: { data: (await listNews(db)).slice(0, 50) }, headers: PUBLIC_CACHE };
+    return { status: 200, body: { data: await localizeNews(db, (await listNews(db)).slice(0, 50), lang) }, headers: PUBLIC_CACHE };
   }
   return null;
 }
@@ -409,22 +420,22 @@ export function clip(text: string, max: number): string {
   return `${cut.slice(0, Math.max(cut.lastIndexOf(" "), max * 0.6)).trimEnd()}…`;
 }
 
-interface NewsRow {
+type NewsRow = {
   id: string; slug: string; title: string; excerpt: string | null; body: string | null; cover_url: string | null;
   image_alt: string | null; image_credit: string | null; author: string | null; source_url: string | null;
   featured: number; published_at: string | null; updated_at: string; seo_title: string | null; seo_description: string | null;
   province_name: string | null; category_name: string | null; category_slug: string | null;
   cover_width: number | null; cover_height: number | null;
-}
+};
 
 const NEWS_SELECT = `SELECT n.id, n.slug, n.title, n.excerpt, n.body, n.cover_url, n.image_alt, n.image_credit, n.author, n.source_url,
-    n.featured, n.published_at, n.updated_at, n.seo_title, n.seo_description,
+    n.featured, n.published_at, n.updated_at, n.seo_title, n.seo_description, n.category_id, n.province_id,
     p.name AS province_name, c.name AS category_name, c.slug AS category_slug, m.width AS cover_width, m.height AS cover_height
   FROM news n
   LEFT JOIN provinces p ON p.id = n.province_id AND p.status = 'published'
   LEFT JOIN news_categories c ON c.id = n.category_id
   LEFT JOIN media m ON n.cover_url = '/api/v1/media/' || m.id || '.webp'
-  WHERE n.status = 'published'`;
+  WHERE n.status = 'published' AND n.published_at <= strftime('%Y-%m-%dT%H:%M:%fZ','now')`; // las programadas, aún no
 
 const listNews = async (db: Client) =>
   (await db.execute(`${NEWS_SELECT} ORDER BY n.featured DESC, n.published_at DESC LIMIT 200`)).rows as unknown as NewsRow[];
@@ -439,11 +450,20 @@ interface PageMeta {
   imageWidth?: number | null; imageHeight?: number | null; type?: "website" | "article"; noindex?: boolean;
   published?: string | null; modified?: string | null; section?: string | null; jsonLd?: unknown[]; body: string;
   markdown?: string; // versión para agentes de IA
+  lang?: Lang;        // idioma de esta versión (sin él, español)
+  alternates?: Lang[]; // otros idiomas disponibles, para hreflang
 }
 
 /** Sustituye en el index.html los metadatos genéricos por los de la página y escribe su resumen en #root. */
 export function renderShell(shell: string, m: PageMeta): string {
-  const url = `${siteUrl()}${m.path}`;
+  const urlFor = (l?: Lang) => `${siteUrl()}${m.path}${l ? `?lang=${l}` : ""}`;
+  const url = urlFor(m.lang);
+  const OG_LOCALE: Record<Lang | "es", string> = { es: "es_DO", en: "en_US", fr: "fr_FR", de: "de_DE", it: "it_IT", pt: "pt_BR" };
+  const hreflang = m.alternates?.length
+    ? [`<link rel="alternate" hreflang="es" href="${esc(urlFor())}" />`,
+       ...m.alternates.map((l) => `<link rel="alternate" hreflang="${l}" href="${esc(urlFor(l))}" />`),
+       `<link rel="alternate" hreflang="x-default" href="${esc(urlFor())}" />`]
+    : [];
   const image = absolute(m.image);
   const tags = [
     `<title>${esc(m.title)}</title>`,
@@ -453,7 +473,8 @@ export function renderShell(shell: string, m: PageMeta): string {
     `<link rel="alternate" type="application/rss+xml" title="${SITE_NAME}: noticias" href="${siteUrl()}/noticias/rss.xml" />`,
     m.markdown ? `<link rel="alternate" type="text/markdown" href="${siteUrl()}${m.markdown}" />` : "",
     `<meta property="og:site_name" content="${SITE_NAME}" />`,
-    `<meta property="og:locale" content="es_DO" />`,
+    `<meta property="og:locale" content="${OG_LOCALE[m.lang ?? "es"]}" />`,
+    ...hreflang,
     `<meta property="og:type" content="${m.type ?? "website"}" />`,
     `<meta property="og:title" content="${esc(m.title)}" />`,
     `<meta property="og:description" content="${esc(m.description)}" />`,
@@ -477,6 +498,7 @@ export function renderShell(shell: string, m: PageMeta): string {
     .replace(/<title>[\s\S]*?<\/title>\s*/i, "")
     .replace(/<meta\s+(?:name|property)="(?:description|robots|keywords|og:[^"]+|twitter:[^"]+|article:[^"]+)"[^>]*>\s*/gi, "")
     .replace(/<link\s+rel="canonical"[^>]*>\s*/gi, "")
+    .replace(/<html lang="[^"]*"/, `<html lang="${m.lang ?? "es"}"`)
     .replace("</head>", `    ${tags}\n  </head>`)
     .replace(/<div id="root"><\/div>/, `<div id="root">${m.body}</div>`);
 }
@@ -487,18 +509,18 @@ const breadcrumb = (items: [string, string][]) => ({
   itemListElement: items.map(([name, path], i) => ({ "@type": "ListItem", position: i + 1, name, item: `${siteUrl()}${path}` })),
 });
 
-function newsPage(n: NewsRow): PageMeta {
+function newsPage(n: NewsRow, lang?: Lang, alternates: Lang[] = []): PageMeta {
   const path = `/noticias/${n.slug}`;
   const description = newsDescription(n);
   const image = absolute(n.cover_url);
   return {
     title: `${newsTitle(n)} | ${SITE_NAME}`, description, path, image: n.cover_url, imageAlt: n.image_alt || n.title,
     imageWidth: n.cover_width, imageHeight: n.cover_height, type: "article",
-    published: n.published_at, modified: n.updated_at, section: n.category_name, markdown: `${path}.md`,
+    published: n.published_at, modified: n.updated_at, section: n.category_name, markdown: `${path}.md`, lang, alternates,
     jsonLd: [
       {
         "@context": "https://schema.org", "@type": "NewsArticle",
-        headline: clip(n.title, 110), description, image: [image], inLanguage: "es-DO",
+        headline: clip(n.title, 110), description, image: [image], inLanguage: lang ?? "es-DO",
         datePublished: n.published_at, dateModified: n.updated_at || n.published_at,
         author: n.author ? { "@type": "Person", name: n.author } : publisher(),
         publisher: publisher(), mainEntityOfPage: { "@type": "WebPage", "@id": `${siteUrl()}${path}` },
@@ -567,7 +589,7 @@ const fetchShell: ShellLoader = async (host) => {
   return (shellCache = await res.text());
 };
 
-async function seoRoute(db: Client, path: string, host: string | undefined, loadShell: ShellLoader): Promise<ApiResponse | null> {
+async function seoRoute(db: Client, path: string, host: string | undefined, loadShell: ShellLoader, lang?: Lang): Promise<ApiResponse | null> {
   const enc = (text: string) => new TextEncoder().encode(text);
   if (path === "/sitemap.xml") {
     return { status: 200, raw: enc(sitemap(await listNews(db))), headers: { "Content-Type": "application/xml; charset=utf-8", "Cache-Control": HTML_CACHE["Cache-Control"] } };
@@ -579,7 +601,12 @@ async function seoRoute(db: Client, path: string, host: string | undefined, load
   const one = path.match(/^\/render\/noticias\/([^/]+)$/);
   if (one) {
     const n = SLUG.test(one[1]) ? await findNews(db, one[1]) : null;
-    if (n) return { status: 200, raw: enc(renderShell(await loadShell(host), newsPage(n))), headers: HTML_CACHE };
+    if (n) {
+      const alternates = await newsLangs(db, n.id);
+      const shown = lang && alternates.includes(lang) ? lang : undefined; // sin traducción, la versión española
+      const page = newsPage((await localizeNews(db, [n], shown))[0], shown, alternates);
+      return { status: 200, raw: enc(renderShell(await loadShell(host), page)), headers: HTML_CACHE };
+    }
     const notFound: PageMeta = {
       title: `Noticia no encontrada | ${SITE_NAME}`, description: "La noticia que buscas no existe o ya no está publicada.",
       path: `/noticias/${one[1]}`, noindex: true, body: `<main><h1>Noticia no encontrada</h1><p><a href="/noticias">Ver todas las noticias</a></p></main>`,
@@ -734,18 +761,206 @@ async function formsAdmin(db: Client, resource: "leads" | "establishment-request
   return err(405, "Método no permitido");
 }
 
+// ---------- idiomas del contenido del CMS ----------
+// El español vive en la fila; las traducciones, en content_translations (un JSON por registro e idioma).
+// Lo público acepta ?lang=xx y completa con español lo que no esté traducido.
+export const LANGS = ["en", "fr", "de", "it", "pt"] as const;
+export type Lang = (typeof LANGS)[number];
+const LANG_NAMES: Record<Lang, string> = { en: "inglés", fr: "francés", de: "alemán", it: "italiano", pt: "portugués" };
+type Entity = "news" | "provinces" | "news_categories";
+const TRANSLATABLE: Record<Entity, Record<string, number>> = {
+  news: { title: 200, excerpt: 500, body: 100000, seo_title: 90, seo_description: 200, image_alt: 300, image_credit: 200 },
+  provinces: { name: 120, capital: 120, short_description: 300, description: 20000 },
+  news_categories: { name: 80 },
+};
+const isLang = (v: unknown): v is Lang => typeof v === "string" && (LANGS as readonly string[]).includes(v);
+
+async function translationsOf(db: Client, entity: Entity, ids: string[], lang: Lang): Promise<Map<string, Record<string, string>>> {
+  const out = new Map<string, Record<string, string>>();
+  if (!ids.length) return out;
+  const r = await db.execute({
+    sql: `SELECT entity_id, data FROM content_translations WHERE entity = ? AND lang = ? AND entity_id IN (${ids.map(() => "?").join(",")})`,
+    args: [entity, lang, ...ids],
+  });
+  for (const row of r.rows) {
+    try { out.set(String(row.entity_id), JSON.parse(String(row.data))); } catch { /* traducción corrupta: se ignora */ }
+  }
+  return out;
+}
+
+/** Sobrescribe en cada fila los campos traducidos no vacíos; `idKey` apunta al id del registro traducido. */
+async function overlay<T extends Record<string, unknown>>(db: Client, entity: Entity, rows: T[], lang: Lang | undefined,
+  map: Record<string, string> = {}, idKey = "id"): Promise<T[]> {
+  if (!lang || !rows.length) return rows;
+  const ids = [...new Set(rows.map((r) => r[idKey]).filter((v): v is string => typeof v === "string"))];
+  const tr = await translationsOf(db, entity, ids, lang);
+  return rows.map((row) => {
+    const t = tr.get(String(row[idKey]));
+    if (!t) return row;
+    const next: Record<string, unknown> = { ...row };
+    for (const [field, value] of Object.entries(t)) {
+      const target = map[field] ?? (Object.keys(map).length ? null : field);
+      if (target && typeof value === "string" && value.trim()) next[target] = value;
+    }
+    return next as T;
+  });
+}
+
+/** Noticias traducidas, con su categoría y provincia también en ese idioma. */
+async function localizeNews<T extends Record<string, unknown>>(db: Client, rows: T[], lang: Lang | undefined): Promise<T[]> {
+  if (!lang) return rows;
+  let out = await overlay(db, "news", rows, lang);
+  out = await overlay(db, "news_categories", out, lang, { name: "category_name" }, "category_id");
+  return overlay(db, "provinces", out, lang, { name: "province_name" }, "province_id");
+}
+
+/** Idiomas con traducción de una noticia (para hreflang). */
+async function newsLangs(db: Client, id: string): Promise<Lang[]> {
+  const r = await db.execute({ sql: "SELECT lang FROM content_translations WHERE entity = 'news' AND entity_id = ?", args: [id] });
+  return r.rows.map((x) => x.lang).filter(isLang);
+}
+
+async function translationsAdmin(db: Client, method: string, entity: string, id: string, lang: string | undefined, body: Fields, userId: string): Promise<ApiResponse> {
+  if (!(entity in TRANSLATABLE)) return err(404, "Ruta no encontrada");
+  const e = entity as Entity;
+  if (method === "GET" && !lang) {
+    const r = await db.execute({ sql: "SELECT lang, data, updated_at FROM content_translations WHERE entity = ? AND entity_id = ?", args: [e, id] });
+    const data: Record<string, unknown> = {};
+    for (const row of r.rows) { try { data[String(row.lang)] = JSON.parse(String(row.data)); } catch { /* ignora */ } }
+    return { status: 200, body: { data } };
+  }
+  if (!isLang(lang)) return err(422, `Idioma no válido; usa uno de: ${LANGS.join(", ")}`);
+  if (method === "DELETE") {
+    await db.execute({ sql: "DELETE FROM content_translations WHERE entity = ? AND entity_id = ? AND lang = ?", args: [e, id, lang] });
+    return { status: 204 };
+  }
+  if (method !== "PUT") return err(405, "Método no permitido");
+  const src = (body.data && typeof body.data === "object" ? body.data : {}) as Fields;
+  const clean: Record<string, string> = {};
+  for (const [field, max] of Object.entries(TRANSLATABLE[e])) {
+    const v = str(src, field, max);
+    if (v instanceof Error) return err(422, v.message);
+    if (v) clean[field] = v;
+  }
+  const exists = await db.execute({ sql: `SELECT 1 FROM ${e} WHERE id = ?`, args: [id] });
+  if (!exists.rows.length) return err(404, "No encontrado");
+  if (!Object.keys(clean).length) {
+    await db.execute({ sql: "DELETE FROM content_translations WHERE entity = ? AND entity_id = ? AND lang = ?", args: [e, id, lang] });
+    return { status: 200, body: { data: {} } };
+  }
+  await db.execute({
+    sql: `INSERT INTO content_translations (entity, entity_id, lang, data, updated_by, updated_at) VALUES (?, ?, ?, ?, ?, ?)
+          ON CONFLICT(entity, entity_id, lang) DO UPDATE SET data = excluded.data, updated_by = excluded.updated_by, updated_at = excluded.updated_at`,
+    args: [e, id, lang, JSON.stringify(clean), userId, now()],
+  });
+  return { status: 200, body: { data: clean } };
+}
+
+// ---------- traducción con IA (Gemini o Claude) ----------
+/** Traduce los campos de español a cada idioma pedido. Devuelve { en: {campo: texto}, … }. */
+export type Translator = (fields: Record<string, string>, to: Lang[]) => Promise<Record<string, Record<string, string>>>;
+
+const claudeTranslate: Translator = async (fields, to) => {
+  if (!process.env.ANTHROPIC_API_KEY) throw Object.assign(new Error("Falta ANTHROPIC_API_KEY en Vercel"), { status: 503 });
+  const { default: Anthropic } = await import("@anthropic-ai/sdk");
+  const client = new Anthropic();
+  const keys = Object.keys(fields);
+  const fieldSchema = { type: "object", properties: Object.fromEntries(keys.map((k) => [k, { type: "string" }])), required: keys, additionalProperties: false };
+  const response = await client.beta.messages.create({
+    model: "claude-opus-5-5",
+    max_tokens: 32000,
+    betas: ["server-side-fallback-2026-07-01"],
+    fallbacks: "default", // si el modelo declina, la API reintenta con el recomendado por categoría
+    output_config: {
+      effort: "low", // traducir es una tarea directa
+      format: { type: "json_schema", schema: { type: "object", properties: Object.fromEntries(to.map((l) => [l, fieldSchema])), required: to, additionalProperties: false } },
+    },
+    system: TRANSLATE_SYSTEM,
+    messages: [{
+      role: "user",
+      content: translatePrompt(fields, to),
+    }],
+  });
+  if (response.stop_reason === "refusal") throw Object.assign(new Error("El modelo no pudo traducir este contenido"), { status: 422 });
+  if (response.stop_reason === "max_tokens") throw Object.assign(new Error("El texto es demasiado largo para traducirlo de una vez"), { status: 422 });
+  const text = response.content.filter((b) => b.type === "text").map((b) => (b as { text: string }).text).join("");
+  return JSON.parse(text) as Record<string, Record<string, string>>;
+};
+
+const TRANSLATE_SYSTEM = "Eres traductor profesional de un portal de turismo de República Dominicana. Traduce del español con tono "
+  + "periodístico natural. Conserva intactos el formato Markdown, las URLs, los nombres propios de lugares "
+  + "dominicanos (Samaná, Las Terrenas, Los Haitises…) y las cifras. Devuelve solo el JSON pedido.";
+const translatePrompt = (fields: Record<string, string>, to: Lang[]) =>
+  `Traduce cada campo al ${to.map((l) => `${LANG_NAMES[l]} (${l})`).join(", ")}.\n\n${JSON.stringify(fields)}`;
+
+/** Gemini por REST (generateContent con salida JSON según esquema). Modelo configurable con GEMINI_MODEL. */
+const geminiTranslate: Translator = async (fields, to) => {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) throw Object.assign(new Error("Falta GEMINI_API_KEY en Vercel"), { status: 503 });
+  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  const keys = Object.keys(fields);
+  const fieldSchema = { type: "OBJECT", properties: Object.fromEntries(keys.map((k) => [k, { type: "STRING" }])), required: keys };
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: TRANSLATE_SYSTEM }] },
+      contents: [{ role: "user", parts: [{ text: translatePrompt(fields, to) }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: { type: "OBJECT", properties: Object.fromEntries(to.map((l) => [l, fieldSchema])), required: [...to] },
+      },
+    }),
+  });
+  if (!res.ok) {
+    console.error("Gemini", res.status, (await res.text()).slice(0, 500));
+    throw Object.assign(new Error("Gemini no pudo traducir"), { status: res.status === 429 ? 429 : 502 });
+  }
+  const json = (await res.json()) as { candidates?: { finishReason?: string; content?: { parts?: { text?: string }[] } }[] };
+  const c = json.candidates?.[0];
+  if (c?.finishReason === "SAFETY") throw Object.assign(new Error("El modelo no pudo traducir este contenido"), { status: 422 });
+  if (c?.finishReason === "MAX_TOKENS") throw Object.assign(new Error("El texto es demasiado largo para traducirlo de una vez"), { status: 422 });
+  return JSON.parse((c?.content?.parts ?? []).map((x) => x.text ?? "").join("")) as Record<string, Record<string, string>>;
+};
+
+/** Proveedor: TRANSLATION_PROVIDER (gemini | claude); si no se indica, Gemini cuando hay su clave, si no Claude. */
+const defaultTranslator: Translator = (fields, to) => {
+  const forced = process.env.TRANSLATION_PROVIDER;
+  const useGemini = forced ? forced === "gemini" : Boolean(process.env.GEMINI_API_KEY) || !process.env.ANTHROPIC_API_KEY;
+  return (useGemini ? geminiTranslate : claudeTranslate)(fields, to);
+};
+
+async function translateRoute(body: Fields, translate: Translator): Promise<ApiResponse> {
+  const src = (body.fields && typeof body.fields === "object" ? body.fields : {}) as Record<string, unknown>;
+  const fields = Object.fromEntries(Object.entries(src).filter(([, v]) => typeof v === "string" && v.trim()).map(([k, v]) => [k, String(v)]));
+  if (!Object.keys(fields).length) return err(422, "No hay texto en español para traducir");
+  if (JSON.stringify(fields).length > 120_000) return err(413, "El texto es demasiado largo para traducirlo de una vez");
+  const to = (Array.isArray(body.to) ? body.to : LANGS).filter(isLang);
+  if (!to.length) return err(422, "Indica al menos un idioma de destino");
+  try {
+    return { status: 200, body: { data: await translate(fields, to) } };
+  } catch (e) {
+    const status = (e as { status?: number }).status;
+    if (status && status < 500) return err(status, (e as Error).message);
+    if (status === 503) return err(503, (e as Error).message);
+    console.error(e);
+    return err(502, "No se pudo traducir ahora; inténtalo de nuevo");
+  }
+}
+
 // ---------- router ----------
-export async function handle(req: ApiRequest, db: Client, secret: string, secureCookies = true, loadShell: ShellLoader = fetchShell): Promise<ApiResponse> {
+export async function handle(req: ApiRequest, db: Client, secret: string, secureCookies = true, loadShell: ShellLoader = fetchShell, translate: Translator = defaultTranslator): Promise<ApiResponse> {
+  const lang = isLang(req.lang) ? req.lang : undefined;
   const path = req.path.replace(/^\/api\/v1/, "").replace(/\/+$/, "") || "/";
   const body = (req.body && typeof req.body === "object" ? req.body : {}) as Fields;
   const m = req.method.toUpperCase();
 
   if (path === "/health") return { status: 200, body: { data: { ok: true } } };
-  if (m === "GET" && path.startsWith("/public/")) return (await publicApi(db, path)) ?? err(404, "Ruta no encontrada");
+  if (m === "GET" && path.startsWith("/public/")) return (await publicApi(db, path, lang)) ?? err(404, "Ruta no encontrada");
   const media = m === "GET" && path.match(/^\/media\/([^/]+)\.webp$/); // el id se valida en serveMedia
   if (media) return serveMedia(db, media[1]);
   if (m === "GET") {
-    const seo = (await seoRoute(db, path, req.headers["x-forwarded-host"] ?? req.headers.host, loadShell)) ?? (await llmRoute(db, path));
+    const seo = (await seoRoute(db, path, req.headers["x-forwarded-host"] ?? req.headers.host, loadShell, lang)) ?? (await llmRoute(db, path));
     if (seo) return seo;
   }
   // La landing pide el catálogo de anuncios del backend completo; staging no tiene anuncios.
@@ -795,6 +1010,9 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   if (users) return roles.includes("admin") ? usersApi(db, m, users[1], body, user) : err(403, "Solo un administrador gestiona usuarios");
 
   if (path === "/admin/media" && m === "POST") return uploadMedia(db, body, user.id);
+  if (path === "/admin/translate" && m === "POST") return translateRoute(body, translate);
+  const tr = path.match(/^\/admin\/translations\/(news|provinces|news_categories)\/([A-Za-z0-9-]+)(?:\/([a-z]{2}))?$/);
+  if (tr) return translationsAdmin(db, m, tr[1], tr[2], tr[3], body, user.id);
 
   const forms = path.match(/^\/admin\/(leads|establishment-requests)(?:\/([A-Za-z0-9-]+))?$/);
   if (forms) {
@@ -851,6 +1069,7 @@ export default async function handler(req: IncomingMessage & { body?: unknown },
         headers: req.headers as Record<string, string | undefined>,
         body: await readBody(req),
         ip: (req.headers["x-forwarded-for"] as string | undefined)?.split(",")[0]?.trim(),
+        lang: new URL(req.url ?? "/", "http://x").searchParams.get("lang") ?? undefined,
       },
       db,
       secret,

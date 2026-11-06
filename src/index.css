@@ -771,3 +771,17 @@ img[src=""] { display: none; }
 /* Rama staging: los enlaces a secciones no publicadas no navegan (ver DisableUnpublishedLinks en App.tsx) */
 .staging-links-off a[href]:not([href="/"]):not([href="/noticias"]):not([href^="/noticias/"]) { cursor: default; }
 .staging-links-off article a[href^="http"] { cursor: pointer; }
+
+/* Editor visual de noticias (TipTap): mismo aspecto que NewsBody en la noticia publicada */
+.wp-visual .ProseMirror { min-height: 22rem; padding: 1.25rem; outline: none; line-height: 1.7; }
+.wp-visual .ProseMirror > * + * { margin-top: 0.9rem; }
+.wp-visual .ProseMirror h2 { font-family: var(--font-display, inherit); font-size: 1.5rem; font-weight: 700; margin-top: 1.6rem; }
+.wp-visual .ProseMirror h3 { font-family: var(--font-display, inherit); font-size: 1.25rem; font-weight: 600; margin-top: 1.3rem; }
+.wp-visual .ProseMirror ul { list-style: disc; padding-left: 1.5rem; }
+.wp-visual .ProseMirror ol { list-style: decimal; padding-left: 1.5rem; }
+.wp-visual .ProseMirror blockquote { border-left: 4px solid hsl(var(--primary)); background: hsl(var(--primary) / 0.05); padding: 0.4rem 1rem; font-style: italic; }
+.wp-visual .ProseMirror a { color: hsl(var(--primary)); text-decoration: underline; text-underline-offset: 3px; }
+.wp-visual .ProseMirror img { max-width: 100%; border-radius: 1rem; border: 1px solid hsl(var(--border)); }
+.wp-visual .ProseMirror img.ProseMirror-selectednode { outline: 3px solid hsl(var(--primary)); }
+.wp-visual .ProseMirror hr { border-color: hsl(var(--border)); margin: 1.5rem 0; }
+.wp-visual .ProseMirror p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: hsl(var(--muted-foreground)); float: left; height: 0; pointer-events: none; }

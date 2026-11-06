@@ -292,3 +292,64 @@ describe("formularios públicos", () => {
     expect((await call("GET", "/admin/leads", undefined, editor)).status).toBe(403);
   });
 });
+
+describe("fecha de publicación", () => {
+  it("acepta fechas pasadas y oculta las programadas hasta su hora", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    const past = await call("POST", "/admin/news", { slug: "pasada", title: "Pasada", status: "published", published_at: "2024-03-15T10:00:00Z" }, auth);
+    expect(data(past).published_at).toBe("2024-03-15T10:00:00.000Z");
+    const future = new Date(Date.now() + 86_400_000).toISOString();
+    await call("POST", "/admin/news", { slug: "programada", title: "Programada", status: "published", published_at: future }, auth);
+
+    const pub = data<{ slug: string }[]>(await call("GET", "/public/news")).map((n) => n.slug);
+    expect(pub).toContain("pasada");
+    expect(pub).not.toContain("programada");
+    expect((await call("GET", "/public/news/programada")).status).toBe(404);
+    expect((await call("POST", "/admin/news", { slug: "mala", title: "X", published_at: "ayer" }, auth)).status).toBe(422);
+  });
+});
+
+describe("traducciones del CMS", () => {
+  const req = (method: string, path: string, body?: unknown, headers: Record<string, string> = {}, lang?: string) =>
+    ({ method, path: `/api/v1${path}`, headers, body, lang }) as ApiRequest;
+  const shell = async () => '<!doctype html><html lang="es"><head><title>x</title></head><body><div id="root"></div></body></html>';
+
+  it("guarda solo campos permitidos y la API pública los sirve en el idioma pedido", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    const n = await call("POST", "/admin/news", { slug: "multi", title: "Ballenas", excerpt: "Llegan.", category_id: "cat-naturaleza", status: "published" }, auth);
+    const id = data(n).id as string;
+    const put = await call("PUT", `/admin/translations/news/${id}/en`, { data: { title: "Whales", excerpt: "", hack: "x" } }, auth);
+    expect(data(put)).toEqual({ title: "Whales" });
+    await call("PUT", "/admin/translations/news_categories/cat-naturaleza/en", { data: { name: "Nature" } }, auth);
+    expect((await call("PUT", `/admin/translations/news/${id}/xx`, { data: { title: "?" } }, auth)).status).toBe(422);
+    expect(data(await call("GET", `/admin/translations/news/${id}`, undefined, auth))).toMatchObject({ en: { title: "Whales" } });
+
+    const en = data(await handle(req("GET", "/public/news/multi", undefined, {}, "en"), db, SECRET, false));
+    expect(en).toMatchObject({ title: "Whales", excerpt: "Llegan.", category_name: "Nature" }); // lo no traducido, en español
+    expect(data(await call("GET", "/public/news/multi"))).toMatchObject({ title: "Ballenas" });
+
+    const page = Buffer.from((await handle(req("GET", "/render/noticias/multi", undefined, { host: "x" }, "en"), db, SECRET, false, shell)).raw!).toString();
+    expect(page).toContain('<html lang="en"');
+    expect(page).toContain('hreflang="en" href="https://www.descubrerepdom.com/noticias/multi?lang=en"');
+    expect(page).toContain('hreflang="x-default"');
+    expect(page).toContain("<title>Whales | Descubre RD</title>");
+    // Un idioma sin traducción sirve la versión española (canónica sin ?lang)
+    const fr = Buffer.from((await handle(req("GET", "/render/noticias/multi", undefined, { host: "x" }, "fr"), db, SECRET, false, shell)).raw!).toString();
+    expect(fr).toContain('<link rel="canonical" href="https://www.descubrerepdom.com/noticias/multi" />');
+  });
+
+  it("traduce con el proveedor configurado y avisa si falta la clave", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    const fake = async (fields: Record<string, string>, to: string[]) => Object.fromEntries(to.map((l) => [l, Object.fromEntries(Object.keys(fields).map((k) => [k, `${l}:${fields[k]}`]))]));
+    const r = await handle(req("POST", "/admin/translate", { fields: { title: "Hola", body: "" }, to: ["en", "xx"] }, auth), db, SECRET, false, shell, fake);
+    expect(data(r)).toEqual({ en: { title: "en:Hola" } });
+    expect((await handle(req("POST", "/admin/translate", { fields: {} }, auth), db, SECRET, false, shell, fake)).status).toBe(422);
+
+    const saved = { g: process.env.GEMINI_API_KEY, a: process.env.ANTHROPIC_API_KEY, p: process.env.TRANSLATION_PROVIDER };
+    delete process.env.GEMINI_API_KEY; delete process.env.ANTHROPIC_API_KEY; delete process.env.TRANSLATION_PROVIDER;
+    const missing = await call("POST", "/admin/translate", { fields: { title: "Hola" } }, auth);
+    expect(missing.status).toBe(503);
+    expect(JSON.stringify(missing.body)).toContain("GEMINI_API_KEY");
+    Object.assign(process.env, Object.fromEntries(Object.entries({ GEMINI_API_KEY: saved.g, ANTHROPIC_API_KEY: saved.a, TRANSLATION_PROVIDER: saved.p }).filter(([, v]) => v)));
+  });
+});

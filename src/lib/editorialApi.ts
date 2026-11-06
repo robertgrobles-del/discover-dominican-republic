@@ -1,4 +1,5 @@
 import { loadPublicNews, type PublicNews } from "@/lib/stagingContent";
+import { useI18n } from "@/hooks/useI18n";
 import { useQuery } from "@tanstack/react-query";
 import { fetchApi } from "@/lib/fastifyClient";
 import { CATALOG_SOURCE } from "@/lib/catalogSource";
@@ -104,10 +105,10 @@ function fromPublicNews(n: PublicNews, featured: boolean): EditorialArticle {
   };
 }
 
-async function loadArticles(): Promise<EditorialArticle[]> {
+async function loadArticles(locale?: string): Promise<EditorialArticle[]> {
   if (CATALOG_SOURCE !== "api") {
     // Staging: las noticias publicadas desde el panel (Turso) van primero; luego, las locales.
-    const [{ blogPosts }, published] = await Promise.all([import("@/data/blogData"), loadPublicNews()]);
+    const [{ blogPosts }, published] = await Promise.all([import("@/data/blogData"), loadPublicNews(locale)]);
     // La que se marque como destacada ocupa la portada; si no hay ninguna, la más reciente del panel.
     const anyFeatured = published.some((n) => n.featured);
     return [...published.map((n, i) => fromPublicNews(n, anyFeatured ? Boolean(n.featured) : i === 0)), ...blogPosts.map(fromStatic)];
@@ -120,7 +121,8 @@ async function loadArticles(): Promise<EditorialArticle[]> {
 
 /** Todas las publicaciones, de la más reciente a la más antigua. */
 export function useEditorialArticles() {
-  return useQuery({ queryKey: ["editorial-articles", CATALOG_SOURCE], queryFn: loadArticles, staleTime: 5 * 60 * 1000 });
+  const { locale } = useI18n(); // las noticias del panel vienen en el idioma del selector
+  return useQuery({ queryKey: ["editorial-articles", CATALOG_SOURCE, locale], queryFn: () => loadArticles(locale), staleTime: 5 * 60 * 1000 });
 }
 
 /**

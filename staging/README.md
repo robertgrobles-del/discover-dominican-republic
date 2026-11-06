@@ -51,6 +51,10 @@ Con el mismo comando se cambia la contraseña. Rol `editor` para quien solo edit
 | `TURSO_DATABASE_URL` | `libsql://…turso.io` |
 | `TURSO_AUTH_TOKEN` | token de Turso (`turso db tokens create descubre-staging`) |
 | `JWT_SECRET` | 32+ caracteres aleatorios (`openssl rand -hex 32`) |
+| `GEMINI_API_KEY` | (opcional) clave de Google AI Studio para «Traducir con IA» |
+| `ANTHROPIC_API_KEY` | (opcional) clave de Anthropic para «Traducir con IA» |
+| `TRANSLATION_PROVIDER` | (opcional) `gemini` o `claude`; sin ella, Gemini si hay su clave, si no Claude |
+| `GEMINI_MODEL` | (opcional) modelo de Gemini; por defecto `gemini-2.5-flash` |
 
 Las variables del frontend (`VITE_AUTH_SOURCE=api`, `VITE_DATA_SOURCE=mock`, `VITE_ALLOW_MOCK_BUILD=true`: landing con
 datos locales y sesión real) ya van en el `buildCommand` de `vercel.json`. No pongas `VITE_API_URL`: el frontend usa
@@ -68,6 +72,13 @@ datos locales y sesión real) ya van en el `buildCommand` de `vercel.json`. No p
 - Dominio: `SITE_URL` (variable de entorno opcional; por defecto `https://www.descubrerepdom.com`).
 - `/admin` y `/login` llevan `X-Robots-Tag: noindex`; el resto del sitio es indexable.
 - Con `VITE_STAGING_API=true` (en el `buildCommand`) el frontend no llama a rutas que el mini backend no tiene.
+
+## Idiomas del contenido
+
+- Noticias, provincias y categorías se publican en español y, con traducción, en en, fr, de, it y pt
+  (tabla `content_translations`). El editor de noticias tiene una pestaña por idioma y «Traducir con IA».
+- Lo público acepta `?lang=xx`; lo que no esté traducido sale en español. Cada noticia traducida declara sus
+  versiones con `hreflang` y su canónica `…/noticias/<slug>?lang=xx`.
 
 ## Endpoints
 

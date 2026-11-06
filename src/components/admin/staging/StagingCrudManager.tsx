@@ -1,5 +1,5 @@
 // Alta, edición y borrado de una tabla del mini backend de staging (api/index.ts): provincias, noticias y categorías.
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ImagePlus, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { IMAGE_ACCEPT, uploadImage } from "@/lib/stagingMedia";
 import { MarkdownEditor } from "./MarkdownEditor";
+import { NewsEditor } from "./NewsEditor";
 
 export type FieldDef = {
   key: string;
@@ -30,12 +31,14 @@ type Row = Record<string, unknown> & { id: string };
 const toSlug = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 const apiMessage = (e: unknown) => (e instanceof HttpError ? (e.details as { error?: { message?: string } } | null)?.error?.message : null) ?? (e instanceof Error ? e.message : "Error");
 
-export function StagingCrudManager({ resource, title, titleKey, fields, noun }: {
+export function StagingCrudManager({ resource, title, titleKey, fields, noun, renderEditor }: {
   resource: "provinces" | "news" | "news-categories";
   title: string;
   titleKey: string;           // campo que se muestra en la lista y del que sale el slug
   fields: FieldDef[];
   noun: string;               // "provincia", "noticia", "categoría" (femenino: "Nueva …", "guardada")
+  /** Editor propio en lugar del formulario genérico (las noticias usan el estilo WordPress). */
+  renderEditor?: (row: Row | "new", close: () => void) => ReactNode;
 }) {
   const qc = useQueryClient();
   const queryKey = ["staging", resource];
@@ -83,6 +86,7 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun }: 
 
   const submit = (e: FormEvent) => { e.preventDefault(); save.mutate(); };
 
+  if (editing && renderEditor) return <>{renderEditor(editing, () => { setEditing(null); void qc.invalidateQueries({ queryKey }); })}</>;
   if (editing) {
     return (
       <form onSubmit={submit} className="max-w-3xl space-y-5 rounded-2xl border border-border bg-card p-6">
@@ -170,7 +174,7 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun }: 
 }
 
 /** Imagen: se sube como archivo (convertida a WebP) o se pega una URL; muestra una miniatura. */
-function ImageField({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
+export function ImageField({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const pick = async (file: File | undefined) => {
@@ -223,37 +227,14 @@ export function StagingProvincesManager() {
 }
 
 export function StagingNewsManager() {
-  const { data: provinces = [] } = useQuery({
-    queryKey: ["staging", "provinces"],
-    queryFn: async () => (await fetchApi<{ data: Row[] }>("/admin/provinces")).data,
-  });
-  const { data: categories = [] } = useQuery({
-    queryKey: ["staging", "news-categories"],
-    queryFn: async () => (await fetchApi<{ data: Row[] }>("/admin/news-categories")).data,
-  });
   return (
     <StagingCrudManager
       resource="news"
       title="Noticias"
       titleKey="title"
       noun="noticia"
-      fields={[
-        { key: "title", label: "Título", required: true },
-        { key: "slug", label: "Slug (URL)", required: true, hint: "Se genera del título. No lo cambies tras publicar: los enlaces ya compartidos dejarían de funcionar." },
-        { key: "category_id", label: "Categoría", type: "select", options: [{ value: "", label: "Sin categoría" }, ...categories.map((c) => ({ value: c.id, label: String(c.name) }))] },
-        { key: "excerpt", label: "Antetítulo (resumen)", hint: "Una o dos frases que resumen la noticia; aparece en las tarjetas de la portada." },
-        { key: "body", label: "Cuerpo", type: "markdown" },
-        { key: "cover_url", label: "Imagen de portada", type: "image" },
-        { key: "image_alt", label: "Texto alternativo de la portada", hint: "Describe la imagen para quien no la ve (accesibilidad y buscadores)." },
-        { key: "image_credit", label: "Crédito de la foto", placeholder: "Foto: Ana Pérez / Mitur" },
-        { key: "province_id", label: "Provincia", type: "select", options: [{ value: "", label: "Ninguna" }, ...provinces.map((p) => ({ value: p.id, label: String(p.name) }))] },
-        { key: "author", label: "Autor", placeholder: "Redacción Descubre RD" },
-        { key: "source_url", label: "Fuente (enlace a la nota original)", type: "url", placeholder: "https://…" },
-        { key: "seo_title", label: "Título para buscadores (opcional)", recommended: 60, hint: "Si lo dejas vacío se usa el título. Lo que Google muestra en azul." },
-        { key: "seo_description", label: "Descripción para buscadores (opcional)", recommended: 155, hint: "Si la dejas vacía se usa el antetítulo. El texto bajo el título en Google." },
-        { key: "featured", label: "Destacada en la portada", type: "checkbox" },
-        STATUS,
-      ]}
+      fields={[]}
+      renderEditor={(row, close) => <NewsEditor row={row} onClose={close} />}
     />
   );
 }

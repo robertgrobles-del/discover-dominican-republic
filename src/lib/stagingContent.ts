@@ -2,6 +2,10 @@
 // La landing lo antepone a su contenido local; si la API falla, la landing sigue igual que antes.
 import { useQuery } from "@tanstack/react-query";
 import { fetchApi } from "@/lib/fastifyClient";
+import { useI18n } from "@/hooks/useI18n";
+
+/** ?lang= para la API pública: el español es el contenido base y no lo lleva. */
+const langQuery = (locale: string | undefined) => (locale && locale !== "es" ? `?lang=${encodeURIComponent(locale)}` : "");
 
 export interface PublicProvince {
   id: string; slug: string; name: string; region: string; capital: string | null;
@@ -24,24 +28,27 @@ const load = async <T,>(path: string): Promise<T[]> => {
   }
 };
 
-export const loadPublicNews = () => load<PublicNews>("/public/news");
+export const loadPublicNews = (locale?: string) => load<PublicNews>(`/public/news${langQuery(locale)}`);
 
 export function usePublicProvinces() {
-  return useQuery({ queryKey: ["staging-public", "provinces"], queryFn: () => load<PublicProvince>("/public/provinces"), staleTime: 60_000 });
+  const { locale } = useI18n();
+  return useQuery({ queryKey: ["staging-public", "provinces", locale], queryFn: () => load<PublicProvince>(`/public/provinces${langQuery(locale)}`), staleTime: 60_000 });
 }
 
 export function usePublicNewsList() {
-  return useQuery({ queryKey: ["staging-public", "news"], queryFn: loadPublicNews, staleTime: 60_000 });
+  const { locale } = useI18n();
+  return useQuery({ queryKey: ["staging-public", "news", locale], queryFn: () => loadPublicNews(locale), staleTime: 60_000 });
 }
 
 /** Una noticia publicada; null si no existe (o la API no responde). */
 export function usePublicNews(slug: string | undefined) {
+  const { locale } = useI18n();
   return useQuery({
-    queryKey: ["staging-public", "news", slug],
+    queryKey: ["staging-public", "news", slug, locale],
     enabled: Boolean(slug),
     staleTime: 60_000,
     queryFn: async () => {
-      try { return (await fetchApi<{ data: PublicNews }>(`/public/news/${encodeURIComponent(slug!)}`)).data; }
+      try { return (await fetchApi<{ data: PublicNews }>(`/public/news/${encodeURIComponent(slug!)}${langQuery(locale)}`)).data; }
       catch { return null; }
     },
   });

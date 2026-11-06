@@ -32,6 +32,7 @@
     "db:seed-demo": "npm --prefix backend run db:seed-demo"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "1.6.0",
     "@hookform/resolvers": "^3.10.0",
     "@libsql/client": "0.15.15",
     "@radix-ui/react-accordion": "^1.2.11",
@@ -63,6 +64,12 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@supabase/supabase-js": "^2.91.1",
     "@tanstack/react-query": "^5.83.0",
+    "@tiptap/extension-image": "2.11.5",
+    "@tiptap/extension-link": "2.11.5",
+    "@tiptap/extension-placeholder": "2.11.5",
+    "@tiptap/pm": "2.11.5",
+    "@tiptap/react": "2.11.5",
+    "@tiptap/starter-kit": "2.11.5",
     "@types/canvas-confetti": "^1.9.0",
     "@types/leaflet": "^1.9.21",
     "@types/leaflet.markercluster": "^1.5.4",
@@ -92,6 +99,7 @@
     "recharts": "^2.15.4",
     "sonner": "^1.7.4",
     "tailwind-merge": "^2.6.0",
+    "tiptap-markdown": "0.8.10",
     "vaul": "^0.9.9",
     "zod": "4.6.7"
   },
