@@ -20,7 +20,7 @@ import { adminDashboardApi } from "@/lib/adminDashboardApi";
 import { StagingNewsCategoriesManager, StagingNewsManager, StagingProvincesManager } from "@/components/admin/staging/StagingCrudManager";
 import { StagingEstablishmentRequestsManager, StagingLeadsManager } from "@/components/admin/staging/StagingFormsManagers";
 import { StagingUsersManager } from "@/components/admin/staging/StagingUsersManager";
-import { Shield, Loader2, Search, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2 } from "lucide-react";
+import { Shield, Loader2, Search, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun } from "lucide-react";
 
 type TabCategory = "erp" | "crm" | "cms" | "system";
 
@@ -100,11 +100,36 @@ const ADMIN_TABS: AdminTab[] = [
   { value: "usuarios", label: "Usuarios", category: "system", capability: "staging.panel", allowRoles: ["admin"], icon: Users, iconClass: "text-sky-500", render: () => <StagingUsersManager /> },
 ];
 
+/**
+ * Tema del panel, aparte del del sitio: claro por defecto, con botón para el oscuro. Se guarda en "admin-theme";
+ * al salir del panel se devuelve al sitio el tema que tenía (ThemeToggle, clave "theme").
+ */
+function useAdminTheme() {
+  const [dark, setDark] = useState(() => { try { return localStorage.getItem("admin-theme") === "dark"; } catch { return false; } });
+  useEffect(() => {
+    const root = document.documentElement;
+    const hadLight = root.classList.contains("light");
+    const hadBeach = document.body.classList.contains("sol-de-playa");
+    root.classList.toggle("light", !dark);
+    document.body.classList.remove("sol-de-playa");
+    return () => {
+      root.classList.toggle("light", hadLight);
+      document.body.classList.toggle("sol-de-playa", hadBeach);
+    };
+  }, [dark]);
+  const toggle = () => setDark((d) => {
+    try { localStorage.setItem("admin-theme", d ? "light" : "dark"); } catch { /* sin almacenamiento: dura la visita */ }
+    return !d;
+  });
+  return { dark, toggle };
+}
+
 export default function AdminPanel() {
   const { user, loading: authLoading, signOut } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const { can, loading: accessLoading, context, demo } = useAccessContext();
   usePanelAdoption("admin");
+  const theme = useAdminTheme();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -327,6 +352,10 @@ export default function AdminPanel() {
               <span className="truncate font-semibold text-foreground text-sm">{activeTab?.label ?? "Inicio"}</span>
             </nav>
             <div className="ml-auto flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={theme.toggle}
+                aria-label={theme.dark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"} title={theme.dark ? "Modo claro" : "Modo oscuro"}>
+                {theme.dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
               {isDemoMode && <Badge variant="secondary" className="hidden sm:inline-flex text-3xs">Datos de demostración</Badge>}
               <Button variant="outline" size="sm" className="h-8 text-xs rounded-lg border-border/60 hover:bg-muted/60" asChild>
                 <Link to="/" target="_blank" rel="noopener noreferrer"><ExternalLink className="h-3.5 w-3.5 sm:mr-1.5" /><span className="hidden sm:inline">Ver portal público</span></Link>
