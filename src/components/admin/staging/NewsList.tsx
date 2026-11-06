@@ -1,7 +1,9 @@
 // Lista de entradas al estilo de WordPress: filtros por estado, fecha, categoría y tipo, búsqueda,
 // acciones en lote, acciones por fila al pasar el ratón y paginación.
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { HttpError } from "@/lib/httpClient";
 import { fetchApi } from "@/lib/fastifyClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +50,7 @@ export function NewsList({ rows, onNew, onEdit, onDelete, busy }: {
   const [sort, setSort] = useState<{ key: "title" | "date"; asc: boolean }>({ key: "date", asc: false });
   const [page, setPage] = useState(1);
   const [checked, setChecked] = useState<Set<string>>(new Set());
+  const [quick, setQuick] = useState<string | null>(null);
   const [bulk, setBulk] = useState("");
 
   const dateOf = (r: Row) => String(r.published_at ?? r.updated_at ?? r.created_at ?? "");
@@ -173,6 +176,9 @@ export function NewsList({ rows, onNew, onEdit, onDelete, busy }: {
             ) : shown.map((r, i) => {
               const state = viewOf(r);
               const type = (r.post_type ?? "noticia") as PostType;
+              if (quick === r.id) {
+                return <tr key={r.id}><td colSpan={7} className="border-y border-primary/40 bg-card p-0"><QuickEdit row={r} categories={categories} onDone={() => setQuick(null)} /></td></tr>;
+              }
               return (
                 <tr key={r.id} className={`group align-top ${i % 2 ? "" : "bg-muted/40"}`}>
                   <td className="p-3"><input type="checkbox" aria-label={`Seleccionar ${String(r.title)}`} className="h-4 w-4" checked={checked.has(r.id)} onChange={() => toggle(r.id)} /></td>
@@ -181,6 +187,8 @@ export function NewsList({ rows, onNew, onEdit, onDelete, busy }: {
                     {state !== "published" && <span className="font-semibold text-muted-foreground"> — {state === "draft" ? "Borrador" : "Programada"}</span>}
                     <div className="mt-1 flex gap-2 text-xs opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
                       <button type="button" className="text-primary hover:underline" onClick={() => onEdit(r)}>Editar</button>
+                      <span className="text-muted-foreground">|</span>
+                      <button type="button" className="text-primary hover:underline" onClick={() => setQuick(r.id)}>Edición rápida</button>
                       <span className="text-muted-foreground">|</span>
                       <button type="button" className="text-destructive hover:underline" disabled={busy} onClick={() => remove([r.id])}>Papelera</button>
                       {state === "published" && <>
@@ -205,5 +213,72 @@ export function NewsList({ rows, onNew, onEdit, onDelete, busy }: {
       </div>
       <div className="flex justify-end">{pager}</div>
     </section>
+  );
+}
+
+const toLocal = (iso: unknown) => {
+  if (typeof iso !== "string" || !iso) return "";
+  const d = new Date(iso);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+};
+const label = "w-20 shrink-0 text-sm text-muted-foreground";
+const field = "h-9 w-full rounded border border-input bg-background px-2 text-sm";
+
+/** Edición rápida al estilo WordPress: cambia los datos de la entrada sin abrir el editor. */
+function QuickEdit({ row, categories, onDone }: { row: Row; categories: Row[]; onDone: () => void }) {
+  const qc = useQueryClient();
+  const [f, setF] = useState({
+    title: s(row.title), slug: s(row.slug), published_at: toLocal(row.published_at), author: s(row.author),
+    category_id: s(row.category_id), post_type: s(row.post_type) || "noticia", sponsor: s(row.sponsor),
+    status: s(row.status) || "draft", featured: row.featured === 1 || row.featured === true,
+  });
+  const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((x) => ({ ...x, [k]: v }));
+  // PUT reemplaza la fila entera: se envía todo lo que ya tenía más los cambios.
+  const save = useMutation({
+    mutationFn: () => fetchApi(`/admin/news/${row.id}`, { method: "PUT", body: JSON.stringify({
+      ...row, ...f, category_id: f.category_id || null, sponsor: f.sponsor || null, author: f.author || null,
+      published_at: f.published_at ? new Date(f.published_at).toISOString() : null,
+    }) }),
+    onSuccess: () => { toast.success("Entrada actualizada"); void qc.invalidateQueries({ queryKey: ["staging", "news"] }); onDone(); },
+    onError: (e) => toast.error((e instanceof HttpError ? (e.details as { error?: { message?: string } } | null)?.error?.message : null) ?? "No se pudo guardar"),
+  });
+
+  return (
+    <form className="grid gap-6 p-4 lg:grid-cols-[1.4fr_1fr_1fr]" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
+      <fieldset className="space-y-2.5">
+        <legend className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Edición rápida</legend>
+        <label className="flex items-center gap-3"><span className={label}>Título</span><input autoFocus className={field} value={f.title} onChange={(e) => set("title", e.target.value)} required /></label>
+        <label className="flex items-center gap-3"><span className={label}>Slug</span><input className={field} value={f.slug} onChange={(e) => set("slug", e.target.value)} required pattern="[a-z0-9-]+" /></label>
+        <label className="flex items-center gap-3"><span className={label}>Fecha</span><input type="datetime-local" className={field} value={f.published_at} onChange={(e) => set("published_at", e.target.value)} /></label>
+        <label className="flex items-center gap-3"><span className={label}>Autor</span><input className={field} value={f.author} onChange={(e) => set("author", e.target.value)} placeholder="Redacción Descubre RD" /></label>
+      </fieldset>
+      <fieldset>
+        <legend className="mb-2 text-sm text-muted-foreground">Categoría</legend>
+        <div className="max-h-44 space-y-1.5 overflow-y-auto rounded border border-border p-2 text-sm">
+          {[{ id: "", name: "Sin categoría" }, ...categories].map((c) => (
+            <label key={String(c.id)} className="flex items-center gap-2">
+              <input type="radio" name={`qe-cat-${row.id}`} checked={f.category_id === String(c.id)} onChange={() => set("category_id", String(c.id))} className="h-4 w-4" />{String(c.name)}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset className="space-y-2.5">
+        <legend className="sr-only">Publicación</legend>
+        <label className="flex items-center gap-3"><span className={label}>Estado</span>
+          <select className={field} value={f.status} onChange={(e) => set("status", e.target.value)}>
+            <option value="published">Publicada</option><option value="draft">Borrador</option>
+          </select></label>
+        <label className="flex items-center gap-3"><span className={label}>Tipo</span>
+          <select className={field} value={f.post_type} onChange={(e) => set("post_type", e.target.value)}>
+            {(Object.keys(POST_TYPE_LABEL) as PostType[]).map((k) => <option key={k} value={k}>{POST_TYPE_LABEL[k]}</option>)}
+          </select></label>
+        {f.post_type === "patrocinado" && <label className="flex items-center gap-3"><span className={label}>Patrocina</span><input className={field} value={f.sponsor} onChange={(e) => set("sponsor", e.target.value)} /></label>}
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" className="h-4 w-4" checked={f.featured} onChange={(e) => set("featured", e.target.checked)} />Destacada en la portada (fija)</label>
+      </fieldset>
+      <div className="flex justify-between gap-3 border-t border-border pt-3 lg:col-span-3">
+        <Button type="button" variant="outline" size="sm" onClick={onDone}>Cancelar</Button>
+        <Button type="submit" size="sm" disabled={save.isPending}>Actualizar</Button>
+      </div>
+    </form>
   );
 }

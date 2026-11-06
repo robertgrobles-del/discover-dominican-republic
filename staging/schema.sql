@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   email         TEXT NOT NULL UNIQUE COLLATE NOCASE,
   password_hash TEXT NOT NULL,                    -- scrypt$<sal hex>$<hash hex>
   display_name  TEXT,
-  roles         TEXT NOT NULL DEFAULT '["editor"]', -- JSON: "admin" | "editor"
+  roles         TEXT NOT NULL DEFAULT '["editor"]', -- JSON: "admin" | "editor" | "autor" | "colaborador"
   created_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 

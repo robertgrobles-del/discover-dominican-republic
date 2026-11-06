@@ -401,3 +401,27 @@ describe("guía del e-Ticket", () => {
     expect(page.body).toContain("¿Tiene algún costo?");
   });
 });
+
+describe("roles al estilo WordPress", () => {
+  it("autor y colaborador solo tocan sus noticias; el colaborador no publica", async () => {
+    const admin = bearer(await login("admin@x.do", "clave-segura-123"));
+    for (const role of ["autor", "colaborador"]) {
+      await call("POST", "/admin/users", { email: `${role}@x.do`, password: "clave-larga-rol", role }, admin);
+    }
+    const autor = bearer(await login("autor@x.do", "clave-larga-rol"));
+    const colab = bearer(await login("colaborador@x.do", "clave-larga-rol"));
+    const ajena = data(await call("POST", "/admin/news", { slug: "ajena", title: "Ajena" }, admin)).id as string;
+
+    expect((await call("POST", "/admin/provinces", { slug: "p-rol", name: "P", region: "sur" }, autor)).status).toBe(403);
+    expect((await call("PUT", `/admin/news/${ajena}`, { slug: "ajena", title: "Cambio" }, autor)).status).toBe(403);
+    const mia = await call("POST", "/admin/news", { slug: "del-autor", title: "Mía", status: "published" }, autor);
+    expect(mia.status).toBe(201);
+
+    expect((await call("POST", "/admin/news", { slug: "c-pub", title: "X", status: "published" }, colab)).status).toBe(403);
+    const borrador = data(await call("POST", "/admin/news", { slug: "c-borr", title: "Borrador" }, colab)).id as string;
+    expect((await call("PUT", `/admin/news/${borrador}`, { slug: "c-borr", title: "Editado" }, colab)).status).toBe(200);
+    expect((await call("DELETE", `/admin/news/${data(mia).id}`, undefined, colab)).status).toBe(403);
+    expect((await call("POST", "/admin/media", { data: "" }, colab)).status).toBe(403);
+    expect((await call("GET", "/admin/news", undefined, colab)).status).toBe(200);
+  });
+});

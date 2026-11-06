@@ -31,7 +31,7 @@ export const es: Record<string, string> = {
   "common.allYear": "Todo el año",
   // Hero
   "hero.title": "Descubre República Dominicana",
-  "hero.subtitle": "Lo tiene todo",
+  "hero.subtitle": "El mejor destino del Caribe",
   "hero.cta": "Explorar destinos",
   "hero.caribbeanParadise": "El paraíso del Caribe",
   "hero.liveExperience": "Vive la experiencia",

@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 interface PanelUser { id: string; email: string; display_name: string | null; roles: string[]; created_at: string }
 
 const apiMessage = (e: unknown) => (e instanceof HttpError ? (e.details as { error?: { message?: string } } | null)?.error?.message : null) ?? (e instanceof Error ? e.message : "Error");
-const ROLE_LABEL: Record<string, string> = { admin: "Administrador", editor: "Editor" };
+const ROLE_LABEL: Record<string, string> = { admin: "Administrador", editor: "Editor", autor: "Autor", colaborador: "Colaborador" };
 const queryKey = ["staging", "users"];
 
 export function StagingUsersManager() {
@@ -70,8 +70,10 @@ export function StagingUsersManager() {
           <div className="space-y-1.5">
             <Label htmlFor="u-role">Rol</Label>
             <select id="u-role" value={form.role} onChange={set("role")} className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
-              <option value="editor">Editor: provincias y noticias</option>
-              <option value="admin">Administrador: además, gestiona usuarios</option>
+              <option value="colaborador">Colaborador: escribe borradores, no publica ni sube imágenes</option>
+              <option value="autor">Autor: escribe, sube imágenes y publica sus propias noticias</option>
+              <option value="editor">Editor: publica y edita todo el contenido</option>
+              <option value="admin">Administrador: además, usuarios y formularios</option>
             </select>
           </div>
           <div className="flex gap-3">

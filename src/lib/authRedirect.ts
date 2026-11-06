@@ -12,7 +12,7 @@ export function resolveUserHome(roles: string[] = [], spaces: string[] = []): st
   const normalizedSpaces = (spaces || []).map((s) => String(s).toLowerCase().trim());
 
   // 1. Personal administrativo y staff
-  if (normalized.some((r) => ["admin", "editor", "moderator"].includes(r)) || normalizedSpaces.includes("admin")) {
+  if (normalized.some((r) => ["admin", "editor", "autor", "colaborador", "moderator"].includes(r)) || normalizedSpaces.includes("admin")) {
     return "/admin";
   }
 

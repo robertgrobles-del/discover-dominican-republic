@@ -21,7 +21,8 @@ import { StagingNewsCategoriesManager, StagingNewsManager, StagingProvincesManag
 import { StagingEstablishmentRequestsManager, StagingLeadsManager } from "@/components/admin/staging/StagingFormsManagers";
 import { MediaLibrary } from "@/components/admin/staging/MediaLibrary";
 import { StagingUsersManager } from "@/components/admin/staging/StagingUsersManager";
-import { Shield, Loader2, Search, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun, Image as ImageIcon } from "lucide-react";
+import { StagingDashboard } from "@/components/admin/staging/StagingDashboard";
+import { Shield, Loader2, Search, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun, Image as ImageIcon, LayoutDashboard } from "lucide-react";
 
 type TabCategory = "erp" | "crm" | "cms" | "system";
 
@@ -93,9 +94,10 @@ const CATEGORY_CONFIG: Record<TabCategory, { label: string; badge: string; descr
 // La capacidad no existe a propósito: el acceso lo da el rol real de la sesión (allowRoles), no el contexto
 // de demostración que se carga con la landing en datos locales.
 const ADMIN_TABS: AdminTab[] = [
+  { value: "dashboard", label: "Escritorio", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor", "autor", "colaborador"], icon: LayoutDashboard, iconClass: "text-foreground", render: () => <StagingDashboard /> },
   { value: "provincias", label: "Provincias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: MapPin, iconClass: "text-emerald-500", render: () => <StagingProvincesManager /> },
-  { value: "noticias", label: "Noticias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Newspaper, iconClass: "text-primary", render: () => <StagingNewsManager /> },
-  { value: "medios", label: "Biblioteca de medios", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: ImageIcon, iconClass: "text-cyan-500", render: () => <MediaLibrary /> },
+  { value: "noticias", label: "Noticias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor", "autor", "colaborador"], icon: Newspaper, iconClass: "text-primary", render: () => <StagingNewsManager /> },
+  { value: "medios", label: "Biblioteca de medios", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor", "autor", "colaborador"], icon: ImageIcon, iconClass: "text-cyan-500", render: () => <MediaLibrary /> },
   { value: "categorias-noticias", label: "Categorías de noticias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Tags, iconClass: "text-amber-500", render: () => <StagingNewsCategoriesManager /> },
   { value: "sorteo", label: "Sorteo y boletín", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Gift, iconClass: "text-pink-500", render: () => <StagingLeadsManager /> },
   { value: "solicitudes-negocios", label: "Solicitudes de negocios", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Building2, iconClass: "text-orange-500", render: () => <StagingEstablishmentRequestsManager /> },

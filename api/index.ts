@@ -17,7 +17,9 @@ const REFRESH_TTL = 7 * 24 * 60 * 60;
 const MAX_FAILED_LOGINS = 8;           // por correo en la ventana
 const FAILED_WINDOW_MIN = 15;
 const REFRESH_COOKIE = "drs_refresh";
-const STAFF_ROLES = ["admin", "editor"];
+// Roles al estilo WordPress. admin: todo. editor: todo el contenido. autor: crea, publica y edita sus noticias.
+// colaborador: escribe y edita sus borradores, no publica ni sube imágenes.
+const STAFF_ROLES = ["admin", "editor", "autor", "colaborador"];
 
 // ---------- utilidades ----------
 const err = (status: number, message: string): ApiResponse => ({ status, body: { error: { message } } });
@@ -272,8 +274,19 @@ async function crud(db: Client, table: keyof typeof TABLES, method: string, id: 
   }
 }
 
+/** Autor y colaborador: solo sus noticias; el colaborador no publica ni toca lo ya publicado. */
+async function ownNewsGuard(db: Client, method: string, id: string | undefined, body: Fields, userId: string, isAutor: boolean): Promise<ApiResponse | null> {
+  if (!isAutor && body.status === "published") return err(403, "Un colaborador no puede publicar: guarda el borrador y un editor lo revisará");
+  if (!id) return null;
+  const row = (await db.execute({ sql: "SELECT created_by, status FROM news WHERE id = ?", args: [id] })).rows[0];
+  if (!row) return null; // crud responde 404
+  if (row.created_by !== userId) return err(403, "Solo puedes modificar tus propias noticias");
+  if (!isAutor && row.status === "published") return err(403, "Un colaborador no puede modificar una noticia publicada");
+  return null;
+}
+
 // ---------- usuarios del panel (solo admin) ----------
-const ROLES = ["admin", "editor"];
+const ROLES = STAFF_ROLES;
 const MIN_PASSWORD = 12;
 
 async function adminCount(db: Client): Promise<number> {
@@ -1076,9 +1089,14 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   const users = path.match(/^\/admin\/users(?:\/([A-Za-z0-9-]+))?$/);
   if (users) return roles.includes("admin") ? usersApi(db, m, users[1], body, user) : err(403, "Solo un administrador gestiona usuarios");
 
-  if (path === "/admin/media" && m === "POST") return uploadMedia(db, body, user.id);
+  const manager = roles.includes("admin") || roles.includes("editor"); // gestiona todo el contenido
+  if (path === "/admin/media" && m === "POST") {
+    return roles.includes("colaborador") && !manager && !roles.includes("autor") ? err(403, "Un colaborador no puede subir imágenes") : uploadMedia(db, body, user.id);
+  }
   const lib = path.match(/^\/admin\/media(?:\/([^/]+))?$/);
-  if (lib && !(m === "POST" && !lib[1])) return mediaAdmin(db, m, lib[1], body);
+  if (lib && !(m === "POST" && !lib[1])) {
+    return m === "GET" || manager ? mediaAdmin(db, m, lib[1], body) : err(403, "Solo un editor o administrador modifica la biblioteca");
+  }
   if (path === "/admin/translate" && m === "POST") return translateRoute(body, translate);
   const tr = path.match(/^\/admin\/translations\/(news|provinces|news_categories)\/([A-Za-z0-9-]+)(?:\/([a-z]{2}))?$/);
   if (tr) return translationsAdmin(db, m, tr[1], tr[2], tr[3], body, user.id);
@@ -1090,6 +1108,11 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   }
 
   const match = path.match(/^\/admin\/(provinces|news|news-categories)(?:\/([A-Za-z0-9-]+))?$/);
+  if (match && m !== "GET" && !manager) {
+    if (match[1] !== "news") return err(403, "Solo un editor o administrador modifica provincias y categorías");
+    const denied = await ownNewsGuard(db, m, match[2], body, user.id, roles.includes("autor"));
+    if (denied) return denied;
+  }
   if (match) return crud(db, match[1].replace("-", "_") as keyof typeof TABLES, m, match[2], body, user.id);
 
   return err(404, "Ruta no encontrada");

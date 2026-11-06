@@ -28,7 +28,7 @@ export const pt: Record<string, string> = {
   "common.navigation": "Navegação",
   "common.allYear": "O ano todo",
   "hero.title": "Descubra a República Dominicana",
-  "hero.subtitle": "Tem de tudo",
+  "hero.subtitle": "O melhor destino do Caribe",
   "hero.cta": "Explorar destinos",
   "hero.caribbeanParadise": "O paraíso do Caribe",
   "hero.liveExperience": "Viva a experiência",
