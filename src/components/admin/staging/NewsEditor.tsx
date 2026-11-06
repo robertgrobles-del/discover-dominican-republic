@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft, CalendarDays, Eye, Languages, Loader2, Pin, Sparkles, X } from "lucide-react";
 import { fetchApi } from "@/lib/fastifyClient";
+import { POST_TYPE_LABEL, type PostType } from "@/lib/stagingContent";
 import { HttpError } from "@/lib/httpClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,7 +59,7 @@ export function NewsEditor({ row, onClose }: { row: Row | "new"; onClose: () => 
     return {
       title: get("title"), slug: get("slug"), excerpt: get("excerpt"), body: get("body"), cover_url: get("cover_url"),
       image_alt: get("image_alt"), image_credit: get("image_credit"), category_id: get("category_id"), province_id: get("province_id"),
-      author: get("author"), source_url: get("source_url"), seo_title: get("seo_title"), seo_description: get("seo_description"),
+      author: get("author"), source_url: get("source_url"), post_type: get("post_type") || "noticia", sponsor: get("sponsor"), seo_title: get("seo_title"), seo_description: get("seo_description"),
       featured: r.featured === 1 || r.featured === true ? "1" : "", status: get("status") || "draft", published_at: toLocalInput(r.published_at),
     };
   });
@@ -291,6 +292,23 @@ export function NewsEditor({ row, onClose }: { row: Row | "new"; onClose: () => 
               <Input id="news-alt" value={text("image_alt")} onChange={(e) => setText("image_alt", e.target.value)} placeholder="Describe la imagen" /></div>
             <div className="space-y-1"><Label htmlFor="news-credit">Crédito</Label>
               <Input id="news-credit" value={text("image_credit")} onChange={(e) => setText("image_credit", e.target.value)} placeholder="Foto: Ana Pérez" /></div>
+          </Box>
+
+          <Box title="Tipo de publicación">
+            <div className="space-y-1.5" role="radiogroup" aria-label="Tipo de publicación">
+              {(Object.keys(POST_TYPE_LABEL) as PostType[]).map((k) => (
+                <label key={k} className="flex items-center gap-2">
+                  <input type="radio" name="news-type" checked={base.post_type === k} onChange={() => setField("post_type", k)} className="h-4 w-4" />
+                  {POST_TYPE_LABEL[k]}
+                </label>
+              ))}
+            </div>
+            {base.post_type === "patrocinado" && (
+              <div className="space-y-1"><Label htmlFor="news-sponsor">Patrocinador</Label>
+                <Input id="news-sponsor" value={base.sponsor} onChange={(e) => setField("sponsor", e.target.value)} placeholder="Nombre de la marca" />
+                <p className="text-xs text-muted-foreground">Sale en el espacio patrocinado de Últimas noticias, marcado como «Patrocinado».</p></div>
+            )}
+            {base.post_type === "invitado" && <p className="text-xs text-muted-foreground">Escribe el nombre del invitado en «Autor».</p>}
           </Box>
 
           <Box title="Detalles">

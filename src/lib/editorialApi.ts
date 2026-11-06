@@ -1,4 +1,4 @@
-import { loadPublicNews, type PublicNews } from "@/lib/stagingContent";
+import { loadPublicNews, type PostType, type PublicNews } from "@/lib/stagingContent";
 import { useI18n } from "@/hooks/useI18n";
 import { useQuery } from "@tanstack/react-query";
 import { fetchApi } from "@/lib/fastifyClient";
@@ -40,6 +40,9 @@ export interface EditorialArticle {
   featured: boolean;
   trending: boolean;
   pressPartner: string | null;
+  /** Solo en publicaciones del panel: patrocinado, reportaje o post invitado. */
+  postType?: PostType;
+  sponsor?: string | null;
   /** Las crónicas de historia tienen su propia ficha; el resto usa la del artículo. */
   href: string;
 }
@@ -102,6 +105,7 @@ function fromPublicNews(n: PublicNews, featured: boolean): EditorialArticle {
     id: n.id, slug: n.slug, title: n.title, excerpt: n.excerpt ?? "", channel: "noticias", category: n.category_name ?? "Noticias", image: n.cover_url,
     publishedAt: n.published_at, readMinutes: n.body ? Math.max(1, Math.round(n.body.split(/\s+/).length / 200)) : null, authorName: n.author || "Redacción Descubre RD", authorRole: null, authorAvatar: null,
     tags: n.province_name ? [n.province_name] : [], featured, trending: false, pressPartner: null, href: `/noticias/${n.slug}`,
+    postType: n.post_type ?? "noticia", sponsor: n.sponsor ?? null,
   };
 }
 
@@ -110,8 +114,9 @@ async function loadArticles(locale?: string): Promise<EditorialArticle[]> {
     // Staging: las noticias publicadas desde el panel (Turso) van primero; luego, las locales.
     const [{ blogPosts }, published] = await Promise.all([import("@/data/blogData"), loadPublicNews(locale)]);
     // La que se marque como destacada ocupa la portada; si no hay ninguna, la más reciente del panel.
-    const anyFeatured = published.some((n) => n.featured);
-    return [...published.map((n, i) => fromPublicNews(n, anyFeatured ? Boolean(n.featured) : i === 0)), ...blogPosts.map(fromStatic)];
+    const editorial = published.filter((n) => n.post_type !== "patrocinado");
+    const anyFeatured = editorial.some((n) => n.featured);
+    return [...published.map((n) => fromPublicNews(n, n.post_type !== "patrocinado" && (anyFeatured ? Boolean(n.featured) : n.id === editorial[0]?.id))), ...blogPosts.map(fromStatic)];
   }
   const image = await imageResolver();
   const query = new URLSearchParams({ per_page: "100", sort: "-published_at", fields: LIST_FIELDS });

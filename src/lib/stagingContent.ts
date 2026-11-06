@@ -12,10 +12,13 @@ export interface PublicProvince {
   short_description: string | null; description: string | null; image_url: string | null;
 }
 
+export type PostType = "noticia" | "reportaje" | "invitado" | "patrocinado";
+export const POST_TYPE_LABEL: Record<PostType, string> = { noticia: "Noticia", reportaje: "Reportaje", invitado: "Post invitado", patrocinado: "Patrocinado" };
+
 export interface PublicNews {
   id: string; slug: string; title: string; excerpt: string | null; body: string | null;
   cover_url: string | null; image_alt: string | null; image_credit: string | null; author: string | null;
-  source_url: string | null; featured: number; published_at: string | null; province_name: string | null;
+  source_url: string | null; featured: number; post_type?: PostType; sponsor?: string | null; published_at: string | null; province_name: string | null;
   category_name: string | null; category_slug: string | null; updated_at?: string;
   seo_title?: string | null; seo_description?: string | null;
 }

@@ -8,7 +8,7 @@ import { Footer } from "@/components/Footer";
 import { SEOHead } from "@/components/SEOHead";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NewsBody } from "@/components/admin/staging/NewsBody";
-import { formatNewsDate, newsSeoDescription, newsSeoTitle, readMinutes, usePublicNews, usePublicNewsList } from "@/lib/stagingContent";
+import { POST_TYPE_LABEL, formatNewsDate, newsSeoDescription, newsSeoTitle, readMinutes, usePublicNews, usePublicNewsList } from "@/lib/stagingContent";
 
 export default function NoticiaDetalle() {
   const { slug } = useParams<{ slug: string }>();
@@ -60,7 +60,10 @@ export default function NoticiaDetalle() {
 
         <article>
           <header>
-            <p className="text-xs font-bold uppercase tracking-widest text-primary">{n.category_name ?? "Noticias"}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-primary">
+              {n.post_type && n.post_type !== "noticia" ? POST_TYPE_LABEL[n.post_type] : n.category_name ?? "Noticias"}
+              {n.post_type === "patrocinado" && n.sponsor && <span className="font-normal normal-case tracking-normal text-muted-foreground"> · por {n.sponsor}</span>}
+            </p>
             <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-foreground md:text-5xl">{n.title}</h1>
             {n.excerpt && <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{n.excerpt}</p>}
             <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">

@@ -107,6 +107,14 @@ describe("contenido público", () => {
     expect(data<{ slug: string }[]>(p).map((r) => r.slug)).toEqual(["publica"]);
     expect(data<{ slug: string }[]>(await call("GET", "/public/news")).map((r) => r.slug)).toEqual(["nota-publica"]);
   });
+
+  it("guarda el tipo de publicación y rechaza tipos desconocidos", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    expect((await call("POST", "/admin/news", { slug: "x", title: "X", post_type: "otro" }, auth)).status).toBe(422);
+    await call("POST", "/admin/news", { slug: "promo", title: "Promo", post_type: "patrocinado", sponsor: "Marca", status: "published" }, auth);
+    const [n] = data<{ post_type: string; sponsor: string }[]>(await call("GET", "/public/news"));
+    expect([n.post_type, n.sponsor]).toEqual(["patrocinado", "Marca"]);
+  });
 });
 
 describe("provincias y noticias", () => {

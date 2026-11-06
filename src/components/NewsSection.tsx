@@ -17,9 +17,13 @@ export function NewsSection() {
     id: a.id, href: a.href, title: a.title, excerpt: a.excerpt, image: a.image ?? heroBeachImg, // Las noticias del panel muestran su categoría; el resto, el nombre de su canal.
     category: a.channel === "noticias" && a.category ? a.category : channelLabel(a.channel),
     date: formatEditorialDate(a.publishedAt), readTime: a.readMinutes ? `${a.readMinutes} min` : "", featured: a.featured,
+    sponsored: a.postType === "patrocinado", sponsor: a.sponsor,
   }));
-  const featuredNews = news.find(n => n.featured) ?? news[0];
-  const regularNews = news.filter(n => n.id !== featuredNews?.id).slice(0, 3);
+  // El post patrocinado ocupa el espacio de publicidad de la columna; si no hay ninguno, queda el anuncio.
+  const sponsored = news.find(n => n.sponsored);
+  const editorial = news.filter(n => !n.sponsored);
+  const featuredNews = editorial.find(n => n.featured) ?? editorial[0];
+  const regularNews = editorial.filter(n => n.id !== featuredNews?.id).slice(0, 3);
   if (!featuredNews) return null;
 
   return (
@@ -138,9 +142,25 @@ export function NewsSection() {
             ))}
             
             {/* Inline Ad en sección de noticias - ancho armónico con la columna */}
-            <div className="pt-2 w-full">
-              <BannerAd size="medium-rect" placement="inline" showDemo className="w-full !max-w-none shadow-sm" />
-            </div>
+            {sponsored ? (
+              <motion.article initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="group pt-2">
+                <Link to={sponsored.href} className="block overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
+                  <div className="relative aspect-[16/9] overflow-hidden">
+                    <LazyImage src={sponsored.image} alt={sponsored.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" containerClassName="w-full h-full" />
+                    <Badge className="absolute left-3 top-3 bg-amber-500 text-white hover:bg-amber-500">Patrocinado</Badge>
+                  </div>
+                  <div className="p-4">
+                    {sponsored.sponsor && <p className="mb-1 text-xs text-muted-foreground">Presentado por <span className="font-semibold text-foreground">{sponsored.sponsor}</span></p>}
+                    <h4 className="font-display font-bold text-foreground line-clamp-2 transition-colors group-hover:text-primary">{sponsored.title}</h4>
+                    {sponsored.excerpt && <p className="mt-1 text-sm text-muted-foreground line-clamp-2">{sponsored.excerpt}</p>}
+                  </div>
+                </Link>
+              </motion.article>
+            ) : (
+              <div className="pt-2 w-full">
+                <BannerAd size="medium-rect" placement="inline" showDemo className="w-full !max-w-none shadow-sm" />
+              </div>
+            )}
           </div>
         </div>
       </div>

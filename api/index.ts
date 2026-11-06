@@ -75,6 +75,7 @@ type Fields = Record<string, unknown>;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const REGIONS = ["norte", "sur", "este", "santo-domingo"];
 const STATUSES = ["draft", "published"];
+const POST_TYPES = ["noticia", "reportaje", "invitado", "patrocinado"];
 
 function str(o: Fields, key: string, max: number, required = false): string | null | Error {
   const v = o[key];
@@ -169,6 +170,8 @@ const newsSpec = (b: Fields) => ({
   seo_title: () => str(b, "seo_title", 90),
   seo_description: () => str(b, "seo_description", 200),
   status: () => oneOf(b, "status", STATUSES, "draft"),
+  post_type: () => oneOf(b, "post_type", POST_TYPES, "noticia"),
+  sponsor: () => str(b, "sponsor", 120),
 });
 
 // ---------- usuarios ----------
@@ -453,13 +456,13 @@ export function clip(text: string, max: number): string {
 
 type NewsRow = {
   id: string; slug: string; title: string; excerpt: string | null; body: string | null; cover_url: string | null;
-  image_alt: string | null; image_credit: string | null; author: string | null; source_url: string | null;
+  image_alt: string | null; image_credit: string | null; author: string | null; source_url: string | null; post_type: string; sponsor: string | null;
   featured: number; published_at: string | null; updated_at: string; seo_title: string | null; seo_description: string | null;
   province_name: string | null; category_name: string | null; category_slug: string | null;
   cover_width: number | null; cover_height: number | null;
 };
 
-const NEWS_SELECT = `SELECT n.id, n.slug, n.title, n.excerpt, n.body, n.cover_url, n.image_alt, n.image_credit, n.author, n.source_url,
+const NEWS_SELECT = `SELECT n.id, n.slug, n.title, n.excerpt, n.body, n.cover_url, n.image_alt, n.image_credit, n.author, n.source_url, n.post_type, n.sponsor,
     n.featured, n.published_at, n.updated_at, n.seo_title, n.seo_description, n.category_id, n.province_id,
     p.name AS province_name, c.name AS category_name, c.slug AS category_slug, m.width AS cover_width, m.height AS cover_height
   FROM news n
