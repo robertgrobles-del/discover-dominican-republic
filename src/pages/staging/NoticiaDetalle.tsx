@@ -2,7 +2,7 @@
 // canónica, Open Graph, JSON-LD (NewsArticle + migas) y versión Markdown para IA (api/index.ts). Aquí SEOHead solo
 // mantiene título, descripción y canónica al navegar dentro de la app; no repite el JSON-LD del servidor.
 import { Link, useParams } from "react-router-dom";
-import { ArrowLeft, Clock, ExternalLink, MapPin } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, ExternalLink, MapPin } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SEOHead } from "@/components/SEOHead";
@@ -49,8 +49,8 @@ export default function NoticiaDetalle() {
     <>
       <SEOHead title={newsSeoTitle(n)} description={newsSeoDescription(n)} url={`/noticias/${n.slug}`} image={n.cover_url ?? undefined} type="article" breadcrumbs={[]} />
       <Header />
-      <main className="container mx-auto max-w-3xl px-4 pb-16 pt-28">
-        <nav aria-label="Migas de pan" className="mb-6 text-sm text-muted-foreground">
+      <main className="container mx-auto max-w-3xl px-4 pb-16 pt-20 md:pt-24">
+        <nav aria-label="Migas de pan" className="mb-4 text-sm text-muted-foreground">
           <ol className="flex flex-wrap items-center gap-1.5">
             <li><Link to="/" className="hover:text-foreground">Inicio</Link></li><li aria-hidden="true">/</li>
             <li><Link to="/noticias" className="hover:text-foreground">Noticias</Link></li><li aria-hidden="true">/</li>
@@ -65,17 +65,27 @@ export default function NoticiaDetalle() {
               {n.post_type === "patrocinado" && n.sponsor && <span className="font-normal normal-case tracking-normal text-muted-foreground"> · por {n.sponsor}</span>}
             </p>
             <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-foreground md:text-5xl">{n.title}</h1>
-            {n.excerpt && <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{n.excerpt}</p>}
-            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-              <span>Por <span className="font-medium text-foreground">{n.author || "Redacción Descubre RD"}</span></span>
-              {n.published_at && <time dateTime={n.published_at}>{formatNewsDate(n.published_at)}</time>}
-              {minutes && <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" aria-hidden="true" />{minutes} min de lectura</span>}
-              {n.province_name && <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" aria-hidden="true" />{n.province_name}</span>}
+            {n.excerpt && <p className="mt-4 text-lg font-bold italic leading-relaxed text-primary">{n.excerpt}</p>}
+            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3 border-y border-border py-4 text-sm text-muted-foreground">
+              <span className="flex items-center gap-3">
+                <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-display font-bold text-primary">
+                  {(n.author || "Redacción Descubre RD").trim().charAt(0).toUpperCase()}
+                </span>
+                <span className="leading-tight">
+                  <span className="block text-xs">{n.post_type === "invitado" ? "Autor invitado" : "Por"}</span>
+                  <span className="font-semibold text-foreground">{n.author || "Redacción Descubre RD"}</span>
+                </span>
+              </span>
+              <span className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-1">
+                {n.published_at && <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-4 w-4 text-primary" aria-hidden="true" /><time dateTime={n.published_at}>{formatNewsDate(n.published_at)}</time></span>}
+                {minutes && <span className="inline-flex items-center gap-1.5"><Clock className="h-4 w-4 text-primary" aria-hidden="true" />{minutes} min de lectura</span>}
+                {n.province_name && <span className="inline-flex items-center gap-1.5"><MapPin className="h-4 w-4 text-primary" aria-hidden="true" />{n.province_name}</span>}
+              </span>
             </div>
           </header>
 
           {n.cover_url && (
-            <figure className="mt-8">
+            <figure className="mt-6">
               <img src={n.cover_url} alt={n.image_alt || n.title} width={1200} height={675} fetchPriority="high"
                 className="aspect-[16/9] w-full rounded-2xl border border-border object-cover" />
               {n.image_credit && <figcaption className="mt-2 text-xs text-muted-foreground">{n.image_credit}</figcaption>}
@@ -95,14 +105,22 @@ export default function NoticiaDetalle() {
 
         {related.length > 0 && (
           <aside aria-labelledby="mas-noticias" className="mt-14 border-t border-border pt-8">
-            <h2 id="mas-noticias" className="font-display text-2xl font-bold">Más noticias</h2>
-            <ul className="mt-5 grid gap-4 sm:grid-cols-3">
+            <div className="flex items-end justify-between gap-4">
+              <h2 id="mas-noticias" className="font-display text-2xl font-bold">Más noticias</h2>
+              <Link to="/noticias" className="text-sm font-semibold text-primary hover:underline">Ver todas</Link>
+            </div>
+            <ul className="mt-5 grid gap-5 sm:grid-cols-3">
               {related.map((r) => (
                 <li key={r.id}>
-                  <Link to={`/noticias/${r.slug}`} className="group block">
-                    {r.cover_url && <img src={r.cover_url} alt="" loading="lazy" width={400} height={250} className="aspect-[16/10] w-full rounded-xl object-cover" />}
-                    <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-primary">{r.category_name ?? "Noticias"}</p>
-                    <h3 className="font-semibold text-foreground group-hover:text-primary">{r.title}</h3>
+                  <Link to={`/noticias/${r.slug}`} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-shadow hover:shadow-lg">
+                    <div className="aspect-[16/10] overflow-hidden bg-muted">
+                      {r.cover_url && <img src={r.cover_url} alt="" loading="lazy" width={400} height={250} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />}
+                    </div>
+                    <div className="flex flex-1 flex-col p-4">
+                      <p className="text-[11px] font-bold uppercase tracking-widest text-primary">{r.category_name ?? "Noticias"}</p>
+                      <h3 className="mt-1.5 line-clamp-3 font-display text-base font-bold leading-snug text-foreground group-hover:text-primary">{r.title}</h3>
+                      {r.published_at && <time dateTime={r.published_at} className="mt-auto pt-3 text-xs text-muted-foreground">{formatNewsDate(r.published_at)}</time>}
+                    </div>
                   </Link>
                 </li>
               ))}
