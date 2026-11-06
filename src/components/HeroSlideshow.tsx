@@ -18,6 +18,7 @@ import heroBeachImg from "@/assets/hero-beach.jpg";
 import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import puntaCanaImg from "@/assets/punta-cana.jpg";
 import adLuxuryHotelImg from "@/assets/promo/promo-luxury-hotel.jpg";
+import capCanaImg from "@/assets/cap-cana.jpg";
 import adGastronomyImg from "@/assets/promo/promo-gastronomy-mobile.jpg";
 import { usePageContent } from "@/lib/pageContent";
 import { useAdBannerList, trackBannerClick, trackBannerImpression, type AdBanner } from "@/hooks/useAdBanners";
@@ -76,7 +77,7 @@ const slidesData: SlideData[] = [
   },
   {
     id: 2,
-    image: adLuxuryHotelImg,
+    image: capCanaImg, // Marina de Cap Cana (foto: Joel Severino)
     tag: "Establecimiento Destacado",
     title: "Sanctuary Cap Cana",
     subtitle: "Resort de Lujo Frente al Caribe",
