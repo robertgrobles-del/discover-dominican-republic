@@ -232,7 +232,7 @@ export function NewsEditor({ row, onClose }: { row: Row | "new"; onClose: () => 
         </div>
 
         {/* Columna lateral */}
-        <aside className="space-y-4">
+        <aside className="min-w-0 space-y-4">
           <Box title="Publicar">
             <div className="flex justify-between gap-2">
               <Button size="sm" variant="outline" disabled={busy} onClick={() => save.mutate("draft")}>{published ? "Pasar a borrador" : "Guardar borrador"}</Button>
@@ -286,7 +286,7 @@ export function NewsEditor({ row, onClose }: { row: Row | "new"; onClose: () => 
           </Box>
 
           <Box title="Imagen destacada">
-            <ImageField id="news-cover" value={base.cover_url} onChange={(v) => setField("cover_url", v)} />
+            <ImageField id="news-cover" compact value={base.cover_url} onChange={(v) => setField("cover_url", v)} />
             <div className="space-y-1"><Label htmlFor="news-alt">Texto alternativo</Label>
               <Input id="news-alt" value={text("image_alt")} onChange={(e) => setText("image_alt", e.target.value)} placeholder="Describe la imagen" /></div>
             <div className="space-y-1"><Label htmlFor="news-credit">Crédito</Label>

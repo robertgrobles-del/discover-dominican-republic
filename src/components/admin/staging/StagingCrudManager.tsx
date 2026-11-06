@@ -175,7 +175,11 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun, re
 }
 
 /** Imagen: se sube como archivo (convertida a WebP) o se pega una URL; muestra una miniatura. */
-export function ImageField({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
+/**
+ * Imagen: se sube como archivo (convertida a WebP), se elige de la biblioteca o se pega una URL.
+ * `compact` para columnas estrechas (la caja «Imagen destacada» del editor): todo apilado, sin desbordar.
+ */
+export function ImageField({ id, value, onChange, compact = false }: { id: string; value: string; onChange: (v: string) => void; compact?: boolean }) {
   const [library, setLibrary] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -186,22 +190,49 @@ export function ImageField({ id, value, onChange }: { id: string; value: string;
     catch (e) { toast.error(e instanceof Error ? e.message : "No se pudo subir la imagen"); }
     finally { setUploading(false); if (fileRef.current) fileRef.current.value = ""; }
   };
+  const preview = (
+    <div className={`flex items-center justify-center overflow-hidden rounded-lg border border-border bg-muted ${compact ? "aspect-video w-full" : "h-24 w-36 shrink-0"}`}>
+      {value ? <img src={value} alt="" className="h-full w-full object-cover" /> : <ImagePlus className="h-6 w-6 text-muted-foreground" aria-hidden="true" />}
+    </div>
+  );
+  const buttons = (
+    <div className={compact ? "grid gap-2" : "flex flex-wrap gap-2"}>
+      <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()} className={compact ? "w-full" : ""}>
+        {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImagePlus className="mr-2 h-4 w-4" />}Subir imagen
+      </Button>
+      <Button type="button" variant="outline" size="sm" onClick={() => setLibrary(true)} className={compact ? "w-full" : ""}>
+        <Images className="mr-2 h-4 w-4" />Elegir de la biblioteca
+      </Button>
+      {compact && value && (
+        <button type="button" onClick={() => onChange("")} className="justify-self-start text-xs text-destructive underline underline-offset-2">Quitar imagen destacada</button>
+      )}
+    </div>
+  );
+  const extras = (
+    <>
+      <MediaPicker open={library} onClose={() => setLibrary(false)} onSelect={(m) => onChange(m.url)} title="Imagen destacada" />
+      <input ref={fileRef} type="file" accept={IMAGE_ACCEPT} className="hidden" onChange={(e) => void pick(e.target.files?.[0])} />
+    </>
+  );
+
+  if (compact) {
+    return (
+      <div className="min-w-0 space-y-2">
+        {preview}
+        {buttons}
+        <Input id={id} value={value} onChange={(e) => onChange(e.target.value)} placeholder="…o pega una URL https://" className="h-8 min-w-0 text-xs" />
+        {extras}
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-      <div className="flex h-24 w-36 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
-        {value ? <img src={value} alt="" className="h-full w-full object-cover" /> : <ImagePlus className="h-6 w-6 text-muted-foreground" aria-hidden="true" />}
-      </div>
-      <div className="flex-1 space-y-2">
-        <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
-          {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImagePlus className="mr-2 h-4 w-4" />}Subir imagen
-        </Button>
-        <Button type="button" variant="outline" size="sm" className="ml-2" onClick={() => setLibrary(true)}>
-          <Images className="mr-2 h-4 w-4" />Elegir de la biblioteca
-        </Button>
-        <MediaPicker open={library} onClose={() => setLibrary(false)} onSelect={(m) => onChange(m.url)} title="Imagen destacada" />
-        <input ref={fileRef} type="file" accept={IMAGE_ACCEPT} className="hidden" onChange={(e) => void pick(e.target.files?.[0])} />
+      {preview}
+      <div className="min-w-0 flex-1 space-y-2">
+        {buttons}
         <Input id={id} value={value} onChange={(e) => onChange(e.target.value)} placeholder="…o pega una URL https://" />
         <p className="text-xs text-muted-foreground">JPG, PNG, WebP, GIF o AVIF: se convierte a WebP y se reduce antes de subir (máx. 2 MB).</p>
+        {extras}
       </div>
     </div>
   );
