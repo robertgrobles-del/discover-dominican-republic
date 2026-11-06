@@ -5,9 +5,11 @@ import { CATALOG_SOURCE } from "./lib/catalogSource";
 import { detectLocale } from "./lib/detectLocale";
 import { installGlobalErrorHandlers } from "./lib/globalErrorHandlers";
 import { installRoutePrefetch } from "./lib/routePrefetch";
+import { installAnonymousImages } from "./lib/anonymousImages";
 import "./index.css";
 
 installGlobalErrorHandlers();
+installAnonymousImages(); // antes del primer render: ninguna imagen de Unsplash debe salir con cookies
 installRoutePrefetch();
 
 function render() {
