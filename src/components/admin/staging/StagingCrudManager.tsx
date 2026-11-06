@@ -191,7 +191,6 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun, re
   );
 }
 
-/** Imagen: se sube como archivo (convertida a WebP) o se pega una URL; muestra una miniatura. */
 /**
  * Imagen: se sube como archivo (convertida a WebP), se elige de la biblioteca o se pega una URL.
  * `compact` para columnas estrechas (la caja «Imagen destacada» del editor): todo apilado, sin desbordar.
@@ -200,6 +199,8 @@ export function ImageField({ id, value, onChange, compact = false }: { id: strin
   const [library, setLibrary] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  // Las imágenes de la biblioteca no muestran su ruta interna (/api/v1/media/…): solo se pega URL para las externas.
+  const internal = value.startsWith("/api/v1/media/");
   const pick = async (file: File | undefined) => {
     if (!file) return;
     setUploading(true);
@@ -237,7 +238,7 @@ export function ImageField({ id, value, onChange, compact = false }: { id: strin
       <div className="min-w-0 space-y-2">
         {preview}
         {buttons}
-        <Input id={id} value={value} onChange={(e) => onChange(e.target.value)} placeholder="…o pega una URL https://" className="h-8 min-w-0 text-xs" />
+        {!internal && <Input id={id} value={value} onChange={(e) => onChange(e.target.value)} placeholder="…o pega una URL https://" className="h-8 min-w-0 text-xs" />}
         {extras}
       </div>
     );
@@ -247,7 +248,9 @@ export function ImageField({ id, value, onChange, compact = false }: { id: strin
       {preview}
       <div className="min-w-0 flex-1 space-y-2">
         {buttons}
-        <Input id={id} value={value} onChange={(e) => onChange(e.target.value)} placeholder="…o pega una URL https://" />
+        {internal
+          ? <button type="button" onClick={() => onChange("")} className="text-xs text-destructive underline underline-offset-2">Quitar imagen</button>
+          : <Input id={id} value={value} onChange={(e) => onChange(e.target.value)} placeholder="…o pega una URL https://" />}
         <p className="text-xs text-muted-foreground">JPG, PNG, WebP, GIF o AVIF: se convierte a WebP y se reduce antes de subir (máx. 2 MB).</p>
         {extras}
       </div>
