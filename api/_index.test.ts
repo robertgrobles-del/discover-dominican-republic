@@ -353,3 +353,24 @@ describe("traducciones del CMS", () => {
     Object.assign(process.env, Object.fromEntries(Object.entries({ GEMINI_API_KEY: saved.g, ANTHROPIC_API_KEY: saved.a, TRANSLATION_PROVIDER: saved.p }).filter(([, v]) => v)));
   });
 });
+
+describe("biblioteca de medios", () => {
+  it("lista sin bytes, edita el texto alternativo y no borra una imagen en uso", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    const webp = Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(4), Buffer.from("WEBPVP8 "), Buffer.alloc(16)]).toString("base64");
+    const libre = data(await call("POST", "/admin/media", { data: webp, alt: "Playa" }, auth));
+    const usada = data(await call("POST", "/admin/media", { data: webp }, auth));
+
+    const list = data<{ id: string; url: string; alt: string | null; bytes?: unknown }[]>(await call("GET", "/admin/media", undefined, auth));
+    const item = list.find((x) => x.id === libre.id)!;
+    expect(item).toMatchObject({ alt: "Playa", url: `/api/v1/media/${libre.id as string}.webp` });
+    expect(item.bytes).toBeUndefined();
+
+    expect(data(await call("PATCH", `/admin/media/${libre.id as string}`, { alt: "Playa Rincón" }, auth))).toMatchObject({ alt: "Playa Rincón" });
+
+    await call("POST", "/admin/news", { slug: "con-foto", title: "Con foto", cover_url: usada.url }, auth);
+    expect((await call("DELETE", `/admin/media/${usada.id as string}`, undefined, auth)).status).toBe(409);
+    expect((await call("DELETE", `/admin/media/${libre.id as string}`, undefined, auth)).status).toBe(204);
+    expect((await call("GET", "/admin/media")).status).toBe(401);
+  });
+});

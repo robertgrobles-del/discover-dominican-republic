@@ -19,8 +19,9 @@ import { useQuery } from "@tanstack/react-query";
 import { adminDashboardApi } from "@/lib/adminDashboardApi";
 import { StagingNewsCategoriesManager, StagingNewsManager, StagingProvincesManager } from "@/components/admin/staging/StagingCrudManager";
 import { StagingEstablishmentRequestsManager, StagingLeadsManager } from "@/components/admin/staging/StagingFormsManagers";
+import { MediaLibrary } from "@/components/admin/staging/MediaLibrary";
 import { StagingUsersManager } from "@/components/admin/staging/StagingUsersManager";
-import { Shield, Loader2, Search, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun } from "lucide-react";
+import { Shield, Loader2, Search, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun, Image as ImageIcon } from "lucide-react";
 
 type TabCategory = "erp" | "crm" | "cms" | "system";
 
@@ -94,6 +95,7 @@ const CATEGORY_CONFIG: Record<TabCategory, { label: string; badge: string; descr
 const ADMIN_TABS: AdminTab[] = [
   { value: "provincias", label: "Provincias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: MapPin, iconClass: "text-emerald-500", render: () => <StagingProvincesManager /> },
   { value: "noticias", label: "Noticias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Newspaper, iconClass: "text-primary", render: () => <StagingNewsManager /> },
+  { value: "medios", label: "Biblioteca de medios", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: ImageIcon, iconClass: "text-cyan-500", render: () => <MediaLibrary /> },
   { value: "categorias-noticias", label: "Categorías de noticias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Tags, iconClass: "text-amber-500", render: () => <StagingNewsCategoriesManager /> },
   { value: "sorteo", label: "Participantes del sorteo", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Gift, iconClass: "text-pink-500", render: () => <StagingLeadsManager /> },
   { value: "solicitudes-negocios", label: "Solicitudes de negocios", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Building2, iconClass: "text-orange-500", render: () => <StagingEstablishmentRequestsManager /> },

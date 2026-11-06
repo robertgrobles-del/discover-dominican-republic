@@ -2,7 +2,7 @@
 import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ImagePlus, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { ImagePlus, Images, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { fetchApi } from "@/lib/fastifyClient";
 import { HttpError } from "@/lib/httpClient";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { IMAGE_ACCEPT, uploadImage } from "@/lib/stagingMedia";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { NewsEditor } from "./NewsEditor";
+import { MediaPicker } from "./MediaLibrary";
 
 export type FieldDef = {
   key: string;
@@ -175,6 +176,7 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun, re
 
 /** Imagen: se sube como archivo (convertida a WebP) o se pega una URL; muestra una miniatura. */
 export function ImageField({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
+  const [library, setLibrary] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const pick = async (file: File | undefined) => {
@@ -193,6 +195,10 @@ export function ImageField({ id, value, onChange }: { id: string; value: string;
         <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
           {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImagePlus className="mr-2 h-4 w-4" />}Subir imagen
         </Button>
+        <Button type="button" variant="outline" size="sm" className="ml-2" onClick={() => setLibrary(true)}>
+          <Images className="mr-2 h-4 w-4" />Elegir de la biblioteca
+        </Button>
+        <MediaPicker open={library} onClose={() => setLibrary(false)} onSelect={(m) => onChange(m.url)} title="Imagen destacada" />
         <input ref={fileRef} type="file" accept={IMAGE_ACCEPT} className="hidden" onChange={(e) => void pick(e.target.files?.[0])} />
         <Input id={id} value={value} onChange={(e) => onChange(e.target.value)} placeholder="…o pega una URL https://" />
         <p className="text-xs text-muted-foreground">JPG, PNG, WebP, GIF o AVIF: se convierte a WebP y se reduce antes de subir (máx. 2 MB).</p>

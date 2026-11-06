@@ -9,16 +9,15 @@ import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Markdown } from "tiptap-markdown";
 import { toast } from "sonner";
-import { Bold, ImagePlus, Italic, Link2, List, ListOrdered, Loader2, Minus, Quote, Redo2, Undo2, Unlink } from "lucide-react";
+import { Bold, ImagePlus, Italic, Link2, List, ListOrdered, Minus, Quote, Redo2, Undo2, Unlink } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { IMAGE_ACCEPT, uploadImage } from "@/lib/stagingMedia";
+import { MediaPicker, type MediaItem } from "./MediaLibrary";
 
 const getMarkdown = (editor: Editor) => (editor.storage as { markdown: { getMarkdown: () => string } }).markdown.getMarkdown();
 
 export function ClassicEditor({ id, value, onChange }: { id: string; value: string; onChange: (markdown: string) => void }) {
   const [mode, setMode] = useState<"visual" | "text">("visual");
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [library, setLibrary] = useState(false);
   const last = useRef(value); // último Markdown emitido, para no reescribir el editor con su propio cambio
 
   const editor = useEditor({
@@ -39,22 +38,12 @@ export function ClassicEditor({ id, value, onChange }: { id: string; value: stri
     if (editor && value !== last.current) { last.current = value; editor.commands.setContent(value, false); }
   }, [editor, value]);
 
-  const addMedia = async (file: File | undefined) => {
-    if (!file) return;
-    const alt = window.prompt("Describe la imagen (texto alternativo, para accesibilidad):", "") ?? "";
+  /** Imagen elegida (o subida) en la biblioteca: se inserta donde está el cursor, con su texto alternativo. */
+  const insertMedia = (item: MediaItem) => {
+    const alt = item.alt ?? "";
     const caption = window.prompt("Pie de foto (opcional, p. ej. «Foto: Ana Pérez»):", "") ?? "";
-    setUploading(true);
-    try {
-      const src = await uploadImage(file, alt);
-      if (mode === "visual" && editor) editor.chain().focus().setImage({ src, alt, title: caption || undefined }).run();
-      else onChange(`${value}\n\n![${alt.replace(/[[\]]/g, "")}](${src}${caption ? ` "${caption.replace(/"/g, "'")}"` : ""})\n`);
-      toast.success("Imagen añadida (WebP)");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "No se pudo subir la imagen");
-    } finally {
-      setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
+    if (mode === "visual" && editor) editor.chain().focus().setImage({ src: item.url, alt, title: caption || undefined }).run();
+    else onChange(`${value}\n\n![${alt.replace(/[[\]]/g, "")}](${item.url}${caption ? ` "${caption.replace(/"/g, "'")}"` : ""})\n`);
   };
 
   const setLink = () => {
@@ -92,11 +81,11 @@ export function ClassicEditor({ id, value, onChange }: { id: string; value: stri
   return (
     <div>
       <div className="mb-2 flex items-end justify-between gap-2">
-        <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
-          className="inline-flex items-center gap-1.5 rounded-md border border-primary/60 bg-background px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/5 disabled:opacity-50">
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}Añadir medios
+        <button type="button" onClick={() => setLibrary(true)}
+          className="inline-flex items-center gap-1.5 rounded-md border border-primary/60 bg-background px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/5">
+          <ImagePlus className="h-4 w-4" />Añadir medios
         </button>
-        <input ref={fileRef} type="file" accept={IMAGE_ACCEPT} className="hidden" onChange={(e) => void addMedia(e.target.files?.[0])} />
+        <MediaPicker open={library} onClose={() => setLibrary(false)} onSelect={insertMedia} title="Añadir medios" />
         <div role="tablist" aria-label="Modo de edición" className="flex">
           {(["visual", "text"] as const).map((m) => (
             <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => setMode(m)}

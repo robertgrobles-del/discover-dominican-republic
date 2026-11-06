@@ -380,6 +380,37 @@ async function uploadMedia(db: Client, body: Fields, userId: string): Promise<Ap
   return { status: 201, body: { data: { id, url: `/api/v1/media/${id}.webp`, size: bytes.length } } };
 }
 
+/** Biblioteca de medios del panel: listado (sin los bytes), texto alternativo y borrado de lo que no se usa. */
+async function mediaAdmin(db: Client, method: string, id: string | undefined, body: Fields): Promise<ApiResponse> {
+  if (method === "GET" && !id) {
+    const r = await db.execute(`SELECT id, size, width, height, alt, created_at FROM media ORDER BY created_at DESC LIMIT 500`);
+    return { status: 200, body: { data: r.rows.map((m) => ({ ...m, url: `/api/v1/media/${String(m.id)}.webp` })) } };
+  }
+  if (!id || !MEDIA_ID.test(id)) return err(404, "No encontrada");
+  if (method === "PATCH") {
+    const alt = str(body, "alt", 300);
+    if (alt instanceof Error) return err(422, alt.message);
+    const r = await db.execute({ sql: "UPDATE media SET alt = ? WHERE id = ?", args: [alt, id] });
+    return r.rowsAffected ? { status: 200, body: { data: { id, alt } } } : err(404, "No encontrada");
+  }
+  if (method === "DELETE") {
+    // No se borra una imagen en uso: dejaría portadas y cuerpos con la foto rota.
+    const url = `/api/v1/media/${id}.webp`;
+    const like = `%${url}%`;
+    const used = await db.execute({
+      sql: `SELECT (SELECT COUNT(*) FROM news WHERE cover_url = ? OR body LIKE ?)
+                 + (SELECT COUNT(*) FROM provinces WHERE image_url = ? OR description LIKE ?)
+                 + (SELECT COUNT(*) FROM content_translations WHERE data LIKE ?) AS n`,
+      args: [url, like, url, like, like],
+    });
+    const n = Number(used.rows[0]?.n ?? 0);
+    if (n) return err(409, `No se puede eliminar: la usa${n === 1 ? "" : "n"} ${n} publicaci${n === 1 ? "ón" : "ones"}`);
+    const r = await db.execute({ sql: "DELETE FROM media WHERE id = ?", args: [id] });
+    return r.rowsAffected ? { status: 204 } : err(404, "No encontrada");
+  }
+  return err(405, "Método no permitido");
+}
+
 async function serveMedia(db: Client, id: string): Promise<ApiResponse> {
   if (!MEDIA_ID.test(id)) return err(404, "No encontrada");
   const row = (await db.execute({ sql: "SELECT bytes FROM media WHERE id = ?", args: [id] })).rows[0];
@@ -1010,6 +1041,8 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   if (users) return roles.includes("admin") ? usersApi(db, m, users[1], body, user) : err(403, "Solo un administrador gestiona usuarios");
 
   if (path === "/admin/media" && m === "POST") return uploadMedia(db, body, user.id);
+  const lib = path.match(/^\/admin\/media(?:\/([^/]+))?$/);
+  if (lib && !(m === "POST" && !lib[1])) return mediaAdmin(db, m, lib[1], body);
   if (path === "/admin/translate" && m === "POST") return translateRoute(body, translate);
   const tr = path.match(/^\/admin\/translations\/(news|provinces|news_categories)\/([A-Za-z0-9-]+)(?:\/([a-z]{2}))?$/);
   if (tr) return translationsAdmin(db, m, tr[1], tr[2], tr[3], body, user.id);
