@@ -25,16 +25,32 @@ function read(file: string): string {
 describe("retirada del service worker", () => {
   // El barrido recorre todo `src/` en disco; en carpetas sincronizadas (OneDrive) un pico de E/S puede
   // superar un timeout corto y hacer fallar la prueba por el entorno, no por una regresión real.
-  it("ninguna fuente, la página ni public/ registran un service worker", { timeout: 60000 }, () => {
+  // El único registro permitido es el de la PWA (src/lib/pwa.ts → /pwa-sw.js), y ese service worker no puede
+  // repetir el fallo del anterior: servir páginas desde la caché y dejar a la gente en una versión vieja para siempre.
+  it("solo src/lib/pwa.ts registra un service worker, y es /pwa-sw.js", { timeout: 60000 }, () => {
     const candidates = [
       ...listFiles(path.join(ROOT, "src")).filter((f) => SOURCE_EXTENSIONS.has(path.extname(f))),
       path.join(ROOT, "index.html"),
       ...listFiles(path.join(ROOT, "public")),
     ];
 
-    const offenders = candidates.filter((file) => REGISTER_CALL.test(read(file)));
+    const offenders = candidates.filter((file) => REGISTER_CALL.test(read(file))).map((f) => path.relative(ROOT, f).split(path.sep).join("/"));
 
-    expect(offenders).toEqual([]);
+    expect(offenders).toEqual(["src/lib/pwa.ts"]);
+    expect(read(path.join(ROOT, "src", "lib", "pwa.ts"))).toContain('"/pwa-sw.js"');
+  });
+
+  it("el service worker de la PWA nunca sirve páginas desde la caché ni precarga la app", () => {
+    const sw = read(path.join(ROOT, "public", "pwa-sw.js"));
+    // Navegación: red primero; la caché solo da /offline.html cuando no hay conexión.
+    expect(sw).toMatch(/req\.mode === "navigate"[\s\S]*fetch\(req\)\.catch\(\(\) => caches\.match\("\/offline\.html"\)\)/);
+    const precache = sw.match(/const PRECACHE = \[([^\]]*)\]/)?.[1] ?? "";
+    expect(precache).not.toMatch(/"\/"|index\.html/);
+    expect(sw).toContain('url.pathname.startsWith("/api/")'); // la API nunca pasa por la caché
+  });
+
+  it("la limpieza del service worker antiguo respeta el de la PWA", () => {
+    expect(read(path.join(ROOT, "public", "legacy-sw-cleanup.js"))).toContain("pwa-sw");
   });
 
   it("public/ no contiene un archivo de service worker ni de workbox", () => {

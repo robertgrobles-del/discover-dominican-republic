@@ -10,6 +10,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "@/hooks/useI18n";
 import { toast } from "sonner";
+import { fetchApi } from "@/lib/fastifyClient";
 import { PreFooterPresidenteBanner } from "@/components/promo/PreFooterPresidenteBanner";
 import { openPrivacySettings } from "@/lib/privacy-consent";
 import { usePageContent } from "@/lib/pageContent";
@@ -24,11 +25,20 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const { t } = useTranslation();
 
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
+  const [subscribing, setSubscribing] = useState(false);
+  // Se guarda en el backend (Turso en staging: tabla leads, origen "newsletter"); antes solo mostraba el aviso.
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
+    if (!email || subscribing) return;
+    setSubscribing(true);
+    try {
+      await fetchApi("/leads", { method: "POST", body: JSON.stringify({ email: email.trim().toLowerCase(), source: "newsletter", interest: "Boletín", consent: true }) });
       toast.success(t("footer.newsletterSuccess"));
       setEmail("");
+    } catch {
+      toast.error("No se pudo completar la suscripción. Inténtalo de nuevo.");
+    } finally {
+      setSubscribing(false);
     }
   };
 

@@ -726,7 +726,8 @@ async function submitLead(db: Client, body: Fields, hash: string | null): Promis
   const email = emailOf(body);
   if (email instanceof Error) return err(422, email.message);
   const values = collect({
-    name: () => str(body, "name", 120, true),
+    // El boletín solo pide el correo; el sorteo exige nombre.
+    name: () => (body.source === "newsletter" ? str(body, "name", 120) ?? email : str(body, "name", 120, true)),
     interest: () => str(body, "interest", 200),
     message: () => str(body, "message", 1000),
     source: () => str(body, "source", 60) ?? "landing",

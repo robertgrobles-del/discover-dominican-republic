@@ -8,6 +8,11 @@
 (function () {
   if (!("serviceWorker" in navigator)) return;
   navigator.serviceWorker.getRegistrations().then(function (regs) {
+    // El de la PWA actual (/pwa-sw.js, nunca sirve páginas desde la caché) se respeta; solo se quita el antiguo.
+    regs = regs.filter(function (r) {
+      var w = r.active || r.waiting || r.installing;
+      return !(w && /\/pwa-sw\.js$/.test(new URL(w.scriptURL).pathname));
+    });
     if (!regs.length) return;
     Promise.all(regs.map(function (r) { return r.unregister(); })).then(function () {
       var clear = "caches" in window

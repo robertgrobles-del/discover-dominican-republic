@@ -1,133 +1,41 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sin Conexión — Descubre República Dominicana</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Sin conexión | Descubre RD</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <style>
-    :root {
-      --primary: #005baa;
-      --bg: #090d16;
-      --card: #131b2e;
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --border: rgba(255, 255, 255, 0.1);
-    }
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      box-sizing: border-box;
-    }
-    .card {
-      max-width: 480px;
-      margin: 20px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 32px 24px;
-      text-align: center;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-    }
-    .icon-badge {
-      width: 64px;
-      height: 64px;
-      background: rgba(0, 91, 170, 0.2);
-      border: 1px solid rgba(0, 91, 170, 0.4);
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px auto;
-      font-size: 28px;
-    }
-    h1 {
-      font-size: 22px;
-      margin: 0 0 10px 0;
-      font-weight: 700;
-    }
-    p {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.5;
-      margin: 0 0 24px 0;
-    }
-    .emergency-box {
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      border-radius: 12px;
-      padding: 16px;
-      text-align: left;
-      margin-bottom: 24px;
-    }
-    .emergency-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: #ef4444;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .emergency-item {
-      font-size: 13px;
-      color: #cbd5e1;
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 4px;
-    }
-    .emergency-item strong {
-      color: #fff;
-    }
-    .btn {
-      display: inline-block;
-      width: 100%;
-      box-sizing: border-box;
-      background: var(--primary);
-      color: #fff;
-      text-decoration: none;
-      padding: 12px 20px;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      transition: opacity 0.2s;
-    }
-    .btn:hover {
-      opacity: 0.9;
-    }
+    :root { color-scheme: light dark; --bg: #f7fafb; --fg: #10232b; --muted: #55707b; --primary: #0b7290; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #0d171c; --fg: #eef5f7; --muted: #9db4bd; --primary: #2bb7dd; } }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--bg); color: var(--fg);
+           font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif; padding: 16px; box-sizing: border-box; }
+    main { max-width: 26rem; text-align: center; }
+    img { width: 64px; height: 64px; }
+    h1 { font-size: 1.5rem; margin: 1rem 0 .5rem; }
+    p { color: var(--muted); margin: 0 0 1.5rem; }
+    button { background: var(--primary); color: #fff; border: 0; border-radius: 10px; padding: .75rem 1.25rem; font: inherit; font-weight: 600; cursor: pointer; }
+    .sos { text-align: left; border: 1px solid color-mix(in srgb, var(--muted) 30%, transparent); border-radius: 12px; padding: 1rem; margin: 0 0 1.5rem; }
+    .sos h2 { font-size: 1rem; margin: 0 0 .5rem; }
+    .sos ul { list-style: none; margin: 0; padding: 0; line-height: 2; }
+    .sos a { color: var(--primary); font-weight: 700; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="icon-badge">🌴</div>
-    <h1>Estás en Modo Offline</h1>
-    <p>Parece que has perdido la conexión a internet. No te preocupes, las páginas que visitaste recientemente siguen disponibles.</p>
-    
-    <div class="emergency-box">
-      <div class="emergency-title">🚨 Teléfonos de Emergencia en RD</div>
-      <div class="emergency-item">
-        <span>Emergencias Nacionales:</span>
-        <strong>911</strong>
-      </div>
-      <div class="emergency-item">
-        <span>Policía Turística (POLITUR):</span>
-        <strong>+1 (809) 222-2010</strong>
-      </div>
-      <div class="emergency-item">
-        <span>Asistencia Vial (MOPC):</span>
-        <strong>+1 (829) 688-1000</strong>
-      </div>
-    </div>
-
-    <button class="btn" onclick="window.location.reload()">Reintentar Conexión</button>
-  </div>
+  <main>
+    <img src="/favicon.svg" alt="" />
+    <h1>Sin conexión</h1>
+    <p>No hay internet en este momento. Cuando vuelva la conexión podrás seguir descubriendo República Dominicana.</p>
+    <section class="sos" aria-labelledby="sos">
+      <h2 id="sos">🚨 Teléfonos de emergencia en RD</h2>
+      <ul>
+        <li>Emergencias nacionales: <a href="tel:911">911</a></li>
+        <li>Policía Turística (POLITUR): <a href="tel:+18092222010">+1 (809) 222-2010</a></li>
+        <li>Asistencia vial (MOPC): <a href="tel:+18296881000">+1 (829) 688-1000</a></li>
+      </ul>
+    </section>
+    <button type="button" onclick="location.reload()">Reintentar</button>
+  </main>
 </body>
 </html>

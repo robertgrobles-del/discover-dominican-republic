@@ -57,7 +57,7 @@ export function StagingLeadsManager() {
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">Participantes del sorteo <span className="text-sm font-normal text-muted-foreground">({rows.length})</span></h2>
+        <h2 className="text-lg font-semibold">Sorteo y boletín <span className="text-sm font-normal text-muted-foreground">({rows.length})</span></h2>
         <div className="flex gap-2">
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar nombre o correo" aria-label="Buscar participante" className="h-9 w-56" />
           <Button variant="outline" size="sm" onClick={exportCsv} disabled={!shown.length}><Download className="mr-2 h-4 w-4" />Exportar CSV</Button>

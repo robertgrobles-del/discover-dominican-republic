@@ -374,3 +374,12 @@ describe("biblioteca de medios", () => {
     expect((await call("GET", "/admin/media")).status).toBe(401);
   });
 });
+
+describe("boletín", () => {
+  it("se suscribe solo con el correo y no duplica", async () => {
+    const post = (body: unknown) => handle({ method: "POST", path: "/api/v1/leads", headers: {}, body, ip: "7.7.7.7" } as ApiRequest, db, SECRET, false);
+    expect((await post({ email: "lector@x.do", source: "newsletter", consent: true })).status).toBe(201);
+    expect(data(await post({ email: "LECTOR@x.do", source: "newsletter", consent: true }))).toMatchObject({ duplicate: true });
+    expect((await post({ email: "sin-nombre@x.do", source: "sorteo_lector", consent: true })).status).toBe(422); // el sorteo sí pide nombre
+  });
+});

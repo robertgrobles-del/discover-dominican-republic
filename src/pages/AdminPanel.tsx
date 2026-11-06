@@ -97,7 +97,7 @@ const ADMIN_TABS: AdminTab[] = [
   { value: "noticias", label: "Noticias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Newspaper, iconClass: "text-primary", render: () => <StagingNewsManager /> },
   { value: "medios", label: "Biblioteca de medios", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: ImageIcon, iconClass: "text-cyan-500", render: () => <MediaLibrary /> },
   { value: "categorias-noticias", label: "Categorías de noticias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Tags, iconClass: "text-amber-500", render: () => <StagingNewsCategoriesManager /> },
-  { value: "sorteo", label: "Participantes del sorteo", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Gift, iconClass: "text-pink-500", render: () => <StagingLeadsManager /> },
+  { value: "sorteo", label: "Sorteo y boletín", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Gift, iconClass: "text-pink-500", render: () => <StagingLeadsManager /> },
   { value: "solicitudes-negocios", label: "Solicitudes de negocios", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Building2, iconClass: "text-orange-500", render: () => <StagingEstablishmentRequestsManager /> },
   { value: "usuarios", label: "Usuarios", category: "system", capability: "staging.panel", allowRoles: ["admin"], icon: Users, iconClass: "text-sky-500", render: () => <StagingUsersManager /> },
 ];
