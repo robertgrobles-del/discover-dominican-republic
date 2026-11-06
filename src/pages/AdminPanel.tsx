@@ -24,7 +24,7 @@ import { StagingUsersManager } from "@/components/admin/staging/StagingUsersMana
 import { StagingDashboard } from "@/components/admin/staging/StagingDashboard";
 import { Shield, Loader2, Search, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun, Image as ImageIcon, LayoutDashboard, Mail } from "lucide-react";
 
-type TabCategory = "erp" | "crm" | "cms" | "system";
+type TabCategory = "home" | "erp" | "crm" | "cms" | "system";
 
 interface AdminTab {
   value: string;
@@ -36,7 +36,8 @@ interface AdminTab {
   icon: typeof Shield;
   iconClass?: string;
   demoOnly?: boolean;
-  render: () => ReactElement;
+  /** El escritorio recibe las pestañas visibles para resumir todas las secciones, también las futuras. */
+  render: (ctx: { tabs: { value: string; label: string; icon: typeof Shield; category: string }[] }) => ReactElement;
 }
 
 /** Qué se hace en cada sección: es el subtítulo de su pantalla. */
@@ -83,6 +84,7 @@ const TAB_DESCRIPTIONS: Record<string, string> = {
 };
 
 const CATEGORY_CONFIG: Record<TabCategory, { label: string; badge: string; description: string; order: number }> = {
+  home: { label: "Inicio", badge: "HOME", description: "Resumen de todo el panel", order: 0 },
   erp: { label: "ERP & Operaciones", badge: "ERP", description: "Finanzas, inventario, reservas y logística", order: 1 },
   crm: { label: "CRM & Relaciones", badge: "CRM", description: "Usuarios, operadores, leads y soporte", order: 2 },
   cms: { label: "CMS & Contenidos", badge: "CMS", description: "Artículos, catálogos, medios e idiomas", order: 3 },
@@ -94,7 +96,7 @@ const CATEGORY_CONFIG: Record<TabCategory, { label: string; badge: string; descr
 // La capacidad no existe a propósito: el acceso lo da el rol real de la sesión (allowRoles), no el contexto
 // de demostración que se carga con la landing en datos locales.
 const ADMIN_TABS: AdminTab[] = [
-  { value: "dashboard", label: "Escritorio", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor", "autor", "colaborador"], icon: LayoutDashboard, iconClass: "text-foreground", render: () => <StagingDashboard /> },
+  { value: "dashboard", label: "Escritorio", category: "home", capability: "staging.panel", allowRoles: ["admin", "editor", "autor", "colaborador"], icon: LayoutDashboard, iconClass: "text-foreground", render: ({ tabs }) => <StagingDashboard sections={tabs.filter((t) => t.value !== "dashboard").map((t) => ({ ...t, group: CATEGORY_CONFIG[t.category as TabCategory]?.label ?? "" }))} /> },
   { value: "provincias", label: "Provincias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: MapPin, iconClass: "text-emerald-500", render: () => <StagingProvincesManager /> },
   { value: "noticias", label: "Noticias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor", "autor", "colaborador"], icon: Newspaper, iconClass: "text-primary", render: () => <StagingNewsManager /> },
   { value: "medios", label: "Biblioteca de medios", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor", "autor", "colaborador"], icon: ImageIcon, iconClass: "text-cyan-500", render: () => <MediaLibrary /> },
@@ -383,7 +385,7 @@ export default function AdminPanel() {
                       <p className="text-xs text-muted-foreground mt-0.5">{TAB_DESCRIPTIONS[activeTab.value] ?? CATEGORY_CONFIG[activeTab.category].description}</p>
                     </div>
                   </div>
-                  <div>{activeTab.render()}</div>
+                  <div>{activeTab.render({ tabs: visibleTabs })}</div>
                 </>
               ) : (
                 <p className="py-20 text-center text-muted-foreground">Elige una sección en el menú.</p>
