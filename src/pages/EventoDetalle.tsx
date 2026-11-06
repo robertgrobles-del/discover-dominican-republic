@@ -13,7 +13,7 @@ import {
   Award, Navigation, PlusCircle, Building2
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchApi } from "@/lib/fastifyClient";
 import { RegistroEventoModal } from "@/components/forms/RegistroEventoModal";
 import { FreeTicketModal } from "@/components/events/FreeTicketModal";
 import { DetailPageSidebarAd, MobileStickyFooterAd } from "@/components/promo";
@@ -31,6 +31,9 @@ import { EventAgendaTimeline } from "@/components/events/EventAgendaTimeline";
 import { EventTipsCard } from "@/components/events/EventTipsCard";
 import { EventSidebarCard } from "@/components/events/EventSidebarCard";
 import { usePageContent } from "@/lib/pageContent";
+
+/** Fila de /public/events/:slug (Turso). */
+type EventRow = Record<string, string | undefined>;
 
 export default function EventoDetalle() {
   const pc = usePageContent("evento-detalle");
@@ -68,13 +71,9 @@ export default function EventoDetalle() {
 
       // 2. Si no está en estático, buscar en Supabase
       try {
-        const { data, error } = await supabase
-          .from("events")
-          .select("*")
-          .or(`id.eq.${eventIdentifier},slug.eq.${eventIdentifier}`)
-          .maybeSingle();
+        const data = (await fetchApi<{ data: EventRow | null }>(`/public/events/${encodeURIComponent(eventIdentifier)}`)).data;
 
-        if (data && !error) {
+        if (data) {
           setEvent({
             id: data.id,
             name: data.name,
@@ -93,8 +92,8 @@ export default function EventoDetalle() {
             price_range: data.price_range || "Consultar boletería",
             ticket_url: data.ticket_url,
             organizer: data.organizer || "Comité Organizador",
-            is_featured: data.is_featured,
-            is_recurring: data.is_recurring,
+            is_featured: Boolean(data.is_featured),
+            is_recurring: Boolean(data.is_recurring),
             recurrence_pattern: data.recurrence_pattern,
           });
         } else {

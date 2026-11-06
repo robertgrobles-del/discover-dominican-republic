@@ -21,7 +21,7 @@ import { MediaPicker } from "./MediaLibrary";
 export type FieldDef = {
   key: string;
   label: string;
-  type?: "text" | "textarea" | "number" | "url" | "select" | "markdown" | "image" | "checkbox";
+  type?: "text" | "textarea" | "number" | "url" | "select" | "markdown" | "image" | "checkbox" | "date" | "time";
   required?: boolean;
   options?: { value: string; label: string }[];
   placeholder?: string;
@@ -36,7 +36,7 @@ const toSlug = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLower
 const apiMessage = (e: unknown) => (e instanceof HttpError ? (e.details as { error?: { message?: string } } | null)?.error?.message : null) ?? (e instanceof Error ? e.message : "Error");
 
 export function StagingCrudManager({ resource, title, titleKey, fields, noun, renderEditor, renderList }: {
-  resource: "provinces" | "news" | "news-categories";
+  resource: "provinces" | "news" | "news-categories" | "events";
   title: string;
   titleKey: string;           // campo que se muestra en la lista y del que sale el slug
   fields: FieldDef[];
@@ -126,7 +126,7 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun, re
                   {f.options!.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               ) : (
-                <Input {...common} type={f.type === "url" ? "url" : f.type === "number" ? "number" : "text"} step={f.type === "number" ? "any" : undefined} onChange={(e) => set(f.key, e.target.value)} />
+                <Input {...common} type={f.type === "url" || f.type === "number" || f.type === "date" || f.type === "time" ? f.type : "text"} step={f.type === "number" ? "any" : undefined} onChange={(e) => set(f.key, e.target.value)} />
               )}
               {(f.hint || f.recommended) && (
                 <p className="flex justify-between gap-3 text-xs text-muted-foreground">
@@ -299,6 +299,39 @@ export function StagingNewsCategoriesManager() {
         { key: "name", label: "Nombre", required: true },
         { key: "slug", label: "Slug (URL)", required: true, hint: "Se genera del nombre; solo minúsculas, números y guiones." },
         { key: "sort_order", label: "Orden", type: "number", hint: "Las categorías se listan de menor a mayor." },
+      ]}
+    />
+  );
+}
+
+const EVENT_TYPES = ["Cultural", "Música", "Feria", "Regional", "Exposición", "Deporte", "Gastronomía", "Evento"];
+
+export function StagingEventsManager() {
+  return (
+    <StagingCrudManager
+      resource="events"
+      title="Eventos"
+      titleKey="name"
+      noun="evento"
+      fields={[
+        { key: "name", label: "Nombre", required: true },
+        { key: "slug", label: "Slug (URL)", required: true, hint: "Se genera del nombre: /evento/<slug>." },
+        { key: "status", label: "Estado", type: "select", options: [{ value: "draft", label: "Borrador" }, { value: "published", label: "Publicado" }] },
+        { key: "event_type", label: "Tipo", type: "select", options: EVENT_TYPES.map((t) => ({ value: t, label: t })) },
+        { key: "image_url", label: "Imagen", type: "image" },
+        { key: "short_description", label: "Resumen", type: "textarea", recommended: 160, hint: "Sale en la tarjeta del calendario." },
+        { key: "description", label: "Descripción", type: "markdown" },
+        { key: "start_date", label: "Fecha de inicio", type: "date" },
+        { key: "end_date", label: "Fecha de fin", type: "date" },
+        { key: "start_time", label: "Hora de inicio", type: "time" },
+        { key: "end_time", label: "Hora de fin", type: "time" },
+        { key: "venue", label: "Lugar" },
+        { key: "address", label: "Dirección o ciudad" },
+        { key: "province", label: "Provincia" },
+        { key: "price_range", label: "Precio", placeholder: "Gratis, RD$500 – RD$1,500…" },
+        { key: "ticket_url", label: "Enlace de entradas", type: "url" },
+        { key: "organizer", label: "Organizador" },
+        { key: "is_featured", label: "Evento destacado", type: "checkbox" },
       ]}
     />
   );

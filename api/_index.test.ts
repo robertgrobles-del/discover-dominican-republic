@@ -451,3 +451,16 @@ describe("formulario de contacto", () => {
     expect(data<unknown[]>(await call("GET", "/admin/contact-messages", undefined, admin))).toHaveLength(2);
   });
 });
+
+describe("eventos", () => {
+  it("valida fechas y la API pública solo sirve los publicados", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    expect((await call("POST", "/admin/events", { slug: "e1", name: "E", start_date: "5 oct" }, auth)).status).toBe(422);
+    expect((await call("POST", "/admin/events", { slug: "borrador", name: "Borrador" }, auth)).status).toBe(201);
+    const ok = await call("POST", "/admin/events", { slug: "carnaval", name: "Carnaval", start_date: "2027-02-07", start_time: "14:00", status: "published" }, auth);
+    expect(ok.status).toBe(201);
+    expect(data<unknown[]>(await call("GET", "/public/events"))).toHaveLength(1);
+    expect((await call("GET", "/public/events/carnaval")).status).toBe(200);
+    expect((await call("GET", "/public/events/borrador")).status).toBe(404);
+  });
+});

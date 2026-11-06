@@ -202,6 +202,31 @@ const newsSpec = (b: Fields) => ({
   focus_keywords: () => str(b, "focus_keywords", 200),
 });
 
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
+const TIME = /^\d{2}:\d{2}$/;
+const fmt = (o: Fields, key: string, re: RegExp, label: string) => () => { const v = str(o, key, 10); return v instanceof Error || v === null || re.test(v) ? v : new Error(`${key} debe ser ${label}`); };
+
+const eventSpec = (b: Fields) => ({
+  slug: slugOf(b, 120),
+  name: () => str(b, "name", 200, true),
+  event_type: () => str(b, "event_type", 60),
+  short_description: () => str(b, "short_description", 300),
+  description: () => str(b, "description", 20000),
+  image_url: () => url(b, "image_url"),
+  start_date: fmt(b, "start_date", DATE, "una fecha AAAA-MM-DD"),
+  end_date: fmt(b, "end_date", DATE, "una fecha AAAA-MM-DD"),
+  start_time: fmt(b, "start_time", TIME, "una hora HH:MM"),
+  end_time: fmt(b, "end_time", TIME, "una hora HH:MM"),
+  venue: () => str(b, "venue", 200),
+  address: () => str(b, "address", 300),
+  province: () => str(b, "province", 120),
+  price_range: () => str(b, "price_range", 120),
+  ticket_url: () => url(b, "ticket_url"),
+  organizer: () => str(b, "organizer", 200),
+  is_featured: () => bool(b, "is_featured"),
+  status: () => oneOf(b, "status", STATUSES, "draft"),
+});
+
 // ---------- usuarios ----------
 interface UserRow { id: string; email: string; password_hash: string; display_name: string | null; roles: string; created_at: string }
 
@@ -230,6 +255,7 @@ const TABLES = {
   provinces: { spec: provinceSpec, order: "name COLLATE NOCASE", refs: {} },
   news: { spec: newsSpec, order: "created_at DESC", refs: { province_id: ["provinces", "La provincia indicada no existe"], category_id: ["news_categories", "La categoría indicada no existe"] } },
   news_categories: { spec: categorySpec, order: "sort_order, name COLLATE NOCASE", refs: {} },
+  events: { spec: eventSpec, order: "start_date DESC, name COLLATE NOCASE", refs: {} },
 } as const satisfies Record<string, { spec: (b: Fields) => Record<string, () => unknown>; order: string; refs: Record<string, readonly [string, string]> }>;
 
 async function crud(db: Client, table: keyof typeof TABLES, method: string, id: string | undefined, body: Fields, userId: string): Promise<ApiResponse> {
@@ -390,6 +416,15 @@ async function publicApi(db: Client, path: string, lang?: Lang): Promise<ApiResp
   if (detail) {
     const n = SLUG.test(detail[1]) ? await findNews(db, detail[1]) : null;
     return n ? { status: 200, body: { data: (await localizeNews(db, [n], lang))[0] }, headers: PUBLIC_CACHE } : err(404, "No encontrada");
+  }
+  if (path === "/public/events") {
+    const r = await db.execute("SELECT * FROM events WHERE status = 'published' ORDER BY start_date, name COLLATE NOCASE");
+    return { status: 200, body: { data: r.rows }, headers: PUBLIC_CACHE };
+  }
+  const ev = path.match(/^\/public\/events\/([^/]+)$/);
+  if (ev) {
+    const r = SLUG.test(ev[1]) ? await db.execute({ sql: "SELECT * FROM events WHERE status = 'published' AND slug = ?", args: [ev[1]] }) : null;
+    return r?.rows[0] ? { status: 200, body: { data: r.rows[0] }, headers: PUBLIC_CACHE } : err(404, "No encontrado");
   }
   if (path === "/public/news") {
     return { status: 200, body: { data: await localizeNews(db, (await listNews(db)).slice(0, 50), lang) }, headers: PUBLIC_CACHE };
@@ -1153,9 +1188,9 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
     return formsAdmin(db, forms[1] as FormResource, m, forms[2], body);
   }
 
-  const match = path.match(/^\/admin\/(provinces|news|news-categories)(?:\/([A-Za-z0-9-]+))?$/);
+  const match = path.match(/^\/admin\/(provinces|news|news-categories|events)(?:\/([A-Za-z0-9-]+))?$/);
   if (match && m !== "GET" && !manager) {
-    if (match[1] !== "news") return err(403, "Solo un editor o administrador modifica provincias y categorías");
+    if (match[1] !== "news") return err(403, "Solo un editor o administrador modifica provincias, categorías y eventos");
     const denied = await ownNewsGuard(db, m, match[2], body, user.id, roles.includes("autor"));
     if (denied) return denied;
   }

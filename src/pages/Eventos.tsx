@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useEffect } from "react";
 import { BetweenSectionsAd } from "@/components/promo";
 import { RegistroEventoModal } from "@/components/forms/RegistroEventoModal";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchApi } from "@/lib/fastifyClient";
 import { useTranslation } from "@/hooks/useI18n";
 import { formatDate } from "@/lib/localeFormat";
 import { 
@@ -38,17 +38,11 @@ export default function Eventos() {
   const [heroLoaded, setHeroLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState("calendario");
   const [isRegisterEventModalOpen, setIsRegisterEventModalOpen] = useState(false);
-  const [dbEvents, setDbEvents] = useState<any[]>([]);
+  const [dbEvents, setDbEvents] = useState<Record<string, string | undefined>[]>([]);
 
   useEffect(() => {
-    supabase
-      .from("events")
-      .select("*")
-      .eq("is_active", true)
-      .order("start_date", { ascending: true })
-      .then(({ data }) => {
-        if (data) setDbEvents(data);
-      });
+    // Eventos publicados desde el panel (Turso); si la API falla, solo salen los del código.
+    fetchApi<{ data: Record<string, string | undefined>[] }>("/public/events").then((r) => setDbEvents(r.data ?? [])).catch(() => undefined);
   }, []);
 
   // Merge static + DB events, DB first, dedup by slug-like id
