@@ -425,3 +425,18 @@ describe("roles al estilo WordPress", () => {
     expect((await call("GET", "/admin/news", undefined, colab)).status).toBe(200);
   });
 });
+
+describe("ficha de provincia", () => {
+  it("guarda listas JSON y colores, y rechaza formatos inválidos", async () => {
+    const auth = bearer(await login("admin@x.do", "clave-segura-123"));
+    const ok = await call("POST", "/admin/provinces", {
+      slug: "ficha", name: "Ficha", region: "este", color_primary: "#0b7290",
+      municipalities: [{ name: "Higüey", description: "Capital" }], places: [], hero_images: "[\"https://x.do/a.jpg\"]",
+    }, auth);
+    expect(ok.status).toBe(201);
+    expect(JSON.parse(String(data(ok).municipalities))[0].name).toBe("Higüey");
+    expect(data(ok).places).toBeNull();
+    expect((await call("POST", "/admin/provinces", { slug: "f2", name: "F", region: "este", color_accent: "rojo" }, auth)).status).toBe(422);
+    expect((await call("POST", "/admin/provinces", { slug: "f3", name: "F", region: "este", gallery: "{no" }, auth)).status).toBe(422);
+  });
+});

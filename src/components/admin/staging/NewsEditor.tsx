@@ -40,7 +40,7 @@ const toLocalInput = (iso: unknown) => {
 };
 const fromLocalInput = (v: string) => (v ? new Date(v).toISOString() : null);
 
-function Box({ title, children }: { title: string; children: ReactNode }) {
+export function Box({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="rounded-md border border-border bg-card">
       <h3 className="border-b border-border px-4 py-2.5 text-sm font-semibold">{title}</h3>

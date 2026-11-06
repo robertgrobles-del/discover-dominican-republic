@@ -154,7 +154,32 @@ const provinceSpec = (b: Fields) => ({
   latitude: () => num(b, "latitude", -90, 90),
   longitude: () => num(b, "longitude", -180, 180),
   status: () => oneOf(b, "status", STATUSES, "draft"),
+  image_alt: () => str(b, "image_alt", 300),
+  hero_images: () => jsonList(b, "hero_images", 10),
+  color_primary: () => color(b, "color_primary"),
+  color_accent: () => color(b, "color_accent"),
+  municipalities: () => jsonList(b, "municipalities", 60),
+  places: () => jsonList(b, "places", 80),
+  gallery: () => jsonList(b, "gallery", 60),
+  seo_title: () => str(b, "seo_title", 90),
+  seo_description: () => str(b, "seo_description", 200),
+  focus_keywords: () => str(b, "focus_keywords", 200),
 });
+
+/** Lista guardada como JSON (array o texto JSON de un array), con tope de elementos y de tamaño. */
+function jsonList(o: Fields, key: string, maxItems: number): string | null | Error {
+  let v = o[key];
+  if (v === undefined || v === null || v === "") return null;
+  if (typeof v === "string") { try { v = JSON.parse(v); } catch { return new Error(`${key} no es JSON válido`); } }
+  if (!Array.isArray(v)) return new Error(`${key} debe ser una lista`);
+  if (v.length > maxItems) return new Error(`${key} admite como máximo ${maxItems} elementos`);
+  const out = JSON.stringify(v);
+  return out.length > 60_000 ? new Error(`${key} es demasiado largo`) : v.length ? out : null;
+}
+function color(o: Fields, key: string): string | null | Error {
+  const v = str(o, key, 7);
+  return v instanceof Error || v === null || /^#[0-9a-f]{6}$/i.test(v) ? v : new Error(`${key} debe ser un color #rrggbb`);
+}
 
 const newsSpec = (b: Fields) => ({
   slug: () => { const s = str(b, "slug", 120, true); return s instanceof Error || SLUG.test(s!) ? s : new Error("slug solo admite minúsculas, números y guiones"); },

@@ -14,6 +14,8 @@ import { IMAGE_ACCEPT, uploadImage } from "@/lib/stagingMedia";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { NewsEditor } from "./NewsEditor";
 import { NewsList } from "./NewsList";
+import { ProvinceEditor } from "./ProvinceEditor";
+import { ProvinceList } from "./ProvinceList";
 import { MediaPicker } from "./MediaLibrary";
 
 export type FieldDef = {
@@ -262,18 +264,9 @@ export function StagingProvincesManager() {
       title="Provincias"
       titleKey="name"
       noun="provincia"
-      fields={[
-        { key: "name", label: "Nombre", required: true, placeholder: "Samaná" },
-        { key: "slug", label: "Slug (URL)", required: true, hint: "Se genera del nombre; solo minúsculas, números y guiones." },
-        { key: "region", label: "Región", type: "select", required: true, options: [{ value: "norte", label: "Norte" }, { value: "sur", label: "Sur" }, { value: "este", label: "Este" }, { value: "santo-domingo", label: "Santo Domingo" }] },
-        { key: "capital", label: "Capital" },
-        { key: "short_description", label: "Descripción corta" },
-        { key: "description", label: "Descripción", type: "textarea" },
-        { key: "image_url", label: "Imagen principal", type: "image" },
-        { key: "latitude", label: "Latitud", type: "number" },
-        { key: "longitude", label: "Longitud", type: "number" },
-        STATUS,
-      ]}
+      fields={[]}
+      renderEditor={(row, close, openNew) => <ProvinceEditor row={row} onClose={close} onNew={openNew} />}
+      renderList={(p) => <ProvinceList {...p} />}
     />
   );
 }
