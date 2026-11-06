@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { IMAGE_ACCEPT, uploadImage } from "@/lib/stagingMedia";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { NewsEditor } from "./NewsEditor";
+import { NewsList } from "./NewsList";
 import { MediaPicker } from "./MediaLibrary";
 
 export type FieldDef = {
@@ -32,7 +33,7 @@ type Row = Record<string, unknown> & { id: string };
 const toSlug = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 const apiMessage = (e: unknown) => (e instanceof HttpError ? (e.details as { error?: { message?: string } } | null)?.error?.message : null) ?? (e instanceof Error ? e.message : "Error");
 
-export function StagingCrudManager({ resource, title, titleKey, fields, noun, renderEditor }: {
+export function StagingCrudManager({ resource, title, titleKey, fields, noun, renderEditor, renderList }: {
   resource: "provinces" | "news" | "news-categories";
   title: string;
   titleKey: string;           // campo que se muestra en la lista y del que sale el slug
@@ -40,6 +41,8 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun, re
   noun: string;               // "provincia", "noticia", "categoría" (femenino: "Nueva …", "guardada")
   /** Editor propio en lugar del formulario genérico (las noticias usan el estilo WordPress). */
   renderEditor?: (row: Row | "new", close: () => void) => ReactNode;
+  /** Lista propia (las noticias usan la tabla de entradas de WordPress). */
+  renderList?: (p: { rows: Row[]; onNew: () => void; onEdit: (r: Row) => void; onDelete: (ids: string[]) => void; busy: boolean }) => ReactNode;
 }) {
   const qc = useQueryClient();
   const queryKey = ["staging", resource];
@@ -133,6 +136,13 @@ export function StagingCrudManager({ resource, title, titleKey, fields, noun, re
         </div>
       </form>
     );
+  }
+
+  if (renderList && !isLoading && !error) {
+    return <>{renderList({
+      rows, onNew: () => open("new"), onEdit: open, busy: remove.isPending,
+      onDelete: (ids) => { void Promise.all(ids.map((id) => remove.mutateAsync(id).catch(() => undefined))); },
+    })}</>;
   }
 
   return (
@@ -272,6 +282,7 @@ export function StagingNewsManager() {
       noun="noticia"
       fields={[]}
       renderEditor={(row, close) => <NewsEditor row={row} onClose={close} />}
+      renderList={(p) => <NewsList {...p} />}
     />
   );
 }
