@@ -3,7 +3,7 @@
 //   node staging/db.mjs build
 //       Genera staging/descubre-staging.sqlite con las tablas de schema.sql (para importarla en Turso).
 //
-//   node staging/db.mjs migrate
+//   node staging/db.mjs migrate [--if-remote]
 //       Aplica las migraciones de staging/migrations que falten (las anota en schema_migrations). Con
 //       TURSO_DATABASE_URL y TURSO_AUTH_TOKEN en el entorno lo hace en Turso; sin ellas, en el .sqlite local.
 //
@@ -54,6 +54,11 @@ if (cmd === "build") {
   db.close();
   console.log(`Creado ${SQLITE}\nTablas: ${tables.join(", ")}`);
 } else if (cmd === "migrate") {
+  // --if-remote: en el build de Vercel solo migra Turso; sin sus variables (CI, local) no toca nada.
+  if (args.includes("--if-remote") && !remote) {
+    console.log("migrate: sin TURSO_DATABASE_URL, no se migra nada");
+    process.exit(0);
+  }
   const db = target();
   const applied = await migrate(db);
   db.close();

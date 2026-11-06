@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
-  "buildCommand": "VITE_AUTH_SOURCE=api VITE_DATA_SOURCE=mock VITE_ALLOW_MOCK_BUILD=true VITE_STAGING_API=true npx vite build",
+  "buildCommand": "node staging/db.mjs migrate --if-remote && VITE_AUTH_SOURCE=api VITE_DATA_SOURCE=mock VITE_ALLOW_MOCK_BUILD=true VITE_STAGING_API=true npx vite build",
   "outputDirectory": "dist",
   "rewrites": [
     {

@@ -1113,6 +1113,12 @@ export default async function handler(req: IncomingMessage & { body?: unknown },
     if (out.body === undefined) return void res.writeHead(out.status).end();
     res.writeHead(out.status, { "Content-Type": "application/json; charset=utf-8" }).end(JSON.stringify(out.body));
   } catch (e) {
+    // Tabla o columna inexistente: falta aplicar migraciones (node staging/db.mjs migrate). Se dice tal cual.
+    if (/no such (table|column)/i.test(String(e))) {
+      console.error(e);
+      return void res.writeHead(503, { "Content-Type": "application/json; charset=utf-8" })
+        .end(JSON.stringify({ error: { message: "La base de datos no está actualizada: faltan migraciones. Vuelve a desplegar o ejecuta node staging/db.mjs migrate." } }));
+    }
     const status = (e as { status?: number }).status ?? (e instanceof SyntaxError ? 400 : 500);
     if (status === 500) console.error(e);
     res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" })

@@ -30,7 +30,8 @@ TURSO_DATABASE_URL="libsql://…turso.io" TURSO_AUTH_TOKEN="…" node staging/db
 ```
 
 Aplica solo las que falten (las anota en `schema_migrations`), cada una en una transacción. Ejecutarlo dos veces
-no hace nada la segunda. **Hay que correrlo antes de desplegar código que use las tablas o columnas nuevas.**
+no hace nada la segunda. **Vercel lo hace solo en cada despliegue** (`buildCommand` de `vercel.json`, con
+`--if-remote`): si una migración falla, el despliegue se detiene y sigue en línea la versión anterior.
 
 ## 2. Primer usuario del panel
 
