@@ -248,3 +248,47 @@ describe("SEO de noticias", () => {
     expect((await render("/md/noticias/no-existe")).status).toBe(404);
   });
 });
+
+describe("formularios públicos", () => {
+  const post = (path: string, body: unknown, ip: string) =>
+    handle({ method: "POST", path: `/api/v1${path}`, headers: {}, body, ip } as ApiRequest, db, SECRET, false);
+  const lead = { name: "Ana", email: "Ana@x.do", interest: "Sorteo Lector - general", source: "sorteo_lector", consent: true };
+  const negocio = { type: "restaurante", name: "La Casa", contact_name: "Ana", email: "casa@x.do", phone: "+1 809 555 0000", province: "Samaná", details: { cocina: "criolla" } };
+
+  it("registra el sorteo una vez por correo y exige consentimiento y datos válidos", async () => {
+    expect((await post("/leads", lead, "1.1.1.1")).status).toBe(201);
+    const again = await post("/leads", { ...lead, email: "ana@x.do" }, "1.1.1.1");
+    expect(again.status).toBe(200);
+    expect(data(again)).toMatchObject({ duplicate: true });
+    expect((await post("/leads", { ...lead, consent: false }, "1.1.1.1")).status).toBe(422);
+    expect((await post("/leads", { ...lead, email: "no-es-correo" }, "1.1.1.1")).status).toBe(422);
+  });
+
+  it("registra negocios pendientes y valida teléfono y web", async () => {
+    const r = await post("/establishments/register", negocio, "2.2.2.2");
+    expect(r.status).toBe(201);
+    expect(data(r)).toMatchObject({ status: "pending" });
+    expect((await post("/establishments/register", { ...negocio, phone: "abc" }, "2.2.2.2")).status).toBe(422);
+    expect((await post("/establishments/register", { ...negocio, website: "javascript:alert(1)" }, "2.2.2.2")).status).toBe(422);
+  });
+
+  it("frena los envíos masivos desde una misma IP", async () => {
+    for (let i = 0; i < 10; i++) await post("/leads", { ...lead, email: `spam${i}@x.do` }, "9.9.9.9");
+    expect((await post("/leads", { ...lead, email: "spam-final@x.do" }, "9.9.9.9")).status).toBe(429);
+    expect((await post("/leads", { ...lead, email: "otra-ip@x.do" }, "8.8.8.8")).status).toBe(201);
+  });
+
+  it("solo un admin ve y gestiona los datos, sin la huella de IP", async () => {
+    const admin = bearer(await login("admin@x.do", "clave-segura-123"));
+    const list = await call("GET", "/admin/leads", undefined, admin);
+    expect(list.status).toBe(200);
+    expect(JSON.stringify(list.body)).not.toContain("ip_hash");
+    const req = data<{ id: string; details: string }[]>(await call("GET", "/admin/establishment-requests", undefined, admin))[0];
+    expect(JSON.parse(req.details)).toEqual({ cocina: "criolla" });
+    expect(data(await call("PATCH", `/admin/establishment-requests/${req.id}`, { status: "approved" }, admin))).toMatchObject({ status: "approved" });
+
+    await call("POST", "/admin/users", { email: "ed-forms@x.do", password: "clave-editor-123", role: "editor" }, admin);
+    const editor = bearer(await login("ed-forms@x.do", "clave-editor-123"));
+    expect((await call("GET", "/admin/leads", undefined, editor)).status).toBe(403);
+  });
+});

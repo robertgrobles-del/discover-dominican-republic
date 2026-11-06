@@ -481,7 +481,7 @@ export function renderShell(shell: string, m: PageMeta): string {
     .replace(/<div id="root"><\/div>/, `<div id="root">${m.body}</div>`);
 }
 
-const publisher = () => ({ "@type": "Organization", name: SITE_NAME, url: siteUrl(), logo: { "@type": "ImageObject", url: `${siteUrl()}/favicon.ico` } });
+const publisher = () => ({ "@type": "Organization", name: SITE_NAME, url: siteUrl(), logo: { "@type": "ImageObject", url: `${siteUrl()}/icon-512.png`, width: 512, height: 512 } });
 const breadcrumb = (items: [string, string][]) => ({
   "@context": "https://schema.org", "@type": "BreadcrumbList",
   itemListElement: items.map(([name, path], i) => ({ "@type": "ListItem", position: i + 1, name, item: `${siteUrl()}${path}` })),
@@ -640,6 +640,100 @@ async function llmRoute(db: Client, path: string): Promise<ApiResponse | null> {
   return null;
 }
 
+// ---------- formularios públicos de la landing ----------
+// Sorteo (POST /leads) y registro de negocios (POST /establishments/register): mismo contrato que el backend
+// completo, que es lo que ya envían SorteoLectorBanner y RegistroEstablecimientoModal.
+const MAX_FORM_SUBMISSIONS_PER_HOUR = 10;
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const ipHash = (ip: string | undefined, secret: string) => (ip ? createHmac("sha256", secret).update(`ip:${ip}`).digest("hex").slice(0, 32) : null);
+
+async function tooManySubmissions(db: Client, hash: string | null): Promise<boolean> {
+  if (!hash) return false;
+  const since = new Date(Date.now() - 3_600_000).toISOString();
+  const r = await db.execute({
+    sql: `SELECT (SELECT COUNT(*) FROM leads WHERE ip_hash = ? AND created_at > ?)
+               + (SELECT COUNT(*) FROM establishment_requests WHERE ip_hash = ? AND created_at > ?) AS n`,
+    args: [hash, since, hash, since],
+  });
+  return Number(r.rows[0]?.n ?? 0) >= MAX_FORM_SUBMISSIONS_PER_HOUR;
+}
+
+function emailOf(body: Fields): string | Error {
+  const e = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  return EMAIL.test(e) && e.length <= 254 ? e : new Error("Correo electrónico no válido");
+}
+
+async function submitLead(db: Client, body: Fields, hash: string | null): Promise<ApiResponse> {
+  if (body.consent !== true) return err(422, "Debes aceptar recibir comunicaciones para participar");
+  const email = emailOf(body);
+  if (email instanceof Error) return err(422, email.message);
+  const values = collect({
+    name: () => str(body, "name", 120, true),
+    interest: () => str(body, "interest", 200),
+    message: () => str(body, "message", 1000),
+    source: () => str(body, "source", 60) ?? "landing",
+  });
+  if (values instanceof Error) return err(422, values.message);
+  if (await tooManySubmissions(db, hash)) return err(429, "Demasiados envíos. Inténtalo más tarde.");
+  // Un correo participa una vez por formulario; repetir no es un error para quien lo envía.
+  const r = await db.execute({
+    sql: `INSERT INTO leads (id, name, email, interest, message, source, consent, ip_hash) VALUES (?, ?, ?, ?, ?, ?, 1, ?)
+          ON CONFLICT(email, source) DO NOTHING`,
+    args: [randomUUID(), values.name, email, values.interest, values.message, values.source, hash],
+  });
+  return { status: r.rowsAffected ? 201 : 200, body: { data: { registered: true, duplicate: !r.rowsAffected } } };
+}
+
+async function submitEstablishment(db: Client, body: Fields, hash: string | null): Promise<ApiResponse> {
+  const email = emailOf(body);
+  if (email instanceof Error) return err(422, email.message);
+  const values = collect({
+    type: () => { const t = str(body, "type", 40, true); return t instanceof Error || /^[a-z0-9_-]+$/.test(t!) ? t : new Error("Tipo de negocio no válido"); },
+    name: () => str(body, "name", 160, true),
+    contact_name: () => str(body, "contact_name", 120, true),
+    phone: () => { const ph = str(body, "phone", 30, true); return ph instanceof Error || /^[+\d\s().-]{7,30}$/.test(ph!) ? ph : new Error("Teléfono no válido"); },
+    address: () => str(body, "address", 300),
+    province: () => str(body, "province", 80),
+    website: () => url(body, "website"),
+    photo_url: () => url(body, "photo_url"),
+    description: () => str(body, "description", 3000),
+    rnc: () => str(body, "rnc", 20),
+    schedule: () => str(body, "schedule", 200),
+  });
+  if (values instanceof Error) return err(422, values.message);
+  const details = body.details && typeof body.details === "object" ? JSON.stringify(body.details) : null;
+  if (details && details.length > 20_000) return err(422, "Los detalles del negocio son demasiado extensos");
+  if (await tooManySubmissions(db, hash)) return err(429, "Demasiados envíos. Inténtalo más tarde.");
+  const id = randomUUID();
+  const cols = Object.keys(values);
+  await db.execute({
+    sql: `INSERT INTO establishment_requests (id, email, details, ip_hash, ${cols.join(", ")}) VALUES (?, ?, ?, ?, ${cols.map(() => "?").join(", ")})`,
+    args: [id, email, details, hash, ...Object.values(values)],
+  });
+  return { status: 201, body: { data: { id, status: "pending" } } };
+}
+
+/** Panel (solo admin): participantes del sorteo y solicitudes de negocios. Sin ip_hash. */
+async function formsAdmin(db: Client, resource: "leads" | "establishment-requests", method: string, id: string | undefined, body: Fields): Promise<ApiResponse> {
+  const table = resource === "leads" ? "leads" : "establishment_requests";
+  const cols = resource === "leads"
+    ? "id, name, email, interest, message, source, created_at"
+    : "id, type, name, contact_name, email, phone, address, province, website, photo_url, description, rnc, schedule, details, status, created_at, updated_at";
+  if (method === "GET" && !id) return { status: 200, body: { data: (await db.execute(`SELECT ${cols} FROM ${table} ORDER BY created_at DESC LIMIT 2000`)).rows } };
+  if (!id) return err(405, "Método no permitido");
+  if (method === "DELETE") {
+    const r = await db.execute({ sql: `DELETE FROM ${table} WHERE id = ?`, args: [id] });
+    return r.rowsAffected ? { status: 204 } : err(404, "No encontrado");
+  }
+  if (method === "PATCH" && table === "establishment_requests") {
+    const status = oneOf(body, "status", ["pending", "approved", "rejected"], null);
+    if (!status || status instanceof Error) return err(422, "status debe ser pending, approved o rejected");
+    const r = await db.execute({ sql: "UPDATE establishment_requests SET status = ?, updated_at = ? WHERE id = ?", args: [status, now(), id] });
+    return r.rowsAffected ? { status: 200, body: { data: { id, status } } } : err(404, "No encontrado");
+  }
+  return err(405, "Método no permitido");
+}
+
 // ---------- router ----------
 export async function handle(req: ApiRequest, db: Client, secret: string, secureCookies = true, loadShell: ShellLoader = fetchShell): Promise<ApiResponse> {
   const path = req.path.replace(/^\/api\/v1/, "").replace(/\/+$/, "") || "/";
@@ -656,6 +750,9 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   }
   // La landing pide el catálogo de anuncios del backend completo; staging no tiene anuncios.
   if (m === "GET" && path === "/ads/catalog") return { status: 200, body: { data: [] }, headers: PUBLIC_CACHE };
+
+  if (m === "POST" && path === "/leads") return submitLead(db, body, ipHash(req.ip, secret));
+  if (m === "POST" && path === "/establishments/register") return submitEstablishment(db, body, ipHash(req.ip, secret));
 
   if (path === "/auth/login" && m === "POST") {
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
@@ -698,6 +795,12 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   if (users) return roles.includes("admin") ? usersApi(db, m, users[1], body, user) : err(403, "Solo un administrador gestiona usuarios");
 
   if (path === "/admin/media" && m === "POST") return uploadMedia(db, body, user.id);
+
+  const forms = path.match(/^\/admin\/(leads|establishment-requests)(?:\/([A-Za-z0-9-]+))?$/);
+  if (forms) {
+    if (!roles.includes("admin")) return err(403, "Solo un administrador ve los datos de los formularios");
+    return formsAdmin(db, forms[1] as "leads" | "establishment-requests", m, forms[2], body);
+  }
 
   const match = path.match(/^\/admin\/(provinces|news|news-categories)(?:\/([A-Za-z0-9-]+))?$/);
   if (match) return crud(db, match[1].replace("-", "_") as keyof typeof TABLES, m, match[2], body, user.id);
