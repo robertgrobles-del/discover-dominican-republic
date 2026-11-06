@@ -11,7 +11,7 @@ import { motion } from "framer-motion";
 import { useTranslation } from "@/hooks/useI18n";
 import { toast } from "sonner";
 import { fetchApi } from "@/lib/fastifyClient";
-import { PreFooterPresidenteBanner } from "@/components/promo/PreFooterPresidenteBanner";
+import { FullWidthScreenAd } from "@/components/promo/BannerAd";
 import { openPrivacySettings } from "@/lib/privacy-consent";
 import { usePageContent } from "@/lib/pageContent";
 
@@ -123,8 +123,9 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
 
   return (
     <>
-      {/* 250px Full-Width Cerveza Presidente Banner Before Footer */}
-      {!hidePreFooterBanner && <PreFooterPresidenteBanner />}
+      {/* Antes del pie: el espacio publicitario más grande (1920 × 250). Sin campaña contratada muestra
+          «Espacio disponible»; con anuncio en el catálogo (section "pre-footer"), el anuncio. */}
+      {!hidePreFooterBanner && <FullWidthScreenAd section="pre-footer" className="!my-0" />}
 
       <footer className="bg-card border-t border-border" role="contentinfo">
       <div className="container mx-auto px-4 lg:px-8 pt-12 pb-8 lg:pt-14 lg:pb-8">

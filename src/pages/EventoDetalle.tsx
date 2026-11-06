@@ -16,7 +16,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { RegistroEventoModal } from "@/components/forms/RegistroEventoModal";
 import { FreeTicketModal } from "@/components/events/FreeTicketModal";
-import { DetailPageSidebarAd, MobileStickyFooterAd, PreFooterPresidenteBanner } from "@/components/promo";
+import { DetailPageSidebarAd, MobileStickyFooterAd } from "@/components/promo";
+import { FullWidthScreenAd } from "@/components/promo/BannerAd";
 import { useGamification } from "@/hooks/useGamification";
 
 import {
@@ -300,7 +301,7 @@ export default function EventoDetalle() {
 
           {/* Pre-Footer Presidente Banner */}
           <div className="mt-14">
-            <PreFooterPresidenteBanner />
+            <FullWidthScreenAd section="evento-detalle" />
           </div>
         </main>
 
