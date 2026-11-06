@@ -10,7 +10,6 @@ import { formatNewsDate, usePublicNewsList } from "@/lib/stagingContent";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { PageTransition } from "@/components/PageTransition";
 import { SEOHead } from "@/components/SEOHead";
 
@@ -114,44 +113,49 @@ export default function ETicket() {
         <Header />
 
         <main>
-          {/* Portada: texto a la izquierda, la dirección oficial a la derecha */}
+          {/* Portada: texto a la izquierda; foto real con la dirección oficial montada encima */}
           <section className="border-b border-border bg-muted/30">
-            <div className="container mx-auto grid gap-10 px-4 pb-12 pt-24 lg:grid-cols-[1.3fr_1fr] lg:items-end lg:px-8 lg:pt-28">
+            <div className="container mx-auto grid gap-12 px-4 pb-14 pt-24 lg:grid-cols-[1.15fr_1fr] lg:items-center lg:px-8 lg:pt-28">
               <div>
-                <p className="mb-4 border-l-2 border-primary pl-3 text-sm font-semibold text-primary">Guía actualizada · Nuevo portal oficial</p>
-                <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-tight md:text-6xl">E-Ticket de República Dominicana</h1>
-                <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">El formulario digital, obligatorio y gratuito, para entrar y salir del país. Reúne en un solo trámite los datos de Migración y Aduanas.</p>
-                <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3">
+                <p className="mb-4 text-sm italic text-muted-foreground">Guía actualizada · Nuevo portal oficial</p>
+                <h1 className="font-display text-4xl font-bold leading-[1.02] tracking-[-0.03em] [text-wrap:balance] md:text-6xl">E-Ticket de República Dominicana</h1>
+                <p className="mt-5 max-w-[34rem] text-lg leading-relaxed text-muted-foreground [text-wrap:pretty]">El formulario digital, obligatorio y gratuito, para entrar y salir del país. Reúne en un solo trámite los datos de Migración y Aduanas.</p>
+                <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
                   <OfficialSiteButton label="Completar mi e-Ticket gratis" />
-                  <a href="#como-obtenerlo" className="text-sm font-semibold text-foreground underline underline-offset-4 hover:text-primary">Ver cómo se hace</a>
+                  <a href="#como-obtenerlo" className="text-sm font-medium text-foreground underline decoration-primary/40 underline-offset-4 transition-colors hover:decoration-primary">Ver cómo se hace</a>
                 </div>
               </div>
 
-              <aside aria-labelledby="sitio-oficial" className="border-l-4 border-emerald-600 bg-card p-5">
-                <h2 id="sitio-oficial" className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
-                  <ShieldCheck className="h-4 w-4" aria-hidden="true" /><span>Portal oficial</span>
-                </h2>
-                <p className="text-xs text-muted-foreground">Dirección General de Migración</p>
-                <div className="mt-3 flex items-center justify-between gap-3">
-                  <code className="min-w-0 truncate font-mono text-2xl font-bold text-foreground">{OFFICIAL_HOST}</code>
-                  <Button variant="ghost" size="sm" className="shrink-0 gap-1.5" onClick={copyUrl}>
-                    {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
-                    <span>{copied ? "Copiada" : "Copiar"}</span>
-                  </Button>
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">Comprueba que la dirección termine en .gob.do, el dominio del gobierno dominicano.</p>
-                <p className="mt-4 flex flex-wrap gap-x-5 gap-y-1 border-t border-border pt-3 text-sm">
-                  <a href={`tel:+1${PHONE.replace(/-/g, "")}`} className="inline-flex items-center gap-1.5 hover:text-primary"><Phone className="h-3.5 w-3.5" aria-hidden="true" />{PHONE}</a>
-                  <a href={`mailto:${EMAIL}`} className="inline-flex items-center gap-1.5 hover:text-primary"><Mail className="h-3.5 w-3.5" aria-hidden="true" />{EMAIL}</a>
-                </p>
-              </aside>
+              <div className="relative pb-16 lg:pb-10">
+                <figure className="overflow-hidden rounded-sm">
+                  <img src="/images/eticket-punta-cana.jpg" alt="Playa de Punta Cana con palmeras y mar turquesa" width={960} height={720}
+                    className="aspect-[4/3] w-full object-cover" />
+                  <figcaption className="sr-only">Foto: Miltiadis Fragkidis</figcaption>
+                </figure>
+                <span className="absolute right-2 top-2 rounded-sm bg-black/45 px-1.5 py-0.5 text-[10px] text-white/90">Foto: Miltiadis Fragkidis</span>
+
+                <aside aria-labelledby="sitio-oficial" className="absolute -bottom-2 left-4 right-4 rounded-md bg-card p-5 shadow-[0_18px_40px_-18px_hsl(var(--primary)/0.45)] ring-1 ring-border sm:left-8 sm:right-auto sm:w-[22rem] lg:-left-10">
+                  <h2 id="sitio-oficial" className="flex items-center gap-1.5 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                    <ShieldCheck className="h-4 w-4" aria-hidden="true" /><span>Portal oficial</span>
+                  </h2>
+                  <p className="text-xs text-muted-foreground">Dirección General de Migración</p>
+                  <div className="mt-2 flex items-center justify-between gap-3">
+                    <code className="min-w-0 truncate font-mono text-xl font-semibold tracking-tight text-foreground">{OFFICIAL_HOST}</code>
+                    <Button variant="ghost" size="sm" className="shrink-0 gap-1.5 active:scale-[0.97]" onClick={copyUrl}>
+                      {copied ? <Check className="h-4 w-4" aria-hidden="true" /> : <Copy className="h-4 w-4" aria-hidden="true" />}
+                      <span>{copied ? "Copiada" : "Copiar"}</span>
+                    </Button>
+                  </div>
+                  <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">Comprueba que la dirección termine en .gob.do, el dominio del gobierno dominicano.</p>
+                </aside>
+              </div>
             </div>
 
             <dl className="container mx-auto grid grid-cols-2 border-t border-border px-4 lg:grid-cols-4 lg:px-8">
               {keyFacts.map((f, i) => (
                 <div key={f.label} className={`py-5 ${i % 2 ? "pl-5" : ""} ${i > 0 ? "lg:border-l lg:border-border lg:pl-5" : ""} ${i % 2 ? "border-l border-border" : ""}`}>
-                  <dt className="text-xs uppercase tracking-wide text-muted-foreground">{f.label}</dt>
-                  <dd className="mt-1 font-display text-lg font-bold">{f.value}</dd>
+                  <dt className="text-sm text-muted-foreground">{f.label}</dt>
+                  <dd className="mt-0.5 font-display text-lg font-semibold tabular-nums">{f.value}</dd>
                 </div>
               ))}
             </dl>
@@ -167,7 +171,7 @@ export default function ETicket() {
             {/* Qué es + novedades */}
             <section aria-labelledby="que-es" className="grid gap-10 py-14 lg:grid-cols-2">
               <div>
-                <h2 id="que-es" className="font-display text-3xl font-bold">¿Qué es el e-Ticket?</h2>
+                <h2 id="que-es" className="font-display text-3xl font-bold tracking-tight [text-wrap:balance]">¿Qué es el e-Ticket?</h2>
                 <p className="mt-4 leading-relaxed">Es un formulario único que reúne la información que piden la Dirección General de Migración y la Dirección General de Aduanas. Todo pasajero, dominicano o extranjero, debe completarlo para entrar o salir del país.</p>
                 <p className="mt-3 leading-relaxed text-muted-foreground">Sustituyó a los antiguos formularios en papel: está en vigor desde abril de 2021 y es obligatorio desde septiembre de 2021. Se basa en las leyes 285-04, 115-17, 72-02 y 226-06.</p>
               </div>
@@ -187,7 +191,7 @@ export default function ETicket() {
             {/* Pasos y lo que hay que tener a mano */}
             <section id="como-obtenerlo" aria-labelledby="titulo-pasos" className="grid scroll-mt-24 gap-12 border-t border-border py-14 lg:grid-cols-[1.5fr_1fr]">
               <div>
-                <h2 id="titulo-pasos" className="font-display text-3xl font-bold">Cómo obtenerlo en 5 pasos</h2>
+                <h2 id="titulo-pasos" className="font-display text-3xl font-bold tracking-tight [text-wrap:balance]">Cómo obtenerlo en 5 pasos</h2>
                 <p className="mt-2 text-muted-foreground">Se completa en línea, desde el celular o la computadora.</p>
                 <ol className="mt-8">
                   {steps.map((s, i) => (
@@ -218,7 +222,7 @@ export default function ETicket() {
 
             {/* Lo que debes saber */}
             <section aria-labelledby="debes-saber" className="border-t border-border py-14">
-              <h2 id="debes-saber" className="font-display text-3xl font-bold">Lo que debes saber</h2>
+              <h2 id="debes-saber" className="font-display text-3xl font-bold tracking-tight [text-wrap:balance]">Lo que debes saber</h2>
               <div className="mt-8 grid gap-x-12 gap-y-8 md:grid-cols-2">
                 {facts.map((f) => (
                   <article key={f.title}>
@@ -255,17 +259,17 @@ export default function ETicket() {
             <section aria-labelledby="titulo-faq" className="border-t border-border py-14">
               <div className="grid gap-8 lg:grid-cols-[1fr_2fr]">
                 <div>
-                  <h2 id="titulo-faq" className="font-display text-3xl font-bold">Preguntas frecuentes</h2>
+                  <h2 id="titulo-faq" className="font-display text-3xl font-bold tracking-tight [text-wrap:balance]">Preguntas frecuentes</h2>
                   <p className="mt-3 text-sm text-muted-foreground">Información revisada en noviembre de 2026. Confirma siempre los detalles en el portal oficial.</p>
                 </div>
-                <Accordion type="single" collapsible className="border-t border-border">
-                  {ETICKET_FAQS.map((f, i) => (
-                    <AccordionItem key={f.question} value={`faq-${i}`} className="border-b border-border">
-                      <AccordionTrigger className="text-left font-display text-base font-bold hover:no-underline md:text-lg">{f.question}</AccordionTrigger>
-                      <AccordionContent className="text-muted-foreground">{f.answer}</AccordionContent>
-                    </AccordionItem>
+                <dl className="divide-y divide-border border-y border-border">
+                  {ETICKET_FAQS.map((f) => (
+                    <div key={f.question} className="grid gap-1 py-5 md:grid-cols-[minmax(0,15rem)_1fr] md:gap-8">
+                      <dt className="font-display font-semibold [text-wrap:balance]">{f.question}</dt>
+                      <dd className="text-sm leading-relaxed text-muted-foreground [text-wrap:pretty]">{f.answer}</dd>
+                    </div>
                   ))}
-                </Accordion>
+                </dl>
               </div>
             </section>
 
@@ -273,7 +277,7 @@ export default function ETicket() {
             {related.length > 0 && (
               <section aria-labelledby="noticias-eticket" className="border-t border-border py-14">
                 <div className="flex items-end justify-between gap-4">
-                  <h2 id="noticias-eticket" className="font-display text-3xl font-bold">Noticias sobre el e-Ticket</h2>
+                  <h2 id="noticias-eticket" className="font-display text-3xl font-bold tracking-tight [text-wrap:balance]">Noticias sobre el e-Ticket</h2>
                   <Link to="/noticias" className="text-sm font-semibold text-primary hover:underline">Ver todas las noticias</Link>
                 </div>
                 <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

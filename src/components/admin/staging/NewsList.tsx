@@ -6,6 +6,8 @@ import { fetchApi } from "@/lib/fastifyClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { POST_TYPE_LABEL, type PostType } from "@/lib/stagingContent";
+import { analyzeSeo, splitKeywords } from "@/lib/seoAnalysis";
+import { SeoScore } from "./SeoAnalysisBox";
 
 type Row = Record<string, unknown> & { id: string };
 type View = "all" | "published" | "scheduled" | "draft";
@@ -23,6 +25,11 @@ const fmt = (iso: unknown) => {
   return `${d.toLocaleDateString("es-DO", { day: "2-digit", month: "2-digit", year: "numeric" })} a las ${d.toLocaleTimeString("es-DO", { hour: "2-digit", minute: "2-digit", hour12: false })}`;
 };
 const monthKey = (iso: unknown) => (typeof iso === "string" ? iso.slice(0, 7) : "");
+const s = (v: unknown) => (v == null ? "" : String(v));
+const seoOf = (r: Row) => analyzeSeo({
+  keywords: splitKeywords(s(r.focus_keywords)), title: s(r.title), seoTitle: s(r.seo_title), seoDescription: s(r.seo_description),
+  slug: s(r.slug), excerpt: s(r.excerpt), body: s(r.body), imageAlt: s(r.image_alt), hasImage: Boolean(r.cover_url),
+}).score;
 const select = "h-9 rounded border border-input bg-background px-2 text-sm";
 
 export function NewsList({ rows, onNew, onEdit, onDelete, busy }: {
@@ -147,7 +154,7 @@ export function NewsList({ rows, onNew, onEdit, onDelete, busy }: {
       </div>
 
       <div className="overflow-x-auto rounded border border-border bg-card">
-        <table className="w-full min-w-[820px] text-sm">
+        <table className="w-full min-w-[900px] text-sm">
           <thead className="border-b border-border text-left">
             <tr>
               <th className="w-10 p-3"><input type="checkbox" aria-label="Seleccionar todas" className="h-4 w-4" checked={allChecked}
@@ -157,11 +164,12 @@ export function NewsList({ rows, onNew, onEdit, onDelete, busy }: {
               <th className="p-3 font-normal">Categorías</th>
               <th className="p-3 font-normal">Tipo</th>
               <th className="p-3 font-normal">{sortBtn("date", "Fecha")}</th>
+              <th className="p-3 font-normal">SEO</th>
             </tr>
           </thead>
           <tbody>
             {shown.length === 0 ? (
-              <tr><td colSpan={6} className="p-6 text-muted-foreground">No se encontraron entradas.</td></tr>
+              <tr><td colSpan={7} className="p-6 text-muted-foreground">No se encontraron entradas.</td></tr>
             ) : shown.map((r, i) => {
               const state = viewOf(r);
               const type = (r.post_type ?? "noticia") as PostType;
@@ -188,6 +196,7 @@ export function NewsList({ rows, onNew, onEdit, onDelete, busy }: {
                     <span className="block text-foreground">{STATE_LABEL[state]}</span>
                     {fmt(state === "draft" ? r.updated_at ?? r.created_at : r.published_at)}
                   </td>
+                  <td className="p-3"><SeoScore score={seoOf(r)} /></td>
                 </tr>
               );
             })}

@@ -172,6 +172,7 @@ const newsSpec = (b: Fields) => ({
   status: () => oneOf(b, "status", STATUSES, "draft"),
   post_type: () => oneOf(b, "post_type", POST_TYPES, "noticia"),
   sponsor: () => str(b, "sponsor", 120),
+  focus_keywords: () => str(b, "focus_keywords", 200),
 });
 
 // ---------- usuarios ----------

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { ArrowLeft, CalendarDays, Eye, Languages, Loader2, Pin, Sparkles, X } from "lucide-react";
 import { fetchApi } from "@/lib/fastifyClient";
 import { POST_TYPE_LABEL, type PostType } from "@/lib/stagingContent";
+import { SeoAnalysisBox } from "./SeoAnalysisBox";
 import { HttpError } from "@/lib/httpClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,7 +60,7 @@ export function NewsEditor({ row, onClose, onNew }: { row: Row | "new"; onClose:
     return {
       title: get("title"), slug: get("slug"), excerpt: get("excerpt"), body: get("body"), cover_url: get("cover_url"),
       image_alt: get("image_alt"), image_credit: get("image_credit"), category_id: get("category_id"), province_id: get("province_id"),
-      author: get("author"), source_url: get("source_url"), post_type: get("post_type") || "noticia", sponsor: get("sponsor"), seo_title: get("seo_title"), seo_description: get("seo_description"),
+      author: get("author"), source_url: get("source_url"), post_type: get("post_type") || "noticia", sponsor: get("sponsor"), focus_keywords: get("focus_keywords"), seo_title: get("seo_title"), seo_description: get("seo_description"),
       featured: r.featured === 1 || r.featured === true ? "1" : "", status: get("status") || "draft", published_at: toLocalInput(r.published_at),
     };
   });
@@ -231,6 +232,12 @@ export function NewsEditor({ row, onClose, onNew }: { row: Row | "new"; onClose:
               </div>
             ))}
           </Box>
+
+          <SeoAnalysisBox
+            value={base.focus_keywords} onChange={(v) => setField("focus_keywords", v)}
+            input={{ title: base.title, seoTitle: base.seo_title, seoDescription: base.seo_description, slug: base.slug,
+              excerpt: base.excerpt, body: base.body, imageAlt: base.image_alt, hasImage: Boolean(base.cover_url) }}
+          />
         </div>
 
         {/* Columna lateral */}
