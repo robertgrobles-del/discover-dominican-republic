@@ -94,6 +94,7 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
     corporativo: {
       title: t("footer.corporate"),
       links: [
+        { name: "Contacto", href: "/contacto" },
         { name: t("footer.aboutUs"), href: "/sobre-nosotros" },
         { name: "Planes para Empresas", href: "/para-empresas" },
         { name: "Portal de Partners B2B", href: "/partners" },
@@ -285,6 +286,7 @@ export function Footer({ hidePreFooterBanner = false }: FooterProps = {}) {
           <div className="flex flex-wrap items-center gap-6">
             <Link to="/privacidad" className="hover:text-primary transition-colors">{t("footer.privacy")}</Link>
             <Link to="/terminos" className="hover:text-primary transition-colors">{t("footer.terms")}</Link>
+            <Link to="/contacto" className="hover:text-primary transition-colors">Contacto</Link>
             <Link to="/sitemap" className="hover:text-primary transition-colors">{pc.tx("Link.1", "Mapa del Sitio")}</Link>
             <button type="button" onClick={openPrivacySettings} className="hover:text-primary transition-colors underline-offset-4 hover:underline">{pc.tx("button.1", "Configuración de privacidad")}</button>
           </div>

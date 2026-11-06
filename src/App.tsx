@@ -31,11 +31,12 @@ const Eventos = lazy(() => import("./pages/Eventos"));
 const EventoDetalle = lazy(() => import("./pages/EventoDetalle"));
 const RequisitosViaje = lazy(() => import("./pages/RequisitosViaje"));
 const ETicket = lazy(() => import("./pages/ETicket"));
+const Contacto = lazy(() => import("./pages/staging/Contacto"));
 const Privacidad = lazy(() => import("./pages/staging/Privacidad"));
 const Terminos = lazy(() => import("./pages/staging/Terminos"));
 
 /** Páginas públicas que existen en staging: la landing, noticias, eventos y requisitos de viaje. */
-const PUBLISHED = ["/noticias", "/eventos", "/evento", "/requisitos-viaje", "/e-ticket", "/privacidad", "/terminos"];
+const PUBLISHED = ["/noticias", "/eventos", "/evento", "/requisitos-viaje", "/e-ticket", "/privacidad", "/terminos", "/contacto"];
 const isPublishedPath = (path: string) => path === "/" || PUBLISHED.some((p) => path === p || path.startsWith(`${p}/`));
 
 /**
@@ -142,6 +143,7 @@ function AnimatedRoutes() {
             <Route path="/evento/:slug" element={<EventoDetalle />} />
             <Route path="/requisitos-viaje" element={<RequisitosViaje />} />
             <Route path="/e-ticket" element={<ETicket />} />
+            <Route path="/contacto" element={<Contacto />} />
             <Route path="/privacidad" element={<Privacidad />} />
             <Route path="/terminos" element={<Terminos />} />
             <Route path="/noticias" element={<NoticiasLista />} />

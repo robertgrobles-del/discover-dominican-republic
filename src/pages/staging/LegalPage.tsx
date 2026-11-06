@@ -10,7 +10,7 @@ import { SEOHead } from "@/components/SEOHead";
 export const LEGAL = {
   owner: "Descubre RD",
   site: "www.descubrerepdom.com",
-  email: "contacto@descubrerepdom.com",
+  email: "descubrerepublicadominicana@gmail.com",
   updated: "2026-11-06",
 };
 

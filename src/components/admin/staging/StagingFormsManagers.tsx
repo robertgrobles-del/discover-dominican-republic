@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 const apiMessage = (e: unknown) => (e instanceof HttpError ? (e.details as { error?: { message?: string } } | null)?.error?.message : null) ?? (e instanceof Error ? e.message : "Error");
 const fecha = (iso: string) => new Date(iso).toLocaleString("es-DO", { dateStyle: "medium", timeStyle: "short" });
 
-function useResource<T extends { id: string }>(resource: "leads" | "establishment-requests") {
+function useResource<T extends { id: string }>(resource: "leads" | "establishment-requests" | "contact-messages") {
   const qc = useQueryClient();
   const queryKey = ["staging", resource];
   const query = useQuery({ queryKey, queryFn: async () => (await fetchApi<{ data: T[] }>(`/admin/${resource}`)).data });
@@ -184,6 +184,40 @@ export function StagingEstablishmentRequestsManager() {
                   </div>
                 </div>
               </details>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+interface ContactMessage { id: string; name: string; email: string; subject: string | null; message: string; created_at: string }
+
+/** Mensajes del formulario de /contacto: se leen aquí y se responden por correo. */
+export function StagingContactMessagesManager() {
+  const { data: rows = [], isLoading, error, remove } = useResource<ContactMessage>("contact-messages");
+  return (
+    <section className="space-y-4">
+      <h2 className="text-lg font-semibold">Mensajes de contacto <span className="text-sm font-normal text-muted-foreground">({rows.length})</span></h2>
+      {isLoading ? <Loader2 className="h-6 w-6 animate-spin text-primary" /> : error ? (
+        <p role="alert" className="text-sm text-destructive">No se pudo cargar: {apiMessage(error)}</p>
+      ) : !rows.length ? (
+        <p className="rounded-md border border-dashed border-border p-10 text-center text-sm text-muted-foreground">Todavía no hay mensajes.</p>
+      ) : (
+        <ul className="divide-y divide-border rounded-md border border-border bg-card">
+          {rows.map((r) => (
+            <li key={r.id} className="p-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <p className="font-medium">{r.subject ?? "Sin asunto"} <span className="font-normal text-muted-foreground">· {r.name}</span></p>
+                <span className="text-xs text-muted-foreground">{fecha(r.created_at)}</span>
+              </div>
+              <p className="mt-2 whitespace-pre-line text-sm">{r.message}</p>
+              <div className="mt-3 flex gap-2">
+                <Button size="sm" asChild><a href={`mailto:${r.email}?subject=${encodeURIComponent(`Re: ${r.subject ?? "Tu mensaje a Descubre RD"}`)}`}>Responder a {r.email}</a></Button>
+                <Button size="sm" variant="ghost" aria-label={`Eliminar mensaje de ${r.name}`} disabled={remove.isPending}
+                  onClick={() => { if (window.confirm("¿Eliminar este mensaje?")) remove.mutate(r.id); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+              </div>
             </li>
           ))}
         </ul>

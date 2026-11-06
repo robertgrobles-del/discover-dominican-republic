@@ -30,7 +30,7 @@ export const queryClient = new QueryClient({
  * como un 404: cada pantalla ya trata ese fallo usando su contenido local, y la landing se ahorra ~12 peticiones
  * en la cadena crítica (datasets, clima, gamificación, favoritos, carrito…).
  */
-const STAGING_API = /^\/(auth\/|public\/|admin\/(provinces|news|news-categories|users|media|leads|establishment-requests)\b|ads\/catalog\b|media\/|leads$|establishments\/register$)/;
+const STAGING_API = /^\/(auth\/|public\/|admin\/(provinces|news|news-categories|users|media|leads|establishment-requests|contact-messages)\b|ads\/catalog\b|media\/|leads$|contact$|establishments\/register$)/;
 
 export async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   if (import.meta.env.VITE_STAGING_API === "true" && !endpoint.startsWith("http") && !STAGING_API.test(endpoint.startsWith("/") ? endpoint : `/${endpoint}`)) {

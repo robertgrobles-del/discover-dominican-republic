@@ -18,11 +18,11 @@ import { Navigate, Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { adminDashboardApi } from "@/lib/adminDashboardApi";
 import { StagingNewsCategoriesManager, StagingNewsManager, StagingProvincesManager } from "@/components/admin/staging/StagingCrudManager";
-import { StagingEstablishmentRequestsManager, StagingLeadsManager } from "@/components/admin/staging/StagingFormsManagers";
+import { StagingContactMessagesManager, StagingEstablishmentRequestsManager, StagingLeadsManager } from "@/components/admin/staging/StagingFormsManagers";
 import { MediaLibrary } from "@/components/admin/staging/MediaLibrary";
 import { StagingUsersManager } from "@/components/admin/staging/StagingUsersManager";
 import { StagingDashboard } from "@/components/admin/staging/StagingDashboard";
-import { Shield, Loader2, Search, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun, Image as ImageIcon, LayoutDashboard } from "lucide-react";
+import { Shield, Loader2, Search, Menu, X, ChevronRight, ExternalLink, LogOut, MapPin, Newspaper, Users, Tags, Gift, Building2, Moon, Sun, Image as ImageIcon, LayoutDashboard, Mail } from "lucide-react";
 
 type TabCategory = "erp" | "crm" | "cms" | "system";
 
@@ -101,6 +101,7 @@ const ADMIN_TABS: AdminTab[] = [
   { value: "categorias-noticias", label: "Categorías de noticias", category: "cms", capability: "staging.panel", allowRoles: ["admin", "editor"], icon: Tags, iconClass: "text-amber-500", render: () => <StagingNewsCategoriesManager /> },
   { value: "sorteo", label: "Sorteo y boletín", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Gift, iconClass: "text-pink-500", render: () => <StagingLeadsManager /> },
   { value: "solicitudes-negocios", label: "Solicitudes de negocios", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Building2, iconClass: "text-orange-500", render: () => <StagingEstablishmentRequestsManager /> },
+  { value: "mensajes", label: "Mensajes de contacto", category: "crm", capability: "staging.panel", allowRoles: ["admin"], icon: Mail, iconClass: "text-violet-500", render: () => <StagingContactMessagesManager /> },
   { value: "usuarios", label: "Usuarios", category: "system", capability: "staging.panel", allowRoles: ["admin"], icon: Users, iconClass: "text-sky-500", render: () => <StagingUsersManager /> },
 ];
 

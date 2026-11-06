@@ -440,3 +440,14 @@ describe("ficha de provincia", () => {
     expect((await call("POST", "/admin/provinces", { slug: "f3", name: "F", region: "este", gallery: "{no" }, auth)).status).toBe(422);
   });
 });
+
+describe("formulario de contacto", () => {
+  it("guarda cada mensaje y solo el admin los ve", async () => {
+    const msg = { name: "Ana", email: "ana@x.do", subject: "Hola", message: "Quiero anunciar mi hotel" };
+    expect((await call("POST", "/contact", msg)).status).toBe(201);
+    expect((await call("POST", "/contact", msg)).status).toBe(201);
+    expect((await call("POST", "/contact", { ...msg, message: "corto" })).status).toBe(422);
+    const admin = bearer(await login("admin@x.do", "clave-segura-123"));
+    expect(data<unknown[]>(await call("GET", "/admin/contact-messages", undefined, admin))).toHaveLength(2);
+  });
+});

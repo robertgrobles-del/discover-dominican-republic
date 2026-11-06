@@ -631,7 +631,7 @@ function sitemap(rows: NewsRow[]): string {
     `<url><loc>${xmlEsc(`${siteUrl()}${loc}`)}</loc>${lastmod ? `<lastmod>${xmlEsc(lastmod)}</lastmod>` : ""}${extra}</url>`;
   const newest = rows.map((r) => r.updated_at).sort().at(-1);
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">`
-    + url("/") + url("/noticias", newest) + url("/eventos") + url("/requisitos-viaje") + url("/e-ticket") + url("/privacidad") + url("/terminos")
+    + url("/") + url("/noticias", newest) + url("/eventos") + url("/requisitos-viaje") + url("/e-ticket") + url("/privacidad") + url("/terminos") + url("/contacto")
     + rows.map((n) => url(`/noticias/${n.slug}`, n.updated_at || n.published_at,
       n.cover_url ? `<image:image><image:loc>${xmlEsc(absolute(n.cover_url))}</image:loc></image:image>` : "")).join("")
     + "</urlset>";
@@ -783,8 +783,9 @@ async function tooManySubmissions(db: Client, hash: string | null): Promise<bool
   const since = new Date(Date.now() - 3_600_000).toISOString();
   const r = await db.execute({
     sql: `SELECT (SELECT COUNT(*) FROM leads WHERE ip_hash = ? AND created_at > ?)
-               + (SELECT COUNT(*) FROM establishment_requests WHERE ip_hash = ? AND created_at > ?) AS n`,
-    args: [hash, since, hash, since],
+               + (SELECT COUNT(*) FROM establishment_requests WHERE ip_hash = ? AND created_at > ?)
+               + (SELECT COUNT(*) FROM contact_messages WHERE ip_hash = ? AND created_at > ?) AS n`,
+    args: [hash, since, hash, since, hash, since],
   });
   return Number(r.rows[0]?.n ?? 0) >= MAX_FORM_SUBMISSIONS_PER_HOUR;
 }
@@ -814,6 +815,23 @@ async function submitLead(db: Client, body: Fields, hash: string | null): Promis
     args: [randomUUID(), values.name, email, values.interest, values.message, values.source, hash],
   });
   return { status: r.rowsAffected ? 201 : 200, body: { data: { registered: true, duplicate: !r.rowsAffected } } };
+}
+
+async function submitContact(db: Client, body: Fields, hash: string | null): Promise<ApiResponse> {
+  const email = emailOf(body);
+  if (email instanceof Error) return err(422, email.message);
+  const values = collect({
+    name: () => str(body, "name", 120, true),
+    subject: () => str(body, "subject", 160),
+    message: () => { const m = str(body, "message", 3000, true); return m instanceof Error || (m && m.length >= 10) ? m : new Error("Escribe un mensaje de al menos 10 caracteres"); },
+  });
+  if (values instanceof Error) return err(422, values.message);
+  if (await tooManySubmissions(db, hash)) return err(429, "Demasiados envíos. Inténtalo más tarde.");
+  await db.execute({
+    sql: "INSERT INTO contact_messages (id, name, email, subject, message, ip_hash) VALUES (?, ?, ?, ?, ?, ?)",
+    args: [randomUUID(), values.name, email, values.subject, values.message, hash],
+  });
+  return { status: 201, body: { data: { received: true } } };
 }
 
 async function submitEstablishment(db: Client, body: Fields, hash: string | null): Promise<ApiResponse> {
@@ -846,10 +864,12 @@ async function submitEstablishment(db: Client, body: Fields, hash: string | null
 }
 
 /** Panel (solo admin): participantes del sorteo y solicitudes de negocios. Sin ip_hash. */
-async function formsAdmin(db: Client, resource: "leads" | "establishment-requests", method: string, id: string | undefined, body: Fields): Promise<ApiResponse> {
-  const table = resource === "leads" ? "leads" : "establishment_requests";
+type FormResource = "leads" | "establishment-requests" | "contact-messages";
+async function formsAdmin(db: Client, resource: FormResource, method: string, id: string | undefined, body: Fields): Promise<ApiResponse> {
+  const table = resource.replace("-", "_");
   const cols = resource === "leads"
     ? "id, name, email, interest, message, source, created_at"
+    : resource === "contact-messages" ? "id, name, email, subject, message, created_at"
     : "id, type, name, contact_name, email, phone, address, province, website, photo_url, description, rnc, schedule, details, status, created_at, updated_at";
   if (method === "GET" && !id) return { status: 200, body: { data: (await db.execute(`SELECT ${cols} FROM ${table} ORDER BY created_at DESC LIMIT 2000`)).rows } };
   if (!id) return err(405, "Método no permitido");
@@ -1072,6 +1092,7 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   if (m === "GET" && path === "/ads/catalog") return { status: 200, body: { data: [] }, headers: PUBLIC_CACHE };
 
   if (m === "POST" && path === "/leads") return submitLead(db, body, ipHash(req.ip, secret));
+  if (m === "POST" && path === "/contact") return submitContact(db, body, ipHash(req.ip, secret));
   if (m === "POST" && path === "/establishments/register") return submitEstablishment(db, body, ipHash(req.ip, secret));
 
   if (path === "/auth/login" && m === "POST") {
@@ -1126,10 +1147,10 @@ export async function handle(req: ApiRequest, db: Client, secret: string, secure
   const tr = path.match(/^\/admin\/translations\/(news|provinces|news_categories)\/([A-Za-z0-9-]+)(?:\/([a-z]{2}))?$/);
   if (tr) return translationsAdmin(db, m, tr[1], tr[2], tr[3], body, user.id);
 
-  const forms = path.match(/^\/admin\/(leads|establishment-requests)(?:\/([A-Za-z0-9-]+))?$/);
+  const forms = path.match(/^\/admin\/(leads|establishment-requests|contact-messages)(?:\/([A-Za-z0-9-]+))?$/);
   if (forms) {
     if (!roles.includes("admin")) return err(403, "Solo un administrador ve los datos de los formularios");
-    return formsAdmin(db, forms[1] as "leads" | "establishment-requests", m, forms[2], body);
+    return formsAdmin(db, forms[1] as FormResource, m, forms[2], body);
   }
 
   const match = path.match(/^\/admin\/(provinces|news|news-categories)(?:\/([A-Za-z0-9-]+))?$/);
