@@ -26,9 +26,15 @@ const Login = lazy(() => import("./pages/Login"));
 const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const NoticiasLista = lazy(() => import("./pages/staging/NoticiasLista"));
 const NoticiaDetalle = lazy(() => import("./pages/staging/NoticiaDetalle"));
+// Traídas del portal completo: funcionan con los datos del propio código, sin backend.
+const Eventos = lazy(() => import("./pages/Eventos"));
+const EventoDetalle = lazy(() => import("./pages/EventoDetalle"));
+const RequisitosViaje = lazy(() => import("./pages/RequisitosViaje"));
+const ETicket = lazy(() => import("./pages/ETicket"));
 
-/** Páginas públicas que existen en staging: la landing y las noticias. */
-const isPublishedPath = (path: string) => path === "/" || path === "/noticias" || path.startsWith("/noticias/");
+/** Páginas públicas que existen en staging: la landing, noticias, eventos y requisitos de viaje. */
+const PUBLISHED = ["/noticias", "/eventos", "/evento", "/requisitos-viaje", "/e-ticket"];
+const isPublishedPath = (path: string) => path === "/" || PUBLISHED.some((p) => path === p || path.startsWith(`${p}/`));
 
 /**
  * Staging solo publica la landing y las noticias: los enlaces internos a otras secciones no navegan.
@@ -114,6 +120,10 @@ function AnimatedRoutes() {
             {/* Homepage */}
             <Route path="/" element={<Index />} />
 
+            <Route path="/eventos" element={<Eventos />} />
+            <Route path="/evento/:slug" element={<EventoDetalle />} />
+            <Route path="/requisitos-viaje" element={<RequisitosViaje />} />
+            <Route path="/e-ticket" element={<ETicket />} />
             <Route path="/noticias" element={<NoticiasLista />} />
             <Route path="/noticias/:slug" element={<NoticiaDetalle />} />
             <Route path="/login" element={<Login />} />

@@ -769,7 +769,7 @@ body.font-dyslexic a {
 img[src=""] { display: none; }
 
 /* Rama staging: los enlaces a secciones no publicadas no navegan (ver DisableUnpublishedLinks en App.tsx) */
-.staging-links-off a[href]:not([href="/"]):not([href="/noticias"]):not([href^="/noticias/"]) { cursor: default; }
+.staging-links-off a[href]:not([href="/"]):not([href^="/noticias"]):not([href^="/evento"]):not([href^="/requisitos-viaje"]):not([href^="/e-ticket"]) { cursor: default; }
 .staging-links-off article a[href^="http"] { cursor: pointer; }
 
 /* Editor visual de noticias (TipTap): mismo aspecto que NewsBody en la noticia publicada */
