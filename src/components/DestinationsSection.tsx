@@ -15,8 +15,10 @@ import santoDomingoImg from "@/assets/santo-domingo.jpg";
 import samanaImg from "@/assets/samana.jpg";
 import puertoPlataImg from "@/assets/puerto-plata.jpg";
 import laRomanaImg from "@/assets/la-romana.jpg";
-import divingImg from "@/assets/diving.jpg";
-import raftingImg from "@/assets/rafting.jpg";
+import bayahibeImg from "@/assets/bayahibe.jpg";
+import jarabacoaImg from "@/assets/jarabacoa.jpg";
+import lasTerrenasImg from "@/assets/las-terrenas.jpg";
+import hardRockImg from "@/assets/hard-rock-punta-cana.jpg";
 import { AdSlotTag } from "@/components/promo/AdSlotTag";
 import { useTrackedBanner } from "@/hooks/useAdBanners";
 import { usePublicProvinces } from "@/lib/stagingContent";
@@ -25,10 +27,11 @@ const staticDestinations = [
   { id: "punta-cana", name: "Punta Cana", description: "Playas de arena blanca y aguas cristalinas con resorts de clase mundial.", image: puntaCanaImg },
   { id: "santo-domingo", name: "Santo Domingo", description: "La ciudad colonial más antigua de América, rica en historia y cultura.", image: santoDomingoImg },
   { id: "samana", name: "Samaná", description: "Naturaleza virgen, ballenas jorobadas y cascadas impresionantes.", image: samanaImg },
+  { id: "las-terrenas", name: "Las Terrenas", description: "Playa Bonita, Cosón y Punta Popy: Caribe con aire bohemio europeo.", image: lasTerrenasImg },
   { id: "puerto-plata", name: "Puerto Plata", description: "La Costa del Ámbar con teleférico, playas doradas y 27 Charcos.", image: puertoPlataImg },
   { id: "la-romana", name: "La Romana", description: "Casa de Campo, Altos de Chavón y playas exclusivas del sureste.", image: laRomanaImg },
-  { id: "jarabacoa", name: "Jarabacoa", description: "La ciudad de la eterna primavera, rafting, montañas y aventura.", image: raftingImg },
-  { id: "bayahibe", name: "Bayahíbe", description: "Pueblo pesquero con las mejores playas e islas vírgenes del Caribe.", image: divingImg },
+  { id: "jarabacoa", name: "Jarabacoa", description: "La ciudad de la eterna primavera, rafting, montañas y aventura.", image: jarabacoaImg },
+  { id: "bayahibe", name: "Bayahíbe", description: "Pueblo pesquero con las mejores playas e islas vírgenes del Caribe.", image: bayahibeImg },
 ];
 
 const localImageMap: Record<string, string> = {
@@ -37,8 +40,9 @@ const localImageMap: Record<string, string> = {
   "samana": samanaImg,
   "puerto-plata": puertoPlataImg,
   "la-romana": laRomanaImg,
-  "jarabacoa": raftingImg,
-  "bayahibe": divingImg,
+  "jarabacoa": jarabacoaImg,
+  "bayahibe": bayahibeImg,
+  "las-terrenas": lasTerrenasImg,
 };
 
 interface DisplayDestination {
@@ -96,7 +100,7 @@ export function DestinationsSection() {
             id: d.slug || d.id,
             name: d.name,
             description: d.short_description || "",
-            image: d.image_url || puntaCanaImg,
+            image: localImageMap[d.slug || ""] || d.image_url || puntaCanaImg,
           }));
 
         // Update static entries with DB data (e.g. descriptions)
@@ -175,7 +179,7 @@ export function DestinationsSection() {
                     <div className="group relative aspect-[3/4] rounded-xl overflow-hidden border-2 border-amber-500/50 shadow-xl">
                       <Link to={ad?.target_url || "/alojamientos"} onClick={trackAdClick} className="block h-full">
                         <img
-                          src={ad?.image_url || "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=80"}
+                          src={ad?.image_url || hardRockImg}
                           alt={ad?.alt_text || ad?.name || "Hard Rock Hotel Punta Cana Publicidad"}
                           className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
