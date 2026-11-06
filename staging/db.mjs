@@ -33,8 +33,9 @@ async function migrate(db) {
   const files = readdirSync(here("./migrations")).filter((f) => f.endsWith(".sql")).sort();
   const applied = [];
   for (const file of files.filter((f) => !done.has(f))) {
-    const sql = readFileSync(here(`./migrations/${file}`), "utf8").replace(/^\s*--.*$/gm, "");
-    // shortcut: separa por ";" al final de línea; vale mientras las migraciones no lleven ";" dentro de textos.
+    const sql = readFileSync(here(`./migrations/${file}`), "utf8").replace(/--.*$/gm, "");
+    // shortcut: quita comentarios "--" (también al final de línea) y separa por ";" al final de línea; vale mientras
+    // las migraciones no lleven "--" ni ";" dentro de textos.
     const statements = sql.split(/;\s*$/m).map((s) => s.trim()).filter(Boolean);
     await db.batch([...statements, { sql: "INSERT INTO schema_migrations (name) VALUES (?)", args: [file] }], "write");
     applied.push(file);
